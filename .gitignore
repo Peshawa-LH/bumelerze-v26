@@ -1,0 +1,42 @@
+# Node / Expo (ready for Phase 1 scaffold)
+node_modules/
+.expo/
+.expo-shared/
+dist/
+web-build/
+*.tsbuildinfo
+.metro-health-check*
+
+# Native build output
+ios/build/
+android/build/
+android/app/build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+google-services.json
+GoogleService-Info.plist
+
+# EAS
+.easignore
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local-only
+docs/settings.local.json
+docs/*.local.md
+
+# Logs
+npm-debug.log*
+yarn-error.log*
