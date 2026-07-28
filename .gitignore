@@ -40,3 +40,6 @@ docs/*.local.md
 # Logs
 npm-debug.log*
 yarn-error.log*
+
+# temp bin for bridge-session cleanups (delete freely)
+_to_delete/
