@@ -9,7 +9,38 @@
   },
   "home": {
     "title": "Home",
-    "emptyState": "No earthquake feed yet — this screen will show the latest events near you."
+    "emptyState": "No earthquakes reported in your region recently."
+  },
+  "events": {
+    "provenance": {
+      "usgs": "USGS"
+    },
+    "relativeTime": {
+      "justNow": "Just now",
+      "minutes": "{{count}}m ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago"
+    },
+    "distanceFromAnchor": "{{distance}} from {{anchor}}",
+    "anchors": {
+      "erbil": "Erbil",
+      "slemani": "Slemani",
+      "duhok": "Duhok"
+    },
+    "magnitudeA11yLabel": "Magnitude {{value}}",
+    "offlineBanner": "You're offline — showing events from {{time}}",
+    "errorTitle": "Couldn't load the latest events",
+    "retry": "Retry",
+    "viewWorld": "World",
+    "viewSignificant": "Significant"
+  },
+  "world": {
+    "title": "World Catalog",
+    "emptyState": "No world events right now."
+  },
+  "significant": {
+    "title": "Significant Events",
+    "emptyState": "No significant events right now."
   },
   "map": {
     "title": "Map",
@@ -38,6 +69,18 @@
   },
   "eventDetail": {
     "title": "Event detail",
-    "emptyState": "Event details for {{id}} will appear here in a later phase."
+    "loading": "Loading event…",
+    "notFoundTitle": "Event not found",
+    "notFoundDescription": "We couldn't find event {{id}}. It may be too old, or the link may be incorrect.",
+    "timeSectionTitle": "Time",
+    "utcTimeLabel": "UTC",
+    "localTimeLabel": "Local",
+    "coordinatesSectionTitle": "Coordinates",
+    "depthSectionTitle": "Depth",
+    "depthValue": "{{depth}} km",
+    "distanceSectionTitle": "Distance",
+    "sourceSectionTitle": "Source",
+    "sourceUpdated": "Updated {{time}}",
+    "viewOnUsgs": "View on USGS"
   }
 }

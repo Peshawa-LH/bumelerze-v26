@@ -1,14 +1,27 @@
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import {
+  createEventsPersister,
+  createEventsQueryClient,
+  PERSISTED_CACHE_MAX_AGE_MS,
+} from "@/features/events/queries";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
 import { applyPersistedLocaleOnLaunch } from "@/i18n";
 import { restartApp } from "@/i18n/restart-app";
 import { useTheme } from "@/theme";
+
+// Created once per app instance (module scope, not per render) so the
+// persisted cache round-trips through the SAME client across re-renders —
+// creating a new QueryClient on every render would defeat the persister
+// (offline/cold-start requirement, PROJECT.md).
+const eventsQueryClient = createEventsQueryClient();
+const eventsPersister = createEventsPersister();
 
 export default function RootLayout() {
   const { colors, scheme } = useTheme();
@@ -50,16 +63,30 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.surface.base },
+        <PersistQueryClientProvider
+          client={eventsQueryClient}
+          persistOptions={{
+            persister: eventsPersister,
+            maxAge: PERSISTED_CACHE_MAX_AGE_MS,
+            // Bump this if the cached `Event` shape ever changes in a way
+            // older persisted data can't satisfy — invalidates old caches
+            // on upgrade instead of feeding stale-shaped data to new code.
+            buster: "events-v1",
           }}
         >
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="event/[id]" options={{ headerShown: true }} />
-        </Stack>
+          <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.surface.base },
+            }}
+          >
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="event/[id]" options={{ headerShown: true }} />
+            <Stack.Screen name="world" options={{ headerShown: true }} />
+            <Stack.Screen name="significant" options={{ headerShown: true }} />
+          </Stack>
+        </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

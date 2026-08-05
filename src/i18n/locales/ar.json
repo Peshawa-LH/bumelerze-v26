@@ -9,7 +9,38 @@
   },
   "home": {
     "title": "الرئيسية",
-    "emptyState": "لا توجد تغذية زلازل بعد — ستعرض هذه الشاشة أحدث الأحداث القريبة منك."
+    "emptyState": "لم تُسجَّل أي زلازل في منطقتك مؤخراً."
+  },
+  "events": {
+    "provenance": {
+      "usgs": "USGS"
+    },
+    "relativeTime": {
+      "justNow": "الآن",
+      "minutes": "قبل {{count}} دقيقة",
+      "hours": "قبل {{count}} ساعة",
+      "days": "قبل {{count}} يوم"
+    },
+    "distanceFromAnchor": "{{distance}} من {{anchor}}",
+    "anchors": {
+      "erbil": "أربيل",
+      "slemani": "السليمانية",
+      "duhok": "دهوك"
+    },
+    "magnitudeA11yLabel": "الشدة {{value}}",
+    "offlineBanner": "أنت غير متصل — يتم عرض الأحداث منذ {{time}}",
+    "errorTitle": "تعذر تحميل أحدث الأحداث",
+    "retry": "إعادة المحاولة",
+    "viewWorld": "العالم",
+    "viewSignificant": "المهمة"
+  },
+  "world": {
+    "title": "الكتالوج العالمي",
+    "emptyState": "لا توجد أحداث عالمية حالياً."
+  },
+  "significant": {
+    "title": "الأحداث المهمة",
+    "emptyState": "لا توجد أحداث مهمة حالياً."
   },
   "map": {
     "title": "الخريطة",
@@ -38,6 +69,18 @@
   },
   "eventDetail": {
     "title": "تفاصيل الحدث",
-    "emptyState": "ستظهر تفاصيل الحدث {{id}} هنا في مرحلة لاحقة."
+    "loading": "جارٍ تحميل الحدث…",
+    "notFoundTitle": "لم يتم العثور على الحدث",
+    "notFoundDescription": "لم نتمكن من العثور على الحدث {{id}}. قد يكون قديماً جداً، أو أن الرابط غير صحيح.",
+    "timeSectionTitle": "الوقت",
+    "utcTimeLabel": "التوقيت العالمي (UTC)",
+    "localTimeLabel": "التوقيت المحلي",
+    "coordinatesSectionTitle": "الإحداثيات",
+    "depthSectionTitle": "العمق",
+    "depthValue": "{{depth}} كم",
+    "distanceSectionTitle": "المسافة",
+    "sourceSectionTitle": "المصدر",
+    "sourceUpdated": "آخر تحديث {{time}}",
+    "viewOnUsgs": "عرض على USGS"
   }
 }

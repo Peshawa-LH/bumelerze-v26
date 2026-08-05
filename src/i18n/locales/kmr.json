@@ -9,7 +9,38 @@
   },
   "home": {
     "title": "Destpêk",
-    "emptyState": "Hê tomarek erdhejê tune ye — ev rûpel dê paşê bûyerên nêzîkî te nîşan bide."
+    "emptyState": "Vê dawiyê tu erdheja li herêma te nehatiye tomarkirin."
+  },
+  "events": {
+    "provenance": {
+      "usgs": "USGS"
+    },
+    "relativeTime": {
+      "justNow": "Niha",
+      "minutes": "{{count}} deqîqe berê",
+      "hours": "{{count}} saet berê",
+      "days": "{{count}} roj berê"
+    },
+    "distanceFromAnchor": "{{distance}} ji {{anchor}}",
+    "anchors": {
+      "erbil": "Hewlêr",
+      "slemani": "Silêmanî",
+      "duhok": "Dihok"
+    },
+    "magnitudeA11yLabel": "Mezinahî {{value}}",
+    "offlineBanner": "Tu offline î — bûyerên ji {{time}} têne nîşandan",
+    "errorTitle": "Bûyerên herî dawî nehatin barkirin",
+    "retry": "Dîsa biceribîne",
+    "viewWorld": "Cîhan",
+    "viewSignificant": "Girîng"
+  },
+  "world": {
+    "title": "Katalog a Cîhanê",
+    "emptyState": "Niha bûyerek cîhanê tune ye."
+  },
+  "significant": {
+    "title": "Bûyerên Girîng",
+    "emptyState": "Niha bûyerek girîng tune ye."
   },
   "map": {
     "title": "Nexşe",
@@ -38,6 +69,18 @@
   },
   "eventDetail": {
     "title": "Kirdeyên bûyerê",
-    "emptyState": "Kirdeyên bûyera {{id}} dê di qonaxek paşerojê de li vir xuya bibin."
+    "loading": "Bûyer tê barkirin…",
+    "notFoundTitle": "Bûyer nehat dîtin",
+    "notFoundDescription": "Me nekarî bûyera {{id}} bibîne. Dibe ku pir kevn be, an jî girêdan çewt be.",
+    "timeSectionTitle": "Dem",
+    "utcTimeLabel": "UTC",
+    "localTimeLabel": "Herêmî",
+    "coordinatesSectionTitle": "Koordînat",
+    "depthSectionTitle": "Kûrahî",
+    "depthValue": "{{depth}} km",
+    "distanceSectionTitle": "Dûrahî",
+    "sourceSectionTitle": "Çavkanî",
+    "sourceUpdated": "Hate rojanekirin {{time}}",
+    "viewOnUsgs": "Li ser USGS bibîne"
   }
 }

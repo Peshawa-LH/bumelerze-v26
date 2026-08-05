@@ -9,7 +9,38 @@
   },
   "home": {
     "title": "ماڵەوە",
-    "emptyState": "هێشتا هیچ لیستی بوومەلەرزە نییە — ئەم پەڕەیە دواتر ڕووداوە نزیکەکانت پیشان دەدات."
+    "emptyState": "لەم دواییانە هیچ بوومەلەرزەیەک لە هەرێمەکەتدا تۆمار نەکراوە."
+  },
+  "events": {
+    "provenance": {
+      "usgs": "USGS"
+    },
+    "relativeTime": {
+      "justNow": "ئێستا",
+      "minutes": "{{count}} خولەک لەمەوبەر",
+      "hours": "{{count}} کاتژمێر لەمەوبەر",
+      "days": "{{count}} ڕۆژ لەمەوبەر"
+    },
+    "distanceFromAnchor": "{{distance}} لە {{anchor}}ەوە",
+    "anchors": {
+      "erbil": "هەولێر",
+      "slemani": "سلێمانی",
+      "duhok": "دهۆک"
+    },
+    "magnitudeA11yLabel": "بەهێزی {{value}}",
+    "offlineBanner": "تۆ ئۆفلاینیت — ڕووداوەکان لە {{time}}ەوە پیشان دەدرێن",
+    "errorTitle": "نەتوانرا ڕووداوە نوێیەکان باربکرێن",
+    "retry": "دووبارە هەوڵبدەوە",
+    "viewWorld": "جیهان",
+    "viewSignificant": "گرنگ"
+  },
+  "world": {
+    "title": "کاتالۆگی جیهانی",
+    "emptyState": "لە ئێستادا هیچ ڕووداوێکی جیهانی نییە."
+  },
+  "significant": {
+    "title": "ڕووداوە گرنگەکان",
+    "emptyState": "لە ئێستادا هیچ ڕووداوێکی گرنگ نییە."
   },
   "map": {
     "title": "نەخشە",
@@ -38,6 +69,18 @@
   },
   "eventDetail": {
     "title": "وردەکاری ڕووداو",
-    "emptyState": "وردەکاریی ڕووداوی {{id}} لە قۆناغێکی داهاتوودا لێرە دەردەکەوێت."
+    "loading": "بارکردنی ڕووداو…",
+    "notFoundTitle": "ڕووداو نەدۆزرایەوە",
+    "notFoundDescription": "نەمانتوانی ڕووداوی {{id}} بدۆزینەوە. لەوانەیە زۆر کۆن بێت، یان لینکەکە هەڵە بێت.",
+    "timeSectionTitle": "کات",
+    "utcTimeLabel": "کاتی جیهانی (UTC)",
+    "localTimeLabel": "کاتی ناوخۆیی",
+    "coordinatesSectionTitle": "کوردینات",
+    "depthSectionTitle": "قوڵایی",
+    "depthValue": "{{depth}} کم",
+    "distanceSectionTitle": "دووری",
+    "sourceSectionTitle": "سەرچاوە",
+    "sourceUpdated": "نوێکراوەتەوە لە {{time}}",
+    "viewOnUsgs": "بینین لە USGS"
   }
 }
