@@ -1,0 +1,43 @@
+{
+  "_status": "source",
+  "tabs": {
+    "home": "Home",
+    "map": "Map",
+    "sensor": "Sensor",
+    "safety": "Safety",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "Home",
+    "emptyState": "No earthquake feed yet — this screen will show the latest events near you."
+  },
+  "map": {
+    "title": "Map",
+    "emptyState": "The map view is coming in a later phase."
+  },
+  "sensor": {
+    "title": "Sensor",
+    "emptyState": "The live accelerometer sensor screen is coming in a later phase."
+  },
+  "safety": {
+    "title": "Safety",
+    "emptyState": "Safety guidance (before, during, and after an earthquake) is coming in a later phase."
+  },
+  "settings": {
+    "title": "Settings",
+    "languageSectionTitle": "Language",
+    "languageSectionDescription": "Choose the language Bumelerze displays. Switching to or from a right-to-left language restarts the app.",
+    "languageRestartNotice": "Restarting to apply the new language…",
+    "languageRestartFailedMessage": "Please close and reopen Bumelerze to finish switching languages.",
+    "languages": {
+      "en": "English",
+      "ckb": "Sorani Kurdish (کوردیی ناوەندی)",
+      "kmr": "Kurmanji Kurdish (Kurmancî)",
+      "ar": "Arabic (العربية)"
+    }
+  },
+  "eventDetail": {
+    "title": "Event detail",
+    "emptyState": "Event details for {{id}} will appear here in a later phase."
+  }
+}

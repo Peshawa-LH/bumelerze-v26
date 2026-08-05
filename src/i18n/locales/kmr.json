@@ -1,0 +1,43 @@
+{
+  "_status": "draft-machine",
+  "tabs": {
+    "home": "Destpêk",
+    "map": "Nexşe",
+    "sensor": "Sensor",
+    "safety": "Ewlehî",
+    "settings": "Sazkarî"
+  },
+  "home": {
+    "title": "Destpêk",
+    "emptyState": "Hê tomarek erdhejê tune ye — ev rûpel dê paşê bûyerên nêzîkî te nîşan bide."
+  },
+  "map": {
+    "title": "Nexşe",
+    "emptyState": "Dîmena nexşeyê dê di qonaxek paşerojê de were zêdekirin."
+  },
+  "sensor": {
+    "title": "Sensor",
+    "emptyState": "Rûpela sensora lerizînê ya rasterast dê di qonaxek paşerojê de were zêdekirin."
+  },
+  "safety": {
+    "title": "Ewlehî",
+    "emptyState": "Rêwerzên ewlehiyê (berî, di dema, û piştî erdhejê) dê di qonaxek paşerojê de werin zêdekirin."
+  },
+  "settings": {
+    "title": "Sazkarî",
+    "languageSectionTitle": "Ziman",
+    "languageSectionDescription": "Zimanê ku Bumelerze pê nîşan dide hilbijêre. Guherîna ber bi an ji zimanekî rast-bo-çep ve, sepan ji nû ve dest pê dike.",
+    "languageRestartNotice": "Ji bo sepandina zimanê nû ji nû ve tê destpêkirin…",
+    "languageRestartFailedMessage": "Ji kerema xwe Bumelerze bigire û ji nû ve veke da ku guherîna ziman biqedîne.",
+    "languages": {
+      "en": "Îngilîzî",
+      "ckb": "Kurdiya Soranî",
+      "kmr": "Kurmancî",
+      "ar": "Erebî"
+    }
+  },
+  "eventDetail": {
+    "title": "Kirdeyên bûyerê",
+    "emptyState": "Kirdeyên bûyera {{id}} dê di qonaxek paşerojê de li vir xuya bibin."
+  }
+}
