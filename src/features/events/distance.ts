@@ -1,4 +1,5 @@
 import { REGION_ANCHORS, type RegionAnchor } from "./config";
+import type { Event } from "./types";
 
 const EARTH_RADIUS_KM = 6371;
 
@@ -48,4 +49,39 @@ export function nearestAnchor(lat: number, lon: number): AnchorDistance {
 
   // REGION_ANCHORS is a non-empty compile-time constant; `best` is always set.
   return best as AnchorDistance;
+}
+
+/**
+ * "fromUser" once a real device fix is available (wave brief point 3:
+ * "distances in feed/detail become 'from you'"); "fromAnchor" is the
+ * existing no-permission fallback (spec-v1.md §4.1, never a bare "?").
+ * Discriminated on `mode` so `anchorNameKey` is only reachable (and only
+ * required) on the branch that actually has one.
+ */
+export type EventDistanceDisplay =
+  | { distanceKm: number; mode: "fromUser" }
+  | { distanceKm: number; mode: "fromAnchor"; anchorNameKey: string };
+
+/**
+ * Picks which distance phrasing an event card/detail screen should use:
+ * "from you" when a real device fix is available (`useUserDistanceAnchor`),
+ * otherwise the existing nearest-region-anchor fallback. Kept as a small
+ * pure function (not baked into the hook) so callers stay easy to test and
+ * this module remains the single owner of distance math/formatting,
+ * per the typescript-react-native.md "one module owns scientific
+ * formatting" rule.
+ */
+export function resolveEventDistance(
+  event: Pick<Event, "lat" | "lon">,
+  userFix: { lat: number; lon: number } | null,
+): EventDistanceDisplay {
+  if (userFix) {
+    return {
+      distanceKm: haversineDistanceKm(event.lat, event.lon, userFix.lat, userFix.lon),
+      mode: "fromUser",
+    };
+  }
+
+  const { anchor, distanceKm } = nearestAnchor(event.lat, event.lon);
+  return { distanceKm, mode: "fromAnchor", anchorNameKey: anchor.nameKey };
 }

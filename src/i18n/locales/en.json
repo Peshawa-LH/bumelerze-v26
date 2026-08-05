@@ -22,6 +22,7 @@
       "days": "{{count}}d ago"
     },
     "distanceFromAnchor": "{{distance}} from {{anchor}}",
+    "distanceFromYou": "{{distance}} from you",
     "anchors": {
       "erbil": "Erbil",
       "slemani": "Slemani",
@@ -79,6 +80,72 @@
       "ckb": "Sorani Kurdish (کوردیی ناوەندی)",
       "kmr": "Kurmanji Kurdish (Kurmancî)",
       "ar": "Arabic (العربية)"
+    },
+    "cancel": "Cancel",
+    "homeBaseSectionTitle": "HomeBase",
+    "homeBaseChange": "Change",
+    "locationSectionTitle": "Location permission",
+    "locationStatusGranted": "Location access is on",
+    "locationStatusDenied": "Location access is off",
+    "locationStatusUndetermined": "Bumelerze hasn't asked yet",
+    "openSystemSettings": "Open Settings",
+    "onboardingSectionTitle": "Onboarding",
+    "replayOnboarding": "Replay onboarding",
+    "replayOnboardingConfirmTitle": "Replay onboarding?",
+    "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language and HomeBase choices are kept."
+  },
+  "onboarding": {
+    "back": "Back",
+    "continue": "Continue",
+    "mission": {
+      "title": "Always know, in your language",
+      "description": "Bumelerze brings fast, scientifically correct earthquake information to Kurdistan — in Sorani, Kurmanji, Arabic, and English. Built by earthquake researchers who work this region."
+    },
+    "language": {
+      "title": "Choose your language",
+      "description": "Pick the language Bumelerze should use. You can change this again anytime in Settings."
+    },
+    "location": {
+      "title": "Your location makes science better",
+      "description": "Sharing your location lets Bumelerze show accurate distances and turns your \"did you feel it?\" reports into valid scientific testimony that helps map real shaking. You can change this anytime in Settings.",
+      "allow": "Allow location access",
+      "notNow": "Not now"
+    },
+    "notifications": {
+      "title": "Alerts are coming",
+      "description": "Soon, Bumelerze will notify you the moment an earthquake happens near you or near a place you care about (your HomeBase). We'll ask for notification permission when that feature launches."
+    },
+    "homeBase": {
+      "title": "Set your HomeBase",
+      "description": "If you live away from Kurdistan, pick a HomeBase town — like where your family lives — so future alerts can watch it for you too. Optional; you can set or change this later in Settings.",
+      "elsewhere": "Elsewhere / skip",
+      "skip": "Skip for now",
+      "notSet": "Not set",
+      "towns": {
+        "erbil": "Erbil",
+        "slemani": "Slemani",
+        "duhok": "Duhok",
+        "kirkuk": "Kirkuk",
+        "halabja": "Halabja",
+        "zakho": "Zakho",
+        "soran": "Soran",
+        "ranya": "Ranya",
+        "koya": "Koya",
+        "kalar": "Kalar",
+        "chamchamal": "Chamchamal",
+        "akre": "Akre",
+        "bardarash": "Bardarash",
+        "dukan": "Dukan",
+        "darbandikhan": "Darbandikhan",
+        "khanaqin": "Khanaqin",
+        "mosul": "Mosul",
+        "baghdad": "Baghdad"
+      }
+    },
+    "done": {
+      "title": "You're all set",
+      "description": "Bumelerze is ready. You'll land on the live earthquake feed for your region every time you open the app.",
+      "cta": "Get started"
     }
   },
   "eventDetail": {

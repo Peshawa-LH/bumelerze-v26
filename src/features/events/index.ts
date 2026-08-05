@@ -23,7 +23,13 @@ export {
   type UseEventByIdResult,
   type UseEventsFeedResult,
 } from "./queries";
-export { haversineDistanceKm, nearestAnchor, type AnchorDistance } from "./distance";
+export {
+  haversineDistanceKm,
+  nearestAnchor,
+  resolveEventDistance,
+  type AnchorDistance,
+  type EventDistanceDisplay,
+} from "./distance";
 export {
   formatAbsoluteDual,
   formatDistanceKm,
