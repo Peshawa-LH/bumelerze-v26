@@ -50,6 +50,7 @@
     "distanceFromCity": "{{distance}} ji {{city}}",
     "distanceFromYou": "{{distance}} ji te",
     "magnitudeA11yLabel": "Mezinahî {{value}}",
+    "magnitudeDisplay": "{{value}} pîle",
     "offlineBanner": "Tu offline î — bûyerên ji {{time}} têne nîşandan",
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
     "retry": "Dîsa biceribîne",

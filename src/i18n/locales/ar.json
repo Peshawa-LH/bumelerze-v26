@@ -50,6 +50,7 @@
     "distanceFromCity": "{{distance}} من {{city}}",
     "distanceFromYou": "{{distance}} منك",
     "magnitudeA11yLabel": "الشدة {{value}}",
+    "magnitudeDisplay": "{{value}} درجة",
     "offlineBanner": "أنت غير متصل — يتم عرض الأحداث منذ {{time}}",
     "errorTitle": "تعذر تحميل أحدث الأحداث",
     "retry": "إعادة المحاولة",

@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { placeLine } from "@/features/geo";
 import { useTheme } from "@/theme";
 import {
-  formatMagnitude,
   formatMagnitudeValue,
   formatRelativeTimeValue,
   getRelativeTime,
@@ -44,7 +43,9 @@ function EventCardImpl({ event, onPress, now }: EventCardProps) {
   // built from the gazetteer — falling back to the raw USGS string only
   // for far-world events (see `placeLine`'s own doc comment).
   const placeText = placeLine(event, locale, t);
-  const magnitudeText = formatMagnitude(event.magnitude, locale);
+  const magnitudeText = t("events.magnitudeDisplay", {
+    value: formatMagnitudeValue(event.magnitude.value, locale),
+  });
   const tone = magnitudeTone(event.magnitude.value);
 
   const accessibilityLabel = [
@@ -83,7 +84,10 @@ function EventCardImpl({ event, onPress, now }: EventCardProps) {
             lineHeight: typography.magnitudeCompact.lineHeight,
             fontWeight: typography.magnitudeCompact.fontWeight,
             fontVariant: ["tabular-nums"],
-            writingDirection: "ltr",
+            // No forced writingDirection: "M 4.1" (en/kmr) is an LTR run
+            // and "٤.١ پلە" (ckb/ar) an RTL run — Unicode auto-direction
+            // resolves each correctly; forcing LTR would flip the Kurdish
+            // template to "پلە ٤.١" read order.
           }}
         >
           {magnitudeText}

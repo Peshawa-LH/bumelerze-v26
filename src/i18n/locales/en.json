@@ -50,6 +50,7 @@
     "distanceFromCity": "{{distance}} from {{city}}",
     "distanceFromYou": "{{distance}} from you",
     "magnitudeA11yLabel": "Magnitude {{value}}",
+    "magnitudeDisplay": "M {{value}}",
     "offlineBanner": "You're offline — showing events from {{time}}",
     "errorTitle": "Couldn't load the latest events",
     "retry": "Retry",

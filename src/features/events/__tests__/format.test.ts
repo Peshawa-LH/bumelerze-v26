@@ -3,7 +3,6 @@ import {
   formatDepthKm,
   formatDistanceKm,
   formatIsolatedDistance,
-  formatMagnitude,
   formatMagnitudeValue,
   formatRelativeTimeValue,
   getRelativeTime,
@@ -63,25 +62,18 @@ describe("formatRelativeTimeValue", () => {
   });
 });
 
-describe("formatMagnitude / formatMagnitudeValue", () => {
-  it("renders one decimal place with the 'M' prefix (USGS convention), Latin digits in en", () => {
-    expect(formatMagnitude({ value: 4.6, type: "mb" }, "en")).toBe("M 4.6");
-    expect(formatMagnitude({ value: 5, type: "mww" }, "en")).toBe("M 5.0");
-    expect(formatMagnitude({ value: 3.98, type: "ml" }, "en")).toBe("M 4.0");
-  });
-
-  it("digit-localizes the magnitude numeral for ckb and ar (ui-backlog.md wave 5 item 1 — reverses the earlier 'always Latin' design-language.md call)", () => {
-    expect(formatMagnitude({ value: 4.6, type: "mb" }, "ckb")).toBe("M ٤.٦");
-    expect(formatMagnitude({ value: 4.6, type: "mb" }, "ar")).toBe("M ٤.٦");
-  });
-
-  it("keeps Latin digits for kmr", () => {
-    expect(formatMagnitude({ value: 4.6, type: "mb" }, "kmr")).toBe("M 4.6");
-  });
-
-  it("formatMagnitudeValue omits the 'M' prefix (for the a11y label, which already says 'Magnitude')", () => {
+describe("formatMagnitudeValue", () => {
+  // The display prefix ("M" / "پلە") is an i18n template
+  // (events.magnitudeDisplay), not this module's job — Peshawa's
+  // 2026-08-06 correction; see format.ts NOTE. This module only owns the
+  // one-decimal, digit-localized numeral.
+  it("renders one decimal place, digit-localized per locale", () => {
     expect(formatMagnitudeValue(4.6, "en")).toBe("4.6");
+    expect(formatMagnitudeValue(5, "en")).toBe("5.0");
+    expect(formatMagnitudeValue(3.98, "en")).toBe("4.0");
     expect(formatMagnitudeValue(4.6, "ckb")).toBe("٤.٦");
+    expect(formatMagnitudeValue(4.6, "ar")).toBe("٤.٦");
+    expect(formatMagnitudeValue(4.6, "kmr")).toBe("4.6");
   });
 });
 

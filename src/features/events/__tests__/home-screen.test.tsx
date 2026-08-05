@@ -101,7 +101,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     // Magnitude digit-localizes to Eastern Arabic-Indic in Sorani
     // (ui-backlog.md wave 5 item 1 — reverses design-language.md §3.2's
     // earlier "always Latin" call, per Peshawa's native-speaker review).
-    expect(screen.getByText("M ٤.٦")).toBeTruthy();
+    expect(screen.getByText("٤.٦ پلە")).toBeTruthy();
 
     // Provenance chip.
     expect(screen.getByText("USGS")).toBeTruthy();

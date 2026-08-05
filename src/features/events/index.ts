@@ -25,7 +25,6 @@ export {
   formatDepthKm,
   formatDistanceKm,
   formatIsolatedDistance,
-  formatMagnitude,
   formatMagnitudeValue,
   formatRelativeTimeValue,
   getRelativeTime,

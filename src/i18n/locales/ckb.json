@@ -50,6 +50,7 @@
     "distanceFromCity": "{{distance}} لە {{city}}ەوە",
     "distanceFromYou": "{{distance}} لە تۆوە",
     "magnitudeA11yLabel": "بەهێزی {{value}}",
+    "magnitudeDisplay": "{{value}} پلە",
     "offlineBanner": "تۆ ئۆفلاینیت — ڕووداوەکان لە {{time}}ەوە پیشان دەدرێن",
     "errorTitle": "نەتوانرا ڕووداوە نوێیەکان باربکرێن",
     "retry": "دووبارە هەوڵبدەوە",

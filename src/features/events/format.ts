@@ -1,5 +1,4 @@
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
-import type { Event } from "./types";
 
 /**
  * Unicode directional isolate (design-language.md §5 "bidi handling"):
@@ -28,15 +27,16 @@ export function formatMagnitudeValue(value: number, locale: string): string {
   return formatFixedLocalized(value, 1, locale);
 }
 
-/**
- * Magnitude display, one decimal, USGS convention (typescript-react-native
- * rule: "magnitude one decimal with type label... one module owns
- * scientific formatting"). "M" prefix stays untranslated — it is the
- * international scientific symbol, not prose.
- */
-export function formatMagnitude(magnitude: Event["magnitude"], locale: string): string {
-  return `M ${formatMagnitudeValue(magnitude.value, locale)}`;
-}
+// NOTE (2026-08-06, Peshawa's native-speaker correction): the magnitude
+// PREFIX is prose, not a universal symbol — "M" reads as nothing to a
+// Sorani reader. The display string is therefore an i18n template
+// (`events.magnitudeDisplay`: en "M {{value}}", ckb "{{value}} پلە", …)
+// composed by callers with `formatMagnitudeValue`, exactly like the km
+// unit (ui-backlog wave 5 item 2). "پلە" chosen over "ڕێختەر" for
+// scientific correctness (modern magnitudes are Mw, not Richter); when
+// intensity ships it gets a visually distinct label + Roman numerals so
+// the two "پلە"-like scales can't be confused (D7 education goal).
+// The old `formatMagnitude` (hardcoded "M" prefix) was removed with it.
 
 /**
  * Distance numeral only, one decimal, digit-localized km (typescript-

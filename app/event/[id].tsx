@@ -11,7 +11,6 @@ import {
   formatCoordinates,
   formatDepthKm,
   formatIsolatedDistance,
-  formatMagnitude,
   formatMagnitudeValue,
   isolateNumeric,
   ProvenanceChip,
@@ -175,10 +174,12 @@ function EventDetailHeader({
             lineHeight: typography.magnitudeHero.lineHeight,
             fontWeight: typography.magnitudeHero.fontWeight,
             fontVariant: ["tabular-nums"],
-            writingDirection: "ltr",
+            // No forced writingDirection — see EventCard's magnitude Text.
           }}
         >
-          {formatMagnitude(event.magnitude, locale)}
+          {t("events.magnitudeDisplay", {
+            value: formatMagnitudeValue(event.magnitude.value, locale),
+          })}
         </Text>
         <Text
           style={{
