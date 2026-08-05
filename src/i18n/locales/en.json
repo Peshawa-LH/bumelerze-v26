@@ -1,0 +1,100 @@
+{
+  "_status": "source",
+  "tabs": {
+    "home": "Home",
+    "map": "Map",
+    "sensor": "Sensor",
+    "safety": "Safety",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "Home",
+    "emptyState": "No earthquakes reported in your region recently."
+  },
+  "events": {
+    "provenance": {
+      "usgs": "USGS"
+    },
+    "relativeTime": {
+      "justNow": "Just now",
+      "minutes": "{{count}}m ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago"
+    },
+    "distanceFromAnchor": "{{distance}} from {{anchor}}",
+    "anchors": {
+      "erbil": "Erbil",
+      "slemani": "Slemani",
+      "duhok": "Duhok"
+    },
+    "magnitudeA11yLabel": "Magnitude {{value}}",
+    "offlineBanner": "You're offline — showing events from {{time}}",
+    "errorTitle": "Couldn't load the latest events",
+    "retry": "Retry",
+    "viewWorld": "World",
+    "viewSignificant": "Significant"
+  },
+  "world": {
+    "title": "World Catalog",
+    "emptyState": "No world events right now."
+  },
+  "significant": {
+    "title": "Significant Events",
+    "emptyState": "No significant events right now."
+  },
+  "map": {
+    "title": "Map",
+    "emptyState": "The map view is coming in a later phase."
+  },
+  "sensor": {
+    "title": "Sensor",
+    "checking": "Checking your phone's motion sensor…",
+    "unavailable": "This device doesn't have a motion sensor Bumelerze can read, so the live view isn't available here.",
+    "permissionDenied": "Bumelerze needs motion-sensor access to show the live view. You can allow it from your device settings.",
+    "explainer": {
+      "sentence1": "Your phone contains a tiny accelerometer chip — the same physics a professional seismometer uses to measure shaking.",
+      "sentence2": "Shake your phone gently and watch your own seismogram appear below.",
+      "sentence3": "This view is just for you — nothing here is recorded, saved, or sent anywhere."
+    },
+    "gravityToggle": "Remove gravity",
+    "gravityNote": "With gravity on, a phone lying still still shows a steady line on one axis — that's Earth's gravity, not shaking. Turn gravity off to see only motion.",
+    "axisX": "X",
+    "axisY": "Y",
+    "axisZ": "Z",
+    "axisA11yHint": "Show or hide the {{axis}} axis on the chart",
+    "chartA11yLabel": "Live accelerometer chart showing the last ten seconds of motion"
+  },
+  "safety": {
+    "title": "Safety",
+    "emptyState": "Safety guidance (before, during, and after an earthquake) is coming in a later phase."
+  },
+  "settings": {
+    "title": "Settings",
+    "languageSectionTitle": "Language",
+    "languageSectionDescription": "Choose the language Bumelerze displays. Switching to or from a right-to-left language restarts the app.",
+    "languageRestartNotice": "Restarting to apply the new language…",
+    "languageRestartFailedMessage": "Please close and reopen Bumelerze to finish switching languages.",
+    "languages": {
+      "en": "English",
+      "ckb": "Sorani Kurdish (کوردیی ناوەندی)",
+      "kmr": "Kurmanji Kurdish (Kurmancî)",
+      "ar": "Arabic (العربية)"
+    }
+  },
+  "eventDetail": {
+    "title": "Event detail",
+    "loading": "Loading event…",
+    "notFoundTitle": "Event not found",
+    "notFoundDescription": "We couldn't find event {{id}}. It may be too old, or the link may be incorrect.",
+    "timeSectionTitle": "Time",
+    "utcTimeLabel": "UTC",
+    "localTimeLabel": "Local",
+    "coordinatesSectionTitle": "Coordinates",
+    "depthSectionTitle": "Depth",
+    "depthValue": "{{depth}} km",
+    "distanceSectionTitle": "Distance",
+    "sourceSectionTitle": "Source",
+    "sourceUpdated": "Updated {{time}}",
+    "viewOnUsgs": "View on USGS"
+  }
+}
