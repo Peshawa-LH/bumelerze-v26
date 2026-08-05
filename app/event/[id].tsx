@@ -1,7 +1,6 @@
-import * as Linking from "expo-linking";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useMemo, type ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -300,23 +299,25 @@ function EventDetailHeader({
         >
           {t("eventDetail.sourceUpdated", { time: isolateNumeric(sourceUpdatedLocal) })}
         </Text>
-        {event.url ? (
-          <Pressable
-            accessibilityRole="link"
-            onPress={() => void Linking.openURL(event.url)}
-            style={{ marginTop: spacing[2] }}
-          >
-            <Text
-              style={{
-                color: colors.text.link,
-                fontSize: typography.labelButton.fontSize,
-                fontWeight: typography.labelButton.fontWeight,
-              }}
-            >
-              {t("eventDetail.viewOnUsgs")}
-            </Text>
-          </Pressable>
-        ) : null}
+        {/* Citation only — deliberately NO outbound link to the provider
+          * (owner call 2026-08-06): we cite the source network per the
+          * provenance principle, but users stay in the app. The network
+          * name comes from the event's provenance so future FDSN providers
+          * (EMSC, GEOFON — D4) slot in without UI changes; a configurable
+          * network-priority display is a later system feature (see
+          * docs/research/event-pipeline-design.md §2 authority tiers). */}
+        <Text
+          style={{
+            marginTop: spacing[2],
+            color: colors.text.secondary,
+            fontSize: typography.bodyMeta.fontSize,
+            lineHeight: typography.bodyMeta.lineHeight,
+          }}
+        >
+          {t("eventDetail.sourceCitation", {
+            network: event.provenance.provider.toUpperCase(),
+          })}
+        </Text>
       </DetailSection>
     </View>
   );

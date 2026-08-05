@@ -163,6 +163,6 @@
     "distanceSectionTitle": "Dûrahî",
     "sourceSectionTitle": "Çavkanî",
     "sourceUpdated": "Hate rojanekirin {{time}}",
-    "viewOnUsgs": "Li ser USGS bibîne"
+    "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)"
   }
 }

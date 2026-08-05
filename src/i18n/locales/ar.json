@@ -163,6 +163,6 @@
     "distanceSectionTitle": "المسافة",
     "sourceSectionTitle": "المصدر",
     "sourceUpdated": "آخر تحديث {{time}}",
-    "viewOnUsgs": "عرض على USGS"
+    "sourceCitation": "بيانات الحدث: {{network}} (عبر خدمة FDSN)"
   }
 }

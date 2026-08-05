@@ -163,6 +163,6 @@
     "distanceSectionTitle": "دووری",
     "sourceSectionTitle": "سەرچاوە",
     "sourceUpdated": "نوێکراوەتەوە لە {{time}}",
-    "viewOnUsgs": "بینین لە USGS"
+    "sourceCitation": "داتای ڕووداو: {{network}} (لە ڕێگەی خزمەتگوزاری FDSN)"
   }
 }

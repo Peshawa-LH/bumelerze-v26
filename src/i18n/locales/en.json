@@ -163,6 +163,6 @@
     "distanceSectionTitle": "Distance",
     "sourceSectionTitle": "Source",
     "sourceUpdated": "Updated {{time}}",
-    "viewOnUsgs": "View on USGS"
+    "sourceCitation": "Event data: {{network}} (via FDSN web service)"
   }
 }
