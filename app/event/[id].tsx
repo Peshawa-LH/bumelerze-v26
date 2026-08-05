@@ -1,6 +1,6 @@
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, type ReactNode } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,8 +17,10 @@ import {
   useRegionEvents,
   useWorldEvents,
 } from "@/features/events";
+import { FeltReportPill, useOwnQueueItemForEvent } from "@/features/felt";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
+import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
 /**
@@ -34,6 +36,7 @@ export default function EventDetailScreen() {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const region = useRegionEvents();
   const world = useWorldEvents();
@@ -55,42 +58,25 @@ export default function EventDetailScreen() {
     !event && (region.isInitialLoading || world.isInitialLoading || byId.isLoading);
   const isNotFound = !event && !isLoading;
 
+  // Local-only lookup (D8, wave brief point 4): this device's own queued
+  // report for this event, if any — there is no backend to ask for a
+  // felt-map/report count yet, so "your report" can only ever reflect what
+  // THIS device itself already submitted (features/felt/queue.ts).
+  const ownReport = useOwnQueueItemForEvent(event?.id ?? null);
+
   return (
     <>
       <Stack.Screen options={{ title: t("eventDetail.title") }} />
-      <ScrollView
-        style={{ backgroundColor: colors.surface.base }}
-        contentContainerStyle={{
-          padding: spacing[5],
-          paddingBottom: insets.bottom + spacing[8],
-          gap: spacing[5],
-        }}
-      >
-        {isLoading ? (
-          <Text
-            style={{
-              color: colors.text.secondary,
-              fontSize: typography.bodyDefault.fontSize,
-              lineHeight: typography.bodyDefault.lineHeight,
-            }}
-          >
-            {t("eventDetail.loading")}
-          </Text>
-        ) : null}
-
-        {isNotFound ? (
-          <View style={{ gap: spacing[2] }}>
-            <Text
-              accessibilityRole="header"
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.h2.fontSize,
-                lineHeight: typography.h2.lineHeight,
-                fontWeight: typography.h2.fontWeight,
-              }}
-            >
-              {t("eventDetail.notFoundTitle")}
-            </Text>
+      <View style={styles.flex}>
+        <ScrollView
+          style={{ backgroundColor: colors.surface.base }}
+          contentContainerStyle={{
+            padding: spacing[5],
+            paddingBottom: insets.bottom + spacing[8],
+            gap: spacing[5],
+          }}
+        >
+          {isLoading ? (
             <Text
               style={{
                 color: colors.text.secondary,
@@ -98,22 +84,114 @@ export default function EventDetailScreen() {
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >
-              {t("eventDetail.notFoundDescription", { id })}
+              {t("eventDetail.loading")}
             </Text>
-          </View>
-        ) : null}
+          ) : null}
 
-        {event ? (
-          <EventDetailHeader
-            event={event}
-            locale={i18n.language}
-            colors={colors}
-            typography={typography}
-            spacing={spacing}
-            t={t}
-          />
-        ) : null}
-      </ScrollView>
+          {isNotFound ? (
+            <View style={{ gap: spacing[2] }}>
+              <Text
+                accessibilityRole="header"
+                style={{
+                  color: colors.text.primary,
+                  fontSize: typography.h2.fontSize,
+                  lineHeight: typography.h2.lineHeight,
+                  fontWeight: typography.h2.fontWeight,
+                }}
+              >
+                {t("eventDetail.notFoundTitle")}
+              </Text>
+              <Text
+                style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.bodyDefault.fontSize,
+                  lineHeight: typography.bodyDefault.lineHeight,
+                }}
+              >
+                {t("eventDetail.notFoundDescription", { id })}
+              </Text>
+            </View>
+          ) : null}
+
+          {event ? (
+            <EventDetailHeader
+              event={event}
+              locale={i18n.language}
+              colors={colors}
+              typography={typography}
+              spacing={spacing}
+              t={t}
+            />
+          ) : null}
+
+          {event && ownReport ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                if (ownReport.tier2) {
+                  // Tier 2 already submitted — nothing further to reach from
+                  // here this wave (no edit flow yet); the row still confirms
+                  // detail was added.
+                  return;
+                }
+                router.push({
+                  pathname: "/felt-report/step/[step]",
+                  params: {
+                    step: "0",
+                    feltReportId: ownReport.tier1.reportId,
+                    eventId: event.id,
+                  },
+                });
+              }}
+              style={[
+                styles.myReportRow,
+                {
+                  borderColor: colors.border.default,
+                  padding: spacing[4],
+                  gap: spacing[1],
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color: colors.text.primary,
+                  fontSize: typography.bodyDefault.fontSize,
+                  lineHeight: typography.bodyDefault.lineHeight,
+                  fontWeight: "600",
+                }}
+              >
+                {t("eventDetail.myReportRow.reported", {
+                  level: localizeDigits(
+                    String(ownReport.tier1.cartoonLevel),
+                    i18n.language,
+                  ),
+                })}
+              </Text>
+              {!ownReport.tier2 ? (
+                <Text
+                  style={{
+                    color: colors.text.link,
+                    fontSize: typography.bodyMeta.fontSize,
+                    fontWeight: "600",
+                  }}
+                >
+                  {t("eventDetail.myReportRow.addDetail")}
+                </Text>
+              ) : (
+                <Text
+                  style={{
+                    color: colors.text.secondary,
+                    fontSize: typography.bodyMeta.fontSize,
+                  }}
+                >
+                  {t("eventDetail.myReportRow.detailAdded")}
+                </Text>
+              )}
+            </Pressable>
+          ) : null}
+        </ScrollView>
+        {event ? <FeltReportPill eventId={event.id} /> : null}
+      </View>
     </>
   );
 }
@@ -300,12 +378,12 @@ function EventDetailHeader({
           {t("eventDetail.sourceUpdated", { time: isolateNumeric(sourceUpdatedLocal) })}
         </Text>
         {/* Citation only — deliberately NO outbound link to the provider
-          * (owner call 2026-08-06): we cite the source network per the
-          * provenance principle, but users stay in the app. The network
-          * name comes from the event's provenance so future FDSN providers
-          * (EMSC, GEOFON — D4) slot in without UI changes; a configurable
-          * network-priority display is a later system feature (see
-          * docs/research/event-pipeline-design.md §2 authority tiers). */}
+         * (owner call 2026-08-06): we cite the source network per the
+         * provenance principle, but users stay in the app. The network
+         * name comes from the event's provenance so future FDSN providers
+         * (EMSC, GEOFON — D4) slot in without UI changes; a configurable
+         * network-priority display is a later system feature (see
+         * docs/research/event-pipeline-design.md §2 authority tiers). */}
         <Text
           style={{
             marginTop: spacing[2],
@@ -390,8 +468,15 @@ function DetailRow({ label, value, colors, typography }: DetailRowProps) {
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  myReportRow: {
+    borderWidth: 1,
+    borderRadius: 12,
   },
 });
