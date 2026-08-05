@@ -10,6 +10,7 @@ import {
   createEventsQueryClient,
   PERSISTED_CACHE_MAX_AGE_MS,
 } from "@/features/events/queries";
+import { ensureFeltQueueForegroundSync, processQueue } from "@/features/felt";
 import { usePrefsStore } from "@/features/onboarding";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
@@ -56,6 +57,16 @@ export default function RootLayout() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    // Wire the offline felt-report queue's sync triggers once per app
+    // instance: an immediate cold-start attempt (catches "queued while the
+    // app was closed"), plus every subsequent foreground transition
+    // (features/felt/queue.ts's own doc comment explains why this covers
+    // connectivity-regain without a NetInfo dependency).
+    ensureFeltQueueForegroundSync();
+    void processQueue();
   }, []);
 
   if (isRestarting || !hasHydrated) {
@@ -107,6 +118,7 @@ export default function RootLayout() {
                 <Stack.Screen name="event/[id]" options={{ headerShown: true }} />
                 <Stack.Screen name="world" options={{ headerShown: true }} />
                 <Stack.Screen name="significant" options={{ headerShown: true }} />
+                <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
               </>
             ) : (
               <Stack.Screen name="onboarding" />

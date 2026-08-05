@@ -163,6 +163,158 @@
     "distanceSectionTitle": "Dûrahî",
     "sourceSectionTitle": "Çavkanî",
     "sourceUpdated": "Hate rojanekirin {{time}}",
-    "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)"
+    "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)",
+    "myReportRow": {
+      "reported": "Te asta {{level}} rapor kir",
+      "addDetail": "Hûrgiliyên zêdetir zêde bike",
+      "detailAdded": "Hûrgilî hate zêdekirin — spas"
+    }
+  },
+  "felt": {
+    "pill": {
+      "label": "Min hîs kir!"
+    },
+    "tier1": {
+      "title": "Te çawa hîs kir?",
+      "subtitle": "Asta ku li gorî tiştê te hîs kir bitikîne. Tu dikarî paşê hûrgiliyên zêdetir zêde bikî heke bixwazî.",
+      "severeDestructionHeader": "Wêrankirina giran",
+      "close": "Bigire",
+      "locationGps": "Cîhê te yê niha tê bikaranîn",
+      "locationManual": "Cih: {{place}}",
+      "changeLocation": "Biguherîne",
+      "levels": {
+        "1": { "label": "Nehat hîskirin" },
+        "2": { "label": "Bi zorê hat hîskirin" },
+        "3": { "label": "Lerizîna qels" },
+        "4": { "label": "Ji aliyê gelekan ve hat hîskirin" },
+        "5": { "label": "Lerizîna xurt" },
+        "6": { "label": "Zirara sivik" },
+        "7": { "label": "Zirardar" },
+        "8": { "label": "Zirara giran" },
+        "9": { "label": "Wêranker" },
+        "10": { "label": "Pir wêranker" },
+        "11": { "label": "Wêrankerê mezin" },
+        "12": { "label": "Wêrana bêkêmasî" }
+      },
+      "confirmation": {
+        "title": "Spas",
+        "queuedMessage": "Raporta te li ser cîhaza te hatiye tomarkirin. Gava Bumelerze bikaribe bigihîje serverê, dê were şandin.",
+        "submittedMessage": "Raporta te hate şandin. Spas ji bo beşdariya te.",
+        "addDetail": "Hûrgiliyên zêdetir zêde bike"
+      }
+    },
+    "tier2": {
+      "back": "Vegere",
+      "skip": "Derbas bike",
+      "submit": "Bişîne",
+      "commentTitle": "Tiştek din heye ku tu bixwazî lê zêde bikî?",
+      "commentPlaceholder": "Şîroveya vebijarkî",
+      "commentDescription": "Piştî nirxandinê, ev dibe ku di rêza şîroveyên gelemperî yên bûyerê de xuya bibe.",
+      "questions": {
+        "situation": {
+          "title": "Di dema erdhejê de tu li ku bûyî?",
+          "options": {
+            "inside": "Di hundirê avahiyekê de",
+            "outside": "Li derve",
+            "stopped_car": "Di otomobîlek sekinî de",
+            "moving_car": "Di otomobîlek diliviya de",
+            "asleep": "Di xewê de bûm"
+          }
+        },
+        "felt": {
+          "title": "Te erdhej hîs kir?",
+          "options": {
+            "no": "Na",
+            "yes": "Erê"
+          }
+        },
+        "othersFelt": {
+          "title": "Kesên din ên li nêzî te hîs kir?",
+          "options": {
+            "dont_know": "Ez nizanim",
+            "no_one": "Kesekî din hîs nekir",
+            "some": "Hinekan hîs kir, piraniyê na",
+            "most": "Piraniyê hîs kir",
+            "everyone": "Hemî an hema hema hemî kesan hîs kir"
+          }
+        },
+        "motion": {
+          "title": "Tu yê lerizînê çawa binase?",
+          "options": {
+            "not_felt": "Nehat hîskirin",
+            "weak": "Qels",
+            "mild": "Sivik",
+            "moderate": "Navîn",
+            "strong": "Xurt",
+            "violent": "Tund"
+          }
+        },
+        "reaction": {
+          "title": "Tu çawa reaksiyon nîşan da?",
+          "options": {
+            "no_reaction": "Tu reaksiyon tune bû / nehat hîskirin",
+            "noticed": "Min pê hesiya, lê reaksiyonek min tune bû",
+            "excitement": "Heyecan — min qala wê kir",
+            "somewhat_frightened": "Hinekî tirsiyam",
+            "very_frightened": "Pir tirsiyam — ez çûm derve",
+            "extremely_frightened": "Pir bi tundî tirsiyam — hemûyan bal ber derve revîn"
+          }
+        },
+        "stand": {
+          "title": "Rawestan an meşîn dijwar bû?",
+          "options": {
+            "no": "Na",
+            "difficult": "Erê, rawestan dijwar bû",
+            "fell": "Erê, ez ketim an ez avêtim erdê"
+          }
+        },
+        "shelf": {
+          "title": "Tişt lerizîn, hilweşiyan an ji refan ketin?",
+          "options": {
+            "no": "Na",
+            "rattled": "Tenê lerizîn",
+            "few_fell": "Çend tişt hilweşiyan an ketin",
+            "many_fell": "Gelek tişt ketin"
+          }
+        },
+        "picture": {
+          "title": "Wêneyên li ser dîwêr livîn an xar bûn?",
+          "options": {
+            "no": "Na",
+            "yes": "Erê"
+          }
+        },
+        "furniture": {
+          "title": "Mobîlya an amûrên giran şemitîn, hilweşiyan an livîn?",
+          "options": {
+            "no": "Na",
+            "yes": "Erê"
+          }
+        },
+        "buildingDamageLevel": {
+          "title": "Avahiya ku tu tê de bûyî zirar dît?",
+          "options": {
+            "0": "Ti zirar tune",
+            "1": "Çat û qelişên biçûk — di sîwana dîwêran de qelişên tenik, çend perçeyên sîwanê yên ketî",
+            "2": "Zirara giran — qelişên mezin di dîwêran de, perçeyên sîwanê an keriyên hilweşiyayî, camên şikestî, tankê banî an parapeta zirardîtî",
+            "3": "Hilweşîna qismî an tevahî — dîwar an qat ketin, avahî nayê bikaranîn"
+          }
+        },
+        "roadDamageLevel": {
+          "title": "Te zirar li rê an erdê dît?",
+          "options": {
+            "0": "Na",
+            "1": "Qelişên biçûk di rê an erdê de",
+            "2": "Qelişên mezin; boriyên avê an kanalîzasyonê yên şikestî",
+            "3": "Erdhilweşîn, hilweşîna rê, an têkçûna mezin a erdê"
+          }
+        }
+      },
+      "done": {
+        "title": "Spas ji bo hûrgiliyên zêde",
+        "description": "Ev dibe alîkar ku nexşeyek lerizînê ya rasttir ji bo vê erdhejê were çêkirin.",
+        "close": "Bigire"
+      }
+    }
   }
 }
