@@ -79,6 +79,10 @@ export default function RootLayout() {
             screenOptions={{
               headerShown: false,
               contentStyle: { backgroundColor: colors.surface.base },
+              headerStyle: { backgroundColor: colors.surface.base },
+              headerTintColor: colors.text.primary,
+              headerTitleStyle: { color: colors.text.primary },
+              headerShadowVisible: false,
             }}
           >
             <Stack.Screen name="(tabs)" />
