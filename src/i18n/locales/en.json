@@ -163,6 +163,158 @@
     "distanceSectionTitle": "Distance",
     "sourceSectionTitle": "Source",
     "sourceUpdated": "Updated {{time}}",
-    "sourceCitation": "Event data: {{network}} (via FDSN web service)"
+    "sourceCitation": "Event data: {{network}} (via FDSN web service)",
+    "myReportRow": {
+      "reported": "You reported level {{level}}",
+      "addDetail": "Add more detail",
+      "detailAdded": "Detail added — thank you"
+    }
+  },
+  "felt": {
+    "pill": {
+      "label": "I felt it!"
+    },
+    "tier1": {
+      "title": "How did you feel it?",
+      "subtitle": "Tap the level that matches what you felt. You can add more detail afterward if you want.",
+      "severeDestructionHeader": "Severe destruction",
+      "close": "Close",
+      "locationGps": "Using your current location",
+      "locationManual": "Location: {{place}}",
+      "changeLocation": "Change",
+      "levels": {
+        "1": { "label": "Not felt" },
+        "2": { "label": "Barely felt" },
+        "3": { "label": "Weak shaking" },
+        "4": { "label": "Felt by many" },
+        "5": { "label": "Strong shaking" },
+        "6": { "label": "Light damage" },
+        "7": { "label": "Damaging" },
+        "8": { "label": "Heavy damage" },
+        "9": { "label": "Destructive" },
+        "10": { "label": "Very destructive" },
+        "11": { "label": "Devastating" },
+        "12": { "label": "Total destruction" }
+      },
+      "confirmation": {
+        "title": "Thank you",
+        "queuedMessage": "Your report is saved on your device. It will be sent once Bumelerze can reach the server.",
+        "submittedMessage": "Your report has been sent. Thank you for contributing.",
+        "addDetail": "Add more detail"
+      }
+    },
+    "tier2": {
+      "back": "Back",
+      "skip": "Skip",
+      "submit": "Submit",
+      "commentTitle": "Anything else to add?",
+      "commentPlaceholder": "Optional comment",
+      "commentDescription": "This may appear in the event's public comment stream after review.",
+      "questions": {
+        "situation": {
+          "title": "Where were you during the earthquake?",
+          "options": {
+            "inside": "Inside a building",
+            "outside": "Outside",
+            "stopped_car": "In a stopped car",
+            "moving_car": "In a moving car",
+            "asleep": "Asleep"
+          }
+        },
+        "felt": {
+          "title": "Did you feel the earthquake?",
+          "options": {
+            "no": "No",
+            "yes": "Yes"
+          }
+        },
+        "othersFelt": {
+          "title": "Did other people near you feel it?",
+          "options": {
+            "dont_know": "I don't know",
+            "no_one": "No one else felt it",
+            "some": "Some felt it, most did not",
+            "most": "Most felt it",
+            "everyone": "Everyone or almost everyone felt it"
+          }
+        },
+        "motion": {
+          "title": "How would you describe the shaking?",
+          "options": {
+            "not_felt": "Not felt",
+            "weak": "Weak",
+            "mild": "Mild",
+            "moderate": "Moderate",
+            "strong": "Strong",
+            "violent": "Violent"
+          }
+        },
+        "reaction": {
+          "title": "How did you react?",
+          "options": {
+            "no_reaction": "No reaction / not felt",
+            "noticed": "Noticed it, no reaction",
+            "excitement": "Excitement — talked about it",
+            "somewhat_frightened": "Somewhat frightened",
+            "very_frightened": "Very frightened — I went outside",
+            "extremely_frightened": "Extremely frightened — everyone ran outside"
+          }
+        },
+        "stand": {
+          "title": "Was it difficult to stand or walk?",
+          "options": {
+            "no": "No",
+            "difficult": "Yes, difficult to stand",
+            "fell": "Yes, I fell or was thrown to the ground"
+          }
+        },
+        "shelf": {
+          "title": "Did objects rattle, topple over, or fall off shelves?",
+          "options": {
+            "no": "No",
+            "rattled": "Rattled only",
+            "few_fell": "A few items toppled or fell",
+            "many_fell": "Many items fell"
+          }
+        },
+        "picture": {
+          "title": "Did pictures on the wall move or get knocked crooked?",
+          "options": {
+            "no": "No",
+            "yes": "Yes"
+          }
+        },
+        "furniture": {
+          "title": "Did furniture or heavy appliances slide, topple, or move?",
+          "options": {
+            "no": "No",
+            "yes": "Yes"
+          }
+        },
+        "buildingDamageLevel": {
+          "title": "Was the building you were in damaged?",
+          "options": {
+            "0": "No damage",
+            "1": "Small cracks — hairline cracks in plaster or walls, a few fallen plaster pieces",
+            "2": "Serious damage — large wall cracks, fallen plaster chunks or masonry, broken windows, damaged parapet or roof tank",
+            "3": "Partial or full collapse — walls or floors fell, building unusable"
+          }
+        },
+        "roadDamageLevel": {
+          "title": "Did you see damage to roads or the ground?",
+          "options": {
+            "0": "No",
+            "1": "Small cracks in roads or ground",
+            "2": "Large cracks; broken water or sewage pipes",
+            "3": "Landslide, collapsed road, or large ground failure"
+          }
+        }
+      },
+      "done": {
+        "title": "Thanks for the extra detail",
+        "description": "This helps produce a more accurate shaking map for this earthquake.",
+        "close": "Close"
+      }
+    }
   }
 }
