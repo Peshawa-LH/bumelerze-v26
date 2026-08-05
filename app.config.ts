@@ -38,6 +38,23 @@ const config: ExpoConfig = {
         imageWidth: 96,
       },
     ],
+    [
+      // Sensor screen (spec-v1.md §4.8) uses expo-sensors' Accelerometer.
+      // Plain accelerometer access needs no runtime permission on either
+      // platform, but the module's permission API is shared across all
+      // expo-sensors types, and iOS requires NSMotionUsageDescription to be
+      // present in Info.plist the moment that shared API is touched at all
+      // (calling it with the key missing crashes on-device) — this plugin
+      // adds the key defensively so the (currently harmless, likely
+      // no-op-on-Accelerometer) permission check in
+      // use-accelerometer-stream.ts never hits a missing-Info.plist-key
+      // crash on iOS.
+      "expo-sensors",
+      {
+        motionPermission:
+          "Bumelerze uses your phone's accelerometer to show you a live seismometer view. No location or personal data is collected.",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
