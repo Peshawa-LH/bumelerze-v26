@@ -1,15 +1,17 @@
-import { REGION_ANCHORS, type RegionAnchor } from "./config";
-import type { Event } from "./types";
-
 const EARTH_RADIUS_KM = 6371;
 
-function toRadians(degrees: number): number {
+/** Exported for reuse by `features/geo/bearing.ts` — bearing math needs the
+ * same degrees→radians conversion, and this stays the one module that owns
+ * geodesic distance/bearing primitives (typescript-react-native.md "one
+ * module owns scientific formatting" applied to the underlying math too,
+ * not just the display strings). */
+export function toRadians(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }
 
 /** Great-circle distance between two points, km. Standalone/pure so it's
- * trivially unit-testable and reusable once real device-location distance
- * (a later wave, not this one — no expo-location yet) needs the same math. */
+ * trivially unit-testable and reusable by both the event-distance display
+ * and `features/geo`'s nearest-city lookup. */
 export function haversineDistanceKm(
   lat1: number,
   lon1: number,
@@ -25,63 +27,18 @@ export function haversineDistanceKm(
   return EARTH_RADIUS_KM * c;
 }
 
-export interface AnchorDistance {
-  anchor: RegionAnchor;
-  distanceKm: number;
-}
-
 /**
- * Distance from an event to the nearest of the three region-anchor cities
- * (Erbil/Slemani/Duhok) — the only distance mode this wave supports, since
- * no location permission is requested yet (spec-v1.md §4.1 "no location
- * permission" state: "never '?' or '–'"). `REGION_ANCHORS` is never empty,
- * so this always returns a result.
+ * Distance from an event to a real device fix (wave 5 simplification: the
+ * feed card always shows the nearest-gazetteer-city distance now —
+ * `features/geo`'s `nearestCities` — so the old no-permission
+ * "nearest-of-three-anchors" fallback this module used to own
+ * (`nearestAnchor`/`resolveEventDistance`/`REGION_ANCHORS`) is dead code,
+ * removed in wave 5. This is the one remaining distance mode: the event
+ * detail screen's "from you" line, shown only once a real fix exists.
  */
-export function nearestAnchor(lat: number, lon: number): AnchorDistance {
-  let best: AnchorDistance | null = null;
-
-  for (const anchor of REGION_ANCHORS) {
-    const distanceKm = haversineDistanceKm(lat, lon, anchor.lat, anchor.lon);
-    if (!best || distanceKm < best.distanceKm) {
-      best = { anchor, distanceKm };
-    }
-  }
-
-  // REGION_ANCHORS is a non-empty compile-time constant; `best` is always set.
-  return best as AnchorDistance;
-}
-
-/**
- * "fromUser" once a real device fix is available (wave brief point 3:
- * "distances in feed/detail become 'from you'"); "fromAnchor" is the
- * existing no-permission fallback (spec-v1.md §4.1, never a bare "?").
- * Discriminated on `mode` so `anchorNameKey` is only reachable (and only
- * required) on the branch that actually has one.
- */
-export type EventDistanceDisplay =
-  | { distanceKm: number; mode: "fromUser" }
-  | { distanceKm: number; mode: "fromAnchor"; anchorNameKey: string };
-
-/**
- * Picks which distance phrasing an event card/detail screen should use:
- * "from you" when a real device fix is available (`useUserDistanceAnchor`),
- * otherwise the existing nearest-region-anchor fallback. Kept as a small
- * pure function (not baked into the hook) so callers stay easy to test and
- * this module remains the single owner of distance math/formatting,
- * per the typescript-react-native.md "one module owns scientific
- * formatting" rule.
- */
-export function resolveEventDistance(
-  event: Pick<Event, "lat" | "lon">,
-  userFix: { lat: number; lon: number } | null,
-): EventDistanceDisplay {
-  if (userFix) {
-    return {
-      distanceKm: haversineDistanceKm(event.lat, event.lon, userFix.lat, userFix.lon),
-      mode: "fromUser",
-    };
-  }
-
-  const { anchor, distanceKm } = nearestAnchor(event.lat, event.lon);
-  return { distanceKm, mode: "fromAnchor", anchorNameKey: anchor.nameKey };
+export function distanceFromUserKm(
+  event: { lat: number; lon: number },
+  userFix: { lat: number; lon: number },
+): number {
+  return haversineDistanceKm(event.lat, event.lon, userFix.lat, userFix.lon);
 }

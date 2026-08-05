@@ -11,23 +11,44 @@
     "title": "الرئيسية",
     "emptyState": "لم تُسجَّل أي زلازل في منطقتك مؤخراً."
   },
+  "units": {
+    "km": "كم"
+  },
+  "geo": {
+    "directions": {
+      "n": "شمال",
+      "ne": "شمال شرق",
+      "e": "شرق",
+      "se": "جنوب شرق",
+      "s": "جنوب",
+      "sw": "جنوب غرب",
+      "w": "غرب",
+      "nw": "شمال غرب"
+    },
+    "regions": {
+      "kurdistanIraq": "كردستان (العراق)",
+      "iraq": "العراق",
+      "iran": "إيران",
+      "turkey": "تركيا",
+      "syria": "سوريا"
+    },
+    "placeLine": {
+      "template": "{{distance}} {{direction}} من {{city}}",
+      "withRegion": "{{line}}، {{region}}"
+    }
+  },
   "events": {
     "provenance": {
       "usgs": "USGS"
     },
     "relativeTime": {
       "justNow": "الآن",
-      "minutes": "قبل {{count}} دقيقة",
-      "hours": "قبل {{count}} ساعة",
-      "days": "قبل {{count}} يوم"
+      "minutes": "قبل {{value}} دقيقة",
+      "hours": "قبل {{value}} ساعة",
+      "days": "قبل {{value}} يوم"
     },
-    "distanceFromAnchor": "{{distance}} من {{anchor}}",
+    "distanceFromCity": "{{distance}} من {{city}}",
     "distanceFromYou": "{{distance}} منك",
-    "anchors": {
-      "erbil": "أربيل",
-      "slemani": "السليمانية",
-      "duhok": "دهوك"
-    },
     "magnitudeA11yLabel": "الشدة {{value}}",
     "offlineBanner": "أنت غير متصل — يتم عرض الأحداث منذ {{time}}",
     "errorTitle": "تعذر تحميل أحدث الأحداث",
@@ -120,27 +141,7 @@
       "description": "إذا كنت تعيش بعيداً عن كوردستان، اختر بلدة كموطن — مثل المكان الذي تعيش فيه عائلتك — ليتمكن نظام التنبيهات مستقبلاً من مراقبته أيضاً. اختياري؛ يمكنك تحديده أو تغييره لاحقاً من الإعدادات.",
       "elsewhere": "مكان آخر / تخطي",
       "skip": "تخطي الآن",
-      "notSet": "غير محدد",
-      "towns": {
-        "erbil": "أربيل",
-        "slemani": "السليمانية",
-        "duhok": "دهوك",
-        "kirkuk": "كركوك",
-        "halabja": "حلبجة",
-        "zakho": "زاخو",
-        "soran": "سوران",
-        "ranya": "رانية",
-        "koya": "كوية",
-        "kalar": "كلار",
-        "chamchamal": "جمجمال",
-        "akre": "عقرة",
-        "bardarash": "بردرش",
-        "dukan": "دوكان",
-        "darbandikhan": "دربنديخان",
-        "khanaqin": "خانقين",
-        "mosul": "الموصل",
-        "baghdad": "بغداد"
-      }
+      "notSet": "غير محدد"
     },
     "done": {
       "title": "كل شيء جاهز",
@@ -158,7 +159,6 @@
     "localTimeLabel": "التوقيت المحلي",
     "coordinatesSectionTitle": "الإحداثيات",
     "depthSectionTitle": "العمق",
-    "depthValue": "{{depth}} كم",
     "distanceSectionTitle": "المسافة",
     "sourceSectionTitle": "المصدر",
     "sourceUpdated": "آخر تحديث {{time}}",

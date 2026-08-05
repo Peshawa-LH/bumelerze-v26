@@ -1,9 +1,15 @@
+import { GAZETTEER_CITIES, type GazetteerCityNames } from "@/features/geo";
+
 /**
  * HomeBase town picker list (spec-v1.md §4.11 step 5, wave brief point 1).
- * ~20 Kurdistan-region towns, bundled with the app — no map, no geocoding
- * service, no network call. Coordinates are approximate town centroids,
- * good enough for Phase 4's eventual "is this event near HomeBase" math;
- * this wave only stores them (v1 feed never shows HomeBase distance).
+ * Wave 5 (ui-backlog.md item 3) relocated the actual town data into
+ * `features/geo`'s bundled gazetteer — this module is now just a curated
+ * *subset* (the same ~18 towns this picker has always shown) drawn from
+ * that single dataset, per PROJECT.md's gotcha against scattering more than
+ * one town/city list through the app. `names` carries all four locale
+ * spellings directly from the gazetteer (draft-machine, see
+ * `features/geo/gazetteer.ts`'s doc comment) instead of an i18n key, since
+ * the gazetteer is the source of truth for place names now.
  *
  * Upgrade path (leave for whoever builds Phase 3 MapLibre): once the map is
  * in, replace this static list with a map-pin placement UI that still
@@ -12,52 +18,46 @@
  */
 export interface HomeBaseTown {
   id: string;
-  /** i18n key for the display name — never a hard-coded city string. */
-  nameKey: string;
+  names: GazetteerCityNames;
   lat: number;
   lon: number;
 }
 
-export const HOME_BASE_TOWNS: readonly HomeBaseTown[] = [
-  { id: "erbil", nameKey: "onboarding.homeBase.towns.erbil", lat: 36.19, lon: 44.01 },
-  { id: "slemani", nameKey: "onboarding.homeBase.towns.slemani", lat: 35.56, lon: 45.43 },
-  { id: "duhok", nameKey: "onboarding.homeBase.towns.duhok", lat: 36.87, lon: 42.99 },
-  { id: "kirkuk", nameKey: "onboarding.homeBase.towns.kirkuk", lat: 35.47, lon: 44.39 },
-  { id: "halabja", nameKey: "onboarding.homeBase.towns.halabja", lat: 35.18, lon: 45.98 },
-  { id: "zakho", nameKey: "onboarding.homeBase.towns.zakho", lat: 37.14, lon: 42.68 },
-  { id: "soran", nameKey: "onboarding.homeBase.towns.soran", lat: 36.65, lon: 44.54 },
-  { id: "ranya", nameKey: "onboarding.homeBase.towns.ranya", lat: 36.25, lon: 44.89 },
-  { id: "koya", nameKey: "onboarding.homeBase.towns.koya", lat: 36.08, lon: 44.63 },
-  { id: "kalar", nameKey: "onboarding.homeBase.towns.kalar", lat: 34.62, lon: 45.32 },
-  {
-    id: "chamchamal",
-    nameKey: "onboarding.homeBase.towns.chamchamal",
-    lat: 35.53,
-    lon: 44.83,
-  },
-  { id: "akre", nameKey: "onboarding.homeBase.towns.akre", lat: 36.75, lon: 43.89 },
-  {
-    id: "bardarash",
-    nameKey: "onboarding.homeBase.towns.bardarash",
-    lat: 36.5,
-    lon: 43.55,
-  },
-  { id: "dukan", nameKey: "onboarding.homeBase.towns.dukan", lat: 35.95, lon: 44.95 },
-  {
-    id: "darbandikhan",
-    nameKey: "onboarding.homeBase.towns.darbandikhan",
-    lat: 35.13,
-    lon: 45.72,
-  },
-  {
-    id: "khanaqin",
-    nameKey: "onboarding.homeBase.towns.khanaqin",
-    lat: 34.36,
-    lon: 45.39,
-  },
-  { id: "mosul", nameKey: "onboarding.homeBase.towns.mosul", lat: 36.34, lon: 43.13 },
-  { id: "baghdad", nameKey: "onboarding.homeBase.towns.baghdad", lat: 33.31, lon: 44.36 },
-];
+/** The original onboarding town subset (spec-v1.md §4.11), by gazetteer id
+ * — deliberately not "every gazetteer city", since most of the gazetteer
+ * (Iran/Turkey border towns, extra Iraqi reference points) exists for
+ * event place-lines, not as HomeBase choices for someone living in or near
+ * Kurdistan. */
+const HOME_BASE_TOWN_IDS = [
+  "erbil",
+  "slemani",
+  "duhok",
+  "kirkuk",
+  "halabja",
+  "zakho",
+  "soran",
+  "ranya",
+  "koya",
+  "kalar",
+  "chamchamal",
+  "akre",
+  "bardarash",
+  "dukan",
+  "darbandikhan",
+  "khanaqin",
+  "mosul",
+  "baghdad",
+] as const;
+
+export const HOME_BASE_TOWNS: readonly HomeBaseTown[] = HOME_BASE_TOWN_IDS.map((id) => {
+  const city = GAZETTEER_CITIES.find((candidate) => candidate.id === id);
+  if (!city) {
+    // Fails fast at module load (dev-time only) if a gazetteer id above is
+    // ever renamed/removed without updating this list.
+    throw new Error(`HomeBase town "${id}" is missing from the gazetteer`);
+  }
+  return { id: city.id, lat: city.lat, lon: city.lon, names: city.names };
+});
 
 /** Sentinel id for "elsewhere" — a free skip, never geocoded, never present
  * in `HOME_BASE_TOWNS` above. Selecting it stores `homeBase: null`. */

@@ -11,23 +11,44 @@
     "title": "Destpêk",
     "emptyState": "Vê dawiyê tu erdheja li herêma te nehatiye tomarkirin."
   },
+  "units": {
+    "km": "km"
+  },
+  "geo": {
+    "directions": {
+      "n": "Bakur",
+      "ne": "Bakur-rojhilat",
+      "e": "Rojhilat",
+      "se": "Başûr-rojhilat",
+      "s": "Başûr",
+      "sw": "Başûr-rojava",
+      "w": "Rojava",
+      "nw": "Bakur-rojava"
+    },
+    "regions": {
+      "kurdistanIraq": "Kurdistana (Iraq)",
+      "iraq": "Iraq",
+      "iran": "Îran",
+      "turkey": "Tirkiye",
+      "syria": "Sûriye"
+    },
+    "placeLine": {
+      "template": "{{distance}} {{direction}} ji {{city}}",
+      "withRegion": "{{line}}, {{region}}"
+    }
+  },
   "events": {
     "provenance": {
       "usgs": "USGS"
     },
     "relativeTime": {
       "justNow": "Niha",
-      "minutes": "{{count}} deqîqe berê",
-      "hours": "{{count}} saet berê",
-      "days": "{{count}} roj berê"
+      "minutes": "{{value}} deqîqe berê",
+      "hours": "{{value}} saet berê",
+      "days": "{{value}} roj berê"
     },
-    "distanceFromAnchor": "{{distance}} ji {{anchor}}",
+    "distanceFromCity": "{{distance}} ji {{city}}",
     "distanceFromYou": "{{distance}} ji te",
-    "anchors": {
-      "erbil": "Hewlêr",
-      "slemani": "Silêmanî",
-      "duhok": "Dihok"
-    },
     "magnitudeA11yLabel": "Mezinahî {{value}}",
     "offlineBanner": "Tu offline î — bûyerên ji {{time}} têne nîşandan",
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
@@ -120,27 +141,7 @@
       "description": "Heke tu ji Kurdistanê dûr dijî, bajarekî wek Cihê Malê hilbijêre — mîna cihê ku malbata te lê dijî — da ku hişyariyên pêşerojê wê jî çavdêrî bikin. Vebijarke; tu dikarî vê paşê jî ji Sazkariyan saz bikî an biguherînî.",
       "elsewhere": "Cihekî din / derbas bike",
       "skip": "Niha derbas bike",
-      "notSet": "Nehatiye danîn",
-      "towns": {
-        "erbil": "Hewlêr",
-        "slemani": "Silêmanî",
-        "duhok": "Dihok",
-        "kirkuk": "Kerkûk",
-        "halabja": "Helebce",
-        "zakho": "Zaxo",
-        "soran": "Soran",
-        "ranya": "Ranya",
-        "koya": "Koya",
-        "kalar": "Kelar",
-        "chamchamal": "Çemçemal",
-        "akre": "Akre",
-        "bardarash": "Berdereş",
-        "dukan": "Dukan",
-        "darbandikhan": "Derbendîxan",
-        "khanaqin": "Xaneqîn",
-        "mosul": "Mûsil",
-        "baghdad": "Bexda"
-      }
+      "notSet": "Nehatiye danîn"
     },
     "done": {
       "title": "Her tişt amade ye",
@@ -158,7 +159,6 @@
     "localTimeLabel": "Herêmî",
     "coordinatesSectionTitle": "Koordînat",
     "depthSectionTitle": "Kûrahî",
-    "depthValue": "{{depth}} km",
     "distanceSectionTitle": "Dûrahî",
     "sourceSectionTitle": "Çavkanî",
     "sourceUpdated": "Hate rojanekirin {{time}}",

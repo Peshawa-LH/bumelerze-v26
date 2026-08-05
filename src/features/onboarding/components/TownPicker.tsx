@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { pickLocalizedName } from "@/features/geo";
 import { useTheme } from "@/theme";
 import { HOME_BASE_ELSEWHERE_ID, HOME_BASE_TOWNS } from "../towns";
 
@@ -23,7 +24,7 @@ export function TownPicker({
   onSelectTown,
   onSelectElsewhere,
 }: TownPickerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
 
   return (
@@ -51,7 +52,7 @@ export function TownPicker({
                 fontWeight: isActive ? "700" : "400",
               }}
             >
-              {t(town.nameKey)}
+              {pickLocalizedName(town.names, i18n.language)}
             </Text>
           </Pressable>
         );

@@ -1,4 +1,14 @@
-import { formatMagnitude, getRelativeTime, isolateNumeric } from "../format";
+import {
+  formatCoordinates,
+  formatDepthKm,
+  formatDistanceKm,
+  formatIsolatedDistance,
+  formatMagnitude,
+  formatMagnitudeValue,
+  formatRelativeTimeValue,
+  getRelativeTime,
+  isolateNumeric,
+} from "../format";
 
 describe("getRelativeTime", () => {
   const now = 1_700_000_000_000;
@@ -44,11 +54,64 @@ describe("getRelativeTime", () => {
   });
 });
 
-describe("formatMagnitude", () => {
-  it("renders one decimal place with the 'M' prefix (USGS convention)", () => {
-    expect(formatMagnitude({ value: 4.6, type: "mb" })).toBe("M 4.6");
-    expect(formatMagnitude({ value: 5, type: "mww" })).toBe("M 5.0");
-    expect(formatMagnitude({ value: 3.98, type: "ml" })).toBe("M 4.0");
+describe("formatRelativeTimeValue", () => {
+  it("digit-localizes the count for ckb/ar, keeps Latin for en/kmr", () => {
+    expect(formatRelativeTimeValue(45, "en")).toBe("45");
+    expect(formatRelativeTimeValue(45, "kmr")).toBe("45");
+    expect(formatRelativeTimeValue(45, "ckb")).toBe("٤٥");
+    expect(formatRelativeTimeValue(45, "ar")).toBe("٤٥");
+  });
+});
+
+describe("formatMagnitude / formatMagnitudeValue", () => {
+  it("renders one decimal place with the 'M' prefix (USGS convention), Latin digits in en", () => {
+    expect(formatMagnitude({ value: 4.6, type: "mb" }, "en")).toBe("M 4.6");
+    expect(formatMagnitude({ value: 5, type: "mww" }, "en")).toBe("M 5.0");
+    expect(formatMagnitude({ value: 3.98, type: "ml" }, "en")).toBe("M 4.0");
+  });
+
+  it("digit-localizes the magnitude numeral for ckb and ar (ui-backlog.md wave 5 item 1 — reverses the earlier 'always Latin' design-language.md call)", () => {
+    expect(formatMagnitude({ value: 4.6, type: "mb" }, "ckb")).toBe("M ٤.٦");
+    expect(formatMagnitude({ value: 4.6, type: "mb" }, "ar")).toBe("M ٤.٦");
+  });
+
+  it("keeps Latin digits for kmr", () => {
+    expect(formatMagnitude({ value: 4.6, type: "mb" }, "kmr")).toBe("M 4.6");
+  });
+
+  it("formatMagnitudeValue omits the 'M' prefix (for the a11y label, which already says 'Magnitude')", () => {
+    expect(formatMagnitudeValue(4.6, "en")).toBe("4.6");
+    expect(formatMagnitudeValue(4.6, "ckb")).toBe("٤.٦");
+  });
+});
+
+describe("formatDistanceKm / formatDepthKm / formatCoordinates", () => {
+  it("formats a numeral only, one decimal, no unit text", () => {
+    expect(formatDistanceKm(38.24, "en")).toBe("38.2");
+    expect(formatDistanceKm(38.24, "ckb")).toBe("٣٨.٢");
+  });
+
+  it("depth follows the same numeral-only, digit-localized convention", () => {
+    expect(formatDepthKm(12.04, "en")).toBe("12.0");
+    expect(formatDepthKm(12.04, "ar")).toBe("١٢.٠");
+  });
+
+  it("coordinates render three decimals per axis, comma punctuation never localized", () => {
+    expect(formatCoordinates(35.56, 45.43, "en")).toBe("35.560, 45.430");
+    expect(formatCoordinates(35.56, 45.43, "ckb")).toBe("٣٥.٥٦٠, ٤٥.٤٣٠");
+  });
+});
+
+describe("formatIsolatedDistance", () => {
+  it("composes the numeral, a localized unit label, and a bidi isolate", () => {
+    const result = formatIsolatedDistance(38.24, "en", "km");
+    expect(result).toBe(isolateNumeric("38.2 km"));
+    expect(result).toContain("38.2 km");
+  });
+
+  it("uses the passed-in localized unit label (e.g. Sorani 'کم') and digit-localizes the numeral", () => {
+    const result = formatIsolatedDistance(38.24, "ckb", "کم");
+    expect(result).toContain("٣٨.٢ کم");
   });
 });
 

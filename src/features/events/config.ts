@@ -19,25 +19,6 @@ export const REGION_BBOX = {
 } as const;
 
 /**
- * Distance-anchor cities used when we have no location permission (this
- * wave never requests one — spec-v1.md §4.1 "no-permission" state). Order
- * doesn't matter; `nearestAnchor` picks the closest for a given event.
- */
-export interface RegionAnchor {
-  id: "erbil" | "slemani" | "duhok";
-  /** i18n key for the display name — never a hard-coded city string. */
-  nameKey: string;
-  lat: number;
-  lon: number;
-}
-
-export const REGION_ANCHORS: readonly RegionAnchor[] = [
-  { id: "erbil", nameKey: "events.anchors.erbil", lat: 36.19, lon: 44.01 },
-  { id: "slemani", nameKey: "events.anchors.slemani", lat: 35.56, lon: 45.43 },
-  { id: "duhok", nameKey: "events.anchors.duhok", lat: 36.87, lon: 42.99 },
-];
-
-/**
  * Significance-score classification thresholds, event-pipeline-design.md §3.
  * All tunable; region-significant deliberately aligns with the shake-service
  * M>=3.5 trigger band (D9).
