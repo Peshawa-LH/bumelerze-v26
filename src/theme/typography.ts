@@ -30,6 +30,11 @@ function scale(fontSize: number, latinMultiplier: number, arabicMultiplier: numb
 
 export function typography(isArabicScript: boolean) {
   return {
+    // Panic-mode emphasis tier (design-language.md §2): the single biggest
+    // number on screen. Used only for the magnitude numeral, never for any
+    // other content.
+    magnitudeHero: scale(72, 1.15, 1.35, "800", isArabicScript),
+    magnitudeCompact: scale(32, 1.2, 1.4, "700", isArabicScript),
     h1: scale(28, 1.25, 1.4, "700", isArabicScript),
     h2: scale(22, 1.3, 1.4, "600", isArabicScript),
     h3: scale(18, 1.35, 1.45, "600", isArabicScript),
