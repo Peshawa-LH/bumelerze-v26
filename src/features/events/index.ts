@@ -1,10 +1,5 @@
 export type { Event, EventMagnitude, EventProvenance, EventProvider } from "./types";
-export {
-  REGION_ANCHORS,
-  REGION_BBOX,
-  SIGNIFICANCE_THRESHOLDS,
-  type RegionAnchor,
-} from "./config";
+export { REGION_BBOX, SIGNIFICANCE_THRESHOLDS } from "./config";
 export {
   computeClientSig,
   isInRegionBbox,
@@ -23,17 +18,16 @@ export {
   type UseEventByIdResult,
   type UseEventsFeedResult,
 } from "./queries";
-export {
-  haversineDistanceKm,
-  nearestAnchor,
-  resolveEventDistance,
-  type AnchorDistance,
-  type EventDistanceDisplay,
-} from "./distance";
+export { distanceFromUserKm, haversineDistanceKm, toRadians } from "./distance";
 export {
   formatAbsoluteDual,
+  formatCoordinates,
+  formatDepthKm,
   formatDistanceKm,
+  formatIsolatedDistance,
   formatMagnitude,
+  formatMagnitudeValue,
+  formatRelativeTimeValue,
   getRelativeTime,
   isolateNumeric,
 } from "./format";

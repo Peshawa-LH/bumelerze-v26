@@ -6,16 +6,20 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
+  distanceFromUserKm,
   formatAbsoluteDual,
-  formatDistanceKm,
+  formatCoordinates,
+  formatDepthKm,
+  formatIsolatedDistance,
   formatMagnitude,
+  formatMagnitudeValue,
   isolateNumeric,
   ProvenanceChip,
-  resolveEventDistance,
   useEventById,
   useRegionEvents,
   useWorldEvents,
 } from "@/features/events";
+import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
 import { useTheme } from "@/theme";
 
@@ -134,24 +138,28 @@ function EventDetailHeader({
   t,
 }: EventDetailHeaderProps) {
   const { utc, local } = formatAbsoluteDual(event.originTime, locale);
+
+  // Nearest-cities list (ui-backlog.md wave 5 item 5) — always shown, no
+  // location permission needed. "From you" is a separate, optional extra
+  // line, shown only once a real device fix exists.
+  const nearestCityResults = nearestCities(event.lat, event.lon);
   const userFix = useUserDistanceAnchor();
-  const distance = resolveEventDistance(
-    event,
-    userFix.hasFix ? { lat: userFix.lat, lon: userFix.lon } : null,
-  );
-  const distanceText =
-    distance.mode === "fromUser"
-      ? t("events.distanceFromYou", {
-          distance: isolateNumeric(formatDistanceKm(distance.distanceKm)),
-        })
-      : t("events.distanceFromAnchor", {
-          distance: isolateNumeric(formatDistanceKm(distance.distanceKm)),
-          anchor: t(distance.anchorNameKey),
-        });
+  const fromYouText = userFix.hasFix
+    ? t("events.distanceFromYou", {
+        distance: formatIsolatedDistance(
+          distanceFromUserKm(event, userFix),
+          locale,
+          t("units.km"),
+        ),
+      })
+    : null;
+
   const { local: sourceUpdatedLocal } = formatAbsoluteDual(
     event.provenance.providerUpdatedAt,
     locale,
   );
+
+  const placeText = placeLine(event, locale, t);
 
   return (
     <View style={{ gap: spacing[6] }}>
@@ -159,7 +167,7 @@ function EventDetailHeader({
         <Text
           accessibilityRole="header"
           accessibilityLabel={t("events.magnitudeA11yLabel", {
-            value: event.magnitude.value.toFixed(1),
+            value: formatMagnitudeValue(event.magnitude.value, locale),
           })}
           style={{
             color: colors.text.primary,
@@ -170,7 +178,7 @@ function EventDetailHeader({
             writingDirection: "ltr",
           }}
         >
-          {formatMagnitude(event.magnitude)}
+          {formatMagnitude(event.magnitude, locale)}
         </Text>
         <Text
           style={{
@@ -180,7 +188,7 @@ function EventDetailHeader({
             fontWeight: typography.h3.fontWeight,
           }}
         >
-          {event.placeName}
+          {placeText}
         </Text>
         <ProvenanceChip provider={event.provenance.provider} />
       </View>
@@ -220,7 +228,7 @@ function EventDetailHeader({
             writingDirection: "ltr",
           }}
         >
-          {`${event.lat.toFixed(3)}, ${event.lon.toFixed(3)}`}
+          {formatCoordinates(event.lat, event.lon, locale)}
         </Text>
       </DetailSection>
 
@@ -239,7 +247,7 @@ function EventDetailHeader({
             writingDirection: "ltr",
           }}
         >
-          {t("eventDetail.depthValue", { depth: event.depthKm.toFixed(1) })}
+          {isolateNumeric(`${formatDepthKm(event.depthKm, locale)} ${t("units.km")}`)}
         </Text>
       </DetailSection>
 
@@ -249,15 +257,31 @@ function EventDetailHeader({
         typography={typography}
         spacing={spacing}
       >
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-          }}
-        >
-          {distanceText}
-        </Text>
+        <View style={{ gap: spacing[1] }}>
+          {nearestCityResults.map((result) => (
+            <Text
+              key={result.city.id}
+              style={{
+                color: colors.text.primary,
+                fontSize: typography.bodyDefault.fontSize,
+                lineHeight: typography.bodyDefault.lineHeight,
+              }}
+            >
+              {nearestCityDistanceLine(result, locale, t)}
+            </Text>
+          ))}
+          {fromYouText ? (
+            <Text
+              style={{
+                color: colors.text.secondary,
+                fontSize: typography.bodyDefault.fontSize,
+                lineHeight: typography.bodyDefault.lineHeight,
+              }}
+            >
+              {fromYouText}
+            </Text>
+          ) : null}
+        </View>
       </DetailSection>
 
       <DetailSection

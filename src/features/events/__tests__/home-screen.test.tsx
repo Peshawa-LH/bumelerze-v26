@@ -81,27 +81,30 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("renders an event card with Sorani strings and the anchor-distance fallback", async () => {
+  it("renders an event card with Sorani strings and the gazetteer place line", async () => {
     expect(isRTLLocale("ckb")).toBe(true);
     await i18n.changeLanguage("ckb");
 
     await renderWithProviders(<HomeScreen />);
 
-    // Screen title + place name render in Sorani.
+    // Screen title renders in Sorani.
     expect(screen.getByText("ماڵەوە")).toBeTruthy();
-    expect(screen.getByText("32 km SE of Halabja, Iraq")).toBeTruthy();
 
-    // Magnitude stays a neutral, Latin-digit numeral regardless of locale
-    // (design-language.md §2/§3.2) — never translated or re-scripted.
-    expect(screen.getByText("M 4.6")).toBeTruthy();
+    // The raw USGS place string is gone — replaced by our own gazetteer
+    // place line (ui-backlog.md wave 5 item 3). The event's coordinates are
+    // Slemani's own, so the nearest-gazetteer-city phrase names Slemani in
+    // Sorani and carries the Kurdistan (Iraq) region label.
+    expect(screen.queryByText("32 km SE of Halabja, Iraq")).toBeNull();
+    expect(screen.getByText(/سلێمانی/)).toBeTruthy();
+    expect(screen.getByText(/کوردستان \(عێراق\)/)).toBeTruthy();
+
+    // Magnitude digit-localizes to Eastern Arabic-Indic in Sorani
+    // (ui-backlog.md wave 5 item 1 — reverses design-language.md §3.2's
+    // earlier "always Latin" call, per Peshawa's native-speaker review).
+    expect(screen.getByText("M ٤.٦")).toBeTruthy();
 
     // Provenance chip.
     expect(screen.getByText("USGS")).toBeTruthy();
-
-    // No-permission distance fallback (spec-v1.md §4.1: never "?" or a
-    // blank value) — the event's coordinates are Slemani's own, so the
-    // nearest-anchor phrase names Slemani in Sorani.
-    expect(screen.getByText(/سلێمانی/)).toBeTruthy();
   });
 
   it("shows the region-feed empty state (still in Sorani) when there are no cached events", async () => {

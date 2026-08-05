@@ -2,14 +2,13 @@ import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useUserDistanceAnchor } from "@/features/location";
+import { placeLine } from "@/features/geo";
 import { useTheme } from "@/theme";
-import { resolveEventDistance } from "../distance";
 import {
-  formatDistanceKm,
   formatMagnitude,
+  formatMagnitudeValue,
+  formatRelativeTimeValue,
   getRelativeTime,
-  isolateNumeric,
 } from "../format";
 import { magnitudeTone } from "../magnitude-tone";
 import type { Event } from "../types";
@@ -27,37 +26,32 @@ interface EventCardProps {
 }
 
 function EventCardImpl({ event, onPress, now }: EventCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const { colors, typography, spacing } = useTheme();
 
   const relativeTime = getRelativeTime(event.originTime, now);
   const relativeTimeText =
     relativeTime.unit === "justNow"
       ? t("events.relativeTime.justNow")
-      : t(`events.relativeTime.${relativeTime.unit}`, { count: relativeTime.value });
-
-  const userFix = useUserDistanceAnchor();
-  const distance = resolveEventDistance(
-    event,
-    userFix.hasFix ? { lat: userFix.lat, lon: userFix.lon } : null,
-  );
-  const distanceText =
-    distance.mode === "fromUser"
-      ? t("events.distanceFromYou", {
-          distance: isolateNumeric(formatDistanceKm(distance.distanceKm)),
-        })
-      : t("events.distanceFromAnchor", {
-          distance: isolateNumeric(formatDistanceKm(distance.distanceKm)),
-          anchor: t(distance.anchorNameKey),
+      : t(`events.relativeTime.${relativeTime.unit}`, {
+          value: formatRelativeTimeValue(relativeTime.value, locale),
         });
 
-  const magnitudeText = formatMagnitude(event.magnitude);
+  // Single place/distance line (ui-backlog.md wave 5 items 3 & 5): replaces
+  // both the raw USGS place string AND the old separate anchor-distance
+  // line with one localized "{distance} {direction} of {city}, {region}"
+  // built from the gazetteer — falling back to the raw USGS string only
+  // for far-world events (see `placeLine`'s own doc comment).
+  const placeText = placeLine(event, locale, t);
+  const magnitudeText = formatMagnitude(event.magnitude, locale);
   const tone = magnitudeTone(event.magnitude.value);
 
   const accessibilityLabel = [
-    t("events.magnitudeA11yLabel", { value: event.magnitude.value.toFixed(1) }),
-    event.placeName,
-    distanceText,
+    t("events.magnitudeA11yLabel", {
+      value: formatMagnitudeValue(event.magnitude.value, locale),
+    }),
+    placeText,
     relativeTimeText,
   ]
     .filter(Boolean)
@@ -104,19 +98,10 @@ function EventCardImpl({ event, onPress, now }: EventCardProps) {
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
-        {event.placeName}
+        {placeText}
       </Text>
 
       <View style={styles.metaRow}>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyMeta.fontSize,
-            lineHeight: typography.bodyMeta.lineHeight,
-          }}
-        >
-          {distanceText}
-        </Text>
         <Text
           style={{
             color: colors.text.secondary,

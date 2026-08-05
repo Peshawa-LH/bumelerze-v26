@@ -11,23 +11,44 @@
     "title": "ماڵەوە",
     "emptyState": "لەم دواییانە هیچ بوومەلەرزەیەک لە هەرێمەکەتدا تۆمار نەکراوە."
   },
+  "units": {
+    "km": "کم"
+  },
+  "geo": {
+    "directions": {
+      "n": "باکوور",
+      "ne": "باکووری ڕۆژهەڵات",
+      "e": "ڕۆژهەڵات",
+      "se": "باشووری ڕۆژهەڵات",
+      "s": "باشوور",
+      "sw": "باشووری ڕۆژئاوا",
+      "w": "ڕۆژئاوا",
+      "nw": "باکووری ڕۆژئاوا"
+    },
+    "regions": {
+      "kurdistanIraq": "کوردستان (عێراق)",
+      "iraq": "عێراق",
+      "iran": "ئێران",
+      "turkey": "تورکیا",
+      "syria": "سووریا"
+    },
+    "placeLine": {
+      "template": "{{distance}} {{direction}}ی {{city}}ەوە",
+      "withRegion": "{{line}}، {{region}}"
+    }
+  },
   "events": {
     "provenance": {
       "usgs": "USGS"
     },
     "relativeTime": {
       "justNow": "ئێستا",
-      "minutes": "{{count}} خولەک لەمەوبەر",
-      "hours": "{{count}} کاتژمێر لەمەوبەر",
-      "days": "{{count}} ڕۆژ لەمەوبەر"
+      "minutes": "{{value}} خولەک لەمەوبەر",
+      "hours": "{{value}} کاتژمێر لەمەوبەر",
+      "days": "{{value}} ڕۆژ لەمەوبەر"
     },
-    "distanceFromAnchor": "{{distance}} لە {{anchor}}ەوە",
+    "distanceFromCity": "{{distance}} لە {{city}}ەوە",
     "distanceFromYou": "{{distance}} لە تۆوە",
-    "anchors": {
-      "erbil": "هەولێر",
-      "slemani": "سلێمانی",
-      "duhok": "دهۆک"
-    },
     "magnitudeA11yLabel": "بەهێزی {{value}}",
     "offlineBanner": "تۆ ئۆفلاینیت — ڕووداوەکان لە {{time}}ەوە پیشان دەدرێن",
     "errorTitle": "نەتوانرا ڕووداوە نوێیەکان باربکرێن",
@@ -120,27 +141,7 @@
       "description": "ئەگەر لە دەرەوەی کوردستان دەژیت، شارۆچکەیەک وەک بنکەی ماڵ هەڵبژێرە — وەک ئەو شوێنەی خێزانەکەت تێیدا دەژین — بۆ ئەوەی ئاگادارکردنەوەکانی داهاتوو چاودێری ئەویش بکەن. ئارەزوومەندانەیە؛ دەتوانیت دواتریش لە ڕێکخستنەکانەوە دایبنێیت یان بیگۆڕیت.",
       "elsewhere": "شوێنێکی تر / پەڕاندن",
       "skip": "ئێستا پەڕاندن",
-      "notSet": "دانەنراوە",
-      "towns": {
-        "erbil": "هەولێر",
-        "slemani": "سلێمانی",
-        "duhok": "دهۆک",
-        "kirkuk": "کەرکووک",
-        "halabja": "هەڵەبجە",
-        "zakho": "زاخۆ",
-        "soran": "سۆران",
-        "ranya": "ڕانیە",
-        "koya": "کۆیە",
-        "kalar": "کەلار",
-        "chamchamal": "چەمچەماڵ",
-        "akre": "ئاکرێ",
-        "bardarash": "بەردەرەش",
-        "dukan": "دووکان",
-        "darbandikhan": "دەربەندیخان",
-        "khanaqin": "خانەقین",
-        "mosul": "موسڵ",
-        "baghdad": "بەغدا"
-      }
+      "notSet": "دانەنراوە"
     },
     "done": {
       "title": "هەموو شتێک ئامادەیە",
@@ -158,7 +159,6 @@
     "localTimeLabel": "کاتی ناوخۆیی",
     "coordinatesSectionTitle": "کوردینات",
     "depthSectionTitle": "قوڵایی",
-    "depthValue": "{{depth}} کم",
     "distanceSectionTitle": "دووری",
     "sourceSectionTitle": "سەرچاوە",
     "sourceUpdated": "نوێکراوەتەوە لە {{time}}",

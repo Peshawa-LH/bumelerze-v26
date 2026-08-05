@@ -11,23 +11,44 @@
     "title": "Home",
     "emptyState": "No earthquakes reported in your region recently."
   },
+  "units": {
+    "km": "km"
+  },
+  "geo": {
+    "directions": {
+      "n": "N",
+      "ne": "NE",
+      "e": "E",
+      "se": "SE",
+      "s": "S",
+      "sw": "SW",
+      "w": "W",
+      "nw": "NW"
+    },
+    "regions": {
+      "kurdistanIraq": "Kurdistan (Iraq)",
+      "iraq": "Iraq",
+      "iran": "Iran",
+      "turkey": "Turkey",
+      "syria": "Syria"
+    },
+    "placeLine": {
+      "template": "{{distance}} {{direction}} of {{city}}",
+      "withRegion": "{{line}}, {{region}}"
+    }
+  },
   "events": {
     "provenance": {
       "usgs": "USGS"
     },
     "relativeTime": {
       "justNow": "Just now",
-      "minutes": "{{count}}m ago",
-      "hours": "{{count}}h ago",
-      "days": "{{count}}d ago"
+      "minutes": "{{value}}m ago",
+      "hours": "{{value}}h ago",
+      "days": "{{value}}d ago"
     },
-    "distanceFromAnchor": "{{distance}} from {{anchor}}",
+    "distanceFromCity": "{{distance}} from {{city}}",
     "distanceFromYou": "{{distance}} from you",
-    "anchors": {
-      "erbil": "Erbil",
-      "slemani": "Slemani",
-      "duhok": "Duhok"
-    },
     "magnitudeA11yLabel": "Magnitude {{value}}",
     "offlineBanner": "You're offline — showing events from {{time}}",
     "errorTitle": "Couldn't load the latest events",
@@ -120,27 +141,7 @@
       "description": "If you live away from Kurdistan, pick a HomeBase town — like where your family lives — so future alerts can watch it for you too. Optional; you can set or change this later in Settings.",
       "elsewhere": "Elsewhere / skip",
       "skip": "Skip for now",
-      "notSet": "Not set",
-      "towns": {
-        "erbil": "Erbil",
-        "slemani": "Slemani",
-        "duhok": "Duhok",
-        "kirkuk": "Kirkuk",
-        "halabja": "Halabja",
-        "zakho": "Zakho",
-        "soran": "Soran",
-        "ranya": "Ranya",
-        "koya": "Koya",
-        "kalar": "Kalar",
-        "chamchamal": "Chamchamal",
-        "akre": "Akre",
-        "bardarash": "Bardarash",
-        "dukan": "Dukan",
-        "darbandikhan": "Darbandikhan",
-        "khanaqin": "Khanaqin",
-        "mosul": "Mosul",
-        "baghdad": "Baghdad"
-      }
+      "notSet": "Not set"
     },
     "done": {
       "title": "You're all set",
@@ -158,7 +159,6 @@
     "localTimeLabel": "Local",
     "coordinatesSectionTitle": "Coordinates",
     "depthSectionTitle": "Depth",
-    "depthValue": "{{depth}} km",
     "distanceSectionTitle": "Distance",
     "sourceSectionTitle": "Source",
     "sourceUpdated": "Updated {{time}}",

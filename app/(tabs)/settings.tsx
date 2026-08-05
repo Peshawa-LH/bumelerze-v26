@@ -4,6 +4,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { pickLocalizedName } from "@/features/geo";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
 import { useLocationPermissionStatus } from "@/features/location";
@@ -120,17 +121,17 @@ export default function SettingsScreen() {
 }
 
 function HomeBaseSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const homeBase = usePrefsStore((state) => state.homeBase);
   const setHomeBase = usePrefsStore((state) => state.setHomeBase);
   const [isPicking, setIsPicking] = useState(false);
 
-  const currentTownNameKey = homeBase
-    ? HOME_BASE_TOWNS.find((town) => town.id === homeBase.townId)?.nameKey
+  const currentTown = homeBase
+    ? HOME_BASE_TOWNS.find((town) => town.id === homeBase.townId)
     : null;
-  const currentLabel = currentTownNameKey
-    ? t(currentTownNameKey)
+  const currentLabel = currentTown
+    ? pickLocalizedName(currentTown.names, i18n.language)
     : t("onboarding.homeBase.notSet");
 
   function handleSelectTown(townId: string) {
