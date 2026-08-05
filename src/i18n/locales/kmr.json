@@ -22,6 +22,7 @@
       "days": "{{count}} roj berê"
     },
     "distanceFromAnchor": "{{distance}} ji {{anchor}}",
+    "distanceFromYou": "{{distance}} ji te",
     "anchors": {
       "erbil": "Hewlêr",
       "slemani": "Silêmanî",
@@ -79,6 +80,72 @@
       "ckb": "Kurdiya Soranî",
       "kmr": "Kurmancî",
       "ar": "Erebî"
+    },
+    "cancel": "Betal ke",
+    "homeBaseSectionTitle": "Cihê Malê",
+    "homeBaseChange": "Biguherîne",
+    "locationSectionTitle": "Destûra Cîhê",
+    "locationStatusGranted": "Gihîştina cîhê vekirî ye",
+    "locationStatusDenied": "Gihîştina cîhê girtî ye",
+    "locationStatusUndetermined": "Bumelerze hê nepirsiye",
+    "openSystemSettings": "Sazkariyan Veke",
+    "onboardingSectionTitle": "Danasîn",
+    "replayOnboarding": "Danasînê dîsa bibîne",
+    "replayOnboardingConfirmTitle": "Danasîn dîsa were nîşandan?",
+    "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên û Cihê Malê tê parastin."
+  },
+  "onboarding": {
+    "back": "Vegere",
+    "continue": "Bidomîne",
+    "mission": {
+      "title": "Her dem bizane, bi zimanê xwe",
+      "description": "Bumelerze agahiyên erdhejê yên zû û zanistî yên rast tîne Kurdistanê — bi Soranî, Kurmancî, Erebî, û Îngilîzî. Ji aliyê lêkolînerên metirsiya erdhejê yên ku li vê herêmê dixebitin ve hatiye çêkirin."
+    },
+    "language": {
+      "title": "Zimanê xwe hilbijêre",
+      "description": "Zimanê ku Bumelerze wê bi kar bîne hilbijêre. Tu dikarî vê carek din jî her dem ji Sazkariyan biguherînî."
+    },
+    "location": {
+      "title": "Cîhê te zanistê baştir dike",
+      "description": "Parvekirina cîhê te dihêle Bumelerze dûrahiyên rast nîşan bide û raporên te yên \"te hîs kir?\" dike şahidiyeke zanistî ya derbasdar ku dibe alîkar ji bo nexşekirina lerizîna rastîn. Tu dikarî vê her dem ji Sazkariyan biguherînî.",
+      "allow": "Destûra gihîştina cîhê bide",
+      "notNow": "Niha na"
+    },
+    "notifications": {
+      "title": "Hişyarî tên",
+      "description": "Di demeke nêz de, Bumelerze dê karibe te agahdar bike gava erdhejek li nêzî te an li cihek ji bo te girîng (Cihê Malê) çêbibe. Dema ev taybetmendî derkeve holê emê destûra hişyariyê bixwazin."
+    },
+    "homeBase": {
+      "title": "Cihê Malê ya xwe saz bike",
+      "description": "Heke tu ji Kurdistanê dûr dijî, bajarekî wek Cihê Malê hilbijêre — mîna cihê ku malbata te lê dijî — da ku hişyariyên pêşerojê wê jî çavdêrî bikin. Vebijarke; tu dikarî vê paşê jî ji Sazkariyan saz bikî an biguherînî.",
+      "elsewhere": "Cihekî din / derbas bike",
+      "skip": "Niha derbas bike",
+      "notSet": "Nehatiye danîn",
+      "towns": {
+        "erbil": "Hewlêr",
+        "slemani": "Silêmanî",
+        "duhok": "Dihok",
+        "kirkuk": "Kerkûk",
+        "halabja": "Helebce",
+        "zakho": "Zaxo",
+        "soran": "Soran",
+        "ranya": "Ranya",
+        "koya": "Koya",
+        "kalar": "Kelar",
+        "chamchamal": "Çemçemal",
+        "akre": "Akre",
+        "bardarash": "Berdereş",
+        "dukan": "Dukan",
+        "darbandikhan": "Derbendîxan",
+        "khanaqin": "Xaneqîn",
+        "mosul": "Mûsil",
+        "baghdad": "Bexda"
+      }
+    },
+    "done": {
+      "title": "Her tişt amade ye",
+      "description": "Bumelerze amade ye. Her carê tu sepanê vekî tu yê li ser lîsteya rasterast a erdhejên herêma xwe be.",
+      "cta": "Dest pê bike"
     }
   },
   "eventDetail": {

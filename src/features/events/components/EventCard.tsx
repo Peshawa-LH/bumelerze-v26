@@ -2,8 +2,9 @@ import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { useUserDistanceAnchor } from "@/features/location";
 import { useTheme } from "@/theme";
-import { nearestAnchor } from "../distance";
+import { resolveEventDistance } from "../distance";
 import {
   formatDistanceKm,
   formatMagnitude,
@@ -35,11 +36,20 @@ function EventCardImpl({ event, onPress, now }: EventCardProps) {
       ? t("events.relativeTime.justNow")
       : t(`events.relativeTime.${relativeTime.unit}`, { count: relativeTime.value });
 
-  const { anchor, distanceKm } = nearestAnchor(event.lat, event.lon);
-  const distanceText = t("events.distanceFromAnchor", {
-    distance: isolateNumeric(formatDistanceKm(distanceKm)),
-    anchor: t(anchor.nameKey),
-  });
+  const userFix = useUserDistanceAnchor();
+  const distance = resolveEventDistance(
+    event,
+    userFix.hasFix ? { lat: userFix.lat, lon: userFix.lon } : null,
+  );
+  const distanceText =
+    distance.mode === "fromUser"
+      ? t("events.distanceFromYou", {
+          distance: isolateNumeric(formatDistanceKm(distance.distanceKm)),
+        })
+      : t("events.distanceFromAnchor", {
+          distance: isolateNumeric(formatDistanceKm(distance.distanceKm)),
+          anchor: t(distance.anchorNameKey),
+        });
 
   const magnitudeText = formatMagnitude(event.magnitude);
   const tone = magnitudeTone(event.magnitude.value);

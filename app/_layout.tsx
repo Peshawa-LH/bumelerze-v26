@@ -10,6 +10,7 @@ import {
   createEventsQueryClient,
   PERSISTED_CACHE_MAX_AGE_MS,
 } from "@/features/events/queries";
+import { usePrefsStore } from "@/features/onboarding";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
 import { applyPersistedLocaleOnLaunch } from "@/i18n";
@@ -26,6 +27,8 @@ const eventsPersister = createEventsPersister();
 export default function RootLayout() {
   const { colors, scheme } = useTheme();
   const [isRestarting, setIsRestarting] = useState(false);
+  const hasHydrated = usePrefsStore((state) => state.hasHydrated);
+  const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,8 +58,12 @@ export default function RootLayout() {
     };
   }, []);
 
-  if (isRestarting) {
-    // Brief blank frame while the reload takes over.
+  if (isRestarting || !hasHydrated) {
+    // Brief blank frame while the reload takes over, or while we're still
+    // reading `onboardingCompleted` from AsyncStorage — never render the
+    // Stack before we know whether it should register the tab screens or
+    // the onboarding screen (wave brief: "no flicker — gate on store
+    // hydration").
     return null;
   }
 
@@ -85,10 +92,25 @@ export default function RootLayout() {
               headerShadowVisible: false,
             }}
           >
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="event/[id]" options={{ headerShown: true }} />
-            <Stack.Screen name="world" options={{ headerShown: true }} />
-            <Stack.Screen name="significant" options={{ headerShown: true }} />
+            {/* Onboarding-vs-tabs gate (spec-v1.md §4.11: "first-launch
+             * only, not reachable after"): registering only ONE of these
+             * two screen sets — never both — means "/onboarding" and
+             * "(tabs)" are each fully unreachable while the other is
+             * active, with no separate redirect logic needed. React
+             * Navigation resolves the new default screen itself the
+             * instant `onboardingCompleted` flips (the same
+             * conditional-screens pattern React Navigation's own
+             * "Authentication flows" guide recommends for auth gating). */}
+            {onboardingCompleted ? (
+              <>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="event/[id]" options={{ headerShown: true }} />
+                <Stack.Screen name="world" options={{ headerShown: true }} />
+                <Stack.Screen name="significant" options={{ headerShown: true }} />
+              </>
+            ) : (
+              <Stack.Screen name="onboarding" />
+            )}
           </Stack>
         </PersistQueryClientProvider>
       </SafeAreaProvider>

@@ -10,12 +10,13 @@ import {
   formatDistanceKm,
   formatMagnitude,
   isolateNumeric,
-  nearestAnchor,
   ProvenanceChip,
+  resolveEventDistance,
   useEventById,
   useRegionEvents,
   useWorldEvents,
 } from "@/features/events";
+import { useUserDistanceAnchor } from "@/features/location";
 import { useTheme } from "@/theme";
 
 /**
@@ -43,7 +44,8 @@ export default function EventDetailScreen() {
     [region.events, world.events, id],
   );
 
-  const shouldFetchById = !cachedEvent && Boolean(id) && !region.isInitialLoading && !world.isInitialLoading;
+  const shouldFetchById =
+    !cachedEvent && Boolean(id) && !region.isInitialLoading && !world.isInitialLoading;
   const byId = useEventById(id, shouldFetchById);
 
   const event = cachedEvent ?? byId.event;
@@ -132,11 +134,20 @@ function EventDetailHeader({
   t,
 }: EventDetailHeaderProps) {
   const { utc, local } = formatAbsoluteDual(event.originTime, locale);
-  const { anchor, distanceKm } = nearestAnchor(event.lat, event.lon);
-  const distanceText = t("events.distanceFromAnchor", {
-    distance: isolateNumeric(formatDistanceKm(distanceKm)),
-    anchor: t(anchor.nameKey),
-  });
+  const userFix = useUserDistanceAnchor();
+  const distance = resolveEventDistance(
+    event,
+    userFix.hasFix ? { lat: userFix.lat, lon: userFix.lon } : null,
+  );
+  const distanceText =
+    distance.mode === "fromUser"
+      ? t("events.distanceFromYou", {
+          distance: isolateNumeric(formatDistanceKm(distance.distanceKm)),
+        })
+      : t("events.distanceFromAnchor", {
+          distance: isolateNumeric(formatDistanceKm(distance.distanceKm)),
+          anchor: t(distance.anchorNameKey),
+        });
   const { local: sourceUpdatedLocal } = formatAbsoluteDual(
     event.provenance.providerUpdatedAt,
     locale,
@@ -174,12 +185,32 @@ function EventDetailHeader({
         <ProvenanceChip provider={event.provenance.provider} />
       </View>
 
-      <DetailSection title={t("eventDetail.timeSectionTitle")} colors={colors} typography={typography} spacing={spacing}>
-        <DetailRow label={t("eventDetail.utcTimeLabel")} value={utc} colors={colors} typography={typography} />
-        <DetailRow label={t("eventDetail.localTimeLabel")} value={local} colors={colors} typography={typography} />
+      <DetailSection
+        title={t("eventDetail.timeSectionTitle")}
+        colors={colors}
+        typography={typography}
+        spacing={spacing}
+      >
+        <DetailRow
+          label={t("eventDetail.utcTimeLabel")}
+          value={utc}
+          colors={colors}
+          typography={typography}
+        />
+        <DetailRow
+          label={t("eventDetail.localTimeLabel")}
+          value={local}
+          colors={colors}
+          typography={typography}
+        />
       </DetailSection>
 
-      <DetailSection title={t("eventDetail.coordinatesSectionTitle")} colors={colors} typography={typography} spacing={spacing}>
+      <DetailSection
+        title={t("eventDetail.coordinatesSectionTitle")}
+        colors={colors}
+        typography={typography}
+        spacing={spacing}
+      >
         <Text
           style={{
             color: colors.text.primary,
@@ -193,7 +224,12 @@ function EventDetailHeader({
         </Text>
       </DetailSection>
 
-      <DetailSection title={t("eventDetail.depthSectionTitle")} colors={colors} typography={typography} spacing={spacing}>
+      <DetailSection
+        title={t("eventDetail.depthSectionTitle")}
+        colors={colors}
+        typography={typography}
+        spacing={spacing}
+      >
         <Text
           style={{
             color: colors.text.primary,
@@ -207,7 +243,12 @@ function EventDetailHeader({
         </Text>
       </DetailSection>
 
-      <DetailSection title={t("eventDetail.distanceSectionTitle")} colors={colors} typography={typography} spacing={spacing}>
+      <DetailSection
+        title={t("eventDetail.distanceSectionTitle")}
+        colors={colors}
+        typography={typography}
+        spacing={spacing}
+      >
         <Text
           style={{
             color: colors.text.primary,
@@ -219,7 +260,12 @@ function EventDetailHeader({
         </Text>
       </DetailSection>
 
-      <DetailSection title={t("eventDetail.sourceSectionTitle")} colors={colors} typography={typography} spacing={spacing}>
+      <DetailSection
+        title={t("eventDetail.sourceSectionTitle")}
+        colors={colors}
+        typography={typography}
+        spacing={spacing}
+      >
         <Text
           style={{
             color: colors.text.secondary,
@@ -259,7 +305,13 @@ interface DetailSectionProps {
   children: ReactNode;
 }
 
-function DetailSection({ title, colors, typography, spacing, children }: DetailSectionProps) {
+function DetailSection({
+  title,
+  colors,
+  typography,
+  spacing,
+  children,
+}: DetailSectionProps) {
   return (
     <View style={{ gap: spacing[1] }}>
       <Text

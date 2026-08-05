@@ -55,6 +55,19 @@ const config: ExpoConfig = {
           "Bumelerze uses your phone's accelerometer to show you a live seismometer view. No location or personal data is collected.",
       },
     ],
+    [
+      // Foreground-only location (onboarding §4.11 step 3 + the feed/detail
+      // "distance from you" upgrade, wave brief point 3). No background/
+      // "always" permission is ever requested anywhere in this app —
+      // deliberately omitting `isAndroidBackgroundLocationEnabled` and the
+      // iOS "always" usage description keeps that off by construction, not
+      // just by convention.
+      "expo-location",
+      {
+        locationWhenInUsePermission:
+          'Bumelerze uses your location to show accurate distances to earthquakes and to make your "did you feel it?" reports valid scientific testimony. Only used while the app is open.',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
