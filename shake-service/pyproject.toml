@@ -17,6 +17,7 @@ dependencies = [
     "openquake.engine==3.26.2",
     "ps2ff==1.5.9",
     "h5py==3.16.0",
+    "scikit-image==0.26.0",
 ]
 
 [project.optional-dependencies]
@@ -26,3 +27,6 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "slow: network-dependent / long-running (e.g. the Halabja D20 smoke test); excluded from the default run via `-m 'not slow'` in CI-equivalent fast passes, run explicitly otherwise.",
+]
