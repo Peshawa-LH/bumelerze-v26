@@ -1,8 +1,11 @@
-# Exact-pin lockfile for bumelerze-shake-service, wave A.
-# Generated via `pip freeze` immediately after a clean install of the three
-# directly-requested packages (openquake.engine, ps2ff, pytest) into a fresh
-# venv — everything else here is a transitive dependency, recorded for
-# reproducibility. See README.md "Upgrade policy" before bumping any of these,
+# Exact-pin lockfile for bumelerze-shake-service.
+# Wave A base generated via `pip freeze` immediately after a clean install of
+# the three directly-requested packages (openquake.engine, ps2ff, pytest)
+# into a fresh venv; wave C added one more direct dependency
+# (scikit-image, for export.py's marching-squares contouring) via
+# `pip install scikit-image` into the same venv — its own transitive closure
+# (imageio, lazy-loader, networkx, tifffile) is recorded below alongside the
+# rest. See README.md "Upgrade policy" before bumping any of these,
 # especially openquake.engine (D20 revalidate-on-upgrade rule).
 #
 # Install with: pip install -r requirements.txt
@@ -29,10 +32,13 @@ geopandas==1.1.4
 h3==4.5.0
 h5py==3.16.0
 idna==3.18
+imageio==2.37.4
 iniconfig==2.3.0
 kiwisolver==1.5.0
+lazy_loader==0.5
 llvmlite==0.44.0
 matplotlib==3.11.1
+networkx==3.6.1
 numba==0.61.2
 numpy==2.2.6
 openquake.engine==3.26.2
@@ -50,9 +56,11 @@ pytest==9.1.1
 python-dateutil==2.9.0.post0
 pyzmq==26.0.3
 requests==2.34.2
+scikit-image==0.26.0
 scipy==1.17.1
 shapely==2.1.2
 six==1.17.0
 sqlparse==0.5.5
+tifffile==2026.3.3
 toml==0.10.2
 urllib3==2.7.0
