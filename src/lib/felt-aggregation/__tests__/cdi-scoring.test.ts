@@ -47,7 +47,7 @@ describe("scoreTier2Report — Q2/Q3 felt x othersFelt modifier chain (D18 R2)",
 });
 
 describe("scoreTier2Report — Q4 motion, 0-5", () => {
-  const cases: Array<[Tier2Answers["motion"], number]> = [
+  const cases: [Tier2Answers["motion"], number][] = [
     ["not_felt", 0],
     ["weak", 1],
     ["mild", 2],
@@ -65,7 +65,7 @@ describe("scoreTier2Report — Q4 motion, 0-5", () => {
 });
 
 describe("scoreTier2Report — Q5 reaction, 0-5", () => {
-  const cases: Array<[Tier2Answers["reaction"], number]> = [
+  const cases: [Tier2Answers["reaction"], number][] = [
     ["no_reaction", 0],
     ["noticed", 1],
     ["excitement", 2],
@@ -91,7 +91,7 @@ describe("scoreTier2Report — Q6 stand, 0-1 (D18 R3: fell capped at 1)", () => 
 });
 
 describe("scoreTier2Report — Q7 shelf, 0/0.5/0.75/1 (D18 R1)", () => {
-  const cases: Array<[Tier2Answers["shelf"], number]> = [
+  const cases: [Tier2Answers["shelf"], number][] = [
     ["no", 0],
     ["rattled", 0.5],
     ["few_fell", 0.75],
@@ -114,7 +114,7 @@ describe("scoreTier2Report — Q8/Q9 picture/furniture booleans", () => {
 });
 
 describe("scoreTier2Report — Q10 building damage, 0/0.75/2/3 (D18 R6)", () => {
-  const cases: Array<[Tier2Answers["buildingDamageLevel"], number]> = [
+  const cases: [Tier2Answers["buildingDamageLevel"], number][] = [
     [0, 0],
     [1, 0.75],
     [2, 2],
