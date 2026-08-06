@@ -27,9 +27,19 @@ ShakeMap products already fill for USGS-processed events.
   and `docs/research/gmpe-set-proposal-v2.md` for the full literature
   survey and reasoning.
 
-What survives from the toolkit (later waves, not in this package yet): the
-`gmpe_forward` grid engine, the `mvn` conditioning engine, Vs30 raster
-sampling, product export, and the Halabja validation harness.
+**Wave B** (2026-08-07): the intensity/conditioning layer — GMICE (Zanini &
+Hofer 2019 EMS display + Worden et al. 2012 MMI validation, `gmice.py`),
+the VirtualIPE-equivalent chain-rule engine (`intensity.py`), the
+`gmpe_forward` grid engine (`forward.py`, `ForwardMap`), the `mvn`
+conditioning engine (Engler et al. 2022, `mvn.py`), and the real Vs30
+raster sampler (`vs30.RasterVs30`). See `docs/decisions.md` D9 and each
+module's own docstring for full provenance/adaptation notes.
+
+What survives from the toolkit for a later wave: product export
+(USGS-compatible grid.xml/GeoJSON), the Halabja validation harness (wave
+C), and the toolkit's M4b+ multi-channel/cross-IMT `mvn` conditioning
+(DYFI/CDI felt-report observations — this wave's `mvn.py` is single-IMT,
+stations-only, by task scope).
 
 ## Environment setup
 
@@ -121,14 +131,37 @@ never automatically.
   derivation, keyed off the Zagros polygon.
 - `shake_service/distances.py` — geodetic Repi/Rhyp + ps2ff-based
   Rjb/Rrup expected values and variances.
-- `shake_service/vs30.py` — site-grid builder (uniform rock-760 default in
-  wave A; a real Vs30 raster sampler arrives in wave B).
+- `shake_service/vs30.py` — site-grid builder: `UniformRockVs30` (wave A
+  default, rock-760 everywhere) + `RasterVs30` (wave B, samples the
+  toolkit's real global Vs30 grid via `h5py`, falls back safely if the
+  file is unreachable) + `default_sampler()` (env-var-gated auto-pick,
+  `BUMELERZE_VS30_RASTER_PATH` — unset by default; see `vs30.py`'s
+  `[REVIEW]` note for the OneDrive hydration ask).
 - `shake_service/gmm.py` — the core adapter: builds the hazardlib context,
   calls `get_mean_stds` for the 4-branch tree across a site grid, applies
   the D20 banded-weight Option-C mixture, converts units at the boundary.
+- `shake_service/gmice.py` (wave B) — Zanini & Hofer (2019) EMS-98 +
+  Worden et al. (2012) MMI ground-motion-to-intensity conversion
+  equations, both directions, with sigma tables + honesty flags carried
+  forward from the toolkit verbatim.
+- `shake_service/intensity.py` (wave B) — VirtualIPE-equivalent: a
+  `gmm.GMResult` -> an EMS or MMI `IntensityChannel`, full tau/phi/
+  sigma_model chain-rule propagation through the GMICE derivative,
+  PGV-driven with a per-site PGA fallback.
+- `shake_service/forward.py` (wave B) — the forward-map engine: event
+  params -> site grid (magnitude-scaled extent + spacing policy,
+  `config.forward_grid_spacing_km`) -> `gmm` -> `intensity` -> a single
+  `ForwardMap` (PGA/PGV/EMS/MMI grids + provenance).
+- `shake_service/mvn.py` (wave B) — Engler et al. (2022) MVN conditioning
+  of a forward field on point observations (single IMT, stations-only this
+  wave); `condition_field` (pure math) + `condition_forward_map`
+  (end-to-end, evaluates the prior exactly at station coordinates).
 
 Internal numeric contract (documented once, here, and in `gmm.py`'s
 docstring): **ln-space**, **g** for PGA/SA, **cm/s** for PGV — i.e.
 `exp(mean)` is directly in those units. This matches what
 `openquake.hazardlib.contexts.get_mean_stds` returns natively; the adapter
-does not change units, only combines branches.
+does not change units, only combines branches. `gmice.py`/`intensity.py`
+convert explicitly at their own boundary (see those modules' docstrings)
+since the toolkit's GMICE coefficients are calibrated in cm/s^2 (PGA/SA)
+and cm/s (PGV), not g.
