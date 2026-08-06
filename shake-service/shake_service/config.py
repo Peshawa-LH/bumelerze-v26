@@ -202,7 +202,42 @@ ZAGROS_POLYGON_LONLAT: tuple[tuple[float, float], ...] = (
 
 
 # ---------------------------------------------------------------------------
-# 6. Dependency pin (§6.3 — exact-version pin, revalidate-on-upgrade policy)
+# 6. Forward-map site-grid spacing policy (wave B, `forward.py`)
+# ---------------------------------------------------------------------------
+
+# Target resolution: ~0.0167 deg (~1.8 km at the equator, using vs30.py's own
+# 111.32 km/deg flat-earth convention) -- task-specified default, fine enough
+# that a ShakeMap-scale product doesn't look blocky at the neighbourhood
+# level. Used as-is for the small/moderate bands.
+SITE_SPACING_DEG_TARGET: float = 0.0167
+_KM_PER_DEG: float = 111.32
+SITE_SPACING_KM_TARGET: float = SITE_SPACING_DEG_TARGET * _KM_PER_DEG  # ~1.859 km
+
+# Site-count cap: `forward.py` must not build more than this many steps per
+# axis, so the largest grid (major band, 300 km half-extent per
+# `GRID_EXTENT_KM` -- a 600 km-span site mesh) stays tractable for
+# hazardlib's per-site context evaluation on a server-side worker meant to
+# run per-event, near-real-time (a full 600 km span at the 1.859 km target
+# would be ~334x334 ~= 112k sites). Spacing is COARSENED -- never finer than
+# the target -- just enough to keep each axis at or under this cap;
+# small/moderate-band grids keep the full target resolution untouched.
+MAX_GRID_STEPS_PER_AXIS: int = 200
+
+
+def forward_grid_spacing_km(band: MagnitudeBand) -> float:
+    """The site-grid spacing (km) `forward.py` uses for a magnitude band:
+    `SITE_SPACING_KM_TARGET`, coarsened only as much as needed to keep
+    `vs30.build_grid_km_spacing`'s step count (`round(span/spacing) + 1`) at
+    or under `MAX_GRID_STEPS_PER_AXIS` for this band's half-extent
+    (`grid_extent_km`). Monotonically non-decreasing with band severity."""
+    half_extent = grid_extent_km(band)
+    span_km = 2.0 * half_extent
+    min_spacing_for_cap = span_km / (MAX_GRID_STEPS_PER_AXIS - 1)
+    return max(SITE_SPACING_KM_TARGET, min_spacing_for_cap)
+
+
+# ---------------------------------------------------------------------------
+# 7. Dependency pin (§6.3 — exact-version pin, revalidate-on-upgrade policy)
 # ---------------------------------------------------------------------------
 
 # Bump only via: install candidate version in a scratch venv -> re-run the
