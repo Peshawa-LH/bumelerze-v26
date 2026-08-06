@@ -32,7 +32,7 @@ export interface ShakeMapProduct {
  * relies on SVG `Polygon`'s own auto-close behavior rather than requiring
  * `points[0] === points[last]`. */
 export interface ContourRing {
-  points: ReadonlyArray<readonly [number, number]>;
+  points: readonly (readonly [number, number])[];
 }
 
 /** All rings sharing one MMI value, plus the ramp-index this value maps to
