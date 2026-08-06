@@ -3,3 +3,9 @@ __pycache__/
 *.pyc
 .pytest_cache/
 *.egg-info/
+
+# run_halabja.py's downloaded USGS Atlas products (detail.json, grid.xml,
+# stationlist.json — grid.xml alone is ~26 MB) — re-fetched on demand, never
+# committed. Only validation/halabja/'s small derived outputs (results.json,
+# REPORT.md, PNGs) are committed.
+.cache/

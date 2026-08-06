@@ -35,11 +35,15 @@ conditioning engine (Engler et al. 2022, `mvn.py`), and the real Vs30
 raster sampler (`vs30.RasterVs30`). See `docs/decisions.md` D9 and each
 module's own docstring for full provenance/adaptation notes.
 
-What survives from the toolkit for a later wave: product export
-(USGS-compatible grid.xml/GeoJSON), the Halabja validation harness (wave
-C), and the toolkit's M4b+ multi-channel/cross-IMT `mvn` conditioning
-(DYFI/CDI felt-report observations — this wave's `mvn.py` is single-IMT,
-stations-only, by task scope).
+**Wave C** (2026-08-07): product export (`export.py`, `ForwardMap` ->
+USGS-compatible `cont_mi.json`/`info.json`/`grid.json`) + the D20 Halabja
+smoke test (`comparison.py`'s `grid.xml` parser and residual/bias/coverage
+statistics, `scripts/run_halabja.py`, results under `validation/halabja/`).
+
+What still survives from the toolkit for a later wave: the toolkit's M4b+
+multi-channel/cross-IMT `mvn` conditioning (DYFI/CDI felt-report
+observations — this package's `mvn.py` is single-IMT, stations-only, by
+task scope).
 
 ## Environment setup
 
@@ -156,6 +160,17 @@ never automatically.
   of a forward field on point observations (single IMT, stations-only this
   wave); `condition_field` (pure math) + `condition_forward_map`
   (end-to-end, evaluates the prior exactly at station coordinates).
+- `shake_service/export.py` (wave C) — `ForwardMap` -> the USGS-compatible
+  product bundle: `cont_mi.json`-shaped MMI-contour GeoJSON (marching
+  squares via `skimage.measure.find_contours` on the EMS-98 grid, half-
+  intensity levels), `info.json` metadata (event/engine/data-used/
+  version), and a compact `grid.json` raster.
+- `shake_service/comparison.py` (wave C) — `grid.xml` parser + bilinear
+  resampling + residual/bias/RMSE/MAE/±1σ-coverage/distance-binned
+  statistics, the tooling behind the D20 Halabja smoke test.
+  `scripts/run_halabja.py` runs the full comparison against the real
+  2017 M7.3 Halabja/Sarpol-e Zahab USGS Atlas ShakeMap; outputs (verdict,
+  figures) live in `validation/halabja/`.
 
 Internal numeric contract (documented once, here, and in `gmm.py`'s
 docstring): **ln-space**, **g** for PGA/SA, **cm/s** for PGV — i.e.
