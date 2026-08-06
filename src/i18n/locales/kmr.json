@@ -164,6 +164,15 @@
     "sourceSectionTitle": "Çavkanî",
     "sourceUpdated": "Hate rojanekirin {{time}}",
     "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)",
+    "shakemap": {
+      "sectionTitle": "ShakeMap",
+      "loading": "ShakeMap tê barkirin…",
+      "unavailableOffline": "ShakeMap bêyî înternetê ne berdest e",
+      "updated": "Hate rojanekirin {{time}}",
+      "citation": "ShakeMap: {{network}}, guhertoya {{version}}",
+      "legendCaption": "Tundî (MMI) — pîvana ShakeMap ya USGS",
+      "mapA11yLabel": "Nexşeya tundiya ShakeMap, herî zêde tundî {{level}}"
+    },
     "myReportRow": {
       "reported": "Te asta {{level}} rapor kir",
       "addDetail": "Hûrgiliyên zêdetir zêde bike",

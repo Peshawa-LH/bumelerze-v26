@@ -164,6 +164,15 @@
     "sourceSectionTitle": "المصدر",
     "sourceUpdated": "آخر تحديث {{time}}",
     "sourceCitation": "بيانات الحدث: {{network}} (عبر خدمة FDSN)",
+    "shakemap": {
+      "sectionTitle": "خريطة الاهتزاز (ShakeMap)",
+      "loading": "جارٍ تحميل خريطة الاهتزاز…",
+      "unavailableOffline": "خريطة الاهتزاز غير متوفرة دون اتصال",
+      "updated": "آخر تحديث {{time}}",
+      "citation": "خريطة الاهتزاز: {{network}}، الإصدار {{version}}",
+      "legendCaption": "الشدة (MMI) — مقياس USGS لخريطة الاهتزاز",
+      "mapA11yLabel": "خريطة شدة الاهتزاز، أقصى شدة {{level}}"
+    },
     "myReportRow": {
       "reported": "أبلغت عن المستوى {{level}}",
       "addDetail": "إضافة تفاصيل إضافية",
