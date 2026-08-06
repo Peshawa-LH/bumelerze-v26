@@ -55,7 +55,8 @@
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
     "retry": "Dîsa biceribîne",
     "viewWorld": "Cîhan",
-    "viewSignificant": "Girîng"
+    "viewSignificant": "Girîng",
+    "viewHistorical": "Dîrokî"
   },
   "world": {
     "title": "Katalog a Cîhanê",
@@ -64,6 +65,22 @@
   "significant": {
     "title": "Bûyerên Girîng",
     "emptyState": "Niha bûyerek girîng tune ye."
+  },
+  "historical": {
+    "title": "Bûyerên Dîrokî",
+    "notes": {
+      "hamdaniya1944": "Erdhejeke navîn li nêzî Al-Hemdaniya, rojhilatê Mûsilê.",
+      "baynjiwayn1946": "Erdhejeke navîn li nêzî Pencwînê, li ser sînorê Iraq-Îranê.",
+      "jamjamal1958": "Erdhejeke navîn li nêzî Çemçemalê, di navbera Kerkûk û Silêmaniyê de.",
+      "mandali1967": "Erdhejeke navîn li binê çiyayên Zagrosê, li nêzî Mendeliyê, rojhilatê Iraqê.",
+      "koysinceq1980": "Erdhejeke navîn li nêzî Koyeyê, li parêzgeha Hewlêrê.",
+      "aqrah1991": "Erdhejeke navîn li nêzî Aqreyê, li parêzgeha Dihokê.",
+      "halabja2017": "Erdheja herî mezin a bi amûran li ser sînorê Iraq-Îranê di dîroka nûjen de hatiye tomarkirin, ku li seranserê Kurdistanê hat hîskirin.",
+      "javanrud2018": "Erdhejeke navîn li herêma Kirmaşanê, ku li seranserê Herêma Kurdistanê hat hîskirin.",
+      "sarpolEZahab2018": "Erdhejeke navîn li nêzî Serpêlê Zehabê, li heman herêma sînor a erdheja 2017an.",
+      "pazarcik2023": "Erdheja pêşî û ya herî mezin ji du erdhejên Kahramanmaraşê, li ser pergala Xeta Anatoliya Rojhilat.",
+      "elbistan2023": "Erdheja duyemîn a Kahramanmaraşê, ku di heman rojê de nêzî 95 km bakurê ya pêşî çêbû."
+    }
   },
   "map": {
     "title": "Nexşe",
@@ -161,6 +178,7 @@
     "coordinatesSectionTitle": "Koordînat",
     "depthSectionTitle": "Kûrahî",
     "distanceSectionTitle": "Dûrahî",
+    "historicalContextLink": "Erdhejên li vir ji sala 1900an vir ve",
     "sourceSectionTitle": "Çavkanî",
     "sourceUpdated": "Hate rojanekirin {{time}}",
     "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)",

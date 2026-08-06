@@ -89,6 +89,20 @@ export default function HomeScreen() {
                   {t("events.viewSignificant")}
                 </Text>
               </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push("/historical")}
+              >
+                <Text
+                  style={{
+                    color: colors.text.link,
+                    fontSize: typography.labelButton.fontSize,
+                    fontWeight: typography.labelButton.fontWeight,
+                  }}
+                >
+                  {t("events.viewHistorical")}
+                </Text>
+              </Pressable>
             </View>
           </View>
         }

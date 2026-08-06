@@ -55,7 +55,8 @@
     "errorTitle": "Couldn't load the latest events",
     "retry": "Retry",
     "viewWorld": "World",
-    "viewSignificant": "Significant"
+    "viewSignificant": "Significant",
+    "viewHistorical": "Historical"
   },
   "world": {
     "title": "World Catalog",
@@ -64,6 +65,22 @@
   "significant": {
     "title": "Significant Events",
     "emptyState": "No significant events right now."
+  },
+  "historical": {
+    "title": "Historical Events",
+    "notes": {
+      "hamdaniya1944": "A moderate earthquake near Al-Hamdaniya, east of Mosul.",
+      "baynjiwayn1946": "A moderate earthquake near Penjwen, on the Iraq–Iran border.",
+      "jamjamal1958": "A moderate earthquake near Chamchamal, between Kirkuk and Slemani.",
+      "mandali1967": "A moderate earthquake in the Zagros foothills near Mandali, eastern Iraq.",
+      "koysinceq1980": "A moderate earthquake near Koya, in the Erbil governorate.",
+      "aqrah1991": "A moderate earthquake near Aqrah, in the Duhok governorate.",
+      "halabja2017": "The largest instrumentally recorded earthquake on the Iraq–Iran border in modern records, felt across Kurdistan.",
+      "javanrud2018": "A moderate earthquake in the Kermanshah region, felt across the Kurdistan Region.",
+      "sarpolEZahab2018": "A moderate earthquake near Sarpol-e Zahab, in the same border region as the 2017 earthquake.",
+      "pazarcik2023": "The first and larger of the two Kahramanmaraş earthquakes, on the East Anatolian Fault system.",
+      "elbistan2023": "The second Kahramanmaraş earthquake, occurring the same day about 95 km north of the first."
+    }
   },
   "map": {
     "title": "Map",
@@ -161,6 +178,7 @@
     "coordinatesSectionTitle": "Coordinates",
     "depthSectionTitle": "Depth",
     "distanceSectionTitle": "Distance",
+    "historicalContextLink": "Earthquakes here since 1900",
     "sourceSectionTitle": "Source",
     "sourceUpdated": "Updated {{time}}",
     "sourceCitation": "Event data: {{network}} (via FDSN web service)",

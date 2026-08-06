@@ -122,6 +122,7 @@ export default function EventDetailScreen() {
               typography={typography}
               spacing={spacing}
               t={t}
+              onNavigateHistorical={() => router.push("/historical")}
             />
           ) : null}
 
@@ -204,6 +205,7 @@ interface EventDetailHeaderProps {
   typography: ReturnType<typeof useTheme>["typography"];
   spacing: ReturnType<typeof useTheme>["spacing"];
   t: ReturnType<typeof useTranslation>["t"];
+  onNavigateHistorical: () => void;
 }
 
 function EventDetailHeader({
@@ -213,6 +215,7 @@ function EventDetailHeader({
   typography,
   spacing,
   t,
+  onNavigateHistorical,
 }: EventDetailHeaderProps) {
   const { utc, local } = formatAbsoluteDual(event.originTime, locale);
 
@@ -362,6 +365,26 @@ function EventDetailHeader({
           ) : null}
         </View>
       </DetailSection>
+
+      {/* Historical-context link (spec-v1.md §4.5 "earthquakes here since
+       * 1900" / §4.7 lite scope): points at the same bundled Historical View
+       * for every screen — no per-location filtering in this "lite" wave —
+       * shown only for regional events (the same `isRegional` flag the feed
+       * already computes, event-pipeline-design.md §4), since a far-world
+       * event has no regional history worth linking to. */}
+      {event.isRegional ? (
+        <Pressable accessibilityRole="button" onPress={onNavigateHistorical}>
+          <Text
+            style={{
+              color: colors.text.link,
+              fontSize: typography.labelButton.fontSize,
+              fontWeight: typography.labelButton.fontWeight,
+            }}
+          >
+            {t("eventDetail.historicalContextLink")}
+          </Text>
+        </Pressable>
+      ) : null}
 
       {/* Lazy, self-contained (spec-v1.md §4.5 ordering: Distance -> ShakeMap
        * -> Source) — mounted unconditionally, but renders nothing for the
