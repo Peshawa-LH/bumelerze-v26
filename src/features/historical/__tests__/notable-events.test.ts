@@ -83,7 +83,9 @@ describe("NOTABLE_HISTORICAL_EVENTS", () => {
   });
 
   it("has no unused note keys in the catalog (every catalog note is referenced by some event)", () => {
-    const noteKeysInDataset = new Set(NOTABLE_HISTORICAL_EVENTS.map((event) => event.noteKey));
+    const noteKeysInDataset = new Set(
+      NOTABLE_HISTORICAL_EVENTS.map((event) => event.noteKey),
+    );
     const catalogNoteKeys = Object.keys(en.historical.notes);
     expect(new Set(catalogNoteKeys)).toEqual(noteKeysInDataset);
   });

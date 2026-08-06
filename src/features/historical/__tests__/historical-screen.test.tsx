@@ -77,9 +77,7 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     const newestFirst = sortNewestFirst(NOTABLE_HISTORICAL_EVENTS);
     expect(newestFirst[0]?.id).toBe("us6000jlqa");
     expect(newestFirst.at(-1)?.id).toBe("iscgem899464");
-    expect(rows[0]?.props.accessibilityLabel).toEqual(
-      expect.stringContaining("٢٠٢٣"),
-    );
+    expect(rows[0]?.props.accessibilityLabel).toEqual(expect.stringContaining("٢٠٢٣"));
     expect(rows.at(-1)?.props.accessibilityLabel).toEqual(
       expect.stringContaining("١٩٤٤"),
     );
@@ -96,9 +94,7 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     // place line, note) to prove the row composes every field correctly,
     // not just that some text exists somewhere.
     expect(
-      screen.getByText(
-        "بوومەلەرزەیەکی مامناوەند لە نزیک عەقرە، لە پارێزگای دهۆک.",
-      ),
+      screen.getByText("بوومەلەرزەیەکی مامناوەند لە نزیک عەقرە، لە پارێزگای دهۆک."),
     ).toBeTruthy();
   });
 
