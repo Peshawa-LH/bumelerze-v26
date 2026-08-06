@@ -164,6 +164,15 @@
     "sourceSectionTitle": "سەرچاوە",
     "sourceUpdated": "نوێکراوەتەوە لە {{time}}",
     "sourceCitation": "داتای ڕووداو: {{network}} (لە ڕێگەی خزمەتگوزاری FDSN)",
+    "shakemap": {
+      "sectionTitle": "شەیک مەپ (ShakeMap)",
+      "loading": "بارکردنی شەیک مەپ…",
+      "unavailableOffline": "شەیک مەپ بەبێ ئینتەرنێت بەردەست نییە",
+      "updated": "نوێکراوەتەوە لە {{time}}",
+      "citation": "شەیک مەپ: {{network}}، وەشانی {{version}}",
+      "legendCaption": "توندی (MMI) — پێوەری شەیک مەپی USGS",
+      "mapA11yLabel": "نەخشەی توندی شەیک مەپ، بەرزترین توندی {{level}}"
+    },
     "myReportRow": {
       "reported": "تۆ ئاستی {{level}}ت ڕاپۆرت کرد",
       "addDetail": "زیادکردنی وردەکاری زیاتر",

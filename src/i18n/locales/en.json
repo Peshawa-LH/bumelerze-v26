@@ -164,6 +164,15 @@
     "sourceSectionTitle": "Source",
     "sourceUpdated": "Updated {{time}}",
     "sourceCitation": "Event data: {{network}} (via FDSN web service)",
+    "shakemap": {
+      "sectionTitle": "ShakeMap",
+      "loading": "Loading ShakeMap…",
+      "unavailableOffline": "ShakeMap unavailable offline",
+      "updated": "Updated {{time}}",
+      "citation": "ShakeMap: {{network}}, version {{version}}",
+      "legendCaption": "Intensity (MMI) — USGS ShakeMap scale",
+      "mapA11yLabel": "ShakeMap intensity map, maximum intensity {{level}}"
+    },
     "myReportRow": {
       "reported": "You reported level {{level}}",
       "addDetail": "Add more detail",
