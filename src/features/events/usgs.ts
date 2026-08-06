@@ -103,18 +103,38 @@ export async function fetchUsgsWorldEvents(): Promise<UsgsFetchResult> {
 /** Single-event lookup by USGS event id, for the cold-start deep-link case
  * (spec-v1.md §4.5: "handle direct deep-link cold start by fetching eventid
  * from fdsnws if not in cache"). Returns `null` if USGS has no such event
- * rather than throwing, so the caller can show a clean not-found state. */
+ * rather than throwing, so the caller can show a clean not-found state.
+ *
+ * IMPORTANT: unlike the region/world queries, `fdsnws/event/1/query` with an
+ * `eventid` param returns a single bare GeoJSON `Feature` (`type:
+ * "Feature"`), NOT a `FeatureCollection` — parsing it with
+ * `usgsFeatureCollectionSchema`/`parseFeatureCollection` (as an earlier
+ * version of this function did) throws on the very first `.parse()` call,
+ * every time, for every real event; that throw happens outside any
+ * try/catch and becomes an uncaught query error, so React Query retries a
+ * couple of times and then permanently reports "not found" even though the
+ * event was fetched successfully. Parse it as a single `Feature` instead. */
 export async function fetchUsgsEventById(id: string): Promise<Event | null> {
   const params = new URLSearchParams({ format: "geojson", eventid: id });
   const url = `${USGS_FEEDS.fdsnEvent}?${params.toString()}`;
 
-  let payload: unknown;
   try {
-    payload = await fetchJson(url);
-  } catch {
+    const payload = await fetchJson(url);
+    const parsed = usgsFeatureSchema.safeParse(payload);
+    if (!parsed.success) {
+      if (__DEV__) {
+        console.warn(
+          "[events/usgs] byId lookup response failed schema validation",
+          parsed.error.issues[0],
+        );
+      }
+      return null;
+    }
+    return normalizeUsgsFeature(parsed.data, Date.now());
+  } catch (error) {
+    if (__DEV__) {
+      console.warn("[events/usgs] byId lookup failed", error);
+    }
     return null;
   }
-
-  const result = parseFeatureCollection(payload, Date.now());
-  return result.events[0] ?? null;
 }
