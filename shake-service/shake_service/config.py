@@ -117,6 +117,38 @@ def grid_extent_km(band: MagnitudeBand) -> float:
 
 
 # ---------------------------------------------------------------------------
+# 2b. Per-branch validity ranges — extrapolation tagging only (§4.3, R9)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class BranchValidity:
+    """Published magnitude/distance validity range for one GSIM branch.
+
+    Used only to *tag* out-of-range grids/events in product metadata
+    (gmpe-set-proposal-v2.md §4.3: "compute, tag ... never clamp") — a
+    branch is never excluded from the mixture for being out of range.
+    """
+
+    mag_min: float
+    mag_max_ss: float  # ceiling for non-reverse (or mechanism-agnostic) events
+    mag_max_rv: float | None  # CY14-specific reverse-mechanism ceiling, else None
+    max_distance_km: float
+
+
+# [REVIEW R9] — every number here is transcribed from
+# gmpe-set-proposal-v2.md §8 R9 ("Validity ranges ... from recall ... to be
+# verified via Zotero"), itself not yet verified against the primary papers.
+# Treat these as extrapolation-tagging thresholds, not certified science.
+BRANCH_VALIDITY: dict[str, BranchValidity] = {
+    "CY14": BranchValidity(mag_min=3.5, mag_max_ss=8.5, mag_max_rv=8.0, max_distance_km=300.0),
+    "ASB14": BranchValidity(mag_min=4.0, mag_max_ss=7.6, mag_max_rv=None, max_distance_km=200.0),
+    "BSSA14": BranchValidity(mag_min=3.0, mag_max_ss=8.5, mag_max_rv=None, max_distance_km=400.0),
+    "KALE15": BranchValidity(mag_min=4.0, mag_max_ss=8.0, mag_max_rv=None, max_distance_km=200.0),
+}
+
+
+# ---------------------------------------------------------------------------
 # 3. Depth extrapolation tag threshold (G7, confirmed)
 # ---------------------------------------------------------------------------
 
