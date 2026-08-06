@@ -1,10 +1,10 @@
-import {
-  computeContourBoundingBox,
-  createEquirectangularProjector,
-} from "../projection";
+import { computeContourBoundingBox, createEquirectangularProjector } from "../projection";
 import type { IntensityContourLevel } from "../types";
 
-function level(value: number, points: readonly (readonly [number, number])[]): IntensityContourLevel {
+function level(
+  value: number,
+  points: readonly (readonly [number, number])[],
+): IntensityContourLevel {
   return { value, level: value, rings: [{ points }] };
 }
 
@@ -32,7 +32,12 @@ describe("computeContourBoundingBox", () => {
   });
 
   it("expands to include extra points (e.g. the epicenter) outside the contour extent", () => {
-    const levels = [level(4, [[44, 34], [44.5, 34.5]])];
+    const levels = [
+      level(4, [
+        [44, 34],
+        [44.5, 34.5],
+      ]),
+    ];
     const bbox = computeContourBoundingBox(levels, [[50, 40]]);
 
     expect(bbox.maxLon).toBeGreaterThan(50);
@@ -40,7 +45,13 @@ describe("computeContourBoundingBox", () => {
   });
 
   it("falls back to a fixed-degree pad for a degenerate single-point extent", () => {
-    const levels = [level(4, [[44, 34], [44, 34], [44, 34]])];
+    const levels = [
+      level(4, [
+        [44, 34],
+        [44, 34],
+        [44, 34],
+      ]),
+    ];
     const bbox = computeContourBoundingBox(levels);
 
     expect(bbox.maxLon - bbox.minLon).toBeCloseTo(0.5, 5);

@@ -19,7 +19,9 @@ describe("parseIntensityContours", () => {
 
   it("maps each level's value to the correct rounded ramp index", () => {
     const result = parseIntensityContours(halabjaContours);
-    const levelsByValue = new Map(result.levels.map((level) => [level.value, level.level]));
+    const levelsByValue = new Map(
+      result.levels.map((level) => [level.value, level.level]),
+    );
 
     expect(levelsByValue.get(4.0)).toBe(4);
     // 4.5 rounds to 5 (JS Math.round rounds .5 up), exercising the
@@ -55,7 +57,16 @@ describe("parseIntensityContours", () => {
         {
           type: "Feature",
           properties: { value: 6 },
-          geometry: { type: "MultiLineString", coordinates: [[[45, 35], [45.1, 35.1], [45.2, 35.2]]] },
+          geometry: {
+            type: "MultiLineString",
+            coordinates: [
+              [
+                [45, 35],
+                [45.1, 35.1],
+                [45.2, 35.2],
+              ],
+            ],
+          },
         },
       ],
     };
@@ -83,9 +94,20 @@ describe("parseIntensityContours", () => {
             coordinates: [
               [
                 // outer ring
-                [[45, 35], [45.1, 35], [45.1, 35.1], [45, 35.1], [45, 35]],
+                [
+                  [45, 35],
+                  [45.1, 35],
+                  [45.1, 35.1],
+                  [45, 35.1],
+                  [45, 35],
+                ],
                 // hole (must be dropped)
-                [[45.02, 35.02], [45.03, 35.02], [45.03, 35.03], [45.02, 35.02]],
+                [
+                  [45.02, 35.02],
+                  [45.03, 35.02],
+                  [45.03, 35.03],
+                  [45.02, 35.02],
+                ],
               ],
             ],
           },
@@ -109,8 +131,15 @@ describe("parseIntensityContours", () => {
           geometry: {
             type: "MultiLineString",
             coordinates: [
-              [[45, 35], [45.1, 35.1]], // 2 points, dropped
-              [[45, 35], [45.1, 35.1], [45.2, 35.2]], // 3 points, kept
+              [
+                [45, 35],
+                [45.1, 35.1],
+              ], // 2 points, dropped
+              [
+                [45, 35],
+                [45.1, 35.1],
+                [45.2, 35.2],
+              ], // 3 points, kept
             ],
           },
         },

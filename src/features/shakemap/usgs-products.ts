@@ -89,7 +89,9 @@ function pickPreferredProduct(
  * as a normal, non-error outcome, never a thing to retry or surface as a
  * failure.
  */
-export function extractPreferredShakeMapProduct(payload: unknown): ShakeMapProduct | null {
+export function extractPreferredShakeMapProduct(
+  payload: unknown,
+): ShakeMapProduct | null {
   const detail = detailFeatureSchema.safeParse(payload);
   if (!detail.success) {
     return null;
@@ -146,7 +148,9 @@ function buildDetailUrl(eventId: string): string {
  * — same throw-on-!ok convention as `features/events/usgs.ts`'s
  * `fetchJson`).
  */
-export async function fetchShakeMapProduct(eventId: string): Promise<ShakeMapProduct | null> {
+export async function fetchShakeMapProduct(
+  eventId: string,
+): Promise<ShakeMapProduct | null> {
   const response = await fetch(buildDetailUrl(eventId));
   if (!response.ok) {
     throw new Error(`ShakeMap detail request failed: ${response.status} ${eventId}`);

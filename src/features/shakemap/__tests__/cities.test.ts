@@ -65,7 +65,10 @@ describe("pickMapCities", () => {
   });
 });
 
-function haversine(city: { lat: number; lon: number }, center: { lat: number; lon: number }): number {
+function haversine(
+  city: { lat: number; lon: number },
+  center: { lat: number; lon: number },
+): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const earthRadiusKm = 6371;
   const dLat = toRad(center.lat - city.lat);

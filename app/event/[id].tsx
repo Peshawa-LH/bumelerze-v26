@@ -20,6 +20,7 @@ import {
 import { FeltReportPill, useOwnQueueItemForEvent } from "@/features/felt";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
+import { ShakeMapSection } from "@/features/shakemap";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
@@ -361,6 +362,12 @@ function EventDetailHeader({
           ) : null}
         </View>
       </DetailSection>
+
+      {/* Lazy, self-contained (spec-v1.md §4.5 ordering: Distance -> ShakeMap
+       * -> Source) — mounted unconditionally, but renders nothing for the
+       * common no-ShakeMap-product event (no empty shell) and never blocks
+       * this header, which is already fully rendered above from feed data. */}
+      <ShakeMapSection event={event} />
 
       <DetailSection
         title={t("eventDetail.sourceSectionTitle")}

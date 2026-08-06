@@ -31,7 +31,21 @@ const FAKE_PRODUCT: ShakeMapProduct = {
 };
 
 const FAKE_CONTOURS: IntensityContourSet = {
-  levels: [{ value: 6, level: 6, rings: [{ points: [[45, 35], [45.1, 35.1], [45.2, 35.2]] }] }],
+  levels: [
+    {
+      value: 6,
+      level: 6,
+      rings: [
+        {
+          points: [
+            [45, 35],
+            [45.1, 35.1],
+            [45.2, 35.2],
+          ],
+        },
+      ],
+    },
+  ],
   skippedCount: 0,
 };
 

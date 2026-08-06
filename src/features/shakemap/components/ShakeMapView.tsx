@@ -7,15 +7,9 @@ import { pickLocalizedName } from "@/features/geo";
 import type { TranslateFn } from "@/features/geo";
 import { useTheme } from "@/theme";
 import { pickMapCities } from "../cities";
-import {
-  SHAKEMAP_VIEW_HEIGHT,
-  SHAKEMAP_VIEW_WIDTH,
-} from "../config";
+import { SHAKEMAP_VIEW_HEIGHT, SHAKEMAP_VIEW_WIDTH } from "../config";
 import { INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
-import {
-  computeContourBoundingBox,
-  createEquirectangularProjector,
-} from "../projection";
+import { computeContourBoundingBox, createEquirectangularProjector } from "../projection";
 import type { IntensityContourSet } from "../types";
 
 /**
@@ -62,7 +56,9 @@ export function ShakeMapView({ contours, epicenter, locale, t }: ShakeMapViewPro
     setMeasuredWidth(event.nativeEvent.layout.width);
   }
 
-  const bbox = computeContourBoundingBox(contours.levels, [[epicenter.lon, epicenter.lat]]);
+  const bbox = computeContourBoundingBox(contours.levels, [
+    [epicenter.lon, epicenter.lat],
+  ]);
   const projector = createEquirectangularProjector(bbox, {
     width: SHAKEMAP_VIEW_WIDTH,
     height: SHAKEMAP_VIEW_HEIGHT,
@@ -179,7 +175,12 @@ export function ShakeMapView({ contours, epicenter, locale, t }: ShakeMapViewPro
               stroke={colors.status.danger}
               strokeWidth={1.5}
             />
-            <Circle cx={epicenterPoint.x} cy={epicenterPoint.y} r={3} fill={colors.status.danger} />
+            <Circle
+              cx={epicenterPoint.x}
+              cy={epicenterPoint.y}
+              r={3}
+              fill={colors.status.danger}
+            />
           </Svg>
         ) : null}
       </View>

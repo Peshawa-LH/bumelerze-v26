@@ -1,7 +1,4 @@
-import {
-  SHAKEMAP_BBOX_MIN_PADDING_DEG,
-  SHAKEMAP_BBOX_PADDING_RATIO,
-} from "./config";
+import { SHAKEMAP_BBOX_MIN_PADDING_DEG, SHAKEMAP_BBOX_PADDING_RATIO } from "./config";
 import type { IntensityContourLevel } from "./types";
 
 export interface LonLatBoundingBox {
@@ -65,8 +62,14 @@ export function computeContourBoundingBox(
 
   const lonSpan = maxLon - minLon;
   const latSpan = maxLat - minLat;
-  const lonPad = Math.max(lonSpan * SHAKEMAP_BBOX_PADDING_RATIO, SHAKEMAP_BBOX_MIN_PADDING_DEG);
-  const latPad = Math.max(latSpan * SHAKEMAP_BBOX_PADDING_RATIO, SHAKEMAP_BBOX_MIN_PADDING_DEG);
+  const lonPad = Math.max(
+    lonSpan * SHAKEMAP_BBOX_PADDING_RATIO,
+    SHAKEMAP_BBOX_MIN_PADDING_DEG,
+  );
+  const latPad = Math.max(
+    latSpan * SHAKEMAP_BBOX_PADDING_RATIO,
+    SHAKEMAP_BBOX_MIN_PADDING_DEG,
+  );
 
   return {
     minLon: minLon - lonPad,

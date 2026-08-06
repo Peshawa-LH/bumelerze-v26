@@ -32,10 +32,18 @@ describe("ShakeMapView", () => {
 
   it("renders one Polygon per contour ring from the real (trimmed) fixture, once measured", async () => {
     const contours = parseIntensityContours(halabjaContours);
-    const totalRings = contours.levels.reduce((sum, level) => sum + level.rings.length, 0);
+    const totalRings = contours.levels.reduce(
+      (sum, level) => sum + level.rings.length,
+      0,
+    );
 
     await render(
-      <ShakeMapView contours={contours} epicenter={HALABJA_EPICENTER} locale="en" t={i18n.t} />,
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+      />,
     );
     await measureContainer();
 
@@ -46,7 +54,12 @@ describe("ShakeMapView", () => {
   it("renders no contour polygons before the container has been measured (width still 0)", async () => {
     const contours = parseIntensityContours(halabjaContours);
     await render(
-      <ShakeMapView contours={contours} epicenter={HALABJA_EPICENTER} locale="en" t={i18n.t} />,
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+      />,
     );
 
     expect(screen.queryAllByTestId(CONTOUR_TEST_ID_PATTERN)).toHaveLength(0);
@@ -55,7 +68,12 @@ describe("ShakeMapView", () => {
   it("renders the fixed I..XII legend strip regardless of how many levels the product has", async () => {
     const contours = parseIntensityContours(halabjaContours);
     await render(
-      <ShakeMapView contours={contours} epicenter={HALABJA_EPICENTER} locale="en" t={i18n.t} />,
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+      />,
     );
 
     expect(screen.getByText("I", { includeHiddenElements: true })).toBeTruthy();
@@ -66,7 +84,12 @@ describe("ShakeMapView", () => {
     await i18n.changeLanguage("ckb");
     const contours = parseIntensityContours(halabjaContours);
     await render(
-      <ShakeMapView contours={contours} epicenter={HALABJA_EPICENTER} locale="ckb" t={i18n.t} />,
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="ckb"
+        t={i18n.t}
+      />,
     );
 
     expect(screen.getByText(i18n.t("eventDetail.shakemap.legendCaption"))).toBeTruthy();
