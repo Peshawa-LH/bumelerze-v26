@@ -5,12 +5,18 @@ description = "Regional ShakeMap engine for Bumelerze (Kurdistan earthquake app)
 requires-python = ">=3.11"
 readme = "README.md"
 
-# Exact pins on the three directly-requested packages (D20 §6.3: pin exact
-# version, revalidate on upgrade). Full transitive closure is recorded in
-# requirements.txt for reproducible installs; this section documents intent.
+# Exact pins on the directly-requested packages (D20 §6.3: pin exact
+# version, revalidate on upgrade). h5py was previously only a transitive
+# dependency (pulled in by openquake.engine); wave B's vs30.RasterVs30
+# imports it directly (module docstring: reads the toolkit's backbone Vs30
+# grid, a NetCDF4-classic/HDF5 container, with no new heavy dependency),
+# so it is now pinned explicitly too. Full transitive closure is recorded
+# in requirements.txt for reproducible installs; this section documents
+# intent.
 dependencies = [
     "openquake.engine==3.26.2",
     "ps2ff==1.5.9",
+    "h5py==3.16.0",
 ]
 
 [project.optional-dependencies]

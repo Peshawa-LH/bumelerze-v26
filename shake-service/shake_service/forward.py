@@ -108,10 +108,13 @@ def build_forward_map(
 
     Args:
         event_lat, event_lon, event_depth_km, mag_mw: catalog event params.
-        vs30_sampler: a `vs30.Vs30Sampler` (defaults to
-            `vs30.UniformRockVs30()`, the wave-A rock-760 fallback — pass
-            `vs30.default_sampler()` (wave B) to prefer the real raster when
-            configured/readable).
+        vs30_sampler: a `vs30.Vs30Sampler`. Defaults to `None`, which
+            resolves to `vs30.default_sampler()` — the real Vs30 raster
+            (`vs30.RasterVs30`) when `BUMELERZE_VS30_RASTER_PATH` is set
+            and readable, else the wave-A `UniformRockVs30` rock-760
+            fallback (never fails/blocks on an unhydrated/missing raster —
+            `vs30.py`'s `[REVIEW]` note). Pass `vs30.UniformRockVs30()`
+            explicitly to force the fallback regardless of environment.
         ems_model / mmi_model: `gmice` model names for the two intensity
             channels (defaults: Zanini & Hofer 2019 / Worden et al. 2012).
     """
@@ -119,9 +122,10 @@ def build_forward_map(
     half_extent_km = config.grid_extent_km(band)
     spacing_km = config.forward_grid_spacing_km(band)
 
+    resolved_sampler = vs30_sampler if vs30_sampler is not None else vs30.default_sampler()
     site_grid = vs30.build_grid_km_spacing(
         event_lat, event_lon, half_extent_km=half_extent_km, spacing_km=spacing_km,
-        sampler=vs30_sampler,
+        sampler=resolved_sampler,
     )
 
     # vs30.build_grid_km_spacing returns flat (row-major) 1-D arrays; recover
@@ -198,7 +202,10 @@ def build_forward_map(
             "shape": shape,
             "n_sites": site_grid.n_sites,
         },
-        vs30_meta=getattr(site_grid, "meta", {}) if hasattr(site_grid, "meta") else {},
+        vs30_meta={
+            "sampler": type(resolved_sampler).__name__,
+            "vs30_source_error": getattr(resolved_sampler, "last_error", None),
+        },
         extrapolation=gm.extrapolation,
         in_zagros_polygon=gm.in_zagros_polygon,
         depth_extrapolated=gm.extrapolation.depth_extrapolated,
