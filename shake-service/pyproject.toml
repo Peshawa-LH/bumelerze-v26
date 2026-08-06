@@ -1,0 +1,22 @@
+[project]
+name = "bumelerze-shake-service"
+version = "0.1.0"
+description = "Regional ShakeMap engine for Bumelerze (Kurdistan earthquake app) — hazardlib GMPE adapter + gmpe_forward/mvn engine (extracted from SHAKEmaps-Toolkit-v26)."
+requires-python = ">=3.11"
+readme = "README.md"
+
+# Exact pins on the three directly-requested packages (D20 §6.3: pin exact
+# version, revalidate on upgrade). Full transitive closure is recorded in
+# requirements.txt for reproducible installs; this section documents intent.
+dependencies = [
+    "openquake.engine==3.26.2",
+    "ps2ff==1.5.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
