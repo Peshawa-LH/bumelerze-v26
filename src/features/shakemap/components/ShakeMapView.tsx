@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, G, Polygon, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, Polygon, Text as SvgText } from "react-native-svg";
 
 import { pickLocalizedName } from "@/features/geo";
 import type { TranslateFn } from "@/features/geo";
@@ -9,6 +9,7 @@ import { useTheme } from "@/theme";
 import { pickMapCities } from "../cities";
 import { SHAKEMAP_VIEW_HEIGHT, SHAKEMAP_VIEW_WIDTH } from "../config";
 import { INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
+import { layoutCityLabels, type LabelCandidate } from "../label-layout";
 import { computeContourBoundingBox, createEquirectangularProjector } from "../projection";
 import type { IntensityContourSet } from "../types";
 
@@ -67,6 +68,26 @@ export function ShakeMapView({ contours, epicenter, locale, t }: ShakeMapViewPro
   const cities = pickMapCities(bbox, epicenter);
   const epicenterPoint = projector.project(epicenter.lon, epicenter.lat);
   const highestLevel = contours.levels[contours.levels.length - 1];
+
+  // Label decluttering (ui-backlog.md item 7): dots for every picked city
+  // always render (position accuracy never depends on label space), but
+  // the text labels go through a deterministic greedy layout pass that
+  // skips/offsets anything that would collide with the epicenter marker or
+  // an already-placed label — see `label-layout.ts`. `cities` is already
+  // priority-ordered (HomeBase-subset first, then nearest), which is
+  // exactly the greedy pass's priority order too.
+  const cityNames = new Map(
+    cities.map((city) => [city.id, pickLocalizedName(city.names, locale)]),
+  );
+  const labelCandidates: LabelCandidate[] = cities.map((city) => ({
+    id: city.id,
+    dot: projector.project(city.lon, city.lat),
+    text: cityNames.get(city.id) ?? "",
+  }));
+  const placedLabels = layoutCityLabels(labelCandidates, epicenterPoint, {
+    x: SHAKEMAP_VIEW_WIDTH / 2,
+    y: SHAKEMAP_VIEW_HEIGHT / 2,
+  });
 
   const displayHeight =
     measuredWidth > 0
@@ -133,27 +154,34 @@ export function ShakeMapView({ contours, epicenter, locale, t }: ShakeMapViewPro
 
             {cities.map((city) => {
               const { x, y } = projector.project(city.lon, city.lat);
+              // Dots always render regardless of label placement — position
+              // accuracy shouldn't depend on whether there was room for a
+              // text label (see label-decluttering block above).
               return (
-                <G key={city.id}>
-                  <Circle cx={x} cy={y} r={2.5} fill={colors.text.primary} />
-                  {/* Halo stroke behind the fill for legibility over any
-                   * intensity color underneath (`react-native-svg`'s TS
-                   * types don't expose `paintOrder`, so this relies on the
-                   * default fill-then-stroke paint order — a small
-                   * strokeWidth still reads as a legible outline). */}
-                  <SvgText
-                    x={x + 5}
-                    y={y + 3}
-                    fontSize={9}
-                    fill={colors.text.primary}
-                    stroke={colors.surface.base}
-                    strokeWidth={2}
-                  >
-                    {pickLocalizedName(city.names, locale)}
-                  </SvgText>
-                </G>
+                <Circle key={city.id} cx={x} cy={y} r={2.5} fill={colors.text.primary} />
               );
             })}
+
+            {placedLabels.map((label) => (
+              // Halo stroke behind the fill for legibility over any
+              // intensity color underneath (`react-native-svg`'s TS types
+              // don't expose `paintOrder`, so this relies on the default
+              // fill-then-stroke paint order — a small strokeWidth still
+              // reads as a legible outline).
+              <SvgText
+                key={label.id}
+                testID={`shakemap-label-${label.id}`}
+                x={label.anchor.x}
+                y={label.anchor.y + 3}
+                textAnchor={label.textAnchor}
+                fontSize={9}
+                fill={colors.text.primary}
+                stroke={colors.surface.base}
+                strokeWidth={2}
+              >
+                {cityNames.get(label.id) ?? ""}
+              </SvgText>
+            ))}
 
             {/* Epicenter marker: a halo circle for contrast against
              * whatever intensity color sits underneath, plus a filled
