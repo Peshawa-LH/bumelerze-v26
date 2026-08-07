@@ -9,3 +9,10 @@ __pycache__/
 # committed. Only validation/halabja/'s small derived outputs (results.json,
 # REPORT.md, PNGs) are committed.
 .cache/
+
+# scripts/run_worker.py runtime artifacts: local worker state + exported
+# ShakeMap products (default paths — see run_worker.py --state-path/
+# --products-root). Neither is a checked-in artifact; both are regenerated
+# by the worker itself.
+worker_state.json
+products/

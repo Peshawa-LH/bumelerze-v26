@@ -61,6 +61,27 @@ multi-channel/cross-IMT `mvn` conditioning (DYFI/CDI felt-report
 observations — this package's `mvn.py` is single-IMT, stations-only, by
 task scope).
 
+**Wave F** (2026-08-07): `shake_service/worker/` — the daemon that turns
+the validated engine into an automatic service (D9: "auto for regional
+M>=3.5 ... versioned re-conditioning"). `feed_watcher.py` polls the USGS
+`all_hour` feed (60 s) + an `fdsnws` region-bbox `updatedafter` sweep
+(10 min) and decides `"new"`/`"update"`/`"skip"` per event (region bbox +
+`config.TRIGGER_MIN_MAGNITUDE`, revision thresholds |ΔM|>=0.1 /
+Δlocation>=5 km / Δdepth>=5 km — all tunable). `state.py` persists
+per-event version/params-hash/product-paths/timestamps to a single JSON
+file (sqlite would be overkill for one writer and a handful of tracked
+events — rationale in the module docstring). `pipeline.py` runs the bare
+`gmpe_forward` prior (conditioning deliberately SKIPPED — an explicit,
+documented integration point for when a `felt_cells` source exists) ->
+`export.write_products` into `products/<event-id>/v<N>/` -> state update,
+idempotent by params hash. `uploader.py`'s `ProductUploader` interface has
+a `LocalOnlyUploader` default (logs the would-be `shakemap_products` row,
+migration `0006_shakemap_products.sql`) and a `SupabaseUploader` stub
+(`NotImplementedError` — wired once the Supabase project exists).
+`scripts/run_worker.py --once`/`--daemon` is the CLI; see its own
+docstring for the deployment note (runs server-side next to Supabase, not
+on Peshawa's Mac — no systemd/launchd unit yet).
+
 ## Environment setup
 
 Requires Python >= 3.11 (openquake's floor; this project targets the
@@ -191,6 +212,12 @@ never automatically.
   (Halabja's own frozen legacy-format output stays at `validation/halabja/`
   — see that folder's own `README.md`). Cross-event synthesis:
   `validation/SUMMARY.md`.
+
+- `shake_service/worker/` (wave F) — the auto-trigger daemon: `feed_watcher.py`
+  (USGS poll parsing + trigger decisions), `state.py` (JSON-file-backed
+  per-event state), `pipeline.py` (forward map -> export -> state ->
+  upload, idempotent), `uploader.py` (`ProductUploader`, `LocalOnlyUploader`,
+  `SupabaseUploader` stub). CLI: `scripts/run_worker.py --once`/`--daemon`.
 
 Internal numeric contract (documented once, here, and in `gmm.py`'s
 docstring): **ln-space**, **g** for PGA/SA, **cm/s** for PGV — i.e.
