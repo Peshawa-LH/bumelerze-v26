@@ -106,7 +106,155 @@
   },
   "safety": {
     "title": "Ewlehî",
-    "emptyState": "Rêwerzên ewlehiyê (berî, di dema, û piştî erdhejê) dê di qonaxek paşerojê de werin zêdekirin."
+    "tabs": {
+      "prepare": "Amadekarî",
+      "survive": "Rizgarbûn",
+      "recover": "Saxbûn"
+    },
+    "doLabel": "Bike",
+    "dontLabel": "Neke",
+    "accessibilityToggleLabel": "Heke ev ji te re dijwar be",
+    "cards": {
+      "familyPlan": {
+        "title": "Ji malbata xwe re plansaziyê çêke",
+        "body1": "Bi malbata xwe re li ser xalek civînê ya derveyî mala we û xalek din a derveyî taxa we peyman bikin, ji bo ku hûn nikaribin piştî erdhejeke xurt yekser bi telefonê bigihîjin hev. Piştrast bikin ku hemû endamên malbatê — di nav de zarok û bav û kalik — her du xalan dizanin û çawa dikarin bi peyatî bigihîjinê.",
+        "body2": "Lîsteyeke kaxez a hejmarên telefonê yên girîng (malbat, cîran, bijîjk) li cihekî ku her kes dikare wê bibîne biparêzin. Piştî erdhejeke xurt gelek caran torên telefonê bo çend saetan tijî dibin, ji ber vê yekê bi tenê xwe bi telefona xwe ve girê nedin."
+      },
+      "secureHome": {
+        "title": "Xaniyê xwe ewle bikin",
+        "body1": "Mobîlyayên bilind an giran — dolab, refikên pirtûkan, yekeyên dîwêr — bi dîwêr ve girê bidin da ku neyên xwarê. Tiştên giran bibin ser refikên jêrîn, û nivîn û kursiyan ji mobîlyayên bilind ên girênebûyî dûr bigirin.",
+        "body2": "Du xetereyên ku di malên Kurdan de belav in hêjayî bala taybet in: tankên avê yên li ser banî divê ji aliyê saziya wan daniye ve werin kontrolkirin û ewle kirin, û tûpên gazê divê her tim rawestayî bin, bi qeytan an desteyekê ewle bin da ku nekevin an neçemitin, û ji her agir an çavkaniyeke germê dûr bimînin."
+      },
+      "emergencyKit": {
+        "title": "Çenteyekî acîl amade bikin",
+        "body1": "Çenteyekî amade li cihekî bihêlin ku tê de avê vexwarinê, dermanên çend rojan ên malbata we, kopiyên belgeyên girîng (nasnameyên kesane, belgeyên milkê), fenerek û bataryayên zêde, şarjkerekî mobîl ê veguhêz, û hinek pere hebe — dibe ku makîneyên qerdê û înternet piştî erdhejeke xurt bo demekê nexebitin.",
+        "body2": "Çenteyê li cihekî ku hûn dikarin zû bigirin biparêzin, û her çend meh carekê wê kontrol bikin da ku av teze bimîne û dema derman ne borî be."
+      },
+      "safeSpots": {
+        "title": "Cihê ewle yê her odeyê nas bikin",
+        "body1": "Di her odeya ku hûn zêde lê radiwestin de, berî demê cihekî ewle hilbijêrin: di bin maseyeke qehîm de, an li tenişta dîwarekî hundir ê dûr ji pace, neynik û mobîlyayên bilind. Ji dîwarên derve dûr bimînin, ji ber ku ew bêtir dibe ku zirar bibînin.",
+        "body2": "Derî di avahiyên îro de ne ewletir e — ev raman kevn e û êdî bi awayê avakirina avahiyan a îro re nagunce. Maseyeke qehîm parastineke rasteqîn li dijî tiştên ketî dide we; deriyekî vekirî wê nade we."
+      },
+      "schoolWork": {
+        "title": "Plana dibistan û cîhê kar nas bikin",
+        "body1": "Ji dibistana zarokên xwe û cîhê xebata xwe bipirsin ka plana wan a erdhejê çi ye: di dema hejînê de li ku xwe biparêzin, û piştî wê li ku kom bibin. Dibistan û ofîsan teşwîq bikin ku perwerdehiya 'Bikeve, Xwe Biparêze, Xwe Bigire' bikin, ne tenê perwerdehiya vemirandina agir.",
+        "body2": "Heke hûn rêveberê senifekê, ofîsekê, an dikanekê ne, li dora cîhê xwe bigerin û cihên ewle û deriyên derketinê yên herî nêzîk têbînî bikin, da ku heke hejîn dema ku mirov li cem we ne dest pê bike, hûn karibin bi aramî rêberiya wan bikin."
+      },
+      "dropCoverHold": {
+        "title": "Bikeve, Xwe Biparêze, Xwe Bigire",
+        "body1": "Gava hûn hîs bi hejînê bikin: berî ku hejîn we bixe erdê, bikevin ser destan û çokan, di bin maseyeke qehîm de xwe biparêzin, û xwe bigirin — amade bin ku heke ew tevbigere hûn jî pê re bitevbigerin. Heke maseyek li nêzîk tune be, serî û stûyê xwe bi milên xwe biparêzin.",
+        "body2": "Li wir bimînin heta ku hejîn bi tevahî rawestin. Piraniya birîndariyên erdhejê ji ketinê an ji ketina tiştan çêdibin, ne ji hilweşîna avahiyan — parastina serî û stûyê we ji bo wan çirkeyan tiştê herî bibandor e ku hûn dikarin bikin.",
+        "doDont": {
+          "protectHeadNeckVsDoorway": {
+            "do": "Xwe nizim bikin, di bin tiştekî qehîm de xwe biparêzin, û xwe bigirin.",
+            "dont": "Berbi derî bezîn — deriyên avahiyên îro ji rûyê odeyê ne qehîmtir in û parastineke rasteqîn nadin we."
+          }
+        },
+        "accessibility": {
+          "wheelchair": {
+            "label": "Heke hûn kursiya tekerê bi kar tînin",
+            "body": "Tekerên kursiya xwe zeliqîn, rûniştî bimînin, ber bi pêş ve li ser çokên xwe xwar bibin, û serî û stûyê xwe bi milên xwe an tiştekî nerm ê nêzîk biparêzin. Heke hûn dikarin bi ewlehî berî her tiştî ji pace û mobîlyayên girênebûyî dûr bikevin, wê bikin — an na li cihê xwe bimînin."
+          },
+          "caneOrWalker": {
+            "label": "Heke hûn gopal an alîkara meşê bi kar tînin",
+            "body": "Li ser kursiya, nivîn, an bankekê ya herî nêzîk û qehîm rûnin û rûniştî bimînin. Serî û stûyê xwe bi milên xwe biparêzin. Gopal an alîkara xwe nêzîk bigirin, lê dema erd hîn dihejîne ranebin da ku bigihîjinê."
+          },
+          "bed": {
+            "label": "Heke hûn di nivînê de ne",
+            "body": "Di nivînê de bimînin. Heke hûn dikarin, xwe bidin ser zikê xwe, û serî û stûyê xwe bi balgehekê biparêzin. Ranebin da ku li cihekî din xwe biparêzin — piraniya birîndariyan di vê rewşê de ji ketinê çêdibin dema meriv di tarîtiyê de hewl dide bitevbigere."
+          }
+        }
+      },
+      "indoors": {
+        "title": "Heke hûn di hundirê malê de bin dema hejîn dest pê dike",
+        "body1": "Di hundir de bimînin. Tenê wan gavên hindik bavêjin ku ji bo gihîştina cihê xwe yê ewle yê herî nêzîk hewce ne, paşê Bikeve, Xwe Biparêze, Xwe Bigire. Derî bi gelemperî di dema hejînê de ji mayîna li cihê xwe xetertir in — camê şikestî, taybêt, û perçeyên avahiyê dikarin li ber deriyan bikevin.",
+        "doDont": {
+          "stayInVsRunOutside": {
+            "do": "Li cihê xwe xwe biparêzin û li benda rawestandina hejînê bimînin.",
+            "dont": "Dema erd hîn dihejîne berbi derve nebezin — piraniya birîndariyan dema mirov tevdigerin çêdibin."
+          }
+        }
+      },
+      "outdoors": {
+        "title": "Heke hûn li derve bin dema hejîn dest pê dike",
+        "body1": "Ber bi erdeke vekirî ve herin, ji avahî, dîwêr, dar û xetên elektrîkê dûr, û li wir Bikeve, Xwe Biparêze, Xwe Bigire. Cîhê nêzî avahiyekê yek ji cihên herî xetere ye — cam, kaşî, û perçeyên derveyî avahiyê li wir dikevin.",
+        "doDont": {
+          "openGroundVsBuildings": {
+            "do": "Ji avahî û xetên elektrîkê dûr bikevin, paşê xwe nizim bikin û serê xwe biparêzin.",
+            "dont": "Li tenişta avahiyekê, dîwêrekê, an xeteke elektrîkê newestin — tewra ya ku xuya dike bêzirar e jî."
+          }
+        }
+      },
+      "vehicle": {
+        "title": "Heke hûn di erebeyê de bin",
+        "body1": "Gava ku hûn bi ewlehî karibin rawestin, ji pir, pira jorîn, tunel, û xetên elektrîkê dûr, û di erebê de bi kembera ewlehiyê ve girêdayî bimînin heta hejîn rawestin. Erebeyek parastineke rasteqîn li dijî perçeyên ketî dide we.",
+        "doDont": {
+          "pullOverVsOverpass": {
+            "do": "Li cihekî vekirî rawestin û li ser kursiya xwe bi kembera ewlehiyê ve bimînin.",
+            "dont": "Li ser an binê pirek, pira jorîn, an tunelê newestin."
+          }
+        }
+      },
+      "commonMyths": {
+        "title": "Du raman ên şaş ên li ser erdhejê",
+        "body1": "Van her du tevgeran hîsa parastinê didin, lê rêwerzên niha wan pêşniyar nakin — zanîna vê berî demê tê wê wateyê ku hûn dema xwe li ser wan winda nakin dema ku hewce ye.",
+        "doDont": {
+          "headNeckVsDoorwayMyth": {
+            "do": "Serî û stûyê xwe di bin tiştekî qehîm de biparêzin.",
+            "dont": "Deriyekî wek cihekî ewle nebînin — ev rêwerzek kevn e."
+          },
+          "stairsVsElevator": {
+            "do": "Gava hejîn rawestin, bi aramî bi derenceyê avahiyê berdin.",
+            "dont": "Asansorê bi kar neynin — elektrîk û şaftên asansorê gelek caran ji erdhejeke xurt bandor dibin."
+          }
+        }
+      },
+      "aftershocks": {
+        "title": "Li benda erdhejên şûnde bin",
+        "body1": "Erdhejên piçûktir — erdhejên şûnde — gelek caran li dû ya xurt tên, carinan bo çend roj an hefteyan. Her carê hûn hîs bi hejînê bikin, dîsa Bikeve, Xwe Biparêze, Xwe Bigire; erdhejek şûnde ya piçûk wê wateyê nade ku êdî ne hewce ye meriv hejînê bi ciddî bigire.",
+        "body2": "Heke we erdhej hîs kir, hûn dikarin di rûpelê ragihandina hîskirinê ya vê sepanê de tiştê ku li we hatiye tomar bikin — kêmtir ji deqîqeyekê dikişîne û dibe alîkar ku tomareke rasteqîn a hejînê li seranserê Kurdistanê, bajar bi bajar, were avakirin."
+      },
+      "checkHazards": {
+        "title": "Ji bo birîndarî û xetereyan kontrol bikin",
+        "body1": "Berî her tiştî xwe û ên li dora xwe ji bo birîndariyan kontrol bikin, û heke hûn karibin alîkariya destpêkê bidin. Paşê ji bo xetereyan kontrol bikin: bêhna gazê, telên zirar dîtî, an tûpeke gazê ya xwar bûyî.",
+        "doDont": {
+          "gasLeakSafety": {
+            "do": "Heke we bêhna gazê hîs kir, valfa tûpê an ya sereke bigirin, pace vekin, û avahiyê biterikînin.",
+            "dont": "Heke we bêhna gazê hîs kir çira venekin, lişkerekê bi kar neynin, an kibrîtê venekin."
+          }
+        }
+      },
+      "evacuateCarefully": {
+        "title": "Bi baldarî ji avahiyeke zirar dîtî derkevin",
+        "body1": "Heke avahiya we zirar dîtiye, bi aramî bi derenceyê derkevin, li rê ber xwe bidin cam û tiştên ketî û derenceyên çitirandî.",
+        "doDont": {
+          "reentryCaution": {
+            "do": "Derkevin û li derve, ji avahiyê dûr, li benda bimînin.",
+            "dont": "Heta ku kesekî pispor wê kontrol neke û ewle îlan neke venegerin hundir."
+          }
+        }
+      },
+      "reliableInfo": {
+        "title": "Agahiyan ji çavkaniyên pêbawer bistînin",
+        "body1": "Piştî erdhejeke xurt, gotegot zû belav dibin — li ser pêşbîniyên erdhejên şûnde, zirar, an xetere — bileztir ji ku rastî bêne kontrolkirin. Çavkaniyên fermî bişopînin (parastina sivîl, saziyên erdnasiyê, ev sepan) ji bo agahiya piştrastkirî, û bi sebir li benda tiştên hê nayên zanîn bimînin.",
+        "doDont": {
+          "verifyBeforeSharing": {
+            "do": "Berî ku hûn li ser agahiyekê bilivin an wê parve bikin, wê li gel çavkaniyeke fermî kontrol bikin.",
+            "dont": "Pêşbîniyên erdhejê an îdiayên zirarê yên hûn nikarin piştrast bikin belav nekin — tewra ji kesekî hûn baweriya xwe pê tînin be jî."
+          }
+        }
+      },
+      "helpNeighbors": {
+        "title": "Heke hûn bi ewlehî karibin alîkariya yên din bikin",
+        "body1": "Piştî ku hûn û malbata we ewle ne, serdana cîranên salxwar, kesên bi astengî, û kesên bi tenê li nêzî we dijîn bikin — lêdana derî û çend deqîqeyan dikare girîng be.",
+        "doDont": {
+          "helpSafely": {
+            "do": "Serdana cîranên ku hewceyî alîkariyê ne bikin, û heke kesek bi giranî birîndar be gazî xizmeta acîl bikin.",
+            "dont": "Kesekî bi giranî birîndar bi destê xwe nelivînin, ji xeynî ku ew di xetereke tavilê de be wek agir — livandineke şaş dikare birînê xerabtir bike."
+          }
+        }
+      }
+    }
   },
   "settings": {
     "title": "Sazkarî",
