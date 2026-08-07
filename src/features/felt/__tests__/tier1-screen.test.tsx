@@ -107,6 +107,10 @@ describe("Tier 1 felt-report screen", () => {
       const tile = screen.getByLabelText(`${level}. ${label}`);
       expect(tile).toBeTruthy();
       expect(tile.props.accessibilityState?.disabled).not.toBe(true);
+      // A blind user needs to know a tap SUBMITS immediately (no separate
+      // confirm step) — the numeral+label alone don't convey that
+      // (accessibility-tester Phase 5 audit).
+      expect(tile.props.accessibilityHint).toBe(i18n.t("felt.tier1.levelA11yHint"));
     }
 
     // Levels 10-12 render under the "severe destruction" sub-header
