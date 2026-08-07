@@ -3,7 +3,9 @@ import {
   intensityOnFillLight,
   intensityRampDark,
   intensityRampLight,
+  neutral,
 } from "../palette";
+import { darkColors, lightColors } from "../semantic";
 
 /**
  * Standalone WCAG 2.x relative-luminance/contrast-ratio helpers, reimplemented
@@ -157,5 +159,33 @@ describe("intensity on-fill text color — WCAG contrast, not eyeballed", () => 
       expect(chosen).toBe(expected);
       expect(Math.max(darkOption, lightOption)).toBeGreaterThanOrEqual(3);
     }
+  });
+});
+
+describe("text.tertiary — WCAG-AA contrast against surface.base (accessibility-tester Phase 5)", () => {
+  // Real screen content uses this token at normal (not "large") text sizes
+  // — notificationSettings.homeBase.notSetHint, .fatigueFooter,
+  // sensor.gravityNote — plus the always-visible bottom-tab-bar inactive
+  // icon/label color, so it needs the full 4.5:1 normal-text floor, not
+  // just the 3:1 large-text/graphical-object floor.
+  const AA_NORMAL_TEXT_FLOOR = 4.5;
+
+  it("light theme: text.tertiary on surface.base clears 4.5:1 (previously neutral[500] at ~2.43:1 — a real AA failure)", () => {
+    expect(lightColors.text.tertiary).toBe(neutral[650]);
+    expect(
+      contrastRatio(lightColors.text.tertiary, lightColors.surface.base),
+    ).toBeGreaterThanOrEqual(AA_NORMAL_TEXT_FLOOR);
+  });
+
+  it("dark theme: text.tertiary on surface.base clears 4.5:1 (previously neutral[700] at ~3.1:1 — a real AA failure)", () => {
+    expect(darkColors.text.tertiary).toBe(neutral[600]);
+    expect(
+      contrastRatio(darkColors.text.tertiary, darkColors.surface.base),
+    ).toBeGreaterThanOrEqual(AA_NORMAL_TEXT_FLOOR);
+  });
+
+  it("keeps text.tertiary visibly distinct from text.secondary in both themes (a hierarchy, not a duplicate)", () => {
+    expect(lightColors.text.tertiary).not.toBe(lightColors.text.secondary);
+    expect(darkColors.text.tertiary).not.toBe(darkColors.text.secondary);
   });
 });

@@ -22,6 +22,21 @@ export const neutral = {
   400: "#CBCBCF",
   500: "#A6A6AA",
   600: "#85858A",
+  /**
+   * WCAG-AA contrast fix (accessibility-tester Phase 5 audit,
+   * `theme/__tests__/palette.test.ts`'s new "text.tertiary" describe
+   * block): `text.tertiary` (light theme) previously pointed at
+   * `neutral[500]`, which reads at only ~2.43:1 against white — a clear
+   * fail of the 4.5:1 normal-text floor, on real screen content
+   * (`notificationSettings.homeBase.notSetHint`, `.fatigueFooter`,
+   * `sensor.gravityNote`) as well as the always-visible tab-bar inactive
+   * icon/label color. `neutral[600]` alone only reaches ~3.67:1 — still
+   * short — and jumping straight to `neutral[700]` (6.77:1) would erase the
+   * visual hierarchy between "tertiary" and "secondary" text entirely. This
+   * step sits between the two, reaches ~5.08:1 (safe margin over 4.5), and
+   * stays visibly lighter than `neutral[700]`.
+   */
+  650: "#6E6E72",
   700: "#5B5B5E",
   800: "#444447",
   900: "#2A2A2C",
