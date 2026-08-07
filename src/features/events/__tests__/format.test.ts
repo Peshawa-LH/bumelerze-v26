@@ -136,6 +136,7 @@ describe("formatAbsoluteDual", () => {
     expect(utc).toContain("ئاب"); // month 8, Sorani
     expect(utc).toContain("١٥"); // day 15, Eastern Arabic-Indic digits
     expect(utc).toContain("٢٠٢٦"); // year
+    expect(utc).toContain("شەوانە"); // D22: 12:00 UTC is PM → شەوانە, never "PM"
     expect(/[0-9]/.test(utc)).toBe(false); // no stray Latin digits
     // "UTC" itself is a deliberate, un-translated suffix (see format.ts) —
     // strip it before checking the date/time portion is free of stray
@@ -159,11 +160,11 @@ describe("formatAbsoluteDual", () => {
     await i18n.changeLanguage("kmr");
     const { utc } = formatAbsoluteDual(originTimeMs, "kmr", i18n.t.bind(i18n));
 
-    // Hermes/ICU has no dedicated 12h-vs-24h convention for "kmr", so the
-    // clock format itself falls back to whatever Intl picks (24h here) —
-    // out of scope for ui-backlog item 6 (month names + digits), so this
-    // only pins the day/month/year/Latin-digit portion this rewrite owns.
+    // D22: the clock is now OUR 12h + i18n period token in every locale
+    // (never Intl's dayPeriod — Hermes/ICU has no kmr/ckb data), so kmr
+    // pins its own period word too (draft-machine, flagged for review).
     expect(utc).toContain("15 Tebax 2026");
+    expect(utc).toContain("12:00 êvar");
     expect(utc.endsWith("UTC")).toBe(true);
   });
 

@@ -14,6 +14,10 @@
   "units": {
     "km": "كم"
   },
+  "time": {
+    "am": "ص",
+    "pm": "م"
+  },
   "months": {
     "short": {
       "1": "كانون الثاني",
@@ -68,6 +72,7 @@
     "magnitudeA11yLabel": "الشدة {{value}}",
     "magnitudeDisplay": "{{value}} درجة",
     "dateTemplate": "{{day}} {{month}} {{year}}، {{time}}",
+    "timeTemplate": "{{time}} {{period}}",
     "offlineBanner": "أنت غير متصل — يتم عرض الأحداث منذ {{time}}",
     "errorTitle": "تعذر تحميل أحدث الأحداث",
     "retry": "إعادة المحاولة",

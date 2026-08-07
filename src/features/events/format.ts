@@ -200,16 +200,60 @@ function dateComponents(
   };
 }
 
-/** Hour:minute only, locale-appropriate 12h/24h convention (unchanged from
- * this module's pre-rewrite behavior) — the one piece of `Intl`'s own
- * locale-aware formatting this module keeps relying on, since clock-format
- * convention (not month names) isn't the localization gap ui-backlog item 6
- * is about. */
-function timeOfDay(date: Date, timeZone: string | undefined, locale: string): string {
-  return new Intl.DateTimeFormat(
+/** Hour (0-23) + minute, read via a FIXED `hourCycle: "h23"` request —
+ * deliberately NOT locale-dependent (D22 "Kurdish AM/PM"): this is a pure
+ * numeral read-out (no month/dayPeriod NAME involved), so unlike
+ * `dateComponents`'s day/month/year split this doesn't need the "own
+ * explicit map" workaround — it exists so `formatTimeOfDay` below can build
+ * the 12-hour display value + AM/PM classification itself from a single
+ * locale-INDEPENDENT source of truth, rather than trusting `Intl`'s own
+ * per-locale `dayPeriod` part (see that function's doc comment for why). */
+function hour24AndMinute(
+  date: Date,
+  timeZone: string | undefined,
+  locale: string,
+): { hour24: number; minute: number } {
+  const parts = new Intl.DateTimeFormat(
     withLatinDigits(locale),
-    dateTimeOptions(timeZone, { timeStyle: "short" }),
-  ).format(date);
+    dateTimeOptions(timeZone, { hour: "numeric", minute: "numeric", hourCycle: "h23" }),
+  ).formatToParts(date);
+
+  const hourStr = parts.find((part) => part.type === "hour")?.value;
+  const minuteStr = parts.find((part) => part.type === "minute")?.value;
+
+  return { hour24: Number(hourStr ?? "0"), minute: Number(minuteStr ?? "0") };
+}
+
+/** Hour:minute + a translated AM/PM-equivalent token (D22 "Kurdish
+ * AM/PM": ckb MUST read ڕۆژانە/شەوانە, never Latin "AM"/"PM"). Deliberately
+ * does NOT read `Intl`'s own `dayPeriod` formatToParts value — same
+ * "Hermes/ICU has no real Sorani/Kurmanji data" gap `dateComponents`'s doc
+ * comment already documents for month names (confirmed for dayPeriod too:
+ * a device build without the real translation silently falls back to
+ * Latin "AM"/"PM", which is exactly the bug this function exists to
+ * prevent). Instead, the AM/PM CLASSIFICATION is derived purely from the
+ * locale-independent 24-hour value (`hour24AndMinute`) and the display
+ * text comes entirely from this app's own `time.am`/`time.pm` i18n keys —
+ * the same "own explicit map, never delegated to whatever ICU data shipped"
+ * policy this module already applies to digits and month names. The
+ * `time.template` key controls token order/spacing per locale (kept in the
+ * catalog, not hardcoded here, even though every current locale happens to
+ * order it the same way: time chunk first, period token after). */
+function formatTimeOfDay(
+  date: Date,
+  timeZone: string | undefined,
+  locale: string,
+  t: TranslateFn,
+): string {
+  const { hour24, minute } = hour24AndMinute(date, timeZone, locale);
+  const period: "am" | "pm" = hour24 < 12 ? "am" : "pm";
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  const minuteStr = String(minute).padStart(2, "0");
+
+  return t("events.timeTemplate", {
+    time: localizeDigits(`${hour12}:${minuteStr}`, locale),
+    period: t(`time.${period}`),
+  });
 }
 
 /** One locale-templated absolute date+time string (day/month/year/time
@@ -229,7 +273,7 @@ function formatAbsoluteOne(
     day: localizeDigits(String(day), locale),
     month: t(`months.short.${month}`),
     year: localizeDigits(String(year), locale),
-    time: localizeDigits(timeOfDay(date, timeZone, locale), locale),
+    time: formatTimeOfDay(date, timeZone, locale, t),
   });
 }
 

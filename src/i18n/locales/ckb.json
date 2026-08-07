@@ -14,6 +14,10 @@
   "units": {
     "km": "کم"
   },
+  "time": {
+    "am": "ڕۆژانە",
+    "pm": "شەوانە"
+  },
   "months": {
     "short": {
       "1": "کانوونی دووەم",
@@ -68,6 +72,7 @@
     "magnitudeA11yLabel": "بەهێزی {{value}}",
     "magnitudeDisplay": "{{value}} پلە",
     "dateTemplate": "{{day}}ی {{month}}ی {{year}}، {{time}}",
+    "timeTemplate": "{{time}} {{period}}",
     "offlineBanner": "تۆ ئۆفلاینیت — ڕووداوەکان لە {{time}}ەوە پیشان دەدرێن",
     "errorTitle": "نەتوانرا ڕووداوە نوێیەکان باربکرێن",
     "retry": "دووبارە هەوڵبدەوە",
