@@ -182,17 +182,38 @@ def _intensity_channel(forward_map: ForwardMap, channel: IntensityChannelName) -
 # ---------------------------------------------------------------------------
 
 
+DEFAULT_REVIEW_STATUS = "automatic"  # D21: "every product carries review_status (automatic | reviewed)"
+
+
 def build_info_product(
     forward_map: ForwardMap,
     *,
     contour_channel: IntensityChannelName = "ems",
     product_version: int = 1,
     generated_at: _dt.datetime | None = None,
+    review_status: str = DEFAULT_REVIEW_STATUS,
+    reviewed_by: str | None = None,
+    reviewed_at: str | None = None,
 ) -> dict[str, Any]:
     """Event params, engine chain, data-used list, version/timestamps,
-    extrapolation/depth tags, producer identity — everything a consumer (or
-    a human reviewing a product bundle) needs to know how this map was
-    made, without needing to re-derive it from `ForwardMap` internals."""
+    extrapolation/depth tags, producer identity, and D21's scientist-review
+    status — everything a consumer (or a human reviewing a product bundle)
+    needs to know how this map was made, without needing to re-derive it
+    from `ForwardMap` internals.
+
+    `review_status` (D21, `docs/decisions.md`: "every product carries
+    review_status (automatic | reviewed); the app displays it
+    (provenance-as-UI)"): defaults to `"automatic"` — every product this
+    module writes is machine-generated until a human explicitly flips it,
+    the v1 review channel being `scripts/review_product.py`
+    (`shake_service.review.mark_reviewed`), which re-writes an ALREADY
+    EXPORTED `info.json` with `review_status="reviewed"` plus
+    `reviewed_by`/`reviewed_at` — this function's own `reviewed_by`/
+    `reviewed_at` parameters exist only so that round trip is a straight
+    "read the dict, overwrite these three keys, write it back", never a
+    hand-rolled partial-JSON edit."""
+    if review_status not in ("automatic", "reviewed"):
+        raise ValueError(f"build_info_product: review_status must be 'automatic' or 'reviewed', got {review_status!r}")
     ts = (generated_at or _dt.datetime.now(_dt.timezone.utc)).isoformat()
 
     branches = [
@@ -241,6 +262,9 @@ def build_info_product(
             "extrapolation": extrapolation_flags,
         },
         "version": dict(forward_map.version),
+        "review_status": review_status,
+        "reviewed_by": reviewed_by,
+        "reviewed_at": reviewed_at,
     }
 
 
@@ -288,10 +312,18 @@ def write_products(
     contour_channel: IntensityChannelName = "ems",
     product_version: int = 1,
     generated_at: _dt.datetime | None = None,
+    review_status: str = DEFAULT_REVIEW_STATUS,
+    reviewed_by: str | None = None,
+    reviewed_at: str | None = None,
 ) -> dict[str, Path]:
     """Write `cont_mi.json` + `info.json` + `grid.json` into `out_dir`
     (created if missing). Returns the three paths written, keyed
-    `"cont_mi" | "info" | "grid"`."""
+    `"cont_mi" | "info" | "grid"`. `review_status`/`reviewed_by`/
+    `reviewed_at` pass straight through to `build_info_product` (D21) —
+    every freshly (re)computed version starts `"automatic"`;
+    `scripts/review_product.py` is the only thing that ever writes
+    `"reviewed"`, and it does so by re-writing an already-exported
+    `info.json`, not by calling this function again."""
     import json
 
     out_path = Path(out_dir)
@@ -304,6 +336,9 @@ def write_products(
             contour_channel=contour_channel,
             product_version=product_version,
             generated_at=generated_at,
+            review_status=review_status,
+            reviewed_by=reviewed_by,
+            reviewed_at=reviewed_at,
         ),
         "grid": build_grid_product(forward_map),
     }
