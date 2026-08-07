@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { AccessibilityInfo } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n, { isRTLLocale } from "@/i18n";
@@ -125,5 +126,52 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     expect(
       screen.getByText("لەم دواییانە هیچ بوومەلەرزەیەک لە هەرێمەکەتدا تۆمار نەکراوە."),
     ).toBeTruthy();
+  });
+
+  it("gives the persistent felt-report pill an accessibilityHint explaining what tapping it does (design-language.md §8, accessibility-tester Phase 5)", async () => {
+    await renderWithProviders(<HomeScreen />);
+
+    const pill = screen.getByRole("button", { name: i18n.t("felt.pill.label") });
+    expect(pill.props.accessibilityHint).toBe(i18n.t("felt.pill.hint"));
+  });
+
+  it("marks the offline banner as an assertive/polite live region so a screen reader hears the stale-data state (accessibility-tester Phase 5)", async () => {
+    mockUseRegionEvents.mockReturnValue({
+      events: [sampleEvent],
+      isInitialLoading: false,
+      isOfflineIsh: true,
+      isHardError: false,
+      isRefreshing: false,
+      dataUpdatedAt: Date.now(),
+      skippedCount: 0,
+      refetch: jest.fn(),
+    });
+
+    await renderWithProviders(<HomeScreen />);
+
+    const banner = screen.getByText(/you're offline/i, { exact: false }).parent;
+    expect(banner?.props.accessibilityLiveRegion).toBe("polite");
+  });
+
+  it("announces the offline state via AccessibilityInfo too, for VoiceOver (which ignores accessibilityLiveRegion)", async () => {
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, "announceForAccessibility")
+      .mockImplementation(() => undefined);
+
+    mockUseRegionEvents.mockReturnValue({
+      events: [sampleEvent],
+      isInitialLoading: false,
+      isOfflineIsh: true,
+      isHardError: false,
+      isRefreshing: false,
+      dataUpdatedAt: Date.now(),
+      skippedCount: 0,
+      refetch: jest.fn(),
+    });
+
+    await renderWithProviders(<HomeScreen />);
+
+    expect(announceSpy).toHaveBeenCalledWith(i18n.t("events.offlineAnnouncement"));
+    announceSpy.mockRestore();
   });
 });

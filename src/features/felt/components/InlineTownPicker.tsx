@@ -41,7 +41,12 @@ export function InlineTownPicker({
               {
                 borderColor: colors.border.default,
                 backgroundColor: isActive ? colors.surface.raised : "transparent",
-                paddingVertical: spacing[2],
+                // spacing[3] (12), not spacing[2] (8) — 8 measured under the
+                // 48dp touch-target floor (design-language.md §8) once
+                // combined with this row's bodyMeta text; matches the same
+                // paddingVertical `TownPicker`'s equivalent row already uses
+                // (accessibility-tester Phase 5 audit).
+                paddingVertical: spacing[3],
                 paddingStart: spacing[3],
                 paddingEnd: spacing[3],
               },
@@ -67,5 +72,7 @@ const styles = StyleSheet.create({
   row: {
     borderWidth: 1,
     borderRadius: 8,
+    minHeight: 48,
+    justifyContent: "center",
   },
 });

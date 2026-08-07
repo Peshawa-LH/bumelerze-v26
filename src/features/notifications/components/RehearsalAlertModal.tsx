@@ -19,6 +19,20 @@ interface RehearsalAlertModalProps {
  * even if the user has denied notifications entirely — the whole point is
  * letting a curious or skeptical user preview the alert without any
  * system prompt in the way.
+ *
+ * ACCESSIBILITY FIX (Phase 5 audit): the previous structure wrapped the
+ * ENTIRE overlay — backdrop AND the card's title/body content — in one
+ * `Pressable` carrying `accessibilityRole="button"` +
+ * `accessibilityLabel="Close"`. A `Pressable` with a label is a single
+ * accessible element by default, so TalkBack/VoiceOver announced only
+ * "Close, button" and never exposed the example alert's title/body text —
+ * defeating the entire purpose of a sighted-AND-blind alert preview. Fixed
+ * by separating concerns: a decorative, `accessibilityElementsHidden`
+ * backdrop behind the card (tap-outside-to-dismiss, invisible to screen
+ * readers — same as how the Modal's hardware-back/swipe-down already closes
+ * it), the card's title/body as normal (individually readable) `Text`, and
+ * one explicit, visible "Close" button a screen-reader user can actually
+ * find and activate.
  */
 export function RehearsalAlertModal({
   visible,
@@ -36,15 +50,16 @@ export function RehearsalAlertModal({
       transparent
       animationType="fade"
       onRequestClose={onClose}
-      accessibilityViewIsModal
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t("notificationSettings.rehearsal.close")}
-        onPress={onClose}
-        style={[styles.overlay, { backgroundColor: colors.surface.overlay }]}
-      >
+      <View style={styles.overlay}>
+        <Pressable
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          onPress={onClose}
+          style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface.overlay }]}
+        />
         <View
+          accessibilityViewIsModal
           style={[
             styles.card,
             {
@@ -79,6 +94,23 @@ export function RehearsalAlertModal({
             >
               {t("events.relativeTime.justNow")}
             </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("notificationSettings.rehearsal.close")}
+              onPress={onClose}
+              hitSlop={12}
+              style={styles.closeButton}
+            >
+              <Text
+                style={{
+                  color: colors.text.link,
+                  fontSize: typography.labelButton.fontSize,
+                  fontWeight: typography.labelButton.fontWeight,
+                }}
+              >
+                {t("notificationSettings.rehearsal.close")}
+              </Text>
+            </Pressable>
           </View>
 
           <Text
@@ -103,7 +135,7 @@ export function RehearsalAlertModal({
             {bodyText}
           </Text>
         </View>
-      </Pressable>
+      </View>
     </Modal>
   );
 }
@@ -128,6 +160,12 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeButton: {
+    minHeight: 44,
+    minWidth: 44,
     alignItems: "center",
     justifyContent: "center",
   },

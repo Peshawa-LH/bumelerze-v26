@@ -43,6 +43,7 @@ describe("ShakeMapView", () => {
         epicenter={HALABJA_EPICENTER}
         locale="en"
         t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
       />,
     );
     await measureContainer();
@@ -59,6 +60,7 @@ describe("ShakeMapView", () => {
         epicenter={HALABJA_EPICENTER}
         locale="en"
         t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
       />,
     );
 
@@ -73,6 +75,7 @@ describe("ShakeMapView", () => {
         epicenter={HALABJA_EPICENTER}
         locale="en"
         t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
       />,
     );
 
@@ -89,10 +92,28 @@ describe("ShakeMapView", () => {
         epicenter={HALABJA_EPICENTER}
         locale="ckb"
         t={i18n.t}
+        placeText="١٢ کم باشووری ڕۆژهەڵاتی هەڵەبجە"
       />,
     );
 
     expect(screen.getByText(i18n.t("eventDetail.shakemap.legendCaption"))).toBeTruthy();
+  });
+
+  it("folds the place line into the map's accessibilityLabel, not just the max-intensity numeral (accessibility-tester Phase 5: a blind user's only 'where' context for this map)", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
+      />,
+    );
+
+    const map = screen.getByTestId("shakemap-map-container");
+    expect(map.props.accessibilityLabel).toContain("12 km SE of Halabja, Kurdistan Region");
+    expect(map.props.accessibilityLabel).toMatch(/maximum intensity/i);
   });
 
   it("handles an empty contour set without crashing (defensive — callers should never pass this)", async () => {
@@ -102,6 +123,7 @@ describe("ShakeMapView", () => {
         epicenter={HALABJA_EPICENTER}
         locale="en"
         t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
       />,
     );
     await measureContainer();

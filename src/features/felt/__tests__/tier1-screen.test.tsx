@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { AccessibilityInfo } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -106,6 +107,10 @@ describe("Tier 1 felt-report screen", () => {
       const tile = screen.getByLabelText(`${level}. ${label}`);
       expect(tile).toBeTruthy();
       expect(tile.props.accessibilityState?.disabled).not.toBe(true);
+      // A blind user needs to know a tap SUBMITS immediately (no separate
+      // confirm step) — the numeral+label alone don't convey that
+      // (accessibility-tester Phase 5 audit).
+      expect(tile.props.accessibilityHint).toBe(i18n.t("felt.tier1.levelA11yHint"));
     }
 
     // Levels 10-12 render under the "severe destruction" sub-header
@@ -146,6 +151,34 @@ describe("Tier 1 felt-report screen", () => {
     expect(items[0]?.tier1.cartoonLevel).toBe(5);
     expect(items[0]?.tier1.eventId).toBeNull();
     expect(items[0]?.tier1.location.quality).toBe("manual");
+  });
+
+  it("announces the submission to screen readers (blind users get an audible confirmation, not just a visual one)", async () => {
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, "announceForAccessibility")
+      .mockImplementation(() => undefined);
+
+    await renderWithProviders(<Tier1FeltReportScreen />);
+    await flush();
+
+    const level5Label = i18n.t("felt.tier1.levels.5.label");
+    const tile = screen.getByLabelText(`5. ${level5Label}`);
+
+    await act(async () => {
+      fireEvent.press(tile);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await flush();
+
+    expect(announceSpy).toHaveBeenCalledWith(
+      expect.stringContaining(i18n.t("felt.tier1.confirmation.title")),
+    );
+    expect(announceSpy).toHaveBeenCalledWith(
+      expect.stringContaining(i18n.t("felt.tier1.confirmation.queuedMessage")),
+    );
+
+    announceSpy.mockRestore();
   });
 
   it("tapping 'add more detail' navigates into the tier-2 flow with the just-created report id", async () => {

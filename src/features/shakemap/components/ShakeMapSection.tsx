@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/events";
+import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { useShakeMap } from "../queries";
@@ -72,6 +73,13 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   const versionText = localizeDigits(String(product.version), i18n.language);
   const dataUsedText = t(DATA_USED_I18N_KEY[product.dataUsedSummaryKey]);
   const reviewStatusText = t(`eventDetail.shakemap.reviewStatus.${product.reviewStatus}`);
+  // Screen-reader place context (accessibility-tester Phase 5 pass): a
+  // sighted user sees the epicenter + nearby-city labels drawn on the SVG
+  // map; the map's own accessibilityLabel is a blind user's ONLY way to get
+  // that "where" information, so it must carry the same localized place
+  // line the rest of the screen already uses, not just the max-intensity
+  // numeral (see `ShakeMapView`'s `mapA11yLabel` doc comment).
+  const placeText = placeLine(event, i18n.language, t);
 
   return (
     <View style={{ gap: spacing[2] }}>
@@ -81,6 +89,7 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
         epicenter={{ lat: event.lat, lon: event.lon }}
         locale={i18n.language}
         t={t}
+        placeText={placeText}
       />
       <View style={{ gap: spacing[1] }}>
         <Text style={bodyStyle}>

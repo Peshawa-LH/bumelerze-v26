@@ -30,6 +30,7 @@ export function FeltReportPill({ eventId = null }: FeltReportPillProps) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t("felt.pill.label")}
+      accessibilityHint={t("felt.pill.hint")}
       onPress={() =>
         router.push(
           eventId
@@ -44,7 +45,14 @@ export function FeltReportPill({ eventId = null }: FeltReportPillProps) {
           bottom: insets.bottom + spacing[4],
           backgroundColor: colors.action.felt,
           paddingHorizontal: spacing[5],
-          paddingVertical: spacing[3],
+          // spacing[4] (not spacing[3]) — this is the primary panic-time CTA
+          // (design-language.md §8: "must sit inside the one-handed thumb
+          // zone"), so its tap target must clear 48dp with real margin, not
+          // sit right at the 44pt floor (spacing[3] measured ~44pt with this
+          // label's line height, before font-scaling even grows it).
+          paddingVertical: spacing[4],
+          minHeight: 48,
+          justifyContent: "center",
           opacity: pressed ? 0.9 : 1,
         },
       ]}

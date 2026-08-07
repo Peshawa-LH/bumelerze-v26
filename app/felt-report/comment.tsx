@@ -235,5 +235,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
   },
 });

@@ -31,7 +31,11 @@ export function PermissionDeniedRow() {
       >
         {t("notificationSettings.permission.deniedStatus")}
       </Text>
-      <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => void Linking.openSettings()}
+        hitSlop={12}
+      >
         <Text
           style={{
             color: colors.text.link,

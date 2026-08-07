@@ -374,7 +374,11 @@ function EventDetailHeader({
        * already computes, event-pipeline-design.md §4), since a far-world
        * event has no regional history worth linking to. */}
       {event.isRegional ? (
-        <Pressable accessibilityRole="button" onPress={onNavigateHistorical}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onNavigateHistorical}
+          hitSlop={12}
+        >
           <Text
             style={{
               color: colors.text.link,

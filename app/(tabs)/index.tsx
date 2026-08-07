@@ -64,7 +64,17 @@ export default function HomeScreen() {
               {t("home.title")}
             </Text>
             <View style={[styles.links, { gap: spacing[3] }]}>
-              <Pressable accessibilityRole="button" onPress={() => router.push("/world")}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push("/world")}
+                // Vertical-only hitSlop: these three links sit side by side
+                // with only spacing[3] (12px) between them, so a symmetric
+                // hitSlop would let adjacent links' hit areas overlap and
+                // mis-target taps — growing only top/bottom avoids that
+                // while still lifting the target closer to 48dp
+                // (accessibility-tester Phase 5 audit).
+                hitSlop={{ top: 10, bottom: 10 }}
+              >
                 <Text
                   style={{
                     color: colors.text.link,
@@ -78,6 +88,7 @@ export default function HomeScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => router.push("/significant")}
+                hitSlop={{ top: 10, bottom: 10 }}
               >
                 <Text
                   style={{
@@ -92,6 +103,7 @@ export default function HomeScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => router.push("/historical")}
+                hitSlop={{ top: 10, bottom: 10 }}
               >
                 <Text
                   style={{

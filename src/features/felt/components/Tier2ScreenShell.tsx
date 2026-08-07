@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     alignItems: "center",
-    paddingVertical: 8,
+    justifyContent: "center",
+    minHeight: 48,
   },
 });

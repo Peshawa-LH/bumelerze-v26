@@ -193,9 +193,18 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
   },
+  // minHeight: 48 (accessibility-tester Phase 5 audit) — paddingVertical
+  // alone (spacing[3] = 12) measured right at the 44pt floor for this
+  // button's labelButton text, not a comfortable 48dp; every onboarding
+  // screen's primary CTA goes through this one style, so this single fix
+  // covers the whole flow.
   primaryButton: {
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
   },
 });

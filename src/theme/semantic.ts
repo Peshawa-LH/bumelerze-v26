@@ -64,7 +64,9 @@ export const lightColors: SemanticColors = {
   text: {
     primary: neutral[1100],
     secondary: neutral[700],
-    tertiary: neutral[500],
+    // neutral[650], not neutral[500] — see palette.ts's doc comment on
+    // neutral[650] (WCAG-AA contrast fix, accessibility-tester Phase 5).
+    tertiary: neutral[650],
     inverse: neutral[0],
     link: brand.primaryLight,
   },
@@ -95,7 +97,11 @@ export const darkColors: SemanticColors = {
   text: {
     primary: "#F2F2F3",
     secondary: "#A6A6AA",
-    tertiary: neutral[700],
+    // neutral[600], not neutral[700] — neutral[700] ("#5B5B5E") only reaches
+    // ~3.1:1 against this theme's true-black surface.base, below the 4.5:1
+    // normal-text floor; neutral[600] reaches ~5.72:1 (same WCAG-AA fix as
+    // the light theme's text.tertiary, accessibility-tester Phase 5).
+    tertiary: neutral[600],
     inverse: neutral[1100],
     link: brand.primaryDark,
   },
@@ -105,7 +111,15 @@ export const darkColors: SemanticColors = {
   },
   brand: {
     primary: brand.primaryDark,
-    onPrimary: neutral[1100],
+    // WCAG-AA contrast fix (accessibility-tester Phase 5 audit): dark text
+    // (neutral[1100]) on `brand.primaryDark` ("#3E7C93") measures only
+    // ~3.89:1 — a real fail of the 4.5:1 normal-text floor on the primary
+    // CTA button text used on nearly every onboarding/felt-report screen.
+    // White text on the same fill reaches ~4.66:1. This only changes the
+    // on-fill text choice, not the brand hue itself (`brand.primaryDark` is
+    // still the explicitly-flagged "owner review pending" placeholder in
+    // palette.ts — not this audit's call to redecide).
+    onPrimary: neutral[0],
   },
   action: {
     felt: actionRed.dark,

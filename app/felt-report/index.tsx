@@ -1,6 +1,13 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -39,6 +46,32 @@ export default function Tier1FeltReportScreen() {
   const queueState = useQueueItemState(submitted?.reportId ?? null);
 
   const associatedEventId = eventId ?? null;
+
+  // Screen-reader announcement for the panic-time submission itself
+  // (accessibility-tester Phase 5 audit: "state changes announced where
+  // material — queue submitted confirmation"). The confirmation UI replaces
+  // the tile grid in place (no route change), so a screen-reader user
+  // wouldn't otherwise be told their tap actually went through — this is
+  // the one moment in the whole flow that MUST be confirmed audibly, not
+  // just visually. `AccessibilityInfo.announceForAccessibility` works on
+  // both TalkBack and VoiceOver (unlike `accessibilityLiveRegion`, which
+  // VoiceOver ignores). Guarded by report id so a later `queueState`
+  // transition (e.g. once a real backend exists) never re-fires this for
+  // the same submission.
+  const announcedReportIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!submitted || announcedReportIdRef.current === submitted.reportId) {
+      return;
+    }
+    announcedReportIdRef.current = submitted.reportId;
+    const message =
+      queueState === "submitted"
+        ? t("felt.tier1.confirmation.submittedMessage")
+        : t("felt.tier1.confirmation.queuedMessage");
+    AccessibilityInfo.announceForAccessibility(
+      `${t("felt.tier1.confirmation.title")}. ${message}`,
+    );
+  }, [submitted, queueState, t]);
 
   async function handleSelectLevel(level: CartoonLevel) {
     const report = await enqueueTier1Report({
@@ -92,6 +125,11 @@ export default function Tier1FeltReportScreen() {
       <View style={styles.topRow}>
         <Text
           accessibilityRole="header"
+          // Android TalkBack belt-and-suspenders for the same "submission
+          // went through" state change the `AccessibilityInfo.announceFor
+          // Accessibility` call above covers on both platforms — harmless
+          // if it never fires (VoiceOver ignores this prop entirely).
+          accessibilityLiveRegion="polite"
           style={{
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,
@@ -171,8 +209,14 @@ export default function Tier1FeltReportScreen() {
 
           <View style={{ gap: spacing[2] }}>
             <Pressable
-              accessibilityRole="button"
-              onPress={() => (isGps ? undefined : setIsLocationExpanded((v) => !v))}
+              // Only announced/behaves as an actionable button when there is
+              // a real action (manual-location fallback) — under GPS
+              // location this row is read-only status text, so a screen
+              // reader shouldn't announce it as a button with no effect
+              // (accessibility-tester Phase 5 audit).
+              accessibilityRole={isGps ? "text" : "button"}
+              onPress={isGps ? undefined : () => setIsLocationExpanded((v) => !v)}
+              hitSlop={12}
               style={{ flexDirection: "row", justifyContent: "space-between" }}
             >
               <Text
@@ -266,5 +310,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
   },
 });
