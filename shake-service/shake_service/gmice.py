@@ -17,16 +17,33 @@ Ported from, read-only, never modified:
     hand repeats exactly the transcription risk this policy exists to avoid),
     and the published sigma_MMI/sigma_EMS tables.
 
-Sigma honesty policy (carried forward VERBATIM, per task instruction —
-G12 in gmpe-set-proposal.md §4.4 is a SEPARATE, LATER pre-launch blocker;
-do not treat these as verified in the meantime):
+Sigma honesty policy (updated 2026-08-07, G12/D20 checkpoint condition 2 —
+Worden verification remains a SEPARATE, LATER pre-launch blocker; do not
+treat the Worden table as verified in the meantime):
   - `WORDEN_SIGMA_VERIFIED = False` — the Worden et al. (2012) sigma_MMI
     table below is gmice_adapter.py's own working recollection of BSSA
     102(1) Table 4/5, not independently re-verified against the primary PDF.
-  - `ZANINI_SIGMA_IS_PLACEHOLDER = True` — Zanini & Hofer (2019) sigma is
-    NOT transcribed in SHAKEgmice.py at all; gmice_adapter.py's 0.70 value
-    for both PGA/PGV is a COARSE PLACEHOLDER (Peshawa-authorized in the
-    toolkit, 2026-07-06), not a value from the paper.
+    Unchanged this wave; still open.
+  - `ZANINI_SIGMA_IS_PLACEHOLDER = False` — CLOSED this wave (Z3,
+    `docs/decisions.md` D20 checkpoint condition 2, accepted
+    2026-08-07). The Zanini & Hofer (2019) paper's own published sigma_tot
+    (0.27 PGA / 0.34 PGV, Table 3) was located and verified against the
+    primary PDF, but is BINNED-MEAN regression scatter, not per-observation
+    scatter, and would overstate conversion precision ~2x if used directly
+    for per-observation weighting. The pre-existing 0.70 (both IMTs,
+    Peshawa-authorized in the toolkit, 2026-07-06) is RATIFIED as the
+    adopted per-observation value instead; the published 0.27/0.34 (plus
+    sigma_a/sigma_b/R^2) are recorded as provenance-only constants next to
+    it (`ZANINI_PUBLISHED_SIGMA_TOTAL_*` etc., below) — see
+    `docs/research/zanini-gmice-investigation.md` §3.3.
+
+GMICE PGA/PGV-EMS forward-use notice (D20 checkpoint condition 2, CLOSED
+2026-08-07 "option A"): the EMS-98 display channel is now PGA-DRIVEN ONLY
+— Zanini & Hofer's independently-fit PGV-EMS coefficient pair is a
+published, verified model defect (not a transcription error) and is
+retired from forward/display use. Full rationale next to
+`_ZANINI_PGV_TO_EMS` below; investigation:
+`docs/research/zanini-gmice-investigation.md`.
 
 Unit discipline (adapted from gmice_adapter.py to the wave-A contract)
 ----------------------------------------------------------------------------
@@ -147,10 +164,58 @@ def _from_gmice_native(y_native: np.ndarray, imt: str, unit_out: str) -> np.ndar
 # ---------------------------------------------------------------------------
 # Zanini & Hofer (2019) — reversible PGA/PGV <-> EMS-98
 # Coefficients transcribed VERBATIM from SHAKEgmice.py `Zaniniandhofer19`.
+#
+# RETIRED-FROM-FORWARD-USE NOTICE (D20 checkpoint condition 2, CLOSED
+# 2026-08-07 "option A + Z1-Z6 defaults"; full finding:
+# `docs/research/zanini-gmice-investigation.md`)
+# ----------------------------------------------------------------------------
+# `_ZANINI_PGV_TO_EMS` is a FAITHFUL transcription of the published paper
+# (Zanini, Hofer & Faleschini 2019, *Engineering Structures* 180:310-320,
+# Eq. 7, Table 3 — verified digit-for-digit against the primary PDF, Zotero
+# item VK9M2IHB; NOT a transcription error) but the PUBLISHED PAIR is
+# internally inconsistent with `_ZANINI_PGA_TO_EMS`: because the two
+# relations were fit independently (orthogonal distance regression on
+# binned Italian data) with very different log-PGM slopes (2.28 vs. 1.62),
+# the implied PGV/PGA ratio grows unboundedly with intensity — physically
+# typical (~60-150 (cm/s)/g) only up to about EMS 5, reaching an
+# implausible ~680 (cm/s)/g by EMS 8.5 and ~1260 (cm/s)/g at EMS 10 (an
+# effective dominant period of several seconds — not physical for
+# near-source crustal shaking). The paper's own literature comparison
+# corroborates that the PGV-EMS relation, not the PGA-EMS one, is the
+# defective half (it "always underestimates intensities ... by about 1
+# intensity point" versus Faenza & Michelini 2010 / Faccioli & Cauzzi,
+# while the PGA-EMS relation tracks those same models closely — matching
+# this port's own wave-C SPZ spot check).
+#
+# Decision (Option A, accepted): the EMS-98 DISPLAY channel
+# (`intensity.py`'s `compute_intensity` for `model="Zaniniandhofer19"`) is
+# now PGA-driven ONLY — `_zanini_pgv_to_ems`/`_zanini_ems_to_pgv` are no
+# longer called from that forward/display path. They are kept, unchanged,
+# for two non-display uses that remain load-bearing:
+#   1. `dyfi_observations.py`'s documented SENSITIVITY reversal model (CDI
+#      -> GM via the PGV-EMS pair), run every time alongside the PRIMARY
+#      Worden reversal, never silently dropped — exactly so this known
+#      defect stays visible and auditable rather than erased.
+#   2. Provenance/regression tests (`tests/test_gmice.py`) that prove the
+#      port stays a faithful, invertible transcription of the published
+#      model, defect and all.
+# Coefficient correction ("fix the numbers") was explicitly RULED OUT — the
+# transcription is faithful; there is nothing to correct, only a published
+# model limitation to route around. Oliveti, Faenza & Michelini (2022, GJI
+# 231(2):1117-1137) is queued as the v1.x display-GMICE swap candidate
+# (reversible, EMS-98-capable, PGA/PGV-consistent by construction).
 # ---------------------------------------------------------------------------
 
 _ZANINI_PGA_TO_EMS = (2.03, 2.28)  # ems = c0 + c1*log10(pga_cm_s2)
-_ZANINI_PGV_TO_EMS = (4.16, 1.62)  # ems = c0 + c1*log10(pgv_cm_s)
+_ZANINI_PGV_TO_EMS = (4.16, 1.62)  # ems = c0 + c1*log10(pgv_cm_s) -- RETIRED from forward/display use, see notice above (provenance/sensitivity-model use only)
+
+# Paper-stated applicability, Table 3 / §3.4 of the paper (both PGA and PGV
+# relations): 2.0 <= I_EMS-98 <= 9.5, "valid within the Italian peninsula",
+# fit on Mw 3.2-6.1 events. `intensity.py` clamps the EMS display channel to
+# this envelope at its writer boundary (Z2, accepted 2026-08-07) rather than
+# quoting an extrapolating line outside it.
+ZANINI_EMS_VALIDITY_MIN: float = 2.0
+ZANINI_EMS_VALIDITY_MAX: float = 9.5
 
 
 def _zanini_pga_to_ems(pga_cm_s2: np.ndarray) -> np.ndarray:
@@ -326,19 +391,46 @@ WORDEN_SIGMA_VERIFIED = False  # applies to every entry above -- NOT independent
 WORDEN_SIGMA_CITATION = "Worden et al. (2012), BSSA 102(1), Table 4/5"
 
 ZANINI_SIGMA_TABLE: Dict[str, float] = {
-    # Zanini & Hofer (2019): sigma is NOT transcribed in SHAKEgmice.py at
-    # all -- COARSE PLACEHOLDER, Peshawa-authorized in the toolkit
-    # (2026-07-06: "if there is no uncertainty ... we need the engine to be
-    # able to work in the EMS scale"). Replace with the paper's own values
-    # before quoting any EMS sigma in a product/figure/thesis chapter.
+    # Zanini & Hofer (2019): 0.70 for both PGA/PGV -- ADOPTED value (G12
+    # CLOSED for Zanini, D20 checkpoint condition 2, 2026-08-07, "Z3
+    # accepted": research/zanini-gmice-investigation.md §3.3/§5). The
+    # paper's OWN published sigma_tot (0.27 PGA / 0.34 PGV, Table 3 --
+    # provenance constants below) is regression scatter on 0.5-intensity
+    # BINNED MEANS, not per-observation scatter, and is therefore not
+    # comparable to Worden's per-observation sigma_MMI (0.66/0.63); using
+    # 0.27/0.34 directly here would overstate conversion precision by
+    # roughly 2x. The 0.70 placeholder (Peshawa-authorized in the toolkit,
+    # 2026-07-06) is coincidentally the more defensible per-observation
+    # magnitude, so it is KEPT and relabelled "adopted" rather than
+    # "upgraded" to the published-but-incomparable figures.
     "PGA": 0.70,
     "PGV": 0.70,
 }
-ZANINI_SIGMA_IS_PLACEHOLDER = True
+ZANINI_SIGMA_IS_PLACEHOLDER = False  # ADOPTED value (Z3, closed 2026-08-07) -- see table comment; no longer an unverified placeholder.
 ZANINI_SIGMA_CITATION = (
-    "PLACEHOLDER sigma -- verify vs Zanini, Hofer & Faleschini (2019), "
-    "reversible EMS-98 conversion equations (G12, gmpe-set-proposal.md §4.4)"
+    "0.70 (both IMTs) -- adopted per-observation sigma, Peshawa-authorized "
+    "2026-07-06, ratified as the adopted value 2026-08-07 (G12/Z3, "
+    "research/zanini-gmice-investigation.md); published sigma_tot 0.27 "
+    "(PGA) / 0.34 (PGV) is BINNED-MEAN regression scatter, not "
+    "per-observation, and is recorded only as provenance "
+    "(ZANINI_PUBLISHED_SIGMA_TOTAL_* below), not used directly"
 )
+
+# Provenance only (NOT used by `sigma_gmice`/forward math) -- Zanini, Hofer
+# & Faleschini (2019), Table 3 ("Main parameters of the proposed
+# regressions", form I = a + b*logPGM), transcribed verbatim: sigma_tot is
+# the ODR fit's scatter of BINNED (0.5-intensity-bin mean) log-PGM values
+# about the regression line, per the paper's own §4.1 methodology -- kept
+# here purely so the binned-vs-per-observation caveat above is checkable
+# against real numbers, never fed into `sigma_gmice`.
+ZANINI_PUBLISHED_SIGMA_TOTAL_PGA: float = 0.27  # Table 3, PGA row, sigma_tot (binned-mean scatter)
+ZANINI_PUBLISHED_SIGMA_TOTAL_PGV: float = 0.34  # Table 3, PGV row, sigma_tot (binned-mean scatter)
+ZANINI_PUBLISHED_SIGMA_A_PGA: float = 0.30  # Table 3, PGA row, sigma_a (intercept coefficient sigma)
+ZANINI_PUBLISHED_SIGMA_B_PGA: float = 0.19  # Table 3, PGA row, sigma_b (slope coefficient sigma)
+ZANINI_PUBLISHED_SIGMA_A_PGV: float = 0.15  # Table 3, PGV row, sigma_a
+ZANINI_PUBLISHED_SIGMA_B_PGV: float = 0.12  # Table 3, PGV row, sigma_b
+ZANINI_PUBLISHED_R2_PGA: float = 0.9476  # Table 3, PGA row, R^2
+ZANINI_PUBLISHED_R2_PGV: float = 0.9354  # Table 3, PGV row, R^2
 
 _SIGMA_TABLES: Dict[str, Dict[str, float]] = {
     "WordenEtAl12": WORDEN_SIGMA_TABLE,

@@ -107,7 +107,9 @@ def test_option_c_identity_holds(model, imt, unit_in, y):
 
 
 # ---------------------------------------------------------------------------
-# PGV-driven / PGA-fallback selection
+# PGV-driven / PGA-fallback selection -- MMI (Worden) channel ONLY.
+# The EMS (Zanini) channel's driver policy changed 2026-08-07 (D20
+# checkpoint condition 2, Option A): see "EMS is PGA-driven only" below.
 # ---------------------------------------------------------------------------
 
 
@@ -128,27 +130,98 @@ def _toy_gmresult(pgv_mean_ln, pga_mean_ln) -> gmm.GMResult:
     )
 
 
-def test_driver_is_pgv_when_pgv_valid():
+def test_mmi_driver_is_pgv_when_pgv_valid():
     gm = _toy_gmresult(pgv_mean_ln=[np.log(5.0), np.log(20.0)], pga_mean_ln=[np.log(0.05), np.log(0.2)])
-    out = intensity.compute_ems(gm)
+    out = intensity.compute_mmi(gm)
     assert list(out.driver) == ["PGV", "PGV"]
 
 
-def test_driver_falls_back_to_pga_when_pgv_invalid():
+def test_mmi_driver_falls_back_to_pga_when_pgv_invalid():
     # Site 0: PGV effectively zero (below MIN_PGM_LINEAR) -> PGA fallback.
     # Site 1: normal PGV -> PGV driven.
     gm = _toy_gmresult(
         pgv_mean_ln=[np.log(1e-15), np.log(20.0)],
         pga_mean_ln=[np.log(0.05), np.log(0.2)],
     )
-    out = intensity.compute_ems(gm)
+    out = intensity.compute_mmi(gm)
     assert list(out.driver) == ["PGA", "PGV"]
     # site 0's mean must equal the PGA-only chain-rule result exactly
     pga_only = intensity._chain_rule_channel(
         gm.mean_ln[0][:1], gm.tau[0][:1], gm.phi[0][:1], gm.sigma_model[0][:1],
-        imt="PGA", unit_in="g", model="Zaniniandhofer19",
+        imt="PGA", unit_in="g", model="WordenEtAl12",
     )
     assert out.mean[0] == pytest.approx(pga_only["mean"][0])
+
+
+# ---------------------------------------------------------------------------
+# EMS is PGA-driven ONLY (D20 checkpoint condition 2, Option A, closed
+# 2026-08-07) -- `research/zanini-gmice-investigation.md`. Zanini's PGV-EMS
+# coefficient pair is retired from this forward path regardless of whether
+# PGV itself is "valid" by the old fallback rule; driver must always read
+# "PGA", and the mean must match a direct PGA-only chain-rule computation.
+# ---------------------------------------------------------------------------
+
+
+def test_ems_driver_is_always_pga_even_when_pgv_is_valid():
+    gm = _toy_gmresult(pgv_mean_ln=[np.log(5.0), np.log(20.0)], pga_mean_ln=[np.log(0.05), np.log(0.2)])
+    out = intensity.compute_ems(gm)
+    assert list(out.driver) == ["PGA", "PGA"]
+
+
+def test_ems_mean_matches_pga_only_chain_rule_regardless_of_pgv():
+    # Two GMResults that differ ONLY in their PGV column -- the EMS output
+    # must be identical, proving PGV is never consulted on this path.
+    gm_a = _toy_gmresult(pgv_mean_ln=[np.log(5.0)], pga_mean_ln=[np.log(0.05)])
+    gm_b = _toy_gmresult(pgv_mean_ln=[np.log(500.0)], pga_mean_ln=[np.log(0.05)])
+    out_a = intensity.compute_ems(gm_a)
+    out_b = intensity.compute_ems(gm_b)
+    assert out_a.mean[0] == pytest.approx(out_b.mean[0])
+
+    pga_only = intensity._chain_rule_channel(
+        gm_a.mean_ln[0], gm_a.tau[0], gm_a.phi[0], gm_a.sigma_model[0],
+        imt="PGA", unit_in="g", model="Zaniniandhofer19",
+    )
+    # pga_only["mean"] is the RAW (pre-clamp) chain-rule value -- compare
+    # after applying the same clamp `compute_intensity` applies, since 0.05g
+    # is comfortably inside [2.0, 9.5] here so the clamp is a no-op, but do
+    # it explicitly rather than assuming that.
+    expected = np.clip(pga_only["mean"][0], gmice.ZANINI_EMS_VALIDITY_MIN, gmice.ZANINI_EMS_VALIDITY_MAX)
+    assert out_a.mean[0] == pytest.approx(expected)
+
+
+def test_ems_clamped_flag_true_below_validity_min():
+    # A very small PGA (~1e-6 g) drives the raw Zanini PGA-EMS value well
+    # below 2.0 -- must be clamped to the floor with `clamped=True`.
+    gm = _toy_gmresult(pgv_mean_ln=[np.log(1.0)], pga_mean_ln=[np.log(1e-6)])
+    out = intensity.compute_ems(gm)
+    assert out.clamped[0] == True  # noqa: E712 -- explicit numpy bool check
+    assert out.mean[0] == pytest.approx(gmice.ZANINI_EMS_VALIDITY_MIN)
+
+
+def test_ems_clamped_flag_true_above_validity_max():
+    # A very large PGA (~50g) drives the raw Zanini PGA-EMS value well
+    # above 9.5 -- must be clamped to the ceiling with `clamped=True`.
+    gm = _toy_gmresult(pgv_mean_ln=[np.log(1.0)], pga_mean_ln=[np.log(50.0)])
+    out = intensity.compute_ems(gm)
+    assert out.clamped[0] == True  # noqa: E712
+    assert out.mean[0] == pytest.approx(gmice.ZANINI_EMS_VALIDITY_MAX)
+
+
+def test_ems_clamped_flag_false_inside_validity_envelope():
+    # A moderate PGA (~0.1g) keeps the raw Zanini value comfortably inside
+    # [2.0, 9.5] -- clamped must read False and mean must be the raw value.
+    gm = _toy_gmresult(pgv_mean_ln=[np.log(10.0)], pga_mean_ln=[np.log(0.1)])
+    out = intensity.compute_ems(gm)
+    assert out.clamped[0] == False  # noqa: E712
+    assert gmice.ZANINI_EMS_VALIDITY_MIN < out.mean[0] < gmice.ZANINI_EMS_VALIDITY_MAX
+
+
+def test_mmi_clamped_flag_always_false():
+    # No MMI validity clamp in scope -- `clamped` must be all-False even at
+    # extreme ground motion.
+    gm = _toy_gmresult(pgv_mean_ln=[np.log(1e-9), np.log(5000.0)], pga_mean_ln=[np.log(1e-9), np.log(50.0)])
+    out = intensity.compute_mmi(gm)
+    assert list(out.clamped) == [False, False]
 
 
 def test_compute_mmi_uses_worden_model_by_default():
@@ -186,9 +259,16 @@ def test_integration_with_real_gmm_grid_finite_and_positive_sigma():
         assert np.all(channel.phi > 0)
         assert channel.mean.shape == (grid.n_sites,)
         assert set(np.unique(channel.driver)) <= {"PGV", "PGA"}
+        assert channel.clamped.dtype == np.bool_
 
     assert ems.scale == "EMS"
     assert mmi.scale == "MMI"
-    # sigma honesty flags surfaced on the product
-    assert ems.sigma_gmice_verified is False
+    # EMS is PGA-driven ONLY (D20 checkpoint condition 2, Option A).
+    assert set(np.unique(ems.driver)) == {"PGA"}
+    # EMS stays within the paper's stated validity envelope (writer-boundary clamp).
+    assert ems.mean.min() >= gmice.ZANINI_EMS_VALIDITY_MIN
+    assert ems.mean.max() <= gmice.ZANINI_EMS_VALIDITY_MAX
+    # sigma honesty flags surfaced on the product -- Zanini sigma is now the
+    # ADOPTED value (Z3, closed 2026-08-07); Worden verification stays open.
+    assert ems.sigma_gmice_verified is True
     assert mmi.sigma_gmice_verified is False

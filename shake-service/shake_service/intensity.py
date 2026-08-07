@@ -41,17 +41,44 @@ sigma_model_intensity^2)`, which is the SAME algebraic identity virtual_ipe.py
 proves, just entered from the already-decomposed side. No numeric behaviour
 change versus what virtual_ipe.py would produce for the same inputs.
 
-EMS/MMI driver policy ("PGV-driven with PGA fallback", D9 task scope)
+EMS/MMI driver policy — UPDATED 2026-08-07 (D20 checkpoint condition 2,
+Option A; `docs/research/zanini-gmice-investigation.md`)
 ----------------------------------------------------------------------------
-Both the EMS display channel (Zanini & Hofer 2019) and the MMI validation
-channel (Worden et al. 2012) are computed from **PGV** at every site by
-default (PGV correlates better with felt/damage intensity at the periods
-that matter for masonry/soft-story stock — the standard ShakeMap-family
-rationale for preferring PGV-driven MMI/EMS where both are available), with
-a per-site fallback to **PGA** wherever the PGV channel is not usable
-(non-finite or <= `MIN_PGM_LINEAR`, e.g. a pathological/zero grid value).
-`IntensityChannel.driver` records which ground-motion channel was actually
-used at each site (`'PGV'` or `'PGA'`), so a product/consumer can audit it.
+Originally ("PGV-driven with PGA fallback", D9 task scope) BOTH channels
+were computed from PGV at every site with a PGA fallback. That is still
+true for the **MMI validation channel** (Worden et al. 2012) — PGV
+correlates better with felt/damage intensity at the periods that matter for
+masonry/soft-story stock, the standard ShakeMap-family rationale, and
+Worden's PGA-MMI/PGV-MMI pair stays physically consistent across the whole
+range (verified in the investigation above).
+
+The **EMS-98 DISPLAY channel** (Zanini & Hofer 2019) is now **PGA-DRIVEN
+ONLY**: Zanini's independently-fit PGV-EMS coefficient pair is a published,
+verified model defect (see `gmice.py`'s "RETIRED-FROM-FORWARD-USE NOTICE")
+that produces an unbounded, non-physical PGV/PGA ratio at higher
+intensities — already material inside the paper's own 2.0-9.5 stated
+applicability and inside this app's operating range. `compute_intensity`
+therefore branches on `gmice.scale_for_model(model)`: `"EMS"` takes the
+PGA-only path (no PGV computation at all, `driver` is always `'PGA'`), and
+`"MMI"` keeps the original PGV-driven-with-PGA-fallback path unchanged.
+`IntensityChannel.driver` still records which ground-motion channel was
+used at each site (`'PGV'` or `'PGA'`), so a product/consumer can audit it
+either way.
+
+EMS validity clamp (Z2, accepted 2026-08-07)
+----------------------------------------------------------------------------
+Zanini & Hofer (2019)'s own stated applicability is `2.0 <= I_EMS-98 <=
+9.5` (paper Table 3 / §3.4; fit on Mw 3.2-6.1 Italian events). The EMS
+channel's `mean` is clamped to `[gmice.ZANINI_EMS_VALIDITY_MIN,
+gmice.ZANINI_EMS_VALIDITY_MAX]` at this module's writer boundary (before
+any later product-level [1,12] display clamp) rather than quoting a line
+extrapolating outside the model's own validated range. `clamped` is a
+per-site boolean array recording where the RAW (pre-clamp) value fell
+outside that envelope, so a product/export can disclose the clamp honestly
+instead of silently reporting a clipped number as if it were the model's
+raw output. The MMI channel is never clamped by this module (Worden has no
+equivalent stated envelope in scope here); its `clamped` array is always
+all-`False`.
 """
 
 from __future__ import annotations
@@ -86,6 +113,7 @@ class IntensityChannel:
     sigma_gmice_pga: float
     sigma_gmice_verified: bool
     sigma_gmice_citation: str
+    clamped: np.ndarray = None  # type: ignore[assignment]  # bool, per-site: True where the RAW value fell outside the EMS validity envelope (module docstring "EMS validity clamp") and was clamped; always all-False for MMI. `compute_intensity` always supplies a real array -- default `None` exists only so pre-existing manual-construction call sites (synthetic test fixtures) that predate this field keep working unchanged.
 
 
 def _chain_rule_channel(
@@ -127,42 +155,67 @@ def _chain_rule_channel(
 
 def compute_intensity(gm: GMResult, *, model: str, min_pgm: float = MIN_PGM_LINEAR) -> IntensityChannel:
     """Ground-motion `GMResult` -> one `IntensityChannel` (EMS for
-    `model='Zaniniandhofer19'`, MMI for `model='WordenEtAl12'`), PGV-driven
-    with a per-site PGA fallback (module docstring policy).
+    `model='Zaniniandhofer19'`, MMI for `model='WordenEtAl12'`).
+
+    EMS is PGA-driven ONLY; MMI is PGV-driven with a per-site PGA fallback
+    (module docstring "EMS/MMI driver policy — UPDATED 2026-08-07").
 
     Requires `gm.imt_keys` to include both "PGA" and "PGV" (true for
-    `gmm.compute_mixture`'s output, `gmm.IMT_KEYS`).
+    `gmm.compute_mixture`'s output, `gmm.IMT_KEYS`) -- PGA is always used;
+    PGV is only read for the MMI (non-EMS) path.
     """
+    scale = gmice.scale_for_model(model)
+
     pga_i = gm.imt_index("PGA")
-    pgv_i = gm.imt_index("PGV")
-
-    pgv_native = gm.to_linear("PGV")  # cm/s
-    pga_native = gm.to_linear("PGA")  # g
-
-    pgv_out = _chain_rule_channel(
-        gm.mean_ln[pgv_i], gm.tau[pgv_i], gm.phi[pgv_i], gm.sigma_model[pgv_i],
-        imt="PGV", unit_in="cm/s", model=model,
-    )
     pga_out = _chain_rule_channel(
         gm.mean_ln[pga_i], gm.tau[pga_i], gm.phi[pga_i], gm.sigma_model[pga_i],
         imt="PGA", unit_in="g", model=model,
     )
 
-    valid_pgv = np.isfinite(pgv_native) & (pgv_native > min_pgm)
-    driver = np.where(valid_pgv, "PGV", "PGA")
+    if scale == "EMS":
+        # Option A (D20 checkpoint condition 2, CLOSED 2026-08-07) — PGA
+        # driven ONLY, Zanini's PGV-EMS pair intentionally not consulted
+        # here (module docstring, `gmice.py`'s "RETIRED-FROM-FORWARD-USE
+        # NOTICE"). `min_pgm`/PGV fallback logic below simply does not
+        # apply to this branch.
+        mean = pga_out["mean"]
+        sigma = pga_out["sigma"]
+        tau = pga_out["tau"]
+        phi = pga_out["phi"]
+        sigma_model = pga_out["sigma_model"]
+        driver = np.full(mean.shape, "PGA", dtype="<U3")
+        clamped = (mean < gmice.ZANINI_EMS_VALIDITY_MIN) | (mean > gmice.ZANINI_EMS_VALIDITY_MAX)
+        mean = np.clip(mean, gmice.ZANINI_EMS_VALIDITY_MIN, gmice.ZANINI_EMS_VALIDITY_MAX)
+    else:
+        pgv_i = gm.imt_index("PGV")
+        pgv_native = gm.to_linear("PGV")  # cm/s
+        pgv_out = _chain_rule_channel(
+            gm.mean_ln[pgv_i], gm.tau[pgv_i], gm.phi[pgv_i], gm.sigma_model[pgv_i],
+            imt="PGV", unit_in="cm/s", model=model,
+        )
+        valid_pgv = np.isfinite(pgv_native) & (pgv_native > min_pgm)
+        driver = np.where(valid_pgv, "PGV", "PGA")
 
-    def _select(key: str) -> np.ndarray:
-        return np.where(valid_pgv, pgv_out[key], pga_out[key])
+        def _select(key: str) -> np.ndarray:
+            return np.where(valid_pgv, pgv_out[key], pga_out[key])
+
+        mean = _select("mean")
+        sigma = _select("sigma")
+        tau = _select("tau")
+        phi = _select("phi")
+        sigma_model = _select("sigma_model")
+        clamped = np.zeros(mean.shape, dtype=bool)  # no MMI validity clamp in scope
 
     return IntensityChannel(
-        scale=gmice.scale_for_model(model),
+        scale=scale,
         model=model,
-        mean=_select("mean"),
-        sigma=_select("sigma"),
-        tau=_select("tau"),
-        phi=_select("phi"),
-        sigma_model=_select("sigma_model"),
+        mean=mean,
+        sigma=sigma,
+        tau=tau,
+        phi=phi,
+        sigma_model=sigma_model,
         driver=driver,
+        clamped=clamped,
         sigma_gmice_pgv=float(gmice.sigma_gmice(model, "PGV")),
         sigma_gmice_pga=float(gmice.sigma_gmice(model, "PGA")),
         sigma_gmice_verified=gmice.sigma_gmice_verified(model),

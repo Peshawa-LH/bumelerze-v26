@@ -166,8 +166,18 @@ def filter_by_nresp(boxes: Sequence[DyfiBox], *, min_nresp: int = DEFAULT_MIN_NR
 # well with the wave-C SPZ spot check). Worden's PGA-MMI/PGV-MMI pair does
 # not exhibit this inconsistency. Zanini/EMS is run as the documented
 # SENSITIVITY model instead, every time, never silently dropped.
-DEFAULT_MODEL = gmice.DEFAULT_MMI_MODEL  # "WordenEtAl12" -- primary (CDI ~ MMI)
-SENSITIVITY_MODEL = gmice.DEFAULT_EMS_MODEL  # "Zaniniandhofer19" -- sensitivity (CDI ~ EMS)
+#
+# RATIFIED as permanent service policy (Z4, `docs/decisions.md` D20
+# checkpoint condition 2, CLOSED 2026-08-07 "option A + Z1-Z6 defaults";
+# investigation: `docs/research/zanini-gmice-investigation.md`). The
+# wave-D arrangement below was originally an interim, defensive choice made
+# BEFORE the root cause was confirmed; it is now the permanent, reviewed
+# answer -- Worden 2012 stays PRIMARY for every DYFI-ingestion CDI-reversal
+# run, Zanini stays the documented, always-run SENSITIVITY comparison,
+# clearly labelled as such wherever it is surfaced (never load-bearing for
+# `mvn` conditioning).
+DEFAULT_MODEL = gmice.DEFAULT_MMI_MODEL  # "WordenEtAl12" -- primary (CDI ~ MMI), ratified 2026-08-07
+SENSITIVITY_MODEL = gmice.DEFAULT_EMS_MODEL  # "Zaniniandhofer19" -- sensitivity-only (CDI ~ EMS), never load-bearing
 
 _IMT_TO_UNIT = {"PGA": "g", "PGV": "cm/s"}
 
