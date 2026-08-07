@@ -270,3 +270,62 @@ def test_daemon_tolerates_a_feed_failure_and_keeps_looping(tmp_path, monkeypatch
     assert "region_sweep_failed" in logged_events
     assert "daemon_stop" in logged_events
     assert state_path.exists()  # state still saved cleanly despite the failures
+
+
+# ---------------------------------------------------------------------------
+# D21: usgs_products_fetcher wiring — safe default, explicit opt-in
+# ---------------------------------------------------------------------------
+
+
+def test_process_decisions_defaults_to_zero_network_usgs_fetcher(tmp_path):
+    ws = WorkerState()
+
+    def fake_fetch(url, params=None):
+        return _feature_collection(_feature(event_id="us_no_usgs", mag=4.0))
+
+    decisions = run_worker.poll_all_hour(ws, fetch_fn=fake_fetch)
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    run_worker.process_decisions(decisions, ws, products_root=tmp_path, uploader=uploader)
+
+    known = ws.get_event("us_no_usgs")
+    assert known.has_comparison is False
+
+
+def test_process_decisions_forwards_a_custom_usgs_products_fetcher(tmp_path):
+    ws = WorkerState()
+    calls = []
+
+    def fake_fetch(url, params=None):
+        return _feature_collection(_feature(event_id="us_with_usgs", mag=4.0))
+
+    def fake_usgs_fetcher(event_id):
+        calls.append(event_id)
+        return run_worker.usgs_products.UsgsEventProducts(event_id=event_id)
+
+    decisions = run_worker.poll_all_hour(ws, fetch_fn=fake_fetch)
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    run_worker.process_decisions(
+        decisions, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fake_usgs_fetcher,
+    )
+
+    assert calls == ["us_with_usgs"]
+
+
+def test_main_wires_the_real_network_enabled_usgs_fetcher(monkeypatch, tmp_path):
+    # main() is the one place that should opt INTO the real fetcher --
+    # confirm the wiring without making a real request (run_once itself is
+    # monkeypatched out, so this only checks what main() PASSES it).
+    captured = {}
+
+    def fake_run_once(*, state_path, products_root, uploader, usgs_products_fetcher, **kwargs):
+        captured["usgs_products_fetcher"] = usgs_products_fetcher
+
+    monkeypatch.setattr(run_worker, "run_once", fake_run_once)
+    monkeypatch.setattr(
+        run_worker.sys, "argv",
+        ["run_worker.py", "--once", "--state-path", str(tmp_path / "s.json"), "--products-root", str(tmp_path / "p")],
+    )
+
+    run_worker.main()
+
+    assert captured["usgs_products_fetcher"] is run_worker.usgs_products.fetch_usgs_event_products
