@@ -76,3 +76,19 @@ def test_local_only_uploader_skips_unrecognized_file_keys(tmp_path):
 def test_supabase_uploader_raises_not_implemented_on_construction():
     with pytest.raises(NotImplementedError):
         SupabaseUploader()
+
+
+def test_local_only_uploader_defaults_review_status_to_automatic(tmp_path):
+    uploader = LocalOnlyUploader(log_fn=lambda *_: None)
+    records = uploader.upload_products(
+        event_id="ev", version=1, product_paths=_product_paths(tmp_path), data_used={},
+    )
+    assert all(r.review_status == "automatic" for r in records)
+
+
+def test_local_only_uploader_passes_through_reviewed_status(tmp_path):
+    uploader = LocalOnlyUploader(log_fn=lambda *_: None)
+    records = uploader.upload_products(
+        event_id="ev", version=1, product_paths=_product_paths(tmp_path), data_used={}, review_status="reviewed",
+    )
+    assert all(r.review_status == "reviewed" for r in records)

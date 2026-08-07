@@ -1,45 +1,80 @@
 """pipeline — per-trigger orchestration: `forward.build_forward_map` ->
-`export.write_products` -> `state.WorkerState` update -> `uploader.upload_products`.
-One `run_pipeline` call per `feed_watcher.TriggerDecision` of kind `"new"`
-or `"update"` (callers should not call this for `"skip"` decisions —
-`scripts/run_worker.py` filters those out before this module ever sees
-them).
+(D21) fetch + condition on USGS station/DYFI data -> `export.write_products`
+-> (D21) auto-compare against a USGS ShakeMap grid, if one exists ->
+`state.WorkerState` update -> `uploader.upload_products`. One `run_pipeline`
+call per `feed_watcher.TriggerDecision` of kind `"new"` or `"update"`
+(callers should not call this for `"skip"` decisions — `scripts/run_worker.py`
+filters those out before this module ever sees them).
 
-**Conditioning is explicitly SKIPPED this wave — a documented integration
-point, not an oversight.** D9's graded-conditioning chain (catalog -> faults
--> stations -> felt reports) needs a felt-report source, and none exists
-until the Supabase project + `felt_reports`/derived `felt_cells` table land
-(PROJECT.md "Blocked on Peshawa"). `conditioned_forward.py` + `mvn.py` +
-`config.MIN_CONDITIONING_OBSERVATIONS` are already built and D20-validated
-(`docs/decisions.md` D20 checkpoint) — only the observations input is
-missing. See the `# CONDITIONING INTEGRATION POINT` comment below for
-exactly where this wires in later; nothing about this module's shape needs
-to change when it does (the bare `ForwardMap` this module builds is a
-strict subset of the conditioned one's shape, per `conditioned_forward.py`'s
-own contract).
+**D21 "dual backend" wiring (`docs/decisions.md` D21 — this module is the
+"AUTOMATICALLY runs the comparison" + "USGS station data ... joins DYFI as
+mvn conditioning observations when available" integration point).**
+
+1. `usgs_products_fetcher(event.external_id)` fetches (or, by default,
+   deliberately does NOT fetch — see `usgs_products_fetcher`'s docstring)
+   whatever USGS ShakeMap/DYFI product content the event has.
+2. If it has a `stationlist.json` and/or `dyfi_geo_10km.geojson`, real
+   instrumental stations (`station_observations.py`, DYFI-as-station rows
+   dropped) and filtered DYFI boxes (`dyfi_observations.py`) are merged into
+   ONE combined observation list per IMT
+   (`station_observations.combined_station_observations`, stations
+   first-class) and used to condition the forward-map prior
+   (`conditioned_forward.condition_forward_map_on_dyfi` — `mvn.py`'s own
+   `config.MIN_CONDITIONING_OBSERVATIONS` floor still applies, unchanged,
+   to whatever this module hands it, source-agnostic).
+3. Our (possibly conditioned) product is exported as before
+   (`export.write_products`, `review_status="automatic"` — D21's
+   scientist-review status, flipped later only by
+   `scripts/review_product.py`).
+4. If the event ALSO has a USGS ShakeMap grid (`grid.xml`), it is parsed
+   (`comparison.py`) and compared against OUR exported product, and the
+   result — stats + D20 pass/fail verdict + engine/product versions — is
+   written to `compatibility.json` alongside the product version dir (a
+   growing, versioned compatibility record, D21: "systematic corrections
+   decided by Peshawa from that evidence, never tuned ad hoc" — this module
+   only records the evidence, never acts on it). `EventState.has_comparison`/
+   `.comparison_path` track whether the LAST COMPUTED version has one.
+
+A malformed/unparseable USGS product (stationlist, DYFI, or grid.xml) is
+tolerated — logged into the returned `PipelineResult`'s nothing (no logging
+framework here, `scripts/run_worker.py` owns structured logging) but never
+raises: a single bad USGS payload must not abort an otherwise-valid
+recompute of our own product, exactly the same tolerant-parsing policy
+`feed_watcher.parse_usgs_geojson` already applies to the trigger feed itself.
 
 **Idempotency (the property this module exists to guarantee, alongside
 `state.py`):** `run_pipeline` hashes the incoming event's params
 (lat/lon/depth/mag) and compares against the LAST COMPUTED version's own
 hash (`EventState.params_hash`). An identical hash short-circuits — no new
-version, no re-export, no re-upload — even if a caller passes in a
-duplicate/replayed `TriggerDecision` for the same params (the primary guard
-against this is `feed_watcher`'s own feed-updated-timestamp dedup; this is
-defense in depth at the compute layer, not a replacement for it).
+version, no re-export, no re-upload, and (D21) no USGS re-fetch/re-compare
+either — even if a caller passes in a duplicate/replayed `TriggerDecision`
+for the same params (the primary guard against this is `feed_watcher`'s own
+feed-updated-timestamp dedup; this is defense in depth at the compute
+layer, not a replacement for it). Re-running `run_pipeline` against
+DIFFERENT (mocked/replayed) USGS product content for an unchanged event is
+this wave's own idempotency check (`tests/test_worker_pipeline.py`): the
+short circuit fires before the USGS fetch ever happens, so a re-run never
+double-writes `compatibility.json` or double-conditions the map.
 """
 
 from __future__ import annotations
 
 import datetime as _dt
 import hashlib
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
-from shake_service import export, forward
+from shake_service import comparison, conditioned_forward, dyfi_observations, export, forward, station_observations
 from shake_service.worker.feed_watcher import TriggerDecision
 from shake_service.worker.state import EventState, WorkerState
 from shake_service.worker.uploader import ProductUploader, ShakeMapProductRow
+from shake_service.worker.usgs_products import UsgsEventProducts, no_usgs_products
+
+UsgsProductsFetcher = Callable[[str], UsgsEventProducts]
+
+COMPATIBILITY_FILE_NAME = "compatibility.json"
 
 
 def params_hash(*, lat: float, lon: float, depth_km: float, mag: float) -> str:
@@ -61,6 +96,107 @@ class PipelineResult:
     product_paths: dict[str, Path]
     forward_map: forward.ForwardMap | None  # None when short-circuited (nothing was (re)computed)
     upload_records: tuple[ShakeMapProductRow, ...]
+    # D21 additions — also None/False when short-circuited.
+    has_comparison: bool = False
+    comparison_path: Path | None = None
+    conditioning_sources: tuple[str, ...] = ()  # e.g. ("stations",) / ("dyfi",) / ("stations", "dyfi") / ()
+
+
+def _parse_station_records(text: str | None) -> list[station_observations.StationRecord]:
+    """Tolerant: a malformed `stationlist.json` yields an empty list, never
+    an exception that would abort the whole recompute (module docstring)."""
+    if not text:
+        return []
+    try:
+        return station_observations.parse_stationlist_json(text)
+    except ValueError:
+        return []
+
+
+def _parse_dyfi_boxes(text: str | None) -> list[dyfi_observations.DyfiBox]:
+    if not text:
+        return []
+    try:
+        return dyfi_observations.parse_dyfi_geo_geojson(text)
+    except ValueError:
+        return []
+
+
+def _condition_if_possible(
+    fm: forward.ForwardMap,
+    *,
+    event_lat: float, event_lon: float, event_depth_km: float, mag_mw: float,
+    station_records: list[station_observations.StationRecord],
+    dyfi_boxes: list[dyfi_observations.DyfiBox],
+) -> tuple[forward.ForwardMap, tuple[str, ...]]:
+    """Condition `fm` on whatever combined station+DYFI observations exist
+    (module docstring point 2) — returns the (possibly unchanged) map plus
+    which source(s) actually contributed at least one raw record/box (NOT
+    the same thing as "cleared the conditioning floor" — that per-IMT
+    detail already lives in `fm.data_used["conditioning_applied"]` after
+    this call; this tuple is coarse provenance for reports like
+    `scripts/seed_atlas.py`'s summary table)."""
+    if not station_records and not dyfi_boxes:
+        return fm, ()
+
+    half_extent_km = fm.grid_meta["half_extent_km"]
+    obs_pga = station_observations.combined_station_observations(
+        station_records=station_records, dyfi_boxes=dyfi_boxes, imt="PGA", half_extent_km=half_extent_km,
+    )
+    obs_pgv = station_observations.combined_station_observations(
+        station_records=station_records, dyfi_boxes=dyfi_boxes, imt="PGV", half_extent_km=half_extent_km,
+    )
+    if not obs_pga and not obs_pgv:
+        return fm, ()
+
+    result = conditioned_forward.condition_forward_map_on_dyfi(
+        fm, event_lat=event_lat, event_lon=event_lon, event_depth_km=event_depth_km, mag_mw=mag_mw,
+        observations_pga=obs_pga, observations_pgv=obs_pgv,
+    )
+    sources = tuple(
+        s for s, present in (("stations", bool(station_records)), ("dyfi", bool(dyfi_boxes))) if present
+    )
+    return result.forward_map, sources
+
+
+def _write_compatibility_product(
+    fm: forward.ForwardMap,
+    *,
+    event: Any,
+    version: int,
+    usgs: UsgsEventProducts,
+    out_dir: Path,
+    generated_at_iso: str,
+) -> Path | None:
+    """If `usgs.grid_xml_text` is present, compare `fm` against it
+    (module docstring point 4) and write `compatibility.json` into
+    `out_dir`. Returns the written path, or `None` if there was no USGS
+    grid to compare against, or it failed to parse (tolerant, module
+    docstring)."""
+    if not usgs.shakemap_available or not usgs.grid_xml_text:
+        return None
+    try:
+        grid_xml = comparison.parse_shakemap_grid_xml(usgs.grid_xml_text)
+    except ValueError:
+        return None
+
+    cmp_result = comparison.compare_forward_map_to_grid(
+        fm, grid_xml, event_lon=event.lon, event_lat=event.lat,
+    )
+    verdict = comparison.judge_comparison(cmp_result)
+
+    payload = {
+        "generated_at": generated_at_iso,
+        "event_id": event.external_id,
+        "our_version": version,
+        "usgs_shakemap_product_id": usgs.shakemap_product_id,
+        "engine_version": dict(fm.version),
+        "comparison": cmp_result.to_dict(),
+        "verdict": verdict,
+    }
+    path = out_dir / COMPATIBILITY_FILE_NAME
+    path.write_text(json.dumps(payload))
+    return path
 
 
 def run_pipeline(
@@ -69,13 +205,22 @@ def run_pipeline(
     *,
     products_root: str | Path,
     uploader: ProductUploader,
+    usgs_products_fetcher: UsgsProductsFetcher = no_usgs_products,
     now: _dt.datetime | None = None,
 ) -> PipelineResult:
-    """Run (or idempotently skip) the forward-map -> export -> state ->
-    upload chain for one trigger. Mutates `ws` in place (upserts the
-    event's new state on an actual recompute) but never calls `ws.save` —
-    the caller controls persistence timing (e.g. one save per poll cycle,
-    not one per event)."""
+    """Run (or idempotently skip) the forward-map -> USGS-condition ->
+    export -> auto-compare -> state -> upload chain for one trigger.
+    Mutates `ws` in place (upserts the event's new state on an actual
+    recompute) but never calls `ws.save` — the caller controls persistence
+    timing (e.g. one save per poll cycle, not one per event).
+
+    `usgs_products_fetcher` defaults to `usgs_products.no_usgs_products` —
+    ZERO network I/O — so calling this function without explicitly opting
+    in never makes a real HTTP request (every existing test, plus any
+    future caller that hasn't wired one). Real wiring:
+    `scripts/run_worker.py`/`scripts/seed_atlas.py` pass
+    `usgs_products.fetch_usgs_event_products` explicitly.
+    """
     event = decision.event
     products_root = Path(products_root)
     now_iso = (now or _dt.datetime.now(_dt.timezone.utc)).isoformat()
@@ -93,24 +238,49 @@ def run_pipeline(
             product_paths=existing_paths,
             forward_map=None,
             upload_records=(),
+            has_comparison=known.has_comparison,
+            comparison_path=Path(known.comparison_path) if known.comparison_path else None,
+            conditioning_sources=(),
         )
 
     fm = forward.build_forward_map(event.lat, event.lon, event.depth_km, mag_mw=event.mag)
 
-    # --- CONDITIONING INTEGRATION POINT (see module docstring) ---
-    # observations_pga, observations_pgv = <fetch felt_cells for event.external_id, once Supabase exists>
-    # if observations_pga or observations_pgv:
-    #     from shake_service import conditioned_forward
-    #     result = conditioned_forward.condition_forward_map_on_dyfi(
-    #         fm, event_lat=event.lat, event_lon=event.lon, event_depth_km=event.depth_km,
-    #         mag_mw=event.mag, observations_pga=observations_pga, observations_pgv=observations_pgv,
-    #     )
-    #     fm = result.forward_map
-    # --- end integration point ---
+    # --- D21: fetch + condition on whatever USGS station/DYFI data exists ---
+    usgs = usgs_products_fetcher(event.external_id)
+    station_records = _parse_station_records(usgs.stationlist_text)
+    dyfi_boxes = _parse_dyfi_boxes(usgs.dyfi_geo_10km_text)
+    fm, conditioning_sources = _condition_if_possible(
+        fm, event_lat=event.lat, event_lon=event.lon, event_depth_km=event.depth_km, mag_mw=event.mag,
+        station_records=station_records, dyfi_boxes=dyfi_boxes,
+    )
+    # Honest provenance on every product, conditioned or not — "no USGS data
+    # was available" and "USGS data existed but conditioning wasn't run" are
+    # both distinguishable from the data_used dict alone (never silently
+    # indistinguishable, same policy as conditioned_forward.py's own
+    # small-N conditioning-floor notes).
+    fm = replace(
+        fm,
+        data_used={
+            **fm.data_used,
+            "usgs_shakemap_grid_available": usgs.shakemap_available,
+            "usgs_stationlist_available": usgs.stationlist_text is not None,
+            "usgs_dyfi_available": usgs.dyfi_available,
+            "instrument_stations_parsed": len(station_records),
+            "dyfi_boxes_parsed": len(dyfi_boxes),
+        },
+    )
+    # --- end D21 conditioning wiring ---
 
     version = (known.last_version + 1) if known is not None else 1
     out_dir = products_root / event.external_id / f"v{version}"
-    written = export.write_products(fm, out_dir)
+    written = export.write_products(fm, out_dir, product_version=version, generated_at=now)
+
+    # --- D21: automatic comparison against a USGS grid, if one exists ---
+    comparison_path = _write_compatibility_product(
+        fm, event=event, version=version, usgs=usgs, out_dir=out_dir, generated_at_iso=now_iso,
+    )
+    has_comparison = comparison_path is not None
+    # --- end D21 comparison wiring ---
 
     first_seen_at = known.first_seen_at if known is not None else now_iso
     new_state = EventState(
@@ -126,6 +296,9 @@ def run_pipeline(
         last_feed_updated_ms=event.updated_ms,
         first_seen_at=first_seen_at,
         last_computed_at=now_iso,
+        has_comparison=has_comparison,
+        comparison_path=str(comparison_path) if comparison_path else None,
+        reviews=known.reviews if known is not None else {},
     )
     ws.upsert_event(new_state)
 
@@ -134,6 +307,7 @@ def run_pipeline(
         version=version,
         product_paths=written,
         data_used=fm.data_used,
+        review_status=export.DEFAULT_REVIEW_STATUS,
     )
 
     return PipelineResult(
@@ -144,4 +318,7 @@ def run_pipeline(
         product_paths=written,
         forward_map=fm,
         upload_records=tuple(upload_records),
+        has_comparison=has_comparison,
+        comparison_path=comparison_path,
+        conditioning_sources=conditioning_sources,
     )

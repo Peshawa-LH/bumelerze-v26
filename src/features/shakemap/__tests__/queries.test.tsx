@@ -1,139 +1,90 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react-native";
-import type { ReactNode } from "react";
-import React from "react";
+import { renderHook } from "@testing-library/react-native";
 
-import { fetchIntensityContours } from "../contours";
 import { useShakeMap } from "../queries";
-import { fetchShakeMapProduct } from "../usgs-products";
-import type { IntensityContourSet, ShakeMapProduct } from "../types";
+import type { AtlasBundleEntry } from "../types";
 
-jest.mock("../usgs-products", () => ({
-  fetchShakeMapProduct: jest.fn(),
-}));
-jest.mock("../contours", () => ({
-  fetchIntensityContours: jest.fn(),
-}));
-
-const mockedFetchProduct = fetchShakeMapProduct as jest.MockedFunction<
-  typeof fetchShakeMapProduct
->;
-const mockedFetchContours = fetchIntensityContours as jest.MockedFunction<
-  typeof fetchIntensityContours
->;
-
-const FAKE_PRODUCT: ShakeMapProduct = {
-  network: "ATLAS",
-  version: 1,
-  updateTime: 1594400092790,
-  contoursUrl: "https://example.com/cont_mi.json",
-  infoUrl: null,
-};
-
-const FAKE_CONTOURS: IntensityContourSet = {
-  levels: [
-    {
-      value: 6,
-      level: 6,
-      rings: [
-        {
-          points: [
-            [45, 35],
-            [45.1, 35.1],
-            [45.2, 35.2],
-          ],
-        },
-      ],
+// Self-contained factory (no outer-scope reference) — jest.mock factories
+// run BEFORE any local `const` in this file is initialized (import
+// statements, including the one that transitively pulls in "../atlas" via
+// "../queries", are hoisted above everything else), so a factory that
+// referenced an outer `mockEntry` const here would see it as `undefined`.
+// `jest.requireMock` below reads the SAME object back out for assertions.
+jest.mock("../atlas", () => ({
+  ATLAS_INDEX: {
+    us2000bmcg: {
+      eventId: "us2000bmcg",
+      producer: "bumelerze",
+      version: 1,
+      reviewStatus: "automatic",
+      dataUsedSummaryKey: "dyfiConditioned",
+      generatedAt: "2026-08-07T00:00:00.000Z",
+      contours: {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            properties: { value: 6, units: "ems" },
+            geometry: {
+              type: "MultiLineString",
+              coordinates: [
+                [
+                  [45, 35],
+                  [45.1, 35.1],
+                  [45.2, 35.2],
+                ],
+              ],
+            },
+          },
+        ],
+      },
     },
-  ],
-  skippedCount: 0,
-};
+  },
+}));
 
-let currentClient: QueryClient;
-
-function wrapper({ children }: { children: ReactNode }) {
-  // gcTime: 0 so no query lingers on a real setTimeout after a test ends
-  // (React Query's cache-eviction timer would otherwise keep the Jest
-  // process alive past the run — "Jest did not exit" hang).
-  currentClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
-  });
-  return <QueryClientProvider client={currentClient}>{children}</QueryClientProvider>;
+function mockedEntry(): AtlasBundleEntry {
+  return (
+    jest.requireMock("../atlas") as { ATLAS_INDEX: Record<string, AtlasBundleEntry> }
+  ).ATLAS_INDEX.us2000bmcg!;
 }
 
 describe("useShakeMap", () => {
-  beforeEach(() => {
-    mockedFetchProduct.mockReset();
-    mockedFetchContours.mockReset();
+  it("resolves to ready with the bundled product + parsed contours for a known atlas event", async () => {
+    const { result } = await renderHook(() => useShakeMap("us2000bmcg", true));
+
+    expect(result.current.status).toBe("ready");
+    expect(result.current.product).toEqual(mockedEntry());
+    expect(result.current.contours?.levels).toHaveLength(1);
+    expect(result.current.contours?.levels[0]?.value).toBe(6);
   });
 
-  afterEach(() => {
-    currentClient?.clear();
+  it("resolves to absent (not an error) for an event with no bundled atlas product", async () => {
+    const { result } = await renderHook(() => useShakeMap("us_not_in_atlas", true));
+
+    expect(result.current.status).toBe("absent");
+    expect(result.current.product).toBeNull();
+    expect(result.current.contours).toBeNull();
   });
 
-  it("reports loading before the query settles", async () => {
-    let resolveProduct: ((value: ShakeMapProduct | null) => void) | undefined;
-    mockedFetchProduct.mockReturnValue(
-      new Promise((resolve) => {
-        resolveProduct = resolve;
-      }),
+  it("resolves to absent while disabled, even for a known atlas event id", async () => {
+    const { result } = await renderHook(() => useShakeMap("us2000bmcg", false));
+
+    expect(result.current.status).toBe("absent");
+  });
+
+  it("resolves to absent for an empty event id", async () => {
+    const { result } = await renderHook(() => useShakeMap("", true));
+
+    expect(result.current.status).toBe("absent");
+  });
+
+  it("is referentially stable across re-renders with the same eventId/enabled (useMemo)", async () => {
+    const { result, rerender } = await renderHook(
+      ({ eventId, enabled }: { eventId: string; enabled: boolean }) =>
+        useShakeMap(eventId, enabled),
+      { initialProps: { eventId: "us2000bmcg", enabled: true } },
     );
-    const { result, unmount } = await renderHook(() => useShakeMap("us2000bmcg", true), {
-      wrapper,
-    });
-
-    expect(result.current.status).toBe("loading");
-    resolveProduct?.(null); // let the pending fetch settle so nothing lingers
-    unmount();
-  });
-
-  it("reports loading (not fetching) while disabled, and never calls fetch", async () => {
-    const { result, unmount } = await renderHook(() => useShakeMap("us2000bmcg", false), {
-      wrapper,
-    });
-
-    expect(result.current.status).toBe("loading");
-    expect(mockedFetchProduct).not.toHaveBeenCalled();
-    unmount();
-  });
-
-  it("resolves to ready with both product and contours when a ShakeMap exists", async () => {
-    mockedFetchProduct.mockResolvedValue(FAKE_PRODUCT);
-    mockedFetchContours.mockResolvedValue(FAKE_CONTOURS);
-
-    const { result, unmount } = await renderHook(() => useShakeMap("us2000bmcg", true), {
-      wrapper,
-    });
-
-    await waitFor(() => expect(result.current.status).toBe("ready"));
-    expect(result.current.product).toEqual(FAKE_PRODUCT);
-    expect(result.current.contours).toEqual(FAKE_CONTOURS);
-    expect(mockedFetchContours).toHaveBeenCalledWith(FAKE_PRODUCT.contoursUrl);
-    unmount();
-  });
-
-  it("resolves to absent (not an error) for the common no-ShakeMap-product event", async () => {
-    mockedFetchProduct.mockResolvedValue(null);
-
-    const { result, unmount } = await renderHook(() => useShakeMap("us2000small", true), {
-      wrapper,
-    });
-
-    await waitFor(() => expect(result.current.status).toBe("absent"));
-    expect(result.current.product).toBeNull();
-    expect(mockedFetchContours).not.toHaveBeenCalled();
-    unmount();
-  });
-
-  it("resolves to unavailableOffline when the network request fails", async () => {
-    mockedFetchProduct.mockRejectedValue(new Error("network down"));
-
-    const { result, unmount } = await renderHook(() => useShakeMap("us2000bmcg", true), {
-      wrapper,
-    });
-
-    await waitFor(() => expect(result.current.status).toBe("unavailableOffline"));
-    expect(result.current.product).toBeNull();
-    unmount();
+    const first = result.current;
+    rerender({ eventId: "us2000bmcg", enabled: true });
+    expect(result.current).toBe(first);
   });
 });

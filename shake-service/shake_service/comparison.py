@@ -301,6 +301,18 @@ def epicentral_distance_km(event_lon: float, event_lat: float, lon: np.ndarray, 
 # ---------------------------------------------------------------------------
 
 
+# D20 pass criteria (`docs/decisions.md` D20; `gmpe-set-proposal-v2.md`
+# §7) -- the SAME numbers `scripts/run_validation.py` uses (its own
+# module-level `BIAS_THRESHOLD_LN`/`COVERAGE_THRESHOLD`, kept there
+# unmodified this wave). Reproduced here, additively, so `worker/pipeline.py`
+# (a package module, never imports `scripts/`) can judge an automatic
+# USGS-grid comparison without duplicating the numbers a third time -- both
+# copies must be bumped together if D20's own thresholds are ever revised
+# (a new decision, not a silent drift).
+D20_BIAS_THRESHOLD_LN: float = 0.3
+D20_COVERAGE_THRESHOLD: float = 0.60
+
+
 @dataclass(frozen=True)
 class ComparisonResult:
     n_usgs_cells: int
@@ -377,3 +389,29 @@ def compare_forward_map_to_grid(
         pga_ln_by_distance=distance_binned_bias(pga_residual_ln, distance_km, bins=bins),
         pgv_ln_by_distance=distance_binned_bias(pgv_residual_ln, distance_km, bins=bins),
     )
+
+
+def judge_comparison(
+    result: ComparisonResult,
+    *,
+    bias_threshold_ln: float = D20_BIAS_THRESHOLD_LN,
+    coverage_threshold: float = D20_COVERAGE_THRESHOLD,
+) -> dict[str, Any]:
+    """The D20 pass/fail verdict for one `ComparisonResult` — same logic as
+    `scripts/run_validation.py`'s own (unmodified) `_judge` helper,
+    reproduced here so `worker/pipeline.py`'s automatic USGS-grid comparison
+    (D21) can reuse it without importing a script. Never changes/tunes the
+    thresholds it is given — a pure judge, not a policy decision."""
+    pga_bias_pass = abs(result.pga_ln.bias) <= bias_threshold_ln
+    pgv_bias_pass = abs(result.pgv_ln.bias) <= bias_threshold_ln
+    pga_coverage_pass = result.pga_frac_within_1sigma >= coverage_threshold
+    pgv_coverage_pass = result.pgv_frac_within_1sigma >= coverage_threshold
+    return {
+        "bias_pga_ln_pass": pga_bias_pass,
+        "bias_pgv_ln_pass": pgv_bias_pass,
+        "bias_overall_pass": pga_bias_pass and pgv_bias_pass,
+        "coverage_pga_pass": pga_coverage_pass,
+        "coverage_pgv_pass": pgv_coverage_pass,
+        "coverage_overall_pass": pga_coverage_pass and pgv_coverage_pass,
+        "thresholds": {"bias_ln": bias_threshold_ln, "coverage_fraction": coverage_threshold},
+    }

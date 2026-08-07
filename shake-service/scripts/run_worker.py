@@ -47,7 +47,7 @@ import requests
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # allow running as a plain script
 
 from shake_service import config  # noqa: E402
-from shake_service.worker import feed_watcher, pipeline  # noqa: E402
+from shake_service.worker import feed_watcher, pipeline, usgs_products  # noqa: E402
 from shake_service.worker.state import WorkerState  # noqa: E402
 from shake_service.worker.uploader import LocalOnlyUploader, ProductUploader  # noqa: E402
 
@@ -120,11 +120,15 @@ def process_decisions(
     *,
     products_root: Path,
     uploader: ProductUploader,
+    usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
 ) -> None:
     for decision in decisions:
         if decision.kind == "skip":
             continue
-        result = pipeline.run_pipeline(decision, ws, products_root=products_root, uploader=uploader)
+        result = pipeline.run_pipeline(
+            decision, ws, products_root=products_root, uploader=uploader,
+            usgs_products_fetcher=usgs_products_fetcher,
+        )
         _log(
             "trigger_processed",
             event_id=result.event_id,
@@ -132,6 +136,8 @@ def process_decisions(
             reason=decision.reason,
             version=result.version,
             recomputed=result.recomputed,
+            has_comparison=result.has_comparison,
+            conditioning_sources=list(result.conditioning_sources),
         )
 
 
@@ -145,17 +151,24 @@ def run_once(
     products_root: Path,
     uploader: ProductUploader,
     fetch_fn: FetchFn = fetch_json,
+    usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
     sweep_updated_after: str | None = None,
 ) -> WorkerState:
     ws = WorkerState.load(state_path)
     _log("cycle_start", mode="once")
 
     all_hour_decisions = poll_all_hour(ws, fetch_fn=fetch_fn)
-    process_decisions(all_hour_decisions, ws, products_root=products_root, uploader=uploader)
+    process_decisions(
+        all_hour_decisions, ws, products_root=products_root, uploader=uploader,
+        usgs_products_fetcher=usgs_products_fetcher,
+    )
 
     updated_after = sweep_updated_after or _default_sweep_updated_after()
     sweep_decisions = poll_region_sweep(ws, updated_after=updated_after, fetch_fn=fetch_fn)
-    process_decisions(sweep_decisions, ws, products_root=products_root, uploader=uploader)
+    process_decisions(
+        sweep_decisions, ws, products_root=products_root, uploader=uploader,
+        usgs_products_fetcher=usgs_products_fetcher,
+    )
 
     ws.save(state_path)
     _log("cycle_end", mode="once", state_path=str(state_path))
@@ -168,6 +181,7 @@ def run_daemon(
     products_root: Path,
     uploader: ProductUploader,
     fetch_fn: FetchFn = fetch_json,
+    usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
     tick_s: float = DAEMON_TICK_S,
 ) -> None:
     ws = WorkerState.load(state_path)
@@ -191,7 +205,10 @@ def run_daemon(
             if now - last_all_hour_poll >= POLL_INTERVAL_S:
                 try:
                     decisions = poll_all_hour(ws, fetch_fn=fetch_fn)
-                    process_decisions(decisions, ws, products_root=products_root, uploader=uploader)
+                    process_decisions(
+                        decisions, ws, products_root=products_root, uploader=uploader,
+                        usgs_products_fetcher=usgs_products_fetcher,
+                    )
                     ws.save(state_path)
                 except requests.RequestException as exc:
                     # Tolerant of feed downtime: log and keep looping, never
@@ -203,7 +220,10 @@ def run_daemon(
                 try:
                     updated_after = _default_sweep_updated_after()
                     decisions = poll_region_sweep(ws, updated_after=updated_after, fetch_fn=fetch_fn)
-                    process_decisions(decisions, ws, products_root=products_root, uploader=uploader)
+                    process_decisions(
+                        decisions, ws, products_root=products_root, uploader=uploader,
+                        usgs_products_fetcher=usgs_products_fetcher,
+                    )
                     ws.save(state_path)
                 except requests.RequestException as exc:
                     _log("region_sweep_failed", error=str(exc))
@@ -229,11 +249,24 @@ def main() -> None:
     state_path = Path(args.state_path)
     products_root = Path(args.products_root)
     uploader = LocalOnlyUploader(log_fn=lambda msg: _log("uploader", message=msg))
+    # Real wiring (D21): the actual CLI entrypoint opts INTO network-enabled
+    # USGS product fetching — every testable function above this
+    # (`process_decisions`/`run_once`/`run_daemon`) defaults to the
+    # zero-network `usgs_products.no_usgs_products` instead, so no existing
+    # or new unit test ever makes a real HTTP request unless it explicitly
+    # asks for one.
+    usgs_products_fetcher = usgs_products.fetch_usgs_event_products
 
     if args.once:
-        run_once(state_path=state_path, products_root=products_root, uploader=uploader)
+        run_once(
+            state_path=state_path, products_root=products_root, uploader=uploader,
+            usgs_products_fetcher=usgs_products_fetcher,
+        )
     else:
-        run_daemon(state_path=state_path, products_root=products_root, uploader=uploader)
+        run_daemon(
+            state_path=state_path, products_root=products_root, uploader=uploader,
+            usgs_products_fetcher=usgs_products_fetcher,
+        )
 
 
 if __name__ == "__main__":

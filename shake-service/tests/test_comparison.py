@@ -284,3 +284,47 @@ def test_compare_forward_map_to_grid_partial_domain_overlap():
     result = comparison.compare_forward_map_to_grid(fm, grid_xml, event_lon=0.0, event_lat=0.0)
     assert result.n_usgs_cells == 9
     assert result.n_compared == 1  # only the center point (0,0) is inside our [-1,1] domain
+
+
+# ---------------------------------------------------------------------------
+# judge_comparison — D20 pass/fail verdict, pure function of ResidualStats
+# ---------------------------------------------------------------------------
+
+
+def test_judge_comparison_passes_when_bias_and_coverage_both_clear_threshold():
+    fm = _synthetic_forward_map(pga_g=1.0, pgv_cms=10.0, mmi_value=6.0, sigma_ln=0.5)
+    grid_xml = _synthetic_grid_xml(pga_pctg=100.0, pgv_cms=10.0, mmi_value=6.0)  # zero bias
+    result = comparison.compare_forward_map_to_grid(fm, grid_xml, event_lon=0.0, event_lat=0.0)
+
+    verdict = comparison.judge_comparison(result)
+
+    assert verdict["bias_overall_pass"] is True
+    assert verdict["coverage_overall_pass"] is True
+    assert verdict["thresholds"] == {
+        "bias_ln": comparison.D20_BIAS_THRESHOLD_LN,
+        "coverage_fraction": comparison.D20_COVERAGE_THRESHOLD,
+    }
+
+
+def test_judge_comparison_fails_bias_when_beyond_threshold():
+    fm = _synthetic_forward_map(pga_g=1.0, pgv_cms=10.0, mmi_value=6.0, sigma_ln=0.5)
+    # ln(our) - ln(usgs) = 1.0, far beyond the 0.3 threshold.
+    grid_xml = _synthetic_grid_xml(pga_pctg=100.0 * np.exp(-1.0), pgv_cms=10.0, mmi_value=6.0)
+    result = comparison.compare_forward_map_to_grid(fm, grid_xml, event_lon=0.0, event_lat=0.0)
+
+    verdict = comparison.judge_comparison(result)
+
+    assert verdict["bias_pga_ln_pass"] is False
+    assert verdict["bias_overall_pass"] is False
+
+
+def test_judge_comparison_honors_custom_thresholds():
+    fm = _synthetic_forward_map(pga_g=1.0, pgv_cms=10.0, mmi_value=6.0, sigma_ln=0.5)
+    grid_xml = _synthetic_grid_xml(pga_pctg=100.0 * np.exp(-0.5), pgv_cms=10.0, mmi_value=6.0)
+    result = comparison.compare_forward_map_to_grid(fm, grid_xml, event_lon=0.0, event_lat=0.0)
+
+    strict = comparison.judge_comparison(result, bias_threshold_ln=0.1)
+    lenient = comparison.judge_comparison(result, bias_threshold_ln=1.0)
+
+    assert strict["bias_pga_ln_pass"] is False
+    assert lenient["bias_pga_ln_pass"] is True

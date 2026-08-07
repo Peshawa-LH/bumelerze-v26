@@ -125,15 +125,3 @@ export function parseIntensityContours(payload: unknown): IntensityContourSet {
 
   return { levels, skippedCount };
 }
-
-/** Fetches and parses a `cont_mi.json` URL. Throws on network/HTTP failure
- * (React Query's offline-vs-empty distinction, same convention as
- * `usgs-products.ts`'s `fetchShakeMapProduct`). */
-export async function fetchIntensityContours(url: string): Promise<IntensityContourSet> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`ShakeMap contours request failed: ${response.status} ${url}`);
-  }
-  const payload: unknown = await response.json();
-  return parseIntensityContours(payload);
-}

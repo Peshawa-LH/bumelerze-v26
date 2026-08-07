@@ -1,11 +1,13 @@
 export type {
+  AtlasBundleEntry,
   ContourRing,
+  DataUsedSummaryKey,
   IntensityContourLevel,
   IntensityContourSet,
-  ShakeMapProduct,
+  ReviewStatus,
 } from "./types";
-export { extractPreferredShakeMapProduct, fetchShakeMapProduct } from "./usgs-products";
-export { fetchIntensityContours, parseIntensityContours } from "./contours";
+export { parseIntensityContours } from "./contours";
+export { ATLAS_INDEX, ATLAS_EVENT_IDS } from "./atlas";
 export { mmiValueToLevel, INTENSITY_ROMAN_NUMERALS } from "./intensity-ramp";
 export {
   computeContourBoundingBox,
@@ -15,11 +17,6 @@ export {
   type Viewport,
 } from "./projection";
 export { pickMapCities } from "./cities";
-export {
-  useShakeMap,
-  shakeMapQueryKeys,
-  type UseShakeMapResult,
-  type UseShakeMapStatus,
-} from "./queries";
+export { useShakeMap, type UseShakeMapResult, type UseShakeMapStatus } from "./queries";
 export { ShakeMapView, type ShakeMapViewProps } from "./components/ShakeMapView";
 export { ShakeMapSection, type ShakeMapSectionProps } from "./components/ShakeMapSection";

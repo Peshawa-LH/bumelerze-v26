@@ -57,6 +57,22 @@ class EventState:
     first_seen_at: str  # ISO 8601
     last_computed_at: str  # ISO 8601
 
+    # --- D21 dual-backend wave additions ---------------------------------
+    # `has_comparison`/`comparison_path`: whether the LAST COMPUTED version
+    # had a USGS ShakeMap grid available to auto-compare against
+    # (`worker/pipeline.py`'s "if a USGS ShakeMap grid exists ... run the
+    # comparison" step) and, if so, where its `compatibility.json` landed.
+    # Most events (D9/D20: Zagros DYFI-only coverage is common) will never
+    # set these -- `False`/`None` is the honest, expected default, not a gap.
+    has_comparison: bool = False
+    comparison_path: str | None = None
+    # `reviews`: an audit trail of `scripts/review_product.py` calls against
+    # ANY version of this event (keyed by `str(version)`, not just the
+    # latest one -- a version's `info.json` on disk stays the single source
+    # of truth for its own `review_status`; this dict is a fast, no-reread
+    # index for tooling/reporting). Empty for every automatic-only event.
+    reviews: dict[str, Any] = field(default_factory=dict)
+
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
@@ -75,6 +91,9 @@ class EventState:
             last_feed_updated_ms=int(d["last_feed_updated_ms"]),
             first_seen_at=d["first_seen_at"],
             last_computed_at=d["last_computed_at"],
+            has_comparison=bool(d.get("has_comparison", False)),
+            comparison_path=d.get("comparison_path"),
+            reviews=dict(d.get("reviews", {})),
         )
 
 

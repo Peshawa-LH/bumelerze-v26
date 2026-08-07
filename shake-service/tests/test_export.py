@@ -192,6 +192,28 @@ def test_build_info_product_mmi_channel_scale_label(small_forward_map):
     assert info["intensity"]["scale"] == "MMI"
 
 
+def test_build_info_product_defaults_to_automatic_review_status(small_forward_map):
+    info = export.build_info_product(small_forward_map)
+    assert info["review_status"] == "automatic"
+    assert info["reviewed_by"] is None
+    assert info["reviewed_at"] is None
+    assert export.DEFAULT_REVIEW_STATUS == "automatic"
+
+
+def test_build_info_product_accepts_reviewed_status_with_metadata(small_forward_map):
+    info = export.build_info_product(
+        small_forward_map, review_status="reviewed", reviewed_by="peshawa", reviewed_at="2026-08-07T00:00:00+00:00",
+    )
+    assert info["review_status"] == "reviewed"
+    assert info["reviewed_by"] == "peshawa"
+    assert info["reviewed_at"] == "2026-08-07T00:00:00+00:00"
+
+
+def test_build_info_product_rejects_unknown_review_status(small_forward_map):
+    with pytest.raises(ValueError, match="review_status"):
+        export.build_info_product(small_forward_map, review_status="pending")
+
+
 def test_build_grid_product_shape_and_lengths(small_forward_map):
     grid = export.build_grid_product(small_forward_map)
     ny, nx = small_forward_map.grid_meta["shape"]
@@ -210,6 +232,17 @@ def test_write_products_creates_three_files(tmp_path, small_forward_map):
     assert (tmp_path / "cont_mi.json").exists()
     assert (tmp_path / "info.json").exists()
     assert (tmp_path / "grid.json").exists()
+    info = json.loads((tmp_path / "info.json").read_text())
+    assert info["review_status"] == "automatic"
+
+
+def test_write_products_passes_through_review_status(tmp_path, small_forward_map):
+    paths = export.write_products(
+        small_forward_map, tmp_path, review_status="reviewed", reviewed_by="peshawa", reviewed_at="2026-08-07T00:00:00+00:00",
+    )
+    info = json.loads(paths["info"].read_text())
+    assert info["review_status"] == "reviewed"
+    assert info["reviewed_by"] == "peshawa"
 
 
 # ---------------------------------------------------------------------------

@@ -65,6 +65,11 @@ class ShakeMapProductRow:
     storage_path: str
     data_used: dict[str, Any]
     created_at: str  # ISO 8601
+    # D21 "scientist-review status" — mirrors export.py's info.json field of
+    # the same name (`supabase/migrations/0007_shakemap_review_status.sql`).
+    # Defaulted so every pre-D21 caller of `upload_products` keeps working
+    # unchanged.
+    review_status: str = "automatic"
 
 
 class ProductUploader(abc.ABC):
@@ -79,12 +84,14 @@ class ProductUploader(abc.ABC):
         version: int,
         product_paths: dict[str, Path],
         data_used: dict[str, Any],
+        review_status: str = "automatic",
     ) -> list[ShakeMapProductRow]:
         """`product_paths` is exactly `export.write_products`'s return
         value (keys `"cont_mi"`/`"info"`/`"grid"`, values local `Path`s).
         Returns one `ShakeMapProductRow` per recognized product file, in
         `PRODUCT_TYPE_BY_FILE` order is not guaranteed — callers should not
-        depend on row order."""
+        depend on row order. `review_status` (D21) should mirror whatever
+        `export.write_products` was called with for this same version."""
         raise NotImplementedError
 
 
@@ -105,6 +112,7 @@ class LocalOnlyUploader(ProductUploader):
         version: int,
         product_paths: dict[str, Path],
         data_used: dict[str, Any],
+        review_status: str = "automatic",
     ) -> list[ShakeMapProductRow]:
         created_at = _dt.datetime.now(_dt.timezone.utc).isoformat()
         records: list[ShakeMapProductRow] = []
@@ -128,6 +136,7 @@ class LocalOnlyUploader(ProductUploader):
                 storage_path=storage_path,
                 data_used=data_used,
                 created_at=created_at,
+                review_status=review_status,
             )
             self._log(
                 f"[LocalOnlyUploader] WOULD upload {record.product_type} product for "
@@ -173,5 +182,6 @@ class SupabaseUploader(ProductUploader):
         version: int,
         product_paths: dict[str, Path],
         data_used: dict[str, Any],
+        review_status: str = "automatic",
     ) -> list[ShakeMapProductRow]:
         raise NotImplementedError("SupabaseUploader.upload_products is not wired yet — see class docstring.")

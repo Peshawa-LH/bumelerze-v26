@@ -4,17 +4,6 @@
  * `features/events/config.ts`'s "one config module, never inlined" rule.
  */
 
-/** fdsnws single-event detail endpoint (geojson `detail` format), the same
- * shape teardown-usgs-dyfi.md §2 documents for `properties.products.*`.
- * Deliberately a private constant here rather than importing
- * `features/events/config.ts`'s `USGS_FEEDS` — this feature owns its own
- * USGS product-extraction surface end to end (PROJECT.md gotcha: don't
- * scatter feed-specific parsing, but also don't couple unrelated features
- * through a shared endpoint constant that happens to have the same value
- * today for different reasons). */
-export const USGS_EVENT_DETAIL_ENDPOINT =
-  "https://earthquake.usgs.gov/fdsnws/event/1/query";
-
 /** Bounding-box padding around the contour extent, as a fraction of the
  * (post-longitude-correction) span on each axis — keeps the outermost
  * contour ring from touching the SVG edge and leaves room for city dots
