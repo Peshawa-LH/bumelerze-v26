@@ -301,7 +301,10 @@
     "onboardingSectionTitle": "Onboarding",
     "replayOnboarding": "Replay onboarding",
     "replayOnboardingConfirmTitle": "Replay onboarding?",
-    "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language and HomeBase choices are kept."
+    "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language and HomeBase choices are kept.",
+    "notificationsSectionTitle": "Notifications",
+    "notificationsSectionDescription": "Choose how Bumelerze alerts you about earthquakes near you and near your HomeBase.",
+    "notificationsManage": "Manage notifications"
   },
   "onboarding": {
     "back": "Back",
@@ -335,6 +338,44 @@
       "title": "You're all set",
       "description": "Bumelerze is ready. You'll land on the live earthquake feed for your region every time you open the app.",
       "cta": "Get started"
+    }
+  },
+  "notificationSettings": {
+    "title": "Notification Settings",
+    "nearMe": {
+      "title": "Near Me",
+      "explainer": "Alerts for earthquakes near your current location."
+    },
+    "homeBase": {
+      "title": "HomeBase",
+      "explainer": "Alerts for earthquakes near your HomeBase, wherever you are right now.",
+      "change": "Change",
+      "notSetHint": "Set a HomeBase above to turn on these alerts."
+    },
+    "tiers": {
+      "off": "Off",
+      "all": "All earthquakes",
+      "m3": "M3.0 and above",
+      "m4": "M4.0 and above",
+      "m5": "M5.0 and above"
+    },
+    "fatigueFooter": "During aftershock sequences, Bumelerze limits how many alerts you get so you're not overwhelmed.",
+    "permission": {
+      "deniedStatus": "Notifications are blocked for Bumelerze on this device.",
+      "openSettings": "Open Settings"
+    },
+    "rehearsal": {
+      "title": "Try it",
+      "description": "See and hear what a real alert will look and sound like — no earthquake required.",
+      "seeAlert": "See the alert",
+      "playSound": "Play the alert sound",
+      "playSoundHintTitle": "Play the alert sound",
+      "playSoundHintMessage": "Put Bumelerze in the background now to see and hear the alert in about two seconds.",
+      "playSoundHintConfirm": "OK",
+      "appName": "Bumelerze",
+      "exampleTitle": "{{magnitude}} earthquake",
+      "exampleBody": "14 km southeast of Erbil, Kurdistan Region",
+      "close": "Close"
     }
   },
   "eventDetail": {

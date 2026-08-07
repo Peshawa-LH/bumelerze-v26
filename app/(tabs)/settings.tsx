@@ -1,4 +1,5 @@
 import * as Linking from "expo-linking";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -114,9 +115,54 @@ export default function SettingsScreen() {
       </View>
 
       <HomeBaseSection />
+      <NotificationsSection />
       <LocationPermissionSection />
       <OnboardingSection />
     </ScrollView>
+  );
+}
+
+function NotificationsSection() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const router = useRouter();
+
+  return (
+    <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
+        }}
+      >
+        {t("settings.notificationsSectionTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("settings.notificationsSectionDescription")}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push("/notification-settings")}
+        style={[styles.row, { borderColor: colors.border.default }]}
+      >
+        <Text
+          style={{
+            color: colors.text.primary,
+            fontSize: typography.bodyDefault.fontSize,
+          }}
+        >
+          {t("settings.notificationsManage")}
+        </Text>
+      </Pressable>
+    </View>
   );
 }
 
