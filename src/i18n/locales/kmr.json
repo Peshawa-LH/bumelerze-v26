@@ -395,11 +395,11 @@
     "sourceUpdated": "Hate rojanekirin {{time}}",
     "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)",
     "shakemap": {
-      "sectionTitle": "ShakeMap",
+      "sectionTitle": "SHAKEmap",
       "updated": "Hate rojanekirin {{time}}",
-      "citation": "ShakeMap: {{producer}}, guhertoya {{version}}",
-      "legendCaption": "Tundî (IMS-25) — pîvana ShakeMap ya Bumelerze",
-      "mapA11yLabel": "Nexşeya tundiya ShakeMap, herî zêde tundî {{level}}, nêzî {{place}}",
+      "citation": "SHAKEmap: {{producer}}, guhertoya {{version}}",
+      "legendCaption": "Tundî (IMS-25) — pîvana SHAKEmap ya Bumelerze",
+      "mapA11yLabel": "Nexşeya tundiya SHAKEmap, herî zêde tundî {{level}}, nêzî {{place}}",
       "dataUsed": {
         "catalogOnly": "Tenê li ser bingeha katalogê erdhejê yê herêmî",
         "stationConditioned": "Bi karanîna xwendinên îstasyonên erdhejnasî yên nêzîk hatiye rastkirin",

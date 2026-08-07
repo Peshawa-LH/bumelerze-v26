@@ -395,7 +395,7 @@
     "sourceUpdated": "نوێکراوەتەوە لە {{time}}",
     "sourceCitation": "داتای ڕووداو: {{network}} (لە ڕێگەی خزمەتگوزاری FDSN)",
     "shakemap": {
-      "sectionTitle": "شەیک مەپ (ShakeMap)",
+      "sectionTitle": "شەیک مەپ (SHAKEmap)",
       "updated": "نوێکراوەتەوە لە {{time}}",
       "citation": "شەیک مەپ: {{producer}}، وەشانی {{version}}",
       "legendCaption": "توندی (IMS-25) — پێوەری شەیک مەپی Bumelerze",

@@ -395,7 +395,7 @@
     "sourceUpdated": "آخر تحديث {{time}}",
     "sourceCitation": "بيانات الحدث: {{network}} (عبر خدمة FDSN)",
     "shakemap": {
-      "sectionTitle": "خريطة الاهتزاز (ShakeMap)",
+      "sectionTitle": "خريطة الاهتزاز (SHAKEmap)",
       "updated": "آخر تحديث {{time}}",
       "citation": "خريطة الاهتزاز: {{producer}}، الإصدار {{version}}",
       "legendCaption": "الشدة (IMS-25) — مقياس خريطة الاهتزاز الخاص بـ Bumelerze",

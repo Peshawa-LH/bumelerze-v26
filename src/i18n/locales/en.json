@@ -395,11 +395,11 @@
     "sourceUpdated": "Updated {{time}}",
     "sourceCitation": "Event data: {{network}} (via FDSN web service)",
     "shakemap": {
-      "sectionTitle": "ShakeMap",
+      "sectionTitle": "SHAKEmap",
       "updated": "Updated {{time}}",
-      "citation": "ShakeMap: {{producer}}, version {{version}}",
-      "legendCaption": "Intensity (IMS-25) — Bumelerze ShakeMap scale",
-      "mapA11yLabel": "ShakeMap intensity map, maximum intensity {{level}}, near {{place}}",
+      "citation": "SHAKEmap: {{producer}}, version {{version}}",
+      "legendCaption": "Intensity (IMS-25) — Bumelerze SHAKEmap scale",
+      "mapA11yLabel": "SHAKEmap intensity map, maximum intensity {{level}}, near {{place}}",
       "dataUsed": {
         "catalogOnly": "Based on the regional earthquake catalog only",
         "stationConditioned": "Adjusted using nearby seismic station readings",
