@@ -13,6 +13,17 @@ __pycache__/
 # scripts/run_worker.py runtime artifacts: local worker state + exported
 # ShakeMap products (default paths — see run_worker.py --state-path/
 # --products-root). Neither is a checked-in artifact; both are regenerated
-# by the worker itself.
-worker_state.json
-products/
+# by the worker itself. Anchored (leading "/") so this does NOT also catch
+# bumelerze-atlas/worker_state.json below, which IS committed.
+/worker_state.json
+/products/
+
+# bumelerze-atlas/ (scripts/seed_atlas.py, D21): cont_mi.json + info.json +
+# compatibility.json + worker_state.json + SEED_SUMMARY.json ARE committed
+# (small, the seed data src/features/shakemap/atlas/'s generator reads) —
+# but grid.json (the compact raster, ~7 MB PER EVENT, not currently
+# consumed by anything — export.py's own docstring: "for a future raster
+# overlay renderer") is regenerable via `seed_atlas.py` and excluded here,
+# same "heavy USGS-scale artifact, never committed" policy as `.cache/`
+# above.
+bumelerze-atlas/**/grid.json
