@@ -245,3 +245,26 @@ def forward_grid_spacing_km(band: MagnitudeBand) -> float:
 # new pin here (and in pyproject.toml/requirements.txt) only if residuals
 # are unchanged within the §7 validation tolerance. Never bump silently.
 OPENQUAKE_PIN: str = "openquake.engine==3.26.2"
+
+
+# ---------------------------------------------------------------------------
+# 8. Small-N conditioning floor (D20 checkpoint condition 3,
+#    `docs/decisions.md` 2026-08-07 "small-N conditioning instability"
+#    finding; used by `conditioned_forward.condition_forward_map_on_dyfi`)
+# ---------------------------------------------------------------------------
+
+# [REVIEW — Peshawa to confirm/tune] Below this many ACTUAL in-domain
+# conditioning observations for one IMT (post any mvn-internal colocated-
+# observation merge -- `mvn.ConditionedField.n_conditioning`),
+# `conditioned_forward.condition_forward_map_on_dyfi` skips conditioning for
+# that IMT and publishes the bare (unconditioned) prior instead, recording
+# a metadata note that observations existed but were below the floor.
+# PROPOSED default (engineering, D14 pattern), NOT yet confirmed by Peshawa --
+# `us1000hwdw` (Mw 6.3) conditioned on N=5 flipped an already-passing bare
+# prior's PGA bias into a narrow conditioned FAIL (validation/SUMMARY.md
+# "small-N conditioning instability"; decisions.md D20 checkpoint condition
+# 3 note, 2026-08-07). This constant post-dates every currently-committed
+# validation run -- see validation/SUMMARY.md's floor-postdate note before
+# comparing any NEW run's `data_used["conditioning_applied"]` against the
+# committed reports.
+MIN_CONDITIONING_OBSERVATIONS: int = 10

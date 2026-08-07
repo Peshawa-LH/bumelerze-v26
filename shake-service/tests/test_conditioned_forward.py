@@ -78,9 +78,15 @@ def test_synthetic_high_observation_pulls_pga_and_pgv_up_near_the_station():
     obs_pga = [mvn.StationObservation(lon=station_lon, lat=station_lat, value_ln=prior_pga_ln + 1.0, sigma_obs=0.05)]
     obs_pgv = [mvn.StationObservation(lon=station_lon, lat=station_lat, value_ln=prior_pgv_ln + 1.0, sigma_obs=0.05)]
 
+    # min_conditioning_observations=0: this test exercises the raw
+    # conditioning MECHANISM (pull direction/magnitude) with a single
+    # synthetic observation, deliberately below the production small-N
+    # floor (config.MIN_CONDITIONING_OBSERVATIONS, default 10) -- the floor
+    # itself is covered by the dedicated tests below.
     result = conditioned_forward.condition_forward_map_on_dyfi(
         fm, event_lat=EVENT_LAT, event_lon=EVENT_LON, event_depth_km=EVENT_DEPTH_KM, mag_mw=MAG_MW,
         observations_pga=obs_pga, observations_pgv=obs_pgv,
+        min_conditioning_observations=0,
     )
     cond_fm = result.forward_map
 
@@ -132,14 +138,17 @@ def test_synthetic_low_observation_pulls_field_down_near_the_station():
     prior_pga_ln = float(np.log(fm.pga.mean[near_idx]))
     prior_pgv_ln = float(np.log(fm.pgv.mean[near_idx]))
     obs_pga = [mvn.StationObservation(lon=station_lon, lat=station_lat, value_ln=prior_pga_ln - 1.0, sigma_obs=0.05)]
-    # EMS/MMI are PGV-driven with a PGA fallback (intensity.py's own
-    # documented policy) -- condition PGV too, or the intensity channels
-    # (driven by the untouched PGV) would not move even though PGA did.
+    # EMS is PGA-driven only (D20 checkpoint condition 2) -- conditioning
+    # PGV too still matters for the MMI channel's own PGV-driven path.
     obs_pgv = [mvn.StationObservation(lon=station_lon, lat=station_lat, value_ln=prior_pgv_ln - 1.0, sigma_obs=0.05)]
 
+    # min_conditioning_observations=0: see the identical note in the
+    # "pulls up" test above -- this test also exercises the raw mechanism
+    # below the production floor.
     result = conditioned_forward.condition_forward_map_on_dyfi(
         fm, event_lat=EVENT_LAT, event_lon=EVENT_LON, event_depth_km=EVENT_DEPTH_KM, mag_mw=MAG_MW,
         observations_pga=obs_pga, observations_pgv=obs_pgv,
+        min_conditioning_observations=0,
     )
     cond_fm = result.forward_map
     assert cond_fm.pga.mean[near_idx] < fm.pga.mean[near_idx]
@@ -169,6 +178,12 @@ def test_synthetic_dyfi_box_pipeline_produces_finite_conditioned_map():
     obs_pgv = dyfi.dyfi_boxes_to_station_observations(boxes, imt="PGV")
     assert len(obs_pga) == 2 and len(obs_pgv) == 2
 
+    # 2 observations, well below the default small-N conditioning floor
+    # (config.MIN_CONDITIONING_OBSERVATIONS, default 10) -- this pipeline
+    # test therefore exercises the FLOORED path (bare prior published) by
+    # default, on top of proving the two modules compose end to end; the
+    # dedicated floor tests below cover both sides of the threshold
+    # explicitly.
     result = conditioned_forward.condition_forward_map_on_dyfi(
         fm, event_lat=EVENT_LAT, event_lon=EVENT_LON, event_depth_km=EVENT_DEPTH_KM, mag_mw=MAG_MW,
         observations_pga=obs_pga, observations_pgv=obs_pgv,
@@ -186,4 +201,120 @@ def test_synthetic_dyfi_box_pipeline_produces_finite_conditioned_map():
 
     assert cond_fm.data_used["source"] == "catalog+dyfi"
     assert cond_fm.data_used["n_observations"] == {"PGA": 2, "PGV": 2}
+    assert cond_fm.data_used["conditioning_applied"] == {"PGA": False, "PGV": False}
     assert "conditioning" in cond_fm.version
+
+
+# ---------------------------------------------------------------------------
+# Small-N conditioning floor (D20 checkpoint condition 3, PROPOSED default
+# config.MIN_CONDITIONING_OBSERVATIONS=10) -- below the floor, the bare
+# prior is published (per IMT) with a metadata note; at/above it,
+# conditioning proceeds as normal.
+# ---------------------------------------------------------------------------
+
+
+def _n_synthetic_observations(n: int, *, lon: float, lat: float, value_ln: float) -> list[mvn.StationObservation]:
+    """`n` distinct-location synthetic observations, all agreeing on the
+    same `value_ln` -- distinct lon/lat avoids `mvn.py`'s own colocated-
+    observation merge from collapsing the count before it reaches this
+    module's floor check."""
+    return [
+        mvn.StationObservation(lon=lon + 0.01 * i, lat=lat, value_ln=value_ln, sigma_obs=0.1)
+        for i in range(n)
+    ]
+
+
+def test_below_floor_publishes_bare_prior_with_metadata_note():
+    fm = _small_forward_map()
+    shape = fm.grid_meta["shape"]
+    dist_from_event = np.hypot(fm.lon2d - EVENT_LON, fm.lat2d - EVENT_LAT)
+    near_idx = np.unravel_index(np.argmin(dist_from_event), shape)
+    station_lon = float(fm.lon2d[near_idx])
+    station_lat = float(fm.lat2d[near_idx])
+
+    prior_pga_ln = float(np.log(fm.pga.mean[near_idx]))
+    prior_pgv_ln = float(np.log(fm.pgv.mean[near_idx]))
+    # 9 observations -- one short of the default floor (10).
+    obs_pga = _n_synthetic_observations(9, lon=station_lon, lat=station_lat, value_ln=prior_pga_ln + 1.0)
+    obs_pgv = _n_synthetic_observations(9, lon=station_lon, lat=station_lat, value_ln=prior_pgv_ln + 1.0)
+
+    result = conditioned_forward.condition_forward_map_on_dyfi(
+        fm, event_lat=EVENT_LAT, event_lon=EVENT_LON, event_depth_km=EVENT_DEPTH_KM, mag_mw=MAG_MW,
+        observations_pga=obs_pga, observations_pgv=obs_pgv,
+    )
+    cond_fm = result.forward_map
+
+    # Bare prior published: the map is numerically IDENTICAL to the
+    # unconditioned forward map, even though 9 real observations were fed
+    # in and diagnostics for them exist.
+    assert np.array_equal(cond_fm.pga.mean, fm.pga.mean)
+    assert np.array_equal(cond_fm.pgv.mean, fm.pgv.mean)
+    assert cond_fm.ems.mean == pytest.approx(fm.ems.mean, rel=1e-10)
+
+    # Diagnostics still available for audit (mvn.condition_forward_map was
+    # still called) -- 9 observations really were conditioned internally,
+    # just not used to build the published channel.
+    assert result.pga.n_conditioning == 9
+    assert result.pgv.n_conditioning == 9
+
+    # Metadata note: observations existed but were below the floor -- never
+    # silently indistinguishable from "no observations at all".
+    assert cond_fm.data_used["n_observations"] == {"PGA": 9, "PGV": 9}
+    assert cond_fm.data_used["conditioning_applied"] == {"PGA": False, "PGV": False}
+    assert cond_fm.data_used["conditioning_floor"] == 10
+    notes = cond_fm.data_used["conditioning_floor_notes"]
+    assert any("PGA" in n and "9" in n and "below" in n for n in notes)
+    assert any("PGV" in n and "9" in n and "below" in n for n in notes)
+
+
+def test_at_floor_conditions_normally():
+    fm = _small_forward_map()
+    shape = fm.grid_meta["shape"]
+    dist_from_event = np.hypot(fm.lon2d - EVENT_LON, fm.lat2d - EVENT_LAT)
+    near_idx = np.unravel_index(np.argmin(dist_from_event), shape)
+    station_lon = float(fm.lon2d[near_idx])
+    station_lat = float(fm.lat2d[near_idx])
+
+    prior_pga_ln = float(np.log(fm.pga.mean[near_idx]))
+    prior_pgv_ln = float(np.log(fm.pgv.mean[near_idx]))
+    # 10 observations -- exactly at the default floor.
+    obs_pga = _n_synthetic_observations(10, lon=station_lon, lat=station_lat, value_ln=prior_pga_ln + 1.0)
+    obs_pgv = _n_synthetic_observations(10, lon=station_lon, lat=station_lat, value_ln=prior_pgv_ln + 1.0)
+
+    result = conditioned_forward.condition_forward_map_on_dyfi(
+        fm, event_lat=EVENT_LAT, event_lon=EVENT_LON, event_depth_km=EVENT_DEPTH_KM, mag_mw=MAG_MW,
+        observations_pga=obs_pga, observations_pgv=obs_pgv,
+    )
+    cond_fm = result.forward_map
+
+    # Conditioning actually applied: the map differs from the bare prior,
+    # pulled toward the (higher) observed values near the station cluster.
+    assert not np.array_equal(cond_fm.pga.mean, fm.pga.mean)
+    assert cond_fm.pga.mean[near_idx] > fm.pga.mean[near_idx]
+    assert cond_fm.pgv.mean[near_idx] > fm.pgv.mean[near_idx]
+
+    assert result.pga.n_conditioning == 10
+    assert result.pgv.n_conditioning == 10
+    assert cond_fm.data_used["conditioning_applied"] == {"PGA": True, "PGV": True}
+    assert cond_fm.data_used["conditioning_floor_notes"] == []
+
+
+def test_custom_floor_can_be_disabled():
+    fm = _small_forward_map()
+    shape = fm.grid_meta["shape"]
+    dist_from_event = np.hypot(fm.lon2d - EVENT_LON, fm.lat2d - EVENT_LAT)
+    near_idx = np.unravel_index(np.argmin(dist_from_event), shape)
+    station_lon = float(fm.lon2d[near_idx])
+    station_lat = float(fm.lat2d[near_idx])
+
+    prior_pga_ln = float(np.log(fm.pga.mean[near_idx]))
+    obs_pga = [mvn.StationObservation(lon=station_lon, lat=station_lat, value_ln=prior_pga_ln + 1.0, sigma_obs=0.05)]
+
+    result = conditioned_forward.condition_forward_map_on_dyfi(
+        fm, event_lat=EVENT_LAT, event_lon=EVENT_LON, event_depth_km=EVENT_DEPTH_KM, mag_mw=MAG_MW,
+        observations_pga=obs_pga, observations_pgv=[],
+        min_conditioning_observations=0,
+    )
+    cond_fm = result.forward_map
+    assert cond_fm.pga.mean[near_idx] > fm.pga.mean[near_idx]
+    assert cond_fm.data_used["conditioning_applied"]["PGA"] is True

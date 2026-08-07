@@ -153,11 +153,30 @@ def test_worden_sigma_values_and_verified_flag():
     assert gmice.sigma_gmice_verified("WordenEtAl12") is False
 
 
-def test_zanini_sigma_placeholder_values_and_flag():
+def test_zanini_sigma_adopted_values_and_flag():
+    # Z3 (D20 checkpoint condition 2, closed 2026-08-07): 0.70 is now the
+    # ADOPTED per-observation sigma (no longer an unverified placeholder) --
+    # the published sigma_tot (0.27/0.34) is binned-mean scatter, recorded
+    # separately as provenance-only, never fed into sigma_gmice.
     assert gmice.sigma_gmice("Zaniniandhofer19", "PGA") == pytest.approx(0.70)
     assert gmice.sigma_gmice("Zaniniandhofer19", "PGV") == pytest.approx(0.70)
-    assert gmice.ZANINI_SIGMA_IS_PLACEHOLDER is True
-    assert gmice.sigma_gmice_verified("Zaniniandhofer19") is False
+    assert gmice.ZANINI_SIGMA_IS_PLACEHOLDER is False
+    assert gmice.sigma_gmice_verified("Zaniniandhofer19") is True
+
+
+def test_zanini_published_sigma_provenance_constants_not_used_directly():
+    # The published binned-mean sigma_tot/sigma_a/sigma_b/R^2 (Table 3) are
+    # recorded for provenance only -- distinct from, and NOT equal to, the
+    # adopted per-observation sigma_gmice() value above.
+    assert gmice.ZANINI_PUBLISHED_SIGMA_TOTAL_PGA == pytest.approx(0.27)
+    assert gmice.ZANINI_PUBLISHED_SIGMA_TOTAL_PGV == pytest.approx(0.34)
+    assert gmice.ZANINI_PUBLISHED_SIGMA_A_PGA == pytest.approx(0.30)
+    assert gmice.ZANINI_PUBLISHED_SIGMA_B_PGA == pytest.approx(0.19)
+    assert gmice.ZANINI_PUBLISHED_SIGMA_A_PGV == pytest.approx(0.15)
+    assert gmice.ZANINI_PUBLISHED_SIGMA_B_PGV == pytest.approx(0.12)
+    assert gmice.ZANINI_PUBLISHED_R2_PGA == pytest.approx(0.9476)
+    assert gmice.ZANINI_PUBLISHED_R2_PGV == pytest.approx(0.9354)
+    assert gmice.ZANINI_PUBLISHED_SIGMA_TOTAL_PGA != pytest.approx(gmice.sigma_gmice("Zaniniandhofer19", "PGA"))
 
 
 def test_sigma_gmice_raises_for_uncatalogued_combo():
@@ -170,3 +189,24 @@ def test_scale_for_model():
     assert gmice.scale_for_model("WordenEtAl12") == "MMI"
     with pytest.raises(KeyError):
         gmice.scale_for_model("NotAModel")
+
+
+# ---------------------------------------------------------------------------
+# EMS validity envelope constants (Z2, D20 checkpoint condition 2, closed
+# 2026-08-07) -- the paper's own stated applicability, `intensity.py`'s
+# writer boundary clamps to these values.
+# ---------------------------------------------------------------------------
+
+
+def test_zanini_ems_validity_envelope_constants():
+    assert gmice.ZANINI_EMS_VALIDITY_MIN == pytest.approx(2.0)
+    assert gmice.ZANINI_EMS_VALIDITY_MAX == pytest.approx(9.5)
+
+
+def test_zanini_pgv_to_ems_still_callable_for_sensitivity_and_provenance_use():
+    # The PGV-EMS pair is RETIRED from forward/display use (intensity.py)
+    # but must stay fully functional here -- dyfi_observations.py's
+    # SENSITIVITY_MODEL reversal and this file's own round-trip tests both
+    # depend on it still working, unchanged.
+    ems = gmice.zanini_hofer_2019_to_ems(np.array([10.0]), imt="PGV", unit_in="cm/s")
+    assert np.isfinite(ems[0])

@@ -59,6 +59,7 @@ class IntensityGrid:
     driver: np.ndarray
     sigma_gmice_verified: bool
     sigma_gmice_citation: str
+    clamped: np.ndarray = None  # type: ignore[assignment]  # bool (ny, nx): True where the raw EMS value fell outside the Zanini validity envelope [2.0, 9.5] and was clamped (intensity.py "EMS validity clamp", Z2); always all-False for MMI. Exposed on the product so exports/metadata can disclose the clamp honestly.
 
 
 @dataclass(frozen=True)
@@ -175,6 +176,7 @@ def build_forward_map(
         driver=np.asarray(ems_channel.driver).reshape(shape),
         sigma_gmice_verified=ems_channel.sigma_gmice_verified,
         sigma_gmice_citation=ems_channel.sigma_gmice_citation,
+        clamped=np.asarray(ems_channel.clamped, dtype=bool).reshape(shape),
     )
     mmi = IntensityGrid(
         scale=mmi_channel.scale, model=mmi_channel.model,
@@ -184,6 +186,7 @@ def build_forward_map(
         driver=np.asarray(mmi_channel.driver).reshape(shape),
         sigma_gmice_verified=mmi_channel.sigma_gmice_verified,
         sigma_gmice_citation=mmi_channel.sigma_gmice_citation,
+        clamped=np.asarray(mmi_channel.clamped, dtype=bool).reshape(shape),
     )
 
     return ForwardMap(

@@ -65,6 +65,7 @@ def test_forward_map_shapes_consistent_moderate_band():
         assert channel.mean.shape == shape
         assert channel.sigma.shape == shape
         assert channel.driver.shape == shape
+        assert channel.clamped.shape == shape
 
 
 def test_forward_map_finite_everywhere():
@@ -98,6 +99,22 @@ def test_forward_map_extrapolation_flags_present_and_consistent():
     assert fm.extrapolation.depth_extrapolated is True
 
 
+def test_forward_map_ems_channel_is_pga_driven_only():
+    # D20 checkpoint condition 2 (Option A, closed 2026-08-07): the EMS
+    # display channel is PGA-driven ONLY, at the whole-product level too.
+    fm = forward.build_forward_map(34.9, 45.9, 15.0, mag_mw=6.0)
+    assert set(np.unique(fm.ems.driver)) == {"PGA"}
+    assert set(np.unique(fm.mmi.driver)) <= {"PGV", "PGA"}  # MMI driver policy unchanged
+
+
+def test_forward_map_ems_channel_stays_within_validity_envelope():
+    from shake_service import gmice as _gmice
+
+    fm = forward.build_forward_map(34.9, 45.9, 19.0, mag_mw=7.3)  # major band, high shaking near-source
+    assert fm.ems.mean.min() >= _gmice.ZANINI_EMS_VALIDITY_MIN
+    assert fm.ems.mean.max() <= _gmice.ZANINI_EMS_VALIDITY_MAX
+
+
 def test_forward_map_data_used_is_catalog_only():
     fm = forward.build_forward_map(34.9, 45.9, 15.0, mag_mw=6.0)
     assert fm.data_used["source"] == "catalog"
@@ -125,7 +142,10 @@ def test_forward_map_custom_gmice_models():
     )
     assert fm.ems.model == "Zaniniandhofer19"
     assert fm.mmi.model == "WordenEtAl12"
-    assert fm.ems.sigma_gmice_verified is False
+    # Zanini sigma is now the ADOPTED value (Z3, D20 checkpoint condition 2,
+    # closed 2026-08-07) -- verified True; Worden's own sigma verification
+    # remains a separate, still-open pre-launch item.
+    assert fm.ems.sigma_gmice_verified is True
     assert fm.mmi.sigma_gmice_verified is False
 
 

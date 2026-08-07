@@ -104,3 +104,28 @@ reopened by this result -- condition 3 asked that the pair "join the
 validation suite," which it now has, with an honest report of a new
 small-N finding for a future review, not a silent pass/fail rewrite of the
 existing gate.
+
+## Post-hoc note (2026-08-07, GMICE option-A wave): small-N conditioning
+## floor postdates every run in this file
+
+The small-N conditioning floor this document's own finding motivated
+(`config.MIN_CONDITIONING_OBSERVATIONS = 10`, `conditioned_forward.py`,
+PROPOSED default, Peshawa to confirm/tune) was implemented in a LATER wave
+and is **not** reflected in any committed report or table above — every
+`REPORT.md`/`REPORT-CONDITIONED.md` and the cross-event table were
+generated before the floor existed, and none of these committed outputs
+have been (or should be, per this wave's task scope) re-run to reflect it.
+Read them as: "what conditioning did before the floor existed."
+
+Concretely, if `us1000hwdw`'s conditioned run (N=5, the one that flipped a
+passing bare-prior PGA bias to a narrow FAIL, the finding this note is
+attached to) were re-run today, the floor would engage — 5 < 10 — and the
+service would publish the BARE prior for that event's PGA/PGV channels
+instead of the conditioned posterior. That bare prior already PASSES both
+bias and coverage on its own (table above: `-0.091` bias, `99.9%/78.4%`
+coverage) — i.e. the floor would have prevented the exact failure mode
+this document documents, for this exact event, had it existed at the time
+of the run. This is a consistency check on the floor's own rationale, not
+a re-validation: the floor's threshold (10) is still PROPOSED, not
+confirmed, and this note does not stand in for actually re-running the
+validation suite once Peshawa confirms/tunes it.
