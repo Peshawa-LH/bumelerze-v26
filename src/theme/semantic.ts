@@ -111,7 +111,15 @@ export const darkColors: SemanticColors = {
   },
   brand: {
     primary: brand.primaryDark,
-    onPrimary: neutral[1100],
+    // WCAG-AA contrast fix (accessibility-tester Phase 5 audit): dark text
+    // (neutral[1100]) on `brand.primaryDark` ("#3E7C93") measures only
+    // ~3.89:1 — a real fail of the 4.5:1 normal-text floor on the primary
+    // CTA button text used on nearly every onboarding/felt-report screen.
+    // White text on the same fill reaches ~4.66:1. This only changes the
+    // on-fill text choice, not the brand hue itself (`brand.primaryDark` is
+    // still the explicitly-flagged "owner review pending" placeholder in
+    // palette.ts — not this audit's call to redecide).
+    onPrimary: neutral[0],
   },
   action: {
     felt: actionRed.dark,

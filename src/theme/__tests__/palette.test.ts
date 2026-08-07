@@ -189,3 +189,15 @@ describe("text.tertiary — WCAG-AA contrast against surface.base (accessibility
     expect(darkColors.text.tertiary).not.toBe(darkColors.text.secondary);
   });
 });
+
+describe("brand.onPrimary (dark theme) — WCAG-AA contrast against brand.primary (accessibility-tester Phase 5)", () => {
+  // This pair is the primary CTA button text/fill combo used on nearly
+  // every onboarding + felt-report screen — a real, high-traffic failure,
+  // not an edge case.
+  it("dark theme: brand.onPrimary on brand.primary clears 4.5:1 (previously neutral[1100] at ~3.89:1 — a real AA failure)", () => {
+    expect(darkColors.brand.onPrimary).toBe(neutral[0]);
+    expect(
+      contrastRatio(darkColors.brand.onPrimary, darkColors.brand.primary),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+});
