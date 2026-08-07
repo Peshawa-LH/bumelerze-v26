@@ -1,0 +1,858 @@
+{
+  "event": {
+    "id": "us1000ghda",
+    "lat": 34.6111,
+    "lon": 46.2422,
+    "depth_km": 10.0,
+    "mag_mw": 6.0,
+    "time": "1535235205620",
+    "place": "32 km SW of Jav?nr?d, Iran",
+    "mechanism_note": "us moment tensor (nodal plane 2): strike 264.8, dip 82.1, rake -31.5 (oblique); fetched from the event detail's moment-tensor product, not independently re-verified."
+  },
+  "config": {
+    "gsim_branches": [
+      "CY14",
+      "ASB14",
+      "BSSA14",
+      "KALE15"
+    ],
+    "band_weights": {
+      "small": {
+        "CY14": 0.25,
+        "ASB14": 0.15,
+        "BSSA14": 0.35,
+        "KALE15": 0.25
+      },
+      "moderate": {
+        "CY14": 0.3,
+        "ASB14": 0.25,
+        "BSSA14": 0.2,
+        "KALE15": 0.25
+      },
+      "major": {
+        "CY14": 0.35,
+        "ASB14": 0.25,
+        "BSSA14": 0.25,
+        "KALE15": 0.15
+      }
+    },
+    "openquake_pin": "openquake.engine==3.26.2",
+    "service_version": "0.1.0"
+  },
+  "band": "moderate",
+  "grid_half_extent_km": 200.0,
+  "distance_bins_km": [
+    [
+      0.0,
+      15.0
+    ],
+    [
+      15.0,
+      35.0
+    ],
+    [
+      35.0,
+      70.0
+    ],
+    [
+      70.0,
+      130.0
+    ],
+    [
+      130.0,
+      200.0
+    ]
+  ],
+  "product_availability": {
+    "shakemap_available": true,
+    "shakemap_product_id": "urn:usgs-product:atlas:shakemap:us1000ghda:1594396484647",
+    "dyfi_available": true,
+    "dyfi_product_id": "urn:usgs-product:us:dyfi:us1000ghda:1697791172454"
+  },
+  "spot_checks": [
+    {
+      "network": "TU",
+      "code": "GEVA",
+      "name": "Gevas, Van",
+      "lat": 38.3122,
+      "lon": 43.0586,
+      "distance_km_reported": 493.537,
+      "distance_km_computed": 500.3446193725041,
+      "observed_pga_g": 0.000103,
+      "predicted_pga_g": 0.00043820649938924226,
+      "sigma_ln_total": 1.4986257022970215,
+      "z_sigmas": -0.966192738198728
+    }
+  ],
+  "bare": {
+    "comparison": {
+      "n_usgs_cells": 150731,
+      "n_compared": 150731,
+      "pga_ln": {
+        "bias": -0.3375008146402059,
+        "rmse": 0.39133532441936947,
+        "mae": 0.3411925918270673,
+        "n": 150731
+      },
+      "pgv_ln": {
+        "bias": -0.4265618859451639,
+        "rmse": 0.5234479175414303,
+        "mae": 0.4296377816892363,
+        "n": 150731
+      },
+      "mmi": {
+        "bias": -0.09029126874013295,
+        "rmse": 0.23385818085575374,
+        "mae": 0.1776072261214526,
+        "n": 150731
+      },
+      "pga_frac_within_1sigma": 0.9779740066741414,
+      "pgv_frac_within_1sigma": 0.790819406757734,
+      "distance_bins_km": [
+        [
+          0.0,
+          15.0
+        ],
+        [
+          15.0,
+          35.0
+        ],
+        [
+          35.0,
+          70.0
+        ],
+        [
+          70.0,
+          130.0
+        ],
+        [
+          130.0,
+          200.0
+        ]
+      ],
+      "pga_ln_by_distance": [
+        {
+          "distance_km_min": 0.0,
+          "distance_km_max": 15.0,
+          "bias": -0.09326558093902779,
+          "rmse": 0.13829195900410218,
+          "mae": 0.11228866376891665,
+          "n": 999
+        },
+        {
+          "distance_km_min": 15.0,
+          "distance_km_max": 35.0,
+          "bias": -0.32801080375739544,
+          "rmse": 0.3508871966658555,
+          "mae": 0.32801080375739544,
+          "n": 4441
+        },
+        {
+          "distance_km_min": 35.0,
+          "distance_km_max": 70.0,
+          "bias": -0.4103911965109165,
+          "rmse": 0.4432141763251017,
+          "mae": 0.4103911965109165,
+          "n": 16343
+        },
+        {
+          "distance_km_min": 70.0,
+          "distance_km_max": 130.0,
+          "bias": -0.37635076022899044,
+          "rmse": 0.41104282806709275,
+          "mae": 0.37635076022899044,
+          "n": 53345
+        },
+        {
+          "distance_km_min": 130.0,
+          "distance_km_max": 200.0,
+          "bias": -0.3077756582611814,
+          "rmse": 0.3755050404134533,
+          "mae": 0.31266689726828994,
+          "n": 69879
+        }
+      ],
+      "pgv_ln_by_distance": [
+        {
+          "distance_km_min": 0.0,
+          "distance_km_max": 15.0,
+          "bias": -0.19328141466653967,
+          "rmse": 0.25537803582221125,
+          "mae": 0.20630949253240963,
+          "n": 999
+        },
+        {
+          "distance_km_min": 15.0,
+          "distance_km_max": 35.0,
+          "bias": -0.3604204657445034,
+          "rmse": 0.41618862907454907,
+          "mae": 0.3604204657445034,
+          "n": 4441
+        },
+        {
+          "distance_km_min": 35.0,
+          "distance_km_max": 70.0,
+          "bias": -0.40145760987249246,
+          "rmse": 0.4897355857738218,
+          "mae": 0.40145760987249246,
+          "n": 16343
+        },
+        {
+          "distance_km_min": 70.0,
+          "distance_km_max": 130.0,
+          "bias": -0.3942129753171054,
+          "rmse": 0.47339253024353406,
+          "mae": 0.3942199863744218,
+          "n": 53345
+        },
+        {
+          "distance_km_min": 130.0,
+          "distance_km_max": 200.0,
+          "bias": -0.46309271637915045,
+          "rmse": 0.5717579335148222,
+          "mae": 0.46860033966327314,
+          "n": 69879
+        }
+      ]
+    },
+    "verdict": {
+      "bias_pga_ln_pass": false,
+      "bias_pgv_ln_pass": false,
+      "bias_overall_pass": false,
+      "coverage_pga_pass": true,
+      "coverage_pgv_pass": true,
+      "coverage_overall_pass": true,
+      "thresholds": {
+        "bias_ln": 0.3,
+        "coverage_fraction": 0.6
+      }
+    }
+  },
+  "n_dyfi_boxes_total": 38,
+  "atlas_intensity_observations_declared": 9.0,
+  "conditioned": {
+    "variants": {
+      "primary": {
+        "variant": "primary",
+        "label": "PRIMARY: Worden/MMI, nresp>=3, domain-restricted",
+        "model": "WordenEtAl12",
+        "min_nresp": 3,
+        "restrict_to_grid_domain": true,
+        "n_boxes_selected": 6,
+        "n_conditioning_pga": 6,
+        "n_conditioning_pgv": 6,
+        "n_colocated_merged_pga": 0,
+        "n_colocated_merged_pgv": 0,
+        "comparison": {
+          "n_usgs_cells": 150731,
+          "n_compared": 150731,
+          "pga_ln": {
+            "bias": 0.0024918879261925106,
+            "rmse": 0.1977611659803381,
+            "mae": 0.16238086192485046,
+            "n": 150731
+          },
+          "pgv_ln": {
+            "bias": -0.2076231048625052,
+            "rmse": 0.36748863452790836,
+            "mae": 0.2822984637816149,
+            "n": 150731
+          },
+          "mmi": {
+            "bias": 0.05558994895449892,
+            "rmse": 0.22050877296322227,
+            "mae": 0.1836351003470138,
+            "n": 150731
+          },
+          "pga_frac_within_1sigma": 1.0,
+          "pgv_frac_within_1sigma": 0.880343127823739,
+          "distance_bins_km": [
+            [
+              0.0,
+              15.0
+            ],
+            [
+              15.0,
+              35.0
+            ],
+            [
+              35.0,
+              70.0
+            ],
+            [
+              70.0,
+              130.0
+            ],
+            [
+              130.0,
+              200.0
+            ]
+          ],
+          "pga_ln_by_distance": [
+            {
+              "distance_km_min": 0.0,
+              "distance_km_max": 15.0,
+              "bias": 0.2458764580278286,
+              "rmse": 0.2662274067160144,
+              "mae": 0.2464765998747857,
+              "n": 999
+            },
+            {
+              "distance_km_min": 15.0,
+              "distance_km_max": 35.0,
+              "bias": 0.011301600888655696,
+              "rmse": 0.12511408520413456,
+              "mae": 0.10086337323557058,
+              "n": 4441
+            },
+            {
+              "distance_km_min": 35.0,
+              "distance_km_max": 70.0,
+              "bias": -0.0708781782205388,
+              "rmse": 0.18170423754685958,
+              "mae": 0.13419286420924073,
+              "n": 16343
+            },
+            {
+              "distance_km_min": 70.0,
+              "distance_km_max": 130.0,
+              "bias": -0.03576619947690946,
+              "rmse": 0.1683503534249876,
+              "mae": 0.13364993650146031,
+              "n": 53345
+            },
+            {
+              "distance_km_min": 130.0,
+              "distance_km_max": 200.0,
+              "bias": 0.03196737113287405,
+              "rmse": 0.2174013430074472,
+              "mae": 0.18779814999344607,
+              "n": 69879
+            }
+          ],
+          "pgv_ln_by_distance": [
+            {
+              "distance_km_min": 0.0,
+              "distance_km_max": 15.0,
+              "bias": 0.025237385771399397,
+              "rmse": 0.16880938232607273,
+              "mae": 0.13814833957489406,
+              "n": 999
+            },
+            {
+              "distance_km_min": 15.0,
+              "distance_km_max": 35.0,
+              "bias": -0.14186760497301412,
+              "rmse": 0.2518646334493642,
+              "mae": 0.1965025607282008,
+              "n": 4441
+            },
+            {
+              "distance_km_min": 35.0,
+              "distance_km_max": 70.0,
+              "bias": -0.18281572143635097,
+              "rmse": 0.33474931383697837,
+              "mae": 0.24165258709908588,
+              "n": 16343
+            },
+            {
+              "distance_km_min": 70.0,
+              "distance_km_max": 130.0,
+              "bias": -0.17482108635353277,
+              "rmse": 0.31459129205054154,
+              "mae": 0.24098198017829134,
+              "n": 53345
+            },
+            {
+              "distance_km_min": 130.0,
+              "distance_km_max": 200.0,
+              "bias": -0.2443724017919884,
+              "rmse": 0.41491069707814593,
+              "mae": 0.32877744757257876,
+              "n": 69879
+            }
+          ]
+        },
+        "verdict": {
+          "bias_pga_ln_pass": true,
+          "bias_pgv_ln_pass": true,
+          "bias_overall_pass": true,
+          "coverage_pga_pass": true,
+          "coverage_pgv_pass": true,
+          "coverage_overall_pass": true,
+          "thresholds": {
+            "bias_ln": 0.3,
+            "coverage_fraction": 0.6
+          }
+        }
+      },
+      "sensitivity_zanini": {
+        "variant": "sensitivity_zanini",
+        "label": "sensitivity: Zanini/EMS model (else primary settings)",
+        "model": "Zaniniandhofer19",
+        "min_nresp": 3,
+        "restrict_to_grid_domain": true,
+        "n_boxes_selected": 6,
+        "n_conditioning_pga": 6,
+        "n_conditioning_pgv": 6,
+        "n_colocated_merged_pga": 0,
+        "n_colocated_merged_pgv": 0,
+        "comparison": {
+          "n_usgs_cells": 150731,
+          "n_compared": 150731,
+          "pga_ln": {
+            "bias": -0.4090114102194044,
+            "rmse": 0.45451193875238355,
+            "mae": 0.4098198960955832,
+            "n": 150731
+          },
+          "pgv_ln": {
+            "bias": -0.3952648404961734,
+            "rmse": 0.49824156948882253,
+            "mae": 0.4019055493005243,
+            "n": 150731
+          },
+          "mmi": {
+            "bias": -0.06956777643008563,
+            "rmse": 0.22620669458975884,
+            "mae": 0.17375805954888204,
+            "n": 150731
+          },
+          "pga_frac_within_1sigma": 0.9152397317074789,
+          "pgv_frac_within_1sigma": 0.7984223550563587,
+          "distance_bins_km": [
+            [
+              0.0,
+              15.0
+            ],
+            [
+              15.0,
+              35.0
+            ],
+            [
+              35.0,
+              70.0
+            ],
+            [
+              70.0,
+              130.0
+            ],
+            [
+              130.0,
+              200.0
+            ]
+          ],
+          "pga_ln_by_distance": [
+            {
+              "distance_km_min": 0.0,
+              "distance_km_max": 15.0,
+              "bias": -0.16449861764498472,
+              "rmse": 0.19361538318157992,
+              "mae": 0.16769808800237637,
+              "n": 999
+            },
+            {
+              "distance_km_min": 15.0,
+              "distance_km_max": 35.0,
+              "bias": -0.39927962379219833,
+              "rmse": 0.41827740952968817,
+              "mae": 0.39927962379219833,
+              "n": 4441
+            },
+            {
+              "distance_km_min": 35.0,
+              "distance_km_max": 70.0,
+              "bias": -0.4816985511947018,
+              "rmse": 0.5099568719304335,
+              "mae": 0.4816985511947018,
+              "n": 16343
+            },
+            {
+              "distance_km_min": 70.0,
+              "distance_km_max": 130.0,
+              "bias": -0.44825596465470785,
+              "rmse": 0.477878255244144,
+              "mae": 0.44825596465470785,
+              "n": 53345
+            },
+            {
+              "distance_km_min": 130.0,
+              "distance_km_max": 200.0,
+              "bias": -0.3790672408594312,
+              "rmse": 0.4358431104997293,
+              "mae": 0.3796839351594385,
+              "n": 69879
+            }
+          ],
+          "pgv_ln_by_distance": [
+            {
+              "distance_km_min": 0.0,
+              "distance_km_max": 15.0,
+              "bias": -0.1620129140944868,
+              "rmse": 0.23261199663304735,
+              "mae": 0.1857515783542395,
+              "n": 999
+            },
+            {
+              "distance_km_min": 15.0,
+              "distance_km_max": 35.0,
+              "bias": -0.32914709133224185,
+              "rmse": 0.38941978929889487,
+              "mae": 0.32914709133224185,
+              "n": 4441
+            },
+            {
+              "distance_km_min": 35.0,
+              "distance_km_max": 70.0,
+              "bias": -0.370169778390088,
+              "rmse": 0.4644268082208519,
+              "mae": 0.370169778390088,
+              "n": 16343
+            },
+            {
+              "distance_km_min": 70.0,
+              "distance_km_max": 130.0,
+              "bias": -0.36295415204736603,
+              "rmse": 0.44762479134890415,
+              "mae": 0.3641350647908826,
+              "n": 53345
+            },
+            {
+              "distance_km_min": 130.0,
+              "distance_km_max": 200.0,
+              "bias": -0.4317610798940776,
+              "rmse": 0.5466769155187882,
+              "mae": 0.44345770841562304,
+              "n": 69879
+            }
+          ]
+        },
+        "verdict": {
+          "bias_pga_ln_pass": false,
+          "bias_pgv_ln_pass": false,
+          "bias_overall_pass": false,
+          "coverage_pga_pass": true,
+          "coverage_pgv_pass": true,
+          "coverage_overall_pass": true,
+          "thresholds": {
+            "bias_ln": 0.3,
+            "coverage_fraction": 0.6
+          }
+        }
+      },
+      "sensitivity_nresp2": {
+        "variant": "sensitivity_nresp2",
+        "label": "sensitivity: nresp>=2 (else primary settings)",
+        "model": "WordenEtAl12",
+        "min_nresp": 2,
+        "restrict_to_grid_domain": true,
+        "n_boxes_selected": 7,
+        "n_conditioning_pga": 7,
+        "n_conditioning_pgv": 7,
+        "n_colocated_merged_pga": 0,
+        "n_colocated_merged_pgv": 0,
+        "comparison": {
+          "n_usgs_cells": 150731,
+          "n_compared": 150731,
+          "pga_ln": {
+            "bias": -0.006415196997599649,
+            "rmse": 0.1978461794003744,
+            "mae": 0.16197046270710014,
+            "n": 150731
+          },
+          "pgv_ln": {
+            "bias": -0.2309858748517913,
+            "rmse": 0.38117325650038564,
+            "mae": 0.29261238743463897,
+            "n": 150731
+          },
+          "mmi": {
+            "bias": 0.03991329534383967,
+            "rmse": 0.2172051725459736,
+            "mae": 0.1794582573554628,
+            "n": 150731
+          },
+          "pga_frac_within_1sigma": 1.0,
+          "pgv_frac_within_1sigma": 0.8663778519349039,
+          "distance_bins_km": [
+            [
+              0.0,
+              15.0
+            ],
+            [
+              15.0,
+              35.0
+            ],
+            [
+              35.0,
+              70.0
+            ],
+            [
+              70.0,
+              130.0
+            ],
+            [
+              130.0,
+              200.0
+            ]
+          ],
+          "pga_ln_by_distance": [
+            {
+              "distance_km_min": 0.0,
+              "distance_km_max": 15.0,
+              "bias": 0.2369732889242697,
+              "rmse": 0.25802762363137793,
+              "mae": 0.2377070588577487,
+              "n": 999
+            },
+            {
+              "distance_km_min": 15.0,
+              "distance_km_max": 35.0,
+              "bias": 0.0023939593994786665,
+              "rmse": 0.12462611482501156,
+              "mae": 0.10027014748088042,
+              "n": 4441
+            },
+            {
+              "distance_km_min": 35.0,
+              "distance_km_max": 70.0,
+              "bias": -0.07978875374445726,
+              "rmse": 0.1853608615532487,
+              "mae": 0.13621504674851592,
+              "n": 16343
+            },
+            {
+              "distance_km_min": 70.0,
+              "distance_km_max": 130.0,
+              "bias": -0.04466436403244154,
+              "rmse": 0.17045619868346115,
+              "mae": 0.13449532435608264,
+              "n": 53345
+            },
+            {
+              "distance_km_min": 130.0,
+              "distance_km_max": 200.0,
+              "bias": 0.023054873314888147,
+              "rmse": 0.2162701035609467,
+              "mae": 0.18629751814840886,
+              "n": 69879
+            }
+          ],
+          "pgv_ln_by_distance": [
+            {
+              "distance_km_min": 0.0,
+              "distance_km_max": 15.0,
+              "bias": 0.001867450978928921,
+              "rmse": 0.1669228220996105,
+              "mae": 0.13755901171107013,
+              "n": 999
+            },
+            {
+              "distance_km_min": 15.0,
+              "distance_km_max": 35.0,
+              "bias": -0.16524118220173045,
+              "rmse": 0.2657331327897106,
+              "mae": 0.20665854346205317,
+              "n": 4441
+            },
+            {
+              "distance_km_min": 35.0,
+              "distance_km_max": 70.0,
+              "bias": -0.20619048246614197,
+              "rmse": 0.3480645499084292,
+              "mae": 0.2513060573935156,
+              "n": 16343
+            },
+            {
+              "distance_km_min": 70.0,
+              "distance_km_max": 130.0,
+              "bias": -0.1981618907638163,
+              "rmse": 0.328125197729082,
+              "mae": 0.2512326275962734,
+              "n": 53345
+            },
+            {
+              "distance_km_min": 130.0,
+              "distance_km_max": 200.0,
+              "bias": -0.2677470178655741,
+              "rmse": 0.4290935652032714,
+              "mae": 0.33940879599781565,
+              "n": 69879
+            }
+          ]
+        },
+        "verdict": {
+          "bias_pga_ln_pass": true,
+          "bias_pgv_ln_pass": true,
+          "bias_overall_pass": true,
+          "coverage_pga_pass": true,
+          "coverage_pgv_pass": true,
+          "coverage_overall_pass": true,
+          "thresholds": {
+            "bias_ln": 0.3,
+            "coverage_fraction": 0.6
+          }
+        }
+      },
+      "sensitivity_unrestricted": {
+        "variant": "sensitivity_unrestricted",
+        "label": "sensitivity: unrestricted domain -- global DYFI (else primary settings)",
+        "model": "WordenEtAl12",
+        "min_nresp": 3,
+        "restrict_to_grid_domain": false,
+        "n_boxes_selected": 7,
+        "n_conditioning_pga": 7,
+        "n_conditioning_pgv": 7,
+        "n_colocated_merged_pga": 0,
+        "n_colocated_merged_pgv": 0,
+        "comparison": {
+          "n_usgs_cells": 150731,
+          "n_compared": 150731,
+          "pga_ln": {
+            "bias": 0.05154880803699255,
+            "rmse": 0.2043678931545259,
+            "mae": 0.16994926039046426,
+            "n": 150731
+          },
+          "pgv_ln": {
+            "bias": -0.18307344949234886,
+            "rmse": 0.35419656515147296,
+            "mae": 0.2728577265312836,
+            "n": 150731
+          },
+          "mmi": {
+            "bias": 0.07210055087255927,
+            "rmse": 0.22513488794251832,
+            "mae": 0.1888778030289237,
+            "n": 150731
+          },
+          "pga_frac_within_1sigma": 1.0,
+          "pgv_frac_within_1sigma": 0.9001134471342989,
+          "distance_bins_km": [
+            [
+              0.0,
+              15.0
+            ],
+            [
+              15.0,
+              35.0
+            ],
+            [
+              35.0,
+              70.0
+            ],
+            [
+              70.0,
+              130.0
+            ],
+            [
+              130.0,
+              200.0
+            ]
+          ],
+          "pga_ln_by_distance": [
+            {
+              "distance_km_min": 0.0,
+              "distance_km_max": 15.0,
+              "bias": 0.2949052541151798,
+              "rmse": 0.3120741463383066,
+              "mae": 0.29499691718374754,
+              "n": 999
+            },
+            {
+              "distance_km_min": 15.0,
+              "distance_km_max": 35.0,
+              "bias": 0.06035502592292869,
+              "rmse": 0.13844791509035334,
+              "mae": 0.11313841831645262,
+              "n": 4441
+            },
+            {
+              "distance_km_min": 35.0,
+              "distance_km_max": 70.0,
+              "bias": -0.021808595706041385,
+              "rmse": 0.16873066554543242,
+              "mae": 0.1304145064270876,
+              "n": 16343
+            },
+            {
+              "distance_km_min": 70.0,
+              "distance_km_max": 130.0,
+              "bias": 0.013235050352130635,
+              "rmse": 0.1650769106511026,
+              "mae": 0.13568944380775722,
+              "n": 53345
+            },
+            {
+              "distance_km_min": 130.0,
+              "distance_km_max": 200.0,
+              "bias": 0.0810475012913053,
+              "rmse": 0.22980680859182415,
+              "mae": 0.2000040058222135,
+              "n": 69879
+            }
+          ],
+          "pgv_ln_by_distance": [
+            {
+              "distance_km_min": 0.0,
+              "distance_km_max": 15.0,
+              "bias": 0.049791117332872246,
+              "rmse": 0.17418029464473708,
+              "mae": 0.14110637294329942,
+              "n": 999
+            },
+            {
+              "distance_km_min": 15.0,
+              "distance_km_max": 35.0,
+              "bias": -0.11731004646883647,
+              "rmse": 0.23889526200302663,
+              "mae": 0.18716651444569973,
+              "n": 4441
+            },
+            {
+              "distance_km_min": 35.0,
+              "distance_km_max": 70.0,
+              "bias": -0.15825691914425838,
+              "rmse": 0.3219967748861638,
+              "mae": 0.23300521600569077,
+              "n": 16343
+            },
+            {
+              "distance_km_min": 70.0,
+              "distance_km_max": 130.0,
+              "bias": -0.15029795614692637,
+              "rmse": 0.30166623963622285,
+              "mae": 0.23180073727433365,
+              "n": 53345
+            },
+            {
+              "distance_km_min": 130.0,
+              "distance_km_max": 200.0,
+              "bias": -0.21981377219574527,
+              "rmse": 0.4009379439082043,
+              "mae": 0.31881381903989026,
+              "n": 69879
+            }
+          ]
+        },
+        "verdict": {
+          "bias_pga_ln_pass": true,
+          "bias_pgv_ln_pass": true,
+          "bias_overall_pass": true,
+          "coverage_pga_pass": true,
+          "coverage_pgv_pass": true,
+          "coverage_overall_pass": true,
+          "thresholds": {
+            "bias_ln": 0.3,
+            "coverage_fraction": 0.6
+          }
+        }
+      }
+    }
+  },
+  "thresholds": {
+    "bias_ln": 0.3,
+    "coverage_fraction": 0.6
+  },
+  "generated_at": "2026-08-07T07:50:08.122055+00:00"
+}
