@@ -74,6 +74,7 @@
     "dateTemplate": "{{day}} {{month}} {{year}}، {{time}}",
     "timeTemplate": "{{time}} {{period}}",
     "offlineBanner": "أنت غير متصل — يتم عرض الأحداث منذ {{time}}",
+    "offlineAnnouncement": "أنت غير متصل. يتم عرض آخر الأحداث المحفوظة.",
     "errorTitle": "تعذر تحميل أحدث الأحداث",
     "retry": "إعادة المحاولة",
     "viewWorld": "العالم",

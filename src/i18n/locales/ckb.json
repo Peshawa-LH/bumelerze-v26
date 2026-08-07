@@ -74,6 +74,7 @@
     "dateTemplate": "{{day}}ی {{month}}ی {{year}}، {{time}}",
     "timeTemplate": "{{time}} {{period}}",
     "offlineBanner": "تۆ ئۆفلاینیت — ڕووداوەکان لە {{time}}ەوە پیشان دەدرێن",
+    "offlineAnnouncement": "تۆ ئۆفلاینیت. دوایین ڕووداوە پاشەکەوتکراوەکان پیشان دەدرێن.",
     "errorTitle": "نەتوانرا ڕووداوە نوێیەکان باربکرێن",
     "retry": "دووبارە هەوڵبدەوە",
     "viewWorld": "جیهان",

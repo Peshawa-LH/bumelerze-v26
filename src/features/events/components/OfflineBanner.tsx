@@ -41,11 +41,10 @@ export function OfflineBanner({ dataUpdatedAt }: OfflineBannerProps) {
       // Announces itself when it mounts/updates on Android TalkBack (the
       // offline/stale-data state is a material change users need to know
       // about without hunting for it — accessibility-tester Phase 5 audit,
-      // PROJECT.md "works on weak networks"). iOS VoiceOver ignores
-      // `accessibilityLiveRegion`; there is no exact iOS equivalent prop, so
-      // this banner is VoiceOver-silent on mount — flagged as a
-      // device-verification gap in a11y-audit-phase5.md rather than papered
-      // over with an approximate fix.
+      // PROJECT.md "works on weak networks"). iOS VoiceOver ignores this prop
+      // entirely, so `EventListScreen` separately calls
+      // `AccessibilityInfo.announceForAccessibility` on the same
+      // false->true transition to cover VoiceOver too.
       accessibilityLiveRegion="polite"
     >
       <Ionicons name="cloud-offline-outline" size={16} color={colors.text.secondary} />

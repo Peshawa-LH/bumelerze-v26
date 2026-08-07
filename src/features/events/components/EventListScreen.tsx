@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import {
+  AccessibilityInfo,
   FlatList,
   Pressable,
   RefreshControl,
@@ -70,6 +71,19 @@ export function EventListScreen({
   // intentionally non-memoized so it never goes stale across re-renders.
   // eslint-disable-next-line react-hooks/purity -- see comment above
   const now = Date.now();
+
+  // iOS VoiceOver companion to `OfflineBanner`'s `accessibilityLiveRegion`
+  // (Android-only) — announces the offline/stale-data state on the
+  // false->true transition so it isn't silently visual-only on iOS
+  // (accessibility-tester Phase 5 audit). Guarded to fire once per
+  // "went offline" event, not on every re-render while still offline.
+  const wasOfflineRef = useRef(false);
+  useEffect(() => {
+    if (isOfflineIsh && !wasOfflineRef.current) {
+      AccessibilityInfo.announceForAccessibility(t("events.offlineAnnouncement"));
+    }
+    wasOfflineRef.current = isOfflineIsh;
+  }, [isOfflineIsh, t]);
 
   const containerStyle = [
     styles.container,

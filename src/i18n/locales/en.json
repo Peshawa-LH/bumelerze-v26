@@ -74,6 +74,7 @@
     "dateTemplate": "{{month}} {{day}}, {{year}}, {{time}}",
     "timeTemplate": "{{time}} {{period}}",
     "offlineBanner": "You're offline — showing events from {{time}}",
+    "offlineAnnouncement": "You're offline. Showing the last saved events.",
     "errorTitle": "Couldn't load the latest events",
     "retry": "Retry",
     "viewWorld": "World",

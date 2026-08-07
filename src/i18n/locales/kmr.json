@@ -74,6 +74,7 @@
     "dateTemplate": "{{day}} {{month}} {{year}}, {{time}}",
     "timeTemplate": "{{time}} {{period}}",
     "offlineBanner": "Tu offline î — bûyerên ji {{time}} têne nîşandan",
+    "offlineAnnouncement": "Tu offline î. Bûyerên herî dawî yên tomarkirî têne nîşandan.",
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
     "retry": "Dîsa biceribîne",
     "viewWorld": "Cîhan",
