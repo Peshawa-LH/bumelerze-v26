@@ -69,6 +69,7 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   const { local: updatedLocal } = formatAbsoluteDual(
     shakeMap.product.updateTime,
     i18n.language,
+    t,
   );
   const versionText = localizeDigits(String(shakeMap.product.version), i18n.language);
 

@@ -14,6 +14,22 @@
   "units": {
     "km": "km"
   },
+  "months": {
+    "short": {
+      "1": "Çile",
+      "2": "Sibat",
+      "3": "Adar",
+      "4": "Nîsan",
+      "5": "Gulan",
+      "6": "Hezîran",
+      "7": "Tîrmeh",
+      "8": "Tebax",
+      "9": "Îlon",
+      "10": "Cotmeh",
+      "11": "Mijdar",
+      "12": "Berfanbar"
+    }
+  },
   "geo": {
     "directions": {
       "n": "Bakur",
@@ -51,6 +67,7 @@
     "distanceFromYou": "{{distance}} ji te",
     "magnitudeA11yLabel": "Mezinahî {{value}}",
     "magnitudeDisplay": "{{value}} pîle",
+    "dateTemplate": "{{day}} {{month}} {{year}}, {{time}}",
     "offlineBanner": "Tu offline î — bûyerên ji {{time}} têne nîşandan",
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
     "retry": "Dîsa biceribîne",

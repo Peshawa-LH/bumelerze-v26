@@ -23,7 +23,7 @@ export function OfflineBanner({ dataUpdatedAt }: OfflineBannerProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
 
-  const { local } = formatAbsoluteDual(dataUpdatedAt, i18n.language);
+  const { local } = formatAbsoluteDual(dataUpdatedAt, i18n.language, t);
 
   return (
     <View

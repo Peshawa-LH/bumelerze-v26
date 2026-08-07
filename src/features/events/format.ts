@@ -1,4 +1,13 @@
+import type { TFunction } from "i18next";
+
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
+
+/** react-i18next's own `t` type — see `@/features/geo/place-line.ts`'s
+ * identical `TranslateFn` alias doc comment for why this is imported
+ * directly from `i18next` rather than re-exported from `features/geo`
+ * (would create a require-cycle: `geo/place-line.ts` already imports this
+ * concrete file for `formatIsolatedDistance`). */
+type TranslateFn = TFunction;
 
 /**
  * Unicode directional isolate (design-language.md §5 "bidi handling"):
@@ -133,8 +142,8 @@ export interface DualTime {
 /** Forces Western/Latin digits out of `Intl.DateTimeFormat` regardless of
  * locale, via the `-u-nu-latn` Unicode locale extension. This is only a
  * baseline — Latin digits are the one numbering system every ICU build
- * (lite or full) reliably honors — never the final rendering: the caller
- * below still runs the result through `localizeDigits` for `ckb`/`ar`.
+ * (lite or full) reliably honors — never the final rendering: callers below
+ * still run the result through `localizeDigits` for `ckb`/`ar`.
  * Two-step approach exists specifically because the wave-5 brief forbids
  * relying on Intl/ICU's own numbering-system locale extension for the
  * *localized* digits (Hermes ICU support for `-u-nu-arab` is inconsistent
@@ -144,30 +153,109 @@ function withLatinDigits(locale: string): string {
   return `${locale}-u-nu-latn`;
 }
 
+/** Builds `Intl.DateTimeFormatOptions` with an optional IANA time zone,
+ * never assigning `timeZone: undefined` explicitly (the project's
+ * `exactOptionalPropertyTypes: true` tsconfig setting forbids that) —
+ * `undefined` means "use the device's local zone", same as omitting the key
+ * entirely. */
+function dateTimeOptions(
+  timeZone: string | undefined,
+  extra: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormatOptions {
+  return timeZone === undefined ? extra : { ...extra, timeZone };
+}
+
+/** Day/month/year as plain numbers, read via `Intl.DateTimeFormat` so the
+ * given time zone (UTC vs. device-local) is respected without doing
+ * calendar math by hand — `formatToParts` is used (not the combined
+ * `dateStyle` string) specifically so the month renders as a bare number:
+ * this module never asks `Intl` for a month NAME, because Hermes/ICU has no
+ * real Sorani/Kurmanji month-name data and silently falls back to English
+ * (ui-backlog.md item 6 — the bug this whole rewrite exists to fix). The
+ * month index is looked up in this app's own `months.short.<n>` i18n table
+ * instead (see `formatAbsoluteOne`), the same "own explicit map, never
+ * delegated to whatever ICU data shipped" policy `lib/format-numbers.ts`
+ * already uses for digits. */
+function dateComponents(
+  date: Date,
+  timeZone: string | undefined,
+  locale: string,
+): { day: number; month: number; year: number } {
+  const parts = new Intl.DateTimeFormat(
+    withLatinDigits(locale),
+    dateTimeOptions(timeZone, { day: "numeric", month: "numeric", year: "numeric" }),
+  ).formatToParts(date);
+
+  const day = parts.find((part) => part.type === "day")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const year = parts.find((part) => part.type === "year")?.value;
+
+  // `formatToParts` always includes day/month/year when all three were
+  // requested — the `?? "1"`/`?? "1970"` fallbacks exist only to satisfy
+  // strict typing, never expected to trigger in practice.
+  return {
+    day: Number(day ?? "1"),
+    month: Number(month ?? "1"),
+    year: Number(year ?? "1970"),
+  };
+}
+
+/** Hour:minute only, locale-appropriate 12h/24h convention (unchanged from
+ * this module's pre-rewrite behavior) — the one piece of `Intl`'s own
+ * locale-aware formatting this module keeps relying on, since clock-format
+ * convention (not month names) isn't the localization gap ui-backlog item 6
+ * is about. */
+function timeOfDay(date: Date, timeZone: string | undefined, locale: string): string {
+  return new Intl.DateTimeFormat(
+    withLatinDigits(locale),
+    dateTimeOptions(timeZone, { timeStyle: "short" }),
+  ).format(date);
+}
+
+/** One locale-templated absolute date+time string (day/month/year/time
+ * composed via the `events.dateTemplate` i18n key so each locale can order
+ * the pieces naturally — Sorani/Arabic day-month-year with their own
+ * connective punctuation, English month-day-year) — the shared building
+ * block both `utc` and `local` in `formatAbsoluteDual` are built from. */
+function formatAbsoluteOne(
+  date: Date,
+  timeZone: string | undefined,
+  locale: string,
+  t: TranslateFn,
+): string {
+  const { day, month, year } = dateComponents(date, timeZone, locale);
+
+  return t("events.dateTemplate", {
+    day: localizeDigits(String(day), locale),
+    month: t(`months.short.${month}`),
+    year: localizeDigits(String(year), locale),
+    time: localizeDigits(timeOfDay(date, timeZone, locale), locale),
+  });
+}
+
 /** Dual UTC + local absolute time display (spec-v1.md §4.5 event-detail
  * header requirement). Falls back gracefully if `Intl` doesn't recognize a
  * locale tag (e.g. `ckb`/`kmr` on older ICU data) — `Intl.DateTimeFormat`
  * only throws on a syntactically invalid BCP-47 tag, never on an
  * unrecognized-but-valid one, so this never crashes across our four
  * locales. Digits are localized via our own map (see `withLatinDigits`
- * comment above), not via Intl's numbering-system extension. */
-export function formatAbsoluteDual(originTimeMs: number, locale: string): DualTime {
+ * comment above); month names via this app's own `months.short.<n>` i18n
+ * table (see `dateComponents`' comment) — never via `Intl`'s month-name
+ * data or the digit-localizer (ui-backlog.md item 6: the old
+ * implementation ran the *whole* `Intl`-produced string, English month
+ * abbreviation included, through the digit localizer, which only ever
+ * touches digit characters — hence "Aug ٣:١٢ ,٢٠٢٦", an English month
+ * glued to Kurdish digits). `t` is the caller's `useTranslation()` `t`
+ * function — every call site already has one in scope. */
+export function formatAbsoluteDual(
+  originTimeMs: number,
+  locale: string,
+  t: TranslateFn,
+): DualTime {
   const date = new Date(originTimeMs);
-  const latinLocale = withLatinDigits(locale);
 
-  const utc = new Intl.DateTimeFormat(latinLocale, {
-    timeZone: "UTC",
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
+  const local = formatAbsoluteOne(date, undefined, locale, t);
+  const utc = `${formatAbsoluteOne(date, "UTC", locale, t)} UTC`;
 
-  const local = new Intl.DateTimeFormat(latinLocale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-
-  return {
-    utc: localizeDigits(`${utc} UTC`, locale),
-    local: localizeDigits(local, locale),
-  };
+  return { utc, local };
 }
