@@ -208,6 +208,7 @@ export default function NotificationSettingsScreen() {
             <Pressable
               accessibilityRole="button"
               onPress={() => setIsPickingTown((value) => !value)}
+              hitSlop={12}
             >
               <Text
                 style={{

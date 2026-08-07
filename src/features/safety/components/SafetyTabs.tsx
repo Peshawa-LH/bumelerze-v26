@@ -52,7 +52,12 @@ export function SafetyTabs({ activeSection, onSelectSection }: SafetyTabsProps) 
               styles.tab,
               {
                 backgroundColor: isActive ? colors.surface.raised : "transparent",
-                paddingVertical: spacing[2],
+                // spacing[3] (12), not spacing[2] (8) — the previous padding
+                // measured under the 48dp touch-target floor for this
+                // labelButton-sized text (design-language.md §8); these tabs
+                // gate the whole PREPARE/SURVIVE/RECOVER safety content, so
+                // they get the same floor as every other primary control.
+                paddingVertical: spacing[3],
               },
             ]}
           >
@@ -82,5 +87,7 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     borderRadius: 10,
+    minHeight: 48,
+    justifyContent: "center",
   },
 });

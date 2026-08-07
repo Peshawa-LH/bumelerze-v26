@@ -209,8 +209,14 @@ export default function Tier1FeltReportScreen() {
 
           <View style={{ gap: spacing[2] }}>
             <Pressable
-              accessibilityRole="button"
-              onPress={() => (isGps ? undefined : setIsLocationExpanded((v) => !v))}
+              // Only announced/behaves as an actionable button when there is
+              // a real action (manual-location fallback) — under GPS
+              // location this row is read-only status text, so a screen
+              // reader shouldn't announce it as a button with no effect
+              // (accessibility-tester Phase 5 audit).
+              accessibilityRole={isGps ? "text" : "button"}
+              onPress={isGps ? undefined : () => setIsLocationExpanded((v) => !v)}
+              hitSlop={12}
               style={{ flexDirection: "row", justifyContent: "space-between" }}
             >
               <Text
@@ -304,5 +310,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
   },
 });

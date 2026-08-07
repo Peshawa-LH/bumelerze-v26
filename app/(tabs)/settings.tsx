@@ -220,6 +220,7 @@ function HomeBaseSection() {
         <Pressable
           accessibilityRole="button"
           onPress={() => setIsPicking((value) => !value)}
+          hitSlop={12}
         >
           <Text
             style={{
@@ -277,7 +278,11 @@ function LocationPermissionSection() {
         >
           {statusText}
         </Text>
-        <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => void Linking.openSettings()}
+          hitSlop={12}
+        >
           <Text
             style={{
               color: colors.text.link,
