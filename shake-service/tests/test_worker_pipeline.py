@@ -342,6 +342,52 @@ def test_station_and_dyfi_data_condition_the_map_and_record_sources(tmp_path):
     assert info["data_used"]["dyfi_boxes_parsed"] == 1
 
 
+def test_conditioning_reuses_the_same_vs30_sampler_as_the_prior(tmp_path):
+    """"site amplification default" wave, 2026-08-08: `run_pipeline` resolves
+    ONE `vs30_sampler` per call and must reuse it for BOTH the forward-map
+    prior AND the conditioning step's own station-point GMPE evaluation
+    (`worker/pipeline.py::_condition_if_possible`'s docstring — a mismatch
+    there would inject a spurious Vs30 offset into every conditioning
+    residual). Proven with a spy sampler: same object identity used for
+    both the grid call (4 sites, the `tiny_grid` fixture) and the station
+    call (1 combined stations+DYFI observation)."""
+    from shake_service import vs30 as vs30_mod
+
+    class _SpySampler(vs30_mod.UniformRockVs30):
+        def __init__(self):
+            super().__init__()
+            self.calls: list[int] = []
+
+        def sample(self, lats, lons):
+            self.calls.append(int(lats.size))
+            return super().sample(lats, lons)
+
+    spy = _SpySampler()
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision(lat=35.5, lon=45.0)
+    products = usgs_products.UsgsEventProducts(
+        event_id="us_pipe_1",
+        stationlist_text=_stationlist_text(lon=45.0, lat=35.5),
+        dyfi_available=True,
+        dyfi_geo_10km_text=_dyfi_geo_text(lon=45.0, lat=35.5),
+    )
+    fetch, _ = _counting_fetcher(products)
+
+    result = run_pipeline(
+        decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch,
+        vs30_sampler=spy,
+    )
+
+    assert set(result.conditioning_sources) == {"stations", "dyfi"}
+    # At least 2 calls: the 4-site tiny grid, plus the (>=1) combined
+    # station/DYFI conditioning points -- both routed through the SAME spy
+    # instance (not a fresh default() resolved independently inside
+    # conditioning), proving the sampler is actually shared end to end.
+    assert len(spy.calls) >= 2
+    assert 4 in spy.calls  # the tiny grid call
+
+
 def test_no_station_or_dyfi_data_means_empty_conditioning_sources(tmp_path):
     ws = WorkerState()
     uploader, _ = _uploader()
