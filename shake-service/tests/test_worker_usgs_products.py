@@ -29,6 +29,14 @@ SHAKEMAP_ENTRY = {
     },
 }
 
+SHAKEMAP_ENTRY_WITH_RUPTURE = {
+    **SHAKEMAP_ENTRY,
+    "contents": {
+        **SHAKEMAP_ENTRY["contents"],
+        "download/rupture.json": {"url": "https://example.com/rupture.json"},
+    },
+}
+
 DYFI_ENTRY = {
     "id": "urn:dyfi:us:1",
     "source": "us",
@@ -113,10 +121,43 @@ def test_fetch_full_event_with_both_products():
     assert result.dyfi_available is True
     assert result.dyfi_product_id == "urn:dyfi:us:1"
     assert result.dyfi_geo_10km_text is not None
+    assert result.rupture_available is False  # SHAKEMAP_ENTRY carries no rupture.json content
+    assert result.rupture_json_text is None
 
     # First call is always the detail fetch, with the eventid param.
     assert calls[0][0] == usgs_products.DETAIL_URL
     assert calls[0][1] == {"eventid": "us_test_1", "format": "geojson"}
+
+
+def test_fetch_event_with_rupture_model_available():
+    detail_text = _detail(shakemap=[SHAKEMAP_ENTRY_WITH_RUPTURE])
+    routes = {
+        usgs_products.DETAIL_URL: detail_text,
+        "https://example.com/grid.xml": "<grid/>",
+        "https://example.com/stationlist.json": '{"type": "FeatureCollection", "features": []}',
+        "https://example.com/rupture.json": '{"metadata": {}, "features": [], "type": "FeatureCollection"}',
+    }
+    fetch, _ = _fake_fetch(routes)
+
+    result = usgs_products.fetch_usgs_event_products("us_rupture", fetch_text=fetch)
+
+    assert result.rupture_available is True
+    assert result.rupture_json_text is not None
+
+
+def test_fetch_event_with_shakemap_but_no_rupture_content():
+    detail_text = _detail(shakemap=[SHAKEMAP_ENTRY])
+    routes = {
+        usgs_products.DETAIL_URL: detail_text,
+        "https://example.com/grid.xml": "<grid/>",
+        "https://example.com/stationlist.json": '{"type": "FeatureCollection", "features": []}',
+    }
+    fetch, _ = _fake_fetch(routes)
+
+    result = usgs_products.fetch_usgs_event_products("us_no_rupture", fetch_text=fetch)
+
+    assert result.rupture_available is False
+    assert result.rupture_json_text is None
 
 
 def test_fetch_event_with_no_shakemap_or_dyfi_product():
@@ -170,3 +211,5 @@ def test_no_usgs_products_makes_zero_fetch_calls():
     assert result.grid_xml_text is None
     assert result.stationlist_text is None
     assert result.dyfi_geo_10km_text is None
+    assert result.rupture_available is False
+    assert result.rupture_json_text is None

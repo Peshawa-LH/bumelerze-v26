@@ -237,6 +237,14 @@ def build_info_product(
         "generated_at": ts,
         "event": dict(forward_map.event),
         "band": forward_map.band,
+        # D22 "IMS-25 as the app's public scale": EMS-98 and IMS-25 are
+        # treated as ONE scale (IMS-25 extends EMS-98; this service's own
+        # `intensity.py` chain already implements the IMS-25/Zanini tables,
+        # unchanged by this rename — see that module + README.md's own
+        # D22 note). This is the public-facing metadata label; `intensity.
+        # scale` below is untouched, internal-facing (D22 task wording:
+        # "internal code names stay as-is; this is display language only").
+        "intensity_scale": "IMS-25 (EMS-98)" if contour_channel == "ems" else "MMI",
         "intensity": {
             "contour_channel": contour_channel,
             "scale": "EMS-98" if contour_channel == "ems" else "MMI",

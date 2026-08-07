@@ -82,6 +82,38 @@ migration `0006_shakemap_products.sql`) and a `SupabaseUploader` stub
 docstring for the deployment note (runs server-side next to Supabase, not
 on Peshawa's Mac — no systemd/launchd unit yet).
 
+**Wave G / D21 "dual backend"**: `worker/pipeline.py` now fetches whatever
+USGS station (`stationlist.json`)/DYFI (`dyfi_geo_10km.geojson`) product
+content an event has and conditions the forward-map prior on it
+(`station_observations.py` + `conditioned_forward.py`), and — if the event
+ALSO has a USGS ShakeMap `grid.xml` — automatically compares our exported
+product against it, writing a versioned `compatibility.json`
+(`comparison.py`). The **Bumelerze Atlas** (`bumelerze-atlas/`,
+`scripts/seed_atlas.py`) is the permanent, versioned archive of our own
+computed maps for the Historical View's curated events, bundled app-side
+by `scripts/bundle_atlas_for_app.py` — "Displayed maps are ALWAYS
+bumelerze-shake-service products", never live USGS.
+
+**D22 "use ALL available USGS data" / "IMS-25 as the app's public scale"**
+(2026-08-08, `docs/decisions.md` D22): (a) `rupture_model.py` — when an
+event ALSO publishes a `rupture.json` finite-fault model, its geometry
+REPLACES ps2ff's point-source expected Rjb/Rrup (`gmm.py`'s
+`distance_method` switches `"ps2ff"` -> `"finite-fault"`) and its
+geometry-derived dip/ztor (+ metadata rake, when a real mechanism exists)
+replace `rupture_params.py`'s coarse Zagros-polygon point-source defaults
+— see `rupture_model.py`'s own module docstring for the full "planar
+patches" approximation and its honest caveats. (b) **Scale identity**:
+Peshawa's ruling is that **IMS-25 and EMS-98 are treated as the same
+scale** for this service's purposes (IMS-25 extends EMS-98; the
+Zanini-based `intensity.py`/`gmice.py` chain this package already runs was
+never re-derived for this rename — only the PUBLIC LABEL changed). Every
+`info.json` now carries a top-level `intensity_scale: "IMS-25 (EMS-98)"`
+field (`export.py`) alongside the pre-existing internal `intensity.scale`
+field (`"EMS-98"`/`"MMI"`, unchanged — D22: "internal code names stay
+as-is; this is display language only"). The intensity legend's Roman-
+numeral levels and `ems_colors` are untouched — they ARE the IMS/EMS
+scale, D22 explicitly keeps them as-is.
+
 ## Environment setup
 
 Requires Python >= 3.11 (openquake's floor; this project targets the
@@ -172,6 +204,13 @@ never automatically.
   derivation, keyed off the Zagros polygon.
 - `shake_service/distances.py` — geodetic Repi/Rhyp + ps2ff-based
   Rjb/Rrup expected values and variances.
+- `shake_service/rupture_model.py` (D22 "use ALL available USGS data") —
+  `rupture.json` (finite-fault) ingestion: quad extraction, planar-patch
+  Rjb/Rrup (REPLACES ps2ff for an event that has one), geometry-derived
+  dip/ztor + metadata-rake overrides. `worker/pipeline.py` fetches
+  `rupture.json` as shakemap-product content (same fetch as `stationlist.json`)
+  and every product's `data_used["distance_method"]` records
+  `"finite-fault"` vs `"ps2ff"`, unconditionally.
 - `shake_service/vs30.py` — site-grid builder: `UniformRockVs30` (wave A
   default, rock-760 everywhere) + `RasterVs30` (wave B, samples the
   toolkit's real global Vs30 grid via `h5py`, falls back safely if the
