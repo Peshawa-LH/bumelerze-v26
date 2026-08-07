@@ -288,3 +288,29 @@ OPENQUAKE_PIN: str = "openquake.engine==3.26.2"
 MIN_CONDITIONING_OBSERVATIONS: int = 5
 SMALL_N_SIGMA_INFLATION_THRESHOLD: int = 10
 SMALL_N_SIGMA_INFLATION_FACTOR: float = 2.0
+
+
+# ---------------------------------------------------------------------------
+# 9. Vs30 backbone raster — default-on path (Peshawa 2026-08-08 ruling:
+#    "make the calculation identical to the SHAKEmaps toolkit's approach ...
+#    let site amplification refine the map"; `vs30.py`'s wave-B `RasterVs30`
+#    was built but shipped OFF by default behind `BUMELERZE_VS30_RASTER_PATH`
+#    — this constant flips that default ON while keeping the env var as a
+#    portable override, per `vs30.py`'s own module docstring.)
+# ---------------------------------------------------------------------------
+
+# The toolkit's global Vs30 backbone raster (`SHAKEmaps-Toolkit-v26/
+# SHAKEdata/vs30/global_vs30.grd`, read-only, ~610 MB, OneDrive-hosted) —
+# the SAME data source `vs30.py`'s wave-B docstring already documents.
+# Hardcoding an absolute path on Peshawa's machine here is a deliberate
+# exception to this module's own "no dependency on Peshawa's local machine"
+# spirit (see `vs30.py`'s `[REVIEW]` note): it is safe ONLY because
+# `vs30.default_sampler()` treats this purely as a *candidate* — a missing
+# or unreadable file (any other machine, CI, a not-yet-hydrated OneDrive
+# placeholder) falls back to `UniformRockVs30` loudly and automatically,
+# never blocks a run. `BUMELERZE_VS30_RASTER_PATH` still overrides this
+# default for any machine/CI that needs a different (or no) raster.
+DEFAULT_VS30_RASTER_PATH: str = (
+    "/Users/pesha/Library/CloudStorage/OneDrive-Personal/2_WorkDrive/5_MyPhD/"
+    "SHAKEmaps/SHAKEmaps-Toolkit-v26/SHAKEdata/vs30/global_vs30.grd"
+)
