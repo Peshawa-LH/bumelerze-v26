@@ -1,4 +1,6 @@
+import i18n from "@/i18n";
 import {
+  formatAbsoluteDual,
   formatCoordinates,
   formatDepthKm,
   formatDistanceKm,
@@ -104,6 +106,73 @@ describe("formatIsolatedDistance", () => {
   it("uses the passed-in localized unit label (e.g. Sorani 'کم') and digit-localizes the numeral", () => {
     const result = formatIsolatedDistance(38.24, "ckb", "کم");
     expect(result).toContain("٣٨.٢ کم");
+  });
+});
+
+describe("formatAbsoluteDual", () => {
+  // 2026-08-15T12:00:00Z — mid-month, mid-day UTC so every locale's `local`
+  // variant lands on the same calendar month regardless of the host
+  // machine's timezone (this suite runs with no TZ pinned in jest.config).
+  const originTimeMs = Date.UTC(2026, 7, 15, 12, 0, 0);
+  const originalLanguage = i18n.language;
+
+  afterEach(async () => {
+    await i18n.changeLanguage(originalLanguage);
+  });
+
+  it("renders an English month abbreviation via the i18n table, not Intl's own locale data", async () => {
+    await i18n.changeLanguage("en");
+    const { utc } = formatAbsoluteDual(originTimeMs, "en", i18n.t.bind(i18n));
+
+    // ui-backlog.md item 6's exact bug: month name + digits must both be
+    // correctly localized and never mixed with the wrong script.
+    expect(utc).toBe("Aug 15, 2026, 12:00 PM UTC");
+  });
+
+  it("localizes the Sorani month name and every digit — no Latin letters or digits leak in", async () => {
+    await i18n.changeLanguage("ckb");
+    const { utc, local } = formatAbsoluteDual(originTimeMs, "ckb", i18n.t.bind(i18n));
+
+    expect(utc).toContain("ئاب"); // month 8, Sorani
+    expect(utc).toContain("١٥"); // day 15, Eastern Arabic-Indic digits
+    expect(utc).toContain("٢٠٢٦"); // year
+    expect(/[0-9]/.test(utc)).toBe(false); // no stray Latin digits
+    // "UTC" itself is a deliberate, un-translated suffix (see format.ts) —
+    // strip it before checking the date/time portion is free of stray
+    // English month text.
+    expect(/[a-zA-Z]/.test(utc.replace(/ UTC$/, ""))).toBe(false);
+    // `local` shares the same day/month (mid-month UTC noon, see comment
+    // above) regardless of host timezone.
+    expect(local).toContain("ئاب");
+    expect(/[a-zA-Z]/.test(local)).toBe(false);
+  });
+
+  it("localizes the Arabic (Iraq/Levantine) month name", async () => {
+    await i18n.changeLanguage("ar");
+    const { utc } = formatAbsoluteDual(originTimeMs, "ar", i18n.t.bind(i18n));
+
+    expect(utc).toContain("آب"); // Iraqi/Levantine Arabic for August
+    expect(utc).not.toContain("أغسطس"); // NOT the MSA/Gulf "yanayir-style" set
+  });
+
+  it("keeps Kurmanji's own month name and Latin digits", async () => {
+    await i18n.changeLanguage("kmr");
+    const { utc } = formatAbsoluteDual(originTimeMs, "kmr", i18n.t.bind(i18n));
+
+    // Hermes/ICU has no dedicated 12h-vs-24h convention for "kmr", so the
+    // clock format itself falls back to whatever Intl picks (24h here) —
+    // out of scope for ui-backlog item 6 (month names + digits), so this
+    // only pins the day/month/year/Latin-digit portion this rewrite owns.
+    expect(utc).toContain("15 Tebax 2026");
+    expect(utc.endsWith("UTC")).toBe(true);
+  });
+
+  it("appends the UTC suffix only to the utc variant", async () => {
+    await i18n.changeLanguage("en");
+    const { utc, local } = formatAbsoluteDual(originTimeMs, "en", i18n.t.bind(i18n));
+
+    expect(utc.endsWith("UTC")).toBe(true);
+    expect(local.endsWith("UTC")).toBe(false);
   });
 });
 

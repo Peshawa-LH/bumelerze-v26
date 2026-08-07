@@ -217,7 +217,7 @@ function EventDetailHeader({
   t,
   onNavigateHistorical,
 }: EventDetailHeaderProps) {
-  const { utc, local } = formatAbsoluteDual(event.originTime, locale);
+  const { utc, local } = formatAbsoluteDual(event.originTime, locale, t);
 
   // Nearest-cities list (ui-backlog.md wave 5 item 5) — always shown, no
   // location permission needed. "From you" is a separate, optional extra
@@ -237,6 +237,7 @@ function EventDetailHeader({
   const { local: sourceUpdatedLocal } = formatAbsoluteDual(
     event.provenance.providerUpdatedAt,
     locale,
+    t,
   );
 
   const placeText = placeLine(event, locale, t);
