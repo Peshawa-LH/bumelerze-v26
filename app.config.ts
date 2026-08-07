@@ -17,9 +17,11 @@ const config: ExpoConfig = {
   },
   android: {
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
+      // Zagros Blue (brand.primaryLight, src/theme/palette.ts) — still
+      // flagged owner-review there; regenerate via
+      // `node scripts/generate-assets.js` after that hue is finalized.
+      backgroundColor: "#1F4E5F",
       foregroundImage: "./assets/images/android-icon-foreground.png",
-      backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
     package: "org.bumelerze.app",
@@ -33,9 +35,18 @@ const config: ExpoConfig = {
     [
       "expo-splash-screen",
       {
-        backgroundColor: "#0B1220",
+        // Brand background both modes (src/theme/palette.ts `brand`, still
+        // owner-review — design-language.md §3): primaryLight for the light
+        // splash, primaryDark for the dark splash. The mark itself (white
+        // rings, transparent field) is the same asset in both — it was
+        // designed to read clearly against either brand value.
+        backgroundColor: "#1F4E5F",
         image: "./assets/images/splash-icon.png",
         imageWidth: 96,
+        dark: {
+          backgroundColor: "#3E7C93",
+          image: "./assets/images/splash-icon.png",
+        },
       },
     ],
     [
@@ -77,8 +88,12 @@ const config: ExpoConfig = {
       // may be added" scope note.
       "expo-notifications",
       {
-        icon: "./assets/images/icon.png",
-        color: "#0B1220",
+        // Android status-bar notification icons must be a pure white
+        // silhouette on a transparent field (OS renders everything else as
+        // solid black) — never the full-color app icon. `color` is the
+        // notification accent tint; brand.primaryLight (palette.ts).
+        icon: "./assets/images/notification-icon.png",
+        color: "#1F4E5F",
       },
     ],
   ],
