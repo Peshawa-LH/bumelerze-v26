@@ -237,6 +237,20 @@ def forward_grid_spacing_km(band: MagnitudeBand) -> float:
 
 
 # ---------------------------------------------------------------------------
+# 6b. Auto-trigger magnitude floor (D9: "auto for regional M>=3.5,
+#     on-demand below when felt reports arrive"; `shake_service/worker/`,
+#     wave E). Kept alongside `REGION_BBOX` for the same reason: the worker
+#     (a separate runtime/entry point) and the ingestion/significance-score
+#     design (`event-pipeline-design.md` §3, region-significance threshold
+#     "sig >= 350 (~M3.5+) ... deliberate alignment with D9") must agree on
+#     one number. On-demand sub-3.5 triggering (felt reports) is a later
+#     wave — this constant only gates the AUTO path.
+# ---------------------------------------------------------------------------
+
+TRIGGER_MIN_MAGNITUDE: float = 3.5
+
+
+# ---------------------------------------------------------------------------
 # 7. Dependency pin (§6.3 — exact-version pin, revalidate-on-upgrade policy)
 # ---------------------------------------------------------------------------
 
