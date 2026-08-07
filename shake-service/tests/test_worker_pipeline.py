@@ -161,3 +161,215 @@ def test_written_info_json_is_valid_json_with_expected_event_fields(tmp_path):
     assert info["event"]["mag_mw"] == pytest.approx(4.0)
     assert info["event"]["lat"] == pytest.approx(35.5)
     assert info["producer"] == "bumelerze-shake-service"
+
+
+# ---------------------------------------------------------------------------
+# D21: USGS product fetch wiring — conditioning + automatic comparison
+# ---------------------------------------------------------------------------
+
+import json as _json
+
+from shake_service.worker import usgs_products
+
+
+def _grid_xml_text(*, lon, lat, pga_pctg=10.0, pgv_cms=5.0, mmi=6.0):
+    return (
+        "<shakemap_grid>"
+        f'<event event_id="test" magnitude="4.0" depth="10.0" lat="{lat}" lon="{lon}" />'
+        f'<grid_specification lon_min="{lon - 1}" lat_min="{lat - 1}" lon_max="{lon + 1}" '
+        f'lat_max="{lat + 1}" nominal_lon_spacing="1.0" nominal_lat_spacing="1.0" nlon="1" nlat="1" />'
+        '<grid_field index="1" name="LON" />'
+        '<grid_field index="2" name="LAT" />'
+        '<grid_field index="3" name="PGA" />'
+        '<grid_field index="4" name="PGV" />'
+        '<grid_field index="5" name="MMI" />'
+        f"<grid_data>{lon} {lat} {pga_pctg} {pgv_cms} {mmi}</grid_data>"
+        "</shakemap_grid>"
+    )
+
+
+def _stationlist_text(*, lon, lat, distance=1.0, pga=0.05, pgv=1.0):
+    return _json.dumps({
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [lon, lat]},
+            "properties": {
+                "source": "TU", "station_type": "seismic", "network": "TU", "code": "AAA",
+                "distance": distance, "pga": pga, "pgv": pgv,
+            },
+        }],
+    })
+
+
+def _dyfi_geo_text(*, lon, lat, dist=2.0, nresp=5, cdi=6.0):
+    d = 0.01
+    return _json.dumps({
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[lon - d, lat - d], [lon - d, lat + d], [lon + d, lat + d], [lon + d, lat - d]]],
+            },
+            "properties": {"cdi": cdi, "nresp": nresp, "dist": dist, "stddev": 0.3},
+        }],
+    })
+
+
+def _counting_fetcher(products: usgs_products.UsgsEventProducts):
+    calls = []
+
+    def fetch(event_id: str) -> usgs_products.UsgsEventProducts:
+        calls.append(event_id)
+        return products
+
+    return fetch, calls
+
+
+def test_default_fetcher_makes_zero_network_calls(tmp_path):
+    # No usgs_products_fetcher passed at all -- must never touch the network
+    # or attempt any USGS parsing (backward-compatible default).
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision()
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader)
+    assert result.has_comparison is False
+    assert result.comparison_path is None
+    assert result.conditioning_sources == ()
+    assert not (tmp_path / "us_pipe_1" / "v1" / "compatibility.json").exists()
+
+
+def test_no_usgs_shakemap_grid_means_no_comparison(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision()
+    products = usgs_products.UsgsEventProducts(event_id="us_pipe_1")  # nothing available
+    fetch, calls = _counting_fetcher(products)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    assert calls == ["us_pipe_1"]
+    assert result.has_comparison is False
+    known = ws.get_event("us_pipe_1")
+    assert known.has_comparison is False
+    assert known.comparison_path is None
+
+
+def test_usgs_shakemap_grid_present_triggers_automatic_comparison(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision(lat=35.5, lon=45.0)
+    grid_text = _grid_xml_text(lon=45.0, lat=35.5)
+    products = usgs_products.UsgsEventProducts(
+        event_id="us_pipe_1", shakemap_available=True, shakemap_product_id="urn:test:1", grid_xml_text=grid_text,
+    )
+    fetch, _ = _counting_fetcher(products)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    assert result.has_comparison is True
+    compat_path = tmp_path / "us_pipe_1" / "v1" / "compatibility.json"
+    assert result.comparison_path == compat_path
+    assert compat_path.exists()
+    payload = _json.loads(compat_path.read_text())
+    assert payload["usgs_shakemap_product_id"] == "urn:test:1"
+    assert payload["our_version"] == 1
+    assert "verdict" in payload and "comparison" in payload
+
+    known = ws.get_event("us_pipe_1")
+    assert known.has_comparison is True
+    assert known.comparison_path == str(compat_path)
+
+
+def test_malformed_grid_xml_does_not_abort_the_recompute(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision()
+    products = usgs_products.UsgsEventProducts(
+        event_id="us_pipe_1", shakemap_available=True, grid_xml_text="<not valid grid xml>",
+    )
+    fetch, _ = _counting_fetcher(products)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    assert result.recomputed is True
+    assert result.has_comparison is False
+    assert (tmp_path / "us_pipe_1" / "v1" / "info.json").exists()
+
+
+def test_station_and_dyfi_data_condition_the_map_and_record_sources(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision(lat=35.5, lon=45.0)
+    products = usgs_products.UsgsEventProducts(
+        event_id="us_pipe_1",
+        stationlist_text=_stationlist_text(lon=45.0, lat=35.5),
+        dyfi_available=True,
+        dyfi_geo_10km_text=_dyfi_geo_text(lon=45.0, lat=35.5),
+    )
+    fetch, _ = _counting_fetcher(products)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    assert set(result.conditioning_sources) == {"stations", "dyfi"}
+    info = _json.loads((tmp_path / "us_pipe_1" / "v1" / "info.json").read_text())
+    assert info["data_used"]["usgs_stationlist_available"] is True
+    assert info["data_used"]["usgs_dyfi_available"] is True
+    assert info["data_used"]["instrument_stations_parsed"] == 1
+    assert info["data_used"]["dyfi_boxes_parsed"] == 1
+
+
+def test_no_station_or_dyfi_data_means_empty_conditioning_sources(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision()
+    products = usgs_products.UsgsEventProducts(event_id="us_pipe_1")
+    fetch, _ = _counting_fetcher(products)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    assert result.conditioning_sources == ()
+    info = _json.loads((tmp_path / "us_pipe_1" / "v1" / "info.json").read_text())
+    assert info["data_used"]["instrument_stations_parsed"] == 0
+    assert info["data_used"]["dyfi_boxes_parsed"] == 0
+
+
+def test_idempotent_replay_never_refetches_usgs_products_or_rewrites_compatibility(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision(lat=35.5, lon=45.0)
+    grid_text = _grid_xml_text(lon=45.0, lat=35.5)
+    products = usgs_products.UsgsEventProducts(
+        event_id="us_pipe_1", shakemap_available=True, grid_xml_text=grid_text,
+    )
+    fetch, calls = _counting_fetcher(products)
+
+    first = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+    compat_path = tmp_path / "us_pipe_1" / "v1" / "compatibility.json"
+    written_at_first = compat_path.read_text()
+
+    second = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    assert calls == ["us_pipe_1"]  # fetched exactly once, never again on replay
+    assert first.recomputed is True
+    assert second.recomputed is False
+    assert second.has_comparison is True  # carried over from known state, not recomputed
+    assert compat_path.read_text() == written_at_first
+
+
+def test_info_json_review_status_is_automatic_by_default(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision()
+    run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader)
+    info = _json.loads((tmp_path / "us_pipe_1" / "v1" / "info.json").read_text())
+    assert info["review_status"] == "automatic"
+
+
+def test_upload_records_carry_automatic_review_status(tmp_path):
+    ws = WorkerState()
+    uploader, calls = _uploader()
+    decision = _new_decision()
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader)
+    assert all(r.review_status == "automatic" for r in result.upload_records)
