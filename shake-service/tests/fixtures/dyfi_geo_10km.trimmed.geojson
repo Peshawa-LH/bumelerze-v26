@@ -1,0 +1,335 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              44.3398,
+              35.33144
+            ],
+            [
+              44.44983,
+              35.33199
+            ],
+            [
+              44.44922,
+              35.42216
+            ],
+            [
+              44.33907,
+              35.4216
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.293,
+        "nresp": 5,
+        "name": "UTM:(38S 044 391 10000)<br>Kirkūk",
+        "cdi": 5.3,
+        "dist": 152
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              45.33083,
+              35.51313
+            ],
+            [
+              45.44111,
+              35.51277
+            ],
+            [
+              45.44161,
+              35.60294
+            ],
+            [
+              45.3312,
+              35.60329
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.123,
+        "nresp": 49,
+        "name": "UTM:(38S 053 393 10000)<br>Sulaymaniyah",
+        "cdi": 5.6,
+        "dist": 90
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              45.44111,
+              35.51277
+            ],
+            [
+              45.55139,
+              35.51232
+            ],
+            [
+              45.552,
+              35.60248
+            ],
+            [
+              45.44161,
+              35.60294
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.186,
+        "nresp": 23,
+        "name": "UTM:(38S 054 393 10000)<br>Sulaymaniyah",
+        "cdi": 5.6,
+        "dist": 85
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              45.658,
+              35.06094
+            ],
+            [
+              45.76766,
+              35.0603
+            ],
+            [
+              45.76851,
+              35.15046
+            ],
+            [
+              45.65873,
+              35.15111
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.311,
+        "nresp": 3,
+        "name": "UTM:(38S 056 388 10000)<br>HalubÄ?ah",
+        "cdi": 7.9,
+        "dist": 36
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              45.76184,
+              34.42911
+            ],
+            [
+              45.87067,
+              34.42838
+            ],
+            [
+              45.8716,
+              34.51855
+            ],
+            [
+              45.76266,
+              34.51928
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.302,
+        "nresp": 4,
+        "name": "UTM:(38S 057 381 10000)<br>Pol-e-Zahab",
+        "cdi": 8.5,
+        "dist": 53
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              45.87828,
+              35.14972
+            ],
+            [
+              45.98805,
+              35.14887
+            ],
+            [
+              45.98915,
+              35.23903
+            ],
+            [
+              45.87925,
+              35.23988
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.311,
+        "nresp": 3,
+        "name": "UTM:(38S 058 389 10000)<br>HalubÄ?ah",
+        "cdi": 7.2,
+        "dist": 36
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              45.98805,
+              35.14887
+            ],
+            [
+              46.09782,
+              35.14793
+            ],
+            [
+              46.09904,
+              35.23808
+            ],
+            [
+              45.98915,
+              35.23903
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.311,
+        "nresp": 3,
+        "name": "UTM:(38S 059 389 10000)<br>HalubÄ?ah",
+        "cdi": 7.3,
+        "dist": 37
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              45.98915,
+              35.23903
+            ],
+            [
+              46.09904,
+              35.23808
+            ],
+            [
+              46.10025,
+              35.32824
+            ],
+            [
+              45.99024,
+              35.32919
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.32,
+        "nresp": 2,
+        "name": "UTM:(38S 059 390 10000)<br>HalubÄ?ah",
+        "cdi": 7,
+        "dist": 46
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              46.09782,
+              35.14793
+            ],
+            [
+              46.20758,
+              35.14688
+            ],
+            [
+              46.20892,
+              35.23703
+            ],
+            [
+              46.09904,
+              35.23808
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.33,
+        "nresp": 1,
+        "name": "UTM:(38S 060 389 10000)<br>HalubÄ?ah",
+        "cdi": 5.5,
+        "dist": 40
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              46.97791,
+              35.22691
+            ],
+            [
+              47.08773,
+              35.22506
+            ],
+            [
+              47.09004,
+              35.31517
+            ],
+            [
+              46.9801,
+              35.31703
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "type": "Feature",
+      "properties": {
+        "stddev": 0.248,
+        "nresp": 11,
+        "name": "UTM:(38S 068 390 10000)<br>Sannandaj",
+        "cdi": 5.5,
+        "dist": 107
+      }
+    }
+  ]
+}
