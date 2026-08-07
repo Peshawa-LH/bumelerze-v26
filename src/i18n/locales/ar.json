@@ -301,7 +301,10 @@
     "onboardingSectionTitle": "التعريف بالتطبيق",
     "replayOnboarding": "إعادة عرض التعريف بالتطبيق",
     "replayOnboardingConfirmTitle": "إعادة عرض التعريف بالتطبيق؟",
-    "replayOnboardingConfirmMessage": "ستمر بشاشات الترحيب مرة أخرى. سيتم الاحتفاظ باختيارك للغة والموطن."
+    "replayOnboardingConfirmMessage": "ستمر بشاشات الترحيب مرة أخرى. سيتم الاحتفاظ باختيارك للغة والموطن.",
+    "notificationsSectionTitle": "الإشعارات",
+    "notificationsSectionDescription": "اختر كيف يُنبّهك بوملێرزە بشأن الزلازل القريبة منك ومن موطنك.",
+    "notificationsManage": "إدارة الإشعارات"
   },
   "onboarding": {
     "back": "رجوع",
@@ -335,6 +338,44 @@
       "title": "كل شيء جاهز",
       "description": "بوملێرزە جاهز الآن. ستصل مباشرة إلى قائمة الزلازل الحية لمنطقتك في كل مرة تفتح فيها التطبيق.",
       "cta": "ابدأ الآن"
+    }
+  },
+  "notificationSettings": {
+    "title": "إعدادات الإشعارات",
+    "nearMe": {
+      "title": "بالقرب مني",
+      "explainer": "تنبيهات للزلازل القريبة من موقعك الحالي."
+    },
+    "homeBase": {
+      "title": "الموطن",
+      "explainer": "تنبيهات للزلازل القريبة من موطنك، أينما كنت.",
+      "change": "تغيير",
+      "notSetHint": "حدد موطنًا أعلاه لتفعيل هذه التنبيهات."
+    },
+    "tiers": {
+      "off": "إيقاف",
+      "all": "كل الزلازل",
+      "m3": "٣.٠ فأعلى",
+      "m4": "٤.٠ فأعلى",
+      "m5": "٥.٠ فأعلى"
+    },
+    "fatigueFooter": "أثناء سلاسل الهزات الارتدادية، يحدّ بوملێرزە من عدد التنبيهات حتى لا تُثقَل بها.",
+    "permission": {
+      "deniedStatus": "إشعارات بوملێرزە موقوفة على هذا الجهاز.",
+      "openSettings": "فتح الإعدادات"
+    },
+    "rehearsal": {
+      "title": "جرّبها",
+      "description": "شاهد واسمع كيف سيبدو ويصدر صوت تنبيه حقيقي — دون الحاجة لزلزال فعلي.",
+      "seeAlert": "شاهد التنبيه",
+      "playSound": "تشغيل صوت التنبيه",
+      "playSoundHintTitle": "تشغيل صوت التنبيه",
+      "playSoundHintMessage": "ضع بوملێرزە في الخلفية الآن لتشاهد وتسمع التنبيه خلال نحو ثانيتين.",
+      "playSoundHintConfirm": "حسنًا",
+      "appName": "بوملێرزە",
+      "exampleTitle": "زلزال بقوة {{magnitude}}",
+      "exampleBody": "١٤ كم جنوب شرق أربيل، إقليم كردستان",
+      "close": "إغلاق"
     }
   },
   "eventDetail": {

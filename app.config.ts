@@ -68,6 +68,19 @@ const config: ExpoConfig = {
           'Bumelerze uses your location to show accurate distances to earthquakes and to make your "did you feel it?" reports valid scientific testimony. Only used while the app is open.',
       },
     ],
+    [
+      // Phase 4 client-side notifications (spec-v1.md §4.10/§4.11 step 4).
+      // This wave is entirely local (rehearsal sound only, no push tokens,
+      // no server) — the plugin still needs to run so the notification
+      // permission strings/icon exist in the native build ahead of Phase 5's
+      // real Expo push wiring, per this wave brief's "only expo-notifications
+      // may be added" scope note.
+      "expo-notifications",
+      {
+        icon: "./assets/images/icon.png",
+        color: "#0B1220",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

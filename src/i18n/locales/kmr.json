@@ -301,7 +301,10 @@
     "onboardingSectionTitle": "Danasîn",
     "replayOnboarding": "Danasînê dîsa bibîne",
     "replayOnboardingConfirmTitle": "Danasîn dîsa were nîşandan?",
-    "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên û Cihê Malê tê parastin."
+    "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên û Cihê Malê tê parastin.",
+    "notificationsSectionTitle": "Agahdarî",
+    "notificationsSectionDescription": "Hilbijêre ka Bumelerze te çawa ji bo erdhejên nêzî te û nêzî Cihê Malê te agahdar dike.",
+    "notificationsManage": "Agahdariyan bi rê ve bibe"
   },
   "onboarding": {
     "back": "Vegere",
@@ -335,6 +338,44 @@
       "title": "Her tişt amade ye",
       "description": "Bumelerze amade ye. Her carê tu sepanê vekî tu yê li ser lîsteya rasterast a erdhejên herêma xwe be.",
       "cta": "Dest pê bike"
+    }
+  },
+  "notificationSettings": {
+    "title": "Sazkariyên Agahdariyê",
+    "nearMe": {
+      "title": "Li Nêzîkê Min",
+      "explainer": "Agahdarî ji bo erdhejên nêzî cihê te yê niha."
+    },
+    "homeBase": {
+      "title": "Cihê Malê",
+      "explainer": "Agahdarî ji bo erdhejên nêzî Cihê Malê te, li kû derê be jî.",
+      "change": "Biguherîne",
+      "notSetHint": "Ji bo vekirina van agahdariyan li jor Cihek Malê hilbijêre."
+    },
+    "tiers": {
+      "off": "Girtî",
+      "all": "Hemû erdhej",
+      "m3": "M3.0 û bilindtir",
+      "m4": "M4.0 û bilindtir",
+      "m5": "M5.0 û bilindtir"
+    },
+    "fatigueFooter": "Di dema rêzeya piştejeran de, Bumelerze hejmara agahdariyan sînordar dike da ku tu neyê westandin.",
+    "permission": {
+      "deniedStatus": "Agahdariyên Bumelerze li ser vê amûrê hatine girtin.",
+      "openSettings": "Sazkariyan Veke"
+    },
+    "rehearsal": {
+      "title": "Biceribîne",
+      "description": "Bibîne û bibihîze ka agahdariyeke rastîn dê çawa xuya bike û deng bike — erdhej ne hewce ye.",
+      "seeAlert": "Agahdariyê bibîne",
+      "playSound": "Dengê agahdariyê lêxe",
+      "playSoundHintTitle": "Dengê agahdariyê lêxe",
+      "playSoundHintMessage": "Niha Bumelerze bixe paşxanê da ku di nav du saniyeyan de agahdariyê bibînî û bibihîzî.",
+      "playSoundHintConfirm": "Baş e",
+      "appName": "Bumelerze",
+      "exampleTitle": "Erdhejek {{magnitude}}",
+      "exampleBody": "14 km başûrrojhilatê Hewlêrê, Herêma Kurdistanê",
+      "close": "Bigire"
     }
   },
   "eventDetail": {
