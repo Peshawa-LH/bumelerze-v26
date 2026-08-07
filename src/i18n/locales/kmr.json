@@ -349,12 +349,20 @@
     "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)",
     "shakemap": {
       "sectionTitle": "ShakeMap",
-      "loading": "ShakeMap tê barkirin…",
-      "unavailableOffline": "ShakeMap bêyî înternetê ne berdest e",
       "updated": "Hate rojanekirin {{time}}",
-      "citation": "ShakeMap: {{network}}, guhertoya {{version}}",
-      "legendCaption": "Tundî (MMI) — pîvana ShakeMap ya USGS",
-      "mapA11yLabel": "Nexşeya tundiya ShakeMap, herî zêde tundî {{level}}"
+      "citation": "ShakeMap: {{producer}}, guhertoya {{version}}",
+      "legendCaption": "Tundî (MMI) — pîvana ShakeMap ya Bumelerze",
+      "mapA11yLabel": "Nexşeya tundiya ShakeMap, herî zêde tundî {{level}}",
+      "dataUsed": {
+        "catalogOnly": "Tenê li ser bingeha katalogê erdhejê yê herêmî",
+        "stationConditioned": "Bi karanîna xwendinên îstasyonên erdhejnasî yên nêzîk hatiye rastkirin",
+        "dyfiConditioned": "Bi karanîna raporên hestkirî yên nêzîk hatiye rastkirin",
+        "stationAndDyfiConditioned": "Bi karanîna îstasyonên erdhejnasî û raporên hestkirî yên nêzîk hatiye rastkirin"
+      },
+      "reviewStatus": {
+        "automatic": "Nexşeya otomatîk — hê ji aliyê zanyarekî ve nehatiye kontrolkirin",
+        "reviewed": "Ji aliyê zanyarekî ve hatiye kontrolkirin"
+      }
     },
     "myReportRow": {
       "reported": "Te asta {{level}} rapor kir",
@@ -375,18 +383,42 @@
       "locationManual": "Cih: {{place}}",
       "changeLocation": "Biguherîne",
       "levels": {
-        "1": { "label": "Nehat hîskirin" },
-        "2": { "label": "Bi zorê hat hîskirin" },
-        "3": { "label": "Lerizîna qels" },
-        "4": { "label": "Ji aliyê gelekan ve hat hîskirin" },
-        "5": { "label": "Lerizîna xurt" },
-        "6": { "label": "Zirara sivik" },
-        "7": { "label": "Zirardar" },
-        "8": { "label": "Zirara giran" },
-        "9": { "label": "Wêranker" },
-        "10": { "label": "Pir wêranker" },
-        "11": { "label": "Wêrankerê mezin" },
-        "12": { "label": "Wêrana bêkêmasî" }
+        "1": {
+          "label": "Nehat hîskirin"
+        },
+        "2": {
+          "label": "Bi zorê hat hîskirin"
+        },
+        "3": {
+          "label": "Lerizîna qels"
+        },
+        "4": {
+          "label": "Ji aliyê gelekan ve hat hîskirin"
+        },
+        "5": {
+          "label": "Lerizîna xurt"
+        },
+        "6": {
+          "label": "Zirara sivik"
+        },
+        "7": {
+          "label": "Zirardar"
+        },
+        "8": {
+          "label": "Zirara giran"
+        },
+        "9": {
+          "label": "Wêranker"
+        },
+        "10": {
+          "label": "Pir wêranker"
+        },
+        "11": {
+          "label": "Wêrankerê mezin"
+        },
+        "12": {
+          "label": "Wêrana bêkêmasî"
+        }
       },
       "confirmation": {
         "title": "Spas",

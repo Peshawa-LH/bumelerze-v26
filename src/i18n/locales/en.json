@@ -349,12 +349,20 @@
     "sourceCitation": "Event data: {{network}} (via FDSN web service)",
     "shakemap": {
       "sectionTitle": "ShakeMap",
-      "loading": "Loading ShakeMap…",
-      "unavailableOffline": "ShakeMap unavailable offline",
       "updated": "Updated {{time}}",
-      "citation": "ShakeMap: {{network}}, version {{version}}",
-      "legendCaption": "Intensity (MMI) — USGS ShakeMap scale",
-      "mapA11yLabel": "ShakeMap intensity map, maximum intensity {{level}}"
+      "citation": "ShakeMap: {{producer}}, version {{version}}",
+      "legendCaption": "Intensity (MMI) — Bumelerze ShakeMap scale",
+      "mapA11yLabel": "ShakeMap intensity map, maximum intensity {{level}}",
+      "dataUsed": {
+        "catalogOnly": "Based on the regional earthquake catalog only",
+        "stationConditioned": "Adjusted using nearby seismic station readings",
+        "dyfiConditioned": "Adjusted using nearby felt reports",
+        "stationAndDyfiConditioned": "Adjusted using nearby seismic stations and felt reports"
+      },
+      "reviewStatus": {
+        "automatic": "Automatic map — not yet reviewed by a scientist",
+        "reviewed": "Reviewed by a scientist"
+      }
     },
     "myReportRow": {
       "reported": "You reported level {{level}}",
@@ -375,18 +383,42 @@
       "locationManual": "Location: {{place}}",
       "changeLocation": "Change",
       "levels": {
-        "1": { "label": "Not felt" },
-        "2": { "label": "Barely felt" },
-        "3": { "label": "Weak shaking" },
-        "4": { "label": "Felt by many" },
-        "5": { "label": "Strong shaking" },
-        "6": { "label": "Light damage" },
-        "7": { "label": "Damaging" },
-        "8": { "label": "Heavy damage" },
-        "9": { "label": "Destructive" },
-        "10": { "label": "Very destructive" },
-        "11": { "label": "Devastating" },
-        "12": { "label": "Total destruction" }
+        "1": {
+          "label": "Not felt"
+        },
+        "2": {
+          "label": "Barely felt"
+        },
+        "3": {
+          "label": "Weak shaking"
+        },
+        "4": {
+          "label": "Felt by many"
+        },
+        "5": {
+          "label": "Strong shaking"
+        },
+        "6": {
+          "label": "Light damage"
+        },
+        "7": {
+          "label": "Damaging"
+        },
+        "8": {
+          "label": "Heavy damage"
+        },
+        "9": {
+          "label": "Destructive"
+        },
+        "10": {
+          "label": "Very destructive"
+        },
+        "11": {
+          "label": "Devastating"
+        },
+        "12": {
+          "label": "Total destruction"
+        }
       },
       "confirmation": {
         "title": "Thank you",

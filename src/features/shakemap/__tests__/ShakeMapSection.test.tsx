@@ -6,7 +6,7 @@ import halabjaContours from "../__fixtures__/us2000bmcg/cont_mi.trimmed.json";
 import { parseIntensityContours } from "../contours";
 import { ShakeMapSection } from "../components/ShakeMapSection";
 import { useShakeMap } from "../queries";
-import type { ShakeMapProduct } from "../types";
+import type { AtlasBundleEntry } from "../types";
 
 jest.mock("../queries", () => ({
   useShakeMap: jest.fn(),
@@ -33,13 +33,18 @@ const HALABJA_EVENT: Event = {
   url: "",
 };
 
-const FAKE_PRODUCT: ShakeMapProduct = {
-  network: "ATLAS",
-  version: 1,
-  updateTime: 1594400092790,
-  contoursUrl: "https://example.com/cont_mi.json",
-  infoUrl: null,
-};
+function fakeProduct(overrides: Partial<AtlasBundleEntry> = {}): AtlasBundleEntry {
+  return {
+    eventId: "us2000bmcg",
+    producer: "bumelerze",
+    version: 1,
+    reviewStatus: "automatic",
+    dataUsedSummaryKey: "dyfiConditioned",
+    generatedAt: "2026-08-07T00:00:00.000Z",
+    contours: halabjaContours,
+    ...overrides,
+  };
+}
 
 describe("ShakeMapSection", () => {
   beforeEach(() => {
@@ -57,38 +62,11 @@ describe("ShakeMapSection", () => {
     expect(toJSON()).toBeNull();
   });
 
-  it("shows a loading line (with section title) while the lookup is pending", async () => {
-    mockedUseShakeMap.mockReturnValue({
-      status: "loading",
-      product: null,
-      contours: null,
-    });
-
-    await render(<ShakeMapSection event={HALABJA_EVENT} />);
-
-    expect(screen.getByText(i18n.t("eventDetail.shakemap.sectionTitle"))).toBeTruthy();
-    expect(screen.getByText(i18n.t("eventDetail.shakemap.loading"))).toBeTruthy();
-  });
-
-  it("shows the offline notice when the lookup failed (never a blank/error)", async () => {
-    mockedUseShakeMap.mockReturnValue({
-      status: "unavailableOffline",
-      product: null,
-      contours: null,
-    });
-
-    await render(<ShakeMapSection event={HALABJA_EVENT} />);
-
-    expect(
-      screen.getByText(i18n.t("eventDetail.shakemap.unavailableOffline")),
-    ).toBeTruthy();
-  });
-
-  it("renders the map + version/updated + citation line when a product is ready", async () => {
+  it("renders the map + version/updated + producer citation when a bundled product is ready", async () => {
     const contours = parseIntensityContours(halabjaContours);
     mockedUseShakeMap.mockReturnValue({
       status: "ready",
-      product: FAKE_PRODUCT,
+      product: fakeProduct(),
       contours,
     });
 
@@ -97,8 +75,77 @@ describe("ShakeMapSection", () => {
     expect(screen.getByText(i18n.t("eventDetail.shakemap.sectionTitle"))).toBeTruthy();
     expect(
       screen.getByText(
-        i18n.t("eventDetail.shakemap.citation", { network: "ATLAS", version: "1" }),
+        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "1" }),
       ),
     ).toBeTruthy();
+  });
+
+  it("never cites USGS as the producer — always Bumelerze (D21)", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    mockedUseShakeMap.mockReturnValue({
+      status: "ready",
+      product: fakeProduct(),
+      contours,
+    });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    expect(screen.queryByText(/USGS/)).toBeNull();
+  });
+
+  it("shows the data-used summary line matching the bundled product's dataUsedSummaryKey", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    mockedUseShakeMap.mockReturnValue({
+      status: "ready",
+      product: fakeProduct({ dataUsedSummaryKey: "stationAndDyfiConditioned" }),
+      contours,
+    });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    expect(
+      screen.getByText(i18n.t("eventDetail.shakemap.dataUsed.stationAndDyfiConditioned")),
+    ).toBeTruthy();
+  });
+
+  it("shows the automatic review-status badge text by default", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    mockedUseShakeMap.mockReturnValue({
+      status: "ready",
+      product: fakeProduct({ reviewStatus: "automatic" }),
+      contours,
+    });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    expect(
+      screen.getByText(i18n.t("eventDetail.shakemap.reviewStatus.automatic")),
+    ).toBeTruthy();
+  });
+
+  it("shows the reviewed badge text when the product has been scientist-reviewed", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    mockedUseShakeMap.mockReturnValue({
+      status: "ready",
+      product: fakeProduct({ reviewStatus: "reviewed" }),
+      contours,
+    });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    expect(
+      screen.getByText(i18n.t("eventDetail.shakemap.reviewStatus.reviewed")),
+    ).toBeTruthy();
+  });
+
+  it("renders nothing if the mocked hook reports ready but omits product/contours (defensive guard)", async () => {
+    mockedUseShakeMap.mockReturnValue({
+      status: "ready",
+      product: null,
+      contours: null,
+    });
+
+    const { toJSON } = await render(<ShakeMapSection event={HALABJA_EVENT} />);
+    expect(toJSON()).toBeNull();
   });
 });
