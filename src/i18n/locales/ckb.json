@@ -395,11 +395,11 @@
     "sourceUpdated": "نوێکراوەتەوە لە {{time}}",
     "sourceCitation": "داتای ڕووداو: {{network}} (لە ڕێگەی خزمەتگوزاری FDSN)",
     "shakemap": {
-      "sectionTitle": "شەیک مەپ (SHAKEmap)",
+      "sectionTitle": "نەخشەی لەرزین",
       "updated": "نوێکراوەتەوە لە {{time}}",
-      "citation": "شەیک مەپ: {{producer}}، وەشانی {{version}}",
-      "legendCaption": "توندی (IMS-25) — پێوەری شەیک مەپی Bumelerze",
-      "mapA11yLabel": "نەخشەی توندی شەیک مەپ، بەرزترین توندی {{level}}، نزیک {{place}}",
+      "citation": "نەخشەی لەرزین: {{producer}}، وەشانی {{version}}",
+      "legendCaption": "توندی (IMS-25) — پێوەری نەخشەی لەرزینی Bumelerze",
+      "mapA11yLabel": "نەخشەی لەرزین، بەرزترین توندی {{level}}، نزیک {{place}}",
       "dataUsed": {
         "catalogOnly": "تەنها لەسەر بنەمای کاتالۆگی بومەلەرزەی ناوچەکە",
         "stationConditioned": "بە بەکارهێنانی خوێندنەوەی ئیستەشنە بومەلەرزەناسییەکانی نزیک ڕاستکراوەتەوە",
