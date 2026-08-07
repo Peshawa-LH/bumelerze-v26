@@ -351,7 +351,7 @@
       "sectionTitle": "ShakeMap",
       "updated": "Updated {{time}}",
       "citation": "ShakeMap: {{producer}}, version {{version}}",
-      "legendCaption": "Intensity (MMI) — Bumelerze ShakeMap scale",
+      "legendCaption": "Intensity (IMS-25) — Bumelerze ShakeMap scale",
       "mapA11yLabel": "ShakeMap intensity map, maximum intensity {{level}}",
       "dataUsed": {
         "catalogOnly": "Based on the regional earthquake catalog only",

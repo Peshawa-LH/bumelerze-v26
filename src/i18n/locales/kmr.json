@@ -351,7 +351,7 @@
       "sectionTitle": "ShakeMap",
       "updated": "Hate rojanekirin {{time}}",
       "citation": "ShakeMap: {{producer}}, guhertoya {{version}}",
-      "legendCaption": "Tundî (MMI) — pîvana ShakeMap ya Bumelerze",
+      "legendCaption": "Tundî (IMS-25) — pîvana ShakeMap ya Bumelerze",
       "mapA11yLabel": "Nexşeya tundiya ShakeMap, herî zêde tundî {{level}}",
       "dataUsed": {
         "catalogOnly": "Tenê li ser bingeha katalogê erdhejê yê herêmî",

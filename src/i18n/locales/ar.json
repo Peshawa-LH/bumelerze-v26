@@ -351,7 +351,7 @@
       "sectionTitle": "خريطة الاهتزاز (ShakeMap)",
       "updated": "آخر تحديث {{time}}",
       "citation": "خريطة الاهتزاز: {{producer}}، الإصدار {{version}}",
-      "legendCaption": "الشدة (MMI) — مقياس خريطة الاهتزاز الخاص بـ Bumelerze",
+      "legendCaption": "الشدة (IMS-25) — مقياس خريطة الاهتزاز الخاص بـ Bumelerze",
       "mapA11yLabel": "خريطة شدة الاهتزاز، أقصى شدة {{level}}",
       "dataUsed": {
         "catalogOnly": "استنادًا إلى فهرس الزلازل الإقليمي فقط",
