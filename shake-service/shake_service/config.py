@@ -273,12 +273,18 @@ OPENQUAKE_PIN: str = "openquake.engine==3.26.2"
 # `conditioned_forward.condition_forward_map_on_dyfi` skips conditioning for
 # that IMT and publishes the bare (unconditioned) prior instead, recording
 # a metadata note that observations existed but were below the floor.
-# PROPOSED default (engineering, D14 pattern), NOT yet confirmed by Peshawa --
-# `us1000hwdw` (Mw 6.3) conditioned on N=5 flipped an already-passing bare
-# prior's PGA bias into a narrow conditioned FAIL (validation/SUMMARY.md
-# "small-N conditioning instability"; decisions.md D20 checkpoint condition
-# 3 note, 2026-08-07). This constant post-dates every currently-committed
-# validation run -- see validation/SUMMARY.md's floor-postdate note before
-# comparing any NEW run's `data_used["conditioning_applied"]` against the
-# committed reports.
-MIN_CONDITIONING_OBSERVATIONS: int = 10
+# CONFIRMED by Peshawa (2026-08-08 science touchpoint, replacing the earlier
+# proposed hard n>=10 floor): the soft-transition variant. Below
+# MIN_CONDITIONING_OBSERVATIONS the bare prior is published (unchanged
+# behavior); in the band [MIN_CONDITIONING_OBSERVATIONS,
+# SMALL_N_SIGMA_INFLATION_THRESHOLD) conditioning ENGAGES but with every
+# observation's sigma_obs multiplied by SMALL_N_SIGMA_INFLATION_FACTOR, so a
+# handful of observations pull the field gently instead of flipping it --
+# the `us1000hwdw` N=5 instability (validation/SUMMARY.md; decisions.md D20
+# checkpoint condition 3 note, 2026-08-07). These constants post-date every
+# currently-committed validation run -- see validation/SUMMARY.md's
+# floor-postdate note before comparing any NEW run's
+# `data_used["conditioning_applied"]` against the committed reports.
+MIN_CONDITIONING_OBSERVATIONS: int = 5
+SMALL_N_SIGMA_INFLATION_THRESHOLD: int = 10
+SMALL_N_SIGMA_INFLATION_FACTOR: float = 2.0

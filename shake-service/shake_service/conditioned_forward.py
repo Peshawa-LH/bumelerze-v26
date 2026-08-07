@@ -84,6 +84,8 @@ def condition_forward_map_on_dyfi(
     ems_model: str = gmice.DEFAULT_EMS_MODEL,
     mmi_model: str = gmice.DEFAULT_MMI_MODEL,
     min_conditioning_observations: int = config.MIN_CONDITIONING_OBSERVATIONS,
+    small_n_sigma_inflation_threshold: int = config.SMALL_N_SIGMA_INFLATION_THRESHOLD,
+    small_n_sigma_inflation_factor: float = config.SMALL_N_SIGMA_INFLATION_FACTOR,
 ) -> ConditionedForwardMapResult:
     """Condition `fm`'s PGA and PGV fields (independently — `mvn.py` is
     single-IMT) on `observations_pga`/`observations_pgv`, then rebuild the
@@ -140,6 +142,57 @@ def condition_forward_map_on_dyfi(
     # available on the returned result even when floored.
     pga_floored = cond_pga.n_conditioning < min_conditioning_observations
     pgv_floored = cond_pgv.n_conditioning < min_conditioning_observations
+
+    # Small-N SOFT TRANSITION (Peshawa's 2026-08-08 touchpoint ruling,
+    # replacing the earlier hard n>=10 proposal): in the band
+    # [floor, inflation_threshold), conditioning engages but every
+    # observation's sigma_obs is inflated by the configured factor, so a
+    # handful of observations pull the field gently instead of flipping it
+    # (the us1000hwdw N=5 instability). Re-run per IMT with inflated
+    # observation sigmas; counts are unchanged by inflation, so the floored
+    # flags above remain valid.
+    def _inflated(
+        observations: Sequence[mvn.StationObservation],
+    ) -> list[mvn.StationObservation]:
+        return [
+            dataclasses.replace(
+                obs, sigma_obs=obs.sigma_obs * small_n_sigma_inflation_factor
+            )
+            for obs in observations
+        ]
+
+    pga_sigma_inflated = (
+        not pga_floored and cond_pga.n_conditioning < small_n_sigma_inflation_threshold
+    )
+    if pga_sigma_inflated:
+        cond_pga = mvn.condition_forward_map(
+            event_lat=event_lat, event_lon=event_lon, event_depth_km=event_depth_km, mag_mw=mag_mw,
+            imt="PGA",
+            lon_grid=lon_grid, lat_grid=lat_grid,
+            mu_prior_grid_ln=np.log(np.asarray(fm.pga.mean, dtype=float)).ravel(),
+            tau_grid=np.asarray(fm.pga.tau_ln, dtype=float).ravel(),
+            phi_grid=np.asarray(fm.pga.phi_ln, dtype=float).ravel(),
+            sigma_model_grid=np.asarray(fm.pga.sigma_model_ln, dtype=float).ravel(),
+            observations=_inflated(observations_pga),
+            vs30_sampler=vs30_sampler,
+            correlation_model=correlation_model, correlation_params=correlation_params,
+        )
+    pgv_sigma_inflated = (
+        not pgv_floored and cond_pgv.n_conditioning < small_n_sigma_inflation_threshold
+    )
+    if pgv_sigma_inflated:
+        cond_pgv = mvn.condition_forward_map(
+            event_lat=event_lat, event_lon=event_lon, event_depth_km=event_depth_km, mag_mw=mag_mw,
+            imt="PGV",
+            lon_grid=lon_grid, lat_grid=lat_grid,
+            mu_prior_grid_ln=np.log(np.asarray(fm.pgv.mean, dtype=float)).ravel(),
+            tau_grid=np.asarray(fm.pgv.tau_ln, dtype=float).ravel(),
+            phi_grid=np.asarray(fm.pgv.phi_ln, dtype=float).ravel(),
+            sigma_model_grid=np.asarray(fm.pgv.sigma_model_ln, dtype=float).ravel(),
+            observations=_inflated(observations_pgv),
+            vs30_sampler=vs30_sampler,
+            correlation_model=correlation_model, correlation_params=correlation_params,
+        )
 
     if pga_floored:
         pga_mean_ln = np.log(np.asarray(fm.pga.mean, dtype=float)).ravel()
@@ -235,6 +288,17 @@ def condition_forward_map_on_dyfi(
             f"PGV: {cond_pgv.n_conditioning} in-domain observation(s) available, below the "
             f"conditioning floor of {min_conditioning_observations} -- bare prior published for this channel"
         )
+    for imt_name, inflated, cond in (
+        ("PGA", pga_sigma_inflated, cond_pga),
+        ("PGV", pgv_sigma_inflated, cond_pgv),
+    ):
+        if inflated:
+            floor_notes.append(
+                f"{imt_name}: {cond.n_conditioning} observation(s) in the small-N band "
+                f"[{min_conditioning_observations}, {small_n_sigma_inflation_threshold}) -- "
+                f"conditioned with observation sigma inflated x{small_n_sigma_inflation_factor:g} "
+                "(soft transition, Peshawa 2026-08-08)"
+            )
 
     conditioned_fm = dataclasses.replace(
         fm,
@@ -253,6 +317,12 @@ def condition_forward_map_on_dyfi(
             "conditioning_applied": {"PGA": not pga_floored, "PGV": not pgv_floored},
             "conditioning_floor": min_conditioning_observations,
             "conditioning_floor_notes": floor_notes,
+            "small_n_sigma_inflation": {
+                "PGA": pga_sigma_inflated,
+                "PGV": pgv_sigma_inflated,
+                "threshold": small_n_sigma_inflation_threshold,
+                "factor": small_n_sigma_inflation_factor,
+            },
         },
         version={
             **fm.version,

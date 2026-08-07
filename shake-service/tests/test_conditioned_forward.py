@@ -234,7 +234,52 @@ def test_below_floor_publishes_bare_prior_with_metadata_note():
 
     prior_pga_ln = float(np.log(fm.pga.mean[near_idx]))
     prior_pgv_ln = float(np.log(fm.pgv.mean[near_idx]))
-    # 9 observations -- one short of the default floor (10).
+    # 4 observations -- one short of the confirmed floor (5; Peshawa's
+    # 2026-08-08 soft-transition ruling replaced the earlier proposed 10).
+    obs_pga = _n_synthetic_observations(4, lon=station_lon, lat=station_lat, value_ln=prior_pga_ln + 1.0)
+    obs_pgv = _n_synthetic_observations(4, lon=station_lon, lat=station_lat, value_ln=prior_pgv_ln + 1.0)
+
+    result = conditioned_forward.condition_forward_map_on_dyfi(
+        fm, event_lat=EVENT_LAT, event_lon=EVENT_LON, event_depth_km=EVENT_DEPTH_KM, mag_mw=MAG_MW,
+        observations_pga=obs_pga, observations_pgv=obs_pgv,
+    )
+    cond_fm = result.forward_map
+
+    # Bare prior published: the map is numerically IDENTICAL to the
+    # unconditioned forward map, even though 4 real observations were fed
+    # in and diagnostics for them exist.
+    assert np.array_equal(cond_fm.pga.mean, fm.pga.mean)
+    assert np.array_equal(cond_fm.pgv.mean, fm.pgv.mean)
+    assert cond_fm.ems.mean == pytest.approx(fm.ems.mean, rel=1e-10)
+
+    # Diagnostics still available for audit (mvn.condition_forward_map was
+    # still called) -- 4 observations really were conditioned internally,
+    # just not used to build the published channel.
+    assert result.pga.n_conditioning == 4
+    assert result.pgv.n_conditioning == 4
+
+    # Metadata note: observations existed but were below the floor -- never
+    # silently indistinguishable from "no observations at all".
+    assert cond_fm.data_used["n_observations"] == {"PGA": 4, "PGV": 4}
+    assert cond_fm.data_used["conditioning_applied"] == {"PGA": False, "PGV": False}
+    assert cond_fm.data_used["conditioning_floor"] == 5
+    notes = cond_fm.data_used["conditioning_floor_notes"]
+    assert any("PGA" in n and "4" in n and "below" in n for n in notes)
+    assert any("PGV" in n and "4" in n and "below" in n for n in notes)
+
+
+def test_small_n_band_conditions_with_inflated_sigma():
+    """Peshawa's 2026-08-08 ruling: in the band [5, 10) conditioning ENGAGES
+    (map differs from the bare prior) but with observation sigma inflated
+    x2, so the pull is gentler than the same observations at full weight."""
+    fm = _small_forward_map()
+    shape = fm.grid_meta["shape"]
+    dist_from_event = np.hypot(fm.lon2d - EVENT_LON, fm.lat2d - EVENT_LAT)
+    near_idx = np.unravel_index(np.argmin(dist_from_event), shape)
+    station_lon = float(fm.lon2d[near_idx])
+    station_lat = float(fm.lat2d[near_idx])
+    prior_pga_ln = float(np.log(fm.pga.mean[near_idx]))
+    prior_pgv_ln = float(np.log(fm.pgv.mean[near_idx]))
     obs_pga = _n_synthetic_observations(9, lon=station_lon, lat=station_lat, value_ln=prior_pga_ln + 1.0)
     obs_pgv = _n_synthetic_observations(9, lon=station_lon, lat=station_lat, value_ln=prior_pgv_ln + 1.0)
 
@@ -244,27 +289,27 @@ def test_below_floor_publishes_bare_prior_with_metadata_note():
     )
     cond_fm = result.forward_map
 
-    # Bare prior published: the map is numerically IDENTICAL to the
-    # unconditioned forward map, even though 9 real observations were fed
-    # in and diagnostics for them exist.
-    assert np.array_equal(cond_fm.pga.mean, fm.pga.mean)
-    assert np.array_equal(cond_fm.pgv.mean, fm.pgv.mean)
-    assert cond_fm.ems.mean == pytest.approx(fm.ems.mean, rel=1e-10)
-
-    # Diagnostics still available for audit (mvn.condition_forward_map was
-    # still called) -- 9 observations really were conditioned internally,
-    # just not used to build the published channel.
-    assert result.pga.n_conditioning == 9
-    assert result.pgv.n_conditioning == 9
-
-    # Metadata note: observations existed but were below the floor -- never
-    # silently indistinguishable from "no observations at all".
-    assert cond_fm.data_used["n_observations"] == {"PGA": 9, "PGV": 9}
-    assert cond_fm.data_used["conditioning_applied"] == {"PGA": False, "PGV": False}
-    assert cond_fm.data_used["conditioning_floor"] == 10
+    # Conditioning engaged: published map is NOT the bare prior...
+    assert not np.array_equal(cond_fm.pga.mean, fm.pga.mean)
+    assert cond_fm.data_used["conditioning_applied"] == {"PGA": True, "PGV": True}
+    # ...and the inflation is disclosed in metadata.
+    inflation = cond_fm.data_used["small_n_sigma_inflation"]
+    assert inflation["PGA"] is True and inflation["PGV"] is True
+    assert inflation["factor"] == pytest.approx(2.0)
     notes = cond_fm.data_used["conditioning_floor_notes"]
-    assert any("PGA" in n and "9" in n and "below" in n for n in notes)
-    assert any("PGV" in n and "9" in n and "below" in n for n in notes)
+    assert any("sigma inflated" in n and "PGA" in n for n in notes)
+
+    # Gentler than full-weight conditioning: the pull toward the (+1.0 ln)
+    # observations at the station cell is strictly smaller than the same
+    # 9 observations conditioned WITHOUT inflation (threshold disabled).
+    full = conditioned_forward.condition_forward_map_on_dyfi(
+        fm, event_lat=EVENT_LAT, event_lon=EVENT_LON, event_depth_km=EVENT_DEPTH_KM, mag_mw=MAG_MW,
+        observations_pga=obs_pga, observations_pgv=obs_pgv,
+        small_n_sigma_inflation_threshold=0,
+    )
+    pull_soft = float(np.log(cond_fm.pga.mean[near_idx])) - prior_pga_ln
+    pull_full = float(np.log(full.forward_map.pga.mean[near_idx])) - prior_pga_ln
+    assert 0.0 < pull_soft < pull_full
 
 
 def test_at_floor_conditions_normally():
