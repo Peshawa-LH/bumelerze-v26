@@ -1,7 +1,9 @@
 export {
+  NOTIFICATION_TIERS,
   ONBOARDING_STEPS,
   usePrefsStore,
   type HomeBasePreference,
+  type NotificationTier,
   type OnboardingStepId,
   type PrefsState,
 } from "./store";

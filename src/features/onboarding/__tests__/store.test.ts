@@ -43,6 +43,59 @@ describe("usePrefsStore hydration", () => {
     expect(state.onboardingCompleted).toBe(false);
     expect(state.onboardingStep).toBe("mission");
     expect(state.homeBase).toBeNull();
+    // Phase 4 defaults (wave brief point 1): near-me alerts on at M3+ by
+    // default; HomeBase alerts off by default since no HomeBase is set yet.
+    expect(state.nearMeTier).toBe("m3");
+    expect(state.homeBaseTier).toBe("off");
+  });
+
+  it("defaults homeBaseTier to 'all' on upgrade for an install that already had a HomeBase persisted before Phase 4 added tier fields", async () => {
+    const AsyncStorage = loadAsyncStorage();
+    await AsyncStorage.setItem(
+      "bumelerze.prefs",
+      JSON.stringify({
+        state: {
+          onboardingCompleted: true,
+          onboardingStep: "done",
+          homeBase: { townId: "erbil", lat: 36.19, lon: 44.01 },
+          // Deliberately no nearMeTier/homeBaseTier keys — simulates a
+          // pre-Phase-4 persisted blob.
+        },
+        version: 0,
+      }),
+    );
+
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    const state = usePrefsStore.getState();
+    expect(state.homeBase).toEqual({ townId: "erbil", lat: 36.19, lon: 44.01 });
+    expect(state.homeBaseTier).toBe("all");
+    expect(state.nearMeTier).toBe("m3");
+  });
+
+  it("preserves an already-persisted tier choice across hydration (does not re-derive it)", async () => {
+    const AsyncStorage = loadAsyncStorage();
+    await AsyncStorage.setItem(
+      "bumelerze.prefs",
+      JSON.stringify({
+        state: {
+          onboardingCompleted: true,
+          onboardingStep: "done",
+          homeBase: { townId: "erbil", lat: 36.19, lon: 44.01 },
+          nearMeTier: "off",
+          homeBaseTier: "m5",
+        },
+        version: 0,
+      }),
+    );
+
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    const state = usePrefsStore.getState();
+    expect(state.nearMeTier).toBe("off");
+    expect(state.homeBaseTier).toBe("m5");
   });
 
   it("gates on hasHydrated before reading real persisted values (no-flicker requirement)", async () => {
@@ -109,6 +162,41 @@ describe("usePrefsStore actions", () => {
 
     usePrefsStore.getState().setHomeBase(null);
     expect(usePrefsStore.getState().homeBase).toBeNull();
+  });
+
+  it("setNearMeTier and setHomeBaseTier update their own tier independently", async () => {
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    usePrefsStore.getState().setNearMeTier("m5");
+    expect(usePrefsStore.getState().nearMeTier).toBe("m5");
+    expect(usePrefsStore.getState().homeBaseTier).toBe("off");
+
+    usePrefsStore.getState().setHomeBaseTier("all");
+    expect(usePrefsStore.getState().homeBaseTier).toBe("all");
+    expect(usePrefsStore.getState().nearMeTier).toBe("m5");
+  });
+
+  it("setHomeBase defaults homeBaseTier to 'all' the first time a town is set, but leaves a customized tier alone when switching towns", async () => {
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    expect(usePrefsStore.getState().homeBaseTier).toBe("off");
+
+    usePrefsStore.getState().setHomeBase({ townId: "erbil", lat: 36.19, lon: 44.01 });
+    expect(usePrefsStore.getState().homeBaseTier).toBe("all");
+
+    // User customizes the tier after HomeBase is already set.
+    usePrefsStore.getState().setHomeBaseTier("m4");
+    expect(usePrefsStore.getState().homeBaseTier).toBe("m4");
+
+    // Switching to a different town keeps the customized tier.
+    usePrefsStore.getState().setHomeBase({ townId: "duhok", lat: 36.87, lon: 42.99 });
+    expect(usePrefsStore.getState().homeBaseTier).toBe("m4");
+
+    // Clearing HomeBase resets the tier to off (nothing left to evaluate).
+    usePrefsStore.getState().setHomeBase(null);
+    expect(usePrefsStore.getState().homeBaseTier).toBe("off");
   });
 
   it("resetOnboarding (Settings' 'replay onboarding') clears completion and rewinds the step", async () => {
