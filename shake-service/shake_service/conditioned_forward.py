@@ -240,6 +240,13 @@ def condition_forward_map_on_dyfi(
         fm,
         pga=pga_channel, pgv=pgv_channel, ems=ems_channel, mmi=mmi_channel,
         data_used={
+            # Merged (not replaced) so upstream provenance set by
+            # forward.build_forward_map — D22's "distance_method"/
+            # "rupture_quads_used" — survives conditioning rather than
+            # being silently dropped; the keys below (source/channels/
+            # n_observations/...) still take precedence, unchanged from
+            # before this merge (this module owns them, same as always).
+            **fm.data_used,
             "source": "catalog+dyfi",
             "channels": ("PGA", "PGV"),
             "n_observations": {"PGA": cond_pga.n_conditioning, "PGV": cond_pgv.n_conditioning},

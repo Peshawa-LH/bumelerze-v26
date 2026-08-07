@@ -217,6 +217,28 @@ def _dyfi_geo_text(*, lon, lat, dist=2.0, nresp=5, cdi=6.0):
     })
 
 
+def _rupture_json_text(*, lon, lat):
+    d = 0.05  # ~5.5 km at this latitude -- comfortably inside the tiny 10 km-half-extent test grid
+    return _json.dumps({
+        "metadata": {"mag": 4.0, "depth": 10.0, "rake": 0.0, "mech": "ALL", "reference": "test"},
+        "features": [{
+            "type": "Feature",
+            "properties": {"rupture type": "rupture extent"},
+            "geometry": {
+                "type": "MultiPolygon",
+                "coordinates": [[[
+                    [lon - d, lat - d, 5.0],
+                    [lon - d, lat + d, 5.0],
+                    [lon + d, lat + d, 15.0],
+                    [lon + d, lat - d, 15.0],
+                    [lon - d, lat - d, 5.0],
+                ]]],
+            },
+        }],
+        "type": "FeatureCollection",
+    })
+
+
 def _counting_fetcher(products: usgs_products.UsgsEventProducts):
     calls = []
 
@@ -373,3 +395,115 @@ def test_upload_records_carry_automatic_review_status(tmp_path):
     decision = _new_decision()
     result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader)
     assert all(r.review_status == "automatic" for r in result.upload_records)
+
+
+# ---------------------------------------------------------------------------
+# D22: rupture.json wiring — finite-fault distance method selection
+# ---------------------------------------------------------------------------
+
+
+def test_rupture_model_available_selects_finite_fault_distance_method(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision(lat=35.5, lon=45.0)
+    products = usgs_products.UsgsEventProducts(
+        event_id="us_pipe_1", rupture_available=True, rupture_json_text=_rupture_json_text(lon=45.0, lat=35.5),
+    )
+    fetch, _ = _counting_fetcher(products)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    info = _json.loads((tmp_path / "us_pipe_1" / "v1" / "info.json").read_text())
+    assert info["data_used"]["distance_method"] == "finite-fault"
+    assert info["data_used"]["rupture_quads_used"] == 1
+    assert info["data_used"]["usgs_rupture_available"] is True
+    assert result.recomputed is True
+
+
+def test_no_rupture_model_keeps_ps2ff_distance_method(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision()
+    products = usgs_products.UsgsEventProducts(event_id="us_pipe_1")
+    fetch, _ = _counting_fetcher(products)
+
+    run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    info = _json.loads((tmp_path / "us_pipe_1" / "v1" / "info.json").read_text())
+    assert info["data_used"]["distance_method"] == "ps2ff"
+    assert info["data_used"]["rupture_quads_used"] == 0
+    assert info["data_used"]["usgs_rupture_available"] is False
+
+
+def test_malformed_rupture_json_does_not_abort_the_recompute(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision()
+    products = usgs_products.UsgsEventProducts(
+        event_id="us_pipe_1", rupture_available=True, rupture_json_text="{not valid json",
+    )
+    fetch, _ = _counting_fetcher(products)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    assert result.recomputed is True
+    info = _json.loads((tmp_path / "us_pipe_1" / "v1" / "info.json").read_text())
+    assert info["data_used"]["distance_method"] == "ps2ff"
+
+
+def test_finite_fault_distance_method_survives_conditioning(tmp_path):
+    # D22: conditioned_forward.py must MERGE, not replace, data_used --
+    # distance_method/rupture_quads_used must still be present after
+    # station+DYFI conditioning is applied on top of a finite-fault prior.
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    decision = _new_decision(lat=35.5, lon=45.0)
+    products = usgs_products.UsgsEventProducts(
+        event_id="us_pipe_1",
+        rupture_available=True, rupture_json_text=_rupture_json_text(lon=45.0, lat=35.5),
+        stationlist_text=_stationlist_text(lon=45.0, lat=35.5),
+        dyfi_available=True, dyfi_geo_10km_text=_dyfi_geo_text(lon=45.0, lat=35.5),
+    )
+    fetch, _ = _counting_fetcher(products)
+
+    run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, usgs_products_fetcher=fetch)
+
+    info = _json.loads((tmp_path / "us_pipe_1" / "v1" / "info.json").read_text())
+    assert info["data_used"]["source"] == "catalog+dyfi"  # conditioning did run
+    assert info["data_used"]["distance_method"] == "finite-fault"  # and survived it
+    assert info["data_used"]["rupture_quads_used"] == 1
+
+
+# ---------------------------------------------------------------------------
+# D22: force= bypasses the params-hash short circuit
+# ---------------------------------------------------------------------------
+
+
+def test_force_bumps_version_even_with_unchanged_params(tmp_path):
+    ws = WorkerState()
+    uploader, calls = _uploader()
+    decision = _new_decision()
+    run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader, force=True)
+
+    assert result.recomputed is True
+    assert result.version == 2
+    v1_dir = tmp_path / "us_pipe_1" / "v1"
+    v2_dir = tmp_path / "us_pipe_1" / "v2"
+    assert v1_dir.exists() and (v1_dir / "info.json").exists()  # old version retained
+    assert v2_dir.exists() and (v2_dir / "info.json").exists()
+    assert len(calls) == 2
+
+
+def test_without_force_unchanged_params_still_short_circuits(tmp_path):
+    ws = WorkerState()
+    uploader, calls = _uploader()
+    decision = _new_decision()
+    run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader)
+
+    result = run_pipeline(decision, ws, products_root=tmp_path, uploader=uploader)  # force defaults False
+
+    assert result.recomputed is False
+    assert result.version == 1
+    assert len(calls) == 1

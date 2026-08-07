@@ -74,6 +74,12 @@ class UsgsEventProducts:
     dyfi_available: bool = False
     dyfi_product_id: str | None = None
     dyfi_geo_10km_text: str | None = None
+    # D22 "use ALL available USGS data" — `rupture.json` is content of the
+    # SAME `shakemap` product as grid.xml/stationlist.json (not a separate
+    # product type), so it shares that product's id; only present for a
+    # finite-fault event.
+    rupture_available: bool = False
+    rupture_json_text: str | None = None
 
 
 def no_usgs_products(event_id: str) -> UsgsEventProducts:
@@ -91,22 +97,25 @@ def fetch_usgs_event_products(
     event_id: str, *, fetch_text: FetchTextFn = default_fetch_text,
 ) -> UsgsEventProducts:
     """Fetch the event detail, then whatever shakemap (`grid.xml` +
-    `stationlist.json`) / dyfi (`dyfi_geo_10km.geojson`) product contents it
-    actually has. Never raises on a missing product — availability is
-    reported via the `*_available` flags, not an error, same convention as
-    `run_validation.fetch_event_inputs`."""
+    `stationlist.json` + D22's `rupture.json`) / dyfi (`dyfi_geo_10km.geojson`)
+    product contents it actually has. Never raises on a missing product —
+    availability is reported via the `*_available` flags, not an error,
+    same convention as `run_validation.fetch_event_inputs`."""
     detail_text = fetch_text(DETAIL_URL, {"eventid": event_id, "format": "geojson"})
     detail = json.loads(detail_text)
 
     shakemap_product = resolve_product(detail, "shakemap", preferred_source="atlas")
     grid_xml_text: str | None = None
     stationlist_text: str | None = None
+    rupture_json_text: str | None = None
     if shakemap_product is not None:
         contents = shakemap_product.get("contents", {})
         if "download/grid.xml" in contents:
             grid_xml_text = fetch_text(contents["download/grid.xml"]["url"])
         if "download/stationlist.json" in contents:
             stationlist_text = fetch_text(contents["download/stationlist.json"]["url"])
+        if "download/rupture.json" in contents:
+            rupture_json_text = fetch_text(contents["download/rupture.json"]["url"])
 
     dyfi_product = resolve_product(detail, "dyfi", preferred_source="us")
     dyfi_geo_10km_text: str | None = None
@@ -124,4 +133,6 @@ def fetch_usgs_event_products(
         dyfi_available=dyfi_geo_10km_text is not None,
         dyfi_product_id=str(dyfi_product.get("id", "")) if dyfi_product else None,
         dyfi_geo_10km_text=dyfi_geo_10km_text,
+        rupture_available=rupture_json_text is not None,
+        rupture_json_text=rupture_json_text,
     )

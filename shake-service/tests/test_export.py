@@ -187,9 +187,18 @@ def test_build_info_product_shape(small_forward_map):
     json.dumps(info)
 
 
+def test_build_info_product_ims25_public_scale_label(small_forward_map):
+    # D22 "IMS-25 as the app's public scale" — a new top-level field,
+    # distinct from (and additive to) the pre-existing internal
+    # `intensity.scale` label.
+    info = export.build_info_product(small_forward_map)
+    assert info["intensity_scale"] == "IMS-25 (EMS-98)"
+
+
 def test_build_info_product_mmi_channel_scale_label(small_forward_map):
     info = export.build_info_product(small_forward_map, contour_channel="mmi")
     assert info["intensity"]["scale"] == "MMI"
+    assert info["intensity_scale"] == "MMI"
 
 
 def test_build_info_product_defaults_to_automatic_review_status(small_forward_map):

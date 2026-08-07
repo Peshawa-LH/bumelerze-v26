@@ -163,13 +163,18 @@ def seed_event(
     atlas_root: Path,
     uploader: LocalOnlyUploader,
     fetch_text: usgs_products.FetchTextFn | None = None,
+    force: bool = False,
 ) -> dict[str, Any]:
     """Seed (or idempotently re-confirm) one curated event. Returns a
     flat, JSON-serializable summary row — never raises on a per-event USGS
     product-availability gap (that is the expected, common case for
     pre-instrumental events; `pipeline.run_pipeline` itself is already
     tolerant of a missing/malformed USGS product). `fetch_text` resolves at
-    CALL time — see `fetch_feed_event`'s docstring."""
+    CALL time — see `fetch_feed_event`'s docstring. `force` (D22): passed
+    straight through to `pipeline.run_pipeline` — bypasses the params-hash
+    short circuit, always producing a new version even for an event whose
+    catalog params haven't changed (the "engine changed, not the event"
+    reseed case — `pipeline.py`'s own `force=` docstring)."""
     fetch_text = fetch_text or usgs_products.default_fetch_text
     event_id = curated["id"]
     feed_event = fetch_feed_event(event_id, fetch_text=fetch_text)
@@ -180,7 +185,7 @@ def seed_event(
         return usgs_products.fetch_usgs_event_products(eid, fetch_text=fetch_text)
 
     result = pipeline.run_pipeline(
-        decision, ws, products_root=atlas_root, uploader=uploader, usgs_products_fetcher=_usgs_fetcher,
+        decision, ws, products_root=atlas_root, uploader=uploader, usgs_products_fetcher=_usgs_fetcher, force=force,
     )
 
     return {
@@ -210,6 +215,11 @@ def main() -> None:
         "--event", action="append", default=None,
         help="seed only this event id (repeatable) — default: every curated event",
     )
+    parser.add_argument(
+        "--force", action="store_true",
+        help="D22: force a new version even for events whose catalog params are unchanged "
+        "(use after an ENGINE change — e.g. a new rupture model wired in — old versions retained)",
+    )
     args = parser.parse_args()
 
     atlas_root = Path(args.atlas_root)
@@ -230,7 +240,7 @@ def main() -> None:
     summary: list[dict[str, Any]] = []
     for curated in curated_events:
         print(f"seeding {curated['id']} ({curated.get('year')}, Mw {curated.get('magnitude')}) ...")
-        row = seed_event(curated, ws, atlas_root=atlas_root, uploader=uploader)
+        row = seed_event(curated, ws, atlas_root=atlas_root, uploader=uploader, force=args.force)
         summary.append(row)
         print(f"  -> v{row['version']} recomputed={row['recomputed']} "
               f"conditioning={row['conditioning_sources']} has_comparison={row['has_comparison']}")

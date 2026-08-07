@@ -31,7 +31,7 @@ import numpy as np
 from openquake.hazardlib import imt as imt_mod
 from openquake.hazardlib.contexts import RuptureContext, get_mean_stds
 
-from shake_service import config, distances, rupture_params
+from shake_service import config, distances, rupture_model, rupture_params
 from shake_service.vs30 import SiteGrid
 
 # The 4 product IMTs (gmpe-set-proposal-v2.md §6.1 example, D20).
@@ -172,6 +172,13 @@ class GMResult:
     per_branch_mean_ln: dict[str, np.ndarray]  # branch key -> (M, N), debug/test use
     extrapolation: ExtrapolationFlags
     in_zagros_polygon: bool
+    # D22 "use ALL available USGS data": which distance source fed the D20
+    # rupture context this mixture was computed against -- "finite-fault"
+    # (rupture_model.py, a real rupture.json existed with >=1 quad) or
+    # "ps2ff" (distances.py's point-source expected-distance fallback,
+    # every event without one). Always set, never left ambiguous.
+    distance_method: str = "ps2ff"
+    rupture_quads_used: int = 0
 
     def imt_index(self, imt_key: str) -> int:
         return self.imt_keys.index(imt_key)
@@ -190,16 +197,39 @@ def compute_mixture(
     event_depth_km: float,
     mag_mw: float,
     site_grid: SiteGrid,
+    *,
+    rupture: rupture_model.RuptureModel | None = None,
 ) -> GMResult:
     """Run the full D20 4-branch tree over a site grid and combine via the
     Option-C mixture. This is the single entry point the rest of the
-    service (and `mvn` conditioning, in a later wave) calls."""
+    service (and `mvn` conditioning, in a later wave) calls.
+
+    `rupture` (D22 "use ALL available USGS data"): an optional parsed
+    `rupture.json` (`rupture_model.py`). When present AND it has at least
+    one quad, its finite-fault Rjb/Rrup REPLACE `distances.expected_rjb_rrup`
+    entirely, and its geometry-derived dip/ztor (+ metadata rake, when a
+    real mechanism is given) REPLACE `rupture_params.py`'s coarse
+    Zagros-polygon point-source defaults (`rupture_model.override_rupture_params`
+    — see that function's own docstring for exactly what does and doesn't
+    get overridden). `None` (the default) or an empty rupture model falls
+    back to the original ps2ff point-source path, unchanged."""
     band = config.magnitude_band(mag_mw)
     weights = config.band_weights(band)
 
     rp = rupture_params.derive_rupture_params(event_lat, event_lon, event_depth_km)
-    repi = distances.repi_km(event_lat, event_lon, site_grid.lats, site_grid.lons)
-    dist_est = distances.expected_rjb_rrup(repi, mag_mw, rp.in_zagros_polygon)
+
+    if rupture is not None and rupture.n_quads > 0:
+        rp = rupture_model.override_rupture_params(rp, rupture)
+        dist_est = rupture_model.finite_fault_distances(
+            rupture, site_lons=site_grid.lons, site_lats=site_grid.lats, ref_lon=event_lon, ref_lat=event_lat,
+        )
+        distance_method = "finite-fault"
+        rupture_quads_used = rupture.n_quads
+    else:
+        repi = distances.repi_km(event_lat, event_lon, site_grid.lats, site_grid.lons)
+        dist_est = distances.expected_rjb_rrup(repi, mag_mw, rp.in_zagros_polygon)
+        distance_method = "ps2ff"
+        rupture_quads_used = 0
 
     ctx = build_rupture_context(mag_mw, rp, site_grid, dist_est)
 
@@ -234,4 +264,6 @@ def compute_mixture(
         per_branch_mean_ln=per_branch_mean,
         extrapolation=extrapolation,
         in_zagros_polygon=rp.in_zagros_polygon,
+        distance_method=distance_method,
+        rupture_quads_used=rupture_quads_used,
     )

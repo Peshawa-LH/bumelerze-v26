@@ -24,7 +24,7 @@ from typing import Any
 
 import numpy as np
 
-from shake_service import config, gmice, gmm, intensity, vs30
+from shake_service import config, gmice, gmm, intensity, rupture_model as rupture_model_mod, vs30
 
 SERVICE_VERSION = "0.1.0"  # shake-service package version (pyproject.toml)
 
@@ -104,6 +104,7 @@ def build_forward_map(
     vs30_sampler: vs30.Vs30Sampler | None = None,
     ems_model: str = gmice.DEFAULT_EMS_MODEL,
     mmi_model: str = gmice.DEFAULT_MMI_MODEL,
+    rupture_model: rupture_model_mod.RuptureModel | None = None,
 ) -> ForwardMap:
     """Build the un-conditioned forward map for one event.
 
@@ -118,6 +119,13 @@ def build_forward_map(
             explicitly to force the fallback regardless of environment.
         ems_model / mmi_model: `gmice` model names for the two intensity
             channels (defaults: Zanini & Hofer 2019 / Worden et al. 2012).
+        rupture_model: an optional parsed `rupture.json`
+            (`rupture_model.py`, D22 "use ALL available USGS data") —
+            passed straight through to `gmm.compute_mixture`, which
+            switches the D20 distance context from ps2ff to finite-fault
+            when it has at least one quad (see that function's docstring).
+            `data_used["distance_method"]`/`["rupture_quads_used"]` always
+            record which path was actually used.
     """
     band = config.magnitude_band(mag_mw)
     half_extent_km = config.grid_extent_km(band)
@@ -144,7 +152,9 @@ def build_forward_map(
             f"has drifted from vs30.build_grid_km_spacing's own formula."
         )
 
-    gm = gmm.compute_mixture(event_lat, event_lon, event_depth_km, mag_mw=mag_mw, site_grid=site_grid)
+    gm = gmm.compute_mixture(
+        event_lat, event_lon, event_depth_km, mag_mw=mag_mw, site_grid=site_grid, rupture=rupture_model,
+    )
 
     pga_i = gm.imt_index("PGA")
     pgv_i = gm.imt_index("PGV")
@@ -212,7 +222,16 @@ def build_forward_map(
         extrapolation=gm.extrapolation,
         in_zagros_polygon=gm.in_zagros_polygon,
         depth_extrapolated=gm.extrapolation.depth_extrapolated,
-        data_used={"source": "catalog", "channels": (), "n_observations": 0},
+        data_used={
+            "source": "catalog",
+            "channels": (),
+            "n_observations": 0,
+            # D22 "use ALL available USGS data" — always present, on every
+            # product, conditioned or not (conditioned_forward.py merges
+            # rather than replaces this dict — see its own module note).
+            "distance_method": gm.distance_method,
+            "rupture_quads_used": gm.rupture_quads_used,
+        },
         version={
             "service_version": SERVICE_VERSION,
             "openquake_pin": config.OPENQUAKE_PIN,
