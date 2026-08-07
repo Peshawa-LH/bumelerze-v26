@@ -398,7 +398,7 @@
       "updated": "Hate rojanekirin {{time}}",
       "citation": "ShakeMap: {{producer}}, guhertoya {{version}}",
       "legendCaption": "Tundî (IMS-25) — pîvana ShakeMap ya Bumelerze",
-      "mapA11yLabel": "Nexşeya tundiya ShakeMap, herî zêde tundî {{level}}",
+      "mapA11yLabel": "Nexşeya tundiya ShakeMap, herî zêde tundî {{level}}, nêzî {{place}}",
       "dataUsed": {
         "catalogOnly": "Tenê li ser bingeha katalogê erdhejê yê herêmî",
         "stationConditioned": "Bi karanîna xwendinên îstasyonên erdhejnasî yên nêzîk hatiye rastkirin",
@@ -418,12 +418,14 @@
   },
   "felt": {
     "pill": {
-      "label": "Min hîs kir!"
+      "label": "Min hîs kir!",
+      "hint": "Forma ragihandina hîskirinê vedike"
     },
     "tier1": {
       "title": "Te çawa hîs kir?",
       "subtitle": "Asta ku li gorî tiştê te hîs kir bitikîne. Tu dikarî paşê hûrgiliyên zêdetir zêde bikî heke bixwazî.",
       "severeDestructionHeader": "Wêrankirina giran",
+      "levelA11yHint": "Vê astê hildibijêre û tavilê ragihandina wê dike — tu dikarî paşê hûrgiliyên zêdetir zêde bikî",
       "close": "Bigire",
       "locationGps": "Cîhê te yê niha tê bikaranîn",
       "locationManual": "Cih: {{place}}",

@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -42,6 +43,7 @@ function LevelTileImpl({
   onPress,
   compact = false,
 }: LevelTileProps) {
+  const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const accentColor = colors.intensity[level];
   const onAccentColor = colors.intensityOnFill[level];
@@ -51,6 +53,11 @@ function LevelTileImpl({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${numeralText}. ${label}`}
+      // A blind/low-vision user during a real earthquake needs to know a
+      // single tap both selects AND submits this level immediately (no
+      // separate confirm step) — the label alone (numeral + level name)
+      // doesn't convey that "submits now" behavior (design-language.md §8).
+      accessibilityHint={t("felt.tier1.levelA11yHint")}
       onPress={() => onPress(level)}
       style={({ pressed }) => [
         styles.tile,
@@ -85,7 +92,12 @@ function LevelTileImpl({
       </View>
       <Text
         allowFontScaling
-        numberOfLines={2}
+        // No numberOfLines cap: some locale labels (e.g. Sorani/Kurmanji
+        // levels 4/5) run 4-5 words and would truncate a real EMS-98 level
+        // meaning at 200% font scale if capped at 2 lines — the tile has no
+        // fixed height (flexBasis/flexGrow only), so letting the label wrap
+        // freely just grows the tile instead of losing safety-critical text
+        // (design-language.md §8 "never truncate ... at any scale").
         style={{
           color: colors.text.primary,
           textAlign: "center",

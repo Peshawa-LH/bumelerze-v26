@@ -398,7 +398,7 @@
       "updated": "Updated {{time}}",
       "citation": "ShakeMap: {{producer}}, version {{version}}",
       "legendCaption": "Intensity (IMS-25) — Bumelerze ShakeMap scale",
-      "mapA11yLabel": "ShakeMap intensity map, maximum intensity {{level}}",
+      "mapA11yLabel": "ShakeMap intensity map, maximum intensity {{level}}, near {{place}}",
       "dataUsed": {
         "catalogOnly": "Based on the regional earthquake catalog only",
         "stationConditioned": "Adjusted using nearby seismic station readings",
@@ -418,12 +418,14 @@
   },
   "felt": {
     "pill": {
-      "label": "I felt it!"
+      "label": "I felt it!",
+      "hint": "Opens the felt-report form"
     },
     "tier1": {
       "title": "How did you feel it?",
       "subtitle": "Tap the level that matches what you felt. You can add more detail afterward if you want.",
       "severeDestructionHeader": "Severe destruction",
+      "levelA11yHint": "Selects and submits this level right away — you can add more detail afterward",
       "close": "Close",
       "locationGps": "Using your current location",
       "locationManual": "Location: {{place}}",

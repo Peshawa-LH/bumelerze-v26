@@ -1,6 +1,13 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -39,6 +46,32 @@ export default function Tier1FeltReportScreen() {
   const queueState = useQueueItemState(submitted?.reportId ?? null);
 
   const associatedEventId = eventId ?? null;
+
+  // Screen-reader announcement for the panic-time submission itself
+  // (accessibility-tester Phase 5 audit: "state changes announced where
+  // material — queue submitted confirmation"). The confirmation UI replaces
+  // the tile grid in place (no route change), so a screen-reader user
+  // wouldn't otherwise be told their tap actually went through — this is
+  // the one moment in the whole flow that MUST be confirmed audibly, not
+  // just visually. `AccessibilityInfo.announceForAccessibility` works on
+  // both TalkBack and VoiceOver (unlike `accessibilityLiveRegion`, which
+  // VoiceOver ignores). Guarded by report id so a later `queueState`
+  // transition (e.g. once a real backend exists) never re-fires this for
+  // the same submission.
+  const announcedReportIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!submitted || announcedReportIdRef.current === submitted.reportId) {
+      return;
+    }
+    announcedReportIdRef.current = submitted.reportId;
+    const message =
+      queueState === "submitted"
+        ? t("felt.tier1.confirmation.submittedMessage")
+        : t("felt.tier1.confirmation.queuedMessage");
+    AccessibilityInfo.announceForAccessibility(
+      `${t("felt.tier1.confirmation.title")}. ${message}`,
+    );
+  }, [submitted, queueState, t]);
 
   async function handleSelectLevel(level: CartoonLevel) {
     const report = await enqueueTier1Report({
@@ -92,6 +125,11 @@ export default function Tier1FeltReportScreen() {
       <View style={styles.topRow}>
         <Text
           accessibilityRole="header"
+          // Android TalkBack belt-and-suspenders for the same "submission
+          // went through" state change the `AccessibilityInfo.announceFor
+          // Accessibility` call above covers on both platforms — harmless
+          // if it never fires (VoiceOver ignores this prop entirely).
+          accessibilityLiveRegion="polite"
           style={{
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,

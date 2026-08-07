@@ -39,6 +39,11 @@ export interface ShakeMapViewProps {
   epicenter: { lat: number; lon: number };
   locale: string;
   t: TranslateFn;
+  /** Localized "{distance} {direction} of {city}, {region}" place line
+   * (`@/features/geo`'s `placeLine`) — folded into `mapA11yLabel` so a
+   * screen-reader user gets the same "where" context a sighted user reads
+   * off the epicenter marker + nearby-city labels drawn on the map SVG. */
+  placeText: string;
 }
 
 /**
@@ -49,7 +54,13 @@ export interface ShakeMapViewProps {
  * (`ShakeMapSection`) decide loading/absent/offline states; this
  * component always assumes it has real contour data to draw.
  */
-export function ShakeMapView({ contours, epicenter, locale, t }: ShakeMapViewProps) {
+export function ShakeMapView({
+  contours,
+  epicenter,
+  locale,
+  t,
+  placeText,
+}: ShakeMapViewProps) {
   const { colors, typography, spacing } = useTheme();
   const [measuredWidth, setMeasuredWidth] = useState(0);
 
@@ -122,6 +133,7 @@ export function ShakeMapView({ contours, epicenter, locale, t }: ShakeMapViewPro
         accessibilityRole="image"
         accessibilityLabel={t("eventDetail.shakemap.mapA11yLabel", {
           level: highestLevel ? INTENSITY_ROMAN_NUMERALS[highestLevel.level] : "",
+          place: placeText,
         })}
         style={[styles.mapContainer, { direction: "ltr" }]}
       >
