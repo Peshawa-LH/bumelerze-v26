@@ -38,7 +38,23 @@ module's own docstring for full provenance/adaptation notes.
 **Wave C** (2026-08-07): product export (`export.py`, `ForwardMap` ->
 USGS-compatible `cont_mi.json`/`info.json`/`grid.json`) + the D20 Halabja
 smoke test (`comparison.py`'s `grid.xml` parser and residual/bias/coverage
-statistics, `scripts/run_halabja.py`, results under `validation/halabja/`).
+statistics, originally `scripts/run_halabja.py`/`run_halabja_conditioned.py`
+event-hardcoded scripts, results frozen under `validation/halabja/`).
+
+**Wave E** (2026-08-07, D20 checkpoint-outcome condition 3): the two
+Halabja scripts were generalized into one parameterized tool,
+`scripts/run_validation.py --event <usgs-id>` — event params/products
+(shakemap, dyfi) discovered from the USGS detail JSON, band auto-selected
+from magnitude, bare-prior comparison + `mvn`-conditioned re-judgment +
+the full GMICE/nresp/domain sensitivity grid computed for any event in one
+run. Used to validate the 2018 Kermanshah pair (`us1000hwdw` M6.3,
+`us1000ghda` M6.0 — the *moderate* weights band, vs. Halabja's *major*
+band) alongside Halabja itself; see `validation/SUMMARY.md` for the
+cross-event table. The two original Halabja-only scripts are retired
+(git history preserves them) — their committed `validation/halabja/`
+output is left untouched (re-running the generalized tool against the same
+cached inputs reproduces the same bias/coverage numbers bit-for-bit,
+verified this wave, so nothing was lost by not regenerating it in place).
 
 What still survives from the toolkit for a later wave: the toolkit's M4b+
 multi-channel/cross-IMT `mvn` conditioning (DYFI/CDI felt-report
@@ -167,10 +183,14 @@ never automatically.
   version), and a compact `grid.json` raster.
 - `shake_service/comparison.py` (wave C) — `grid.xml` parser + bilinear
   resampling + residual/bias/RMSE/MAE/±1σ-coverage/distance-binned
-  statistics, the tooling behind the D20 Halabja smoke test.
-  `scripts/run_halabja.py` runs the full comparison against the real
-  2017 M7.3 Halabja/Sarpol-e Zahab USGS Atlas ShakeMap; outputs (verdict,
-  figures) live in `validation/halabja/`.
+  statistics, the tooling behind the D20 validation suite.
+  `scripts/run_validation.py --event <usgs-id>` (wave E, generalized from
+  the original event-hardcoded Halabja scripts) runs the full bare +
+  `mvn`-conditioned comparison for any USGS event; per-event outputs
+  (`REPORT.md`, `results.json`, figures) live in `validation/<event-id>/`
+  (Halabja's own frozen legacy-format output stays at `validation/halabja/`
+  — see that folder's own `README.md`). Cross-event synthesis:
+  `validation/SUMMARY.md`.
 
 Internal numeric contract (documented once, here, and in `gmm.py`'s
 docstring): **ln-space**, **g** for PGA/SA, **cm/s** for PGV — i.e.
