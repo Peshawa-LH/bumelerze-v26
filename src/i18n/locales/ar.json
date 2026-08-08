@@ -79,7 +79,8 @@
     "retry": "إعادة المحاولة",
     "viewWorld": "العالم",
     "viewSignificant": "المهمة",
-    "viewHistorical": "تاريخية"
+    "viewHistorical": "تاريخية",
+    "viewCatalog": "الكتالوج"
   },
   "world": {
     "title": "الكتالوج العالمي",
@@ -91,6 +92,7 @@
   },
   "historical": {
     "title": "الأحداث التاريخية",
+    "catalogLink": "عرض الكتالوج الكامل",
     "notes": {
       "hamdaniya1944": "زلزال متوسط بالقرب من الحمدانية، شرق الموصل.",
       "baynjiwayn1946": "زلزال متوسط بالقرب من بنجوين، على الحدود العراقية الإيرانية.",
@@ -103,6 +105,39 @@
       "sarpolEZahab2018": "زلزال متوسط بالقرب من سرپل ذهاب، في نفس منطقة حدود زلزال عام 2017.",
       "pazarcik2023": "الأول والأكبر من زلزالي كهرمان مرعش، على نظام صدع الأناضول الشرقي.",
       "elbistan2023": "الزلزال الثاني في كهرمان مرعش، وقع في اليوم نفسه على بعد نحو 95 كم شمال الأول."
+    }
+  },
+  "catalog": {
+    "title": "كتالوج الزلازل",
+    "resultsCount": "{{count}} زلزال",
+    "emptyState": "لا توجد زلازل تطابق هذه الفلاتر.",
+    "loading": "جارٍ تحميل الكتالوج…",
+    "errorTitle": "تعذر تحميل الكتالوج.",
+    "filters": {
+      "magMinLabel": "أقل قوة",
+      "magMaxLabel": "أعلى قوة",
+      "yearMinLabel": "من سنة",
+      "yearMaxLabel": "إلى سنة",
+      "decrement": "إنقاص",
+      "increment": "زيادة"
+    },
+    "sources": {
+      "ISCGEM": "ISC-GEM",
+      "ONUR2017": "أونور 2017",
+      "EMME": "EMME",
+      "USGS": "USGS",
+      "KISC": "KISC"
+    },
+    "detail": {
+      "title": "تفاصيل الزلزال",
+      "close": "إغلاق",
+      "dateLabel": "التاريخ (UTC)",
+      "coordinatesLabel": "الإحداثيات",
+      "depthLabel": "العمق",
+      "magnitudeLabel": "القوة",
+      "sourceLabel": "المصدر",
+      "sourceIdLabel": "رقم المصدر",
+      "unknown": "غير معروف"
     }
   },
   "map": {

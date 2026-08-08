@@ -115,6 +115,21 @@ export default function HomeScreen() {
                   {t("events.viewHistorical")}
                 </Text>
               </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push("/catalog")}
+                hitSlop={{ top: 10, bottom: 10 }}
+              >
+                <Text
+                  style={{
+                    color: colors.text.link,
+                    fontSize: typography.labelButton.fontSize,
+                    fontWeight: typography.labelButton.fontWeight,
+                  }}
+                >
+                  {t("events.viewCatalog")}
+                </Text>
+              </Pressable>
             </View>
           </View>
         }
@@ -135,5 +150,11 @@ const styles = StyleSheet.create({
   },
   links: {
     flexDirection: "row",
+    // Four links now share this row (World/Significant/Historical/Catalog)
+    // — flexWrap is the "small overflow pattern" the wave brief allows for
+    // a crowded header row, letting the row grow to a second line on
+    // narrow devices or longer-translation locales (e.g. Sorani) instead
+    // of clipping or squeezing hit targets below the 44dp minimum.
+    flexWrap: "wrap",
   },
 });

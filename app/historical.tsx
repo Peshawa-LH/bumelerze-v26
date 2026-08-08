@@ -1,5 +1,5 @@
 import { Stack, useRouter } from "expo-router";
-import { FlatList, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -21,7 +21,7 @@ import { useTheme } from "@/theme";
  */
 export default function HistoricalScreen() {
   const { t } = useTranslation();
-  const { colors, spacing } = useTheme();
+  const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -46,6 +46,32 @@ export default function HistoricalScreen() {
           renderItem={({ item }) => (
             <HistoricalEventRow event={item} onPress={handlePress} />
           )}
+          ListFooterComponent={
+            // regional-catalog wave entry point 2/2 (the other is Home's
+            // header link row) — this curated ~10-event list is "since
+            // 1900" context (spec-v1.md §4.7); the full bundled/offline
+            // catalog (872-2023, thousands of events, filterable) lives one
+            // tap away for anyone who wants more than the hand-picked set.
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/catalog")}
+              style={[
+                styles.catalogLink,
+                { borderColor: colors.border.default, padding: spacing[4] },
+              ]}
+            >
+              <Text
+                style={{
+                  color: colors.text.link,
+                  fontSize: typography.labelButton.fontSize,
+                  fontWeight: typography.labelButton.fontWeight,
+                  textAlign: "center",
+                }}
+              >
+                {t("historical.catalogLink")}
+              </Text>
+            </Pressable>
+          }
           contentContainerStyle={{
             padding: spacing[4],
             gap: spacing[3],
@@ -60,5 +86,12 @@ export default function HistoricalScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  catalogLink: {
+    borderWidth: 1,
+    borderRadius: 12,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

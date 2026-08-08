@@ -96,6 +96,13 @@ const config: ExpoConfig = {
         color: "#1F4E5F",
       },
     ],
+    // Bundled Catalog browser (regional-catalog wave): `expo-sqlite` opens
+    // the read-only `bumelerze-catalog.sqlite` asset copied into the
+    // document directory on first launch (features/catalog/db.ts). The
+    // plugin is required so the native SQLite build includes the extra
+    // features (e.g. bundled-asset support) the CLI flags at install time —
+    // no config options needed beyond enabling it.
+    "expo-sqlite",
   ],
   experiments: {
     typedRoutes: true,

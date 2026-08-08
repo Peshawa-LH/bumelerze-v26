@@ -79,7 +79,8 @@
     "retry": "Retry",
     "viewWorld": "World",
     "viewSignificant": "Significant",
-    "viewHistorical": "Historical"
+    "viewHistorical": "Historical",
+    "viewCatalog": "Catalog"
   },
   "world": {
     "title": "World Catalog",
@@ -91,6 +92,7 @@
   },
   "historical": {
     "title": "Historical Events",
+    "catalogLink": "See the full catalog",
     "notes": {
       "hamdaniya1944": "A moderate earthquake near Al-Hamdaniya, east of Mosul.",
       "baynjiwayn1946": "A moderate earthquake near Penjwen, on the Iraq–Iran border.",
@@ -103,6 +105,39 @@
       "sarpolEZahab2018": "A moderate earthquake near Sarpol-e Zahab, in the same border region as the 2017 earthquake.",
       "pazarcik2023": "The first and larger of the two Kahramanmaraş earthquakes, on the East Anatolian Fault system.",
       "elbistan2023": "The second Kahramanmaraş earthquake, occurring the same day about 95 km north of the first."
+    }
+  },
+  "catalog": {
+    "title": "Earthquake Catalog",
+    "resultsCount": "{{count}} earthquakes",
+    "emptyState": "No earthquakes match these filters.",
+    "loading": "Loading catalog…",
+    "errorTitle": "Couldn't load the catalog.",
+    "filters": {
+      "magMinLabel": "Min magnitude",
+      "magMaxLabel": "Max magnitude",
+      "yearMinLabel": "From year",
+      "yearMaxLabel": "To year",
+      "decrement": "Decrease",
+      "increment": "Increase"
+    },
+    "sources": {
+      "ISCGEM": "ISC-GEM",
+      "ONUR2017": "Onur 2017",
+      "EMME": "EMME",
+      "USGS": "USGS",
+      "KISC": "KISC"
+    },
+    "detail": {
+      "title": "Earthquake details",
+      "close": "Close",
+      "dateLabel": "Date (UTC)",
+      "coordinatesLabel": "Coordinates",
+      "depthLabel": "Depth",
+      "magnitudeLabel": "Magnitude",
+      "sourceLabel": "Source",
+      "sourceIdLabel": "Source ID",
+      "unknown": "Unknown"
     }
   },
   "map": {

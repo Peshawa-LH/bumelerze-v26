@@ -67,8 +67,15 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     );
 
     // One row per bundled event, no loading/empty state (the dataset is a
-    // compile-time constant — this screen never shows a spinner).
-    const rows = screen.getAllByRole("button");
+    // compile-time constant — this screen never shows a spinner). Filtered
+    // to rows carrying an explicit `accessibilityLabel` (every
+    // `HistoricalEventRow` sets one — year+magnitude+place+note) to
+    // exclude the screen's own "full catalog" footer link, which is also
+    // `accessibilityRole="button"` but relies on its Text child for its
+    // accessible name instead (regional-catalog wave entry point).
+    const rows = screen
+      .getAllByRole("button")
+      .filter((row) => Boolean(row.props.accessibilityLabel));
     expect(rows).toHaveLength(NOTABLE_HISTORICAL_EVENTS.length);
 
     // Newest-first ordering: the first rendered row is the 2023 Elbistan
