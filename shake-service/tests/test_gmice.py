@@ -145,12 +145,16 @@ def test_derivative_unit_invariance():
 
 
 def test_worden_sigma_values_and_verified_flag():
+    # Science-verification pass 2026-08-09: SA sigmas corrected to the USGS
+    # shakelib wgrw12.py operational values (toolkit's recollected
+    # 0.79/0.73/0.72 were wrong); PGA/PGV confirmed; flag now True.
     assert gmice.sigma_gmice("WordenEtAl12", "PGA") == pytest.approx(0.66)
     assert gmice.sigma_gmice("WordenEtAl12", "PGV") == pytest.approx(0.63)
-    assert gmice.sigma_gmice("WordenEtAl12", "SA(0.3)") == pytest.approx(0.79)
-    assert gmice.sigma_gmice("WordenEtAl12", "SA(1.0)") == pytest.approx(0.73)
-    assert gmice.WORDEN_SIGMA_VERIFIED is False
-    assert gmice.sigma_gmice_verified("WordenEtAl12") is False
+    assert gmice.sigma_gmice("WordenEtAl12", "SA(0.3)") == pytest.approx(0.82)
+    assert gmice.sigma_gmice("WordenEtAl12", "SA(1.0)") == pytest.approx(0.75)
+    assert gmice.sigma_gmice("WordenEtAl12", "SA(3.0)") == pytest.approx(0.89)
+    assert gmice.WORDEN_SIGMA_VERIFIED is True
+    assert gmice.sigma_gmice_verified("WordenEtAl12") is True
 
 
 def test_zanini_sigma_adopted_values_and_flag():

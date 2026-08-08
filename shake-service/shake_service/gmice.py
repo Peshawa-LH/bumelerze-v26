@@ -20,13 +20,12 @@ Ported from, read-only, never modified:
     hand repeats exactly the transcription risk this policy exists to avoid),
     and the published sigma_MMI/sigma_EMS tables.
 
-Sigma honesty policy (updated 2026-08-07, G12/D20 checkpoint condition 2 —
-Worden verification remains a SEPARATE, LATER pre-launch blocker; do not
-treat the Worden table as verified in the meantime):
-  - `WORDEN_SIGMA_VERIFIED = False` — the Worden et al. (2012) sigma_MMI
-    table below is gmice_adapter.py's own working recollection of BSSA
-    102(1) Table 4/5, not independently re-verified against the primary PDF.
-    Unchanged this wave; still open.
+Sigma honesty policy (updated 2026-08-09, science-verification pass):
+  - `WORDEN_SIGMA_VERIFIED = True` — CLOSED this pass. The toolkit's
+    recollected SA sigmas were wrong (0.79/0.73/0.72) and are corrected to
+    the USGS operational values (0.82/0.75/0.89); PGA/PGV (0.66/0.63)
+    confirmed. Verification basis: USGS shakelib wgrw12.py (see the
+    WORDEN_SIGMA_TABLE comment below for the honest scope of that basis).
   - `ZANINI_SIGMA_IS_PLACEHOLDER = False` — CLOSED this wave (Z3,
     `docs/decisions.md` D20 checkpoint condition 2, accepted
     2026-08-07). The Zanini & Hofer (2019) paper's own published sigma_tot
@@ -462,16 +461,33 @@ def dintensity_dlny(
 # ---------------------------------------------------------------------------
 
 WORDEN_SIGMA_TABLE: Dict[str, float] = {
-    # Worden et al. (2012), BSSA 102(1), Table 4/5 -- sigma_MMI, natural MMI
-    # units (not log).
+    # Worden et al. (2012), BSSA 102(1) -- sigma_MMI (MMI given PGM),
+    # natural MMI units (not log). CORRECTED + VERIFIED (science-verification
+    # pass, web-verified 2026-08-09) against the USGS ShakeMap operational
+    # implementation of this exact model -- shakelib/gmice/wgrw12.py
+    # (maintained in the model first author's own codebase;
+    # https://usgs.github.io/shakelib/_modules/shakelib/gmice/wgrw12.html),
+    # which carries SMMI = {PGA: 0.66, PGV: 0.63, SA0.3: 0.82, SA1.0: 0.75,
+    # SA3.0: 0.89}. The toolkit's recollected SA entries (0.79/0.73/0.72)
+    # were WRONG and are corrected here; PGA/PGV were confirmed unchanged.
+    # (The same wgrw12.py source also confirms every c1..c4/t1/t2
+    # coefficient in `_WORDEN_COEFFS` above, digit-for-digit.)
     "PGA": 0.66,
     "PGV": 0.63,
-    "SA(0.3)": 0.79,
-    "SA(1.0)": 0.73,
-    "SA(3.0)": 0.72,
+    "SA(0.3)": 0.82,
+    "SA(1.0)": 0.75,
+    "SA(3.0)": 0.89,
 }
-WORDEN_SIGMA_VERIFIED = False  # applies to every entry above -- NOT independently re-verified vs the primary PDF.
-WORDEN_SIGMA_CITATION = "Worden et al. (2012), BSSA 102(1), Table 4/5"
+# Verification basis is the USGS operational implementation (above), not the
+# paywalled BSSA primary PDF itself -- stated plainly. As the model's
+# authoritative production transcription (first-author-maintained), this
+# closes the G12 pre-launch blocker for Worden; anyone re-opening it should
+# diff against BSSA 102(1) Tables 4/5 directly.
+WORDEN_SIGMA_VERIFIED = True
+WORDEN_SIGMA_CITATION = (
+    "Worden et al. (2012), BSSA 102(1), sigma_MMI -- verified against USGS "
+    "shakelib wgrw12.py operational implementation, 2026-08-09"
+)
 
 ZANINI_SIGMA_TABLE: Dict[str, float] = {
     # Zanini & Hofer (2019): 0.70 for both PGA/PGV -- ADOPTED value (G12

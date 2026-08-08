@@ -268,7 +268,8 @@ def test_integration_with_real_gmm_grid_finite_and_positive_sigma():
     # EMS stays within the paper's stated validity envelope (writer-boundary clamp).
     assert ems.mean.min() >= gmice.ZANINI_EMS_VALIDITY_MIN
     assert ems.mean.max() <= gmice.ZANINI_EMS_VALIDITY_MAX
-    # sigma honesty flags surfaced on the product -- Zanini sigma is now the
-    # ADOPTED value (Z3, closed 2026-08-07); Worden verification stays open.
+    # sigma honesty flags surfaced on the product -- Zanini sigma is the
+    # ADOPTED value (Z3, closed 2026-08-07); Worden sigma verified + SA
+    # values corrected 2026-08-09 (science-verification pass, USGS wgrw12).
     assert ems.sigma_gmice_verified is True
-    assert mmi.sigma_gmice_verified is False
+    assert mmi.sigma_gmice_verified is True
