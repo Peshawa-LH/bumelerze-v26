@@ -27,17 +27,17 @@ import atlas_us6000jllz from "./data/us6000jllz.json";
 import atlas_us6000jlqa from "./data/us6000jlqa.json";
 
 export const ATLAS_INDEX: Readonly<Record<string, AtlasBundleEntry>> = {
-  iscgem899464: atlas_iscgem899464 as unknown as AtlasBundleEntry,
-  iscgem898547: atlas_iscgem898547 as unknown as AtlasBundleEntry,
-  iscgem884317: atlas_iscgem884317 as unknown as AtlasBundleEntry,
-  iscgem839648: atlas_iscgem839648 as unknown as AtlasBundleEntry,
-  usp0001bb6: atlas_usp0001bb6 as unknown as AtlasBundleEntry,
-  usp0004uk3: atlas_usp0004uk3 as unknown as AtlasBundleEntry,
-  us2000bmcg: atlas_us2000bmcg as unknown as AtlasBundleEntry,
-  us1000ghda: atlas_us1000ghda as unknown as AtlasBundleEntry,
-  us1000hwdw: atlas_us1000hwdw as unknown as AtlasBundleEntry,
-  us6000jllz: atlas_us6000jllz as unknown as AtlasBundleEntry,
-  us6000jlqa: atlas_us6000jlqa as unknown as AtlasBundleEntry,
+  "iscgem899464": atlas_iscgem899464 as unknown as AtlasBundleEntry,
+  "iscgem898547": atlas_iscgem898547 as unknown as AtlasBundleEntry,
+  "iscgem884317": atlas_iscgem884317 as unknown as AtlasBundleEntry,
+  "iscgem839648": atlas_iscgem839648 as unknown as AtlasBundleEntry,
+  "usp0001bb6": atlas_usp0001bb6 as unknown as AtlasBundleEntry,
+  "usp0004uk3": atlas_usp0004uk3 as unknown as AtlasBundleEntry,
+  "us2000bmcg": atlas_us2000bmcg as unknown as AtlasBundleEntry,
+  "us1000ghda": atlas_us1000ghda as unknown as AtlasBundleEntry,
+  "us1000hwdw": atlas_us1000hwdw as unknown as AtlasBundleEntry,
+  "us6000jllz": atlas_us6000jllz as unknown as AtlasBundleEntry,
+  "us6000jlqa": atlas_us6000jlqa as unknown as AtlasBundleEntry,
 };
 
 export const ATLAS_EVENT_IDS: readonly string[] = Object.keys(ATLAS_INDEX);
