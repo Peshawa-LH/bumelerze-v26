@@ -217,6 +217,11 @@ def build_forward_map(
         },
         vs30_meta={
             "sampler": type(resolved_sampler).__name__,
+            # "raster" | "rock-default" — vs30.sampler_outcome() classifies
+            # this LAST call's actual outcome (never just "which class was
+            # requested" — a RasterVs30 whose sample() call itself fell
+            # back is correctly reported as "rock-default" here).
+            "vs30_source": vs30.sampler_outcome(resolved_sampler),
             "vs30_source_error": getattr(resolved_sampler, "last_error", None),
         },
         extrapolation=gm.extrapolation,

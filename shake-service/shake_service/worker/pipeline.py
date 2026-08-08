@@ -106,6 +106,7 @@ from shake_service import (
     forward,
     rupture_model,
     station_observations,
+    vs30,
 )
 from shake_service.worker.feed_watcher import TriggerDecision
 from shake_service.worker.state import EventState, WorkerState
@@ -182,6 +183,7 @@ def _condition_if_possible(
     event_lat: float, event_lon: float, event_depth_km: float, mag_mw: float,
     station_records: list[station_observations.StationRecord],
     dyfi_boxes: list[dyfi_observations.DyfiBox],
+    vs30_sampler: vs30.Vs30Sampler,
 ) -> tuple[forward.ForwardMap, tuple[str, ...]]:
     """Condition `fm` on whatever combined station+DYFI observations exist
     (module docstring point 2) — returns the (possibly unchanged) map plus
@@ -189,7 +191,17 @@ def _condition_if_possible(
     the same thing as "cleared the conditioning floor" — that per-IMT
     detail already lives in `fm.data_used["conditioning_applied"]` after
     this call; this tuple is coarse provenance for reports like
-    `scripts/seed_atlas.py`'s summary table)."""
+    `scripts/seed_atlas.py`'s summary table).
+
+    `vs30_sampler`: the SAME resolved sampler `run_pipeline` used to build
+    `fm`'s prior (below) — `conditioned_forward.condition_forward_map_on_dyfi`
+    re-evaluates the D20 GMPE mixture at each station/DYFI point to get its
+    own residual (`mvn.condition_forward_map`'s station-point Vs30 lookup);
+    passing a DIFFERENT (or the default, silently-rock-760) sampler there
+    than the one that built the grid would inject a spurious Vs30 offset
+    into every conditioning residual — real terrain Vs30 at the grid, rock
+    at the stations (or vice-versa) — corrupting the conditioning rather
+    than refining it. Never left to its own per-call default here."""
     if not station_records and not dyfi_boxes:
         return fm, ()
 
@@ -205,7 +217,7 @@ def _condition_if_possible(
 
     result = conditioned_forward.condition_forward_map_on_dyfi(
         fm, event_lat=event_lat, event_lon=event_lon, event_depth_km=event_depth_km, mag_mw=mag_mw,
-        observations_pga=obs_pga, observations_pgv=obs_pgv,
+        observations_pga=obs_pga, observations_pgv=obs_pgv, vs30_sampler=vs30_sampler,
     )
     sources = tuple(
         s for s, present in (("stations", bool(station_records)), ("dyfi", bool(dyfi_boxes))) if present
@@ -262,6 +274,7 @@ def run_pipeline(
     usgs_products_fetcher: UsgsProductsFetcher = no_usgs_products,
     now: _dt.datetime | None = None,
     force: bool = False,
+    vs30_sampler: vs30.Vs30Sampler | None = None,
 ) -> PipelineResult:
     """Run (or idempotently skip) the USGS-fetch -> forward-map (D22
     finite-fault-aware) -> USGS-condition -> export -> auto-compare -> state
@@ -279,10 +292,22 @@ def run_pipeline(
 
     `force`: see module docstring's own "`force=True`" section — bypasses
     the params-hash short circuit below, default `False`.
+
+    `vs30_sampler`: resolved ONCE per call (`None` -> `vs30.default_sampler()`,
+    the real Vs30 raster when available, else rock-760 — `vs30.py`'s own
+    default-on/LOUD-fallback docstring) and reused for BOTH the forward-map
+    prior (`forward.build_forward_map`) and the USGS-conditioning step
+    (`_condition_if_possible`) below, so a single event's map and its own
+    conditioning residuals are never computed against two different Vs30
+    fields (see `_condition_if_possible`'s own docstring for why that would
+    corrupt conditioning). Pass an explicit sampler (e.g.
+    `vs30.UniformRockVs30()`) to pin a test/run to rock-760 regardless of
+    environment.
     """
     event = decision.event
     products_root = Path(products_root)
     now_iso = (now or _dt.datetime.now(_dt.timezone.utc)).isoformat()
+    resolved_vs30_sampler = vs30_sampler if vs30_sampler is not None else vs30.default_sampler()
 
     known = ws.get_event(event.external_id)
     new_hash = params_hash(lat=event.lat, lon=event.lon, depth_km=event.depth_km, mag=event.mag)
@@ -308,6 +333,7 @@ def run_pipeline(
     rupture = _parse_rupture_model(usgs.rupture_json_text)
     fm = forward.build_forward_map(
         event.lat, event.lon, event.depth_km, mag_mw=event.mag, rupture_model=rupture,
+        vs30_sampler=resolved_vs30_sampler,
     )
 
     # --- D21: condition on whatever USGS station/DYFI data exists ---
@@ -315,7 +341,7 @@ def run_pipeline(
     dyfi_boxes = _parse_dyfi_boxes(usgs.dyfi_geo_10km_text)
     fm, conditioning_sources = _condition_if_possible(
         fm, event_lat=event.lat, event_lon=event.lon, event_depth_km=event.depth_km, mag_mw=event.mag,
-        station_records=station_records, dyfi_boxes=dyfi_boxes,
+        station_records=station_records, dyfi_boxes=dyfi_boxes, vs30_sampler=resolved_vs30_sampler,
     )
     # Honest provenance on every product, conditioned or not — "no USGS data
     # was available" and "USGS data existed but conditioning wasn't run" are

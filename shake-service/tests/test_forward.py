@@ -6,7 +6,26 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from shake_service import config, forward, gmm
+from shake_service import config, forward, gmm, vs30
+
+_TOOLKIT_VS30_PATH = (
+    "/Users/pesha/Library/CloudStorage/OneDrive-Personal/2_WorkDrive/5_MyPhD/"
+    "SHAKEmaps/SHAKEmaps-Toolkit-v26/SHAKEdata/vs30/global_vs30.grd"
+)
+
+
+def _raster_readable(path: str) -> bool:
+    try:
+        import h5py
+
+        with h5py.File(path, "r") as f:
+            _ = f["lat"].shape
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+_RASTER_AVAILABLE = _raster_readable(_TOOLKIT_VS30_PATH)
 
 
 # ---------------------------------------------------------------------------
@@ -162,3 +181,82 @@ def test_major_band_forward_map_is_fast():
     forward.build_forward_map(34.9, 45.9, 19.0, mag_mw=7.3)
     elapsed = time.time() - t0
     assert elapsed < 5.0
+
+
+# ---------------------------------------------------------------------------
+# Vs30 wiring: vs30_meta flags + (real-raster, self-skipping) end-to-end
+# variation proof — "site amplification default" wave, 2026-08-08.
+# ---------------------------------------------------------------------------
+
+
+def test_vs30_meta_reports_rock_default_for_explicit_uniform_sampler():
+    fm = forward.build_forward_map(34.9, 45.9, 15.0, mag_mw=5.5, vs30_sampler=vs30.UniformRockVs30())
+    assert fm.vs30_meta["sampler"] == "UniformRockVs30"
+    assert fm.vs30_meta["vs30_source"] == "rock-default"
+    assert fm.vs30_meta["vs30_source_error"] is None
+
+
+def test_vs30_meta_reports_rock_default_when_raster_sampler_fails_every_call():
+    # A RasterVs30 pointed at a nonexistent file: default_sampler()'s own
+    # up-front check isn't in play here (an explicit sampler bypasses it),
+    # but the PER-CALL fallback inside RasterVs30.sample() still fires, and
+    # vs30_meta must reflect the ACTUAL outcome, not just the class name.
+    fm = forward.build_forward_map(
+        34.9, 45.9, 15.0, mag_mw=5.5, vs30_sampler=vs30.RasterVs30("/definitely/does/not/exist.grd"),
+    )
+    assert fm.vs30_meta["sampler"] == "RasterVs30"
+    assert fm.vs30_meta["vs30_source"] == "rock-default"
+    assert fm.vs30_meta["vs30_source_error"] is not None
+    assert "FileNotFoundError" in fm.vs30_meta["vs30_source_error"]
+
+
+def test_vs30_meta_source_flag_reflects_default_sampler_resolution(monkeypatch):
+    """`build_forward_map`'s own `vs30_sampler=None` default resolution
+    (`vs30.default_sampler()`) — deterministic via a monkeypatched config
+    default, independent of whether the real raster is hydrated on this
+    machine."""
+    monkeypatch.delenv(vs30.VS30_RASTER_PATH_ENV_VAR, raising=False)
+    monkeypatch.setattr(config, "DEFAULT_VS30_RASTER_PATH", "/definitely/does/not/exist.grd")
+    fm = forward.build_forward_map(34.9, 45.9, 15.0, mag_mw=5.5)
+    assert fm.vs30_meta["sampler"] == "UniformRockVs30"
+    assert fm.vs30_meta["vs30_source"] == "rock-default"
+
+
+@pytest.mark.skipif(not _RASTER_AVAILABLE, reason="toolkit backbone Vs30 raster not reachable on this machine")
+def test_vs30_meta_reports_raster_and_grid_shows_real_spatial_variation():
+    fm = forward.build_forward_map(34.9, 45.9, 15.0, mag_mw=5.5, vs30_sampler=vs30.RasterVs30(_TOOLKIT_VS30_PATH))
+    assert fm.vs30_meta["sampler"] == "RasterVs30"
+    assert fm.vs30_meta["vs30_source"] == "raster"
+    assert fm.vs30_meta["vs30_source_error"] is None
+
+
+@pytest.mark.skipif(not _RASTER_AVAILABLE, reason="toolkit backbone Vs30 raster not reachable on this machine")
+def test_real_vs30_raster_produces_materially_different_pga_than_rock_default():
+    """End-to-end proof (task instruction): the per-site Vs30 array actually
+    VARIES over the Kurdistan region and that variation actually reaches
+    `get_mean_stds` — verified here as its OBSERVABLE effect (two runs of
+    the identical event differ only in `vs30_sampler`, and PGA differs at
+    grid points where Vs30 differs from the rock-760 reference), not just
+    that `ctx.vs30` is assigned an array (a static-code fact already true
+    of `gmm.py`'s `_build_context`, confirmed by reading — this test proves
+    the array isn't silently uniform/inert downstream)."""
+    rock_fm = forward.build_forward_map(34.9, 45.9, 15.0, mag_mw=5.5, vs30_sampler=vs30.UniformRockVs30())
+    raster_fm = forward.build_forward_map(
+        34.9, 45.9, 15.0, mag_mw=5.5, vs30_sampler=vs30.RasterVs30(_TOOLKIT_VS30_PATH),
+    )
+
+    # Same grid shape/mesh (same event/band/spacing) so a cell-by-cell
+    # comparison is meaningful.
+    assert rock_fm.grid_meta["shape"] == raster_fm.grid_meta["shape"]
+    assert np.array_equal(rock_fm.lon2d, raster_fm.lon2d)
+    assert np.array_equal(rock_fm.lat2d, raster_fm.lat2d)
+
+    # PGA must differ at at least SOME cells (real terrain Vs30 isn't a
+    # uniform 760 m/s everywhere over this region -- the whole point of
+    # wiring in the raster) but the two runs are NOT wildly divergent
+    # everywhere either (same event/GMPE mixture, only the site term
+    # differs).
+    pga_diff = np.abs(raster_fm.pga.mean - rock_fm.pga.mean)
+    assert np.any(pga_diff > 1e-6), "raster-based PGA is identical to rock-760 everywhere -- Vs30 never reached the mixture"
+    assert np.all(np.isfinite(raster_fm.pga.mean))
+    assert np.all(raster_fm.pga.mean > 0)

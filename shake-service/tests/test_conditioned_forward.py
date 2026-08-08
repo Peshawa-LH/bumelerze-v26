@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from shake_service import conditioned_forward, dyfi_observations as dyfi, forward, mvn
+from shake_service import conditioned_forward, dyfi_observations as dyfi, forward, mvn, vs30
 
 
 EVENT_LAT, EVENT_LON, EVENT_DEPTH_KM, MAG_MW = 34.9, 45.9, 15.0, 5.5
@@ -17,7 +17,22 @@ EVENT_LAT, EVENT_LON, EVENT_DEPTH_KM, MAG_MW = 34.9, 45.9, 15.0, 5.5
 
 def _small_forward_map() -> forward.ForwardMap:
     # moderate band (Mw 5.5) keeps the grid small/fast for a unit test.
-    return forward.build_forward_map(EVENT_LAT, EVENT_LON, EVENT_DEPTH_KM, mag_mw=MAG_MW)
+    # Pinned to UniformRockVs30 explicitly: this module tests the
+    # CONDITIONING mechanism (pull direction/magnitude, small-N floor),
+    # not vs30 integration -- every `condition_forward_map_on_dyfi` call
+    # below also omits `vs30_sampler`, which resolves (inside `mvn.py`) to
+    # its OWN independent `UniformRockVs30()` default. Since
+    # `forward.build_forward_map`'s own default is now the real Vs30
+    # raster (`vs30.default_sampler()`, machine-dependent), leaving this
+    # fixture on its own default would silently mismatch the prior's Vs30
+    # against the conditioning step's station-point Vs30 -- pinning both
+    # to the same explicit rock-760 sampler keeps this file deterministic
+    # and isolates the mechanism under test (a real end-to-end
+    # same-sampler consistency check lives in `worker/pipeline.py`'s own
+    # wiring + `tests/test_worker_pipeline.py`, not here).
+    return forward.build_forward_map(
+        EVENT_LAT, EVENT_LON, EVENT_DEPTH_KM, mag_mw=MAG_MW, vs30_sampler=vs30.UniformRockVs30(),
+    )
 
 
 # ---------------------------------------------------------------------------
