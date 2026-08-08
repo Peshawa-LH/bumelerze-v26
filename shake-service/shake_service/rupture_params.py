@@ -41,8 +41,12 @@ ELSEWHERE_DIP_DEG: float = 90.0
 # documentation). 5 km is a coarse placeholder consistent with the
 # shallow (~5-20 km) seismogenic layer thickness for Zagros blind-thrust
 # events described in gmpe-set-proposal.md §1 — a fixed fraction of that
-# layer, not a magnitude-scaled rupture-width relation (Wells & Coppersmith
-# style scaling is a plausible future refinement, out of scope this wave).
+# layer, not a magnitude-scaled rupture-width relation. UPDATE (hazard-
+# science audit wave, 2026-08-08): the Wells & Coppersmith refinement now
+# EXISTS as an opt-in (`derive_rupture_params(half_width_model="wc94")`,
+# backed by the toolkit-ported `scaling.py`) — this fixed value REMAINS the
+# default because the D20 validation gate passed with it; flipping the
+# default is Peshawa's call at a science touchpoint ([REVIEW]).
 ASSUMED_HALF_WIDTH_KM: float = 5.0
 
 # rx (CY14 hanging-wall term): no point-source estimate exists; neutral-off.
@@ -97,6 +101,9 @@ def derive_rupture_params(
     lon: float,
     depth_km: float,
     assumed_half_width_km: float = ASSUMED_HALF_WIDTH_KM,
+    *,
+    mag: float | None = None,
+    half_width_model: str = "fixed",
 ) -> RuptureParams:
     """Derive the point-source rupture parameters the D20 GSIM set needs.
 
@@ -104,14 +111,42 @@ def derive_rupture_params(
     out from depth via the half-width assumption) vs. elsewhere neutral
     strike-slip default (rake=0, dip=90, ztor=depth — a vertical fault has
     its top at the hypocentre in the point-source approximation).
+
+    Half-width model (hazard-science audit wave, 2026-08-08 — the WC94
+    refinement `ASSUMED_HALF_WIDTH_KM`'s own [REVIEW] note anticipated):
+      - `"fixed"` (DEFAULT, unchanged behavior): the 5 km placeholder
+        (`assumed_half_width_km`). The D20 validation gate passed with this
+        value, so it stays the default until Peshawa flips it at a science
+        touchpoint ([REVIEW] — `scaling.py` module docstring).
+      - `"wc94"` (opt-in, requires `mag`): magnitude-scaled vertical
+        half-extent `scaling.vertical_half_width_km(mag, dip, mech)` —
+        Wells & Coppersmith (1994) downdip width projected through the
+        assumed dip. Only affects the in-Zagros (dipping reverse) branch;
+        the elsewhere branch's vertical-fault ztor=depth is half-width-free
+        either way.
     """
+    from shake_service import scaling  # local import: keeps module import graph flat
+
+    if half_width_model not in ("fixed", "wc94"):
+        raise ValueError(
+            f"derive_rupture_params: unknown half_width_model {half_width_model!r} "
+            "(use 'fixed' or 'wc94')"
+        )
+    if half_width_model == "wc94" and mag is None:
+        raise ValueError("derive_rupture_params: half_width_model='wc94' requires mag")
+
     inside = in_zagros_belt(lat, lon)
 
     if inside:
         rake = ZAGROS_REVERSE_RAKE_DEG
         dip = ZAGROS_DIP_DEG
-        ztor = max(depth_km - assumed_half_width_km, 0.0)
-        flags: tuple[str, ...] = ()
+        if half_width_model == "wc94":
+            half_width = scaling.vertical_half_width_km(float(mag), dip, rake=rake)
+            flags = ("wc94_half_width_ztor",)
+        else:
+            half_width = assumed_half_width_km
+            flags = ()
+        ztor = max(depth_km - half_width, 0.0)
     else:
         rake = NEUTRAL_STRIKE_SLIP_RAKE_DEG
         dip = ELSEWHERE_DIP_DEG
