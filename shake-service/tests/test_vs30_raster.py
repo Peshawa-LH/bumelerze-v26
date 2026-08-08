@@ -211,3 +211,55 @@ def test_sampler_outcome_raster_on_real_success():
     sampler = vs30.RasterVs30(_TOOLKIT_VS30_PATH)
     sampler.sample(np.array([34.9]), np.array([45.9]))
     assert vs30.sampler_outcome(sampler) == "raster"
+
+
+# ---------------------------------------------------------------------------
+# Toolkit-parity, independently re-derived (task instruction: "compare our
+# chain against site_model.py's behavior"). `rasterio` isn't in
+# shake-service's dependency set (D20 §6.3, RasterVs30's own docstring), so
+# this does NOT import the toolkit's `_sample_vs30_raster` — instead it
+# re-implements the toolkit's documented method (windowed read + `scipy`
+# `RegularGridInterpolator(..., method="linear", bounds_error=False,
+# fill_value=None)`, `pad=0.1`) directly against the raw HDF5 file, as an
+# INDEPENDENT computation from `RasterVs30._sample_raster`, then checks the
+# two agree at points safely inside the window (where `RasterVs30`'s own
+# defensive clip -- the one documented divergence -- never engages, making
+# the two paths mathematically identical, not just similarly-shaped).
+# ---------------------------------------------------------------------------
+
+
+def _reference_sample_vs30(lats: np.ndarray, lons: np.ndarray, pad_deg: float = 0.1) -> np.ndarray:
+    """Independent re-implementation of `site_model.py::_sample_vs30_raster`'s
+    documented method (module docstring above) -- NOT a call into
+    `vs30.RasterVs30`, so a match against it is a genuine cross-check."""
+    import h5py
+    from scipy.interpolate import RegularGridInterpolator
+
+    lon_min, lon_max = float(lons.min()) - pad_deg, float(lons.max()) + pad_deg
+    lat_min, lat_max = float(lats.min()) - pad_deg, float(lats.max()) + pad_deg
+    with h5py.File(_TOOLKIT_VS30_PATH, "r") as f:
+        lat_full, lon_full = f["lat"][:], f["lon"][:]
+        lat_idx = np.where((lat_full >= lat_min) & (lat_full <= lat_max))[0]
+        lon_idx = np.where((lon_full >= lon_min) & (lon_full <= lon_max))[0]
+        lat_sub = lat_full[lat_idx.min() : lat_idx.max() + 1]
+        lon_sub = lon_full[lon_idx.min() : lon_idx.max() + 1]
+        z_sub = np.asarray(
+            f["z"][lat_idx.min() : lat_idx.max() + 1, lon_idx.min() : lon_idx.max() + 1], dtype=float,
+        )
+    interp = RegularGridInterpolator(
+        (lat_sub, lon_sub), z_sub, method="linear", bounds_error=False, fill_value=None,
+    )
+    return interp(np.stack([lats, lons], axis=-1))
+
+
+@pytest.mark.skipif(not _RASTER_AVAILABLE, reason="toolkit backbone Vs30 raster not reachable on this machine")
+def test_raster_vs30_matches_independently_reimplemented_toolkit_method():
+    lats = np.array([34.9, 35.5, 36.2, 37.0])  # Halabja / Sulaymaniyah-ish / Erbil-ish / Duhok-ish
+    lons = np.array([45.9, 45.5, 44.0, 43.0])
+
+    reference = _reference_sample_vs30(lats, lons)
+    sampler = vs30.RasterVs30(_TOOLKIT_VS30_PATH)
+    ours = sampler.sample(lats, lons)
+
+    assert sampler.last_error is None
+    np.testing.assert_allclose(ours, reference, rtol=1e-9, atol=1e-6)
