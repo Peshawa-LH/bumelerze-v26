@@ -10,14 +10,18 @@ readme = "README.md"
 # dependency (pulled in by openquake.engine); wave B's vs30.RasterVs30
 # imports it directly (module docstring: reads the toolkit's backbone Vs30
 # grid, a NetCDF4-classic/HDF5 container, with no new heavy dependency),
-# so it is now pinned explicitly too. Full transitive closure is recorded
-# in requirements.txt for reproducible installs; this section documents
-# intent.
+# so it is now pinned explicitly too. openpyxl/xlrd were added for
+# scripts/build_regional_catalog.py, which reads legacy .xls (EMME) and
+# modern .xlsx (Onur 2017, USGS) source catalogs via pandas. Full
+# transitive closure is recorded in requirements.txt for reproducible
+# installs; this section documents intent.
 dependencies = [
     "openquake.engine==3.26.2",
     "ps2ff==1.5.9",
     "h5py==3.16.0",
     "scikit-image==0.26.0",
+    "openpyxl==3.1.5",
+    "xlrd==2.0.2",
 ]
 
 [project.optional-dependencies]
