@@ -7,8 +7,13 @@
  * Every input here is a plain number/string so this module has zero
  * dependency on `react-native-svg`, the gazetteer, or i18n — `ShakeMapView`
  * resolves localized names and projects lon/lat to pixels first, then hands
- * this module the resulting candidate list.
+ * this module the resulting candidate list. The one exception is
+ * `SHAKEMAP_LABEL_FONT_SIZE` from `./config` (plain numeric data, not a
+ * rendering dependency) — collision boxes below are estimated FROM that
+ * exact font size, so importing it keeps the two in lockstep instead of
+ * two numbers that could silently drift apart on a future resize.
  */
+import { SHAKEMAP_LABEL_FONT_SIZE } from "./config";
 
 export interface ProjectedPoint {
   x: number;
@@ -60,17 +65,21 @@ export const EPICENTER_LABEL_EXCLUSION_RADIUS_PX = 16;
 /** Fixed gap (px) between a city's dot and where its label text starts. */
 export const LABEL_DOT_OFFSET_PX = 6;
 
-/** Rough average glyph width (px) at `ShakeMapView`'s 9px label font size —
- * used only to estimate a label's bounding box for collision purposes, not
- * for actual text layout (SVG has no text-measurement API available at
- * this layer). Deliberately generous (real glyphs average narrower) so the
- * estimate errs toward skipping a borderline-tight label rather than
- * letting two labels visibly overlap. */
-const LABEL_CHAR_WIDTH_PX = 5.5;
+/** Rough average glyph width (px) at `ShakeMapView`'s
+ * `SHAKEMAP_LABEL_FONT_SIZE` label font size — used only to estimate a
+ * label's bounding box for collision purposes, not for actual text layout
+ * (SVG has no text-measurement API available at this layer). Deliberately
+ * generous (real glyphs average narrower) so the estimate errs toward
+ * skipping a borderline-tight label rather than letting two labels visibly
+ * overlap. Ratio (~0.61x font size) preserved from the pre-resize constant
+ * (was 5.5px at a 9px font) — only the font size itself shrank (map-
+ * presentation wave, owner: "labels are too large"). */
+const LABEL_CHAR_WIDTH_PX = SHAKEMAP_LABEL_FONT_SIZE * 0.61;
 
-/** Estimated label line height (px), same rationale as the char-width
+/** Estimated label line height (px), same rationale and same preserved
+ * ratio (~1.22x font size, was 11px at a 9px font) as the char-width
  * constant above. */
-const LABEL_HEIGHT_PX = 11;
+const LABEL_HEIGHT_PX = SHAKEMAP_LABEL_FONT_SIZE * 1.22;
 
 /** Small breathing-room margin (px) added around every label's estimated
  * bounding box before collision-testing it against others, so accepted

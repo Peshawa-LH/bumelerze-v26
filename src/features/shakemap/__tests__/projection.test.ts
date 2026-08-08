@@ -1,4 +1,8 @@
-import { computeContourBoundingBox, createEquirectangularProjector } from "../projection";
+import {
+  clipLineToBbox,
+  computeContourBoundingBox,
+  createEquirectangularProjector,
+} from "../projection";
 import type { IntensityContourLevel } from "../types";
 
 function level(
@@ -116,5 +120,82 @@ describe("createEquirectangularProjector", () => {
     const { x, y } = pointProjector.project(45, 35);
     expect(Number.isFinite(x)).toBe(true);
     expect(Number.isFinite(y)).toBe(true);
+  });
+});
+
+describe("clipLineToBbox", () => {
+  const bbox = { minLon: 44, maxLon: 46, minLat: 34, maxLat: 36 };
+
+  it("returns the line unchanged (as one piece) when it's entirely inside the bbox", () => {
+    const line = [
+      [44.5, 34.5],
+      [45, 35],
+      [45.5, 35.5],
+    ] as const;
+
+    const result = clipLineToBbox(line, bbox);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(line);
+  });
+
+  it("returns nothing for a line entirely outside the bbox", () => {
+    const line = [
+      [0, 0],
+      [1, 1],
+    ] as const;
+
+    expect(clipLineToBbox(line, bbox)).toEqual([]);
+  });
+
+  it("clips a line that crosses one edge down to the portion inside the bbox", () => {
+    // Crosses the west edge (lon 44) partway through.
+    const line = [
+      [43, 35],
+      [47, 35],
+    ] as const;
+
+    const result = clipLineToBbox(line, bbox);
+
+    expect(result).toHaveLength(1);
+    const [clipped] = result;
+    expect(clipped).toBeDefined();
+    for (const [lon] of clipped!) {
+      expect(lon).toBeGreaterThanOrEqual(bbox.minLon);
+      expect(lon).toBeLessThanOrEqual(bbox.maxLon);
+    }
+    // Still spans the full bbox width since the raw line ran clean through.
+    expect(clipped![0]![0]).toBeCloseTo(bbox.minLon, 5);
+    expect(clipped![clipped!.length - 1]![0]).toBeCloseTo(bbox.maxLon, 5);
+  });
+
+  it("splits a line that exits and re-enters the bbox into separate pieces", () => {
+    // Dips out through the north edge (lat 36) in the middle, then back in.
+    const line = [
+      [45, 34.5],
+      [45, 37],
+      [45.2, 34.5],
+    ] as const;
+
+    const result = clipLineToBbox(line, bbox);
+
+    expect(result.length).toBeGreaterThanOrEqual(2);
+    for (const piece of result) {
+      for (const [, lat] of piece) {
+        expect(lat).toBeLessThanOrEqual(bbox.maxLat);
+      }
+    }
+  });
+
+  it("never returns a single-point piece", () => {
+    const line = [
+      [44.5, 34.5],
+      [100, 100],
+    ] as const;
+
+    const result = clipLineToBbox(line, bbox);
+    for (const piece of result) {
+      expect(piece.length).toBeGreaterThanOrEqual(2);
+    }
   });
 });

@@ -18,5 +18,7 @@ export {
 } from "./projection";
 export { pickMapCities } from "./cities";
 export { useShakeMap, type UseShakeMapResult, type UseShakeMapStatus } from "./queries";
+export { BASEMAP_BBOX, BASEMAP_BORDERS, BASEMAP_COASTLINE, type BasemapLine } from "./basemap/basemap";
+export { clipLineToBbox } from "./projection";
 export { ShakeMapView, type ShakeMapViewProps } from "./components/ShakeMapView";
 export { ShakeMapSection, type ShakeMapSectionProps } from "./components/ShakeMapSection";

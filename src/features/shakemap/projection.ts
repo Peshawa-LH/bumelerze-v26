@@ -83,6 +83,96 @@ export interface Projector {
   project(lon: number, lat: number): ProjectedPoint;
 }
 
+/** Liang-Barsky segment-vs-rectangle clip: returns the `[t0, t1]` parameter
+ * range (0..1 along the segment) that lies inside `bbox`, or `null` if the
+ * segment never enters it at all. Standard algorithm, four half-plane
+ * checks (one per bbox edge) narrowing the surviving parameter interval. */
+function clipSegmentToBbox(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  bbox: LonLatBoundingBox,
+): [number, number] | null {
+  let t0 = 0;
+  let t1 = 1;
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const edges: [number, number][] = [
+    [-dx, x0 - bbox.minLon],
+    [dx, bbox.maxLon - x0],
+    [-dy, y0 - bbox.minLat],
+    [dy, bbox.maxLat - y0],
+  ];
+  for (const [p, q] of edges) {
+    if (p === 0) {
+      if (q < 0) return null;
+      continue;
+    }
+    const r = q / p;
+    if (p < 0) {
+      if (r > t1) return null;
+      if (r > t0) t0 = r;
+    } else {
+      if (r < t0) return null;
+      if (r < t1) t1 = r;
+    }
+  }
+  return [t0, t1];
+}
+
+/**
+ * Clips one basemap polyline (`basemap.ts`'s `BasemapLine`, `[lon, lat]`
+ * points) against `bbox` — the map's own contour bbox, always far smaller
+ * than the whole basemap fixture's ~20-country coverage — so `ShakeMapView`
+ * only ever projects and draws the handful of points actually inside its
+ * current viewBox (wave brief point 2: "clip boundary lines to the
+ * viewBox"). A line that exits and re-enters the box comes back as multiple
+ * separate polylines rather than one that jumps across the gap; a line that
+ * never touches the box at all comes back as an empty array.
+ */
+export function clipLineToBbox(
+  points: BasemapLike,
+  bbox: LonLatBoundingBox,
+): (readonly [number, number])[][] {
+  const result: (readonly [number, number])[][] = [];
+  let current: [number, number][] = [];
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (!a || !b) continue;
+    const [x0, y0] = a;
+    const [x1, y1] = b;
+    const clipped = clipSegmentToBbox(x0, y0, x1, y1, bbox);
+    if (!clipped) {
+      if (current.length > 1) result.push(current);
+      current = [];
+      continue;
+    }
+    const [t0, t1] = clipped;
+    const p0: [number, number] = [x0 + t0 * (x1 - x0), y0 + t0 * (y1 - y0)];
+    const p1: [number, number] = [x0 + t1 * (x1 - x0), y0 + t1 * (y1 - y0)];
+    if (current.length === 0) {
+      current.push(p0);
+    }
+    current.push(p1);
+    if (t1 < 1) {
+      // The segment exited the box before reaching its own endpoint —
+      // break the chain here so the next surviving piece starts fresh.
+      result.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 1) result.push(current);
+  return result;
+}
+
+/** Minimal structural type for a basemap polyline — kept local (rather than
+ * importing `BasemapLine` from `../basemap/basemap`) so this projection
+ * module has no dependency on the basemap fixture, only the reverse. */
+type BasemapLike = readonly (readonly [number, number])[];
+
 /**
  * Equirectangular projector, longitude-corrected by `cos(midLat)` so a
  * bounding box near Kurdistan's ~33-39°N latitude band doesn't visibly

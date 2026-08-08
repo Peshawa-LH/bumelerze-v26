@@ -37,3 +37,38 @@ export const SHAKEMAP_MAX_RINGS_PER_LEVEL = 40;
 /** Rings with fewer than this many points cover negligible area and are
  * dropped outright before the cap above ever applies. */
 export const SHAKEMAP_MIN_RING_POINTS = 3;
+
+/**
+ * City-label visual styling (map-presentation wave, 2026-08-08 — owner:
+ * "the cities are way too large in the text written and the labels are too
+ * large and dark"). Previously inlined as bare numbers straight in
+ * `ShakeMapView.tsx` (fontSize 9, strokeWidth 2, dot radius 2.5, fill
+ * `colors.text.primary`) — pulled out to named constants so the sizing is
+ * reviewable in one place and no future edit re-introduces a hardcoded
+ * value. Values are in SVG viewBox units (same coordinate space as
+ * `SHAKEMAP_VIEW_WIDTH`/`HEIGHT` above), deliberately smaller and lighter
+ * than before; the fill color itself moved to `colors.text.secondary` (see
+ * `ShakeMapView.tsx`), a step down from the near-black `text.primary` that
+ * read as "too dark" against the map.
+ */
+export const SHAKEMAP_LABEL_FONT_SIZE = 7;
+/** `fontWeight` is a string on `SvgText`, not a numeric config value here —
+ * kept as "500" (medium) inline in `ShakeMapView.tsx`, matching
+ * `typography.labelCaption`'s weight rather than the old default (unset ->
+ * effectively regular/bold-by-renderer-default) so labels read as
+ * deliberately lighter, not just smaller. */
+export const SHAKEMAP_LABEL_HALO_WIDTH = 1.25;
+export const SHAKEMAP_CITY_DOT_RADIUS = 1.75;
+
+/**
+ * Static basemap layer (map-presentation wave — owner: "there should be a
+ * basemap similar to SHAKEmaps toolkit"): country border lines + coastline,
+ * drawn under the intensity contours (`basemap/` fixture). Subtle by
+ * design — this is context, not the map's own subject — and low-opacity
+ * enough that a 60%-opacity contour fill painted on top still reads
+ * clearly (wave brief: "contours keep their opacity so boundaries read
+ * through").
+ */
+export const SHAKEMAP_BASEMAP_BORDER_WIDTH = 0.75;
+export const SHAKEMAP_BASEMAP_COASTLINE_WIDTH = 0.75;
+export const SHAKEMAP_BASEMAP_LINE_OPACITY = 0.6;
