@@ -10,4 +10,11 @@ const config = getDefaultConfig(__dirname);
 
 config.resolver.assetExts.push("db", "sqlite");
 
+// expo-sqlite's WEB implementation ships a WebAssembly build
+// (web/worker.ts imports ./wa-sqlite/wa-sqlite.wasm) — Metro must treat
+// .wasm as a bundled asset or every web bundle fails with "Unable to
+// resolve module ./wa-sqlite/wa-sqlite.wasm". Native builds don't use
+// this path (they bind the real SQLite), so this is web-only plumbing.
+config.resolver.assetExts.push("wasm");
+
 module.exports = config;
