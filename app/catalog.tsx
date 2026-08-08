@@ -26,7 +26,7 @@ export default function CatalogScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("catalog.title") }} />
+      <Stack.Screen options={{ title: t("catalog.title"), headerShown: true }} />
       <SQLiteProvider
         databaseName={CATALOG_DATABASE_NAME}
         // Metro asset resolution needs a literal, static `require()` call
