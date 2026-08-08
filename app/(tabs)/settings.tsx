@@ -117,8 +117,53 @@ export default function SettingsScreen() {
       <HomeBaseSection />
       <NotificationsSection />
       <LocationPermissionSection />
+      <HandbookSection />
       <OnboardingSection />
     </ScrollView>
+  );
+}
+
+function HandbookSection() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const router = useRouter();
+
+  return (
+    <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
+        }}
+      >
+        {t("settings.handbookSectionTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("settings.handbookSectionDescription")}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push("/handbook")}
+        style={[styles.row, { borderColor: colors.border.default }]}
+      >
+        <Text
+          style={{
+            color: colors.text.primary,
+            fontSize: typography.bodyDefault.fontSize,
+          }}
+        >
+          {t("settings.handbookOpen")}
+        </Text>
+      </Pressable>
+    </View>
   );
 }
 

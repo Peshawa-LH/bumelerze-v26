@@ -340,7 +340,10 @@
     "replayOnboardingConfirmMessage": "ستمر بشاشات الترحيب مرة أخرى. سيتم الاحتفاظ باختيارك للغة والموطن.",
     "notificationsSectionTitle": "الإشعارات",
     "notificationsSectionDescription": "اختر كيف يُنبّهك بوملێرزە بشأن الزلازل القريبة منك ومن موطنك.",
-    "notificationsManage": "إدارة الإشعارات"
+    "notificationsManage": "إدارة الإشعارات",
+    "handbookSectionTitle": "دليل المهندس",
+    "handbookSectionDescription": "قيم تصميمية موثّقة المصدر (PGA، Vs30، فئة الموقع) لموقع في كوردستان/العراق — للمهندسين والباحثين.",
+    "handbookOpen": "فتح دليل المهندس"
   },
   "onboarding": {
     "back": "رجوع",
@@ -624,5 +627,66 @@
         "close": "إغلاق"
       }
     }
+  },
+  "handbook": {
+    "settingsRowTitle": "دليل المهندس",
+    "title": "دليل المهندس",
+    "intro": "أدخل إحداثيات موقع في كوردستان/العراق للاطلاع على قيم مرجعية موثّقة المصدر.",
+    "coordinates": {
+      "sectionTitle": "الإحداثيات",
+      "latLabel": "خط العرض",
+      "lonLabel": "خط الطول",
+      "latPlaceholder": "35.560",
+      "lonPlaceholder": "45.430",
+      "errorEmpty": "أدخل قيمة.",
+      "errorNotANumber": "أدخل رقمًا.",
+      "errorOutOfRange": "خارج النطاق.",
+      "useMyLocation": "استخدام موقعي",
+      "locationUnavailable": "الموقع غير متاح. فعّل إذن الموقع من الإعدادات.",
+      "pickTown": "اختر بلدة بدلاً من ذلك",
+      "hidePickTown": "أدخل الإحداثيات يدويًا"
+    },
+    "lookupButton": "بحث",
+    "resultsTitle": "النتائج لـ {{lat}}, {{lon}}",
+    "rows": {
+      "pga": {
+        "label": "PGA التصميمي",
+        "citation": "الكود الزلزالي العراقي 2017، خريطة تقسيم مناطق PGA التصميمي",
+        "value": "{{value}}g (المنطقة {{zone}})",
+        "outsideZonation": "هذا الموقع خارج خريطة تقسيم مناطق الكود الزلزالي العراقي 2017."
+      },
+      "vs30": {
+        "label": "Vs30",
+        "sublabel": "متوسط سرعة الموجة القصية، أعلى 30 مترًا",
+        "value": "{{value}} م/ث",
+        "unavailable": "لا تتوفر بيانات Vs30 لهذا الموقع."
+      },
+      "siteClass": {
+        "label": "فئة الموقع",
+        "sublabel": "مشتقة من Vs30",
+        "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
+        "citation": "اليوروكود 8 (EN 1998-1) الجدول 3.1؛ فئات NEHRP (ASCE 7-16 الجدول 20.3-1)",
+        "unavailable": "غير متاح — لا توجد قراءة Vs30 لهذا الموقع."
+      },
+      "soil": {
+        "label": "نقاط تربة/موقع السليمانية القريبة",
+        "citation": "دراسة تربة/موقع السليمانية، 2024 (بيشەوا ل. حەسەن، حملة DAAD-Iraq / KISC الميدانية)",
+        "distance": "تبعد {{distance}} كم",
+        "classLine": "EC8 {{ec8}} / NEHRP {{nehrp}}",
+        "vs30EstimateLine": "تقدير Vs30 ≈ {{value}} م/ث"
+      },
+      "gmpe": {
+        "label": "نماذج الحركة الأرضية المستخدمة في هذا التطبيق",
+        "note": "تستخدم حسابات الخطورة وخرائط ShakeMap في هذا التطبيق مجموعة معادلات التنبؤ بالحركة الأرضية هذه."
+      }
+    },
+    "methods": {
+      "hvsr": "نسبة الطيف H/V",
+      "borehole": "حفرة اختبار",
+      "spt-vs": "SPT→Vs (حتى 5 أمتار، وليس متوسطًا كاملاً لـ30 مترًا)",
+      "dem-vs30": "تقدير Vs30 المستند إلى DEM"
+    },
+    "disclaimer": "هذه القيم مرجعية للاستخدام الأولي. لا تُغني عن دراسة جيوتقنية خاصة بالموقع أو عن نص الكود التصميمي نفسه.",
+    "outOfCoverage": "لا تغطي البيانات المجمّعة هذا الموقع."
   }
 }
