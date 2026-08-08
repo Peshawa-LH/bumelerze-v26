@@ -1,6 +1,9 @@
 """Ground Motion to Intensity Conversion Equations (GMICE) — Zanini & Hofer
 (2019) EMS-98 display channel + Worden et al. (2012) MMI validation channel
-(gmpe-set-proposal.md §4.4, D9/D19/D20).
+(gmpe-set-proposal.md §4.4, D9/D19/D20), plus Bilal & Askan (2014) as a
+mean-only Turkey regional SENSITIVITY channel (hazard-science audit wave,
+2026-08-08 — see its own section notice below; never a display/conditioning
+channel).
 
 Provenance (D9 "extract, don't entangle" — wave B, 2026-08-07)
 ----------------------------------------------------------------------------
@@ -309,6 +312,83 @@ def worden_2012_from_mmi(mmi: np.ndarray, *, imt: str, unit_out: str) -> np.ndar
 
 
 # ---------------------------------------------------------------------------
+# Bilal & Askan (2014) — Turkey PGA/PGV <-> MMI sensitivity channel
+# Coefficients transcribed VERBATIM from SHAKEgmice.py `Bilalandaskan14`
+# (hazard-science audit wave, 2026-08-08 — the closest REGIONAL (Turkey)
+# GMICE in the toolkit's 9-model catalogue; ported as a sensitivity/
+# validation channel alongside the Zanini EMS display + Worden MMI
+# validation channels, exactly because the Zanini PGV-EMS defect
+# (RETIRED-FROM-FORWARD-USE notice above) showed the value of an
+# independent regional cross-check. NOT wired into any display/export/
+# conditioning path — selectable by name for comparison runs only.)
+#
+# Citation: Bilal, M., & Askan, A. (2014), "Relationships between Felt
+# Intensity and Recorded Ground-Motion Parameters for Turkey", BSSA
+# 104(1):484-496. Model form (toolkit transcription):
+#     MMI = 0.132 + 3.884 * log10(PGA[cm/s^2])
+#     MMI = 2.673 + 4.340 * log10(PGV[cm/s])
+#
+# [REVIEW] Verification status (same honesty policy as WORDEN_SIGMA_VERIFIED):
+#   - BILAL_COEFFS_VERIFIED = False — the coefficients are a VERBATIM copy of
+#     the toolkit's own transcription, NOT independently re-verified against
+#     the BSSA 104(1) primary PDF this session (the paper is not in Peshawa's
+#     Zotero library as of 2026-08-08 — checked, not assumed). Joins the same
+#     G12-style pre-use verification pass Worden's table already awaits.
+#   - NO sigma is catalogued for this model (the toolkit transcribes none,
+#     and the paper's published scatter was not readable this session) —
+#     `sigma_gmice("Bilalandaskan14", ...)` raises `NotImplementedError`
+#     honestly, so this model CANNOT feed the chain-rule sigma path
+#     (`intensity.compute_intensity`) or reverse-GMICE observation weighting
+#     until a published sigma is transcribed and verified. Mean-only
+#     sensitivity comparisons (`convert_to_intensity`/`convert_from_intensity`)
+#     are the supported use.
+# ---------------------------------------------------------------------------
+
+_BILAL_PGA_TO_MMI = (0.132, 3.884)  # mmi = c0 + c1*log10(pga_cm_s2)
+_BILAL_PGV_TO_MMI = (2.673, 4.340)  # mmi = c0 + c1*log10(pgv_cm_s)
+
+BILAL_COEFFS_VERIFIED = False  # verbatim toolkit transcription, not yet checked vs BSSA 104(1) -- see [REVIEW] note above.
+BILAL_CITATION = "Bilal & Askan (2014), BSSA 104(1):484-496 (Turkey)"
+
+
+def _bilal_pgm_to_mmi(y_gmice: np.ndarray, coeffs: Tuple[float, float]) -> np.ndarray:
+    # Guard pattern mirrors `_zanini_pga_to_ems` (a numerical log10(<=0)
+    # guard, not model content -- the toolkit's own `np.where(x < 0, 0, ...)`
+    # still evaluates log10(0) noisily; <=0 is the safe equivalent).
+    c0, c1 = coeffs
+    y = np.asarray(y_gmice, dtype=float)
+    return np.where(y <= 0, 0.0, c0 + c1 * np.log10(np.where(y > 0, y, 1.0)))
+
+
+def _bilal_mmi_to_pgm(mmi: np.ndarray, coeffs: Tuple[float, float]) -> np.ndarray:
+    c0, c1 = coeffs
+    mmi = np.asarray(mmi, dtype=float)
+    return np.where(mmi < 0, 0.0, 10.0 ** ((mmi - c0) / c1))
+
+
+def bilal_askan_2014_to_mmi(y_native: np.ndarray, *, imt: str, unit_in: str) -> np.ndarray:
+    """PGA/PGV (linear, `unit_in`) -> MMI (linear). Turkey regional model;
+    sensitivity channel only (module section notice above)."""
+    kind, _period = _parse_imt(imt)
+    if kind not in ("PGA", "PGV"):
+        raise ValueError(
+            f"bilal_askan_2014: only PGA/PGV supported (toolkit has no SA branch), got {imt!r}"
+        )
+    y_gmice = _to_gmice_native(y_native, imt, unit_in)
+    coeffs = _BILAL_PGA_TO_MMI if kind == "PGA" else _BILAL_PGV_TO_MMI
+    return _bilal_pgm_to_mmi(y_gmice, coeffs)
+
+
+def bilal_askan_2014_from_mmi(mmi: np.ndarray, *, imt: str, unit_out: str) -> np.ndarray:
+    """MMI (linear) -> PGA/PGV (linear, `unit_out`)."""
+    kind, _period = _parse_imt(imt)
+    if kind not in ("PGA", "PGV"):
+        raise ValueError(f"bilal_askan_2014: only PGA/PGV supported, got {imt!r}")
+    coeffs = _BILAL_PGA_TO_MMI if kind == "PGA" else _BILAL_PGV_TO_MMI
+    return _from_gmice_native(_bilal_mmi_to_pgm(mmi, coeffs), imt, unit_out)
+
+
+# ---------------------------------------------------------------------------
 # Model registry -- generic convert_to_intensity/convert_from_intensity, so
 # `intensity.py` can pick a model by name without an if/elif ladder.
 # ---------------------------------------------------------------------------
@@ -319,14 +399,17 @@ _FromFn = Callable[..., np.ndarray]
 MODEL_SCALE: Dict[str, str] = {
     "Zaniniandhofer19": "EMS",
     "WordenEtAl12": "MMI",
+    "Bilalandaskan14": "MMI",  # Turkey regional sensitivity channel -- mean-only (no sigma catalogued), see its section notice.
 }
 _MODEL_TO_FN: Dict[str, _ToFn] = {
     "Zaniniandhofer19": zanini_hofer_2019_to_ems,
     "WordenEtAl12": worden_2012_to_mmi,
+    "Bilalandaskan14": bilal_askan_2014_to_mmi,
 }
 _MODEL_FROM_FN: Dict[str, _FromFn] = {
     "Zaniniandhofer19": zanini_hofer_2019_from_ems,
     "WordenEtAl12": worden_2012_from_mmi,
+    "Bilalandaskan14": bilal_askan_2014_from_mmi,
 }
 
 DEFAULT_EMS_MODEL = "Zaniniandhofer19"

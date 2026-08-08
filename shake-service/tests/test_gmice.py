@@ -210,3 +210,79 @@ def test_zanini_pgv_to_ems_still_callable_for_sensitivity_and_provenance_use():
     # depend on it still working, unchanged.
     ems = gmice.zanini_hofer_2019_to_ems(np.array([10.0]), imt="PGV", unit_in="cm/s")
     assert np.isfinite(ems[0])
+
+
+# ---------------------------------------------------------------------------
+# Bilal & Askan (2014) Turkey MMI sensitivity channel (hazard-science audit
+# wave, 2026-08-08) -- verbatim toolkit transcription, mean-only (no sigma
+# catalogued), registry-selectable, never a display/conditioning channel.
+# ---------------------------------------------------------------------------
+
+
+def test_bilal_coefficients_match_toolkit_transcription_exactly():
+    # SHAKEgmice.Bilalandaskan14: MMI = 0.132 + 3.884*log10(PGA cm/s^2);
+    # MMI = 2.673 + 4.340*log10(PGV cm/s). At log10 == 2 the PGA relation
+    # must evaluate to the coefficients verbatim (regression pin against the
+    # toolkit's transcription -- BILAL_COEFFS_VERIFIED stays False until the
+    # BSSA 104(1) primary-PDF pass).
+    mmi_pga = gmice.bilal_askan_2014_to_mmi(np.array([100.0]), imt="PGA", unit_in="cm/s^2")
+    assert mmi_pga[0] == pytest.approx(0.132 + 3.884 * 2.0, rel=1e-12)
+    mmi_pgv = gmice.bilal_askan_2014_to_mmi(np.array([10.0]), imt="PGV", unit_in="cm/s")
+    assert mmi_pgv[0] == pytest.approx(2.673 + 4.340 * 1.0, rel=1e-12)
+
+
+@pytest.mark.parametrize("unit_in", ["g", "cm/s^2"])
+def test_bilal_pga_round_trip(unit_in):
+    pga = np.array([0.005, 0.01, 0.05, 0.1, 0.3, 0.8])
+    if unit_in == "cm/s^2":
+        pga = pga * 980.665
+    mmi = gmice.bilal_askan_2014_to_mmi(pga, imt="PGA", unit_in=unit_in)
+    back = gmice.bilal_askan_2014_from_mmi(mmi, imt="PGA", unit_out=unit_in)
+    assert back == pytest.approx(pga, rel=1e-9)
+
+
+def test_bilal_pgv_round_trip():
+    pgv = np.array([0.5, 1.0, 5.0, 20.0, 60.0])
+    mmi = gmice.bilal_askan_2014_to_mmi(pgv, imt="PGV", unit_in="cm/s")
+    back = gmice.bilal_askan_2014_from_mmi(mmi, imt="PGV", unit_out="cm/s")
+    assert back == pytest.approx(pgv, rel=1e-9)
+
+
+def test_bilal_rejects_sa():
+    # SHAKEgmice.Bilalandaskan14 has no SA branch -- honest rejection.
+    with pytest.raises(ValueError):
+        gmice.bilal_askan_2014_to_mmi(np.array([0.1]), imt="SA(0.3)", unit_in="g")
+
+
+def test_bilal_registry_dispatch_and_scale():
+    assert gmice.scale_for_model("Bilalandaskan14") == "MMI"
+    via_registry = gmice.convert_to_intensity(
+        np.array([0.1]), imt="PGA", unit_in="g", model="Bilalandaskan14"
+    )
+    direct = gmice.bilal_askan_2014_to_mmi(np.array([0.1]), imt="PGA", unit_in="g")
+    assert via_registry == pytest.approx(direct)
+    back = gmice.convert_from_intensity(
+        via_registry, imt="PGA", unit_out="g", model="Bilalandaskan14"
+    )
+    assert back == pytest.approx(np.array([0.1]), rel=1e-9)
+
+
+def test_bilal_sigma_is_an_honest_gap_not_a_guess():
+    # No sigma is catalogued (the toolkit transcribes none) -- the model
+    # must NOT be usable for chain-rule sigma propagation or observation
+    # weighting until a published sigma is transcribed and verified.
+    with pytest.raises(NotImplementedError):
+        gmice.sigma_gmice("Bilalandaskan14", "PGA")
+    assert gmice.BILAL_COEFFS_VERIFIED is False
+
+
+def test_bilal_is_monotonic_and_regionally_higher_than_worden_at_moderate_pga():
+    # Monotonicity in PGA; and the documented sensitivity property that
+    # motivated the port: the Turkey relation reads a given moderate PGA as
+    # a HIGHER intensity than California-calibrated Worden -- the spread
+    # between the two channels IS the regional-sensitivity signal.
+    pga = np.array([0.02, 0.05, 0.1, 0.2])
+    bilal = gmice.bilal_askan_2014_to_mmi(pga, imt="PGA", unit_in="g")
+    assert np.all(np.diff(bilal) > 0)
+    worden = gmice.worden_2012_to_mmi(pga, imt="PGA", unit_in="g")
+    assert np.all(bilal > worden)
