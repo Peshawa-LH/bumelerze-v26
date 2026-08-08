@@ -79,7 +79,8 @@
     "retry": "Dîsa biceribîne",
     "viewWorld": "Cîhan",
     "viewSignificant": "Girîng",
-    "viewHistorical": "Dîrokî"
+    "viewHistorical": "Dîrokî",
+    "viewCatalog": "Katalog"
   },
   "world": {
     "title": "Katalog a Cîhanê",
@@ -91,6 +92,7 @@
   },
   "historical": {
     "title": "Bûyerên Dîrokî",
+    "catalogLink": "Hemû katalogê bibîne",
     "notes": {
       "hamdaniya1944": "Erdhejeke navîn li nêzî Al-Hemdaniya, rojhilatê Mûsilê.",
       "baynjiwayn1946": "Erdhejeke navîn li nêzî Pencwînê, li ser sînorê Iraq-Îranê.",
@@ -103,6 +105,39 @@
       "sarpolEZahab2018": "Erdhejeke navîn li nêzî Serpêlê Zehabê, li heman herêma sînor a erdheja 2017an.",
       "pazarcik2023": "Erdheja pêşî û ya herî mezin ji du erdhejên Kahramanmaraşê, li ser pergala Xeta Anatoliya Rojhilat.",
       "elbistan2023": "Erdheja duyemîn a Kahramanmaraşê, ku di heman rojê de nêzî 95 km bakurê ya pêşî çêbû."
+    }
+  },
+  "catalog": {
+    "title": "Katalog a Erdhejan",
+    "resultsCount": "{{count}} erdhej",
+    "emptyState": "Tu erdhej bi van fîlteran re li hev nayên.",
+    "loading": "Katalog tê barkirin…",
+    "errorTitle": "Katalog nehat barkirin.",
+    "filters": {
+      "magMinLabel": "Rêjeya kêmtirîn",
+      "magMaxLabel": "Rêjeya herî zêde",
+      "yearMinLabel": "Ji sala",
+      "yearMaxLabel": "Heta sala",
+      "decrement": "Kêm bike",
+      "increment": "Zêde bike"
+    },
+    "sources": {
+      "ISCGEM": "ISC-GEM",
+      "ONUR2017": "Onur 2017",
+      "EMME": "EMME",
+      "USGS": "USGS",
+      "KISC": "KISC"
+    },
+    "detail": {
+      "title": "Hûrgiliyên erdhejê",
+      "close": "Bigire",
+      "dateLabel": "Dîrok (UTC)",
+      "coordinatesLabel": "Koordînat",
+      "depthLabel": "Kûrahî",
+      "magnitudeLabel": "Rêje",
+      "sourceLabel": "Çavkanî",
+      "sourceIdLabel": "Nasnameya çavkaniyê",
+      "unknown": "Nenas"
     }
   },
   "map": {
