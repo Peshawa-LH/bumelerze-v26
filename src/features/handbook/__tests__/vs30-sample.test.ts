@@ -16,9 +16,15 @@ const GRID: Vs30Grid = {
   nodata: -9999,
   citation: "test citation",
   values: [
-    100, 200, 300, // row 0 (lat ~2.5)
-    400, 500, 600, // row 1 (lat ~1.5)
-    700, 800, 900, // row 2 (lat ~0.5)
+    100,
+    200,
+    300, // row 0 (lat ~2.5)
+    400,
+    500,
+    600, // row 1 (lat ~1.5)
+    700,
+    800,
+    900, // row 2 (lat ~0.5)
   ],
 };
 
@@ -49,11 +55,7 @@ describe("sampleVs30", () => {
   it("falls back to nearest-neighbor when some but not all of the 4 surrounding cells are nodata", () => {
     const partialGrid: Vs30Grid = {
       ...GRID,
-      values: [
-        100, 200, 300,
-        400, -9999, 600,
-        700, 800, 900,
-      ],
+      values: [100, 200, 300, 400, -9999, 600, 700, 800, 900],
     };
     // Query right at the nodata cell's center — bilinear would need all 4
     // neighbors (itself included via the surrounding cell math), so this

@@ -119,6 +119,7 @@ export default function RootLayout() {
                 <Stack.Screen name="world" options={{ headerShown: true }} />
                 <Stack.Screen name="significant" options={{ headerShown: true }} />
                 <Stack.Screen name="historical" options={{ headerShown: true }} />
+                <Stack.Screen name="handbook" options={{ headerShown: true }} />
                 <Stack.Screen
                   name="notification-settings"
                   options={{ headerShown: true }}

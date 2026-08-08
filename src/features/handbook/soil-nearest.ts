@@ -15,7 +15,10 @@ export function nearbySoilPoints(
   points: readonly SoilPoint[],
 ): NearbySoilPoint[] {
   return points
-    .map((point) => ({ point, distanceKm: haversineDistanceKm(lat, lon, point.lat, point.lon) }))
+    .map((point) => ({
+      point,
+      distanceKm: haversineDistanceKm(lat, lon, point.lat, point.lon),
+    }))
     .filter((entry) => entry.distanceKm <= SOIL_NEARBY_RADIUS_KM)
     .sort((a, b) => a.distanceKm - b.distanceKm);
 }

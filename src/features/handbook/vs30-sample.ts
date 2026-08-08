@@ -66,9 +66,12 @@ export function sampleVs30(grid: Vs30Grid, lat: number, lon: number): number | n
   // the 4 corners (by fractional distance) that actually has data.
   const candidates: { value: number; distance: number }[] = [];
   if (v00 !== grid.nodata) candidates.push({ value: v00, distance: wx ** 2 + wy ** 2 });
-  if (v10 !== grid.nodata) candidates.push({ value: v10, distance: (1 - wx) ** 2 + wy ** 2 });
-  if (v01 !== grid.nodata) candidates.push({ value: v01, distance: wx ** 2 + (1 - wy) ** 2 });
-  if (v11 !== grid.nodata) candidates.push({ value: v11, distance: (1 - wx) ** 2 + (1 - wy) ** 2 });
+  if (v10 !== grid.nodata)
+    candidates.push({ value: v10, distance: (1 - wx) ** 2 + wy ** 2 });
+  if (v01 !== grid.nodata)
+    candidates.push({ value: v01, distance: wx ** 2 + (1 - wy) ** 2 });
+  if (v11 !== grid.nodata)
+    candidates.push({ value: v11, distance: (1 - wx) ** 2 + (1 - wy) ** 2 });
   candidates.sort((a, b) => a.distance - b.distance);
   return candidates[0]?.value ?? null;
 }

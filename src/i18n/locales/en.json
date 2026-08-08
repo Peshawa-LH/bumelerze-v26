@@ -340,7 +340,10 @@
     "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language and HomeBase choices are kept.",
     "notificationsSectionTitle": "Notifications",
     "notificationsSectionDescription": "Choose how Bumelerze alerts you about earthquakes near you and near your HomeBase.",
-    "notificationsManage": "Manage notifications"
+    "notificationsManage": "Manage notifications",
+    "handbookSectionTitle": "Engineer's handbook",
+    "handbookSectionDescription": "Cited design values (PGA, Vs30, site class) for a site in Kurdistan/Iraq — for engineers and researchers.",
+    "handbookOpen": "Open handbook"
   },
   "onboarding": {
     "back": "Back",
@@ -624,5 +627,66 @@
         "close": "Close"
       }
     }
+  },
+  "handbook": {
+    "settingsRowTitle": "Engineer's handbook",
+    "title": "Engineer's handbook",
+    "intro": "Enter coordinates for a site in Kurdistan/Iraq to look up cited reference values.",
+    "coordinates": {
+      "sectionTitle": "Coordinates",
+      "latLabel": "Latitude",
+      "lonLabel": "Longitude",
+      "latPlaceholder": "35.560",
+      "lonPlaceholder": "45.430",
+      "errorEmpty": "Enter a value.",
+      "errorNotANumber": "Enter a number.",
+      "errorOutOfRange": "Out of range.",
+      "useMyLocation": "Use my location",
+      "locationUnavailable": "Location isn't available. Turn on location access in Settings.",
+      "pickTown": "Pick a town instead",
+      "hidePickTown": "Enter coordinates manually"
+    },
+    "lookupButton": "Look up",
+    "resultsTitle": "Results for {{lat}}, {{lon}}",
+    "rows": {
+      "pga": {
+        "label": "Design PGA",
+        "citation": "Iraqi Seismic Code 2017, design-PGA zonation map",
+        "value": "{{value}}g (Zone {{zone}})",
+        "outsideZonation": "This location is outside the Iraqi Seismic Code 2017 zonation map."
+      },
+      "vs30": {
+        "label": "Vs30",
+        "sublabel": "Average shear-wave velocity, top 30 m",
+        "value": "{{value}} m/s",
+        "unavailable": "No Vs30 data at this location."
+      },
+      "siteClass": {
+        "label": "Site class",
+        "sublabel": "Derived from Vs30",
+        "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
+        "citation": "Eurocode 8 (EN 1998-1) Table 3.1; NEHRP site classes (ASCE 7-16 Table 20.3-1)",
+        "unavailable": "Not available — no Vs30 sample at this location."
+      },
+      "soil": {
+        "label": "Nearby Sulaimani soil/site points",
+        "citation": "Sulaimani soil/site investigation, 2024 (Peshawa L. Hasan, DAAD-Iraq / KISC field campaign)",
+        "distance": "{{distance}} km away",
+        "classLine": "EC8 {{ec8}} / NEHRP {{nehrp}}",
+        "vs30EstimateLine": "Estimated Vs30 ≈ {{value}} m/s"
+      },
+      "gmpe": {
+        "label": "Ground-motion models used in this app",
+        "note": "Hazard and ShakeMap computations in this app use this ground-motion prediction equation set."
+      }
+    },
+    "methods": {
+      "hvsr": "H/V spectral ratio",
+      "borehole": "Borehole",
+      "spt-vs": "SPT→Vs (Vs to 5 m, not a full 30 m average)",
+      "dem-vs30": "DEM-based Vs30 estimate"
+    },
+    "disclaimer": "These values are a reference for preliminary use. They are not a substitute for a site-specific geotechnical investigation or for the design code text itself.",
+    "outOfCoverage": "No bundled data covers this location."
   }
 }

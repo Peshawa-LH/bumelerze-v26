@@ -6,7 +6,11 @@ import type { PgaZone } from "./types";
  * operates on plain rings rather than a specific zone type so it can be
  * reused if a second polygon dataset joins the handbook later.
  */
-export function pointInRing(lat: number, lon: number, ring: readonly (readonly [number, number])[]): boolean {
+export function pointInRing(
+  lat: number,
+  lon: number,
+  ring: readonly (readonly [number, number])[],
+): boolean {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const pi = ring[i];

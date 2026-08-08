@@ -340,7 +340,10 @@
     "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên û Cihê Malê tê parastin.",
     "notificationsSectionTitle": "Agahdarî",
     "notificationsSectionDescription": "Hilbijêre ka Bumelerze te çawa ji bo erdhejên nêzî te û nêzî Cihê Malê te agahdar dike.",
-    "notificationsManage": "Agahdariyan bi rê ve bibe"
+    "notificationsManage": "Agahdariyan bi rê ve bibe",
+    "handbookSectionTitle": "Pirtûka endezyar",
+    "handbookSectionDescription": "Nirxên sêwiranê yên jêder (PGA, Vs30, çîna axê) ji bo cihekî li Kurdistan/Iraq — ji bo endezyar û lêkolîneran.",
+    "handbookOpen": "Pirtûka endezyar veke"
   },
   "onboarding": {
     "back": "Vegere",
@@ -624,5 +627,66 @@
         "close": "Bigire"
       }
     }
+  },
+  "handbook": {
+    "settingsRowTitle": "Pirtûka endezyar",
+    "title": "Pirtûka endezyar",
+    "intro": "Ji bo cihekî li Kurdistan/Iraq koordînatan binivîse da ku nirxên jêderkirî bibînî.",
+    "coordinates": {
+      "sectionTitle": "Koordînat",
+      "latLabel": "Firehiya erdnîgarî",
+      "lonLabel": "Dirêjahiya erdnîgarî",
+      "latPlaceholder": "35.560",
+      "lonPlaceholder": "45.430",
+      "errorEmpty": "Nirxek binivîse.",
+      "errorNotANumber": "Hejmarek binivîse.",
+      "errorOutOfRange": "Ji dabaşê derve ye.",
+      "useMyLocation": "Cihê min bikar bîne",
+      "locationUnavailable": "Cih ne berdest e. Di Sazkariyan de destûra cihê veke.",
+      "pickTown": "Li şûna wê bajarokekî hilbijêre",
+      "hidePickTown": "Koordînatan bi destan binivîse"
+    },
+    "lookupButton": "Lêgerîn",
+    "resultsTitle": "Encam ji bo {{lat}}, {{lon}}",
+    "rows": {
+      "pga": {
+        "label": "PGA ya sêwiranê",
+        "citation": "Qanûna Erdhejê ya Iraqê 2017, nexşeya herêmkirina PGA ya sêwiranê",
+        "value": "{{value}}g (Herêma {{zone}})",
+        "outsideZonation": "Ev cih ji nexşeya herêmkirina Qanûna Erdhejê ya Iraqê 2017 derve ye."
+      },
+      "vs30": {
+        "label": "Vs30",
+        "sublabel": "Leza pêla lerizê ya navîn, 30 m ya jorîn",
+        "value": "{{value}} m/s",
+        "unavailable": "Li vî cihî daneya Vs30 tune ye."
+      },
+      "siteClass": {
+        "label": "Çîna cihê",
+        "sublabel": "Ji Vs30 hatiye derxistin",
+        "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
+        "citation": "Eurocode 8 (EN 1998-1) Tabloya 3.1; çînên NEHRP (ASCE 7-16 Tabloya 20.3-1)",
+        "unavailable": "Ne berdest e — li vî cihî nimûneya Vs30 tune ye."
+      },
+      "soil": {
+        "label": "Xalên axê/cihê Silêmanî yên nêzîk",
+        "citation": "Lêkolîna axê/cihê Silêmanî, 2024 (Peshawa L. Hasan, kampanyaya DAAD-Iraq / KISC)",
+        "distance": "{{distance}} km dûr e",
+        "classLine": "EC8 {{ec8}} / NEHRP {{nehrp}}",
+        "vs30EstimateLine": "Texmîna Vs30 ≈ {{value}} m/s"
+      },
+      "gmpe": {
+        "label": "Modelên tevgera erdê yên vê sepanê bikar tîne",
+        "note": "Hesabên metirsiyê û ShakeMap yên vê sepanê vê koma modelên texmînkirina tevgera erdê bikar tînin."
+      }
+    },
+    "methods": {
+      "hvsr": "Rêjeya spektral a H/V",
+      "borehole": "Bîra kolandinê",
+      "spt-vs": "SPT→Vs (Vs heta 5 m, ne navînka temamî ya 30 m)",
+      "dem-vs30": "Texmîna Vs30 ya li ser bingeha DEM"
+    },
+    "disclaimer": "Ev nirx ji bo bikaranîna destpêkê ne, jêder in. Ew şûna lêkolîna geoteknîkî ya taybet a cihê an jî nivîsa qanûna sêwiranê bi xwe nagirin.",
+    "outOfCoverage": "Tu daneya bicihkirî vî cihî nagire."
   }
 }

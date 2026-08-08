@@ -1,0 +1,78 @@
+import { useState } from "react";
+import { ScrollView, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { useTheme } from "@/theme";
+import { lookupHandbookData } from "../lookup";
+import type { HandbookLookupResult } from "../types";
+import { CoordinateInputForm } from "./CoordinateInputForm";
+import { HandbookResultTable } from "./HandbookResultTable";
+
+/**
+ * Engineer's Handbook (spec-v1.md §7, design-brief.md §9) — the whole
+ * screen's content, split out from `app/handbook.tsx` (which only wraps
+ * this) so it's unit-testable without Expo Router's navigation context,
+ * same "screen component vs. route file" split every other pushed screen
+ * in this app uses (`CatalogListScreen`/`app/catalog.tsx`,
+ * `HistoricalScreen` inline pattern). Deliberately tucked away in Settings
+ * only (wave brief) — this is a professional-audience side tool, not a
+ * panic-time screen, so it intentionally does NOT get the big-type/one-tap
+ * treatment the felt-report flow gets.
+ */
+export function HandbookScreen() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  const [result, setResult] = useState<HandbookLookupResult | null>(null);
+
+  function handleSubmit(lat: number, lon: number) {
+    setResult(lookupHandbookData(lat, lon));
+  }
+
+  return (
+    <ScrollView
+      style={{ backgroundColor: colors.surface.base }}
+      contentContainerStyle={{
+        gap: spacing[5],
+        padding: spacing[5],
+        paddingBottom: insets.bottom + spacing[6],
+      }}
+    >
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("handbook.intro")}
+      </Text>
+
+      <CoordinateInputForm onSubmit={handleSubmit} />
+
+      {result ? <HandbookResultTable result={result} /> : null}
+
+      <View
+        style={{
+          borderWidth: 1,
+          borderRadius: 12,
+          borderColor: colors.border.default,
+          backgroundColor: colors.surface.raised,
+          padding: spacing[4],
+        }}
+      >
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyMeta.fontSize,
+            lineHeight: typography.bodyMeta.lineHeight,
+          }}
+        >
+          {t("handbook.disclaimer")}
+        </Text>
+      </View>
+    </ScrollView>
+  );
+}
