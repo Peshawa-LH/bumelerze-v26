@@ -16,9 +16,10 @@ def test_mw_family_is_passthrough():
 
 
 def test_mb_known_value_matches_hand_computation():
-    # Mw = 0.67*mb + 2.07 (Scordilis 2006 eq. 1)
+    # Mw = 0.85*mb + 1.03 (Scordilis 2006 eq. 22, web-verified 2026-08-09;
+    # the old 0.67/2.07 expectation was the paper's Ms relation, eq. 14)
     rec = magnitude.to_moment_magnitude(5.0, "mb")
-    assert rec.mw == pytest.approx(0.67 * 5.0 + 2.07)
+    assert rec.mw == pytest.approx(0.85 * 5.0 + 1.03)
     assert rec.method == "scordilis2006_mb"
     assert rec.in_published_range is True
     assert rec.review_flags == ()
