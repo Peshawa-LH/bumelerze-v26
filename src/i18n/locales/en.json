@@ -59,7 +59,8 @@
   },
   "events": {
     "provenance": {
-      "usgs": "USGS"
+      "usgs": "USGS",
+      "emsc": "EMSC"
     },
     "relativeTime": {
       "justNow": "Just now",
@@ -343,7 +344,9 @@
     "notificationsManage": "Manage notifications",
     "handbookSectionTitle": "Engineer's handbook",
     "handbookSectionDescription": "Cited design values (PGA, Vs30, site class) for a site in Kurdistan/Iraq — for engineers and researchers.",
-    "handbookOpen": "Open handbook"
+    "handbookOpen": "Open handbook",
+    "dataSourcesSectionTitle": "Data sources",
+    "dataSourcesSectionDescription": "Earthquake data comes from the USGS and EMSC (seismicportal.eu) FDSN web services, licensed CC BY 4.0. Bumelerze automatically switches to EMSC if USGS is temporarily unreachable."
   },
   "onboarding": {
     "back": "Back",

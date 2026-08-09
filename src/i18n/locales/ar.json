@@ -59,7 +59,8 @@
   },
   "events": {
     "provenance": {
-      "usgs": "USGS"
+      "usgs": "USGS",
+      "emsc": "EMSC"
     },
     "relativeTime": {
       "justNow": "الآن",
@@ -343,7 +344,9 @@
     "notificationsManage": "إدارة الإشعارات",
     "handbookSectionTitle": "دليل المهندس",
     "handbookSectionDescription": "قيم تصميمية موثّقة المصدر (PGA، Vs30، فئة الموقع) لموقع في كوردستان/العراق — للمهندسين والباحثين.",
-    "handbookOpen": "فتح دليل المهندس"
+    "handbookOpen": "فتح دليل المهندس",
+    "dataSourcesSectionTitle": "مصادر البيانات",
+    "dataSourcesSectionDescription": "تأتي بيانات الزلازل من خدمات الويب FDSN الخاصة بـ USGS وEMSC (seismicportal.eu)، مرخصة بموجب CC BY 4.0. يتحول Bumelerze تلقائيًا إلى EMSC إذا تعذر الوصول إلى USGS مؤقتًا."
   },
   "onboarding": {
     "back": "رجوع",
