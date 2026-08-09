@@ -97,7 +97,15 @@ export async function fetchUsgsRegionEvents(signal?: AbortSignal): Promise<UsgsF
 }
 
 /** World feed: the CDN-cached M4.5+/week summary feed — cheap, no bbox/time
- * filters needed (teardown-usgs-dyfi.md §2). */
+ * filters needed (teardown-usgs-dyfi.md §2). Deliberately USGS-only, no
+ * EMSC fallback (D4 second tier applies to the region feed only, wave
+ * brief point 4): EMSC has no equivalent pre-built CDN summary file, so an
+ * EMSC world fallback would mean an uncached, unbounded fdsnws query — a
+ * much heavier request than this cheap static file, for a feed where
+ * availability matters far less than the region feed (a stale/missing
+ * world catalog isn't the "can I trust the alert path" scenario this wave
+ * exists for). Revisit only if the world feed itself becomes safety-
+ * critical. */
 export async function fetchUsgsWorldEvents(): Promise<UsgsFetchResult> {
   const payload = await fetchJson(USGS_FEEDS.worldSummary);
   return parseFeatureCollection(payload, Date.now());

@@ -87,7 +87,17 @@ export interface UseEventsFeedResult {
    * failed — the "isOffline-ish" signal the wave brief asks for, derived
    * from query state rather than a NetInfo dependency: we only *have* stale
    * cached data with a failing latest fetch when the device can't reach
-   * USGS, which for this app's purposes is offline enough to say so. */
+   * USGS, which for this app's purposes is offline enough to say so.
+   *
+   * EMSC-fallback nuance (D4 second tier, wave brief point 5): for the
+   * region feed this flag comes from `fetchRegionEventsWithFailover`
+   * (queries.ts), which only rejects when BOTH USGS and EMSC fail — a
+   * successful EMSC fallback is a successful query, `query.isError` stays
+   * `false`, and this stays `false` too. So a device that's happily
+   * getting live EMSC data (because USGS alone was unreachable) correctly
+   * never sees the offline banner — the existing "via EMSC" provenance
+   * chip on each event card is the only, truthful, non-alarming signal of
+   * that swap; no separate banner needed. */
   isOfflineIsh: boolean;
   /** True only when there is no cached data at all yet — the one case that
    * should show a skeleton instead of the (possibly stale) list. */
