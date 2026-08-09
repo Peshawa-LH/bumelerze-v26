@@ -59,7 +59,8 @@
   },
   "events": {
     "provenance": {
-      "usgs": "USGS"
+      "usgs": "USGS",
+      "emsc": "EMSC"
     },
     "relativeTime": {
       "justNow": "Niha",
@@ -343,7 +344,9 @@
     "notificationsManage": "Agahdariyan bi rê ve bibe",
     "handbookSectionTitle": "Pirtûka endezyar",
     "handbookSectionDescription": "Nirxên sêwiranê yên jêder (PGA, Vs30, çîna axê) ji bo cihekî li Kurdistan/Iraq — ji bo endezyar û lêkolîneran.",
-    "handbookOpen": "Pirtûka endezyar veke"
+    "handbookOpen": "Pirtûka endezyar veke",
+    "dataSourcesSectionTitle": "Çavkaniyên daneyan",
+    "dataSourcesSectionDescription": "Daneyên erdhejê ji xizmetên webê yên FDSN ên USGS û EMSC (seismicportal.eu) tên wergirtin, di bin lîsansa CC BY 4.0 de. Bumelerze bixweber diguhere ser EMSC heke USGS demkî nayê gihîştin."
   },
   "onboarding": {
     "back": "Vegere",

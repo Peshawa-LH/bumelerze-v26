@@ -8,10 +8,11 @@
  * `Event`.
  */
 
-/** Providers this internal model can represent. USGS is the only one wired
- * in Phase 1 (spec-v1.md §9); the union exists now so adding EMSC later is
- * a type-level addition, not a shape change (event-pipeline-design.md §1). */
-export type EventProvider = "usgs";
+/** Providers this internal model can represent. USGS was the only one wired
+ * in Phase 1 (spec-v1.md §9); EMSC joined as the region feed's fallback
+ * provider (D4 second tier, event-pipeline-design.md §1) — a type-level
+ * addition, not a shape change, exactly as designed. */
+export type EventProvider = "usgs" | "emsc";
 
 export interface EventProvenance {
   provider: EventProvider;

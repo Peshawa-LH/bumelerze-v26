@@ -59,7 +59,8 @@
   },
   "events": {
     "provenance": {
-      "usgs": "USGS"
+      "usgs": "USGS",
+      "emsc": "EMSC"
     },
     "relativeTime": {
       "justNow": "ئێستا",
@@ -343,7 +344,9 @@
     "notificationsManage": "بەڕێوەبردنی ئاگادارکردنەوەکان",
     "handbookSectionTitle": "پەڕتووکی ئەندازیار",
     "handbookSectionDescription": "بەهای دیزاین (PGA، Vs30، پۆلی زەوی) بۆ شوێنێک لە کوردستان/عێراق، بە سەرچاوە — بۆ ئەندازیار و توێژەران.",
-    "handbookOpen": "کردنەوەی پەڕتووکی ئەندازیار"
+    "handbookOpen": "کردنەوەی پەڕتووکی ئەندازیار",
+    "dataSourcesSectionTitle": "سەرچاوەی داتا",
+    "dataSourcesSectionDescription": "زانیاری بوومەلەرزەکان لە خزمەتگوزاری وێبی FDSNی USGS و EMSC (seismicportal.eu) وەردەگیرێت، بە مۆڵەتی CC BY 4.0. کاتێک USGS بۆ ماوەیەک نەگەیشتبێت، بوومەلەرزە بە خۆکار دەگوازرێتەوە بۆ EMSC."
   },
   "onboarding": {
     "back": "گەڕانەوە",

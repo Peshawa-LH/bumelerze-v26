@@ -5,13 +5,16 @@ export {
   isInRegionBbox,
   isRegionSignificant,
   isWorldSignificant,
+  normalizeEmscFeature,
   normalizeUsgsFeature,
 } from "./normalize";
 export { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from "./usgs";
+export { fetchEmscRegionEvents } from "./emsc";
 export {
   createEventsPersister,
   createEventsQueryClient,
   eventsQueryKeys,
+  fetchRegionEventsWithFailover,
   useEventById,
   useRegionEvents,
   useWorldEvents,

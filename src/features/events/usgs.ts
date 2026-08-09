@@ -60,8 +60,8 @@ function parseFeatureCollection(
   return { events, skippedCount, fetchedAt };
 }
 
-async function fetchJson(url: string): Promise<unknown> {
-  const response = await fetch(url);
+async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
+  const response = await fetch(url, signal ? { signal } : {});
   if (!response.ok) {
     throw new Error(`USGS request failed: ${response.status} ${url}`);
   }
@@ -87,14 +87,25 @@ function buildRegionQueryUrl(): string {
 }
 
 /** Region feed: fdsnws query, last 30 days, bbox from config.ts
- * (event-pipeline-design.md §4). */
-export async function fetchUsgsRegionEvents(): Promise<UsgsFetchResult> {
-  const payload = await fetchJson(buildRegionQueryUrl());
+ * (event-pipeline-design.md §4). `signal` is used by queries.ts's
+ * USGS-primary/EMSC-fallback failover (config.USGS_REGION_TIMEOUT_MS) to
+ * abort a slow USGS request and try EMSC instead — optional so every
+ * existing direct caller (and every existing test) is unaffected. */
+export async function fetchUsgsRegionEvents(signal?: AbortSignal): Promise<UsgsFetchResult> {
+  const payload = await fetchJson(buildRegionQueryUrl(), signal);
   return parseFeatureCollection(payload, Date.now());
 }
 
 /** World feed: the CDN-cached M4.5+/week summary feed — cheap, no bbox/time
- * filters needed (teardown-usgs-dyfi.md §2). */
+ * filters needed (teardown-usgs-dyfi.md §2). Deliberately USGS-only, no
+ * EMSC fallback (D4 second tier applies to the region feed only, wave
+ * brief point 4): EMSC has no equivalent pre-built CDN summary file, so an
+ * EMSC world fallback would mean an uncached, unbounded fdsnws query — a
+ * much heavier request than this cheap static file, for a feed where
+ * availability matters far less than the region feed (a stale/missing
+ * world catalog isn't the "can I trust the alert path" scenario this wave
+ * exists for). Revisit only if the world feed itself becomes safety-
+ * critical. */
 export async function fetchUsgsWorldEvents(): Promise<UsgsFetchResult> {
   const payload = await fetchJson(USGS_FEEDS.worldSummary);
   return parseFeatureCollection(payload, Date.now());

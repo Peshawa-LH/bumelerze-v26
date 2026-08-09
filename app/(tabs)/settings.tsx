@@ -118,8 +118,43 @@ export default function SettingsScreen() {
       <NotificationsSection />
       <LocationPermissionSection />
       <HandbookSection />
+      <DataSourcesSection />
       <OnboardingSection />
     </ScrollView>
+  );
+}
+
+/** Attribution/provenance section (wave brief point 3: "CC BY 4.0
+ * attribution note ... added to the Settings about/provenance section").
+ * Text-only — the event-detail source citation (app/event/[id].tsx) already
+ * names the specific network per event; this section is the one place that
+ * names BOTH providers and their shared license up front. */
+function DataSourcesSection() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+
+  return (
+    <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
+        }}
+      >
+        {t("settings.dataSourcesSectionTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("settings.dataSourcesSectionDescription")}
+      </Text>
+    </View>
   );
 }
 
