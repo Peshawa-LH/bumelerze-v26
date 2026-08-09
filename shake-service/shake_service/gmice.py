@@ -327,26 +327,36 @@ def worden_2012_from_mmi(mmi: np.ndarray, *, imt: str, unit_out: str) -> np.ndar
 #     MMI = 0.132 + 3.884 * log10(PGA[cm/s^2])
 #     MMI = 2.673 + 4.340 * log10(PGV[cm/s])
 #
-# [REVIEW] Verification status (same honesty policy as WORDEN_SIGMA_VERIFIED):
-#   - BILAL_COEFFS_VERIFIED = False — the coefficients are a VERBATIM copy of
-#     the toolkit's own transcription, NOT independently re-verified against
-#     the BSSA 104(1) primary PDF this session (the paper is not in Peshawa's
-#     Zotero library as of 2026-08-08 — checked, not assumed). Joins the same
-#     G12-style pre-use verification pass Worden's table already awaits.
-#   - NO sigma is catalogued for this model (the toolkit transcribes none,
-#     and the paper's published scatter was not readable this session) —
-#     `sigma_gmice("Bilalandaskan14", ...)` raises `NotImplementedError`
-#     honestly, so this model CANNOT feed the chain-rule sigma path
-#     (`intensity.compute_intensity`) or reverse-GMICE observation weighting
-#     until a published sigma is transcribed and verified. Mean-only
-#     sensitivity comparisons (`convert_to_intensity`/`convert_from_intensity`)
-#     are the supported use.
+# Verification status (same honesty policy as WORDEN_SIGMA_VERIFIED):
+#   - BILAL_COEFFS_VERIFIED = True — MEAN coefficients web-verified
+#     2026-08-09 against the publisher's own abstract (GeoScienceWorld,
+#     https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/104/1/484/331915/,
+#     which states verbatim "MMI=0.132+3.884×log(PGA), MMI=2.673+4.340×
+#     log(PGV)"; units PGA cm/s^2, PGV cm/s confirmed via the companion METU
+#     thesis record, https://open.metu.edu.tr/handle/11511/34676). The
+#     abstract also gives PSA(0.3/1.0/2.0 s) relations — not ported (no SA
+#     branch here, matching the toolkit).
+#   - [REVIEW] NO sigma is catalogued for this model — the published paper's
+#     sigma remained UNREACHABLE via web sources 2026-08-09 (full text
+#     paywalled on GSW; ResearchGate/academia.edu 403; AVESIS + both
+#     OpenMETU bitstreams serve the MSc thesis, not the article; no e-supp;
+#     surveyed citing GMICE reviews reproduce means only). The 2013 Bilal
+#     MSc thesis DOES publish sigmas (sigma 0.375 PGA / 0.914 PGV, thesis
+#     Table 3.4, p. 55) but for DIFFERENT pre-publication regressions
+#     (MMI=0.287+3.625·logPGA / MMI=0.319+5.021·logPGV), so they must NOT
+#     be attached to the published coefficients above. Therefore
+#     `sigma_gmice("Bilalandaskan14", ...)` still raises
+#     `NotImplementedError` honestly, and this model CANNOT feed the
+#     chain-rule sigma path (`intensity.compute_intensity`) or reverse-GMICE
+#     observation weighting until the paper's own sigma is transcribed.
+#     Mean-only sensitivity comparisons
+#     (`convert_to_intensity`/`convert_from_intensity`) are the supported use.
 # ---------------------------------------------------------------------------
 
 _BILAL_PGA_TO_MMI = (0.132, 3.884)  # mmi = c0 + c1*log10(pga_cm_s2)
 _BILAL_PGV_TO_MMI = (2.673, 4.340)  # mmi = c0 + c1*log10(pgv_cm_s)
 
-BILAL_COEFFS_VERIFIED = False  # verbatim toolkit transcription, not yet checked vs BSSA 104(1) -- see [REVIEW] note above.
+BILAL_COEFFS_VERIFIED = True  # mean coefficients web-verified 2026-08-09 vs publisher abstract -- sigma still uncatalogued, see note above.
 BILAL_CITATION = "Bilal & Askan (2014), BSSA 104(1):484-496 (Turkey)"
 
 
