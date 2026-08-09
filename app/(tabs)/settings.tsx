@@ -119,8 +119,43 @@ export default function SettingsScreen() {
       <LocationPermissionSection />
       <HandbookSection />
       <DataSourcesSection />
+      <TelemetrySection />
       <OnboardingSection />
     </ScrollView>
+  );
+}
+
+/** App-launch telemetry disclosure (spec-v1.md §5.4/§5.5, D11/D13: "disclosed
+ * to the user in Settings... collected data is never hidden"). Text-only,
+ * same pattern as `DataSourcesSection` above — there's no user-facing
+ * detection feature built on this data yet (v1 ships only the ping itself),
+ * so there's nothing to configure here, just disclose. */
+function TelemetrySection() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+
+  return (
+    <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
+        }}
+      >
+        {t("settings.telemetrySectionTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("settings.telemetrySectionDescription")}
+      </Text>
+    </View>
   );
 }
 

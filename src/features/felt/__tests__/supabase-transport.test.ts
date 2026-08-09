@@ -1,0 +1,278 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+import type { FeltLocation, Tier1Report, Tier2Answers, Tier2Report } from "../types";
+
+/**
+ * `SupabaseTransport` — no real network call anywhere in this file
+ * (wave brief: "no real network calls in tests"). `getSupabaseClient` is
+ * mocked at the `@/lib/supabase` seam (already unit-tested on its own in
+ * `src/lib/__tests__/supabase.test.ts`), so this file only has to prove
+ * `SupabaseTransport` calls it correctly and maps queue items to the exact
+ * insert payloads the migration expects.
+ *
+ * The "sync-check" tests below parse `supabase/migrations/0003_felt_reports.sql`
+ * itself (plain regex over the `create table` column list — no SQL parser
+ * dependency) and assert every key this module sends is a REAL column name
+ * in that file. This is what keeps the client-side mapping and the DB schema
+ * from silently drifting apart if either changes later without the other.
+ */
+
+function extractTableColumns(sql: string, tableName: string): string[] {
+  const startMarker = `create table public.${tableName} (`;
+  const startIdx = sql.indexOf(startMarker);
+  if (startIdx === -1) {
+    throw new Error(
+      `extractTableColumns: table "${tableName}" not found in migration SQL`,
+    );
+  }
+  const bodyStart = startIdx + startMarker.length;
+  const endIdx = sql.indexOf("\n);", bodyStart);
+  if (endIdx === -1) {
+    throw new Error(`extractTableColumns: no closing ");" found for "${tableName}"`);
+  }
+  const body = sql.slice(bodyStart, endIdx);
+
+  const columns: string[] = [];
+  for (const rawLine of body.split("\n")) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("--")) {
+      continue;
+    }
+    if (/^(unique|primary key|check|constraint|foreign key)/i.test(line)) {
+      continue;
+    }
+    const match = /^([a-z_][a-z0-9_]*)\s+/i.exec(line);
+    if (match?.[1]) {
+      columns.push(match[1]);
+    }
+  }
+  return columns;
+}
+
+function loadMigrationColumns(tableName: string): string[] {
+  const sqlPath = path.join(
+    __dirname,
+    "../../../../supabase/migrations/0003_felt_reports.sql",
+  );
+  const sql = fs.readFileSync(sqlPath, "utf8");
+  return extractTableColumns(sql, tableName);
+}
+
+jest.mock("@/lib/supabase", () => ({
+  getSupabaseClient: jest.fn(),
+}));
+
+function loadTransport(): typeof import("../supabase-transport") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- fresh require after resetModules, matches queue.test.ts's own discipline
+  return require("../supabase-transport");
+}
+
+function loadMockedSupabaseLib(): { getSupabaseClient: jest.Mock } {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- see loadTransport
+  return require("@/lib/supabase");
+}
+
+const SAMPLE_LOCATION: FeltLocation = { quality: "gps", lat: 35.56, lon: 45.43 };
+
+const SAMPLE_TIER1: Tier1Report = {
+  reportId: "11111111-1111-4111-8111-111111111111",
+  deviceId: "device-abc",
+  eventId: "event-xyz",
+  cartoonLevel: 6,
+  location: SAMPLE_LOCATION,
+  feltAt: 1_700_000_000_000,
+  createdAt: 1_700_000_000_000,
+  submittedAt: null,
+};
+
+const SAMPLE_TIER2_ANSWERS: Tier2Answers = {
+  situation: "inside",
+  felt: "yes",
+  othersFelt: "most",
+  motion: "strong",
+  reaction: "somewhat_frightened",
+  stand: "no",
+  shelf: "few_fell",
+  picture: "yes",
+  furniture: "no",
+  buildingDamageLevel: 1,
+  roadDamageLevel: 0,
+  comment: "Books fell off the shelf.",
+};
+
+const SAMPLE_TIER2: Tier2Report = {
+  detailId: "22222222-2222-4222-8222-222222222222",
+  feltReportId: SAMPLE_TIER1.reportId,
+  answers: SAMPLE_TIER2_ANSWERS,
+  createdAt: 1_700_000_001_000,
+};
+
+beforeEach(() => {
+  jest.resetModules();
+});
+
+describe("buildFeltReportInsert (pure mapping)", () => {
+  it("maps every Tier1Report field to its felt_reports column", () => {
+    const { buildFeltReportInsert } = loadTransport();
+
+    expect(buildFeltReportInsert(SAMPLE_TIER1)).toEqual({
+      report_id: SAMPLE_TIER1.reportId,
+      device_id: "device-abc",
+      event_id: "event-xyz",
+      cartoon_level: 6,
+      lat: 35.56,
+      lon: 45.43,
+      location_quality: "gps",
+      created_at: new Date(1_700_000_000_000).toISOString(),
+    });
+  });
+
+  it("passes a null event_id through for an unassociated report", () => {
+    const { buildFeltReportInsert } = loadTransport();
+
+    const unassociated: Tier1Report = { ...SAMPLE_TIER1, eventId: null };
+    expect(buildFeltReportInsert(unassociated).event_id).toBeNull();
+  });
+
+  it("every payload key is a real felt_reports column (schema/app sync check)", () => {
+    const { buildFeltReportInsert } = loadTransport();
+    const columns = loadMigrationColumns("felt_reports");
+
+    for (const key of Object.keys(buildFeltReportInsert(SAMPLE_TIER1))) {
+      expect(columns).toContain(key);
+    }
+  });
+});
+
+describe("buildFeltReportDetailInsert (pure mapping)", () => {
+  it("maps every Tier2Answers field to its felt_report_details column, including raw_answers", () => {
+    const { buildFeltReportDetailInsert } = loadTransport();
+
+    expect(buildFeltReportDetailInsert(SAMPLE_TIER2)).toEqual({
+      detail_id: SAMPLE_TIER2.detailId,
+      felt_report_id: SAMPLE_TIER1.reportId,
+      situation: "inside",
+      felt_answer: "yes",
+      others_felt_answer: "most",
+      motion_answer: "strong",
+      reaction_answer: "somewhat_frightened",
+      stand_answer: "no",
+      shelf_answer: "few_fell",
+      picture_answer: "yes",
+      furniture_answer: "no",
+      building_damage_level: 1,
+      road_damage_level: 0,
+      raw_answers: SAMPLE_TIER2_ANSWERS,
+    });
+  });
+
+  it("every payload key is a real felt_report_details column (schema/app sync check)", () => {
+    const { buildFeltReportDetailInsert } = loadTransport();
+    const columns = loadMigrationColumns("felt_report_details");
+
+    for (const key of Object.keys(buildFeltReportDetailInsert(SAMPLE_TIER2))) {
+      expect(columns).toContain(key);
+    }
+  });
+});
+
+describe("SupabaseTransport.submitTier1", () => {
+  function mockClientWithInsertResult(error: { code?: string; message?: string } | null) {
+    const insert = jest.fn(async () => ({ error }));
+    const from = jest.fn(() => ({ insert }));
+    return { auth: {} as never, from, insert };
+  }
+
+  it("returns 'submitted' on a clean insert", async () => {
+    const { SupabaseTransport, buildFeltReportInsert } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithInsertResult(null);
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
+
+    expect(client.from).toHaveBeenCalledWith("felt_reports");
+    expect(client.insert).toHaveBeenCalledWith(buildFeltReportInsert(SAMPLE_TIER1));
+    expect(result).toEqual({
+      outcome: "submitted",
+      serverReportId: SAMPLE_TIER1.reportId,
+    });
+  });
+
+  it("treats a unique-violation retry as 'submitted', not a failure", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithInsertResult({
+      code: "23505",
+      message: "duplicate key value violates unique constraint",
+    });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
+
+    expect(result).toEqual({
+      outcome: "submitted",
+      serverReportId: SAMPLE_TIER1.reportId,
+    });
+  });
+
+  it("returns a retryable failure for any other insert error", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithInsertResult({ code: "23503", message: "fk violation" });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
+
+    expect(result).toEqual({ outcome: "failed", retryable: true });
+  });
+
+  it("returns 'awaiting-backend' rather than throwing if the client is unexpectedly null", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.getSupabaseClient.mockReturnValue(null);
+
+    const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
+
+    expect(result).toEqual({ outcome: "awaiting-backend" });
+  });
+});
+
+describe("SupabaseTransport.submitTier2", () => {
+  function mockClientWithInsertResult(error: { code?: string; message?: string } | null) {
+    const insert = jest.fn(async () => ({ error }));
+    const from = jest.fn(() => ({ insert }));
+    return { auth: {} as never, from, insert };
+  }
+
+  it("returns 'submitted' on a clean insert into felt_report_details", async () => {
+    const { SupabaseTransport, buildFeltReportDetailInsert } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithInsertResult(null);
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
+
+    expect(client.from).toHaveBeenCalledWith("felt_report_details");
+    expect(client.insert).toHaveBeenCalledWith(buildFeltReportDetailInsert(SAMPLE_TIER2));
+    expect(result).toEqual({
+      outcome: "submitted",
+      serverReportId: SAMPLE_TIER2.detailId,
+    });
+  });
+
+  it("treats a unique-violation retry as 'submitted', not a failure", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithInsertResult({ code: "23505" });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
+
+    expect(result).toEqual({
+      outcome: "submitted",
+      serverReportId: SAMPLE_TIER2.detailId,
+    });
+  });
+});

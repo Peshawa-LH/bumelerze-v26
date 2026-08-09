@@ -32,6 +32,7 @@ export {
   enqueueTier1Report,
   enqueueTier2Report,
   ensureFeltQueueForegroundSync,
+  getDefaultFeltTransport,
   processQueue,
   useFeltQueueStore,
   useOwnQueueItemForEvent,
@@ -43,6 +44,13 @@ export {
   type QueueItemState,
   type TransportResult,
 } from "./queue";
+export {
+  SupabaseTransport,
+  buildFeltReportDetailInsert,
+  buildFeltReportInsert,
+  type FeltReportDetailInsert,
+  type FeltReportInsert,
+} from "./supabase-transport";
 export { LevelTile } from "./components/LevelTile";
 export { FeltReportPill } from "./components/FeltReportPill";
 export { InlineTownPicker } from "./components/InlineTownPicker";
