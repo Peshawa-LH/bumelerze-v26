@@ -5,17 +5,25 @@ Citation: Scordilis, E.M. (2006), *Empirical Global Relations Converting MS
 and mb to Moment Magnitude*, Journal of Seismology 10:225-236,
 doi:10.1007/s10950-006-9012-4.
 
-[REVIEW] Coefficient/validity-range transcription note: the coefficients
-below are transcribed from memory of the widely-cited relation (used
-throughout the GMPE/ShakeMap literature, e.g. it is the same relation
-gmpe-set-proposal-v2.md G10 points at), NOT read from the primary PDF this
-session. This is exactly the "R9/G1 Zotero verification pass" the proposal
-already tracks as an open task before build-freeze
-(`docs/research/gmpe-set-proposal-v2.md` §8 R9, `docs/decisions.md`
-D20 task ledger) — do not treat these numbers as final without that pass.
+VERIFIED + CORRECTED (science-verification pass, web-verified 2026-08-09):
+the original from-recall transcription (Mw = 0.67*mb + 2.07, sigma 0.17) had
+grafted the paper's **Ms** relation (Eq. 14: Mw = 0.67(+-0.005)Ms +
+2.07(+-0.03), 3.0 <= Ms <= 6.1, sigma 0.17) onto the mb validity range. The
+paper's actual **mb -> Mw** relation is Eq. (22):
+    Mw = 0.85(+-0.04)*mb + 1.03(+-0.23),  3.5 <= mb <= 6.2,
+    R^2 = 0.53, sigma = 0.29, n = 39,784
+(ISC/NEIC mb vs Harvard/USGS Mw, 1965-2003; the paper notes mb saturates
+above ~6.2 and data are sparse below mb 4.5). Read from the paper's full
+text (academia.edu copy of J Seismol 10:225-236,
+https://www.academia.edu/48541211/), cross-checked against independent
+secondary quotations (arXiv:2410.09813 and others quoting
+"Mw = 0.85 mb + 1.03 (sigma 0.29)"). The correction CHANGES computed proxy
+Mw for mb/ML events (e.g. mb 5.0: 5.28, previously 5.42).
 
-[REVIEW] Scope note: Scordilis (2006) publishes relations for **mb -> Mw**
-and **Ms -> Mw**. It does **not** publish an ML -> Mw relation. D20's phrase
+Scope note (VERIFIED same pass): Scordilis (2006) publishes relations for
+**mb -> Mw** and **Ms -> Mw**. It does **not** publish an ML -> Mw relation
+— the paper's own conclusions state no globally valid ML relation can be
+proposed and such relations must be derived per region. D20's phrase
 "mb/ML->Mw proxy" is read here as: apply the *same* mb relation to ML
 magnitudes as a documented, flagged proxy (regional short-period ML and mb
 scales are close enough at the magnitudes this service cares about, M3.5-6.5,
@@ -60,15 +68,16 @@ class ScordilisRelation:
     citation: str
 
 
-# Scordilis (2006) eq. (1): Mw = 0.67*mb + 2.07, 3.5 <= mb <= 6.2, sigma=0.17.
-# [REVIEW] coefficients/range/sigma per module docstring.
+# Scordilis (2006) Eq. (22): Mw = 0.85*mb + 1.03, 3.5 <= mb <= 6.2, sigma=0.29.
+# CORRECTED + web-verified 2026-08-09 (module docstring: the previous values
+# 0.67/2.07/sigma 0.17 were the paper's Ms Eq. 14 mistranscribed onto mb).
 MB_TO_MW = ScordilisRelation(
-    slope=0.67,
-    intercept=2.07,
+    slope=0.85,
+    intercept=1.03,
     valid_min=3.5,
     valid_max=6.2,
-    sigma=0.17,
-    citation="Scordilis (2006) eq. 1, mb -> Mw",
+    sigma=0.29,
+    citation="Scordilis (2006) eq. 22, mb -> Mw",
 )
 
 

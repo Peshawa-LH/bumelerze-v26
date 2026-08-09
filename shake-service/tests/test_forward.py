@@ -161,11 +161,11 @@ def test_forward_map_custom_gmice_models():
     )
     assert fm.ems.model == "Zaniniandhofer19"
     assert fm.mmi.model == "WordenEtAl12"
-    # Zanini sigma is now the ADOPTED value (Z3, D20 checkpoint condition 2,
-    # closed 2026-08-07) -- verified True; Worden's own sigma verification
-    # remains a separate, still-open pre-launch item.
+    # Zanini sigma is the ADOPTED value (Z3, D20 checkpoint condition 2,
+    # closed 2026-08-07); Worden sigma verified + SA values corrected in the
+    # science-verification pass 2026-08-09 (USGS shakelib wgrw12.py basis).
     assert fm.ems.sigma_gmice_verified is True
-    assert fm.mmi.sigma_gmice_verified is False
+    assert fm.mmi.sigma_gmice_verified is True
 
 
 # ---------------------------------------------------------------------------

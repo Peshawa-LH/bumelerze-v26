@@ -145,12 +145,16 @@ def test_derivative_unit_invariance():
 
 
 def test_worden_sigma_values_and_verified_flag():
+    # Science-verification pass 2026-08-09: SA sigmas corrected to the USGS
+    # shakelib wgrw12.py operational values (toolkit's recollected
+    # 0.79/0.73/0.72 were wrong); PGA/PGV confirmed; flag now True.
     assert gmice.sigma_gmice("WordenEtAl12", "PGA") == pytest.approx(0.66)
     assert gmice.sigma_gmice("WordenEtAl12", "PGV") == pytest.approx(0.63)
-    assert gmice.sigma_gmice("WordenEtAl12", "SA(0.3)") == pytest.approx(0.79)
-    assert gmice.sigma_gmice("WordenEtAl12", "SA(1.0)") == pytest.approx(0.73)
-    assert gmice.WORDEN_SIGMA_VERIFIED is False
-    assert gmice.sigma_gmice_verified("WordenEtAl12") is False
+    assert gmice.sigma_gmice("WordenEtAl12", "SA(0.3)") == pytest.approx(0.82)
+    assert gmice.sigma_gmice("WordenEtAl12", "SA(1.0)") == pytest.approx(0.75)
+    assert gmice.sigma_gmice("WordenEtAl12", "SA(3.0)") == pytest.approx(0.89)
+    assert gmice.WORDEN_SIGMA_VERIFIED is True
+    assert gmice.sigma_gmice_verified("WordenEtAl12") is True
 
 
 def test_zanini_sigma_adopted_values_and_flag():
@@ -222,9 +226,10 @@ def test_zanini_pgv_to_ems_still_callable_for_sensitivity_and_provenance_use():
 def test_bilal_coefficients_match_toolkit_transcription_exactly():
     # SHAKEgmice.Bilalandaskan14: MMI = 0.132 + 3.884*log10(PGA cm/s^2);
     # MMI = 2.673 + 4.340*log10(PGV cm/s). At log10 == 2 the PGA relation
-    # must evaluate to the coefficients verbatim (regression pin against the
-    # toolkit's transcription -- BILAL_COEFFS_VERIFIED stays False until the
-    # BSSA 104(1) primary-PDF pass).
+    # must evaluate to the coefficients verbatim. Mean coefficients
+    # web-verified 2026-08-09 against the BSSA 104(1) publisher abstract
+    # (verbatim match) -- BILAL_COEFFS_VERIFIED is True; sigma remains
+    # uncatalogued (see gmice.py section note).
     mmi_pga = gmice.bilal_askan_2014_to_mmi(np.array([100.0]), imt="PGA", unit_in="cm/s^2")
     assert mmi_pga[0] == pytest.approx(0.132 + 3.884 * 2.0, rel=1e-12)
     mmi_pgv = gmice.bilal_askan_2014_to_mmi(np.array([10.0]), imt="PGV", unit_in="cm/s")
@@ -268,12 +273,15 @@ def test_bilal_registry_dispatch_and_scale():
 
 
 def test_bilal_sigma_is_an_honest_gap_not_a_guess():
-    # No sigma is catalogued (the toolkit transcribes none) -- the model
-    # must NOT be usable for chain-rule sigma propagation or observation
-    # weighting until a published sigma is transcribed and verified.
+    # No sigma is catalogued -- the published paper's sigma stayed
+    # unreachable in the 2026-08-09 web-verification pass (the 2013 thesis
+    # sigmas belong to different pre-publication regressions and must not be
+    # grafted on). The model must NOT be usable for chain-rule sigma
+    # propagation or observation weighting until the paper's own sigma is
+    # transcribed and verified.
     with pytest.raises(NotImplementedError):
         gmice.sigma_gmice("Bilalandaskan14", "PGA")
-    assert gmice.BILAL_COEFFS_VERIFIED is False
+    assert gmice.BILAL_COEFFS_VERIFIED is True  # means verified; sigma gap is the open item
 
 
 def test_bilal_is_monotonic_and_regionally_higher_than_worden_at_moderate_pga():

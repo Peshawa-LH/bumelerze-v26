@@ -136,10 +136,30 @@ class BranchValidity:
     max_distance_km: float
 
 
-# [REVIEW R9] — every number here is transcribed from
-# gmpe-set-proposal-v2.md §8 R9 ("Validity ranges ... from recall ... to be
-# verified via Zotero"), itself not yet verified against the primary papers.
-# Treat these as extrapolation-tagging thresholds, not certified science.
+# R9 verification status (science-verification pass, web-verified
+# 2026-08-09; impact is TAGGING-ONLY — these thresholds drive extrapolation
+# flags in product metadata, never any computed ground-motion number):
+#   - CY14: VERIFIED vs PEER Report 2013/07 (Chiou & Youngs), p. 71 —
+#     M 3.5-8.5 strike-slip, M 3.5-8.0 reverse AND normal, Rrup 0-300 km
+#     (also ztor <= 20 km, Vs30 180-1500 m/s, not modelled here).
+#     https://peer.berkeley.edu/sites/default/files/webpeer-2013-07-brian_s.j._chiou_and_robert_r.youngs.pdf
+#     Note our mag_max_rv is applied via the Zagros-polygon reverse default;
+#     CY14's 8.0 ceiling covers normal too (no normal-mechanism default here).
+#   - ASB14: VERIFIED vs the author-hosted primary PDF (Akkar, Sandikkaya &
+#     Bommer 2014, Bull Earthquake Eng 12:359-387, Table 2 "This study":
+#     Mmin 4.0, Mmax 7.6, max distance 200 km; distance metrics RJB for the
+#     finite-fault model, Repi/Rhyp for point-source).
+#     https://web.bogazici.edu.tr/sinan.akkar/download/publications/34_Akkar_etal_HorizontalGMPE.pdf
+#   - BSSA14: VERIFIED vs the author-hosted Earthquake Spectra copy —
+#     M 3.0-8.5 for strike-slip AND reverse (reverse shares the 8.5 ceiling),
+#     normal-slip capped at M 7.0 (NOT modelled here: our schema has no
+#     normal-mechanism ceiling and the Zagros default is reverse/strike-slip;
+#     recorded as a known simplification), RJB 0-400 km.
+#     https://www.daveboore.com/pubs_online/ngaw2_paper_bssa14_eqs_2014.pdf
+#   - [REVIEW R9-KALE15] KALE15: STILL FROM RECALL — the only permitted web
+#     attempt this pass (GeoScienceWorld abstract for BSSA 105(2A):963-980)
+#     returned HTTP 403; Mw 4.0-8.0 / RJB <= 200 km remains unverified
+#     against the primary paper.
 BRANCH_VALIDITY: dict[str, BranchValidity] = {
     "CY14": BranchValidity(mag_min=3.5, mag_max_ss=8.5, mag_max_rv=8.0, max_distance_km=300.0),
     "ASB14": BranchValidity(mag_min=4.0, mag_max_ss=7.6, mag_max_rv=None, max_distance_km=200.0),

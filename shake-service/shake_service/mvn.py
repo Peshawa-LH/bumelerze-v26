@@ -90,11 +90,19 @@ _COLOCATION_WEIGHT_EPS = 1e-12
 # (`hazard/correlation/models.py:jayaram_baker_2009`), reproduced verbatim.
 # ---------------------------------------------------------------------------
 
-# HONESTY FLAG (carried forward from the toolkit, same policy as
-# gmice.WORDEN_SIGMA_VERIFIED): these b(T) coefficients are a documented
-# recollection of Jayaram & Baker (2009)'s published table, not
-# independently re-verified against the primary PDF.
-JAYARAM_BAKER_2009_VERIFIED = False
+# VERIFIED (science-verification pass, web-verified 2026-08-09): the b(T)
+# model below was checked digit-for-digit against the primary PDF —
+# Jayaram & Baker (2009), Earthquake Engng Struct. Dyn. 38:1687-1708,
+# author-hosted copy https://www.jackwbaker.com/Publications/
+# Jayaram_Baker_(2009)_spatial_correlation,_EESD.pdf, p. 1700:
+#   Eq. (17)  b = 8.5 + 17.2T   (T < 1 s, Case 1: no Vs30 clustering)
+#   Eq. (18)  b = 40.7 - 15.0T  (T < 1 s, Case 2: Vs30 clustering)
+#   Eq. (19)  b = 22.0 + 3.7T   (T >= 1 s, both cases)
+#   Eq. (20)  rho(h) = exp(-3h/b)
+# All four match `_jayaram_baker_2009_b`/`jayaram_baker_2009` exactly
+# (the toolkit's transcription was correct). [REVIEW] #5 of
+# docs/research/hazard-science-audit.md is CLOSED.
+JAYARAM_BAKER_2009_VERIFIED = True
 
 
 def _jayaram_baker_2009_b(period: float, case: int) -> float:
