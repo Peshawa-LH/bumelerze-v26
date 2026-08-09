@@ -1,0 +1,174 @@
+# Store listing pack — overview
+
+Docs folder, **not bundled in the app**. Authorable content for Apple App Store
+Connect and Google Play Console, ready before either developer account exists
+(D17). Per-locale listing text lives in `en.md` / `ckb.md` / `kmr.md` / `ar.md`;
+this file covers everything that isn't locale-specific text: store-locale
+mapping, character-count compliance, category, age rating, and the privacy
+summary.
+
+## Files
+
+| File | Locale | Status |
+|---|---|---|
+| `en.md` | English | `source` — authored directly |
+| `ckb.md` | Sorani Kurdish (کوردیی ناوەندی, RTL) | `draft-machine` — needs native review |
+| `kmr.md` | Kurmanji Kurdish (Latin) | `draft-machine` — needs native review |
+| `ar.md` | Arabic | `draft-machine` — needs native review |
+
+The `draft-machine`/`source` labels match the exact convention already used in
+`src/i18n/locales/*.json` (`_status` field) — the same untranslated-vs-reviewed
+gap the app's in-product strings have (`docs/decisions.md` task ledger item
+5, "Native review of Kurdish translations", Phase 5). **Do not submit ckb/kmr/ar
+store text without that review** — a mistranslated store listing is more
+publicly visible than an in-app string.
+
+## Store-locale mapping — read this before pasting anything in
+
+Neither store's metadata-locale list matches our four app locales exactly:
+
+- **Apple App Store Connect** has **no Kurdish locale option at all** (Sorani or
+  Kurmanji) in its supported-languages list for app metadata. This is a real
+  constraint, not a bug in this doc — Apple does not verify that the *text* in
+  a locale slot matches that slot's *language*, so the standard workaround
+  (used by other minority-language apps) is: pick the closest available slot
+  and put the Kurdish text there anyway. Recommended mapping: `ckb.md` →
+  Apple's **"Arabic"** slot (closest script, and Sorani readers are used to
+  scanning Arabic-script app names), `kmr.md` → Apple's **"English (U.S.)"**
+  slot marked as the app's **primary locale** (Latin script; primary locale is
+  also what shows in territories with no closer local-language match), and
+  `ar.md` / `en.md` as genuine same-language matches wherever Apple's
+  storefront-language fallback would otherwise show English. **[VERIFY AT
+  SUBMISSION]** — Apple's supported-locale list changes occasionally; confirm
+  the current list in App Store Connect when the account exists, alongside the
+  D5 C2 name re-check (same session).
+- **Google Play Console** has a broader language list than Apple and has, in
+  recent years, added Kurdish entries — but whether it distinguishes Sorani
+  from Kurmanji (they use different scripts and are not mutually legible in
+  writing) is unconfirmed from here. **[VERIFY AT SUBMISSION]**: open Play
+  Console's "Store settings → Main store listing → Manage translations" locale
+  picker and check for "Kurdish" / "Kurdish (Sorani)" / "Kurdish (Kurmanji)"
+  entries specifically. If only one generic "Kurdish" slot exists, it can only
+  hold one script — use it for `ckb.md` (Sorani is the primary target per
+  PROJECT.md/D12) and fall back `kmr.md` into the English slot's "also
+  applies to" note, or into Play's auto-translate-preview text (Play machine-
+  translates from your default listing for unlisted locales anyway, so an
+  absent Kurmanji slot degrades to an automatic translation of the English
+  text rather than disappearing).
+- This mapping ambiguity is exactly the kind of item D5's caveat C2 ("re-check
+  store names/metadata at submission") already anticipated — treat it as the
+  same checklist step, not a new blocker.
+
+## Character-count compliance
+
+Verified with a character-count script (`len()` over the exact strings in each
+locale file — codepoints, matching how both stores count).
+
+| Locale | Title (≤30) | Subtitle/short-desc (Apple ≤30 / Google ≤80) | Full description (≤4000) | Keywords (Apple ≤100) |
+|---|---|---|---|---|
+| en | 9 | 27 / 66 | ~2,190 | 90 |
+| ckb | 10 | 29 / 76 | ~2,198 | 80 |
+| kmr | 9 | 27 / 75 | ~2,228 | 81 |
+| ar | 8 | 22 / 67 | ~1,792 | 75 |
+
+Every field is inside its limit with margin — none sit exactly on the boundary
+except ckb's short description (76/80), which still has 4 chars of headroom.
+Google Play has no dedicated keyword field (deprecated years ago); relevant
+terms are woven into the description text instead, not stuffed.
+
+## Category recommendation: **Weather** (primary), **Utilities** (Apple secondary)
+
+Neither store has a dedicated "natural hazards" or "seismology" category, so
+the real choice is between **Weather**, **News/Magazines**, and **Utilities**.
+Recommendation: **Weather** as the primary category on both stores, with
+**Utilities** as Apple's optional secondary category (Google Play only allows
+one category, no secondary slot).
+
+**Reasoning:**
+1. **Discovery match.** Both stores already treat "Weather" as the home for
+   real-time environmental-condition + safety-alert apps (rain radar, air
+   quality, storm tracking) even when the phenomenon isn't literally weather —
+   it's the closest semantic and *browsing-behavior* match for "live hazard
+   data + push alerts," which is exactly Bumelerze's core loop.
+2. **"News" is the wrong content model.** News/Magazines implies editorial,
+   curated articles. Bumelerze is a live data and sensor tool (event feed,
+   ShakeMap, accelerometer readout) — categorizing it as News risks reviewer
+   confusion about what the app actually does, and Apple can push back on or
+   recategorize apps whose primary category doesn't match functionality.
+3. **Utilities fits as a secondary signal**, not primary: the live sensor
+   screen (phone-as-seismometer) is a genuine device utility, but it's a
+   secondary feature, not the app's identity — Weather-first, Utilities-second
+   captures both browsing paths without misrepresenting the app.
+4. **[VERIFY AT SUBMISSION]** — confirm this is still how the closest
+   comparable apps (EMSC LastQuake, MyShake, Rasathane — the three reference
+   apps this project already studies, `docs/research/teardown-*.md`) are
+   categorized live in each store before locking the choice; store category
+   taxonomies and competitor placement can both shift, and a two-minute look
+   at their live listings is cheap confirmation this doc can't do offline.
+
+## Age rating notes
+
+Expected outcome: **Apple 4+ / Google Play "Everyone" (or the equivalent IARC
+result)** — the app is factual/informational (event data, safety guidance,
+historical catalog), has no violence, sexual content, gambling, or user-
+generated open text visible to other users by default (felt-report comments
+are moderated per D15, not yet live in v1 code).
+
+**One thing to answer honestly on the rating questionnaire, not to hide:**
+the historical-events catalog (`src/i18n/locales/*.json` → `events.historical`,
+e.g. the 2017 Halabja-border and 1958 Chamchamal entries) references real
+earthquakes in plain factual language, and some historical descriptions
+implicitly involve damage/casualties in the region's seismic history. This is
+informational/historical content, not graphic or sensationalized — the
+existing copy is deliberately clinical (magnitude, location, "felt across
+Kurdistan") — but flag it truthfully under Apple's "Infrequent/Mild Realistic
+Violence" or the closest IARC "Violence — Real" descriptor if the
+questionnaire asks about disaster/casualty references specifically, rather
+than clicking "None" reflexively. This is very unlikely to move the rating
+above 4+/Everyone but under-declaring is the kind of thing that gets an app
+pulled for a re-review later — over-honest costs nothing here.
+
+## Privacy / data-safety summary (Apple "App Privacy" + Google "Data safety")
+
+**What Bumelerze collects today, verified against the current codebase
+(2026-08-09) — not aspirational:**
+
+- **Location (precise, foreground-only).** Requested via `expo-location`'s
+  "when in use" permission only — the app never requests "always"/background
+  location (`app.config.ts` deliberately omits the background-location plugin
+  option; PROJECT.md hard requirement). Used for two things: (a) showing
+  distance-to-event in the feed/detail screens, and (b) attaching a
+  latitude/longitude to a felt report so it's valid scientific testimony
+  (`src/features/felt/types.ts` `FeltLocation`). **Not required** — felt
+  reports work with a manual town picker if location is denied.
+- **Anonymous per-install device ID.** A random UUID generated on-device by
+  `expo-crypto`, stored locally (`src/features/felt/device-id.ts`), attached
+  to felt reports so duplicate/spam reports from one install can be
+  recognized. Explicitly **not** tied to any account or personal identifier —
+  there is no account system in this app. A fresh install gets a fresh ID.
+- **No accounts, no sign-up, no personal identifiers** (name, email, phone)
+  are collected anywhere in the app.
+- **No backend exists yet** (Supabase project not yet created — PROJECT.md
+  "Blocked on Peshawa"). Concretely, as of today: felt reports queue
+  **on-device only** (AsyncStorage, `src/features/felt/queue.ts`) and are not
+  transmitted anywhere; the only network calls the app makes are read-only
+  GET requests to the public USGS and EMSC earthquake feeds
+  (`src/features/events/usgs.ts`, `emsc.ts`) — nothing about the user is sent
+  in those requests.
+- **Telemetry: planned, not active.** A launch-telemetry table exists in the
+  authored (not-yet-deployed) Supabase schema
+  (`supabase/migrations/0005_notifications_and_telemetry.sql`), but **no
+  client code sends anything to it today** — confirmed by grep, there is no
+  telemetry-sending code path in `src/`. When it ships, it's designed to be
+  anonymous (device ID, not identity).
+- **No ads, no ad SDKs, no third-party analytics or trackers** are integrated.
+  Crash reporting (Sentry) is planned per PROJECT.md's quality checklist but
+  **not yet wired** — confirmed by grep, no Sentry references exist in the
+  codebase yet.
+
+**This summary must be revised when the Supabase backend goes live** —
+felt-report location + device ID will then leave the device (to Bumelerze's
+own database, still not sold/shared/used for ads), and telemetry may go
+active. Flag that revision as a required step in any future "wire Supabase"
+task, not something to forget silently — the store's data-safety form is a
+factual filing, not a one-time checkbox.
