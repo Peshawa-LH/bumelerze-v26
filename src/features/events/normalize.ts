@@ -3,6 +3,7 @@ import {
   REGION_BBOX,
   SIGNIFICANCE_THRESHOLDS,
 } from "./config";
+import type { EmscFeature } from "./emsc-schema";
 import type { UsgsFeature } from "./usgs-schema";
 import type { Event } from "./types";
 
@@ -95,6 +96,81 @@ export function normalizeUsgsFeature(
     sig: computeClientSig(properties.mag, properties.alert),
     isRegional: isInRegionBbox(lat, lon),
     url: properties.url ?? "",
+  };
+
+  return event;
+}
+
+/**
+ * EMSC seismicportal.eu fdsnws feature -> internal Event. Mirrors
+ * `normalizeUsgsFeature` above (same `Event` shape, same skip-not-throw
+ * contract for structurally-valid-but-unusable features) but reads EMSC's
+ * differently-shaped `properties` (emsc-schema.ts) — this is the ONLY place
+ * EMSC field names may appear outside `emsc.ts`/`emsc-schema.ts` (PROJECT.md
+ * gotcha).
+ *
+ * Two EMSC-specific notes for `computeClientSig`:
+ * - EMSC has no PAGER-equivalent alert field, so the alert bonus is always
+ *   0 for an EMSC-sourced event — EMSC events can never get the alert-bonus
+ *   boost a USGS "orange"/"red" event gets. This is a real, accepted
+ *   asymmetry (wave brief point 1), not a bug: it only matters while an
+ *   event is EMSC-sourced, and USGS's own record (once it appears) replaces
+ *   it via the failover-recovery swap in queries.ts.
+ * - EMSC also has no felt/CDI data of its own feeding this score — same as
+ *   USGS, our own felt term stays pinned to `FELT_TERM_PHASE_1` regardless
+ *   of provider (D8, see the comment above `computeClientSig`).
+ *
+ * `time`/`lastupdate` are ISO 8601 strings (unlike USGS's epoch-ms
+ * numbers) — parsed with `Date.parse`; an unparseable `time` makes the
+ * feature unusable (returns `null`, counted, never thrown) since origin
+ * time is load-bearing for every downstream consumer. An unparseable
+ * `lastupdate` is less critical — falls back to the origin time rather
+ * than discarding an otherwise-good feature.
+ */
+export function normalizeEmscFeature(
+  feature: EmscFeature,
+  fetchedAt: number,
+): Event | null {
+  const { properties } = feature;
+
+  // EMSC emits `mag: null` for not-yet-located/reviewed events, same
+  // convention as USGS's pending-review placeholder — not yet usable.
+  if (properties.mag === null) {
+    return null;
+  }
+
+  const originTime = Date.parse(properties.time);
+  if (Number.isNaN(originTime)) {
+    return null;
+  }
+
+  const parsedUpdated = Date.parse(properties.lastupdate);
+  const providerUpdatedAt = Number.isNaN(parsedUpdated) ? originTime : parsedUpdated;
+
+  const event: Event = {
+    id: properties.unid,
+    originTime,
+    lat: properties.lat,
+    lon: properties.lon,
+    depthKm: properties.depth,
+    magnitude: {
+      value: properties.mag,
+      type: properties.magtype ?? "unknown",
+    },
+    placeName: properties.flynn_region ?? "",
+    provenance: {
+      provider: "emsc",
+      providerId: properties.unid,
+      fetchedAt,
+      providerUpdatedAt,
+    },
+    // No `alert` argument — see the EMSC-specific note above.
+    sig: computeClientSig(properties.mag, null),
+    isRegional: isInRegionBbox(properties.lat, properties.lon),
+    // EMSC's fdsnws response carries no per-event page URL field (unlike
+    // USGS's `properties.url`); seismicportal.eu's own event-detail page
+    // follows this documented pattern (teardown-lastquake.md §2).
+    url: `https://www.seismicportal.eu/eventdetails.html?unid=${properties.unid}`,
   };
 
   return event;

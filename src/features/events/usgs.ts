@@ -60,8 +60,8 @@ function parseFeatureCollection(
   return { events, skippedCount, fetchedAt };
 }
 
-async function fetchJson(url: string): Promise<unknown> {
-  const response = await fetch(url);
+async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
+  const response = await fetch(url, signal ? { signal } : {});
   if (!response.ok) {
     throw new Error(`USGS request failed: ${response.status} ${url}`);
   }
@@ -87,9 +87,12 @@ function buildRegionQueryUrl(): string {
 }
 
 /** Region feed: fdsnws query, last 30 days, bbox from config.ts
- * (event-pipeline-design.md §4). */
-export async function fetchUsgsRegionEvents(): Promise<UsgsFetchResult> {
-  const payload = await fetchJson(buildRegionQueryUrl());
+ * (event-pipeline-design.md §4). `signal` is used by queries.ts's
+ * USGS-primary/EMSC-fallback failover (config.USGS_REGION_TIMEOUT_MS) to
+ * abort a slow USGS request and try EMSC instead — optional so every
+ * existing direct caller (and every existing test) is unaffected. */
+export async function fetchUsgsRegionEvents(signal?: AbortSignal): Promise<UsgsFetchResult> {
+  const payload = await fetchJson(buildRegionQueryUrl(), signal);
   return parseFeatureCollection(payload, Date.now());
 }
 

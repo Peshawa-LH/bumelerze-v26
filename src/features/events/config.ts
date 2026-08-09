@@ -50,6 +50,15 @@ export const USGS_FEEDS = {
   fdsnEvent: "https://earthquake.usgs.gov/fdsnws/event/1/query",
 } as const;
 
+/** EMSC endpoint (teardown-lastquake.md §2: "EMSC exposes the same FDSN
+ * standard as USGS" — same query params, same bbox/time filters). Used only
+ * as the region feed's fallback provider (D4 second tier) when USGS is slow
+ * or unreachable; there is no EMSC equivalent wired for the world feed (see
+ * `fetchUsgsWorldEvents` in usgs.ts for why). */
+export const EMSC_FEEDS = {
+  fdsnQuery: "https://www.seismicportal.eu/fdsnws/event/1/query",
+} as const;
+
 /** Region feed window per the wave brief: last 30 days. */
 export const REGION_FEED_WINDOW_DAYS = 30;
 
@@ -58,3 +67,9 @@ export const REGION_FEED_WINDOW_DAYS = 30;
  * queries.ts so this interval never fires while the app is backgrounded. */
 export const EVENTS_REFETCH_INTERVAL_MS = 60_000;
 export const EVENTS_STALE_TIME_MS = 30_000;
+
+/** How long the region feed waits on USGS before treating it as unreachable
+ * and failing over to EMSC (D4 second tier — "a real scenario on regional
+ * networks"). Tunable; 8s is generous for a mobile network but still well
+ * under a user's patience for a pull-to-refresh. */
+export const USGS_REGION_TIMEOUT_MS = 8_000;
