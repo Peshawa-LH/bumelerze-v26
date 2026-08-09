@@ -4,7 +4,16 @@ import { AppState, type AppStateStatus } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+import { isSupabaseConfigured } from "@/lib/supabase";
+
 import { getDeviceId } from "./device-id";
+// A real (value) import, not `import type` — this IS the transport we want
+// to select at runtime below. Safe from a circular-dependency standpoint:
+// `supabase-transport.ts` only imports FeltTransport/TransportResult FROM
+// this file as `import type`, which TypeScript erases entirely at compile
+// time, so there is no actual runtime `require()` cycle between the two
+// modules — only this file has a real value-level edge to the other.
+import { SupabaseTransport } from "./supabase-transport";
 import type {
   CartoonLevel,
   FeltLocation,
@@ -63,22 +72,31 @@ export interface FeltTransport {
 }
 
 /**
- * The only transport that exists in Phase 2 wave 1 — there is no Supabase
- * project yet (PROJECT.md "Current phase"). Every report simply stays queued
- * locally, forever, in the "awaiting-backend" state until a real transport
- * lands.
- *
- * TODO(Phase 2, once a Supabase project exists): implement
- * `SupabaseTransport` here — insert into `felt_reports` / a matching
- * `felt_report_details` upsert via the anon-key client, per the RLS insert
- * policies in `supabase/migrations/0003_felt_reports.sql` — and swap it in
- * as the default transport passed to `enqueueTier1Report` /
- * `enqueueTier2Report` / `ensureFeltQueueForegroundSync` below.
+ * The fallback transport for whenever no Supabase project is configured yet
+ * (`isSupabaseConfigured()` false — PROJECT.md "Blocked on Peshawa: Supabase
+ * project"). Every report simply stays queued locally, forever, in the
+ * "awaiting-backend" state until `getDefaultFeltTransport()` below starts
+ * picking `SupabaseTransport` instead (the moment the owner pastes the two
+ * env values in, per `supabase/README.md`'s "Wiring status" section — no
+ * code change needed).
  */
 export const PendingTransport: FeltTransport = {
   submitTier1: () => Promise.resolve({ outcome: "awaiting-backend" }),
   submitTier2: () => Promise.resolve({ outcome: "awaiting-backend" }),
 };
+
+/**
+ * Resolves the transport every exported queue function below defaults to
+ * when a caller doesn't pass one explicitly: `SupabaseTransport` once a
+ * project is configured, `PendingTransport` otherwise (today's behavior,
+ * unchanged). A function (not a module-load-time constant) so it re-checks
+ * `isSupabaseConfigured()` on every call — env vars are static within one
+ * running app, but tests toggle `process.env` between cases without a full
+ * `jest.resetModules()` remount for every scenario.
+ */
+export function getDefaultFeltTransport(): FeltTransport {
+  return isSupabaseConfigured() ? SupabaseTransport : PendingTransport;
+}
 
 // ---------------------------------------------------------------------------
 // Queue store
@@ -176,7 +194,7 @@ export interface EnqueueTier1Input {
  */
 export async function enqueueTier1Report(
   input: EnqueueTier1Input,
-  transport: FeltTransport = PendingTransport,
+  transport: FeltTransport = getDefaultFeltTransport(),
 ): Promise<Tier1Report> {
   const deviceId = await getDeviceId();
   const now = Date.now();
@@ -219,7 +237,7 @@ export interface EnqueueTier2Input {
  * a real tier-1 report id in hand, per the wave brief's navigation rule). */
 export async function enqueueTier2Report(
   input: EnqueueTier2Input,
-  transport: FeltTransport = PendingTransport,
+  transport: FeltTransport = getDefaultFeltTransport(),
 ): Promise<Tier2Report> {
   const exists = useFeltQueueStore
     .getState()
@@ -257,7 +275,7 @@ let isProcessing = false;
  * nothing is eligible.
  */
 export async function processQueue(
-  transport: FeltTransport = PendingTransport,
+  transport: FeltTransport = getDefaultFeltTransport(),
 ): Promise<void> {
   if (isProcessing) {
     return;
@@ -328,7 +346,7 @@ let appStateListenerAttached = false;
  * wiring. Idempotent — safe to call on every render.
  */
 export function ensureFeltQueueForegroundSync(
-  transport: FeltTransport = PendingTransport,
+  transport: FeltTransport = getDefaultFeltTransport(),
 ): void {
   if (appStateListenerAttached) {
     return;

@@ -32,12 +32,14 @@ export default function CatalogScreen() {
         // Metro asset resolution needs a literal, static `require()` call
         // here (it statically scans the source for these) — this is the
         // documented expo-sqlite bundled-asset pattern, not something an
-        // import statement can express, hence the lint suppression.
-        // eslint-disable-next-line @typescript-eslint/no-require-imports -- Metro asset require, see comment above
+        // import statement can express, hence the lint suppression on the
+        // require() line itself (must be directly above it, not above this
+        // comment block, or the directive reports as unused).
         // Relative path, NOT the "@/" alias: "@/*" maps to "./src/*"
         // (tsconfig paths), but the bundled db lives at the repo-root
         // assets/ directory — the alias resolved to a nonexistent
         // src/assets/... and broke Metro bundling.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports -- Metro asset require, see comment above
         assetSource={{ assetId: require("../assets/catalog/bumelerze-catalog.sqlite") }}
       >
         <CatalogListScreen />

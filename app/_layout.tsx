@@ -12,6 +12,7 @@ import {
 } from "@/features/events/queries";
 import { ensureFeltQueueForegroundSync, processQueue } from "@/features/felt";
 import { usePrefsStore } from "@/features/onboarding";
+import { sendColdStartTelemetryPing } from "@/features/telemetry";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
 import { applyPersistedLocaleOnLaunch } from "@/i18n";
@@ -67,6 +68,15 @@ export default function RootLayout() {
     // connectivity-regain without a NetInfo dependency).
     ensureFeltQueueForegroundSync();
     void processQueue();
+  }, []);
+
+  useEffect(() => {
+    // Anonymous, coarse-location cold-start ping (spec-v1.md §5.5, D11/D13;
+    // disclosed in Settings). No-ops entirely when no Supabase project is
+    // configured yet or when location permission/last-known fix isn't
+    // already available — see `sendColdStartTelemetryPing`'s own doc for
+    // every gate; never requests a permission or a fresh GPS fix.
+    void sendColdStartTelemetryPing();
   }, []);
 
   if (isRestarting || !hasHydrated) {
