@@ -60,7 +60,8 @@
   "events": {
     "provenance": {
       "usgs": "USGS",
-      "emsc": "EMSC"
+      "emsc": "EMSC",
+      "geofon": "GEOFON"
     },
     "relativeTime": {
       "justNow": "الآن",
@@ -346,7 +347,7 @@
     "handbookSectionDescription": "قيم تصميمية موثّقة المصدر (PGA، Vs30، فئة الموقع) لموقع في كوردستان/العراق — للمهندسين والباحثين.",
     "handbookOpen": "فتح دليل المهندس",
     "dataSourcesSectionTitle": "مصادر البيانات",
-    "dataSourcesSectionDescription": "تأتي بيانات الزلازل من خدمات الويب FDSN الخاصة بـ USGS وEMSC (seismicportal.eu)، مرخصة بموجب CC BY 4.0. يتحول Bumelerze تلقائيًا إلى EMSC إذا تعذر الوصول إلى USGS مؤقتًا.",
+    "dataSourcesSectionDescription": "تأتي بيانات الزلازل من خدمات الويب FDSN الخاصة بـ USGS وEMSC (seismicportal.eu) وGEOFON (مركز GFZ هلمهولتز لعلوم الأرض، geofon.gfz.de)، المرخصة بموجب CC BY 4.0. يفحص Bumelerze الكتالوجات الثلاثة عند كل تحديث ويدمجها في خلاصة واحدة، فلا يظهر الزلزال نفسه مرتين أبدًا.",
     "telemetrySectionTitle": "إشارة مجهولة عند فتح التطبيق",
     "telemetrySectionDescription": "في كل مرة تفتح فيها بوملێرزە، يرسل جهازك إشارة مجهولة الهوية تتضمن موقعاً تقريبياً (بحجم المدينة) ونظام تشغيل جهازك — دون أي معرّف للجهاز أو بيانات شخصية. تُستخدم هذه البيانات مستقبلاً للمساعدة في رصد الزلازل بشكل أسرع؛ ولا يُستفاد منها حالياً."
   },

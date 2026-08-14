@@ -439,3 +439,163 @@ def test_emsc_event_outside_region_bbox_is_skipped():
     decisions = fw.evaluate_feed_events(events, WorkerState())
     assert decisions[0].kind == "skip"
     assert "region" in decisions[0].reason
+
+
+# ---------------------------------------------------------------------------
+# GEOFON completeness sweep: parse_geofon_text
+# ---------------------------------------------------------------------------
+
+# The header line the live service emits plus a VERIFIED live data row
+# (fetched from geofon.gfz.de/fdsnws/event/1/query with format=text on
+# 2026-08-14): an intermediate-depth (55 km) mb 4.48 under Iraq. Note the
+# empty Author/Catalog/MagAuthor columns -- real GEOFON rows carry empties.
+GEOFON_HEADER = (
+    "#EventID|Time|Latitude|Longitude|Depth/km|Author|Catalog|Contributor"
+    "|ContributorID|MagType|Magnitude|MagAuthor|EventLocationName|EventType"
+)
+GEOFON_VERIFIED_ROW = (
+    "gfz2026oyxe|2026-08-01T20:27:43.07|35.406|44.659|55.0|||GFZ"
+    "|gfz2026oyxe|mb|4.48||Iraq|earthquake"
+)
+GEOFON_TIME_MS = int(
+    __import__("datetime").datetime(
+        2026, 8, 1, 20, 27, 43, 70_000, tzinfo=__import__("datetime").timezone.utc
+    ).timestamp() * 1000
+)
+
+
+def _geofon_row(
+    *, event_id="gfz2026test", time_iso="2026-08-13T22:28:04.0", lat=34.9, lon=45.9,
+    depth=10.0, magtype="mb", mag="4.0", place="Iraq",
+) -> str:
+    return f"{event_id}|{time_iso}|{lat}|{lon}|{depth}|||GFZ|{event_id}|{magtype}|{mag}||{place}|earthquake"
+
+
+def _geofon_text(*rows: str) -> str:
+    return "\n".join([GEOFON_HEADER, *rows]) + "\n"
+
+
+def test_parse_geofon_text_maps_the_verified_live_row():
+    events = fw.parse_geofon_text(_geofon_text(GEOFON_VERIFIED_ROW))
+    assert len(events) == 1
+    e = events[0]
+    assert e.external_id == "gfz2026oyxe"
+    assert e.source == "geofon"
+    assert e.mag == 4.48
+    assert e.lat == 35.406
+    assert e.lon == 44.659
+    assert e.depth_km == 55.0
+    assert e.place == "Iraq"
+    # Zone-less FDSN time read as UTC (the fractional ".07" s = 70 ms) --
+    # NEVER local time.
+    assert e.time_ms == GEOFON_TIME_MS
+    # The text format has no update-timestamp column: falls back to origin.
+    assert e.updated_ms == GEOFON_TIME_MS
+
+
+def test_parse_geofon_text_skips_header_blank_lines_and_empty_body():
+    assert fw.parse_geofon_text("") == []
+    assert fw.parse_geofon_text(GEOFON_HEADER + "\n") == []
+    assert fw.parse_geofon_text("\n\n" + GEOFON_HEADER + "\n\n") == []
+
+
+def test_parse_geofon_text_skips_malformed_rows_keeping_good_ones():
+    too_few_fields = "gfzbad1|2026-08-13T22:00:00|34.9|45.9"
+    empty_magnitude = _geofon_row(event_id="gfzbad2", mag="")  # not-yet-reviewed placeholder
+    bad_latitude = _geofon_row(event_id="gfzbad3", lat="not-a-number")
+    bad_time = _geofon_row(event_id="gfzbad4", time_iso="not-a-timestamp")
+    empty_id = _geofon_row(event_id="")
+    good = GEOFON_VERIFIED_ROW
+    events = fw.parse_geofon_text(
+        _geofon_text(too_few_fields, empty_magnitude, bad_latitude, bad_time, empty_id, good)
+    )
+    assert [e.external_id for e in events] == ["gfz2026oyxe"]
+
+
+def test_parse_geofon_text_accepts_a_13_column_row_without_event_type():
+    # A strict 13-column FDSN text source (another SeisComP deployment,
+    # e.g. the future Kurdistan/Iraq data center) must parse too -- the
+    # parser is deliberately reusable (provider-architecture.md).
+    thirteen = "kur2026abcd|2026-08-13T22:28:04.0|35.5|45.5|12.0|||KUR|kur2026abcd|ml|3.9||Kurdistan Region, Iraq"
+    events = fw.parse_geofon_text(_geofon_text(thirteen))
+    assert len(events) == 1
+    assert events[0].external_id == "kur2026abcd"
+    assert events[0].mag == 3.9
+
+
+# ---------------------------------------------------------------------------
+# evaluate_feed_events -- three-way cross-provider dedup with GEOFON
+# ---------------------------------------------------------------------------
+
+
+def test_geofon_record_of_a_usgs_tracked_event_is_skipped():
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id="us7000abcd", source="usgs", mag=4.1,
+                     lat=34.93, lon=45.9, origin_time_ms=BORDER_TIME_MS - 4_000)
+    )
+    events = fw.parse_geofon_text(_geofon_text(_geofon_row(event_id="gfz2026dupe")))
+    decisions = fw.evaluate_feed_events(events, ws)
+    assert decisions[0].kind == "skip"
+    assert "cross-provider" in decisions[0].reason
+    assert "usgs:us7000abcd" in decisions[0].reason
+
+
+def test_geofon_record_of_an_emsc_tracked_event_is_skipped():
+    # Canonical order USGS > EMSC > GEOFON: an event USGS never published
+    # but EMSC's sweep already tracked must not re-trigger from GEOFON.
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id=BORDER_UNID, source="emsc", mag=4.0,
+                     lat=34.9, lon=45.9, origin_time_ms=BORDER_TIME_MS)
+    )
+    events = fw.parse_geofon_text(_geofon_text(_geofon_row(event_id="gfz2026dupe")))
+    decisions = fw.evaluate_feed_events(events, ws)
+    assert decisions[0].kind == "skip"
+    assert f"emsc:{BORDER_UNID}" in decisions[0].reason
+
+
+def test_emsc_record_of_a_geofon_tracked_event_is_skipped_vice_versa():
+    # GEOFON published first (it can be fastest for regional events): the
+    # later EMSC record must dedup against the geofon-keyed entry.
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id="gfz2026oyxe", source="geofon", mag=4.48,
+                     lat=35.406, lon=44.659, origin_time_ms=GEOFON_TIME_MS)
+    )
+    events = fw.parse_emsc_geojson(_payload(_emsc_feature(
+        unid="20260801_0000123", mag=4.4, lat=35.4, lon=44.7,
+        time_iso="2026-08-01T20:27:45.0Z",
+    )))
+    decisions = fw.evaluate_feed_events(events, ws)
+    assert decisions[0].kind == "skip"
+    assert "geofon:gfz2026oyxe" in decisions[0].reason
+
+
+def test_distinct_geofon_event_near_a_tracked_usgs_event_still_triggers():
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id="us7000abcd", source="usgs", mag=4.1,
+                     lat=34.9, lon=45.9, origin_time_ms=BORDER_TIME_MS - 3 * 3600 * 1000)
+    )
+    events = fw.parse_geofon_text(_geofon_text(_geofon_row(event_id="gfz2026new")))
+    decisions = fw.evaluate_feed_events(events, ws)
+    assert decisions[0].kind == "new"
+
+
+def test_geofon_only_qualifying_event_triggers_the_pipeline():
+    # The verified gfz2026oyxe intermediate-depth event: mb 4.48 >= the 3.5
+    # floor, inside the bbox, absent from USGS/EMSC/state -> "new".
+    events = fw.parse_geofon_text(_geofon_text(GEOFON_VERIFIED_ROW))
+    decisions = fw.evaluate_feed_events(events, WorkerState())
+    assert len(decisions) == 1
+    assert decisions[0].kind == "new"
+    assert decisions[0].event.external_id == "gfz2026oyxe"
+    assert decisions[0].event.source == "geofon"
+
+
+def test_geofon_event_below_magnitude_floor_is_skipped():
+    events = fw.parse_geofon_text(_geofon_text(_geofon_row(event_id="gfzsmall", mag="3.4")))
+    decisions = fw.evaluate_feed_events(events, WorkerState())
+    assert decisions[0].kind == "skip"
+    assert "magnitude" in decisions[0].reason

@@ -6,10 +6,12 @@ export {
   isRegionSignificant,
   isWorldSignificant,
   normalizeEmscFeature,
+  normalizeGeofonRow,
   normalizeUsgsFeature,
 } from "./normalize";
 export { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from "./usgs";
 export { fetchEmscRegionEvents } from "./emsc";
+export { fetchGeofonRegionEvents, parseGeofonText } from "./geofon";
 export { isSameEarthquake, mergeProviderEvents } from "./merge";
 export {
   createEventsPersister,

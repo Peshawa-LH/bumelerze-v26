@@ -4,6 +4,7 @@ import {
   SIGNIFICANCE_THRESHOLDS,
 } from "./config";
 import type { EmscFeature } from "./emsc-schema";
+import type { GeofonRow } from "./geofon-schema";
 import type { UsgsFeature } from "./usgs-schema";
 import type { Event } from "./types";
 
@@ -127,6 +128,78 @@ export function normalizeUsgsFeature(
  * `lastupdate` is less critical — falls back to the origin time rather
  * than discarding an otherwise-good feature.
  */
+/** True when an ISO 8601 string carries an explicit zone designator ("Z" or
+ * a ±hh[:]mm offset). FDSN text times normally carry NONE — they are UTC by
+ * spec — but `Date.parse` reads a zone-less ISO time as LOCAL time, so
+ * `normalizeGeofonRow` appends "Z" exactly when the designator is absent
+ * (never blindly: a hypothetical source that DID emit an offset must not be
+ * corrupted into "…+01:00Z"). */
+const ISO_ZONE_DESIGNATOR_RE = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+
+function parseFdsnTextTimeUtc(value: string): number {
+  const withZone = ISO_ZONE_DESIGNATOR_RE.test(value) ? value : `${value}Z`;
+  return Date.parse(withZone);
+}
+
+/**
+ * GEOFON fdsnws `format=text` row -> internal Event. Mirrors
+ * `normalizeUsgsFeature` above and `normalizeEmscFeature` below (same
+ * `Event` shape, same skip-not-throw contract) but reads the pipe-column
+ * row shape geofon.ts parsed (geofon-schema.ts) — this is the ONLY place
+ * GEOFON column semantics may appear outside `geofon.ts`/`geofon-schema.ts`
+ * (PROJECT.md gotcha).
+ *
+ * GEOFON-specific notes:
+ * - No PAGER-equivalent alert data → the alert bonus in `computeClientSig`
+ *   is always 0, same accepted asymmetry as EMSC (see below): it only
+ *   matters while an event is GEOFON-only, and a USGS/EMSC record (once one
+ *   appears) supersedes it via the merge's priority order (merge.ts).
+ * - `magType` passes through untouched (mb, M, Mw(mB), ...): the internal
+ *   model deliberately does not normalize magnitude type codes. GEOFON's
+ *   regional intermediate-depth events (e.g. the verified gfz2026oyxe:
+ *   mb 4.48 at 55 km under Iraq) arrive exactly as reported.
+ * - The FDSN text format carries NO provider-update timestamp (nothing like
+ *   USGS `updated`/EMSC `lastupdate`) → `providerUpdatedAt` falls back to
+ *   the origin time, the same fallback normalizeEmscFeature uses for an
+ *   unparseable `lastupdate`.
+ * - Times are ISO 8601 WITHOUT a zone designator, UTC per the FDSN spec —
+ *   see `parseFdsnTextTimeUtc` above; an unparseable time drops the row
+ *   (origin time is load-bearing), counted by the caller, never thrown.
+ */
+export function normalizeGeofonRow(row: GeofonRow, fetchedAt: number): Event | null {
+  const originTime = parseFdsnTextTimeUtc(row.time);
+  if (Number.isNaN(originTime)) {
+    return null;
+  }
+
+  const event: Event = {
+    id: row.eventId,
+    originTime,
+    lat: row.latitude,
+    lon: row.longitude,
+    depthKm: row.depthKm,
+    magnitude: {
+      value: row.magnitude,
+      type: row.magType.length > 0 ? row.magType : "unknown",
+    },
+    placeName: row.locationName,
+    provenance: {
+      provider: "geofon",
+      providerId: row.eventId,
+      fetchedAt,
+      providerUpdatedAt: originTime,
+    },
+    // No `alert` argument — see the GEOFON-specific note above.
+    sig: computeClientSig(row.magnitude, null),
+    isRegional: isInRegionBbox(row.latitude, row.longitude),
+    // The FDSN text response carries no per-event page URL; GEOFON's own
+    // event-detail page follows this documented pattern.
+    url: `https://geofon.gfz.de/event/${row.eventId}`,
+  };
+
+  return event;
+}
+
 export function normalizeEmscFeature(
   feature: EmscFeature,
   fetchedAt: number,

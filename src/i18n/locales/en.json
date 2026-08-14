@@ -60,7 +60,8 @@
   "events": {
     "provenance": {
       "usgs": "USGS",
-      "emsc": "EMSC"
+      "emsc": "EMSC",
+      "geofon": "GEOFON"
     },
     "relativeTime": {
       "justNow": "Just now",
@@ -346,7 +347,7 @@
     "handbookSectionDescription": "Cited design values (PGA, Vs30, site class) for a site in Kurdistan/Iraq — for engineers and researchers.",
     "handbookOpen": "Open handbook",
     "dataSourcesSectionTitle": "Data sources",
-    "dataSourcesSectionDescription": "Earthquake data comes from the USGS and EMSC (seismicportal.eu) FDSN web services, licensed CC BY 4.0. Bumelerze automatically switches to EMSC if USGS is temporarily unreachable.",
+    "dataSourcesSectionDescription": "Earthquake data comes from the USGS, EMSC (seismicportal.eu), and GEOFON (GFZ Helmholtz Centre for Geosciences, geofon.gfz.de) FDSN web services, licensed CC BY 4.0. Bumelerze checks all three catalogs on every refresh and merges them into one feed, so the same earthquake never appears twice.",
     "telemetrySectionTitle": "Anonymous app-launch signal",
     "telemetrySectionDescription": "Each time you open Bumelerze, your device sends one anonymous ping with a coarse, city-scale location and your device platform — never a device ID or personal data. It exists to help detect earthquakes faster from launch patterns in a future version; nothing reads it yet."
   },

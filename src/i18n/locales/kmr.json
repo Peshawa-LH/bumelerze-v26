@@ -60,7 +60,8 @@
   "events": {
     "provenance": {
       "usgs": "USGS",
-      "emsc": "EMSC"
+      "emsc": "EMSC",
+      "geofon": "GEOFON"
     },
     "relativeTime": {
       "justNow": "Niha",
@@ -346,7 +347,7 @@
     "handbookSectionDescription": "Nirxên sêwiranê yên jêder (PGA, Vs30, çîna axê) ji bo cihekî li Kurdistan/Iraq — ji bo endezyar û lêkolîneran.",
     "handbookOpen": "Pirtûka endezyar veke",
     "dataSourcesSectionTitle": "Çavkaniyên daneyan",
-    "dataSourcesSectionDescription": "Daneyên erdhejê ji xizmetên webê yên FDSN ên USGS û EMSC (seismicportal.eu) tên wergirtin, di bin lîsansa CC BY 4.0 de. Bumelerze bixweber diguhere ser EMSC heke USGS demkî nayê gihîştin.",
+    "dataSourcesSectionDescription": "Daneyên erdhejê ji xizmetên webê yên FDSN ên USGS, EMSC (seismicportal.eu) û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) tên wergirtin, di bin lîsansa CC BY 4.0 de. Bumelerze di her nûkirinê de her sê katalogan kontrol dike û dike yek feedê; heman erdhej tu carî du caran xuya nabe.",
     "telemetrySectionTitle": "Nîşana vekirina sepanê ya nenas",
     "telemetrySectionDescription": "Her carê tu Bumelerze vedikî, cîhaza te nîşanek nenas dişîne bi cîhek giştî (bi qebareya bajêr) û platforma cîhaza te — tucaran nasnameya cîhazê an daneya kesane nayê şandin. Ev ji bo pêşerojê tê bikaranîn da ku peydakirina erdhejan zûtir bibe; niha tiştek pê nayê kirin."
   },

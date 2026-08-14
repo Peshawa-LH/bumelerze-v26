@@ -13,9 +13,11 @@ import {
   EMSC_REGION_TIMEOUT_MS,
   EVENTS_REFETCH_INTERVAL_MS,
   EVENTS_STALE_TIME_MS,
+  GEOFON_REGION_TIMEOUT_MS,
   USGS_REGION_TIMEOUT_MS,
 } from "./config";
 import { fetchEmscRegionEvents } from "./emsc";
+import { fetchGeofonRegionEvents } from "./geofon";
 import { mergeProviderEvents } from "./merge";
 import { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from "./usgs";
 import type { Event } from "./types";
@@ -93,7 +95,8 @@ export interface UseEventsFeedResult {
    *
    * Multi-provider nuance (completeness merge): for the region feed this
    * flag comes from `fetchRegionEventsMerged` (queries.ts), which only
-   * rejects when BOTH USGS and EMSC fail — one provider answering is a
+   * rejects when ALL providers (USGS, EMSC, GEOFON) fail — one provider
+   * answering is a
    * successful query, `query.isError` stays `false`, and this stays `false`
    * too. So a device that's happily getting live data from either provider
    * correctly never sees the offline banner — the existing "via EMSC"
@@ -137,9 +140,12 @@ function useEventsFeed(
   };
 }
 
-/** Shared shape of `fetchUsgsRegionEvents`'s and `fetchEmscRegionEvents`'s
- * results — both are `{ events, skippedCount, fetchedAt }`, the merge
- * orchestration below doesn't care which provider produced them. */
+/** Shared shape of `fetchUsgsRegionEvents`'s, `fetchEmscRegionEvents`'s,
+ * and `fetchGeofonRegionEvents`'s results — all are `{ events,
+ * skippedCount, fetchedAt }`, the merge orchestration below doesn't care
+ * which provider produced them. This shape IS the provider fetch contract:
+ * a future source's fetch fn returns it and joins the leg list below
+ * (provider-architecture.md). */
 interface RegionFetchResult {
   events: Event[];
   skippedCount: number;
@@ -148,9 +154,9 @@ interface RegionFetchResult {
 
 /** One provider's leg of the parallel region fetch: its own AbortController
  * timeout budget, resolving to the result or `undefined` on any failure
- * (rejection or timeout) — never throwing, so `Promise.all` over both legs
+ * (rejection or timeout) — never throwing, so `Promise.all` over the legs
  * can't short-circuit on the first failure. The failure itself is kept for
- * the both-fail rethrow in `fetchRegionEventsMerged`. */
+ * the all-fail rethrow in `fetchRegionEventsMerged`. */
 async function fetchProviderLeg(
   fetchFn: (signal: AbortSignal) => Promise<RegionFetchResult>,
   timeoutMs: number,
@@ -174,42 +180,51 @@ async function fetchProviderLeg(
 }
 
 /**
- * Region feed fetch: USGS and EMSC queried IN PARALLEL, results merged
- * through `mergeProviderEvents` (merge.ts) — a completeness MERGE, not the
- * old availability failover. Exported so it can be exercised directly in
- * tests without standing up a full QueryClient/renderHook harness.
+ * Region feed fetch: USGS, EMSC, and GEOFON queried IN PARALLEL, results
+ * merged through `mergeProviderEvents` (merge.ts) — a completeness MERGE,
+ * not the old availability failover. Exported so it can be exercised
+ * directly in tests without standing up a full QueryClient/renderHook
+ * harness.
  *
  * Why merge instead of failover — a real missed earthquake: 2026-08-13
  * 22:28 UTC, M4.0 mb, Iran–Iraq border region. In EMSC's catalog, absent
  * from USGS entirely (below NEIC's ~M4.5 regional completeness). Under
  * failover semantics EMSC was only consulted when USGS *failed*, so that
- * felt regional event never surfaced while USGS was healthy. Both catalogs
- * are now always consulted; EMSC fills USGS's regional completeness gap and
- * USGS stays canonical where they overlap (event-pipeline-design.md §2).
+ * felt regional event never surfaced while USGS was healthy. All catalogs
+ * are now always consulted; each lower-authority catalog fills the
+ * completeness gaps of the ones above it, and the highest-authority record
+ * stays canonical where they overlap (event-pipeline-design.md §2, D4
+ * order: USGS > EMSC > GEOFON — the leg-list order below IS the merge's
+ * priority order; a future provider joins by adding a leg at its authority
+ * position, see provider-architecture.md).
  *
  * Semantics, per outcome — degraded modes stay truthful:
- * 1. BOTH succeed → `mergeProviderEvents(usgs, emsc)`: USGS events as-is,
- *    EMSC-only events appended with provider "emsc", cross-provider
- *    duplicates dropped in EMSC's favor of USGS. `skippedCount` sums both
- *    providers' tolerant-parsing skips.
- * 2. USGS-only succeeds → merged(USGS, []) ≡ the USGS list, exactly what
- *    the old failover served on a healthy poll. EMSC-only events already in
- *    the previous poll's cache disappear until EMSC answers again — the
- *    truthful representation of "we can only see USGS right now".
- * 3. EMSC-only succeeds → the EMSC list (the old failover outcome, now a
- *    natural special case of the merge rather than a separate code path).
- * 4. BOTH fail → the USGS failure rethrows unchanged to React Query — the
- *    existing isOfflineIsh/isHardError states in `useEventsFeed` keep
- *    working exactly as before.
+ * 1. ALL succeed → `mergeProviderEvents([usgs, emsc, geofon])`: USGS
+ *    events as-is, lower-priority-only events appended with their own
+ *    provider tag, cross-provider duplicates dropped in the higher
+ *    authority's favor. `skippedCount` sums every provider's
+ *    tolerant-parsing skips.
+ * 2. A SUBSET succeeds → the merge over the successful legs' lists (a
+ *    failed leg contributes an empty list — the single-provider outcomes
+ *    of the old two-way merge are natural special cases of this).
+ *    Provider-exclusive events from a failed leg's previous poll disappear
+ *    until that provider answers again — the truthful representation of
+ *    "this is all we can see right now".
+ * 3. ALL fail → the USGS failure (or the first leg failure available)
+ *    rethrows unchanged to React Query — the existing
+ *    isOfflineIsh/isHardError states in `useEventsFeed` keep working
+ *    exactly as before.
  *
  * Each provider gets its OWN timeout budget (config.ts) — a slow provider
- * is dropped from this poll's merge, never allowed to block the other one.
+ * is dropped from this poll's merge, never allowed to block the others.
  * This remains a plain `queryFn` under the single `eventsQueryKeys.region`
  * key: each poll's merged list wholesale-replaces the previous one, so
  * provider recovery needs no cache surgery.
  */
 export async function fetchRegionEventsMerged(): Promise<RegionFetchResult> {
-  const [usgs, emsc] = await Promise.all([
+  // Leg order = canonical authority order (doc comment above) — it is the
+  // priority order `mergeProviderEvents` applies.
+  const legs = await Promise.all([
     fetchProviderLeg(
       (signal) => fetchUsgsRegionEvents(signal),
       USGS_REGION_TIMEOUT_MS,
@@ -220,27 +235,32 @@ export async function fetchRegionEventsMerged(): Promise<RegionFetchResult> {
       EMSC_REGION_TIMEOUT_MS,
       "EMSC",
     ),
+    fetchProviderLeg(
+      (signal) => fetchGeofonRegionEvents(signal),
+      GEOFON_REGION_TIMEOUT_MS,
+      "GEOFON",
+    ),
   ]);
 
-  if (!usgs.result && !emsc.result) {
-    // Both-fail path (outcome 4): rethrow rather than fabricate an empty
+  if (legs.every((leg) => !leg.result)) {
+    // All-fail path (outcome 3): rethrow rather than fabricate an empty
     // feed — an empty list would render as "no earthquakes", a lie.
-    throw usgs.error ?? emsc.error ?? new Error("region fetch failed for both providers");
+    throw (
+      legs.find((leg) => leg.error !== undefined)?.error ??
+      new Error("region fetch failed for all providers")
+    );
   }
 
-  const usgsEvents = usgs.result?.events ?? [];
-  const emscEvents = emsc.result?.events ?? [];
-
   return {
-    events: mergeProviderEvents(usgsEvents, emscEvents),
-    skippedCount: (usgs.result?.skippedCount ?? 0) + (emsc.result?.skippedCount ?? 0),
-    fetchedAt: Math.max(usgs.result?.fetchedAt ?? 0, emsc.result?.fetchedAt ?? 0),
+    events: mergeProviderEvents(legs.map((leg) => leg.result?.events ?? [])),
+    skippedCount: legs.reduce((sum, leg) => sum + (leg.result?.skippedCount ?? 0), 0),
+    fetchedAt: Math.max(...legs.map((leg) => leg.result?.fetchedAt ?? 0)),
   };
 }
 
 /** Region-scoped feed (Home, spec-v1.md §4.1) — refetches every 60s while
  * the app is foregrounded, treats data as fresh for 30s. Parallel
- * USGS+EMSC completeness merge via `fetchRegionEventsMerged` above;
+ * USGS+EMSC+GEOFON completeness merge via `fetchRegionEventsMerged` above;
  * `useEventsFeed`'s offline/error derivation is unaffected — it only cares
  * whether the combined fetch succeeded or failed, not which provider(s)
  * answered. */
