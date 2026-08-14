@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
 """run_worker — CLI for the bumelerze-shake-service auto-trigger worker
-(D9: "auto for regional M>=3.5 ... versioned re-conditioning").
+(owner directive 2026-08-14: any event in Iraq or with effect on
+Kurdistan, no magnitude floor — `feed_watcher.triggers_shakemap`;
+supersedes D9's M>=3.5 regional floor. D9's versioned re-conditioning
+policy is unchanged).
+
+Besides computing maps for triggering events, the worker is the bml-id
+allocation point and the live catalog's writer: every newly detected
+canonical event (post-dedup, any magnitude, `"new"` AND `"catalog"`
+decisions) is assigned a `bml<year><base36>` id
+(`shake_service/event_id.py` — the worker state file is the single
+allocation authority today) and appended as one JSONL line to
+`regional-catalog/live-catalog.jsonl` (`worker/live_catalog.py`), whether
+or not a ShakeMap was computed for it.
 
 Two modes:
 
@@ -22,7 +34,7 @@ Two modes:
 earthquake — 2026-08-13 22:28 UTC, M4.0 mb, Iran–Iraq border region — was
 in EMSC's catalog but absent from USGS entirely (below NEIC's ~M4.5
 regional completeness), so the USGS-only watcher produced no Bumelerze
-SHAKEmap despite the M>=3.5 trigger floor. The EMSC sweep polls
+SHAKEmap despite qualifying to trigger. The EMSC sweep polls
 seismicportal.eu's fdsnws region query at the USGS sweep's cadence;
 EMSC-vs-USGS duplicates are deduped inside `feed_watcher` (event-pipeline-
 design.md §2: 16 s / 100 km / |ΔM| 1.5; an event tracked from one provider
@@ -81,8 +93,9 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # allow running as a plain script
 
-from shake_service import config  # noqa: E402
+from shake_service import config, event_id  # noqa: E402
 from shake_service.worker import feed_watcher, pipeline, usgs_products  # noqa: E402
+from shake_service.worker.live_catalog import append_to_live_catalog  # noqa: E402
 from shake_service.worker.state import WorkerState  # noqa: E402
 from shake_service.worker.uploader import LocalOnlyUploader, ProductUploader  # noqa: E402
 
@@ -118,6 +131,11 @@ DAEMON_TICK_S = 1.0
 
 DEFAULT_STATE_PATH = Path(__file__).resolve().parent.parent / "worker_state.json"
 DEFAULT_PRODUCTS_ROOT = Path(__file__).resolve().parent.parent / "products"
+# The from-launch internal catalog (worker/live_catalog.py): every newly
+# detected canonical event gets one appended JSONL line, bml id included.
+DEFAULT_LIVE_CATALOG_PATH = (
+    Path(__file__).resolve().parent.parent / "regional-catalog" / "live-catalog.jsonl"
+)
 
 FetchFn = Callable[..., dict[str, Any]]
 FetchTextFn = Callable[..., str]
@@ -148,7 +166,12 @@ def fetch_text(url: str, params: dict[str, Any] | None = None) -> str:
 
 
 def _region_sweep_params(updated_after: str) -> dict[str, Any]:
-    bbox = config.REGION_BBOX
+    # MONITORED_BBOX, not REGION_BBOX: the sweeps must cover the whole
+    # detection domain of the trigger policy (all of Iraq + the Kurdistan
+    # bbox widened by the largest possible shaking footprint — see the
+    # config constant's own doc) or southern-Iraq / cross-border effect
+    # events would never even reach `evaluate_feed_events`.
+    bbox = config.MONITORED_BBOX
     return {
         "format": "geojson",
         "updatedafter": updated_after,
@@ -178,8 +201,9 @@ def _emsc_sweep_params(start_time: str) -> dict[str, Any]:
     `minlat`/`maxlat`/`minlon`/`maxlon`) rather than USGS's long names —
     same FDSN WS-EVENT spec, different documented alias (verified against
     the primary source by the app's own EMSC integration,
-    src/features/events/emsc.ts — kept literal to that here)."""
-    bbox = config.REGION_BBOX
+    src/features/events/emsc.ts — kept literal to that here). Queries
+    MONITORED_BBOX — see `_region_sweep_params`'s note."""
+    bbox = config.MONITORED_BBOX
     return {
         "format": "json",
         "start": start_time,
@@ -209,8 +233,9 @@ def _geofon_sweep_params(start_time: str) -> dict[str, Any]:
     (minlat/maxlat/minlon/maxlon) with the long-form `starttime`, and
     `format=text` because it serves no JSON — all verified live against
     geofon.gfz.de (matching the app's own geofon.ts findings), not assumed
-    from the FDSN spec."""
-    bbox = config.REGION_BBOX
+    from the FDSN spec. Queries MONITORED_BBOX — see
+    `_region_sweep_params`'s note."""
+    bbox = config.MONITORED_BBOX
     return {
         "format": "text",
         "starttime": start_time,
@@ -244,17 +269,60 @@ def process_decisions(
     products_root: Path,
     uploader: ProductUploader,
     usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
+    live_catalog_path: Path | None = None,
 ) -> None:
+    """Act on one poll's decisions. Besides running the pipeline for
+    `"new"`/`"update"`, this is where first-detection bookkeeping lives:
+
+    - `"new"` and `"catalog"` decisions (both are newly detected canonical
+      events, post-dedup) get a bml id assigned via
+      `event_id.ensure_bumelerze_id` — allocation happens for ALL detected
+      events, whether or not a map is computed — and one appended
+      live-catalog line (`worker/live_catalog.py`).
+    - cross-provider-duplicate `"skip"`s record the duplicate provider's
+      id into the tracked entry's `provider_aliases`.
+
+    `live_catalog_path=None` (the default) skips the append — the same
+    "zero side effects unless explicitly wired" convention as
+    `usgs_products_fetcher`; `main()` wires `DEFAULT_LIVE_CATALOG_PATH`."""
     for decision in decisions:
         if decision.kind == "skip":
+            if decision.cross_match is not None:
+                # Another provider's record of an already-tracked event:
+                # remember its id as an alias (never re-triggers, never a
+                # new bml id — the canonical entry already has one).
+                decision.cross_match.provider_aliases.setdefault(
+                    decision.event.source, decision.event.external_id
+                )
             continue
+
+        if decision.kind in ("new", "catalog"):
+            detected_at_iso = _dt.datetime.now(_dt.timezone.utc).isoformat()
+            bml_id = event_id.ensure_bumelerze_id(ws, decision.event, now_iso=detected_at_iso)
+            if live_catalog_path is not None:
+                append_to_live_catalog(
+                    live_catalog_path, decision.event, bumelerze_id=bml_id,
+                    triggered=decision.kind == "new", detected_at_iso=detected_at_iso,
+                )
+            if decision.kind == "catalog":
+                _log(
+                    "catalog_tracked",
+                    event_id=decision.event.external_id,
+                    bumelerze_id=bml_id,
+                    reason=decision.reason,
+                    mag=decision.event.mag,
+                )
+                continue
+
         result = pipeline.run_pipeline(
             decision, ws, products_root=products_root, uploader=uploader,
             usgs_products_fetcher=usgs_products_fetcher,
         )
+        tracked = ws.get_event(result.event_id)
         _log(
             "trigger_processed",
             event_id=result.event_id,
+            bumelerze_id=tracked.bumelerze_id if tracked is not None else None,
             decision_kind=decision.kind,
             reason=decision.reason,
             version=result.version,
@@ -284,6 +352,7 @@ def run_once(
     fetch_fn: FetchFn = fetch_json,
     fetch_text_fn: FetchTextFn = fetch_text,
     usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
+    live_catalog_path: Path | None = None,
     sweep_updated_after: str | None = None,
     emsc_sweep_start: str | None = None,
     geofon_sweep_start: str | None = None,
@@ -300,6 +369,7 @@ def run_once(
     process_decisions(
         all_hour_decisions, ws, products_root=products_root, uploader=uploader,
         usgs_products_fetcher=usgs_products_fetcher,
+        live_catalog_path=live_catalog_path,
     )
 
     updated_after = sweep_updated_after or _default_sweep_updated_after()
@@ -307,6 +377,7 @@ def run_once(
     process_decisions(
         sweep_decisions, ws, products_root=products_root, uploader=uploader,
         usgs_products_fetcher=usgs_products_fetcher,
+        live_catalog_path=live_catalog_path,
     )
 
     emsc_start = emsc_sweep_start or _default_emsc_sweep_start()
@@ -314,6 +385,7 @@ def run_once(
     process_decisions(
         emsc_decisions, ws, products_root=products_root, uploader=uploader,
         usgs_products_fetcher=usgs_products_fetcher,
+        live_catalog_path=live_catalog_path,
     )
 
     geofon_start = geofon_sweep_start or _default_geofon_sweep_start()
@@ -321,6 +393,7 @@ def run_once(
     process_decisions(
         geofon_decisions, ws, products_root=products_root, uploader=uploader,
         usgs_products_fetcher=usgs_products_fetcher,
+        live_catalog_path=live_catalog_path,
     )
 
     ws.save(state_path)
@@ -336,6 +409,7 @@ def run_daemon(
     fetch_fn: FetchFn = fetch_json,
     fetch_text_fn: FetchTextFn = fetch_text,
     usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
+    live_catalog_path: Path | None = None,
     tick_s: float = DAEMON_TICK_S,
 ) -> None:
     ws = WorkerState.load(state_path)
@@ -362,6 +436,7 @@ def run_daemon(
                     process_decisions(
                         decisions, ws, products_root=products_root, uploader=uploader,
                         usgs_products_fetcher=usgs_products_fetcher,
+                        live_catalog_path=live_catalog_path,
                     )
                     ws.save(state_path)
                 except requests.RequestException as exc:
@@ -383,6 +458,7 @@ def run_daemon(
                     process_decisions(
                         decisions, ws, products_root=products_root, uploader=uploader,
                         usgs_products_fetcher=usgs_products_fetcher,
+                        live_catalog_path=live_catalog_path,
                     )
                     ws.save(state_path)
                 except requests.RequestException as exc:
@@ -393,6 +469,7 @@ def run_daemon(
                     process_decisions(
                         decisions, ws, products_root=products_root, uploader=uploader,
                         usgs_products_fetcher=usgs_products_fetcher,
+                        live_catalog_path=live_catalog_path,
                     )
                     ws.save(state_path)
                 except requests.RequestException as exc:
@@ -403,6 +480,7 @@ def run_daemon(
                     process_decisions(
                         decisions, ws, products_root=products_root, uploader=uploader,
                         usgs_products_fetcher=usgs_products_fetcher,
+                        live_catalog_path=live_catalog_path,
                     )
                     ws.save(state_path)
                 except requests.RequestException as exc:
@@ -424,10 +502,15 @@ def main() -> None:
     mode.add_argument("--daemon", action="store_true", help="loop forever at the design cadences until SIGINT")
     parser.add_argument("--state-path", default=str(DEFAULT_STATE_PATH))
     parser.add_argument("--products-root", default=str(DEFAULT_PRODUCTS_ROOT))
+    parser.add_argument(
+        "--live-catalog-path", default=str(DEFAULT_LIVE_CATALOG_PATH),
+        help="append-only JSONL of every newly detected canonical event (worker/live_catalog.py)",
+    )
     args = parser.parse_args()
 
     state_path = Path(args.state_path)
     products_root = Path(args.products_root)
+    live_catalog_path = Path(args.live_catalog_path)
     uploader = LocalOnlyUploader(log_fn=lambda msg: _log("uploader", message=msg))
     # Real wiring (D21): the actual CLI entrypoint opts INTO network-enabled
     # USGS product fetching — every testable function above this
@@ -440,12 +523,12 @@ def main() -> None:
     if args.once:
         run_once(
             state_path=state_path, products_root=products_root, uploader=uploader,
-            usgs_products_fetcher=usgs_products_fetcher,
+            usgs_products_fetcher=usgs_products_fetcher, live_catalog_path=live_catalog_path,
         )
     else:
         run_daemon(
             state_path=state_path, products_root=products_root, uploader=uploader,
-            usgs_products_fetcher=usgs_products_fetcher,
+            usgs_products_fetcher=usgs_products_fetcher, live_catalog_path=live_catalog_path,
         )
 
 

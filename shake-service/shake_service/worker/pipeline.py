@@ -354,6 +354,17 @@ def run_pipeline(
         fm, event_lat=event.lat, event_lon=event.lon, event_depth_km=event.depth_km, mag_mw=event.mag,
         station_records=station_records, dyfi_boxes=dyfi_boxes, vs30_sampler=resolved_vs30_sampler,
     )
+    # --- bml id + provider-alias provenance (event_id.py) ---
+    # PRESERVE-only, never allocate: the id was assigned at first detection
+    # by `event_id.ensure_bumelerze_id` (run_worker.process_decisions), and
+    # the live worker's state file is the single allocation authority —
+    # pipeline entrypoints running against OTHER state files (seed_atlas,
+    # ad-hoc recomputes) minting ids would create a second counter space
+    # and collide. An event with no tracked id (Atlas seeds, pre-upgrade
+    # state) honestly carries `bumelerze_id: null` in its products.
+    bumelerze_id = known.bumelerze_id if known is not None else None
+    provider_aliases = dict(known.provider_aliases) if known is not None else {}
+    provider_aliases.setdefault(event.source, event.external_id)
     # Honest provenance on every product, conditioned or not — "no USGS data
     # was available" and "USGS data existed but conditioning wasn't run" are
     # both distinguishable from the data_used dict alone (never silently
@@ -370,6 +381,12 @@ def run_pipeline(
             # "emsc") — trigger provenance for EMSC-only events surfaced by
             # the completeness sweep (feed_watcher.py).
             "trigger_source": event.source,
+            # The canonical Bumelerze event id + every provider id known to
+            # alias this physical event (event_id.py; null id documented
+            # above). Lands in info.json via its `data_used` block AND in
+            # the uploader's product rows.
+            "bumelerze_id": bumelerze_id,
+            "provider_aliases": provider_aliases,
             "usgs_shakemap_grid_available": usgs.shakemap_available,
             "usgs_stationlist_available": usgs.stationlist_text is not None,
             "usgs_dyfi_available": usgs.dyfi_available,
@@ -409,6 +426,8 @@ def run_pipeline(
         has_comparison=has_comparison,
         comparison_path=str(comparison_path) if comparison_path else None,
         reviews=known.reviews if known is not None else {},
+        bumelerze_id=bumelerze_id,
+        provider_aliases=provider_aliases,
     )
     ws.upsert_event(new_state)
 
