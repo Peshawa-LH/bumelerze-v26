@@ -5,16 +5,16 @@
 Two modes:
 
   --once     One poll cycle: a USGS `all_hour` feed poll, a USGS region-bbox
-             `updatedafter` sweep, AND an EMSC region-bbox sweep,
-             unconditionally (regardless of the daemon cadences below) —
-             for tests/cron. Loads state, polls all three feeds, processes
-             every `"new"`/`"update"` decision through
+             `updatedafter` sweep, an EMSC region-bbox sweep, AND a GEOFON
+             region-bbox sweep, unconditionally (regardless of the daemon
+             cadences below) — for tests/cron. Loads state, polls all four
+             feeds, processes every `"new"`/`"update"` decision through
              `pipeline.run_pipeline`, saves state once, exits 0.
 
   --daemon   Loops forever at the design cadences (60 s `all_hour` poll,
-             10 min region-bbox sweeps — USGS and EMSC, `docs/research/
-             event-pipeline-design.md` §2) until SIGINT. Each poll is
-             independently try/excepted so a feed outage on one never
+             10 min region-bbox sweeps — USGS, EMSC, and GEOFON, `docs/
+             research/event-pipeline-design.md` §2) until SIGINT. Each poll
+             is independently try/excepted so a feed outage on one never
              blocks the others (tolerant of feed downtime); state is saved
              after every processed cycle AND on clean shutdown.
 
@@ -35,6 +35,22 @@ generous enough to cover publication latency and near-term revisions; an
 EMSC-side revision arriving later than that is rare and matters little
 (matched events are USGS-tracked anyway, and D9 versioning re-runs on the
 next qualifying revision either provider surfaces inside the window).
+
+**GEOFON completeness sweep (the third provider, D4's named order USGS >
+EMSC > GEOFON):** same cadence and origin-time lookback rationale as the
+EMSC sweep, against geofon.gfz.de's fdsnws. GEOFON serves NO `format=json`
+(verified live: 400), so this sweep requests `format=text` — the
+pipe-delimited FDSN WS-EVENT text format (parsed by
+`feed_watcher.parse_geofon_text`; deliberately reusable for any future
+SeisComP-based source, `docs/research/provider-architecture.md`) — and
+therefore fetches through `fetch_text` rather than `fetch_json`. Sweep
+ORDER is the dedup's canonical-id mechanism: USGS polls run first, EMSC
+second, GEOFON third, so an event carried by several providers is created
+under the highest-authority id available and every later record
+cross-provider-dedups against it (feed_watcher §2 matching across ALL
+other providers' tracked events). GEOFON-only qualifying events trigger
+the pipeline exactly like EMSC-only ones (event id = the gfz id,
+`trigger_source: "geofon"`; no USGS products fetch for non-USGS ids).
 
 **Deployment note:** this worker is designed to run server-side, next to
 Supabase — a small always-on process (or cron-equivalent) — NOT on
@@ -73,6 +89,7 @@ from shake_service.worker.uploader import LocalOnlyUploader, ProductUploader  # 
 ALL_HOUR_FEED_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
 FDSNWS_EVENT_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 EMSC_FDSNWS_EVENT_URL = "https://www.seismicportal.eu/fdsnws/event/1/query"
+GEOFON_FDSNWS_EVENT_URL = "https://geofon.gfz.de/fdsnws/event/1/query"
 
 # Cadences per `docs/research/event-pipeline-design.md` §2 (the
 # ingestion worker's own "60s poll + 10min updatedafter sweep" rhythm —
@@ -91,6 +108,10 @@ SWEEP_LOOKBACK_S = SWEEP_INTERVAL_S * 2
 # to catch near-term revisions (module docstring). Cheap: a 1-hour
 # region-bbox query returns at most a handful of events.
 EMSC_SWEEP_LOOKBACK_S = 3600
+# GEOFON's sweep shares the EMSC sweep's origin-time semantics and
+# therefore its lookback rationale verbatim (no `updatedafter` equivalent;
+# must cover publication latency + near-term revisions; cheap query).
+GEOFON_SWEEP_LOOKBACK_S = 3600
 
 REQUEST_TIMEOUT_S = 30
 DAEMON_TICK_S = 1.0
@@ -99,6 +120,7 @@ DEFAULT_STATE_PATH = Path(__file__).resolve().parent.parent / "worker_state.json
 DEFAULT_PRODUCTS_ROOT = Path(__file__).resolve().parent.parent / "products"
 
 FetchFn = Callable[..., dict[str, Any]]
+FetchTextFn = Callable[..., str]
 
 
 def _log(event: str, **fields: Any) -> None:
@@ -113,6 +135,16 @@ def fetch_json(url: str, params: dict[str, Any] | None = None) -> dict[str, Any]
     response = requests.get(url, params=params, timeout=REQUEST_TIMEOUT_S)
     response.raise_for_status()
     return response.json()
+
+
+def fetch_text(url: str, params: dict[str, Any] | None = None) -> str:
+    """GEOFON's fdsnws serves no JSON at all (module docstring) — its sweep
+    fetches the FDSN text format as a plain string. A 204 (the FDSN
+    default no-events status) yields an empty string, which
+    `parse_geofon_text` treats as zero events, not an error."""
+    response = requests.get(url, params=params, timeout=REQUEST_TIMEOUT_S)
+    response.raise_for_status()
+    return response.text
 
 
 def _region_sweep_params(updated_after: str) -> dict[str, Any]:
@@ -172,6 +204,39 @@ def poll_emsc_sweep(
     return feed_watcher.evaluate_feed_events(events, ws)
 
 
+def _geofon_sweep_params(start_time: str) -> dict[str, Any]:
+    """GEOFON takes the same short bbox aliases as EMSC
+    (minlat/maxlat/minlon/maxlon) with the long-form `starttime`, and
+    `format=text` because it serves no JSON — all verified live against
+    geofon.gfz.de (matching the app's own geofon.ts findings), not assumed
+    from the FDSN spec."""
+    bbox = config.REGION_BBOX
+    return {
+        "format": "text",
+        "starttime": start_time,
+        "minlat": bbox["min_lat"],
+        "maxlat": bbox["max_lat"],
+        "minlon": bbox["min_lon"],
+        "maxlon": bbox["max_lon"],
+        "orderby": "time",
+    }
+
+
+def poll_geofon_sweep(
+    ws: WorkerState, *, start_time: str, fetch_text_fn: FetchTextFn = fetch_text
+) -> list[feed_watcher.TriggerDecision]:
+    """The GEOFON completeness sweep (module docstring): identical decision
+    logic to the other polls — `feed_watcher.evaluate_feed_events` applies
+    the region/magnitude gates, state dedup, AND the cross-provider §2
+    dedup across ALL other providers' tracked events, so an event already
+    tracked from USGS *or* EMSC never re-triggers from its GEOFON record.
+    Fetches TEXT, not JSON (module docstring), hence the separate
+    `fetch_text_fn` seam."""
+    text = fetch_text_fn(GEOFON_FDSNWS_EVENT_URL, _geofon_sweep_params(start_time))
+    events = feed_watcher.parse_geofon_text(text)
+    return feed_watcher.evaluate_feed_events(events, ws)
+
+
 def process_decisions(
     decisions: list[feed_watcher.TriggerDecision],
     ws: WorkerState,
@@ -207,23 +272,30 @@ def _default_emsc_sweep_start(lookback_s: int = EMSC_SWEEP_LOOKBACK_S) -> str:
     return _default_sweep_updated_after(lookback_s)
 
 
+def _default_geofon_sweep_start(lookback_s: int = GEOFON_SWEEP_LOOKBACK_S) -> str:
+    return _default_sweep_updated_after(lookback_s)
+
+
 def run_once(
     *,
     state_path: Path,
     products_root: Path,
     uploader: ProductUploader,
     fetch_fn: FetchFn = fetch_json,
+    fetch_text_fn: FetchTextFn = fetch_text,
     usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
     sweep_updated_after: str | None = None,
     emsc_sweep_start: str | None = None,
+    geofon_sweep_start: str | None = None,
 ) -> WorkerState:
     ws = WorkerState.load(state_path)
     _log("cycle_start", mode="once")
 
-    # Order matters for canonical ids: USGS polls run FIRST, so an event
-    # both providers carry is created under its USGS id and the later EMSC
-    # record cross-provider-dedups against it (feed_watcher module
-    # docstring: USGS canonical).
+    # Order IS the canonical-id mechanism (module docstring): USGS polls
+    # run FIRST, EMSC second, GEOFON third — an event carried by several
+    # providers is created under the highest-authority id available and
+    # every later record cross-provider-dedups against it (feed_watcher
+    # module docstring: §2 authority order USGS > EMSC > GEOFON).
     all_hour_decisions = poll_all_hour(ws, fetch_fn=fetch_fn)
     process_decisions(
         all_hour_decisions, ws, products_root=products_root, uploader=uploader,
@@ -244,6 +316,13 @@ def run_once(
         usgs_products_fetcher=usgs_products_fetcher,
     )
 
+    geofon_start = geofon_sweep_start or _default_geofon_sweep_start()
+    geofon_decisions = poll_geofon_sweep(ws, start_time=geofon_start, fetch_text_fn=fetch_text_fn)
+    process_decisions(
+        geofon_decisions, ws, products_root=products_root, uploader=uploader,
+        usgs_products_fetcher=usgs_products_fetcher,
+    )
+
     ws.save(state_path)
     _log("cycle_end", mode="once", state_path=str(state_path))
     return ws
@@ -255,6 +334,7 @@ def run_daemon(
     products_root: Path,
     uploader: ProductUploader,
     fetch_fn: FetchFn = fetch_json,
+    fetch_text_fn: FetchTextFn = fetch_text,
     usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
     tick_s: float = DAEMON_TICK_S,
 ) -> None:
@@ -291,11 +371,12 @@ def run_daemon(
                 last_all_hour_poll = now
 
             if now - last_sweep_poll >= SWEEP_INTERVAL_S:
-                # USGS sweep first, EMSC second (same 10-min cadence): USGS
-                # stays the canonical id for events both providers carry
-                # (see run_once's ordering note). Each sweep has its own
-                # try/except so an outage on one provider never blocks the
-                # other's sweep in the same cycle.
+                # USGS sweep first, EMSC second, GEOFON third (same 10-min
+                # cadence): sweep order IS the canonical-id mechanism —
+                # the highest-authority provider that carries an event owns
+                # its state entry (see run_once's ordering note). Each
+                # sweep has its own try/except so an outage on one provider
+                # never blocks the others' sweeps in the same cycle.
                 try:
                     updated_after = _default_sweep_updated_after()
                     decisions = poll_region_sweep(ws, updated_after=updated_after, fetch_fn=fetch_fn)
@@ -316,6 +397,16 @@ def run_daemon(
                     ws.save(state_path)
                 except requests.RequestException as exc:
                     _log("emsc_sweep_failed", error=str(exc))
+                try:
+                    geofon_start = _default_geofon_sweep_start()
+                    decisions = poll_geofon_sweep(ws, start_time=geofon_start, fetch_text_fn=fetch_text_fn)
+                    process_decisions(
+                        decisions, ws, products_root=products_root, uploader=uploader,
+                        usgs_products_fetcher=usgs_products_fetcher,
+                    )
+                    ws.save(state_path)
+                except requests.RequestException as exc:
+                    _log("geofon_sweep_failed", error=str(exc))
                 last_sweep_poll = now
 
             if shutdown_requested:

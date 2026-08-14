@@ -1,7 +1,7 @@
-"""feed_watcher — USGS + EMSC feed polling + trigger decisions (D9: "auto
-for regional M>=3.5").
+"""feed_watcher — USGS + EMSC + GEOFON feed polling + trigger decisions
+(D9: "auto for regional M>=3.5").
 
-Three feeds feed this module:
+Four feeds feed this module:
 
 1. The USGS `all_hour` summary feed (polled every 60 s by
    `scripts/run_worker.py`) — cheap, low-latency, but only ever shows the
@@ -20,21 +20,31 @@ Three feeds feed this module:
    trigger floor, yet the USGS-only watcher never saw it and no Bumelerze
    SHAKEmap was produced. EMSC-only qualifying events now trigger the
    pipeline exactly like USGS ones (event id = the EMSC `unid`).
+4. A GEOFON (geofon.gfz.de) `fdsnws/event` region-bbox sweep (same 10-min
+   cadence), parsed by `parse_geofon_text` — the SECOND completeness net
+   (D4 named GEOFON the third catalog from the start). GEOFON serves NO
+   `format=json` (verified live: 400) — its sweep speaks `format=text`,
+   the pipe-delimited FDSN WS-EVENT text format every SeisComP-based
+   fdsnws emits; the parser is deliberately reusable for a future SeisComP
+   source (`docs/research/provider-architecture.md`). GEOFON-only
+   qualifying events trigger the pipeline exactly like the others (event
+   id = the gfz id).
 
 Cross-provider dedup: state is keyed by provider event id (USGS id / EMSC
-unid — `EventState.source` records which), so the SAME physical earthquake
-seen via both providers has two different keys. Before declaring an
-unknown-id event `"new"`, `evaluate_feed_events` therefore checks the
-tracked events of the OTHER provider for a spatial-temporal match
-(`same_earthquake`, event-pipeline-design.md §2 step 3: |Δ origin time| <=
-16 s AND distance <= 100 km AND |ΔM| <= 1.5 — the same thresholds the app's
-client-side merge uses, `src/features/events/merge.ts`; keep in sync when
-tuning). A match -> `"skip"`: an event already tracked from USGS must never
-re-trigger from its EMSC record, and vice versa. USGS is the canonical id
-when both are seen (§2 authority order) simply because `scripts/
-run_worker.py` polls USGS first each cycle — whichever provider's record is
-processed first owns the state entry, and in practice that is USGS for any
-event USGS has at all.
+unid / GEOFON gfz id — `EventState.source` records which), so the SAME
+physical earthquake seen via multiple providers has different keys. Before
+declaring an unknown-id event `"new"`, `evaluate_feed_events` therefore
+checks the tracked events of ALL OTHER providers for a spatial-temporal
+match (`same_earthquake`, event-pipeline-design.md §2 step 3: |Δ origin
+time| <= 16 s AND distance <= 100 km AND |ΔM| <= 1.5 — the same thresholds
+the app's client-side merge uses, `src/features/events/merge.ts`; keep in
+sync when tuning). A match -> `"skip"`: an event already tracked from any
+provider must never re-trigger from another provider's record. The
+canonical id follows the §2 authority order (USGS > EMSC > GEOFON) simply
+because `scripts/run_worker.py` polls the providers in exactly that order
+each cycle — whichever provider's record is processed first owns the state
+entry, and the poll ordering makes that the highest-authority provider
+that has the event at all.
 
 This module does no I/O itself — `fetch_fn`/the raw GeoJSON payload is
 always passed in, so `evaluate_feed_events` (the actual decision logic) is
@@ -120,7 +130,7 @@ class FeedEvent:
     (separate) ingestion worker; this is a narrower, worker-local shape."""
 
     external_id: str
-    source: str  # "usgs" (both USGS feeds) or "emsc" (the EMSC sweep)
+    source: str  # "usgs" (both USGS feeds), "emsc", or "geofon" (their sweeps)
     mag: float
     lat: float
     lon: float
@@ -164,11 +174,14 @@ def parse_usgs_geojson(payload: dict[str, Any], *, source: str = "usgs") -> list
     return events
 
 
-def _parse_emsc_iso_ms(value: Any) -> int | None:
-    """EMSC timestamps are ISO 8601 strings (e.g. "2026-08-13T22:28:04.0Z"),
-    unlike USGS's epoch-ms numbers. Returns UTC epoch ms, or `None` for a
-    missing/unparseable value (tolerant — the caller decides whether the
-    field is load-bearing)."""
+def _parse_iso_utc_ms(value: Any) -> int | None:
+    """ISO 8601 string -> UTC epoch ms, or `None` for a missing/unparseable
+    value (tolerant — the caller decides whether the field is load-bearing).
+    Handles both provider flavors: EMSC's Z-suffixed strings (e.g.
+    "2026-08-13T22:28:04.0Z") AND the FDSN text format's ZONE-LESS strings
+    (e.g. GEOFON's "2026-08-01T20:27:43.07") — zone-less is UTC by the FDSN
+    spec, hence the tzinfo-None -> UTC branch (never local time). USGS needs
+    neither: its feeds carry epoch-ms numbers directly."""
     if not value or not isinstance(value, str):
         return None
     try:
@@ -191,7 +204,7 @@ def parse_emsc_geojson(payload: dict[str, Any]) -> list[FeedEvent]:
     - `lat`/`lon`/`depth` are repeated directly in `properties` (read from
       there — `geometry` is not required at all);
     - `time`/`lastupdate` are ISO 8601 strings, not epoch ms (parsed by
-      `_parse_emsc_iso_ms`; an unusable `time` drops the feature since
+      `_parse_iso_utc_ms`; an unusable `time` drops the feature since
       origin time is load-bearing for cross-provider dedup, an unusable
       `lastupdate` falls back to the origin time).
 
@@ -205,10 +218,10 @@ def parse_emsc_geojson(payload: dict[str, Any]) -> list[FeedEvent]:
         lat, lon, depth = props.get("lat"), props.get("lon"), props.get("depth")
         if not unid or mag is None or lat is None or lon is None or depth is None:
             continue
-        time_ms = _parse_emsc_iso_ms(props.get("time"))
+        time_ms = _parse_iso_utc_ms(props.get("time"))
         if time_ms is None:
             continue
-        updated_ms = _parse_emsc_iso_ms(props.get("lastupdate"))
+        updated_ms = _parse_iso_utc_ms(props.get("lastupdate"))
         try:
             lat_f, lon_f, depth_f, mag_f = float(lat), float(lon), float(depth), float(mag)
         except (TypeError, ValueError):
@@ -224,6 +237,79 @@ def parse_emsc_geojson(payload: dict[str, Any]) -> list[FeedEvent]:
                 place=str(props.get("flynn_region") or ""),
                 time_ms=time_ms,
                 updated_ms=updated_ms if updated_ms is not None else time_ms,
+            )
+        )
+    return events
+
+
+# The 13 core FDSN WS-EVENT text columns; GEOFON appends `EventType` as a
+# 14th. Rows with fewer than the core 13 are malformed and skipped; extra
+# trailing columns from other SeisComP deployments are tolerated (read by
+# index, surplus ignored).
+_FDSN_TEXT_MIN_FIELDS = 13
+
+
+def parse_geofon_text(text: str) -> list[FeedEvent]:
+    """Parse a GEOFON fdsnws `format=text` payload into `FeedEvent`s with
+    `source="geofon"`. GEOFON serves NO `format=json` (verified live: 400),
+    so this speaks the pipe-delimited FDSN WS-EVENT text format instead —
+    the same format any SeisComP-based fdsnws emits, which makes this
+    parser deliberately reusable for a future SeisComP source (e.g. the
+    Kurdistan/Iraq data center, `docs/research/provider-architecture.md`).
+    Deliberately a dumb line-by-line pipe-split — no regex over row content.
+    Column order per the service's own header line:
+
+        #EventID|Time|Latitude|Longitude|Depth/km|Author|Catalog|
+         Contributor|ContributorID|MagType|Magnitude|MagAuthor|
+         EventLocationName|EventType
+
+    Format notes (mirror the app's own geofon.ts findings):
+    - `#`-prefixed lines are header/comment lines, blank lines (and an
+      entirely empty body — the FDSN `nodata=204` no-events response) are
+      not data and not errors;
+    - times are ISO 8601 WITHOUT a zone designator — UTC per the FDSN
+      spec, parsed by `_parse_iso_utc_ms` (never local time);
+    - the Magnitude column is EMPTY for not-yet-reviewed events (the text
+      analogue of USGS/EMSC's `mag: null`) — such rows are skipped;
+    - there is no provider-update timestamp column at all -> `updated_ms`
+      falls back to the origin time (a GEOFON-side revision therefore
+      re-triggers only via the cross-provider paths, acceptable: matched
+      events are USGS/EMSC-tracked anyway).
+
+    Same tolerant contract as the other parsers: malformed/incomplete rows
+    (wrong column count, empty id, unusable time/coords/magnitude) are
+    skipped, never raised."""
+    events: list[FeedEvent] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        fields = line.split("|")
+        if len(fields) < _FDSN_TEXT_MIN_FIELDS:
+            continue
+        external_id = fields[0].strip()
+        time_ms = _parse_iso_utc_ms(fields[1].strip())
+        mag_raw = fields[10].strip()
+        if not external_id or time_ms is None or not mag_raw:
+            continue
+        try:
+            lat = float(fields[2])
+            lon = float(fields[3])
+            depth_km = float(fields[4])
+            mag = float(mag_raw)
+        except ValueError:
+            continue
+        events.append(
+            FeedEvent(
+                external_id=external_id,
+                source="geofon",
+                mag=mag,
+                lat=lat,
+                lon=lon,
+                depth_km=depth_km,
+                place=fields[12].strip(),
+                time_ms=time_ms,
+                updated_ms=time_ms,
             )
         )
     return events
@@ -263,11 +349,14 @@ def same_earthquake(
 
 
 def find_cross_provider_match(event: FeedEvent, ws: WorkerState) -> EventState | None:
-    """The already-tracked `EventState` from the OTHER provider that is the
+    """The already-tracked `EventState` from ANY OTHER provider that is the
     same physical earthquake as `event` (per `same_earthquake`), or `None`.
-    Called only for events whose own (provider, id) key is unknown to state
-    — the guard that stops an event tracked from USGS re-triggering from its
-    EMSC record and vice versa (module docstring). Ties (multiple
+    Provider-agnostic by construction — the only per-provider knowledge is
+    `known.source != event.source`, so a third (or fourth) provider joins
+    this check with zero changes here. Called only for events whose own
+    (provider, id) key is unknown to state — the guard that stops an event
+    tracked from one provider re-triggering from another provider's record
+    (module docstring). Ties (multiple
     candidates) resolve to the closest in (|Δt|, distance) lexicographic
     order, §2 step 3. Tracked entries with `origin_time_ms == 0` (unknown —
     pre-upgrade state files) never match: with no origin time there is no
@@ -352,10 +441,10 @@ def evaluate_feed_events(
         known = ws.get_event(event.external_id)
         if known is None:
             # Unknown (provider, id) key — but possibly the SAME physical
-            # earthquake already tracked under the other provider's id
-            # (module docstring "Cross-provider dedup"). A tracked-from-USGS
-            # event must never re-trigger from its EMSC record, nor vice
-            # versa.
+            # earthquake already tracked under another provider's id
+            # (module docstring "Cross-provider dedup"). An event tracked
+            # from any provider must never re-trigger from another
+            # provider's record.
             cross = find_cross_provider_match(event, ws)
             if cross is not None:
                 decisions.append(

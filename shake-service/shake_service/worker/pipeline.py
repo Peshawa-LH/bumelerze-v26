@@ -329,12 +329,13 @@ def run_pipeline(
 
     # --- D22: fetch USGS product content FIRST — a rupture model, if any,
     # changes the forward-map PRIOR itself (module docstring points 1-2).
-    # EMSC-sourced triggers (the completeness sweep, feed_watcher.py) skip
-    # the fetch entirely: `event.external_id` is an EMSC unid, which USGS's
-    # event-detail API does not know — the real fetcher would 404 (and
-    # raise) on an id that by definition (EMSC-only = absent from USGS)
-    # has no USGS products to offer. `no_usgs_products` keeps every
-    # `usgs_*_available: False` provenance flag honest for these events. ---
+    # Non-USGS-sourced triggers (the EMSC/GEOFON completeness sweeps,
+    # feed_watcher.py) skip the fetch entirely: `event.external_id` is an
+    # EMSC unid or GEOFON gfz id, which USGS's event-detail API does not
+    # know — the real fetcher would 404 (and raise) on an id that by
+    # definition (absent from USGS) has no USGS products to offer.
+    # `no_usgs_products` keeps every `usgs_*_available: False` provenance
+    # flag honest for these events. ---
     usgs = (
         usgs_products_fetcher(event.external_id)
         if event.source == "usgs"

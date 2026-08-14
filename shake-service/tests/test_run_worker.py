@@ -39,6 +39,13 @@ def _feature_collection(*features):
     return {"type": "FeatureCollection", "features": list(features)}
 
 
+def _no_text(url, params=None):
+    """Hermetic GEOFON leg for tests not about GEOFON: an empty FDSN text
+    body (= the live service's no-events response) so `run_once`/`run_daemon`
+    never touch the network for the text sweep."""
+    return ""
+
+
 # ---------------------------------------------------------------------------
 # poll_all_hour / poll_region_sweep — fetch_fn wiring
 # ---------------------------------------------------------------------------
@@ -126,6 +133,7 @@ def test_run_once_end_to_end_new_event_writes_products_and_saves_state(tmp_path,
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
     ws = run_worker.run_once(
         state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch,
+        fetch_text_fn=_no_text,
     )
 
     # In-memory state reflects the processed event...
@@ -161,8 +169,8 @@ def test_run_once_replayed_is_idempotent_across_two_full_cycles(tmp_path):
         return payload
 
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
-    run_worker.run_once(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch)
-    run_worker.run_once(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch)
+    run_worker.run_once(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch, fetch_text_fn=_no_text)
+    run_worker.run_once(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch, fetch_text_fn=_no_text)
 
     final = WorkerState.load(state_path)
     assert final.get_event("us_e2e_2").last_version == 1
@@ -177,7 +185,7 @@ def test_run_once_no_qualifying_events_saves_empty_state_cleanly(tmp_path):
         return _feature_collection()
 
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
-    run_worker.run_once(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch)
+    run_worker.run_once(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch, fetch_text_fn=_no_text)
 
     assert state_path.exists()
     ws = WorkerState.load(state_path)
@@ -222,7 +230,7 @@ def test_daemon_polls_both_feeds_immediately_then_shuts_down_cleanly_on_sigint(t
     monkeypatch.setattr(run_worker.time, "sleep", fake_sleep)
 
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
-    run_worker.run_daemon(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch)
+    run_worker.run_daemon(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch, fetch_text_fn=_no_text)
 
     # Both feeds were polled on the immediate first iteration.
     assert run_worker.ALL_HOUR_FEED_URL in fetch_calls
@@ -262,7 +270,7 @@ def test_daemon_tolerates_a_feed_failure_and_keeps_looping(tmp_path, monkeypatch
 
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
     # Must not raise -- a feed outage is tolerated, not fatal.
-    run_worker.run_daemon(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=failing_fetch)
+    run_worker.run_daemon(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=failing_fetch, fetch_text_fn=_no_text)
 
     out = capsys.readouterr().out
     logged_events = [json.loads(line)["event"] for line in out.strip().splitlines()]
@@ -390,6 +398,7 @@ def test_run_once_emsc_only_border_event_triggers_a_bumelerze_shakemap(tmp_path)
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
     ws = run_worker.run_once(
         state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch,
+        fetch_text_fn=_no_text,
     )
 
     known = ws.get_event("20260813_0000321")
@@ -429,6 +438,7 @@ def test_run_once_same_event_via_both_providers_triggers_exactly_once(tmp_path):
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
     ws = run_worker.run_once(
         state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch,
+        fetch_text_fn=_no_text,
     )
 
     # One event entry, under the canonical USGS id; no EMSC-keyed twin.
@@ -462,11 +472,170 @@ def test_daemon_logs_emsc_sweep_failure_independently(tmp_path, monkeypatch, cap
     monkeypatch.setattr(run_worker.time, "sleep", fake_sleep)
 
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
-    run_worker.run_daemon(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fetch)
+    run_worker.run_daemon(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fetch, fetch_text_fn=_no_text)
 
     out = capsys.readouterr().out
     logged_events = [json.loads(line)["event"] for line in out.strip().splitlines()]
     assert "emsc_sweep_failed" in logged_events
     # The USGS sweep in the same cycle still ran and did NOT fail.
     assert "region_sweep_failed" not in logged_events
+    assert "daemon_stop" in logged_events
+
+
+# ---------------------------------------------------------------------------
+# GEOFON completeness sweep wiring
+# ---------------------------------------------------------------------------
+
+# The VERIFIED live GEOFON row this wave was built against (geofon.gfz.de,
+# format=text, fetched 2026-08-14): mb 4.48 at 55 km under Iraq.
+GEOFON_HEADER = (
+    "#EventID|Time|Latitude|Longitude|Depth/km|Author|Catalog|Contributor"
+    "|ContributorID|MagType|Magnitude|MagAuthor|EventLocationName|EventType"
+)
+GEOFON_VERIFIED_ROW = (
+    "gfz2026oyxe|2026-08-01T20:27:43.07|35.406|44.659|55.0|||GFZ"
+    "|gfz2026oyxe|mb|4.48||Iraq|earthquake"
+)
+
+
+def test_poll_geofon_sweep_calls_fetch_text_fn_with_geofon_url_and_text_params():
+    calls = []
+
+    def fake_fetch_text(url, params=None):
+        calls.append((url, params))
+        return ""
+
+    run_worker.poll_geofon_sweep(
+        WorkerState(), start_time="2026-08-13T21:30:00", fetch_text_fn=fake_fetch_text
+    )
+    assert len(calls) == 1
+    url, params = calls[0]
+    assert url == run_worker.GEOFON_FDSNWS_EVENT_URL
+    # GEOFON serves NO format=json (verified live: 400) -- regression guard
+    # against "fixing" this to json; bbox uses the short aliases with the
+    # long-form starttime (also verified live).
+    assert params["format"] == "text"
+    assert params["starttime"] == "2026-08-13T21:30:00"
+    assert params["minlat"] == config.REGION_BBOX["min_lat"]
+    assert params["maxlat"] == config.REGION_BBOX["max_lat"]
+    assert params["minlon"] == config.REGION_BBOX["min_lon"]
+    assert params["maxlon"] == config.REGION_BBOX["max_lon"]
+
+
+def test_run_once_geofon_only_event_triggers_a_bumelerze_shakemap(tmp_path):
+    # A GEOFON-only qualifying event (the verified gfz2026oyxe row; USGS and
+    # EMSC both return nothing for it) must produce a versioned Bumelerze
+    # product keyed by the gfz id, with trigger_source "geofon" -- exactly
+    # the EMSC-only path, one provider further down the authority order.
+    state_path = tmp_path / "worker_state.json"
+    products_root = tmp_path / "products"
+
+    def fake_fetch(url, params=None):
+        return _feature_collection()  # USGS + EMSC: healthy but incomplete
+
+    def fake_fetch_text(url, params=None):
+        assert url == run_worker.GEOFON_FDSNWS_EVENT_URL
+        return f"{GEOFON_HEADER}\n{GEOFON_VERIFIED_ROW}\n"
+
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    ws = run_worker.run_once(
+        state_path=state_path, products_root=products_root, uploader=uploader,
+        fetch_fn=fake_fetch, fetch_text_fn=fake_fetch_text,
+    )
+
+    known = ws.get_event("gfz2026oyxe")
+    assert known is not None
+    assert known.source == "geofon"
+    assert known.last_version == 1
+
+    v1_dir = products_root / "gfz2026oyxe" / "v1"
+    info = json.loads((v1_dir / "info.json").read_text())
+    assert info["event"]["mag_mw"] == pytest.approx(4.48)
+    assert info["data_used"]["trigger_source"] == "geofon"
+    # Non-USGS trigger: no USGS products were fetched (honest provenance).
+    assert info["data_used"]["usgs_stationlist_available"] is False
+
+
+def test_run_once_same_event_via_all_three_providers_triggers_exactly_once(tmp_path):
+    # The same physical quake in USGS's all_hour feed, EMSC's sweep, AND
+    # GEOFON's sweep (all inside the s2 dedup thresholds of each other).
+    # USGS polls first -> owns the canonical state entry; both later
+    # records must cross-provider-dedup. One product tree, no twins.
+    state_path = tmp_path / "worker_state.json"
+    products_root = tmp_path / "products"
+
+    usgs_time_ms = BORDER_TIME_MS - 4_000
+
+    def fake_fetch(url, params=None):
+        if url == run_worker.ALL_HOUR_FEED_URL:
+            return _feature_collection({
+                "type": "Feature",
+                "id": "us7000zzzz",
+                "properties": {"mag": 4.1, "place": "border", "time": usgs_time_ms, "updated": usgs_time_ms},
+                "geometry": {"type": "Point", "coordinates": [45.9, 34.93, 10.0]},
+            })
+        if url == run_worker.EMSC_FDSNWS_EVENT_URL:
+            return _feature_collection(_emsc_feature())
+        return _feature_collection()
+
+    def fake_fetch_text(url, params=None):
+        # GEOFON's record of the same quake: 2 s after EMSC's origin, ~4 km
+        # offset, dM 0.2 -- inside the thresholds vs the tracked USGS entry.
+        return (
+            f"{GEOFON_HEADER}\n"
+            "gfz2026dupe|2026-08-13T22:28:06.0|34.94|45.94|11.0|||GFZ"
+            "|gfz2026dupe|mb|4.2||Iran-Iraq border region|earthquake\n"
+        )
+
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    ws = run_worker.run_once(
+        state_path=state_path, products_root=products_root, uploader=uploader,
+        fetch_fn=fake_fetch, fetch_text_fn=fake_fetch_text,
+    )
+
+    # One event entry, under the canonical USGS id; no EMSC/GEOFON twins.
+    assert ws.get_event("us7000zzzz") is not None
+    assert ws.get_event("20260813_0000321") is None
+    assert ws.get_event("gfz2026dupe") is None
+    assert (products_root / "us7000zzzz" / "v1" / "info.json").exists()
+    assert not (products_root / "20260813_0000321").exists()
+    assert not (products_root / "gfz2026dupe").exists()
+
+
+def test_daemon_logs_geofon_sweep_failure_independently(tmp_path, monkeypatch, capsys):
+    # A GEOFON outage must be logged under its own event name and must not
+    # block the USGS/EMSC sweeps (each has its own try/except).
+    state_path = tmp_path / "worker_state.json"
+    products_root = tmp_path / "products"
+
+    def fetch(url, params=None):
+        return _feature_collection()
+
+    def failing_fetch_text(url, params=None):
+        raise run_worker.requests.RequestException("geofon is down")
+
+    captured_handler = {}
+
+    def fake_signal(signum, handler):
+        captured_handler["handler"] = handler
+        return None
+
+    def fake_sleep(seconds):
+        captured_handler["handler"](2, None)
+
+    monkeypatch.setattr(run_worker.signal, "signal", fake_signal)
+    monkeypatch.setattr(run_worker.time, "sleep", fake_sleep)
+
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    run_worker.run_daemon(
+        state_path=state_path, products_root=products_root, uploader=uploader,
+        fetch_fn=fetch, fetch_text_fn=failing_fetch_text,
+    )
+
+    out = capsys.readouterr().out
+    logged_events = [json.loads(line)["event"] for line in out.strip().splitlines()]
+    assert "geofon_sweep_failed" in logged_events
+    # The other sweeps in the same cycle ran fine.
+    assert "region_sweep_failed" not in logged_events
+    assert "emsc_sweep_failed" not in logged_events
     assert "daemon_stop" in logged_events
