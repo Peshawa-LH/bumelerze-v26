@@ -72,6 +72,16 @@ class EventState:
     # of truth for its own `review_status`; this dict is a fast, no-reread
     # index for tooling/reporting). Empty for every automatic-only event.
     reviews: dict[str, Any] = field(default_factory=dict)
+    # --- EMSC completeness-merge wave addition ---------------------------
+    # Origin time (UTC ms). Needed by `feed_watcher`'s cross-provider dedup
+    # (event-pipeline-design.md §2: |Δ origin time| <= 16 s) so a record of
+    # an already-tracked event arriving from the OTHER provider (USGS id vs
+    # EMSC unid — different `external_id` keys) can be recognized as the
+    # same physical earthquake instead of re-triggering. `0` = unknown
+    # (pre-upgrade state files): such entries never cross-match — safe,
+    # because the EMSC sweep only ever returns recent-origin events, which
+    # a pre-upgrade entry cannot be.
+    origin_time_ms: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -94,6 +104,7 @@ class EventState:
             has_comparison=bool(d.get("has_comparison", False)),
             comparison_path=d.get("comparison_path"),
             reviews=dict(d.get("reviews", {})),
+            origin_time_ms=int(d.get("origin_time_ms", 0)),
         )
 
 

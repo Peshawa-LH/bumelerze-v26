@@ -127,12 +127,13 @@ def test_event_exactly_at_magnitude_floor_qualifies():
 
 
 def _known_state(
-    *, external_id="us1234", mag=4.0, lat=REGION_LAT, lon=REGION_LON, depth_km=10.0, updated_ms=1_000,
+    *, external_id="us1234", source="usgs", mag=4.0, lat=REGION_LAT, lon=REGION_LON,
+    depth_km=10.0, updated_ms=1_000, origin_time_ms=0,
 ) -> EventState:
     return EventState(
-        external_id=external_id, source="usgs", mag=mag, lat=lat, lon=lon, depth_km=depth_km,
+        external_id=external_id, source=source, mag=mag, lat=lat, lon=lon, depth_km=depth_km,
         last_version=1, params_hash="hash1", product_paths={},
-        last_feed_updated_ms=updated_ms,
+        last_feed_updated_ms=updated_ms, origin_time_ms=origin_time_ms,
         first_seen_at="2026-08-07T00:00:00+00:00", last_computed_at="2026-08-07T00:00:00+00:00",
     )
 
@@ -217,3 +218,224 @@ def test_multiple_events_each_get_their_own_decision():
     decisions = fw.evaluate_feed_events(events, WorkerState())
     by_id = {d.event.external_id: d.kind for d in decisions}
     assert by_id == {"new1": "new", "lowmag": "skip", "outside": "skip"}
+
+
+# ---------------------------------------------------------------------------
+# EMSC completeness sweep: parse_emsc_geojson
+# ---------------------------------------------------------------------------
+
+# The real missed earthquake this wave exists for: 2026-08-13 22:28 UTC,
+# M4.0 mb, "IRAN-IRAQ BORDER REGION" -- in EMSC's fdsnws, absent from USGS
+# (below NEIC's ~M4.5 regional completeness).
+BORDER_UNID = "20260813_0000321"
+BORDER_TIME_ISO = "2026-08-13T22:28:04.0Z"
+BORDER_TIME_MS = int(
+    __import__("datetime").datetime(
+        2026, 8, 13, 22, 28, 4, tzinfo=__import__("datetime").timezone.utc
+    ).timestamp() * 1000
+)
+
+
+def _emsc_feature(
+    *, unid=BORDER_UNID, mag=4.0, magtype="mb", lat=34.9, lon=45.9, depth=10.0,
+    time_iso=BORDER_TIME_ISO, lastupdate_iso="2026-08-13T22:41:00.0Z",
+    flynn_region="IRAN-IRAQ BORDER REGION",
+) -> dict:
+    return {
+        "type": "Feature",
+        "id": unid,
+        "properties": {
+            "unid": unid, "time": time_iso, "lastupdate": lastupdate_iso,
+            "lat": lat, "lon": lon, "depth": depth, "mag": mag, "magtype": magtype,
+            "flynn_region": flynn_region, "auth": "EMSC", "evtype": "ke",
+        },
+    }
+
+
+def test_parse_emsc_geojson_maps_unid_iso_times_and_properties_coords():
+    payload = _payload(_emsc_feature())
+    events = fw.parse_emsc_geojson(payload)
+    assert len(events) == 1
+    e = events[0]
+    assert e.external_id == BORDER_UNID
+    assert e.source == "emsc"
+    assert e.mag == 4.0
+    assert e.lat == 34.9
+    assert e.lon == 45.9
+    assert e.depth_km == 10.0
+    assert e.place == "IRAN-IRAQ BORDER REGION"
+    assert e.time_ms == BORDER_TIME_MS
+    # lastupdate is 12 min 56 s after origin.
+    assert e.updated_ms == BORDER_TIME_MS + (12 * 60 + 56) * 1000
+
+
+def test_parse_emsc_geojson_skips_malformed_features():
+    no_mag = _emsc_feature(unid="bad1")
+    no_mag["properties"]["mag"] = None
+    no_unid = _emsc_feature()
+    del no_unid["properties"]["unid"]
+    bad_time = _emsc_feature(unid="bad3", time_iso="not-a-timestamp")
+    good = _emsc_feature(unid="good1")
+    events = fw.parse_emsc_geojson(_payload(no_mag, no_unid, bad_time, good))
+    assert [e.external_id for e in events] == ["good1"]
+
+
+def test_parse_emsc_geojson_unparseable_lastupdate_falls_back_to_origin_time():
+    feature = _emsc_feature(lastupdate_iso="garbage")
+    events = fw.parse_emsc_geojson(_payload(feature))
+    assert events[0].updated_ms == events[0].time_ms
+
+
+def test_parse_emsc_geojson_empty_or_missing_features_returns_empty():
+    assert fw.parse_emsc_geojson({"type": "FeatureCollection", "features": []}) == []
+    assert fw.parse_emsc_geojson({"type": "FeatureCollection"}) == []
+
+
+# ---------------------------------------------------------------------------
+# same_earthquake -- shared §2 dedup helper (16 s / 100 km / |dM| 1.5)
+# ---------------------------------------------------------------------------
+
+
+def _pair_kwargs(**overrides):
+    base = dict(
+        time_ms_a=BORDER_TIME_MS, lat_a=34.9, lon_a=45.9, mag_a=4.0,
+        time_ms_b=BORDER_TIME_MS, lat_b=34.9, lon_b=45.9, mag_b=4.0,
+    )
+    base.update(overrides)
+    return base
+
+
+def test_same_earthquake_identical_params_match():
+    assert fw.same_earthquake(**_pair_kwargs()) is True
+
+
+def test_same_earthquake_time_boundary_16s_inclusive():
+    assert fw.same_earthquake(**_pair_kwargs(time_ms_b=BORDER_TIME_MS + 16_000)) is True
+    assert fw.same_earthquake(**_pair_kwargs(time_ms_b=BORDER_TIME_MS + 16_001)) is False
+
+
+def test_same_earthquake_distance_boundary_100km():
+    # dlat 0.89 deg ~= 98.97 km (inside); dlat 0.91 deg ~= 101.19 km (outside).
+    assert fw.same_earthquake(**_pair_kwargs(lat_b=34.9 + 0.89)) is True
+    assert fw.same_earthquake(**_pair_kwargs(lat_b=34.9 + 0.91)) is False
+
+
+def test_same_earthquake_magnitude_boundary_1p5_inclusive():
+    assert fw.same_earthquake(**_pair_kwargs(mag_b=5.5)) is True
+    assert fw.same_earthquake(**_pair_kwargs(mag_b=5.51)) is False
+
+
+# ---------------------------------------------------------------------------
+# evaluate_feed_events -- cross-provider dedup via state
+# ---------------------------------------------------------------------------
+
+
+def test_emsc_record_of_a_usgs_tracked_event_is_skipped():
+    # The same physical quake, already tracked under its USGS id: EMSC's
+    # record (4 s later, ~5 km away, dM 0.1) must NOT re-trigger.
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id="us7000abcd", source="usgs", mag=4.1,
+                     lat=34.93, lon=45.9, origin_time_ms=BORDER_TIME_MS - 4_000)
+    )
+    events = fw.parse_emsc_geojson(_payload(_emsc_feature()))
+    decisions = fw.evaluate_feed_events(events, ws)
+    assert decisions[0].kind == "skip"
+    assert "cross-provider" in decisions[0].reason
+    assert "usgs:us7000abcd" in decisions[0].reason
+
+
+def test_usgs_record_of_an_emsc_tracked_event_is_skipped_vice_versa():
+    # First seen via EMSC (USGS published later): the USGS record must not
+    # create a second event entry either.
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id=BORDER_UNID, source="emsc", mag=4.0,
+                     lat=34.9, lon=45.9, origin_time_ms=BORDER_TIME_MS)
+    )
+    payload = _payload(_feature(
+        event_id="us7000abcd", mag=4.1, lat=34.93, lon=45.9,
+        time_ms=BORDER_TIME_MS - 4_000, updated_ms=BORDER_TIME_MS,
+    ))
+    events = fw.parse_usgs_geojson(payload)
+    decisions = fw.evaluate_feed_events(events, ws)
+    assert decisions[0].kind == "skip"
+    assert "cross-provider" in decisions[0].reason
+    assert f"emsc:{BORDER_UNID}" in decisions[0].reason
+
+
+def test_distinct_emsc_event_near_a_tracked_usgs_event_still_triggers():
+    # Same area but 3 hours later -- a different quake, must trigger.
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id="us7000abcd", source="usgs", mag=4.1,
+                     lat=34.9, lon=45.9, origin_time_ms=BORDER_TIME_MS - 3 * 3600 * 1000)
+    )
+    events = fw.parse_emsc_geojson(_payload(_emsc_feature()))
+    decisions = fw.evaluate_feed_events(events, ws)
+    assert decisions[0].kind == "new"
+
+
+def test_legacy_state_without_origin_time_never_cross_matches():
+    # Pre-upgrade state entries carry origin_time_ms == 0 (unknown): they
+    # must never satisfy the time criterion, so a same-place EMSC record is
+    # treated as new rather than silently swallowed on distance alone.
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id="us_legacy", source="usgs", mag=4.0,
+                     lat=34.9, lon=45.9, origin_time_ms=0)
+    )
+    events = fw.parse_emsc_geojson(_payload(_emsc_feature()))
+    decisions = fw.evaluate_feed_events(events, ws)
+    assert decisions[0].kind == "new"
+
+
+def test_same_provider_records_never_use_cross_provider_matching():
+    # Two USGS ids for near-identical params: same-provider dedup is by id
+    # (exact match, step 1) -- the spatial-temporal step must not apply, so
+    # a genuinely distinct USGS id triggers.
+    ws = WorkerState()
+    ws.upsert_event(
+        _known_state(external_id="us_a", source="usgs", mag=4.0,
+                     lat=34.9, lon=45.9, origin_time_ms=BORDER_TIME_MS)
+    )
+    payload = _payload(_feature(
+        event_id="us_b", mag=4.0, lat=34.9, lon=45.9,
+        time_ms=BORDER_TIME_MS + 2_000, updated_ms=BORDER_TIME_MS,
+    ))
+    decisions = fw.evaluate_feed_events(fw.parse_usgs_geojson(payload), ws)
+    assert decisions[0].kind == "new"
+
+
+# ---------------------------------------------------------------------------
+# evaluate_feed_events -- EMSC-only events against the trigger gates
+# ---------------------------------------------------------------------------
+
+
+def test_emsc_only_m4_border_event_triggers_the_pipeline():
+    # REGRESSION -- the real missed earthquake: M4.0 >= the 3.5 floor,
+    # inside the region bbox, absent from USGS/state. The USGS-only watcher
+    # never saw it; the EMSC sweep must produce a "new" trigger for it.
+    events = fw.parse_emsc_geojson(_payload(_emsc_feature()))
+    decisions = fw.evaluate_feed_events(events, WorkerState())
+    assert len(decisions) == 1
+    assert decisions[0].kind == "new"
+    assert decisions[0].event.external_id == BORDER_UNID
+    assert decisions[0].event.source == "emsc"
+    assert decisions[0].event.mag == 4.0
+
+
+def test_emsc_event_below_magnitude_floor_is_skipped():
+    events = fw.parse_emsc_geojson(_payload(_emsc_feature(unid="small", mag=3.4)))
+    decisions = fw.evaluate_feed_events(events, WorkerState())
+    assert decisions[0].kind == "skip"
+    assert "magnitude" in decisions[0].reason
+
+
+def test_emsc_event_outside_region_bbox_is_skipped():
+    events = fw.parse_emsc_geojson(
+        _payload(_emsc_feature(unid="far_away", mag=5.0, lat=10.0, lon=45.0))
+    )
+    decisions = fw.evaluate_feed_events(events, WorkerState())
+    assert decisions[0].kind == "skip"
+    assert "region" in decisions[0].reason

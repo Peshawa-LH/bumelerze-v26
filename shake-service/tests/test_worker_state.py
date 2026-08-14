@@ -133,3 +133,39 @@ def test_loading_a_pre_d21_state_file_without_new_fields_still_works(tmp_path):
     assert es.has_comparison is False
     assert es.comparison_path is None
     assert es.reviews == {}
+
+
+# ---------------------------------------------------------------------------
+# EMSC completeness-merge wave addition: origin_time_ms
+# ---------------------------------------------------------------------------
+
+
+def test_origin_time_ms_round_trips(tmp_path):
+    state_path = tmp_path / "worker_state.json"
+    ws = WorkerState()
+    ws.upsert_event(_event_state(origin_time_ms=1_786_400_884_000))
+    ws.save(state_path)
+
+    reloaded = WorkerState.load(state_path)
+    assert reloaded.get_event("us2000bmcg").origin_time_ms == 1_786_400_884_000
+
+
+def test_loading_a_pre_emsc_state_file_defaults_origin_time_to_unknown(tmp_path):
+    # A state file written before the EMSC wave has no origin_time_ms --
+    # must load with the 0 = "unknown" sentinel (feed_watcher's
+    # cross-provider dedup deliberately never matches such entries).
+    state_path = tmp_path / "worker_state.json"
+    old_shape = {
+        "meta": {"schema_version": 1},
+        "events": {
+            "us_old": {
+                "external_id": "us_old", "source": "usgs", "mag": 4.0, "lat": 35.0, "lon": 45.0,
+                "depth_km": 10.0, "last_version": 1, "params_hash": "abc",
+                "product_paths": {}, "last_feed_updated_ms": 1, "first_seen_at": "x", "last_computed_at": "x",
+            }
+        },
+    }
+    state_path.write_text(json.dumps(old_shape))
+
+    ws = WorkerState.load(state_path)
+    assert ws.get_event("us_old").origin_time_ms == 0

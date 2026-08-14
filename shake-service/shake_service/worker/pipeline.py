@@ -328,8 +328,18 @@ def run_pipeline(
         )
 
     # --- D22: fetch USGS product content FIRST — a rupture model, if any,
-    # changes the forward-map PRIOR itself (module docstring points 1-2). ---
-    usgs = usgs_products_fetcher(event.external_id)
+    # changes the forward-map PRIOR itself (module docstring points 1-2).
+    # EMSC-sourced triggers (the completeness sweep, feed_watcher.py) skip
+    # the fetch entirely: `event.external_id` is an EMSC unid, which USGS's
+    # event-detail API does not know — the real fetcher would 404 (and
+    # raise) on an id that by definition (EMSC-only = absent from USGS)
+    # has no USGS products to offer. `no_usgs_products` keeps every
+    # `usgs_*_available: False` provenance flag honest for these events. ---
+    usgs = (
+        usgs_products_fetcher(event.external_id)
+        if event.source == "usgs"
+        else no_usgs_products(event.external_id)
+    )
     rupture = _parse_rupture_model(usgs.rupture_json_text)
     fm = forward.build_forward_map(
         event.lat, event.lon, event.depth_km, mag_mw=event.mag, rupture_model=rupture,
@@ -355,6 +365,10 @@ def run_pipeline(
         fm,
         data_used={
             **fm.data_used,
+            # Which provider's feed record triggered this compute ("usgs" /
+            # "emsc") — trigger provenance for EMSC-only events surfaced by
+            # the completeness sweep (feed_watcher.py).
+            "trigger_source": event.source,
             "usgs_shakemap_grid_available": usgs.shakemap_available,
             "usgs_stationlist_available": usgs.stationlist_text is not None,
             "usgs_dyfi_available": usgs.dyfi_available,
@@ -388,6 +402,7 @@ def run_pipeline(
         params_hash=new_hash,
         product_paths={name: str(path) for name, path in written.items()},
         last_feed_updated_ms=event.updated_ms,
+        origin_time_ms=event.time_ms,
         first_seen_at=first_seen_at,
         last_computed_at=now_iso,
         has_comparison=has_comparison,

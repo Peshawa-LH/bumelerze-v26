@@ -553,3 +553,70 @@ def test_without_force_unchanged_params_still_short_circuits(tmp_path):
     assert result.recomputed is False
     assert result.version == 1
     assert len(calls) == 1
+
+
+# ---------------------------------------------------------------------------
+# EMSC completeness sweep: EMSC-sourced triggers through the pipeline
+# ---------------------------------------------------------------------------
+
+
+def _emsc_decision(
+    *, event_id="20260813_0000321", mag=4.0, lat=34.9, lon=45.9, depth_km=10.0,
+    time_ms=1_786_400_884_000, updated_ms=1_786_401_660_000,
+) -> TriggerDecision:
+    event = FeedEvent(
+        external_id=event_id, source="emsc", mag=mag, lat=lat, lon=lon, depth_km=depth_km,
+        place="IRAN-IRAQ BORDER REGION", time_ms=time_ms, updated_ms=updated_ms,
+    )
+    return TriggerDecision(kind="new", event=event, reason="new qualifying event")
+
+
+def test_emsc_trigger_runs_pipeline_like_usgs_with_unid_as_event_id(tmp_path):
+    # REGRESSION -- the real missed 2026-08-13 M4.0 border event: an
+    # EMSC-only trigger must produce a versioned Bumelerze product exactly
+    # like a USGS one, keyed by the EMSC unid.
+    ws = WorkerState()
+    uploader, _ = _uploader()
+
+    result = run_pipeline(_emsc_decision(), ws, products_root=tmp_path, uploader=uploader)
+
+    assert result.recomputed is True
+    assert result.event_id == "20260813_0000321"
+    v1_dir = tmp_path / "20260813_0000321" / "v1"
+    assert (v1_dir / "info.json").exists()
+    assert (v1_dir / "cont_mi.json").exists()
+    assert (v1_dir / "grid.json").exists()
+
+    known = ws.get_event("20260813_0000321")
+    assert known is not None
+    assert known.source == "emsc"
+    assert known.origin_time_ms == 1_786_400_884_000
+
+
+def test_emsc_trigger_never_calls_the_usgs_products_fetcher(tmp_path):
+    # An EMSC unid is unknown to USGS's event-detail API (the real fetcher
+    # would 404 on it) -- the pipeline must not even try, and provenance
+    # must honestly report no USGS data.
+    ws = WorkerState()
+    uploader, _ = _uploader()
+    fetcher, calls = _counting_fetcher(usgs_products.UsgsEventProducts(event_id="x"))
+
+    result = run_pipeline(
+        _emsc_decision(), ws, products_root=tmp_path, uploader=uploader,
+        usgs_products_fetcher=fetcher,
+    )
+
+    assert calls == []
+    assert result.forward_map.data_used["trigger_source"] == "emsc"
+    assert result.forward_map.data_used["usgs_shakemap_grid_available"] is False
+    assert result.forward_map.data_used["usgs_dyfi_available"] is False
+
+
+def test_usgs_trigger_records_trigger_source_usgs_and_origin_time(tmp_path):
+    ws = WorkerState()
+    uploader, _ = _uploader()
+
+    result = run_pipeline(_new_decision(), ws, products_root=tmp_path, uploader=uploader)
+
+    assert result.forward_map.data_used["trigger_source"] == "usgs"
+    assert ws.get_event("us_pipe_1").origin_time_ms == 1_000

@@ -89,14 +89,14 @@ function buildRegionQueryUrl(): string {
 }
 
 /**
- * Region feed, EMSC fallback path only (D4 second tier; failover, not a
- * general-purpose EMSC feed — queries.ts is the only caller). Same bbox and
- * time window as `fetchUsgsRegionEvents`, so switching providers mid-session
- * never changes what "region" means to the user.
+ * Region feed, EMSC leg of the parallel completeness merge (merge.ts;
+ * queries.ts is the only caller — not a general-purpose EMSC feed). Same
+ * bbox and time window as `fetchUsgsRegionEvents`, so the two legs of the
+ * merge always describe the same region and period.
  *
- * `signal` lets the caller apply the same abort budget it used for the USGS
- * attempt (or none, for a direct/manual EMSC call) — this function itself
- * has no opinion about timeouts, that policy lives in queries.ts.
+ * `signal` lets the caller apply this leg's own abort budget
+ * (config.EMSC_REGION_TIMEOUT_MS) — this function itself has no opinion
+ * about timeouts, that policy lives in queries.ts.
  */
 export async function fetchEmscRegionEvents(
   signal?: AbortSignal,
