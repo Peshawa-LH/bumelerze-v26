@@ -124,6 +124,7 @@
       "increment": "Increase"
     },
     "sources": {
+      "BUMELERZE": "Bumelerze",
       "ISCGEM": "ISC-GEM",
       "ONUR2017": "Onur 2017",
       "EMME": "EMME",
@@ -139,6 +140,7 @@
       "magnitudeLabel": "Magnitude",
       "sourceLabel": "Source",
       "sourceIdLabel": "Source ID",
+      "bumelerzeIdLabel": "Bumelerze ID",
       "unknown": "Unknown"
     }
   },

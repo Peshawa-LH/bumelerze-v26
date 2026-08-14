@@ -119,6 +119,17 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                   colors={colors}
                   typography={typography}
                 />
+                {/* The canonical bml id (types.ts's `bumelerzeId` doc) —
+                    shown ONLY here: the catalog detail sheet is an
+                    archival/provenance context where an internal id row is
+                    appropriate (same low-key treatment as the source-id
+                    row above); no other screen displays bml ids. */}
+                <DetailField
+                  label={t("catalog.detail.bumelerzeIdLabel")}
+                  value={row.bumelerzeId}
+                  colors={colors}
+                  typography={typography}
+                />
               </>
             ) : null}
           </ScrollView>

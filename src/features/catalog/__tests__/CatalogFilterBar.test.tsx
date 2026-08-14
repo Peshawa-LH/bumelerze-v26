@@ -88,6 +88,44 @@ describe("CatalogFilterBar", () => {
     expect(onChange).toHaveBeenCalledWith({ ...withSource, sources: ["KISC"] });
   });
 
+  it("renders the Bumelerze union chip FIRST, selected when no source filter applies", async () => {
+    // "Bumelerze" = the full compiled view (the union, not a row subset —
+    // types.ts CATALOG_UNION_CHIP): with the default empty selection it
+    // reads as the selected chip.
+    await render(<CatalogFilterBar bounds={BOUNDS} values={BASE_VALUES} onChange={jest.fn()} />);
+
+    const chips = screen.getAllByRole("checkbox");
+    expect(chips[0]!.props.accessibilityLabel).toBe("Bumelerze");
+    expect(chips[0]!.props.accessibilityState.checked).toBe(true);
+    // The five source chips follow, all unchecked.
+    expect(chips).toHaveLength(6);
+  });
+
+  it("unselects the Bumelerze chip when a source subset is chosen", async () => {
+    const withSource: CatalogFilterValues = { ...BASE_VALUES, sources: ["USGS"] };
+    await render(<CatalogFilterBar bounds={BOUNDS} values={withSource} onChange={jest.fn()} />);
+
+    expect(screen.getByLabelText("Bumelerze").props.accessibilityState.checked).toBe(false);
+    expect(screen.getByLabelText("USGS").props.accessibilityState.checked).toBe(true);
+  });
+
+  it("tapping the Bumelerze chip clears the source selection back to the union view", async () => {
+    const onChange = jest.fn();
+    const withSources: CatalogFilterValues = { ...BASE_VALUES, sources: ["USGS", "KISC"] };
+    await render(<CatalogFilterBar bounds={BOUNDS} values={withSources} onChange={onChange} />);
+
+    await fireEvent.press(screen.getByLabelText("Bumelerze"));
+
+    expect(onChange).toHaveBeenCalledWith({ ...withSources, sources: [] });
+  });
+
+  it("renders the Bumelerze chip with its Sorani brand name under ckb", async () => {
+    await i18n.changeLanguage("ckb");
+    await render(<CatalogFilterBar bounds={BOUNDS} values={BASE_VALUES} onChange={jest.fn()} />);
+
+    expect(screen.getByLabelText("بوومەلەرزە")).toBeTruthy();
+  });
+
   it("reflects selection state via accessibilityState.checked", async () => {
     const withSource: CatalogFilterValues = { ...BASE_VALUES, sources: ["KISC"] };
     await render(<CatalogFilterBar bounds={BOUNDS} values={withSource} onChange={jest.fn()} />);
