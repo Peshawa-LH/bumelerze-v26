@@ -114,8 +114,8 @@ export function normalizeUsgsFeature(
  *   0 for an EMSC-sourced event — EMSC events can never get the alert-bonus
  *   boost a USGS "orange"/"red" event gets. This is a real, accepted
  *   asymmetry (wave brief point 1), not a bug: it only matters while an
- *   event is EMSC-sourced, and USGS's own record (once it appears) replaces
- *   it via the failover-recovery swap in queries.ts.
+ *   event is EMSC-only, and USGS's own record (once it appears) supersedes
+ *   it via the merge's USGS-canonical preference (merge.ts).
  * - EMSC also has no felt/CDI data of its own feeding this score — same as
  *   USGS, our own felt term stays pinned to `FELT_TERM_PHASE_1` regardless
  *   of provider (D8, see the comment above `computeClientSig`).

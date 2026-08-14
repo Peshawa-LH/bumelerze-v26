@@ -10,13 +10,15 @@ import type { PersistedClient, Persister } from "@tanstack/react-query-persist-c
 import { AppState, type AppStateStatus } from "react-native";
 
 import {
+  EMSC_REGION_TIMEOUT_MS,
   EVENTS_REFETCH_INTERVAL_MS,
   EVENTS_STALE_TIME_MS,
   USGS_REGION_TIMEOUT_MS,
 } from "./config";
 import { fetchEmscRegionEvents } from "./emsc";
+import { mergeProviderEvents } from "./merge";
 import { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from "./usgs";
-import type { Event, EventProvider } from "./types";
+import type { Event } from "./types";
 
 /**
  * Pauses React Query's `refetchInterval` polling when the app is
@@ -89,15 +91,15 @@ export interface UseEventsFeedResult {
    * cached data with a failing latest fetch when the device can't reach
    * USGS, which for this app's purposes is offline enough to say so.
    *
-   * EMSC-fallback nuance (D4 second tier, wave brief point 5): for the
-   * region feed this flag comes from `fetchRegionEventsWithFailover`
-   * (queries.ts), which only rejects when BOTH USGS and EMSC fail — a
-   * successful EMSC fallback is a successful query, `query.isError` stays
-   * `false`, and this stays `false` too. So a device that's happily
-   * getting live EMSC data (because USGS alone was unreachable) correctly
-   * never sees the offline banner — the existing "via EMSC" provenance
-   * chip on each event card is the only, truthful, non-alarming signal of
-   * that swap; no separate banner needed. */
+   * Multi-provider nuance (completeness merge): for the region feed this
+   * flag comes from `fetchRegionEventsMerged` (queries.ts), which only
+   * rejects when BOTH USGS and EMSC fail — one provider answering is a
+   * successful query, `query.isError` stays `false`, and this stays `false`
+   * too. So a device that's happily getting live data from either provider
+   * correctly never sees the offline banner — the existing "via EMSC"
+   * provenance chip on each event card is the truthful, non-alarming
+   * signal of which provider supplied an individual event; no separate
+   * banner needed. */
   isOfflineIsh: boolean;
   /** True only when there is no cached data at all yet — the one case that
    * should show a skeleton instead of the (possibly stale) list. */
@@ -136,7 +138,7 @@ function useEventsFeed(
 }
 
 /** Shared shape of `fetchUsgsRegionEvents`'s and `fetchEmscRegionEvents`'s
- * results — both are `{ events, skippedCount, fetchedAt }`, the failover
+ * results — both are `{ events, skippedCount, fetchedAt }`, the merge
  * orchestration below doesn't care which provider produced them. */
 interface RegionFetchResult {
   events: Event[];
@@ -144,96 +146,106 @@ interface RegionFetchResult {
   fetchedAt: number;
 }
 
-/**
- * Dev-only invariant check (wave brief point 2: "assert single-provider
- * lists in the code path"). Only ONE provider's list is ever served per
- * region fetch — this is failover, not merge — so cross-provider dedup
- * (event-pipeline-design.md §2's 16s/100km/|ΔM|≤1.5 spatial-temporal match)
- * is deliberately NOT implemented client-side this wave; merging
- * simultaneously-live USGS + EMSC records is the future server-side
- * worker's job. This check exists to catch a future regression (e.g. a
- * change that accidentally concatenates both providers' events) rather
- * than to guard any currently-reachable runtime state, so it only throws in
- * `__DEV__` (including under Jest) — never a crash risk in production,
- * consistent with this codebase's tolerant-parsing stance elsewhere.
- */
-function assertSingleProvider(events: Event[], provider: EventProvider): void {
-  if (!__DEV__) {
-    return;
-  }
-  const wrongProvider = events.find((event) => event.provenance.provider !== provider);
-  if (wrongProvider) {
-    throw new Error(
-      `[events/queries] region failover invariant violated: expected all events from "${provider}", got "${wrongProvider.provenance.provider}"`,
-    );
-  }
-}
-
-/**
- * Region feed fetch: USGS-primary with EMSC fallback (D4 second tier —
- * "when USGS is slow or unreachable... fails over to EMSC"). Exported so it
- * can be exercised directly in tests without standing up a full
- * QueryClient/renderHook harness.
- *
- * Failover semantics:
- * 1. Try USGS, aborting after `USGS_REGION_TIMEOUT_MS` (config.ts) if it
- *    hasn't resolved — a slow regional network is exactly the scenario this
- *    wave exists for.
- * 2. If USGS rejects OR times out, try EMSC once. A successful EMSC fetch
- *    is served as-is (all events tagged `provenance.provider: "emsc"` by
- *    `normalizeEmscFeature` — nothing here relabels them).
- * 3. If EMSC ALSO fails, the rejection propagates to the caller (React
- *    Query) unchanged — this function does not swallow a double failure,
- *    so the existing isOfflineIsh/isHardError states in `useEventsFeed`
- *    keep working exactly as before this wave.
- *
- * Recovery swap: this is a plain `queryFn` under the SAME `eventsQueryKeys.
- * region` query key USGS always used — there's no separate "EMSC query" the
- * UI has to know about. The next poll (still on the 60s interval) simply
- * tries USGS again; once USGS answers, its events *replace* the previously-
- * cached EMSC events under that one key, exactly like any other refetch.
- * No merge, no manual cache surgery — React Query's normal
- * queryFn-replaces-cached-data behavior is sufficient.
- */
-export async function fetchRegionEventsWithFailover(): Promise<RegionFetchResult> {
+/** One provider's leg of the parallel region fetch: its own AbortController
+ * timeout budget, resolving to the result or `undefined` on any failure
+ * (rejection or timeout) — never throwing, so `Promise.all` over both legs
+ * can't short-circuit on the first failure. The failure itself is kept for
+ * the both-fail rethrow in `fetchRegionEventsMerged`. */
+async function fetchProviderLeg(
+  fetchFn: (signal: AbortSignal) => Promise<RegionFetchResult>,
+  timeoutMs: number,
+  providerLabel: string,
+): Promise<{ result?: RegionFetchResult; error?: unknown }> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), USGS_REGION_TIMEOUT_MS);
-
-  let usgsResult: RegionFetchResult | undefined;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    usgsResult = await fetchUsgsRegionEvents(controller.signal);
-  } catch (usgsError) {
+    return { result: await fetchFn(controller.signal) };
+  } catch (error) {
     if (__DEV__) {
       console.warn(
-        "[events/queries] USGS region fetch failed or timed out, trying EMSC fallback",
-        usgsError,
+        `[events/queries] ${providerLabel} region fetch failed or timed out — serving the other provider's list alone this poll`,
+        error,
       );
     }
+    return { error };
   } finally {
     clearTimeout(timeoutId);
   }
+}
 
-  if (usgsResult) {
-    assertSingleProvider(usgsResult.events, "usgs");
-    return usgsResult;
+/**
+ * Region feed fetch: USGS and EMSC queried IN PARALLEL, results merged
+ * through `mergeProviderEvents` (merge.ts) — a completeness MERGE, not the
+ * old availability failover. Exported so it can be exercised directly in
+ * tests without standing up a full QueryClient/renderHook harness.
+ *
+ * Why merge instead of failover — a real missed earthquake: 2026-08-13
+ * 22:28 UTC, M4.0 mb, Iran–Iraq border region. In EMSC's catalog, absent
+ * from USGS entirely (below NEIC's ~M4.5 regional completeness). Under
+ * failover semantics EMSC was only consulted when USGS *failed*, so that
+ * felt regional event never surfaced while USGS was healthy. Both catalogs
+ * are now always consulted; EMSC fills USGS's regional completeness gap and
+ * USGS stays canonical where they overlap (event-pipeline-design.md §2).
+ *
+ * Semantics, per outcome — degraded modes stay truthful:
+ * 1. BOTH succeed → `mergeProviderEvents(usgs, emsc)`: USGS events as-is,
+ *    EMSC-only events appended with provider "emsc", cross-provider
+ *    duplicates dropped in EMSC's favor of USGS. `skippedCount` sums both
+ *    providers' tolerant-parsing skips.
+ * 2. USGS-only succeeds → merged(USGS, []) ≡ the USGS list, exactly what
+ *    the old failover served on a healthy poll. EMSC-only events already in
+ *    the previous poll's cache disappear until EMSC answers again — the
+ *    truthful representation of "we can only see USGS right now".
+ * 3. EMSC-only succeeds → the EMSC list (the old failover outcome, now a
+ *    natural special case of the merge rather than a separate code path).
+ * 4. BOTH fail → the USGS failure rethrows unchanged to React Query — the
+ *    existing isOfflineIsh/isHardError states in `useEventsFeed` keep
+ *    working exactly as before.
+ *
+ * Each provider gets its OWN timeout budget (config.ts) — a slow provider
+ * is dropped from this poll's merge, never allowed to block the other one.
+ * This remains a plain `queryFn` under the single `eventsQueryKeys.region`
+ * key: each poll's merged list wholesale-replaces the previous one, so
+ * provider recovery needs no cache surgery.
+ */
+export async function fetchRegionEventsMerged(): Promise<RegionFetchResult> {
+  const [usgs, emsc] = await Promise.all([
+    fetchProviderLeg(
+      (signal) => fetchUsgsRegionEvents(signal),
+      USGS_REGION_TIMEOUT_MS,
+      "USGS",
+    ),
+    fetchProviderLeg(
+      (signal) => fetchEmscRegionEvents(signal),
+      EMSC_REGION_TIMEOUT_MS,
+      "EMSC",
+    ),
+  ]);
+
+  if (!usgs.result && !emsc.result) {
+    // Both-fail path (outcome 4): rethrow rather than fabricate an empty
+    // feed — an empty list would render as "no earthquakes", a lie.
+    throw usgs.error ?? emsc.error ?? new Error("region fetch failed for both providers");
   }
 
-  // Both the plain-rejection and the abort-timeout paths land here. If this
-  // also throws, it propagates uncaught to React Query — the "both fail"
-  // case in the wave brief, deliberately not caught here.
-  const emscResult = await fetchEmscRegionEvents();
-  assertSingleProvider(emscResult.events, "emsc");
-  return emscResult;
+  const usgsEvents = usgs.result?.events ?? [];
+  const emscEvents = emsc.result?.events ?? [];
+
+  return {
+    events: mergeProviderEvents(usgsEvents, emscEvents),
+    skippedCount: (usgs.result?.skippedCount ?? 0) + (emsc.result?.skippedCount ?? 0),
+    fetchedAt: Math.max(usgs.result?.fetchedAt ?? 0, emsc.result?.fetchedAt ?? 0),
+  };
 }
 
 /** Region-scoped feed (Home, spec-v1.md §4.1) — refetches every 60s while
- * the app is foregrounded, treats data as fresh for 30s. USGS-primary with
- * EMSC fallback (D4 second tier) via `fetchRegionEventsWithFailover` above;
+ * the app is foregrounded, treats data as fresh for 30s. Parallel
+ * USGS+EMSC completeness merge via `fetchRegionEventsMerged` above;
  * `useEventsFeed`'s offline/error derivation is unaffected — it only cares
- * whether the combined fetch succeeded or failed, not which provider
+ * whether the combined fetch succeeded or failed, not which provider(s)
  * answered. */
 export function useRegionEvents(): UseEventsFeedResult {
-  return useEventsFeed(eventsQueryKeys.region, fetchRegionEventsWithFailover);
+  return useEventsFeed(eventsQueryKeys.region, fetchRegionEventsMerged);
 }
 
 /** Full world feed (World Catalog, spec-v1.md §4.2). */

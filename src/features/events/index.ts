@@ -10,11 +10,12 @@ export {
 } from "./normalize";
 export { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from "./usgs";
 export { fetchEmscRegionEvents } from "./emsc";
+export { isSameEarthquake, mergeProviderEvents } from "./merge";
 export {
   createEventsPersister,
   createEventsQueryClient,
   eventsQueryKeys,
-  fetchRegionEventsWithFailover,
+  fetchRegionEventsMerged,
   useEventById,
   useRegionEvents,
   useWorldEvents,
