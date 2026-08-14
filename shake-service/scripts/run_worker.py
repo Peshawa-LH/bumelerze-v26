@@ -4,18 +4,37 @@
 
 Two modes:
 
-  --once     One poll cycle: an `all_hour` feed poll AND a region-bbox
-             `updatedafter` sweep, unconditionally (regardless of the
-             daemon cadences below) — for tests/cron. Loads state, polls
-             both feeds, processes every `"new"`/`"update"` decision
-             through `pipeline.run_pipeline`, saves state once, exits 0.
+  --once     One poll cycle: a USGS `all_hour` feed poll, a USGS region-bbox
+             `updatedafter` sweep, AND an EMSC region-bbox sweep,
+             unconditionally (regardless of the daemon cadences below) —
+             for tests/cron. Loads state, polls all three feeds, processes
+             every `"new"`/`"update"` decision through
+             `pipeline.run_pipeline`, saves state once, exits 0.
 
   --daemon   Loops forever at the design cadences (60 s `all_hour` poll,
-             10 min region-bbox sweep — `docs/research/
-             event-pipeline-design.md` §2) until SIGINT. Each cadence's
-             poll is independently try/excepted so a feed outage on one
-             never blocks the other (tolerant of feed downtime); state is
-             saved after every processed cycle AND on clean shutdown.
+             10 min region-bbox sweeps — USGS and EMSC, `docs/research/
+             event-pipeline-design.md` §2) until SIGINT. Each poll is
+             independently try/excepted so a feed outage on one never
+             blocks the others (tolerant of feed downtime); state is saved
+             after every processed cycle AND on clean shutdown.
+
+**EMSC completeness sweep (why a second provider):** a real missed
+earthquake — 2026-08-13 22:28 UTC, M4.0 mb, Iran–Iraq border region — was
+in EMSC's catalog but absent from USGS entirely (below NEIC's ~M4.5
+regional completeness), so the USGS-only watcher produced no Bumelerze
+SHAKEmap despite the M>=3.5 trigger floor. The EMSC sweep polls
+seismicportal.eu's fdsnws region query at the USGS sweep's cadence;
+EMSC-vs-USGS duplicates are deduped inside `feed_watcher` (event-pipeline-
+design.md §2: 16 s / 100 km / |ΔM| 1.5; an event tracked from one provider
+never re-triggers from the other's record), and EMSC-only qualifying
+events trigger the pipeline exactly like USGS ones (event id = the EMSC
+`unid`, `trigger_source: "emsc"` recorded in each product's data_used and
+in worker state). Unlike the USGS sweep's `updatedafter` window, EMSC is
+queried by ORIGIN time (`start=` lookback, `EMSC_SWEEP_LOOKBACK_S`) —
+generous enough to cover publication latency and near-term revisions; an
+EMSC-side revision arriving later than that is rare and matters little
+(matched events are USGS-tracked anyway, and D9 versioning re-runs on the
+next qualifying revision either provider surfaces inside the window).
 
 **Deployment note:** this worker is designed to run server-side, next to
 Supabase — a small always-on process (or cron-equivalent) — NOT on
@@ -53,6 +72,7 @@ from shake_service.worker.uploader import LocalOnlyUploader, ProductUploader  # 
 
 ALL_HOUR_FEED_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
 FDSNWS_EVENT_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
+EMSC_FDSNWS_EVENT_URL = "https://www.seismicportal.eu/fdsnws/event/1/query"
 
 # Cadences per `docs/research/event-pipeline-design.md` §2 (the
 # ingestion worker's own "60s poll + 10min updatedafter sweep" rhythm —
@@ -64,6 +84,13 @@ SWEEP_INTERVAL_S = 600
 # (daemon restart, one failed poll) does not create a gap no later sweep
 # would ever re-cover.
 SWEEP_LOOKBACK_S = SWEEP_INTERVAL_S * 2
+# EMSC has no `updatedafter`-shaped consistency net wired here — its sweep
+# filters on ORIGIN time (`start=`), so the lookback is deliberately much
+# longer (1 h) than the USGS sweep's: it must cover EMSC's own publication
+# latency for a brand-new event AND keep recent events in view long enough
+# to catch near-term revisions (module docstring). Cheap: a 1-hour
+# region-bbox query returns at most a handful of events.
+EMSC_SWEEP_LOOKBACK_S = 3600
 
 REQUEST_TIMEOUT_S = 30
 DAEMON_TICK_S = 1.0
@@ -114,6 +141,37 @@ def poll_region_sweep(
     return feed_watcher.evaluate_feed_events(events, ws)
 
 
+def _emsc_sweep_params(start_time: str) -> dict[str, Any]:
+    """EMSC's fdsnws documents the short param-name aliases (`start`,
+    `minlat`/`maxlat`/`minlon`/`maxlon`) rather than USGS's long names —
+    same FDSN WS-EVENT spec, different documented alias (verified against
+    the primary source by the app's own EMSC integration,
+    src/features/events/emsc.ts — kept literal to that here)."""
+    bbox = config.REGION_BBOX
+    return {
+        "format": "json",
+        "start": start_time,
+        "minlat": bbox["min_lat"],
+        "maxlat": bbox["max_lat"],
+        "minlon": bbox["min_lon"],
+        "maxlon": bbox["max_lon"],
+        "orderby": "time",
+    }
+
+
+def poll_emsc_sweep(
+    ws: WorkerState, *, start_time: str, fetch_fn: FetchFn = fetch_json
+) -> list[feed_watcher.TriggerDecision]:
+    """The EMSC completeness sweep (module docstring): same decision logic
+    as the USGS polls — `feed_watcher.evaluate_feed_events` applies the
+    region/magnitude gates, state dedup, AND the cross-provider §2 dedup
+    that stops an already-USGS-tracked event re-triggering from its EMSC
+    record."""
+    payload = fetch_fn(EMSC_FDSNWS_EVENT_URL, _emsc_sweep_params(start_time))
+    events = feed_watcher.parse_emsc_geojson(payload)
+    return feed_watcher.evaluate_feed_events(events, ws)
+
+
 def process_decisions(
     decisions: list[feed_watcher.TriggerDecision],
     ws: WorkerState,
@@ -145,6 +203,10 @@ def _default_sweep_updated_after(lookback_s: int = SWEEP_LOOKBACK_S) -> str:
     return (_dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(seconds=lookback_s)).strftime("%Y-%m-%dT%H:%M:%S")
 
 
+def _default_emsc_sweep_start(lookback_s: int = EMSC_SWEEP_LOOKBACK_S) -> str:
+    return _default_sweep_updated_after(lookback_s)
+
+
 def run_once(
     *,
     state_path: Path,
@@ -153,10 +215,15 @@ def run_once(
     fetch_fn: FetchFn = fetch_json,
     usgs_products_fetcher: pipeline.UsgsProductsFetcher = usgs_products.no_usgs_products,
     sweep_updated_after: str | None = None,
+    emsc_sweep_start: str | None = None,
 ) -> WorkerState:
     ws = WorkerState.load(state_path)
     _log("cycle_start", mode="once")
 
+    # Order matters for canonical ids: USGS polls run FIRST, so an event
+    # both providers carry is created under its USGS id and the later EMSC
+    # record cross-provider-dedups against it (feed_watcher module
+    # docstring: USGS canonical).
     all_hour_decisions = poll_all_hour(ws, fetch_fn=fetch_fn)
     process_decisions(
         all_hour_decisions, ws, products_root=products_root, uploader=uploader,
@@ -167,6 +234,13 @@ def run_once(
     sweep_decisions = poll_region_sweep(ws, updated_after=updated_after, fetch_fn=fetch_fn)
     process_decisions(
         sweep_decisions, ws, products_root=products_root, uploader=uploader,
+        usgs_products_fetcher=usgs_products_fetcher,
+    )
+
+    emsc_start = emsc_sweep_start or _default_emsc_sweep_start()
+    emsc_decisions = poll_emsc_sweep(ws, start_time=emsc_start, fetch_fn=fetch_fn)
+    process_decisions(
+        emsc_decisions, ws, products_root=products_root, uploader=uploader,
         usgs_products_fetcher=usgs_products_fetcher,
     )
 
@@ -217,6 +291,11 @@ def run_daemon(
                 last_all_hour_poll = now
 
             if now - last_sweep_poll >= SWEEP_INTERVAL_S:
+                # USGS sweep first, EMSC second (same 10-min cadence): USGS
+                # stays the canonical id for events both providers carry
+                # (see run_once's ordering note). Each sweep has its own
+                # try/except so an outage on one provider never blocks the
+                # other's sweep in the same cycle.
                 try:
                     updated_after = _default_sweep_updated_after()
                     decisions = poll_region_sweep(ws, updated_after=updated_after, fetch_fn=fetch_fn)
@@ -227,6 +306,16 @@ def run_daemon(
                     ws.save(state_path)
                 except requests.RequestException as exc:
                     _log("region_sweep_failed", error=str(exc))
+                try:
+                    emsc_start = _default_emsc_sweep_start()
+                    decisions = poll_emsc_sweep(ws, start_time=emsc_start, fetch_fn=fetch_fn)
+                    process_decisions(
+                        decisions, ws, products_root=products_root, uploader=uploader,
+                        usgs_products_fetcher=usgs_products_fetcher,
+                    )
+                    ws.save(state_path)
+                except requests.RequestException as exc:
+                    _log("emsc_sweep_failed", error=str(exc))
                 last_sweep_poll = now
 
             if shutdown_requested:

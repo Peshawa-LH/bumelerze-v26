@@ -115,12 +115,12 @@ def test_run_once_end_to_end_new_event_writes_products_and_saves_state(tmp_path,
     products_root = tmp_path / "products"
 
     all_hour_payload = _feature_collection(_feature(event_id="us_e2e_1", mag=4.2, lat=35.6, lon=44.9, depth_km=12.0))
-    sweep_payload = _feature_collection()  # nothing new from the sweep this cycle
+    sweep_payload = _feature_collection()  # nothing new from either sweep this cycle
 
     def fake_fetch(url, params=None):
         if url == run_worker.ALL_HOUR_FEED_URL:
             return all_hour_payload
-        assert url == run_worker.FDSNWS_EVENT_URL
+        assert url in (run_worker.FDSNWS_EVENT_URL, run_worker.EMSC_FDSNWS_EVENT_URL)
         return sweep_payload
 
     uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
@@ -329,3 +329,144 @@ def test_main_wires_the_real_network_enabled_usgs_fetcher(monkeypatch, tmp_path)
     run_worker.main()
 
     assert captured["usgs_products_fetcher"] is run_worker.usgs_products.fetch_usgs_event_products
+
+
+# ---------------------------------------------------------------------------
+# EMSC completeness sweep wiring
+# ---------------------------------------------------------------------------
+
+BORDER_TIME_MS = 1_786_660_084_000  # 2026-08-13T22:28:04Z
+
+
+def _emsc_feature(
+    *, unid="20260813_0000321", mag=4.0, lat=34.9, lon=45.9, depth=10.0,
+    time_iso="2026-08-13T22:28:04.0Z", lastupdate_iso="2026-08-13T22:41:00.0Z",
+):
+    return {
+        "type": "Feature",
+        "id": unid,
+        "properties": {
+            "unid": unid, "time": time_iso, "lastupdate": lastupdate_iso,
+            "lat": lat, "lon": lon, "depth": depth, "mag": mag, "magtype": "mb",
+            "flynn_region": "IRAN-IRAQ BORDER REGION",
+        },
+    }
+
+
+def test_poll_emsc_sweep_calls_fetch_fn_with_emsc_url_and_short_alias_params():
+    calls = []
+
+    def fake_fetch(url, params=None):
+        calls.append((url, params))
+        return _feature_collection()
+
+    run_worker.poll_emsc_sweep(WorkerState(), start_time="2026-08-13T21:30:00", fetch_fn=fake_fetch)
+    assert len(calls) == 1
+    url, params = calls[0]
+    assert url == run_worker.EMSC_FDSNWS_EVENT_URL
+    # EMSC documents the SHORT param aliases (start/minlat/...), not USGS's
+    # long names -- regression guard against "fixing" them to match USGS.
+    assert params["format"] == "json"
+    assert params["start"] == "2026-08-13T21:30:00"
+    assert params["minlat"] == config.REGION_BBOX["min_lat"]
+    assert params["maxlat"] == config.REGION_BBOX["max_lat"]
+    assert params["minlon"] == config.REGION_BBOX["min_lon"]
+    assert params["maxlon"] == config.REGION_BBOX["max_lon"]
+
+
+def test_run_once_emsc_only_border_event_triggers_a_bumelerze_shakemap(tmp_path):
+    # REGRESSION -- the real missed earthquake: 2026-08-13 22:28 UTC, M4.0
+    # mb, Iran-Iraq border region. USGS feeds return NOTHING for it (below
+    # NEIC regional completeness); EMSC's sweep carries it. The worker must
+    # produce a versioned Bumelerze product for it, keyed by the EMSC unid.
+    state_path = tmp_path / "worker_state.json"
+    products_root = tmp_path / "products"
+
+    def fake_fetch(url, params=None):
+        if url == run_worker.EMSC_FDSNWS_EVENT_URL:
+            return _feature_collection(_emsc_feature())
+        return _feature_collection()  # USGS: healthy but incomplete -- empty
+
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    ws = run_worker.run_once(
+        state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch,
+    )
+
+    known = ws.get_event("20260813_0000321")
+    assert known is not None
+    assert known.source == "emsc"
+    assert known.last_version == 1
+    assert known.origin_time_ms == BORDER_TIME_MS
+
+    v1_dir = products_root / "20260813_0000321" / "v1"
+    info = json.loads((v1_dir / "info.json").read_text())
+    assert info["event"]["mag_mw"] == pytest.approx(4.0)
+    assert info["data_used"]["trigger_source"] == "emsc"
+
+
+def test_run_once_same_event_via_both_providers_triggers_exactly_once(tmp_path):
+    # The same physical quake in USGS's all_hour feed AND EMSC's sweep
+    # (EMSC: 4 s later origin, ~3 km offset, dM 0.1 -- inside the s2 dedup
+    # thresholds). USGS polls first, owns the state entry; the EMSC record
+    # must cross-provider-dedup, never creating a second product tree.
+    state_path = tmp_path / "worker_state.json"
+    products_root = tmp_path / "products"
+
+    usgs_time_ms = BORDER_TIME_MS - 4_000
+
+    def fake_fetch(url, params=None):
+        if url == run_worker.ALL_HOUR_FEED_URL:
+            return _feature_collection({
+                "type": "Feature",
+                "id": "us7000zzzz",
+                "properties": {"mag": 4.1, "place": "border", "time": usgs_time_ms, "updated": usgs_time_ms},
+                "geometry": {"type": "Point", "coordinates": [45.9, 34.93, 10.0]},
+            })
+        if url == run_worker.EMSC_FDSNWS_EVENT_URL:
+            return _feature_collection(_emsc_feature())
+        return _feature_collection()
+
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    ws = run_worker.run_once(
+        state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fake_fetch,
+    )
+
+    # One event entry, under the canonical USGS id; no EMSC-keyed twin.
+    assert ws.get_event("us7000zzzz") is not None
+    assert ws.get_event("20260813_0000321") is None
+    assert (products_root / "us7000zzzz" / "v1" / "info.json").exists()
+    assert not (products_root / "20260813_0000321").exists()
+
+
+def test_daemon_logs_emsc_sweep_failure_independently(tmp_path, monkeypatch, capsys):
+    # An EMSC outage must be logged under its own event name and must not
+    # block the USGS sweep (each has its own try/except).
+    state_path = tmp_path / "worker_state.json"
+    products_root = tmp_path / "products"
+
+    def fetch(url, params=None):
+        if url == run_worker.EMSC_FDSNWS_EVENT_URL:
+            raise run_worker.requests.RequestException("emsc is down")
+        return _feature_collection()
+
+    captured_handler = {}
+
+    def fake_signal(signum, handler):
+        captured_handler["handler"] = handler
+        return None
+
+    def fake_sleep(seconds):
+        captured_handler["handler"](2, None)
+
+    monkeypatch.setattr(run_worker.signal, "signal", fake_signal)
+    monkeypatch.setattr(run_worker.time, "sleep", fake_sleep)
+
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    run_worker.run_daemon(state_path=state_path, products_root=products_root, uploader=uploader, fetch_fn=fetch)
+
+    out = capsys.readouterr().out
+    logged_events = [json.loads(line)["event"] for line in out.strip().splitlines()]
+    assert "emsc_sweep_failed" in logged_events
+    # The USGS sweep in the same cycle still ran and did NOT fail.
+    assert "region_sweep_failed" not in logged_events
+    assert "daemon_stop" in logged_events

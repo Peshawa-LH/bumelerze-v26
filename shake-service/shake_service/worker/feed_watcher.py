@@ -1,17 +1,40 @@
-"""feed_watcher — USGS feed polling + trigger decisions (D9: "auto for
-regional M>=3.5").
+"""feed_watcher — USGS + EMSC feed polling + trigger decisions (D9: "auto
+for regional M>=3.5").
 
-Two feeds feed this module, both USGS, both parsed the same GeoJSON shape
-(`parse_usgs_geojson`):
+Three feeds feed this module:
 
-1. The `all_hour` summary feed (polled every 60 s by `scripts/run_worker.py`)
-   — cheap, low-latency, but only ever shows the last hour.
-2. An `fdsnws/event` region-bbox `updatedafter` sweep (polled every 10 min)
-   — the consistency net: catches magnitude/location revisions and events
-   the hourly feed's window already slid past (mirrors the ingestion
+1. The USGS `all_hour` summary feed (polled every 60 s by
+   `scripts/run_worker.py`) — cheap, low-latency, but only ever shows the
+   last hour.
+2. A USGS `fdsnws/event` region-bbox `updatedafter` sweep (polled every
+   10 min) — the consistency net: catches magnitude/location revisions and
+   events the hourly feed's window already slid past (mirrors the ingestion
    worker's own "60s poll + 10min updatedafter sweep" cadence,
    `docs/research/event-pipeline-design.md` §2, deliberately, so the two
    USGS-facing workers in this repo behave the same way to operators).
+3. An EMSC seismicportal.eu `fdsnws/event` region-bbox sweep (same 10-min
+   cadence), parsed by `parse_emsc_geojson` — the COMPLETENESS net. Why it
+   exists — a real missed earthquake: 2026-08-13 22:28 UTC, M4.0 mb,
+   Iran–Iraq border region, present in EMSC's catalog, absent from USGS
+   entirely (below NEIC's ~M4.5 regional completeness) — above the M>=3.5
+   trigger floor, yet the USGS-only watcher never saw it and no Bumelerze
+   SHAKEmap was produced. EMSC-only qualifying events now trigger the
+   pipeline exactly like USGS ones (event id = the EMSC `unid`).
+
+Cross-provider dedup: state is keyed by provider event id (USGS id / EMSC
+unid — `EventState.source` records which), so the SAME physical earthquake
+seen via both providers has two different keys. Before declaring an
+unknown-id event `"new"`, `evaluate_feed_events` therefore checks the
+tracked events of the OTHER provider for a spatial-temporal match
+(`same_earthquake`, event-pipeline-design.md §2 step 3: |Δ origin time| <=
+16 s AND distance <= 100 km AND |ΔM| <= 1.5 — the same thresholds the app's
+client-side merge uses, `src/features/events/merge.ts`; keep in sync when
+tuning). A match -> `"skip"`: an event already tracked from USGS must never
+re-trigger from its EMSC record, and vice versa. USGS is the canonical id
+when both are seen (§2 authority order) simply because `scripts/
+run_worker.py` polls USGS first each cycle — whichever provider's record is
+processed first owns the state entry, and in practice that is USGS for any
+event USGS has at all.
 
 This module does no I/O itself — `fetch_fn`/the raw GeoJSON payload is
 always passed in, so `evaluate_feed_events` (the actual decision logic) is
@@ -40,6 +63,7 @@ Revision thresholds (tunable, task-specified defaults):
 
 from __future__ import annotations
 
+import datetime as _dt
 import math
 from dataclasses import dataclass
 from typing import Any, Literal, Sequence
@@ -54,6 +78,16 @@ from shake_service.worker.state import EventState, WorkerState
 DELTA_MAGNITUDE_THRESHOLD: float = 0.1
 DELTA_LOCATION_KM_THRESHOLD: float = 5.0
 DELTA_DEPTH_KM_THRESHOLD: float = 5.0
+
+# ---------------------------------------------------------------------------
+# Cross-provider dedup thresholds — event-pipeline-design.md §2 step 3
+# (tunable; mirrored client-side in src/features/events/config.ts — keep in
+# sync when tuning)
+# ---------------------------------------------------------------------------
+
+DEDUP_MAX_TIME_DELTA_MS: int = 16_000
+DEDUP_MAX_DISTANCE_KM: float = 100.0
+DEDUP_MAX_MAG_DELTA: float = 1.5
 
 # Matches `shake_service.comparison.EARTH_RADIUS_KM` /
 # `shake_service.distances._EARTH_RADIUS_KM` convention. A local haversine
@@ -86,7 +120,7 @@ class FeedEvent:
     (separate) ingestion worker; this is a narrower, worker-local shape."""
 
     external_id: str
-    source: str  # "usgs" for both feeds this wave
+    source: str  # "usgs" (both USGS feeds) or "emsc" (the EMSC sweep)
     mag: float
     lat: float
     lon: float
@@ -130,11 +164,129 @@ def parse_usgs_geojson(payload: dict[str, Any], *, source: str = "usgs") -> list
     return events
 
 
+def _parse_emsc_iso_ms(value: Any) -> int | None:
+    """EMSC timestamps are ISO 8601 strings (e.g. "2026-08-13T22:28:04.0Z"),
+    unlike USGS's epoch-ms numbers. Returns UTC epoch ms, or `None` for a
+    missing/unparseable value (tolerant — the caller decides whether the
+    field is load-bearing)."""
+    if not value or not isinstance(value, str):
+        return None
+    try:
+        parsed = _dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=_dt.timezone.utc)
+    return int(parsed.timestamp() * 1000)
+
+
+def parse_emsc_geojson(payload: dict[str, Any]) -> list[FeedEvent]:
+    """Parse an EMSC seismicportal.eu fdsnws GeoJSON `FeatureCollection`
+    (`format=json`) into `FeedEvent`s with `source="emsc"`. EMSC rides the
+    same FDSN WS-EVENT spec as USGS but its `properties` shape differs
+    (mirrors the app's own emsc-schema.ts findings):
+
+    - the provider event id is `unid` (-> `external_id`, and the pipeline's
+      event id for an EMSC-only trigger);
+    - `lat`/`lon`/`depth` are repeated directly in `properties` (read from
+      there — `geometry` is not required at all);
+    - `time`/`lastupdate` are ISO 8601 strings, not epoch ms (parsed by
+      `_parse_emsc_iso_ms`; an unusable `time` drops the feature since
+      origin time is load-bearing for cross-provider dedup, an unusable
+      `lastupdate` falls back to the origin time).
+
+    Same tolerant contract as `parse_usgs_geojson`: malformed/incomplete
+    features (missing unid/coords/magnitude/time) are skipped, never raised."""
+    events: list[FeedEvent] = []
+    for feature in payload.get("features", []) or []:
+        props = feature.get("properties") or {}
+        unid = props.get("unid")
+        mag = props.get("mag")
+        lat, lon, depth = props.get("lat"), props.get("lon"), props.get("depth")
+        if not unid or mag is None or lat is None or lon is None or depth is None:
+            continue
+        time_ms = _parse_emsc_iso_ms(props.get("time"))
+        if time_ms is None:
+            continue
+        updated_ms = _parse_emsc_iso_ms(props.get("lastupdate"))
+        try:
+            lat_f, lon_f, depth_f, mag_f = float(lat), float(lon), float(depth), float(mag)
+        except (TypeError, ValueError):
+            continue
+        events.append(
+            FeedEvent(
+                external_id=str(unid),
+                source="emsc",
+                mag=mag_f,
+                lat=lat_f,
+                lon=lon_f,
+                depth_km=depth_f,
+                place=str(props.get("flynn_region") or ""),
+                time_ms=time_ms,
+                updated_ms=updated_ms if updated_ms is not None else time_ms,
+            )
+        )
+    return events
+
+
 def in_region(event: FeedEvent, bbox: dict[str, float]) -> bool:
     return (
         bbox["min_lat"] <= event.lat <= bbox["max_lat"]
         and bbox["min_lon"] <= event.lon <= bbox["max_lon"]
     )
+
+
+# ---------------------------------------------------------------------------
+# Cross-provider dedup (event-pipeline-design.md §2 step 3)
+# ---------------------------------------------------------------------------
+
+
+def same_earthquake(
+    *,
+    time_ms_a: int, lat_a: float, lon_a: float, mag_a: float,
+    time_ms_b: int, lat_b: float, lon_b: float, mag_b: float,
+) -> bool:
+    """§2 step-3 spatial-temporal match: two provider records describe the
+    same physical earthquake when |Δ origin time| <= 16 s AND epicentral
+    distance <= 100 km AND |ΔM| <= 1.5 (all inclusive; the |ΔM| guard
+    protects against associating a foreshock's record with a mainshock).
+    Both magnitudes always exist in this worker's `FeedEvent`/`EventState`
+    shapes (magnitude-less features are dropped at parse time), so the §2
+    "when both present" qualifier never bites here. The shared helper for
+    the watcher's cross-provider dedup — same rules, same thresholds, as
+    the app's client-side merge (src/features/events/merge.ts)."""
+    if abs(time_ms_a - time_ms_b) > DEDUP_MAX_TIME_DELTA_MS:
+        return False
+    if abs(mag_a - mag_b) > DEDUP_MAX_MAG_DELTA:
+        return False
+    return _haversine_km(lat_a, lon_a, lat_b, lon_b) <= DEDUP_MAX_DISTANCE_KM
+
+
+def find_cross_provider_match(event: FeedEvent, ws: WorkerState) -> EventState | None:
+    """The already-tracked `EventState` from the OTHER provider that is the
+    same physical earthquake as `event` (per `same_earthquake`), or `None`.
+    Called only for events whose own (provider, id) key is unknown to state
+    — the guard that stops an event tracked from USGS re-triggering from its
+    EMSC record and vice versa (module docstring). Ties (multiple
+    candidates) resolve to the closest in (|Δt|, distance) lexicographic
+    order, §2 step 3. Tracked entries with `origin_time_ms == 0` (unknown —
+    pre-upgrade state files) never match: with no origin time there is no
+    defensible time criterion, and those legacy entries are by definition
+    old events the recent-origin EMSC sweep can never return anyway."""
+    candidates: list[tuple[float, float, EventState]] = []
+    for known in ws.events.values():
+        if known.source == event.source or known.origin_time_ms == 0:
+            continue
+        if same_earthquake(
+            time_ms_a=event.time_ms, lat_a=event.lat, lon_a=event.lon, mag_a=event.mag,
+            time_ms_b=known.origin_time_ms, lat_b=known.lat, lon_b=known.lon, mag_b=known.mag,
+        ):
+            delta_t = abs(event.time_ms - known.origin_time_ms)
+            distance = _haversine_km(event.lat, event.lon, known.lat, known.lon)
+            candidates.append((delta_t, distance, known))
+    if not candidates:
+        return None
+    return min(candidates, key=lambda c: (c[0], c[1]))[2]
 
 
 # ---------------------------------------------------------------------------
@@ -199,6 +351,23 @@ def evaluate_feed_events(
 
         known = ws.get_event(event.external_id)
         if known is None:
+            # Unknown (provider, id) key — but possibly the SAME physical
+            # earthquake already tracked under the other provider's id
+            # (module docstring "Cross-provider dedup"). A tracked-from-USGS
+            # event must never re-trigger from its EMSC record, nor vice
+            # versa.
+            cross = find_cross_provider_match(event, ws)
+            if cross is not None:
+                decisions.append(
+                    TriggerDecision(
+                        kind="skip", event=event,
+                        reason=(
+                            f"cross-provider duplicate of tracked event "
+                            f"{cross.source}:{cross.external_id} (dedup §2)"
+                        ),
+                    )
+                )
+                continue
             decisions.append(TriggerDecision(kind="new", event=event, reason="new qualifying event"))
             continue
 
