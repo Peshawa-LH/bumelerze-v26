@@ -5,7 +5,12 @@ import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { CATALOG_MAG_STEP, CATALOG_YEAR_STEP } from "../config";
 import { formatCatalogYear } from "../format";
-import { CATALOG_SOURCES, type CatalogBounds, type CatalogSource } from "../types";
+import {
+  CATALOG_SOURCES,
+  CATALOG_UNION_CHIP,
+  type CatalogBounds,
+  type CatalogSource,
+} from "../types";
 import { NumericStepper } from "./NumericStepper";
 
 export interface CatalogFilterValues {
@@ -39,6 +44,10 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
   function formatMag(value: number): string {
     return localizeDigits(value.toFixed(1), locale);
   }
+
+  // "Bumelerze" (the union chip) is selected exactly when no per-source
+  // subset filter is applied — see the chip's own comment below.
+  const isUnionSelected = values.sources.length === 0;
 
   function toggleSource(source: CatalogSource) {
     const isSelected = values.sources.includes(source);
@@ -101,6 +110,37 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
       </View>
 
       <View style={[styles.chipsWrap, { gap: spacing[2] }]}>
+        {/* FIRST chip: "Bumelerze" = the UNION view — the deduplicated
+            compilation itself, NOT a row subset (types.ts's
+            CATALOG_UNION_CHIP doc). It reads as selected exactly when no
+            per-source filter is applied (the browser's default state), and
+            tapping it clears any source selection back to that full view.
+            The five real source chips below keep filtering as before. */}
+        <Pressable
+          key={CATALOG_UNION_CHIP}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: isUnionSelected }}
+          accessibilityLabel={t(`catalog.sources.${CATALOG_UNION_CHIP}`)}
+          onPress={() => onChange({ ...values, sources: [] })}
+          style={[
+            styles.chip,
+            {
+              borderColor: isUnionSelected ? colors.brand.primary : colors.border.default,
+              backgroundColor: isUnionSelected ? colors.brand.primary : "transparent",
+              paddingHorizontal: spacing[3],
+            },
+          ]}
+        >
+          <Text
+            style={{
+              color: isUnionSelected ? colors.brand.onPrimary : colors.text.primary,
+              fontSize: typography.labelCaption.fontSize,
+              fontWeight: typography.labelCaption.fontWeight,
+            }}
+          >
+            {t(`catalog.sources.${CATALOG_UNION_CHIP}`)}
+          </Text>
+        </Pressable>
         {CATALOG_SOURCES.map((source) => {
           const isSelected = values.sources.includes(source);
           return (

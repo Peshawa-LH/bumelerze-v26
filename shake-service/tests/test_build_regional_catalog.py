@@ -266,3 +266,50 @@ class TestMergerPriorityOrder:
         assert len(merger.events) == 1
         assert merger.events[0].mag_type == "Mw"
         assert merger.events[0].mag == 6.1
+
+
+class TestRetroactiveBumelerzeIds:
+    """`write_outputs`' retroactive bml-id assignment: per-year counters
+    over the deterministic time-sorted order, stable across rebuilds
+    (module note at `write_outputs`). Output paths are monkeypatched to
+    tmp dirs — these tests must never touch the committed artifacts."""
+
+    def _events(self):
+        merger = brc.Merger()
+        # Deliberately ingested OUT of time order — the sort inside
+        # write_outputs, not ingestion order, drives the counters.
+        merger.ingest(_record(source_id="c", time=_dt(2020, 3, 1), lat=36.0))
+        merger.ingest(_record(source_id="a", time=_dt(1990, 1, 1), lat=34.0))
+        merger.ingest(_record(source_id="b", time=_dt(1990, 6, 1), lat=35.0))
+        merger.ingest(_record(source_id="d", time=_dt(872, 5, 1), lat=33.5, mag=6.5))
+        return merger.events
+
+    def _build_into(self, monkeypatch, tmp_path, name):
+        out_dir = tmp_path / name
+        monkeypatch.setattr(brc, "OUTPUT_DIR", out_dir)
+        monkeypatch.setattr(brc, "SQLITE_PATH", out_dir / "cat.sqlite")
+        monkeypatch.setattr(brc, "CSV_PATH", out_dir / "cat.csv")
+        rows = brc.write_outputs(self._events())
+        return rows
+
+    def test_per_year_counters_over_time_sorted_order(self, monkeypatch, tmp_path):
+        rows = self._build_into(monkeypatch, tmp_path, "one")
+        assert [r["bumelerze_id"] for r in rows] == [
+            "bml08720001",  # year zero-padded for the documentary tail
+            "bml19900001",
+            "bml19900002",
+            "bml20200001",  # counter resets per year
+        ]
+
+    def test_ids_are_stable_across_two_identical_builds(self, monkeypatch, tmp_path):
+        first = self._build_into(monkeypatch, tmp_path, "one")
+        second = self._build_into(monkeypatch, tmp_path, "two")
+        assert [r["bumelerze_id"] for r in first] == [r["bumelerze_id"] for r in second]
+        # And they land in the sqlite with a UNIQUE constraint intact.
+        import sqlite3 as _sq
+
+        conn = _sq.connect(tmp_path / "two" / "cat.sqlite")
+        db_ids = [r[0] for r in conn.execute("SELECT bumelerze_id FROM events ORDER BY time")]
+        conn.close()
+        assert db_ids == [r["bumelerze_id"] for r in second]
+        assert len(set(db_ids)) == len(db_ids)

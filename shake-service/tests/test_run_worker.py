@@ -78,8 +78,10 @@ def test_poll_region_sweep_calls_fetch_fn_with_fdsnws_url_and_bbox_params():
     url, params = calls[0]
     assert url == run_worker.FDSNWS_EVENT_URL
     assert params["updatedafter"] == "2026-08-01T00:00:00"
-    assert params["minlatitude"] == config.REGION_BBOX["min_lat"]
-    assert params["maxlongitude"] == config.REGION_BBOX["max_lon"]
+    # The sweeps query the MONITORED bbox (all Iraq + effect margin), not
+    # the narrower Kurdistan region bbox — see _region_sweep_params's note.
+    assert params["minlatitude"] == config.MONITORED_BBOX["min_lat"]
+    assert params["maxlongitude"] == config.MONITORED_BBOX["max_lon"]
 
 
 # ---------------------------------------------------------------------------
@@ -93,7 +95,8 @@ def test_process_decisions_skips_skip_kind_and_processes_new(tmp_path, capsys):
     def fake_fetch(url, params=None):
         return _feature_collection(
             _feature(event_id="qualifies", mag=4.0),
-            _feature(event_id="too_small", mag=3.0),
+            # Far outside the monitored bbox: skip — not tracked at all.
+            _feature(event_id="far_away", mag=6.0, lat=10.0, lon=10.0),
         )
 
     decisions = run_worker.poll_all_hour(ws, fetch_fn=fake_fetch)
@@ -101,15 +104,122 @@ def test_process_decisions_skips_skip_kind_and_processes_new(tmp_path, capsys):
     run_worker.process_decisions(decisions, ws, products_root=tmp_path, uploader=uploader)
 
     assert ws.get_event("qualifies") is not None
-    assert ws.get_event("too_small") is None
+    assert ws.get_event("far_away") is None
     assert (tmp_path / "qualifies" / "v1" / "info.json").exists()
-    assert not (tmp_path / "too_small").exists()
+    assert not (tmp_path / "far_away").exists()
 
     out = capsys.readouterr().out
     logged = [json.loads(line) for line in out.strip().splitlines()]
     processed_events = [entry for entry in logged if entry["event"] == "trigger_processed"]
     assert len(processed_events) == 1
     assert processed_events[0]["event_id"] == "qualifies"
+
+
+def test_process_decisions_catalog_kind_gets_id_and_live_line_but_no_products(tmp_path, capsys):
+    # A detected non-triggering event (Iran margin, small): tracked with a
+    # bml id + one live-catalog line, but NO pipeline run/products dir.
+    ws = WorkerState()
+    live_path = tmp_path / "live-catalog.jsonl"
+    products_root = tmp_path / "products"
+
+    def fake_fetch(url, params=None):
+        return _feature_collection(
+            _feature(event_id="iran_margin", mag=3.0, lat=34.0, lon=50.6, updated_ms=1_754_000_000_000),
+        )
+
+    decisions = run_worker.poll_all_hour(ws, fetch_fn=fake_fetch)
+    assert [d.kind for d in decisions] == ["catalog"]
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    run_worker.process_decisions(
+        decisions, ws, products_root=products_root, uploader=uploader, live_catalog_path=live_path,
+    )
+
+    tracked = ws.get_event("iran_margin")
+    assert tracked is not None
+    assert tracked.bumelerze_id is not None
+    assert tracked.last_version == 0  # nothing computed
+    assert not (products_root / "iran_margin").exists()
+
+    lines = [json.loads(line) for line in live_path.read_text().splitlines()]
+    assert len(lines) == 1
+    assert lines[0]["provider_id"] == "iran_margin"
+    assert lines[0]["bumelerze_id"] == tracked.bumelerze_id
+    assert lines[0]["triggered"] is False
+
+    out = capsys.readouterr().out
+    logged = [json.loads(line) for line in out.strip().splitlines()]
+    assert any(entry["event"] == "catalog_tracked" for entry in logged)
+
+
+def test_process_decisions_new_kind_appends_live_line_and_products_carry_bml_id(tmp_path):
+    ws = WorkerState()
+    live_path = tmp_path / "live-catalog.jsonl"
+    products_root = tmp_path / "products"
+    origin_ms = 1_786_660_084_000  # 2026-08-13T22:28:04Z
+
+    def fake_fetch(url, params=None):
+        return _feature_collection(_feature(event_id="us_bml_1", mag=4.0, updated_ms=origin_ms))
+
+    decisions = run_worker.poll_all_hour(ws, fetch_fn=fake_fetch)
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    run_worker.process_decisions(
+        decisions, ws, products_root=products_root, uploader=uploader, live_catalog_path=live_path,
+    )
+
+    tracked = ws.get_event("us_bml_1")
+    assert tracked.bumelerze_id == "bml20260001"  # first 2026 detection of this state file
+    assert tracked.provider_aliases == {"usgs": "us_bml_1"}
+
+    lines = [json.loads(line) for line in live_path.read_text().splitlines()]
+    assert [line["bumelerze_id"] for line in lines] == ["bml20260001"]
+    assert lines[0]["triggered"] is True
+
+    # The product's info.json carries the id + alias map in data_used.
+    info = json.loads((products_root / "us_bml_1" / "v1" / "info.json").read_text())
+    assert info["data_used"]["bumelerze_id"] == "bml20260001"
+    assert info["data_used"]["provider_aliases"] == {"usgs": "us_bml_1"}
+
+
+def test_process_decisions_records_cross_provider_alias_on_skip(tmp_path):
+    # First cycle: USGS record creates the tracked entry. Second cycle: the
+    # EMSC record of the SAME quake is skipped (dedup) but its unid is
+    # recorded as an alias on the tracked entry.
+    ws = WorkerState()
+    live_path = tmp_path / "live-catalog.jsonl"
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    origin_ms = 1_786_660_084_000
+
+    def usgs_fetch(url, params=None):
+        return _feature_collection(_feature(event_id="us_alias_1", mag=4.1, lat=34.93, lon=45.9, updated_ms=origin_ms))
+
+    decisions = run_worker.poll_all_hour(ws, fetch_fn=usgs_fetch)
+    run_worker.process_decisions(
+        decisions, ws, products_root=tmp_path / "products", uploader=uploader, live_catalog_path=live_path,
+    )
+    # Patch origin time to the real value (the _feature helper reuses
+    # updated_ms as time too, which is what we want here).
+    emsc_payload = _feature_collection()
+    emsc_payload["features"] = [{
+        "type": "Feature",
+        "id": "20260813_0000321",
+        "properties": {
+            "unid": "20260813_0000321", "time": "2026-08-13T22:28:06.0Z",
+            "lastupdate": "2026-08-13T22:41:00.0Z", "lat": 34.9, "lon": 45.9,
+            "depth": 10.0, "mag": 4.0, "magtype": "mb", "flynn_region": "IRAN-IRAQ BORDER REGION",
+        },
+    }]
+    emsc_decisions = run_worker.poll_emsc_sweep(
+        ws, start_time="2026-08-13T21:30:00", fetch_fn=lambda url, params=None: emsc_payload,
+    )
+    assert [d.kind for d in emsc_decisions] == ["skip"]
+    run_worker.process_decisions(
+        emsc_decisions, ws, products_root=tmp_path / "products", uploader=uploader, live_catalog_path=live_path,
+    )
+
+    tracked = ws.get_event("us_alias_1")
+    assert tracked.provider_aliases == {"usgs": "us_alias_1", "emsc": "20260813_0000321"}
+    # No second live-catalog line for the duplicate.
+    assert len(live_path.read_text().splitlines()) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -376,10 +486,10 @@ def test_poll_emsc_sweep_calls_fetch_fn_with_emsc_url_and_short_alias_params():
     # long names -- regression guard against "fixing" them to match USGS.
     assert params["format"] == "json"
     assert params["start"] == "2026-08-13T21:30:00"
-    assert params["minlat"] == config.REGION_BBOX["min_lat"]
-    assert params["maxlat"] == config.REGION_BBOX["max_lat"]
-    assert params["minlon"] == config.REGION_BBOX["min_lon"]
-    assert params["maxlon"] == config.REGION_BBOX["max_lon"]
+    assert params["minlat"] == config.MONITORED_BBOX["min_lat"]
+    assert params["maxlat"] == config.MONITORED_BBOX["max_lat"]
+    assert params["minlon"] == config.MONITORED_BBOX["min_lon"]
+    assert params["maxlon"] == config.MONITORED_BBOX["max_lon"]
 
 
 def test_run_once_emsc_only_border_event_triggers_a_bumelerze_shakemap(tmp_path):
@@ -516,10 +626,10 @@ def test_poll_geofon_sweep_calls_fetch_text_fn_with_geofon_url_and_text_params()
     # long-form starttime (also verified live).
     assert params["format"] == "text"
     assert params["starttime"] == "2026-08-13T21:30:00"
-    assert params["minlat"] == config.REGION_BBOX["min_lat"]
-    assert params["maxlat"] == config.REGION_BBOX["max_lat"]
-    assert params["minlon"] == config.REGION_BBOX["min_lon"]
-    assert params["maxlon"] == config.REGION_BBOX["max_lon"]
+    assert params["minlat"] == config.MONITORED_BBOX["min_lat"]
+    assert params["maxlat"] == config.MONITORED_BBOX["max_lat"]
+    assert params["minlon"] == config.MONITORED_BBOX["min_lon"]
+    assert params["maxlon"] == config.MONITORED_BBOX["max_lon"]
 
 
 def test_run_once_geofon_only_event_triggers_a_bumelerze_shakemap(tmp_path):

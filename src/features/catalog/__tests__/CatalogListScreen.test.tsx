@@ -27,6 +27,7 @@ const BOUNDS: CatalogBounds = { magMin: 0.86, magMax: 7.7, yearMin: 872, yearMax
 
 const HALABJA_ROW: CatalogRow = {
   id: "bumelerze-020659",
+  bumelerzeId: "bml2017000s",
   time: "2017-11-12T18:18:17.180Z",
   year: 2017,
   lat: 34.9109,
@@ -42,6 +43,7 @@ const HALABJA_ROW: CatalogRow = {
 
 const AQRAH_ROW: CatalogRow = {
   id: "bumelerze-000042",
+  bumelerzeId: "bml19910007",
   time: "1991-07-24T09:45:41.000Z",
   year: 1991,
   lat: 36.52,

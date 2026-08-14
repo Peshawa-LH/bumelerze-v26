@@ -1,5 +1,7 @@
 """feed_watcher — USGS + EMSC + GEOFON feed polling + trigger decisions
-(D9: "auto for regional M>=3.5").
+(owner directive 2026-08-14: any event in Iraq or with effect on
+Kurdistan, no magnitude floor — see "Trigger policy" below; supersedes
+D9's M>=3.5 regional floor for the auto path).
 
 Four feeds feed this module:
 
@@ -51,21 +53,42 @@ always passed in, so `evaluate_feed_events` (the actual decision logic) is
 testable with hand-built payloads and no network, and `scripts/run_worker.py`
 owns the actual `requests.get` calls + retry/downtime handling.
 
-Trigger semantics (task-specified, tunable — see module-level constants):
-- A qualifying event (in the region bbox AND mag >= `TRIGGER_MIN_MAGNITUDE`)
-  never seen before -> `"new"`.
-- A known qualifying event whose feed `updated` timestamp has not advanced
-  since the version we last computed -> `"skip"` (dedup against state —
-  the two feeds overlap in time and this is the intended, cheap defense
-  against re-processing the same feed snapshot twice).
-- A known qualifying event whose `updated` timestamp HAS advanced, but
-  whose revised params (mag/lat/lon/depth) do not cross any of the three
-  thresholds below -> `"skip"` (revision too small to matter for a
-  ShakeMap recompute).
-- A known qualifying event whose revised params cross at least one
-  threshold -> `"update"`.
-- An event outside the region bbox, or below the magnitude floor -> `"skip"`
-  (on-demand sub-floor triggering via felt reports is a later wave, D9).
+Trigger policy (owner directive 2026-08-14, superseding D9's M>=3.5
+regional floor: "ANY event in Iraq or with effect on Kurdistan, no
+magnitude floor" — `triggers_shakemap` is the single implementation):
+
+- An event triggers a ShakeMap when its epicenter is inside
+  `config.IRAQ_BBOX` (any magnitude — Iraq is the audience, "in Iraq" IS
+  the effect), OR when its epicenter lies within
+  `config.grid_extent_km(config.magnitude_band(mag))` of the Kurdistan
+  `config.REGION_BBOX` — i.e. its own magnitude-scaled shaking footprint
+  (the engine's grid half-extent, §4.3/G8) could reach Kurdistan. There
+  is NO magnitude floor on either branch (compute-volume implication
+  documented at `config.IRAQ_BBOX`).
+- Events inside `config.MONITORED_BBOX` that do NOT satisfy the trigger
+  policy are still DETECTED: decision kind `"catalog"` — the caller
+  (`scripts/run_worker.py`) assigns them a bml id (`event_id.py`) and
+  appends them to the live catalog, but no map is computed.
+- Events outside `MONITORED_BBOX` entirely -> `"skip"` (not our region;
+  the all_hour feed is global, so this gate does real work there).
+
+Decision semantics per event:
+- Never seen before, triggers -> `"new"`; never seen, monitored-but-not-
+  triggering -> `"catalog"`; either way cross-provider dedup runs first
+  (a duplicate of a tracked event -> `"skip"`, whatever its own params).
+- A known event whose feed `updated` timestamp has not advanced since the
+  record we last processed -> `"skip"` (dedup against state — the feeds
+  overlap in time; cheap defense against re-processing one snapshot twice).
+- A known event whose `updated` HAS advanced but which does not (or no
+  longer does) satisfy the trigger policy -> `"skip"` (catalog-only
+  revision; the live catalog is append-only first-detection records, so
+  nothing is rewritten).
+- A known, triggering event never yet computed (`last_version == 0` — a
+  `"catalog"`-tracked event whose revised params now cross the policy,
+  e.g. an upgraded magnitude widening its footprint) -> `"new"` (first
+  compute), regardless of revision-delta size.
+- A known, computed, triggering event whose revised params cross at least
+  one threshold below -> `"update"`; below all thresholds -> `"skip"`.
 
 Revision thresholds (tunable, task-specified defaults):
   |ΔM| >= 0.1  OR  Δepicentral-distance >= 5 km  OR  Δdepth >= 5 km.
@@ -322,6 +345,62 @@ def in_region(event: FeedEvent, bbox: dict[str, float]) -> bool:
     )
 
 
+def distance_km_to_bbox(lat: float, lon: float, bbox: dict[str, float]) -> float:
+    """Great-circle distance (km) from a point to the NEAREST point of a
+    lat/lon bbox — 0.0 for a point inside it. The nearest bbox point is the
+    coordinate-wise clamp of the point onto the box (exact for the lat
+    axis; for the lon axis a slight approximation at these mid-latitudes,
+    fine for a trigger criterion whose extents are themselves 100 km-round
+    policy numbers). No date-line handling — every bbox this worker owns
+    (`config.REGION_BBOX`/`IRAQ_BBOX`/`MONITORED_BBOX`) is far from ±180."""
+    nearest_lat = min(max(lat, bbox["min_lat"]), bbox["max_lat"])
+    nearest_lon = min(max(lon, bbox["min_lon"]), bbox["max_lon"])
+    return _haversine_km(lat, lon, nearest_lat, nearest_lon)
+
+
+# ---------------------------------------------------------------------------
+# Trigger policy (module docstring "Trigger policy" — owner directive
+# 2026-08-14: ANY event in Iraq or with effect on Kurdistan, no magnitude
+# floor)
+# ---------------------------------------------------------------------------
+
+
+def triggers_shakemap(
+    event: FeedEvent,
+    *,
+    iraq_bbox: dict[str, float] = config.IRAQ_BBOX,
+    region_bbox: dict[str, float] = config.REGION_BBOX,
+) -> tuple[bool, str]:
+    """Does this event get a Bumelerze SHAKEmap? Returns `(decision,
+    reason)` — the reason string is human-facing (logged into
+    `TriggerDecision.reason`), stating WHICH criterion decided.
+
+    Criterion 1 — Iraq: epicenter inside `iraq_bbox`, any magnitude.
+    Criterion 2 — effect on Kurdistan: epicenter within
+    `grid_extent_km(band(mag))` of `region_bbox` — the event's own
+    magnitude-scaled shaking-footprint radius (the same §4.3/G8 grid
+    half-extent the engine would map it with: 100/200/300 km for
+    small/moderate/major), measured as distance-to-bbox. An M7.5 in
+    eastern Turkey 250 km out reaches (300 km extent); an M5 in central
+    Iran 400 km out does not (200 km extent). Note criterion 2 subsumes
+    "inside the region bbox" (distance 0), so Kurdistan epicenters pass
+    it at any magnitude too — criterion 1 exists for the REST of Iraq,
+    where no distance argument is needed at all."""
+    if in_region(event, iraq_bbox):
+        return True, "epicenter in Iraq"
+    extent_km = config.grid_extent_km(config.magnitude_band(event.mag))
+    distance_km = distance_km_to_bbox(event.lat, event.lon, region_bbox)
+    if distance_km <= extent_km:
+        return True, (
+            f"shaking footprint reaches Kurdistan ({distance_km:.0f} km from region, "
+            f"extent {extent_km:.0f} km at M{event.mag:.1f})"
+        )
+    return False, (
+        f"no effect on Kurdistan ({distance_km:.0f} km from region exceeds "
+        f"{extent_km:.0f} km extent at M{event.mag:.1f}) and not in Iraq"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Cross-provider dedup (event-pipeline-design.md §2 step 3)
 # ---------------------------------------------------------------------------
@@ -382,7 +461,11 @@ def find_cross_provider_match(event: FeedEvent, ws: WorkerState) -> EventState |
 # Trigger decisions
 # ---------------------------------------------------------------------------
 
-DecisionKind = Literal["new", "update", "skip"]
+# `"catalog"`: a newly detected canonical event (inside MONITORED_BBOX,
+# post-cross-provider-dedup) that the trigger policy did NOT select for a
+# ShakeMap — the caller records it (bml id + live-catalog append) but runs
+# no pipeline. `"new"`/`"update"`/`"skip"` keep their existing meanings.
+DecisionKind = Literal["new", "update", "skip", "catalog"]
 
 
 @dataclass(frozen=True)
@@ -393,6 +476,11 @@ class TriggerDecision:
     delta_mag: float | None = None
     delta_location_km: float | None = None
     delta_depth_km: float | None = None
+    # For cross-provider-duplicate `"skip"`s: the tracked EventState this
+    # record matched, so the caller can record the new provider's id into
+    # that entry's `provider_aliases` (a mutation this pure function
+    # deliberately does not perform itself).
+    cross_match: EventState | None = None
 
 
 def _revision_deltas(event: FeedEvent, known: EventState) -> tuple[float, float, float]:
@@ -417,34 +505,38 @@ def evaluate_feed_events(
     events: Sequence[FeedEvent],
     ws: WorkerState,
     *,
-    min_magnitude: float = config.TRIGGER_MIN_MAGNITUDE,
-    bbox: dict[str, float] = config.REGION_BBOX,
+    monitored_bbox: dict[str, float] = config.MONITORED_BBOX,
+    iraq_bbox: dict[str, float] = config.IRAQ_BBOX,
+    region_bbox: dict[str, float] = config.REGION_BBOX,
 ) -> list[TriggerDecision]:
     """Pure decision function: `FeedEvent`s + current worker state ->
     `TriggerDecision`s. No I/O, no state mutation (the caller — `pipeline`/
-    `scripts/run_worker.py` — decides what to do with `"new"`/`"update"`
-    decisions and when to persist state)."""
+    `scripts/run_worker.py` — decides what to do with `"new"`/`"update"`/
+    `"catalog"` decisions, records aliases from `"skip"`s' `cross_match`,
+    and controls when state is persisted). Full decision semantics: module
+    docstring "Trigger policy"."""
     decisions: list[TriggerDecision] = []
     for event in events:
-        if not in_region(event, bbox):
-            decisions.append(TriggerDecision(kind="skip", event=event, reason="outside region bbox"))
-            continue
-        if event.mag < min_magnitude:
+        # Detection-domain gate first: outside MONITORED_BBOX the event is
+        # neither mapped nor cataloged (the global all_hour feed carries
+        # the whole planet; the fdsnws sweeps already query this box).
+        if not in_region(event, monitored_bbox):
             decisions.append(
-                TriggerDecision(
-                    kind="skip", event=event,
-                    reason=f"magnitude {event.mag:.2f} below auto-trigger floor {min_magnitude:.2f}",
-                )
+                TriggerDecision(kind="skip", event=event, reason="outside monitored bbox")
             )
             continue
+
+        triggers, trigger_reason = triggers_shakemap(
+            event, iraq_bbox=iraq_bbox, region_bbox=region_bbox
+        )
 
         known = ws.get_event(event.external_id)
         if known is None:
             # Unknown (provider, id) key — but possibly the SAME physical
             # earthquake already tracked under another provider's id
             # (module docstring "Cross-provider dedup"). An event tracked
-            # from any provider must never re-trigger from another
-            # provider's record.
+            # from any provider must never re-trigger — or re-catalog —
+            # from another provider's record.
             cross = find_cross_provider_match(event, ws)
             if cross is not None:
                 decisions.append(
@@ -454,10 +546,23 @@ def evaluate_feed_events(
                             f"cross-provider duplicate of tracked event "
                             f"{cross.source}:{cross.external_id} (dedup §2)"
                         ),
+                        cross_match=cross,
                     )
                 )
                 continue
-            decisions.append(TriggerDecision(kind="new", event=event, reason="new qualifying event"))
+            if triggers:
+                decisions.append(
+                    TriggerDecision(kind="new", event=event, reason=f"new event: {trigger_reason}")
+                )
+            else:
+                # Detected canonical event, no map: catalog-only (the
+                # caller assigns its bml id + live-catalog line).
+                decisions.append(
+                    TriggerDecision(
+                        kind="catalog", event=event,
+                        reason=f"detected, catalog-only: {trigger_reason}",
+                    )
+                )
             continue
 
         if event.updated_ms <= known.last_feed_updated_ms:
@@ -465,6 +570,31 @@ def evaluate_feed_events(
                 TriggerDecision(
                     kind="skip", event=event,
                     reason="feed updated timestamp not newer than last-processed (dedup against state)",
+                )
+            )
+            continue
+
+        if not triggers:
+            # A revision of a tracked event that does not (or no longer
+            # does) satisfy the policy: nothing to compute, nothing to
+            # rewrite (the live catalog is append-only first detections).
+            decisions.append(
+                TriggerDecision(
+                    kind="skip", event=event, reason=f"revision, catalog-only: {trigger_reason}",
+                )
+            )
+            continue
+
+        if known.last_version == 0:
+            # Tracked as catalog-only at first detection, but this revision
+            # crosses the trigger policy (e.g. an upgraded magnitude whose
+            # footprint now reaches Kurdistan): FIRST compute — revision-
+            # delta thresholds are recompute economics and don't apply to
+            # an event that has never been computed at all.
+            decisions.append(
+                TriggerDecision(
+                    kind="new", event=event,
+                    reason=f"tracked catalog-only event now triggers: {trigger_reason}",
                 )
             )
             continue

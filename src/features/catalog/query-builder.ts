@@ -14,7 +14,7 @@ export interface BuiltQuery {
 }
 
 const EVENTS_COLUMNS =
-  "id, time, year, lat, lon, depth_km AS depthKm, mag, mag_type AS magType, " +
+  "id, bumelerze_id AS bumelerzeId, time, year, lat, lon, depth_km AS depthKm, mag, mag_type AS magType, " +
   "source_catalog AS sourceCatalog, source_id AS sourceId, " +
   "contributing_sources AS contributingSources, merged_count AS mergedCount";
 

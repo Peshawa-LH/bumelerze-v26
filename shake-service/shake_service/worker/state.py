@@ -82,6 +82,28 @@ class EventState:
     # because the EMSC sweep only ever returns recent-origin events, which
     # a pre-upgrade entry cannot be.
     origin_time_ms: int = 0
+    # --- bml event-id wave additions -------------------------------------
+    # `bumelerze_id`: the canonical Bumelerze event id (`bml2026a3kx`
+    # format — `shake_service/event_id.py` is the scheme + allocator,
+    # `docs/research/bumelerze-id-scheme.md` the spec). Assigned ONCE at
+    # first detection by `event_id.ensure_bumelerze_id`, immutable after;
+    # `None` only for pre-upgrade state entries (and for events computed
+    # outside the live worker, e.g. Atlas seeds — see `event_id.py`'s
+    # single-authority note). The per-year allocation counters live in
+    # `WorkerState.meta["bumelerze_id_counters"]`, persisted with this
+    # same file — the state file IS the allocation authority today.
+    bumelerze_id: str | None = None
+    # `provider_aliases`: {provider: provider_event_id} for every provider
+    # known to carry this physical event ({"usgs": "us7000abcd",
+    # "emsc": "20260813_0000321", ...}). Seeded with the detecting
+    # provider's own id; grown by `run_worker.process_decisions` whenever a
+    # cross-provider duplicate is deduped against this entry. Carried into
+    # each product's `data_used["provider_aliases"]`.
+    # `last_version == 0` + `params_hash == ""` is the "detected/tracked,
+    # nothing computed yet" stub shape `event_id.ensure_bumelerze_id`
+    # creates for catalog-only detections (events with a bml id that the
+    # trigger policy did not select for a ShakeMap).
+    provider_aliases: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -105,6 +127,8 @@ class EventState:
             comparison_path=d.get("comparison_path"),
             reviews=dict(d.get("reviews", {})),
             origin_time_ms=int(d.get("origin_time_ms", 0)),
+            bumelerze_id=d.get("bumelerze_id"),
+            provider_aliases=dict(d.get("provider_aliases", {})),
         )
 
 

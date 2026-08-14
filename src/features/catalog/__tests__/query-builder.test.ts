@@ -80,6 +80,7 @@ describe("buildCatalogPageQuery", () => {
     expect(sql).toContain("mag_type AS magType");
     expect(sql).toContain("source_catalog AS sourceCatalog");
     expect(sql).toContain("source_id AS sourceId");
+    expect(sql).toContain("bumelerze_id AS bumelerzeId");
     expect(sql).toContain("contributing_sources AS contributingSources");
     expect(sql).toContain("merged_count AS mergedCount");
   });

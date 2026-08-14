@@ -85,11 +85,79 @@ def test_in_region_false_outside_bbox():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_feed_events — new event
+# distance_km_to_bbox + triggers_shakemap — the trigger policy itself
+# (owner directive: any event in Iraq or with effect on Kurdistan, no
+# magnitude floor)
 # ---------------------------------------------------------------------------
 
 
-def test_new_qualifying_event_in_region_above_floor():
+def _fe(*, mag, lat, lon, event_id="policy_test", source="usgs"):
+    return fw.FeedEvent(event_id, source, mag, lat, lon, 10.0, "p", 1_000, 1_000)
+
+
+def test_distance_to_bbox_is_zero_inside_and_positive_outside():
+    assert fw.distance_km_to_bbox(REGION_LAT, REGION_LON, config.REGION_BBOX) == 0.0
+    # 1 degree north of the region bbox's top edge ~= 111 km.
+    d = fw.distance_km_to_bbox(config.REGION_BBOX["max_lat"] + 1.0, 45.0, config.REGION_BBOX)
+    assert 105.0 < d < 115.0
+
+
+def test_policy_golden_m1_5_inside_krg_triggers():
+    # GOLDEN 1: a tiny M1.5 inside the Kurdistan region — no magnitude
+    # floor, and the region is inside Iraq -> triggers.
+    triggers, reason = fw.triggers_shakemap(_fe(mag=1.5, lat=36.2, lon=44.0))
+    assert triggers is True
+    assert "Iraq" in reason
+
+
+def test_policy_golden_m4_in_southern_iraq_triggers():
+    # GOLDEN 2: M4 near Basra — far outside the Kurdistan REGION_BBOX, but
+    # inside IRAQ_BBOX: "in Iraq" IS the effect criterion, no distance test.
+    event = _fe(mag=4.0, lat=30.5, lon=47.8)
+    assert fw.in_region(event, config.REGION_BBOX) is False
+    triggers, reason = fw.triggers_shakemap(event)
+    assert triggers is True
+    assert "Iraq" in reason
+
+
+def test_policy_golden_m5_in_central_iran_400km_away_does_not_trigger():
+    # GOLDEN 3: M5 (moderate band -> 200 km extent) ~400 km east of the
+    # region bbox: its footprint cannot reach Kurdistan, and it is not in
+    # Iraq -> no map.
+    event = _fe(mag=5.0, lat=34.0, lon=52.9)
+    assert fw.distance_km_to_bbox(event.lat, event.lon, config.REGION_BBOX) > 350.0
+    triggers, reason = fw.triggers_shakemap(event)
+    assert triggers is False
+    assert "no effect" in reason
+
+
+def test_policy_golden_m7_5_in_eastern_turkey_reaching_extent_triggers():
+    # GOLDEN 4: M7.5 (major band -> 300 km extent) ~250 km north of the
+    # region bbox in eastern Turkey: outside Iraq, but its own shaking
+    # footprint reaches Kurdistan -> triggers.
+    event = _fe(mag=7.5, lat=40.75, lon=43.0)
+    assert fw.in_region(event, config.IRAQ_BBOX) is False
+    d = fw.distance_km_to_bbox(event.lat, event.lon, config.REGION_BBOX)
+    assert 200.0 < d <= 300.0
+    triggers, reason = fw.triggers_shakemap(event)
+    assert triggers is True
+    assert "footprint" in reason
+
+
+def test_policy_extent_is_magnitude_scaled_same_epicenter_small_vs_major():
+    # The SAME eastern-Turkey epicenter ~250 km out: M7.5 reaches (above),
+    # M4.0 (small band -> 100 km) does not — the criterion is the event's
+    # own magnitude-scaled footprint, not a fixed radius.
+    triggers, _ = fw.triggers_shakemap(_fe(mag=4.0, lat=40.75, lon=43.0))
+    assert triggers is False
+
+
+# ---------------------------------------------------------------------------
+# evaluate_feed_events — new event under the trigger policy
+# ---------------------------------------------------------------------------
+
+
+def test_new_triggering_event_in_region_is_new():
     payload = _payload(_feature(mag=4.0))
     events = fw.parse_usgs_geojson(payload)
     ws = WorkerState()
@@ -98,27 +166,63 @@ def test_new_qualifying_event_in_region_above_floor():
     assert decisions[0].kind == "new"
 
 
-def test_event_out_of_region_is_skipped_even_above_floor():
+def test_tiny_magnitude_event_in_region_is_still_new_no_floor():
+    # The old M>=3.5 floor is GONE (owner directive): an M1.5 inside the
+    # region must produce a "new" trigger decision.
+    payload = _payload(_feature(mag=1.5))
+    events = fw.parse_usgs_geojson(payload)
+    decisions = fw.evaluate_feed_events(events, WorkerState())
+    assert decisions[0].kind == "new"
+
+
+def test_event_outside_monitored_bbox_is_skipped_entirely():
+    # Far outside the monitored bbox (the global all_hour feed carries the
+    # whole planet): neither mapped nor cataloged.
     payload = _payload(_feature(mag=6.0, lat=OUTSIDE_LAT, lon=OUTSIDE_LON))
     events = fw.parse_usgs_geojson(payload)
     decisions = fw.evaluate_feed_events(events, WorkerState())
     assert decisions[0].kind == "skip"
-    assert "region" in decisions[0].reason
+    assert "monitored" in decisions[0].reason
 
 
-def test_event_below_magnitude_floor_is_skipped_even_in_region():
-    payload = _payload(_feature(mag=3.4))  # just under 3.5
+def test_monitored_non_triggering_event_is_catalog_kind():
+    # Inside MONITORED_BBOX (western-Iran margin ~200 km from the region
+    # bbox) but small (M3 -> 100 km extent) and not in Iraq: detected for
+    # the catalog, no map.
+    event_lat, event_lon = 34.0, 50.6
+    assert fw.in_region(_fe(mag=3.0, lat=event_lat, lon=event_lon), config.MONITORED_BBOX)
+    payload = _payload(_feature(mag=3.0, lat=event_lat, lon=event_lon))
     events = fw.parse_usgs_geojson(payload)
     decisions = fw.evaluate_feed_events(events, WorkerState())
-    assert decisions[0].kind == "skip"
-    assert "magnitude" in decisions[0].reason
+    assert decisions[0].kind == "catalog"
+    assert "catalog-only" in decisions[0].reason
 
 
-def test_event_exactly_at_magnitude_floor_qualifies():
-    payload = _payload(_feature(mag=3.5))
-    events = fw.parse_usgs_geojson(payload)
-    decisions = fw.evaluate_feed_events(events, WorkerState())
+def test_tracked_catalog_only_event_becomes_new_when_revision_triggers():
+    # First detected as catalog-only (stub: last_version 0), then the
+    # provider upgrades the magnitude so the footprint reaches Kurdistan:
+    # FIRST compute -> "new", regardless of revision-delta thresholds.
+    ws = WorkerState()
+    ws.upsert_event(_known_state(
+        external_id="upgraded", mag=4.5, lat=40.75, lon=43.0,
+        updated_ms=1_000, last_version=0, params_hash="",
+    ))
+    payload = _payload(_feature(event_id="upgraded", mag=7.5, lat=40.75, lon=43.0, updated_ms=2_000))
+    decisions = fw.evaluate_feed_events(fw.parse_usgs_geojson(payload), ws)
     assert decisions[0].kind == "new"
+    assert "now triggers" in decisions[0].reason
+
+
+def test_revision_of_a_catalog_only_event_that_still_does_not_trigger_skips():
+    ws = WorkerState()
+    ws.upsert_event(_known_state(
+        external_id="still_small", mag=3.0, lat=34.0, lon=50.6,
+        updated_ms=1_000, last_version=0, params_hash="",
+    ))
+    payload = _payload(_feature(event_id="still_small", mag=3.2, lat=34.0, lon=50.6, updated_ms=2_000))
+    decisions = fw.evaluate_feed_events(fw.parse_usgs_geojson(payload), ws)
+    assert decisions[0].kind == "skip"
+    assert "catalog-only" in decisions[0].reason
 
 
 # ---------------------------------------------------------------------------
@@ -128,11 +232,11 @@ def test_event_exactly_at_magnitude_floor_qualifies():
 
 def _known_state(
     *, external_id="us1234", source="usgs", mag=4.0, lat=REGION_LAT, lon=REGION_LON,
-    depth_km=10.0, updated_ms=1_000, origin_time_ms=0,
+    depth_km=10.0, updated_ms=1_000, origin_time_ms=0, last_version=1, params_hash="hash1",
 ) -> EventState:
     return EventState(
         external_id=external_id, source=source, mag=mag, lat=lat, lon=lon, depth_km=depth_km,
-        last_version=1, params_hash="hash1", product_paths={},
+        last_version=last_version, params_hash=params_hash, product_paths={},
         last_feed_updated_ms=updated_ms, origin_time_ms=origin_time_ms,
         first_seen_at="2026-08-07T00:00:00+00:00", last_computed_at="2026-08-07T00:00:00+00:00",
     )
@@ -211,13 +315,16 @@ def test_update_not_triggered_below_all_thresholds():
 def test_multiple_events_each_get_their_own_decision():
     payload = _payload(
         _feature(event_id="new1", mag=4.0),
-        _feature(event_id="lowmag", mag=3.0),
+        _feature(event_id="tiny_in_region", mag=1.5),  # no floor: triggers too
+        _feature(event_id="monitored_only", mag=3.0, lat=34.0, lon=50.6),  # Iran margin: catalog
         _feature(event_id="outside", mag=6.0, lat=OUTSIDE_LAT, lon=OUTSIDE_LON),
     )
     events = fw.parse_usgs_geojson(payload)
     decisions = fw.evaluate_feed_events(events, WorkerState())
     by_id = {d.event.external_id: d.kind for d in decisions}
-    assert by_id == {"new1": "new", "lowmag": "skip", "outside": "skip"}
+    assert by_id == {
+        "new1": "new", "tiny_in_region": "new", "monitored_only": "catalog", "outside": "skip",
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -425,20 +532,21 @@ def test_emsc_only_m4_border_event_triggers_the_pipeline():
     assert decisions[0].event.mag == 4.0
 
 
-def test_emsc_event_below_magnitude_floor_is_skipped():
+def test_emsc_event_below_the_old_floor_now_triggers_no_floor():
+    # The M>=3.5 floor is gone (owner directive) — a small EMSC-only event
+    # inside the region triggers like any other.
     events = fw.parse_emsc_geojson(_payload(_emsc_feature(unid="small", mag=3.4)))
     decisions = fw.evaluate_feed_events(events, WorkerState())
-    assert decisions[0].kind == "skip"
-    assert "magnitude" in decisions[0].reason
+    assert decisions[0].kind == "new"
 
 
-def test_emsc_event_outside_region_bbox_is_skipped():
+def test_emsc_event_outside_monitored_bbox_is_skipped():
     events = fw.parse_emsc_geojson(
         _payload(_emsc_feature(unid="far_away", mag=5.0, lat=10.0, lon=45.0))
     )
     decisions = fw.evaluate_feed_events(events, WorkerState())
     assert decisions[0].kind == "skip"
-    assert "region" in decisions[0].reason
+    assert "monitored" in decisions[0].reason
 
 
 # ---------------------------------------------------------------------------
@@ -594,8 +702,20 @@ def test_geofon_only_qualifying_event_triggers_the_pipeline():
     assert decisions[0].event.source == "geofon"
 
 
-def test_geofon_event_below_magnitude_floor_is_skipped():
+def test_geofon_event_below_the_old_floor_now_triggers_no_floor():
     events = fw.parse_geofon_text(_geofon_text(_geofon_row(event_id="gfzsmall", mag="3.4")))
     decisions = fw.evaluate_feed_events(events, WorkerState())
+    assert decisions[0].kind == "new"
+
+
+def test_cross_provider_skip_carries_the_matched_state_for_alias_recording():
+    # The caller (run_worker.process_decisions) records the duplicate
+    # provider's id into the tracked entry's provider_aliases — the
+    # decision must hand it the matched EventState.
+    ws = WorkerState()
+    tracked = _known_state(external_id="us7000abcd", source="usgs", mag=4.1,
+                           lat=34.93, lon=45.9, origin_time_ms=BORDER_TIME_MS - 4_000)
+    ws.upsert_event(tracked)
+    decisions = fw.evaluate_feed_events(fw.parse_emsc_geojson(_payload(_emsc_feature())), ws)
     assert decisions[0].kind == "skip"
-    assert "magnitude" in decisions[0].reason
+    assert decisions[0].cross_match is tracked

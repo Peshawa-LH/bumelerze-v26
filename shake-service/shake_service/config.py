@@ -257,17 +257,85 @@ def forward_grid_spacing_km(band: MagnitudeBand) -> float:
 
 
 # ---------------------------------------------------------------------------
-# 6b. Auto-trigger magnitude floor (D9: "auto for regional M>=3.5,
-#     on-demand below when felt reports arrive"; `shake_service/worker/`,
-#     wave E). Kept alongside `REGION_BBOX` for the same reason: the worker
-#     (a separate runtime/entry point) and the ingestion/significance-score
-#     design (`event-pipeline-design.md` §3, region-significance threshold
-#     "sig >= 350 (~M3.5+) ... deliberate alignment with D9") must agree on
-#     one number. On-demand sub-3.5 triggering (felt reports) is a later
-#     wave — this constant only gates the AUTO path.
+# 6b. ShakeMap trigger policy geometry (owner directive, 2026-08-14 —
+#     supersedes D9's M>=3.5 regional floor for the AUTO path):
+#     "ANY event in Iraq or with effect on Kurdistan, no magnitude floor."
+#     The policy itself lives in `worker/feed_watcher.triggers_shakemap`;
+#     the geometry lives here for the same reason `REGION_BBOX` does — the
+#     worker and the ingestion design must agree on one set of numbers.
+#
+#     Compute-volume implication, stated honestly: with no magnitude floor,
+#     M1-2 microseismicity inside Iraq now computes maps. That is CHEAP —
+#     sub-M5 events use the small band's 100 km half-extent grid (~200x200
+#     sites max, seconds per event on the worker) and regional M<3 rates
+#     are a handful of feed-visible events per day at most (the feeds
+#     themselves are the real completeness floor down there). The owner
+#     explicitly ruled "small or large doesn't matter" — do not quietly
+#     reintroduce a floor here; if compute cost ever actually bites, that
+#     is a new owner decision, not a config tweak.
 # ---------------------------------------------------------------------------
 
-TRIGGER_MIN_MAGNITUDE: float = 3.5
+# All of Iraq (generous: includes the full federal south down to the Gulf
+# at Basra, the western desert to the Syrian/Jordanian border, and the full
+# KRG north). ANY epicenter inside this box triggers a map regardless of
+# magnitude — Iraq is the app's whole audience, so "in Iraq" IS the effect
+# criterion, no distance test needed.
+IRAQ_BBOX: dict[str, float] = {
+    "min_lat": 29.0,
+    "max_lat": 37.5,
+    "min_lon": 38.8,
+    "max_lon": 48.8,
+}
+
+# The widest shaking footprint any event can have under this engine's own
+# grid policy (§4.3/G8): the major band's half-extent. Used both by the
+# "effect on Kurdistan" criterion's upper bound and by the monitored-bbox
+# margin below — kept as one named constant so the two can never drift.
+MAX_EFFECT_EXTENT_KM: float = GRID_EXTENT_KM["major"]
+
+
+def _expand_bbox(bbox: dict[str, float], margin_km: float) -> dict[str, float]:
+    """Grow a bbox outward by `margin_km` on every side. Latitude margin is
+    the flat `_KM_PER_DEG` conversion; longitude margin is evaluated at the
+    bbox's most polar latitude (smallest cos -> WIDEST degree margin), so
+    the expansion is conservative (never under-covers) everywhere in the
+    box. Module-private: only `MONITORED_BBOX` below should need this."""
+    import math as _math
+
+    lat_margin = margin_km / _KM_PER_DEG
+    most_polar_lat = max(abs(bbox["min_lat"]), abs(bbox["max_lat"]))
+    lon_margin = margin_km / (_KM_PER_DEG * _math.cos(_math.radians(most_polar_lat)))
+    return {
+        "min_lat": bbox["min_lat"] - lat_margin,
+        "max_lat": bbox["max_lat"] + lat_margin,
+        "min_lon": bbox["min_lon"] - lon_margin,
+        "max_lon": bbox["max_lon"] + lon_margin,
+    }
+
+
+def _bbox_union(a: dict[str, float], b: dict[str, float]) -> dict[str, float]:
+    return {
+        "min_lat": min(a["min_lat"], b["min_lat"]),
+        "max_lat": max(a["max_lat"], b["max_lat"]),
+        "min_lon": min(a["min_lon"], b["min_lon"]),
+        "max_lon": max(a["max_lon"], b["max_lon"]),
+    }
+
+
+# The worker's DETECTION domain: every event inside this box is a
+# "detected canonical event" — assigned a bml id (`event_id.py`) and
+# appended to the live catalog (`worker/live_catalog.py`) even when the
+# trigger policy computes no map for it. Geometry = everything that could
+# possibly satisfy the trigger policy: all of Iraq, plus the Kurdistan
+# region bbox expanded by the widest possible shaking footprint
+# (`MAX_EFFECT_EXTENT_KM`) so an M7+ across the Turkish/Iranian border
+# whose extent reaches Kurdistan is inside the sweep window. The fdsnws
+# region sweeps (`scripts/run_worker.py`) query THIS box — querying only
+# `REGION_BBOX` would mean southern-Iraq or cross-border effect events
+# never even arrive at the decision function.
+MONITORED_BBOX: dict[str, float] = _bbox_union(
+    IRAQ_BBOX, _expand_bbox(REGION_BBOX, MAX_EFFECT_EXTENT_KM)
+)
 
 
 # ---------------------------------------------------------------------------

@@ -124,6 +124,7 @@
       "increment": "زیادکردن"
     },
     "sources": {
+      "BUMELERZE": "بوومەلەرزە",
       "ISCGEM": "ISC-GEM",
       "ONUR2017": "ئۆنور ٢٠١٧",
       "EMME": "EMME",
@@ -139,6 +140,7 @@
       "magnitudeLabel": "پلە",
       "sourceLabel": "سەرچاوە",
       "sourceIdLabel": "ژمارەی سەرچاوە",
+      "bumelerzeIdLabel": "ژمارەی بوومەلەرزە",
       "unknown": "نەزانراو"
     }
   },

@@ -43,6 +43,7 @@ function makeFakeDb(fixtureRows: CatalogRow[]): CatalogDb & {
 const FIXTURE_ROWS: CatalogRow[] = [
   {
     id: "bumelerze-000001",
+    bumelerzeId: "bml2017000s",
     time: "2017-11-12T18:18:17.180Z",
     year: 2017,
     lat: 34.9109,
@@ -57,6 +58,7 @@ const FIXTURE_ROWS: CatalogRow[] = [
   },
   {
     id: "bumelerze-000002",
+    bumelerzeId: "bml19580002",
     time: "1958-05-05T05:21:34.000Z",
     year: 1958,
     lat: 35.644,
