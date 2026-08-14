@@ -89,12 +89,16 @@ def format_bumelerze_id(year: int, counter: int) -> str:
     """`(year, counter)` -> canonical bml id. `counter` is 1-based (the
     first event of a year is counter 1 -> `bml<year>0001`). Zero-padded to
     `SUFFIX_MIN_WIDTH`; wider counters keep all their digits (the
-    documented past-`zzzz` rollover — never truncated, never reused)."""
-    if not (1000 <= year <= 9999):
-        raise ValueError(f"format_bumelerze_id: year {year} is not 4 digits")
+    documented past-`zzzz` rollover — never truncated, never reused).
+    The year is zero-padded to 4 digits too: the RETROACTIVE archival
+    catalog (`scripts/build_regional_catalog.py`) reaches back to
+    documentary events of year 872 -> `bml0872...` — same format, no
+    special case."""
+    if not (0 <= year <= 9999):
+        raise ValueError(f"format_bumelerze_id: year {year} not expressible in 4 digits")
     if counter < 1:
         raise ValueError(f"format_bumelerze_id: counter must be >= 1, got {counter}")
-    return f"{BML_PREFIX}{year}{base36(counter).rjust(SUFFIX_MIN_WIDTH, '0')}"
+    return f"{BML_PREFIX}{year:04d}{base36(counter).rjust(SUFFIX_MIN_WIDTH, '0')}"
 
 
 def parse_bumelerze_id(bml_id: str) -> tuple[int, int] | None:

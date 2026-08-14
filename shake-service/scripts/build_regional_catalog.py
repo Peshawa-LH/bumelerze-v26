@@ -66,6 +66,7 @@ import csv
 import math
 import re
 import sqlite3
+import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -73,6 +74,10 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # allow running as a plain script
+
+from shake_service.event_id import format_bumelerze_id  # noqa: E402
 
 # --- Paths -------------------------------------------------------------
 
@@ -652,15 +657,31 @@ class Merger:
 # --- Output ------------------------------------------------------------------
 
 
-def write_outputs(events: list[MergedEvent]) -> None:
+def write_outputs(events: list[MergedEvent]) -> list[dict]:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     ordered = sorted(events, key=lambda e: e.time)
 
+    # Retroactive bml ids (`shake_service/event_id.py` format; spec:
+    # `docs/research/bumelerze-id-scheme.md`): per-year counters walked
+    # over THIS deterministic ordering — `sorted` is stable, `e.time` ties
+    # keep ingestion order, and ingestion order is itself deterministic
+    # (fixed SOURCE_PRIORITY loop over fixed-order file reads) — so a
+    # rebuild from unchanged sources reproduces every id byte-for-byte
+    # (tested: tests/test_build_regional_catalog.py). A rebuild from
+    # REFRESHED sources may renumber (more/fewer events shift the
+    # counters); that is acceptable for this pre-launch archival build and
+    # documented in the id-scheme spec — LIVE ids (allocated by the worker
+    # from launch, `live-catalog.jsonl`) are immutable and must be carried
+    # through verbatim by any future rebuild that merges them in.
+    year_counters: dict[int, int] = defaultdict(int)
+
     rows = []
     for i, ev in enumerate(ordered, start=1):
+        year_counters[ev.time.year] += 1
         rows.append(
             {
                 "id": f"bumelerze-{i:06d}",
+                "bumelerze_id": format_bumelerze_id(ev.time.year, year_counters[ev.time.year]),
                 "time": ev.time.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
                 "year": ev.time.year,
                 "lat": round(ev.lat, 4),
@@ -682,6 +703,7 @@ def write_outputs(events: list[MergedEvent]) -> None:
         """
         CREATE TABLE events (
             id TEXT PRIMARY KEY,
+            bumelerze_id TEXT NOT NULL UNIQUE,
             time TEXT NOT NULL,
             year INTEGER NOT NULL,
             lat REAL NOT NULL,
@@ -702,10 +724,10 @@ def write_outputs(events: list[MergedEvent]) -> None:
     conn.executemany(
         """
         INSERT INTO events
-            (id, time, year, lat, lon, depth_km, mag, mag_type,
+            (id, bumelerze_id, time, year, lat, lon, depth_km, mag, mag_type,
              source_catalog, source_id, contributing_sources, merged_count)
         VALUES
-            (:id, :time, :year, :lat, :lon, :depth_km, :mag, :mag_type,
+            (:id, :bumelerze_id, :time, :year, :lat, :lon, :depth_km, :mag, :mag_type,
              :source_catalog, :source_id, :contributing_sources, :merged_count)
         """,
         rows,
@@ -814,6 +836,41 @@ def build_report(
         lines.append(f"- Magnitude range: {min(mags):.2f}–{max(mags):.2f}")
     lines.append(f"- SQLite: `regional-catalog/bumelerze-catalog.sqlite`")
     lines.append(f"- CSV: `regional-catalog/bumelerze-catalog.csv`")
+    lines.append("")
+
+    lines.append("## Bumelerze ids (retroactive assignment)")
+    lines.append("")
+    lines.append(
+        "Every merged event carries a canonical `bumelerze_id` "
+        "(`bml` + 4-digit year + base-36 per-year counter — scheme + allocation rules: "
+        "`shake_service/event_id.py`, spec `docs/research/bumelerze-id-scheme.md`), "
+        "assigned retroactively by this build: per-year counters walked over the "
+        "deterministic time-sorted event order, so an unchanged-sources rebuild "
+        "reproduces every id exactly (see `write_outputs`)."
+    )
+    lines.append("")
+    if rows:
+        lines.append(f"- Ids assigned: **{len(rows)}** across **{len({r['year'] for r in rows})}** distinct years")
+        lines.append(f"- First (oldest event): `{rows[0]['bumelerze_id']}`")
+        lines.append(f"- Last (newest event): `{rows[-1]['bumelerze_id']}`")
+        busiest_year = Counter(r["year"] for r in rows).most_common(1)[0]
+        lines.append(f"- Busiest year: {busiest_year[0]} ({busiest_year[1]} events)")
+    lines.append("")
+
+    lines.append("## Live continuation — `regional-catalog/live-catalog.jsonl`")
+    lines.append("")
+    lines.append(
+        "This compiled db is the PRE-LAUNCH archive; its from-launch successor is "
+        "`regional-catalog/live-catalog.jsonl` (`shake_service/worker/live_catalog.py`): "
+        "the worker appends one JSON line per newly detected canonical event — any "
+        "magnitude, post-cross-provider-dedup, bml id included, whether or not a "
+        "SHAKEmap was computed for it. That file is append-only (first-detection "
+        "records; the worker state file holds current params) and merges into this "
+        "database as an additional source at future rebuilds / the Supabase backend "
+        "sync — with its already-assigned live bml ids carried through verbatim "
+        "(live ids are immutable; only THIS build's retroactive ids may renumber "
+        "when historical sources are refreshed)."
+    )
     lines.append("")
 
     lines.append("## Magnitude completeness by decade (quick histogram)")

@@ -70,6 +70,19 @@ Canonical-parameter priority (highest first): `ISC-GEM > Onur-2017 > EMME > USGS
 - SQLite: `regional-catalog/bumelerze-catalog.sqlite`
 - CSV: `regional-catalog/bumelerze-catalog.csv`
 
+## Bumelerze ids (retroactive assignment)
+
+Every merged event carries a canonical `bumelerze_id` (`bml` + 4-digit year + base-36 per-year counter — scheme + allocation rules: `shake_service/event_id.py`, spec `docs/research/bumelerze-id-scheme.md`), assigned retroactively by this build: per-year counters walked over the deterministic time-sorted event order, so an unchanged-sources rebuild reproduces every id exactly (see `write_outputs`).
+
+- Ids assigned: **21360** across **177** distinct years
+- First (oldest event): `bml08720001`
+- Last (newest event): `bml2023003t`
+- Busiest year: 2009 (3720 events)
+
+## Live continuation — `regional-catalog/live-catalog.jsonl`
+
+This compiled db is the PRE-LAUNCH archive; its from-launch successor is `regional-catalog/live-catalog.jsonl` (`shake_service/worker/live_catalog.py`): the worker appends one JSON line per newly detected canonical event — any magnitude, post-cross-provider-dedup, bml id included, whether or not a SHAKEmap was computed for it. That file is append-only (first-detection records; the worker state file holds current params) and merges into this database as an additional source at future rebuilds / the Supabase backend sync — with its already-assigned live bml ids carried through verbatim (live ids are immutable; only THIS build's retroactive ids may renumber when historical sources are refreshed).
+
 ## Magnitude completeness by decade (quick histogram)
 
 Event counts per decade, split above/below M4.5 — a rough, honest look at how complete the catalog likely is over time (older/smaller events are systematically under-recorded; this is NOT a formal Gutenberg-Richter completeness analysis, just a sanity check for Peshawa's review).

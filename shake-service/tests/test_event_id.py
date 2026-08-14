@@ -56,7 +56,14 @@ def test_format_rejects_nonsense():
     with pytest.raises(ValueError):
         event_id.format_bumelerze_id(2026, 0)  # 1-based counters
     with pytest.raises(ValueError):
-        event_id.format_bumelerze_id(999, 1)  # not a 4-digit year
+        event_id.format_bumelerze_id(10_000, 1)  # not expressible in 4 digits
+
+
+def test_format_zero_pads_pre_1000_historical_years():
+    # The archival catalog reaches year 872 (documentary events) — same
+    # format, year zero-padded.
+    assert event_id.format_bumelerze_id(872, 1) == "bml08720001"
+    assert event_id.parse_bumelerze_id("bml08720001") == (872, 1)
 
 
 def test_year_from_time_ms_is_utc():
