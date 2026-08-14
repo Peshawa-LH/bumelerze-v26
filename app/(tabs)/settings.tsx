@@ -163,7 +163,8 @@ function TelemetrySection() {
  * attribution note ... added to the Settings about/provenance section").
  * Text-only — the event-detail source citation (app/event/[id].tsx) already
  * names the specific network per event; this section is the one place that
- * names BOTH providers and their shared license up front. */
+ * names ALL providers (USGS, EMSC, GEOFON/GFZ) and their shared license up
+ * front. */
 function DataSourcesSection() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();

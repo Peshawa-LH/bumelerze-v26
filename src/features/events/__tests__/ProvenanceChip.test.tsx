@@ -19,4 +19,9 @@ describe("ProvenanceChip", () => {
     await render(<ProvenanceChip provider="emsc" />);
     expect(screen.getByText("EMSC")).toBeTruthy();
   });
+
+  it("renders the GEOFON label for provider 'geofon'", async () => {
+    await render(<ProvenanceChip provider="geofon" />);
+    expect(screen.getByText("GEOFON")).toBeTruthy();
+  });
 });

@@ -60,6 +60,16 @@ export const EMSC_FEEDS = {
   fdsnQuery: "https://www.seismicportal.eu/fdsnws/event/1/query",
 } as const;
 
+/** GEOFON (GFZ Helmholtz Centre for Geosciences, Potsdam) fdsnws endpoint —
+ * the third region-feed catalog (D4 authority order: USGS > EMSC > GEOFON).
+ * FDSN-compliant but with NO `format=json` support (verified live: 400) —
+ * `format=text` is what it speaks: pipe-delimited FDSN WS-EVENT text, parsed
+ * by geofon.ts. Same bbox filter params as EMSC's short aliases
+ * (minlat/maxlat/minlon/maxlon) plus `starttime`. */
+export const GEOFON_FEEDS = {
+  fdsnQuery: "https://geofon.gfz.de/fdsnws/event/1/query",
+} as const;
+
 /** Region feed window per the wave brief: last 30 days. */
 export const REGION_FEED_WINDOW_DAYS = 30;
 
@@ -69,13 +79,15 @@ export const REGION_FEED_WINDOW_DAYS = 30;
 export const EVENTS_REFETCH_INTERVAL_MS = 60_000;
 export const EVENTS_STALE_TIME_MS = 30_000;
 
-/** Per-provider timeout budgets for the region feed's PARALLEL USGS+EMSC
- * fetch (completeness merge — see queries.ts). Each provider gets its own
- * abort budget; a slow provider is dropped from that poll's merge rather
- * than blocking the other one. Tunable; 8s is generous for a mobile network
- * but still well under a user's patience for a pull-to-refresh. */
+/** Per-provider timeout budgets for the region feed's PARALLEL
+ * USGS+EMSC+GEOFON fetch (completeness merge — see queries.ts). Each
+ * provider gets its own abort budget; a slow provider is dropped from that
+ * poll's merge rather than blocking the others. Tunable; 8s is generous for
+ * a mobile network but still well under a user's patience for a
+ * pull-to-refresh. */
 export const USGS_REGION_TIMEOUT_MS = 8_000;
 export const EMSC_REGION_TIMEOUT_MS = 8_000;
+export const GEOFON_REGION_TIMEOUT_MS = 8_000;
 
 /**
  * Cross-provider dedup thresholds, event-pipeline-design.md §2 step 3

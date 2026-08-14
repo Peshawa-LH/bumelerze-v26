@@ -100,7 +100,7 @@ describe("mergeProviderEvents", () => {
       mag: 4.2,
     });
 
-    const merged = mergeProviderEvents([usgsEvent], [emscDuplicate]);
+    const merged = mergeProviderEvents([[usgsEvent], [emscDuplicate]]);
 
     expect(merged).toHaveLength(1);
     // The exact USGS Event object survives untouched — nothing from the
@@ -116,7 +116,7 @@ describe("mergeProviderEvents", () => {
       lon: 45.7,
     });
 
-    const merged = mergeProviderEvents([usgsEvent], [emscOnly]);
+    const merged = mergeProviderEvents([[usgsEvent], [emscOnly]]);
 
     expect(merged).toHaveLength(2);
     expect(merged).toContain(usgsEvent);
@@ -129,7 +129,7 @@ describe("mergeProviderEvents", () => {
     // Simultaneous but ~222 km north — two distinct quakes.
     const emscOther = makeEvent("emsc", "20260813_0000050", { lat: BASE_LAT + 2.0 });
 
-    const merged = mergeProviderEvents([usgsEvent], [emscOther]);
+    const merged = mergeProviderEvents([[usgsEvent], [emscOther]]);
 
     expect(merged).toHaveLength(2);
   });
@@ -139,16 +139,16 @@ describe("mergeProviderEvents", () => {
       makeEvent("usgs", "us1", { originTime: BASE_TIME }),
       makeEvent("usgs", "us2", { originTime: BASE_TIME - 60_000 }),
     ];
-    expect(mergeProviderEvents(usgsEvents, [])).toEqual(usgsEvents);
+    expect(mergeProviderEvents([usgsEvents, []])).toEqual(usgsEvents);
   });
 
   it("empty USGS list → the EMSC list (EMSC-only degraded mode, the old failover outcome)", () => {
     const emscEvents = [makeEvent("emsc", "e1"), makeEvent("emsc", "e2", { lat: 36.5 })];
-    expect(mergeProviderEvents([], emscEvents)).toEqual(emscEvents);
+    expect(mergeProviderEvents([[], emscEvents])).toEqual(emscEvents);
   });
 
   it("both lists empty → empty list", () => {
-    expect(mergeProviderEvents([], [])).toEqual([]);
+    expect(mergeProviderEvents([[], []])).toEqual([]);
   });
 
   it("orders the merged list by origin time, newest first", () => {
@@ -159,7 +159,7 @@ describe("mergeProviderEvents", () => {
     });
     const middle = makeEvent("usgs", "us_mid", { originTime: BASE_TIME });
 
-    const merged = mergeProviderEvents([older, middle], [newest]);
+    const merged = mergeProviderEvents([[older, middle], [newest]]);
 
     expect(merged.map((e) => e.id)).toEqual(["e_new", "us_mid", "us_old"]);
   });
@@ -171,7 +171,7 @@ describe("mergeProviderEvents", () => {
     // Δt vs B is 4 s (inside) at the same epicenter.
     const emscTwinOfB = makeEvent("emsc", "eB", { originTime: BASE_TIME + 64_000 });
 
-    const merged = mergeProviderEvents([usgsA, usgsB], [emscTwinOfB]);
+    const merged = mergeProviderEvents([[usgsA, usgsB], [emscTwinOfB]]);
 
     expect(merged.map((e) => e.id).sort()).toEqual(["usA", "usB"]);
   });
@@ -217,7 +217,7 @@ describe("mergeProviderEvents", () => {
       }),
     ];
 
-    const merged = mergeProviderEvents(usgsEvents, emscEvents);
+    const merged = mergeProviderEvents([usgsEvents, emscEvents]);
 
     const surfaced = merged.find((e) => e.id === "20260813_0000321");
     expect(surfaced).toBeDefined();
@@ -226,5 +226,112 @@ describe("mergeProviderEvents", () => {
     // The overlapping event stayed single, under its USGS record.
     expect(merged).toHaveLength(3);
     expect(merged.filter((e) => e.provenance.provider === "usgs")).toHaveLength(2);
+  });
+});
+
+/**
+ * Three-way goldens (GEOFON wave): `mergeProviderEvents` takes the lists in
+ * canonical authority order — [USGS, EMSC, GEOFON] per D4 — and an event
+ * matched in ANY earlier list dedups away. The GEOFON twin below uses the
+ * VERIFIED live gfz2026oyxe record (2026-08-01 20:27:43 UTC, mb 4.48,
+ * 35.406/44.659, 55 km, Iraq) as its parameter template.
+ */
+describe("mergeProviderEvents — three-way (USGS, EMSC, GEOFON)", () => {
+  const GFZ_TIME = Date.UTC(2026, 7, 1, 20, 27, 43, 70);
+
+  function gfzTwin(provider: EventProvider, id: string, dtMs: number, mag: number): Event {
+    return makeEvent(provider, id, {
+      originTime: GFZ_TIME + dtMs,
+      lat: 35.406,
+      lon: 44.659,
+      mag,
+    });
+  }
+
+  it("an event in all three catalogs survives only as its USGS record", () => {
+    const usgs = gfzTwin("usgs", "us7000gfz1", 2_000, 4.5);
+    const emsc = gfzTwin("emsc", "20260801_0000077", 1_000, 4.4);
+    const geofon = gfzTwin("geofon", "gfz2026oyxe", 0, 4.48);
+
+    const merged = mergeProviderEvents([[usgs], [emsc], [geofon]]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toBe(usgs);
+  });
+
+  it("an event in EMSC and GEOFON only survives as its EMSC record (EMSC outranks GEOFON)", () => {
+    const emsc = gfzTwin("emsc", "20260801_0000077", 1_000, 4.4);
+    const geofon = gfzTwin("geofon", "gfz2026oyxe", 0, 4.48);
+
+    const merged = mergeProviderEvents([[], [emsc], [geofon]]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toBe(emsc);
+    expect(merged[0]?.provenance.provider).toBe("emsc");
+  });
+
+  it("a GEOFON-only event passes through as-is, provider chip intact", () => {
+    const usgs = makeEvent("usgs", "usX", { originTime: GFZ_TIME - 6 * 60 * 60 * 1000 });
+    const geofonOnly = gfzTwin("geofon", "gfz2026oyxe", 0, 4.48);
+
+    const merged = mergeProviderEvents([[usgs], [], [geofonOnly]]);
+
+    expect(merged).toHaveLength(2);
+    expect(merged.find((e) => e.id === "gfz2026oyxe")?.provenance.provider).toBe("geofon");
+  });
+
+  it("a GEOFON event matching a USGS record (but no EMSC record) still dedups away", () => {
+    const usgs = gfzTwin("usgs", "us7000gfz1", 0, 4.5);
+    const emscUnrelated = makeEvent("emsc", "e_far", {
+      originTime: GFZ_TIME - 2 * 60 * 60 * 1000,
+      lat: 37.5,
+      lon: 43.0,
+    });
+    const geofonDuplicate = gfzTwin("geofon", "gfz2026oyxe", 4_000, 4.48);
+
+    const merged = mergeProviderEvents([[usgs], [emscUnrelated], [geofonDuplicate]]);
+
+    expect(merged.map((e) => e.id).sort()).toEqual(["e_far", "us7000gfz1"]);
+  });
+
+  it("boundary: a GEOFON record exactly at the 16 s window vs the EMSC survivor dedups; 1 ms past survives", () => {
+    const emsc = gfzTwin("emsc", "20260801_0000077", 0, 4.4);
+    const atBoundary = gfzTwin("geofon", "gfz_at", DEDUP_MAX_TIME_DELTA_MS, 4.4);
+    const pastBoundary = gfzTwin("geofon", "gfz_past", DEDUP_MAX_TIME_DELTA_MS + 1, 4.4);
+
+    expect(mergeProviderEvents([[], [emsc], [atBoundary]])).toHaveLength(1);
+    expect(mergeProviderEvents([[], [emsc], [pastBoundary]])).toHaveLength(2);
+  });
+
+  it("events are never deduplicated within their own provider's list", () => {
+    // Two same-provider records inside the match window — a provider's own
+    // catalog is trusted to be internally deduplicated, so both survive.
+    const a = gfzTwin("geofon", "gfz_a", 0, 4.4);
+    const b = gfzTwin("geofon", "gfz_b", 5_000, 4.5);
+
+    expect(mergeProviderEvents([[], [], [a, b]])).toHaveLength(2);
+  });
+
+  it("single-list and empty-list degenerate inputs behave like the old two-way merge", () => {
+    const geofonOnlyList = [gfzTwin("geofon", "gfz2026oyxe", 0, 4.48)];
+    expect(mergeProviderEvents([[], [], geofonOnlyList])).toEqual(geofonOnlyList);
+    expect(mergeProviderEvents([[], [], []])).toEqual([]);
+    expect(mergeProviderEvents([])).toEqual([]);
+  });
+
+  it("orders the three-way merged list by origin time, newest first, across providers", () => {
+    const usgs = makeEvent("usgs", "us_mid", { originTime: GFZ_TIME });
+    const emsc = makeEvent("emsc", "e_old", {
+      originTime: GFZ_TIME - 3_600_000,
+      lat: 36.8,
+    });
+    const geofon = makeEvent("geofon", "gfz_new", {
+      originTime: GFZ_TIME + 3_600_000,
+      lat: 33.9,
+    });
+
+    const merged = mergeProviderEvents([[usgs], [emsc], [geofon]]);
+
+    expect(merged.map((e) => e.id)).toEqual(["gfz_new", "us_mid", "e_old"]);
   });
 });
