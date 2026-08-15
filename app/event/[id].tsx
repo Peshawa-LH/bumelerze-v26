@@ -136,10 +136,15 @@ export default function EventDetailScreen() {
                   // detail was added.
                   return;
                 }
+                // 2026-08-15 flow restructure (owner directive): "add more
+                // detail" on an existing tier-1-only report now enters at
+                // window 2 (damage) — the baseline windows 2/3 upgrade path
+                // — not straight into the deeper questionnaire, which is
+                // reachable from window 3 itself if the user wants to go
+                // further.
                 router.push({
-                  pathname: "/felt-report/step/[step]",
+                  pathname: "/felt-report/damage",
                   params: {
-                    step: "0",
                     feltReportId: ownReport.tier1.reportId,
                     eventId: event.id,
                   },
@@ -374,11 +379,7 @@ function EventDetailHeader({
        * already computes, event-pipeline-design.md §4), since a far-world
        * event has no regional history worth linking to. */}
       {event.isRegional ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onNavigateHistorical}
-          hitSlop={12}
-        >
+        <Pressable accessibilityRole="button" onPress={onNavigateHistorical} hitSlop={12}>
           <Text
             style={{
               color: colors.text.link,
