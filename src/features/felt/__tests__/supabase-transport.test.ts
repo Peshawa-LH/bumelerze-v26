@@ -59,6 +59,27 @@ function loadMigrationColumns(tableName: string): string[] {
   return extractTableColumns(sql, tableName);
 }
 
+/** Same schema/app sync-check idea as `loadMigrationColumns`, but for
+ * 0009's `alter table ... add column <name> ...` statements instead of a
+ * `create table` column list (a different SQL shape needs a different, still
+ * dependency-free, regex pass). */
+function loadMigrationColumns0009(): string[] {
+  const sqlPath = path.join(
+    __dirname,
+    "../../../../supabase/migrations/0009_felt_damage_typology.sql",
+  );
+  const sql = fs.readFileSync(sqlPath, "utf8");
+  const columns: string[] = [];
+  const addColumnRe = /add column ([a-z_][a-z0-9_]*)\s/g;
+  for (const match of sql.matchAll(addColumnRe)) {
+    const name = match[1];
+    if (name) {
+      columns.push(name);
+    }
+  }
+  return columns;
+}
+
 jest.mock("@/lib/supabase", () => ({
   getSupabaseClient: jest.fn(),
 }));
@@ -97,6 +118,7 @@ const SAMPLE_TIER2_ANSWERS: Tier2Answers = {
   picture: "yes",
   furniture: "no",
   buildingDamageLevel: 1,
+  damageTypology: "lowrise",
   roadDamageLevel: 0,
   comment: "Books fell off the shelf.",
 };
@@ -105,6 +127,7 @@ const SAMPLE_TIER2: Tier2Report = {
   detailId: "22222222-2222-4222-8222-222222222222",
   feltReportId: SAMPLE_TIER1.reportId,
   answers: SAMPLE_TIER2_ANSWERS,
+  photoUri: null,
   createdAt: 1_700_000_001_000,
 };
 
@@ -162,18 +185,30 @@ describe("buildFeltReportDetailInsert (pure mapping)", () => {
       picture_answer: "yes",
       furniture_answer: "no",
       building_damage_level: 1,
+      damage_typology: "lowrise",
       road_damage_level: 0,
       raw_answers: SAMPLE_TIER2_ANSWERS,
     });
   });
 
-  it("every payload key is a real felt_report_details column (schema/app sync check)", () => {
+  it("every payload key is a real felt_report_details column (schema/app sync check, migration 0003 + 0009)", () => {
     const { buildFeltReportDetailInsert } = loadTransport();
-    const columns = loadMigrationColumns("felt_report_details");
+    const columns = [
+      ...loadMigrationColumns("felt_report_details"),
+      ...loadMigrationColumns0009(),
+    ];
 
     for (const key of Object.keys(buildFeltReportDetailInsert(SAMPLE_TIER2))) {
       expect(columns).toContain(key);
     }
+  });
+
+  it("never sends photoUri to felt_report_details — no column exists for it yet (see the build function's own TODO)", () => {
+    const { buildFeltReportDetailInsert } = loadTransport();
+    const withPhoto: Tier2Report = { ...SAMPLE_TIER2, photoUri: "file:///tmp/photo.jpg" };
+
+    expect(buildFeltReportDetailInsert(withPhoto)).not.toHaveProperty("photo_uri");
+    expect(buildFeltReportDetailInsert(withPhoto)).not.toHaveProperty("photoUri");
   });
 });
 

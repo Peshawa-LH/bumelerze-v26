@@ -2,8 +2,10 @@ export {
   CARTOON_LEVELS,
   EMPTY_TIER2_ANSWERS,
   SEVERE_DESTRUCTION_THRESHOLD,
+  type BuildingDamageGrade,
   type CartoonLevel,
   type DamageLevel,
+  type DamageTypology,
   type FeltAnswer,
   type FeltLocation,
   type FurnitureAnswer,
@@ -24,6 +26,11 @@ export {
   TIER2_QUESTION_COUNT,
   type Tier2QuestionDef,
 } from "./questions";
+export {
+  BUILDING_DAMAGE_GRADES,
+  DAMAGE_GRADE_TO_INTENSITY_INDEX,
+  DAMAGE_TYPOLOGIES,
+} from "./damage";
 export { getDeviceId, __resetDeviceIdCacheForTests } from "./device-id";
 export { resolveHomeFeltAssociation } from "./association";
 export { useFeltLocation, type UseFeltLocationResult } from "./use-felt-location";
@@ -52,6 +59,7 @@ export {
   type FeltReportInsert,
 } from "./supabase-transport";
 export { LevelTile } from "./components/LevelTile";
+export { DamageTile } from "./components/DamageTile";
 export { FeltReportPill } from "./components/FeltReportPill";
 export { InlineTownPicker } from "./components/InlineTownPicker";
 export { Tier2ScreenShell } from "./components/Tier2ScreenShell";

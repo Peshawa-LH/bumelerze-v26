@@ -229,12 +229,23 @@ export async function enqueueTier1Report(
 export interface EnqueueTier2Input {
   feltReportId: string;
   answers: Tier2Answers;
+  /** Window 3's optional photo attachment (2026-08-15 flow restructure) —
+   * see `Tier2Report.photoUri`'s own doc. Omitted/undefined is stored as
+   * `null`, same "no photo" meaning either way. */
+  photoUri?: string | null;
 }
 
-/** Optional tier-2 follow-up. Attaches to (supersedes) the existing queue
- * item for `feltReportId` — throws if that item doesn't exist, which would
- * only happen from a programming error (tier 2 is only ever reachable with
- * a real tier-1 report id in hand, per the wave brief's navigation rule). */
+/**
+ * Post-tier-1 follow-up — covers both the baseline windows 2/3 upgrade
+ * (damage/comment/photo only, most `answers` fields still null) and the
+ * full "add more detail" questionnaire completion; both attach to
+ * (supersede) the existing queue item for `feltReportId` via the same
+ * mechanism (2026-08-15 flow restructure, owner directive: "supersede
+ * semantics like tier-2 today"). Throws if that item doesn't exist, which
+ * would only happen from a programming error (this flow is only ever
+ * reachable with a real tier-1 report id in hand, per the wave brief's
+ * navigation rule).
+ */
 export async function enqueueTier2Report(
   input: EnqueueTier2Input,
   transport: FeltTransport = getDefaultFeltTransport(),
@@ -252,6 +263,7 @@ export async function enqueueTier2Report(
     detailId: Crypto.randomUUID(),
     feltReportId: input.feltReportId,
     answers: input.answers,
+    photoUri: input.photoUri ?? null,
     createdAt: Date.now(),
   };
 

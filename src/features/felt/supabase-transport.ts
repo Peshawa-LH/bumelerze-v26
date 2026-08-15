@@ -75,14 +75,17 @@ export interface FeltReportDetailInsert {
   picture_answer: string | null;
   furniture_answer: string | null;
   building_damage_level: number | null;
+  damage_typology: string | null;
   road_damage_level: number | null;
   raw_answers: Record<string, unknown>;
 }
 
 /**
  * Maps a `Tier2Report` to a `felt_report_details` insert row.
- * Column mapping (migration 0003) — one column per Q2-Q11 answer, matching
- * the CHECK-constraint enum strings 1:1 (`types.ts` defines the same union
+ * Column mapping (migration 0003, extended by 0009 for `damage_typology` +
+ * the widened `building_damage_level` check) — one column per Q2-Q9/Q11
+ * answer plus the window-2 damage grade/typology, matching the
+ * CHECK-constraint enum strings 1:1 (`types.ts` defines the same union
  * literals the DB constrains to, so no translation step exists to drift):
  *  - `detail_id`            <- `detailId`
  *  - `felt_report_id`       <- `feltReportId` (FK to the tier-1 row's
@@ -97,13 +100,21 @@ export interface FeltReportDetailInsert {
  *  - `shelf_answer`          <- `answers.shelf`                   (Q7)
  *  - `picture_answer`        <- `answers.picture`                 (Q8)
  *  - `furniture_answer`      <- `answers.furniture`                (Q9)
- *  - `building_damage_level` <- `answers.buildingDamageLevel`      (Q10)
+ *  - `building_damage_level` <- `answers.buildingDamageLevel`      (window
+ *                             2's 0-4 grade, 2026-08-15 flow restructure —
+ *                             supersedes the old Q10 questionnaire answer;
+ *                             the column itself is unchanged, only its
+ *                             range widened 0-3 -> 0-4, migration 0009)
+ *  - `damage_typology`       <- `answers.damageTypology` (NEW, migration
+ *                             0009 — which of window 2's two rows the grade
+ *                             came from; null for the generic "no damage"
+ *                             shortcut)
  *  - `road_damage_level`     <- `answers.roadDamageLevel`          (Q11)
  *  - `raw_answers`           <- the full `answers` object (jsonb) — the
  *                             column's own comment says this is the
  *                             "authoritative source for IMS-25 re-scoring"
  *                             (migration 0003). This is also where the
- *                             tier-2 free-text `comment` field lives: the
+ *                             free-text `comment` field lives: the
  *                             migration has no discrete `comment` column on
  *                             `felt_report_details` (only the separate,
  *                             moderated `felt_comments` stream table, which
@@ -112,6 +123,18 @@ export interface FeltReportDetailInsert {
  *                             this as a deliberate choice, not an oversight,
  *                             consistent with the migration's own stated
  *                             purpose for `raw_answers`.
+ *
+ * NOT mapped here: `report.photoUri` (window 3's optional photo). There is
+ * no `felt_report_details` column for it — a photo belongs in the separate
+ * `felt_photos` table (`storage_path`, moderation-gated, migration 0003),
+ * which requires an actual Supabase Storage upload this transport does not
+ * attempt this wave (2026-08-15 flow restructure scope: "do NOT attempt
+ * storage upload"). TODO(Phase 2 storage wave): once a real upload path
+ * exists, add a `submitPhoto` step here (or a second transport method) that
+ * uploads `report.photoUri` to Storage and inserts the resulting
+ * `storage_path` into `felt_photos` — until then a queued photo stays on
+ * the device only, same "never lost, just not yet sent" contract as every
+ * other queued field.
  */
 export function buildFeltReportDetailInsert(report: Tier2Report): FeltReportDetailInsert {
   const { answers } = report;
@@ -128,6 +151,7 @@ export function buildFeltReportDetailInsert(report: Tier2Report): FeltReportDeta
     picture_answer: answers.picture,
     furniture_answer: answers.furniture,
     building_damage_level: answers.buildingDamageLevel,
+    damage_typology: answers.damageTypology,
     road_damage_level: answers.roadDamageLevel,
     raw_answers: { ...answers },
   };
