@@ -1,3 +1,4 @@
+import { Image, type ImageSource } from "expo-image";
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -23,13 +24,13 @@ interface DamageTileProps {
   locale: string;
   onPress: (typology: DamageTypology, grade: BuildingDamageGrade) => void;
   /** AI-generated damage-tile artwork slot (cartoon-artwork-brief.md
-   * "Damage tiles" section) — mirrors `LevelTile`'s own `imageSource` prop
-   * and the same "not wired to render yet" status (see that component's
-   * doc comment for the `expo-image`/`jest-expo` compatibility blocker this
-   * shares). Always undefined this wave — the tile renders a plain
-   * intensity-ramp color swatch instead, so the artwork can drop in later
-   * with no layout change. */
-  imageSource?: unknown;
+   * "Damage tiles" section) — mirrors `LevelTile`'s own `imageSource` prop:
+   * still undefined every wave until the 10-image commission lands and gets
+   * wired through from `app/felt-report/damage.tsx` (brief §6.5). See
+   * `LevelTile`'s doc comment for the `expo-image`/`jest-expo` compatibility
+   * note this component shares (resolved via a test-only mock, not a real
+   * version fix — `jest.setup.js`). */
+  imageSource?: ImageSource;
 }
 
 function DamageTileImpl({
@@ -39,6 +40,7 @@ function DamageTileImpl({
   accessibilityLabel,
   locale,
   onPress,
+  imageSource,
 }: DamageTileProps) {
   const { colors, typography, spacing } = useTheme();
   const intensityIndex = DAMAGE_GRADE_TO_INTENSITY_INDEX[grade];
@@ -64,6 +66,19 @@ function DamageTileImpl({
       ]}
     >
       <View style={[styles.swatch, { backgroundColor: accentColor }]}>
+        {imageSource != null ? (
+          <Image
+            testID="damage-tile-artwork"
+            source={imageSource}
+            contentFit="cover"
+            style={styles.artwork}
+            // Decorative reinforcement only — the Pressable's own
+            // accessibilityLabel (typology + damage-state label) already
+            // carries the tile's full meaning (cartoon-artwork-brief.md §5).
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
+        ) : null}
         <Text
           allowFontScaling
           style={{
@@ -109,5 +124,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+  },
+  artwork: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
 });

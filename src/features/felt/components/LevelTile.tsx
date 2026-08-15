@@ -1,3 +1,4 @@
+import { Image, type ImageSource } from "expo-image";
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -14,23 +15,22 @@ interface LevelTileProps {
   /**
    * AI-generated cartoon artwork slot (felt-report-science-v1.md PART 1 —
    * the `visual-asset-generator` pass, per D8's "redrawn for our context").
-   * Always undefined this wave — the tile renders a plain intensity-ramp
-   * color swatch instead, so the artwork can drop in later with no layout
-   * change.
+   * Still undefined every wave until the 22-image commission
+   * (`cartoon-artwork-brief.md`) lands and `app/felt-report/index.tsx` wires
+   * a per-level `require()` map through this prop (brief §5) — until then
+   * the tile renders the plain intensity-ramp color swatch alone.
    *
-   * Deliberately NOT typed against `expo-image`'s `ImageSource` yet: as of
-   * this wave, `expo-image@57.0.2` crashes on import under this project's
-   * `jest-expo@57.0.3` (`observe.getIntegrations is not a function`,
-   * reproduced with a bare `import { Image } from "expo-image"` in a test
-   * file — an expo-observe native-module mismatch, unrelated to this
-   * component). Since there is no real artwork to render this wave either,
-   * pulling in `expo-image` now would only trade a real feature for a
-   * broken test suite. Swap this prop to `expo-image`'s `ImageSource` and
-   * render an `<Image>` here once (a) real cartoons exist and (b) that
-   * incompatibility is resolved (likely a `jest-expo`/`expo-image` version
-   * bump — check the CHANGELOG before assuming it needs a custom mock).
+   * Typed against `expo-image`'s real `ImageSource`. Resolution note for the
+   * blocker that held this back: `expo-image@57.0.2` crashed on bare import
+   * under this project's `jest-expo@57.0.3` (`observe.getIntegrations is
+   * not a function` — an optional `expo-observe` native module jest-expo's
+   * `expo-modules-core` mock can't resolve). Bumping to the newest available
+   * SDK 57 pair (`expo-image@57.0.3`, `jest-expo@57.0.4`) did NOT fix it, so
+   * `jest.setup.js` carries a small `jest.mock("expo-image", ...)` standing
+   * in a plain `react-native` `Image` for tests — see that file for the
+   * full trail. Production code (this file) uses the real `expo-image`.
    */
-  imageSource?: unknown;
+  imageSource?: ImageSource;
   /** Science pack §1.2: levels 10-12 render in the "severe destruction"
    * sub-group, slightly more compact than 1-9 — still fully selectable. */
   compact?: boolean;
@@ -41,6 +41,7 @@ function LevelTileImpl({
   label,
   locale,
   onPress,
+  imageSource,
   compact = false,
 }: LevelTileProps) {
   const { t } = useTranslation();
@@ -78,6 +79,19 @@ function LevelTileImpl({
           { backgroundColor: accentColor },
         ]}
       >
+        {imageSource != null ? (
+          <Image
+            testID="level-tile-artwork"
+            source={imageSource}
+            contentFit="cover"
+            style={styles.artwork}
+            // Decorative reinforcement only — the Pressable's own
+            // accessibilityLabel (numeral + translated level name) already
+            // carries the tile's full meaning (cartoon-artwork-brief.md §5).
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
+        ) : null}
         <Text
           allowFontScaling
           style={{
@@ -135,5 +149,10 @@ const styles = StyleSheet.create({
   },
   swatchCompact: {
     aspectRatio: 1.3,
+  },
+  artwork: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
 });
