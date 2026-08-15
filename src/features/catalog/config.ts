@@ -18,7 +18,18 @@ export const CATALOG_YEAR_STEP = 10;
 
 /** Bundled sqlite asset name `SQLiteProvider` opens (copied into the app's
  * document directory on first launch, standard expo-sqlite bundled-asset
- * pattern) — kept distinct from the source file's own name so a future
- * catalog rebuild with a different filename doesn't require an app-side
- * rename too. */
-export const CATALOG_DATABASE_NAME = "bumelerze-catalog.sqlite";
+ * pattern).
+ *
+ * VERSIONED — BUMP THE `-vN` SUFFIX EVERY TIME THE BUNDLED ASSET IS
+ * REGENERATED WITH A SCHEMA CHANGE: expo-sqlite copies the asset only when
+ * no file with this name exists yet, so an unversioned name leaves every
+ * EXISTING install querying its stale first-launch copy. That exact bug
+ * shipped when the bml `bumelerze_id` column landed (2026-08-15, caught by
+ * Peshawa on-device: new query, old copied db, catalog dead on upgrades
+ * while fresh installs worked). v2 = the bml-id schema. Old copies are
+ * cleaned up in app/catalog.tsx (`deleteLegacyCatalogCopies`). */
+export const CATALOG_DATABASE_NAME = "bumelerze-catalog-v2.sqlite";
+
+/** Previous on-device copy names, deleted fire-and-forget at catalog mount
+ * so stale multi-megabyte databases don't accumulate across upgrades. */
+export const LEGACY_CATALOG_DATABASE_NAMES = ["bumelerze-catalog.sqlite"] as const;

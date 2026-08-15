@@ -1,4 +1,10 @@
-export { CATALOG_DATABASE_NAME, CATALOG_MAG_STEP, CATALOG_PAGE_SIZE, CATALOG_YEAR_STEP } from "./config";
+export {
+  CATALOG_DATABASE_NAME,
+  CATALOG_MAG_STEP,
+  CATALOG_PAGE_SIZE,
+  CATALOG_YEAR_STEP,
+  LEGACY_CATALOG_DATABASE_NAMES,
+} from "./config";
 export { fetchCatalogBounds, fetchCatalogCount, fetchCatalogPage, type CatalogDb } from "./db";
 export {
   formatCatalogCoordinates,

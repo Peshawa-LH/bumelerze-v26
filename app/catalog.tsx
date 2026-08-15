@@ -1,8 +1,13 @@
 import { Stack } from "expo-router";
-import { SQLiteProvider } from "expo-sqlite";
+import { deleteDatabaseAsync, SQLiteProvider } from "expo-sqlite";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CATALOG_DATABASE_NAME, CatalogListScreen } from "@/features/catalog";
+import {
+  CATALOG_DATABASE_NAME,
+  CatalogListScreen,
+  LEGACY_CATALOG_DATABASE_NAMES,
+} from "@/features/catalog";
 
 /**
  * Catalog screen (regional-catalog wave) — the bundled, offline Kurdistan/
@@ -23,6 +28,16 @@ import { CATALOG_DATABASE_NAME, CatalogListScreen } from "@/features/catalog";
  */
 export default function CatalogScreen() {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    // Stale-copy hygiene (see CATALOG_DATABASE_NAME's versioning comment):
+    // delete superseded on-device catalog copies from before the current
+    // -vN name. Fire-and-forget — a failure (file never existed, platform
+    // quirk) costs nothing but a few stranded megabytes, so no error UI.
+    for (const legacyName of LEGACY_CATALOG_DATABASE_NAMES) {
+      deleteDatabaseAsync(legacyName).catch(() => undefined);
+    }
+  }, []);
 
   return (
     <>
