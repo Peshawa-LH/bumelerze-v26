@@ -472,7 +472,7 @@
       "title": "How did you feel it?",
       "subtitle": "Tap the level that matches what you felt. You can add more detail afterward if you want.",
       "severeDestructionHeader": "Severe destruction",
-      "levelA11yHint": "Selects and submits this level right away — you can add more detail afterward",
+      "levelA11yHint": "Selects this level and saves your report right away — you can add damage detail next",
       "close": "Close",
       "locationGps": "Using your current location",
       "locationManual": "Location: {{place}}",
@@ -515,20 +515,12 @@
           "label": "Total destruction"
         }
       },
-      "confirmation": {
-        "title": "Thank you",
-        "queuedMessage": "Your report is saved on your device. It will be sent once Bumelerze can reach the server.",
-        "submittedMessage": "Your report has been sent. Thank you for contributing.",
-        "addDetail": "Add more detail"
-      }
+      "queuedAnnouncement": "Report recorded. Continuing to damage details."
     },
     "tier2": {
       "back": "Back",
       "skip": "Skip",
       "submit": "Submit",
-      "commentTitle": "Anything else to add?",
-      "commentPlaceholder": "Optional comment",
-      "commentDescription": "This may appear in the event's public comment stream after review.",
       "questions": {
         "situation": {
           "title": "Where were you during the earthquake?",
@@ -610,15 +602,6 @@
             "yes": "Yes"
           }
         },
-        "buildingDamageLevel": {
-          "title": "Was the building you were in damaged?",
-          "options": {
-            "0": "No damage",
-            "1": "Small cracks — hairline cracks in plaster or walls, a few fallen plaster pieces",
-            "2": "Serious damage — large wall cracks, fallen plaster chunks or masonry, broken windows, damaged parapet or roof tank",
-            "3": "Partial or full collapse — walls or floors fell, building unusable"
-          }
-        },
         "roadDamageLevel": {
           "title": "Did you see damage to roads or the ground?",
           "options": {
@@ -628,12 +611,53 @@
             "3": "Landslide, collapsed road, or large ground failure"
           }
         }
-      },
-      "done": {
-        "title": "Thanks for the extra detail",
-        "description": "This helps produce a more accurate shaking map for this earthquake.",
-        "close": "Close"
       }
+    },
+    "damage": {
+      "title": "Was there any damage?",
+      "subtitle": "Tap the picture that best matches what you saw — this step is optional.",
+      "noDamage": {
+        "label": "I didn't see any damage",
+        "hint": "Selects and continues right away"
+      },
+      "tileA11yHint": "Selects and continues right away",
+      "typologies": {
+        "highrise": "High-rise building",
+        "lowrise": "Single-storey or low-rise building (Iraqi-typical)"
+      },
+      "grades": {
+        "highrise": {
+          "0": "No visible damage",
+          "1": "Hairline cracks in plaster or infill walls",
+          "2": "Diagonal cracks in infill walls, some plaster fallen",
+          "3": "Wide cracks in columns or beams, infill walls failing",
+          "4": "Partial collapse of a floor or columns"
+        },
+        "lowrise": {
+          "0": "No visible damage",
+          "1": "Hairline cracks in plaster or walls",
+          "2": "Large wall cracks, some fallen plaster or masonry",
+          "3": "Serious cracking or partial failure of walls",
+          "4": "Partial or full collapse of walls or roof"
+        }
+      }
+    },
+    "details": {
+      "title": "Anything else to add?",
+      "commentPlaceholder": "Optional comment",
+      "commentDescription": "This may appear in the event's public comment stream after review.",
+      "photo": {
+        "addLabel": "Add a photo",
+        "removeLabel": "Remove photo",
+        "hint": "Attach an optional photo of any damage"
+      },
+      "addMoreDetail": "Add more detail"
+    },
+    "done": {
+      "title": "Thank you",
+      "queuedMessage": "Your report is saved on your device. It will be sent once Bumelerze can reach the server.",
+      "submittedMessage": "Your report has been sent. Thank you for contributing.",
+      "close": "Close"
     }
   },
   "handbook": {

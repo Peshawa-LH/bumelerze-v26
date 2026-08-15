@@ -472,7 +472,7 @@
       "title": "Te çawa hîs kir?",
       "subtitle": "Asta ku li gorî tiştê te hîs kir bitikîne. Tu dikarî paşê hûrgiliyên zêdetir zêde bikî heke bixwazî.",
       "severeDestructionHeader": "Wêrankirina giran",
-      "levelA11yHint": "Vê astê hildibijêre û tavilê ragihandina wê dike — tu dikarî paşê hûrgiliyên zêdetir zêde bikî",
+      "levelA11yHint": "Vê astê hildibijêre û tavilê raporta te tomar dike — tu dikarî paşê hûrgiliyên zirarê zêde bikî",
       "close": "Bigire",
       "locationGps": "Cîhê te yê niha tê bikaranîn",
       "locationManual": "Cih: {{place}}",
@@ -515,20 +515,12 @@
           "label": "Wêrana bêkêmasî"
         }
       },
-      "confirmation": {
-        "title": "Spas",
-        "queuedMessage": "Raporta te li ser cîhaza te hatiye tomarkirin. Gava Bumelerze bikaribe bigihîje serverê, dê were şandin.",
-        "submittedMessage": "Raporta te hate şandin. Spas ji bo beşdariya te.",
-        "addDetail": "Hûrgiliyên zêdetir zêde bike"
-      }
+      "queuedAnnouncement": "Rapor hate tomarkirin. Berdewam dibe bo hûrgiliyên zirarê."
     },
     "tier2": {
       "back": "Vegere",
       "skip": "Derbas bike",
       "submit": "Bişîne",
-      "commentTitle": "Tiştek din heye ku tu bixwazî lê zêde bikî?",
-      "commentPlaceholder": "Şîroveya vebijarkî",
-      "commentDescription": "Piştî nirxandinê, ev dibe ku di rêza şîroveyên gelemperî yên bûyerê de xuya bibe.",
       "questions": {
         "situation": {
           "title": "Di dema erdhejê de tu li ku bûyî?",
@@ -610,15 +602,6 @@
             "yes": "Erê"
           }
         },
-        "buildingDamageLevel": {
-          "title": "Avahiya ku tu tê de bûyî zirar dît?",
-          "options": {
-            "0": "Ti zirar tune",
-            "1": "Çat û qelişên biçûk — di sîwana dîwêran de qelişên tenik, çend perçeyên sîwanê yên ketî",
-            "2": "Zirara giran — qelişên mezin di dîwêran de, perçeyên sîwanê an keriyên hilweşiyayî, camên şikestî, tankê banî an parapeta zirardîtî",
-            "3": "Hilweşîna qismî an tevahî — dîwar an qat ketin, avahî nayê bikaranîn"
-          }
-        },
         "roadDamageLevel": {
           "title": "Te zirar li rê an erdê dît?",
           "options": {
@@ -628,12 +611,53 @@
             "3": "Erdhilweşîn, hilweşîna rê, an têkçûna mezin a erdê"
           }
         }
-      },
-      "done": {
-        "title": "Spas ji bo hûrgiliyên zêde",
-        "description": "Ev dibe alîkar ku nexşeyek lerizînê ya rasttir ji bo vê erdhejê were çêkirin.",
-        "close": "Bigire"
       }
+    },
+    "damage": {
+      "title": "Zirar hebû?",
+      "subtitle": "Wêneya ku herî baş li gorî tiştê te dît bitikîne — ev gav vebijarkî ye.",
+      "noDamage": {
+        "label": "Min ti zirar nedît",
+        "hint": "Hildibijêre û tavilê berdewam dike"
+      },
+      "tileA11yHint": "Hildibijêre û tavilê berdewam dike",
+      "typologies": {
+        "highrise": "Avahiya bilind",
+        "lowrise": "Avahiya yekqatî an nizm (li gorî Iraqê)"
+      },
+      "grades": {
+        "highrise": {
+          "0": "Ti zirara xuya tune",
+          "1": "Çatên tenik di sîwana an dîwarên tijîkirî de",
+          "2": "Çatên xar di dîwarên tijîkirî de, hin sîwan ketiye",
+          "3": "Çatên fireh di stûn an kevanan de, dîwarên tijîkirî têk diçin",
+          "4": "Hilweşîna qismî ya qatek an stûnan"
+        },
+        "lowrise": {
+          "0": "Ti zirara xuya tune",
+          "1": "Çatên tenik di sîwan an dîwaran de",
+          "2": "Çatên mezin ên dîwêr, hin sîwan an keriyên hilweşiyayî",
+          "3": "Çatên giran an hilweşîna qismî ya dîwaran",
+          "4": "Hilweşîna qismî an tevahî ya dîwar an banî"
+        }
+      }
+    },
+    "details": {
+      "title": "Tiştek din heye ku tu bixwazî lê zêde bikî?",
+      "commentPlaceholder": "Şîroveya vebijarkî",
+      "commentDescription": "Piştî nirxandinê, ev dibe ku di rêza şîroveyan gelemperî yên bûyerê de xuya bibe.",
+      "photo": {
+        "addLabel": "Wêneyekê zêde bike",
+        "removeLabel": "Wêne rake",
+        "hint": "Wêneyek vebijarkî ya zirarê zêde bike"
+      },
+      "addMoreDetail": "Hûrgiliyên zêdetir zêde bike"
+    },
+    "done": {
+      "title": "Spas",
+      "queuedMessage": "Raporta te li ser cîhaza te hatiye tomarkirin. Gava Bumelerze bikaribe bigihîje serverê, dê were şandin.",
+      "submittedMessage": "Raporta te hate şandin. Spas ji bo beşdariya te.",
+      "close": "Bigire"
     }
   },
   "handbook": {
