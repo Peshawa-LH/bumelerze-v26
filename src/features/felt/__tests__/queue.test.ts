@@ -271,16 +271,22 @@ describe("enqueueTier2Report (D18 §3.2 supersede-in-place)", () => {
       picture: "yes",
       furniture: "no",
       buildingDamageLevel: 1,
+      damageTypology: "highrise",
       roadDamageLevel: 0,
       comment: "Books fell off the shelf.",
     };
 
-    await enqueueTier2Report({ feltReportId: tier1.reportId, answers });
+    await enqueueTier2Report({
+      feltReportId: tier1.reportId,
+      answers,
+      photoUri: "file:///tmp/damage.jpg",
+    });
 
     const items = useFeltQueueStore.getState().items;
     expect(items).toHaveLength(1);
     expect(items[0]?.tier1.reportId).toBe(tier1.reportId);
     expect(items[0]?.tier2?.answers).toEqual(answers);
+    expect(items[0]?.tier2?.photoUri).toBe("file:///tmp/damage.jpg");
   });
 
   it("throws rather than silently dropping an answer set for an unknown report id", async () => {
@@ -300,6 +306,7 @@ describe("enqueueTier2Report (D18 §3.2 supersede-in-place)", () => {
           picture: null,
           furniture: null,
           buildingDamageLevel: null,
+          damageTypology: null,
           roadDamageLevel: null,
           comment: null,
         },

@@ -107,14 +107,42 @@ export type PictureAnswer = "no" | "yes";
 /** Q9 — furniture (CDI index `furniture`). */
 export type FurnitureAnswer = "no" | "yes";
 
-/** Q10/Q11 — structured 4-level damage answers (MyShake pattern, D8). */
+/** Q11 — structured 4-level road/ground damage answer (MyShake pattern, D8).
+ * Q10 (building damage) used to share this same 4-level type; as of the
+ * 2026-08-15 flow-restructure (owner directive) building damage is now
+ * captured by window 2's two-typology 5-grade picker instead — see
+ * `BuildingDamageGrade` below — so this type is Q11-only now. */
 export type DamageLevel = 0 | 1 | 2 | 3;
 
 /**
- * The full Q1-Q11 answer set, every field independently skippable (spec-v1
- * §4.6: "every question skippable") — `null` means "not answered", not "no".
- * `comment` is the optional free-text field at the end of tier 2 (not
- * question-numbered).
+ * Window-2 building-damage grade (2026-08-15 flow restructure, owner
+ * directive) — 0 ("no visible damage") through 4 (partial/full collapse),
+ * one severity ramp shared by both typology rows (`DamageTypology` below
+ * picks which row's grade text/artwork applies). Replaces the old Q10
+ * 4-level `buildingDamageLevel` answer; see
+ * `docs/research/felt-report-science-v1.md`'s 2026-08-15 addendum for the
+ * proposed damage-index mapping this feeds (grade → CDI `damage` index),
+ * flagged [REVIEW — Peshawa] there like the pack's other interpolated
+ * values (R1, R6) — implemented pending that review, not blocking on it.
+ */
+export type BuildingDamageGrade = 0 | 1 | 2 | 3 | 4;
+
+/** Which of window 2's two building rows a damage grade was picked from —
+ * a vulnerability-class hint (science addendum: highrise ≈ RC frame,
+ * lowrise ≈ masonry/RC mix), not itself a CDI/EMS index. `null` when the
+ * user took the generic "I didn't see damage" shortcut instead of picking a
+ * row (grade is still 0 in that case — see `EMPTY_TIER2_ANSWERS`'s note). */
+export type DamageTypology = "highrise" | "lowrise";
+
+/**
+ * The full Q1-Q9 + Q11 answer set (Q10 removed, 2026-08-15 flow restructure
+ * — see `BuildingDamageGrade` above), every field independently skippable
+ * (spec-v1 §4.6: "every question skippable") — `null` means "not answered",
+ * not "no". `comment` and `damageTypology`/`buildingDamageLevel` are all
+ * collected earlier in the flow now (windows 2/3, not question-numbered)
+ * but still live on this same answer set — they are stored via the exact
+ * same tier-2/`felt_report_details` supersede mechanism (`queue.ts`), just
+ * populated before "add more detail" is ever reached rather than only after.
  */
 export interface Tier2Answers {
   situation: SituationAnswer | null;
@@ -126,7 +154,10 @@ export interface Tier2Answers {
   shelf: ShelfAnswer | null;
   picture: PictureAnswer | null;
   furniture: FurnitureAnswer | null;
-  buildingDamageLevel: DamageLevel | null;
+  /** Window 2 pick (or the generic "no damage" shortcut, which sets this to
+   * 0 with `damageTypology` left null — see that field's own doc). */
+  buildingDamageLevel: BuildingDamageGrade | null;
+  damageTypology: DamageTypology | null;
   roadDamageLevel: DamageLevel | null;
   comment: string | null;
 }
@@ -142,12 +173,14 @@ export const EMPTY_TIER2_ANSWERS: Tier2Answers = {
   picture: null,
   furniture: null,
   buildingDamageLevel: null,
+  damageTypology: null,
   roadDamageLevel: null,
   comment: null,
 };
 
 /**
- * Tier-2 record — mirrors `felt_report_details` (migration 0003).
+ * Tier-2 record — mirrors `felt_report_details` (migration 0003, extended by
+ * 0009 for `damage_typology` + the widened building-damage check).
  * One-to-one with a `Tier1Report`; submitting this SUPERSEDES the device's
  * tier-1 pick in place (D18 §3.2), it never creates a second felt_reports
  * row — the client-side queue models this as "attach tier2 to the existing
@@ -159,5 +192,16 @@ export interface Tier2Report {
   /** FK to the tier-1 record this supersedes; becomes `felt_report_id`. */
   feltReportId: string;
   answers: Tier2Answers;
+  /**
+   * Window 3's optional photo attachment (2026-08-15 flow restructure) —
+   * a LOCAL file path/URI from `expo-image-picker`, never a remote URL at
+   * capture time. Not a `Tier2Answers` field on purpose: it is transport
+   * metadata (destined for `felt_photos.storage_path` once a real upload
+   * exists), not a survey answer that belongs in `raw_answers`. No upload
+   * happens this wave — see `supabase-transport.ts`'s TODO — so this stays
+   * queued locally, same "never lost, just not yet sent" contract as every
+   * other field here.
+   */
+  photoUri: string | null;
   createdAt: number;
 }

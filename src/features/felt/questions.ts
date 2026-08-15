@@ -14,12 +14,19 @@ import type {
 
 /**
  * Tier-2 question set — wording, order, and answer options are taken
- * VERBATIM from `felt-report-science-v1.md` PART 2 (Q1-Q11, confirmed D18).
- * This is a science artifact, not a UI convenience list: do not reorder,
- * reword, or add/remove options here without re-checking the science pack
- * and the `felt_report_details` CHECK constraints in
- * `supabase/migrations/0003_felt_reports.sql` they must stay in lockstep
- * with.
+ * VERBATIM from `felt-report-science-v1.md` PART 2 (Q1-Q11, confirmed D18),
+ * MINUS Q10 (building damage): the 2026-08-15 flow-restructure (owner
+ * directive) moved building damage to window 2's own typology/grade picker,
+ * which supersedes Q10 as this answer set's damage-index source (science
+ * addendum, same file). Q10's `questionNumber` is intentionally retired
+ * (not renumbered onto Q11) — Q11 keeps `questionNumber: 11` so its
+ * identity as "Q11" stays stable against the science pack even though it is
+ * now the 10th (and last) step in the UI sequence. This is a science
+ * artifact, not a UI convenience list: do not reorder, reword, or
+ * add/remove options here without re-checking the science pack and the
+ * `felt_report_details` CHECK constraints in
+ * `supabase/migrations/0003_felt_reports.sql`/`0009_felt_damage_typology.sql`
+ * they must stay in lockstep with.
  *
  * `i18nKey` values are the leaf under `felt.tier2.questions.<field>` in the
  * locale catalogs (title + one key per option).
@@ -27,7 +34,7 @@ import type {
 
 type StringField = Exclude<
   keyof Tier2Answers,
-  "buildingDamageLevel" | "roadDamageLevel" | "comment"
+  "buildingDamageLevel" | "damageTypology" | "roadDamageLevel" | "comment"
 >;
 
 interface ChoiceQuestionDef<TAnswer extends string> {
@@ -40,7 +47,7 @@ interface ChoiceQuestionDef<TAnswer extends string> {
 
 interface DamageQuestionDef {
   kind: "damage";
-  field: "buildingDamageLevel" | "roadDamageLevel";
+  field: "roadDamageLevel";
   questionNumber: number;
   i18nKey: string;
   options: readonly DamageLevel[];
@@ -48,8 +55,9 @@ interface DamageQuestionDef {
 
 export type Tier2QuestionDef = ChoiceQuestionDef<string> | DamageQuestionDef;
 
-/** Q1-Q11, in science-pack order. Comment (free text) is handled as its own
- * final step by the tier-2 screen, not listed here. */
+/** Q1-Q9 + Q11, in science-pack order (Q10 removed — see the module doc
+ * comment above). Comment (free text) and building damage are both handled
+ * earlier in the flow now (windows 2/3), not listed here. */
 export const TIER2_QUESTIONS: readonly Tier2QuestionDef[] = [
   {
     kind: "choice",
@@ -139,13 +147,6 @@ export const TIER2_QUESTIONS: readonly Tier2QuestionDef[] = [
     questionNumber: 9,
     i18nKey: "furniture",
     options: ["no", "yes"] satisfies readonly FurnitureAnswer[],
-  },
-  {
-    kind: "damage",
-    field: "buildingDamageLevel",
-    questionNumber: 10,
-    i18nKey: "buildingDamageLevel",
-    options: [0, 1, 2, 3],
   },
   {
     kind: "damage",

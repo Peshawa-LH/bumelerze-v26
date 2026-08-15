@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import {
+  enqueueTier2Report,
   Tier2OptionButton,
   Tier2ScreenShell,
   TIER2_QUESTIONS,
@@ -13,11 +14,15 @@ import {
 import { useTheme } from "@/theme";
 
 /**
- * One tier-2 question per screen (spec-v1.md §4.6 — Q1-Q11,
- * `felt-report-science-v1.md` PART 2). Tapping an option both records the
+ * One tier-2 question per screen (spec-v1.md §4.6 — Q1-Q9/Q11,
+ * `felt-report-science-v1.md` PART 2; Q10 removed, 2026-08-15 flow
+ * restructure — see `questions.ts`). Tapping an option both records the
  * answer and advances; the "Skip" footer advances without recording one
- * (every question is independently skippable). The last question hands off
- * to `app/felt-report/comment.tsx` instead of another step.
+ * (every question is independently skippable). Reached only via window 3's
+ * "Add more detail" — damage (window 2) and comment/photo (window 3) are
+ * already in the shared draft by the time this screen ever mounts. The
+ * LAST question submits directly (there is no separate comment step
+ * anymore) and hands off to the shared `done` screen.
  */
 export default function Tier2StepScreen() {
   const { step, feltReportId, eventId } = useLocalSearchParams<{
@@ -54,18 +59,32 @@ export default function Tier2StepScreen() {
   // guard above.
   const currentQuestion = question;
 
-  function goToStep(nextIndex: number) {
+  async function goToStep(nextIndex: number) {
     if (nextIndex < TIER2_QUESTIONS.length) {
       router.push({
         pathname: "/felt-report/step/[step]",
         params: { step: String(nextIndex), feltReportId, eventId: eventId ?? "" },
       });
-    } else {
-      router.push({
-        pathname: "/felt-report/comment",
-        params: { feltReportId, eventId: eventId ?? "" },
-      });
+      return;
     }
+
+    // Last question answered/skipped — submit the full draft (damage +
+    // comment/photo from windows 2/3, plus every Q1-Q9/Q11 answer just
+    // collected) and land on the shared completion screen. Read straight
+    // from the store rather than closed-over props: `setAnswer` above
+    // already committed synchronously, so `getState()` here is guaranteed
+    // current.
+    const draft = useTier2DraftStore.getState();
+    await enqueueTier2Report({
+      feltReportId,
+      answers: draft.answers,
+      photoUri: draft.photoUri,
+    });
+    draft.reset();
+    router.replace({
+      pathname: "/felt-report/done",
+      params: { feltReportId, eventId: eventId ?? "" },
+    });
   }
 
   function handleBack() {
@@ -75,21 +94,22 @@ export default function Tier2StepScreen() {
   }
 
   function handleSkip() {
-    goToStep(stepIndex + 1);
+    void goToStep(stepIndex + 1);
   }
 
   function handleSelect(value: string | DamageLevel) {
     // `field`/`value` pairing is enforced by TIER2_QUESTIONS' own shape —
-    // a "damage" question always carries DamageLevel options, a "choice"
-    // question always carries its field's string union.
+    // the one remaining "damage" question (Q11, road damage) always
+    // carries DamageLevel options, a "choice" question always carries its
+    // field's string union.
     setAnswer(currentQuestion.field as never, value as never);
-    goToStep(stepIndex + 1);
+    void goToStep(stepIndex + 1);
   }
 
   return (
     <Tier2ScreenShell
       currentIndex={stepIndex}
-      totalSteps={TIER2_QUESTIONS.length + 1}
+      totalSteps={TIER2_QUESTIONS.length}
       title={t(`felt.tier2.questions.${currentQuestion.i18nKey}.title`)}
       onBack={handleBack}
       onSkip={handleSkip}

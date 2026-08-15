@@ -12,8 +12,12 @@ describe("scoreTier2Report — Q2/Q3 felt x othersFelt modifier chain (D18 R2)",
   // >=4 -> 1. Codes: dont_know=0, no_one=1, some=2, most=3, everyone=4.
 
   it("dont_know (code 0) leaves felt unchanged", () => {
-    expect(scoreTier2Report(answers({ felt: "no", othersFelt: "dont_know" })).felt).toBe(0);
-    expect(scoreTier2Report(answers({ felt: "yes", othersFelt: "dont_know" })).felt).toBe(1);
+    expect(scoreTier2Report(answers({ felt: "no", othersFelt: "dont_know" })).felt).toBe(
+      0,
+    );
+    expect(scoreTier2Report(answers({ felt: "yes", othersFelt: "dont_know" })).felt).toBe(
+      1,
+    );
   });
 
   it("no_one (code 1) leaves felt unchanged", () => {
@@ -22,22 +26,32 @@ describe("scoreTier2Report — Q2/Q3 felt x othersFelt modifier chain (D18 R2)",
   });
 
   it("some (code 2) -> 0.36, except 0 when the respondent themself felt nothing", () => {
-    expect(scoreTier2Report(answers({ felt: "yes", othersFelt: "some" })).felt).toBe(0.36);
+    expect(scoreTier2Report(answers({ felt: "yes", othersFelt: "some" })).felt).toBe(
+      0.36,
+    );
     expect(scoreTier2Report(answers({ felt: "no", othersFelt: "some" })).felt).toBe(0);
   });
 
   it("most (code 3) -> 0.72 regardless of the respondent's own felt answer", () => {
-    expect(scoreTier2Report(answers({ felt: "yes", othersFelt: "most" })).felt).toBe(0.72);
+    expect(scoreTier2Report(answers({ felt: "yes", othersFelt: "most" })).felt).toBe(
+      0.72,
+    );
     expect(scoreTier2Report(answers({ felt: "no", othersFelt: "most" })).felt).toBe(0.72);
   });
 
   it("everyone (code 4) -> 1 regardless of the respondent's own felt answer", () => {
-    expect(scoreTier2Report(answers({ felt: "yes", othersFelt: "everyone" })).felt).toBe(1);
-    expect(scoreTier2Report(answers({ felt: "no", othersFelt: "everyone" })).felt).toBe(1);
+    expect(scoreTier2Report(answers({ felt: "yes", othersFelt: "everyone" })).felt).toBe(
+      1,
+    );
+    expect(scoreTier2Report(answers({ felt: "no", othersFelt: "everyone" })).felt).toBe(
+      1,
+    );
   });
 
   it("felt unanswered (null) stays null regardless of othersFelt (this module's reading, documented in cdi-scoring.ts)", () => {
-    expect(scoreTier2Report(answers({ felt: null, othersFelt: "everyone" })).felt).toBeNull();
+    expect(
+      scoreTier2Report(answers({ felt: null, othersFelt: "everyone" })).felt,
+    ).toBeNull();
     expect(scoreTier2Report(answers({ felt: null, othersFelt: null })).felt).toBeNull();
   });
 
@@ -113,15 +127,21 @@ describe("scoreTier2Report — Q8/Q9 picture/furniture booleans", () => {
   });
 });
 
-describe("scoreTier2Report — Q10 building damage, 0/0.75/2/3 (D18 R6)", () => {
+describe("scoreTier2Report — building damage, 0/0.5/0.75/2/3 (2026-08-15 flow restructure, [REVIEW — Peshawa])", () => {
+  // Window 2's 5-grade typology picker (features/felt/damage.ts) supersedes
+  // the old Q10 questionnaire answer (which was 0/0.75/2/3, D18 R6) as this
+  // index's source — see cdi-scoring.ts's own doc comment on DAMAGE_INDEX.
   const cases: [Tier2Answers["buildingDamageLevel"], number][] = [
     [0, 0],
-    [1, 0.75],
-    [2, 2],
-    [3, 3],
+    [1, 0.5],
+    [2, 0.75],
+    [3, 2],
+    [4, 3],
   ];
-  it.each(cases)("level %d -> %s", (level, expected) => {
-    expect(scoreTier2Report(answers({ buildingDamageLevel: level })).damage).toBe(expected);
+  it.each(cases)("grade %d -> %s", (level, expected) => {
+    expect(scoreTier2Report(answers({ buildingDamageLevel: level })).damage).toBe(
+      expected,
+    );
   });
 });
 
@@ -149,12 +169,14 @@ describe("scoreTier2Report — vehicle rule (D18 R17: drop Q4/Q6 from consensus)
     expect(scored.shelf).toBe(1);
     expect(scored.picture).toBe(1);
     expect(scored.furniture).toBe(1);
-    expect(scored.damage).toBe(2);
+    expect(scored.damage).toBe(0.75);
   });
 
   it("inside/outside/stopped_car situations do NOT null motion/stand", () => {
     for (const situation of ["inside", "outside", "stopped_car", "asleep"] as const) {
-      const scored = scoreTier2Report(answers({ situation, motion: "strong", stand: "difficult" }));
+      const scored = scoreTier2Report(
+        answers({ situation, motion: "strong", stand: "difficult" }),
+      );
       expect(scored.motion).toBe(4);
       expect(scored.stand).toBe(1);
     }
@@ -180,7 +202,9 @@ describe("scoreTier2Report — null-exclusion (never zero-counted)", () => {
 describe("CARTOON_TO_INTENSITY — §3.3 identity table (D18 R9)", () => {
   it("levels 1-9 map 1:1", () => {
     for (let level = 1; level <= 9; level++) {
-      expect(CARTOON_TO_INTENSITY[level as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9]).toBe(level);
+      expect(CARTOON_TO_INTENSITY[level as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9]).toBe(
+        level,
+      );
     }
   });
   it("levels 10-12 all cap at 9.0", () => {

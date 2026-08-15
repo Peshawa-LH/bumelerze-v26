@@ -103,6 +103,20 @@ const config: ExpoConfig = {
     // features (e.g. bundled-asset support) the CLI flags at install time —
     // no config options needed beyond enabling it.
     "expo-sqlite",
+    [
+      // Felt-report flow redesign (2026-08-15 owner directive), window 3:
+      // an optional photo attachment on the baseline report. Both the
+      // camera and photo-library permission strings are needed since the
+      // picker offers both entry points; the photo is queued locally only
+      // this wave (no storage upload yet — see supabase-transport.ts).
+      "expo-image-picker",
+      {
+        photosPermission:
+          "Bumelerze uses your photos to let you attach a picture of damage to your earthquake report.",
+        cameraPermission:
+          "Bumelerze uses your camera to let you take a picture of damage for your earthquake report.",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

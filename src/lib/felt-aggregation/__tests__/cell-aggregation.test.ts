@@ -9,9 +9,16 @@ import {
 } from "../cell-aggregation";
 import { EMPTY_TIER2_ANSWERS } from "@/features/felt/types";
 import type { Tier2Answers } from "@/features/felt/types";
-import type { AggregationInputReport, Tier1InputReport, Tier2InputReport } from "../types";
+import type {
+  AggregationInputReport,
+  Tier1InputReport,
+  Tier2InputReport,
+} from "../types";
 
-function tier1(deviceId: string, cartoonLevel: Tier1InputReport["cartoonLevel"]): Tier1InputReport {
+function tier1(
+  deviceId: string,
+  cartoonLevel: Tier1InputReport["cartoonLevel"],
+): Tier1InputReport {
   return { tier: "tier1", deviceId, cartoonLevel };
 }
 function tier2(deviceId: string, overrides: Partial<Tier2Answers>): Tier2InputReport {
@@ -174,7 +181,10 @@ describe("aggregateCell — end to end", () => {
         shelf: "many_fell",
         picture: "yes",
         furniture: "yes",
-        buildingDamageLevel: 3,
+        // Grade 4 -> damage index 3 (max) under the 2026-08-15 flow
+        // restructure's 5-grade mapping (cdi-scoring.ts DAMAGE_INDEX);
+        // grade 3 no longer means "max" the way old Q10's level 3 did.
+        buildingDamageLevel: 4,
       }),
     ]);
     expect(outcome.ok).toBe(true);
@@ -186,7 +196,10 @@ describe("aggregateCell — end to end", () => {
   it("dedup: tier-2 supersedes tier-1 for the same device, not additive", () => {
     // Same device submits a tier-1 pick then a tier-2 questionnaire — only
     // the tier-2 answers should count; nReports must stay 1, not 2.
-    const outcome = aggregateCell([tier1("same-device", 9), tier2("same-device", { felt: "no" })]);
+    const outcome = aggregateCell([
+      tier1("same-device", 9),
+      tier2("same-device", { felt: "no" }),
+    ]);
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) throw new Error("unreachable");
     expect(outcome.cell.nReports).toBe(1);
@@ -210,7 +223,10 @@ describe("aggregateCell — end to end", () => {
       shelf: "many_fell",
       picture: "yes",
       furniture: "yes",
-      buildingDamageLevel: 2,
+      // Grade 3 -> damage index 2 under the 2026-08-15 flow restructure's
+      // 5-grade mapping (cdi-scoring.ts DAMAGE_INDEX) — same index value old
+      // Q10's level 2 used to produce, keeping this test's CWS=35 target.
+      buildingDamageLevel: 3,
     };
     const outcome = aggregateCell([
       tier2("t2-a", tier2Overrides),
@@ -275,7 +291,11 @@ describe("applyCorroborationGate — §1.2/D18 R14, standalone", () => {
 
 describe("dedup edge cases", () => {
   it("multiple different devices are never merged", () => {
-    const reports: AggregationInputReport[] = [tier1("a", 1), tier1("b", 1), tier1("c", 1)];
+    const reports: AggregationInputReport[] = [
+      tier1("a", 1),
+      tier1("b", 1),
+      tier1("c", 1),
+    ];
     const outcome = aggregateCell(reports);
     expect(outcome.ok && outcome.cell.nReports).toBe(3);
   });

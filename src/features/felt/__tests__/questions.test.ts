@@ -4,10 +4,12 @@ import { EMPTY_TIER2_ANSWERS, type Tier2Answers } from "../types";
 /**
  * Tier-2 answers map to the RAW enum types the science pack defines (wave
  * brief scope item 6) — verbatim against `felt-report-science-v1.md` PART 2
- * Q1-Q11 and the CHECK constraints in
- * `supabase/migrations/0003_felt_reports.sql`. This is a science-fidelity
- * test: if `questions.ts` or `types.ts` ever drifts from either source, it
- * should fail here before it fails a schema round-trip.
+ * Q1-Q9/Q11 (Q10 removed, 2026-08-15 flow restructure — see
+ * `questions.ts`'s own doc comment) and the CHECK constraints in
+ * `supabase/migrations/0003_felt_reports.sql`/`0009_felt_damage_typology.sql`.
+ * This is a science-fidelity test: if `questions.ts` or `types.ts` ever
+ * drifts from either source, it should fail here before it fails a schema
+ * round-trip.
  */
 
 // Copied verbatim from the migration's CHECK constraints (not imported —
@@ -30,7 +32,6 @@ const EXPECTED_OPTIONS: Record<string, readonly (string | number)[]> = {
   shelf: ["no", "rattled", "few_fell", "many_fell"],
   picture: ["no", "yes"],
   furniture: ["no", "yes"],
-  buildingDamageLevel: [0, 1, 2, 3],
   roadDamageLevel: [0, 1, 2, 3],
 };
 
@@ -44,18 +45,19 @@ const EXPECTED_QUESTION_ORDER = [
   "shelf",
   "picture",
   "furniture",
-  "buildingDamageLevel",
   "roadDamageLevel",
 ];
 
 describe("TIER2_QUESTIONS raw-enum fidelity", () => {
-  it("has exactly Q1-Q11, in science-pack order", () => {
-    expect(TIER2_QUESTION_COUNT).toBe(11);
+  it("has exactly Q1-Q9 + Q11 (Q10 removed), in science-pack order", () => {
+    expect(TIER2_QUESTION_COUNT).toBe(10);
     expect(TIER2_QUESTIONS.map((question) => question.field)).toEqual(
       EXPECTED_QUESTION_ORDER,
     );
+    // Q11's questionNumber stays 11 (not renumbered to 10) — see
+    // questions.ts's doc comment on why Q10's number is retired, not reused.
     expect(TIER2_QUESTIONS.map((question) => question.questionNumber)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 11,
     ]);
   });
 
@@ -68,12 +70,9 @@ describe("TIER2_QUESTIONS raw-enum fidelity", () => {
     },
   );
 
-  it("the two structured-damage questions are kind 'damage' with 0-3 numeric options; the rest are 'choice'", () => {
+  it("the remaining structured-damage question (Q11) is kind 'damage' with 0-3 numeric options; the rest are 'choice'", () => {
     for (const question of TIER2_QUESTIONS) {
-      if (
-        question.field === "buildingDamageLevel" ||
-        question.field === "roadDamageLevel"
-      ) {
+      if (question.field === "roadDamageLevel") {
         expect(question.kind).toBe("damage");
       } else {
         expect(question.kind).toBe("choice");
@@ -99,10 +98,12 @@ describe("TIER2_QUESTIONS raw-enum fidelity", () => {
     expect(answers.shelf).toBe("no");
     expect(answers.picture).toBe("no");
     expect(answers.furniture).toBe("no");
-    expect(answers.buildingDamageLevel).toBe(0);
     expect(answers.roadDamageLevel).toBe(0);
-    // Comment is untouched by the question loop — it's collected separately
-    // on its own final screen, never one of Q1-Q11.
+    // Building damage/typology and comment are untouched by the question
+    // loop — all three are collected earlier in the flow now (windows 2/3),
+    // never one of the TIER2_QUESTIONS steps.
+    expect(answers.buildingDamageLevel).toBeNull();
+    expect(answers.damageTypology).toBeNull();
     expect(answers.comment).toBeNull();
   });
 

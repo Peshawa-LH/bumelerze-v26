@@ -7,12 +7,14 @@ import i18n from "@/i18n";
 import { CARTOON_LEVELS } from "../types";
 
 /**
- * Tier-1 select-submit flow (wave brief scope item 6: "tier-1 select-submit
- * flow (renders 12 tiles, tap queues + shows confirmation)"). Everything
- * downstream of the tap (device id, the offline queue, AsyncStorage) runs
- * for REAL here, same "only mock the network/native boundary" philosophy as
- * `features/events/__tests__/home-screen.test.tsx` — this test exercises
- * the actual queueing pipeline, not a mocked stand-in for it.
+ * Window 1 — the panic-time tap (2026-08-15 flow restructure, owner
+ * directive: EXACTLY the original tier-1 grid, unchanged tap behavior, but
+ * a tap now navigates straight into window 2 instead of showing an in-place
+ * confirmation). Everything downstream of the tap (device id, the offline
+ * queue, AsyncStorage) runs for REAL here, same "only mock the network/
+ * native boundary" philosophy as `features/events/__tests__/home-screen.
+ * test.tsx` — this test exercises the actual queueing pipeline, not a
+ * mocked stand-in for it.
  */
 
 const mockPush = jest.fn();
@@ -77,7 +79,7 @@ async function flush() {
   });
 }
 
-describe("Tier 1 felt-report screen", () => {
+describe("Window 1 — tier-1 felt-report screen", () => {
   const originalLanguage = i18n.language;
 
   beforeEach(async () => {
@@ -98,7 +100,7 @@ describe("Tier 1 felt-report screen", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("renders all 12 EMS-98 level tiles, none disabled, before any selection", async () => {
+  it("renders all 12 EMS-98 level tiles, none disabled", async () => {
     await renderWithProviders(<Tier1FeltReportScreen />);
     await flush();
 
@@ -107,9 +109,9 @@ describe("Tier 1 felt-report screen", () => {
       const tile = screen.getByLabelText(`${level}. ${label}`);
       expect(tile).toBeTruthy();
       expect(tile.props.accessibilityState?.disabled).not.toBe(true);
-      // A blind user needs to know a tap SUBMITS immediately (no separate
-      // confirm step) — the numeral+label alone don't convey that
-      // (accessibility-tester Phase 5 audit).
+      // A blind user needs to know a tap durably records their report even
+      // though the screen is about to navigate away (accessibility-tester
+      // Phase 5 audit).
       expect(tile.props.accessibilityHint).toBe(i18n.t("felt.tier1.levelA11yHint"));
     }
 
@@ -118,7 +120,7 @@ describe("Tier 1 felt-report screen", () => {
     expect(screen.getByText(i18n.t("felt.tier1.severeDestructionHeader"))).toBeTruthy();
   });
 
-  it("one tap selects AND submits (queues) a level, then shows the confirmation state", async () => {
+  it("one tap queues a tier-1-only report (the one-tap promise) AND navigates into window 2 (damage)", async () => {
     await renderWithProviders(<Tier1FeltReportScreen />);
     await flush();
 
@@ -132,28 +134,27 @@ describe("Tier 1 felt-report screen", () => {
     });
     await flush();
 
-    // Confirmation state replaces the grid — thanks message + queued
-    // indicator + "add more detail" CTA, per spec-v1.md §4.6.
-    expect(screen.getByText(i18n.t("felt.tier1.confirmation.title"))).toBeTruthy();
-    expect(
-      screen.getByText(i18n.t("felt.tier1.confirmation.queuedMessage")),
-    ).toBeTruthy();
-    expect(screen.getByText(i18n.t("felt.tier1.confirmation.addDetail"))).toBeTruthy();
-
-    // The grid itself is gone — this really is a one-screen, one-tap flow,
-    // not a navigation to a separate confirmation route.
-    expect(screen.queryByLabelText(`5. ${level5Label}`)).toBeNull();
-
-    // And the report genuinely reached the durable local queue (D8: no
-    // report is ever lost) — verified via the real (non-mocked) store.
+    // The report genuinely reached the durable local queue (D8: no report
+    // is ever lost) BEFORE navigation — verified via the real (non-mocked)
+    // store. This is the "quit after window 1" safety guarantee: even if
+    // the user closes the app right here, this record already exists.
     const items = useFeltQueueStore.getState().items;
     expect(items).toHaveLength(1);
     expect(items[0]?.tier1.cartoonLevel).toBe(5);
     expect(items[0]?.tier1.eventId).toBeNull();
     expect(items[0]?.tier1.location.quality).toBe("manual");
+    expect(items[0]?.tier2).toBeNull();
+
+    const createdReportId = items[0]?.tier1.reportId;
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathname: "/felt-report/damage",
+        params: expect.objectContaining({ feltReportId: createdReportId, eventId: "" }),
+      }),
+    );
   });
 
-  it("announces the submission to screen readers (blind users get an audible confirmation, not just a visual one)", async () => {
+  it("announces the queued report to screen readers before navigating on", async () => {
     const announceSpy = jest
       .spyOn(AccessibilityInfo, "announceForAccessibility")
       .mockImplementation(() => undefined);
@@ -171,40 +172,8 @@ describe("Tier 1 felt-report screen", () => {
     });
     await flush();
 
-    expect(announceSpy).toHaveBeenCalledWith(
-      expect.stringContaining(i18n.t("felt.tier1.confirmation.title")),
-    );
-    expect(announceSpy).toHaveBeenCalledWith(
-      expect.stringContaining(i18n.t("felt.tier1.confirmation.queuedMessage")),
-    );
+    expect(announceSpy).toHaveBeenCalledWith(i18n.t("felt.tier1.queuedAnnouncement"));
 
     announceSpy.mockRestore();
-  });
-
-  it("tapping 'add more detail' navigates into the tier-2 flow with the just-created report id", async () => {
-    await renderWithProviders(<Tier1FeltReportScreen />);
-    await flush();
-
-    const level1Label = i18n.t("felt.tier1.levels.1.label");
-    const tile = screen.getByLabelText(`1. ${level1Label}`);
-    await act(async () => {
-      fireEvent.press(tile);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    await flush();
-
-    const addDetailButton = screen.getByRole("button", {
-      name: i18n.t("felt.tier1.confirmation.addDetail"),
-    });
-    fireEvent.press(addDetailButton);
-
-    const createdReportId = useFeltQueueStore.getState().items[0]?.tier1.reportId;
-    expect(mockPush).toHaveBeenCalledWith(
-      expect.objectContaining({
-        pathname: "/felt-report/step/[step]",
-        params: expect.objectContaining({ step: "0", feltReportId: createdReportId }),
-      }),
-    );
   });
 });
