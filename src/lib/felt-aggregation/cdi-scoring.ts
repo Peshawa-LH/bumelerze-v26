@@ -9,7 +9,7 @@
  */
 
 import type {
-  DamageLevel,
+  BuildingDamageGrade,
   FeltAnswer,
   FurnitureAnswer,
   MotionAnswer,
@@ -125,12 +125,20 @@ const BOOLEAN_INDEX: Record<PictureAnswer | FurnitureAnswer, number> = {
   yes: 1,
 };
 
-// Q10 — building damage, 0/0.75/2/3 (D18 R6: level 1 → 0.75 midpoint).
-const DAMAGE_INDEX: Record<DamageLevel, number> = {
+// Building damage, 0/0.5/0.75/2/3 — 2026-08-15 flow restructure (owner
+// directive): window 2's two-typology 5-grade picker supersedes the old
+// Q10 questionnaire answer (which was 0/0.75/2/3, D18 R6) as this index's
+// source. PROPOSED mapping, [REVIEW — Peshawa] — see
+// `docs/research/felt-report-science-v1.md`'s 2026-08-15 addendum:
+// implemented pending that review, same "provisional but wired in" pattern
+// this pack already uses for other interpolated values (R1's shelf steps,
+// the old R6 itself).
+const DAMAGE_INDEX: Record<BuildingDamageGrade, number> = {
   0: 0,
-  1: 0.75,
-  2: 2,
-  3: 3,
+  1: 0.5,
+  2: 0.75,
+  3: 2,
+  4: 3,
 };
 
 /**
@@ -146,14 +154,17 @@ export function scoreTier2Report(answers: Tier2Answers): IndexScores {
 
   return {
     felt: scoreFelt(answers.felt, answers.othersFelt),
-    motion: isMovingVehicle || answers.motion === null ? null : MOTION_INDEX[answers.motion],
+    motion:
+      isMovingVehicle || answers.motion === null ? null : MOTION_INDEX[answers.motion],
     reaction: answers.reaction === null ? null : REACTION_INDEX[answers.reaction],
     stand: isMovingVehicle || answers.stand === null ? null : STAND_INDEX[answers.stand],
     shelf: answers.shelf === null ? null : SHELF_INDEX[answers.shelf],
     picture: answers.picture === null ? null : BOOLEAN_INDEX[answers.picture],
     furniture: answers.furniture === null ? null : BOOLEAN_INDEX[answers.furniture],
     damage:
-      answers.buildingDamageLevel === null ? null : DAMAGE_INDEX[answers.buildingDamageLevel],
+      answers.buildingDamageLevel === null
+        ? null
+        : DAMAGE_INDEX[answers.buildingDamageLevel],
   };
 }
 
