@@ -103,6 +103,11 @@ const config: ExpoConfig = {
     // features (e.g. bundled-asset support) the CLI flags at install time —
     // no config options needed beyond enabling it.
     "expo-sqlite",
+    // Cartoon/damage tile artwork (tile-image-rendering wave): LevelTile and
+    // DamageTile render artwork through expo-image's <Image>. No plugin
+    // options needed — this just lets the config plugin wire the native
+    // module the same way expo-sqlite's entry above does.
+    "expo-image",
     [
       // Felt-report flow redesign (2026-08-15 owner directive), window 3:
       // an optional photo attachment on the baseline report. Both the
