@@ -1,0 +1,13 @@
+# Netlify deploy configuration — the site is the static `website/` folder.
+# No build step: plain HTML/CSS, deployed as-is. This file takes precedence
+# over dashboard build settings, so the connected-repo deploy works without
+# any manual Netlify configuration.
+
+[build]
+  publish = "website"
+
+# Long cache for the stylesheet, standard revalidation for pages.
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
