@@ -43,3 +43,21 @@
   for = "/*.css"
   [headers.values]
     Cache-Control = "public, max-age=86400"
+
+# SPA cache hygiene (order matters — Netlify applies the LAST matching rule
+# per header): app HTML (including every SPA-fallback response for
+# /app/<route>) must NEVER be reused without revalidation, or a browser
+# that cached a pre-deploy page keeps requesting that build's chunk files,
+# which stop existing after the next deploy (the fallback then masks the
+# 404 as HTML → "non-JavaScript MIME type" module errors → broken app
+# until the cache expires). The content-hashed _expo assets, by contrast,
+# are immutable by construction and safe to cache for a year.
+[[headers]]
+  for = "/app/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/app/_expo/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

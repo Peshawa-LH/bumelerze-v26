@@ -1,3 +1,7 @@
+// Side-effect import, web no-op on native: self-heal reload when a stale
+// cached page requests lazy chunks a newer deploy removed (see the module).
+import "@/lib/web-chunk-reload";
+
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
