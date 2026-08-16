@@ -9,7 +9,12 @@
   },
   "home": {
     "title": "Destpêk",
-    "emptyState": "Vê dawiyê tu erdheja li herêma te nehatiye tomarkirin."
+    "emptyState": "Vê dawiyê tu erdheja li herêma te nehatiye tomarkirin.",
+    "possibleEvent": {
+      "message": "Dibe ku erdhej çêbûye — ji aliyê mirovên nêzî {{city}} ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
+      "messageUnknownArea": "Dibe ku erdhej çêbûye — ji aliyê mirovên nêzîk ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
+      "a11yLabel": "Hişyariya erdheja muhtemel: ji aliyê mirovên nêzî {{city}} ve hat ragihandin. Agahiyên zêdetir wê werin dayîn."
+    }
   },
   "units": {
     "km": "km"

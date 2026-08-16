@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n, { isRTLLocale } from "@/i18n";
 import type { Event } from "../types";
+import type { PossibleEvent } from "../possible";
 
 // Home (app/(tabs)/index.tsx) is a pushed-navigator screen — it and the
 // shared EventListScreen both call `useRouter()`. We don't need real
@@ -14,15 +15,25 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-// Only the network-backed query hook is mocked; EventCard, EventListScreen,
+// Only the network-backed query hooks are mocked; EventCard, EventListScreen,
 // format.ts, distance.ts etc. all run for real, so this test exercises the
 // actual rendering/formatting pipeline against canned data.
+//
+// `usePossibleEvents` (D26 item 3) is mocked here for the same reason
+// `useRegionEvents` already is: it's a real `useQuery` hook under the hood,
+// and this file's `renderWithProviders` deliberately has no
+// `QueryClientProvider` in its tree (see that function below) — mocking it
+// keeps every existing test in this file working unchanged, and lets the
+// dedicated possible-event test below control its return value directly
+// without needing real Supabase env wiring.
 const mockUseRegionEvents = jest.fn();
+const mockUsePossibleEvents = jest.fn();
 jest.mock("@/features/events", () => {
   const actual = jest.requireActual("@/features/events");
   return {
     ...actual,
     useRegionEvents: () => mockUseRegionEvents(),
+    usePossibleEvents: () => mockUsePossibleEvents(),
   };
 });
 
@@ -60,6 +71,16 @@ const sampleEvent: Event = {
   url: "https://earthquake.usgs.gov/earthquakes/eventpage/us7000abcd",
 };
 
+// Slemani coordinates again (same as sampleEvent) — nearestCities resolves
+// this to "Slemani" in every locale's own gazetteer name.
+const samplePossibleEvent: PossibleEvent = {
+  id: "possible-event-1",
+  originTime: Date.now() - 2 * 60_000,
+  lat: 35.56,
+  lon: 45.43,
+  createdAt: Date.now() - 90_000,
+};
+
 describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
   const originalLanguage = i18n.language;
 
@@ -75,6 +96,9 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
       skippedCount: 0,
       refetch: jest.fn(),
     });
+    // Default: no possible events (the common case) — matches
+    // `usePossibleEvents`' own "unconfigured/empty" shape.
+    mockUsePossibleEvents.mockReturnValue({ events: [], isReady: false });
   });
 
   afterEach(async () => {
@@ -113,7 +137,11 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
       ...sampleEvent,
       id: "emsc-micro-1",
       magnitude: { value: 1.8, type: "ml" },
-      provenance: { ...sampleEvent.provenance, provider: "emsc", providerId: "emsc-micro-1" },
+      provenance: {
+        ...sampleEvent.provenance,
+        provider: "emsc",
+        providerId: "emsc-micro-1",
+      },
     };
     mockUseRegionEvents.mockReturnValue({
       events: [microEvent, sampleEvent],
@@ -151,6 +179,48 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
 
     expect(
       screen.getByText("لەم دواییانە هیچ بوومەلەرزەیەک لە هەرێمەکەتدا تۆمار نەکراوە."),
+    ).toBeTruthy();
+  });
+
+  it("renders no possible-event card when usePossibleEvents reports unconfigured/empty (the default)", async () => {
+    await renderWithProviders(<HomeScreen />);
+
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("renders a distinct possible-event card ABOVE the event list when one is active (D26 item 3)", async () => {
+    mockUsePossibleEvents.mockReturnValue({
+      events: [samplePossibleEvent],
+      isReady: true,
+    });
+
+    await i18n.changeLanguage("ckb");
+    await renderWithProviders(<HomeScreen />);
+
+    const card = screen.getByRole("alert");
+    expect(card).toBeTruthy();
+    // Nearest-city phrasing, localized (Sorani "Slemani" — same gazetteer
+    // name the M4.6 event card elsewhere in this file already asserts on).
+    expect(card.props.accessibilityLabel).toMatch(/سلێمانی/);
+
+    // The card's own message text also renders visibly (not just in the
+    // a11y label) — matched as the exact templated string (not a bare
+    // substring regex) since the M4.6 event card's own place line ALSO
+    // contains "سلێمانی" in this same render tree.
+    const expectedMessage = i18n.t("home.possibleEvent.message", { city: "سلێمانی" });
+    expect(screen.getByText(expectedMessage)).toBeTruthy();
+  });
+
+  it("renders the possible-event card's unknown-area fallback text far from any gazetteer city", async () => {
+    mockUsePossibleEvents.mockReturnValue({
+      events: [{ ...samplePossibleEvent, lat: 0, lon: 0 }],
+      isReady: true,
+    });
+
+    await renderWithProviders(<HomeScreen />);
+
+    expect(
+      screen.getByText(i18n.t("home.possibleEvent.messageUnknownArea", { lng: "en" })),
     ).toBeTruthy();
   });
 
@@ -218,7 +288,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
       Platform.OS = originalPlatformOS;
     });
 
-    it("passes dir=\"rtl\" to the card in Sorani so its logical border props resolve to the visual right", async () => {
+    it('passes dir="rtl" to the card in Sorani so its logical border props resolve to the visual right', async () => {
       await i18n.changeLanguage("ckb");
       await renderWithProviders(<HomeScreen />);
 
@@ -226,7 +296,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
       expect(card.props.dir).toBe("rtl");
     });
 
-    it("passes dir=\"ltr\" to the card in English", async () => {
+    it('passes dir="ltr" to the card in English', async () => {
       await renderWithProviders(<HomeScreen />);
 
       const card = screen.getByTestId(`event-card-${sampleEvent.id}`);

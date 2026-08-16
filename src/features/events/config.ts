@@ -114,3 +114,16 @@ export const GEOFON_REGION_TIMEOUT_MS = 8_000;
 export const DEDUP_MAX_TIME_DELTA_MS = 16_000;
 export const DEDUP_MAX_DISTANCE_KM = 100;
 export const DEDUP_MAX_MAG_DELTA = 1.5;
+
+/**
+ * Possible-events read (D26 item 3, `possible.ts`): matches the server-side
+ * expiry window (supabase/migrations/0012_crowd_detection.sql
+ * `expire_stale_possible_events`, 24h) so the client never queries further
+ * back than a row could still carry `status = 'possible'`. Refetch cadence
+ * deliberately faster than the region feed's 60s (same value, actually) —
+ * kept as its own constant rather than reusing EVENTS_REFETCH_INTERVAL_MS
+ * so the two can be tuned independently later (this is a much smaller,
+ * cheaper query).
+ */
+export const POSSIBLE_EVENTS_WINDOW_HOURS = 24;
+export const POSSIBLE_EVENTS_REFETCH_INTERVAL_MS = 60_000;
