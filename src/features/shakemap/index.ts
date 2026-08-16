@@ -17,6 +17,12 @@ export {
   type Viewport,
 } from "./projection";
 export { pickMapCities } from "./cities";
+export {
+  layoutCityLabels,
+  type LabelCandidate,
+  type PlacedLabel,
+  type TextAnchor,
+} from "./label-layout";
 export { useShakeMap, type UseShakeMapResult, type UseShakeMapStatus } from "./queries";
 export { BASEMAP_BBOX, BASEMAP_BORDERS, BASEMAP_COASTLINE, type BasemapLine } from "./basemap/basemap";
 export { clipLineToBbox } from "./projection";

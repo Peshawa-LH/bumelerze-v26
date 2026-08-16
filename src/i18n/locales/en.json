@@ -457,6 +457,16 @@
         "reviewed": "Reviewed by a scientist"
       }
     },
+    "feltMap": {
+      "sectionTitle": "Felt map",
+      "legendCaption": "Community Decimal Intensity (CDI) — self-reported",
+      "mapA11yLabel": "Felt-report map, {{count}} reports, intensity {{min}} to {{max}}, near {{place}}",
+      "reportCount": "{{count}} reports across {{cells}} areas",
+      "updated": "Updated {{time}}",
+      "citation": "Bumelerze felt reports — community-submitted, aggregated per area",
+      "unavailableOffline": "Felt map unavailable offline",
+      "retry": "Retry"
+    },
     "myReportRow": {
       "reported": "You reported level {{level}}",
       "addDetail": "Add more detail",

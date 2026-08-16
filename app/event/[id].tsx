@@ -18,6 +18,7 @@ import {
   useWorldEvents,
 } from "@/features/events";
 import { FeltReportPill, useOwnQueueItemForEvent } from "@/features/felt";
+import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
 import { ShakeMapSection } from "@/features/shakemap";
@@ -397,6 +398,13 @@ function EventDetailHeader({
        * common no-ShakeMap-product event (no empty shell) and never blocks
        * this header, which is already fully rendered above from feed data. */}
       <ShakeMapSection event={event} />
+
+      {/* Felt map (spec-v1.md §4.5 "Felt map tab: our own CDI-aggregated
+       * grid cells"), a sibling of ShakeMap directly below it — mounted
+       * unconditionally too; `FeltMapSection` itself decides
+       * hidden/offline/ready (no Supabase project configured yet ->
+       * hidden, same graceful env-gating as the rest of the app). */}
+      <FeltMapSection event={event} />
 
       <DetailSection
         title={t("eventDetail.sourceSectionTitle")}
