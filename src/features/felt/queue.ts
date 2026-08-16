@@ -434,3 +434,42 @@ export function useOwnQueueItemForEvent(eventId: string | null): QueueItem | nul
     eventId ? (state.items.find((item) => item.tier1.eventId === eventId) ?? null) : null,
   );
 }
+
+/**
+ * Every local queue item, in raw store order — powers the My Data screen
+ * (D26 item 7: "a MyShake-style personal view shows the user's own reports
+ * and contributions"). Every element here is this device's OWN submission
+ * by construction (the whole queue lives in this install's AsyncStorage,
+ * keyed by nothing but the local persisted store) — there is no
+ * cross-device data to accidentally leak, unlike a server-side query would
+ * need to guard against (see migration 0015's own doc comment on that
+ * distinction).
+ *
+ * Deliberately returns the store's own `items` array reference as-is
+ * (no `.sort()`/`.map()` here) rather than a freshly-allocated array: a
+ * zustand selector that returns a new array identity on every call breaks
+ * `useSyncExternalStore`'s snapshot-equality check and causes an infinite
+ * "Maximum update depth exceeded" render loop (hit while building this
+ * hook) — any derived view (sorting, mapping to a screen's own view model)
+ * belongs in the CALLING component's own `useMemo`, keyed off this stable
+ * reference, never inside the selector itself. `sortQueueItemsNewestFirst`
+ * below is the pure helper `app/my-data.tsx` composes with this hook that
+ * way.
+ */
+export function useFeltQueueItems(): QueueItem[] {
+  return useFeltQueueStore((state) => state.items);
+}
+
+/** Pure newest-first sort, split out from `useFeltQueueItems` for the
+ * `useMemo`-in-the-caller reason documented on that hook. */
+export function sortQueueItemsNewestFirst(items: readonly QueueItem[]): QueueItem[] {
+  return [...items].sort((a, b) => b.tier1.createdAt - a.tier1.createdAt);
+}
+
+/** True once the persisted queue has been read back from AsyncStorage —
+ * screens rendering an empty-state message should wait for this before
+ * trusting an empty `items` array, same "don't flash empty before hydration"
+ * gate `features/onboarding/store.ts` uses its own `hasHydrated` flag for. */
+export function useFeltQueueHasHydrated(): boolean {
+  return useFeltQueueStore((state) => state.hasHydrated);
+}
