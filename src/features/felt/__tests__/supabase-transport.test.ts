@@ -1,7 +1,13 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import type { FeltLocation, Tier1Report, Tier2Answers, Tier2Report } from "../types";
+import type {
+  EventRegistration,
+  FeltLocation,
+  Tier1Report,
+  Tier2Answers,
+  Tier2Report,
+} from "../types";
 
 /**
  * `SupabaseTransport` — no real network call anywhere in this file
@@ -99,12 +105,36 @@ const SAMPLE_LOCATION: FeltLocation = { quality: "gps", lat: 35.56, lon: 45.43 }
 const SAMPLE_TIER1: Tier1Report = {
   reportId: "11111111-1111-4111-8111-111111111111",
   deviceId: "device-abc",
+  // A client-side provider id string with NO registration snapshot attached
+  // (e.g. an older queued item, or a defensive edge case) — migration 0011
+  // fix under test: this must NOT be sent straight to the uuid `event_id`
+  // column; the report degrades to unassigned instead of erroring.
   eventId: "event-xyz",
+  eventRegistration: null,
   cartoonLevel: 6,
   location: SAMPLE_LOCATION,
   feltAt: 1_700_000_000_000,
   createdAt: 1_700_000_000_000,
   submittedAt: null,
+};
+
+const SAMPLE_EVENT_REGISTRATION: EventRegistration = {
+  provider: "usgs",
+  providerId: "us1000abcd",
+  originTime: 1_699_999_000_000,
+  lat: 35.56,
+  lon: 45.43,
+  depthKm: 10,
+  magnitude: 5.4,
+  magType: "mww",
+  placeName: "32 km SE of Halabja, Iraq",
+};
+
+const SAMPLE_TIER1_WITH_EVENT: Tier1Report = {
+  ...SAMPLE_TIER1,
+  reportId: "33333333-3333-4333-8333-333333333333",
+  eventId: "us1000abcd",
+  eventRegistration: SAMPLE_EVENT_REGISTRATION,
 };
 
 const SAMPLE_TIER2_ANSWERS: Tier2Answers = {
@@ -142,13 +172,19 @@ beforeEach(() => {
 });
 
 describe("buildFeltReportInsert (pure mapping)", () => {
-  it("maps every Tier1Report field to its felt_reports column", () => {
+  it("maps every Tier1Report field to its felt_reports column, using the RESOLVED event id, not report.eventId", () => {
     const { buildFeltReportInsert } = loadTransport();
 
-    expect(buildFeltReportInsert(SAMPLE_TIER1)).toEqual({
+    // report.eventId is "event-xyz" (a provider-id string) — the resolved
+    // uuid passed in as the second argument is what must land in the
+    // payload's event_id, proving this function never falls back to the
+    // non-uuid string itself (migration 0011 fix under test).
+    expect(
+      buildFeltReportInsert(SAMPLE_TIER1, "44444444-4444-4444-8444-444444444444"),
+    ).toEqual({
       report_id: SAMPLE_TIER1.reportId,
       device_id: "device-abc",
-      event_id: "event-xyz",
+      event_id: "44444444-4444-4444-8444-444444444444",
       cartoon_level: 6,
       lat: 35.56,
       lon: 45.43,
@@ -157,18 +193,18 @@ describe("buildFeltReportInsert (pure mapping)", () => {
     });
   });
 
-  it("passes a null event_id through for an unassociated report", () => {
+  it("passes a null event_id through for an unassociated (or unresolved) report", () => {
     const { buildFeltReportInsert } = loadTransport();
 
     const unassociated: Tier1Report = { ...SAMPLE_TIER1, eventId: null };
-    expect(buildFeltReportInsert(unassociated).event_id).toBeNull();
+    expect(buildFeltReportInsert(unassociated, null).event_id).toBeNull();
   });
 
   it("every payload key is a real felt_reports column (schema/app sync check)", () => {
     const { buildFeltReportInsert } = loadTransport();
     const columns = loadMigrationColumns("felt_reports");
 
-    for (const key of Object.keys(buildFeltReportInsert(SAMPLE_TIER1))) {
+    for (const key of Object.keys(buildFeltReportInsert(SAMPLE_TIER1, null))) {
       expect(columns).toContain(key);
     }
   });
@@ -219,13 +255,17 @@ describe("buildFeltReportDetailInsert (pure mapping)", () => {
 });
 
 describe("SupabaseTransport.submitTier1", () => {
-  function mockClientWithInsertResult(error: { code?: string; message?: string } | null) {
+  function mockClientWithInsertResult(
+    error: { code?: string; message?: string } | null,
+    rpcResult: { data?: unknown; error?: { message?: string } | null } = { data: null },
+  ) {
     const insert = jest.fn(async () => ({ error }));
     const from = jest.fn(() => ({ insert }));
-    return { auth: {} as never, from, insert };
+    const rpc = jest.fn(async () => ({ data: rpcResult.data ?? null, error: rpcResult.error ?? null }));
+    return { auth: {} as never, from, insert, rpc };
   }
 
-  it("returns 'submitted' on a clean insert", async () => {
+  it("returns 'submitted' on a clean insert, with a null event_id when there is no registration snapshot", async () => {
     const { SupabaseTransport, buildFeltReportInsert } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockClientWithInsertResult(null);
@@ -234,7 +274,12 @@ describe("SupabaseTransport.submitTier1", () => {
     const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
 
     expect(client.from).toHaveBeenCalledWith("felt_reports");
-    expect(client.insert).toHaveBeenCalledWith(buildFeltReportInsert(SAMPLE_TIER1));
+    // No eventRegistration on SAMPLE_TIER1 -> resolveEventUuid is never
+    // attempted, and the resolved event id passed into the insert is null
+    // (migration 0011 fix: report.eventId, "event-xyz", must NEVER be sent
+    // as-is — it isn't a real uuid).
+    expect(client.rpc).not.toHaveBeenCalled();
+    expect(client.insert).toHaveBeenCalledWith(buildFeltReportInsert(SAMPLE_TIER1, null));
     expect(result).toEqual({
       outcome: "submitted",
       serverReportId: SAMPLE_TIER1.reportId,
@@ -277,6 +322,83 @@ describe("SupabaseTransport.submitTier1", () => {
     const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
 
     expect(result).toEqual({ outcome: "awaiting-backend" });
+  });
+
+  describe("event resolution (migration 0011 upsert_event_from_client RPC)", () => {
+    it("resolves eventRegistration via the RPC and inserts the RESOLVED uuid, not the provider id", async () => {
+      const { SupabaseTransport, buildFeltReportInsert } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const resolvedUuid = "55555555-5555-4555-8555-555555555555";
+      const client = mockClientWithInsertResult(null, { data: resolvedUuid });
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1_WITH_EVENT);
+
+      expect(client.rpc).toHaveBeenCalledWith("upsert_event_from_client", {
+        provider: "usgs",
+        provider_event_id: "us1000abcd",
+        origin_time: new Date(1_699_999_000_000).toISOString(),
+        lat: 35.56,
+        lon: 45.43,
+        depth_km: 10,
+        magnitude: 5.4,
+        mag_type: "mww",
+        place_name: "32 km SE of Halabja, Iraq",
+      });
+      expect(client.insert).toHaveBeenCalledWith(
+        buildFeltReportInsert(SAMPLE_TIER1_WITH_EVENT, resolvedUuid),
+      );
+      expect(result.outcome).toBe("submitted");
+    });
+
+    it("caches the resolved uuid across submissions for the same (provider, providerId) — only one RPC call", async () => {
+      const { SupabaseTransport } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const resolvedUuid = "55555555-5555-4555-8555-555555555555";
+      const client = mockClientWithInsertResult(null, { data: resolvedUuid });
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      await SupabaseTransport.submitTier1(SAMPLE_TIER1_WITH_EVENT);
+      await SupabaseTransport.submitTier1({
+        ...SAMPLE_TIER1_WITH_EVENT,
+        reportId: "66666666-6666-4666-8666-666666666666",
+      });
+
+      expect(client.rpc).toHaveBeenCalledTimes(1);
+    });
+
+    it("degrades to a null event_id (never fails the report) when the RPC returns an error", async () => {
+      const { SupabaseTransport, buildFeltReportInsert } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const client = mockClientWithInsertResult(null, {
+        error: { message: "invalid lat: 999" },
+      });
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1_WITH_EVENT);
+
+      expect(client.insert).toHaveBeenCalledWith(
+        buildFeltReportInsert(SAMPLE_TIER1_WITH_EVENT, null),
+      );
+      expect(result.outcome).toBe("submitted");
+    });
+
+    it("degrades to a null event_id (never fails the report) when the RPC call throws", async () => {
+      const { SupabaseTransport, buildFeltReportInsert } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const client = mockClientWithInsertResult(null);
+      client.rpc = jest.fn(async () => {
+        throw new Error("network drop");
+      });
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1_WITH_EVENT);
+
+      expect(client.insert).toHaveBeenCalledWith(
+        buildFeltReportInsert(SAMPLE_TIER1_WITH_EVENT, null),
+      );
+      expect(result.outcome).toBe("submitted");
+    });
   });
 });
 

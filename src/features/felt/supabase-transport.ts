@@ -1,7 +1,9 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { getSupabaseClient } from "@/lib/supabase";
 
 import type { FeltTransport, TransportResult } from "./queue";
-import type { Tier1Report, Tier2Report } from "./types";
+import type { EventRegistration, Tier1Report, Tier2Report } from "./types";
 
 /**
  * `SupabaseTransport` — the real `FeltTransport` (see `queue.ts`'s own
@@ -37,8 +39,20 @@ export interface FeltReportInsert {
  *  - `report_id`      <- `reportId` (client UUID reused as the PK — see the
  *                        idempotency note in `submitTier1` below)
  *  - `device_id`       <- `deviceId`
- *  - `event_id`        <- `eventId` (nullable — pre-association, matches
- *                        the column's own nullability)
+ *  - `event_id`        <- `resolvedEventId` (the CANONICAL server uuid,
+ *                        NOT `report.eventId` — that field is the
+ *                        client-side provider id string, e.g.
+ *                        "us1000abcd", used for local queue matching only.
+ *                        Migration 0011 fix: inserting `report.eventId`
+ *                        directly used to send a non-uuid string into this
+ *                        uuid column for every assigned report; the caller
+ *                        (`submitTier1` below) resolves the real uuid via
+ *                        `resolveEventUuid` first and passes it in here.
+ *                        `null` is the correct value for a genuinely
+ *                        unassociated report (D26 rapid/unassigned pool)
+ *                        AND the safe fallback when resolution fails —
+ *                        either way this function just inserts what it's
+ *                        given, it makes no resolution decision itself)
  *  - `cartoon_level`   <- `cartoonLevel`
  *  - `lat` / `lon`     <- `location.lat` / `location.lon`
  *  - `location_quality`<- `location.quality` ("gps" | "manual")
@@ -49,11 +63,14 @@ export interface FeltReportInsert {
  *  - `submitted_at`    — `default now()`, the server's own receipt time is
  *                        more truthful than a client clock guess
  */
-export function buildFeltReportInsert(report: Tier1Report): FeltReportInsert {
+export function buildFeltReportInsert(
+  report: Tier1Report,
+  resolvedEventId: string | null,
+): FeltReportInsert {
   return {
     report_id: report.reportId,
     device_id: report.deviceId,
-    event_id: report.eventId,
+    event_id: resolvedEventId,
     cartoon_level: report.cartoonLevel,
     lat: report.location.lat,
     lon: report.location.lon,
@@ -221,6 +238,72 @@ function isRetryableInsertError(errorCode: string | undefined): boolean {
   return errorCode !== POSTGRES_UNIQUE_VIOLATION;
 }
 
+/**
+ * Session-lifetime cache of `EventRegistration -> canonical event uuid`
+ * (migration 0011's own "cache the mapping locally" ask) — module-level, so
+ * every `Tier1Report` filed against the SAME event within one app session
+ * (common case: several people's devices reporting the same quake, or one
+ * device browsing back to the same event page) reuses the first RPC's
+ * result instead of round-tripping again. Resets on app restart, which is
+ * fine: the RPC itself is idempotent (a cache miss just re-resolves the
+ * same uuid), this is purely a network-cost optimization, never a
+ * correctness dependency.
+ */
+const eventUuidCache = new Map<string, string>();
+
+function eventRegistrationCacheKey(registration: EventRegistration): string {
+  return `${registration.provider}:${registration.providerId}`;
+}
+
+/**
+ * Resolves an `EventRegistration` snapshot to the canonical server
+ * `events.event_id` uuid via the `upsert_event_from_client` RPC (migration
+ * 0011), consulting/populating `eventUuidCache` first. Returns `null` — the
+ * safe "leave this report unassigned" fallback, never a thrown error — for
+ * any RPC failure (network drop, validation rejection from the guard rails
+ * in the SQL function, misconfigured project): a resolution failure must
+ * never block or drop the felt report itself, only degrade it into the D26
+ * unassigned pool, which a later server-side association pass can still
+ * pick up from the report's own stored lat/lon/created_at.
+ */
+async function resolveEventUuid(
+  client: SupabaseClient,
+  registration: EventRegistration,
+): Promise<string | null> {
+  const cacheKey = eventRegistrationCacheKey(registration);
+  const cached = eventUuidCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const { data, error } = await client.rpc("upsert_event_from_client", {
+      provider: registration.provider,
+      provider_event_id: registration.providerId,
+      origin_time: new Date(registration.originTime).toISOString(),
+      lat: registration.lat,
+      lon: registration.lon,
+      depth_km: registration.depthKm,
+      magnitude: registration.magnitude,
+      mag_type: registration.magType,
+      place_name: registration.placeName,
+    });
+
+    if (error || typeof data !== "string" || data.length === 0) {
+      return null;
+    }
+
+    eventUuidCache.set(cacheKey, data);
+    return data;
+  } catch {
+    // Same "degrade to unassigned, never throw" contract as the
+    // error-response branch above — a network exception from `.rpc()`
+    // itself (as opposed to a typed PostgREST error response) must not
+    // propagate out of this resolver.
+    return null;
+  }
+}
+
 export const SupabaseTransport: FeltTransport = {
   async submitTier1(report: Tier1Report): Promise<TransportResult> {
     const client = getSupabaseClient();
@@ -232,9 +315,18 @@ export const SupabaseTransport: FeltTransport = {
       return { outcome: "awaiting-backend" };
     }
 
+    // Resolve the client-side provider id to the canonical server uuid
+    // BEFORE inserting (migration 0011) — only when this report actually
+    // carries a registration snapshot (Event Detail's pill); a Home
+    // rapid/unassigned report has none and stays `event_id: null`, which is
+    // correct (D26), not a fallback.
+    const resolvedEventId = report.eventRegistration
+      ? await resolveEventUuid(client, report.eventRegistration)
+      : null;
+
     const { error } = await client
       .from("felt_reports")
-      .insert(buildFeltReportInsert(report));
+      .insert(buildFeltReportInsert(report, resolvedEventId));
 
     if (!error) {
       return { outcome: "submitted", serverReportId: report.reportId };

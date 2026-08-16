@@ -22,8 +22,14 @@ const mockBack = jest.fn();
 const mockCanDismiss = jest.fn(() => false);
 const mockDismiss = jest.fn();
 
+/** Mutable per-test route params — most tests want the original `() => ({})`
+ * (no eventId/eventReg, Home usage); the `eventReg` parsing tests below
+ * override this before rendering. Reset in `afterEach` so it never leaks
+ * between tests. */
+let mockSearchParams: Record<string, string | undefined> = {};
+
 jest.mock("expo-router", () => ({
-  useLocalSearchParams: () => ({}),
+  useLocalSearchParams: () => mockSearchParams,
   useRouter: () => ({
     push: mockPush,
     back: mockBack,
@@ -87,6 +93,7 @@ describe("Window 1 — tier-1 felt-report screen", () => {
     mockBack.mockClear();
     mockCanDismiss.mockClear();
     mockDismiss.mockClear();
+    mockSearchParams = {};
     // Fresh queue between tests — this suite intentionally exercises the
     // REAL store (not a mock), so it must not leak state across tests.
     useFeltQueueStore.setState({ items: [] });
@@ -175,5 +182,74 @@ describe("Window 1 — tier-1 felt-report screen", () => {
     expect(announceSpy).toHaveBeenCalledWith(i18n.t("felt.tier1.queuedAnnouncement"));
 
     announceSpy.mockRestore();
+  });
+
+  describe("eventReg route param (migration 0011: FeltReportPill's registration snapshot)", () => {
+    it("parses a valid eventReg JSON param onto the queued item's eventRegistration", async () => {
+      mockSearchParams = {
+        eventId: "us1000abcd",
+        eventReg: JSON.stringify({
+          provider: "usgs",
+          providerId: "us1000abcd",
+          originTime: 1_700_000_000_000,
+          lat: 35.56,
+          lon: 45.43,
+          depthKm: 10,
+          magnitude: 5.4,
+          magType: "mww",
+          placeName: "32 km SE of Halabja, Iraq",
+        }),
+      };
+
+      await renderWithProviders(<Tier1FeltReportScreen />);
+      await flush();
+
+      const level5Label = i18n.t("felt.tier1.levels.5.label");
+      const tile = screen.getByLabelText(`5. ${level5Label}`);
+      await act(async () => {
+        fireEvent.press(tile);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      await flush();
+
+      const items = useFeltQueueStore.getState().items;
+      expect(items).toHaveLength(1);
+      expect(items[0]?.tier1.eventId).toBe("us1000abcd");
+      expect(items[0]?.tier1.eventRegistration).toEqual({
+        provider: "usgs",
+        providerId: "us1000abcd",
+        originTime: 1_700_000_000_000,
+        lat: 35.56,
+        lon: 45.43,
+        depthKm: 10,
+        magnitude: 5.4,
+        magType: "mww",
+        placeName: "32 km SE of Halabja, Iraq",
+      });
+    });
+
+    it("degrades to eventRegistration: null (never throws) when eventReg is malformed JSON", async () => {
+      mockSearchParams = { eventId: "us1000abcd", eventReg: "{not valid json" };
+
+      await renderWithProviders(<Tier1FeltReportScreen />);
+      await flush();
+
+      const level5Label = i18n.t("felt.tier1.levels.5.label");
+      const tile = screen.getByLabelText(`5. ${level5Label}`);
+      await act(async () => {
+        fireEvent.press(tile);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      await flush();
+
+      const items = useFeltQueueStore.getState().items;
+      expect(items).toHaveLength(1);
+      // The one-tap promise still holds even with a corrupt route param —
+      // the report is still queued, just without a registration snapshot.
+      expect(items[0]?.tier1.eventId).toBe("us1000abcd");
+      expect(items[0]?.tier1.eventRegistration).toBeNull();
+    });
   });
 });
