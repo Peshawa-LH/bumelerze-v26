@@ -361,7 +361,22 @@
     "dataSourcesSectionTitle": "Çavkaniyên daneyan",
     "dataSourcesSectionDescription": "Daneyên erdhejê ji xizmetên webê yên FDSN ên USGS, EMSC (seismicportal.eu) û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) tên wergirtin, di bin lîsansa CC BY 4.0 de. Bumelerze di her nûkirinê de her sê katalogan kontrol dike û dike yek feedê; heman erdhej tu carî du caran xuya nabe.",
     "telemetrySectionTitle": "Nîşana vekirina sepanê ya nenas",
-    "telemetrySectionDescription": "Her carê tu Bumelerze vedikî, cîhaza te nîşanek nenas dişîne bi cîhek giştî (bi qebareya bajêr) û platforma cîhaza te — tucaran nasnameya cîhazê an daneya kesane nayê şandin. Ev ji bo pêşerojê tê bikaranîn da ku peydakirina erdhejan zûtir bibe; niha tiştek pê nayê kirin."
+    "telemetrySectionDescription": "Her carê tu Bumelerze vedikî, cîhaza te nîşanek nenas dişîne bi cîhek giştî (bi qebareya bajêr) û platforma cîhaza te — tucaran nasnameya cîhazê an daneya kesane nayê şandin. Ev ji bo pêşerojê tê bikaranîn da ku peydakirina erdhejan zûtir bibe; niha tiştek pê nayê kirin.",
+    "myDataSectionTitle": "Daneyên min",
+    "myDataSectionDescription": "Rapora erdhejan ku te ji vê cîhazê şandiye bibîne.",
+    "myDataOpen": "Daneyên min veke",
+    "permissionsSectionTitle": "Destûr û daneyan",
+    "permissionsSectionDescription": "Bumelerze li ser vê cîhazê çi digihîje, û çima.",
+    "permissionsLocationTitle": "Cîh",
+    "permissionsLocationWhy": "Raporên te yên hestkirinê cîhê ku te lerzîn hîs kir digire.",
+    "permissionsMotionTitle": "Sensora tevgerê",
+    "permissionsMotionWhy": "Seismogrāma zindî ya rûpela Sensor pê tê xebitandin.",
+    "permissionsMotionWebHint": "Li ser vê gerokê, destûra tevgerê ji rûpela Sensor bi xwe tê xwestin.",
+    "permissionsMotionOpenSensor": "Rûpela Sensor veke",
+    "permissionsStatusGranted": "Destûr hate dayîn",
+    "permissionsStatusDenied": "Destûr nehat dayîn",
+    "permissionsStatusUndetermined": "Hê nehatiye pirsîn",
+    "permissionsRequest": "Destûr bide"
   },
   "onboarding": {
     "back": "Vegere",
@@ -741,5 +756,21 @@
     },
     "disclaimer": "Ev nirx ji bo bikaranîna destpêkê ne, jêder in. Ew şûna lêkolîna geoteknîkî ya taybet a cihê an jî nivîsa qanûna sêwiranê bi xwe nagirin.",
     "outOfCoverage": "Tu daneya bicihkirî vî cihî nagire."
+  },
+  "myData": {
+    "title": "Daneyên min",
+    "headerLabel": "Nasnameya te ya beşdarbûnê ya nenas",
+    "headerIdLoading": "…",
+    "headerIdA11yLabel": "Nasnameya te ya beşdarbûnê: {{id}}",
+    "headerExplanation": "Bi awayekî otomatîk li ser vê cîhazê hatiye afirandin — bêyî hesab an tomarkirin. Ev awayê kombûna raporên te ye, û tenê li ser vê sazkirinê dimîne.",
+    "summaryTitle": "{{count}} rapor hatine şandin",
+    "unassignedEvent": "Bi erdhejeke taybet ve girêdayî nîne",
+    "damageLine": "{{typology}}: {{grade}}",
+    "syncStatus": {
+      "submitted": "Hate şandin",
+      "on-device": "Li ser vê cîhazê"
+    },
+    "emptyStateMessage": "Te hê tu raporek hestkirinê neşandiye. Heke tu erdhejekê hîs bikî, ji me re bibêje — bi tenê yek lêdanê.",
+    "emptyStateCta": "Erdhejê rapor bike"
   }
 }

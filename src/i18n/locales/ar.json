@@ -361,7 +361,22 @@
     "dataSourcesSectionTitle": "مصادر البيانات",
     "dataSourcesSectionDescription": "تأتي بيانات الزلازل من خدمات الويب FDSN الخاصة بـ USGS وEMSC (seismicportal.eu) وGEOFON (مركز GFZ هلمهولتز لعلوم الأرض، geofon.gfz.de)، المرخصة بموجب CC BY 4.0. يفحص Bumelerze الكتالوجات الثلاثة عند كل تحديث ويدمجها في خلاصة واحدة، فلا يظهر الزلزال نفسه مرتين أبدًا.",
     "telemetrySectionTitle": "إشارة مجهولة عند فتح التطبيق",
-    "telemetrySectionDescription": "في كل مرة تفتح فيها بوملێرزە، يرسل جهازك إشارة مجهولة الهوية تتضمن موقعاً تقريبياً (بحجم المدينة) ونظام تشغيل جهازك — دون أي معرّف للجهاز أو بيانات شخصية. تُستخدم هذه البيانات مستقبلاً للمساعدة في رصد الزلازل بشكل أسرع؛ ولا يُستفاد منها حالياً."
+    "telemetrySectionDescription": "في كل مرة تفتح فيها بوملێرزە، يرسل جهازك إشارة مجهولة الهوية تتضمن موقعاً تقريبياً (بحجم المدينة) ونظام تشغيل جهازك — دون أي معرّف للجهاز أو بيانات شخصية. تُستخدم هذه البيانات مستقبلاً للمساعدة في رصد الزلازل بشكل أسرع؛ ولا يُستفاد منها حالياً.",
+    "myDataSectionTitle": "بياناتي",
+    "myDataSectionDescription": "اطّلع على تقارير الزلازل التي أرسلتها من هذا الجهاز.",
+    "myDataOpen": "فتح بياناتي",
+    "permissionsSectionTitle": "الأذونات والبيانات",
+    "permissionsSectionDescription": "ما الذي يمكن لبوملێرزە الوصول إليه على هذا الجهاز، ولماذا.",
+    "permissionsLocationTitle": "الموقع",
+    "permissionsLocationWhy": "تقارير الإحساس بالزلزال تتضمن المكان الذي شعرت فيه بالاهتزاز.",
+    "permissionsMotionTitle": "مستشعر الحركة",
+    "permissionsMotionWhy": "يشغّل مخطط الزلازل الحي في شاشة المستشعر.",
+    "permissionsMotionWebHint": "على هذا المتصفح، يُطلب إذن الحركة من داخل شاشة المستشعر نفسها.",
+    "permissionsMotionOpenSensor": "فتح شاشة المستشعر",
+    "permissionsStatusGranted": "مسموح",
+    "permissionsStatusDenied": "غير مسموح",
+    "permissionsStatusUndetermined": "لم يُطلب بعد",
+    "permissionsRequest": "سماح"
   },
   "onboarding": {
     "back": "رجوع",
@@ -741,5 +756,21 @@
     },
     "disclaimer": "هذه القيم مرجعية للاستخدام الأولي. لا تُغني عن دراسة جيوتقنية خاصة بالموقع أو عن نص الكود التصميمي نفسه.",
     "outOfCoverage": "لا تغطي البيانات المجمّعة هذا الموقع."
+  },
+  "myData": {
+    "title": "بياناتي",
+    "headerLabel": "معرّف المساهمة المجهول الخاص بك",
+    "headerIdLoading": "…",
+    "headerIdA11yLabel": "معرّف مساهمتك: {{id}}",
+    "headerExplanation": "يُنشأ تلقائياً على هذا الجهاز — دون حساب أو تسجيل. هذا ما يجمع تقاريرك معاً، ويبقى على هذا التثبيت فقط.",
+    "summaryTitle": "تم إرسال {{count}} تقرير",
+    "unassignedEvent": "غير مرتبط بزلزال محدد",
+    "damageLine": "{{typology}}: {{grade}}",
+    "syncStatus": {
+      "submitted": "أُرسل",
+      "on-device": "على هذا الجهاز"
+    },
+    "emptyStateMessage": "لم ترسل أي تقرير إحساس بعد. إذا شعرت بزلزال، أخبرنا — الأمر يستغرق ضغطة واحدة فقط.",
+    "emptyStateCta": "أرسل تقرير زلزال"
   }
 }
