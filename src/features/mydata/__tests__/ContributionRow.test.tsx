@@ -14,6 +14,7 @@ const BASE_ROW: ContributionRowViewModel = {
   damage: null,
   syncStatus: "on-device",
   syncStatusText: "On this device",
+  hasPhoto: false,
 };
 
 describe("ContributionRow", () => {
@@ -87,5 +88,14 @@ describe("ContributionRow", () => {
     );
 
     expect(screen.getByText("Submitted")).toBeTruthy();
+  });
+
+  it("shows the photo-attached indicator when hasPhoto is true, and hides it otherwise", async () => {
+    await render(<ContributionRow row={{ ...BASE_ROW, hasPhoto: true }} />);
+    expect(screen.getByText("Photo attached")).toBeTruthy();
+
+    cleanup();
+    await render(<ContributionRow row={BASE_ROW} />);
+    expect(screen.queryByText("Photo attached")).toBeNull();
   });
 });

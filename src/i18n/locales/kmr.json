@@ -766,6 +766,7 @@
     "summaryTitle": "{{count}} rapor hatine şandin",
     "unassignedEvent": "Bi erdhejeke taybet ve girêdayî nîne",
     "damageLine": "{{typology}}: {{grade}}",
+    "photoAttachedLabel": "Wêne hate zêdekirin",
     "syncStatus": {
       "submitted": "Hate şandin",
       "on-device": "Li ser vê cîhazê"

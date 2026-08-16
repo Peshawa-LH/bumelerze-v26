@@ -766,6 +766,7 @@
     "summaryTitle": "تم إرسال {{count}} تقرير",
     "unassignedEvent": "غير مرتبط بزلزال محدد",
     "damageLine": "{{typology}}: {{grade}}",
+    "photoAttachedLabel": "صورة مرفقة",
     "syncStatus": {
       "submitted": "أُرسل",
       "on-device": "على هذا الجهاز"

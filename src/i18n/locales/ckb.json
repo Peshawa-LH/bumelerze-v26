@@ -766,6 +766,7 @@
     "summaryTitle": "{{count}} ڕاپۆرت نێردراوە",
     "unassignedEvent": "بەستراوە نییە بە بوومەلەرزەیەکی دیاریکراوەوە",
     "damageLine": "{{typology}}: {{grade}}",
+    "photoAttachedLabel": "وێنە زیادکراوە",
     "syncStatus": {
       "submitted": "نێردرا",
       "on-device": "لەسەر ئەم ئامێرە"

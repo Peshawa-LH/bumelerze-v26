@@ -56,14 +56,21 @@ export {
   type EnqueueTier1Input,
   type EnqueueTier2Input,
   type FeltTransport,
+  type PhotoUploadResult,
+  type PhotoUploadState,
   type QueueItem,
   type QueueItemState,
   type TransportResult,
 } from "./queue";
 export {
   SupabaseTransport,
+  buildFeltCommentInsert,
+  buildFeltPhotoInsert,
   buildFeltReportDetailInsert,
   buildFeltReportInsert,
+  uploadFeltPhoto,
+  type FeltCommentInsert,
+  type FeltPhotoInsert,
   type FeltReportDetailInsert,
   type FeltReportInsert,
 } from "./supabase-transport";

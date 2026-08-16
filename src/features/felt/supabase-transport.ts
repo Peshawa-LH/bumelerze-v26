@@ -1,9 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { File } from "expo-file-system";
+import { Platform } from "react-native";
 
-import { getSupabaseClient } from "@/lib/supabase";
+import { getSupabaseClient, signInAnonymously } from "@/lib/supabase";
 
-import type { FeltTransport, TransportResult } from "./queue";
+import type { FeltTransport, PhotoUploadResult, TransportResult } from "./queue";
 import type { EventRegistration, Tier1Report, Tier2Report } from "./types";
+
+/** Private Storage bucket created by migration 0016 — see that file for the
+ * bucket config (5 MB limit, jpeg/png/webp) and the storage.objects RLS
+ * policies this upload path depends on. */
+const FELT_PHOTOS_BUCKET = "felt-photos";
 
 /**
  * `SupabaseTransport` — the real `FeltTransport` (see `queue.ts`'s own
@@ -26,6 +33,7 @@ export interface FeltReportInsert {
   report_id: string;
   device_id: string;
   event_id: string | null;
+  user_id: string | null;
   cartoon_level: number;
   lat: number;
   lon: number;
@@ -57,8 +65,19 @@ export interface FeltReportInsert {
  *  - `lat` / `lon`     <- `location.lat` / `location.lon`
  *  - `location_quality`<- `location.quality` ("gps" | "manual")
  *  - `created_at`      <- `createdAt` (device capture time; ISO string)
+ *  - `user_id`         <- `userId` (the third argument — 2026-08-16 storage
+ *                        wave: this used to be permanently unsent, "D8:
+ *                        future accounts column only". It is now populated
+ *                        with the calling device's `auth.uid()` whenever an
+ *                        anonymous Supabase Auth session exists, which is
+ *                        exactly what migration 0015's `felt_reports_
+ *                        select_own` policy and this wave's felt-photos
+ *                        Storage path both need to become real. `null` is
+ *                        still the correct, fully-supported value — see
+ *                        `ensureAnonymousUserId` below, called by
+ *                        `submitTier1` and degrading to `null` on any
+ *                        sign-in failure without ever blocking the report.)
  * Deliberately NOT sent (left to the database):
- *  - `user_id`         — unused in v1 (D8: future accounts column only)
  *  - `geohash_p5`      — `GENERATED ALWAYS AS ... STORED`, server-computed
  *  - `submitted_at`    — `default now()`, the server's own receipt time is
  *                        more truthful than a client clock guess
@@ -66,11 +85,13 @@ export interface FeltReportInsert {
 export function buildFeltReportInsert(
   report: Tier1Report,
   resolvedEventId: string | null,
+  userId: string | null = null,
 ): FeltReportInsert {
   return {
     report_id: report.reportId,
     device_id: report.deviceId,
     event_id: resolvedEventId,
+    user_id: userId,
     cartoon_level: report.cartoonLevel,
     lat: report.location.lat,
     lon: report.location.lon,
@@ -98,6 +119,16 @@ export interface FeltReportDetailInsert {
 }
 
 /**
+ * NOTE on `user_id` (2026-08-16 storage wave): unlike `felt_reports` and
+ * `felt_comments`, `felt_report_details` has NO `user_id` column of its own
+ * (migration 0003) — it is a 1:1 child of `felt_reports`, and migration
+ * 0015's own header comment already establishes the pattern this transport
+ * follows: ownership is proven by joining through `felt_report_id` to the
+ * parent row's `user_id`, never by duplicating the column here. Adding one
+ * would be schema growth with no RLS/ownership need it doesn't already
+ * satisfy — so this function intentionally does NOT gain a `userId`
+ * parameter the way `buildFeltReportInsert`/`buildFeltCommentInsert` did.
+ *
  * Maps a `Tier2Report` to a `felt_report_details` insert row.
  * Column mapping (migration 0003, extended by 0009 for `damage_typology` +
  * the widened `building_damage_level` check) — one column per Q2-Q9/Q11
@@ -185,6 +216,7 @@ export interface FeltCommentInsert {
   comment_id: string;
   report_id: string;
   device_id: string;
+  user_id: string | null;
   body: string;
 }
 
@@ -210,14 +242,21 @@ export interface FeltCommentInsert {
  *  - `device_id`   <- `report.deviceId` (copied from the tier-1 record at
  *                     enqueue time, see `Tier2Report.deviceId`'s own doc —
  *                     `felt_comments.device_id` is `not null`).
+ *  - `user_id`     <- `userId` (2026-08-16 storage wave: same
+ *                     `ensureAnonymousUserId` value `buildFeltReportInsert`
+ *                     receives — `null` when no anonymous session exists,
+ *                     never blocking the comment).
  *  - `body`        <- `report.answers.comment`.
  * Deliberately NOT sent (left to the database):
  *  - `moderation_status` — `default 'pending'` (D15: comments are moderated
  *    before public display; this transport never sets it to anything else).
- *  - `user_id`, `moderated_at`, `moderated_by` — unused at write time (D15's
+ *  - `moderated_at`, `moderated_by` — unused at write time (D15's
  *    moderation UPDATE happens via the service_role key, not this client).
  */
-export function buildFeltCommentInsert(report: Tier2Report): FeltCommentInsert | null {
+export function buildFeltCommentInsert(
+  report: Tier2Report,
+  userId: string | null = null,
+): FeltCommentInsert | null {
   const body = report.answers.comment;
   if (!body) {
     return null;
@@ -226,6 +265,7 @@ export function buildFeltCommentInsert(report: Tier2Report): FeltCommentInsert |
     comment_id: report.detailId,
     report_id: report.feltReportId,
     device_id: report.deviceId,
+    user_id: userId,
     body,
   };
 }
@@ -236,6 +276,170 @@ export function buildFeltCommentInsert(report: Tier2Report): FeltCommentInsert |
  * silently" on an error shape we don't specifically recognize. */
 function isRetryableInsertError(errorCode: string | undefined): boolean {
   return errorCode !== POSTGRES_UNIQUE_VIOLATION;
+}
+
+/**
+ * Ensures an anonymous Supabase Auth session exists and returns its
+ * `auth.uid()`, or `null` on ANY failure — sign-in rejection, no network,
+ * misconfigured project. Every caller in this file treats `null` as "degrade
+ * gracefully", never as a reason to fail the surrounding report/comment/
+ * photo write (2026-08-16 storage wave brief: "Reports must STILL submit
+ * fine if the anonymous sign-in fails").
+ *
+ * `signInAnonymously()` (`src/lib/supabase.ts`) already memoizes the
+ * in-flight sign-in promise AND short-circuits when a session is already
+ * persisted (AsyncStorage-backed, survives app restarts) — this wrapper adds
+ * nothing beyond "read the uid back out afterwards, or return null instead
+ * of throwing". `client.auth.getSession()` reads the SDK's in-memory/
+ * persisted session directly (no network round-trip of its own), so calling
+ * this on every submit/upload attempt is cheap once a session exists.
+ */
+async function ensureAnonymousUserId(client: SupabaseClient): Promise<string | null> {
+  try {
+    await signInAnonymously();
+  } catch {
+    return null;
+  }
+
+  const { data, error } = await client.auth.getSession();
+  if (error || !data.session) {
+    return null;
+  }
+  return data.session.user.id;
+}
+
+/** `image/jpeg` unless the local URI's own extension says otherwise — the
+ * picker (`app/felt-report/details.tsx`) forces JPEG re-encoding at
+ * quality 0.4 for the common case, but the storage path this wave writes to
+ * is always suffixed `.jpg` regardless (see `uploadFeltPhoto` below), so
+ * this only affects the `Content-Type` header, not the object key; kept
+ * narrow to the three mime types migration 0016's bucket actually allows. */
+function inferPhotoContentType(uri: string): string {
+  const lower = uri.toLowerCase();
+  if (lower.endsWith(".png")) {
+    return "image/png";
+  }
+  if (lower.endsWith(".webp")) {
+    return "image/webp";
+  }
+  return "image/jpeg";
+}
+
+/**
+ * Reads a LOCAL photo uri's bytes into whatever body shape `@supabase/
+ * storage-js`'s `upload()` accepts directly — no manual base64 decoding,
+ * on either platform. Two different reads because a single strategy can't
+ * cover both (wave brief: "pick what works on BOTH native and web; the web
+ * build is the primary live channel right now, so WEB MUST WORK"):
+ *  - **web**: `expo-image-picker`'s web implementation returns a `blob:`/
+ *    `data:` uri, not a real filesystem path — `fetch(uri).blob()` is the
+ *    standard, well-documented way to turn either back into a `Blob`
+ *    (which `storage-js` uploads via `FormData`, see its own `upload()`).
+ *  - **native**: `expo-file-system`'s new `File` class (SDK 52+, replacing
+ *    the deprecated `readAsStringAsync`/base64 pattern) exposes
+ *    `arrayBuffer()` directly against a real `file://` uri — no base64
+ *    round-trip, no extra dependency (`expo-file-system` is already an
+ *    Expo-bundled package, added to `package.json` this wave to match every
+ *    other `expo-*` module this repo declares explicitly rather than relying
+ *    on it staying a transitive dependency of `expo` itself).
+ */
+async function readPhotoBody(uri: string): Promise<Blob | ArrayBuffer> {
+  if (Platform.OS === "web") {
+    const response = await fetch(uri);
+    return await response.blob();
+  }
+  return await new File(uri).arrayBuffer();
+}
+
+export interface FeltPhotoInsert {
+  report_id: string;
+  storage_path: string;
+}
+
+/**
+ * Maps a resolved storage path to a `felt_photos` upsert row (migration
+ * 0003 + 0016's added `felt_photos_report_id_uq`). Deliberately NOT sent
+ * (left to the database, or to whatever the row already has on a retry):
+ *  - `photo_id`          — `default gen_random_uuid()`, only meaningful on
+ *                          a true first insert
+ *  - `moderation_status` — `default 'pending'` on insert; on an upsert
+ *                          conflict this column is simply absent from the
+ *                          payload, so Postgres leaves it untouched rather
+ *                          than resetting an already-moderated row (see
+ *                          migration 0016's own comment on
+ *                          `felt_photos_report_id_uq`)
+ *  - `moderated_at`, `moderated_by` — same reasoning, D15's moderation
+ *                          UPDATE happens via service_role, not this client
+ *  - `created_at`         — `default now()`
+ */
+export function buildFeltPhotoInsert(reportId: string, storagePath: string): FeltPhotoInsert {
+  return { report_id: reportId, storage_path: storagePath };
+}
+
+/**
+ * Uploads a window-3 photo (`Tier2Report.photoUri`) to the private
+ * `felt-photos` Storage bucket (migration 0016) at
+ * `<auth.uid()>/<felt_report_id>.jpg`, then upserts the matching
+ * `felt_photos` row (moderation stays whatever it already was — see
+ * migration 0016's own comment on why `moderation_status` is never sent
+ * here). Never throws: every failure path returns `{ outcome: "failed" }`
+ * so `queue.ts`'s photo-retry pass can safely re-attempt on the next drain
+ * without the surrounding report ever being affected (photo upload is
+ * always a step AFTER the report/detail rows already landed — see
+ * `queue.ts`'s own gating comment).
+ */
+export async function uploadFeltPhoto(
+  client: SupabaseClient,
+  report: Tier2Report,
+): Promise<PhotoUploadResult> {
+  const photoUri = report.photoUri;
+  if (!photoUri) {
+    // Nothing to upload — not a failure, just a no-op the caller shouldn't
+    // have invoked (queue.ts only calls this when photoUri is set); kept
+    // defensive rather than asserting, since it costs nothing.
+    return { outcome: "uploaded" };
+  }
+
+  const userId = await ensureAnonymousUserId(client);
+  if (!userId) {
+    // No provable identity -> no safe storage path to write to (migration
+    // 0016's RLS predicate requires the path's first segment to equal
+    // auth.uid()). Defer, never drop: the report itself already succeeded
+    // independently of this call.
+    return { outcome: "failed" };
+  }
+
+  try {
+    const body = await readPhotoBody(photoUri);
+    const storagePath = `${userId}/${report.feltReportId}.jpg`;
+
+    const { error: uploadError } = await client.storage
+      .from(FELT_PHOTOS_BUCKET)
+      .upload(storagePath, body, {
+        upsert: true, // retry-idempotent: re-running this on the same path overwrites, never duplicates
+        contentType: inferPhotoContentType(photoUri),
+      });
+    if (uploadError) {
+      return { outcome: "failed" };
+    }
+
+    // onConflict: 'report_id' targets migration 0016's new unique
+    // constraint — a retry after a dropped response upserts the SAME row
+    // rather than erroring or duplicating (see `buildFeltPhotoInsert`'s own
+    // doc for why `moderation_status` is safe to omit here).
+    const { error: rowError } = await client
+      .from("felt_photos")
+      .upsert(buildFeltPhotoInsert(report.feltReportId, storagePath), {
+        onConflict: "report_id",
+      });
+    if (rowError) {
+      return { outcome: "failed" };
+    }
+
+    return { outcome: "uploaded" };
+  } catch {
+    return { outcome: "failed" };
+  }
 }
 
 /**
@@ -329,9 +533,14 @@ export const SupabaseTransport: FeltTransport = {
       ? await resolveEventUuid(client, report.eventRegistration)
       : null;
 
+    // 2026-08-16 storage wave: ensure (or reuse) an anonymous auth session
+    // and populate `user_id` from it. `null` on any failure — never blocks
+    // the insert (see `ensureAnonymousUserId`'s own doc).
+    const userId = await ensureAnonymousUserId(client);
+
     const { error } = await client
       .from("felt_reports")
-      .insert(buildFeltReportInsert(report, resolvedEventId));
+      .insert(buildFeltReportInsert(report, resolvedEventId, userId));
 
     if (!error) {
       return { outcome: "submitted", serverReportId: report.reportId };
@@ -366,7 +575,7 @@ export const SupabaseTransport: FeltTransport = {
     // raw_answers jsonb blob above. A queue retry re-runs this whole
     // function, so both inserts must independently tolerate hitting an
     // already-succeeded unique key (see each build function's own doc).
-    const commentInsert = buildFeltCommentInsert(report);
+    const commentInsert = buildFeltCommentInsert(report, await ensureAnonymousUserId(client));
     if (commentInsert) {
       const { error: commentError } = await client
         .from("felt_comments")
@@ -381,5 +590,23 @@ export const SupabaseTransport: FeltTransport = {
     }
 
     return { outcome: "submitted", serverReportId: report.detailId };
+  },
+
+  /**
+   * 2026-08-16 storage wave: window 3's optional photo, uploaded AFTER the
+   * report/detail rows already landed (`queue.ts`'s photo-upload pass only
+   * calls this once the surrounding queue item's `state` is "submitted" —
+   * see that file's own gating comment, which is also what satisfies
+   * `felt_photos.report_id`'s foreign key to `felt_reports.report_id`
+   * before this ever runs). See `uploadFeltPhoto`'s own doc for the upload
+   * itself; this method is only the `getSupabaseClient() -> null` guard
+   * every other method here already has.
+   */
+  async uploadPhoto(report: Tier2Report): Promise<PhotoUploadResult> {
+    const client = getSupabaseClient();
+    if (!client) {
+      return { outcome: "failed" };
+    }
+    return uploadFeltPhoto(client, report);
   },
 };

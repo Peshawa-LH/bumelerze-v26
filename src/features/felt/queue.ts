@@ -63,6 +63,14 @@ export type TransportResult =
   | { outcome: "awaiting-backend" }
   | { outcome: "failed"; retryable: boolean };
 
+/** Result of a window-3 photo upload attempt (2026-08-16 storage wave) —
+ * deliberately a SEPARATE, simpler result type from `TransportResult`: a
+ * photo upload never blocks or retries the surrounding report the way a
+ * report submission's retryable/terminal distinction does (see `queue.ts`'s
+ * own "photo state" doc on `QueueItem` below) — it is always just "did the
+ * bytes + row land, or not, try again next drain". */
+export type PhotoUploadResult = { outcome: "uploaded" } | { outcome: "failed" };
+
 export interface FeltTransport {
   submitTier1(report: Tier1Report): Promise<TransportResult>;
   /** Tier-2 submission supersedes the device's tier-1 pick (D18 §3.2) — a
@@ -70,6 +78,14 @@ export interface FeltTransport {
    * `felt_report_details` from this one call; the queue only tracks it as a
    * single item either way (see `QueueItem`). */
   submitTier2(report: Tier2Report): Promise<TransportResult>;
+  /**
+   * Optional — only `SupabaseTransport` implements this (2026-08-16 storage
+   * wave). `PendingTransport` and every test-double transport in this
+   * repo's existing suite simply omit it; `processQueue`'s photo-upload
+   * pass checks `typeof transport.uploadPhoto === "function"` before ever
+   * calling it, so omitting it is "not attempted yet", never a crash.
+   */
+  uploadPhoto?(report: Tier2Report): Promise<PhotoUploadResult>;
 }
 
 /**
@@ -110,6 +126,19 @@ export type QueueItemState =
   | "submitted" // a real transport confirmed server receipt
   | "failed"; // the transport reported a retryable (or terminal) failure
 
+/** Window-3 photo upload state (2026-08-16 storage wave) — independent of
+ * `QueueItemState` above, which only tracks the felt_reports/
+ * felt_report_details submission. `null` means "no photo to upload" (the
+ * common case: no photo was attached, or tier2 hasn't attached yet).
+ * `"pending-upload"` is the initial state the moment a photo-carrying
+ * tier2 attaches; `processQueue`'s photo-upload pass only attempts an
+ * upload once the surrounding item's `state` is `"submitted"` (the
+ * `felt_photos.report_id` foreign key needs the `felt_reports` row to
+ * exist first) and retries `"failed"` on every subsequent drain — no
+ * separate backoff timer, since a stuck photo upload never blocks the
+ * report itself. */
+export type PhotoUploadState = "pending-upload" | "uploaded" | "failed";
+
 export interface QueueItem {
   tier1: Tier1Report;
   /** Attached once the user completes tier 2 (D18 §3.2 supersede-in-place —
@@ -119,6 +148,8 @@ export interface QueueItem {
   attempts: number;
   lastAttemptAt: number | null;
   nextRetryAt: number | null;
+  /** See `PhotoUploadState`'s own doc. */
+  photoState: PhotoUploadState | null;
 }
 
 const QUEUE_STORAGE_KEY = "bumelerze.felt.queue";
@@ -159,7 +190,14 @@ export const useFeltQueueStore = create<FeltQueueState>()(
         set((state) => ({
           items: state.items.map((entry) =>
             entry.tier1.reportId === reportId
-              ? { ...entry, tier2, state: "queued", attempts: 0, nextRetryAt: null }
+              ? {
+                  ...entry,
+                  tier2,
+                  state: "queued",
+                  attempts: 0,
+                  nextRetryAt: null,
+                  photoState: tier2.photoUri ? "pending-upload" : null,
+                }
               : entry,
           ),
         })),
@@ -224,6 +262,7 @@ export async function enqueueTier1Report(
     attempts: 0,
     lastAttemptAt: null,
     nextRetryAt: null,
+    photoState: null,
   });
 
   // Fire-and-forget: the durable write already happened above. A failure or
@@ -381,6 +420,45 @@ export async function processQueue(
             attempts,
             nextRetryAt: Date.now() + computeBackoffMs(attempts),
           });
+        }
+      }
+
+      // Photo uploads (2026-08-16 storage wave) — a SEPARATE pass, re-read
+      // fresh from the store rather than reusing `eligible`/`items` above:
+      // a tier2 item submitted for the FIRST time in the loop just above
+      // (state "queued" -> "submitted") must be picked up for its photo
+      // upload in this SAME pass, not deferred to the next drain trigger.
+      // Gated on `state === "submitted"` because `felt_photos.report_id`'s
+      // foreign key needs the `felt_reports` row to already exist
+      // server-side — see `uploadFeltPhoto`'s own doc. Never fails or
+      // retries the report itself: only `photoState` moves, `state` is
+      // left untouched either way (photo upload success/failure is
+      // reported nowhere scary to the user, per the wave brief).
+      if (typeof transport.uploadPhoto === "function") {
+        const uploadPhoto = transport.uploadPhoto;
+        const { items: itemsAfterReports } = useFeltQueueStore.getState();
+        const photoEligible = itemsAfterReports.filter(
+          (item) =>
+            item.tier2?.photoUri &&
+            item.state === "submitted" &&
+            (item.photoState === "pending-upload" || item.photoState === "failed"),
+        );
+
+        for (const item of photoEligible) {
+          const reportId = item.tier1.reportId;
+          // `item.tier2` is narrowed non-null by the filter above, but the
+          // filter predicate itself doesn't survive into this block's own
+          // type narrowing (a fresh closure over a different `item`
+          // reference) — the non-null assertion is safe for that reason
+          // alone, not a real runtime risk.
+          try {
+            const result = await uploadPhoto(item.tier2!);
+            _patchItem(reportId, {
+              photoState: result.outcome === "uploaded" ? "uploaded" : "failed",
+            });
+          } catch {
+            _patchItem(reportId, { photoState: "failed" });
+          }
         }
       }
     } while (rerunRequested);

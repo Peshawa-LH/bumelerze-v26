@@ -12,9 +12,13 @@ changed. What exists today, app-side:
 - `src/lib/supabase.ts` — the `@supabase/supabase-js` client, created lazily
   and only when both env vars below are set. `isSupabaseConfigured()` guards
   every call site; `getSupabaseClient()` returns `null` (never throws) when
-  unconfigured. `signInAnonymously()` is ready for `notification_subscriptions`
-  (see "Two different anonymous identity mechanisms" above) but nothing
-  calls it yet — notification-subscription sync is still future work (below).
+  unconfigured. **2026-08-16 storage wave:** `signInAnonymously()` is now
+  actually called — every `SupabaseTransport` write (`felt_reports`/
+  `felt_report_details`/`felt_comments`/the `felt-photos` Storage upload)
+  ensures an anonymous session first and populates `user_id`/the storage
+  path from its `auth.uid()`. `notification_subscriptions` sync (the
+  original reason this helper was written) is still future work (below) —
+  it just isn't the only caller anymore.
 - `src/features/felt/supabase-transport.ts` — `SupabaseTransport`, a real
   `FeltTransport` implementation (the interface `queue.ts` already defined)
   that inserts into `felt_reports` / `felt_report_details` per the exact
@@ -22,7 +26,12 @@ changed. What exists today, app-side:
   `getDefaultFeltTransport()` picks it automatically once configured;
   `PendingTransport` (today's local-only, "awaiting-backend forever"
   behavior) stays the default otherwise — **no code change needed** to flip
-  over, only the two env values.
+  over, only the two env values. **2026-08-16:** also implements
+  `uploadPhoto()` — window 3's optional photo, uploaded to the private
+  `felt-photos` Storage bucket (migration 0016) once the surrounding
+  report/detail rows have landed; `queue.ts`'s `processQueue` runs this as
+  its own retry-tracked pass (`QueueItem.photoState`), independent of and
+  never blocking the report submission itself.
 - `src/features/telemetry/ping.ts` — the anonymous cold-start ping
   (`telemetry_pings`, spec-v1.md §5.5). Fires at most once per app process,
   only when configured, only with an already-granted location permission and
@@ -58,17 +67,26 @@ changed. What exists today, app-side:
   but is not yet wired to a trigger (Database Webhook or `pg_cron`
   schedule); that's ops config against a live project, left to whoever
   operates it.
-- **`notification_subscriptions` sync** — the client doesn't yet call
-  `signInAnonymously()` or write push-token/tier rows; Notification Settings
+- **`notification_subscriptions` sync** — the client still doesn't write
+  push-token/tier rows to this table (it now DOES call `signInAnonymously()`,
+  just not yet for this table's own purpose); Notification Settings
   (`app/notification-settings.tsx`) is still local-only device state.
-- **`felt_photos`** — no upload UI/Storage bucket exists yet, so nothing
-  writes to this table from the app. `felt_comments` now DOES get written
-  (window 3's optional comment, `src/features/felt/supabase-transport.ts`'s
-  `buildFeltCommentInsert` — 2026-08-16 comment-upload-gap fix), moderated
-  pending per D15 like every other row here.
-- **`pg_cron` schedules**, Storage bucket policies for `felt_photos`, and
-  real rate limiting on anonymous inserts — all explicitly deferred, see
-  "What v0 deliberately defers" below (unchanged by this wave).
+- **`felt_photos`** — ~~no upload UI/Storage bucket exists yet~~ **DONE,
+  2026-08-16 storage wave:** migration 0016 creates the private `felt-photos`
+  bucket + `storage.objects` RLS (INSERT/UPDATE only, path-prefix-scoped to
+  the uploader's `auth.uid()`) and a `felt_photos.report_id` uniqueness
+  constraint for idempotent client upserts;
+  `src/features/felt/supabase-transport.ts`'s `uploadFeltPhoto` uploads the
+  window-3 photo and upserts the row, moderated pending per D15 like every
+  other row here. No public read path yet — approved photos will be served
+  via signed URLs in a future wave (migration 0016's own comment).
+  `felt_comments` also gets written (window 3's optional comment,
+  `buildFeltCommentInsert` — 2026-08-16 comment-upload-gap fix), same
+  moderation stance.
+- **`pg_cron` schedules** and real rate limiting on anonymous inserts —
+  still explicitly deferred, see "What v0 deliberately defers" below
+  (Storage bucket policies for `felt_photos` are no longer on this list —
+  see the bullet above).
 
 **Sources this maps to** (read these before changing anything here):
 `docs/research/spec-v1.md` §5, `docs/research/felt-report-science-v1.md`
@@ -90,7 +108,8 @@ Parts 3 + 5, `docs/research/event-pipeline-design.md`,
 | `0009_felt_damage_typology.sql`        | `felt_report_details.damage_typology` + widened `building_damage_level` check (2026-08-15 flow restructure).           |
 | `0010_spatial_ref_sys_hygiene.sql`     | Revokes anon/authenticated `SELECT` on PostGIS's `spatial_ref_sys` (advisor finding: RLS-disabled table exposed via the API). |
 | `0011_event_registry_and_assignment.sql` | `upsert_event_from_client()` (client-callable SECURITY DEFINER, resolves a (provider, provider_event_id) pair to the canonical `events.event_id`, with cross-provider dedup) + `assign_unassigned_felt_reports()` (service-role-only sweep, D26 auto-assignment). Foundation for the client attaching a felt report to a real event before any ingestion worker runs. |
-| `0015_felt_reports_select_own.sql` | Adds `felt_reports_select_own`/`felt_report_details_select_own` — `to authenticated` select policies keyed on `auth.uid() = user_id` (D26 item 7, My Data). Correct today, not yet exercised: the client doesn't populate `user_id` on insert this wave, see that file's own header comment. |
+| `0015_felt_reports_select_own.sql` | Adds `felt_reports_select_own`/`felt_report_details_select_own` — `to authenticated` select policies keyed on `auth.uid() = user_id` (D26 item 7, My Data). Written not-yet-exercised (`user_id` was unpopulated at insert time); **2026-08-16 storage wave wires that in** — `SupabaseTransport` now populates `user_id` from an anonymous session on every `felt_reports` insert, so this policy is exercised for real as of that wave. |
+| `0016_felt_photos_storage.sql` | Private `felt-photos` Storage bucket (5 MB limit, jpeg/png/webp) + `storage.objects` RLS (INSERT/UPDATE, `to authenticated`, path-prefix-scoped to `auth.uid()`) + `felt_photos.report_id` unique constraint (client-upsert idempotency target). 2026-08-16 storage wave — closes the last felt-reports gap (window-3 photo upload). |
 
 **Naming caveat:** these use plain `NNNN_name.sql` numbering as requested.
 The Supabase CLI conventionally expects timestamp-prefixed filenames
@@ -194,10 +213,9 @@ step, not a schema change.
   `device_id`, not frequency. Real throttling (per-device, per-IP, or
   per-geohash burst detection) belongs in an ingestion Edge Function with
   its own state, not in table RLS — out of scope for this schema pass.
-- **Storage buckets/policies for `felt_photos.storage_path`.** This
-  migration set only stores the _path string_; creating the Supabase
-  Storage bucket and its own access policies (separate from Postgres RLS)
-  is follow-up work once the upload flow is built.
+- ~~Storage buckets/policies for `felt_photos.storage_path`~~ — **done,
+  migration 0016** (2026-08-16 storage wave); see the "Wiring status"
+  section above.
 - **`pg_cron` schedules and the Edge Functions themselves** (ingestion,
   fanout, felt-cell recompute, moderation pre-screen). This pass is schema
   - RLS only, as scoped.

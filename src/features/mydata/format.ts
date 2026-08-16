@@ -74,6 +74,12 @@ export interface ContributionRowViewModel {
   damage: ContributionDamageViewModel | null;
   syncStatus: ContributionSyncStatus;
   syncStatusText: string;
+  /** True when this contribution carries a window-3 photo (2026-08-16
+   * storage wave) — regardless of whether the upload to Storage has
+   * completed yet (`item.photoState`); this is "did I attach one", not
+   * "has it synced", matching the row's `syncStatus` field already
+   * covering sync state separately. */
+  hasPhoto: boolean;
 }
 
 /**
@@ -117,5 +123,6 @@ export function buildContributionRow(
     damage,
     syncStatus,
     syncStatusText: t(`myData.syncStatus.${syncStatus}`),
+    hasPhoto: item.tier2?.photoUri != null,
   };
 }
