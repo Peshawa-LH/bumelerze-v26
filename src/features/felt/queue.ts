@@ -250,10 +250,10 @@ export async function enqueueTier2Report(
   input: EnqueueTier2Input,
   transport: FeltTransport = getDefaultFeltTransport(),
 ): Promise<Tier2Report> {
-  const exists = useFeltQueueStore
+  const tier1Item = useFeltQueueStore
     .getState()
-    .items.some((item) => item.tier1.reportId === input.feltReportId);
-  if (!exists) {
+    .items.find((item) => item.tier1.reportId === input.feltReportId);
+  if (!tier1Item) {
     throw new Error(
       `enqueueTier2Report: no queued tier-1 report with id "${input.feltReportId}"`,
     );
@@ -262,6 +262,10 @@ export async function enqueueTier2Report(
   const tier2: Tier2Report = {
     detailId: Crypto.randomUUID(),
     feltReportId: input.feltReportId,
+    // Copied from the tier-1 record, not re-collected — felt_comments needs
+    // its own device_id (2026-08-16 comment-upload-gap fix); see
+    // Tier2Report.deviceId's own doc.
+    deviceId: tier1Item.tier1.deviceId,
     answers: input.answers,
     photoUri: input.photoUri ?? null,
     createdAt: Date.now(),

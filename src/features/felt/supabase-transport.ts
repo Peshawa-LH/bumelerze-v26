@@ -124,17 +124,24 @@ export interface FeltReportDetailInsert {
  *                             consistent with the migration's own stated
  *                             purpose for `raw_answers`.
  *
- * NOT mapped here: `report.photoUri` (window 3's optional photo). There is
- * no `felt_report_details` column for it — a photo belongs in the separate
- * `felt_photos` table (`storage_path`, moderation-gated, migration 0003),
- * which requires an actual Supabase Storage upload this transport does not
- * attempt this wave (2026-08-15 flow restructure scope: "do NOT attempt
- * storage upload"). TODO(Phase 2 storage wave): once a real upload path
- * exists, add a `submitPhoto` step here (or a second transport method) that
- * uploads `report.photoUri` to Storage and inserts the resulting
- * `storage_path` into `felt_photos` — until then a queued photo stays on
- * the device only, same "never lost, just not yet sent" contract as every
- * other queued field.
+ * NOT mapped here: `report.answers.comment` (see `buildFeltCommentInsert`
+ * below — it goes to the separate `felt_comments` stream table, not a
+ * `felt_report_details` column) and `report.photoUri` (window 3's optional
+ * photo). There is no `felt_report_details` column for a photo — it belongs
+ * in the separate `felt_photos` table (`storage_path`, moderation-gated,
+ * migration 0003), which requires an actual Supabase Storage upload this
+ * transport does not attempt this wave (2026-08-15 flow restructure scope:
+ * "do NOT attempt storage upload"). TODO(Phase 2 storage wave): once a real
+ * upload path exists, add a `submitPhoto` step here (or a second transport
+ * method) that uploads `report.photoUri` to Storage and inserts the
+ * resulting `storage_path` into `felt_photos` — until then a queued photo
+ * stays on the device only, same "never lost, just not yet sent" contract as
+ * every other queued field.
+ *
+ * `raw_answers` DOES still include the verbatim `comment` string (jsonb, per
+ * the column's own "authoritative source" comment in migration 0003) — that
+ * is intentional duplication for the re-scoring audit trail, not a
+ * substitute for the `felt_comments` row `buildFeltCommentInsert` produces.
  */
 export function buildFeltReportDetailInsert(report: Tier2Report): FeltReportDetailInsert {
   const { answers } = report;
@@ -154,6 +161,55 @@ export function buildFeltReportDetailInsert(report: Tier2Report): FeltReportDeta
     damage_typology: answers.damageTypology,
     road_damage_level: answers.roadDamageLevel,
     raw_answers: { ...answers },
+  };
+}
+
+export interface FeltCommentInsert {
+  comment_id: string;
+  report_id: string;
+  device_id: string;
+  body: string;
+}
+
+/**
+ * Maps window 3's optional comment to a `felt_comments` insert row
+ * (migration 0003) — the fix for the 2026-08-16 comment-upload gap: the
+ * comment text used to be written ONLY into `felt_report_details.raw_answers`
+ * (jsonb), which is never read back for display, so a submitted comment
+ * silently never reached the public `felt_comments` stream. Returns `null`
+ * when there is no comment to send (the common case — the field is
+ * optional), so callers can skip the second insert entirely.
+ *
+ * Column mapping:
+ *  - `comment_id`  <- `report.detailId`, reused (not a fresh uuid) so a
+ *                     queue retry of the SAME Tier2Report submission hits
+ *                     the same PK and is caught by the unique-violation
+ *                     idempotency check below, exactly like `report_id` does
+ *                     for `felt_reports` in `buildFeltReportInsert`.
+ *  - `report_id`   <- `report.feltReportId` (FK to the tier-1 row this
+ *                     comment is attached to — a comment always belongs to a
+ *                     report, tier-1 or tier-2, per the migration's own
+ *                     comment on `felt_comments`).
+ *  - `device_id`   <- `report.deviceId` (copied from the tier-1 record at
+ *                     enqueue time, see `Tier2Report.deviceId`'s own doc —
+ *                     `felt_comments.device_id` is `not null`).
+ *  - `body`        <- `report.answers.comment`.
+ * Deliberately NOT sent (left to the database):
+ *  - `moderation_status` — `default 'pending'` (D15: comments are moderated
+ *    before public display; this transport never sets it to anything else).
+ *  - `user_id`, `moderated_at`, `moderated_by` — unused at write time (D15's
+ *    moderation UPDATE happens via the service_role key, not this client).
+ */
+export function buildFeltCommentInsert(report: Tier2Report): FeltCommentInsert | null {
+  const body = report.answers.comment;
+  if (!body) {
+    return null;
+  }
+  return {
+    comment_id: report.detailId,
+    report_id: report.feltReportId,
+    device_id: report.deviceId,
+    body,
   };
 }
 
@@ -204,12 +260,29 @@ export const SupabaseTransport: FeltTransport = {
       .from("felt_report_details")
       .insert(buildFeltReportDetailInsert(report));
 
-    if (!error) {
-      return { outcome: "submitted", serverReportId: report.detailId };
+    if (error && error.code !== POSTGRES_UNIQUE_VIOLATION) {
+      return { outcome: "failed", retryable: isRetryableInsertError(error.code) };
     }
-    if (error.code === POSTGRES_UNIQUE_VIOLATION) {
-      return { outcome: "submitted", serverReportId: report.detailId };
+
+    // 2026-08-16 comment-upload-gap fix: window 3's optional comment gets
+    // its own row in the moderated felt_comments stream, not just the
+    // raw_answers jsonb blob above. A queue retry re-runs this whole
+    // function, so both inserts must independently tolerate hitting an
+    // already-succeeded unique key (see each build function's own doc).
+    const commentInsert = buildFeltCommentInsert(report);
+    if (commentInsert) {
+      const { error: commentError } = await client
+        .from("felt_comments")
+        .insert(commentInsert);
+
+      if (commentError && commentError.code !== POSTGRES_UNIQUE_VIOLATION) {
+        return {
+          outcome: "failed",
+          retryable: isRetryableInsertError(commentError.code),
+        };
+      }
     }
-    return { outcome: "failed", retryable: isRetryableInsertError(error.code) };
+
+    return { outcome: "submitted", serverReportId: report.detailId };
   },
 };

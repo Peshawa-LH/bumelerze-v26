@@ -126,9 +126,15 @@ const SAMPLE_TIER2_ANSWERS: Tier2Answers = {
 const SAMPLE_TIER2: Tier2Report = {
   detailId: "22222222-2222-4222-8222-222222222222",
   feltReportId: SAMPLE_TIER1.reportId,
+  deviceId: SAMPLE_TIER1.deviceId,
   answers: SAMPLE_TIER2_ANSWERS,
   photoUri: null,
   createdAt: 1_700_000_001_000,
+};
+
+const SAMPLE_TIER2_NO_COMMENT: Tier2Report = {
+  ...SAMPLE_TIER2,
+  answers: { ...SAMPLE_TIER2_ANSWERS, comment: null },
 };
 
 beforeEach(() => {
@@ -274,33 +280,117 @@ describe("SupabaseTransport.submitTier1", () => {
   });
 });
 
+describe("buildFeltCommentInsert (pure mapping)", () => {
+  it("maps a Tier2Report with a comment to a felt_comments row, keyed by detailId", () => {
+    const { buildFeltCommentInsert } = loadTransport();
+
+    expect(buildFeltCommentInsert(SAMPLE_TIER2)).toEqual({
+      comment_id: SAMPLE_TIER2.detailId,
+      report_id: SAMPLE_TIER1.reportId,
+      device_id: "device-abc",
+      body: "Books fell off the shelf.",
+    });
+  });
+
+  it("returns null when there is no comment (the common case — nothing to send)", () => {
+    const { buildFeltCommentInsert } = loadTransport();
+
+    expect(buildFeltCommentInsert(SAMPLE_TIER2_NO_COMMENT)).toBeNull();
+  });
+
+  it("every payload key is a real felt_comments column (schema/app sync check)", () => {
+    const { buildFeltCommentInsert } = loadTransport();
+    const columns = loadMigrationColumns("felt_comments");
+    const insert = buildFeltCommentInsert(SAMPLE_TIER2);
+
+    expect(insert).not.toBeNull();
+    for (const key of Object.keys(insert as object)) {
+      expect(columns).toContain(key);
+    }
+  });
+});
+
 describe("SupabaseTransport.submitTier2", () => {
-  function mockClientWithInsertResult(error: { code?: string; message?: string } | null) {
-    const insert = jest.fn(async () => ({ error }));
-    const from = jest.fn(() => ({ insert }));
-    return { auth: {} as never, from, insert };
+  /** Per-table mock: `felt_report_details` and `felt_comments` need
+   * independently controllable results to test the two-insert sequence
+   * (2026-08-16 comment-upload-gap fix) — a single shared `insert` mock
+   * (the pre-fix version of this test file) can't express "detail insert
+   * fails" vs "comment insert fails" as distinct cases. */
+  function mockClientWithPerTableResults(
+    results: Record<string, { code?: string; message?: string } | null>,
+  ) {
+    const insertsByTable: Record<string, jest.Mock> = {};
+    const from = jest.fn((table: string) => {
+      const insert =
+        insertsByTable[table] ??
+        (insertsByTable[table] = jest.fn(async () => ({
+          error: results[table] ?? null,
+        })));
+      return { insert };
+    });
+    return { auth: {} as never, from, insertsByTable };
   }
 
-  it("returns 'submitted' on a clean insert into felt_report_details", async () => {
+  it("returns 'submitted' on a clean insert into felt_report_details when there is no comment", async () => {
     const { SupabaseTransport, buildFeltReportDetailInsert } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
-    const client = mockClientWithInsertResult(null);
+    const client = mockClientWithPerTableResults({});
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2_NO_COMMENT);
+
+    expect(client.from).toHaveBeenCalledWith("felt_report_details");
+    expect(client.from).not.toHaveBeenCalledWith("felt_comments");
+    expect(client.insertsByTable.felt_report_details).toHaveBeenCalledWith(
+      buildFeltReportDetailInsert(SAMPLE_TIER2_NO_COMMENT),
+    );
+    expect(result).toEqual({
+      outcome: "submitted",
+      serverReportId: SAMPLE_TIER2_NO_COMMENT.detailId,
+    });
+  });
+
+  it("also inserts into felt_comments when a comment is present (the bug fix)", async () => {
+    const { SupabaseTransport, buildFeltCommentInsert } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithPerTableResults({});
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
     const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
 
-    expect(client.from).toHaveBeenCalledWith("felt_report_details");
-    expect(client.insert).toHaveBeenCalledWith(buildFeltReportDetailInsert(SAMPLE_TIER2));
+    expect(client.from).toHaveBeenCalledWith("felt_comments");
+    expect(client.insertsByTable.felt_comments).toHaveBeenCalledWith(
+      buildFeltCommentInsert(SAMPLE_TIER2),
+    );
     expect(result).toEqual({
       outcome: "submitted",
       serverReportId: SAMPLE_TIER2.detailId,
     });
   });
 
-  it("treats a unique-violation retry as 'submitted', not a failure", async () => {
+  it("treats a unique-violation on felt_report_details as 'submitted', not a failure, and still attempts the comment", async () => {
     const { SupabaseTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
-    const client = mockClientWithInsertResult({ code: "23505" });
+    const client = mockClientWithPerTableResults({
+      felt_report_details: { code: "23505" },
+    });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
+
+    expect(client.from).toHaveBeenCalledWith("felt_comments");
+    expect(result).toEqual({
+      outcome: "submitted",
+      serverReportId: SAMPLE_TIER2.detailId,
+    });
+  });
+
+  it("treats a unique-violation on felt_comments as 'submitted' (idempotent retry of an already-sent comment)", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithPerTableResults({
+      felt_comments: { code: "23505" },
+    });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
     const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
@@ -309,5 +399,43 @@ describe("SupabaseTransport.submitTier2", () => {
       outcome: "submitted",
       serverReportId: SAMPLE_TIER2.detailId,
     });
+  });
+
+  it("returns a retryable failure and skips the comment entirely when felt_report_details fails for another reason", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithPerTableResults({
+      felt_report_details: { code: "23503", message: "fk violation" },
+    });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
+
+    expect(client.from).not.toHaveBeenCalledWith("felt_comments");
+    expect(result).toEqual({ outcome: "failed", retryable: true });
+  });
+
+  it("returns a retryable failure when felt_comments fails for another reason, after felt_report_details already succeeded", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithPerTableResults({
+      felt_comments: { code: "23503", message: "fk violation" },
+    });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
+
+    expect(client.insertsByTable.felt_report_details).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ outcome: "failed", retryable: true });
+  });
+
+  it("returns 'awaiting-backend' rather than throwing if the client is unexpectedly null", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.getSupabaseClient.mockReturnValue(null);
+
+    const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
+
+    expect(result).toEqual({ outcome: "awaiting-backend" });
   });
 });
