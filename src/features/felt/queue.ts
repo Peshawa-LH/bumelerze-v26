@@ -16,6 +16,7 @@ import { getDeviceId } from "./device-id";
 import { SupabaseTransport } from "./supabase-transport";
 import type {
   CartoonLevel,
+  EventRegistration,
   FeltLocation,
   Tier1Report,
   Tier2Answers,
@@ -184,6 +185,12 @@ export interface EnqueueTier1Input {
   /** Null when unassociated (Home pill, no recent regional event —
    * `association.ts`); a specific event id from Event Detail's pill. */
   eventId: string | null;
+  /** The event snapshot `SupabaseTransport` resolves to a canonical server
+   * uuid at submit time (`toEventRegistration`, migration 0011). Optional
+   * for backward compatibility with existing callers/tests that only pass
+   * `eventId` — omitted/undefined is stored as `null`, same "no event
+   * context to register" meaning either way. */
+  eventRegistration?: EventRegistration | null;
 }
 
 /**
@@ -202,6 +209,7 @@ export async function enqueueTier1Report(
     reportId: Crypto.randomUUID(),
     deviceId,
     eventId: input.eventId,
+    eventRegistration: input.eventRegistration ?? null,
     cartoonLevel: input.cartoonLevel,
     location: input.location,
     feltAt: now,
@@ -282,72 +290,100 @@ export async function enqueueTier2Report(
 // ---------------------------------------------------------------------------
 
 let isProcessing = false;
+/**
+ * Set when `processQueue` is called again WHILE a pass is already running
+ * (e.g. enqueueTier1Report's fire-and-forget call racing the cold-start
+ * `void processQueue()` in `app/_layout.tsx`'s own initial drain, or a
+ * quick tier1 -> tier2 upgrade racing the tier1 submission's own in-flight
+ * network call). The in-flight pass below snapshots `eligible` from the
+ * store ONCE at its start — without this flag, an item that becomes
+ * eligible strictly during that pass (added by the very call this flag
+ * records) would sit in "queued" state with nothing left to trigger it:
+ * the racing call already returned (no-op, `isProcessing` was true) and
+ * the running pass's own snapshot never included it. The only remaining
+ * triggers are the next enqueue or the next app-foreground transition —
+ * on web specifically, a tab that never loses focus may never fire that
+ * second trigger, so a report submitted into this race window could sit
+ * un-synced indefinitely even with a healthy network connection (the
+ * "newest report never appeared" symptom this fixes). The fix: instead of
+ * dropping the racing call, remember that more work arrived, and have the
+ * in-flight pass loop again before releasing the lock.
+ */
+let rerunRequested = false;
 
 /**
- * Attempts to submit every eligible queued item once. Re-entrancy-guarded
- * so overlapping triggers (enqueue + foreground event arriving together,
- * for example) never double-attempt the same item or double-count
- * `attempts`. Safe to call as often as needed — it's a fast no-op pass when
- * nothing is eligible.
+ * Attempts to submit every eligible queued item once (looping until no new
+ * work arrived during the pass — see `rerunRequested`'s own doc for why a
+ * single pass isn't enough). Re-entrancy-guarded so overlapping triggers
+ * (enqueue + foreground event arriving together, for example) never
+ * double-attempt the same item or double-count `attempts`; a trigger that
+ * arrives while a pass is already running is queued as a rerun instead of
+ * silently dropped. Safe to call as often as needed — it's a fast no-op
+ * pass when nothing is eligible.
  */
 export async function processQueue(
   transport: FeltTransport = getDefaultFeltTransport(),
 ): Promise<void> {
   if (isProcessing) {
+    rerunRequested = true;
     return;
   }
   isProcessing = true;
 
   try {
-    const now = Date.now();
-    const { items, _patchItem } = useFeltQueueStore.getState();
-    const eligible = items.filter(
-      (item) =>
-        item.state === "queued" ||
-        (item.state === "failed" &&
-          (item.nextRetryAt === null || item.nextRetryAt <= now)),
-    );
+    do {
+      rerunRequested = false;
 
-    for (const item of eligible) {
-      const reportId = item.tier1.reportId;
-      _patchItem(reportId, { state: "syncing", lastAttemptAt: Date.now() });
+      const now = Date.now();
+      const { items, _patchItem } = useFeltQueueStore.getState();
+      const eligible = items.filter(
+        (item) =>
+          item.state === "queued" ||
+          (item.state === "failed" &&
+            (item.nextRetryAt === null || item.nextRetryAt <= now)),
+      );
 
-      try {
-        const result = item.tier2
-          ? await transport.submitTier2(item.tier2)
-          : await transport.submitTier1(item.tier1);
+      for (const item of eligible) {
+        const reportId = item.tier1.reportId;
+        _patchItem(reportId, { state: "syncing", lastAttemptAt: Date.now() });
 
-        if (result.outcome === "submitted") {
-          _patchItem(reportId, {
-            state: "submitted",
-            tier1: { ...item.tier1, submittedAt: Date.now() },
-            nextRetryAt: null,
-          });
-        } else if (result.outcome === "awaiting-backend") {
-          _patchItem(reportId, { state: "awaiting-backend", nextRetryAt: null });
-        } else {
+        try {
+          const result = item.tier2
+            ? await transport.submitTier2(item.tier2)
+            : await transport.submitTier1(item.tier1);
+
+          if (result.outcome === "submitted") {
+            _patchItem(reportId, {
+              state: "submitted",
+              tier1: { ...item.tier1, submittedAt: Date.now() },
+              nextRetryAt: null,
+            });
+          } else if (result.outcome === "awaiting-backend") {
+            _patchItem(reportId, { state: "awaiting-backend", nextRetryAt: null });
+          } else {
+            const attempts = item.attempts + 1;
+            _patchItem(reportId, {
+              state: "failed",
+              attempts,
+              nextRetryAt: result.retryable
+                ? Date.now() + computeBackoffMs(attempts)
+                : null,
+            });
+          }
+        } catch {
+          // The transport threw instead of returning a typed result — treated
+          // as a retryable failure. This IS the error handling (PROJECT.md:
+          // "no silent catches"): the item visibly moves to "failed" with a
+          // scheduled retry rather than the error disappearing.
           const attempts = item.attempts + 1;
           _patchItem(reportId, {
             state: "failed",
             attempts,
-            nextRetryAt: result.retryable
-              ? Date.now() + computeBackoffMs(attempts)
-              : null,
+            nextRetryAt: Date.now() + computeBackoffMs(attempts),
           });
         }
-      } catch {
-        // The transport threw instead of returning a typed result — treated
-        // as a retryable failure. This IS the error handling (PROJECT.md:
-        // "no silent catches"): the item visibly moves to "failed" with a
-        // scheduled retry rather than the error disappearing.
-        const attempts = item.attempts + 1;
-        _patchItem(reportId, {
-          state: "failed",
-          attempts,
-          nextRetryAt: Date.now() + computeBackoffMs(attempts),
-        });
       }
-    }
+    } while (rerunRequested);
   } finally {
     isProcessing = false;
   }
