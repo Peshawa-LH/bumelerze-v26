@@ -198,7 +198,7 @@ export default function EventDetailScreen() {
             </Pressable>
           ) : null}
         </ScrollView>
-        {event ? <FeltReportPill eventId={event.id} /> : null}
+        {event ? <FeltReportPill eventId={event.id} event={event} /> : null}
       </View>
     </>
   );

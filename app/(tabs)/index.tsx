@@ -38,6 +38,13 @@ export default function HomeScreen() {
   // Felt-pill association deliberately uses the UNFILTERED feed: a person
   // can feel an event the Home display floor hides.
   const associatedEventId = resolveHomeFeltAssociation(events);
+  // The matched Event itself (not just its id) — passed to FeltReportPill
+  // so it can build the registration snapshot the report resolves against
+  // a canonical server uuid with (migration 0011). Same array `events`
+  // already holds, no extra fetch.
+  const associatedEvent = associatedEventId
+    ? (events.find((event) => event.id === associatedEventId) ?? null)
+    : null;
 
   // Display floor only — see HOME_FEED_MIN_MAGNITUDE's config comment.
   const shownEvents = events.filter(
@@ -145,7 +152,7 @@ export default function HomeScreen() {
           </View>
         }
       />
-      <FeltReportPill eventId={associatedEventId} />
+      <FeltReportPill eventId={associatedEventId} event={associatedEvent} />
     </View>
   );
 }

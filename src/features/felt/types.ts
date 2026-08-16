@@ -24,6 +24,33 @@ export const SEVERE_DESTRUCTION_THRESHOLD: CartoonLevel = 10;
 /** Mirrors `felt_reports.location_quality` (D18 §3.1). */
 export type LocationQuality = "gps" | "manual";
 
+/**
+ * The minimal event-identity snapshot needed to resolve a felt report's
+ * `eventId` (a client-side provider id, e.g. `event.provenance.providerId`)
+ * to a canonical server `events.event_id` uuid via the
+ * `upsert_event_from_client` RPC (migration 0011) — captured from the
+ * already-cached `Event` at the moment a report is filed against a specific
+ * event (Event Detail's pill), NOT fetched fresh, so building this snapshot
+ * is a pure/local operation with no network call of its own (preserves the
+ * one-tap panic-time promise). `null` on a `Tier1Report` means either an
+ * unassociated (Home rapid) report, or — defensively — a resolution
+ * snapshot that failed to build; either way the transport falls back to
+ * `event_id: null` (D26: "that is CORRECT" for the unassigned pool), it
+ * never blocks or drops the report.
+ */
+export interface EventRegistration {
+  provider: string;
+  providerId: string;
+  /** Origin time, UTC ms — same unit as `Event.originTime`. */
+  originTime: number;
+  lat: number;
+  lon: number;
+  depthKm: number | null;
+  magnitude: number;
+  magType: string | null;
+  placeName: string;
+}
+
 export interface FeltLocation {
   lat: number;
   lon: number;
@@ -56,8 +83,19 @@ export interface Tier1Report {
   deviceId: string;
   /** Null until associated to an event — either explicitly (Event Detail
    * entry point) or left null for the server-side association job
-   * (Home pill with no recent regional event; D18 §3.1/§3.2). */
+   * (Home pill with no recent regional event; D18 §3.1/§3.2). This is the
+   * client-side provider id (`event.id`/`event.provenance.providerId`),
+   * used for LOCAL matching (`useOwnQueueItemForEvent`) — never sent
+   * directly as `felt_reports.event_id` (see `eventRegistration` below,
+   * migration 0011's fix for the bug where this string used to be inserted
+   * as-is into a `uuid` column). */
   eventId: string | null;
+  /** The snapshot `SupabaseTransport` resolves to a canonical server
+   * `events.event_id` uuid at submit time (migration 0011
+   * `upsert_event_from_client`) — see the type's own doc. Null exactly
+   * when `eventId` is null (no event context at all, D26 rapid/unassigned
+   * report) or when a registration snapshot couldn't be built. */
+  eventRegistration: EventRegistration | null;
   cartoonLevel: CartoonLevel;
   location: FeltLocation;
   feltAt: number;

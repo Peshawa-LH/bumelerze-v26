@@ -6,6 +6,7 @@ export {
   type CartoonLevel,
   type DamageLevel,
   type DamageTypology,
+  type EventRegistration,
   type FeltAnswer,
   type FeltLocation,
   type FurnitureAnswer,
@@ -33,6 +34,7 @@ export {
 } from "./damage";
 export { getDeviceId, __resetDeviceIdCacheForTests } from "./device-id";
 export { resolveHomeFeltAssociation } from "./association";
+export { toEventRegistration } from "./event-registration";
 export { useFeltLocation, type UseFeltLocationResult } from "./use-felt-location";
 export {
   PendingTransport,

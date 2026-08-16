@@ -23,7 +23,36 @@ import {
   SEVERE_DESTRUCTION_THRESHOLD,
   useFeltLocation,
   type CartoonLevel,
+  type EventRegistration,
 } from "@/features/felt";
+
+/**
+ * Parses window 1's `eventReg` route param (a JSON-encoded
+ * `EventRegistration`, set by `FeltReportPill` when it has the full `Event`
+ * behind `eventId` — migration 0011). Defensive by design: a malformed or
+ * missing param must never throw or block the one-tap submission, it just
+ * means this report falls back to the unassociated path (still correct per
+ * D26, just less precise).
+ */
+function parseEventRegistration(raw: string | undefined): EventRegistration | null {
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      "provider" in parsed &&
+      "providerId" in parsed
+    ) {
+      return parsed as EventRegistration;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Window 1 of 3 — the panic-time tap (spec-v1.md §4.6, D8; windows 2/3
@@ -38,7 +67,10 @@ import {
  * questionnaire.
  */
 export default function Tier1FeltReportScreen() {
-  const { eventId } = useLocalSearchParams<{ eventId?: string }>();
+  const { eventId, eventReg } = useLocalSearchParams<{
+    eventId?: string;
+    eventReg?: string;
+  }>();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -48,12 +80,14 @@ export default function Tier1FeltReportScreen() {
   const { location, isGps, manualTownId, setManualTownId } = useFeltLocation();
 
   const associatedEventId = eventId ?? null;
+  const eventRegistration = parseEventRegistration(eventReg);
 
   async function handleSelectLevel(level: CartoonLevel) {
     const report = await enqueueTier1Report({
       cartoonLevel: level,
       location,
       eventId: associatedEventId,
+      eventRegistration,
     });
 
     // Screen-reader announcement for the panic-time submission itself

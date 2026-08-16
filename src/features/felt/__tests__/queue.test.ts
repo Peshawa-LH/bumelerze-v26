@@ -199,6 +199,80 @@ describe("processQueue retry/backoff", () => {
   });
 });
 
+describe("processQueue drain-timing regression: item enqueued WHILE a prior submission is in-flight", () => {
+  it("drains a SECOND item enqueued mid-pass without any further explicit processQueue() call", async () => {
+    // Reproduces the bug this test guards against: enqueueTier1Report's own
+    // fire-and-forget `void processQueue(transport)` call raced against an
+    // ALREADY-RUNNING pass (e.g. the cold-start drain in app/_layout.tsx,
+    // or — as here — a first report's own still-in-flight network call).
+    // Before the fix, the re-entrancy guard silently dropped that second
+    // call; the second item was left in "queued" state with nothing left
+    // to trigger it short of the next app-foreground transition, which on
+    // web (a tab that never loses focus) may never come — this is the
+    // "newest report never appeared" symptom from the live-testing brief.
+    const { enqueueTier1Report, useFeltQueueStore } = loadQueue();
+
+    let firstCallHeld = false;
+    // Definite-assignment idiom (assigned synchronously inside the
+    // executor, which itself runs synchronously as part of `new Promise`)
+    // rather than `let ... | null = null`, which TypeScript's control-flow
+    // narrowing can't see through the executor closure.
+    let releaseFirstSubmit!: () => void;
+    const firstSubmitGate = new Promise<void>((resolve) => {
+      releaseFirstSubmit = resolve;
+    });
+
+    const submitTier1 = jest.fn(async (report: { reportId: string }) => {
+      if (!firstCallHeld) {
+        // Only the very FIRST invocation (report A) is held open — this
+        // deliberately doesn't key off a specific report id, since the
+        // mock is invoked synchronously as part of enqueueTier1Report's
+        // own fire-and-forget call, before the test can capture report A's
+        // id from the awaited return value.
+        firstCallHeld = true;
+        await firstSubmitGate;
+      }
+      return { outcome: "submitted" as const, serverReportId: report.reportId };
+    });
+    const racingTransport = {
+      submitTier1,
+      submitTier2: jest.fn(async () => ({ outcome: "awaiting-backend" as const })),
+    };
+
+    const reportA = await enqueueTier1Report(
+      { cartoonLevel: 3, location: SAMPLE_LOCATION, eventId: null },
+      racingTransport,
+    );
+
+    // At this point report A's own processQueue() pass has already reached
+    // (and is suspended inside) `transport.submitTier1(reportA)` — see the
+    // synchronous-until-first-await analysis in the comment above.
+    expect(submitTier1).toHaveBeenCalledTimes(1);
+    expect(itemState(useFeltQueueStore, reportA.reportId)).toBe("syncing");
+
+    // Enqueued WHILE the pass above is still in flight — its own
+    // processQueue() call must be remembered as a rerun, not dropped.
+    const reportB = await enqueueTier1Report(
+      { cartoonLevel: 7, location: SAMPLE_LOCATION, eventId: null },
+      racingTransport,
+    );
+    expect(itemState(useFeltQueueStore, reportB.reportId)).toBe("queued");
+
+    // Release report A's held network call — the in-flight pass should now
+    // finish A, notice the rerun was requested, and loop again to pick up
+    // B, all without the test calling processQueue() itself again.
+    releaseFirstSubmit();
+
+    await waitFor(
+      () =>
+        itemState(useFeltQueueStore, reportA.reportId) === "submitted" &&
+        itemState(useFeltQueueStore, reportB.reportId) === "submitted",
+    );
+
+    expect(submitTier1).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("survives an app restart", () => {
   it("re-hydrates the same queued item from AsyncStorage after a simulated restart", async () => {
     const session1 = loadQueue();

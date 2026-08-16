@@ -53,6 +53,33 @@ export async function fetchReportsForEvent(
   return (data ?? []) as FeltReportRow[];
 }
 
+/** Resolves a (provider, provider_event_id) pair — the shape callers get
+ * from the client feed, before any canonical uuid exists in hand — to the
+ * canonical `events.event_id` uuid via `event_source_records` (migration
+ * 0002's own alias table, the same one `upsert_event_from_client`,
+ * migration 0011, writes to from the app). Returns `null` when unknown
+ * (never throws for a not-found pair — that's a normal "nothing to
+ * aggregate yet" case, not a DB error); `index.ts` turns a `null` here into
+ * a 404, distinct from an actual query failure. */
+export async function resolveEventIdFromProvider(
+  client: SupabaseClient,
+  provider: string,
+  providerEventId: string,
+): Promise<string | null> {
+  const { data, error } = await client
+    .from("event_source_records")
+    .select("event_id")
+    .eq("provider", provider)
+    .eq("provider_event_id", providerEventId)
+    .maybeSingle();
+  if (error) {
+    throw new Error(
+      `resolveEventIdFromProvider(${provider}, ${providerEventId}): ${error.message}`,
+    );
+  }
+  return (data as { event_id: string } | null)?.event_id ?? null;
+}
+
 /** `felt_report_details` rows for a batch of `felt_report_id`s — the tier-2
  * upgrade, one-to-one with a subset of the reports `fetchReportsForEvent`
  * returned (migration 0003: `felt_report_id uuid not null unique`). A
