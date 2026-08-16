@@ -1,0 +1,25 @@
+Bumelerze App Visual Assets - Validation Report
+Date: 2026-08-16
+Status: PASS
+
+Master assets
+- 10 character PNGs
+- 12 IMS intensity PNGs
+- 10 building-damage PNGs, numbered DG1 through DG5
+- 32 total, each 1254 x 1254 RGBA with transparent corners
+
+App-ready derivatives
+- 20 character files: PNG-512 and lossless WebP-512
+- 88 visual files: PNG/WebP at 512 x 512 and 120 x 120
+- Every derivative matches a direct high-quality resize of its master
+- Every derivative preserves a transparent alpha channel
+
+Package support files
+- README.md
+- asset-manifest.json with 32 asset records
+- asset-catalog.csv with 32 asset records
+- SHA256SUMS.txt
+- Five visual review sheets
+- Production brief and IMS-25 PDF reference
+
+No hidden macOS metadata files are present.
