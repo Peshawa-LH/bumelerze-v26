@@ -277,16 +277,21 @@ async function resolveEventUuid(
   }
 
   try {
+    // Param names MUST carry the `p_` prefix — they match migration 0011's
+    // PL/pgSQL parameter names exactly (PostgREST resolves rpc args by
+    // name; unprefixed names fail with "function not found", which this
+    // resolver then silently degrades to unassigned — verified live
+    // 2026-08-16).
     const { data, error } = await client.rpc("upsert_event_from_client", {
-      provider: registration.provider,
-      provider_event_id: registration.providerId,
-      origin_time: new Date(registration.originTime).toISOString(),
-      lat: registration.lat,
-      lon: registration.lon,
-      depth_km: registration.depthKm,
-      magnitude: registration.magnitude,
-      mag_type: registration.magType,
-      place_name: registration.placeName,
+      p_provider: registration.provider,
+      p_provider_event_id: registration.providerId,
+      p_origin_time: new Date(registration.originTime).toISOString(),
+      p_lat: registration.lat,
+      p_lon: registration.lon,
+      p_depth_km: registration.depthKm,
+      p_magnitude: registration.magnitude,
+      p_mag_type: registration.magType,
+      p_place_name: registration.placeName,
     });
 
     if (error || typeof data !== "string" || data.length === 0) {

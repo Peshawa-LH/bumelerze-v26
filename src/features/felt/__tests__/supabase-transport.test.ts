@@ -334,16 +334,19 @@ describe("SupabaseTransport.submitTier1", () => {
 
       const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1_WITH_EVENT);
 
+      // p_-prefixed names — must match migration 0011's PL/pgSQL parameter
+      // names exactly (PostgREST resolves rpc args by name; the unprefixed
+      // form fails live — regression-locked here).
       expect(client.rpc).toHaveBeenCalledWith("upsert_event_from_client", {
-        provider: "usgs",
-        provider_event_id: "us1000abcd",
-        origin_time: new Date(1_699_999_000_000).toISOString(),
-        lat: 35.56,
-        lon: 45.43,
-        depth_km: 10,
-        magnitude: 5.4,
-        mag_type: "mww",
-        place_name: "32 km SE of Halabja, Iraq",
+        p_provider: "usgs",
+        p_provider_event_id: "us1000abcd",
+        p_origin_time: new Date(1_699_999_000_000).toISOString(),
+        p_lat: 35.56,
+        p_lon: 45.43,
+        p_depth_km: 10,
+        p_magnitude: 5.4,
+        p_mag_type: "mww",
+        p_place_name: "32 km SE of Halabja, Iraq",
       });
       expect(client.insert).toHaveBeenCalledWith(
         buildFeltReportInsert(SAMPLE_TIER1_WITH_EVENT, resolvedUuid),
