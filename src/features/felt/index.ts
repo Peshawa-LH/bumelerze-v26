@@ -34,7 +34,11 @@ export {
 } from "./damage";
 export { getDeviceId, __resetDeviceIdCacheForTests } from "./device-id";
 export { resolveHomeFeltAssociation } from "./association";
-export { toEventRegistration } from "./event-registration";
+export {
+  decodeEventRegistrationParam,
+  encodeEventRegistrationParam,
+  toEventRegistration,
+} from "./event-registration";
 export { useFeltLocation, type UseFeltLocationResult } from "./use-felt-location";
 export {
   PendingTransport,

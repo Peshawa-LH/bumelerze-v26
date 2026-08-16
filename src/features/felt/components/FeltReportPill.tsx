@@ -6,7 +6,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Event } from "@/features/events";
 import { useTheme } from "@/theme";
 
-import { toEventRegistration } from "../event-registration";
+import {
+  encodeEventRegistrationParam,
+  toEventRegistration,
+} from "../event-registration";
 
 interface FeltReportPillProps {
   /** Null/omitted = Home usage (association resolved at tap time by the
@@ -54,7 +57,11 @@ export function FeltReportPill({ eventId = null, event = null }: FeltReportPillP
                 params: {
                   eventId,
                   ...(event
-                    ? { eventReg: JSON.stringify(toEventRegistration(event)) }
+                    ? {
+                        eventReg: encodeEventRegistrationParam(
+                          toEventRegistration(event),
+                        ),
+                      }
                     : {}),
                 },
               }

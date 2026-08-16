@@ -4,6 +4,7 @@ import { AccessibilityInfo } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
+import { encodeEventRegistrationParam } from "../event-registration";
 import { CARTOON_LEVELS } from "../types";
 
 /**
@@ -185,10 +186,10 @@ describe("Window 1 — tier-1 felt-report screen", () => {
   });
 
   describe("eventReg route param (migration 0011: FeltReportPill's registration snapshot)", () => {
-    it("parses a valid eventReg JSON param onto the queued item's eventRegistration", async () => {
+    it("decodes a valid eventReg param (base64url codec — raw JSON does not survive expo-router URL serialization) onto the queued item's eventRegistration", async () => {
       mockSearchParams = {
         eventId: "us1000abcd",
-        eventReg: JSON.stringify({
+        eventReg: encodeEventRegistrationParam({
           provider: "usgs",
           providerId: "us1000abcd",
           originTime: 1_700_000_000_000,

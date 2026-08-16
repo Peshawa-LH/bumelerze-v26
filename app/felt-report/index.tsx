@@ -16,6 +16,7 @@ import { HOME_BASE_TOWNS } from "@/features/onboarding";
 import { useTheme } from "@/theme";
 import {
   CARTOON_LEVELS,
+  decodeEventRegistrationParam,
   enqueueTier1Report,
   InlineTownPicker,
   LEVEL_ARTWORK,
@@ -23,36 +24,13 @@ import {
   SEVERE_DESTRUCTION_THRESHOLD,
   useFeltLocation,
   type CartoonLevel,
-  type EventRegistration,
 } from "@/features/felt";
 
-/**
- * Parses window 1's `eventReg` route param (a JSON-encoded
- * `EventRegistration`, set by `FeltReportPill` when it has the full `Event`
- * behind `eventId` — migration 0011). Defensive by design: a malformed or
- * missing param must never throw or block the one-tap submission, it just
- * means this report falls back to the unassociated path (still correct per
- * D26, just less precise).
- */
-function parseEventRegistration(raw: string | undefined): EventRegistration | null {
-  if (!raw) {
-    return null;
-  }
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (
-      parsed !== null &&
-      typeof parsed === "object" &&
-      "provider" in parsed &&
-      "providerId" in parsed
-    ) {
-      return parsed as EventRegistration;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+// Window 1's `eventReg` route param is decoded by the shared
+// base64url codec in features/felt/event-registration.ts — raw JSON did not
+// survive expo-router's URL serialization (see the codec's doc comment).
+// Defensive by design: malformed/missing => null => the report proceeds on
+// the unassociated path (still correct per D26, just less precise).
 
 /**
  * Window 1 of 3 — the panic-time tap (spec-v1.md §4.6, D8; windows 2/3
@@ -80,7 +58,7 @@ export default function Tier1FeltReportScreen() {
   const { location, isGps, manualTownId, setManualTownId } = useFeltLocation();
 
   const associatedEventId = eventId ?? null;
-  const eventRegistration = parseEventRegistration(eventReg);
+  const eventRegistration = decodeEventRegistrationParam(eventReg);
 
   async function handleSelectLevel(level: CartoonLevel) {
     const report = await enqueueTier1Report({
