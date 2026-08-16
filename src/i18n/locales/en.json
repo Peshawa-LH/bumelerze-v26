@@ -361,7 +361,22 @@
     "dataSourcesSectionTitle": "Data sources",
     "dataSourcesSectionDescription": "Earthquake data comes from the USGS, EMSC (seismicportal.eu), and GEOFON (GFZ Helmholtz Centre for Geosciences, geofon.gfz.de) FDSN web services, licensed CC BY 4.0. Bumelerze checks all three catalogs on every refresh and merges them into one feed, so the same earthquake never appears twice.",
     "telemetrySectionTitle": "Anonymous app-launch signal",
-    "telemetrySectionDescription": "Each time you open Bumelerze, your device sends one anonymous ping with a coarse, city-scale location and your device platform — never a device ID or personal data. It exists to help detect earthquakes faster from launch patterns in a future version; nothing reads it yet."
+    "telemetrySectionDescription": "Each time you open Bumelerze, your device sends one anonymous ping with a coarse, city-scale location and your device platform — never a device ID or personal data. It exists to help detect earthquakes faster from launch patterns in a future version; nothing reads it yet.",
+    "myDataSectionTitle": "My data",
+    "myDataSectionDescription": "See the earthquake reports you've submitted from this device.",
+    "myDataOpen": "Open My Data",
+    "permissionsSectionTitle": "Permissions & data",
+    "permissionsSectionDescription": "What Bumelerze can access on this device, and why.",
+    "permissionsLocationTitle": "Location",
+    "permissionsLocationWhy": "Your felt reports carry where you felt the shaking.",
+    "permissionsMotionTitle": "Motion sensor",
+    "permissionsMotionWhy": "Powers the live seismogram on the Sensor screen.",
+    "permissionsMotionWebHint": "Motion access is granted from the Sensor screen itself on this browser.",
+    "permissionsMotionOpenSensor": "Open Sensor screen",
+    "permissionsStatusGranted": "Allowed",
+    "permissionsStatusDenied": "Not allowed",
+    "permissionsStatusUndetermined": "Not asked yet",
+    "permissionsRequest": "Allow"
   },
   "onboarding": {
     "back": "Back",
@@ -741,5 +756,21 @@
     },
     "disclaimer": "These values are a reference for preliminary use. They are not a substitute for a site-specific geotechnical investigation or for the design code text itself.",
     "outOfCoverage": "No bundled data covers this location."
+  },
+  "myData": {
+    "title": "My Data",
+    "headerLabel": "Your anonymous contributor ID",
+    "headerIdLoading": "…",
+    "headerIdA11yLabel": "Your contributor ID: {{id}}",
+    "headerExplanation": "Created automatically on this device — no account or sign-up. It's how your reports are grouped together, and it stays only on this install.",
+    "summaryTitle": "{{count}} reports submitted",
+    "unassignedEvent": "Not linked to a specific event",
+    "damageLine": "{{typology}}: {{grade}}",
+    "syncStatus": {
+      "submitted": "Submitted",
+      "on-device": "On this device"
+    },
+    "emptyStateMessage": "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it — it takes one tap.",
+    "emptyStateCta": "Report an earthquake"
   }
 }
