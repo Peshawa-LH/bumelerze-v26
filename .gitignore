@@ -33,10 +33,6 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Local-only
-docs/settings.local.json
-docs/*.local.md
-
 # Logs
 npm-debug.log*
 yarn-error.log*
