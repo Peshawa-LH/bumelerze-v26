@@ -1,4 +1,13 @@
-import { ActivityIndicator, ScrollView, Switch, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -20,8 +29,16 @@ export default function SensorScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const { status, samples, activeAxes, toggleAxis, removeGravity, setRemoveGravity } =
-    useAccelerometerStream();
+  const {
+    status,
+    samples,
+    activeAxes,
+    toggleAxis,
+    removeGravity,
+    setRemoveGravity,
+    requestWebPermission,
+  } = useAccelerometerStream();
+  const isWeb = Platform.OS === "web";
 
   return (
     <ScrollView
@@ -92,7 +109,7 @@ export default function SensorScreen() {
         </View>
       ) : null}
 
-      {status === "unavailable" ? (
+      {status === "unavailable" || status === "permission-denied" ? (
         <Text
           accessibilityRole="alert"
           style={{
@@ -101,21 +118,51 @@ export default function SensorScreen() {
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
-          {t("sensor.unavailable")}
+          {isWeb
+            ? t("sensor.web.explanation")
+            : t(
+                status === "unavailable"
+                  ? "sensor.unavailable"
+                  : "sensor.permissionDenied",
+              )}
         </Text>
       ) : null}
 
-      {status === "permission-denied" ? (
-        <Text
-          accessibilityRole="alert"
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-          }}
-        >
-          {t("sensor.permissionDenied")}
-        </Text>
+      {status === "permission-required" ? (
+        <View style={{ gap: spacing[3] }}>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyDefault.fontSize,
+              lineHeight: typography.bodyDefault.lineHeight,
+            }}
+          >
+            {t("sensor.web.enableHint")}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={requestWebPermission}
+            style={({ pressed }) => [
+              styles.enableButton,
+              {
+                backgroundColor: colors.brand.primary,
+                opacity: pressed ? 0.85 : 1,
+                paddingVertical: spacing[3],
+              },
+            ]}
+          >
+            <Text
+              style={{
+                color: colors.brand.onPrimary,
+                fontSize: typography.h3.fontSize,
+                lineHeight: typography.h3.lineHeight,
+                fontWeight: typography.labelButton.fontWeight,
+              }}
+            >
+              {t("sensor.web.enableButton")}
+            </Text>
+          </Pressable>
+        </View>
       ) : null}
 
       {status === "streaming" ? (
@@ -169,3 +216,16 @@ export default function SensorScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  // Deliberately larger than the app's usual 48dp primary-button floor —
+  // this is the one button on this screen a panicked user has to find and
+  // tap correctly on a small, low-end Android or an old iPhone before the
+  // sensor can do anything at all.
+  enableButton: {
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 56,
+  },
+});

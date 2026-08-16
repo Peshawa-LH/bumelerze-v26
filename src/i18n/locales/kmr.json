@@ -164,7 +164,12 @@
     "axisY": "Y",
     "axisZ": "Z",
     "axisA11yHint": "Rêya {{axis}} li ser xêzê nîşan bide an veşêre",
-    "chartA11yLabel": "Xêza rasterast a lerizanpîvê ku deh saniyeyên dawî yên tevgerê nîşan dide"
+    "chartA11yLabel": "Xêza rasterast a lerizanpîvê ku deh saniyeyên dawî yên tevgerê nîşan dide",
+    "web": {
+      "enableButton": "Sensora tevgerê veke",
+      "enableHint": "Geroka te ji bo dayîna vê destûrê pêdiviya bi lêdanek e, berî ku ew karibe tevgera rasterast nîşan bide.",
+      "explanation": "Me nikarî daneyên tevgera rasterast ji geroka te bistîne. Li ser iPhone, biçe Sazkarî ← Safari ← Gihîştina Tevger û Rawestanê û pê ewle be ku ew vekirî ye, paşê vê rûpelê ji nû ve bar bike. Hin gerok û komputer qet sensorek tevgerê nînin — heke rewş ev be, ev dîmena rasterast li vir ne berdest e."
+    }
   },
   "safety": {
     "title": "Ewlehî",

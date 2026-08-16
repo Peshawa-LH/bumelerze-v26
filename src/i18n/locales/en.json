@@ -164,7 +164,12 @@
     "axisY": "Y",
     "axisZ": "Z",
     "axisA11yHint": "Show or hide the {{axis}} axis on the chart",
-    "chartA11yLabel": "Live accelerometer chart showing the last ten seconds of motion"
+    "chartA11yLabel": "Live accelerometer chart showing the last ten seconds of motion",
+    "web": {
+      "enableButton": "Enable motion sensor",
+      "enableHint": "Your browser needs a quick tap to allow this before it can show live motion.",
+      "explanation": "We couldn't get live motion data from your browser. On iPhone, check Settings → Safari → Motion & Orientation Access and make sure it's turned on, then reload this page. Some browsers and computers don't have a motion sensor at all — if that's the case here, this live view just won't be available."
+    }
   },
   "safety": {
     "title": "Safety",

@@ -1,6 +1,7 @@
 import { useFocusEffect } from "expo-router";
 import { Accelerometer } from "expo-sensors";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Platform } from "react-native";
 
 import {
   ACCELEROMETER_UPDATE_INTERVAL_MS,
@@ -8,6 +9,7 @@ import {
   PLOT_RENDER_INTERVAL_MS,
   PLOT_WINDOW_MS,
   RING_BUFFER_CAPACITY,
+  WEB_SILENT_TIMEOUT_MS,
 } from "./constants";
 import { downsampleForPlot, selectWindow } from "./downsample";
 import { removeGravityFromSeries } from "./low-pass-filter";
@@ -16,15 +18,28 @@ import type { AxisKey, AxisVisibility, SensorSample } from "./types";
 
 /**
  * - "checking": availability/permission check in flight (usually sub-frame).
- * - "unavailable": `Accelerometer.isAvailableAsync()` resolved false (web,
- *   some emulators, a device genuinely missing the sensor).
+ * - "unavailable": `Accelerometer.isAvailableAsync()` resolved false (some
+ *   emulators, a device genuinely missing the sensor), OR — web only — a
+ *   subscription was started but never delivered a single sample within
+ *   `WEB_SILENT_TIMEOUT_MS` (iOS 12.2–12.4's Settings toggle left off, or a
+ *   desktop/Android browser with no real motion hardware; see
+ *   `WEB_SILENT_TIMEOUT_MS`'s doc comment).
  * - "permission-denied": the device requires motion-sensor permission and
  *   the user declined it (or it was already denied and can't be re-asked).
+ *   On web this also covers browsers with no `requestPermission` API at all
+ *   on iOS — `expo-sensors`' web shim reports those as denied outright,
+ *   since the only fix is the same Settings toggle, not an in-app re-ask.
+ * - "permission-required": web only. iOS Safari (13+) gates DeviceMotion
+ *   behind `DeviceMotionEvent.requestPermission()`, which Safari silently
+ *   ignores unless it's called from inside a user-gesture handler — so
+ *   unlike native, we never auto-request here. The screen shows a button;
+ *   `requestWebPermission` (called from that button's `onPress`) is what
+ *   actually asks.
  * - "streaming": subscribed and (once the first render tick fires) drawing
  *   live samples.
  */
 export type SensorStreamStatus =
-  "checking" | "unavailable" | "permission-denied" | "streaming";
+  "checking" | "unavailable" | "permission-denied" | "permission-required" | "streaming";
 
 export interface UseAccelerometerStreamResult {
   status: SensorStreamStatus;
@@ -35,6 +50,11 @@ export interface UseAccelerometerStreamResult {
   toggleAxis: (axis: AxisKey) => void;
   removeGravity: boolean;
   setRemoveGravity: (value: boolean) => void;
+  /** Web-only action for the "permission-required" state — must be invoked
+   * directly from a `Pressable`'s `onPress` so the browser still sees it as
+   * a user gesture by the time the permission prompt fires. A no-op on
+   * native platforms. */
+  requestWebPermission: () => void;
 }
 
 const ALL_AXES_VISIBLE: AxisVisibility = { x: true, y: true, z: true };
@@ -54,6 +74,11 @@ const ALL_AXES_VISIBLE: AxisVisibility = { x: true, y: true, z: true };
  *     gravity toggle + point-count downsampling, and commits exactly one
  *     `setSamples` per tick. This is the "throttled state update" half of
  *     the wave brief's "do NOT setState at 50 Hz" requirement.
+ *
+ * Web needs an extra branch: iOS Safari gates `DeviceMotionEvent` behind a
+ * permission that can only be requested from a user gesture, so the mount
+ * flow can't just ask like native does — see `SensorStreamStatus`'s doc
+ * comment for the full state breakdown.
  */
 export function useAccelerometerStream(): UseAccelerometerStreamResult {
   const [status, setStatus] = useState<SensorStreamStatus>("checking");
@@ -77,17 +102,119 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
   // need a stable identity across renders.
   const [buffer] = useState(() => new RingBuffer<SensorSample>(RING_BUFFER_CAPACITY));
 
+  const subscriptionRef = useRef<{ remove: () => void } | null>(null);
+  const renderIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const silentTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // True only while this screen is focused/mounted — the async chains below
+  // (native and web) check this after every `await` so a late-resolving
+  // promise from a screen the user has already left can never clobber state.
+  const activeRef = useRef(false);
+
+  // Set by `requestWebPermission` once `requestPermissionsAsync()` resolves
+  // "granted", then consumed (and cleared) the next time the focus effect
+  // below runs. We deliberately do NOT subscribe directly from the button's
+  // `onPress` promise chain — that would hand ownership of the
+  // subscription's cleanup to a closure that isn't the one React actually
+  // tears down on blur/unmount, since it was created before the button was
+  // ever pressed. Bumping `restartTick` instead makes the *same*
+  // `useFocusEffect` run again (and register a fresh, correctly-owned
+  // cleanup) with this flag already set.
+  const webGrantedRef = useRef(false);
+  const [restartTick, setRestartTick] = useState(0);
+
+  const stopStreaming = useCallback(() => {
+    subscriptionRef.current?.remove();
+    subscriptionRef.current = null;
+    if (renderIntervalRef.current) {
+      clearInterval(renderIntervalRef.current);
+      renderIntervalRef.current = null;
+    }
+    if (silentTimeoutRef.current) {
+      clearTimeout(silentTimeoutRef.current);
+      silentTimeoutRef.current = null;
+    }
+  }, []);
+
+  const beginStreaming = useCallback(() => {
+    buffer.clear();
+    setSamples([]);
+
+    Accelerometer.setUpdateInterval(ACCELEROMETER_UPDATE_INTERVAL_MS);
+    subscriptionRef.current = Accelerometer.addListener((reading) => {
+      buffer.push({
+        x: reading.x,
+        y: reading.y,
+        z: reading.z,
+        t: Date.now(),
+      });
+    });
+
+    setStatus("streaming");
+
+    renderIntervalRef.current = setInterval(() => {
+      const raw = buffer.toArray();
+      const windowed = selectWindow(raw, Date.now(), PLOT_WINDOW_MS);
+      const processed = removeGravityRef.current
+        ? removeGravityFromSeries(windowed)
+        : windowed;
+      setSamples(downsampleForPlot(processed, MAX_PLOT_POINTS));
+    }, PLOT_RENDER_INTERVAL_MS);
+  }, [buffer]);
+
+  /**
+   * Web-only wrapper: starts streaming exactly like native, but also arms a
+   * short watchdog (`WEB_SILENT_TIMEOUT_MS`) that demotes the screen back
+   * to "unavailable" if the buffer is still empty once it fires — the
+   * "listening timeout fallback" `isAvailableAsync()` alone can't cover
+   * (see `WEB_SILENT_TIMEOUT_MS`'s doc comment).
+   */
+  const beginStreamingWeb = useCallback(() => {
+    beginStreaming();
+    silentTimeoutRef.current = setTimeout(() => {
+      if (!activeRef.current) return;
+      if (buffer.toArray().length === 0) {
+        stopStreaming();
+        setStatus("unavailable");
+      }
+    }, WEB_SILENT_TIMEOUT_MS);
+  }, [beginStreaming, buffer, stopStreaming]);
+
+  /**
+   * Web-only: called from the "permission-required" state's button
+   * `onPress`. Must run synchronously inside the gesture handler up to the
+   * `requestPermissionsAsync()` call for Safari to honor it — React event
+   * handlers run inside the same browser task as the tap, so this
+   * qualifies even though the function itself is `async`-shaped via a
+   * promise chain. The actual subscribe happens on the *next* focus-effect
+   * run (see `webGrantedRef`/`restartTick` above), not here.
+   */
+  const requestWebPermission = useCallback(() => {
+    if (Platform.OS !== "web") return;
+
+    setStatus("checking");
+    Accelerometer.requestPermissionsAsync()
+      .then((permission) => {
+        if (!activeRef.current) return;
+        if (permission.status !== "granted") {
+          setStatus("permission-denied");
+          return;
+        }
+        webGrantedRef.current = true;
+        setRestartTick((tick) => tick + 1);
+      })
+      .catch(() => {
+        if (activeRef.current) {
+          setStatus("permission-denied");
+        }
+      });
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-      let subscription: { remove: () => void } | null = null;
-      let renderInterval: ReturnType<typeof setInterval> | null = null;
+      activeRef.current = true;
 
-      async function start() {
-        setStatus("checking");
-        buffer.clear();
-        setSamples([]);
-
+      async function startNative() {
         const available = await Accelerometer.isAvailableAsync();
         if (cancelled) return;
         if (!available) {
@@ -112,43 +239,96 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
           return;
         }
 
-        Accelerometer.setUpdateInterval(ACCELEROMETER_UPDATE_INTERVAL_MS);
-        subscription = Accelerometer.addListener((reading) => {
-          buffer.push({
-            x: reading.x,
-            y: reading.y,
-            z: reading.z,
-            t: Date.now(),
-          });
-        });
-
-        setStatus("streaming");
-
-        renderInterval = setInterval(() => {
-          const raw = buffer.toArray();
-          const windowed = selectWindow(raw, Date.now(), PLOT_WINDOW_MS);
-          const processed = removeGravityRef.current
-            ? removeGravityFromSeries(windowed)
-            : windowed;
-          setSamples(downsampleForPlot(processed, MAX_PLOT_POINTS));
-        }, PLOT_RENDER_INTERVAL_MS);
+        beginStreaming();
       }
 
-      void start();
+      async function startWeb() {
+        // Unlike native, we check permission *before* availability: on iOS
+        // Safari `isAvailableAsync()` itself waits (up to ~250 ms) for a
+        // live event to prove availability, which can never happen before
+        // permission is granted — checking availability first would always
+        // read "unavailable" and the user would never see a way to grant
+        // permission at all.
+        const permission = await Accelerometer.getPermissionsAsync();
+        if (cancelled) return;
+
+        if (permission.status === "denied") {
+          // Either an explicit prior refusal this session, or — per
+          // `expo-sensors`' web shim — an iOS browser with no
+          // `requestPermission` API at all (iOS 12.2–12.4), which it
+          // reports as denied outright since the only fix is the Settings
+          // toggle, not an in-app re-ask.
+          setStatus("permission-denied");
+          return;
+        }
+
+        if (permission.status !== "granted") {
+          // "undetermined": this browser exposes
+          // `DeviceMotionEvent.requestPermission`, which only resolves when
+          // called from a user gesture — show the button and wait for a
+          // real tap (`requestWebPermission`) instead of asking here.
+          // Note `getPermissionsAsync()` reports "undetermined" on this
+          // class of browser *unconditionally*, even after a real grant —
+          // it can't know without asking — which is why a successful grant
+          // is threaded through via `webGrantedRef` instead of ever
+          // re-running this check.
+          setStatus("permission-required");
+          return;
+        }
+
+        // Already granted — no permission gate on this browser (e.g.
+        // desktop/Android web), or a previous grant earlier this session.
+        // Still confirm data actually shows up before calling it
+        // "streaming": `isAvailableAsync()` reports "available"
+        // unconditionally on non-iOS web, so it can't be trusted alone.
+        const available = await Accelerometer.isAvailableAsync();
+        if (cancelled) return;
+        if (!available) {
+          setStatus("unavailable");
+          return;
+        }
+
+        beginStreamingWeb();
+      }
+
+      // A grant from the web "enable" button bumped `restartTick` to get us
+      // re-invoked here — go straight to streaming instead of re-running
+      // the permission checks (which, on a browser with a
+      // `requestPermission` API, would just read "undetermined" again
+      // forever; see `startWeb`'s doc comment below).
+      if (webGrantedRef.current) {
+        webGrantedRef.current = false;
+        beginStreamingWeb();
+        return () => {
+          cancelled = true;
+          activeRef.current = false;
+          stopStreaming();
+          buffer.clear();
+          setSamples([]);
+        };
+      }
+
+      setStatus("checking");
+      buffer.clear();
+      setSamples([]);
+
+      void (Platform.OS === "web" ? startWeb() : startNative());
 
       return () => {
         cancelled = true;
-        subscription?.remove();
-        if (renderInterval) {
-          clearInterval(renderInterval);
-        }
+        activeRef.current = false;
+        stopStreaming();
         buffer.clear();
         setSamples([]);
       };
-      // `buffer` is a stable identity for the component's lifetime (lazy
-      // `useState` init above never re-runs), included only to satisfy
-      // exhaustive-deps — it never causes this effect to re-run in practice.
-    }, [buffer]),
+      // `buffer`/`beginStreaming`/`beginStreamingWeb`/`stopStreaming` are all
+      // stable identities for the component's lifetime, included only to
+      // satisfy exhaustive-deps — none of them ever causes this effect to
+      // re-run in practice. `restartTick` is the one deliberate exception:
+      // bumping it (see `requestWebPermission`) is what makes this effect
+      // run again after a web permission grant, its value is never read.
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- restartTick is intentionally unread, only its identity change matters
+    }, [buffer, beginStreaming, beginStreamingWeb, stopStreaming, restartTick]),
   );
 
   const toggleAxis = useCallback((axis: AxisKey) => {
@@ -162,5 +342,6 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     toggleAxis,
     removeGravity,
     setRemoveGravity,
+    requestWebPermission,
   };
 }

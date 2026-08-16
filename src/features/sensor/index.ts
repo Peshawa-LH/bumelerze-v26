@@ -6,6 +6,7 @@ export {
   PLOT_RENDER_INTERVAL_MS,
   PLOT_WINDOW_MS,
   RING_BUFFER_CAPACITY,
+  WEB_SILENT_TIMEOUT_MS,
 } from "./constants";
 export { downsampleForPlot, selectWindow } from "./downsample";
 export {
