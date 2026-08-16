@@ -134,6 +134,7 @@ export default function RootLayout() {
                   name="notification-settings"
                   options={{ headerShown: true }}
                 />
+                <Stack.Screen name="my-data" options={{ headerShown: true }} />
                 <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
               </>
             ) : (
