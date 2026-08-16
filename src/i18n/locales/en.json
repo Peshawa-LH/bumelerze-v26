@@ -151,7 +151,11 @@
   },
   "map": {
     "title": "Map",
-    "emptyState": "The map view is coming in a later phase."
+    "nativeUnavailableDescription": "Bumelerze's live map needs a full app installation to run — it's on the way. Check the event list for the latest earthquakes in the meantime.",
+    "loading": "Loading map…",
+    "offlineTitle": "Map unavailable offline",
+    "offlineDescription": "Check your connection and try again.",
+    "retry": "Retry"
   },
   "sensor": {
     "title": "Sensor",

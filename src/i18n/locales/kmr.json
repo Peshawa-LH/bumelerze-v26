@@ -151,7 +151,11 @@
   },
   "map": {
     "title": "Nexşe",
-    "emptyState": "Dîmena nexşeyê dê di qonaxek paşerojê de were zêdekirin."
+    "nativeUnavailableDescription": "Nexşeya zindî ya Bumelerze pêdiviya bi sazkirina sepanê ya tevahî heye — ew di rê de ye. Di vê navberê de lîsteya bûyeran ji bo erdhejên herî dawî binêre.",
+    "loading": "Nexşe tê barkirin…",
+    "offlineTitle": "Nexşe li derveyî girêdanê ne berdest e",
+    "offlineDescription": "Girêdana xwe kontrol bike û dîsa biceribîne.",
+    "retry": "Dîsa biceribîne"
   },
   "sensor": {
     "title": "Sensor",
