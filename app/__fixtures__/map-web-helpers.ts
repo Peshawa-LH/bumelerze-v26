@@ -28,6 +28,16 @@ export const mockMarkerRemove = jest.fn();
 export const mockMapConstructorOptions: Record<string, unknown>[] = [];
 export const mockMarkerConstructorOptions: { element: HTMLElement }[] = [];
 
+/** Records the order `setWorkerUrl(...)` and `new Map(...)` are called in,
+ * across all mocks below — locks map.web.tsx's requirement that the worker
+ * URL is assigned before the map (and therefore its worker pool) is
+ * constructed. See MAP_WORKER_URL's doc comment (config.ts) for why this
+ * ordering matters. */
+export const mockWorkerUrlCallOrder: string[] = [];
+export const mockSetWorkerUrl = jest.fn((url: string) => {
+  mockWorkerUrlCallOrder.push(`setWorkerUrl:${url}`);
+});
+
 export class MockMap {
   options: Record<string, unknown>;
   handlers: Record<string, () => void> = {};
@@ -35,6 +45,7 @@ export class MockMap {
   constructor(options: Record<string, unknown>) {
     this.options = options;
     mockMapConstructorOptions.push(options);
+    mockWorkerUrlCallOrder.push("mapConstructed");
   }
 
   on(event: string, handler: () => void) {
@@ -123,5 +134,7 @@ export function resetMapWebMocks() {
   mockMarkerRemove.mockClear();
   mockMapConstructorOptions.length = 0;
   mockMarkerConstructorOptions.length = 0;
+  mockSetWorkerUrl.mockClear();
+  mockWorkerUrlCallOrder.length = 0;
   mockUseRegionEvents.mockReturnValue({ events: [] });
 }

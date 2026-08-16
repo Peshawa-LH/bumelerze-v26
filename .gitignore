@@ -47,3 +47,9 @@ expo-env.d.ts
 # @end expo-cli
 # Netlify build output (built on Netlify, never committed)
 netlify-dist/
+
+# maplibre-gl worker bundle, synced from node_modules by `postinstall`
+# (scripts/sync-maplibre-worker.js) — never committed, always regenerated
+# to match the installed maplibre-gl version.
+public/maplibre-gl-worker.mjs
+public/maplibre-gl-shared.mjs

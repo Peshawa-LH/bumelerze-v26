@@ -61,3 +61,26 @@
   for = "/app/_expo/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# maplibre-gl's web worker (synced from node_modules into public/ by
+# scripts/sync-maplibre-worker.js — see MAP_WORKER_URL's doc comment in
+# src/features/map/config.ts for the full story) is loaded via a real
+# `new Worker(url, { type: "module" })`, which browsers refuse to run
+# unless the response's Content-Type is a JS MIME type — pinned explicitly
+# rather than trusted to whatever Netlify's default mime table happens to
+# do with a ".mjs" extension, since a wrong Content-Type here would 404 (as
+# far as the browser's module loader is concerned) in exactly the same
+# silent, hard-to-notice way the original missing-file bug did. Not
+# content-hashed (unlike _expo/*), so it stays under the /app/* "no-cache"
+# revalidation rule above rather than the immutable one — a stale cached
+# copy after a maplibre-gl version bump would break the map the same way a
+# stale cached app shell would.
+[[headers]]
+  for = "/app/maplibre-gl-worker.mjs"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+
+[[headers]]
+  for = "/app/maplibre-gl-shared.mjs"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"

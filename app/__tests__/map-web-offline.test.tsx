@@ -24,6 +24,7 @@ import {
   MockMap,
   mockMapRemove,
   MockMarker,
+  mockSetWorkerUrl,
   mockUseRegionEvents,
   resetMapWebMocks,
   setMockNextMapShouldError,
@@ -57,6 +58,7 @@ jest.mock(
     Map: MockMap,
     Marker: MockMarker,
     AttributionControl: MockAttributionControl,
+    setWorkerUrl: mockSetWorkerUrl,
   }),
   { virtual: true },
 );
