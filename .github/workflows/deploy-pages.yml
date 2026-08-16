@@ -1,0 +1,72 @@
+# Deploys the website + app web build to GitHub Pages on every push to main.
+# Created 2026-08-16 when Netlify's free-tier credits ran out mid-development
+# (their deploys pause until the next billing cycle; the netlify.toml config
+# stays — if/when Netlify resumes, both hosts simply mirror the same build).
+#
+# Public repo => Actions minutes and Pages hosting are free without limits
+# that matter at our scale.
+#
+# URL layout (mirrors the Netlify one, shifted under the repo subpath):
+#   https://peshawa-lh.github.io/bumelerze-v26/        -> website
+#   https://peshawa-lh.github.io/bumelerze-v26/app/    -> the app
+#
+# SPA fallback: Pages has no redirect engine; 404.html is a copy of the app
+# shell, so unknown deep links (e.g. /app/event/xyz) boot the app and the
+# client router takes over. Pages sets no custom cache headers; the app's
+# built-in stale-chunk reload guard (src/lib/web-chunk-reload.ts) covers
+# post-deploy staleness.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Export app web build
+        env:
+          # Repo-subpath base for Pages hosting (same mechanism as the
+          # Netlify /app base — see app.config.ts webBaseUrl).
+          BUMELERZE_WEB_BASE_URL: /bumelerze-v26/app
+          # Publishable client values — same reasoning as netlify.toml:
+          # EXPO_PUBLIC_* vars ship inside every client bundle by design;
+          # the anon key is Supabase's public key, protected by RLS.
+          EXPO_PUBLIC_SUPABASE_URL: https://bcgyxepgruwardhozvfq.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I
+        run: npx expo export --platform web --output-dir pages-dist/app
+      - name: Assemble site (website at root, app under /app, SPA 404 fallback)
+        run: |
+          cp -r website/. pages-dist/
+          cp pages-dist/app/index.html pages-dist/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages-dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
