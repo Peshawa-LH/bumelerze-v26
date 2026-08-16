@@ -105,11 +105,21 @@ describe("Sensor screen on web", () => {
     // that can fire mid-way through a *later* test and corrupt it.
     jest.useFakeTimers();
     mockAddListener.mockReturnValue({ remove: mockRemove });
+    // Default shape: iOS Safari 13+, where `DeviceMotionEvent.requestPermission`
+    // genuinely exists — the hook's own feature-detection (independent of
+    // the `getPermissionsAsync` mock above) must see this for the
+    // `permission-required` button to ever show. Tests simulating a browser
+    // with no permission-request API at all (the Android-Chrome shape, or
+    // pre-13 iOS Safari) delete this global themselves.
+    (globalThis as { DeviceMotionEvent?: { requestPermission?: unknown } }).DeviceMotionEvent = {
+      requestPermission: jest.fn(),
+    };
   });
 
   afterEach(() => {
     cleanup();
     jest.useRealTimers();
+    delete (globalThis as { DeviceMotionEvent?: unknown }).DeviceMotionEvent;
   });
 
   it("shows the enable-sensor button while permission is undetermined (iOS Safari, pre-ask)", async () => {
@@ -191,5 +201,81 @@ describe("Sensor screen on web", () => {
 
     expect(screen.getByText(i18n.t("sensor.web.explanation"))).toBeTruthy();
     expect(mockRemove).toHaveBeenCalledTimes(1);
+  });
+
+  describe("browsers with no permission-request API at all", () => {
+    beforeEach(() => {
+      // Simulates both the Android-Chrome shape (no permission concept,
+      // sensor just works) and pre-13 iOS Safari (no in-app re-ask
+      // possible) — the hook must never reach `permission-required` (and
+      // so never show the button) here, regardless of what the mocked
+      // `getPermissionsAsync` says.
+      delete (globalThis as { DeviceMotionEvent?: unknown }).DeviceMotionEvent;
+    });
+
+    it("streams directly, skipping the permission dance entirely (Android Chrome shape)", async () => {
+      mockIsAvailableAsync.mockResolvedValue(true);
+
+      await renderWithProviders(<SensorScreen />);
+      await flush();
+
+      expect(screen.getByText(i18n.t("sensor.axisX"))).toBeTruthy();
+      expect(mockGetPermissionsAsync).not.toHaveBeenCalled();
+      expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
+      expect(screen.queryByText(i18n.t("sensor.web.enableButton"))).toBeNull();
+    });
+
+    it("shows the web explanation, without crashing, when there's no data to stream", async () => {
+      mockIsAvailableAsync.mockResolvedValue(false);
+
+      await renderWithProviders(<SensorScreen />);
+      await flush();
+
+      expect(screen.getByText(i18n.t("sensor.web.explanation"))).toBeTruthy();
+      expect(mockAddListener).not.toHaveBeenCalled();
+      expect(screen.queryByText(i18n.t("sensor.web.enableButton"))).toBeNull();
+    });
+  });
+
+  describe("a broken requestPermissionsAsync (the owner's older-iOS-Safari case)", () => {
+    it("shows the web explanation instead of crashing when the call throws synchronously", async () => {
+      mockGetPermissionsAsync.mockResolvedValue(undeterminedResponse());
+      mockRequestPermissionsAsync.mockImplementation(() => {
+        throw new Error("requestPermission is not a function");
+      });
+
+      await renderWithProviders(<SensorScreen />);
+      await flush();
+
+      const button = screen.getByText(i18n.t("sensor.web.enableButton"));
+      await pressAndFlush(button);
+
+      expect(screen.getByText(i18n.t("sensor.web.explanation"))).toBeTruthy();
+      expect(mockAddListener).not.toHaveBeenCalled();
+    });
+
+    it("shows the web explanation instead of crashing when the call rejects asynchronously", async () => {
+      mockGetPermissionsAsync.mockResolvedValue(undeterminedResponse());
+      mockRequestPermissionsAsync.mockRejectedValue(new Error("NotAllowedError"));
+
+      await renderWithProviders(<SensorScreen />);
+      await flush();
+
+      const button = screen.getByText(i18n.t("sensor.web.enableButton"));
+      await pressAndFlush(button);
+
+      expect(screen.getByText(i18n.t("sensor.web.explanation"))).toBeTruthy();
+      expect(mockAddListener).not.toHaveBeenCalled();
+    });
+  });
+
+  it("shows the web explanation instead of crashing when the mount-time getPermissionsAsync call itself rejects", async () => {
+    mockGetPermissionsAsync.mockRejectedValue(new Error("boom"));
+
+    await renderWithProviders(<SensorScreen />);
+    await flush();
+
+    expect(screen.getByText(i18n.t("sensor.web.explanation"))).toBeTruthy();
+    expect(mockAddListener).not.toHaveBeenCalled();
   });
 });
