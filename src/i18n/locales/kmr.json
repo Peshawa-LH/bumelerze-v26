@@ -457,6 +457,16 @@
         "reviewed": "Ji aliyê zanyarekî ve hatiye kontrolkirin"
       }
     },
+    "feltMap": {
+      "sectionTitle": "Nexşeya hîskirinê",
+      "legendCaption": "Tundiya Dehîdî ya Civakî (CDI) — bi xwe hatiye ragihandin",
+      "mapA11yLabel": "Nexşeya raporên hîskirinê, {{count}} rapor, tundî ji {{min}} heta {{max}}, nêzî {{place}}",
+      "reportCount": "{{count}} rapor li {{cells}} herêman",
+      "updated": "Hate rojanekirin {{time}}",
+      "citation": "Raporên hîskirinê yên Bumelerze — ji aliyê civakê ve hatine şandin, li gorî herêmê hatine berhevkirin",
+      "unavailableOffline": "Nexşeya hîskirinê offline ne berdest e",
+      "retry": "Dîsa biceribîne"
+    },
     "myReportRow": {
       "reported": "Te asta {{level}} rapor kir",
       "addDetail": "Hûrgiliyên zêdetir zêde bike",
