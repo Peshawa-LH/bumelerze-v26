@@ -118,6 +118,18 @@ export function ContributionRow({ row }: ContributionRowProps) {
           </Text>
         </View>
       ) : null}
+
+      {row.hasPhoto ? (
+        <Text
+          style={{
+            color: colors.text.tertiary,
+            fontSize: typography.labelCaption.fontSize,
+            lineHeight: typography.labelCaption.lineHeight,
+          }}
+        >
+          {t("myData.photoAttachedLabel")}
+        </Text>
+      ) : null}
     </View>
   );
 }

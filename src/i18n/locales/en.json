@@ -766,6 +766,7 @@
     "summaryTitle": "{{count}} reports submitted",
     "unassignedEvent": "Not linked to a specific event",
     "damageLine": "{{typology}}: {{grade}}",
+    "photoAttachedLabel": "Photo attached",
     "syncStatus": {
       "submitted": "Submitted",
       "on-device": "On this device"

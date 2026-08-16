@@ -86,8 +86,20 @@ function loadMigrationColumns0009(): string[] {
   return columns;
 }
 
+// `signInAnonymously` defaults to a no-op success — `ensureAnonymousUserId`
+// (supabase-transport.ts) then reads the resulting session via
+// `client.auth.getSession()`, which every mock client below defaults to
+// "no session" (see `mockAuth()`), so the DEFAULT behavior across this
+// whole file is "anonymous sign-in succeeded but there's still no session
+// to read a uid from" -> `user_id: null` — matching every pre-existing
+// assertion in this file that computes its expected payload via
+// `buildFeltReportInsert(..., null)`/`buildFeltCommentInsert(...)` (no
+// third/second argument). Tests that need a REAL uid override
+// `client.auth.getSession` per-test; tests that need sign-in to fail
+// override `signInAnonymously` per-test.
 jest.mock("@/lib/supabase", () => ({
   getSupabaseClient: jest.fn(),
+  signInAnonymously: jest.fn(() => Promise.resolve()),
 }));
 
 function loadTransport(): typeof import("../supabase-transport") {
@@ -95,9 +107,28 @@ function loadTransport(): typeof import("../supabase-transport") {
   return require("../supabase-transport");
 }
 
-function loadMockedSupabaseLib(): { getSupabaseClient: jest.Mock } {
+function loadMockedSupabaseLib(): {
+  getSupabaseClient: jest.Mock;
+  signInAnonymously: jest.Mock;
+} {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- see loadTransport
   return require("@/lib/supabase");
+}
+
+type MockSession = { user: { id: string } } | null;
+
+/** Shared "no anonymous session" auth mock — every mock client in this file
+ * uses this by default (see the `jest.mock` comment above); tests that need
+ * a real uid replace `getSession` with a resolved-session mock instead. */
+function mockAuth() {
+  return {
+    getSession: jest.fn(
+      async (): Promise<{ data: { session: MockSession }; error: null }> => ({
+        data: { session: null },
+        error: null,
+      }),
+    ),
+  };
 }
 
 const SAMPLE_LOCATION: FeltLocation = { quality: "gps", lat: 35.56, lon: 45.43 };
@@ -185,6 +216,7 @@ describe("buildFeltReportInsert (pure mapping)", () => {
       report_id: SAMPLE_TIER1.reportId,
       device_id: "device-abc",
       event_id: "44444444-4444-4444-8444-444444444444",
+      user_id: null,
       cartoon_level: 6,
       lat: 35.56,
       lon: 45.43,
@@ -198,6 +230,16 @@ describe("buildFeltReportInsert (pure mapping)", () => {
 
     const unassociated: Tier1Report = { ...SAMPLE_TIER1, eventId: null };
     expect(buildFeltReportInsert(unassociated, null).event_id).toBeNull();
+  });
+
+  it("populates user_id from the third argument, defaulting to null when omitted", () => {
+    const { buildFeltReportInsert } = loadTransport();
+
+    expect(buildFeltReportInsert(SAMPLE_TIER1, null).user_id).toBeNull();
+    expect(
+      buildFeltReportInsert(SAMPLE_TIER1, null, "77777777-7777-4777-8777-777777777777")
+        .user_id,
+    ).toBe("77777777-7777-4777-8777-777777777777");
   });
 
   it("every payload key is a real felt_reports column (schema/app sync check)", () => {
@@ -262,7 +304,7 @@ describe("SupabaseTransport.submitTier1", () => {
     const insert = jest.fn(async () => ({ error }));
     const from = jest.fn(() => ({ insert }));
     const rpc = jest.fn(async () => ({ data: rpcResult.data ?? null, error: rpcResult.error ?? null }));
-    return { auth: {} as never, from, insert, rpc };
+    return { auth: mockAuth(), from, insert, rpc };
   }
 
   it("returns 'submitted' on a clean insert, with a null event_id when there is no registration snapshot", async () => {
@@ -403,6 +445,72 @@ describe("SupabaseTransport.submitTier1", () => {
       expect(result.outcome).toBe("submitted");
     });
   });
+
+  describe("anonymous-session wiring (2026-08-16 storage wave)", () => {
+    it("calls signInAnonymously() before inserting", async () => {
+      const { SupabaseTransport } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const client = mockClientWithInsertResult(null);
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      await SupabaseTransport.submitTier1(SAMPLE_TIER1);
+
+      expect(supabaseLib.signInAnonymously).toHaveBeenCalled();
+      // Order matters: sign-in must resolve before the insert is attempted,
+      // so a resulting session's uid can be read into the payload.
+      const signInOrder = supabaseLib.signInAnonymously.mock.invocationCallOrder[0];
+      const insertOrder = client.insert.mock.invocationCallOrder[0];
+      expect(signInOrder).toBeDefined();
+      expect(insertOrder).toBeDefined();
+      expect(signInOrder as number).toBeLessThan(insertOrder as number);
+    });
+
+    it("populates user_id from the session's uid once an anonymous session exists", async () => {
+      const { SupabaseTransport, buildFeltReportInsert } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const client = mockClientWithInsertResult(null);
+      client.auth.getSession = jest.fn(async () => ({
+        data: { session: { user: { id: "anon-uid-1" } } },
+        error: null,
+      }));
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      await SupabaseTransport.submitTier1(SAMPLE_TIER1);
+
+      expect(client.insert).toHaveBeenCalledWith(
+        buildFeltReportInsert(SAMPLE_TIER1, null, "anon-uid-1"),
+      );
+    });
+
+    it("still submits the report, with user_id null, when signInAnonymously rejects", async () => {
+      const { SupabaseTransport, buildFeltReportInsert } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const client = mockClientWithInsertResult(null);
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+      supabaseLib.signInAnonymously.mockRejectedValueOnce(new Error("no network"));
+
+      const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
+
+      expect(client.insert).toHaveBeenCalledWith(buildFeltReportInsert(SAMPLE_TIER1, null, null));
+      expect(result).toEqual({ outcome: "submitted", serverReportId: SAMPLE_TIER1.reportId });
+    });
+
+    it("still submits the report, with user_id null, when a session exists but carries no session object", async () => {
+      const { SupabaseTransport, buildFeltReportInsert } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const client = mockClientWithInsertResult(null);
+      client.auth.getSession = jest.fn(async () => ({
+        data: { session: null },
+        error: null,
+      }));
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
+
+      expect(client.insert).toHaveBeenCalledWith(buildFeltReportInsert(SAMPLE_TIER1, null, null));
+      expect(result.outcome).toBe("submitted");
+    });
+  });
 });
 
 describe("buildFeltCommentInsert (pure mapping)", () => {
@@ -413,8 +521,18 @@ describe("buildFeltCommentInsert (pure mapping)", () => {
       comment_id: SAMPLE_TIER2.detailId,
       report_id: SAMPLE_TIER1.reportId,
       device_id: "device-abc",
+      user_id: null,
       body: "Books fell off the shelf.",
     });
+  });
+
+  it("populates user_id from the second argument, defaulting to null when omitted", () => {
+    const { buildFeltCommentInsert } = loadTransport();
+
+    expect(buildFeltCommentInsert(SAMPLE_TIER2)?.user_id).toBeNull();
+    expect(
+      buildFeltCommentInsert(SAMPLE_TIER2, "77777777-7777-4777-8777-777777777777")?.user_id,
+    ).toBe("77777777-7777-4777-8777-777777777777");
   });
 
   it("returns null when there is no comment (the common case — nothing to send)", () => {
@@ -453,7 +571,7 @@ describe("SupabaseTransport.submitTier2", () => {
         })));
       return { insert };
     });
-    return { auth: {} as never, from, insertsByTable };
+    return { auth: mockAuth(), from, insertsByTable };
   }
 
   it("returns 'submitted' on a clean insert into felt_report_details when there is no comment", async () => {
@@ -562,5 +680,152 @@ describe("SupabaseTransport.submitTier2", () => {
     const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2);
 
     expect(result).toEqual({ outcome: "awaiting-backend" });
+  });
+});
+
+describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
+  const SAMPLE_TIER2_WITH_PHOTO: Tier2Report = {
+    ...SAMPLE_TIER2,
+    photoUri: "file:///tmp/damage.jpg",
+  };
+
+  /** `readPhotoBody` branches on `Platform.OS === "web"` — this mock covers
+   * the NATIVE (`expo-file-system` `File.arrayBuffer()`) branch, which is
+   * what runs under jest-expo's default (non-"web") `Platform.OS`. The web
+   * branch (`fetch(uri).blob()`) gets its own test below with `Platform.OS`
+   * temporarily flipped, matching `sensor-screen-web.test.tsx`'s own
+   * pattern for testing both platform branches in one file. */
+  const mockArrayBuffer = jest.fn(async () => new ArrayBuffer(8));
+  jest.mock("expo-file-system", () => ({
+    File: jest.fn().mockImplementation(() => ({ arrayBuffer: mockArrayBuffer })),
+  }));
+
+  function mockStorageClient(options: {
+    session?: { user: { id: string } } | null;
+    uploadError?: { message: string } | null;
+    upsertError?: { message: string } | null;
+  }) {
+    const upload = jest.fn(async () => ({ error: options.uploadError ?? null }));
+    const storageFrom = jest.fn(() => ({ upload }));
+    const upsert = jest.fn(async () => ({ error: options.upsertError ?? null }));
+    const from = jest.fn(() => ({ upsert }));
+    const getSession = jest.fn(async () => ({
+      data: { session: options.session === undefined ? { user: { id: "anon-uid-1" } } : options.session },
+      error: null,
+    }));
+    return { auth: { getSession }, storage: { from: storageFrom }, from, upload, storageFrom, upsert };
+  }
+
+  it("returns 'uploaded' immediately (no-op) when the report has no photo", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockStorageClient({});
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2);
+
+    expect(result).toEqual({ outcome: "uploaded" });
+    expect(client.storageFrom).not.toHaveBeenCalled();
+  });
+
+  it("uploads to <auth.uid()>/<felt_report_id>.jpg and upserts the felt_photos row on the happy path", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockStorageClient({});
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+
+    expect(client.storageFrom).toHaveBeenCalledWith("felt-photos");
+    expect(client.upload).toHaveBeenCalledWith(
+      `anon-uid-1/${SAMPLE_TIER2_WITH_PHOTO.feltReportId}.jpg`,
+      expect.anything(),
+      expect.objectContaining({ upsert: true, contentType: "image/jpeg" }),
+    );
+    expect(client.from).toHaveBeenCalledWith("felt_photos");
+    expect(client.upsert).toHaveBeenCalledWith(
+      {
+        report_id: SAMPLE_TIER2_WITH_PHOTO.feltReportId,
+        storage_path: `anon-uid-1/${SAMPLE_TIER2_WITH_PHOTO.feltReportId}.jpg`,
+      },
+      { onConflict: "report_id" },
+    );
+    expect(result).toEqual({ outcome: "uploaded" });
+  });
+
+  it("defers (fails, retryable) rather than uploading when there is no anonymous session — no safe path to write to", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockStorageClient({ session: null });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+
+    expect(client.storageFrom).not.toHaveBeenCalled();
+    expect(result).toEqual({ outcome: "failed" });
+  });
+
+  it("returns 'failed' when the storage upload itself errors, without attempting the felt_photos upsert", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockStorageClient({ uploadError: { message: "bucket not found" } });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+
+    expect(client.from).not.toHaveBeenCalledWith("felt_photos");
+    expect(result).toEqual({ outcome: "failed" });
+  });
+
+  it("returns 'failed' when the storage upload succeeds but the felt_photos upsert errors", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockStorageClient({ upsertError: { message: "constraint violation" } });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+
+    expect(client.upload).toHaveBeenCalled();
+    expect(result).toEqual({ outcome: "failed" });
+  });
+
+  it("returns 'failed' rather than throwing if the client is unexpectedly null", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.getSupabaseClient.mockReturnValue(null);
+
+    const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+
+    expect(result).toEqual({ outcome: "failed" });
+  });
+
+  it("uploads via fetch(uri).blob() on web (Platform.OS === 'web')", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- scoped require, matches sensor-screen-web.test.tsx's own Platform.OS override pattern
+    const { Platform } = require("react-native") as typeof import("react-native");
+    const originalPlatformOS = Platform.OS;
+    Platform.OS = "web";
+    const originalFetch = global.fetch;
+    const mockBlob = { size: 8, type: "image/jpeg" };
+    global.fetch = jest.fn(async () => ({ blob: async () => mockBlob })) as unknown as typeof fetch;
+
+    try {
+      const { SupabaseTransport } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const client = mockStorageClient({});
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+
+      expect(global.fetch).toHaveBeenCalledWith(SAMPLE_TIER2_WITH_PHOTO.photoUri);
+      expect(client.upload).toHaveBeenCalledWith(
+        `anon-uid-1/${SAMPLE_TIER2_WITH_PHOTO.feltReportId}.jpg`,
+        mockBlob,
+        expect.objectContaining({ upsert: true }),
+      );
+      expect(result).toEqual({ outcome: "uploaded" });
+    } finally {
+      Platform.OS = originalPlatformOS;
+      global.fetch = originalFetch;
+    }
   });
 });

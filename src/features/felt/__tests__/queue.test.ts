@@ -361,6 +361,43 @@ describe("enqueueTier2Report (D18 §3.2 supersede-in-place)", () => {
     expect(items[0]?.tier1.reportId).toBe(tier1.reportId);
     expect(items[0]?.tier2?.answers).toEqual(answers);
     expect(items[0]?.tier2?.photoUri).toBe("file:///tmp/damage.jpg");
+    // 2026-08-16 storage wave: attaching a photo-carrying tier2 seeds
+    // photoState as "pending-upload" — nothing has attempted the upload yet
+    // (PendingTransport, this test's default, has no `uploadPhoto`).
+    expect(items[0]?.photoState).toBe("pending-upload");
+  });
+
+  it("leaves photoState null when tier2 attaches with no photo", async () => {
+    const { enqueueTier1Report, enqueueTier2Report, useFeltQueueStore } = loadQueue();
+
+    const tier1 = await enqueueTier1Report({
+      cartoonLevel: 6,
+      location: SAMPLE_LOCATION,
+      eventId: "evt-3b",
+    });
+
+    await enqueueTier2Report({
+      feltReportId: tier1.reportId,
+      answers: {
+        situation: null,
+        felt: null,
+        othersFelt: null,
+        motion: null,
+        reaction: null,
+        stand: null,
+        shelf: null,
+        picture: null,
+        furniture: null,
+        buildingDamageLevel: null,
+        damageTypology: null,
+        roadDamageLevel: null,
+        comment: null,
+      },
+      photoUri: null,
+    });
+
+    const items = useFeltQueueStore.getState().items;
+    expect(items[0]?.photoState).toBeNull();
   });
 
   it("throws rather than silently dropping an answer set for an unknown report id", async () => {
@@ -386,5 +423,183 @@ describe("enqueueTier2Report (D18 §3.2 supersede-in-place)", () => {
         },
       }),
     ).rejects.toThrow(/no queued tier-1 report/);
+  });
+});
+
+const EMPTY_ANSWERS: Tier2Answers = {
+  situation: null,
+  felt: null,
+  othersFelt: null,
+  motion: null,
+  reaction: null,
+  stand: null,
+  shelf: null,
+  picture: null,
+  furniture: null,
+  buildingDamageLevel: null,
+  damageTypology: null,
+  roadDamageLevel: null,
+  comment: null,
+};
+
+describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
+  /** A transport whose `submitTier2` always succeeds immediately — isolates
+   * these tests to the PHOTO pass, which only ever runs once the
+   * surrounding queue item's `state` is "submitted" (see `queue.ts`'s own
+   * gating comment on why: `felt_photos.report_id`'s foreign key needs the
+   * `felt_reports` row to exist first). */
+  function makeTransport(uploadPhoto: jest.Mock | undefined) {
+    return {
+      submitTier1: jest.fn(async (report: { reportId: string }) => ({
+        outcome: "submitted" as const,
+        serverReportId: report.reportId,
+      })),
+      submitTier2: jest.fn(async (report: { detailId: string }) => ({
+        outcome: "submitted" as const,
+        serverReportId: report.detailId,
+      })),
+      ...(uploadPhoto ? { uploadPhoto } : {}),
+    };
+  }
+
+  async function enqueuePhotoReport(
+    transport: ReturnType<typeof makeTransport>,
+    eventId: string,
+  ) {
+    const { enqueueTier1Report, enqueueTier2Report } = loadQueue();
+    const tier1 = await enqueueTier1Report(
+      { cartoonLevel: 6, location: SAMPLE_LOCATION, eventId },
+      transport,
+    );
+    await waitFor(() => itemState(loadQueue().useFeltQueueStore, tier1.reportId) === "submitted");
+    return enqueueTier2Report(
+      { feltReportId: tier1.reportId, answers: EMPTY_ANSWERS, photoUri: "file:///tmp/damage.jpg" },
+      transport,
+    );
+  }
+
+  function photoState(
+    store: ReturnType<typeof loadQueue>["useFeltQueueStore"],
+    reportId: string,
+  ) {
+    return (
+      store.getState().items.find((item) => item.tier1.reportId === reportId)?.photoState ??
+      null
+    );
+  }
+
+  it("does NOT attempt a photo upload while the report is still queued/syncing (only once state is 'submitted')", async () => {
+    const { useFeltQueueStore } = loadQueue();
+    const uploadPhoto = jest.fn(async () => ({ outcome: "uploaded" as const }));
+
+    let releaseTier1!: () => void;
+    const tier1Gate = new Promise<void>((resolve) => {
+      releaseTier1 = resolve;
+    });
+    const transport = makeTransport(uploadPhoto);
+    transport.submitTier1 = jest.fn(async (report: { reportId: string }) => {
+      await tier1Gate;
+      return { outcome: "submitted" as const, serverReportId: report.reportId };
+    });
+
+    const { enqueueTier1Report, enqueueTier2Report } = loadQueue();
+    const tier1 = await enqueueTier1Report(
+      { cartoonLevel: 6, location: SAMPLE_LOCATION, eventId: "evt-photo-gate" },
+      transport,
+    );
+    // submitTier1 is held open — the item is "syncing", not "submitted" yet.
+    expect(itemState(useFeltQueueStore, tier1.reportId)).toBe("syncing");
+
+    releaseTier1();
+    await waitFor(() => itemState(useFeltQueueStore, tier1.reportId) === "submitted");
+    expect(uploadPhoto).not.toHaveBeenCalled();
+
+    await enqueueTier2Report(
+      { feltReportId: tier1.reportId, answers: EMPTY_ANSWERS, photoUri: "file:///tmp/damage.jpg" },
+      transport,
+    );
+    await waitFor(() => photoState(useFeltQueueStore, tier1.reportId) === "uploaded");
+    expect(uploadPhoto).toHaveBeenCalledTimes(1);
+  });
+
+  it("uploads the photo once the report reaches 'submitted', in the SAME drain that submitted it", async () => {
+    const { useFeltQueueStore } = loadQueue();
+    const uploadPhoto = jest.fn(async () => ({ outcome: "uploaded" as const }));
+    const transport = makeTransport(uploadPhoto);
+
+    const tier2 = await enqueuePhotoReport(transport, "evt-photo-1");
+
+    await waitFor(
+      () => photoState(useFeltQueueStore, tier2.feltReportId) === "uploaded",
+    );
+    expect(uploadPhoto).toHaveBeenCalledWith(tier2);
+  });
+
+  it("marks photoState 'failed' on an upload failure, without affecting the report's own 'submitted' state", async () => {
+    const { useFeltQueueStore } = loadQueue();
+    const uploadPhoto = jest.fn(async () => ({ outcome: "failed" as const }));
+    const transport = makeTransport(uploadPhoto);
+
+    const tier2 = await enqueuePhotoReport(transport, "evt-photo-2");
+
+    await waitFor(
+      () => photoState(useFeltQueueStore, tier2.feltReportId) === "failed",
+    );
+    expect(itemState(useFeltQueueStore, tier2.feltReportId)).toBe("submitted");
+  });
+
+  it("retries a failed photo upload on the next drain (no separate backoff timer) — 'failed' then 'uploaded'", async () => {
+    const { processQueue, useFeltQueueStore } = loadQueue();
+    let attempt = 0;
+    const uploadPhoto = jest.fn(async () => {
+      attempt += 1;
+      return attempt === 1 ? { outcome: "failed" as const } : { outcome: "uploaded" as const };
+    });
+    const transport = makeTransport(uploadPhoto);
+
+    const tier2 = await enqueuePhotoReport(transport, "evt-photo-3");
+    await waitFor(() => photoState(useFeltQueueStore, tier2.feltReportId) === "failed");
+    expect(uploadPhoto).toHaveBeenCalledTimes(1);
+
+    // Simulates the next app-foreground drain — no explicit backoff wait
+    // needed, unlike the report-submission retry path.
+    await processQueue(transport);
+    await waitFor(() => photoState(useFeltQueueStore, tier2.feltReportId) === "uploaded");
+    expect(uploadPhoto).toHaveBeenCalledTimes(2);
+  });
+
+  it("never calls uploadPhoto (and never crashes) when the transport doesn't implement it", async () => {
+    const transport = makeTransport(undefined);
+
+    const tier2 = await enqueuePhotoReport(transport, "evt-photo-4");
+
+    const { useFeltQueueStore } = loadQueue();
+    await waitFor(
+      () => itemState(useFeltQueueStore, tier2.feltReportId) === "submitted",
+    );
+    // photoState stays "pending-upload" forever without a transport that
+    // implements uploadPhoto — this is the PendingTransport/test-double
+    // case (see FeltTransport.uploadPhoto's own "optional" doc), not a bug.
+    expect(photoState(useFeltQueueStore, tier2.feltReportId)).toBe("pending-upload");
+  });
+
+  it("never attempts a photo upload when tier2 has no photoUri", async () => {
+    const uploadPhoto = jest.fn(async () => ({ outcome: "uploaded" as const }));
+    const transport = makeTransport(uploadPhoto);
+
+    const { enqueueTier1Report, enqueueTier2Report, useFeltQueueStore } = loadQueue();
+    const tier1 = await enqueueTier1Report(
+      { cartoonLevel: 6, location: SAMPLE_LOCATION, eventId: "evt-photo-5" },
+      transport,
+    );
+    await waitFor(() => itemState(useFeltQueueStore, tier1.reportId) === "submitted");
+    await enqueueTier2Report(
+      { feltReportId: tier1.reportId, answers: EMPTY_ANSWERS, photoUri: null },
+      transport,
+    );
+    await waitFor(() => itemState(useFeltQueueStore, tier1.reportId) === "submitted");
+
+    expect(uploadPhoto).not.toHaveBeenCalled();
+    expect(photoState(useFeltQueueStore, tier1.reportId)).toBeNull();
   });
 });

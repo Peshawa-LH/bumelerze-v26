@@ -63,6 +63,7 @@ function makeQueueItem(overrides: Partial<QueueItem> = {}): QueueItem {
     attempts: 0,
     lastAttemptAt: null,
     nextRetryAt: null,
+    photoState: null,
     ...overrides,
   };
 }
