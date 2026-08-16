@@ -90,6 +90,7 @@ Parts 3 + 5, `docs/research/event-pipeline-design.md`,
 | `0009_felt_damage_typology.sql`        | `felt_report_details.damage_typology` + widened `building_damage_level` check (2026-08-15 flow restructure).           |
 | `0010_spatial_ref_sys_hygiene.sql`     | Revokes anon/authenticated `SELECT` on PostGIS's `spatial_ref_sys` (advisor finding: RLS-disabled table exposed via the API). |
 | `0011_event_registry_and_assignment.sql` | `upsert_event_from_client()` (client-callable SECURITY DEFINER, resolves a (provider, provider_event_id) pair to the canonical `events.event_id`, with cross-provider dedup) + `assign_unassigned_felt_reports()` (service-role-only sweep, D26 auto-assignment). Foundation for the client attaching a felt report to a real event before any ingestion worker runs. |
+| `0015_felt_reports_select_own.sql` | Adds `felt_reports_select_own`/`felt_report_details_select_own` — `to authenticated` select policies keyed on `auth.uid() = user_id` (D26 item 7, My Data). Correct today, not yet exercised: the client doesn't populate `user_id` on insert this wave, see that file's own header comment. |
 
 **Naming caveat:** these use plain `NNNN_name.sql` numbering as requested.
 The Supabase CLI conventionally expects timestamp-prefixed filenames
