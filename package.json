@@ -68,7 +68,8 @@
     "lint": "expo lint",
     "format": "prettier --write .",
     "test": "jest",
-    "generate:assets": "node scripts/generate-assets.js"
+    "generate:assets": "node scripts/generate-assets.js",
+    "postinstall": "node scripts/sync-maplibre-worker.js"
   },
   "private": true
 }

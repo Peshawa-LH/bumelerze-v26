@@ -17,9 +17,9 @@ import {
 import { placeLine } from "@/features/geo";
 import {
   buildRegionMarkers,
-  MAP_ATTRIBUTION_HTML,
   MAP_FIT_BOUNDS_PADDING_PX,
   MAP_STYLE_URLS,
+  MAP_WORKER_URL,
   MARKER_HIT_PADDING_PX,
   regionBboxToLngLatBounds,
 } from "@/features/map";
@@ -115,6 +115,13 @@ export default function MapScreenWeb() {
         const maplibre = module;
         maplibreModuleRef.current = maplibre;
 
+        // Must run before `new maplibre.Map(...)` below — the map reads
+        // the worker URL once, at construction, when it spins up its
+        // worker pool. See MAP_WORKER_URL's doc comment (config.ts) for
+        // why this is required at all (maplibre-gl 6.x + Metro's web
+        // bundler).
+        maplibre.setWorkerUrl(MAP_WORKER_URL);
+
         const styleUrl = scheme === "dark" ? MAP_STYLE_URLS.dark : MAP_STYLE_URLS.light;
         const map = new maplibre.Map({
           container: containerRef.current,
@@ -128,12 +135,13 @@ export default function MapScreenWeb() {
         // synchronously — a real MapLibre map never fires "load"
         // synchronously, but nothing should depend on that.
         mapRef.current = map;
-        map.addControl(
-          new maplibre.AttributionControl({
-            compact: false,
-            customAttribution: MAP_ATTRIBUTION_HTML,
-          }),
-        );
+        // No `customAttribution` — the vector source's own TileJSON already
+        // supplies the correct credit line, which MapLibre collects
+        // automatically; adding a hand-typed copy on top duplicated it on
+        // screen (config.ts's doc comment above `MAP_WORKER_URL` has the
+        // full story). `compact: false` keeps it always expanded rather
+        // than hidden behind a toggle.
+        map.addControl(new maplibre.AttributionControl({ compact: false }));
         map.on("load", () => {
           if (!cancelled) {
             setLoadState("ready");

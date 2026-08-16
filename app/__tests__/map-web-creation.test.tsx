@@ -22,10 +22,13 @@ import {
   mockMarkerAddTo,
   mockMarkerConstructorOptions,
   mockMarkerSetLngLat,
+  mockSetWorkerUrl,
   mockUseRegionEvents,
+  mockWorkerUrlCallOrder,
   resetMapWebMocks,
   testSafeAreaMetrics,
 } from "../__fixtures__/map-web-helpers";
+import { MAP_WORKER_URL } from "@/features/map";
 
 jest.mock("expo-router", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require required inside a jest.mock factory
@@ -57,6 +60,7 @@ jest.mock(
     Map: MockMap,
     Marker: MockMarker,
     AttributionControl: MockAttributionControl,
+    setWorkerUrl: mockSetWorkerUrl,
   }),
   { virtual: true },
 );
@@ -86,7 +90,7 @@ afterEach(() => {
 });
 
 describe("MapScreenWeb creation", () => {
-  it("creates a MapLibre map fitted to the region bbox, with explicit attribution", async () => {
+  it("creates a MapLibre map fitted to the region bbox, with an explicit always-expanded attribution control", async () => {
     await renderWithProviders(<MapScreenWeb />);
 
     await waitFor(() => {
@@ -97,11 +101,34 @@ describe("MapScreenWeb creation", () => {
       [41.0, 33.0],
       [48.5, 38.5],
     ]);
-    // Attribution is added explicitly (OpenFreeMap's styles carry no
-    // attribution string of their own) rather than left to the default
-    // control, and never suppressed.
+    // The default `AttributionControl` is suppressed (`attributionControl:
+    // false`) so an explicit instance can be added with `compact: false`
+    // (always expanded, never hidden behind a toggle). No
+    // `customAttribution` is passed — the vector source's own TileJSON
+    // already supplies the correct credit line, and MapLibre collects that
+    // automatically; adding a hand-typed copy on top is what used to
+    // render the credit line twice (config.ts's `MAP_WORKER_URL` doc
+    // comment has the full story).
     expect(options?.attributionControl).toBe(false);
     expect(mockMapAddControl).toHaveBeenCalledTimes(1);
+    const [attributionControl] = mockMapAddControl.mock.calls[0] as [MockAttributionControl];
+    expect(attributionControl.options).toEqual({ compact: false });
+  });
+
+  it("assigns the worker URL before constructing the map", async () => {
+    await renderWithProviders(<MapScreenWeb />);
+
+    await waitFor(() => {
+      expect(mockMapConstructorOptions).toHaveLength(1);
+    });
+
+    // maplibre-gl reads its worker URL once, when the map spins up its
+    // worker pool at construction time — assigning it any later would be a
+    // no-op for that map instance. See MAP_WORKER_URL's doc comment
+    // (config.ts) for why this needs to be an explicit, always-served
+    // static file at all (maplibre-gl 6.x + Metro's web bundler).
+    expect(mockSetWorkerUrl).toHaveBeenCalledWith(MAP_WORKER_URL);
+    expect(mockWorkerUrlCallOrder).toEqual([`setWorkerUrl:${MAP_WORKER_URL}`, "mapConstructed"]);
   });
 
   it("builds one marker per region event, positioned at its lon/lat", async () => {

@@ -1,5 +1,4 @@
 export {
-  MAP_ATTRIBUTION_HTML,
   MAP_FIT_BOUNDS_PADDING_PX,
   MARKER_HIT_PADDING_PX,
   MARKER_MAGNITUDE_CEILING,
@@ -7,6 +6,7 @@ export {
   MARKER_MAX_DIAMETER_PX,
   MARKER_MIN_DIAMETER_PX,
   MAP_STYLE_URLS,
+  MAP_WORKER_URL,
 } from "./config";
 export {
   buildRegionMarkers,

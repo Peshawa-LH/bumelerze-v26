@@ -19,18 +19,46 @@ export const MAP_STYLE_URLS = {
 } as const;
 
 /**
- * OpenFreeMap's style documents carry no `attribution` string on their
- * sources (verified live against the `liberty`/`dark` styles above), so
- * MapLibre's default `AttributionControl` would render empty — this is the
- * explicit credit line openfreemap.org's own site uses under its preview
- * map ("OpenFreeMap © OpenMapTiles Data from OpenStreetMap"), wired in as
- * `AttributionControl`'s `customAttribution` so it's always visible
- * (wave brief: "REQUIRED: visible attribution... do not hide it").
+ * The style *documents* above carry no `attribution` string on their
+ * `sources` block (verified live), but the vector `openmaptiles` source
+ * they reference points at a separate TileJSON endpoint
+ * (https://tiles.openfreemap.org/planet) which DOES carry a correct,
+ * live-verified `attribution` string — MapLibre fetches that TileJSON
+ * itself and feeds it into `AttributionControl` automatically. We used to
+ * also pass a hand-typed `customAttribution` copy of that same credit line;
+ * MapLibre concatenates `customAttribution` with every source's real
+ * attribution rather than de-duping near-identical-but-not-byte-identical
+ * HTML strings, which is exactly what made the credit line render twice on
+ * screen. Fix: don't hand-maintain a duplicate copy — the source already
+ * supplies the correct text, so `AttributionControl` is constructed below
+ * with `compact: false` only (always expanded, never hidden behind a
+ * toggle — wave brief: "REQUIRED: visible attribution... do not hide it")
+ * and no `customAttribution`.
  */
-export const MAP_ATTRIBUTION_HTML =
-  '<a href="https://openfreemap.org" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> ' +
-  '© <a href="https://openmaptiles.org" target="_blank" rel="noopener noreferrer">OpenMapTiles</a> ' +
-  'Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>';
+
+/**
+ * maplibre-gl 6.x has no bundler-friendly "workerClass"/CSP-worker option
+ * (removed from the package; verified against the installed version's own
+ * source) — it always instantiates a real `new Worker(workerUrl, { type:
+ * "module" })`, and by default derives that URL relative to its own chunk's
+ * URL (`import.meta.url`). Metro's web bundler never emits a matching
+ * sibling file next to that chunk (it only bundles modules reached through
+ * static/dynamic `import`, never a runtime string handed to the real
+ * `Worker` constructor), so the default URL always 404s — masked as an SPA
+ * fallback HTML page in the deployed export, hanging the map forever.
+ *
+ * Fix: `scripts/sync-maplibre-worker.js` copies the worker bundle (and the
+ * shared chunk it imports) from `node_modules/maplibre-gl/dist` into
+ * `public/` on every `npm install` — Expo's web dev server serves `public/`
+ * verbatim at the origin root, and the production export copies it into
+ * the export output root — so this path resolves to a real, always-served
+ * file in both environments. `process.env.EXPO_BASE_URL` is the same
+ * build-time-inlined constant Expo Router itself uses for subpath hosting
+ * (empty locally, "/app" in the Netlify export per `app.config.ts`'s
+ * `experiments.baseUrl` / `BUMELERZE_WEB_BASE_URL`), so this always matches
+ * wherever the app itself is actually served from.
+ */
+export const MAP_WORKER_URL = `${process.env.EXPO_BASE_URL ?? ""}/maplibre-gl-worker.mjs`;
 
 /** Marker visual size range, magnitude-scaled (marker-helpers.ts). Kept
  * modest — a full-screen map showing dozens of the 30-day region window's
