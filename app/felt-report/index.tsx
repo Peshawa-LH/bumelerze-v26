@@ -18,6 +18,7 @@ import {
   CARTOON_LEVELS,
   enqueueTier1Report,
   InlineTownPicker,
+  LEVEL_ARTWORK,
   LevelTile,
   SEVERE_DESTRUCTION_THRESHOLD,
   useFeltLocation,
@@ -187,6 +188,7 @@ export default function Tier1FeltReportScreen() {
                 locale={i18n.language}
                 label={t(`felt.tier1.levels.${level}.label`)}
                 onPress={(selected) => void handleSelectLevel(selected)}
+                imageSource={LEVEL_ARTWORK[level]}
               />
             ),
           )}
@@ -211,6 +213,7 @@ export default function Tier1FeltReportScreen() {
                 locale={i18n.language}
                 label={t(`felt.tier1.levels.${level}.label`)}
                 onPress={(selected) => void handleSelectLevel(selected)}
+                imageSource={LEVEL_ARTWORK[level]}
                 compact
               />
             ),

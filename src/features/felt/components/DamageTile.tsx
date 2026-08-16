@@ -1,6 +1,7 @@
 import { Image, type ImageSource } from "expo-image";
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -42,6 +43,7 @@ function DamageTileImpl({
   onPress,
   imageSource,
 }: DamageTileProps) {
+  const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const intensityIndex = DAMAGE_GRADE_TO_INTENSITY_INDEX[grade];
   const accentColor = colors.intensity[intensityIndex];
@@ -78,18 +80,22 @@ function DamageTileImpl({
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           />
-        ) : null}
-        <Text
-          allowFontScaling
-          style={{
-            color: onAccentColor,
-            fontSize: typography.h3.fontSize,
-            fontWeight: "800",
-            fontVariant: ["tabular-nums"],
-          }}
-        >
-          {numeralText}
-        </Text>
+        ) : (
+          // Numeral-on-swatch fallback ONLY when there is no artwork
+          // (owner directive, 2026-08-16 — same "N - Label" move as
+          // `LevelTile`, kept visually consistent across windows 1 and 2).
+          <Text
+            allowFontScaling
+            style={{
+              color: onAccentColor,
+              fontSize: typography.h3.fontSize,
+              fontWeight: "800",
+              fontVariant: ["tabular-nums"],
+            }}
+          >
+            {numeralText}
+          </Text>
+        )}
       </View>
       <Text
         allowFontScaling
@@ -101,7 +107,7 @@ function DamageTileImpl({
           fontWeight: typography.labelCaption.fontWeight,
         }}
       >
-        {label}
+        {t("felt.numberedLabel", { number: numeralText, label })}
       </Text>
     </Pressable>
   );

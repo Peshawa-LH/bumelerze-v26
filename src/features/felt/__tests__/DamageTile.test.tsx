@@ -4,12 +4,14 @@ import { DamageTile } from "../components/DamageTile";
 
 /**
  * tile-image-rendering wave: mirrors `LevelTile.test.tsx` for `DamageTile`'s
- * `imageSource` prop — renders unchanged (no image) when absent, renders an
- * `expo-image` `<Image>` over the swatch when given a plain `{ uri }` source
- * (no real artwork PNGs exist yet, `cartoon-artwork-brief.md` §6.5).
+ * `imageSource` prop — renders unchanged (bare numeral on the swatch) when
+ * absent, renders an `expo-image` `<Image>` alone over the swatch when
+ * given a plain `{ uri }` source (no numeral overlay — owner directive
+ * 2026-08-16, same "N - Label" move as `LevelTile`, kept consistent across
+ * windows 1 and 2).
  */
 describe("DamageTile", () => {
-  it("renders the plain color swatch (no image) when imageSource is absent", async () => {
+  it("renders the plain color swatch (no image) with a bare numeral and a plain label when imageSource is absent", async () => {
     await render(
       <DamageTile
         typology="lowrise"
@@ -25,11 +27,11 @@ describe("DamageTile", () => {
       screen.getByLabelText("Single/low-rise. Large wall cracks"),
     ).toBeTruthy();
     expect(screen.getByText("2")).toBeTruthy();
-    expect(screen.getByText("Large wall cracks")).toBeTruthy();
+    expect(screen.getByText("2 - Large wall cracks")).toBeTruthy();
     expect(screen.queryByTestId("damage-tile-artwork")).toBeNull();
   });
 
-  it("renders an Image over the swatch when given an imageSource", async () => {
+  it("renders an Image alone over the swatch (no numeral overlay) when given an imageSource, moving the grade into the label", async () => {
     await render(
       <DamageTile
         typology="lowrise"
@@ -45,7 +47,10 @@ describe("DamageTile", () => {
     expect(
       screen.getByLabelText("Single/low-rise. Large wall cracks"),
     ).toBeTruthy();
-    expect(screen.getByText("2")).toBeTruthy();
+    // No bare "2" text node floating over the artwork anymore...
+    expect(screen.queryByText("2")).toBeNull();
+    // ...the grade now lives in the label line instead.
+    expect(screen.getByText("2 - Large wall cracks")).toBeTruthy();
 
     // `accessibilityElementsHidden` intentionally hides the image from the
     // accessibility tree (it's decorative — see the component's comment),

@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme";
 import {
   BUILDING_DAMAGE_GRADES,
+  DAMAGE_ARTWORK,
   DAMAGE_TYPOLOGIES,
   DamageTile,
   useTier2DraftStore,
@@ -179,6 +180,7 @@ export default function DamageReportScreen() {
                     locale={i18n.language}
                     accessibilityLabel={`${t(`felt.damage.typologies.${typology}`)}. ${gradeLabel}`}
                     onPress={handleSelectGrade}
+                    imageSource={DAMAGE_ARTWORK[typology][grade]}
                   />
                 );
               })}

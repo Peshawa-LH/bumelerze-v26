@@ -60,6 +60,7 @@ export {
 } from "./supabase-transport";
 export { LevelTile } from "./components/LevelTile";
 export { DamageTile } from "./components/DamageTile";
+export { DAMAGE_ARTWORK, LEVEL_ARTWORK } from "./artwork";
 export { FeltReportPill } from "./components/FeltReportPill";
 export { InlineTownPicker } from "./components/InlineTownPicker";
 export { Tier2ScreenShell } from "./components/Tier2ScreenShell";
