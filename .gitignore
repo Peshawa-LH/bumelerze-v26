@@ -45,3 +45,5 @@ _to_delete/
 
 expo-env.d.ts
 # @end expo-cli
+# Netlify build output (built on Netlify, never committed)
+netlify-dist/

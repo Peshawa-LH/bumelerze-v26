@@ -2,7 +2,15 @@ import type { ExpoConfig } from "expo/config";
 
 // Environment config lives here (not app.json) so Phase-2+ work can branch on
 // EAS build profiles / env vars without touching this file's structure.
-// Phase 1 scope: static skeleton config only, no env branching yet.
+
+// Netlify web-preview export (netlify.toml sets this to "/app"): serve the
+// exported web app from a subpath of the static site instead of the domain
+// root. Uses SPA ("single") output there because the host only has a simple
+// wildcard rewrite — the default "static" per-route HTML export needs
+// per-dynamic-segment rewrites instead. Unset (local dev, tests, native
+// builds) nothing changes.
+const webBaseUrl = process.env.BUMELERZE_WEB_BASE_URL;
+
 const config: ExpoConfig = {
   name: "Bumelerze",
   slug: "bumelerze",
@@ -27,7 +35,7 @@ const config: ExpoConfig = {
     package: "org.bumelerze.app",
   },
   web: {
-    output: "static",
+    output: webBaseUrl ? "single" : "static",
     favicon: "./assets/images/favicon.png",
   },
   plugins: [
@@ -125,6 +133,7 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
+    ...(webBaseUrl ? { baseUrl: webBaseUrl } : {}),
   },
 };
 

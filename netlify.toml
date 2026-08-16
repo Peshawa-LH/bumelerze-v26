@@ -1,12 +1,32 @@
-# Netlify deploy configuration — the site is the static `website/` folder.
-# No build step: plain HTML/CSS, deployed as-is. This file takes precedence
-# over dashboard build settings, so the connected-repo deploy works without
-# any manual Netlify configuration.
+# Netlify deploy configuration.
+#
+# One site, two things served:
+#   /      -> the static marketing/privacy site (website/ folder, no build)
+#   /app/  -> the Expo web export of the actual app (built on Netlify),
+#             usable from any phone browser — interim phone testing until
+#             the Expo dev build exists.
+#
+# This file takes precedence over dashboard build settings, so the
+# connected-repo deploy works without manual Netlify configuration.
 
 [build]
-  publish = "website"
+  command = "npm ci --no-audit --no-fund && npx expo export --platform web --output-dir netlify-dist/app && cp -r website/. netlify-dist/"
+  publish = "netlify-dist"
 
-# Long cache for the stylesheet, standard revalidation for pages.
+[build.environment]
+  NODE_VERSION = "22"
+  # Makes app.config.ts export the app as a SPA rooted at /app (see the
+  # webBaseUrl comment there).
+  BUMELERZE_WEB_BASE_URL = "/app"
+
+# SPA fallback: any in-app route (e.g. /app/event/abc123) serves the app
+# shell; Expo Router takes over client-side.
+[[redirects]]
+  from = "/app/*"
+  to = "/app/index.html"
+  status = 200
+
+# Long cache for the website stylesheet, standard revalidation for pages.
 [[headers]]
   for = "/*.css"
   [headers.values]
