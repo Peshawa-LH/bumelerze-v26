@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase";
-import { parseFeltCellRows, type FeltCellRow } from "./types";
+import { FELT_CELL_ROW_COLUMNS, parseFeltCellRows, type FeltCellRow } from "./types";
 
 /**
  * Small transport seam (same shape/spirit as `features/felt/queue.ts`'s
@@ -32,7 +32,7 @@ export const SupabaseFeltMapTransport: FeltMapTransport = {
 
     const { data, error } = await client
       .from("felt_cells_public")
-      .select("event_id, geohash, precision, n_reports, n_tier2, cdi, version, computed_at")
+      .select(FELT_CELL_ROW_COLUMNS.join(", "))
       .eq("event_id", eventId);
 
     if (error) {

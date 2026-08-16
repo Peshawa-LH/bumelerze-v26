@@ -19,7 +19,7 @@ describe("decodeGeohashBounds", () => {
   });
 
   it("round-trips through encodeGeohash for a spread of points at p4/p5/p6", () => {
-    const points: Array<[number, number]> = [
+    const points: [number, number][] = [
       [35.53, 44.83], // Chamchamal
       [-33.45, -70.66], // Santiago (southern hemisphere, negative lon)
       [51.5, -0.12], // London

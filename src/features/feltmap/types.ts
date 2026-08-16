@@ -17,6 +17,23 @@ import { z } from "zod";
  * `ems_int`, `ems_range`, `ems_method`, `index_means`, `cws`, `damage_dist`,
  * `ground_effects` — none of those columns exist on the public view at all.
  */
+/** Column list, in the view's own select order — the single source of
+ * truth both the zod schema below and `transport.ts`'s `.select(...)` are
+ * built from, and what `__tests__/types.test.ts`'s migration-sync check
+ * compares against the actual `create view` SQL, so the two can never
+ * silently drift apart (same discipline as `supabase-transport.ts`'s own
+ * migration-column sync-check tests). */
+export const FELT_CELL_ROW_COLUMNS = [
+  "event_id",
+  "geohash",
+  "precision",
+  "n_reports",
+  "n_tier2",
+  "cdi",
+  "version",
+  "computed_at",
+] as const;
+
 const feltCellRowSchema = z.object({
   event_id: z.string(),
   geohash: z.string().min(1),

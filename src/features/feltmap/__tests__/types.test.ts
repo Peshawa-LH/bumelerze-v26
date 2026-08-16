@@ -1,4 +1,50 @@
-import { parseFeltCellRows } from "../types";
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+import { FELT_CELL_ROW_COLUMNS, parseFeltCellRows } from "../types";
+
+/**
+ * Sync-check against the actual migration SQL (same discipline as
+ * `features/felt/__tests__/supabase-transport.test.ts`'s column-sync
+ * tests): parses `felt_cells_public`'s `create view` select list out of
+ * `supabase/migrations/0004_felt_cells.sql` with a plain regex (no SQL
+ * parser dependency) and asserts it's IDENTICAL, in order, to
+ * `FELT_CELL_ROW_COLUMNS` — the list this module's zod schema and
+ * `transport.ts`'s `.select(...)` are both built from. Fails loudly if
+ * either the view or the client contract changes without the other.
+ */
+function loadFeltCellsPublicColumns(): string[] {
+  const sqlPath = path.join(
+    __dirname,
+    "../../../../supabase/migrations/0004_felt_cells.sql",
+  );
+  const sql = fs.readFileSync(sqlPath, "utf8");
+
+  // Starts AFTER the "distinct on (fc.event_id, fc.geohash)" clause so
+  // those two columns' dedup-key mention isn't double-counted against the
+  // actual select list right below it.
+  const startMarker = "select distinct on (fc.event_id, fc.geohash)";
+  const startIdx = sql.indexOf(startMarker);
+  const fromIdx = sql.indexOf("from public.felt_cells fc", startIdx);
+  if (startIdx === -1 || fromIdx === -1) {
+    throw new Error("loadFeltCellsPublicColumns: view definition not found");
+  }
+  const selectBody = sql.slice(startIdx + startMarker.length, fromIdx);
+
+  const columns: string[] = [];
+  for (const match of selectBody.matchAll(/fc\.([a-z_][a-z0-9_]*)/g)) {
+    if (match[1]) {
+      columns.push(match[1]);
+    }
+  }
+  return columns;
+}
+
+describe("felt_cells_public contract sync", () => {
+  it("FELT_CELL_ROW_COLUMNS matches the view's select list, in order", () => {
+    expect([...FELT_CELL_ROW_COLUMNS]).toEqual(loadFeltCellsPublicColumns());
+  });
+});
 
 /** A valid `felt_cells_public` row shape — column-for-column against
  * supabase/migrations/0004_felt_cells.sql's view definition. PostgREST
