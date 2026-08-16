@@ -18,6 +18,18 @@
   # Makes app.config.ts export the app as a SPA rooted at /app (see the
   # webBaseUrl comment there).
   BUMELERZE_WEB_BASE_URL = "/app"
+  # Same two values as the local .env (supabase/README.md "Wiring status") —
+  # without these the Netlify web build falls back to PendingTransport
+  # (local-only queue, no sync) same as an unconfigured dev environment.
+  # `EXPO_PUBLIC_`-prefixed vars are inlined into the JS bundle at build time
+  # and ship inside every client anyway (see .env.example's own comment), so
+  # committing them here is not a secret leak: EXPO_PUBLIC_SUPABASE_ANON_KEY
+  # is Supabase's publishable/anon key, explicitly designed to be public
+  # (every RLS policy in supabase/migrations/ is written assuming the anon
+  # key is not a secret) — the service_role key, which actually must stay
+  # secret, is never used client-side and never belongs in an EXPO_PUBLIC_ var.
+  EXPO_PUBLIC_SUPABASE_URL = "https://bcgyxepgruwardhozvfq.supabase.co"
+  EXPO_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I"
 
 # SPA fallback: any in-app route (e.g. /app/event/abc123) serves the app
 # shell; Expo Router takes over client-side.

@@ -187,10 +187,19 @@ export const EMPTY_TIER2_ANSWERS: Tier2Answers = {
  * queue item", see `queue.ts`.
  */
 export interface Tier2Report {
-  /** Client-generated UUID; becomes `felt_report_details.detail_id`. */
+  /** Client-generated UUID; becomes `felt_report_details.detail_id`. Also
+   * reused as `felt_comments.comment_id` when `answers.comment` is set (see
+   * `supabase-transport.ts`'s `buildFeltCommentInsert`) — same
+   * client-generated-PK idempotency trick as `Tier1Report.reportId`, so a
+   * queue retry of the same Tier2Report can never double-insert a comment. */
   detailId: string;
   /** FK to the tier-1 record this supersedes; becomes `felt_report_id`. */
   feltReportId: string;
+  /** The tier-1 report's own `deviceId` (copied in at enqueue time, see
+   * `queue.ts`'s `enqueueTier2Report`) — needed because `felt_comments` has
+   * its own `device_id` column (2026-08-16 comment-upload-gap fix) that
+   * isn't derivable from `felt_report_id` alone without a DB round-trip. */
+  deviceId: string;
   answers: Tier2Answers;
   /**
    * Window 3's optional photo attachment (2026-08-15 flow restructure) —
