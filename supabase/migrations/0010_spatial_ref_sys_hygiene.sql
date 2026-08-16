@@ -1,0 +1,78 @@
+-- Bumelerze schema v0 — database-hygiene fix: public.spatial_ref_sys exposed
+-- via the API with RLS disabled (Supabase advisor finding, 2026-08-16).
+--
+-- `spatial_ref_sys` is a reference table PostGIS creates itself when
+-- `create extension postgis;` runs (0001_extensions_and_helpers.sql) — it is
+-- not one of this project's own tables, holds no user data (it's the
+-- ~8500-row list of well-known spatial reference system definitions PostGIS
+-- ships with), and this schema never queries it directly (our only PostGIS
+-- usage, `ST_GeoHash(ST_SetSRID(ST_MakePoint(lon, lat), 4326), N)` on
+-- `felt_reports.geohash_p5` / `notification_subscriptions.*_geohash`, never
+-- performs a coordinate-system transform, so it never looks up
+-- `spatial_ref_sys` at runtime — `ST_SetSRID` only tags a geometry with an
+-- SRID integer, it does not validate that value against this table). Still,
+-- Supabase's default privilege grants extend `SELECT` on every table in
+-- `public` (including ones created later by an extension) to the `anon`/
+-- `authenticated` API roles, and with RLS off that grant is fully effective
+-- — hence the advisor flags it, independent of how sensitive the data is.
+--
+-- Three remediations were considered (per the project's "RLS on every
+-- table" rule, something has to change here):
+--
+--  1. `alter table public.spatial_ref_sys enable row level security;`
+--     — the most direct fix for an "RLS disabled" finding, and what this
+--     project would default to for its own tables. Rejected here: on
+--     Supabase specifically, `spatial_ref_sys` is owned by the role that ran
+--     `create extension postgis` at the platform level (not the `postgres`
+--     migration role these migrations run as), so `ALTER TABLE ... ENABLE
+--     ROW LEVEL SECURITY` fails with "must be owner of table
+--     spatial_ref_sys" — a widely-reported Supabase-specific quirk, not a
+--     hypothetical. A migration that can error out on `db push` is worse
+--     than the finding it's trying to fix.
+--
+--  2. `alter extension postgis set schema extensions;` (Supabase's own
+--     documented default project layout puts PostGIS in a dedicated
+--     `extensions` schema precisely so none of its tables are ever in the
+--     API-exposed `public` schema, closing this whole class of finding for
+--     good, not just this one table). Rejected as the choice for THIS
+--     migration only because it is the most invasive of the three: it
+--     touches the live extension's schema, and while `ALTER EXTENSION ...
+--     SET SCHEMA` does not rewrite already-created generated-column
+--     expressions (Postgres stores those as parsed expression trees keyed
+--     by function OID, not by textual, search-path-dependent lookup, so
+--     `felt_reports.geohash_p5` keeps working unchanged), it does require
+--     `extensions` to be in scope for any FUTURE unqualified `st_*` call
+--     this schema might add later, and it is a one-way structural change to
+--     rehearse against a real project before running on the live DB rather
+--     than something to land opportunistically alongside an unrelated
+--     comment-upload bug fix. Worth doing as a deliberate follow-up, not
+--     bundled in here.
+--
+--  3. Revoke the `SELECT` grant from `anon`/`authenticated` on
+--     `spatial_ref_sys` directly, chosen here. `REVOKE` does not require
+--     table ownership the way `ALTER TABLE` does — the `postgres` migration
+--     role already successfully `GRANT`s on `public.felt_cells_public`
+--     (0004_felt_cells.sql) and other public-schema objects it does not
+--     itself own in the extension-ownership sense, so the same privilege
+--     class applies here. This closes the actual exposure (the API roles
+--     can no longer read the table, which is what the advisor's "exposed
+--     via the API" phrase is about) without touching PostGIS's schema,
+--     without touching any generated column, and without any dependency on
+--     table ownership. It is narrower than option 2 (a future table added by
+--     a PostGIS extension upgrade could reopen the same class of finding),
+--     which is the accepted tradeoff for being the least invasive fix today
+--     — option 2 remains the right long-term move and is documented above
+--     for whoever picks it up next.
+--
+-- `service_role` is unaffected either way (BYPASSRLS, and grants don't
+-- restrict it), so nothing server-side that might someday need this table
+-- (none of this project's Edge Functions do) is blocked by the revoke.
+
+revoke select on public.spatial_ref_sys from anon, authenticated;
+
+-- Matches Postgres's implicit PUBLIC pseudo-role grant too (many PostGIS
+-- install scripts additionally grant to PUBLIC, which anon/authenticated
+-- inherit from regardless of the explicit revoke above) — revoked
+-- separately since REVOKE ... FROM anon, authenticated does not touch a
+-- separate PUBLIC-role grant.
+revoke select on public.spatial_ref_sys from public;
