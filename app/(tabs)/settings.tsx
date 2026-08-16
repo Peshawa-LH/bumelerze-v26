@@ -1,7 +1,8 @@
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
+import type { TFunction } from "i18next";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,6 +17,11 @@ import {
   usePrefsStore,
   type HomeBasePreference,
 } from "@/features/onboarding";
+import {
+  useLocationPermissionRow,
+  useMotionPermissionRow,
+  type PermissionRowStatus,
+} from "@/features/permissions";
 import { useTheme } from "@/theme";
 
 export default function SettingsScreen() {
@@ -120,8 +126,295 @@ export default function SettingsScreen() {
       <HandbookSection />
       <DataSourcesSection />
       <TelemetrySection />
+      <MyDataSection />
+      <PermissionsSection />
       <OnboardingSection />
     </ScrollView>
+  );
+}
+
+/** D26 item 7: a single row linking to the new My Data screen — the section
+ * itself carries no state, so unlike every other section here it's just a
+ * navigation trigger, same shape as `HandbookSection`'s "Open handbook"
+ * row. */
+function MyDataSection() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const router = useRouter();
+
+  return (
+    <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
+        }}
+      >
+        {t("settings.myDataSectionTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("settings.myDataSectionDescription")}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push("/my-data")}
+        style={[styles.row, { borderColor: colors.border.default }]}
+      >
+        <Text
+          style={{
+            color: colors.text.primary,
+            fontSize: typography.bodyDefault.fontSize,
+          }}
+        >
+          {t("settings.myDataOpen")}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * D26 item 6: "a proper permissions section in Settings" — location and
+ * motion/sensor, each showing current status, WHY the app wants it, and an
+ * action (request when undetermined, open system settings when denied).
+ * Additive: the pre-existing `LocationPermissionSection` above (a simpler
+ * status-only display used elsewhere in the app's mental model) is
+ * deliberately left untouched — this is a new, separate section, not a
+ * replacement.
+ */
+function PermissionsSection() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+
+  return (
+    <View style={{ gap: spacing[3] }}>
+      <View style={{ gap: spacing[2] }}>
+        <Text
+          style={{
+            color: colors.text.primary,
+            fontSize: typography.h3.fontSize,
+            lineHeight: typography.h3.lineHeight,
+            fontWeight: typography.h3.fontWeight,
+          }}
+        >
+          {t("settings.permissionsSectionTitle")}
+        </Text>
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyDefault.fontSize,
+            lineHeight: typography.bodyDefault.lineHeight,
+          }}
+        >
+          {t("settings.permissionsSectionDescription")}
+        </Text>
+      </View>
+      <LocationPermissionRow />
+      <MotionPermissionRow />
+    </View>
+  );
+}
+
+function permissionStatusText(status: PermissionRowStatus, t: TFunction): string {
+  if (status === "granted") {
+    return t("settings.permissionsStatusGranted");
+  }
+  if (status === "denied") {
+    return t("settings.permissionsStatusDenied");
+  }
+  return t("settings.permissionsStatusUndetermined");
+}
+
+function LocationPermissionRow() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const { status, request } = useLocationPermissionRow();
+
+  return (
+    <View
+      style={[
+        styles.permissionRow,
+        { borderColor: colors.border.default, padding: spacing[3], gap: spacing[1] },
+      ]}
+    >
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.bodyDefault.fontSize,
+          fontWeight: "600",
+        }}
+      >
+        {t("settings.permissionsLocationTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyMeta.fontSize,
+          lineHeight: typography.bodyMeta.lineHeight,
+        }}
+      >
+        {t("settings.permissionsLocationWhy")}
+      </Text>
+      <View style={styles.spaceBetweenRow}>
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyMeta.fontSize,
+          }}
+        >
+          {permissionStatusText(status, t)}
+        </Text>
+        {status === "undetermined" ? (
+          <Pressable accessibilityRole="button" onPress={() => void request()} hitSlop={12}>
+            <Text
+              style={{
+                color: colors.text.link,
+                fontSize: typography.labelButton.fontSize,
+                fontWeight: typography.labelButton.fontWeight,
+              }}
+            >
+              {t("settings.permissionsRequest")}
+            </Text>
+          </Pressable>
+        ) : null}
+        {status === "denied" ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void Linking.openSettings()}
+            hitSlop={12}
+          >
+            <Text
+              style={{
+                color: colors.text.link,
+                fontSize: typography.labelButton.fontSize,
+                fontWeight: typography.labelButton.fontWeight,
+              }}
+            >
+              {t("settings.openSystemSettings")}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+/** Native: same request/open-settings pattern as `LocationPermissionRow`.
+ * Web: no status/request affordance at all — `use-motion-permission-row.ts`'s
+ * own doc explains why (iOS Safari only honors a motion-permission request
+ * fired from inside the Sensor screen's own live gesture); this row instead
+ * points the user there. */
+function MotionPermissionRow() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const router = useRouter();
+  const { status, request } = useMotionPermissionRow();
+  const isWeb = Platform.OS === "web";
+
+  return (
+    <View
+      style={[
+        styles.permissionRow,
+        { borderColor: colors.border.default, padding: spacing[3], gap: spacing[1] },
+      ]}
+    >
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.bodyDefault.fontSize,
+          fontWeight: "600",
+        }}
+      >
+        {t("settings.permissionsMotionTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyMeta.fontSize,
+          lineHeight: typography.bodyMeta.lineHeight,
+        }}
+      >
+        {t("settings.permissionsMotionWhy")}
+      </Text>
+      {isWeb ? (
+        <View style={styles.spaceBetweenRow}>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+              lineHeight: typography.bodyMeta.lineHeight,
+              flexShrink: 1,
+            }}
+          >
+            {t("settings.permissionsMotionWebHint")}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push("/(tabs)/sensor")}
+            hitSlop={12}
+          >
+            <Text
+              style={{
+                color: colors.text.link,
+                fontSize: typography.labelButton.fontSize,
+                fontWeight: typography.labelButton.fontWeight,
+              }}
+            >
+              {t("settings.permissionsMotionOpenSensor")}
+            </Text>
+          </Pressable>
+        </View>
+      ) : (
+        <View style={styles.spaceBetweenRow}>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+            }}
+          >
+            {permissionStatusText(status, t)}
+          </Text>
+          {status === "undetermined" ? (
+            <Pressable accessibilityRole="button" onPress={() => void request()} hitSlop={12}>
+              <Text
+                style={{
+                  color: colors.text.link,
+                  fontSize: typography.labelButton.fontSize,
+                  fontWeight: typography.labelButton.fontWeight,
+                }}
+              >
+                {t("settings.permissionsRequest")}
+              </Text>
+            </Pressable>
+          ) : null}
+          {status === "denied" ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => void Linking.openSettings()}
+              hitSlop={12}
+            >
+              <Text
+                style={{
+                  color: colors.text.link,
+                  fontSize: typography.labelButton.fontSize,
+                  fontWeight: typography.labelButton.fontWeight,
+                }}
+              >
+                {t("settings.openSystemSettings")}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -475,5 +768,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  permissionRow: {
+    borderWidth: 1,
+    borderRadius: 10,
   },
 });
