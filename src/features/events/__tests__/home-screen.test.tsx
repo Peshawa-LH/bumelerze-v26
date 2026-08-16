@@ -108,6 +108,32 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     expect(screen.getByText("USGS")).toBeTruthy();
   });
 
+  it("hides sub-3.0 micro-events from the Home list (owner directive 2026-08-16 display floor) while keeping M>=3 events", async () => {
+    const microEvent: Event = {
+      ...sampleEvent,
+      id: "emsc-micro-1",
+      magnitude: { value: 1.8, type: "ml" },
+      provenance: { ...sampleEvent.provenance, provider: "emsc", providerId: "emsc-micro-1" },
+    };
+    mockUseRegionEvents.mockReturnValue({
+      events: [microEvent, sampleEvent],
+      isInitialLoading: false,
+      isOfflineIsh: false,
+      isHardError: false,
+      isRefreshing: false,
+      dataUpdatedAt: Date.now(),
+      skippedCount: 0,
+      refetch: jest.fn(),
+    });
+
+    await i18n.changeLanguage("ckb");
+    await renderWithProviders(<HomeScreen />);
+
+    // The M4.6 card renders; the M1.8 card does not.
+    expect(screen.getByText("٤.٦ پلە")).toBeTruthy();
+    expect(screen.queryByText("١.٨ پلە")).toBeNull();
+  });
+
   it("shows the region-feed empty state (still in Sorani) when there are no cached events", async () => {
     mockUseRegionEvents.mockReturnValue({
       events: [],

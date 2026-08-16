@@ -2,7 +2,11 @@ import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { EventListScreen, useRegionEvents } from "@/features/events";
+import {
+  EventListScreen,
+  HOME_FEED_MIN_MAGNITUDE,
+  useRegionEvents,
+} from "@/features/events";
 import { FeltReportPill, resolveHomeFeltAssociation } from "@/features/felt";
 import { useTheme } from "@/theme";
 
@@ -31,12 +35,19 @@ export default function HomeScreen() {
     refetch,
   } = useRegionEvents();
 
+  // Felt-pill association deliberately uses the UNFILTERED feed: a person
+  // can feel an event the Home display floor hides.
   const associatedEventId = resolveHomeFeltAssociation(events);
+
+  // Display floor only — see HOME_FEED_MIN_MAGNITUDE's config comment.
+  const shownEvents = events.filter(
+    (event) => event.magnitude.value >= HOME_FEED_MIN_MAGNITUDE,
+  );
 
   return (
     <View style={styles.flex}>
       <EventListScreen
-        events={events}
+        events={shownEvents}
         isInitialLoading={isInitialLoading}
         isOfflineIsh={isOfflineIsh}
         isHardError={isHardError}

@@ -1,5 +1,9 @@
 export type { Event, EventMagnitude, EventProvenance, EventProvider } from "./types";
-export { REGION_BBOX, SIGNIFICANCE_THRESHOLDS } from "./config";
+export {
+  HOME_FEED_MIN_MAGNITUDE,
+  REGION_BBOX,
+  SIGNIFICANCE_THRESHOLDS,
+} from "./config";
 export {
   computeClientSig,
   isInRegionBbox,

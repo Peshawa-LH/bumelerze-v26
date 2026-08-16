@@ -73,6 +73,18 @@ export const GEOFON_FEEDS = {
 /** Region feed window per the wave brief: last 30 days. */
 export const REGION_FEED_WINDOW_DAYS = 30;
 
+/**
+ * Home DISPLAY floor (owner directive 2026-08-16): the Home list shows only
+ * events people plausibly felt — EMSC's dense Turkish-network coverage
+ * otherwise fills the screen with M<2 micro-events and buries the ones that
+ * matter ("Home should be: user enters and sees important events with
+ * effects on Kurdistan"). Display-level ONLY: the region feed still fetches
+ * and caches everything below the floor — the felt-report association,
+ * event detail deep links, upcoming crowdsourced-detection matching, and the
+ * catalog all keep seeing the full feed.
+ */
+export const HOME_FEED_MIN_MAGNITUDE = 3.0;
+
 /** Polling cadence — deliberately gentle (PROJECT.md: no aggressive
  * background polling); pairs with the app-focus-aware refetch wiring in
  * queries.ts so this interval never fires while the app is backgrounded. */
