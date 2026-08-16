@@ -35,9 +35,23 @@ aggregates the felt-map (`src/features/feltmap/`, reading
 ```
 POST /functions/v1/aggregate-felt-cells
 { "eventId": "<uuid>" }              -- recompute one event now
+{ "provider": "usgs", "providerEventId": "us1000abcd" }
+                                      -- recompute the event known by this
+                                         (provider, provider_event_id) pair,
+                                         resolved via event_source_records
+                                         (migration 0011 — the caller may
+                                         not have the canonical uuid yet)
 { "sinceHours": 48 }                 -- sweep events w/ reports in 48h (default 24)
 {}                                    -- sweep, default 24h lookback
 ```
+
+`eventId` and `provider`/`providerEventId` are mutually exclusive; `provider`
+and `providerEventId` must be supplied together. See `event-key.ts`'s
+`classifyAggregateRequest` for the exact rules (unit-tested independently of
+the zod/Deno layer) and `db.ts`'s `resolveEventIdFromProvider` for the
+lookup. An unknown (provider, providerEventId) pair returns
+`404 event_not_found`, not a 500 — nothing to aggregate is an expected,
+not exceptional, case.
 
 Success: `{ "data": { "requestId", "results": [{ eventId, debounced, cellsComputed, cellsWritten, cellsUnchanged }] } }`.
 Failure: `{ "error": { "code", "message", "requestId", "details"? } }` (zod

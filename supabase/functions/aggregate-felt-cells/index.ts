@@ -11,9 +11,19 @@
 // `db.ts`'s `createServiceRoleClient`):
 //   POST /functions/v1/aggregate-felt-cells
 //   { "eventId": "<uuid>" }                 -- recompute just this event
+//   { "provider": "usgs", "providerEventId": "us1000abcd" }
+//                                            -- recompute the event known by
+//                                               this (provider,
+//                                               provider_event_id) pair
+//                                               (migration 0011: resolved
+//                                               via event_source_records —
+//                                               the caller may not have the
+//                                               canonical uuid in hand yet)
 //   { "sinceHours": 48 }                    -- sweep events with reports in
 //                                               the last 48h (default 24)
 //   {}                                      -- sweep, default 24h lookback
+// `eventId` and `provider`/`providerEventId` are mutually exclusive; see
+// `event-key.ts`'s `classifyAggregateRequest` for the exact rules.
 //
 // Response: `{ "data": { "requestId": ..., "results": [...] } }` on
 // success, `{ "error": { "code", "message", "requestId", "details"? } }`
@@ -46,6 +56,7 @@ import {
   fetchEventIdsWithRecentReports,
   fetchReportsForEvent,
   insertCellVersion,
+  resolveEventIdFromProvider,
 } from "./db.ts";
 import {
   cellRowUnchanged,
@@ -55,14 +66,20 @@ import {
   joinReportsAndDetails,
   pickLatestPerGeohash,
 } from "./aggregate-event.ts";
+import { classifyAggregateRequest } from "./event-key.ts";
 import type { FeltCellInsertRow } from "./types.ts";
 
-const DEFAULT_SWEEP_LOOKBACK_HOURS = 24;
 const MAX_SWEEP_LOOKBACK_HOURS = 24 * 30; // 30 days — generous but bounded
 
+// Permissive at the zod layer (per-field type/format only) — the
+// mutual-exclusivity / "which mode is this" decision is
+// `classifyAggregateRequest`'s job (event-key.ts), kept separately
+// unit-testable without a zod/Deno dependency.
 const RequestSchema = z
   .object({
     eventId: z.string().uuid().optional(),
+    provider: z.string().min(1).optional(),
+    providerEventId: z.string().min(1).optional(),
     sinceHours: z.number().positive().max(MAX_SWEEP_LOOKBACK_HOURS).optional(),
   })
   .strict();
@@ -179,18 +196,40 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  const classified = classifyAggregateRequest(parsed.data);
+  if (!classified.ok) {
+    return jsonError(400, "invalid_request", classified.reason, requestId);
+  }
+  const request = classified.request;
+
   try {
     const client = createServiceRoleClient();
-    const eventIds = parsed.data.eventId
-      ? [parsed.data.eventId]
-      : await fetchEventIdsWithRecentReports(
-          client,
-          parsed.data.sinceHours ?? DEFAULT_SWEEP_LOOKBACK_HOURS,
+
+    let eventIds: string[];
+    if (request.mode === "single-by-id") {
+      eventIds = [request.eventId];
+    } else if (request.mode === "single-by-provider") {
+      const resolvedEventId = await resolveEventIdFromProvider(
+        client,
+        request.provider,
+        request.providerEventId,
+      );
+      if (!resolvedEventId) {
+        return jsonError(
+          404,
+          "event_not_found",
+          `No known event for provider="${request.provider}" providerEventId="${request.providerEventId}".`,
+          requestId,
         );
+      }
+      eventIds = [resolvedEventId];
+    } else {
+      eventIds = await fetchEventIdsWithRecentReports(client, request.sinceHours);
+    }
 
     log("info", requestId, "starting", {
       eventCount: eventIds.length,
-      mode: parsed.data.eventId ? "single" : "sweep",
+      mode: request.mode,
     });
 
     const results: EventResult[] = [];
