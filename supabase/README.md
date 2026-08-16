@@ -51,14 +51,21 @@ changed. What exists today, app-side:
 ### What's still server-side / future work (not this wave)
 
 - **Ingestion/fanout/moderation Edge Functions** — provider feed watchers,
-  push-notification fanout, felt-cell aggregation recompute, photo/comment
-  moderation actions. This wave only wrote the _client_ side of tables those
-  functions will eventually populate/consume.
+  push-notification fanout, photo/comment moderation actions. This wave
+  only wrote the _client_ side of tables those functions will eventually
+  populate/consume. **Felt-cell aggregation recompute now exists** —
+  `supabase/functions/aggregate-felt-cells/` (HTTP-invoked, own README) —
+  but is not yet wired to a trigger (Database Webhook or `pg_cron`
+  schedule); that's ops config against a live project, left to whoever
+  operates it.
 - **`notification_subscriptions` sync** — the client doesn't yet call
   `signInAnonymously()` or write push-token/tier rows; Notification Settings
   (`app/notification-settings.tsx`) is still local-only device state.
-- **`felt_photos` / `felt_comments`** — no upload or comment-posting UI
-  exists yet, so nothing writes to these tables from the app.
+- **`felt_photos`** — no upload UI/Storage bucket exists yet, so nothing
+  writes to this table from the app. `felt_comments` now DOES get written
+  (window 3's optional comment, `src/features/felt/supabase-transport.ts`'s
+  `buildFeltCommentInsert` — 2026-08-16 comment-upload-gap fix), moderated
+  pending per D15 like every other row here.
 - **`pg_cron` schedules**, Storage bucket policies for `felt_photos`, and
   real rate limiting on anonymous inserts — all explicitly deferred, see
   "What v0 deliberately defers" below (unchanged by this wave).
@@ -78,6 +85,10 @@ Parts 3 + 5, `docs/research/event-pipeline-design.md`,
 | `0004_felt_cells.sql`                  | `felt_cells` (CDI + IMS-25 aggregates) + the `felt_cells_public` view.                                                 |
 | `0005_notifications_and_telemetry.sql` | `notification_subscriptions`, `telemetry_pings`.                                                                       |
 | `0006_shakemap_products.sql`           | `shakemap_products` (D9 product contract).                                                                             |
+| `0007_shakemap_review_status.sql`      | `shakemap_products` review-status column addition.                                                                      |
+| `0008_bumelerze_event_id.sql`          | `bumelerze_event_id` addition for cross-referencing the shake-service worker's own event ids.                          |
+| `0009_felt_damage_typology.sql`        | `felt_report_details.damage_typology` + widened `building_damage_level` check (2026-08-15 flow restructure).           |
+| `0010_spatial_ref_sys_hygiene.sql`     | Revokes anon/authenticated `SELECT` on PostGIS's `spatial_ref_sys` (advisor finding: RLS-disabled table exposed via the API). |
 
 **Naming caveat:** these use plain `NNNN_name.sql` numbering as requested.
 The Supabase CLI conventionally expects timestamp-prefixed filenames
