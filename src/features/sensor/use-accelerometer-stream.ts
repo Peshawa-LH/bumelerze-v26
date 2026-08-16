@@ -23,18 +23,23 @@ import type { AxisKey, AxisVisibility, SensorSample } from "./types";
  *   subscription was started but never delivered a single sample within
  *   `WEB_SILENT_TIMEOUT_MS` (iOS 12.2–12.4's Settings toggle left off, or a
  *   desktop/Android browser with no real motion hardware; see
- *   `WEB_SILENT_TIMEOUT_MS`'s doc comment).
+ *   `WEB_SILENT_TIMEOUT_MS`'s doc comment). Also where any permission/
+ *   subscribe call in this hook throws or rejects unexpectedly — see
+ *   `hasWebMotionPermissionApi`'s doc comment for why we never trust a
+ *   single signal (library-derived status or feature-detection alone) to
+ *   decide whether it's safe to show the "enable" button.
  * - "permission-denied": the device requires motion-sensor permission and
- *   the user declined it (or it was already denied and can't be re-asked).
- *   On web this also covers browsers with no `requestPermission` API at all
- *   on iOS — `expo-sensors`' web shim reports those as denied outright,
- *   since the only fix is the same Settings toggle, not an in-app re-ask.
- * - "permission-required": web only. iOS Safari (13+) gates DeviceMotion
- *   behind `DeviceMotionEvent.requestPermission()`, which Safari silently
- *   ignores unless it's called from inside a user-gesture handler — so
- *   unlike native, we never auto-request here. The screen shows a button;
+ *   the user explicitly declined it this session (web) or the OS reports it
+ *   denied with no further ask possible (native).
+ * - "permission-required": web only, and only once `hasWebMotionPermissionApi`
+ *   has confirmed `DeviceMotionEvent.requestPermission` genuinely exists —
+ *   iOS Safari (13+) gates DeviceMotion behind that call, which Safari
+ *   silently ignores unless it's called from inside a user-gesture handler,
+ *   so unlike native we never auto-request here. The screen shows a button;
  *   `requestWebPermission` (called from that button's `onPress`) is what
- *   actually asks.
+ *   actually asks. Browsers where the API is absent (old iOS with no
+ *   re-ask, or a browser that never gated motion at all) never reach this
+ *   state — see `startWeb`.
  * - "streaming": subscribed and (once the first render tick fires) drawing
  *   live samples.
  */
@@ -58,6 +63,31 @@ export interface UseAccelerometerStreamResult {
 }
 
 const ALL_AXES_VISIBLE: AxisVisibility = { x: true, y: true, z: true };
+
+/**
+ * Direct feature-detection for the web permission-request API, independent
+ * of `expo-sensors`' own derived permission status (which infers "does this
+ * browser gate motion behind a permission" from UA sniffing internally, and
+ * can misfire — see the crash this guards against below). Reads
+ * `DeviceMotionEvent` off `globalThis` rather than `window` so it's equally
+ * safe on native (where the identifier is simply never defined) and in Jest
+ * (`globalThis` there too, no DOM needed).
+ *
+ * `false` covers two very different browsers the same way on purpose: a
+ * desktop/Android browser that never gated motion at all (nothing to ask —
+ * the Android-Chrome case), and an iOS Safari old enough (<13) that motion
+ * access is an on/off toggle in Settings with no in-app re-ask possible at
+ * all. Neither has anything for a button to usefully do, so both fall
+ * through to the same "does data actually arrive" availability probe
+ * instead of ever reaching the `permission-required` (button-shown) state —
+ * see `startWeb` below.
+ */
+function hasWebMotionPermissionApi(): boolean {
+  const motionEventCtor = (
+    globalThis as { DeviceMotionEvent?: { requestPermission?: unknown } }
+  ).DeviceMotionEvent;
+  return typeof motionEventCtor?.requestPermission === "function";
+}
 
 /**
  * Streams live accelerometer samples while, and only while, the Sensor
@@ -135,19 +165,30 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     }
   }, []);
 
-  const beginStreaming = useCallback(() => {
+  /**
+   * Returns whether the subscription actually started. `setUpdateInterval`/
+   * `addListener` are plain synchronous calls (no promise to reject), but
+   * per the "never throw out of this hook" rule they're still guarded —
+   * a broken/half-shimmed sensor module on some device or test double
+   * should demote the screen to "unavailable", not take down the tree.
+   */
+  const beginStreaming = useCallback((): boolean => {
     buffer.clear();
     setSamples([]);
 
-    Accelerometer.setUpdateInterval(ACCELEROMETER_UPDATE_INTERVAL_MS);
-    subscriptionRef.current = Accelerometer.addListener((reading) => {
-      buffer.push({
-        x: reading.x,
-        y: reading.y,
-        z: reading.z,
-        t: Date.now(),
+    try {
+      Accelerometer.setUpdateInterval(ACCELEROMETER_UPDATE_INTERVAL_MS);
+      subscriptionRef.current = Accelerometer.addListener((reading) => {
+        buffer.push({
+          x: reading.x,
+          y: reading.y,
+          z: reading.z,
+          t: Date.now(),
+        });
       });
-    });
+    } catch {
+      return false;
+    }
 
     setStatus("streaming");
 
@@ -159,6 +200,8 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
         : windowed;
       setSamples(downsampleForPlot(processed, MAX_PLOT_POINTS));
     }, PLOT_RENDER_INTERVAL_MS);
+
+    return true;
   }, [buffer]);
 
   /**
@@ -169,7 +212,10 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
    * (see `WEB_SILENT_TIMEOUT_MS`'s doc comment).
    */
   const beginStreamingWeb = useCallback(() => {
-    beginStreaming();
+    if (!beginStreaming()) {
+      setStatus("unavailable");
+      return;
+    }
     silentTimeoutRef.current = setTimeout(() => {
       if (!activeRef.current) return;
       if (buffer.toArray().length === 0) {
@@ -192,21 +238,33 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     if (Platform.OS !== "web") return;
 
     setStatus("checking");
-    Accelerometer.requestPermissionsAsync()
-      .then((permission) => {
-        if (!activeRef.current) return;
-        if (permission.status !== "granted") {
-          setStatus("permission-denied");
-          return;
-        }
-        webGrantedRef.current = true;
-        setRestartTick((tick) => tick + 1);
-      })
-      .catch(() => {
-        if (activeRef.current) {
-          setStatus("permission-denied");
-        }
-      });
+    // `requestPermissionsAsync()` is documented/typed as always returning a
+    // promise, but this is the one call path a real device (the owner's
+    // older iOS Safari) has been observed to break in ways a type signature
+    // doesn't rule out — guard the synchronous call itself, not just the
+    // `.then()` chain, so a genuine synchronous throw here can never
+    // escape the tap handler and take the tree down with it.
+    try {
+      Accelerometer.requestPermissionsAsync()
+        .then((permission) => {
+          if (!activeRef.current) return;
+          if (permission.status !== "granted") {
+            setStatus("permission-denied");
+            return;
+          }
+          webGrantedRef.current = true;
+          setRestartTick((tick) => tick + 1);
+        })
+        .catch(() => {
+          if (activeRef.current) {
+            setStatus("permission-denied");
+          }
+        });
+    } catch {
+      if (activeRef.current) {
+        setStatus("permission-denied");
+      }
+    }
   }, []);
 
   useFocusEffect(
@@ -215,80 +273,120 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
       activeRef.current = true;
 
       async function startNative() {
-        const available = await Accelerometer.isAvailableAsync();
-        if (cancelled) return;
-        if (!available) {
-          setStatus("unavailable");
-          return;
-        }
-
-        // iOS gates some Core Motion access behind a runtime permission on
-        // certain OS versions; Android has no equivalent gate for the plain
-        // accelerometer. `expo-sensors` exposes the same permission API for
-        // every sensor type regardless of whether a given platform actually
-        // enforces it — asking here is a harmless no-op where it isn't
-        // required, and correct where it is.
-        let permission = await Accelerometer.getPermissionsAsync();
-        if (cancelled) return;
-        if (permission.status !== "granted" && permission.canAskAgain) {
-          permission = await Accelerometer.requestPermissionsAsync();
+        // Every awaited call below is wrapped so a native module that
+        // throws or rejects (a device/emulator missing the module, a
+        // permission-plugin misconfiguration, etc.) demotes the screen to
+        // "unavailable" instead of throwing out of this effect — see the
+        // hook's top-level doc comment.
+        try {
+          const available = await Accelerometer.isAvailableAsync();
           if (cancelled) return;
+          if (!available) {
+            setStatus("unavailable");
+            return;
+          }
+
+          // iOS gates some Core Motion access behind a runtime permission on
+          // certain OS versions; Android has no equivalent gate for the
+          // plain accelerometer. `expo-sensors` exposes the same permission
+          // API for every sensor type regardless of whether a given
+          // platform actually enforces it — asking here is a harmless
+          // no-op where it isn't required, and correct where it is.
+          let permission = await Accelerometer.getPermissionsAsync();
+          if (cancelled) return;
+          if (permission.status !== "granted" && permission.canAskAgain) {
+            permission = await Accelerometer.requestPermissionsAsync();
+            if (cancelled) return;
+          }
+          if (permission.status !== "granted") {
+            setStatus("permission-denied");
+            return;
+          }
+
+          if (!beginStreaming()) {
+            setStatus("unavailable");
+          }
+        } catch {
+          if (!cancelled) setStatus("unavailable");
         }
-        if (permission.status !== "granted") {
-          setStatus("permission-denied");
+      }
+
+      /**
+       * Probes for a live data stream the same way regardless of *why*
+       * there's nothing to ask permission for — used by both branches of
+       * `startWeb` below that reach "there is no button to show".
+       */
+      async function probeAvailabilityThenStream() {
+        try {
+          const available = await Accelerometer.isAvailableAsync();
+          if (cancelled) return;
+          if (!available) {
+            setStatus("unavailable");
+            return;
+          }
+        } catch {
+          if (!cancelled) setStatus("unavailable");
           return;
         }
-
-        beginStreaming();
+        beginStreamingWeb();
       }
 
       async function startWeb() {
+        // Feature-detect the permission-request API ourselves rather than
+        // trusting `expo-sensors`' derived status for this decision alone —
+        // its heuristic leans on UA sniffing internally, and the one thing
+        // that must never happen is showing a button whose tap goes on to
+        // call a function that doesn't safely exist. `false` here covers
+        // two very different browsers identically on purpose: a
+        // desktop/Android browser that never needed permission at all (the
+        // Android-Chrome case), and an iOS Safari old enough (<13) that
+        // motion access is an on/off Settings toggle with no in-app re-ask
+        // possible — neither has anything for a button to usefully do, so
+        // both fall straight through to the same "does data actually
+        // arrive" probe instead of ever reaching `permission-required`.
+        if (!hasWebMotionPermissionApi()) {
+          await probeAvailabilityThenStream();
+          return;
+        }
+
         // Unlike native, we check permission *before* availability: on iOS
         // Safari `isAvailableAsync()` itself waits (up to ~250 ms) for a
         // live event to prove availability, which can never happen before
         // permission is granted — checking availability first would always
         // read "unavailable" and the user would never see a way to grant
         // permission at all.
-        const permission = await Accelerometer.getPermissionsAsync();
+        let permission;
+        try {
+          permission = await Accelerometer.getPermissionsAsync();
+        } catch {
+          if (!cancelled) setStatus("permission-denied");
+          return;
+        }
         if (cancelled) return;
 
         if (permission.status === "denied") {
-          // Either an explicit prior refusal this session, or — per
-          // `expo-sensors`' web shim — an iOS browser with no
-          // `requestPermission` API at all (iOS 12.2–12.4), which it
-          // reports as denied outright since the only fix is the Settings
-          // toggle, not an in-app re-ask.
+          // An explicit prior refusal this session.
           setStatus("permission-denied");
           return;
         }
 
         if (permission.status !== "granted") {
-          // "undetermined": this browser exposes
-          // `DeviceMotionEvent.requestPermission`, which only resolves when
-          // called from a user gesture — show the button and wait for a
-          // real tap (`requestWebPermission`) instead of asking here.
-          // Note `getPermissionsAsync()` reports "undetermined" on this
-          // class of browser *unconditionally*, even after a real grant —
-          // it can't know without asking — which is why a successful grant
-          // is threaded through via `webGrantedRef` instead of ever
-          // re-running this check.
+          // "undetermined", and we've already confirmed above that
+          // `DeviceMotionEvent.requestPermission` genuinely exists on this
+          // browser and only resolves when called from a user gesture —
+          // show the button and wait for a real tap (`requestWebPermission`)
+          // instead of asking here. Note `getPermissionsAsync()` reports
+          // "undetermined" on this class of browser *unconditionally*, even
+          // after a real grant — it can't know without asking — which is
+          // why a successful grant is threaded through via `webGrantedRef`
+          // instead of ever re-running this check.
           setStatus("permission-required");
           return;
         }
 
-        // Already granted — no permission gate on this browser (e.g.
-        // desktop/Android web), or a previous grant earlier this session.
-        // Still confirm data actually shows up before calling it
-        // "streaming": `isAvailableAsync()` reports "available"
-        // unconditionally on non-iOS web, so it can't be trusted alone.
-        const available = await Accelerometer.isAvailableAsync();
-        if (cancelled) return;
-        if (!available) {
-          setStatus("unavailable");
-          return;
-        }
-
-        beginStreamingWeb();
+        // Already granted — a previous grant earlier this session. Still
+        // confirm data actually shows up before calling it "streaming".
+        await probeAvailabilityThenStream();
       }
 
       // A grant from the web "enable" button bumped `restartTick` to get us
