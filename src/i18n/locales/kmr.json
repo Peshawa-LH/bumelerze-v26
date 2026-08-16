@@ -479,6 +479,7 @@
     }
   },
   "felt": {
+    "numberedLabel": "{{number}} - {{label}}",
     "pill": {
       "label": "Min hîs kir!",
       "hint": "Forma ragihandina hîskirinê vedike"

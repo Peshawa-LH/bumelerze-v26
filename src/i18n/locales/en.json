@@ -483,6 +483,7 @@
       "label": "I felt it!",
       "hint": "Opens the felt-report form"
     },
+    "numberedLabel": "{{number}} - {{label}}",
     "tier1": {
       "title": "How did you feel it?",
       "subtitle": "Tap the level that matches what you felt. You can add more detail afterward if you want.",

@@ -91,18 +91,23 @@ function LevelTileImpl({
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           />
-        ) : null}
-        <Text
-          allowFontScaling
-          style={{
-            color: onAccentColor,
-            fontSize: compact ? typography.h3.fontSize : typography.h2.fontSize,
-            fontWeight: "800",
-            fontVariant: ["tabular-nums"],
-          }}
-        >
-          {numeralText}
-        </Text>
+        ) : (
+          // Numeral-on-swatch fallback ONLY when there is no artwork to
+          // fill the tile (owner directive, 2026-08-16: real art reads
+          // better with nothing overlaid on it — the numeral moves into
+          // the label line below instead, via `felt.numberedLabel`).
+          <Text
+            allowFontScaling
+            style={{
+              color: onAccentColor,
+              fontSize: compact ? typography.h3.fontSize : typography.h2.fontSize,
+              fontWeight: "800",
+              fontVariant: ["tabular-nums"],
+            }}
+          >
+            {numeralText}
+          </Text>
+        )}
       </View>
       <Text
         allowFontScaling
@@ -120,7 +125,7 @@ function LevelTileImpl({
           fontWeight: typography.labelCaption.fontWeight,
         }}
       >
-        {label}
+        {t("felt.numberedLabel", { number: numeralText, label })}
       </Text>
     </Pressable>
   );

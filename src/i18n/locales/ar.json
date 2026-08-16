@@ -479,6 +479,7 @@
     }
   },
   "felt": {
+    "numberedLabel": "{{number}} - {{label}}",
     "pill": {
       "label": "شعرت به!",
       "hint": "يفتح نموذج الإبلاغ عن الشعور بالزلزال"
