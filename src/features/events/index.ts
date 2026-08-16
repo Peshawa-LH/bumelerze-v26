@@ -1,6 +1,8 @@
 export type { Event, EventMagnitude, EventProvenance, EventProvider } from "./types";
 export {
   HOME_FEED_MIN_MAGNITUDE,
+  POSSIBLE_EVENTS_REFETCH_INTERVAL_MS,
+  POSSIBLE_EVENTS_WINDOW_HOURS,
   REGION_BBOX,
   SIGNIFICANCE_THRESHOLDS,
 } from "./config";
@@ -45,3 +47,15 @@ export { EventCard } from "./components/EventCard";
 export { EventListScreen } from "./components/EventListScreen";
 export { OfflineBanner } from "./components/OfflineBanner";
 export { ProvenanceChip } from "./components/ProvenanceChip";
+export { PossibleEventCard } from "./components/PossibleEventCard";
+export {
+  parsePossibleEventRows,
+  possibleEventsQueryKeys,
+  POSSIBLE_EVENT_ROW_COLUMNS,
+  SupabasePossibleEventsTransport,
+  usePossibleEvents,
+  type ParsedPossibleEventRows,
+  type PossibleEvent,
+  type PossibleEventsTransport,
+  type UsePossibleEventsResult,
+} from "./possible";

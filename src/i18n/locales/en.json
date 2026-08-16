@@ -9,7 +9,12 @@
   },
   "home": {
     "title": "Home",
-    "emptyState": "No earthquakes reported in your region recently."
+    "emptyState": "No earthquakes reported in your region recently.",
+    "possibleEvent": {
+      "message": "Possible earthquake — reported by people near {{city}}. More information will follow.",
+      "messageUnknownArea": "Possible earthquake — reported by people nearby. More information will follow.",
+      "a11yLabel": "Possible earthquake alert: reported by people near {{city}}. More information will follow."
+    }
   },
   "units": {
     "km": "km"

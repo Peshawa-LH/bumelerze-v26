@@ -198,7 +198,14 @@ export default function EventDetailScreen() {
             </Pressable>
           ) : null}
         </ScrollView>
-        {event ? <FeltReportPill eventId={event.id} event={event} /> : null}
+        {/* Kurdistan gate (D26 item 5): the report entry only appears for
+         * events felt inside/affecting the region — a world-only event gets
+         * no report entry point on its own detail page (Home's own pill
+         * stays available regardless, since it's associated to a regional
+         * event by `resolveHomeFeltAssociation` in the first place). */}
+        {event && event.isRegional ? (
+          <FeltReportPill eventId={event.id} event={event} />
+        ) : null}
       </View>
     </>
   );
