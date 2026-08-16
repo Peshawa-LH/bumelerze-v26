@@ -46,6 +46,20 @@ export const RING_BUFFER_CAPACITY = 1000;
 export const MAX_PLOT_POINTS = 150;
 
 /**
+ * Web only: how long we let a freshly-subscribed listener stay silent
+ * before concluding the browser isn't actually going to deliver motion
+ * data — the "listening timeout fallback" for cases `isAvailableAsync()`
+ * can't catch on its own (iOS 12.2–12.4's Settings > Safari > Motion &
+ * Orientation Access toggle switched off, or a desktop/Android browser
+ * that reports "available" unconditionally but has no real hardware —
+ * see `expo-sensors`' web shim, which only ever returns `false` from
+ * `isAvailableAsync()` for iOS-style permission gates). Generous relative
+ * to the ~250 ms `isAvailableAsync()` uses internally, so a slow-to-fire
+ * but genuinely working sensor isn't cut off prematurely.
+ */
+export const WEB_SILENT_TIMEOUT_MS = 1500;
+
+/**
  * Minimum Y-axis half-span in g. A resting phone on a flat surface produces
  * an extremely low-noise trace (a small fraction of a g of jitter on most
  * MEMS accelerometers). Auto-scaling tightly to that tiny range would blow a
