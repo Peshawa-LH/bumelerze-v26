@@ -16,14 +16,101 @@ import {
 } from "@/features/events";
 import { placeLine } from "@/features/geo";
 import {
+  buildArabicNameTextField,
   buildRegionMarkers,
+  buildTerrainDemSource,
+  buildTerrainHillshadeLayer,
+  decideMapErrorAction,
+  findHillshadeBeforeLayerId,
+  findNameLabelLayerIds,
   MAP_FIT_BOUNDS_PADDING_PX,
-  MAP_STYLE_URLS,
   MAP_WORKER_URL,
   MARKER_HIT_PADDING_PX,
   regionBboxToLngLatBounds,
+  resolveMapStyle,
+  shouldLocalizeToArabicScript,
+  styleHasRasterDemSource,
+  TERRAIN_DEM_SOURCE_ID,
+  type MapStyleProviderId,
 } from "@/features/map";
 import { useTheme } from "@/theme";
+
+/**
+ * Populates `hillshade`/label localization for a freshly-loaded map — called
+ * once from the `"load"` handler below. Terrain: skipped when the active
+ * style already ships its own `raster-dem` source (MapTiler's outdoor
+ * styles do — `styleHasRasterDemSource`'s doc comment). Labels: caches each
+ * name-labeling symbol layer's ORIGINAL `text-field` into `originalTextFields`
+ * (keyed by layer id) so `applyLocaleLabels` below can restore it exactly
+ * when the active locale later switches back to a non-Arabic-script one,
+ * rather than trying to reconstruct it.
+ *
+ * Plain module-scope wiring (not a hook) — every actual decision it makes
+ * (which layer to insert before, whether a DEM source already exists, which
+ * layers are name labels) is delegated to the pure, independently-tested
+ * helpers from `@/features/map`; this function is just the MapLibre-API
+ * glue, exercised by the `map-web-*.test.tsx` integration tests via the
+ * mocked `maplibre-gl` module (same split as the marker-building loop
+ * further down this file).
+ */
+function primeTerrainAndLabelCache(
+  map: MapLibreMap,
+  scheme: "light" | "dark",
+  originalTextFields: Map<string, unknown>,
+): void {
+  const style = map.getStyle();
+  if (!style) {
+    return;
+  }
+
+  if (!styleHasRasterDemSource(style.sources)) {
+    map.addSource(TERRAIN_DEM_SOURCE_ID, buildTerrainDemSource());
+    const beforeId = findHillshadeBeforeLayerId(style.layers ?? []);
+    map.addLayer(buildTerrainHillshadeLayer(scheme), beforeId);
+  }
+
+  originalTextFields.clear();
+  for (const layerId of findNameLabelLayerIds(style.layers ?? [])) {
+    originalTextFields.set(layerId, map.getLayoutProperty(layerId, "text-field"));
+  }
+}
+
+/**
+ * `Map.setLayoutProperty`'s TS overload constrains `"text-field"`'s value to
+ * MapLibre's own `DataDrivenPropertyValueSpecification<Formatted>` type; the
+ * values handled here are always either a hand-built expression
+ * (`buildArabicNameTextField()`) or a style's own pre-existing text-field
+ * expression read back via `getLayoutProperty` moments earlier — both are
+ * valid MapLibre expression JSON at runtime, just not something TS can prove
+ * from an `unknown`-typed cache value without an explicit assertion. One
+ * narrow, documented cast here beats sprinkling `as` at every call site.
+ */
+function setTextField(map: MapLibreMap, layerId: string, value: unknown): void {
+  (map.setLayoutProperty as (id: string, name: "text-field", value: unknown) => void)(
+    layerId,
+    "text-field",
+    value,
+  );
+}
+
+/** Applies (or reverts) Arabic-script place names on every cached
+ * name-labeling layer for the given locale — the single place both the
+ * initial load and later locale switches funnel through, so the two never
+ * drift out of sync. */
+function applyLocaleLabels(
+  map: MapLibreMap,
+  locale: string,
+  originalTextFields: Map<string, unknown>,
+): void {
+  const useArabicNames = shouldLocalizeToArabicScript(locale);
+  originalTextFields.forEach((originalTextField, layerId) => {
+    setTextField(
+      map,
+      layerId,
+      useArabicNames ? buildArabicNameTextField() : originalTextField,
+    );
+  });
+}
 
 /**
  * Web Map tab — the real interactive map (wave brief: "web-first... the
@@ -75,6 +162,22 @@ export default function MapScreenWeb() {
   // effect before its async `import()` ever resolved. `retryTick` is what
   // legitimately reruns it (`handleRetry` clears this flag first).
   const creationStartedRef = useRef(false);
+  // Which provider the map instance CURRENTLY being built is using —
+  // written every time the creation effect resolves a style, read by the
+  // "error" handler below to decide whether this is a MapTiler failure
+  // worth falling back from, or an OpenFreeMap failure that's just the
+  // genuine offline/error state (`decideMapErrorAction`).
+  const activeProviderRef = useRef<MapStyleProviderId>("openfreemap");
+  // One-shot MapTiler→OpenFreeMap runtime fallback latch (style-provider.ts
+  // doc comment: "never loops"). Reset on a user-initiated retry
+  // (`handleRetry`) so a manual retry gets a fresh shot at MapTiler rather
+  // than being stuck on the fallback forever after one bad network blip.
+  const fallbackAttemptedRef = useRef(false);
+  // Layer id → ORIGINAL `text-field` expression, cached once per map
+  // instance right after "load" (`primeTerrainAndLabelCache`) so later
+  // locale switches (`applyLocaleLabels`) can restore the non-Arabic-script
+  // default exactly instead of reconstructing it.
+  const originalTextFieldsRef = useRef<Map<string, unknown>>(new Map());
 
   const [isFocused, setIsFocused] = useState(false);
   const [loadState, setLoadState] = useState<"idle" | "loading" | "ready" | "error">(
@@ -105,7 +208,21 @@ export default function MapScreenWeb() {
 
     creationStartedRef.current = true;
     let cancelled = false;
+    // Whether THIS map instance ever reached "load" — a plain local (not a
+    // ref/state) since both handlers below close over it directly; feeds
+    // `decideMapErrorAction`'s `hasReachedReady`.
+    let hasLoaded = false;
     setLoadState("loading");
+
+    // A prior instance's runtime fallback (see the "error" handler below)
+    // forces OpenFreeMap for every subsequent (re)creation until
+    // `handleRetry` resets the latch — `resolveMapStyle` reads
+    // `EXPO_PUBLIC_MAPTILER_KEY` itself, so no key is threaded through here.
+    const { provider, url: styleUrl } = resolveMapStyle(
+      scheme,
+      fallbackAttemptedRef.current ? "openfreemap" : undefined,
+    );
+    activeProviderRef.current = provider;
 
     import("maplibre-gl")
       .then((module) => {
@@ -122,7 +239,6 @@ export default function MapScreenWeb() {
         // bundler).
         maplibre.setWorkerUrl(MAP_WORKER_URL);
 
-        const styleUrl = scheme === "dark" ? MAP_STYLE_URLS.dark : MAP_STYLE_URLS.light;
         const map = new maplibre.Map({
           container: containerRef.current,
           style: styleUrl,
@@ -135,25 +251,53 @@ export default function MapScreenWeb() {
         // synchronously — a real MapLibre map never fires "load"
         // synchronously, but nothing should depend on that.
         mapRef.current = map;
-        // No `customAttribution` — the vector source's own TileJSON already
-        // supplies the correct credit line, which MapLibre collects
+        // No `customAttribution` — every active source's own attribution
+        // (the vector source's TileJSON credit line, and now the terrain
+        // DEM source's `TERRAIN_ATTRIBUTION`) is collected by MapLibre
         // automatically; adding a hand-typed copy on top duplicated it on
         // screen (config.ts's doc comment above `MAP_WORKER_URL` has the
         // full story). `compact: false` keeps it always expanded rather
         // than hidden behind a toggle.
         map.addControl(new maplibre.AttributionControl({ compact: false }));
         map.on("load", () => {
-          if (!cancelled) {
-            setLoadState("ready");
+          if (cancelled) {
+            return;
           }
+          hasLoaded = true;
+          primeTerrainAndLabelCache(map, scheme, originalTextFieldsRef.current);
+          applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
+          setLoadState("ready");
         });
         // Style/tile load failures (offline, DNS down, etc.) surface here —
         // "if tiles fail/offline show the standard offline state pattern"
-        // (wave brief).
+        // (wave brief) — UNLESS this is a MapTiler style that failed before
+        // ever loading, in which case we get one automatic, silent retry on
+        // OpenFreeMap instead (`decideMapErrorAction`) so the map never
+        // just goes blank over a bad/quota'd key.
         map.on("error", () => {
-          if (!cancelled) {
-            setLoadState("error");
+          if (cancelled) {
+            return;
           }
+          const action = decideMapErrorAction({
+            provider: activeProviderRef.current,
+            hasReachedReady: hasLoaded,
+            alreadyFellBack: fallbackAttemptedRef.current,
+          });
+          if (action === "fallback-to-openfreemap") {
+            fallbackAttemptedRef.current = true;
+            // Same teardown as `handleRetry`/unmount below (inlined, not
+            // shared, matching this file's existing belt-and-braces
+            // duplication rather than introducing a new shared helper with
+            // its own dependency-array bookkeeping).
+            markersRef.current.forEach((marker) => marker.remove());
+            markersRef.current = [];
+            mapRef.current?.remove();
+            mapRef.current = null;
+            creationStartedRef.current = false;
+            setRetryTick((tick) => tick + 1);
+            return;
+          }
+          setLoadState("error");
         });
       })
       .catch(() => {
@@ -165,8 +309,22 @@ export default function MapScreenWeb() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `scheme` is read once at creation time (see comment above); `retryTick` is the deliberate re-run trigger for handleRetry
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `scheme` and `i18n.language` are only read once at creation/load time here (the dedicated locale-reactive effect below handles later changes); `retryTick` is the deliberate re-run trigger for handleRetry/the fallback path
   }, [isFocused, retryTick]);
+
+  // Re-applies label localization whenever the active locale changes, using
+  // the ORIGINAL text-field cache `primeTerrainAndLabelCache` populated at
+  // load time — the one place a locale switch (ckb/ar ⇄ kmr/en) actually
+  // takes effect on an already-showing map, mirroring how a style-provider
+  // change would be handled (re-set the affected layout property) rather
+  // than reloading the whole style.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (loadState !== "ready" || !map) {
+      return;
+    }
+    applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
+  }, [loadState, i18n.language]);
 
   // Tears down a broken map instance on unmount too — belt-and-braces
   // alongside the per-effect `cancelled` flag above.
@@ -186,6 +344,12 @@ export default function MapScreenWeb() {
     mapRef.current = null;
     maplibreModuleRef.current = null;
     creationStartedRef.current = false;
+    // A user-initiated retry gets a fresh shot at MapTiler (if configured)
+    // rather than staying pinned to whatever the automatic runtime fallback
+    // last landed on — unlike THAT one-shot latch (a single map instance's
+    // silent, automatic recovery), a manual retry is an explicit new
+    // attempt and a bad key/quota blip may well have cleared by now.
+    fallbackAttemptedRef.current = false;
     setLoadState("idle");
     setRetryTick((tick) => tick + 1);
   }, []);
