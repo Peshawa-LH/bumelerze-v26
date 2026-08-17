@@ -165,11 +165,12 @@ describe("MapScreenWeb basemap style picker — MapTiler key configured", () => 
 
     const addSourceCallsBeforeSwap = mockMapAddSource.mock.calls.length;
     const addLayerCallsBeforeSwap = mockMapAddLayer.mock.calls.length;
-    // Sanity: the initial load already primed terrain + own-labels once
-    // (2 sources: terrain-dem + own-labels; 2 layers: hillshade +
-    // own-labels symbol layer).
-    expect(addSourceCallsBeforeSwap).toBeGreaterThanOrEqual(2);
-    expect(addLayerCallsBeforeSwap).toBeGreaterThanOrEqual(2);
+    // Sanity: the initial load already primed terrain + own-labels +
+    // clusters once (3 sources: terrain-dem, own-labels, event-clusters;
+    // 4 layers: hillshade, own-labels symbol layer, cluster circle, cluster
+    // count).
+    expect(addSourceCallsBeforeSwap).toBeGreaterThanOrEqual(3);
+    expect(addLayerCallsBeforeSwap).toBeGreaterThanOrEqual(4);
 
     await expandStylePicker();
     await act(async () => {
@@ -182,15 +183,15 @@ describe("MapScreenWeb basemap style picker — MapTiler key configured", () => 
     expect(mockMapSetStyle.mock.calls[0]?.[0]).toEqual(expect.stringContaining("topo-v4"));
     expect(mockMapConstructorOptions).toHaveLength(1);
 
-    // Terrain + own-labels get RE-ADDED against the post-swap style (the
-    // mock's `setStyle` wipes sources/layers back to the representative
-    // default, which has no `raster-dem` — exactly like a real style swap
-    // landing on a style without its own terrain).
+    // Terrain + own-labels + clusters get RE-ADDED against the post-swap
+    // style (the mock's `setStyle` wipes sources/layers back to the
+    // representative default, which has no `raster-dem` — exactly like a
+    // real style swap landing on a style without its own terrain).
     await waitFor(() => {
       expect(mockMapAddSource.mock.calls.length).toBeGreaterThan(addSourceCallsBeforeSwap);
     });
-    expect(mockMapAddSource.mock.calls.length).toBe(addSourceCallsBeforeSwap + 2);
-    expect(mockMapAddLayer.mock.calls.length).toBe(addLayerCallsBeforeSwap + 2);
+    expect(mockMapAddSource.mock.calls.length).toBe(addSourceCallsBeforeSwap + 3);
+    expect(mockMapAddLayer.mock.calls.length).toBe(addLayerCallsBeforeSwap + 4);
 
     // Markers survive completely untouched — no rebuild, no extra removes —
     // confirming they're independent DOM overlays, not style-tied layers.

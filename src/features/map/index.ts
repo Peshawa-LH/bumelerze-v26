@@ -11,11 +11,41 @@ export {
 } from "./config";
 export {
   buildRegionMarkers,
+  hexToRgba,
   magnitudeToMarkerDiameterPx,
   regionBboxToLngLatBounds,
   type RegionBbox,
   type RegionMapMarker,
 } from "./marker-helpers";
+export {
+  CLUSTER_MAX_ZOOM,
+  CLUSTER_MAX_DIAMETER_PX,
+  CLUSTER_MIN_DIAMETER_PX,
+  CLUSTER_RADIUS_PX,
+  clusterRegionMarkers,
+  type ClusteredMapMarker,
+  type ClusterMarkerFeature,
+  type ClusterOptions,
+  type PointMarkerFeature,
+} from "./clustering";
+export {
+  buildClusterCircleLayer,
+  buildClusterCountLayer,
+  buildClusterFeatureCollection,
+  buildClusterSource,
+  CLUSTER_CIRCLE_LAYER_ID,
+  CLUSTER_COUNT_LAYER_ID,
+  CLUSTER_SOURCE_ID,
+  EMPTY_CLUSTER_FEATURE_COLLECTION,
+  readClusterBoundsFromProperties,
+  type ClusterFeatureCollection,
+  type ClusterFeatureProperties,
+  type ClusterGeoFeature,
+} from "./cluster-layer";
+export {
+  isCompactMapControlsWidth,
+  MAP_CONTROLS_COMPACT_MAX_WIDTH_PX,
+} from "./responsive";
 export {
   buildMapTilerStyleUrl,
   decideMapErrorAction,
@@ -89,6 +119,7 @@ export {
 } from "./attribution";
 export { useMapPreferencesStore, type MapPreferencesState } from "./preferences-store";
 export { ScopeToggle } from "./components/ScopeToggle";
+export { MapControlIconButton } from "./components/MapControlIconButton";
 export { MapFilterPanel } from "./components/MapFilterPanel";
 export { MapStylePicker } from "./components/MapStylePicker";
 export { MapTilerAttributionLogo } from "./components/MapTilerAttributionLogo";

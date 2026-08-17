@@ -16,6 +16,7 @@ import {
   type DateRangeMs,
   type MagnitudeRange,
 } from "../filters";
+import { MapControlIconButton } from "./MapControlIconButton";
 
 interface MapFilterPanelProps {
   magnitudeBounds: MagnitudeRange;
@@ -27,6 +28,12 @@ interface MapFilterPanelProps {
   onReset: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
+  /** Collapses the HEADER to a `MapControlIconButton` and renders the body
+   * as a floating popover instead of an inline block — the phone-width
+   * default (`responsive.ts`). `false` (the pre-existing behavior, unit
+   * tests' implicit default at jsdom's 1024px width) keeps today's
+   * always-legible header bar + inline-expanding body untouched. */
+  compact?: boolean;
 }
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -68,6 +75,7 @@ export function MapFilterPanel({
   onReset,
   expanded,
   onToggleExpanded,
+  compact = false,
 }: MapFilterPanelProps) {
   const { t, i18n } = useTranslation();
   const { colors, spacing, typography } = useTheme();
@@ -87,6 +95,18 @@ export function MapFilterPanel({
     magMax: formatMagnitudeValue(magnitudeRange.max, locale),
     days: localizeDigits(String(spanDays), locale),
   });
+
+  // The COMPACT collapsed icon button's accessible name — same base hint
+  // text as the non-compact header (`expandA11yHint`, unchanged from
+  // before this wave) with the live summary appended when a filter is
+  // actually active, so a screen-reader user gets the "active" state
+  // that's otherwise only conveyed visually (`MapControlIconButton`'s
+  // badge dot) without a whole second set of translated strings — reuses
+  // the SAME `join(". ")` composition already established for marker
+  // labels in `map.web.tsx`.
+  const collapsedIconA11yLabel = isFiltered
+    ? [t("map.filters.expandA11yHint"), isolateNumeric(summary)].join(". ")
+    : t("map.filters.expandA11yHint");
 
   function handleMagnitudeMinChange(rawValue: number): void {
     const min = Math.min(rawValue, magnitudeRange.max);
@@ -108,11 +128,30 @@ export function MapFilterPanel({
     onDateRangeChange({ startMs: dateRange.startMs, endMs });
   }
 
+  // Collapsed + compact: just the round icon button (Problem 1) — the
+  // full header/body below only renders once expanded, or at any width
+  // that isn't compact (today's always-legible bar, unchanged).
+  if (compact && !expanded) {
+    return (
+      <MapControlIconButton
+        icon="options-outline"
+        isActive={isFiltered}
+        accessibilityLabel={collapsedIconA11yLabel}
+        onPress={onToggleExpanded}
+      />
+    );
+  }
+
   return (
     <View
       style={[
         styles.container,
         { borderColor: colors.border.default, backgroundColor: colors.surface.raised },
+        // Compact + expanded: floats as a popover below the controls row
+        // instead of pushing the OTHER icon button out of the way — see
+        // this component's own header Pressable (unchanged) for the
+        // collapse affordance once open.
+        compact && [styles.popover, { marginTop: spacing[2] }],
       ]}
     >
       <Pressable
@@ -316,5 +355,23 @@ const styles = StyleSheet.create({
     gap: 6,
     alignSelf: "flex-start",
     minHeight: 32,
+  },
+  // Compact-expanded popover — absolutely positioned against the nearest
+  // positioned ancestor (`map.web.tsx`'s `controlsColumn`, an ordinary View
+  // and therefore already a valid `position: relative` context by RN's own
+  // default), so opening this panel never reflows the sibling style-picker
+  // icon button next to it. `end: 0` (logical, RTL-safe) keeps it hugging
+  // the same edge the collapsed icon row is anchored to, so it stays
+  // within a narrow viewport instead of overflowing past the screen edge.
+  popover: {
+    position: "absolute",
+    top: "100%",
+    end: 0,
+    zIndex: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
 });
