@@ -11,8 +11,8 @@
     "title": "Destpêk",
     "emptyState": "Vê dawiyê tu erdheja li herêma te nehatiye tomarkirin.",
     "possibleEvent": {
-      "message": "Dibe ku erdhej çêbûye — ji aliyê mirovên nêzî {{city}} ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
-      "messageUnknownArea": "Dibe ku erdhej çêbûye — ji aliyê mirovên nêzîk ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
+      "message": "Dibe ku erdhej çêbûye, ji aliyê mirovên nêzî {{city}} ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
+      "messageUnknownArea": "Dibe ku erdhej çêbûye, ji aliyê mirovên nêzîk ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
       "a11yLabel": "Hişyariya erdheja muhtemel: ji aliyê mirovên nêzî {{city}} ve hat ragihandin. Agahiyên zêdetir wê werin dayîn."
     }
   },
@@ -80,7 +80,7 @@
     "magnitudeDisplay": "{{value}} pîle",
     "dateTemplate": "{{day}} {{month}} {{year}}, {{time}}",
     "timeTemplate": "{{time}} {{period}}",
-    "offlineBanner": "Tu offline î — bûyerên ji {{time}} têne nîşandan",
+    "offlineBanner": "Tu offline î. Bûyerên ji {{time}} têne nîşandan",
     "offlineAnnouncement": "Tu offline î. Bûyerên herî dawî yên tomarkirî têne nîşandan.",
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
     "retry": "Dîsa biceribîne",
@@ -152,7 +152,7 @@
   },
   "map": {
     "title": "Nexşe",
-    "nativeUnavailableDescription": "Nexşeya zindî ya Bumelerze pêdiviya bi sazkirina sepanê ya tevahî heye — ew di rê de ye. Di vê navberê de lîsteya bûyeran ji bo erdhejên herî dawî binêre.",
+    "nativeUnavailableDescription": "Nexşeya zindî ya Bumelerze pêdiviya bi sazkirina sepanê ya tevahî heye. Ew di rê de ye. Di vê navberê de lîsteya bûyeran ji bo erdhejên herî dawî binêre.",
     "loading": "Nexşe tê barkirin…",
     "offlineTitle": "Nexşe li derveyî girêdanê ne berdest e",
     "offlineDescription": "Girêdana xwe kontrol bike û dîsa biceribîne.",
@@ -164,12 +164,12 @@
     "unavailable": "Ev cîhaz sensorek tevgerê ya ku Bumelerze karibe bixwîne tune ye, ji ber vê yekê dîmena rasterast li vir ne berdest e.",
     "permissionDenied": "Bumelerze ji bo nîşandana dîmena rasterast destûra gihîştina sensora tevgerê hewce dike. Tu dikarî ji sazkariyên cîhaza xwe destûrê bidî.",
     "explainer": {
-      "sentence1": "Di têlefona te de çîpek piçûk a lerizanpîvê (accelerometer) heye — heman fîzîka ku sismometreke pîşeyî ji bo pîvana lerizînê bikar tîne.",
+      "sentence1": "Di têlefona te de çîpek piçûk a lerizanpîvê (accelerometer) heye, heman fîzîka ku sismometreke pîşeyî ji bo pîvana lerizînê bikar tîne.",
       "sentence2": "Bi hêminî têlefona xwe bihejîne û li seismograma xwe ya di jêr de xuya dibe temaşe bike.",
-      "sentence3": "Ev dîmen tenê ji bo te ye — tiştek li vir nayê tomarkirin, tomarkirin, an jî bo tu deverê nayê şandin."
+      "sentence3": "Ev dîmen tenê ji bo te ye: tiştek li vir nayê tomarkirin, tomarkirin, an jî bo tu deverê nayê şandin."
     },
     "gravityToggle": "Rakirina rakêşana erdê",
-    "gravityNote": "Dema rakêşana erdê vekirî be, têlefonek di rewşa aramiyê de jî dîsa li ser tenê rêyekê xêzek sabît nîşan dide — ev rakêşana Erdê ye, ne lerizîn e. Rakêşana erdê bigire da ku tenê tevgerê bibînî.",
+    "gravityNote": "Dema rakêşana erdê vekirî be, têlefonek di rewşa aramiyê de jî dîsa li ser tenê rêyekê xêzek sabît nîşan dide; ev rakêşana Erdê ye, ne lerizîn e. Rakêşana erdê bigire da ku tenê tevgerê bibînî.",
     "axisX": "X",
     "axisY": "Y",
     "axisZ": "Z",
@@ -178,7 +178,7 @@
     "web": {
       "enableButton": "Sensora tevgerê veke",
       "enableHint": "Geroka te ji bo dayîna vê destûrê pêdiviya bi lêdanek e, berî ku ew karibe tevgera rasterast nîşan bide.",
-      "explanation": "Me nikarî daneyên tevgera rasterast ji geroka te bistîne. Li ser iPhone, biçe Sazkarî ← Safari ← Gihîştina Tevger û Rawestanê û pê ewle be ku ew vekirî ye, paşê vê rûpelê ji nû ve bar bike. Hin gerok û komputer qet sensorek tevgerê nînin — heke rewş ev be, ev dîmena rasterast li vir ne berdest e."
+      "explanation": "Me nikarî daneyên tevgera rasterast ji geroka te bistîne. Li ser iPhone, biçe Sazkarî ← Safari ← Gihîştina Tevger û Rawestanê û pê ewle be ku ew vekirî ye, paşê vê rûpelê ji nû ve bar bike. Hin gerok û komputer qet sensorek tevgerê nînin. Heke rewş ev be, ev dîmena rasterast li vir ne berdest e."
     }
   },
   "safety": {
@@ -194,43 +194,43 @@
     "cards": {
       "familyPlan": {
         "title": "Ji malbata xwe re plansaziyê çêke",
-        "body1": "Bi malbata xwe re li ser xalek civînê ya derveyî mala we û xalek din a derveyî taxa we peyman bikin, ji bo ku hûn nikaribin piştî erdhejeke xurt yekser bi telefonê bigihîjin hev. Piştrast bikin ku hemû endamên malbatê — di nav de zarok û bav û kalik — her du xalan dizanin û çawa dikarin bi peyatî bigihîjinê.",
-        "body2": "Lîsteyeke kaxez a hejmarên telefonê yên girîng (malbat, cîran, bijîjk) li cihekî ku her kes dikare wê bibîne biparêzin. Piştî erdhejeke xurt gelek caran torên telefonê bo çend saetan tijî dibin, ji ber vê yekê bi tenê xwe bi telefona xwe ve girê nedin."
+        "body1": "Bi malbata xwe re li ser du xalên civînê peyman bikin: yek yekser li derveyî mala we, ya din li derveyî taxa we, ji bo dema ku têkiliya telefonê piştî erdhejeke xurt têk diçe. Divê hemû endamên malbatê, di nav de zarok û bav û kalik, herdu cihan û rêya peyatî ya berbi wan zanibin.",
+        "body2": "Lîsteyeke kaxez a hejmarên girîng (malbat, cîran, bijîjk) li cihekî ku her kes dikare wê bibîne biparêzin. Torên telefonê bi gelemperî piştî bûyerekê zirar dide bo çend saetan tijî dibin, ji ber vê yekê plansaziyek ku bi tenê xwe bi telefonê ve girê dide ne plansaziyeke pêbawer e."
       },
       "secureHome": {
         "title": "Xaniyê xwe ewle bikin",
-        "body1": "Mobîlyayên bilind an giran — dolab, refikên pirtûkan, yekeyên dîwêr — bi dîwêr ve girê bidin da ku neyên xwarê. Tiştên giran bibin ser refikên jêrîn, û nivîn û kursiyan ji mobîlyayên bilind ên girênebûyî dûr bigirin.",
-        "body2": "Du xetereyên ku di malên Kurdan de belav in hêjayî bala taybet in: tankên avê yên li ser banî divê ji aliyê saziya wan daniye ve werin kontrolkirin û ewle kirin, û tûpên gazê divê her tim rawestayî bin, bi qeytan an desteyekê ewle bin da ku nekevin an neçemitin, û ji her agir an çavkaniyeke germê dûr bimînin."
+        "body1": "Mobîlyayên bilind an giran, di nav de dolab, refikên pirtûkan û yekeyên dîwêr, bi dîwêr ve girê bidin da ku neyên xwarê. Tiştên giran bibin ser refikên jêrîn, û nivîn û kursiyan ji mobîlyayên bilind ên girênebûyî dûr bigirin.",
+        "body2": "Du xetere bi taybetî di malên Kurdan de belav in û hêjayî baldayîna taybet in. Tankên avê yên li ser banî divê ji aliyê wî yê ku ew daniye ve werin kontrolkirin û ewle kirin. Tûpên gazê divê her tim rawestayî bin, bi qeytan an desteyekê li dijî ketin û çemitinê ewle bin, û bi awayekî baş ji her agir an çavkaniyeke germê dûr bimînin."
       },
       "emergencyKit": {
         "title": "Çenteyekî acîl amade bikin",
-        "body1": "Çenteyekî amade li cihekî bihêlin ku tê de avê vexwarinê, dermanên çend rojan ên malbata we, kopiyên belgeyên girîng (nasnameyên kesane, belgeyên milkê), fenerek û bataryayên zêde, şarjkerekî mobîl ê veguhêz, û hinek pere hebe — dibe ku makîneyên qerdê û înternet piştî erdhejeke xurt bo demekê nexebitin.",
-        "body2": "Çenteyê li cihekî ku hûn dikarin zû bigirin biparêzin, û her çend meh carekê wê kontrol bikin da ku av teze bimîne û dema derman ne borî be."
+        "body1": "Çenteyekî amade li cihekî bihêlin ku tê de avê vexwarinê, dermanên çend rojan ên her dermanê ku malbata we pê ve girêdayî ye, kopiyên belgeyên girîng (nasnameyên kesane, belgeyên milkê), fenerek bi bataryayên zêde, şarjkerekî mobîl ê veguhêz, û hinek pere hebe. Dibe ku pergalên qerdê û gihîştina înternetê ji bo demeke dirêj piştî erdhejeke xurt ne li ber dest bin.",
+        "body2": "Çenteyê li cihekî ku hûn dikarin zû bigihîjinê biparêzin, û her çend meh carekê wê kontrol bikin da ku av teze bimîne û tu derman ne borî be."
       },
       "safeSpots": {
         "title": "Cihê ewle yê her odeyê nas bikin",
-        "body1": "Di her odeya ku hûn zêde lê radiwestin de, berî demê cihekî ewle hilbijêrin: di bin maseyeke qehîm de, an li tenişta dîwarekî hundir ê dûr ji pace, neynik û mobîlyayên bilind. Ji dîwarên derve dûr bimînin, ji ber ku ew bêtir dibe ku zirar bibînin.",
-        "body2": "Derî di avahiyên îro de ne ewletir e — ev raman kevn e û êdî bi awayê avakirina avahiyan a îro re nagunce. Maseyeke qehîm parastineke rasteqîn li dijî tiştên ketî dide we; deriyekî vekirî wê nade we."
+        "body1": "Di her odeya ku hûn bi berdewamî bi kar tînin de, berî demê cihekî ewle diyar bikin: di bin maseyeke qehîm de, an li tenişta dîwarekî hundir ê dûr ji pace, neynik û mobîlyayên bilind. Dîwarên derve bêtir dibe ku zirar bibînin û divê ji wan dûr bimînin.",
+        "body2": "Derî di avakirina îro de tu parastina zêde nadin, û ev rêwerz êdî bi awayê avakirina avahiyan a îro re nagunce. Maseyeke qehîm parastineke rasteqîn li dijî tiştên ketî dide we, ku piraniya birîndariyan jî ji wê derê tên. Deriyekî vekirî wê nade we."
       },
       "schoolWork": {
         "title": "Plana dibistan û cîhê kar nas bikin",
-        "body1": "Ji dibistana zarokên xwe û cîhê xebata xwe bipirsin ka plana wan a erdhejê çi ye: di dema hejînê de li ku xwe biparêzin, û piştî wê li ku kom bibin. Dibistan û ofîsan teşwîq bikin ku perwerdehiya 'Bikeve, Xwe Biparêze, Xwe Bigire' bikin, ne tenê perwerdehiya vemirandina agir.",
-        "body2": "Heke hûn rêveberê senifekê, ofîsekê, an dikanekê ne, li dora cîhê xwe bigerin û cihên ewle û deriyên derketinê yên herî nêzîk têbînî bikin, da ku heke hejîn dema ku mirov li cem we ne dest pê bike, hûn karibin bi aramî rêberiya wan bikin."
+        "body1": "Ji dibistana zarokên xwe û cîhê xebata xwe bipirsin ka plana wan a erdhejê çi ye, bi taybetî mirov di dema hejînê de li ku xwe biparêzin û piştî wê li ku kom bibin. Herduyan teşwîq bikin ku li şûna tenê perwerdehiya vemirandina agir, perwerdehiya 'Bikeve, Xwe Biparêze, Xwe Bigire' jî bikin.",
+        "body2": "Heke hûn rêveberê senifekê, ofîsekê, an dikanekê ne, li dora cîhê xwe bigerin û cihên ewle û deriyên derketinê yên herî nêzîk têbînî bikin, da ku hûn bikaribin heke hejîn dema ku mirov li cem we ne dest pê bike, bi aramî rêberiya wan bikin."
       },
       "dropCoverHold": {
         "title": "Bikeve, Xwe Biparêze, Xwe Bigire",
-        "body1": "Gava hûn hîs bi hejînê bikin: berî ku hejîn we bixe erdê, bikevin ser destan û çokan, di bin maseyeke qehîm de xwe biparêzin, û xwe bigirin — amade bin ku heke ew tevbigere hûn jî pê re bitevbigerin. Heke maseyek li nêzîk tune be, serî û stûyê xwe bi milên xwe biparêzin.",
-        "body2": "Li wir bimînin heta ku hejîn bi tevahî rawestin. Piraniya birîndariyên erdhejê ji ketinê an ji ketina tiştan çêdibin, ne ji hilweşîna avahiyan — parastina serî û stûyê we ji bo wan çirkeyan tiştê herî bibandor e ku hûn dikarin bikin.",
+        "body1": "Gava hûn hîs bi hejînê bikin: berî ku tevger we bixe erdê bikevin ser destan û çokan, di bin maseyeke qehîm de xwe biparêzin, û xwe bigirin da ku heke ew tevbigere hûn jî pê re bitevbigerin. Heke maseyek ne li ber dest be, serî û stûyê xwe bi milên xwe biparêzin.",
+        "body2": "Li wir bimînin heta ku hejîn bi tevahî rawestin. Piraniya birîndariyên erdhejê ji ketinê û ji ketina tiştan çêdibin, ne ji hilweşîna avahiyan, ji ber vê yekê parastina serî û stûyê we ji bo wan çirkeyan tevgera herî bibandor e ku ji we re heye.",
         "doDont": {
           "protectHeadNeckVsDoorway": {
             "do": "Xwe nizim bikin, di bin tiştekî qehîm de xwe biparêzin, û xwe bigirin.",
-            "dont": "Berbi derî bezîn — deriyên avahiyên îro ji rûyê odeyê ne qehîmtir in û parastineke rasteqîn nadin we."
+            "dont": "Berbi derî nebezin. Deriyên avahiyên îro ji rûyê odeyê ne qehîmtir in û parastineke rasteqîn nadin we."
           }
         },
         "accessibility": {
           "wheelchair": {
             "label": "Heke hûn kursiya tekerê bi kar tînin",
-            "body": "Tekerên kursiya xwe zeliqîn, rûniştî bimînin, ber bi pêş ve li ser çokên xwe xwar bibin, û serî û stûyê xwe bi milên xwe an tiştekî nerm ê nêzîk biparêzin. Heke hûn dikarin bi ewlehî berî her tiştî ji pace û mobîlyayên girênebûyî dûr bikevin, wê bikin — an na li cihê xwe bimînin."
+            "body": "Tekerên kursiya xwe zeliqîn, rûniştî bimînin, ber bi pêş ve li ser çokên xwe xwar bibin, û serî û stûyê xwe bi milên xwe an tiştekî nerm ê li ber dest biparêzin. Tenê heke hûn bi ewlehî dikarin berî her tiştî ji pace û mobîlyayên girênebûyî dûr bikevin wê bikin, an na li cihê xwe bimînin."
           },
           "caneOrWalker": {
             "label": "Heke hûn gopal an alîkara meşê bi kar tînin",
@@ -238,33 +238,33 @@
           },
           "bed": {
             "label": "Heke hûn di nivînê de ne",
-            "body": "Di nivînê de bimînin. Heke hûn dikarin, xwe bidin ser zikê xwe, û serî û stûyê xwe bi balgehekê biparêzin. Ranebin da ku li cihekî din xwe biparêzin — piraniya birîndariyan di vê rewşê de ji ketinê çêdibin dema meriv di tarîtiyê de hewl dide bitevbigere."
+            "body": "Di nivînê de bimînin. Heke hûn dikarin, xwe bidin ser zikê xwe, û serî û stûyê xwe bi balgehekê biparêzin. Ranebin da ku li cihekî din xwe biparêzin, ji ber ku piraniya birîndariyan di vê rewşê de ji ketinê çêdibin dema meriv di tarîtiyê de tevdigere."
           }
         }
       },
       "indoors": {
         "title": "Heke hûn di hundirê malê de bin dema hejîn dest pê dike",
-        "body1": "Di hundir de bimînin. Tenê wan gavên hindik bavêjin ku ji bo gihîştina cihê xwe yê ewle yê herî nêzîk hewce ne, paşê Bikeve, Xwe Biparêze, Xwe Bigire. Derî bi gelemperî di dema hejînê de ji mayîna li cihê xwe xetertir in — camê şikestî, taybêt, û perçeyên avahiyê dikarin li ber deriyan bikevin.",
+        "body1": "Di hundir de bimînin. Tenê wan gavên hindik bavêjin ku ji bo gihîştina cihê xwe yê ewle yê herî nêzîk hewce ne, paşê Bikeve, Xwe Biparêze, Xwe Bigire. Derî bi gelemperî di dema hejînê de ji mayîna li cihê xwe xetertir in, ji ber ku camê şikestî, taybêt û perçeyên avahiyê rasterast li ber deriyan dikevin.",
         "doDont": {
           "stayInVsRunOutside": {
             "do": "Li cihê xwe xwe biparêzin û li benda rawestandina hejînê bimînin.",
-            "dont": "Dema erd hîn dihejîne berbi derve nebezin — piraniya birîndariyan dema mirov tevdigerin çêdibin."
+            "dont": "Dema erd hîn dihejîne berbi derve nebezin, ji ber ku piraniya birîndariyan dema mirov tevdigerin çêdibin."
           }
         }
       },
       "outdoors": {
         "title": "Heke hûn li derve bin dema hejîn dest pê dike",
-        "body1": "Ber bi erdeke vekirî ve herin, ji avahî, dîwêr, dar û xetên elektrîkê dûr, û li wir Bikeve, Xwe Biparêze, Xwe Bigire. Cîhê nêzî avahiyekê yek ji cihên herî xetere ye — cam, kaşî, û perçeyên derveyî avahiyê li wir dikevin.",
+        "body1": "Ber bi erdeke vekirî ve herin, dûrî avahî, dîwêr, dar û xetên elektrîkê, û li wir Bikeve, Xwe Biparêze, Xwe Bigire. Perçeya rasterast li tenişta avahiyekê yek ji cihên herî xetere ye, ji ber ku cam, kaşî û perçeyên derveyî avahiyê li wir dikevin.",
         "doDont": {
           "openGroundVsBuildings": {
             "do": "Ji avahî û xetên elektrîkê dûr bikevin, paşê xwe nizim bikin û serê xwe biparêzin.",
-            "dont": "Li tenişta avahiyekê, dîwêrekê, an xeteke elektrîkê newestin — tewra ya ku xuya dike bêzirar e jî."
+            "dont": "Li tenişta avahiyekê, dîwêrekê, an xeteke elektrîkê newestin, tewra ya ku xuya dike bêzirar e jî."
           }
         }
       },
       "vehicle": {
         "title": "Heke hûn di erebeyê de bin",
-        "body1": "Gava ku hûn bi ewlehî karibin rawestin, ji pir, pira jorîn, tunel, û xetên elektrîkê dûr, û di erebê de bi kembera ewlehiyê ve girêdayî bimînin heta hejîn rawestin. Erebeyek parastineke rasteqîn li dijî perçeyên ketî dide we.",
+        "body1": "Gava ku hûn bi ewlehî karibin rawestin, ji pir, pira jorîn, tunel û xetên elektrîkê dûr, û di erebê de bi kembera ewlehiyê ve girêdayî bimînin heta hejîn rawestin. Erebeyek parastineke rasteqîn li dijî perçeyên ketî dide we.",
         "doDont": {
           "pullOverVsOverpass": {
             "do": "Li cihekî vekirî rawestin û li ser kursiya xwe bi kembera ewlehiyê ve bimînin.",
@@ -274,26 +274,26 @@
       },
       "commonMyths": {
         "title": "Du raman ên şaş ên li ser erdhejê",
-        "body1": "Van her du tevgeran hîsa parastinê didin, lê rêwerzên niha wan pêşniyar nakin — zanîna vê berî demê tê wê wateyê ku hûn dema xwe li ser wan winda nakin dema ku hewce ye.",
+        "body1": "Van herdu tevgeran ên jêrîn hîsa parastinê didin, lê rêwerzên niha wan pêşniyar nakin. Zanîna vê berî demê tê wê wateyê ku hûn dema xwe li ser wan winda nakin dema ku çirke girîng in.",
         "doDont": {
           "headNeckVsDoorwayMyth": {
             "do": "Serî û stûyê xwe di bin tiştekî qehîm de biparêzin.",
-            "dont": "Deriyekî wek cihekî ewle nebînin — ev rêwerzek kevn e."
+            "dont": "Deriyekî wek cihekî ewle nebînin, ji ber ku ev rêwerzek kevn e."
           },
           "stairsVsElevator": {
             "do": "Gava hejîn rawestin, bi aramî bi derenceyê avahiyê berdin.",
-            "dont": "Asansorê bi kar neynin — elektrîk û şaftên asansorê gelek caran ji erdhejeke xurt bandor dibin."
+            "dont": "Asansorê bi kar neynin. Sîstema elektrîkê û şaftên asansorê gelek caran ji erdhejeke xurt bandor dibin."
           }
         }
       },
       "aftershocks": {
         "title": "Li benda erdhejên şûnde bin",
-        "body1": "Erdhejên piçûktir — erdhejên şûnde — gelek caran li dû ya xurt tên, carinan bo çend roj an hefteyan. Her carê hûn hîs bi hejînê bikin, dîsa Bikeve, Xwe Biparêze, Xwe Bigire; erdhejek şûnde ya piçûk wê wateyê nade ku êdî ne hewce ye meriv hejînê bi ciddî bigire.",
-        "body2": "Heke we erdhej hîs kir, hûn dikarin di rûpelê ragihandina hîskirinê ya vê sepanê de tiştê ku li we hatiye tomar bikin — kêmtir ji deqîqeyekê dikişîne û dibe alîkar ku tomareke rasteqîn a hejînê li seranserê Kurdistanê, bajar bi bajar, were avakirin."
+        "body1": "Erdhejên piçûktir, yên ku jê re erdhejên şûnde tê gotin, bi gelemperî li dû ya xurt tên û carinan bo çend roj an hefteyan didomin. Her carê hûn hîs bi hejînê bikin, dîsa Bikeve, Xwe Biparêze, Xwe Bigire. Erdhejeke şûnde ya piçûk nîşan nade ku dikare hejîn kêmtir bi ciddî were girtin.",
+        "body2": "Heke we erdhej hîs kir, hûn dikarin di rûpelê ragihandina hîskirinê de tiştê ku li we hatiye tomar bikin. Kêmtir ji deqîqeyekê dikişîne û alîkariya tomareke rasteqîn a hejînê li seranserê Kurdistanê, bajar bi bajar, dide."
       },
       "checkHazards": {
         "title": "Ji bo birîndarî û xetereyan kontrol bikin",
-        "body1": "Berî her tiştî xwe û ên li dora xwe ji bo birîndariyan kontrol bikin, û heke hûn karibin alîkariya destpêkê bidin. Paşê ji bo xetereyan kontrol bikin: bêhna gazê, telên zirar dîtî, an tûpeke gazê ya xwar bûyî.",
+        "body1": "Berî her tiştî xwe û ên li dora xwe ji bo birîndariyan kontrol bikin, û li her ku hûn karibin alîkariya destpêkê bidin. Paşê ji bo xetereyan kontrol bikin: bêhna gazê, telên zirar dîtî, an tûpeke gazê ya xwar bûyî.",
         "doDont": {
           "gasLeakSafety": {
             "do": "Heke we bêhna gazê hîs kir, valfa tûpê an ya sereke bigirin, pace vekin, û avahiyê biterikînin.",
@@ -303,31 +303,31 @@
       },
       "evacuateCarefully": {
         "title": "Bi baldarî ji avahiyeke zirar dîtî derkevin",
-        "body1": "Heke avahiya we zirar dîtiye, bi aramî bi derenceyê derkevin, li rê ber xwe bidin cam û tiştên ketî û derenceyên çitirandî.",
+        "body1": "Heke xuya dike ku avahiya we zirar dîtiye, bi aramî bi derenceyê derkevin, di rê de li cam û tiştên ketî û derenceyên çitirandî hay bin.",
         "doDont": {
           "reentryCaution": {
             "do": "Derkevin û li derve, ji avahiyê dûr, li benda bimînin.",
-            "dont": "Heta ku kesekî pispor wê kontrol neke û ewle îlan neke venegerin hundir."
+            "dont": "Heta ku kesekî pispor avahiyê kontrol neke û ewle îlan neke venegerin hundir."
           }
         }
       },
       "reliableInfo": {
         "title": "Agahiyan ji çavkaniyên pêbawer bistînin",
-        "body1": "Piştî erdhejeke xurt, gotegot zû belav dibin — li ser pêşbîniyên erdhejên şûnde, zirar, an xetere — bileztir ji ku rastî bêne kontrolkirin. Çavkaniyên fermî bişopînin (parastina sivîl, saziyên erdnasiyê, ev sepan) ji bo agahiya piştrastkirî, û bi sebir li benda tiştên hê nayên zanîn bimînin.",
+        "body1": "Piştî erdhejeke xurt, gotegot zû belav dibin, li ser pêşbîniyên erdhejên şûnde, zirar û xetere, û ji ku rastî bêne kontrolkirin zûtir belav dibin. Çavkaniyên fermî bişopînin, di nav de parastina sivîl, saziyên erdnasiyê û ev sepan, ji bo agahiya piştrastkirî, û qebûl bikin ku hin pirs bo demekê bêbersiv dimînin.",
         "doDont": {
           "verifyBeforeSharing": {
             "do": "Berî ku hûn li ser agahiyekê bilivin an wê parve bikin, wê li gel çavkaniyeke fermî kontrol bikin.",
-            "dont": "Pêşbîniyên erdhejê an îdiayên zirarê yên hûn nikarin piştrast bikin belav nekin — tewra ji kesekî hûn baweriya xwe pê tînin be jî."
+            "dont": "Pêşbîniyên erdhejê an îdiayên zirarê yên hûn nikarin piştrast bikin belav nekin, tewra ji kesekî hûn baweriya xwe pê tînin be jî."
           }
         }
       },
       "helpNeighbors": {
         "title": "Heke hûn bi ewlehî karibin alîkariya yên din bikin",
-        "body1": "Piştî ku hûn û malbata we ewle ne, serdana cîranên salxwar, kesên bi astengî, û kesên bi tenê li nêzî we dijîn bikin — lêdana derî û çend deqîqeyan dikare girîng be.",
+        "body1": "Piştî ku hûn û malbata we ewle ne, serdana cîranên salxwar, kesên bi astengî, û kesên bi tenê li nêzî we dijîn bikin. Lêdana derî û çend deqîqeyan bal dikare girîng be.",
         "doDont": {
           "helpSafely": {
             "do": "Serdana cîranên ku hewceyî alîkariyê ne bikin, û heke kesek bi giranî birîndar be gazî xizmeta acîl bikin.",
-            "dont": "Kesekî bi giranî birîndar bi destê xwe nelivînin, ji xeynî ku ew di xetereke tavilê de be wek agir — livandineke şaş dikare birînê xerabtir bike."
+            "dont": "Kesekî bi giranî birîndar bi destê xwe nelivînin, ji xeynî ku ew rûbirûyê xetereke tavilê be wek agir, ji ber ku livandineke şaş dikare birînê xerabtir bike."
           }
         }
       }
@@ -348,12 +348,9 @@
     "cancel": "Betal ke",
     "homeBaseSectionTitle": "Cihê Malê",
     "homeBaseChange": "Biguherîne",
-    "locationSectionTitle": "Destûra Cîhê",
-    "locationStatusGranted": "Gihîştina cîhê vekirî ye",
-    "locationStatusDenied": "Gihîştina cîhê girtî ye",
-    "locationStatusUndetermined": "Bumelerze hê nepirsiye",
     "openSystemSettings": "Sazkariyan Veke",
     "onboardingSectionTitle": "Danasîn",
+    "onboardingSectionDescription": "Dîmenên bi xêr hatinê yên ku te cara yekem Bumelerze vekir dîsa nîşan dide. Hilbijartina zimên û Cihê Malê tê parastin.",
     "replayOnboarding": "Danasînê dîsa bibîne",
     "replayOnboardingConfirmTitle": "Danasîn dîsa were nîşandan?",
     "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên û Cihê Malê tê parastin.",
@@ -361,34 +358,34 @@
     "notificationsSectionDescription": "Hilbijêre ka Bumelerze te çawa ji bo erdhejên nêzî te û nêzî Cihê Malê te agahdar dike.",
     "notificationsManage": "Agahdariyan bi rê ve bibe",
     "handbookSectionTitle": "Pirtûka endezyar",
-    "handbookSectionDescription": "Nirxên sêwiranê yên jêder (PGA, Vs30, çîna axê) ji bo cihekî li Kurdistan/Iraq — ji bo endezyar û lêkolîneran.",
+    "handbookSectionDescription": "Nirxên sêwiranê yên jêder (PGA, Vs30, çîna axê) ji bo cihekî li Kurdistan/Iraq, ji bo endezyar û lêkolîneran.",
     "handbookOpen": "Pirtûka endezyar veke",
-    "dataSourcesSectionTitle": "Çavkaniyên daneyan",
-    "dataSourcesSectionDescription": "Daneyên erdhejê ji xizmetên webê yên FDSN ên USGS, EMSC (seismicportal.eu) û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) tên wergirtin, di bin lîsansa CC BY 4.0 de. Bumelerze di her nûkirinê de her sê katalogan kontrol dike û dike yek feedê; heman erdhej tu carî du caran xuya nabe.",
-    "telemetrySectionTitle": "Nîşana vekirina sepanê ya nenas",
-    "telemetrySectionDescription": "Her carê tu Bumelerze vedikî, cîhaza te nîşanek nenas dişîne bi cîhek giştî (bi qebareya bajêr) û platforma cîhaza te — tucaran nasnameya cîhazê an daneya kesane nayê şandin. Ev ji bo pêşerojê tê bikaranîn da ku peydakirina erdhejan zûtir bibe; niha tiştek pê nayê kirin.",
     "myDataSectionTitle": "Daneyên min",
     "myDataSectionDescription": "Rapora erdhejan ku te ji vê cîhazê şandiye bibîne.",
     "myDataOpen": "Daneyên min veke",
-    "permissionsSectionTitle": "Destûr û daneyan",
-    "permissionsSectionDescription": "Bumelerze li ser vê cîhazê çi digihîje, û çima.",
-    "permissionsLocationTitle": "Cîh",
-    "permissionsLocationWhy": "Raporên te yên hestkirinê cîhê ku te lerzîn hîs kir digire.",
-    "permissionsMotionTitle": "Sensora tevgerê",
-    "permissionsMotionWhy": "Seismogrāma zindî ya rûpela Sensor pê tê xebitandin.",
-    "permissionsMotionWebHint": "Li ser vê gerokê, destûra tevgerê ji rûpela Sensor bi xwe tê xwestin.",
-    "permissionsMotionOpenSensor": "Rûpela Sensor veke",
+    "devicePermissionsSectionTitle": "Destûrên cîhazê",
+    "devicePermissionsSectionDescription": "Bi yek lêdanê destûra cîh û sensora tevgerê bide pêkve. Bumelerze cîhê te bikar tîne ji bo nîşankirina raporên hestkirinê, û sensora tevgerê jî dîmena zindî ya rûpela Sensor pê dixebite.",
+    "devicePermissionsAllowButton": "Destûrên cîhazê bide",
+    "devicePermissionsRequestingButton": "Tê xwestin…",
+    "devicePermissionsLocationLabel": "Cîh",
+    "devicePermissionsMotionLabel": "Sensora tevgerê",
     "permissionsStatusGranted": "Destûr hate dayîn",
     "permissionsStatusDenied": "Destûr nehat dayîn",
     "permissionsStatusUndetermined": "Hê nehatiye pirsîn",
-    "permissionsRequest": "Destûr bide"
+    "devicePermissionsSomeDeniedHint": "Hin destûr girtî ne. Sazkariyên cîhaza xwe veke da ku wan vekî.",
+    "devicePermissionsSomeDeniedHintWeb": "Hin destûr girtî ne. Destûrên vê malperê di sazkariyên geroka xwe de kontrol bike da ku wan vekî.",
+    "footerAbout": "Bumelerze projeyeke serbixwe ya çavdêriya erdhejê ye ji bo Herêma Kurdistana Iraqê, ji aliyê endezyarên erdhejê ve tê meşandin. Daneyên bûyeran ji USGS, EMSC, û GEOFON tên. Tundî, zirar, û berhemên SHAKEmap ji aliyê motora Bumelerze ya xwe ve tên hesibandin.",
+    "footerPrivacyLink": "Polîtîkaya nihêniyê",
+    "footerAttribution": "Daneyên erdhejê yên USGS, EMSC (seismicportal.eu), û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) di bin lîsansa CC BY 4.0 de ne.",
+    "footerTrademark": "\"Bumelerze\" û logoya wê nîşanên bazirganî yên projeyê ne.",
+    "footerVersion": "Guhertoya {{version}}"
   },
   "onboarding": {
     "back": "Vegere",
     "continue": "Bidomîne",
     "mission": {
       "title": "Her dem bizane, bi zimanê xwe",
-      "description": "Bumelerze agahiyên erdhejê yên zû û zanistî yên rast tîne Kurdistanê — bi Soranî, Kurmancî, Erebî, û Îngilîzî. Ji aliyê lêkolînerên metirsiya erdhejê yên ku li vê herêmê dixebitin ve hatiye çêkirin."
+      "description": "Bumelerze agahiyên erdhejê yên zû û zanistî yên rast tîne Kurdistanê, bi Soranî, Kurmancî, Erebî, û Îngilîzî. Ji aliyê lêkolînerên metirsiya erdhejê yên ku li vê herêmê dixebitin ve hatiye çêkirin."
     },
     "language": {
       "title": "Zimanê xwe hilbijêre",
@@ -406,7 +403,7 @@
     },
     "homeBase": {
       "title": "Cihê Malê ya xwe saz bike",
-      "description": "Heke tu ji Kurdistanê dûr dijî, bajarekî wek Cihê Malê hilbijêre — mîna cihê ku malbata te lê dijî — da ku hişyariyên pêşerojê wê jî çavdêrî bikin. Vebijarke; tu dikarî vê paşê jî ji Sazkariyan saz bikî an biguherînî.",
+      "description": "Heke tu ji Kurdistanê dûr dijî, bajarekî wek Cihê Malê hilbijêre (mîna cihê ku malbata te lê dijî) da ku hişyariyên pêşerojê wê jî çavdêrî bikin. Vebijarke; tu dikarî vê paşê jî ji Sazkariyan saz bikî an biguherînî.",
       "elsewhere": "Cihekî din / derbas bike",
       "skip": "Niha derbas bike",
       "notSet": "Nehatiye danîn"
@@ -443,7 +440,7 @@
     },
     "rehearsal": {
       "title": "Biceribîne",
-      "description": "Bibîne û bibihîze ka agahdariyeke rastîn dê çawa xuya bike û deng bike — erdhej ne hewce ye.",
+      "description": "Bibîne û bibihîze ka agahdariyeke rastîn dê çawa xuya bike û deng bike: erdhej ne hewce ye.",
       "seeAlert": "Agahdariyê bibîne",
       "playSound": "Dengê agahdariyê lêxe",
       "playSoundHintTitle": "Dengê agahdariyê lêxe",
@@ -474,7 +471,7 @@
       "sectionTitle": "SHAKEmap",
       "updated": "Hate rojanekirin {{time}}",
       "citation": "SHAKEmap: {{producer}}, guhertoya {{version}}",
-      "legendCaption": "Tundî (IMS-25) — pîvana SHAKEmap ya Bumelerze",
+      "legendCaption": "Tundî (IMS-25): pîvana SHAKEmap ya Bumelerze",
       "mapA11yLabel": "Nexşeya tundiya SHAKEmap, herî zêde tundî {{level}}, nêzî {{place}}",
       "dataUsed": {
         "catalogOnly": "Tenê li ser bingeha katalogê erdhejê yê herêmî",
@@ -483,24 +480,24 @@
         "stationAndDyfiConditioned": "Bi karanîna îstasyonên erdhejnasî û raporên hestkirî yên nêzîk hatiye rastkirin"
       },
       "reviewStatus": {
-        "automatic": "Nexşeya otomatîk — hê ji aliyê zanyarekî ve nehatiye kontrolkirin",
+        "automatic": "Nexşeya otomatîk, hê ji aliyê zanyarekî ve nehatiye kontrolkirin",
         "reviewed": "Ji aliyê zanyarekî ve hatiye kontrolkirin"
       }
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",
-      "legendCaption": "Tundiya Dehîdî ya Civakî (CDI) — bi xwe hatiye ragihandin",
+      "legendCaption": "Tundiya Dehîdî ya Civakî (CDI): bi xwe hatiye ragihandin",
       "mapA11yLabel": "Nexşeya raporên hîskirinê, {{count}} rapor, tundî ji {{min}} heta {{max}}, nêzî {{place}}",
       "reportCount": "{{count}} rapor li {{cells}} herêman",
       "updated": "Hate rojanekirin {{time}}",
-      "citation": "Raporên hîskirinê yên Bumelerze — ji aliyê civakê ve hatine şandin, li gorî herêmê hatine berhevkirin",
+      "citation": "Raporên hîskirinê yên Bumelerze: ji aliyê civakê ve hatine şandin, li gorî herêmê hatine berhevkirin",
       "unavailableOffline": "Nexşeya hîskirinê offline ne berdest e",
       "retry": "Dîsa biceribîne"
     },
     "myReportRow": {
       "reported": "Te asta {{level}} rapor kir",
       "addDetail": "Hûrgiliyên zêdetir zêde bike",
-      "detailAdded": "Hûrgilî hate zêdekirin — spas"
+      "detailAdded": "Hûrgilî hate zêdekirin, spas"
     }
   },
   "felt": {
@@ -513,7 +510,7 @@
       "title": "Te çawa hîs kir?",
       "subtitle": "Asta ku li gorî tiştê te hîs kir bitikîne. Tu dikarî paşê hûrgiliyên zêdetir zêde bikî heke bixwazî.",
       "severeDestructionHeader": "Wêrankirina giran",
-      "levelA11yHint": "Vê astê hildibijêre û tavilê raporta te tomar dike — tu dikarî paşê hûrgiliyên zirarê zêde bikî",
+      "levelA11yHint": "Vê astê hildibijêre û tavilê raporta te tomar dike. Tu dikarî paşê hûrgiliyên zirarê zêde bikî",
       "close": "Bigire",
       "locationGps": "Cîhê te yê niha tê bikaranîn",
       "locationManual": "Cih: {{place}}",
@@ -606,10 +603,10 @@
           "options": {
             "no_reaction": "Tu reaksiyon tune bû / nehat hîskirin",
             "noticed": "Min pê hesiya, lê reaksiyonek min tune bû",
-            "excitement": "Heyecan — min qala wê kir",
+            "excitement": "Heyecan, min qala wê kir",
             "somewhat_frightened": "Hinekî tirsiyam",
-            "very_frightened": "Pir tirsiyam — ez çûm derve",
-            "extremely_frightened": "Pir bi tundî tirsiyam — hemûyan bal ber derve revîn"
+            "very_frightened": "Pir tirsiyam, ez çûm derve",
+            "extremely_frightened": "Pir bi tundî tirsiyam, hemûyan bal ber derve revîn"
           }
         },
         "stand": {
@@ -656,7 +653,7 @@
     },
     "damage": {
       "title": "Zirar hebû?",
-      "subtitle": "Wêneya ku herî baş li gorî tiştê te dît bitikîne — ev gav vebijarkî ye.",
+      "subtitle": "Wêneya ku herî baş li gorî tiştê te dît bitikîne. Ev gav vebijarkî ye.",
       "noDamage": {
         "label": "Min ti zirar nedît",
         "hint": "Hildibijêre û tavilê berdewam dike"
@@ -739,7 +736,7 @@
         "sublabel": "Ji Vs30 hatiye derxistin",
         "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
         "citation": "Eurocode 8 (EN 1998-1) Tabloya 3.1; çînên NEHRP (ASCE 7-16 Tabloya 20.3-1)",
-        "unavailable": "Ne berdest e — li vî cihî nimûneya Vs30 tune ye."
+        "unavailable": "Ne berdest e: li vî cihî nimûneya Vs30 tune ye."
       },
       "soil": {
         "label": "Xalên axê/cihê Silêmanî yên nêzîk",
@@ -750,7 +747,7 @@
       },
       "gmpe": {
         "label": "Modelên tevgera erdê yên vê sepanê bikar tîne",
-        "note": "Hesabên metirsiyê û ShakeMap yên vê sepanê vê koma modelên texmînkirina tevgera erdê bikar tînin."
+        "note": "Hesabên metirsiyê û SHAKEmap yên vê sepanê vê koma modelên texmînkirina tevgera erdê bikar tînin."
       }
     },
     "methods": {
@@ -767,7 +764,7 @@
     "headerLabel": "Nasnameya te ya beşdarbûnê ya nenas",
     "headerIdLoading": "…",
     "headerIdA11yLabel": "Nasnameya te ya beşdarbûnê: {{id}}",
-    "headerExplanation": "Bi awayekî otomatîk li ser vê cîhazê hatiye afirandin — bêyî hesab an tomarkirin. Ev awayê kombûna raporên te ye, û tenê li ser vê sazkirinê dimîne.",
+    "headerExplanation": "Bi awayekî otomatîk li ser vê cîhazê hatiye afirandin: bêyî hesab an tomarkirin. Ev awayê kombûna raporên te ye, û tenê li ser vê sazkirinê dimîne.",
     "summaryTitle": "{{count}} rapor hatine şandin",
     "unassignedEvent": "Bi erdhejeke taybet ve girêdayî nîne",
     "damageLine": "{{typology}}: {{grade}}",
@@ -776,7 +773,7 @@
       "submitted": "Hate şandin",
       "on-device": "Li ser vê cîhazê"
     },
-    "emptyStateMessage": "Te hê tu raporek hestkirinê neşandiye. Heke tu erdhejekê hîs bikî, ji me re bibêje — bi tenê yek lêdanê.",
+    "emptyStateMessage": "Te hê tu raporek hestkirinê neşandiye. Heke tu erdhejekê hîs bikî, ji me re bibêje. Bi tenê yek lêdanê.",
     "emptyStateCta": "Erdhejê rapor bike"
   }
 }

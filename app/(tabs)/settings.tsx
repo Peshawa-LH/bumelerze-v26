@@ -1,6 +1,6 @@
+import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import type { TFunction } from "i18next";
 import { useState } from "react";
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -9,7 +9,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { pickLocalizedName } from "@/features/geo";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
-import { useLocationPermissionStatus } from "@/features/location";
 import {
   HOME_BASE_ELSEWHERE_ID,
   HOME_BASE_TOWNS,
@@ -17,12 +16,10 @@ import {
   usePrefsStore,
   type HomeBasePreference,
 } from "@/features/onboarding";
-import {
-  useLocationPermissionRow,
-  useMotionPermissionRow,
-  type PermissionRowStatus,
-} from "@/features/permissions";
+import { useDevicePermissions } from "@/features/permissions";
 import { useTheme } from "@/theme";
+
+const PRIVACY_POLICY_URL = "https://bumelerze.com/privacy.html";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -122,13 +119,11 @@ export default function SettingsScreen() {
 
       <HomeBaseSection />
       <NotificationsSection />
-      <LocationPermissionSection />
+      <DevicePermissionsSection />
       <HandbookSection />
-      <DataSourcesSection />
-      <TelemetrySection />
       <MyDataSection />
-      <PermissionsSection />
       <OnboardingSection />
+      <FooterSection />
     </ScrollView>
   );
 }
@@ -181,49 +176,10 @@ function MyDataSection() {
   );
 }
 
-/**
- * D26 item 6: "a proper permissions section in Settings" — location and
- * motion/sensor, each showing current status, WHY the app wants it, and an
- * action (request when undetermined, open system settings when denied).
- * Additive: the pre-existing `LocationPermissionSection` above (a simpler
- * status-only display used elsewhere in the app's mental model) is
- * deliberately left untouched — this is a new, separate section, not a
- * replacement.
- */
-function PermissionsSection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-
-  return (
-    <View style={{ gap: spacing[3] }}>
-      <View style={{ gap: spacing[2] }}>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.h3.fontSize,
-            lineHeight: typography.h3.lineHeight,
-            fontWeight: typography.h3.fontWeight,
-          }}
-        >
-          {t("settings.permissionsSectionTitle")}
-        </Text>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-          }}
-        >
-          {t("settings.permissionsSectionDescription")}
-        </Text>
-      </View>
-      <LocationPermissionRow />
-      <MotionPermissionRow />
-    </View>
-  );
-}
-
-function permissionStatusText(status: PermissionRowStatus, t: TFunction): string {
+function permissionStatusText(
+  status: "granted" | "denied" | "undetermined",
+  t: (key: string) => string,
+): string {
   if (status === "granted") {
     return t("settings.permissionsStatusGranted");
   }
@@ -233,36 +189,72 @@ function permissionStatusText(status: PermissionRowStatus, t: TFunction): string
   return t("settings.permissionsStatusUndetermined");
 }
 
-function LocationPermissionRow() {
+/**
+ * Owner directive (wave brief Part 3): "ONE button ... location, sensor,
+ * and other permissions. I don't want a separate option for Sensor,
+ * Location." Replaces the previous three separate permission surfaces
+ * (a standalone "Location permission" section, a "Permissions & data"
+ * section with its own per-row Allow buttons, and the Sensor screen as the
+ * only place motion could be granted from) with one button that chains
+ * every non-notification permission from a single tap
+ * (`useDevicePermissions`'s own doc comment covers why the two underlying
+ * requests are fired back to back rather than awaited in sequence — that
+ * ordering is what keeps the web motion-permission prompt inside the
+ * original tap's gesture). Notifications keep their own separate flow
+ * (`NotificationsSection` below) per the brief: "keep the Notification
+ * permission the same."
+ */
+function DevicePermissionsSection() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const { status, request } = useLocationPermissionRow();
+  const { locationStatus, motionStatus, isRequesting, requestAll } = useDevicePermissions();
+
+  const hasDenied = locationStatus === "denied" || motionStatus === "denied";
+  const allGranted = locationStatus === "granted" && motionStatus === "granted";
 
   return (
-    <View
-      style={[
-        styles.permissionRow,
-        { borderColor: colors.border.default, padding: spacing[3], gap: spacing[1] },
-      ]}
-    >
+    <View style={{ gap: spacing[2] }}>
       <Text
         style={{
           color: colors.text.primary,
-          fontSize: typography.bodyDefault.fontSize,
-          fontWeight: "600",
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
         }}
       >
-        {t("settings.permissionsLocationTitle")}
+        {t("settings.devicePermissionsSectionTitle")}
       </Text>
       <Text
         style={{
           color: colors.text.secondary,
-          fontSize: typography.bodyMeta.fontSize,
-          lineHeight: typography.bodyMeta.lineHeight,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
-        {t("settings.permissionsLocationWhy")}
+        {t("settings.devicePermissionsSectionDescription")}
       </Text>
+
+      {allGranted ? null : (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: isRequesting }}
+          disabled={isRequesting}
+          onPress={requestAll}
+          style={[styles.row, { borderColor: colors.border.default }]}
+        >
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.bodyDefault.fontSize,
+            }}
+          >
+            {isRequesting
+              ? t("settings.devicePermissionsRequestingButton")
+              : t("settings.devicePermissionsAllowButton")}
+          </Text>
+        </Pressable>
+      )}
+
       <View style={styles.spaceBetweenRow}>
         <Text
           style={{
@@ -270,132 +262,53 @@ function LocationPermissionRow() {
             fontSize: typography.bodyMeta.fontSize,
           }}
         >
-          {permissionStatusText(status, t)}
+          {t("settings.devicePermissionsLocationLabel")}
         </Text>
-        {status === "undetermined" ? (
-          <Pressable accessibilityRole="button" onPress={() => void request()} hitSlop={12}>
-            <Text
-              style={{
-                color: colors.text.link,
-                fontSize: typography.labelButton.fontSize,
-                fontWeight: typography.labelButton.fontWeight,
-              }}
-            >
-              {t("settings.permissionsRequest")}
-            </Text>
-          </Pressable>
-        ) : null}
-        {status === "denied" ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => void Linking.openSettings()}
-            hitSlop={12}
-          >
-            <Text
-              style={{
-                color: colors.text.link,
-                fontSize: typography.labelButton.fontSize,
-                fontWeight: typography.labelButton.fontWeight,
-              }}
-            >
-              {t("settings.openSystemSettings")}
-            </Text>
-          </Pressable>
-        ) : null}
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyMeta.fontSize,
+          }}
+        >
+          {permissionStatusText(locationStatus, t)}
+        </Text>
       </View>
-    </View>
-  );
-}
+      <View style={styles.spaceBetweenRow}>
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyMeta.fontSize,
+          }}
+        >
+          {t("settings.devicePermissionsMotionLabel")}
+        </Text>
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyMeta.fontSize,
+          }}
+        >
+          {permissionStatusText(motionStatus, t)}
+        </Text>
+      </View>
 
-/** Native: same request/open-settings pattern as `LocationPermissionRow`.
- * Web: no status/request affordance at all — `use-motion-permission-row.ts`'s
- * own doc explains why (iOS Safari only honors a motion-permission request
- * fired from inside the Sensor screen's own live gesture); this row instead
- * points the user there. */
-function MotionPermissionRow() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-  const router = useRouter();
-  const { status, request } = useMotionPermissionRow();
-  const isWeb = Platform.OS === "web";
-
-  return (
-    <View
-      style={[
-        styles.permissionRow,
-        { borderColor: colors.border.default, padding: spacing[3], gap: spacing[1] },
-      ]}
-    >
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.bodyDefault.fontSize,
-          fontWeight: "600",
-        }}
-      >
-        {t("settings.permissionsMotionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyMeta.fontSize,
-          lineHeight: typography.bodyMeta.lineHeight,
-        }}
-      >
-        {t("settings.permissionsMotionWhy")}
-      </Text>
-      {isWeb ? (
-        <View style={styles.spaceBetweenRow}>
+      {hasDenied ? (
+        <View style={{ gap: spacing[1] }}>
           <Text
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
               lineHeight: typography.bodyMeta.lineHeight,
-              flexShrink: 1,
             }}
           >
-            {t("settings.permissionsMotionWebHint")}
+            {Platform.OS === "web"
+              ? t("settings.devicePermissionsSomeDeniedHintWeb")
+              : t("settings.devicePermissionsSomeDeniedHint")}
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push("/(tabs)/sensor")}
-            hitSlop={12}
-          >
-            <Text
-              style={{
-                color: colors.text.link,
-                fontSize: typography.labelButton.fontSize,
-                fontWeight: typography.labelButton.fontWeight,
-              }}
-            >
-              {t("settings.permissionsMotionOpenSensor")}
-            </Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View style={styles.spaceBetweenRow}>
-          <Text
-            style={{
-              color: colors.text.secondary,
-              fontSize: typography.bodyMeta.fontSize,
-            }}
-          >
-            {permissionStatusText(status, t)}
-          </Text>
-          {status === "undetermined" ? (
-            <Pressable accessibilityRole="button" onPress={() => void request()} hitSlop={12}>
-              <Text
-                style={{
-                  color: colors.text.link,
-                  fontSize: typography.labelButton.fontSize,
-                  fontWeight: typography.labelButton.fontWeight,
-                }}
-              >
-                {t("settings.permissionsRequest")}
-              </Text>
-            </Pressable>
-          ) : null}
-          {status === "denied" ? (
+          {/* `Linking.openSettings()` throws on web (no OS settings app to
+           * deep-link into) — see `expo-linking`'s web implementation, which
+           * has no `openSettings` at all. Only offer the action natively. */}
+          {Platform.OS === "web" ? null : (
             <Pressable
               accessibilityRole="button"
               onPress={() => void Linking.openSettings()}
@@ -411,78 +324,9 @@ function MotionPermissionRow() {
                 {t("settings.openSystemSettings")}
               </Text>
             </Pressable>
-          ) : null}
+          )}
         </View>
-      )}
-    </View>
-  );
-}
-
-/** App-launch telemetry disclosure (spec-v1.md §5.4/§5.5, D11/D13: "disclosed
- * to the user in Settings... collected data is never hidden"). Text-only,
- * same pattern as `DataSourcesSection` above — there's no user-facing
- * detection feature built on this data yet (v1 ships only the ping itself),
- * so there's nothing to configure here, just disclose. */
-function TelemetrySection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-
-  return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.telemetrySectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.telemetrySectionDescription")}
-      </Text>
-    </View>
-  );
-}
-
-/** Attribution/provenance section (wave brief point 3: "CC BY 4.0
- * attribution note ... added to the Settings about/provenance section").
- * Text-only — the event-detail source citation (app/event/[id].tsx) already
- * names the specific network per event; this section is the one place that
- * names ALL providers (USGS, EMSC, GEOFON/GFZ) and their shared license up
- * front. */
-function DataSourcesSection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-
-  return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.dataSourcesSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.dataSourcesSectionDescription")}
-      </Text>
+      ) : null}
     </View>
   );
 }
@@ -653,60 +497,11 @@ function HomeBaseSection() {
   );
 }
 
-function LocationPermissionSection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-  const status = useLocationPermissionStatus();
-
-  const statusText =
-    status === "granted"
-      ? t("settings.locationStatusGranted")
-      : status === "denied"
-        ? t("settings.locationStatusDenied")
-        : t("settings.locationStatusUndetermined");
-
-  return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.locationSectionTitle")}
-      </Text>
-      <View style={styles.spaceBetweenRow}>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-          }}
-        >
-          {statusText}
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => void Linking.openSettings()}
-          hitSlop={12}
-        >
-          <Text
-            style={{
-              color: colors.text.link,
-              fontSize: typography.labelButton.fontSize,
-              fontWeight: typography.labelButton.fontWeight,
-            }}
-          >
-            {t("settings.openSystemSettings")}
-          </Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
+/** Owner feedback (wave brief Part 3): "Replay onboarding" alone confused
+ * him ("I am not sure what this is"). Adds the description line every
+ * other section here already has, explaining what the row does before the
+ * user taps it — the row's own label and the confirm-dialog copy are
+ * otherwise unchanged. */
 function OnboardingSection() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -735,6 +530,15 @@ function OnboardingSection() {
       >
         {t("settings.onboardingSectionTitle")}
       </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("settings.onboardingSectionDescription")}
+      </Text>
       <Pressable
         accessibilityRole="button"
         onPress={handleReplay}
@@ -749,6 +553,78 @@ function OnboardingSection() {
           {t("settings.replayOnboarding")}
         </Text>
       </Pressable>
+    </View>
+  );
+}
+
+/** Owner directive (wave brief Part 3): replaces the previous separate
+ * "Data sources" and "Anonymous app-launch signal" sections with one short
+ * footer — about blurb, a link to the full privacy policy (preserving the
+ * telemetry disclosure the removed paragraph used to carry, just one tap
+ * further away), the CC BY 4.0 attribution the EMSC/GEOFON license
+ * requires, a trademark line, and the real app version.
+ * [REVIEW copy]: `footerAbout` wording is the owner's own draft from the
+ * wave brief, used verbatim — flagging per his "mark it so he can veto"
+ * instruction. */
+function FooterSection() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const appVersion = Constants.expoConfig?.version ?? "";
+
+  return (
+    <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyMeta.fontSize,
+          lineHeight: typography.bodyMeta.lineHeight,
+        }}
+      >
+        {t("settings.footerAbout")}
+      </Text>
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
+        hitSlop={12}
+      >
+        <Text
+          style={{
+            color: colors.text.link,
+            fontSize: typography.labelButton.fontSize,
+            fontWeight: typography.labelButton.fontWeight,
+          }}
+        >
+          {t("settings.footerPrivacyLink")}
+        </Text>
+      </Pressable>
+      <Text
+        style={{
+          color: colors.text.tertiary,
+          fontSize: typography.bodyMeta.fontSize,
+          lineHeight: typography.bodyMeta.lineHeight,
+        }}
+      >
+        {t("settings.footerAttribution")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.tertiary,
+          fontSize: typography.bodyMeta.fontSize,
+          lineHeight: typography.bodyMeta.lineHeight,
+        }}
+      >
+        {t("settings.footerTrademark")}
+      </Text>
+      {appVersion ? (
+        <Text
+          style={{
+            color: colors.text.tertiary,
+            fontSize: typography.bodyMeta.fontSize,
+          }}
+        >
+          {t("settings.footerVersion", { version: appVersion })}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -768,9 +644,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  },
-  permissionRow: {
-    borderWidth: 1,
-    borderRadius: 10,
   },
 });
