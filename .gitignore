@@ -54,3 +54,9 @@ netlify-dist/
 public/maplibre-gl-worker.mjs
 public/maplibre-gl-shared.mjs
 public/mapbox-gl-rtl-text.js
+
+# Cached raw Overpass API response for scripts/build-kurdish-places.mjs —
+# large (~5MB), regenerable on demand, never committed. The BUILT dataset
+# (src/features/geo/data/kurdish-places-*.json) is committed; only the raw
+# fetch cache is not.
+scripts/.cache/

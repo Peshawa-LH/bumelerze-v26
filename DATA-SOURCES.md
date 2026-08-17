@@ -200,6 +200,41 @@ on a dataset is worse than none.
   to the *data*; map tiles rendered from it are subject to the tile provider's
   own terms above.
 
+### Kurdish place names dataset (own-labels, derived extract of OpenStreetMap)
+
+- **What it is:** neither OpenFreeMap's nor MapTiler's OpenMapTiles-schema
+  vector tiles carry a Sorani (`name:ckb`) field at all, so below the dozen
+  hand-checked cities in the bundled gazetteer (`src/features/geo/gazetteer.ts`),
+  the map had no real Kurdish place names. OpenStreetMap itself does carry
+  `name:ckb` and often `name:ku` (Kurmanji) tags, contributed by Kurdish
+  mappers — `scripts/build-kurdish-places.mjs` queries the public Overpass API
+  for cities/towns/suburbs/villages/hamlets in the app's own `REGION_BBOX`
+  carrying one of `name:ckb`/`name:ku`/`name:ar`, dedups node/way duplicates,
+  and tiers the result into two bundled JSON assets:
+  `src/features/geo/data/kurdish-places-core.json` (tier 1-2: city/town/suburb)
+  and `kurdish-places-villages.json` (tier 3: village/hamlet, loaded lazily by
+  the web map). Rendered by `src/features/map/own-labels.ts`.
+- **Terms:** this is a derived extract of OpenStreetMap data, so it is
+  covered by the same **Open Database License (ODbL) 1.0** as the parent
+  OpenStreetMap entry above. ODbL's share-alike term means this SPECIFIC
+  extracted dataset (the two JSON files, not the app as a whole) is itself
+  offered under ODbL — it is not relicensed just because it ships inside this
+  repository.
+- **Required attribution:** © OpenStreetMap contributors.
+- **Displayed in-app:** the own-labels GeoJSON source carries this credit as
+  its own `attribution` string (`OWN_LABELS_ATTRIBUTION` in `own-labels.ts`),
+  collected automatically by the same `AttributionControl` the basemap's own
+  attribution feeds into — no separate hand-typed credit line to keep in
+  sync.
+- **Data-quality note, not a licence issue:** the build script rejects a
+  `name:ku` value that is Arabic-script (Kurmanji is written in Latin script;
+  a small share of `name:ku` tags in the source data — concentrated on small
+  villages south of Baghdad, well outside any Kurdish-populated area — are
+  copy-paste/import mistakes, not real Kurmanji) and a `name:ckb` value with
+  no Arabic-script characters at all. Rejected values are dropped, not
+  guessed at; see the script's own doc comment for the exact counts from the
+  most recent run.
+
 ## 5. Site and terrain data
 
 ### Terrain hillshade: AWS Open Data "Terrain Tiles"

@@ -19,10 +19,10 @@ import {
   useWorldEvents,
   type Event,
 } from "@/features/events";
-import { placeLine } from "@/features/geo";
+import { parseKurdishPlaces, placeLine, type KurdishPlace } from "@/features/geo";
 import {
   buildArabicNameTextField,
-  buildOwnLabelFeatureCollection,
+  buildMergedOwnLabelFeatureCollection,
   buildOwnLabelsLayer,
   buildOwnLabelsSource,
   buildRegionMarkers,
@@ -36,6 +36,7 @@ import {
   findHillshadeBeforeLayerId,
   findNameLabelLayerIds,
   getConfiguredMapTilerKey,
+  KURDISH_PLACES_CORE,
   MAP_FIT_BOUNDS_PADDING_PX,
   MAP_RTL_TEXT_PLUGIN_URL,
   MAP_WORKER_URL,
@@ -61,6 +62,37 @@ import {
   type MapStyleProviderId,
 } from "@/features/map";
 import { useTheme } from "@/theme";
+
+/**
+ * Lazily loads the tier-3 (village/hamlet) Kurdish-places dataset — by far
+ * the largest slice of `@/features/geo/data/kurdish-places-villages.json`
+ * (own-labels.ts's module doc comment) — via a dynamic `import()`, the same
+ * "not paid for until the Map tab is actually opened" pattern this file
+ * already uses for `maplibre-gl` itself just below. A module-scope
+ * singleton promise: the underlying `import()` only ever runs once per app
+ * session (subsequent calls, e.g. a later locale/style switch, resolve
+ * from the already-settled promise instantly) — Metro's own module cache
+ * would make a second `import()` of the same specifier resolve instantly
+ * anyway, but caching the promise itself also avoids a second
+ * `parseKurdishPlaces` zod pass over ~5,600 records for no reason.
+ *
+ * Handles both possible resolved-module shapes defensively: Jest (via
+ * `babel-plugin-dynamic-import-node`, see babel.config.js) resolves a
+ * dynamic `import()` of a `.json` file to the bare parsed array (CJS
+ * `require` semantics), while Metro's real ESM-interop dynamic import
+ * resolves to a module namespace object whose `.default` is that same
+ * array — `Array.isArray` distinguishes the two without needing separate
+ * test-only vs. production code paths.
+ */
+let kurdishVillagesPromise: Promise<KurdishPlace[]> | null = null;
+function loadKurdishVillagePlaces(): Promise<KurdishPlace[]> {
+  kurdishVillagesPromise ??=
+    import("@/features/geo/data/kurdish-places-villages.json").then((mod: unknown) => {
+      const raw = Array.isArray(mod) ? mod : (mod as { default?: unknown }).default;
+      return parseKurdishPlaces(raw);
+    });
+  return kurdishVillagesPromise;
+}
 
 /**
  * Requests MapLibre's RTL text-shaping plugin — MUST run before `new
@@ -139,6 +171,7 @@ function primeTerrainAndLabelCache(
   scheme: "light" | "dark",
   locale: string,
   originalTextFields: Map<string, unknown>,
+  kurdishPlaces: readonly KurdishPlace[],
 ): void {
   const style = map.getStyle();
   if (!style) {
@@ -160,7 +193,9 @@ function primeTerrainAndLabelCache(
   const ownLabelsFont = resolveOwnLabelsFont(map, nameLabelLayerIds);
   map.addSource(
     OWN_LABELS_SOURCE_ID,
-    buildOwnLabelsSource(buildOwnLabelFeatureCollection(locale, REGION_BBOX)),
+    buildOwnLabelsSource(
+      buildMergedOwnLabelFeatureCollection(locale, REGION_BBOX, undefined, kurdishPlaces),
+    ),
   );
   map.addLayer(buildOwnLabelsLayer(scheme, ownLabelsFont));
 }
@@ -200,6 +235,26 @@ function applyLocaleLabels(
       useArabicNames ? buildArabicNameTextField() : originalTextField,
     );
   });
+}
+
+/** Rebuilds the own-labels source's GeoJSON data from whatever's currently
+ * in `kurdishPlacesRef` (core-only, or core+villages once the lazy load
+ * has resolved) for `locale`, and pushes it into the live map via
+ * `GeoJSONSource.setData` — the single place both the villages-resolved
+ * callback and the locale-switch effect below push a refresh through, so
+ * the two can never build the merged collection differently. No-ops
+ * quietly if `map` is `null` or the source isn't there yet (map torn
+ * down/not yet loaded) rather than throwing from an async callback. */
+function refreshOwnLabelsSource(
+  map: MapLibreMap | null,
+  locale: string,
+  kurdishPlaces: readonly KurdishPlace[],
+): void {
+  const ownLabelsSource = map?.getSource(OWN_LABELS_SOURCE_ID) as
+    GeoJSONSource | undefined;
+  ownLabelsSource?.setData(
+    buildMergedOwnLabelFeatureCollection(locale, REGION_BBOX, undefined, kurdishPlaces),
+  );
 }
 
 /**
@@ -252,7 +307,8 @@ export default function MapScreenWeb() {
   // — used below as the date filter's "now" edge INSTEAD OF a plain
   // `Date.now()` read (see `dateBounds`'s comment for why that would be a
   // real bug here, not just a style nit).
-  const scopedDataUpdatedAt = scope === "world" ? worldDataUpdatedAt : regionDataUpdatedAt;
+  const scopedDataUpdatedAt =
+    scope === "world" ? worldDataUpdatedAt : regionDataUpdatedAt;
 
   // Magnitude/date filters (§4.4) — `null` means "no custom selection yet,
   // use the scope's current full bounds" (computed below), so the filter
@@ -308,7 +364,11 @@ export default function MapScreenWeb() {
 
   const filteredEvents = useMemo(
     () =>
-      filterEventsByMagnitudeAndDate(scopedEvents, effectiveMagnitudeRange, effectiveDateRange),
+      filterEventsByMagnitudeAndDate(
+        scopedEvents,
+        effectiveMagnitudeRange,
+        effectiveDateRange,
+      ),
     [scopedEvents, effectiveMagnitudeRange, effectiveDateRange],
   );
 
@@ -321,6 +381,17 @@ export default function MapScreenWeb() {
   useEffect(() => {
     routerRef.current = router;
   }, [router]);
+
+  // Same "closure captured a value at effect-setup time, but needs the
+  // LATEST one when an async callback actually resolves" concern as
+  // `routerRef` above — `loadKurdishVillagePlaces()`'s `.then` (the "load"
+  // handler below) fires whenever the network resolves, which may be well
+  // after a locale switch, so it reads `i18nRef.current.language` rather
+  // than closing over `i18n.language` from when the map was created.
+  const i18nRef = useRef(i18n);
+  useEffect(() => {
+    i18nRef.current = i18n;
+  }, [i18n]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -355,6 +426,14 @@ export default function MapScreenWeb() {
   // locale switches (`applyLocaleLabels`) can restore the non-Arabic-script
   // default exactly instead of reconstructing it.
   const originalTextFieldsRef = useRef<Map<string, unknown>>(new Map());
+  // Kurdish-places dataset currently available to the own-labels layer —
+  // starts at `KURDISH_PLACES_CORE` (small, always bundled, tier 1-2 only)
+  // and grows to include the lazily-`import()`ed tier-3 village dataset
+  // once `loadKurdishVillagePlaces` resolves (the "load" handler below).
+  // Read by every own-labels (re)build (initial load, locale switch, style
+  // swap) so villages show up in whichever of those happens to run first
+  // AFTER the lazy load resolves, without a separate dedicated effect.
+  const kurdishPlacesRef = useRef<readonly KurdishPlace[]>(KURDISH_PLACES_CORE);
 
   const [isFocused, setIsFocused] = useState(false);
   const [loadState, setLoadState] = useState<"idle" | "loading" | "ready" | "error">(
@@ -460,9 +539,34 @@ export default function MapScreenWeb() {
             scheme,
             i18n.language,
             originalTextFieldsRef.current,
+            kurdishPlacesRef.current,
           );
           applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
           setLoadState("ready");
+
+          // Kick off the lazy tier-3 (village) load now that the map has
+          // something to show already (`KURDISH_PLACES_CORE`, primed just
+          // above) — once it resolves, merge it in and refresh the
+          // already-live source via `setData` rather than waiting for a
+          // locale/style change to pick it up.
+          loadKurdishVillagePlaces()
+            .then((villages) => {
+              if (cancelled) {
+                return;
+              }
+              kurdishPlacesRef.current = [...KURDISH_PLACES_CORE, ...villages];
+              refreshOwnLabelsSource(
+                mapRef.current,
+                i18nRef.current.language,
+                kurdishPlacesRef.current,
+              );
+            })
+            .catch(() => {
+              // Villages are a progressive enhancement over the always-
+              // present core dataset — a failed/offline lazy load leaves
+              // the map exactly as usable as before this wave, never an
+              // error state of its own.
+            });
         });
         // Style/tile load failures (offline, DNS down, etc.) surface here —
         // "if tiles fail/offline show the standard offline state pattern"
@@ -514,21 +618,20 @@ export default function MapScreenWeb() {
   // takes effect on an already-showing map, mirroring how a style-provider
   // change would be handled (re-set the affected layout property) rather
   // than reloading the whole style. Also refreshes the own-labels source's
-  // GeoJSON data (`GeoJSONSource.setData`, NOT `setLayoutProperty` — our
-  // layer's `text-field` is the static `["get","label"]` expression;
-  // what changes per locale is each feature's `label` PROPERTY VALUE,
-  // rebuilt by `buildOwnLabelFeatureCollection`) so gazetteer city labels
-  // switch language too, not just the basemap's own name fields.
+  // GeoJSON data via `refreshOwnLabelsSource` (`GeoJSONSource.setData`, NOT
+  // `setLayoutProperty` — our layer's `text-field` is the static
+  // `["get","label"]` expression; what changes per locale is each
+  // feature's `label` PROPERTY VALUE) so gazetteer AND Kurdish-places
+  // labels switch language too, not just the basemap's own name fields —
+  // `kurdishPlacesRef.current` carries whichever of core-only/core+villages
+  // is currently loaded, same as every other own-labels rebuild.
   useEffect(() => {
     const map = mapRef.current;
     if (loadState !== "ready" || !map) {
       return;
     }
     applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
-    const ownLabelsSource = map.getSource(OWN_LABELS_SOURCE_ID) as
-      | GeoJSONSource
-      | undefined;
-    ownLabelsSource?.setData(buildOwnLabelFeatureCollection(i18n.language, REGION_BBOX));
+    refreshOwnLabelsSource(map, i18n.language, kurdishPlacesRef.current);
   }, [loadState, i18n.language]);
 
   // Tears down a broken map instance on unmount too — belt-and-braces
@@ -614,7 +717,13 @@ export default function MapScreenWeb() {
       // earlier session's automatic fallback.
       fallbackAttemptedRef.current = false;
       map.once("style.load", () => {
-        primeTerrainAndLabelCache(map, scheme, i18n.language, originalTextFieldsRef.current);
+        primeTerrainAndLabelCache(
+          map,
+          scheme,
+          i18n.language,
+          originalTextFieldsRef.current,
+          kurdishPlacesRef.current,
+        );
         applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
       });
       map.setStyle(resolved.url);
