@@ -59,6 +59,13 @@ export interface NotableHistoricalEvent {
   placeName: string;
   /** Suffix into `historical.notes.*` in the i18n catalogs. */
   noteKey: string;
+  /** Optional `placeLine`'s `placeNameKey` override — only set for events
+   * beyond `NEAREST_CITY_FALLBACK_THRESHOLD_KM` from every gazetteer city
+   * (today: the 2023 Kahramanmaraş doublet, ~450-590 km away), where
+   * `placeLine` would otherwise fall back to the raw English `placeName`
+   * above. Suffix into `historical.places.*` in the i18n catalogs
+   * (update-plan-2026-08.md §1.4 — no English leakage on this screen). */
+  placeNameKey?: string;
 }
 
 /**
@@ -176,6 +183,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
     lon: 37.0143,
     placeName: "Pazarcık, Kahramanmaraş, Türkiye",
     noteKey: "pazarcik2023",
+    placeNameKey: "historical.places.pazarcik2023",
   },
   {
     id: "us6000jlqa",
@@ -187,6 +195,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
     lon: 37.1962,
     placeName: "Elbistan, Kahramanmaraş, Türkiye",
     noteKey: "elbistan2023",
+    placeNameKey: "historical.places.elbistan2023",
   },
 ] as const;
 
