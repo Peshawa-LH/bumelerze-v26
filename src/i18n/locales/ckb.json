@@ -80,6 +80,7 @@
     "magnitudeDisplay": "{{value}} پلە",
     "dateTemplate": "{{day}}ی {{month}}ی {{year}}، {{time}}",
     "timeTemplate": "{{time}} {{period}}",
+    "dateOnlyTemplate": "{{day}}ی {{month}}ی {{year}}",
     "offlineBanner": "تۆ ئۆفلاینیت. ڕووداوەکان لە {{time}}ەوە پیشان دەدرێن",
     "offlineAnnouncement": "تۆ ئۆفلاینیت. دوایین ڕووداوە پاشەکەوتکراوەکان پیشان دەدرێن.",
     "errorTitle": "نەتوانرا ڕووداوە نوێیەکان باربکرێن",
@@ -174,7 +175,41 @@
     "loading": "نەخشە باردەکرێت…",
     "offlineTitle": "نەخشە دەرهێڵ بەردەست نییە",
     "offlineDescription": "پەیوەندییەکەت بپشکنە و دووبارە هەوڵ بدەرەوە.",
-    "retry": "دووبارە هەوڵدانەوە"
+    "retry": "دووبارە هەوڵدانەوە",
+    "scope": {
+      "kurdistan": "کوردستان",
+      "world": "جیهان",
+      "a11yLabel": "مەوداى نەخشە: کوردستان یان جیهان"
+    },
+    "filters": {
+      "title": "پاڵاوتن",
+      "expandA11yHint": "پاڵاوتنی بەهێزی و بەروار پیشان بدە",
+      "collapseA11yHint": "پاڵاوتنی بەهێزی و بەروار بشارەوە",
+      "summary": "{{magMin}}–{{magMax}} پلە · {{days}} ڕۆژ",
+      "summaryAllTime": "{{magMin}}–{{magMax}} پلە · هەموو ڕووداوەکان",
+      "magnitudeLabel": "بەهێزی",
+      "magnitudeMinA11yLabel": "کەمترین بەهێزی",
+      "magnitudeMaxA11yLabel": "زۆرترین بەهێزی",
+      "magnitudeRangeValue": "{{min}}–{{max}} پلە",
+      "dateLabel": "بەروار",
+      "dateMinA11yLabel": "زووترین بەروار",
+      "dateMaxA11yLabel": "دواترین بەروار",
+      "dateRangeValue": "{{start}} – {{end}}",
+      "reset": "ڕیسێت کردنەوە"
+    },
+    "style": {
+      "title": "شێوازی نەخشە",
+      "expandA11yHint": "شێوازێکی نەخشە هەڵبژێرە",
+      "collapseA11yHint": "هەڵبژاردنەکانی شێوازی نەخشە بشارەوە",
+      "outdoor": "دەرەوە",
+      "topo": "پێستی زەوی",
+      "hybrid": "پەیکەری تاسیلایتی",
+      "dataviz": "سادە",
+      "openfreemap": "OpenFreeMap"
+    },
+    "attribution": {
+      "maptilerLogoA11yLabel": "MapTiler"
+    }
   },
   "sensor": {
     "title": "سێنسۆر",

@@ -6,7 +6,7 @@ import type {
   Map as MapLibreMap,
   Marker as MapLibreMarker,
 } from "maplibre-gl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +16,7 @@ import {
   formatMagnitudeValue,
   REGION_BBOX,
   useRegionEvents,
+  useWorldEvents,
   type Event,
 } from "@/features/events";
 import { placeLine } from "@/features/geo";
@@ -27,21 +28,36 @@ import {
   buildRegionMarkers,
   buildTerrainDemSource,
   buildTerrainHillshadeLayer,
+  computeDateBoundsMs,
+  computeMagnitudeBounds,
   decideMapErrorAction,
+  DEFAULT_MAP_SCOPE,
+  filterEventsByMagnitudeAndDate,
   findHillshadeBeforeLayerId,
   findNameLabelLayerIds,
+  getConfiguredMapTilerKey,
   MAP_FIT_BOUNDS_PADDING_PX,
   MAP_RTL_TEXT_PLUGIN_URL,
   MAP_WORKER_URL,
+  MapFilterPanel,
   MARKER_HIT_PADDING_PX,
+  MapStylePicker,
+  MapTilerAttributionLogo,
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_SOURCE_ID,
   regionBboxToLngLatBounds,
-  resolveMapStyle,
+  resolveCatalogMapStyle,
+  ScopeToggle,
   shouldLocalizeToArabicScript,
   shouldRequestRTLTextPlugin,
   styleHasRasterDemSource,
   TERRAIN_DEM_SOURCE_ID,
+  useMapPreferencesStore,
+  WORLD_VIEW_BBOX,
+  type DateRangeMs,
+  type MagnitudeRange,
+  type MapScope,
+  type MapStyleCatalogId,
   type MapStyleProviderId,
 } from "@/features/map";
 import { useTheme } from "@/theme";
@@ -213,7 +229,88 @@ export default function MapScreenWeb() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const { events } = useRegionEvents();
+  const { events: regionEvents, dataUpdatedAt: regionDataUpdatedAt } = useRegionEvents();
+  const { events: worldEvents, dataUpdatedAt: worldDataUpdatedAt } = useWorldEvents();
+
+  // Persisted basemap style pick (update-plan-2026-08.md §4.3/Part 3:
+  // "Persist his choice locally so it survives reloads") — selectors, not
+  // the whole store, matching this app's established zustand-consumption
+  // convention (`usePrefsStore` call sites elsewhere).
+  const styleId = useMapPreferencesStore((state) => state.styleId);
+  const setStyleId = useMapPreferencesStore((state) => state.setStyleId);
+  const hasStyleHydrated = useMapPreferencesStore((state) => state.hasHydrated);
+
+  // Kurdistan/World scope (§4.1) — Kurdistan default (region-first
+  // principle, D11/D26). Switching scope also resets any active
+  // magnitude/date filter selection back to "full range" (below) so a
+  // filter narrowed against one scope's data never silently misapplies to
+  // the other scope's very different natural distribution (World is
+  // M4.5+/7 days; Kurdistan is the full region pool).
+  const [scope, setScope] = useState<MapScope>(DEFAULT_MAP_SCOPE);
+  const scopedEvents = scope === "world" ? worldEvents : regionEvents;
+  // React Query's own fetch-success timestamp for whichever feed is active
+  // — used below as the date filter's "now" edge INSTEAD OF a plain
+  // `Date.now()` read (see `dateBounds`'s comment for why that would be a
+  // real bug here, not just a style nit).
+  const scopedDataUpdatedAt = scope === "world" ? worldDataUpdatedAt : regionDataUpdatedAt;
+
+  // Magnitude/date filters (§4.4) — `null` means "no custom selection yet,
+  // use the scope's current full bounds" (computed below), so the filter
+  // never hides anything until the user actually drags a handle.
+  const [magnitudeRange, setMagnitudeRange] = useState<MagnitudeRange | null>(null);
+  const [dateRange, setDateRange] = useState<DateRangeMs | null>(null);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [styleExpanded, setStyleExpanded] = useState(false);
+
+  const handleScopeChange = useCallback((nextScope: MapScope) => {
+    setScope(nextScope);
+    setMagnitudeRange(null);
+    setDateRange(null);
+  }, []);
+
+  const handleResetFilters = useCallback(() => {
+    setMagnitudeRange(null);
+    setDateRange(null);
+  }, []);
+
+  // Recomputed whenever the scoped event pool changes (a new 60s poll, or a
+  // scope switch) — deliberately NOT frozen at scope-switch time, so the
+  // date bound's "now" edge and the magnitude bound both keep tracking
+  // fresh data for an untouched (`null`) selection. An explicit user
+  // selection (non-null) is unaffected by this recompute; only
+  // `handleScopeChange`/`handleResetFilters` above clear it.
+  const magnitudeBounds = useMemo(
+    () => computeMagnitudeBounds(scopedEvents),
+    [scopedEvents],
+  );
+  // "Now" for the date filter's upper bound — deliberately `scopedDataUpdatedAt`
+  // (React Query's own last-successful-fetch timestamp for the active feed),
+  // NOT a plain `Date.now()` read in the render body. Unlike
+  // `EventListScreen.tsx`'s own `now` (fine there — it only feeds JSX text
+  // directly), this value feeds `dateBounds`'s `useMemo` dependency array
+  // below, which itself feeds `filteredEvents` and the marker-rebuild
+  // effect: a render-time value that differs on literally every render
+  // (even ones caused by something unrelated, like toggling the style
+  // panel) would defeat that memoization entirely and rebuild every marker
+  // on every unrelated re-render — confirmed the hard way while building
+  // this (`map-web-filters.test.tsx`'s early failures traced to exactly
+  // this). `dataUpdatedAt` only actually changes when the feed genuinely
+  // refetches (each ~60s poll, or a scope switch reading the other feed's
+  // value), which is also the semantically correct "now" for a
+  // just-fetched dataset — and it's a plain number already sitting in
+  // React Query's state, not an impure call at all.
+  const dateBounds = useMemo(
+    () => computeDateBoundsMs(scopedEvents, scopedDataUpdatedAt),
+    [scopedEvents, scopedDataUpdatedAt],
+  );
+  const effectiveMagnitudeRange = magnitudeRange ?? magnitudeBounds;
+  const effectiveDateRange = dateRange ?? dateBounds;
+
+  const filteredEvents = useMemo(
+    () =>
+      filterEventsByMagnitudeAndDate(scopedEvents, effectiveMagnitudeRange, effectiveDateRange),
+    [scopedEvents, effectiveMagnitudeRange, effectiveDateRange],
+  );
 
   // Kept as a ref (synced via effect, never written during render — the
   // React Compiler's react-hooks/refs rule forbids ref writes in render) so
@@ -242,6 +339,12 @@ export default function MapScreenWeb() {
   // worth falling back from, or an OpenFreeMap failure that's just the
   // genuine offline/error state (`decideMapErrorAction`).
   const activeProviderRef = useRef<MapStyleProviderId>("openfreemap");
+  // Render-visible twin of `activeProviderRef` — the ref is what closures
+  // (the "error" handler, `decideMapErrorAction`) read synchronously;
+  // this state is what JSX reads to decide whether the MapTiler
+  // attribution logo (Part 4) should show. Always written alongside the
+  // ref, never instead of it.
+  const [activeProvider, setActiveProvider] = useState<MapStyleProviderId>("openfreemap");
   // One-shot MapTiler→OpenFreeMap runtime fallback latch (style-provider.ts
   // doc comment: "never loops"). Reset on a user-initiated retry
   // (`handleRetry`) so a manual retry gets a fresh shot at MapTiler rather
@@ -268,12 +371,18 @@ export default function MapScreenWeb() {
     }, []),
   );
 
-  // Creates the map exactly once, the first time the tab is focused. Not
-  // re-run on scheme change — the style URL is only read at creation time
-  // this wave (flipping OS theme mid-session won't hot-swap the basemap;
-  // a small, deliberate scope cut, not a bug).
+  // Creates the map exactly once, the first time the tab is focused (and
+  // once the persisted style preference has hydrated — see
+  // `useMapPreferencesStore`'s doc comment: without this gate, a returning
+  // user with a non-default style saved would briefly build the map with
+  // the `outdoor` default before their real pick loads). Not re-run on
+  // scheme change — the style URL is only read at creation time this wave
+  // (flipping OS theme mid-session won't hot-swap the basemap; a small,
+  // deliberate scope cut, not a bug). Later user-driven style PICKS (the
+  // `MapStylePicker` control) go through `handleStyleChange` below, which
+  // live-swaps the existing map instance's style rather than recreating it.
   useEffect(() => {
-    if (!isFocused || creationStartedRef.current) {
+    if (!isFocused || !hasStyleHydrated || creationStartedRef.current) {
       return;
     }
     if (!containerRef.current) {
@@ -290,13 +399,18 @@ export default function MapScreenWeb() {
 
     // A prior instance's runtime fallback (see the "error" handler below)
     // forces OpenFreeMap for every subsequent (re)creation until
-    // `handleRetry` resets the latch — `resolveMapStyle` reads
-    // `EXPO_PUBLIC_MAPTILER_KEY` itself, so no key is threaded through here.
-    const { provider, url: styleUrl } = resolveMapStyle(
+    // `handleRetry` resets the latch — `resolveCatalogMapStyle` is handed
+    // the MapTiler key explicitly (unlike the old single-family
+    // `resolveMapStyle`, since this catalog-aware resolver has no built-in
+    // env read of its own — see `style-catalog.ts`).
+    const { provider, url: styleUrl } = resolveCatalogMapStyle(
+      styleId,
       scheme,
+      getConfiguredMapTilerKey(),
       fallbackAttemptedRef.current ? "openfreemap" : undefined,
     );
     activeProviderRef.current = provider;
+    setActiveProvider(provider);
 
     import("maplibre-gl")
       .then((module) => {
@@ -391,8 +505,8 @@ export default function MapScreenWeb() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `scheme` and `i18n.language` are only read once at creation/load time here (the dedicated locale-reactive effect below handles later changes); `retryTick` is the deliberate re-run trigger for handleRetry/the fallback path
-  }, [isFocused, retryTick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `scheme`, `i18n.language`, and `styleId` are only read once at creation/hydration time here (the dedicated locale-reactive effect below handles later locale changes; `handleStyleChange` handles later user style picks by live-swapping the existing map, not by recreating it); `retryTick` is the deliberate re-run trigger for handleRetry/the fallback path
+  }, [isFocused, hasStyleHydrated, retryTick]);
 
   // Re-applies label localization whenever the active locale changes, using
   // the ORIGINAL text-field cache `primeTerrainAndLabelCache` populated at
@@ -445,9 +559,76 @@ export default function MapScreenWeb() {
     setRetryTick((tick) => tick + 1);
   }, []);
 
-  // Rebuilds the marker layer whenever the map becomes ready or the region
-  // feed refetches (every 60s while foregrounded, queries.ts) — cheap at
-  // this event volume (30-day regional window, low hundreds at most).
+  // Re-fits the viewport whenever the SCOPE actually changes (Kurdistan ⇄
+  // World, §4.1) — guarded by `previousScopeRef` so this never re-fits on
+  // every render, only on a genuine scope switch; the map's own initial
+  // `bounds` constructor option already frames Kurdistan on first load, so
+  // the very first "ready" transition (scope still at its initial value)
+  // correctly does nothing here.
+  const previousScopeRef = useRef<MapScope>(scope);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (loadState !== "ready" || !map || previousScopeRef.current === scope) {
+      return;
+    }
+    previousScopeRef.current = scope;
+    const bounds =
+      scope === "world"
+        ? regionBboxToLngLatBounds(WORLD_VIEW_BBOX)
+        : regionBboxToLngLatBounds(REGION_BBOX);
+    map.fitBounds(bounds, { padding: MAP_FIT_BOUNDS_PADDING_PX });
+  }, [scope, loadState]);
+
+  // Live basemap style swap (§4.3/Part 3) — `map.setStyle` on the EXISTING
+  // map instance (never recreates it, unlike the initial-load path above),
+  // so the current viewport/zoom/markers are untouched. `setStyle` DOES
+  // wipe every source/layer WE added (terrain hillshade, own-labels,
+  // locale-relabeled basemap layers) — MapLibre fires `"style.load"` once
+  // the new style finishes loading, and `primeTerrainAndLabelCache`/
+  // `applyLocaleLabels` re-run against it there, the exact same functions
+  // (and exact same idempotent "inspect the ACTIVE style, decide what it
+  // needs" logic) the initial `"load"` handler above already uses — no
+  // separate re-application code path to keep in sync. Markers are
+  // deliberately NOT rebuilt here: maplibre-gl `Marker` instances are DOM
+  // overlays independent of the style/source system `setStyle` replaces
+  // (verified against the installed maplibre-gl 6.x's own behavior), so
+  // they simply keep rendering on top of the new tiles with zero extra
+  // code — confirmed by this file's own style-swap tests
+  // (`map-web-style-picker.test.tsx`).
+  const handleStyleChange = useCallback(
+    (nextStyleId: MapStyleCatalogId) => {
+      setStyleId(nextStyleId);
+      const map = mapRef.current;
+      if (!map) {
+        return;
+      }
+      const resolved = resolveCatalogMapStyle(
+        nextStyleId,
+        scheme,
+        getConfiguredMapTilerKey(),
+      );
+      activeProviderRef.current = resolved.provider;
+      setActiveProvider(resolved.provider);
+      // A fresh, explicit user pick deserves a fresh shot at MapTiler (same
+      // reasoning as `handleRetry`) rather than staying pinned to an
+      // earlier session's automatic fallback.
+      fallbackAttemptedRef.current = false;
+      map.once("style.load", () => {
+        primeTerrainAndLabelCache(map, scheme, i18n.language, originalTextFieldsRef.current);
+        applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
+      });
+      map.setStyle(resolved.url);
+    },
+    [scheme, i18n.language, setStyleId],
+  );
+
+  // Rebuilds the marker layer whenever the map becomes ready, the active
+  // scope/filters change, or the underlying feed refetches (every 60s while
+  // foregrounded, queries.ts) — cheap at this event volume (region/world
+  // pools are low hundreds at most). Unaffected by a basemap style swap
+  // (`handleStyleChange` above): markers are independent DOM overlays, and
+  // neither `loadState` nor `filteredEvents` changes when only the style
+  // does, so this effect correctly does NOT re-run on a style pick.
   useEffect(() => {
     const map = mapRef.current;
     const maplibre = maplibreModuleRef.current;
@@ -458,9 +639,11 @@ export default function MapScreenWeb() {
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    const eventById = new Map<string, Event>(events.map((event) => [event.id, event]));
+    const eventById = new Map<string, Event>(
+      filteredEvents.map((event) => [event.id, event]),
+    );
 
-    for (const marker of buildRegionMarkers(events)) {
+    for (const marker of buildRegionMarkers(filteredEvents)) {
       const sourceEvent = eventById.get(marker.id);
       const magnitudeLabel = t("events.magnitudeA11yLabel", {
         value: formatMagnitudeValue(marker.magnitudeValue, i18n.language),
@@ -507,7 +690,7 @@ export default function MapScreenWeb() {
         .addTo(map);
       markersRef.current.push(markerInstance);
     }
-  }, [loadState, events, colors, t, i18n.language]);
+  }, [loadState, filteredEvents, colors, t, i18n.language]);
 
   const showOverlayLoading = loadState === "idle" || loadState === "loading";
 
@@ -543,6 +726,40 @@ export default function MapScreenWeb() {
             bundles entirely) — MapLibre needs a real DOM node to attach its
             canvas to, so this is a plain DOM element rather than an RN View. */}
         <div ref={containerRef} style={mapContainerStyle} />
+
+        {loadState === "ready" ? (
+          <View
+            style={[styles.controlsRow, { padding: spacing[3] }]}
+            pointerEvents="box-none"
+          >
+            <ScopeToggle value={scope} onChange={handleScopeChange} />
+            <View style={[styles.controlsColumn, { gap: spacing[2] }]}>
+              <MapFilterPanel
+                magnitudeBounds={magnitudeBounds}
+                magnitudeRange={effectiveMagnitudeRange}
+                onMagnitudeRangeChange={setMagnitudeRange}
+                dateBounds={dateBounds}
+                dateRange={effectiveDateRange}
+                onDateRangeChange={setDateRange}
+                onReset={handleResetFilters}
+                expanded={filtersExpanded}
+                onToggleExpanded={() => setFiltersExpanded((current) => !current)}
+              />
+              <MapStylePicker
+                value={styleId}
+                onChange={handleStyleChange}
+                expanded={styleExpanded}
+                onToggleExpanded={() => setStyleExpanded((current) => !current)}
+              />
+            </View>
+          </View>
+        ) : null}
+
+        {loadState === "ready" && activeProvider === "maptiler" ? (
+          <View style={styles.attributionLogo} pointerEvents="box-none">
+            <MapTilerAttributionLogo />
+          </View>
+        ) : null}
 
         {loadState === "error" ? (
           <View
@@ -672,5 +889,22 @@ const styles = StyleSheet.create({
   offlineRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  controlsRow: {
+    position: "absolute",
+    top: 0,
+    start: 0,
+    end: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  controlsColumn: {
+    alignItems: "flex-end",
+  },
+  attributionLogo: {
+    position: "absolute",
+    bottom: 0,
+    end: 0,
   },
 });

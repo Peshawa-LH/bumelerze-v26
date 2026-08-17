@@ -2,6 +2,7 @@ import i18n from "@/i18n";
 import {
   formatAbsoluteDual,
   formatCoordinates,
+  formatDateOnly,
   formatDepthKm,
   formatDistanceKm,
   formatIsolatedDistance,
@@ -174,6 +175,33 @@ describe("formatAbsoluteDual", () => {
 
     expect(utc.endsWith("UTC")).toBe(true);
     expect(local.endsWith("UTC")).toBe(false);
+  });
+});
+
+describe("formatDateOnly", () => {
+  const originTimeMs = Date.UTC(2026, 7, 15, 12, 0, 0);
+  const originalLanguage = i18n.language;
+
+  afterEach(async () => {
+    await i18n.changeLanguage(originalLanguage);
+  });
+
+  it("renders day/month/year with no time-of-day component", async () => {
+    await i18n.changeLanguage("en");
+    const result = formatDateOnly(originTimeMs, "en", i18n.t.bind(i18n));
+
+    expect(result).toBe("Aug 15, 2026");
+    expect(result).not.toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("digit-localizes and orders day-first for Sorani, no stray Latin characters", async () => {
+    await i18n.changeLanguage("ckb");
+    const result = formatDateOnly(originTimeMs, "ckb", i18n.t.bind(i18n));
+
+    expect(result).toContain("١٥");
+    expect(result).toContain("ئاب");
+    expect(result).toContain("٢٠٢٦");
+    expect(/[0-9a-zA-Z]/.test(result)).toBe(false);
   });
 });
 

@@ -80,6 +80,7 @@
     "magnitudeDisplay": "M {{value}}",
     "dateTemplate": "{{month}} {{day}}, {{year}}, {{time}}",
     "timeTemplate": "{{time}} {{period}}",
+    "dateOnlyTemplate": "{{month}} {{day}}, {{year}}",
     "offlineBanner": "You're offline. Showing events from {{time}}",
     "offlineAnnouncement": "You're offline. Showing the last saved events.",
     "errorTitle": "Couldn't load the latest events",
@@ -174,7 +175,41 @@
     "loading": "Loading map…",
     "offlineTitle": "Map unavailable offline",
     "offlineDescription": "Check your connection and try again.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "scope": {
+      "kurdistan": "Kurdistan",
+      "world": "World",
+      "a11yLabel": "Map scope: Kurdistan or worldwide"
+    },
+    "filters": {
+      "title": "Filters",
+      "expandA11yHint": "Show magnitude and date filters",
+      "collapseA11yHint": "Hide magnitude and date filters",
+      "summary": "M{{magMin}}–{{magMax}} · {{days}}d",
+      "summaryAllTime": "M{{magMin}}–{{magMax}} · all events",
+      "magnitudeLabel": "Magnitude",
+      "magnitudeMinA11yLabel": "Minimum magnitude",
+      "magnitudeMaxA11yLabel": "Maximum magnitude",
+      "magnitudeRangeValue": "M{{min}}–{{max}}",
+      "dateLabel": "Date",
+      "dateMinA11yLabel": "Earliest date",
+      "dateMaxA11yLabel": "Latest date",
+      "dateRangeValue": "{{start}} – {{end}}",
+      "reset": "Reset"
+    },
+    "style": {
+      "title": "Map style",
+      "expandA11yHint": "Choose a map style",
+      "collapseA11yHint": "Hide map style options",
+      "outdoor": "Outdoor",
+      "topo": "Topographic",
+      "hybrid": "Satellite",
+      "dataviz": "Minimal",
+      "openfreemap": "OpenFreeMap"
+    },
+    "attribution": {
+      "maptilerLogoA11yLabel": "MapTiler"
+    }
   },
   "sensor": {
     "title": "Sensor",

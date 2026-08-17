@@ -80,6 +80,7 @@
     "magnitudeDisplay": "{{value}} درجة",
     "dateTemplate": "{{day}} {{month}} {{year}}، {{time}}",
     "timeTemplate": "{{time}} {{period}}",
+    "dateOnlyTemplate": "{{day}} {{month}} {{year}}",
     "offlineBanner": "أنت غير متصل. يتم عرض الأحداث منذ {{time}}",
     "offlineAnnouncement": "أنت غير متصل. يتم عرض آخر الأحداث المحفوظة.",
     "errorTitle": "تعذر تحميل أحدث الأحداث",
@@ -174,7 +175,41 @@
     "loading": "جارٍ تحميل الخريطة…",
     "offlineTitle": "الخريطة غير متوفرة دون اتصال",
     "offlineDescription": "تحقق من اتصالك وحاول مرة أخرى.",
-    "retry": "إعادة المحاولة"
+    "retry": "إعادة المحاولة",
+    "scope": {
+      "kurdistan": "كوردستان",
+      "world": "العالم",
+      "a11yLabel": "نطاق الخريطة: كوردستان أو العالم"
+    },
+    "filters": {
+      "title": "المرشحات",
+      "expandA11yHint": "إظهار مرشحات الشدة والتاريخ",
+      "collapseA11yHint": "إخفاء مرشحات الشدة والتاريخ",
+      "summary": "{{magMin}}–{{magMax}} درجة · {{days}} يوم",
+      "summaryAllTime": "{{magMin}}–{{magMax}} درجة · كل الأحداث",
+      "magnitudeLabel": "الشدة",
+      "magnitudeMinA11yLabel": "أقل شدة",
+      "magnitudeMaxA11yLabel": "أعلى شدة",
+      "magnitudeRangeValue": "{{min}}–{{max}} درجة",
+      "dateLabel": "التاريخ",
+      "dateMinA11yLabel": "أقدم تاريخ",
+      "dateMaxA11yLabel": "أحدث تاريخ",
+      "dateRangeValue": "{{start}} – {{end}}",
+      "reset": "إعادة التعيين"
+    },
+    "style": {
+      "title": "نمط الخريطة",
+      "expandA11yHint": "اختر نمط الخريطة",
+      "collapseA11yHint": "إخفاء خيارات نمط الخريطة",
+      "outdoor": "الطبيعة",
+      "topo": "طبوغرافي",
+      "hybrid": "الأقمار الصناعية",
+      "dataviz": "بسيط",
+      "openfreemap": "OpenFreeMap"
+    },
+    "attribution": {
+      "maptilerLogoA11yLabel": "MapTiler"
+    }
   },
   "sensor": {
     "title": "المستشعر",

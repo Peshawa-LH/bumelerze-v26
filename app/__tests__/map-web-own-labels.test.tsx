@@ -29,6 +29,7 @@ import {
   mockSetWorkerUrl,
   mockSourceSetData,
   mockUseRegionEvents,
+  mockUseWorldEvents,
   resetMapWebMocks,
   setMockMapStyleFixture,
   testSafeAreaMetrics,
@@ -55,6 +56,7 @@ jest.mock("@/features/events", () => {
   return {
     ...actual,
     useRegionEvents: () => mockUseRegionEvents(),
+    useWorldEvents: () => mockUseWorldEvents(),
   };
 });
 

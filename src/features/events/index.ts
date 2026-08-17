@@ -48,6 +48,7 @@ export { distanceFromUserKm, haversineDistanceKm, toRadians } from "./distance";
 export {
   formatAbsoluteDual,
   formatCoordinates,
+  formatDateOnly,
   formatDepthKm,
   formatDistanceKm,
   formatIsolatedDistance,
