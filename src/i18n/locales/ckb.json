@@ -524,6 +524,7 @@
       "sectionTitle": "نەخشەی لەرزین",
       "updated": "نوێکراوەتەوە لە {{time}}",
       "citation": "نەخشەی لەرزین: {{producer}}، وەشانی {{version}}",
+      "engineVersion": "ئەنجینی مەترسی، وەشانی {{version}}",
       "legendCaption": "توندی (IMS-25): پێوەری نەخشەی لەرزینی بوومەلەرزە",
       "mapA11yLabel": "نەخشەی لەرزین، بەرزترین توندی {{level}}، نزیک {{place}}",
       "dataUsed": {

@@ -5,7 +5,7 @@ import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/event
 import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
-import { useShakeMap } from "../queries";
+import { useResolvedShakeMap } from "../live-queries";
 import type { DataUsedSummaryKey } from "../types";
 import { ShakeMapView } from "./ShakeMapView";
 
@@ -31,19 +31,30 @@ const DATA_USED_I18N_KEY: Record<DataUsedSummaryKey, string> = {
  * product doesn't exist yet, the ShakeMap section shows nothing — absence
  * over misattribution"). Mounted unconditionally by the screen (between
  * Distance and Source); renders nothing at all for the common
- * no-bundled-product case (wave brief point 3, unchanged) — no loading or
- * offline state exists anymore, since the bundled Atlas lookup
- * (`useShakeMap`) is synchronous and local, never a network fetch.
+ * no-product-at-all case (wave brief point 3, unchanged).
  *
- * The citation line now names OUR OWN producer ("Bumelerze", never
- * "USGS") plus the D21 provenance-as-UI pair: a data-used summary (what
- * conditioned this map, if anything) and a review-status line (automatic
- * vs. scientist-reviewed).
+ * "Closing the last gap" wave: reads `useResolvedShakeMap` (`../live-
+ * queries`) rather than the bundled-only `useShakeMap` directly — that hook
+ * prefers a LIVE `shakemap_products` product when one exists and loaded,
+ * falls back to the build-time bundled Atlas (the 11 curated Historical
+ * events) otherwise, and shows nothing when neither exists
+ * (`resolver.ts`'s precedence). No loading/offline state is rendered here
+ * either way: a slow or failed live fetch silently falls back rather than
+ * ever blocking or erroring this section (see that hook's own doc
+ * comment).
+ *
+ * The citation line still names OUR OWN producer ("Bumelerze", never
+ * "USGS", regardless of source) plus the D21 provenance-as-UI trio: a
+ * data-used summary (what conditioned this map, if anything), the
+ * computing engine's own version (live products only — see `engineVersion`
+ * below), and a review-status line (automatic/provisional vs.
+ * scientist-reviewed) — provisional is never shown as if it were
+ * authoritative.
  */
 export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const shakeMap = useShakeMap(event.id, true);
+  const shakeMap = useResolvedShakeMap(event, true);
 
   // TypeScript can't narrow `product`/`contours` off `status` alone
   // (queries.ts's return type keeps them as siblings, not a discriminated
@@ -73,6 +84,16 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   const versionText = localizeDigits(String(product.version), i18n.language);
   const dataUsedText = t(DATA_USED_I18N_KEY[product.dataUsedSummaryKey]);
   const reviewStatusText = t(`eventDetail.shakemap.reviewStatus.${product.reviewStatus}`);
+  // Engine-provenance line — live products only (`resolver.ts` normalizes
+  // a bundled-source result's `engineVersion` to `null`; see that field's
+  // own doc comment in `live-types.ts` for why). Omitted entirely rather
+  // than shown blank when the underlying engine-version block wasn't
+  // published for this product.
+  const engineVersionText = product.engineVersion?.serviceVersion
+    ? t("eventDetail.shakemap.engineVersion", {
+        version: localizeDigits(product.engineVersion.serviceVersion, i18n.language),
+      })
+    : null;
   // Screen-reader place context (accessibility-tester Phase 5 pass): a
   // sighted user sees the epicenter + nearby-city labels drawn on the SVG
   // map; the map's own accessibilityLabel is a blind user's ONLY way to get
@@ -106,8 +127,13 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
           })}
         </Text>
         {/* D21 provenance-as-UI: what data (if any) conditioned this map,
-         * and whether a scientist has reviewed it. */}
+         * which engine build computed it (live products only), and whether
+         * a scientist has reviewed it — provisional ("automatic") is
+         * always visibly labelled, never shown as if it were authoritative
+         * (`reviewStatus.automatic`'s own copy: "not yet reviewed by a
+         * scientist"). */}
         <Text style={bodyStyle}>{dataUsedText}</Text>
+        {engineVersionText ? <Text style={bodyStyle}>{engineVersionText}</Text> : null}
         <Text style={bodyStyle}>{reviewStatusText}</Text>
       </View>
     </View>

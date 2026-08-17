@@ -28,3 +28,30 @@ export { BASEMAP_BBOX, BASEMAP_BORDERS, BASEMAP_COASTLINE, type BasemapLine } fr
 export { clipLineToBbox } from "./projection";
 export { ShakeMapView, type ShakeMapViewProps } from "./components/ShakeMapView";
 export { ShakeMapSection, type ShakeMapSectionProps } from "./components/ShakeMapSection";
+
+// "Closing the last gap" wave — live shakemap_products path.
+export {
+  LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS,
+  computeDataUsedSummaryKey,
+  extractEngineVersion,
+  parseLiveShakeMapProductRows,
+  selectLatestLiveProductRow,
+  type EngineVersionSummary,
+  type LiveShakeMapProduct,
+  type LiveShakeMapProductRow,
+  type ParsedLiveShakeMapProductRows,
+} from "./live-types";
+export { SupabaseLiveShakeMapTransport, type LiveShakeMapTransport } from "./live-transport";
+export {
+  liveShakeMapQueryKeys,
+  useLiveShakeMap,
+  useResolvedShakeMap,
+  type UseResolvedShakeMapResult,
+} from "./live-queries";
+export {
+  resolveShakeMapProduct,
+  type ResolvedShakeMap,
+  type ResolvedShakeMapProduct,
+  type ShakeMapCandidate,
+  type ShakeMapProductSource,
+} from "./resolver";
