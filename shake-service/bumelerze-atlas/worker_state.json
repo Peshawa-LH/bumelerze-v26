@@ -1,6 +1,7 @@
 {
   "events": {
     "iscgem839648": {
+      "bumelerze_id": null,
       "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem839648/v2/compatibility.json",
       "depth_km": 15.0,
       "external_id": "iscgem839648",
@@ -12,16 +13,19 @@
       "lat": 34.052,
       "lon": 45.708,
       "mag": 6.1,
+      "origin_time_ms": 0,
       "params_hash": "ed4b4af5172a0288",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem839648/v2/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem839648/v2/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem839648/v2/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "iscgem884317": {
+      "bumelerze_id": null,
       "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem884317/v2/compatibility.json",
       "depth_km": 15.0,
       "external_id": "iscgem884317",
@@ -33,16 +37,19 @@
       "lat": 35.644,
       "lon": 44.668,
       "mag": 5.53,
+      "origin_time_ms": 0,
       "params_hash": "ecc5994cd05b6275",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem884317/v2/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem884317/v2/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem884317/v2/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "iscgem898547": {
+      "bumelerze_id": null,
       "comparison_path": null,
       "depth_km": 15.0,
       "external_id": "iscgem898547",
@@ -54,16 +61,19 @@
       "lat": 35.666,
       "lon": 46.107,
       "mag": 5.75,
+      "origin_time_ms": 0,
       "params_hash": "e2a8a758ea37a468",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem898547/v2/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem898547/v2/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem898547/v2/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "iscgem899464": {
+      "bumelerze_id": null,
       "comparison_path": null,
       "depth_km": 15.0,
       "external_id": "iscgem899464",
@@ -75,16 +85,19 @@
       "lat": 36.024,
       "lon": 43.291,
       "mag": 5.99,
+      "origin_time_ms": 0,
       "params_hash": "f7ae3da4bfe569b1",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem899464/v2/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem899464/v2/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem899464/v2/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "us1000ghda": {
+      "bumelerze_id": null,
       "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000ghda/v2/compatibility.json",
       "depth_km": 10.0,
       "external_id": "us1000ghda",
@@ -96,16 +109,19 @@
       "lat": 34.6111,
       "lon": 46.2422,
       "mag": 6.0,
+      "origin_time_ms": 0,
       "params_hash": "04edd7a8d5f3c5dd",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000ghda/v2/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000ghda/v2/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000ghda/v2/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "us1000hwdw": {
+      "bumelerze_id": null,
       "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000hwdw/v2/compatibility.json",
       "depth_km": 18.0,
       "external_id": "us1000hwdw",
@@ -117,37 +133,45 @@
       "lat": 34.3609,
       "lon": 45.7443,
       "mag": 6.3,
+      "origin_time_ms": 0,
       "params_hash": "5c2cdf27af7f85cd",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000hwdw/v2/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000hwdw/v2/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000hwdw/v2/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "us2000bmcg": {
-      "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v3/compatibility.json",
+      "bumelerze_id": null,
+      "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v4/compatibility.json",
       "depth_km": 19.0,
       "external_id": "us2000bmcg",
       "first_seen_at": "2026-08-07T10:36:23.084555+00:00",
       "has_comparison": true,
-      "last_computed_at": "2026-08-07T23:59:55.205581+00:00",
+      "last_computed_at": "2026-08-17T23:28:56.496217+00:00",
       "last_feed_updated_ms": 1722464762515,
-      "last_version": 3,
+      "last_version": 4,
       "lat": 34.9109,
       "lon": 45.9592,
       "mag": 7.3,
+      "origin_time_ms": 1510510697180,
       "params_hash": "a70c57d689dc8f8b",
       "product_paths": {
-        "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v3/cont_mi.json",
-        "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v3/grid.json",
-        "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v3/info.json"
+        "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v4/cont_mi.json",
+        "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v4/grid.json",
+        "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v4/info.json"
+      },
+      "provider_aliases": {
+        "usgs": "us2000bmcg"
       },
       "reviews": {},
       "source": "usgs"
     },
     "us6000jllz": {
+      "bumelerze_id": null,
       "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jllz/v3/compatibility.json",
       "depth_km": 10.0,
       "external_id": "us6000jllz",
@@ -159,16 +183,19 @@
       "lat": 37.2256,
       "lon": 37.0143,
       "mag": 7.8,
+      "origin_time_ms": 0,
       "params_hash": "aab55c5ba9778a8c",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jllz/v3/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jllz/v3/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jllz/v3/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "us6000jlqa": {
+      "bumelerze_id": null,
       "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jlqa/v3/compatibility.json",
       "depth_km": 7.432,
       "external_id": "us6000jlqa",
@@ -180,16 +207,19 @@
       "lat": 38.0106,
       "lon": 37.1962,
       "mag": 7.5,
+      "origin_time_ms": 0,
       "params_hash": "750fd0e1f6715669",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jlqa/v3/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jlqa/v3/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jlqa/v3/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "usp0001bb6": {
+      "bumelerze_id": null,
       "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0001bb6/v2/compatibility.json",
       "depth_km": 33.0,
       "external_id": "usp0001bb6",
@@ -201,16 +231,19 @@
       "lat": 36.009,
       "lon": 44.67,
       "mag": 5.8,
+      "origin_time_ms": 0,
       "params_hash": "eeabef899b7a54dd",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0001bb6/v2/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0001bb6/v2/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0001bb6/v2/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     },
     "usp0004uk3": {
+      "bumelerze_id": null,
       "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0004uk3/v2/compatibility.json",
       "depth_km": 25.5,
       "external_id": "usp0004uk3",
@@ -222,12 +255,14 @@
       "lat": 36.52,
       "lon": 44.066,
       "mag": 5.5,
+      "origin_time_ms": 0,
       "params_hash": "66d37590fef28053",
       "product_paths": {
         "cont_mi": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0004uk3/v2/cont_mi.json",
         "grid": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0004uk3/v2/grid.json",
         "info": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0004uk3/v2/info.json"
       },
+      "provider_aliases": {},
       "reviews": {},
       "source": "usgs"
     }
