@@ -6,6 +6,44 @@ project; it produces the same product-shaped contract
 (`supabase/migrations/0006_shakemap_products.sql`) that USGS-sourced
 ShakeMap products already fill for USGS-processed events.
 
+## Licence: AGPL-3.0-or-later (different from the rest of the repo)
+
+**This directory is licensed under the GNU Affero General Public License,
+version 3 or later** (`shake-service/LICENSE`), Copyright 2026 Peshawa L.
+Hasan. The rest of the Bumelerze repository (the Expo app, the website, the
+Supabase migrations) is Apache-2.0. See `../LICENSING.md` for the full map.
+
+**Why AGPL here.** This engine is built on the **OpenQuake Engine**
+(`openquake.engine==3.26.2`, GEM Foundation), which is itself
+AGPL-3.0-or-later. `shake_service/gmm.py` imports `openquake.hazardlib`
+directly and calls its GSIM classes through `get_mean_stds`, and
+`shake_service/config.py` names four hazardlib GSIM modules as the D20 logic
+tree. That is a library-level dependency, not a data exchange, so this
+component is a derivative work of OpenQuake and inherits its licence. Nothing
+about that was a preference; it is what the AGPL requires.
+
+**What it means in practice if you reuse this code:**
+
+- You may run it, study it, modify it, and redistribute it, commercially
+  included.
+- If you distribute a modified version, the modified source must be offered
+  under the AGPL too.
+- The network clause (AGPL section 13) is the part people miss: if you run a
+  **modified** version of this engine as a network service, and users interact
+  with it over that network, you must offer those users the modified source.
+  Running an **unmodified** copy as a service triggers no extra obligation
+  beyond the ordinary AGPL terms.
+- The AGPL is confined to this directory. Building an app that merely
+  *consumes* the ShakeMap products this worker publishes (JSON over HTTP, the
+  way the Bumelerze app itself does) is data exchange, not linking, and does
+  not make your app AGPL.
+
+If none of that suits you, the alternative is to replace the OpenQuake
+dependency with your own ground-motion models and write your own engine; the
+non-OpenQuake parts of the science here (the GMICE tables, the MVN
+conditioning, the export format) are documented well enough in each module's
+docstring to be reimplemented independently.
+
 ## Lineage (D9 -> D19 -> D20)
 
 - **D9** (2026-07-28): shake-service = a Python worker extracted from
