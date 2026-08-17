@@ -7,15 +7,15 @@ import i18n from "@/i18n";
 import { usePrefsStore } from "@/features/onboarding";
 
 /**
- * Settings screen — the new "My Data" link row (D26 item 7) and the new
- * "Permissions & data" section (D26 item 6). Mirrors
- * `notification-settings-screen.test.tsx`'s `expo-router` mock shape
- * (`useFocusEffect` stood in as a plain `useEffect`, matching
- * `use-permission-row.ts`'s own re-check-on-focus wiring) plus mocks for
- * `expo-location`/`expo-sensors` (the two native permission APIs this wave
- * wires up) and `expo-linking` (the "open system settings" action, already
- * used by the pre-existing `LocationPermissionSection` this wave leaves
- * untouched).
+ * Settings screen — the "My Data" link row (D26 item 7) and the
+ * consolidated "Device permissions" section (wave brief Part 3: "ONE
+ * button ... location, sensor, and other permissions", no separate
+ * per-permission ask). Mirrors `notification-settings-screen.test.tsx`'s
+ * `expo-router` mock shape (`useFocusEffect` stood in as a plain
+ * `useEffect`, matching `use-permission-row.ts`'s own re-check-on-focus
+ * wiring) plus mocks for `expo-location`/`expo-sensors` (the two native
+ * permission APIs the combined button chains) and `expo-linking` (the
+ * "open system settings" action and the footer's privacy-policy link).
  */
 
 const mockPush = jest.fn();
@@ -31,8 +31,10 @@ jest.mock("expo-router", () => {
 });
 
 const mockOpenSettings = jest.fn();
+const mockOpenURL = jest.fn();
 jest.mock("expo-linking", () => ({
   openSettings: () => mockOpenSettings(),
+  openURL: (url: string) => mockOpenURL(url),
 }));
 
 const mockGetForegroundPermissionsAsync = jest.fn();
@@ -73,12 +75,14 @@ async function flush() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-describe("Settings screen — My Data + Permissions", () => {
+describe("Settings screen — My Data + Device permissions", () => {
   const originalLanguage = i18n.language;
+  const originalPlatformOS = Platform.OS;
 
   beforeEach(async () => {
     mockPush.mockClear();
     mockOpenSettings.mockClear();
+    mockOpenURL.mockClear();
     mockGetForegroundPermissionsAsync.mockReset().mockResolvedValue({ status: "undetermined" });
     mockRequestForegroundPermissionsAsync.mockReset().mockResolvedValue({ status: "granted" });
     mockAccelGetPermissionsAsync.mockReset().mockResolvedValue({ status: "undetermined" });
@@ -100,6 +104,7 @@ describe("Settings screen — My Data + Permissions", () => {
 
   afterEach(async () => {
     cleanup();
+    Platform.OS = originalPlatformOS;
     await i18n.changeLanguage(originalLanguage);
   });
 
@@ -113,92 +118,117 @@ describe("Settings screen — My Data + Permissions", () => {
     expect(mockPush).toHaveBeenCalledWith("/my-data");
   });
 
-  it("shows 'Not asked yet' and an Allow action for an undetermined location permission, and requests it on tap", async () => {
+  it("shows one combined Allow button and 'Not asked yet' for both permissions when undetermined", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    // Two "Not asked yet" rows exist: the pre-existing LocationPermissionSection
-    // uses its own wording, and the new Permissions & data section's two rows
-    // (location + motion) both start undetermined in this test.
-    const notAskedYetTexts = screen.getAllByText("Not asked yet");
-    expect(notAskedYetTexts.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("Not asked yet")).toHaveLength(2);
+    expect(
+      screen.getByRole("button", { name: "Allow device permissions" }),
+    ).toBeTruthy();
+  });
 
-    const allowButtons = screen.getAllByRole("button", { name: "Allow" });
-    expect(allowButtons).toHaveLength(2);
+  it("chains both requests from a single tap and reflects the granted result", async () => {
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
 
-    await fireEvent.press(allowButtons[0]!);
+    await fireEvent.press(screen.getByRole("button", { name: "Allow device permissions" }));
     await flush();
 
     expect(mockRequestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByText("Allowed").length).toBeGreaterThanOrEqual(1);
+    expect(mockAccelRequestPermissionsAsync).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByText("Allowed")).toHaveLength(2);
+    // Once everything is granted the button disappears (nothing left to ask).
+    expect(
+      screen.queryByRole("button", { name: "Allow device permissions" }),
+    ).toBeNull();
   });
 
-  it("shows 'Open Settings' for a denied location permission, and opens system settings on tap", async () => {
+  it("invokes both underlying permission calls synchronously, before either resolves", async () => {
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
+
+    // Neither mock has been given a chance to resolve yet (no `await` since
+    // the tap), but both must already have been *called* — this is the
+    // property `use-device-permissions.ts` depends on for the web
+    // motion-permission gesture requirement (see its doc comment): calling
+    // `request()` for location and then motion back to back, with no
+    // `await` between them, keeps both underlying browser/native calls
+    // inside the same synchronous tap.
+    fireEvent.press(screen.getByRole("button", { name: "Allow device permissions" }));
+
+    expect(mockRequestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
+    expect(mockAccelRequestPermissionsAsync).toHaveBeenCalledTimes(1);
+
+    await flush();
+  });
+
+  it("shows a native 'Open Settings' action when a permission is denied, and opens system settings on tap", async () => {
     mockGetForegroundPermissionsAsync.mockResolvedValue({ status: "denied" });
 
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    // "Open Settings" appears once for the pre-existing LocationPermissionSection
-    // (always visible once resolved) and again for the new denied location row.
-    const openSettingsButtons = screen.getAllByRole("button", { name: "Open Settings" });
-    expect(openSettingsButtons.length).toBeGreaterThanOrEqual(2);
-
-    fireEvent.press(openSettingsButtons[0]!);
+    expect(screen.getByRole("button", { name: "Open Settings" })).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Open Settings" }));
     expect(mockOpenSettings).toHaveBeenCalledTimes(1);
   });
 
-  it("requests motion permission on tap when undetermined, and reflects the granted result", async () => {
+  it("shows the footer's about text, attribution, trademark line, and a privacy-policy link", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    const allowButtons = screen.getAllByRole("button", { name: "Allow" });
-    // Second Allow button belongs to the motion row (location row is first).
-    await fireEvent.press(allowButtons[1]!);
-    await flush();
+    expect(
+      screen.getByText(/independent earthquake monitoring project/),
+    ).toBeTruthy();
+    expect(screen.getByText(/licensed under CC BY 4.0/)).toBeTruthy();
+    expect(
+      screen.getByText('"Bumelerze" and its logo are trademarks of the project.'),
+    ).toBeTruthy();
 
-    expect(mockAccelRequestPermissionsAsync).toHaveBeenCalledTimes(1);
+    fireEvent.press(screen.getByRole("link", { name: "Privacy policy" }));
+    expect(mockOpenURL).toHaveBeenCalledWith("https://bumelerze.com/privacy.html");
   });
 
-  it("shows the WHY explanations for both permission rows", async () => {
+  it("shows a clarifying subtitle under the onboarding replay row", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
     expect(
-      screen.getByText("Your felt reports carry where you felt the shaking."),
-    ).toBeTruthy();
-    expect(
-      screen.getByText("Powers the live seismogram on the Sensor screen."),
+      screen.getByText(
+        "Replays the welcome screens you saw the first time you opened Bumelerze. Your language and HomeBase choices are kept.",
+      ),
     ).toBeTruthy();
   });
 
   describe("on web", () => {
-    const originalPlatformOS = Platform.OS;
-
-    beforeAll(() => {
+    beforeEach(() => {
       Platform.OS = "web";
     });
 
-    afterAll(() => {
-      Platform.OS = originalPlatformOS;
-    });
+    it("shows the web denied hint instead of a system-settings deep link when a permission is denied", async () => {
+      mockGetForegroundPermissionsAsync.mockResolvedValue({ status: "denied" });
 
-    it("shows a link to the Sensor screen instead of a status/request row for motion", async () => {
       await renderWithProviders(<SettingsScreen />);
       await flush();
 
       expect(
-        screen.getByText("Motion access is granted from the Sensor screen itself on this browser."),
+        screen.getByText(
+          "Some permissions are off. Check this site's permissions in your browser settings to turn them on.",
+        ),
       ).toBeTruthy();
-      // Only the location row's own "Allow" affordance shows on web — the
-      // motion row shows the web hint/link instead, never the native
-      // status/Allow affordance, regardless of whatever
-      // `useMotionPermissionRow` resolved internally (that hook's own status
-      // is simply never read on web).
-      expect(screen.getAllByRole("button", { name: "Allow" })).toHaveLength(1);
+      expect(screen.queryByRole("button", { name: "Open Settings" })).toBeNull();
+    });
 
-      fireEvent.press(screen.getByRole("button", { name: "Open Sensor screen" }));
-      expect(mockPush).toHaveBeenCalledWith("/(tabs)/sensor");
+    it("still chains both permission requests from the one combined button", async () => {
+      await renderWithProviders(<SettingsScreen />);
+      await flush();
+
+      await fireEvent.press(screen.getByRole("button", { name: "Allow device permissions" }));
+      await flush();
+
+      expect(mockRequestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
+      expect(mockAccelRequestPermissionsAsync).toHaveBeenCalledTimes(1);
     });
   });
 });
