@@ -6,9 +6,11 @@
 # Public repo => Actions minutes and Pages hosting are free without limits
 # that matter at our scale.
 #
-# URL layout (mirrors the Netlify one, shifted under the repo subpath):
-#   https://peshawa-lh.github.io/bumelerze-v26/        -> website
-#   https://peshawa-lh.github.io/bumelerze-v26/app/    -> the app
+# URL layout (custom domain bumelerze.com registered on the Pages site,
+# 2026-08-17 — Cloudflare DNS A records -> GitHub Pages):
+#   https://bumelerze.com/        -> website
+#   https://bumelerze.com/app/    -> the app
+#   app.bumelerze.com             -> 301 redirect to /app (Cloudflare rule)
 #
 # SPA fallback: Pages has no redirect engine; 404.html is a copy of the app
 # shell, so unknown deep links (e.g. /app/event/xyz) boot the app and the
@@ -44,9 +46,10 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Export app web build
         env:
-          # Repo-subpath base for Pages hosting (same mechanism as the
-          # Netlify /app base — see app.config.ts webBaseUrl).
-          BUMELERZE_WEB_BASE_URL: /bumelerze-v26/app
+          # Domain-root base now that bumelerze.com is the Pages custom
+          # domain (same mechanism as the Netlify /app base — see
+          # app.config.ts webBaseUrl).
+          BUMELERZE_WEB_BASE_URL: /app
           # Publishable client values — same reasoning as netlify.toml:
           # EXPO_PUBLIC_* vars ship inside every client bundle by design;
           # the anon key is Supabase's public key, protected by RLS.
