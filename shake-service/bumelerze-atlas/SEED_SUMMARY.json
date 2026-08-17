@@ -1,15 +1,136 @@
 [
   {
+    "id": "iscgem899464",
+    "year": 1944,
+    "place": "Al-Hamdaniya, Iraq",
+    "magnitude": 5.99,
+    "version": 3,
+    "recomputed": true,
+    "conditioning_sources": [],
+    "has_comparison": false,
+    "comparison_path": null
+  },
+  {
+    "id": "iscgem898547",
+    "year": 1946,
+    "place": "Baynjiwayn, Iraq",
+    "magnitude": 5.75,
+    "version": 3,
+    "recomputed": true,
+    "conditioning_sources": [],
+    "has_comparison": false,
+    "comparison_path": null
+  },
+  {
+    "id": "iscgem884317",
+    "year": 1958,
+    "place": "Jamjamal, Iraq",
+    "magnitude": 5.53,
+    "version": 3,
+    "recomputed": true,
+    "conditioning_sources": [],
+    "has_comparison": true,
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem884317/v3/compatibility.json"
+  },
+  {
+    "id": "iscgem839648",
+    "year": 1967,
+    "place": "Mandali, Iraq",
+    "magnitude": 6.1,
+    "version": 3,
+    "recomputed": true,
+    "conditioning_sources": [],
+    "has_comparison": true,
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/iscgem839648/v3/compatibility.json"
+  },
+  {
+    "id": "usp0001bb6",
+    "year": 1980,
+    "place": "Koysinceq (Koya), Iraq",
+    "magnitude": 5.8,
+    "version": 3,
+    "recomputed": true,
+    "conditioning_sources": [],
+    "has_comparison": true,
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0001bb6/v3/compatibility.json"
+  },
+  {
+    "id": "usp0004uk3",
+    "year": 1991,
+    "place": "Aqrah, Iraq",
+    "magnitude": 5.5,
+    "version": 3,
+    "recomputed": true,
+    "conditioning_sources": [],
+    "has_comparison": true,
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/usp0004uk3/v3/compatibility.json"
+  },
+  {
     "id": "us2000bmcg",
     "year": 2017,
     "place": "Sarpol-e Zahab, Iran",
     "magnitude": 7.3,
-    "version": 4,
+    "version": 5,
     "recomputed": true,
     "conditioning_sources": [
       "dyfi"
     ],
     "has_comparison": true,
-    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v4/compatibility.json"
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us2000bmcg/v5/compatibility.json"
+  },
+  {
+    "id": "us1000ghda",
+    "year": 2018,
+    "place": "Javanrud, Iran",
+    "magnitude": 6.0,
+    "version": 3,
+    "recomputed": true,
+    "conditioning_sources": [
+      "stations",
+      "dyfi"
+    ],
+    "has_comparison": true,
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000ghda/v3/compatibility.json"
+  },
+  {
+    "id": "us1000hwdw",
+    "year": 2018,
+    "place": "Sarpol-e Zahab, Iran",
+    "magnitude": 6.3,
+    "version": 3,
+    "recomputed": true,
+    "conditioning_sources": [
+      "dyfi"
+    ],
+    "has_comparison": true,
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us1000hwdw/v3/compatibility.json"
+  },
+  {
+    "id": "us6000jllz",
+    "year": 2023,
+    "place": "Pazarc\u0131k, Kahramanmara\u015f, T\u00fcrkiye",
+    "magnitude": 7.8,
+    "version": 4,
+    "recomputed": true,
+    "conditioning_sources": [
+      "stations",
+      "dyfi"
+    ],
+    "has_comparison": true,
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jllz/v4/compatibility.json"
+  },
+  {
+    "id": "us6000jlqa",
+    "year": 2023,
+    "place": "Elbistan, Kahramanmara\u015f, T\u00fcrkiye",
+    "magnitude": 7.5,
+    "version": 4,
+    "recomputed": true,
+    "conditioning_sources": [
+      "stations",
+      "dyfi"
+    ],
+    "has_comparison": true,
+    "comparison_path": "/Users/pesha/Desktop/RePosits/bumelerze-v26/shake-service/bumelerze-atlas/us6000jlqa/v4/compatibility.json"
   }
 ]
