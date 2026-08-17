@@ -4,16 +4,21 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
 import {
+  DEFAULT_MAP_STYLE_CATALOG_ID,
   MAP_STYLE_CATALOG_IDS,
   MAP_STYLE_LABEL_KEYS,
   type MapStyleCatalogId,
 } from "../style-catalog";
+import { MapControlIconButton } from "./MapControlIconButton";
 
 interface MapStylePickerProps {
   value: MapStyleCatalogId;
   onChange: (styleId: MapStyleCatalogId) => void;
   expanded: boolean;
   onToggleExpanded: () => void;
+  /** See `MapFilterPanel`'s identically-named prop — same compact-icon/
+   * floating-popover treatment for the phone-width default. */
+  compact?: boolean;
 }
 
 /**
@@ -31,15 +36,35 @@ export function MapStylePicker({
   onChange,
   expanded,
   onToggleExpanded,
+  compact = false,
 }: MapStylePickerProps) {
   const { t } = useTranslation();
   const { colors, spacing, typography } = useTheme();
+
+  const isNonDefaultStyle = value !== DEFAULT_MAP_STYLE_CATALOG_ID;
+  // Same base-hint-plus-current-value composition as `MapFilterPanel`'s
+  // `collapsedIconA11yLabel` — see that component's doc comment.
+  const collapsedIconA11yLabel = isNonDefaultStyle
+    ? [t("map.style.expandA11yHint"), t(MAP_STYLE_LABEL_KEYS[value])].join(". ")
+    : t("map.style.expandA11yHint");
+
+  if (compact && !expanded) {
+    return (
+      <MapControlIconButton
+        icon="layers-outline"
+        isActive={isNonDefaultStyle}
+        accessibilityLabel={collapsedIconA11yLabel}
+        onPress={onToggleExpanded}
+      />
+    );
+  }
 
   return (
     <View
       style={[
         styles.container,
         { borderColor: colors.border.default, backgroundColor: colors.surface.raised },
+        compact && [styles.popover, { marginTop: spacing[2] }],
       ]}
     >
       <Pressable
@@ -138,5 +163,17 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     minHeight: 36,
     justifyContent: "center",
+  },
+  // See `MapFilterPanel.tsx`'s identically-named/-reasoned style.
+  popover: {
+    position: "absolute",
+    top: "100%",
+    end: 0,
+    zIndex: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
 });

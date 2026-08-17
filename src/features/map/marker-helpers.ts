@@ -87,3 +87,40 @@ export function regionBboxToLngLatBounds(
     [bbox.maxLon, bbox.maxLat],
   ];
 }
+
+/**
+ * `#rrggbb` (or shorthand `#rgb`) -> `rgba(r, g, b, alpha)`, for the DOM
+ * marker's translucent-halo/opaque-core treatment (`map.web.tsx`'s
+ * marker-build effect — "slight transparency in the fill with an opaque
+ * core" so overlapping markers stay readable instead of turning into a
+ * solid blob). Only ever fed this app's own theme `status.*` hex tokens
+ * (`colors.status[marker.tone]`, design-language.md — never a raw literal
+ * or the EMS intensity ramp), so a full CSS-color-name/`rgb()`/`hsl()`
+ * parser would be scope this doesn't need; falls back to the input
+ * unchanged for anything it can't parse as `#rrggbb`/`#rgb` rather than
+ * throwing, so a future non-hex token still renders (just opaque) instead
+ * of crashing the marker layer.
+ */
+export function hexToRgba(hex: string, alpha: number): string {
+  const normalized = hex.trim();
+  const shortMatch = /^#([0-9a-fA-F]{3})$/.exec(normalized);
+  const longMatch = /^#([0-9a-fA-F]{6})$/.exec(normalized);
+
+  let r: number;
+  let g: number;
+  let b: number;
+  if (longMatch) {
+    const value = longMatch[1] as string;
+    r = parseInt(value.slice(0, 2), 16);
+    g = parseInt(value.slice(2, 4), 16);
+    b = parseInt(value.slice(4, 6), 16);
+  } else if (shortMatch) {
+    const value = shortMatch[1] as string;
+    r = parseInt((value[0] as string).repeat(2), 16);
+    g = parseInt((value[1] as string).repeat(2), 16);
+    b = parseInt((value[2] as string).repeat(2), 16);
+  } else {
+    return normalized;
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}

@@ -5,6 +5,7 @@ import type {
   GeoJSONSource,
   Map as MapLibreMap,
   Marker as MapLibreMarker,
+  MapLayerMouseEvent,
 } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
@@ -22,12 +23,18 @@ import {
 import { parseKurdishPlaces, placeLine, type KurdishPlace } from "@/features/geo";
 import {
   buildArabicNameTextField,
+  buildClusterCircleLayer,
+  buildClusterCountLayer,
+  buildClusterFeatureCollection,
+  buildClusterSource,
   buildMergedOwnLabelFeatureCollection,
   buildOwnLabelsLayer,
   buildOwnLabelsSource,
-  buildRegionMarkers,
   buildTerrainDemSource,
   buildTerrainHillshadeLayer,
+  CLUSTER_CIRCLE_LAYER_ID,
+  CLUSTER_SOURCE_ID,
+  clusterRegionMarkers,
   computeDateBoundsMs,
   computeMagnitudeBounds,
   decideMapErrorAction,
@@ -36,6 +43,8 @@ import {
   findHillshadeBeforeLayerId,
   findNameLabelLayerIds,
   getConfiguredMapTilerKey,
+  hexToRgba,
+  isCompactMapControlsWidth,
   KURDISH_PLACES_CORE,
   MAP_FIT_BOUNDS_PADDING_PX,
   MAP_RTL_TEXT_PLUGIN_URL,
@@ -46,6 +55,7 @@ import {
   MapTilerAttributionLogo,
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_SOURCE_ID,
+  readClusterBoundsFromProperties,
   regionBboxToLngLatBounds,
   resolveCatalogMapStyle,
   ScopeToggle,
@@ -55,11 +65,13 @@ import {
   TERRAIN_DEM_SOURCE_ID,
   useMapPreferencesStore,
   WORLD_VIEW_BBOX,
+  type ClusterMarkerFeature,
   type DateRangeMs,
   type MagnitudeRange,
   type MapScope,
   type MapStyleCatalogId,
   type MapStyleProviderId,
+  type PointMarkerFeature,
 } from "@/features/map";
 import { useTheme } from "@/theme";
 
@@ -165,6 +177,11 @@ function resolveOwnLabelsFont(
  * is just the MapLibre-API glue, exercised by the `map-web-*.test.tsx`
  * integration tests via the mocked `maplibre-gl` module (same split as the
  * marker-building loop further down this file).
+ *
+ * Returns the font stack it resolved for the own-labels layer (or `null`
+ * if the style wasn't available at all) — `primeClusterLayer`'s count-label
+ * symbol layer reuses this SAME resolved stack rather than re-deriving it,
+ * one glyph-availability lookup per (re)prime, not two.
  */
 function primeTerrainAndLabelCache(
   map: MapLibreMap,
@@ -172,10 +189,10 @@ function primeTerrainAndLabelCache(
   locale: string,
   originalTextFields: Map<string, unknown>,
   kurdishPlaces: readonly KurdishPlace[],
-): void {
+): readonly string[] | null {
   const style = map.getStyle();
   if (!style) {
-    return;
+    return null;
   }
 
   if (!styleHasRasterDemSource(style.sources)) {
@@ -198,6 +215,34 @@ function primeTerrainAndLabelCache(
     ),
   );
   map.addLayer(buildOwnLabelsLayer(scheme, ownLabelsFont));
+  return ownLabelsFont;
+}
+
+/**
+ * Re-primes the cluster GeoJSON source + circle/count layers (Problem 2's
+ * GL half — `cluster-layer.ts`) on a freshly-loaded map, same lifecycle as
+ * `primeTerrainAndLabelCache` right above (called once from the initial
+ * "load" handler, and again from `handleStyleChange`'s post-swap
+ * `"style.load"` — a `setStyle` wipes both). Starts EMPTY
+ * (`buildClusterSource()`'s own default) — the marker-build effect further
+ * down pushes real cluster data through `GeoJSONSource.setData` the moment
+ * `loadState` flips to `"ready"`, the same "prime empty, fill via setData"
+ * split `own-labels.ts` already uses for its own source.
+ *
+ * `textFont` is the SAME font stack `resolveOwnLabelsFont` already resolved
+ * for the own-labels layer (read once by the caller, threaded to both) —
+ * one glyph-availability lookup per (re)prime, not two.
+ */
+function primeClusterLayer(
+  map: MapLibreMap,
+  fillColor: string,
+  strokeColor: string,
+  textColor: string,
+  textFont: readonly string[],
+): void {
+  map.addSource(CLUSTER_SOURCE_ID, buildClusterSource());
+  map.addLayer(buildClusterCircleLayer(fillColor, strokeColor));
+  map.addLayer(buildClusterCountLayer(textColor, textFont));
 }
 
 /**
@@ -258,6 +303,32 @@ function refreshOwnLabelsSource(
 }
 
 /**
+ * Tracks whether the map's floating filter/style controls should render
+ * compact (Problem 1) — a plain `window.innerWidth` + `resize`-listener
+ * hook rather than React Native's own `useWindowDimensions`: this whole
+ * file is already web-only (Metro never bundles it for native, per this
+ * file's own top-of-file doc comment), so reading `window` directly here
+ * costs nothing platform-wise and keeps the test-facing surface a plain DOM
+ * global a `jsdom` test can set/dispatch against directly, with no extra
+ * RN-Web dimensions-event mock to maintain. The actual threshold decision
+ * (`isCompactMapControlsWidth`) is the pure, independently-tested half —
+ * see `responsive.ts`.
+ */
+function useIsCompactMapControls(): boolean {
+  const [isCompact, setIsCompact] = useState(() =>
+    isCompactMapControlsWidth(window.innerWidth),
+  );
+  useEffect(() => {
+    function handleResize(): void {
+      setIsCompact(isCompactMapControlsWidth(window.innerWidth));
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  return isCompact;
+}
+
+/**
  * Web Map tab — the real interactive map (wave brief: "web-first... the
  * deployed web build (now at bumelerze.com/app) is the primary live
  * channel; the native MapLibre module waits for the dev-build workflow").
@@ -273,9 +344,11 @@ function refreshOwnLabelsSource(
  * (panic-time/low-bandwidth: never paid for by someone who never opens the
  * Map tab).
  *
- * Content this wave: circle-ish markers for the already-loaded region feed
+ * Content: halo+core markers for the already-loaded region feed
  * (`useRegionEvents` — no new fetching), sized/colored by magnitude, tap →
- * event detail. No ShakeMap overlay, felt cells, or fault lines yet
+ * event detail; dense clusters collapse into GL badges below a zoom
+ * threshold (`clustering.ts`/`cluster-layer.ts`, Problem 2 of the map-UX-
+ * polish wave). No ShakeMap overlay, felt cells, or fault lines yet
  * (follow-up waves).
  */
 export default function MapScreenWeb() {
@@ -315,8 +388,23 @@ export default function MapScreenWeb() {
   // never hides anything until the user actually drags a handle.
   const [magnitudeRange, setMagnitudeRange] = useState<MagnitudeRange | null>(null);
   const [dateRange, setDateRange] = useState<DateRangeMs | null>(null);
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
-  const [styleExpanded, setStyleExpanded] = useState(false);
+
+  // Which of the filter/style floating controls is currently open — a
+  // single piece of state (not two independent booleans) is what makes
+  // "one open at a time" true by construction: opening one can only ever
+  // mean setting this to that control's id, which necessarily stops being
+  // the OTHER control's id (Problem 1: "tapping ... another control closes
+  // the open one"). `isCompactControls` (below) decides whether each
+  // control RENDERS this state as a floating popover-from-icon or today's
+  // always-expanded inline bar; the exclusivity itself applies at every
+  // width, not just the compact one.
+  type MapControlId = "filters" | "style";
+  const [openControl, setOpenControl] = useState<MapControlId | null>(null);
+  const closeOpenControl = useCallback(() => setOpenControl(null), []);
+  const toggleControl = useCallback((id: MapControlId) => {
+    setOpenControl((current) => (current === id ? null : id));
+  }, []);
+  const isCompactControls = useIsCompactMapControls();
 
   const handleScopeChange = useCallback((nextScope: MapScope) => {
     setScope(nextScope);
@@ -328,6 +416,22 @@ export default function MapScreenWeb() {
     setMagnitudeRange(null);
     setDateRange(null);
   }, []);
+
+  // Keyboard dismissal: Escape closes whichever control popover is open —
+  // the backdrop below covers pointer/touch "tap elsewhere"; this covers
+  // keyboard users who never touch the map surface at all.
+  useEffect(() => {
+    if (!openControl) {
+      return;
+    }
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key === "Escape") {
+        setOpenControl(null);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [openControl]);
 
   // Recomputed whenever the scoped event pool changes (a new 60s poll, or a
   // scope switch) — deliberately NOT frozen at scope-switch time, so the
@@ -397,6 +501,12 @@ export default function MapScreenWeb() {
   const mapRef = useRef<MapLibreMap | null>(null);
   const maplibreModuleRef = useRef<typeof import("maplibre-gl") | null>(null);
   const markersRef = useRef<MapLibreMarker[]>([]);
+  // The LAST cluster feature set the marker-build effect (below) computed —
+  // replayed into a freshly re-primed cluster source right after a basemap
+  // style swap (`handleStyleChange`), since `setStyle` wipes that source
+  // but neither `filteredEvents` nor `zoom` change on a pure style pick, so
+  // the marker-build effect itself wouldn't otherwise re-run to refill it.
+  const lastClusterFeaturesRef = useRef<ClusterMarkerFeature[]>([]);
   // Re-entrancy gate for the creation effect below — deliberately a ref,
   // not state: the effect itself calls `setLoadState("loading")`, and if
   // `loadState` were also in that effect's dependency array, that very
@@ -440,6 +550,14 @@ export default function MapScreenWeb() {
     "idle",
   );
   const [retryTick, setRetryTick] = useState(0);
+  // The live map's current zoom — drives clustering (Problem 2:
+  // `clusterRegionMarkers(filteredEvents, zoom)` in the marker-build effect
+  // below). Seeded to an arbitrary placeholder; irrelevant before the map
+  // is ready, since the "load" handler sets the REAL fitted zoom
+  // synchronously in the same handler that flips `loadState` to `"ready"`
+  // (same render, no stale-zoom flash) — see that handler below, and
+  // `"zoomend"` keeps it current for every later zoom the user makes.
+  const [zoom, setZoom] = useState(0);
 
   // "Map loads lazily when the tab is focused" (wave brief) — the mount
   // effect below only starts loading `maplibre-gl` once this becomes true.
@@ -529,19 +647,54 @@ export default function MapScreenWeb() {
         // full story). `compact: false` keeps it always expanded rather
         // than hidden behind a toggle.
         map.addControl(new maplibre.AttributionControl({ compact: false }));
+        // Camera/interaction listeners — registered once per map INSTANCE
+        // (not re-registered on a later `setStyle`, unlike the terrain/
+        // own-labels/cluster SOURCES and LAYERS a style swap wipes): both
+        // are properties of the Map object's own event system, not of the
+        // style document, so they keep working across a basemap swap with
+        // no re-priming needed.
+        //
+        // "zoomend" (not the continuous "zoom") keeps `zoom` state — and
+        // therefore clustering — in sync with the user's final zoom level
+        // without rebuilding every marker on every intermediate frame of a
+        // pinch/scroll gesture (battery/perf-conscious, CLAUDE.md).
+        map.on("zoomend", () => {
+          setZoom(map.getZoom());
+        });
+        // Cluster-badge tap -> zoom to its member events' combined extent
+        // (Problem 2: "Clicking a cluster should zoom into its bounds").
+        // Layer-scoped `.on(event, layerId, handler)` only fires for
+        // features actually hit on `CLUSTER_CIRCLE_LAYER_ID` — MapLibre's
+        // own hit-testing, no manual geometry math needed here.
+        map.on("click", CLUSTER_CIRCLE_LAYER_ID, (event: MapLayerMouseEvent) => {
+          const bounds = readClusterBoundsFromProperties(event.features?.[0]?.properties);
+          if (bounds) {
+            map.fitBounds(regionBboxToLngLatBounds(bounds), {
+              padding: MAP_FIT_BOUNDS_PADDING_PX,
+            });
+          }
+        });
         map.on("load", () => {
           if (cancelled) {
             return;
           }
           hasLoaded = true;
-          primeTerrainAndLabelCache(
+          const ownLabelsFont = primeTerrainAndLabelCache(
             map,
             scheme,
             i18n.language,
             originalTextFieldsRef.current,
             kurdishPlacesRef.current,
           );
+          primeClusterLayer(
+            map,
+            colors.brand.primary,
+            colors.surface.raised,
+            colors.brand.onPrimary,
+            ownLabelsFont ?? OWN_LABELS_DEFAULT_FONT,
+          );
           applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
+          setZoom(map.getZoom());
           setLoadState("ready");
 
           // Kick off the lazy tier-3 (village) load now that the map has
@@ -609,7 +762,7 @@ export default function MapScreenWeb() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `scheme`, `i18n.language`, and `styleId` are only read once at creation/hydration time here (the dedicated locale-reactive effect below handles later locale changes; `handleStyleChange` handles later user style picks by live-swapping the existing map, not by recreating it); `retryTick` is the deliberate re-run trigger for handleRetry/the fallback path
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `scheme`, `i18n.language`, `styleId`, and `colors` are only read once at creation/hydration time here (the dedicated locale-reactive effect below handles later locale changes; `handleStyleChange` handles later user style picks by live-swapping the existing map, not by recreating it, and re-reads `colors` fresh itself); `retryTick` is the deliberate re-run trigger for handleRetry/the fallback path
   }, [isFocused, hasStyleHydrated, retryTick]);
 
   // Re-applies label localization whenever the active locale changes, using
@@ -717,27 +870,50 @@ export default function MapScreenWeb() {
       // earlier session's automatic fallback.
       fallbackAttemptedRef.current = false;
       map.once("style.load", () => {
-        primeTerrainAndLabelCache(
+        const ownLabelsFont = primeTerrainAndLabelCache(
           map,
           scheme,
           i18n.language,
           originalTextFieldsRef.current,
           kurdishPlacesRef.current,
         );
+        // A style swap wipes the cluster source/layers too (same `setStyle`
+        // reset `primeTerrainAndLabelCache`'s own doc comment describes) —
+        // re-prime them here so cluster badges don't silently vanish after
+        // picking a different basemap. The marker-build effect below
+        // refills this fresh source with real data on its next run (its own
+        // deps include `loadState`, which this style swap doesn't change —
+        // it re-runs because `clusterRegionMarkers`'s LAST computed data
+        // still lives in `lastClusterFeaturesRef`, replayed below).
+        primeClusterLayer(
+          map,
+          colors.brand.primary,
+          colors.surface.raised,
+          colors.brand.onPrimary,
+          ownLabelsFont ?? OWN_LABELS_DEFAULT_FONT,
+        );
+        const clusterSource = map.getSource(CLUSTER_SOURCE_ID) as GeoJSONSource | undefined;
+        clusterSource?.setData(
+          buildClusterFeatureCollection(lastClusterFeaturesRef.current, i18n.language),
+        );
         applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
       });
       map.setStyle(resolved.url);
     },
-    [scheme, i18n.language, setStyleId],
+    [scheme, i18n.language, setStyleId, colors],
   );
 
-  // Rebuilds the marker layer whenever the map becomes ready, the active
-  // scope/filters change, or the underlying feed refetches (every 60s while
-  // foregrounded, queries.ts) — cheap at this event volume (region/world
-  // pools are low hundreds at most). Unaffected by a basemap style swap
-  // (`handleStyleChange` above): markers are independent DOM overlays, and
-  // neither `loadState` nor `filteredEvents` changes when only the style
-  // does, so this effect correctly does NOT re-run on a style pick.
+  // Rebuilds the marker layer (Problem 2: clustering) whenever the map
+  // becomes ready, the active scope/filters change, the underlying feed
+  // refetches (every 60s while foregrounded, queries.ts), or the map's own
+  // zoom settles (`"zoomend"` above) — cheap at this event volume (region/
+  // world pools are low hundreds at most, `clustering.ts`'s own doc
+  // comment). Unaffected by a basemap style swap (`handleStyleChange`
+  // above): DOM markers are independent overlays untouched by `setStyle`,
+  // and the cluster GL source is re-primed/refilled directly in that
+  // handler (from `lastClusterFeaturesRef`) rather than by this effect
+  // re-running, since none of THIS effect's own deps change on a pure
+  // style pick.
   useEffect(() => {
     const map = mapRef.current;
     const maplibre = maplibreModuleRef.current;
@@ -752,7 +928,30 @@ export default function MapScreenWeb() {
       filteredEvents.map((event) => [event.id, event]),
     );
 
-    for (const marker of buildRegionMarkers(filteredEvents)) {
+    const clusteredMarkers = clusterRegionMarkers(filteredEvents, zoom);
+    const clusterFeatures = clusteredMarkers.filter(
+      (feature): feature is ClusterMarkerFeature => feature.kind === "cluster",
+    );
+    const pointFeatures = clusteredMarkers.filter(
+      (feature): feature is PointMarkerFeature => feature.kind === "point",
+    );
+
+    // Clustered groups render via the GL circle/count layers primed by
+    // `primeClusterLayer` — far cheaper than DOM markers at real overlap
+    // density, and remembered in `lastClusterFeaturesRef` so a later
+    // basemap style swap (`handleStyleChange`) can replay this exact data
+    // into its freshly re-primed source without waiting for this effect to
+    // re-run (nothing it depends on changes on a pure style pick).
+    lastClusterFeaturesRef.current = clusterFeatures;
+    const clusterSource = map.getSource(CLUSTER_SOURCE_ID) as GeoJSONSource | undefined;
+    clusterSource?.setData(buildClusterFeatureCollection(clusterFeatures, i18n.language));
+
+    // Standalone (unclustered) events keep real DOM `maplibregl.Marker`s —
+    // the accessibility this whole split exists to preserve (role=button,
+    // keyboard activation, an aria-label built from magnitude + place,
+    // exactly as before this wave; `map-web-interaction.test.tsx` still
+    // covers this unchanged).
+    for (const marker of pointFeatures) {
       const sourceEvent = eventById.get(marker.id);
       const magnitudeLabel = t("events.magnitudeA11yLabel", {
         value: formatMagnitudeValue(marker.magnitudeValue, i18n.language),
@@ -760,11 +959,10 @@ export default function MapScreenWeb() {
       const placeText = sourceEvent ? placeLine(sourceEvent, i18n.language, t) : "";
       const label = [magnitudeLabel, placeText].filter(Boolean).join(". ");
 
-      // Two nested elements: the outer one is the tappable hit area (dot
-      // diameter + padding on every side, "big touch targets... extra hit
-      // radius" per the wave brief), the inner one is the visible dot —
-      // keeps the enlarged hit area invisible rather than a giant colored
-      // circle.
+      // Outer element: the tappable hit area (dot diameter + padding on
+      // every side, "big touch targets... extra hit radius" per the wave
+      // brief) — unchanged shape/attributes from before this wave, so
+      // every existing accessibility assertion against it still holds.
       const hitEl = document.createElement("div");
       hitEl.style.width = `${marker.diameterPx + MARKER_HIT_PADDING_PX * 2}px`;
       hitEl.style.height = `${marker.diameterPx + MARKER_HIT_PADDING_PX * 2}px`;
@@ -776,14 +974,42 @@ export default function MapScreenWeb() {
       hitEl.setAttribute("aria-label", label);
       hitEl.tabIndex = 0;
 
-      const dotEl = document.createElement("div");
-      dotEl.style.width = `${marker.diameterPx}px`;
-      dotEl.style.height = `${marker.diameterPx}px`;
-      dotEl.style.borderRadius = "50%";
-      dotEl.style.backgroundColor = colors.status[marker.tone];
-      dotEl.style.border = `2px solid ${colors.surface.raised}`;
-      dotEl.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.35)";
-      hitEl.appendChild(dotEl);
+      // Visual quality pass (owner: "make it more stylish") — a
+      // translucent-fill HALO at the full magnitude-scaled diameter, sized/
+      // colored exactly as before, plus an opaque CORE at its center. When
+      // several markers overlap, the halos blend softly instead of
+      // stacking into a solid blob, while each core stays a crisp, fully-
+      // opaque dot — still colored purely by `colors.status[tone]`
+      // (`magnitudeTone`, never the EMS intensity ramp — design-language.md
+      // §3.2). The single most-recent event in the current set gets a
+      // distinct outline in `colors.action.felt` (this app's existing
+      // "urgent" accent, already reserved for the felt-report CTA/true
+      // danger states — reused here, not a new color) plus a soft matching
+      // glow, so "what just happened" reads at a glance.
+      const toneColor = colors.status[marker.tone];
+      const haloEl = document.createElement("div");
+      haloEl.style.width = `${marker.diameterPx}px`;
+      haloEl.style.height = `${marker.diameterPx}px`;
+      haloEl.style.borderRadius = "50%";
+      haloEl.style.display = "flex";
+      haloEl.style.alignItems = "center";
+      haloEl.style.justifyContent = "center";
+      haloEl.style.backgroundColor = hexToRgba(toneColor, 0.32);
+      haloEl.style.border = marker.isMostRecent
+        ? `2.5px solid ${colors.action.felt}`
+        : `1.5px solid ${colors.surface.raised}`;
+      haloEl.style.boxShadow = marker.isMostRecent
+        ? `0 0 0 4px ${hexToRgba(colors.action.felt, 0.22)}`
+        : "0 1px 3px rgba(0, 0, 0, 0.35)";
+
+      const coreDiameterPx = Math.max(6, Math.round(marker.diameterPx * 0.55));
+      const coreEl = document.createElement("div");
+      coreEl.style.width = `${coreDiameterPx}px`;
+      coreEl.style.height = `${coreDiameterPx}px`;
+      coreEl.style.borderRadius = "50%";
+      coreEl.style.backgroundColor = toneColor;
+      haloEl.appendChild(coreEl);
+      hitEl.appendChild(haloEl);
 
       const activate = () => routerRef.current.push(`/event/${marker.id}`);
       hitEl.addEventListener("click", activate);
@@ -799,7 +1025,7 @@ export default function MapScreenWeb() {
         .addTo(map);
       markersRef.current.push(markerInstance);
     }
-  }, [loadState, filteredEvents, colors, t, i18n.language]);
+  }, [loadState, filteredEvents, zoom, colors, t, i18n.language]);
 
   const showOverlayLoading = loadState === "idle" || loadState === "loading";
 
@@ -836,13 +1062,37 @@ export default function MapScreenWeb() {
             canvas to, so this is a plain DOM element rather than an RN View. */}
         <div ref={containerRef} style={mapContainerStyle} />
 
+        {loadState === "ready" && openControl ? (
+          // "tapping elsewhere ... closes the open one" — a full-mapArea,
+          // invisible dismiss layer. Rendered BEFORE `controlsRow` below (so
+          // it stacks under it: the still-visible icon buttons stay
+          // clickable on top) and gated on `openControl` so it's only ever
+          // present while a popover is actually open — keyboard users get
+          // the same dismissal via the Escape-key effect above, so this
+          // layer is hidden from the accessibility tree entirely rather
+          // than becoming an unlabeled full-screen "button".
+          <Pressable
+            testID="map-controls-backdrop"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={styles.controlsBackdrop}
+            onPress={closeOpenControl}
+          />
+        ) : null}
+
         {loadState === "ready" ? (
           <View
             style={[styles.controlsRow, { padding: spacing[3] }]}
             pointerEvents="box-none"
           >
             <ScopeToggle value={scope} onChange={handleScopeChange} />
-            <View style={[styles.controlsColumn, { gap: spacing[2] }]}>
+            <View
+              style={[
+                styles.controlsColumn,
+                { gap: spacing[2] },
+                isCompactControls && styles.controlsColumnCompact,
+              ]}
+            >
               <MapFilterPanel
                 magnitudeBounds={magnitudeBounds}
                 magnitudeRange={effectiveMagnitudeRange}
@@ -851,14 +1101,16 @@ export default function MapScreenWeb() {
                 dateRange={effectiveDateRange}
                 onDateRangeChange={setDateRange}
                 onReset={handleResetFilters}
-                expanded={filtersExpanded}
-                onToggleExpanded={() => setFiltersExpanded((current) => !current)}
+                expanded={openControl === "filters"}
+                onToggleExpanded={() => toggleControl("filters")}
+                compact={isCompactControls}
               />
               <MapStylePicker
                 value={styleId}
                 onChange={handleStyleChange}
-                expanded={styleExpanded}
-                onToggleExpanded={() => setStyleExpanded((current) => !current)}
+                expanded={openControl === "style"}
+                onToggleExpanded={() => toggleControl("style")}
+                compact={isCompactControls}
               />
             </View>
           </View>
@@ -1011,9 +1263,32 @@ const styles = StyleSheet.create({
   controlsColumn: {
     alignItems: "flex-end",
   },
+  // Compact width (`isCompactControls`): the filter/style controls collapse
+  // to a pair of small icon buttons — laying them out in a ROW (instead of
+  // the wide layout's stacked column of full-width bars) reads as a single
+  // compact toolbar and keeps the whole controls row shorter, leaving more
+  // of the map visible. Popovers opened from either icon are absolutely
+  // positioned (`MapFilterPanel`/`MapStylePicker`'s own `popover` style),
+  // so they float free of this row's flex layout regardless of direction.
+  controlsColumnCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   attributionLogo: {
     position: "absolute",
     bottom: 0,
     end: 0,
+  },
+  controlsBackdrop: {
+    position: "absolute",
+    top: 0,
+    start: 0,
+    end: 0,
+    bottom: 0,
+    // No explicit `zIndex` — this file otherwise never uses one, relying on
+    // plain JSX/DOM paint order for absolutely-positioned siblings (later =
+    // on top). Rendered BEFORE `controlsRow` below, so the still-visible
+    // icon buttons naturally paint above this dismiss layer without needing
+    // to coordinate a numeric stacking value against it.
   },
 });

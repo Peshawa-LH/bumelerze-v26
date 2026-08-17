@@ -5,6 +5,7 @@ import {
 } from "../config";
 import {
   buildRegionMarkers,
+  hexToRgba,
   magnitudeToMarkerDiameterPx,
   regionBboxToLngLatBounds,
 } from "../marker-helpers";
@@ -123,5 +124,24 @@ describe("regionBboxToLngLatBounds", () => {
     const [southWest, northEast] = regionBboxToLngLatBounds(bbox);
     expect(southWest).toEqual([-20, -10]);
     expect(northEast).toEqual([20, 10]);
+  });
+});
+
+describe("hexToRgba", () => {
+  it("converts a 6-digit hex color to rgba with the given alpha", () => {
+    expect(hexToRgba("#2E6E9E", 0.32)).toBe("rgba(46, 110, 158, 0.32)");
+  });
+
+  it("converts a 3-digit shorthand hex color", () => {
+    expect(hexToRgba("#0f0", 0.5)).toBe("rgba(0, 255, 0, 0.5)");
+  });
+
+  it("is case-insensitive on the hex digits", () => {
+    expect(hexToRgba("#abcdef", 1)).toBe(hexToRgba("#ABCDEF", 1));
+  });
+
+  it("falls back to the input unchanged for a color it can't parse as hex", () => {
+    expect(hexToRgba("rgba(1, 2, 3, 1)", 0.5)).toBe("rgba(1, 2, 3, 1)");
+    expect(hexToRgba("not-a-color", 0.5)).toBe("not-a-color");
   });
 });

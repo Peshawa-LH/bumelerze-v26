@@ -169,10 +169,47 @@ function resetMockRTLTextPlugin() {
   mockSetRTLTextPlugin.mockClear();
 }
 
+/** A layer-scoped `.on(event, layerId, handler)` event, matching the one
+ * shape `map.web.tsx` actually reads off it (`event.features[0].properties`
+ * — the cluster-click-to-zoom handler). */
+export interface MockLayerEvent {
+  features?: { properties: Record<string, unknown> }[];
+}
+
+/** Every `MockMap` constructed this test run, in construction order — lets
+ * a test reach the live instance directly (`.setZoom`/`.fireZoomEnd`/
+ * `.fireLayerEvent`) for clustering/zoom scenarios that a jest.fn() spy
+ * alone can't drive (there's no DOM node a real zoom gesture or a GL
+ * layer's hit-tested click could be dispatched against under jsdom).
+ * Cleared by `resetMapWebMocks`. */
+export const mockMapInstances: MockMap[] = [];
+
+/**
+ * Default zoom every fresh `MockMap` reports via `getZoom()` unless a test
+ * overrides it (`setMockNextMapZoom`) — deliberately WELL ABOVE
+ * `CLUSTER_MAX_ZOOM` (`clustering.ts`, 8) so every PRE-EXISTING test in this
+ * suite (marker counts, filter/scope/style-picker behavior — none of which
+ * are about clustering) keeps building exactly one DOM marker per event, as
+ * it always has: clustering only ever activates in a test that explicitly
+ * asks for it via `setMockNextMapZoom`/`map.setZoom`.
+ */
+export const DEFAULT_MOCK_MAP_ZOOM = 12;
+let mockNextMapZoom: number | undefined;
+export function setMockNextMapZoom(zoom: number | undefined) {
+  mockNextMapZoom = zoom;
+}
+
 export class MockMap {
   options: Record<string, unknown>;
   handlers: Record<string, () => void> = {};
   private onceHandlers: Record<string, (() => void)[]> = {};
+  private layerHandlers: Record<string, Record<string, (event: MockLayerEvent) => void>> =
+    {};
+  /** See `DEFAULT_MOCK_MAP_ZOOM`'s doc comment. Mutable (`setZoom`) so a
+   * test can simulate the user zooming in/out, then `fireZoomEnd()` to
+   * mirror `map.web.tsx`'s own `"zoomend"` -> `setZoom(map.getZoom())`
+   * wiring. */
+  zoom: number = mockNextMapZoom ?? DEFAULT_MOCK_MAP_ZOOM;
   // Per-instance, independently mutable copies of the module-scope fixture
   // — `structuredClone` so no two map instances (e.g. the original +ONE
   // recreated by a retry/fallback within the same test) ever share layer
@@ -192,9 +229,25 @@ export class MockMap {
     this.options = options;
     mockMapConstructorOptions.push(options);
     mockWorkerUrlCallOrder.push("mapConstructed");
+    mockMapInstances.push(this);
   }
 
-  on(event: string, handler: () => void) {
+  /**
+   * Two real MapLibre overloads: `.on(event, handler)` (map-wide, e.g.
+   * "load"/"error"/"zoomend") and `.on(event, layerId, handler)`
+   * (layer-scoped, e.g. the cluster circle layer's "click") — distinguished
+   * here the same way the real library's overload resolution works, by
+   * whether the second argument is a function or a layer-id string.
+   */
+  on(event: string, handlerOrLayerId: (() => void) | string, maybeHandler?: (event: MockLayerEvent) => void) {
+    if (typeof handlerOrLayerId === "string") {
+      const layerId = handlerOrLayerId;
+      const handler = maybeHandler as (event: MockLayerEvent) => void;
+      this.layerHandlers[event] ??= {};
+      this.layerHandlers[event][layerId] = handler;
+      return;
+    }
+    const handler = handlerOrLayerId;
     this.handlers[event] = handler;
     if (event === "load" && !this.shouldError) {
       void Promise.resolve().then(() => act(() => handler()));
@@ -202,6 +255,30 @@ export class MockMap {
     if (event === "error" && this.shouldError) {
       void Promise.resolve().then(() => act(() => handler()));
     }
+  }
+
+  /** Test helper: simulates the user's zoom settling at a new level —
+   * updates `getZoom()`'s return value AND fires any registered "zoomend"
+   * handler, mirroring `map.web.tsx`'s own `map.on("zoomend", () =>
+   * setZoom(map.getZoom()))` wiring in one call. Callers still need to wrap
+   * this in RNTL's `act()` themselves (matching every other handler-firing
+   * helper in this file), since it synchronously drives a React state
+   * update in the component under test. */
+  setZoomAndFireZoomEnd(zoom: number) {
+    this.zoom = zoom;
+    this.handlers.zoomend?.();
+  }
+
+  getZoom() {
+    return this.zoom;
+  }
+
+  /** Test helper: simulates a layer-scoped hit (e.g. a cluster badge
+   * click) — invokes whatever handler `map.web.tsx` registered via
+   * `.on(event, layerId, handler)` for `layerId`, with a single feature
+   * carrying `properties`. */
+  fireLayerEvent(event: string, layerId: string, properties: Record<string, unknown>) {
+    this.layerHandlers[event]?.[layerId]?.({ features: [{ properties }] });
   }
 
   addControl(control: unknown) {
@@ -397,4 +474,6 @@ export function resetMapWebMocks() {
   setMockMapStyleFixture({});
   setMockSetStyleFixture(null);
   resetMockRTLTextPlugin();
+  mockMapInstances.length = 0;
+  mockNextMapZoom = undefined;
 }
