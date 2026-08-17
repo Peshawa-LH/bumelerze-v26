@@ -114,11 +114,62 @@ documented integration point for when a `felt_cells` source exists) ->
 `export.write_products` into `products/<event-id>/v<N>/` -> state update,
 idempotent by params hash. `uploader.py`'s `ProductUploader` interface has
 a `LocalOnlyUploader` default (logs the would-be `shakemap_products` row,
-migration `0006_shakemap_products.sql`) and a `SupabaseUploader` stub
-(`NotImplementedError` — wired once the Supabase project exists).
-`scripts/run_worker.py --once`/`--daemon` is the CLI; see its own
-docstring for the deployment note (runs server-side next to Supabase, not
-on Peshawa's Mac — no systemd/launchd unit yet).
+migration `0006_shakemap_products.sql`) and a real `SupabaseUploader`
+(SupabaseUploader integration wave, below). `scripts/run_worker.py
+--once`/`--daemon` is the CLI; see its own docstring for the deployment
+note (runs server-side next to Supabase, not on Peshawa's Mac — no
+systemd/launchd unit yet).
+
+**SupabaseUploader integration wave**: closes the gap where a computed
+product never reached anything beyond the local filesystem. Owner
+architecture decision, mid-wave: NOT "everything into Supabase" — a
+three-way split instead. `uploader.py`'s `SupabaseUploader` composes two
+independently-swappable collaborators:
+
+- a `SupabaseIndexWriter` (real impl `_HttpSupabaseIndexWriter`) that
+  resolves each product's `bml`/provider event id to the internal
+  `events.event_id` UUID via the same `upsert_event_from_client` RPC
+  (`supabase/migrations/0011_event_registry_and_assignment.sql`) the app
+  itself calls, and upserts one SMALL, queryable `shakemap_products` INDEX
+  row per published file — event reference, version, product type, engine
+  provenance, review status, a coarse bounding box (`supabase/migrations/
+  0019_shakemap_products_index_fields.sql`), and a public URL — never the
+  artifact bytes. Idempotent on the table's own `(event_id, producer,
+  version, product_type)` unique constraint.
+- an `ArtifactPublisher` (real impl `AtlasRepoPublisher`) that writes the
+  actual `cont_mi.json`/`info.json`/(opt-in) `grid.json` files into a
+  clean, deterministic, versioned local directory tree (`events/<bml-or-
+  provider-id>/v<N>/...` + machine-readable per-event and site-wide
+  manifests) — the staging copy of the **Bumelerze Atlas**, a SEPARATE
+  public data repository the orchestrator creates/publishes elsewhere
+  (never Supabase Storage, never inline JSON bytes in Postgres — this is
+  what keeps a versioned scientific-data archive from bloating the app's
+  own operational database forever).
+
+**Vector-first**: contours (`cont_mi.json`) and metadata (`info.json`) are
+ALWAYS published; the raster grid (`grid.json`, ~7 MB/event vs. contours'
+measured ~100-530 KB in this repo's own committed Atlas output) is
+opt-in-only (`BUMELERZE_PUBLISH_RASTER`) — off by default, no file written,
+no index row created for it at all.
+
+Replaying the same product directory through either collaborator never
+creates a duplicate row/file or a second physical event. The
+previously-discarded engine-version block (`info.json`'s `"version"`:
+service version, openquake pin, GSIM branches, GMICE models, conditioning
+method) is carried verbatim into `shakemap_products.data_used` on every
+published row of a version — no schema change needed, `data_used` is
+already producer-defined JSONB. `build_uploader()` (called from
+`scripts/run_worker.py`'s `main()`) reads `SUPABASE_URL`/
+`SUPABASE_SERVICE_ROLE_KEY` (index credentials) plus three optional,
+safely-defaulted env vars (artifact publish root/base URL/raster policy)
+and returns a real `SupabaseUploader` when Supabase credentials are set, or
+falls back to the pre-existing `LocalOnlyUploader` (logged, not silent)
+when they aren't — see `.env.example` in this directory for all five
+variables and OPERATIONS.md for the operator runbook (uploading an
+existing product, backfilling the curated Atlas events, and the engine-fix
+-> recompute -> republish cycle). The index writer talks to Supabase over
+plain HTTPS (PostgREST, via the `requests` dependency already pinned here)
+— no new dependency; the artifact publisher is pure local filesystem I/O.
 
 **Wave G / D21 "dual backend"**: `worker/pipeline.py` now fetches whatever
 USGS station (`stationlist.json`)/DYFI (`dyfi_geo_10km.geojson`) product
@@ -290,11 +341,16 @@ never automatically.
   — see that folder's own `README.md`). Cross-event synthesis:
   `validation/SUMMARY.md`.
 
-- `shake_service/worker/` (wave F) — the auto-trigger daemon: `feed_watcher.py`
-  (USGS poll parsing + trigger decisions), `state.py` (JSON-file-backed
-  per-event state), `pipeline.py` (forward map -> export -> state ->
-  upload, idempotent), `uploader.py` (`ProductUploader`, `LocalOnlyUploader`,
-  `SupabaseUploader` stub). CLI: `scripts/run_worker.py --once`/`--daemon`.
+- `shake_service/worker/` (wave F, uploader wired in the SupabaseUploader
+  integration wave) — the auto-trigger daemon: `feed_watcher.py` (USGS poll
+  parsing + trigger decisions), `state.py` (JSON-file-backed per-event
+  state), `pipeline.py` (forward map -> export -> state -> upload,
+  idempotent), `uploader.py` (`ProductUploader`, `LocalOnlyUploader`, the
+  real `SupabaseUploader` — composing a `SupabaseIndexWriter` for the
+  small Supabase INDEX row and an `ArtifactPublisher` for the actual
+  product files, pluggable, real local-directory impl `AtlasRepoPublisher`
+  — + `build_uploader()`'s credentials-present/absent fallback). CLI:
+  `scripts/run_worker.py --once`/`--daemon`.
 
 Internal numeric contract (documented once, here, and in `gmm.py`'s
 docstring): **ln-space**, **g** for PGA/SA, **cm/s** for PGV — i.e.

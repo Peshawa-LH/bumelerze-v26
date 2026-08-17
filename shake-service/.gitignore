@@ -27,3 +27,10 @@ __pycache__/
 # same "heavy USGS-scale artifact, never committed" policy as `.cache/`
 # above.
 bumelerze-atlas/**/grid.json
+
+# atlas-publish/ (default BUMELERZE_ATLAS_PUBLISH_ROOT, worker/uploader.py's
+# AtlasRepoPublisher): the LOCAL STAGING copy of the separate, externally-
+# published Bumelerze Atlas data repository — never committed here. The
+# orchestrator syncs this tree to the real public repo/CDN (OPERATIONS.md
+# §8d); this repo only ever produces it.
+/atlas-publish/
