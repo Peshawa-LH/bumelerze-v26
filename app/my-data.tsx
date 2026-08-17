@@ -19,7 +19,7 @@ import { useTheme } from "@/theme";
 
 /**
  * My Data (D26 item 7: "a MyShake-style personal view shows the user's own
- * reports and contributions", ref: `.claude/refs/MyShakeApp-photos/
+ * reports and contributions", per the internal design reference (MyShake
  * IMG_3480.PNG`). Reached only from the new Settings row this wave.
  *
  * Data source is exclusively the LOCAL felt-report queue

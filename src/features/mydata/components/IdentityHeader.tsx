@@ -10,7 +10,7 @@ import { useContributorId } from "../use-contributor-id";
  * friendly short form of the anonymous per-install device id, plus a
  * one-line explanation that it exists without any account/registration.
  * Mirrors the SPIRIT of the owner's MyShake reference screenshot
- * (`.claude/refs/MyShakeApp-photos/IMG_3480.PNG`: a personal identity/
+ * (internal design reference, MyShake's personal identity/
  * summary card at the top of the screen), not its exact layout.
  */
 export function IdentityHeader() {

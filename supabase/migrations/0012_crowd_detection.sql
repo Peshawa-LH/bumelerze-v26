@@ -1,7 +1,7 @@
 -- 0012: crowdsourced event detection ("possible events") + agency
 -- reconciliation, D26 items 3-4.
 --
--- Implements `.claude/research/felt-detection-design.md` (dated 2026-08-16)
+-- Implements the crowdsourced-detection design (dated 2026-08-16)
 -- on top of the event-registry + auto-assignment foundation from migration
 -- 0011 (`upsert_event_from_client`, `assign_unassigned_felt_reports`, the
 -- "unassigned pool" of `felt_reports` rows with `event_id is null`). All

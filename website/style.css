@@ -1,5 +1,5 @@
 /* Bumelerze website — single shared stylesheet.
- * Tokens follow the app's design language (.claude/research/design-language.md):
+ * Tokens follow the app's design language (internal design-language reference):
  * dark as the primary theme, true-black OLED surfaces, Zagros Blue brand hue
  * pulled from src/theme/palette.ts (light #1F4E5F / dark #3E7C93), big type,
  * system font stack, no images, no frameworks. RTL locales (ckb, ar) rely on
