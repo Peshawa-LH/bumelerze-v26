@@ -1,8 +1,10 @@
 import {
+  damageGradeOnFillDark,
+  damageGradeOnFillLight,
+  damageGradePalette,
   intensityOnFillDark,
   intensityOnFillLight,
-  intensityRampDark,
-  intensityRampLight,
+  intensityRamp,
   neutral,
 } from "../palette";
 import { darkColors, lightColors } from "../semantic";
@@ -48,22 +50,24 @@ const LIGHT_DARK_TEXT = "#1E1E1E"; // neutral[1000], intensityOnFillLight's dark
 const LIGHT_LIGHT_TEXT = "#FFFFFF"; // intensityOnFillLight's white option
 const DARK_DARK_TEXT = "#161616"; // intensityOnFillDark's dark option
 const DARK_LIGHT_TEXT = "#F2F2F3"; // intensityOnFillDark's white option
+const DARK_SURFACE = "#141414"; // colors.surface.raised, dark theme
+const LIGHT_SURFACE = "#FFFFFF"; // colors.surface.base, light theme
 
 describe("intensity ramp — toolkit provenance (ui-backlog.md item 8)", () => {
-  it("has exactly 13 entries (index 0 unused placeholder + I..XII) in every ramp/onFill array", () => {
-    expect(intensityRampLight).toHaveLength(13);
-    expect(intensityRampDark).toHaveLength(13);
+  it("has exactly 13 entries (index 0 unused placeholder + I..XII)", () => {
+    expect(intensityRamp).toHaveLength(13);
     expect(intensityOnFillLight).toHaveLength(13);
     expect(intensityOnFillDark).toHaveLength(13);
-    expect(intensityRampLight[0]).toBe("");
-    expect(intensityRampDark[0]).toBe("");
+    expect(intensityRamp[0]).toBe("");
   });
 
-  it("matches the toolkit's ems_colors extraction verbatim for the light ramp", () => {
+  it("matches the toolkit's ems_colors extraction verbatim for levels I-X", () => {
     // SHAKEmaps-Toolkit-v26/modules/utils/SHAKEtools.py, contour_scale(...,
     // scale_type="ems"), the `ems_colors` list — see palette.ts's provenance
-    // comment for the full citation.
-    expect(intensityRampLight).toEqual([
+    // comment for the full citation. XI/XII are NOT toolkit-verbatim as of
+    // the 2026-08-17 light/dark unification wave (see palette.ts's own
+    // [REVIEW visual] comment) — checked separately below.
+    expect(intensityRamp.slice(0, 11)).toEqual([
       "",
       "#FFFFFF",
       "#EDEFF3",
@@ -75,41 +79,47 @@ describe("intensity ramp — toolkit provenance (ui-backlog.md item 8)", () => {
       "#E9872D",
       "#DF532A",
       "#D9262A",
-      "#880000",
-      "#440001",
     ]);
   });
 
   it("does NOT merge II and III into a shared swatch (the old placeholder's convention) — the toolkit gives each its own color", () => {
-    expect(intensityRampLight[2]).not.toBe(intensityRampLight[3]);
+    expect(intensityRamp[2]).not.toBe(intensityRamp[3]);
   });
 
-  it("keeps levels I-X byte-identical between light and dark (no re-hue of the scientific scale)", () => {
-    for (let level = 1; level <= 10; level += 1) {
-      expect(intensityRampDark[level]).toBe(intensityRampLight[level]);
-    }
-  });
-
-  it("only adjusts XI/XII in dark mode, and only to lighten them (fixing the true-black 'vanishes' bug)", () => {
-    for (const level of [11, 12]) {
-      const light = intensityRampLight[level];
-      const dark = intensityRampDark[level];
-      expect(light).toBeDefined();
-      expect(dark).toBeDefined();
-      expect(dark).not.toBe(light);
-      // The dark-mode adjustment must be a genuine lightening, not an
-      // arbitrary re-color — i.e. strictly higher relative luminance.
-      expect(relativeLuminance(dark!)).toBeGreaterThan(relativeLuminance(light!));
-    }
-  });
-
-  it("clears a 3:1 contrast floor against the dark theme's card background (#141414) for every level, including the adjusted XI/XII", () => {
-    const DARK_CARD_BACKGROUND = "#141414"; // colors.surface.raised, dark theme
+  it("clears a 3:1 contrast floor against the dark theme's card background (#141414) for every level, including XI/XII", () => {
     for (let level = 1; level <= 12; level += 1) {
-      const fill = intensityRampDark[level];
+      const fill = intensityRamp[level];
       expect(fill).toBeDefined();
-      expect(contrastRatio(fill!, DARK_CARD_BACKGROUND)).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(fill!, DARK_SURFACE)).toBeGreaterThanOrEqual(3);
     }
+  });
+
+  it("XI/XII clear a 3:1 contrast floor against the light theme's surface (#FFFFFF) — the other requirement the unification had to hold simultaneously (level I is deliberately white-on-white, see the array's own doc comment, so this is scoped to the two changed levels, not all 12)", () => {
+    for (const level of [11, 12]) {
+      const fill = intensityRamp[level];
+      expect(fill).toBeDefined();
+      expect(contrastRatio(fill!, LIGHT_SURFACE)).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("XI/XII (2026-08-17 unification): pins the exact unified hex values so a future change is caught, not silently accepted", () => {
+    expect(intensityRamp[11]).toBe("#DB0000");
+    expect(intensityRamp[12]).toBe("#CC0000");
+  });
+
+  it("XI/XII stay ordered as increasing severity after X (each level darker/lower-luminance than the last)", () => {
+    const lumX = relativeLuminance(intensityRamp[10]!);
+    const lumXI = relativeLuminance(intensityRamp[11]!);
+    const lumXII = relativeLuminance(intensityRamp[12]!);
+    expect(lumXI).toBeLessThan(lumX);
+    expect(lumXII).toBeLessThan(lumXI);
+  });
+
+  it("XI/XII pin their exact measured contrast figures against both surfaces", () => {
+    expect(contrastRatio(intensityRamp[11]!, DARK_SURFACE)).toBeCloseTo(3.52, 1);
+    expect(contrastRatio(intensityRamp[11]!, LIGHT_SURFACE)).toBeCloseTo(5.23, 1);
+    expect(contrastRatio(intensityRamp[12]!, DARK_SURFACE)).toBeCloseTo(3.13, 1);
+    expect(contrastRatio(intensityRamp[12]!, LIGHT_SURFACE)).toBeCloseTo(5.89, 1);
   });
 });
 
@@ -123,7 +133,7 @@ describe("intensity on-fill text color — WCAG contrast, not eyeballed", () => 
     const BORDERLINE_LEVELS = new Set([9]);
 
     for (let level = 1; level <= 12; level += 1) {
-      const fill = intensityRampLight[level];
+      const fill = intensityRamp[level];
       const chosen = intensityOnFillLight[level];
       expect(fill).toBeDefined();
       expect(chosen).toBeDefined();
@@ -139,7 +149,7 @@ describe("intensity on-fill text color — WCAG contrast, not eyeballed", () => 
   });
 
   it("pins level IX's exact borderline contrast figures so a future hex change is caught, not silently accepted", () => {
-    const fill = intensityRampLight[9];
+    const fill = intensityRamp[9];
     expect(fill).toBe("#DF532A");
     expect(contrastRatio(fill!, LIGHT_DARK_TEXT)).toBeCloseTo(4.293, 2);
     expect(contrastRatio(fill!, LIGHT_LIGHT_TEXT)).toBeCloseTo(3.883, 2);
@@ -147,7 +157,7 @@ describe("intensity on-fill text color — WCAG contrast, not eyeballed", () => 
 
   it("dark theme: every level's chosen on-fill color is the higher-contrast of the two available text options", () => {
     for (let level = 1; level <= 12; level += 1) {
-      const fill = intensityRampDark[level];
+      const fill = intensityRamp[level];
       const chosen = intensityOnFillDark[level];
       expect(fill).toBeDefined();
       expect(chosen).toBeDefined();
@@ -158,6 +168,55 @@ describe("intensity on-fill text color — WCAG contrast, not eyeballed", () => 
 
       expect(chosen).toBe(expected);
       expect(Math.max(darkOption, lightOption)).toBeGreaterThanOrEqual(3);
+    }
+  });
+});
+
+describe("damage-grade palette — own 5-color set, decoupled from the intensity ramp (2026-08-17 update wave §2.2b)", () => {
+  it("has exactly 6 entries (index 0 unused placeholder + DG1..DG5) in every array", () => {
+    expect(damageGradePalette).toHaveLength(6);
+    expect(damageGradeOnFillLight).toHaveLength(6);
+    expect(damageGradeOnFillDark).toHaveLength(6);
+    expect(damageGradePalette[0]).toBe("");
+  });
+
+  it("matches the owner-specified hexes exactly for DG3/DG4/DG5", () => {
+    expect(damageGradePalette[3]).toBe("#F9EC33");
+    expect(damageGradePalette[4]).toBe("#DF532A");
+    expect(damageGradePalette[5]).toBe("#440001");
+  });
+
+  it("DG2 (light green) reuses the intensity ramp's level V verbatim", () => {
+    expect(damageGradePalette[2]).toBe(intensityRamp[5]);
+  });
+
+  it("DG1 (dark green) is a distinct new token, not a re-hue of DG2 or any status color", () => {
+    expect(damageGradePalette[1]).toBe("#1B5E20");
+    expect(damageGradePalette[1]).not.toBe(damageGradePalette[2]);
+  });
+
+  it("every swatch's chosen on-fill text (both themes) is the higher-contrast of the two available options", () => {
+    const BORDERLINE_GRADES = new Set([4]); // #DF532A, same borderline case as the ramp's IX
+
+    for (let grade = 1; grade <= 5; grade += 1) {
+      const fill = damageGradePalette[grade];
+      expect(fill).toBeDefined();
+
+      const lightDarkOption = contrastRatio(fill!, LIGHT_DARK_TEXT);
+      const lightLightOption = contrastRatio(fill!, LIGHT_LIGHT_TEXT);
+      const expectedLight =
+        lightDarkOption >= lightLightOption ? LIGHT_DARK_TEXT : LIGHT_LIGHT_TEXT;
+      expect(damageGradeOnFillLight[grade]).toBe(expectedLight);
+      expect(Math.max(lightDarkOption, lightLightOption)).toBeGreaterThanOrEqual(
+        BORDERLINE_GRADES.has(grade) ? 3 : 4.5,
+      );
+
+      const darkDarkOption = contrastRatio(fill!, DARK_DARK_TEXT);
+      const darkLightOption = contrastRatio(fill!, DARK_LIGHT_TEXT);
+      const expectedDark =
+        darkDarkOption >= darkLightOption ? DARK_DARK_TEXT : DARK_LIGHT_TEXT;
+      expect(damageGradeOnFillDark[grade]).toBe(expectedDark);
+      expect(Math.max(darkDarkOption, darkLightOption)).toBeGreaterThanOrEqual(3);
     }
   });
 });

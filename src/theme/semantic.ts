@@ -9,10 +9,12 @@
 import {
   actionRed,
   brand,
+  damageGradeOnFillDark,
+  damageGradeOnFillLight,
+  damageGradePalette,
   intensityOnFillDark,
   intensityOnFillLight,
-  intensityRampDark,
-  intensityRampLight,
+  intensityRamp,
   neutral,
   status,
 } from "./palette";
@@ -52,6 +54,11 @@ export interface SemanticColors {
   /** Index 1..12 = EMS-98 I..XII. Index 0 is an unused placeholder. */
   intensity: readonly string[];
   intensityOnFill: readonly string[];
+  /** Index 1..5 = DG1..DG5 building-damage grade. Index 0 is an unused
+   * placeholder. Own palette, not sampled from `intensity` — see
+   * `palette.ts`'s `damageGradePalette` doc comment. */
+  damageGrade: readonly string[];
+  damageGradeOnFill: readonly string[];
 }
 
 export const lightColors: SemanticColors = {
@@ -83,8 +90,10 @@ export const lightColors: SemanticColors = {
     feltOnFill: neutral[0],
   },
   status,
-  intensity: intensityRampLight,
+  intensity: intensityRamp,
   intensityOnFill: intensityOnFillLight,
+  damageGrade: damageGradePalette,
+  damageGradeOnFill: damageGradeOnFillLight,
 };
 
 export const darkColors: SemanticColors = {
@@ -126,6 +135,8 @@ export const darkColors: SemanticColors = {
     feltOnFill: neutral[1100],
   },
   status,
-  intensity: intensityRampDark,
+  intensity: intensityRamp,
   intensityOnFill: intensityOnFillDark,
+  damageGrade: damageGradePalette,
+  damageGradeOnFill: damageGradeOnFillDark,
 };
