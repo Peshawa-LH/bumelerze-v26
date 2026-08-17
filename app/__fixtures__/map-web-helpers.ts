@@ -98,7 +98,26 @@ export function setMockMapStyleFixture(fixture: {
   nextMockStyleSources = fixture.sources ?? defaultMockStyleSources();
 }
 
+/** Overrides the style `getStyle()` reports AFTER a `setStyle(...)` call
+ * (the basemap-style-picker swap, `map-web-style-picker.test.tsx`) —
+ * independent of `setMockMapStyleFixture` above (which only affects the
+ * INITIAL style a freshly-constructed `MockMap` starts with). `null`
+ * (the default, restored by `resetMapWebMocks`) makes `setStyle` fall back
+ * to the same representative default layers/sources every `new MockMap(...)`
+ * starts with, so a swap-then-inspect test sees a believably "different but
+ * still plausible" style without needing to specify one explicitly. */
+let nextMockSetStyleLayers: MockStyleLayer[] | null = null;
+let nextMockSetStyleSources: Record<string, { type: string }> | null = null;
+export function setMockSetStyleFixture(
+  fixture: { layers?: MockStyleLayer[]; sources?: Record<string, { type: string }> } | null,
+) {
+  nextMockSetStyleLayers = fixture?.layers ?? null;
+  nextMockSetStyleSources = fixture?.sources ?? null;
+}
+
 export const mockMapFitBounds = jest.fn();
+export const mockMapSetStyle = jest.fn();
+export const mockMapOnce = jest.fn();
 
 /** Records the order `setWorkerUrl(...)` and `new Map(...)` are called in,
  * across all mocks below — locks map.web.tsx's requirement that the worker
@@ -153,6 +172,7 @@ function resetMockRTLTextPlugin() {
 export class MockMap {
   options: Record<string, unknown>;
   handlers: Record<string, () => void> = {};
+  private onceHandlers: Record<string, (() => void)[]> = {};
   // Per-instance, independently mutable copies of the module-scope fixture
   // — `structuredClone` so no two map instances (e.g. the original +ONE
   // recreated by a retry/fallback within the same test) ever share layer
@@ -192,8 +212,39 @@ export class MockMap {
     mockMapRemove();
   }
 
+  /** `map.once("style.load", handler)` — the ONLY `once` usage `map.web.tsx`
+   * makes (`handleStyleChange`'s post-`setStyle` terrain/label
+   * re-application). Fires exactly once, asynchronously, mirroring `on`'s
+   * "load"/"error" auto-fire above — matches how a real MapLibre map's
+   * `setStyle()` resolves asynchronously once the new style document has
+   * loaded. */
+  once(event: string, handler: () => void) {
+    mockMapOnce(event);
+    this.onceHandlers[event] = [...(this.onceHandlers[event] ?? []), handler];
+  }
+
   fitBounds(bounds: unknown, options?: unknown) {
     mockMapFitBounds(bounds, options);
+  }
+
+  /** Simulates MapLibre's real `setStyle()` behavior: replaces the ENTIRE
+   * style document (wiping every source/layer WE added — terrain
+   * hillshade, own-labels, locale-relabeled basemap layers), then fires any
+   * pending `"style.load"` `once` handlers once the "new style" is in
+   * place — exactly what `handleStyleChange` (`map.web.tsx`) relies on to
+   * re-run `primeTerrainAndLabelCache`/`applyLocaleLabels` against the
+   * post-swap style. */
+  setStyle(url: string) {
+    mockMapSetStyle(url);
+    this.options = { ...this.options, style: url };
+    this.styleLayers = structuredClone(nextMockSetStyleLayers ?? defaultMockStyleLayers());
+    this.styleSources = structuredClone(
+      nextMockSetStyleSources ?? defaultMockStyleSources(),
+    );
+    this.geoJsonSources = {};
+    const pending = this.onceHandlers["style.load"] ?? [];
+    this.onceHandlers["style.load"] = [];
+    void Promise.resolve().then(() => act(() => pending.forEach((handler) => handler())));
   }
 
   getStyle() {
@@ -341,6 +392,9 @@ export function resetMapWebMocks() {
   mockMapGetSource.mockClear();
   mockSourceSetData.mockClear();
   mockMapFitBounds.mockClear();
+  mockMapSetStyle.mockClear();
+  mockMapOnce.mockClear();
   setMockMapStyleFixture({});
+  setMockSetStyleFixture(null);
   resetMockRTLTextPlugin();
 }

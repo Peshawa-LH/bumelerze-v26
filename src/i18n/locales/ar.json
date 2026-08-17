@@ -196,6 +196,19 @@
       "dateMaxA11yLabel": "أحدث تاريخ",
       "dateRangeValue": "{{start}} – {{end}}",
       "reset": "إعادة التعيين"
+    },
+    "style": {
+      "title": "نمط الخريطة",
+      "expandA11yHint": "اختر نمط الخريطة",
+      "collapseA11yHint": "إخفاء خيارات نمط الخريطة",
+      "outdoor": "الطبيعة",
+      "topo": "طبوغرافي",
+      "hybrid": "الأقمار الصناعية",
+      "dataviz": "بسيط",
+      "openfreemap": "OpenFreeMap"
+    },
+    "attribution": {
+      "maptilerLogoA11yLabel": "MapTiler"
     }
   },
   "sensor": {

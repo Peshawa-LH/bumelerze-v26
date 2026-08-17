@@ -196,6 +196,19 @@
       "dateMaxA11yLabel": "دواترین بەروار",
       "dateRangeValue": "{{start}} – {{end}}",
       "reset": "ڕیسێت کردنەوە"
+    },
+    "style": {
+      "title": "شێوازی نەخشە",
+      "expandA11yHint": "شێوازێکی نەخشە هەڵبژێرە",
+      "collapseA11yHint": "هەڵبژاردنەکانی شێوازی نەخشە بشارەوە",
+      "outdoor": "دەرەوە",
+      "topo": "پێستی زەوی",
+      "hybrid": "پەیکەری تاسیلایتی",
+      "dataviz": "سادە",
+      "openfreemap": "OpenFreeMap"
+    },
+    "attribution": {
+      "maptilerLogoA11yLabel": "MapTiler"
     }
   },
   "sensor": {

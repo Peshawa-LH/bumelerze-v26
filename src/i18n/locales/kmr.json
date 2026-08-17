@@ -196,6 +196,19 @@
       "dateMaxA11yLabel": "Dîroka herî nû",
       "dateRangeValue": "{{start}} – {{end}}",
       "reset": "Ji nû ve saz bike"
+    },
+    "style": {
+      "title": "Şêweya nexşeyê",
+      "expandA11yHint": "Şêweyek ji bo nexşeyê hilbijêre",
+      "collapseA11yHint": "Vebijarkên şêweya nexşeyê veşêre",
+      "outdoor": "Derve",
+      "topo": "Topografîk",
+      "hybrid": "Satelît",
+      "dataviz": "Sade",
+      "openfreemap": "OpenFreeMap"
+    },
+    "attribution": {
+      "maptilerLogoA11yLabel": "MapTiler"
     }
   },
   "sensor": {

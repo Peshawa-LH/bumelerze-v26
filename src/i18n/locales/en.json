@@ -196,6 +196,19 @@
       "dateMaxA11yLabel": "Latest date",
       "dateRangeValue": "{{start}} – {{end}}",
       "reset": "Reset"
+    },
+    "style": {
+      "title": "Map style",
+      "expandA11yHint": "Choose a map style",
+      "collapseA11yHint": "Hide map style options",
+      "outdoor": "Outdoor",
+      "topo": "Topographic",
+      "hybrid": "Satellite",
+      "dataviz": "Minimal",
+      "openfreemap": "OpenFreeMap"
+    },
+    "attribution": {
+      "maptilerLogoA11yLabel": "MapTiler"
     }
   },
   "sensor": {

@@ -35,24 +35,29 @@ import {
   filterEventsByMagnitudeAndDate,
   findHillshadeBeforeLayerId,
   findNameLabelLayerIds,
+  getConfiguredMapTilerKey,
   MAP_FIT_BOUNDS_PADDING_PX,
   MAP_RTL_TEXT_PLUGIN_URL,
   MAP_WORKER_URL,
   MapFilterPanel,
   MARKER_HIT_PADDING_PX,
+  MapStylePicker,
+  MapTilerAttributionLogo,
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_SOURCE_ID,
   regionBboxToLngLatBounds,
-  resolveMapStyle,
+  resolveCatalogMapStyle,
   ScopeToggle,
   shouldLocalizeToArabicScript,
   shouldRequestRTLTextPlugin,
   styleHasRasterDemSource,
   TERRAIN_DEM_SOURCE_ID,
+  useMapPreferencesStore,
   WORLD_VIEW_BBOX,
   type DateRangeMs,
   type MagnitudeRange,
   type MapScope,
+  type MapStyleCatalogId,
   type MapStyleProviderId,
 } from "@/features/map";
 import { useTheme } from "@/theme";
@@ -227,6 +232,14 @@ export default function MapScreenWeb() {
   const { events: regionEvents, dataUpdatedAt: regionDataUpdatedAt } = useRegionEvents();
   const { events: worldEvents, dataUpdatedAt: worldDataUpdatedAt } = useWorldEvents();
 
+  // Persisted basemap style pick (update-plan-2026-08.md §4.3/Part 3:
+  // "Persist his choice locally so it survives reloads") — selectors, not
+  // the whole store, matching this app's established zustand-consumption
+  // convention (`usePrefsStore` call sites elsewhere).
+  const styleId = useMapPreferencesStore((state) => state.styleId);
+  const setStyleId = useMapPreferencesStore((state) => state.setStyleId);
+  const hasStyleHydrated = useMapPreferencesStore((state) => state.hasHydrated);
+
   // Kurdistan/World scope (§4.1) — Kurdistan default (region-first
   // principle, D11/D26). Switching scope also resets any active
   // magnitude/date filter selection back to "full range" (below) so a
@@ -247,6 +260,7 @@ export default function MapScreenWeb() {
   const [magnitudeRange, setMagnitudeRange] = useState<MagnitudeRange | null>(null);
   const [dateRange, setDateRange] = useState<DateRangeMs | null>(null);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [styleExpanded, setStyleExpanded] = useState(false);
 
   const handleScopeChange = useCallback((nextScope: MapScope) => {
     setScope(nextScope);
@@ -325,6 +339,12 @@ export default function MapScreenWeb() {
   // worth falling back from, or an OpenFreeMap failure that's just the
   // genuine offline/error state (`decideMapErrorAction`).
   const activeProviderRef = useRef<MapStyleProviderId>("openfreemap");
+  // Render-visible twin of `activeProviderRef` — the ref is what closures
+  // (the "error" handler, `decideMapErrorAction`) read synchronously;
+  // this state is what JSX reads to decide whether the MapTiler
+  // attribution logo (Part 4) should show. Always written alongside the
+  // ref, never instead of it.
+  const [activeProvider, setActiveProvider] = useState<MapStyleProviderId>("openfreemap");
   // One-shot MapTiler→OpenFreeMap runtime fallback latch (style-provider.ts
   // doc comment: "never loops"). Reset on a user-initiated retry
   // (`handleRetry`) so a manual retry gets a fresh shot at MapTiler rather
@@ -351,12 +371,18 @@ export default function MapScreenWeb() {
     }, []),
   );
 
-  // Creates the map exactly once, the first time the tab is focused. Not
-  // re-run on scheme change — the style URL is only read at creation time
-  // this wave (flipping OS theme mid-session won't hot-swap the basemap;
-  // a small, deliberate scope cut, not a bug).
+  // Creates the map exactly once, the first time the tab is focused (and
+  // once the persisted style preference has hydrated — see
+  // `useMapPreferencesStore`'s doc comment: without this gate, a returning
+  // user with a non-default style saved would briefly build the map with
+  // the `outdoor` default before their real pick loads). Not re-run on
+  // scheme change — the style URL is only read at creation time this wave
+  // (flipping OS theme mid-session won't hot-swap the basemap; a small,
+  // deliberate scope cut, not a bug). Later user-driven style PICKS (the
+  // `MapStylePicker` control) go through `handleStyleChange` below, which
+  // live-swaps the existing map instance's style rather than recreating it.
   useEffect(() => {
-    if (!isFocused || creationStartedRef.current) {
+    if (!isFocused || !hasStyleHydrated || creationStartedRef.current) {
       return;
     }
     if (!containerRef.current) {
@@ -373,13 +399,18 @@ export default function MapScreenWeb() {
 
     // A prior instance's runtime fallback (see the "error" handler below)
     // forces OpenFreeMap for every subsequent (re)creation until
-    // `handleRetry` resets the latch — `resolveMapStyle` reads
-    // `EXPO_PUBLIC_MAPTILER_KEY` itself, so no key is threaded through here.
-    const { provider, url: styleUrl } = resolveMapStyle(
+    // `handleRetry` resets the latch — `resolveCatalogMapStyle` is handed
+    // the MapTiler key explicitly (unlike the old single-family
+    // `resolveMapStyle`, since this catalog-aware resolver has no built-in
+    // env read of its own — see `style-catalog.ts`).
+    const { provider, url: styleUrl } = resolveCatalogMapStyle(
+      styleId,
       scheme,
+      getConfiguredMapTilerKey(),
       fallbackAttemptedRef.current ? "openfreemap" : undefined,
     );
     activeProviderRef.current = provider;
+    setActiveProvider(provider);
 
     import("maplibre-gl")
       .then((module) => {
@@ -474,8 +505,8 @@ export default function MapScreenWeb() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `scheme` and `i18n.language` are only read once at creation/load time here (the dedicated locale-reactive effect below handles later changes); `retryTick` is the deliberate re-run trigger for handleRetry/the fallback path
-  }, [isFocused, retryTick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `scheme`, `i18n.language`, and `styleId` are only read once at creation/hydration time here (the dedicated locale-reactive effect below handles later locale changes; `handleStyleChange` handles later user style picks by live-swapping the existing map, not by recreating it); `retryTick` is the deliberate re-run trigger for handleRetry/the fallback path
+  }, [isFocused, hasStyleHydrated, retryTick]);
 
   // Re-applies label localization whenever the active locale changes, using
   // the ORIGINAL text-field cache `primeTerrainAndLabelCache` populated at
@@ -547,6 +578,49 @@ export default function MapScreenWeb() {
         : regionBboxToLngLatBounds(REGION_BBOX);
     map.fitBounds(bounds, { padding: MAP_FIT_BOUNDS_PADDING_PX });
   }, [scope, loadState]);
+
+  // Live basemap style swap (§4.3/Part 3) — `map.setStyle` on the EXISTING
+  // map instance (never recreates it, unlike the initial-load path above),
+  // so the current viewport/zoom/markers are untouched. `setStyle` DOES
+  // wipe every source/layer WE added (terrain hillshade, own-labels,
+  // locale-relabeled basemap layers) — MapLibre fires `"style.load"` once
+  // the new style finishes loading, and `primeTerrainAndLabelCache`/
+  // `applyLocaleLabels` re-run against it there, the exact same functions
+  // (and exact same idempotent "inspect the ACTIVE style, decide what it
+  // needs" logic) the initial `"load"` handler above already uses — no
+  // separate re-application code path to keep in sync. Markers are
+  // deliberately NOT rebuilt here: maplibre-gl `Marker` instances are DOM
+  // overlays independent of the style/source system `setStyle` replaces
+  // (verified against the installed maplibre-gl 6.x's own behavior), so
+  // they simply keep rendering on top of the new tiles with zero extra
+  // code — confirmed by this file's own style-swap tests
+  // (`map-web-style-picker.test.tsx`).
+  const handleStyleChange = useCallback(
+    (nextStyleId: MapStyleCatalogId) => {
+      setStyleId(nextStyleId);
+      const map = mapRef.current;
+      if (!map) {
+        return;
+      }
+      const resolved = resolveCatalogMapStyle(
+        nextStyleId,
+        scheme,
+        getConfiguredMapTilerKey(),
+      );
+      activeProviderRef.current = resolved.provider;
+      setActiveProvider(resolved.provider);
+      // A fresh, explicit user pick deserves a fresh shot at MapTiler (same
+      // reasoning as `handleRetry`) rather than staying pinned to an
+      // earlier session's automatic fallback.
+      fallbackAttemptedRef.current = false;
+      map.once("style.load", () => {
+        primeTerrainAndLabelCache(map, scheme, i18n.language, originalTextFieldsRef.current);
+        applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
+      });
+      map.setStyle(resolved.url);
+    },
+    [scheme, i18n.language, setStyleId],
+  );
 
   // Rebuilds the marker layer whenever the map becomes ready, the active
   // scope/filters change, or the underlying feed refetches (every 60s while
@@ -671,7 +745,19 @@ export default function MapScreenWeb() {
                 expanded={filtersExpanded}
                 onToggleExpanded={() => setFiltersExpanded((current) => !current)}
               />
+              <MapStylePicker
+                value={styleId}
+                onChange={handleStyleChange}
+                expanded={styleExpanded}
+                onToggleExpanded={() => setStyleExpanded((current) => !current)}
+              />
             </View>
+          </View>
+        ) : null}
+
+        {loadState === "ready" && activeProvider === "maptiler" ? (
+          <View style={styles.attributionLogo} pointerEvents="box-none">
+            <MapTilerAttributionLogo />
           </View>
         ) : null}
 
@@ -815,5 +901,10 @@ const styles = StyleSheet.create({
   },
   controlsColumn: {
     alignItems: "flex-end",
+  },
+  attributionLogo: {
+    position: "absolute",
+    bottom: 0,
+    end: 0,
   },
 });
