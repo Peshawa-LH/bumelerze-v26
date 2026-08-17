@@ -9,6 +9,7 @@ import type { Event } from "@/features/events";
 export const mockPush = jest.fn();
 
 export const mockUseRegionEvents = jest.fn();
+export const mockUseWorldEvents = jest.fn();
 
 /** `on("load"/"error", handler)` auto-fires the registered handler on the
  * next microtask — mirroring a real map's async style-load completion.
@@ -96,6 +97,8 @@ export function setMockMapStyleFixture(fixture: {
   nextMockStyleLayers = fixture.layers ?? defaultMockStyleLayers();
   nextMockStyleSources = fixture.sources ?? defaultMockStyleSources();
 }
+
+export const mockMapFitBounds = jest.fn();
 
 /** Records the order `setWorkerUrl(...)` and `new Map(...)` are called in,
  * across all mocks below — locks map.web.tsx's requirement that the worker
@@ -189,6 +192,10 @@ export class MockMap {
     mockMapRemove();
   }
 
+  fitBounds(bounds: unknown, options?: unknown) {
+    mockMapFitBounds(bounds, options);
+  }
+
   getStyle() {
     return { layers: this.styleLayers, sources: this.styleSources };
   }
@@ -271,6 +278,19 @@ export const testSafeAreaMetrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
+/**
+ * A fixed, deterministic stand-in for `dataUpdatedAt` (React Query's own
+ * last-successful-fetch timestamp) — `map.web.tsx`'s date-filter bounds key
+ * off this field directly, not a bare `Date.now()` read (see that file's
+ * own doc comment for why: a render-time value there used to defeat
+ * memoization and rebuild every marker on every unrelated re-render). Any
+ * test mocking a non-empty event list should pass this as `dataUpdatedAt`
+ * alongside `events` — set safely after `makeEvent`'s own default
+ * `originTime` so a default-shaped event's timestamp always falls inside
+ * the resulting bounds.
+ */
+export const MOCK_DATA_UPDATED_AT = Date.UTC(2026, 7, 17, 12, 0, 0);
+
 export function makeEvent(overrides: Partial<Event> = {}): Event {
   return {
     id: "us7000abcd",
@@ -306,13 +326,21 @@ export function resetMapWebMocks() {
   mockMarkerConstructorOptions.length = 0;
   mockSetWorkerUrl.mockClear();
   mockWorkerUrlCallOrder.length = 0;
-  mockUseRegionEvents.mockReturnValue({ events: [] });
+  // `dataUpdatedAt` matches the real `useEventsFeed`'s shape (React Query's
+  // own last-fetch timestamp, defaulting to `0` before any fetch ever
+  // succeeds) — `map.web.tsx`'s date-filter bounds (`dateBounds`) key off
+  // this field directly (see that file's own doc comment for why), so a
+  // mock that omitted it entirely used to silently produce `NaN` bounds and
+  // zero rendered markers whenever a test supplied non-empty events.
+  mockUseRegionEvents.mockReturnValue({ events: [], dataUpdatedAt: 0 });
+  mockUseWorldEvents.mockReturnValue({ events: [], dataUpdatedAt: 0 });
   mockMapAddSource.mockClear();
   mockMapAddLayer.mockClear();
   mockMapSetLayoutProperty.mockClear();
   mockMapGetLayoutProperty.mockClear();
   mockMapGetSource.mockClear();
   mockSourceSetData.mockClear();
+  mockMapFitBounds.mockClear();
   setMockMapStyleFixture({});
   resetMockRTLTextPlugin();
 }

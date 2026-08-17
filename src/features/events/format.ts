@@ -277,6 +277,26 @@ function formatAbsoluteOne(
   });
 }
 
+/**
+ * Date-only (no time-of-day) localized display — day/month/year composed
+ * via the `events.dateOnlyTemplate` i18n key, the same per-locale ordering
+ * `formatAbsoluteOne` uses minus the time chunk. Exists for UI that shows a
+ * DATE RANGE rather than a single moment (the Map tab's date-range filter,
+ * `MapFilterPanel`) — appending a time-of-day to every slider-handle label
+ * there would be noise the control doesn't need, and reusing
+ * `formatAbsoluteDual`'s dual UTC+local shape would be actively wrong for a
+ * plain calendar-date bound.
+ */
+export function formatDateOnly(originTimeMs: number, locale: string, t: TranslateFn): string {
+  const { day, month, year } = dateComponents(new Date(originTimeMs), undefined, locale);
+
+  return t("events.dateOnlyTemplate", {
+    day: localizeDigits(String(day), locale),
+    month: t(`months.short.${month}`),
+    year: localizeDigits(String(year), locale),
+  });
+}
+
 /** Dual UTC + local absolute time display (spec-v1.md §4.5 event-detail
  * header requirement). Falls back gracefully if `Intl` doesn't recognize a
  * locale tag (e.g. `ckb`/`kmr` on older ICU data) — `Intl.DateTimeFormat`

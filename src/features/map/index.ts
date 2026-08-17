@@ -59,3 +59,15 @@ export {
   type OwnLabelProperties,
   type OwnLabelsBbox,
 } from "./own-labels";
+export { DEFAULT_MAP_SCOPE, MAP_SCOPES, WORLD_VIEW_BBOX, type MapScope } from "./scope";
+export {
+  computeDateBoundsMs,
+  computeMagnitudeBounds,
+  filterEventsByMagnitudeAndDate,
+  isDateRangeNarrowed,
+  isMagnitudeRangeNarrowed,
+  type DateRangeMs,
+  type MagnitudeRange,
+} from "./filters";
+export { ScopeToggle } from "./components/ScopeToggle";
+export { MapFilterPanel } from "./components/MapFilterPanel";

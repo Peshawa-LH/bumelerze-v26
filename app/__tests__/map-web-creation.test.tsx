@@ -23,9 +23,11 @@ import {
   mockMarkerConstructorOptions,
   mockMarkerSetLngLat,
   mockGetRTLTextPluginStatus,
+  MOCK_DATA_UPDATED_AT,
   mockSetRTLTextPlugin,
   mockSetWorkerUrl,
   mockUseRegionEvents,
+  mockUseWorldEvents,
   mockWorkerUrlCallOrder,
   resetMapWebMocks,
   setMockRTLTextPluginStatus,
@@ -49,6 +51,7 @@ jest.mock("@/features/events", () => {
   return {
     ...actual,
     useRegionEvents: () => mockUseRegionEvents(),
+    useWorldEvents: () => mockUseWorldEvents(),
   };
 });
 
@@ -180,6 +183,7 @@ describe("MapScreenWeb creation", () => {
           magnitude: { value: 6.2, type: "mww" },
         }),
       ],
+      dataUpdatedAt: MOCK_DATA_UPDATED_AT,
     });
 
     await renderWithProviders(<MapScreenWeb />);

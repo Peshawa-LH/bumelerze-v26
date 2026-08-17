@@ -32,9 +32,11 @@ import {
   mockMarkerConstructorOptions,
   mockPush,
   mockGetRTLTextPluginStatus,
+  MOCK_DATA_UPDATED_AT,
   mockSetRTLTextPlugin,
   mockSetWorkerUrl,
   mockUseRegionEvents,
+  mockUseWorldEvents,
   resetMapWebMocks,
   testSafeAreaMetrics,
 } from "../__fixtures__/map-web-helpers";
@@ -55,6 +57,7 @@ jest.mock("@/features/events", () => {
   return {
     ...actual,
     useRegionEvents: () => mockUseRegionEvents(),
+    useWorldEvents: () => mockUseWorldEvents(),
   };
 });
 
@@ -95,7 +98,10 @@ afterEach(() => {
 
 describe("MapScreenWeb interaction", () => {
   it("marker: click pushes the route, Enter matches click, other keys are ignored, and it's accessible", async () => {
-    mockUseRegionEvents.mockReturnValue({ events: [makeEvent({ id: "us7000xyz" })] });
+    mockUseRegionEvents.mockReturnValue({
+      events: [makeEvent({ id: "us7000xyz" })],
+      dataUpdatedAt: MOCK_DATA_UPDATED_AT,
+    });
 
     await renderWithProviders(<MapScreenWeb />);
     await waitFor(() => {

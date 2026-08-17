@@ -80,6 +80,7 @@
     "magnitudeDisplay": "{{value}} pîle",
     "dateTemplate": "{{day}} {{month}} {{year}}, {{time}}",
     "timeTemplate": "{{time}} {{period}}",
+    "dateOnlyTemplate": "{{day}} {{month}} {{year}}",
     "offlineBanner": "Tu offline î. Bûyerên ji {{time}} têne nîşandan",
     "offlineAnnouncement": "Tu offline î. Bûyerên herî dawî yên tomarkirî têne nîşandan.",
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
@@ -174,7 +175,28 @@
     "loading": "Nexşe tê barkirin…",
     "offlineTitle": "Nexşe li derveyî girêdanê ne berdest e",
     "offlineDescription": "Girêdana xwe kontrol bike û dîsa biceribîne.",
-    "retry": "Dîsa biceribîne"
+    "retry": "Dîsa biceribîne",
+    "scope": {
+      "kurdistan": "Kurdistan",
+      "world": "Cîhan",
+      "a11yLabel": "Berfirehiya nexşeyê: Kurdistan an cîhan"
+    },
+    "filters": {
+      "title": "Parzûnkirin",
+      "expandA11yHint": "Parzûnên mezinahî û dîrokê nîşan bide",
+      "collapseA11yHint": "Parzûnên mezinahî û dîrokê veşêre",
+      "summary": "M{{magMin}}–{{magMax}} · {{days}}r",
+      "summaryAllTime": "M{{magMin}}–{{magMax}} · hemû bûyer",
+      "magnitudeLabel": "Mezinahî",
+      "magnitudeMinA11yLabel": "Mezinahiya herî kêm",
+      "magnitudeMaxA11yLabel": "Mezinahiya herî zêde",
+      "magnitudeRangeValue": "M{{min}}–{{max}}",
+      "dateLabel": "Dîrok",
+      "dateMinA11yLabel": "Dîroka herî kevn",
+      "dateMaxA11yLabel": "Dîroka herî nû",
+      "dateRangeValue": "{{start}} – {{end}}",
+      "reset": "Ji nû ve saz bike"
+    }
   },
   "sensor": {
     "title": "Sensor",
