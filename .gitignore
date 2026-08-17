@@ -48,8 +48,9 @@ expo-env.d.ts
 # Netlify build output (built on Netlify, never committed)
 netlify-dist/
 
-# maplibre-gl worker bundle, synced from node_modules by `postinstall`
-# (scripts/sync-maplibre-worker.js) — never committed, always regenerated
-# to match the installed maplibre-gl version.
+# maplibre-gl worker bundle + RTL text plugin, synced from node_modules by
+# `postinstall` (scripts/sync-maplibre-worker.js) — never committed, always
+# regenerated to match the installed maplibre-gl/rtl-text-plugin versions.
 public/maplibre-gl-worker.mjs
 public/maplibre-gl-shared.mjs
+public/mapbox-gl-rtl-text.js

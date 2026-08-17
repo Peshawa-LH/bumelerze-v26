@@ -24,6 +24,8 @@ import {
   MockMap,
   mockMapRemove,
   MockMarker,
+  mockGetRTLTextPluginStatus,
+  mockSetRTLTextPlugin,
   mockSetWorkerUrl,
   mockUseRegionEvents,
   resetMapWebMocks,
@@ -59,6 +61,8 @@ jest.mock(
     Marker: MockMarker,
     AttributionControl: MockAttributionControl,
     setWorkerUrl: mockSetWorkerUrl,
+    setRTLTextPlugin: mockSetRTLTextPlugin,
+    getRTLTextPluginStatus: mockGetRTLTextPluginStatus,
   }),
   { virtual: true },
 );

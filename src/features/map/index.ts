@@ -5,6 +5,7 @@ export {
   MARKER_MAGNITUDE_FLOOR,
   MARKER_MAX_DIAMETER_PX,
   MARKER_MIN_DIAMETER_PX,
+  MAP_RTL_TEXT_PLUGIN_URL,
   MAP_STYLE_URLS,
   MAP_WORKER_URL,
 } from "./config";
@@ -45,3 +46,16 @@ export {
   shouldLocalizeToArabicScript,
   type StyleLayerLike,
 } from "./labels";
+export { shouldRequestRTLTextPlugin } from "./rtl-plugin";
+export {
+  buildOwnLabelFeatureCollection,
+  buildOwnLabelsLayer,
+  buildOwnLabelsSource,
+  OWN_LABELS_DEFAULT_FONT,
+  OWN_LABELS_LAYER_ID,
+  OWN_LABELS_SOURCE_ID,
+  type OwnLabelFeature,
+  type OwnLabelFeatureCollection,
+  type OwnLabelProperties,
+  type OwnLabelsBbox,
+} from "./own-labels";
