@@ -1,7 +1,11 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { useFocusEffect, useRouter } from "expo-router";
-import type { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
+import type {
+  GeoJSONSource,
+  Map as MapLibreMap,
+  Marker as MapLibreMarker,
+} from "maplibre-gl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -17,6 +21,9 @@ import {
 import { placeLine } from "@/features/geo";
 import {
   buildArabicNameTextField,
+  buildOwnLabelFeatureCollection,
+  buildOwnLabelsLayer,
+  buildOwnLabelsSource,
   buildRegionMarkers,
   buildTerrainDemSource,
   buildTerrainHillshadeLayer,
@@ -24,11 +31,15 @@ import {
   findHillshadeBeforeLayerId,
   findNameLabelLayerIds,
   MAP_FIT_BOUNDS_PADDING_PX,
+  MAP_RTL_TEXT_PLUGIN_URL,
   MAP_WORKER_URL,
   MARKER_HIT_PADDING_PX,
+  OWN_LABELS_DEFAULT_FONT,
+  OWN_LABELS_SOURCE_ID,
   regionBboxToLngLatBounds,
   resolveMapStyle,
   shouldLocalizeToArabicScript,
+  shouldRequestRTLTextPlugin,
   styleHasRasterDemSource,
   TERRAIN_DEM_SOURCE_ID,
   type MapStyleProviderId,
@@ -36,26 +47,81 @@ import {
 import { useTheme } from "@/theme";
 
 /**
- * Populates `hillshade`/label localization for a freshly-loaded map — called
- * once from the `"load"` handler below. Terrain: skipped when the active
- * style already ships its own `raster-dem` source (MapTiler's outdoor
- * styles do — `styleHasRasterDemSource`'s doc comment). Labels: caches each
- * name-labeling symbol layer's ORIGINAL `text-field` into `originalTextFields`
- * (keyed by layer id) so `applyLocaleLabels` below can restore it exactly
- * when the active locale later switches back to a non-Arabic-script one,
- * rather than trying to reconstruct it.
+ * Requests MapLibre's RTL text-shaping plugin — MUST run before `new
+ * maplibre.Map(...)` (same ordering requirement as `setWorkerUrl` just
+ * above it; the map/its workers read plugin state at construction/tile-parse
+ * time). Guarded by `shouldRequestRTLTextPlugin` so re-running the creation
+ * effect (screen remount, or the MapTiler→OpenFreeMap runtime fallback
+ * recreating the map instance) never calls `setRTLTextPlugin` a second
+ * time — see `rtl-plugin.ts`'s doc comment for why that would otherwise
+ * throw. `lazy: true`: the plugin script itself (`MAP_RTL_TEXT_PLUGIN_URL`)
+ * is only fetched once the map actually encounters RTL text, so a session
+ * that never switches to `ckb`/`ar` never pays that download
+ * (panic-time/low-bandwidth priority). Fire-and-forget with a swallowed
+ * `.catch` — a failed plugin fetch (offline, blocked request) should degrade
+ * to unshaped Arabic-script labels, not crash the map.
+ */
+function ensureRTLTextPluginLoaded(maplibre: typeof import("maplibre-gl")): void {
+  if (shouldRequestRTLTextPlugin(maplibre.getRTLTextPluginStatus())) {
+    maplibre.setRTLTextPlugin(MAP_RTL_TEXT_PLUGIN_URL, true).catch(() => {
+      // Swallowed: see doc comment above. `getRTLTextPluginStatus()` moves
+      // to `"error"` on its own, nothing here needs to react further.
+    });
+  }
+}
+
+/** Reads the FIRST cached name-label layer's `text-font` off the live map
+ * (falls back to `OWN_LABELS_DEFAULT_FONT` if the style had no name-label
+ * layer at all) — see `own-labels.ts`'s `buildOwnLabelsLayer` doc comment
+ * for why our own labels borrow the ACTIVE style's own font stack rather
+ * than a hardcoded one (glyph-availability correctness across providers). */
+function resolveOwnLabelsFont(
+  map: MapLibreMap,
+  nameLabelLayerIds: readonly string[],
+): readonly string[] {
+  const [firstLayerId] = nameLabelLayerIds;
+  if (!firstLayerId) {
+    return OWN_LABELS_DEFAULT_FONT;
+  }
+  const font = map.getLayoutProperty(firstLayerId, "text-font");
+  return Array.isArray(font) ? (font as string[]) : OWN_LABELS_DEFAULT_FONT;
+}
+
+/**
+ * Populates `hillshade`/label localization/own-labels for a freshly-loaded
+ * map — called once from the `"load"` handler below.
+ *
+ * Terrain: skipped when the active style already ships its own
+ * `raster-dem` source (MapTiler's outdoor styles do —
+ * `styleHasRasterDemSource`'s doc comment).
+ *
+ * Basemap label localization: caches each name-labeling symbol layer's
+ * ORIGINAL `text-field` into `originalTextFields` (keyed by layer id) so
+ * `applyLocaleLabels` below can restore it exactly when the active locale
+ * later switches back to a non-Arabic-script one, rather than trying to
+ * reconstruct it.
+ *
+ * Own Kurdistan-city labels (`own-labels.ts`): added as a GeoJSON source +
+ * symbol layer, appended LAST (no `beforeId`) so the layer sits above every
+ * basemap layer — see `own-labels.ts`'s module doc comment for why that
+ * ordering is what suppresses the basemap's own duplicate labels for the
+ * same cities, via MapLibre's cross-layer collision index, with no basemap
+ * style edits needed. Built with `locale` already applied (not the
+ * default), so there's no flash of the wrong language before the
+ * locale-reactive effect further down would otherwise correct it.
  *
  * Plain module-scope wiring (not a hook) — every actual decision it makes
  * (which layer to insert before, whether a DEM source already exists, which
- * layers are name labels) is delegated to the pure, independently-tested
- * helpers from `@/features/map`; this function is just the MapLibre-API
- * glue, exercised by the `map-web-*.test.tsx` integration tests via the
- * mocked `maplibre-gl` module (same split as the marker-building loop
- * further down this file).
+ * layers are name labels, which cities/labels to draw) is delegated to the
+ * pure, independently-tested helpers from `@/features/map`; this function
+ * is just the MapLibre-API glue, exercised by the `map-web-*.test.tsx`
+ * integration tests via the mocked `maplibre-gl` module (same split as the
+ * marker-building loop further down this file).
  */
 function primeTerrainAndLabelCache(
   map: MapLibreMap,
   scheme: "light" | "dark",
+  locale: string,
   originalTextFields: Map<string, unknown>,
 ): void {
   const style = map.getStyle();
@@ -70,9 +136,17 @@ function primeTerrainAndLabelCache(
   }
 
   originalTextFields.clear();
-  for (const layerId of findNameLabelLayerIds(style.layers ?? [])) {
+  const nameLabelLayerIds = findNameLabelLayerIds(style.layers ?? []);
+  for (const layerId of nameLabelLayerIds) {
     originalTextFields.set(layerId, map.getLayoutProperty(layerId, "text-field"));
   }
+
+  const ownLabelsFont = resolveOwnLabelsFont(map, nameLabelLayerIds);
+  map.addSource(
+    OWN_LABELS_SOURCE_ID,
+    buildOwnLabelsSource(buildOwnLabelFeatureCollection(locale, REGION_BBOX)),
+  );
+  map.addLayer(buildOwnLabelsLayer(scheme, ownLabelsFont));
 }
 
 /**
@@ -238,6 +312,9 @@ export default function MapScreenWeb() {
         // why this is required at all (maplibre-gl 6.x + Metro's web
         // bundler).
         maplibre.setWorkerUrl(MAP_WORKER_URL);
+        // Also before map construction — see `ensureRTLTextPluginLoaded`'s
+        // doc comment.
+        ensureRTLTextPluginLoaded(maplibre);
 
         const map = new maplibre.Map({
           container: containerRef.current,
@@ -264,7 +341,12 @@ export default function MapScreenWeb() {
             return;
           }
           hasLoaded = true;
-          primeTerrainAndLabelCache(map, scheme, originalTextFieldsRef.current);
+          primeTerrainAndLabelCache(
+            map,
+            scheme,
+            i18n.language,
+            originalTextFieldsRef.current,
+          );
           applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
           setLoadState("ready");
         });
@@ -317,13 +399,22 @@ export default function MapScreenWeb() {
   // load time — the one place a locale switch (ckb/ar ⇄ kmr/en) actually
   // takes effect on an already-showing map, mirroring how a style-provider
   // change would be handled (re-set the affected layout property) rather
-  // than reloading the whole style.
+  // than reloading the whole style. Also refreshes the own-labels source's
+  // GeoJSON data (`GeoJSONSource.setData`, NOT `setLayoutProperty` — our
+  // layer's `text-field` is the static `["get","label"]` expression;
+  // what changes per locale is each feature's `label` PROPERTY VALUE,
+  // rebuilt by `buildOwnLabelFeatureCollection`) so gazetteer city labels
+  // switch language too, not just the basemap's own name fields.
   useEffect(() => {
     const map = mapRef.current;
     if (loadState !== "ready" || !map) {
       return;
     }
     applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
+    const ownLabelsSource = map.getSource(OWN_LABELS_SOURCE_ID) as
+      | GeoJSONSource
+      | undefined;
+    ownLabelsSource?.setData(buildOwnLabelFeatureCollection(i18n.language, REGION_BBOX));
   }, [loadState, i18n.language]);
 
   // Tears down a broken map instance on unmount too — belt-and-braces

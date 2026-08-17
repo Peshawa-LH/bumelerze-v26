@@ -16,6 +16,19 @@ describe("buildMapTilerStyleUrl", () => {
   });
 });
 
+describe("MAPTILER_STYLE_IDS", () => {
+  it("uses the same 'Outdoor' product family for both color schemes (both ship real terrain)", () => {
+    // Locks in the owner-feedback fix (2026-08-17, "the basemap isn't
+    // pleasing"): dark used to be MapTiler's flat `dataviz-v4-dark` (no
+    // terrain of its own); it's now `outdoor-v4-dark`, the same family as
+    // light, which — like light — ships its own raster-dem/hillshade/
+    // contour layers (style-provider.ts's module doc comment has the full
+    // live-verification story).
+    expect(MAPTILER_STYLE_IDS.light).toBe("outdoor-v4");
+    expect(MAPTILER_STYLE_IDS.dark).toBe("outdoor-v4-dark");
+  });
+});
+
 describe("resolveMapStyleForKey", () => {
   it("picks OpenFreeMap when no MapTiler key is configured", () => {
     expect(resolveMapStyleForKey("light", null)).toEqual({
@@ -28,7 +41,7 @@ describe("resolveMapStyleForKey", () => {
     });
   });
 
-  it("picks MapTiler's outdoor-v4/dataviz-v4-dark styles when a key is configured", () => {
+  it("picks MapTiler's outdoor-v4/outdoor-v4-dark styles when a key is configured", () => {
     expect(resolveMapStyleForKey("light", "my-key")).toEqual({
       provider: "maptiler",
       url: buildMapTilerStyleUrl(MAPTILER_STYLE_IDS.light, "my-key"),

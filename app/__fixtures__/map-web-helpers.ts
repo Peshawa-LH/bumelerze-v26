@@ -51,6 +51,11 @@ export const mockMapAddSource = jest.fn();
 export const mockMapAddLayer = jest.fn();
 export const mockMapSetLayoutProperty = jest.fn();
 export const mockMapGetLayoutProperty = jest.fn();
+export const mockMapGetSource = jest.fn();
+/** `(sourceId, data)` — every `GeoJSONSource.setData(...)` call recorded
+ * across every geojson source any mock `Map` instance was given, own-labels
+ * locale refresh (`map.web.tsx`) being the only caller today. */
+export const mockSourceSetData = jest.fn();
 
 export interface MockStyleLayer {
   id: string;
@@ -102,6 +107,46 @@ export const mockSetWorkerUrl = jest.fn((url: string) => {
   mockWorkerUrlCallOrder.push(`setWorkerUrl:${url}`);
 });
 
+/**
+ * RTL text plugin mocks — mimic the REAL `maplibre-gl` singleton's behavior
+ * (module-scope state, `"unavailable"` initially, throws on a second
+ * `setRTLTextPlugin` call) closely enough that `map.web.tsx`'s
+ * `shouldRequestRTLTextPlugin` idempotency guard is actually exercised
+ * rather than trivially passing against an always-compliant mock. Reset by
+ * `resetMapWebMocks` each test (module-scope `rtlPluginRequestedUrl` reset
+ * to `null`/status back to `"unavailable"`), matching the "fresh page load"
+ * state assumption every test starts from.
+ */
+let rtlPluginRequestedUrl: string | null = null;
+let rtlPluginStatus = "unavailable";
+export const mockGetRTLTextPluginStatus = jest.fn(() => rtlPluginStatus);
+/** Lets a test simulate "the RTL plugin was already requested earlier this
+ * page session" (e.g. by a previous Map-tab mount) WITHOUT actually
+ * rendering and tearing down a real map instance first — the idempotency
+ * guard (`shouldRequestRTLTextPlugin`) only cares about the reported
+ * status, so this is a much more direct way to exercise it than a real
+ * double-mount, which is prone to unrelated cross-test async/act
+ * interleaving in this suite's promise-driven `MockMap`. */
+export function setMockRTLTextPluginStatus(status: string) {
+  rtlPluginRequestedUrl = status === "unavailable" ? null : "already-requested";
+  rtlPluginStatus = status;
+}
+export const mockSetRTLTextPlugin = jest.fn((url: string, lazy?: boolean) => {
+  if (rtlPluginRequestedUrl) {
+    return Promise.reject(new Error("setRTLTextPlugin cannot be called multiple times."));
+  }
+  rtlPluginRequestedUrl = url;
+  rtlPluginStatus = lazy ? "deferred" : "loaded";
+  mockWorkerUrlCallOrder.push(`setRTLTextPlugin:${url}`);
+  return Promise.resolve();
+});
+function resetMockRTLTextPlugin() {
+  rtlPluginRequestedUrl = null;
+  rtlPluginStatus = "unavailable";
+  mockGetRTLTextPluginStatus.mockClear();
+  mockSetRTLTextPlugin.mockClear();
+}
+
 export class MockMap {
   options: Record<string, unknown>;
   handlers: Record<string, () => void> = {};
@@ -148,9 +193,23 @@ export class MockMap {
     return { layers: this.styleLayers, sources: this.styleSources };
   }
 
-  addSource(id: string, source: { type: string }) {
+  // geojson sources only — enough to back `getSource(id).setData(...)`,
+  // which is all `map.web.tsx`'s own-labels locale-refresh path calls.
+  private geoJsonSources: Record<string, { setData: (data: unknown) => void }> = {};
+
+  addSource(id: string, source: { type: string; data?: unknown }) {
     mockMapAddSource(id, source);
     this.styleSources[id] = source;
+    if (source.type === "geojson") {
+      this.geoJsonSources[id] = {
+        setData: (data: unknown) => mockSourceSetData(id, data),
+      };
+    }
+  }
+
+  getSource(id: string) {
+    mockMapGetSource(id);
+    return this.geoJsonSources[id];
   }
 
   addLayer(layer: MockStyleLayer, beforeId?: string) {
@@ -252,5 +311,8 @@ export function resetMapWebMocks() {
   mockMapAddLayer.mockClear();
   mockMapSetLayoutProperty.mockClear();
   mockMapGetLayoutProperty.mockClear();
+  mockMapGetSource.mockClear();
+  mockSourceSetData.mockClear();
   setMockMapStyleFixture({});
+  resetMockRTLTextPlugin();
 }

@@ -26,6 +26,8 @@ import {
   MockMap,
   mockMapSetLayoutProperty,
   MockMarker,
+  mockGetRTLTextPluginStatus,
+  mockSetRTLTextPlugin,
   mockSetWorkerUrl,
   mockUseRegionEvents,
   resetMapWebMocks,
@@ -33,7 +35,11 @@ import {
   setMockMapStyleFixture,
   testSafeAreaMetrics,
 } from "../__fixtures__/map-web-helpers";
-import { TERRAIN_DEM_SOURCE_ID, TERRAIN_HILLSHADE_LAYER_ID } from "@/features/map";
+import {
+  OWN_LABELS_SOURCE_ID,
+  TERRAIN_DEM_SOURCE_ID,
+  TERRAIN_HILLSHADE_LAYER_ID,
+} from "@/features/map";
 
 jest.mock("expo-router", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require required inside a jest.mock factory
@@ -63,6 +69,8 @@ jest.mock(
     Marker: MockMarker,
     AttributionControl: MockAttributionControl,
     setWorkerUrl: mockSetWorkerUrl,
+    setRTLTextPlugin: mockSetRTLTextPlugin,
+    getRTLTextPluginStatus: mockGetRTLTextPluginStatus,
   }),
   { virtual: true },
 );
@@ -98,16 +106,23 @@ describe("MapScreenWeb terrain hillshade", () => {
   it("adds the terrain DEM source + hillshade layer, before the first line/symbol layer", async () => {
     await renderWithProviders(<MapScreenWeb />);
 
+    // Two sources/layers get added on a fresh load: terrain hillshade AND
+    // the own-labels gazetteer layer (`map-web-own-labels.test.tsx` covers
+    // the latter in full) — this test only cares about the terrain half.
     await waitFor(() => {
-      expect(mockMapAddSource).toHaveBeenCalledTimes(1);
+      expect(mockMapAddSource).toHaveBeenCalledTimes(2);
     });
     expect(mockMapAddSource).toHaveBeenCalledWith(
       TERRAIN_DEM_SOURCE_ID,
       expect.objectContaining({ type: "raster-dem", encoding: "terrarium" }),
     );
 
-    expect(mockMapAddLayer).toHaveBeenCalledTimes(1);
-    const [layer, beforeId] = mockMapAddLayer.mock.calls[0] as [{ id: string }, string];
+    expect(mockMapAddLayer).toHaveBeenCalledTimes(2);
+    const terrainCall = mockMapAddLayer.mock.calls.find(
+      ([layer]) => (layer as { id: string }).id === TERRAIN_HILLSHADE_LAYER_ID,
+    ) as [{ id: string }, string];
+    expect(terrainCall).toBeDefined();
+    const [layer, beforeId] = terrainCall;
     expect(layer.id).toBe(TERRAIN_HILLSHADE_LAYER_ID);
     // The fixture style's layers are background/land(fill)/roads(line)/
     // place-labels(symbol) — "roads" is the first line-or-symbol layer, so
@@ -131,8 +146,20 @@ describe("MapScreenWeb terrain hillshade", () => {
       await Promise.resolve();
     });
 
-    expect(mockMapAddSource).not.toHaveBeenCalled();
-    expect(mockMapAddLayer).not.toHaveBeenCalled();
+    // No SECOND raster-dem/hillshade — but the own-labels source/layer
+    // still gets added regardless of terrain (an unrelated concern).
+    expect(mockMapAddSource).not.toHaveBeenCalledWith(
+      TERRAIN_DEM_SOURCE_ID,
+      expect.anything(),
+    );
+    expect(mockMapAddLayer).not.toHaveBeenCalledWith(
+      expect.objectContaining({ id: TERRAIN_HILLSHADE_LAYER_ID }),
+      expect.anything(),
+    );
+    expect(mockMapAddSource).toHaveBeenCalledWith(
+      OWN_LABELS_SOURCE_ID,
+      expect.objectContaining({ type: "geojson" }),
+    );
   });
 });
 
@@ -225,9 +252,9 @@ describe("MapScreenWeb MapTiler → OpenFreeMap runtime fallback", () => {
 
     // The map never shows the offline/error state — the fallback was
     // silent and the second instance reached "load" successfully. Terrain
-    // priming ran against that second, now-live instance too.
+    // + own-labels priming ran against that second, now-live instance too.
     await waitFor(() => {
-      expect(mockMapAddSource).toHaveBeenCalledTimes(1);
+      expect(mockMapAddSource).toHaveBeenCalledTimes(2);
     });
     expect(screen.queryByText(i18n.t("map.offlineTitle"))).toBeNull();
   });

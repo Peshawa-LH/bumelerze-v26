@@ -60,6 +60,26 @@ export const MAP_STYLE_URLS = {
  */
 export const MAP_WORKER_URL = `${process.env.EXPO_BASE_URL ?? ""}/maplibre-gl-worker.mjs`;
 
+/**
+ * The RTL text-shaping plugin (`@mapbox/mapbox-gl-rtl-text`) — required for
+ * MapLibre to render Arabic-script labels (Sorani `ckb`, `ar`) as correctly
+ * *shaped/joined* text instead of a row of disconnected, unshaped glyph
+ * forms. This is a genuinely separate concern from `MAP_WORKER_URL` above:
+ * that one is maplibre-gl's OWN worker bundle (Metro doesn't serve it by
+ * default); this one is a THIRD-PARTY plugin script maplibre-gl never
+ * bundles at all (verified: `node_modules/maplibre-gl/dist` ships no
+ * `*rtl*` file in this installed 6.x version) — MapLibre only knows how to
+ * fetch it from a URL handed to `setRTLTextPlugin()`, so it needs the exact
+ * same "real static file Metro never manages" treatment.
+ *
+ * Same fix, same file (`scripts/sync-maplibre-worker.js` copies
+ * `node_modules/@mapbox/mapbox-gl-rtl-text/dist/mapbox-gl-rtl-text.js` into
+ * `public/` alongside the worker bundle), same `EXPO_BASE_URL` base-path
+ * derivation so this always resolves wherever the app itself is served
+ * from.
+ */
+export const MAP_RTL_TEXT_PLUGIN_URL = `${process.env.EXPO_BASE_URL ?? ""}/mapbox-gl-rtl-text.js`;
+
 /** Marker visual size range, magnitude-scaled (marker-helpers.ts). Kept
  * modest — a full-screen map showing dozens of the 30-day region window's
  * events must stay legible, not turn into a field of giant circles. */

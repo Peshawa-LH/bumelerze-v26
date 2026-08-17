@@ -22,13 +22,16 @@ import {
   mockMarkerAddTo,
   mockMarkerConstructorOptions,
   mockMarkerSetLngLat,
+  mockGetRTLTextPluginStatus,
+  mockSetRTLTextPlugin,
   mockSetWorkerUrl,
   mockUseRegionEvents,
   mockWorkerUrlCallOrder,
   resetMapWebMocks,
+  setMockRTLTextPluginStatus,
   testSafeAreaMetrics,
 } from "../__fixtures__/map-web-helpers";
-import { MAP_WORKER_URL } from "@/features/map";
+import { MAP_RTL_TEXT_PLUGIN_URL, MAP_WORKER_URL } from "@/features/map";
 
 jest.mock("expo-router", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require required inside a jest.mock factory
@@ -61,6 +64,8 @@ jest.mock(
     Marker: MockMarker,
     AttributionControl: MockAttributionControl,
     setWorkerUrl: mockSetWorkerUrl,
+    setRTLTextPlugin: mockSetRTLTextPlugin,
+    getRTLTextPluginStatus: mockGetRTLTextPluginStatus,
   }),
   { virtual: true },
 );
@@ -128,7 +133,40 @@ describe("MapScreenWeb creation", () => {
     // (config.ts) for why this needs to be an explicit, always-served
     // static file at all (maplibre-gl 6.x + Metro's web bundler).
     expect(mockSetWorkerUrl).toHaveBeenCalledWith(MAP_WORKER_URL);
-    expect(mockWorkerUrlCallOrder).toEqual([`setWorkerUrl:${MAP_WORKER_URL}`, "mapConstructed"]);
+    expect(mockWorkerUrlCallOrder).toEqual([
+      `setWorkerUrl:${MAP_WORKER_URL}`,
+      `setRTLTextPlugin:${MAP_RTL_TEXT_PLUGIN_URL}`,
+      "mapConstructed",
+    ]);
+  });
+
+  it("requests the RTL text plugin (lazy) before constructing the map, exactly once", async () => {
+    await renderWithProviders(<MapScreenWeb />);
+
+    await waitFor(() => {
+      expect(mockMapConstructorOptions).toHaveLength(1);
+    });
+
+    expect(mockSetRTLTextPlugin).toHaveBeenCalledTimes(1);
+    expect(mockSetRTLTextPlugin).toHaveBeenCalledWith(MAP_RTL_TEXT_PLUGIN_URL, true);
+  });
+
+  it("does not re-request the RTL text plugin when it was already requested earlier this session (idempotency guard)", async () => {
+    // Simulates the REAL `maplibre-gl` singleton's state after an earlier
+    // Map-tab mount already requested the plugin this page session (its
+    // module-scope state persists across a screen remount/refocus, or the
+    // MapTiler→OpenFreeMap runtime fallback recreating the map instance) —
+    // a real `setRTLTextPlugin` throws "cannot be called multiple times" if
+    // asked again while its status is anything other than `"unavailable"`.
+    setMockRTLTextPluginStatus("deferred");
+
+    await renderWithProviders(<MapScreenWeb />);
+    await waitFor(() => {
+      expect(mockMapConstructorOptions).toHaveLength(1);
+    });
+
+    expect(mockGetRTLTextPluginStatus).toHaveBeenCalled();
+    expect(mockSetRTLTextPlugin).not.toHaveBeenCalled();
   });
 
   it("builds one marker per region event, positioned at its lon/lat", async () => {
