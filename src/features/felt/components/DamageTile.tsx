@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
-import { DAMAGE_GRADE_TO_INTENSITY_INDEX } from "../damage";
 import type { BuildingDamageGrade, DamageTypology } from "../types";
 
 interface DamageTileProps {
@@ -54,9 +53,11 @@ function DamageTileImpl({
 }: DamageTileProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const intensityIndex = DAMAGE_GRADE_TO_INTENSITY_INDEX[grade];
-  const accentColor = colors.intensity[intensityIndex];
-  const onAccentColor = colors.intensityOnFill[intensityIndex];
+  // Own 5-color damage palette (2026-08-17 update wave, §2.2b) — no longer
+  // sampled from the EMS intensity ramp, see `theme/palette.ts`'s
+  // `damageGradePalette` doc comment.
+  const accentColor = colors.damageGrade[grade];
+  const onAccentColor = colors.damageGradeOnFill[grade];
   const numeralText = localizeDigits(String(grade), locale);
 
   return (

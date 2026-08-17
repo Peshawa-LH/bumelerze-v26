@@ -63,10 +63,13 @@ export type FurnitureAnswer = "no" | "yes";
 /** Q11 — structured 4-level road/ground damage answer (MyShake pattern). */
 export type DamageLevel = 0 | 1 | 2 | 3;
 
-/** Window-2 building-damage grade (2026-08-15 flow restructure) — 0 ("no
- * visible damage") through 4 (partial/full collapse). Replaces the old Q10
- * 4-level `buildingDamageLevel` answer as of migration 0009. */
-export type BuildingDamageGrade = 0 | 1 | 2 | 3 | 4;
+/** Window-2 building-damage grade (2026-08-15 flow restructure; renumbered
+ * DG0-DG4 -> DG1-DG5 in the 2026-08-17 update wave, aligning with the
+ * official EMS-98 damage grades 1-5) — 1 ("no visible damage") through 5
+ * (partial/full collapse). Replaces the old Q10 4-level
+ * `buildingDamageLevel` answer as of migration 0009; the 1-5 range dates to
+ * migration 0018. */
+export type BuildingDamageGrade = 1 | 2 | 3 | 4 | 5;
 
 /** Which of window 2's two building rows a damage grade was picked from. */
 export type DamageTypology = "highrise" | "lowrise";

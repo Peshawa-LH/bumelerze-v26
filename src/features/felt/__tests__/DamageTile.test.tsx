@@ -16,7 +16,7 @@ describe("DamageTile", () => {
     await render(
       <DamageTile
         typology="lowrise"
-        grade={2}
+        grade={3}
         label="Large wall cracks"
         accessibilityLabel="Single/low-rise. Large wall cracks"
         locale="en"
@@ -27,8 +27,8 @@ describe("DamageTile", () => {
     expect(
       screen.getByLabelText("Single/low-rise. Large wall cracks"),
     ).toBeTruthy();
-    expect(screen.getByText("2")).toBeTruthy();
-    expect(screen.getByText("2 - Large wall cracks")).toBeTruthy();
+    expect(screen.getByText("3")).toBeTruthy();
+    expect(screen.getByText("3 - Large wall cracks")).toBeTruthy();
     expect(screen.queryByTestId("damage-tile-artwork")).toBeNull();
   });
 
@@ -36,7 +36,7 @@ describe("DamageTile", () => {
     await render(
       <DamageTile
         typology="lowrise"
-        grade={2}
+        grade={3}
         label="Large wall cracks"
         accessibilityLabel="Single/low-rise. Large wall cracks"
         locale="en"
@@ -48,10 +48,10 @@ describe("DamageTile", () => {
     expect(
       screen.getByLabelText("Single/low-rise. Large wall cracks"),
     ).toBeTruthy();
-    // No bare "2" text node floating over the artwork anymore...
-    expect(screen.queryByText("2")).toBeNull();
+    // No bare "3" text node floating over the artwork anymore...
+    expect(screen.queryByText("3")).toBeNull();
     // ...the grade now lives in the label line instead.
-    expect(screen.getByText("2 - Large wall cracks")).toBeTruthy();
+    expect(screen.getByText("3 - Large wall cracks")).toBeTruthy();
 
     // `accessibilityElementsHidden` intentionally hides the image from the
     // accessibility tree (it's decorative — see the component's comment),
@@ -72,7 +72,7 @@ describe("DamageTile", () => {
     await render(
       <DamageTile
         typology="lowrise"
-        grade={2}
+        grade={3}
         label="Large wall cracks"
         accessibilityLabel="Single/low-rise. Large wall cracks"
         locale="en"
@@ -93,7 +93,7 @@ describe("DamageTile", () => {
       <>
         <DamageTile
           typology="lowrise"
-          grade={0}
+          grade={1}
           label="No visible damage"
           accessibilityLabel="Single/low-rise. No visible damage"
           locale="en"
@@ -102,7 +102,7 @@ describe("DamageTile", () => {
         />
         <DamageTile
           typology="lowrise"
-          grade={4}
+          grade={5}
           label="Partial collapse"
           accessibilityLabel="Single/low-rise. Partial collapse"
           locale="en"

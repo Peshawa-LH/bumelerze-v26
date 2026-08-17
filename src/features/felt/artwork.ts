@@ -50,38 +50,29 @@ export const LEVEL_ARTWORK: Record<CartoonLevel, ImageSource> = {
 /**
  * Window 2 (`app/felt-report/damage.tsx`) — building-damage artwork.
  *
- * CRITICAL OFF-BY-ONE, encoded once here: the package numbers its damage
- * files 01-05 as DG1 ("no visible damage") through DG5 ("partial
- * collapse"), but our own `BuildingDamageGrade` is 0-indexed (0..4, see
- * `types.ts`). So package file N (01..05) = our grade (N-1) (0..4) —
- * i.e. `damage-*-01.webp` -> grade 0, `damage-*-05.webp` -> grade 4. The
- * package files themselves are NOT renamed (verbatim archive, checksummed
- * in `SHA256SUMS.txt`); the shift lives only in which key points at which
- * require() below. Regression-locked by `__tests__/artwork.test.ts`.
+ * Direct 1:1 mapping: the package numbers its damage files 01-05 as DG1 ("no
+ * visible damage") through DG5 ("partial collapse"), and our own
+ * `BuildingDamageGrade` is now the same DG1-DG5 numbering (2026-08-17
+ * renumber, see `types.ts`) — so package file NN = our grade N with no shift.
+ * Before the renumber this file carried an explicit N -> N-1 shift at every
+ * entry to bridge the package's 1-indexed files to the app's old 0-indexed
+ * type; that bridging is gone, this is now a plain lookup. The package files
+ * themselves are unchanged (verbatim archive, checksummed in
+ * `SHA256SUMS.txt`). Regression-locked by `__tests__/artwork.test.ts`.
  */
 export const DAMAGE_ARTWORK: Record<DamageTypology, Record<BuildingDamageGrade, ImageSource>> = {
   highrise: {
-    // damage-highrise-01.webp = package DG1 "no visible damage" -> our grade 0
-    0: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-01.webp"),
-    // damage-highrise-02.webp = package DG2 "hairline cracks" -> our grade 1
-    1: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-02.webp"),
-    // damage-highrise-03.webp = package DG3 -> our grade 2
-    2: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-03.webp"),
-    // damage-highrise-04.webp = package DG4 -> our grade 3
-    3: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-04.webp"),
-    // damage-highrise-05.webp = package DG5 "partial collapse" -> our grade 4
-    4: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-05.webp"),
+    1: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-01.webp"),
+    2: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-02.webp"),
+    3: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-03.webp"),
+    4: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-04.webp"),
+    5: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-05.webp"),
   },
   lowrise: {
-    // damage-lowrise-01.webp = package DG1 "no visible damage" -> our grade 0
-    0: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-01.webp"),
-    // damage-lowrise-02.webp = package DG2 "hairline cracks" -> our grade 1
-    1: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-02.webp"),
-    // damage-lowrise-03.webp = package DG3 -> our grade 2
-    2: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-03.webp"),
-    // damage-lowrise-04.webp = package DG4 -> our grade 3
-    3: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-04.webp"),
-    // damage-lowrise-05.webp = package DG5 "partial roof/wall collapse" -> our grade 4
-    4: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-05.webp"),
+    1: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-01.webp"),
+    2: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-02.webp"),
+    3: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-03.webp"),
+    4: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-04.webp"),
+    5: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-05.webp"),
   },
 };

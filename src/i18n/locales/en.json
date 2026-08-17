@@ -668,18 +668,18 @@
       },
       "grades": {
         "highrise": {
-          "0": "No visible damage",
-          "1": "Hairline cracks in plaster or infill walls",
-          "2": "Diagonal cracks in infill walls, some plaster fallen",
-          "3": "Wide cracks in columns or beams, infill walls failing",
-          "4": "Partial collapse of a floor or columns"
+          "1": "No visible damage",
+          "2": "Hairline cracks in plaster or infill walls",
+          "3": "Diagonal cracks in infill walls, some plaster fallen",
+          "4": "Wide cracks in columns or beams, infill walls failing",
+          "5": "Partial collapse of a floor or columns"
         },
         "lowrise": {
-          "0": "No visible damage",
-          "1": "Hairline cracks in plaster or walls",
-          "2": "Large wall cracks, some fallen plaster or masonry",
-          "3": "Serious cracking or partial failure of walls",
-          "4": "Partial or full collapse of walls or roof"
+          "1": "No visible damage",
+          "2": "Hairline cracks in plaster or walls",
+          "3": "Large wall cracks, some fallen plaster or masonry",
+          "4": "Serious cracking or partial failure of walls",
+          "5": "Partial or full collapse of walls or roof"
         }
       }
     },

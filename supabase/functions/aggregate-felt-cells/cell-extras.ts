@@ -13,8 +13,8 @@
 import type { Tier2CellReport } from "./types.ts";
 
 export interface DamageDist {
-  /** Count of tier-2 reports per `building_damage_level` grade (0-4),
-   * among reports that answered it. */
+  /** Count of tier-2 reports per `building_damage_level` grade (1-5,
+   * migration 0018), among reports that answered it. */
   byGrade: Record<string, number>;
   /** Same counts, split by which of window 2's two typology rows the grade
    * came from (`null` bucket = the generic "no damage" shortcut, or a

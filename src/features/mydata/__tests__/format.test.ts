@@ -60,7 +60,7 @@ const SAMPLE_TIER2: Tier2Report = {
     shelf: "no",
     picture: "no",
     furniture: "no",
-    buildingDamageLevel: 2,
+    buildingDamageLevel: 3,
     damageTypology: "lowrise",
     roadDamageLevel: 0,
     comment: null,
@@ -127,7 +127,7 @@ describe("buildContributionRow", () => {
 
     expect(row.damage).toEqual({
       typology: "lowrise",
-      grade: 2,
+      grade: 3,
       label: "Large wall cracks, some fallen plaster or masonry",
       typologyLabel: "Single-storey or low-rise building (Iraqi-typical)",
     });
@@ -135,11 +135,11 @@ describe("buildContributionRow", () => {
     expect(row.syncStatusText).toBe("Submitted");
   });
 
-  it("omits the damage row for the generic 'no damage' shortcut (grade 0, no typology)", () => {
+  it("omits the damage row for the generic 'no damage' shortcut (grade 1, no typology)", () => {
     const item = makeQueueItem({
       tier2: {
         ...SAMPLE_TIER2,
-        answers: { ...SAMPLE_TIER2.answers, buildingDamageLevel: 0, damageTypology: null },
+        answers: { ...SAMPLE_TIER2.answers, buildingDamageLevel: 1, damageTypology: null },
       },
     });
     const row = buildContributionRow(item, "en", i18n.t.bind(i18n));

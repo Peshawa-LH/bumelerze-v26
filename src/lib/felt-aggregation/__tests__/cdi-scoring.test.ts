@@ -131,12 +131,14 @@ describe("scoreTier2Report — building damage, 0/0.5/0.75/2/3 (2026-08-15 flow 
   // Window 2's 5-grade typology picker (features/felt/damage.ts) supersedes
   // the old Q10 questionnaire answer (which was 0/0.75/2/3, D18 R6) as this
   // index's source — see cdi-scoring.ts's own doc comment on DAMAGE_INDEX.
+  // Grade keys renumbered DG0-DG4 -> DG1-DG5 (2026-08-17 update wave); the
+  // index VALUES per grade are unchanged, only the key shifted.
   const cases: [Tier2Answers["buildingDamageLevel"], number][] = [
-    [0, 0],
-    [1, 0.5],
-    [2, 0.75],
-    [3, 2],
-    [4, 3],
+    [1, 0],
+    [2, 0.5],
+    [3, 0.75],
+    [4, 2],
+    [5, 3],
   ];
   it.each(cases)("grade %d -> %s", (level, expected) => {
     expect(scoreTier2Report(answers({ buildingDamageLevel: level })).damage).toBe(
@@ -158,7 +160,7 @@ describe("scoreTier2Report — vehicle rule (D18 R17: drop Q4/Q6 from consensus)
         shelf: "many_fell",
         picture: "yes",
         furniture: "yes",
-        buildingDamageLevel: 2,
+        buildingDamageLevel: 3,
       }),
     );
     expect(scored.motion).toBeNull();
