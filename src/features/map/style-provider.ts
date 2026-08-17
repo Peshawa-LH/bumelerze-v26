@@ -2,18 +2,39 @@
  * Basemap style *provider* selection — two providers, chosen at runtime:
  *
  * - `"maptiler"`: used when `EXPO_PUBLIC_MAPTILER_KEY` is configured
- *   (`.env.example`). MapTiler's `outdoor-v4` (light) ships real terrain
- *   relief/contour cartography; `dataviz-v4-dark` (dark) is their minimal
- *   dark thematic style — both verified live against MapTiler's own
- *   `@maptiler/client` reference-style list (`referenceStyleID: "OUTDOOR_V4"`
- *   / `"DATAVIZ_V4"`, fetched from unpkg 2026-08-16; the `-v2`/plain
- *   `dataviz`/`dataviz-dark` ids some older docs/examples use are marked
- *   `deprecationMessage` in that same list — superseded by the `-v4` ids
- *   used here).
+ *   (`.env.example`). Both the light AND dark styles are now from the same
+ *   MapTiler "Outdoor" product family — `outdoor-v4` (light) / `outdoor-v4-
+ *   dark` (dark) — verified live 2026-08-17 by fetching both style.json
+ *   documents directly (`https://api.maptiler.com/maps/<id>/style.json?key=
+ *   ...`, 200 for both): same 170-layer structure, same `glyphs` font
+ *   endpoint, and each carries its OWN `raster-dem` source (`terrain-rgb`)
+ *   plus contour/landform layers and a `Hillshade` layer — real terrain
+ *   relief cartography in both color schemes, not just the light one.
+ *
+ *   Superseded choice: `dataviz-v4-dark` (owner feedback 2026-08-17: "the
+ *   basemap isn't pleasing" — dataviz is MapTiler's deliberately flat,
+ *   minimal thematic-data style, with NO raster-dem/hillshade/contour layer
+ *   at all, live-verified the same way). Kept below, commented out, as the
+ *   documented alternative rather than deleted outright — a legitimate
+ *   choice if a future wave wants the flatter/lighter-weight look back
+ *   (fewer layers than `outdoor-v4-dark`'s 170) for a data-overlay-heavy
+ *   screen (e.g. behind a dense ShakeMap raster).
+ *
+ *   Other dark styles probed the same way (live `style.json` fetch,
+ *   2026-08-17) and NOT chosen: `backdrop-dark` (does have hillshade/
+ *   raster-dem, but MapTiler's own "Backdrop" family is deliberately
+ *   sparse/plain — a data-visualization backdrop, not a richly labeled
+ *   general basemap); `topo-v4-dark` (has hillshade + contours too, but
+ *   also ships `fill-extrusion` 3D building layers — extra GPU/paint cost
+ *   this app doesn't want given the low-end-Android/60fps baseline, for a
+ *   feature — 3D buildings — nobody asked for); `streets-v4-dark` (no
+ *   raster-dem/hillshade at all, same flatness complaint as dataviz).
  * - `"openfreemap"`: today's liberty/dark styles (`config.ts`) — the
  *   default when no key is configured, AND the automatic one-shot fallback
  *   if the MapTiler style ever fails to load (bad key, quota) — see
- *   `decideMapErrorAction` below. The map must never go blank.
+ *   `decideMapErrorAction` below. The map must never go blank. OpenFreeMap
+ *   ships no built-in terrain of its own in either scheme — `terrain.ts`'s
+ *   AWS terrarium hillshade is what supplies relief here, in both colors.
  */
 import { MAP_STYLE_URLS } from "./config";
 
@@ -28,7 +49,11 @@ export type MapColorScheme = "light" | "dark";
  */
 export const MAPTILER_STYLE_IDS = {
   light: "outdoor-v4",
-  dark: "dataviz-v4-dark",
+  dark: "outdoor-v4-dark",
+  // Prior choice (owner: "the basemap isn't pleasing" — flat, no terrain of
+  // its own). Left here, not deleted, as the documented lighter-weight
+  // alternative — see the module doc comment above.
+  // dark: "dataviz-v4-dark",
 } as const;
 
 function normalizeMapTilerKey(value: string | undefined): string | null {
