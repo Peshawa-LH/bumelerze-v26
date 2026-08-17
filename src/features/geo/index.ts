@@ -17,6 +17,14 @@ export {
   type GazetteerCityNames,
   type GazetteerCountry,
 } from "./gazetteer";
+export {
+  kurdishPlacesSchema,
+  parseKurdishPlaces,
+  resolveKurdishPlaceName,
+  type KurdishPlace,
+  type KurdishPlaceNames,
+  type KurdishPlaceTier,
+} from "./kurdish-places";
 export { nearestCities, type NearestCityResult } from "./nearest";
 export {
   nearestCityDistanceLine,

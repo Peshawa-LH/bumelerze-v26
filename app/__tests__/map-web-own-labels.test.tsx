@@ -60,6 +60,20 @@ jest.mock("@/features/events", () => {
   };
 });
 
+// A small, controlled fixture for the LAZY-loaded tier-3 dataset — real
+// villages.json is ~5,600 records; mocking it here keeps the "does the
+// lazy load actually merge in" tests fast and deterministic rather than
+// asserting against real, occasionally-changing OSM data.
+jest.mock("@/features/geo/data/kurdish-places-villages.json", () => [
+  {
+    id: "n-fixture-village",
+    lat: 36.3,
+    lon: 44.3,
+    tier: 3,
+    names: { ckb: "گوندی نموونە", kmr: "Gundê Nimûne", ar: "قرية نموذجية" },
+  },
+]);
+
 // `{ virtual: true }`: maplibre-gl ships ESM-only — see
 // map-web-creation.test.tsx.
 jest.mock(
@@ -219,5 +233,70 @@ describe("MapScreenWeb own-labels (Kurdistan gazetteer city labels)", () => {
       ([layer]) => (layer as { id: string }).id === OWN_LABELS_LAYER_ID,
     ) as [{ layout: { "text-font": string[] } }];
     expect(ownLayerCall[0].layout["text-font"]).toEqual([...OWN_LABELS_DEFAULT_FONT]);
+  });
+
+  it("builds the initial source from the MERGED gazetteer + OSM Kurdish-places core dataset, not the gazetteer alone", async () => {
+    await i18n.changeLanguage("ckb");
+    await renderWithProviders(<MapScreenWeb />);
+
+    await waitFor(() => {
+      expect(mockMapAddSource).toHaveBeenCalledWith(
+        OWN_LABELS_SOURCE_ID,
+        expect.anything(),
+      );
+    });
+    const [, source] = mockMapAddSource.mock.calls.find(
+      ([id]) => id === OWN_LABELS_SOURCE_ID,
+    ) as [string, { data: { features: { properties: { label: string } }[] } }];
+    const labels = source.data.features.map((f) => f.properties.label);
+    // Fallujah is NOT in the gazetteer (`gazetteer.ts`) — its Sorani label
+    // only exists via KURDISH_PLACES_CORE (own-labels.ts), proving the
+    // initial build already uses the merged collection, before the lazy
+    // village load even resolves.
+    expect(labels).toContain("فەلوجە");
+  });
+
+  it("lazily loads the tier-3 village dataset and merges it into the source once it resolves", async () => {
+    await i18n.changeLanguage("ckb");
+    await renderWithProviders(<MapScreenWeb />);
+    await waitFor(() => {
+      expect(mockMapAddSource).toHaveBeenCalledWith(
+        OWN_LABELS_SOURCE_ID,
+        expect.anything(),
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockSourceSetData).toHaveBeenCalledWith(
+        OWN_LABELS_SOURCE_ID,
+        expect.objectContaining({
+          features: expect.arrayContaining([
+            expect.objectContaining({
+              id: "n-fixture-village",
+              properties: expect.objectContaining({ label: "گوندی نموونە", tier: 3 }),
+            }),
+          ]),
+        }),
+      );
+    });
+  });
+
+  it("renders the lazily-loaded villages in whichever locale is active once they resolve", async () => {
+    await i18n.changeLanguage("kmr");
+    await renderWithProviders(<MapScreenWeb />);
+
+    await waitFor(() => {
+      expect(mockSourceSetData).toHaveBeenCalledWith(
+        OWN_LABELS_SOURCE_ID,
+        expect.objectContaining({
+          features: expect.arrayContaining([
+            expect.objectContaining({
+              id: "n-fixture-village",
+              properties: expect.objectContaining({ label: "Gundê Nimûne" }),
+            }),
+          ]),
+        }),
+      );
+    });
   });
 });

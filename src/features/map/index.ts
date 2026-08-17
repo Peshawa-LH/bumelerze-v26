@@ -48,9 +48,14 @@ export {
 } from "./labels";
 export { shouldRequestRTLTextPlugin } from "./rtl-plugin";
 export {
+  buildMergedOwnLabelFeatureCollection,
   buildOwnLabelFeatureCollection,
   buildOwnLabelsLayer,
   buildOwnLabelsSource,
+  GAZETTEER_CONFLICT_RADIUS_KM,
+  KURDISH_PLACE_MIN_ZOOM,
+  KURDISH_PLACES_CORE,
+  OWN_LABELS_ATTRIBUTION,
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_LAYER_ID,
   OWN_LABELS_SOURCE_ID,
