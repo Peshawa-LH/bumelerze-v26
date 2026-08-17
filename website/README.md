@@ -5,6 +5,16 @@ JavaScript. Every file in this folder is served exactly as-is, so any static
 host works (Cloudflare Pages, Netlify, GitHub Pages). All links are
 **relative**, so the site works from a domain root *or* a subdirectory.
 
+## Current state (2026-08)
+
+**The site is live at <https://bumelerze.com>**, deployed by GitHub Pages on
+every push to `main` (`.github/workflows/deploy-pages.yml` — website at the
+domain root, the app's web build under `/app`). The Netlify configuration
+(`netlify.toml` at the repo root) is retained as a dormant mirror and is not
+the live deploy path. Public contact address: `hello@bumelerze.com`. The
+Cloudflare Pages instructions below predate this setup and are kept only as a
+fallback deploy recipe.
+
 ## What's in here
 
 | Path | What it is |
@@ -61,10 +71,9 @@ problem.
 - **Store links exist** → in all 4 `index.html` files, replace the two
   `<span class="store-badge">… Coming soon …</span>` placeholders with real
   `<a href="…">` links to the App Store / Google Play listings.
-- **Domain + email live** → in all 12 HTML files, delete the
-  `<p class="note">` paragraph that says the support address is pending domain
-  registration (search for `bumelerze.com` to find each one). The
-  `support@bumelerze.com` address itself is already used everywhere.
+- ~~**Domain + email live**~~ → done (2026-08): the pending-domain note
+  paragraphs are removed from all 12 HTML files and every contact link points
+  at the live `hello@bumelerze.com` address.
 - **Supabase backend goes live** → the privacy policy MUST be revised first
   (all 4 locales): felt reports + device ID + location will then leave the
   device. The policy text already announces this future change; rewrite the
