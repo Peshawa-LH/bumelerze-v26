@@ -9,6 +9,7 @@ import {
 } from "../content";
 import { AccessibilityDisclosure } from "./AccessibilityDisclosure";
 import { DoDontPairRow } from "./DoDontPairRow";
+import { SafetyImageRow } from "./SafetyImageRow";
 
 interface SafetyCardProps {
   card: SafetyCardData;
@@ -53,6 +54,10 @@ export function SafetyCard({ card }: SafetyCardProps) {
       >
         {t(safetyCardTitleKey(card.id))}
       </Text>
+
+      {card.images && card.images.length > 0 ? (
+        <SafetyImageRow images={card.images} />
+      ) : null}
 
       <View style={{ gap: spacing[2] }}>
         {bodyKeys.map((bodyKey) => (
