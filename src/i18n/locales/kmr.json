@@ -11,8 +11,8 @@
     "title": "Destpêk",
     "emptyState": "Vê dawiyê tu erdheja li herêma te nehatiye tomarkirin.",
     "possibleEvent": {
-      "message": "Dibe ku erdhej çêbûye — ji aliyê mirovên nêzî {{city}} ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
-      "messageUnknownArea": "Dibe ku erdhej çêbûye — ji aliyê mirovên nêzîk ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
+      "message": "Dibe ku erdhej çêbûye, ji aliyê mirovên nêzî {{city}} ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
+      "messageUnknownArea": "Dibe ku erdhej çêbûye, ji aliyê mirovên nêzîk ve hat ragihandin. Agahiyên zêdetir wê werin dayîn.",
       "a11yLabel": "Hişyariya erdheja muhtemel: ji aliyê mirovên nêzî {{city}} ve hat ragihandin. Agahiyên zêdetir wê werin dayîn."
     }
   },
@@ -80,7 +80,7 @@
     "magnitudeDisplay": "{{value}} pîle",
     "dateTemplate": "{{day}} {{month}} {{year}}, {{time}}",
     "timeTemplate": "{{time}} {{period}}",
-    "offlineBanner": "Tu offline î — bûyerên ji {{time}} têne nîşandan",
+    "offlineBanner": "Tu offline î. Bûyerên ji {{time}} têne nîşandan",
     "offlineAnnouncement": "Tu offline î. Bûyerên herî dawî yên tomarkirî têne nîşandan.",
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
     "retry": "Dîsa biceribîne",
@@ -152,7 +152,7 @@
   },
   "map": {
     "title": "Nexşe",
-    "nativeUnavailableDescription": "Nexşeya zindî ya Bumelerze pêdiviya bi sazkirina sepanê ya tevahî heye — ew di rê de ye. Di vê navberê de lîsteya bûyeran ji bo erdhejên herî dawî binêre.",
+    "nativeUnavailableDescription": "Nexşeya zindî ya Bumelerze pêdiviya bi sazkirina sepanê ya tevahî heye. Ew di rê de ye. Di vê navberê de lîsteya bûyeran ji bo erdhejên herî dawî binêre.",
     "loading": "Nexşe tê barkirin…",
     "offlineTitle": "Nexşe li derveyî girêdanê ne berdest e",
     "offlineDescription": "Girêdana xwe kontrol bike û dîsa biceribîne.",
@@ -164,12 +164,12 @@
     "unavailable": "Ev cîhaz sensorek tevgerê ya ku Bumelerze karibe bixwîne tune ye, ji ber vê yekê dîmena rasterast li vir ne berdest e.",
     "permissionDenied": "Bumelerze ji bo nîşandana dîmena rasterast destûra gihîştina sensora tevgerê hewce dike. Tu dikarî ji sazkariyên cîhaza xwe destûrê bidî.",
     "explainer": {
-      "sentence1": "Di têlefona te de çîpek piçûk a lerizanpîvê (accelerometer) heye — heman fîzîka ku sismometreke pîşeyî ji bo pîvana lerizînê bikar tîne.",
+      "sentence1": "Di têlefona te de çîpek piçûk a lerizanpîvê (accelerometer) heye, heman fîzîka ku sismometreke pîşeyî ji bo pîvana lerizînê bikar tîne.",
       "sentence2": "Bi hêminî têlefona xwe bihejîne û li seismograma xwe ya di jêr de xuya dibe temaşe bike.",
-      "sentence3": "Ev dîmen tenê ji bo te ye — tiştek li vir nayê tomarkirin, tomarkirin, an jî bo tu deverê nayê şandin."
+      "sentence3": "Ev dîmen tenê ji bo te ye: tiştek li vir nayê tomarkirin, tomarkirin, an jî bo tu deverê nayê şandin."
     },
     "gravityToggle": "Rakirina rakêşana erdê",
-    "gravityNote": "Dema rakêşana erdê vekirî be, têlefonek di rewşa aramiyê de jî dîsa li ser tenê rêyekê xêzek sabît nîşan dide — ev rakêşana Erdê ye, ne lerizîn e. Rakêşana erdê bigire da ku tenê tevgerê bibînî.",
+    "gravityNote": "Dema rakêşana erdê vekirî be, têlefonek di rewşa aramiyê de jî dîsa li ser tenê rêyekê xêzek sabît nîşan dide; ev rakêşana Erdê ye, ne lerizîn e. Rakêşana erdê bigire da ku tenê tevgerê bibînî.",
     "axisX": "X",
     "axisY": "Y",
     "axisZ": "Z",
@@ -178,7 +178,7 @@
     "web": {
       "enableButton": "Sensora tevgerê veke",
       "enableHint": "Geroka te ji bo dayîna vê destûrê pêdiviya bi lêdanek e, berî ku ew karibe tevgera rasterast nîşan bide.",
-      "explanation": "Me nikarî daneyên tevgera rasterast ji geroka te bistîne. Li ser iPhone, biçe Sazkarî ← Safari ← Gihîştina Tevger û Rawestanê û pê ewle be ku ew vekirî ye, paşê vê rûpelê ji nû ve bar bike. Hin gerok û komputer qet sensorek tevgerê nînin — heke rewş ev be, ev dîmena rasterast li vir ne berdest e."
+      "explanation": "Me nikarî daneyên tevgera rasterast ji geroka te bistîne. Li ser iPhone, biçe Sazkarî ← Safari ← Gihîştina Tevger û Rawestanê û pê ewle be ku ew vekirî ye, paşê vê rûpelê ji nû ve bar bike. Hin gerok û komputer qet sensorek tevgerê nînin. Heke rewş ev be, ev dîmena rasterast li vir ne berdest e."
     }
   },
   "safety": {
@@ -388,7 +388,7 @@
     "continue": "Bidomîne",
     "mission": {
       "title": "Her dem bizane, bi zimanê xwe",
-      "description": "Bumelerze agahiyên erdhejê yên zû û zanistî yên rast tîne Kurdistanê — bi Soranî, Kurmancî, Erebî, û Îngilîzî. Ji aliyê lêkolînerên metirsiya erdhejê yên ku li vê herêmê dixebitin ve hatiye çêkirin."
+      "description": "Bumelerze agahiyên erdhejê yên zû û zanistî yên rast tîne Kurdistanê, bi Soranî, Kurmancî, Erebî, û Îngilîzî. Ji aliyê lêkolînerên metirsiya erdhejê yên ku li vê herêmê dixebitin ve hatiye çêkirin."
     },
     "language": {
       "title": "Zimanê xwe hilbijêre",
@@ -406,7 +406,7 @@
     },
     "homeBase": {
       "title": "Cihê Malê ya xwe saz bike",
-      "description": "Heke tu ji Kurdistanê dûr dijî, bajarekî wek Cihê Malê hilbijêre — mîna cihê ku malbata te lê dijî — da ku hişyariyên pêşerojê wê jî çavdêrî bikin. Vebijarke; tu dikarî vê paşê jî ji Sazkariyan saz bikî an biguherînî.",
+      "description": "Heke tu ji Kurdistanê dûr dijî, bajarekî wek Cihê Malê hilbijêre (mîna cihê ku malbata te lê dijî) da ku hişyariyên pêşerojê wê jî çavdêrî bikin. Vebijarke; tu dikarî vê paşê jî ji Sazkariyan saz bikî an biguherînî.",
       "elsewhere": "Cihekî din / derbas bike",
       "skip": "Niha derbas bike",
       "notSet": "Nehatiye danîn"
@@ -443,7 +443,7 @@
     },
     "rehearsal": {
       "title": "Biceribîne",
-      "description": "Bibîne û bibihîze ka agahdariyeke rastîn dê çawa xuya bike û deng bike — erdhej ne hewce ye.",
+      "description": "Bibîne û bibihîze ka agahdariyeke rastîn dê çawa xuya bike û deng bike: erdhej ne hewce ye.",
       "seeAlert": "Agahdariyê bibîne",
       "playSound": "Dengê agahdariyê lêxe",
       "playSoundHintTitle": "Dengê agahdariyê lêxe",
@@ -474,7 +474,7 @@
       "sectionTitle": "SHAKEmap",
       "updated": "Hate rojanekirin {{time}}",
       "citation": "SHAKEmap: {{producer}}, guhertoya {{version}}",
-      "legendCaption": "Tundî (IMS-25) — pîvana SHAKEmap ya Bumelerze",
+      "legendCaption": "Tundî (IMS-25): pîvana SHAKEmap ya Bumelerze",
       "mapA11yLabel": "Nexşeya tundiya SHAKEmap, herî zêde tundî {{level}}, nêzî {{place}}",
       "dataUsed": {
         "catalogOnly": "Tenê li ser bingeha katalogê erdhejê yê herêmî",
@@ -483,24 +483,24 @@
         "stationAndDyfiConditioned": "Bi karanîna îstasyonên erdhejnasî û raporên hestkirî yên nêzîk hatiye rastkirin"
       },
       "reviewStatus": {
-        "automatic": "Nexşeya otomatîk — hê ji aliyê zanyarekî ve nehatiye kontrolkirin",
+        "automatic": "Nexşeya otomatîk, hê ji aliyê zanyarekî ve nehatiye kontrolkirin",
         "reviewed": "Ji aliyê zanyarekî ve hatiye kontrolkirin"
       }
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",
-      "legendCaption": "Tundiya Dehîdî ya Civakî (CDI) — bi xwe hatiye ragihandin",
+      "legendCaption": "Tundiya Dehîdî ya Civakî (CDI): bi xwe hatiye ragihandin",
       "mapA11yLabel": "Nexşeya raporên hîskirinê, {{count}} rapor, tundî ji {{min}} heta {{max}}, nêzî {{place}}",
       "reportCount": "{{count}} rapor li {{cells}} herêman",
       "updated": "Hate rojanekirin {{time}}",
-      "citation": "Raporên hîskirinê yên Bumelerze — ji aliyê civakê ve hatine şandin, li gorî herêmê hatine berhevkirin",
+      "citation": "Raporên hîskirinê yên Bumelerze: ji aliyê civakê ve hatine şandin, li gorî herêmê hatine berhevkirin",
       "unavailableOffline": "Nexşeya hîskirinê offline ne berdest e",
       "retry": "Dîsa biceribîne"
     },
     "myReportRow": {
       "reported": "Te asta {{level}} rapor kir",
       "addDetail": "Hûrgiliyên zêdetir zêde bike",
-      "detailAdded": "Hûrgilî hate zêdekirin — spas"
+      "detailAdded": "Hûrgilî hate zêdekirin, spas"
     }
   },
   "felt": {
@@ -513,7 +513,7 @@
       "title": "Te çawa hîs kir?",
       "subtitle": "Asta ku li gorî tiştê te hîs kir bitikîne. Tu dikarî paşê hûrgiliyên zêdetir zêde bikî heke bixwazî.",
       "severeDestructionHeader": "Wêrankirina giran",
-      "levelA11yHint": "Vê astê hildibijêre û tavilê raporta te tomar dike — tu dikarî paşê hûrgiliyên zirarê zêde bikî",
+      "levelA11yHint": "Vê astê hildibijêre û tavilê raporta te tomar dike. Tu dikarî paşê hûrgiliyên zirarê zêde bikî",
       "close": "Bigire",
       "locationGps": "Cîhê te yê niha tê bikaranîn",
       "locationManual": "Cih: {{place}}",
@@ -606,10 +606,10 @@
           "options": {
             "no_reaction": "Tu reaksiyon tune bû / nehat hîskirin",
             "noticed": "Min pê hesiya, lê reaksiyonek min tune bû",
-            "excitement": "Heyecan — min qala wê kir",
+            "excitement": "Heyecan, min qala wê kir",
             "somewhat_frightened": "Hinekî tirsiyam",
-            "very_frightened": "Pir tirsiyam — ez çûm derve",
-            "extremely_frightened": "Pir bi tundî tirsiyam — hemûyan bal ber derve revîn"
+            "very_frightened": "Pir tirsiyam, ez çûm derve",
+            "extremely_frightened": "Pir bi tundî tirsiyam, hemûyan bal ber derve revîn"
           }
         },
         "stand": {
@@ -656,7 +656,7 @@
     },
     "damage": {
       "title": "Zirar hebû?",
-      "subtitle": "Wêneya ku herî baş li gorî tiştê te dît bitikîne — ev gav vebijarkî ye.",
+      "subtitle": "Wêneya ku herî baş li gorî tiştê te dît bitikîne. Ev gav vebijarkî ye.",
       "noDamage": {
         "label": "Min ti zirar nedît",
         "hint": "Hildibijêre û tavilê berdewam dike"
@@ -739,7 +739,7 @@
         "sublabel": "Ji Vs30 hatiye derxistin",
         "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
         "citation": "Eurocode 8 (EN 1998-1) Tabloya 3.1; çînên NEHRP (ASCE 7-16 Tabloya 20.3-1)",
-        "unavailable": "Ne berdest e — li vî cihî nimûneya Vs30 tune ye."
+        "unavailable": "Ne berdest e: li vî cihî nimûneya Vs30 tune ye."
       },
       "soil": {
         "label": "Xalên axê/cihê Silêmanî yên nêzîk",
@@ -750,7 +750,7 @@
       },
       "gmpe": {
         "label": "Modelên tevgera erdê yên vê sepanê bikar tîne",
-        "note": "Hesabên metirsiyê û ShakeMap yên vê sepanê vê koma modelên texmînkirina tevgera erdê bikar tînin."
+        "note": "Hesabên metirsiyê û SHAKEmap yên vê sepanê vê koma modelên texmînkirina tevgera erdê bikar tînin."
       }
     },
     "methods": {
@@ -767,7 +767,7 @@
     "headerLabel": "Nasnameya te ya beşdarbûnê ya nenas",
     "headerIdLoading": "…",
     "headerIdA11yLabel": "Nasnameya te ya beşdarbûnê: {{id}}",
-    "headerExplanation": "Bi awayekî otomatîk li ser vê cîhazê hatiye afirandin — bêyî hesab an tomarkirin. Ev awayê kombûna raporên te ye, û tenê li ser vê sazkirinê dimîne.",
+    "headerExplanation": "Bi awayekî otomatîk li ser vê cîhazê hatiye afirandin: bêyî hesab an tomarkirin. Ev awayê kombûna raporên te ye, û tenê li ser vê sazkirinê dimîne.",
     "summaryTitle": "{{count}} rapor hatine şandin",
     "unassignedEvent": "Bi erdhejeke taybet ve girêdayî nîne",
     "damageLine": "{{typology}}: {{grade}}",
@@ -776,7 +776,7 @@
       "submitted": "Hate şandin",
       "on-device": "Li ser vê cîhazê"
     },
-    "emptyStateMessage": "Te hê tu raporek hestkirinê neşandiye. Heke tu erdhejekê hîs bikî, ji me re bibêje — bi tenê yek lêdanê.",
+    "emptyStateMessage": "Te hê tu raporek hestkirinê neşandiye. Heke tu erdhejekê hîs bikî, ji me re bibêje. Bi tenê yek lêdanê.",
     "emptyStateCta": "Erdhejê rapor bike"
   }
 }

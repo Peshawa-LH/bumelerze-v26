@@ -104,7 +104,7 @@ describe("My Data screen", () => {
     expect(screen.getByText("0 reports submitted")).toBeTruthy();
     expect(
       screen.getByText(
-        "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it — it takes one tap.",
+        "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it. It takes one tap.",
       ),
     ).toBeTruthy();
 
@@ -149,7 +149,7 @@ describe("My Data screen", () => {
 
     expect(
       screen.queryByText(
-        "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it — it takes one tap.",
+        "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it. It takes one tap.",
       ),
     ).toBeNull();
   });

@@ -51,7 +51,7 @@ describe("Native Map tab placeholder", () => {
     expect(screen.getByText("Map")).toBeTruthy();
     expect(
       screen.getByText(
-        "Bumelerze's live map needs a full app installation to run — it's on the way. Check the event list for the latest earthquakes in the meantime.",
+        "Bumelerze's live map needs a full app installation to run. It's on the way. Check the event list for the latest earthquakes in the meantime.",
       ),
     ).toBeTruthy();
   });

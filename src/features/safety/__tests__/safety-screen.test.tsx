@@ -88,7 +88,7 @@ describe("Safety screen", () => {
       "Do: Get low, take cover under something sturdy, and hold on.",
     );
     const dontElement = screen.getByLabelText(
-      "Don't: Do not run to a doorway — a modern doorway is no stronger than the rest of the room and gives you no real protection.",
+      "Don't: Do not run to a doorway. A modern doorway is no stronger than the rest of the room and offers no real protection.",
     );
 
     expect(doElement).toBeTruthy();

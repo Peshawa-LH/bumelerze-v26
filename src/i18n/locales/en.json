@@ -11,8 +11,8 @@
     "title": "Home",
     "emptyState": "No earthquakes reported in your region recently.",
     "possibleEvent": {
-      "message": "Possible earthquake — reported by people near {{city}}. More information will follow.",
-      "messageUnknownArea": "Possible earthquake — reported by people nearby. More information will follow.",
+      "message": "Possible earthquake, reported by people near {{city}}. More information will follow.",
+      "messageUnknownArea": "Possible earthquake, reported by people nearby. More information will follow.",
       "a11yLabel": "Possible earthquake alert: reported by people near {{city}}. More information will follow."
     }
   },
@@ -80,7 +80,7 @@
     "magnitudeDisplay": "M {{value}}",
     "dateTemplate": "{{month}} {{day}}, {{year}}, {{time}}",
     "timeTemplate": "{{time}} {{period}}",
-    "offlineBanner": "You're offline — showing events from {{time}}",
+    "offlineBanner": "You're offline. Showing events from {{time}}",
     "offlineAnnouncement": "You're offline. Showing the last saved events.",
     "errorTitle": "Couldn't load the latest events",
     "retry": "Retry",
@@ -152,7 +152,7 @@
   },
   "map": {
     "title": "Map",
-    "nativeUnavailableDescription": "Bumelerze's live map needs a full app installation to run — it's on the way. Check the event list for the latest earthquakes in the meantime.",
+    "nativeUnavailableDescription": "Bumelerze's live map needs a full app installation to run. It's on the way. Check the event list for the latest earthquakes in the meantime.",
     "loading": "Loading map…",
     "offlineTitle": "Map unavailable offline",
     "offlineDescription": "Check your connection and try again.",
@@ -164,12 +164,12 @@
     "unavailable": "This device doesn't have a motion sensor Bumelerze can read, so the live view isn't available here.",
     "permissionDenied": "Bumelerze needs motion-sensor access to show the live view. You can allow it from your device settings.",
     "explainer": {
-      "sentence1": "Your phone contains a tiny accelerometer chip — the same physics a professional seismometer uses to measure shaking.",
+      "sentence1": "Your phone contains a tiny accelerometer chip, the same physics a professional seismometer uses to measure shaking.",
       "sentence2": "Shake your phone gently and watch your own seismogram appear below.",
-      "sentence3": "This view is just for you — nothing here is recorded, saved, or sent anywhere."
+      "sentence3": "This view is just for you: nothing here is recorded, saved, or sent anywhere."
     },
     "gravityToggle": "Remove gravity",
-    "gravityNote": "With gravity on, a phone lying still still shows a steady line on one axis — that's Earth's gravity, not shaking. Turn gravity off to see only motion.",
+    "gravityNote": "With gravity on, a phone lying still still shows a steady line on one axis; that's Earth's gravity, not shaking. Turn gravity off to see only motion.",
     "axisX": "X",
     "axisY": "Y",
     "axisZ": "Z",
@@ -178,7 +178,7 @@
     "web": {
       "enableButton": "Enable motion sensor",
       "enableHint": "Your browser needs a quick tap to allow this before it can show live motion.",
-      "explanation": "We couldn't get live motion data from your browser. On iPhone, check Settings → Safari → Motion & Orientation Access and make sure it's turned on, then reload this page. Some browsers and computers don't have a motion sensor at all — if that's the case here, this live view just won't be available."
+      "explanation": "We couldn't get live motion data from your browser. On iPhone, check Settings → Safari → Motion & Orientation Access and make sure it's turned on, then reload this page. Some browsers and computers don't have a motion sensor at all. If that's the case here, this live view just won't be available."
     }
   },
   "safety": {
@@ -388,7 +388,7 @@
     "continue": "Continue",
     "mission": {
       "title": "Always know, in your language",
-      "description": "Bumelerze brings fast, scientifically correct earthquake information to Kurdistan — in Sorani, Kurmanji, Arabic, and English. Built by earthquake researchers who work this region."
+      "description": "Bumelerze brings fast, scientifically correct earthquake information to Kurdistan, in Sorani, Kurmanji, Arabic, and English. Built by earthquake researchers who work this region."
     },
     "language": {
       "title": "Choose your language",
@@ -406,7 +406,7 @@
     },
     "homeBase": {
       "title": "Set your HomeBase",
-      "description": "If you live away from Kurdistan, pick a HomeBase town — like where your family lives — so future alerts can watch it for you too. Optional; you can set or change this later in Settings.",
+      "description": "If you live away from Kurdistan, pick a HomeBase town (like where your family lives) so future alerts can watch it for you too. Optional; you can set or change this later in Settings.",
       "elsewhere": "Elsewhere / skip",
       "skip": "Skip for now",
       "notSet": "Not set"
@@ -443,7 +443,7 @@
     },
     "rehearsal": {
       "title": "Try it",
-      "description": "See and hear what a real alert will look and sound like — no earthquake required.",
+      "description": "See and hear what a real alert will look and sound like: no earthquake required.",
       "seeAlert": "See the alert",
       "playSound": "Play the alert sound",
       "playSoundHintTitle": "Play the alert sound",
@@ -474,7 +474,7 @@
       "sectionTitle": "SHAKEmap",
       "updated": "Updated {{time}}",
       "citation": "SHAKEmap: {{producer}}, version {{version}}",
-      "legendCaption": "Intensity (IMS-25) — Bumelerze SHAKEmap scale",
+      "legendCaption": "Intensity (IMS-25): Bumelerze SHAKEmap scale",
       "mapA11yLabel": "SHAKEmap intensity map, maximum intensity {{level}}, near {{place}}",
       "dataUsed": {
         "catalogOnly": "Based on the regional earthquake catalog only",
@@ -483,24 +483,24 @@
         "stationAndDyfiConditioned": "Adjusted using nearby seismic stations and felt reports"
       },
       "reviewStatus": {
-        "automatic": "Automatic map — not yet reviewed by a scientist",
+        "automatic": "Automatic map, not yet reviewed by a scientist",
         "reviewed": "Reviewed by a scientist"
       }
     },
     "feltMap": {
       "sectionTitle": "Felt map",
-      "legendCaption": "Community Decimal Intensity (CDI) — self-reported",
+      "legendCaption": "Community Decimal Intensity (CDI): self-reported",
       "mapA11yLabel": "Felt-report map, {{count}} reports, intensity {{min}} to {{max}}, near {{place}}",
       "reportCount": "{{count}} reports across {{cells}} areas",
       "updated": "Updated {{time}}",
-      "citation": "Bumelerze felt reports — community-submitted, aggregated per area",
+      "citation": "Bumelerze felt reports: community-submitted, aggregated per area",
       "unavailableOffline": "Felt map unavailable offline",
       "retry": "Retry"
     },
     "myReportRow": {
       "reported": "You reported level {{level}}",
       "addDetail": "Add more detail",
-      "detailAdded": "Detail added — thank you"
+      "detailAdded": "Detail added, thank you"
     }
   },
   "felt": {
@@ -513,7 +513,7 @@
       "title": "How did you feel it?",
       "subtitle": "Tap the level that matches what you felt. You can add more detail afterward if you want.",
       "severeDestructionHeader": "Severe destruction",
-      "levelA11yHint": "Selects this level and saves your report right away — you can add damage detail next",
+      "levelA11yHint": "Selects this level and saves your report right away. You can add damage detail next",
       "close": "Close",
       "locationGps": "Using your current location",
       "locationManual": "Location: {{place}}",
@@ -606,10 +606,10 @@
           "options": {
             "no_reaction": "No reaction / not felt",
             "noticed": "Noticed it, no reaction",
-            "excitement": "Excitement — talked about it",
+            "excitement": "Excitement, talked about it",
             "somewhat_frightened": "Somewhat frightened",
-            "very_frightened": "Very frightened — I went outside",
-            "extremely_frightened": "Extremely frightened — everyone ran outside"
+            "very_frightened": "Very frightened, I went outside",
+            "extremely_frightened": "Extremely frightened, everyone ran outside"
           }
         },
         "stand": {
@@ -656,7 +656,7 @@
     },
     "damage": {
       "title": "Was there any damage?",
-      "subtitle": "Tap the picture that best matches what you saw — this step is optional.",
+      "subtitle": "Tap the picture that best matches what you saw. This step is optional.",
       "noDamage": {
         "label": "I didn't see any damage",
         "hint": "Selects and continues right away"
@@ -739,7 +739,7 @@
         "sublabel": "Derived from Vs30",
         "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
         "citation": "Eurocode 8 (EN 1998-1) Table 3.1; NEHRP site classes (ASCE 7-16 Table 20.3-1)",
-        "unavailable": "Not available — no Vs30 sample at this location."
+        "unavailable": "Not available: no Vs30 sample at this location."
       },
       "soil": {
         "label": "Nearby Sulaimani soil/site points",
@@ -750,7 +750,7 @@
       },
       "gmpe": {
         "label": "Ground-motion models used in this app",
-        "note": "Hazard and ShakeMap computations in this app use this ground-motion prediction equation set."
+        "note": "Hazard and SHAKEmap computations in this app use this ground-motion prediction equation set."
       }
     },
     "methods": {
@@ -767,7 +767,7 @@
     "headerLabel": "Your anonymous contributor ID",
     "headerIdLoading": "…",
     "headerIdA11yLabel": "Your contributor ID: {{id}}",
-    "headerExplanation": "Created automatically on this device — no account or sign-up. It's how your reports are grouped together, and it stays only on this install.",
+    "headerExplanation": "Created automatically on this device: no account or sign-up. It's how your reports are grouped together, and it stays only on this install.",
     "summaryTitle": "{{count}} reports submitted",
     "unassignedEvent": "Not linked to a specific event",
     "damageLine": "{{typology}}: {{grade}}",
@@ -776,7 +776,7 @@
       "submitted": "Submitted",
       "on-device": "On this device"
     },
-    "emptyStateMessage": "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it — it takes one tap.",
+    "emptyStateMessage": "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it. It takes one tap.",
     "emptyStateCta": "Report an earthquake"
   }
 }
