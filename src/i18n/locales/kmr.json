@@ -120,6 +120,7 @@
     "emptyState": "Tu erdhej bi van fîlteran re li hev nayên.",
     "loading": "Katalog tê barkirin…",
     "errorTitle": "Katalog nehat barkirin.",
+    "retry": "Dîsa biceribîne",
     "filters": {
       "magMinLabel": "Rêjeya kêmtirîn",
       "magMaxLabel": "Rêjeya herî zêde",

@@ -120,6 +120,7 @@
     "emptyState": "No earthquakes match these filters.",
     "loading": "Loading catalog…",
     "errorTitle": "Couldn't load the catalog.",
+    "retry": "Retry",
     "filters": {
       "magMinLabel": "Min magnitude",
       "magMaxLabel": "Max magnitude",
