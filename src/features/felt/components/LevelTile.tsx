@@ -34,6 +34,13 @@ interface LevelTileProps {
   /** Science pack §1.2: levels 10-12 render in the "severe destruction"
    * sub-group, slightly more compact than 1-9 — still fully selectable. */
   compact?: boolean;
+  /** Exact tile width in px, from the parent grid's `useTileGridLayout`
+   * (`../grid-layout.ts`) — every tile in a row gets the SAME value, sized
+   * from the grid container's real measured width, so a short trailing row
+   * never stretches (see `DamageTile`'s identical prop for the full
+   * writeup). Both the 1-9 and 10-12 groups use the same 3-column layout,
+   * so `compact` doesn't change this math, only the swatch's aspect ratio. */
+  width?: number | undefined;
 }
 
 function LevelTileImpl({
@@ -43,6 +50,7 @@ function LevelTileImpl({
   onPress,
   imageSource,
   compact = false,
+  width,
 }: LevelTileProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -61,8 +69,12 @@ function LevelTileImpl({
       accessibilityHint={t("felt.tier1.levelA11yHint")}
       onPress={() => onPress(level)}
       style={({ pressed }) => [
-        styles.tile,
-        compact && styles.tileCompact,
+        // `width` (measured) wins outright; the bare `styles.tile`/
+        // `tileCompact` basis is only ever seen for the one frame before
+        // the grid's `onLayout` fires — see the `width` prop's doc comment.
+        width != null ? styles.tileMeasured : styles.tile,
+        width == null && compact && styles.tileCompact,
+        width != null ? { width } : null,
         {
           backgroundColor: colors.surface.raised,
           borderColor: colors.border.default,
@@ -134,15 +146,29 @@ function LevelTileImpl({
 export const LevelTile = memo(LevelTileImpl);
 
 const styles = StyleSheet.create({
+  // Pre-measurement fallback only (see the `width` prop's doc comment) —
+  // deliberately `flexGrow: 0` even here, so this never stretches either.
   tile: {
     flexBasis: "31%",
-    flexGrow: 1,
+    flexGrow: 0,
+    flexShrink: 0,
     borderWidth: 1,
     borderRadius: 14,
     alignItems: "center",
   },
   tileCompact: {
     flexBasis: "31%",
+  },
+  // Once the grid has measured itself, every tile gets an exact pixel
+  // `width` (set inline above) instead of a percentage basis — no
+  // `flexGrow`/`flexBasis` at all, so row-to-row tile counts can never
+  // change any tile's size (the bug this replaces).
+  tileMeasured: {
+    flexGrow: 0,
+    flexShrink: 0,
+    borderWidth: 1,
+    borderRadius: 14,
+    alignItems: "center",
   },
   swatch: {
     width: "100%",

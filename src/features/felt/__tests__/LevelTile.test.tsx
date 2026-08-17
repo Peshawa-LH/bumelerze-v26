@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import i18n from "@/i18n";
 import { LevelTile } from "../components/LevelTile";
@@ -87,5 +88,33 @@ describe("LevelTile", () => {
     );
 
     expect(screen.getByText("٣ - لەرزینی لاواز")).toBeTruthy();
+  });
+
+  // Damage/level-tile sizing bug (Wave A, 2026-08-17): a short trailing row
+  // used to stretch via `flexGrow: 1` (masked here only because the 1-9/
+  // 10-12 split happens to divide evenly by 3 — see `grid-layout.ts`).
+  // `width` (from `useTileGridLayout`) replaces percentage sizing with an
+  // exact pixel size shared by every tile, `compact` or not.
+  it("renders at the exact measured width and drops flexGrow/flexBasis when the grid has measured itself, compact or not", async () => {
+    await render(
+      <>
+        <LevelTile level={3} label="Weak shaking" locale="en" onPress={jest.fn()} width={112} />
+        <LevelTile
+          level={11}
+          label="Total collapse"
+          locale="en"
+          onPress={jest.fn()}
+          compact
+          width={112}
+        />
+      </>,
+    );
+
+    for (const label of ["3. Weak shaking", "11. Total collapse"]) {
+      const flatStyle = StyleSheet.flatten(screen.getByLabelText(label).props.style);
+      expect(flatStyle.width).toBe(112);
+      expect(flatStyle.flexGrow).toBe(0);
+      expect(flatStyle.flexBasis).toBeUndefined();
+    }
   });
 });

@@ -82,3 +82,4 @@ export { InlineTownPicker } from "./components/InlineTownPicker";
 export { Tier2ScreenShell } from "./components/Tier2ScreenShell";
 export { Tier2OptionButton } from "./components/Tier2OptionButton";
 export { useTier2DraftStore } from "./tier2-draft-store";
+export { computeTileWidth, useTileGridLayout, type TileGridLayout } from "./grid-layout";
