@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import { DamageTile } from "../components/DamageTile";
 
@@ -60,5 +61,61 @@ describe("DamageTile", () => {
       includeHiddenElements: true,
     });
     expect(image.props.source).toEqual({ uri: "test" });
+  });
+
+  // Damage-tile sizing bug (Wave A, 2026-08-17): a short trailing row used
+  // to stretch via `flexGrow: 1`. `width` (from the parent grid's
+  // `useTileGridLayout`) replaces that with an exact pixel size shared by
+  // every tile — this locks in that once `width` is supplied, the rendered
+  // style carries that exact value and no `flexGrow`.
+  it("renders at the exact measured width and drops flexGrow when the grid has measured itself", async () => {
+    await render(
+      <DamageTile
+        typology="lowrise"
+        grade={2}
+        label="Large wall cracks"
+        accessibilityLabel="Single/low-rise. Large wall cracks"
+        locale="en"
+        onPress={jest.fn()}
+        width={62.4}
+      />,
+    );
+
+    const tile = screen.getByLabelText("Single/low-rise. Large wall cracks");
+    const flatStyle = StyleSheet.flatten(tile.props.style);
+    expect(flatStyle.width).toBe(62.4);
+    expect(flatStyle.flexGrow).toBe(0);
+    expect(flatStyle.flexBasis).toBeUndefined();
+  });
+
+  it("two tiles given the same measured width render at identical sizes regardless of row position", async () => {
+    await render(
+      <>
+        <DamageTile
+          typology="lowrise"
+          grade={0}
+          label="No visible damage"
+          accessibilityLabel="Single/low-rise. No visible damage"
+          locale="en"
+          onPress={jest.fn()}
+          width={62.4}
+        />
+        <DamageTile
+          typology="lowrise"
+          grade={4}
+          label="Partial collapse"
+          accessibilityLabel="Single/low-rise. Partial collapse"
+          locale="en"
+          onPress={jest.fn()}
+          width={62.4}
+        />
+      </>,
+    );
+
+    const firstTile = screen.getByLabelText("Single/low-rise. No visible damage");
+    const lastTile = screen.getByLabelText("Single/low-rise. Partial collapse");
+    expect(StyleSheet.flatten(firstTile.props.style).width).toBe(
+      StyleSheet.flatten(lastTile.props.style).width,
+    );
   });
 });

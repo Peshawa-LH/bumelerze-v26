@@ -11,6 +11,7 @@ import {
   DAMAGE_TYPOLOGIES,
   DamageTile,
   useTier2DraftStore,
+  useTileGridLayout,
   type BuildingDamageGrade,
   type DamageTypology,
 } from "@/features/felt";
@@ -38,6 +39,13 @@ export default function DamageReportScreen() {
 
   const initDraft = useTier2DraftStore((state) => state.initDraft);
   const setAnswer = useTier2DraftStore((state) => state.setAnswer);
+  // Both typology rows are 5-column grids at the same gap (`styles.grid`
+  // below) and the same horizontal padding, so one measurement covers both
+  // — see `grid-layout.ts`'s doc comment on sharing a single instance.
+  const { tileWidth, onLayout: onGridLayout } = useTileGridLayout(
+    DAMAGE_TILE_COLUMNS,
+    DAMAGE_TILE_GAP,
+  );
 
   useEffect(() => {
     if (feltReportId) {
@@ -168,7 +176,7 @@ export default function DamageReportScreen() {
             >
               {t(`felt.damage.typologies.${typology}`)}
             </Text>
-            <View style={styles.grid}>
+            <View style={styles.grid} onLayout={onGridLayout}>
               {BUILDING_DAMAGE_GRADES.map((grade) => {
                 const gradeLabel = t(`felt.damage.grades.${typology}.${grade}`);
                 return (
@@ -181,6 +189,7 @@ export default function DamageReportScreen() {
                     accessibilityLabel={`${t(`felt.damage.typologies.${typology}`)}. ${gradeLabel}`}
                     onPress={handleSelectGrade}
                     imageSource={DAMAGE_ARTWORK[typology][grade]}
+                    width={tileWidth}
                   />
                 );
               })}
@@ -191,6 +200,12 @@ export default function DamageReportScreen() {
     </View>
   );
 }
+
+// One typology row (5 damage grades DG0-DG4) per grid — must match
+// `styles.grid`'s `gap` below (kept as named constants, not a magic 10, so
+// the two can never drift apart silently).
+const DAMAGE_TILE_COLUMNS = 5;
+const DAMAGE_TILE_GAP = 10;
 
 const styles = StyleSheet.create({
   container: {
@@ -204,7 +219,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: DAMAGE_TILE_GAP,
   },
   noDamageButton: {
     borderRadius: 12,

@@ -23,6 +23,7 @@ import {
   LevelTile,
   SEVERE_DESTRUCTION_THRESHOLD,
   useFeltLocation,
+  useTileGridLayout,
   type CartoonLevel,
 } from "@/features/felt";
 
@@ -56,6 +57,13 @@ export default function Tier1FeltReportScreen() {
 
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
   const { location, isGps, manualTownId, setManualTownId } = useFeltLocation();
+  // Both the 1-9 and 10-12 (severe, `compact`) groups are 3-column grids at
+  // the same gap (`styles.grid` below) and the same horizontal padding —
+  // see `grid-layout.ts`'s doc comment on sharing one measurement.
+  const { tileWidth, onLayout: onGridLayout } = useTileGridLayout(
+    LEVEL_TILE_COLUMNS,
+    LEVEL_TILE_GAP,
+  );
 
   const associatedEventId = eventId ?? null;
   const eventRegistration = decodeEventRegistrationParam(eventReg);
@@ -191,7 +199,7 @@ export default function Tier1FeltReportScreen() {
           ) : null}
         </View>
 
-        <View style={styles.grid}>
+        <View style={styles.grid} onLayout={onGridLayout}>
           {CARTOON_LEVELS.filter((level) => level < SEVERE_DESTRUCTION_THRESHOLD).map(
             (level) => (
               <LevelTile
@@ -201,6 +209,7 @@ export default function Tier1FeltReportScreen() {
                 label={t(`felt.tier1.levels.${level}.label`)}
                 onPress={(selected) => void handleSelectLevel(selected)}
                 imageSource={LEVEL_ARTWORK[level]}
+                width={tileWidth}
               />
             ),
           )}
@@ -216,7 +225,7 @@ export default function Tier1FeltReportScreen() {
         >
           {t("felt.tier1.severeDestructionHeader")}
         </Text>
-        <View style={styles.grid}>
+        <View style={styles.grid} onLayout={onGridLayout}>
           {CARTOON_LEVELS.filter((level) => level >= SEVERE_DESTRUCTION_THRESHOLD).map(
             (level) => (
               <LevelTile
@@ -227,6 +236,7 @@ export default function Tier1FeltReportScreen() {
                 onPress={(selected) => void handleSelectLevel(selected)}
                 imageSource={LEVEL_ARTWORK[level]}
                 compact
+                width={tileWidth}
               />
             ),
           )}
@@ -235,6 +245,12 @@ export default function Tier1FeltReportScreen() {
     </View>
   );
 }
+
+// Both severity groups (1-9, 10-12) are 3-per-row grids — must match
+// `styles.grid`'s `gap` below (named constants, not a magic 10, so the two
+// can never drift apart silently).
+const LEVEL_TILE_COLUMNS = 3;
+const LEVEL_TILE_GAP = 10;
 
 const styles = StyleSheet.create({
   container: {
@@ -248,6 +264,6 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: LEVEL_TILE_GAP,
   },
 });

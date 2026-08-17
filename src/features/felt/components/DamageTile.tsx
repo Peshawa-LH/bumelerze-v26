@@ -32,6 +32,14 @@ interface DamageTileProps {
    * note this component shares (resolved via a test-only mock, not a real
    * version fix — `jest.setup.js`). */
   imageSource?: ImageSource;
+  /** Exact tile width in px, from the parent grid's `useTileGridLayout`
+   * (`../grid-layout.ts`) — every tile in a row gets the SAME value, sized
+   * from the grid container's real measured width, so a short trailing row
+   * never stretches. Undefined only for the single frame before the grid's
+   * `onLayout` has fired yet; the tile falls back to the old percentage
+   * basis for that one frame (still `flexGrow: 0`, so no stretch even
+   * then) rather than rendering at zero width. */
+  width?: number | undefined;
 }
 
 function DamageTileImpl({
@@ -42,6 +50,7 @@ function DamageTileImpl({
   locale,
   onPress,
   imageSource,
+  width,
 }: DamageTileProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -56,7 +65,11 @@ function DamageTileImpl({
       accessibilityLabel={accessibilityLabel}
       onPress={() => onPress(typology, grade)}
       style={({ pressed }) => [
-        styles.tile,
+        // `width` (measured) wins outright; the bare `styles.tile` basis is
+        // only ever seen for the one frame before the grid's `onLayout`
+        // fires — see the `width` prop's doc comment above.
+        width != null ? styles.tileMeasured : styles.tile,
+        width != null ? { width } : null,
         {
           backgroundColor: colors.surface.raised,
           borderColor: colors.border.default,
@@ -116,9 +129,23 @@ function DamageTileImpl({
 export const DamageTile = memo(DamageTileImpl);
 
 const styles = StyleSheet.create({
+  // Pre-measurement fallback only (see the `width` prop's doc comment) —
+  // deliberately `flexGrow: 0` even here, so this never stretches either.
   tile: {
     flexBasis: "18%",
-    flexGrow: 1,
+    flexGrow: 0,
+    flexShrink: 0,
+    borderWidth: 1,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+  // Once the grid has measured itself, every tile gets an exact pixel
+  // `width` (set inline above) instead of a percentage basis — no
+  // `flexGrow`/`flexBasis` at all, so row-to-row tile counts can never
+  // change any tile's size (the bug this replaces).
+  tileMeasured: {
+    flexGrow: 0,
+    flexShrink: 0,
     borderWidth: 1,
     borderRadius: 14,
     alignItems: "center",
