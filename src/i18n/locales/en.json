@@ -194,77 +194,77 @@
     "cards": {
       "familyPlan": {
         "title": "Make a family plan",
-        "body1": "Agree on a meeting point outside your home and another outside your neighborhood, in case you cannot reach each other by phone right after a strong earthquake. Make sure every family member — including children and grandparents — knows both points and how to get there on foot.",
-        "body2": "Keep a paper list of important phone numbers (family, neighbors, doctor) somewhere everyone can find it. Phone networks are often overloaded for hours after a strong earthquake, so do not rely on your phone alone."
+        "body1": "Agree on two meeting points, one immediately outside your home and one outside your neighborhood, for the case where phone contact fails after a strong earthquake. Every family member, including children and grandparents, should know both locations and the walking route to each.",
+        "body2": "Keep a paper list of important numbers (family, neighbors, doctor) where everyone can find it. Phone networks are typically overloaded for hours after a damaging event, so a plan that depends on your phone alone is not a reliable plan."
       },
       "secureHome": {
         "title": "Secure your home",
-        "body1": "Anchor tall or heavy furniture — wardrobes, bookshelves, wall units — to the wall so it cannot tip over. Move heavy objects to lower shelves, and keep beds and sofas away from tall unsecured furniture.",
-        "body2": "Two hazards common in Kurdish homes deserve special attention: rooftop water tanks should be checked and secured by whoever installed them, and gas cylinders should always stand upright, be strapped or braced so they cannot fall or roll, and be kept away from any flame or heat source."
+        "body1": "Anchor tall or heavy furniture, including wardrobes, bookshelves, and wall units, to the wall so that it cannot overturn. Move heavy objects to lower shelves, and keep beds and sofas clear of tall unsecured furniture.",
+        "body2": "Two hazards are particularly common in Kurdish homes and deserve targeted attention. Rooftop water tanks should be inspected and secured by whoever installed them. Gas cylinders should stand upright, be strapped or braced against falling and rolling, and be kept well away from any flame or heat source."
       },
       "emergencyKit": {
         "title": "Prepare an emergency kit",
-        "body1": "Keep a bag ready with drinking water, a few days of any medicine your family needs, copies of important documents (ID cards, property papers), a torch and spare batteries, a portable phone charger, and some cash — card machines and the internet may not work for a while after a strong earthquake.",
-        "body2": "Store the kit somewhere you can grab it quickly, and check it every few months so the water stays fresh and the medicine has not expired."
+        "body1": "Keep a bag ready with drinking water, several days of any medicine your family depends on, copies of important documents (ID cards, property papers), a torch with spare batteries, a portable phone charger, and some cash. Card systems and internet access may remain unavailable for a considerable time after a strong earthquake.",
+        "body2": "Store the kit where you can reach it quickly, and check it every few months so that the water stays fresh and no medicine has expired."
       },
       "safeSpots": {
         "title": "Know the safe spot in every room",
-        "body1": "In each room you spend time in, pick a safe spot in advance: under a sturdy table or desk, or against an interior wall away from windows, mirrors, and tall furniture. Avoid exterior walls, which are more likely to be damaged.",
-        "body2": "Doorways are not safer in modern buildings — that is an old idea that no longer matches how buildings are built today. A sturdy table gives you real protection from falling objects; an open doorway does not."
+        "body1": "In each room you use regularly, identify a safe spot in advance: under a sturdy table or desk, or against an interior wall away from windows, mirrors, and tall furniture. Exterior walls are more likely to sustain damage and should be avoided.",
+        "body2": "Doorways provide no additional protection in modern construction, and that guidance no longer reflects how buildings are built today. A sturdy table protects you from falling objects, which is where most injuries originate. An open doorway does not."
       },
       "schoolWork": {
         "title": "Know the plan at school and work",
-        "body1": "Ask your children's school and your workplace what their earthquake plan is: where to shelter during shaking, and where to gather afterward. Encourage schools and offices to practice a Drop-Cover-Hold On drill, not just a fire drill.",
-        "body2": "If you manage a classroom, office, or shop, walk through the space and note the safe spots and nearest exits, so you can guide others calmly if shaking starts while people are with you."
+        "body1": "Ask your children's school and your workplace what their earthquake plan is, specifically where people shelter during shaking and where they gather afterward. Encourage both to practice a Drop, Cover, and Hold On drill rather than a fire drill alone.",
+        "body2": "If you manage a classroom, office, or shop, walk through the space and note the safe spots and the nearest exits, enabling you to guide others calmly if shaking begins while they are with you."
       },
       "dropCoverHold": {
         "title": "Drop, Cover, and Hold On",
-        "body1": "The moment you feel shaking: drop to your hands and knees before it knocks you down, take cover under a sturdy table or desk, and hold on to it, ready to move with it if it shifts. If no table is nearby, cover your head and neck with your arms.",
-        "body2": "Stay there until the shaking fully stops. Most earthquake injuries come from falling or from objects falling, not from buildings collapsing — protecting your head and neck for those seconds is the single most effective thing you can do.",
+        "body1": "The moment you feel shaking: drop to your hands and knees before the motion knocks you down, take cover under a sturdy table or desk, and hold on so that you move with it if it shifts. If no table is within reach, cover your head and neck with your arms.",
+        "body2": "Stay there until the shaking has fully stopped. Most earthquake injuries result from falling and from falling objects rather than from building collapse, so protecting your head and neck for those seconds is the single most effective action available to you.",
         "doDont": {
           "protectHeadNeckVsDoorway": {
             "do": "Get low, take cover under something sturdy, and hold on.",
-            "dont": "Do not run to a doorway — a modern doorway is no stronger than the rest of the room and gives you no real protection."
+            "dont": "Do not run to a doorway. A modern doorway is no stronger than the rest of the room and offers no real protection."
           }
         },
         "accessibility": {
           "wheelchair": {
             "label": "If you use a wheelchair",
-            "body": "Lock your wheelchair's wheels, stay seated, lean forward over your lap, and cover your head and neck with your arms or anything soft nearby. If you can safely move away from windows or unsecured furniture first, do so — otherwise stay where you are."
+            "body": "Lock your wheelchair's wheels, stay seated, lean forward over your lap, and cover your head and neck with your arms or anything soft within reach. Move clear of windows and unsecured furniture first only if you can do so safely, otherwise stay where you are."
           },
           "caneOrWalker": {
             "label": "If you use a cane or walker",
-            "body": "Sit down on the nearest sturdy chair, bed, or bench and stay seated. Cover your head and neck with your arms. Keep your cane or walker close, but do not stand up to reach for it while the ground is still shaking."
+            "body": "Sit down on the nearest sturdy chair, bed, or bench and remain seated. Cover your head and neck with your arms. Keep your cane or walker close, but do not stand up to reach for it while the ground is still shaking."
           },
           "bed": {
             "label": "If you are in bed",
-            "body": "Stay in bed. Roll onto your stomach if you can, and cover your head and neck with a pillow. Do not get up to find cover elsewhere — most injuries in this situation come from falling while trying to move in the dark."
+            "body": "Stay in bed. Roll onto your stomach if you can, and cover your head and neck with a pillow. Do not get up to find cover elsewhere, since most injuries in this situation come from falling while moving in the dark."
           }
         }
       },
       "indoors": {
         "title": "If you are indoors when shaking starts",
-        "body1": "Stay inside. Move only the few steps needed to reach your nearest safe spot, then Drop, Cover, and Hold On. Exits are usually more dangerous during shaking than staying put — glass, signs, and building parts can fall right outside doors.",
+        "body1": "Stay inside. Move only the few steps required to reach your nearest safe spot, then Drop, Cover, and Hold On. Exits are generally more dangerous than staying put during shaking, because glass, signage, and building components fall directly outside doors.",
         "doDont": {
           "stayInVsRunOutside": {
             "do": "Shelter where you are and wait for the shaking to stop.",
-            "dont": "Do not run outside while the ground is still shaking — most injuries happen while people are moving."
+            "dont": "Do not run outside while the ground is still shaking, since most injuries occur while people are moving."
           }
         }
       },
       "outdoors": {
         "title": "If you are outdoors when shaking starts",
-        "body1": "Move to open ground, away from buildings, walls, trees, and power lines, and Drop, Cover, and Hold On there. The area right next to a building is one of the most dangerous places to be — that is where falling glass, tiles, and cladding land.",
+        "body1": "Move to open ground, clear of buildings, walls, trees, and power lines, and Drop, Cover, and Hold On there. The strip immediately next to a building is among the most dangerous places to be, because falling glass, tiles, and cladding land there.",
         "doDont": {
           "openGroundVsBuildings": {
             "do": "Get clear of buildings and power lines, then get low and cover your head.",
-            "dont": "Do not stand close to a building, wall, or power line — even one that looks undamaged."
+            "dont": "Do not stand close to a building, wall, or power line, including one that appears undamaged."
           }
         }
       },
       "vehicle": {
         "title": "If you are in a vehicle",
-        "body1": "Pull over as soon as you safely can, away from bridges, overpasses, tunnels, and power lines, and stay inside the vehicle with your seatbelt on until the shaking stops. A car gives you real protection from falling debris.",
+        "body1": "Pull over as soon as you can do so safely, away from bridges, overpasses, tunnels, and power lines, and stay inside the vehicle with your seatbelt fastened until the shaking stops. A car provides real protection from falling debris.",
         "doDont": {
           "pullOverVsOverpass": {
             "do": "Pull over to a clear spot and stay in your seat with the seatbelt on.",
@@ -274,26 +274,26 @@
       },
       "commonMyths": {
         "title": "Two habits worth unlearning",
-        "body1": "These two habits feel protective but current guidance advises against them — knowing this in advance means you will not lose time to them when it matters.",
+        "body1": "Both habits below feel protective, yet current guidance advises against them. Knowing this in advance means you will not lose time to them when seconds matter.",
         "doDont": {
           "headNeckVsDoorwayMyth": {
             "do": "Cover your head and neck under something sturdy.",
-            "dont": "Do not treat a doorway as a safe spot — that guidance is outdated."
+            "dont": "Do not treat a doorway as a safe spot, since that guidance is outdated."
           },
           "stairsVsElevator": {
             "do": "Once shaking stops, leave a damaged building calmly by the stairs.",
-            "dont": "Do not use the elevator — power and elevator shafts are often affected by a strong earthquake."
+            "dont": "Do not use the elevator. Power supply and elevator shafts are frequently affected by a strong earthquake."
           }
         }
       },
       "aftershocks": {
         "title": "Expect aftershocks",
-        "body1": "Smaller earthquakes — aftershocks — often follow a strong one, sometimes for days or weeks. Each time you feel shaking, Drop, Cover, and Hold On again; a smaller aftershock does not mean it is safe to stop taking shaking seriously.",
-        "body2": "If you felt the earthquake, you can report what you experienced in this app's felt-report screen — it takes under a minute and helps build a real record of shaking across Kurdistan, town by town."
+        "body1": "Smaller earthquakes, known as aftershocks, commonly follow a strong one and sometimes continue for days or weeks. Each time you feel shaking, Drop, Cover, and Hold On again. A smaller aftershock does not indicate that shaking can be taken less seriously.",
+        "body2": "If you felt the earthquake, you can report what you experienced in the felt report screen. It takes under a minute and contributes to a real record of shaking across Kurdistan, town by town."
       },
       "checkHazards": {
         "title": "Check for injuries and hazards",
-        "body1": "Check yourself and the people around you for injuries first, and give first aid if you can. Then check for hazards: a gas smell, damaged wiring, or a leaning gas cylinder.",
+        "body1": "Check yourself and the people around you for injuries first, and provide first aid where you can. Then check for hazards: a gas smell, damaged wiring, or a leaning gas cylinder.",
         "doDont": {
           "gasLeakSafety": {
             "do": "If you smell gas, shut the cylinder or main valve, open windows, and leave the building.",
@@ -303,31 +303,31 @@
       },
       "evacuateCarefully": {
         "title": "Leave a damaged building carefully",
-        "body1": "If your building looks damaged, leave calmly using the stairs, watching for broken glass, fallen objects, and cracked stairwells on the way.",
+        "body1": "If your building appears damaged, leave calmly by the stairs, watching for broken glass, fallen objects, and cracked stairwells along the way.",
         "doDont": {
           "reentryCaution": {
             "do": "Leave and wait outside, at a safe distance from the building.",
-            "dont": "Do not go back inside until it has been checked and declared safe by someone qualified."
+            "dont": "Do not go back inside until the building has been inspected and declared safe by someone qualified."
           }
         }
       },
       "reliableInfo": {
         "title": "Get information from reliable sources",
-        "body1": "After a strong earthquake, rumors spread quickly — about aftershock predictions, damage, or danger — faster than facts can be checked. Follow official sources (civil defense, geological authorities, this app) for confirmed information, and be patient with what is still unknown.",
+        "body1": "Rumors spread quickly after a strong earthquake, covering aftershock predictions, damage, and danger, and they travel faster than facts can be verified. Follow official sources, including civil defense, geological authorities, and this app, for confirmed information, and accept that some questions remain open for a time.",
         "doDont": {
           "verifyBeforeSharing": {
             "do": "Check information against an official source before you act on it or share it.",
-            "dont": "Do not forward earthquake predictions or damage claims you cannot verify — even from someone you trust."
+            "dont": "Do not forward earthquake predictions or damage claims you cannot verify, even from someone you trust."
           }
         }
       },
       "helpNeighbors": {
         "title": "Help others if you safely can",
-        "body1": "Once you and your family are safe, check on elderly neighbors, people with disabilities, and anyone living alone nearby — a knock on the door and a few minutes can matter.",
+        "body1": "Once you and your family are safe, check on elderly neighbors, people with disabilities, and anyone living alone nearby. A knock on the door and a few minutes of attention can matter.",
         "doDont": {
           "helpSafely": {
-            "do": "Check on neighbors who may need help, and call for emergency services if someone is seriously hurt.",
-            "dont": "Do not move a seriously injured person yourself unless they are in immediate danger, such as fire — moving them incorrectly can make an injury worse."
+            "do": "Check on neighbors who may need help, and call emergency services if someone is seriously hurt.",
+            "dont": "Do not move a seriously injured person yourself unless they face immediate danger such as fire, since incorrect movement can worsen an injury."
           }
         }
       }
