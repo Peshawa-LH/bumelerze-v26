@@ -19,7 +19,7 @@ import {
 /**
  * Window 2 of 3 — damage picker (2026-08-15 flow restructure, owner
  * directive). Two typology rows (high-rise / single-low-rise, each 5
- * grades DG0-DG4) plus a prominent "I didn't see damage" default that lets
+ * grades DG1-DG5) plus a prominent "I didn't see damage" default that lets
  * the user pass through with one tap. Every tile — including the default —
  * both records the pick AND advances to window 3 immediately, the same
  * one-tap philosophy as tier 1's cartoon grid and the tier-2 questionnaire.
@@ -67,11 +67,11 @@ export default function DamageReportScreen() {
   }
 
   function handleNoDamage() {
-    // Generic shortcut: grade 0, no typology implied (see
-    // `Tier2Answers.damageTypology`'s own doc for why this is distinct from
-    // explicitly picking a row's DG0 tile).
+    // Generic shortcut: grade 1 (no visible damage), no typology implied
+    // (see `Tier2Answers.damageTypology`'s own doc for why this is distinct
+    // from explicitly picking a row's DG1 tile).
     setAnswer("damageTypology", null);
-    setAnswer("buildingDamageLevel", 0);
+    setAnswer("buildingDamageLevel", 1);
     goToDetails();
   }
 
@@ -201,7 +201,7 @@ export default function DamageReportScreen() {
   );
 }
 
-// One typology row (5 damage grades DG0-DG4) per grid — must match
+// One typology row (5 damage grades DG1-DG5) per grid — must match
 // `styles.grid`'s `gap` below (kept as named constants, not a magic 10, so
 // the two can never drift apart silently).
 const DAMAGE_TILE_COLUMNS = 5;

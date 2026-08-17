@@ -194,7 +194,7 @@ describe("Felt-report flow — end to end (2026-08-15 flow restructure)", () => 
     // in place (D18 §3.2 supersede semantics, extended to windows 2/3).
     expect(items).toHaveLength(1);
     expect(items[0]?.tier1.reportId).toBe(reportId);
-    expect(items[0]?.tier2?.answers.buildingDamageLevel).toBe(0);
+    expect(items[0]?.tier2?.answers.buildingDamageLevel).toBe(1);
     expect(items[0]?.tier2?.answers.damageTypology).toBeNull();
     expect(items[0]?.tier2?.answers.comment).toBeNull();
     expect(items[0]?.tier2?.photoUri).toBeNull();
@@ -221,7 +221,7 @@ describe("Felt-report flow — end to end (2026-08-15 flow restructure)", () => 
 
     const window2 = await renderScreen(<DamageReportScreen />);
     await flush();
-    const gradeLabel = i18n.t("felt.damage.grades.highrise.3");
+    const gradeLabel = i18n.t("felt.damage.grades.highrise.4");
     const typologyLabel = i18n.t("felt.damage.typologies.highrise");
     await act(async () => {
       fireEvent.press(window2.getByLabelText(`${typologyLabel}. ${gradeLabel}`));
@@ -257,7 +257,7 @@ describe("Felt-report flow — end to end (2026-08-15 flow restructure)", () => 
     expect(items).toHaveLength(1);
     expect(items[0]?.tier1.reportId).toBe(reportId);
     expect(items[0]?.tier1.cartoonLevel).toBe(9);
-    expect(items[0]?.tier2?.answers.buildingDamageLevel).toBe(3);
+    expect(items[0]?.tier2?.answers.buildingDamageLevel).toBe(4);
     expect(items[0]?.tier2?.answers.damageTypology).toBe("highrise");
     expect(items[0]?.tier2?.answers.comment).toBe("Chimney cracked.");
     expect(items[0]?.tier2?.photoUri).toBe("file:///tmp/damage.jpg");

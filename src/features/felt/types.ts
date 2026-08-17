@@ -154,16 +154,18 @@ export type DamageLevel = 0 | 1 | 2 | 3;
 
 /**
  * Window-2 building-damage grade (2026-08-15 flow restructure, owner
- * directive) — 0 ("no visible damage") through 4 (partial/full collapse),
- * one severity ramp shared by both typology rows (`DamageTypology` below
- * picks which row's grade text/artwork applies). Replaces the old Q10
- * 4-level `buildingDamageLevel` answer; see
+ * directive; renumbered DG0-DG4 -> DG1-DG5 in the 2026-08-17 update wave to
+ * align with the official EMS-98 damage grades 1-5, "no more DG0") — 1 ("no
+ * visible damage") through 5 (partial/full collapse), one severity ramp
+ * shared by both typology rows (`DamageTypology` below picks which row's
+ * grade text/artwork applies). Replaces the old Q10 4-level
+ * `buildingDamageLevel` answer; see
  * `docs/research/felt-report-science-v1.md`'s 2026-08-15 addendum for the
  * proposed damage-index mapping this feeds (grade → CDI `damage` index),
  * flagged [REVIEW — Peshawa] there like the pack's other interpolated
  * values (R1, R6) — implemented pending that review, not blocking on it.
  */
-export type BuildingDamageGrade = 0 | 1 | 2 | 3 | 4;
+export type BuildingDamageGrade = 1 | 2 | 3 | 4 | 5;
 
 /** Which of window 2's two building rows a damage grade was picked from —
  * a vulnerability-class hint (science addendum: highrise ≈ RC frame,

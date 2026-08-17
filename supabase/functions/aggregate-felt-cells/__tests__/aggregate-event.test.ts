@@ -269,14 +269,14 @@ describe("computeDamageDist / computeGroundEffectsDist", () => {
 
   it("counts building-damage grades and buckets by typology, skipping unanswered", () => {
     const dist = computeDamageDist([
-      tier2Report({ buildingDamageLevel: 2, damageTypology: "lowrise" }),
-      tier2Report({ buildingDamageLevel: 2, damageTypology: "lowrise" }),
-      tier2Report({ buildingDamageLevel: 0, damageTypology: null }),
+      tier2Report({ buildingDamageLevel: 3, damageTypology: "lowrise" }),
+      tier2Report({ buildingDamageLevel: 3, damageTypology: "lowrise" }),
+      tier2Report({ buildingDamageLevel: 1, damageTypology: null }),
       tier2Report({ buildingDamageLevel: null }),
     ]);
-    expect(dist.byGrade).toEqual({ "2": 2, "0": 1 });
-    expect(dist.byTypology.lowrise).toEqual({ "2": 2 });
-    expect(dist.byTypology.none).toEqual({ "0": 1 });
+    expect(dist.byGrade).toEqual({ "3": 2, "1": 1 });
+    expect(dist.byTypology.lowrise).toEqual({ "3": 2 });
+    expect(dist.byTypology.none).toEqual({ "1": 1 });
   });
 
   it("counts road-damage levels, skipping unanswered", () => {

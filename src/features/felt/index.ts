@@ -27,11 +27,7 @@ export {
   TIER2_QUESTION_COUNT,
   type Tier2QuestionDef,
 } from "./questions";
-export {
-  BUILDING_DAMAGE_GRADES,
-  DAMAGE_GRADE_TO_INTENSITY_INDEX,
-  DAMAGE_TYPOLOGIES,
-} from "./damage";
+export { BUILDING_DAMAGE_GRADES, DAMAGE_TYPOLOGIES } from "./damage";
 export { getDeviceId, __resetDeviceIdCacheForTests } from "./device-id";
 export { resolveHomeFeltAssociation } from "./association";
 export {

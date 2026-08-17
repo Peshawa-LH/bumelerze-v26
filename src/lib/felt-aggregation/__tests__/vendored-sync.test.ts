@@ -75,8 +75,8 @@ describe("scoreTier2Report: vendored copy matches the source lib", () => {
     { motion: "violent", situation: "moving_car" }, // R17 vehicle exclusion
     { stand: "fell", situation: "moving_car" },
     { shelf: "many_fell", picture: "yes", furniture: "yes" },
-    { buildingDamageLevel: 4 },
-    { buildingDamageLevel: 0 },
+    { buildingDamageLevel: 5 },
+    { buildingDamageLevel: 1 },
   ];
   const fixtures = overridesList.map((overrides) => ({ ...EMPTY_ANSWERS, ...overrides }));
   it.each(fixtures)("answers %#", (answers) => {
@@ -103,7 +103,7 @@ describe("aggregateCell: vendored copy matches the source lib", () => {
           shelf: "many_fell",
           picture: "yes",
           furniture: "yes",
-          buildingDamageLevel: 4,
+          buildingDamageLevel: 5,
         }),
       ],
     },
@@ -122,7 +122,7 @@ describe("aggregateCell: vendored copy matches the source lib", () => {
           shelf: "many_fell",
           picture: "yes",
           furniture: "yes",
-          buildingDamageLevel: 3,
+          buildingDamageLevel: 4,
         }),
         tier2("t2-b", {
           felt: "yes",
@@ -132,7 +132,7 @@ describe("aggregateCell: vendored copy matches the source lib", () => {
           shelf: "many_fell",
           picture: "yes",
           furniture: "yes",
-          buildingDamageLevel: 3,
+          buildingDamageLevel: 4,
         }),
         tier1("t1-a", 4),
         tier1("t1-b", 5),

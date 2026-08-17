@@ -668,18 +668,18 @@
       },
       "grades": {
         "highrise": {
-          "0": "Ti zirara xuya tune",
-          "1": "Çatên tenik di sîwana an dîwarên tijîkirî de",
-          "2": "Çatên xar di dîwarên tijîkirî de, hin sîwan ketiye",
-          "3": "Çatên fireh di stûn an kevanan de, dîwarên tijîkirî têk diçin",
-          "4": "Hilweşîna qismî ya qatek an stûnan"
+          "1": "Ti zirara xuya tune",
+          "2": "Çatên tenik di sîwana an dîwarên tijîkirî de",
+          "3": "Çatên xar di dîwarên tijîkirî de, hin sîwan ketiye",
+          "4": "Çatên fireh di stûn an kevanan de, dîwarên tijîkirî têk diçin",
+          "5": "Hilweşîna qismî ya qatek an stûnan"
         },
         "lowrise": {
-          "0": "Ti zirara xuya tune",
-          "1": "Çatên tenik di sîwan an dîwaran de",
-          "2": "Çatên mezin ên dîwêr, hin sîwan an keriyên hilweşiyayî",
-          "3": "Çatên giran an hilweşîna qismî ya dîwaran",
-          "4": "Hilweşîna qismî an tevahî ya dîwar an banî"
+          "1": "Ti zirara xuya tune",
+          "2": "Çatên tenik di sîwan an dîwaran de",
+          "3": "Çatên mezin ên dîwêr, hin sîwan an keriyên hilweşiyayî",
+          "4": "Çatên giran an hilweşîna qismî ya dîwaran",
+          "5": "Hilweşîna qismî an tevahî ya dîwar an banî"
         }
       }
     },

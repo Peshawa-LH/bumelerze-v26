@@ -181,10 +181,11 @@ describe("aggregateCell — end to end", () => {
         shelf: "many_fell",
         picture: "yes",
         furniture: "yes",
-        // Grade 4 -> damage index 3 (max) under the 2026-08-15 flow
-        // restructure's 5-grade mapping (cdi-scoring.ts DAMAGE_INDEX);
-        // grade 3 no longer means "max" the way old Q10's level 3 did.
-        buildingDamageLevel: 4,
+        // Grade 5 -> damage index 3 (max) under the 2026-08-15 flow
+        // restructure's 5-grade mapping (cdi-scoring.ts DAMAGE_INDEX,
+        // renumbered DG0-DG4 -> DG1-DG5 in the 2026-08-17 update wave);
+        // grade 4 no longer means "max" the way old Q10's level 3 did.
+        buildingDamageLevel: 5,
       }),
     ]);
     expect(outcome.ok).toBe(true);
@@ -223,10 +224,11 @@ describe("aggregateCell — end to end", () => {
       shelf: "many_fell",
       picture: "yes",
       furniture: "yes",
-      // Grade 3 -> damage index 2 under the 2026-08-15 flow restructure's
-      // 5-grade mapping (cdi-scoring.ts DAMAGE_INDEX) — same index value old
+      // Grade 4 -> damage index 2 under the 2026-08-15 flow restructure's
+      // 5-grade mapping (cdi-scoring.ts DAMAGE_INDEX, renumbered DG0-DG4 ->
+      // DG1-DG5 in the 2026-08-17 update wave) — same index value old
       // Q10's level 2 used to produce, keeping this test's CWS=35 target.
-      buildingDamageLevel: 3,
+      buildingDamageLevel: 4,
     };
     const outcome = aggregateCell([
       tier2("t2-a", tier2Overrides),

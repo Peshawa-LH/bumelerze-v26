@@ -58,7 +58,7 @@ describe("Window 2 — damage picker screen", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("renders both typology rows (5 grades each, DG0-DG4) and the generic no-damage default", async () => {
+  it("renders both typology rows (5 grades each, DG1-DG5) and the generic no-damage default", async () => {
     await act(async () => {
       renderWithProviders(<DamageReportScreen />);
     });
@@ -81,7 +81,7 @@ describe("Window 2 — damage picker screen", () => {
       renderWithProviders(<DamageReportScreen />);
     });
 
-    const label = i18n.t("felt.damage.grades.lowrise.2");
+    const label = i18n.t("felt.damage.grades.lowrise.3");
     const typologyLabel = i18n.t("felt.damage.typologies.lowrise");
     const tile = screen.getByLabelText(`${typologyLabel}. ${label}`);
 
@@ -89,7 +89,7 @@ describe("Window 2 — damage picker screen", () => {
 
     const draft = useTier2DraftStore.getState();
     expect(draft.answers.damageTypology).toBe("lowrise");
-    expect(draft.answers.buildingDamageLevel).toBe(2);
+    expect(draft.answers.buildingDamageLevel).toBe(3);
 
     expect(mockPush).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -99,7 +99,7 @@ describe("Window 2 — damage picker screen", () => {
     );
   });
 
-  it("the generic 'no damage' shortcut sets grade 0 with NO typology (distinct from picking a row's DG0 tile)", async () => {
+  it("the generic 'no damage' shortcut sets grade 1 with NO typology (distinct from picking a row's DG1 tile)", async () => {
     await act(async () => {
       renderWithProviders(<DamageReportScreen />);
     });
@@ -110,7 +110,7 @@ describe("Window 2 — damage picker screen", () => {
     fireEvent.press(noDamageButton);
 
     const draft = useTier2DraftStore.getState();
-    expect(draft.answers.buildingDamageLevel).toBe(0);
+    expect(draft.answers.buildingDamageLevel).toBe(1);
     expect(draft.answers.damageTypology).toBeNull();
     expect(mockPush).toHaveBeenCalledWith(
       expect.objectContaining({ pathname: "/felt-report/details" }),

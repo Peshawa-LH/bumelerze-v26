@@ -132,13 +132,16 @@ const BOOLEAN_INDEX: Record<PictureAnswer | FurnitureAnswer, number> = {
 // `docs/research/felt-report-science-v1.md`'s 2026-08-15 addendum:
 // implemented pending that review, same "provisional but wired in" pattern
 // this pack already uses for other interpolated values (R1's shelf steps,
-// the old R6 itself).
+// the old R6 itself). Keys renumbered DG0-DG4 -> DG1-DG5 in the 2026-08-17
+// update wave (owner directive, `features/felt/types.ts`'s
+// `BuildingDamageGrade`) — the index VALUES per grade are unchanged, only
+// the key domain shifted (old key 0 -> 1, ... old key 4 -> 5).
 const DAMAGE_INDEX: Record<BuildingDamageGrade, number> = {
-  0: 0,
-  1: 0.5,
-  2: 0.75,
-  3: 2,
-  4: 3,
+  1: 0,
+  2: 0.5,
+  3: 0.75,
+  4: 2,
+  5: 3,
 };
 
 /**

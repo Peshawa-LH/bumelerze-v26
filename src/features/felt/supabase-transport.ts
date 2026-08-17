@@ -149,10 +149,13 @@ export interface FeltReportDetailInsert {
  *  - `picture_answer`        <- `answers.picture`                 (Q8)
  *  - `furniture_answer`      <- `answers.furniture`                (Q9)
  *  - `building_damage_level` <- `answers.buildingDamageLevel`      (window
- *                             2's 0-4 grade, 2026-08-15 flow restructure —
- *                             supersedes the old Q10 questionnaire answer;
- *                             the column itself is unchanged, only its
- *                             range widened 0-3 -> 0-4, migration 0009)
+ *                             2's 1-5 grade, 2026-08-15 flow restructure,
+ *                             renumbered DG0-DG4 -> DG1-DG5 in the
+ *                             2026-08-17 update wave — supersedes the old
+ *                             Q10 questionnaire answer; the column itself is
+ *                             unchanged, only its range widened 0-3 -> 0-4
+ *                             (migration 0009) then shifted 0-4 -> 1-5
+ *                             (migration 0018))
  *  - `damage_typology`       <- `answers.damageTypology` (NEW, migration
  *                             0009 — which of window 2's two rows the grade
  *                             came from; null for the generic "no damage"

@@ -9,8 +9,10 @@
  * mocked below with its own literal `jest.mock(...)` call and a unique
  * marker string — this both proves the maps resolve (no missing/mis-typed
  * file crashes the require) and proves each map key points at the RIGHT
- * file, including the damage-grade off-by-one shift (our grade 0..4 vs the
- * package's DG1..DG5 / file 01..05).
+ * file. Since the 2026-08-17 DG0-DG4 -> DG1-DG5 renumber, our own
+ * `BuildingDamageGrade` and the package's DG1..DG5 / file 01..05 numbering
+ * are the SAME numbers — no shift to regression-lock anymore, this now just
+ * proves the direct 1:1 mapping holds.
  *
  * Every call below must use a literal module-path string and a factory
  * with no outer-variable references (babel-plugin-jest-hoist forbids
@@ -73,22 +75,21 @@ describe("DAMAGE_ARTWORK", () => {
     expect(Object.keys(DAMAGE_ARTWORK.lowrise)).toHaveLength(5);
   });
 
-  it("shifts our 0-indexed grade to the package's 1-indexed DG file (highrise)", () => {
-    // Our grade 0 ("no visible damage") -> package file 01 (DG1), not 00.
-    expect(DAMAGE_ARTWORK.highrise[0]).toBe("asset:damage-highrise-01.webp");
-    expect(DAMAGE_ARTWORK.highrise[1]).toBe("asset:damage-highrise-02.webp");
-    expect(DAMAGE_ARTWORK.highrise[2]).toBe("asset:damage-highrise-03.webp");
-    expect(DAMAGE_ARTWORK.highrise[3]).toBe("asset:damage-highrise-04.webp");
-    // Our grade 4 ("partial collapse") -> package file 05 (DG5), the
-    // off-by-one this test specifically regression-locks.
-    expect(DAMAGE_ARTWORK.highrise[4]).toBe("asset:damage-highrise-05.webp");
+  it("maps our DG1-DG5 grade directly to the package's same-numbered file (highrise)", () => {
+    // Our grade 1 ("no visible damage") -> package file 01 (DG1), direct.
+    expect(DAMAGE_ARTWORK.highrise[1]).toBe("asset:damage-highrise-01.webp");
+    expect(DAMAGE_ARTWORK.highrise[2]).toBe("asset:damage-highrise-02.webp");
+    expect(DAMAGE_ARTWORK.highrise[3]).toBe("asset:damage-highrise-03.webp");
+    expect(DAMAGE_ARTWORK.highrise[4]).toBe("asset:damage-highrise-04.webp");
+    // Our grade 5 ("partial collapse") -> package file 05 (DG5), direct.
+    expect(DAMAGE_ARTWORK.highrise[5]).toBe("asset:damage-highrise-05.webp");
   });
 
-  it("shifts our 0-indexed grade to the package's 1-indexed DG file (lowrise)", () => {
-    expect(DAMAGE_ARTWORK.lowrise[0]).toBe("asset:damage-lowrise-01.webp");
-    expect(DAMAGE_ARTWORK.lowrise[1]).toBe("asset:damage-lowrise-02.webp");
-    expect(DAMAGE_ARTWORK.lowrise[2]).toBe("asset:damage-lowrise-03.webp");
-    expect(DAMAGE_ARTWORK.lowrise[3]).toBe("asset:damage-lowrise-04.webp");
-    expect(DAMAGE_ARTWORK.lowrise[4]).toBe("asset:damage-lowrise-05.webp");
+  it("maps our DG1-DG5 grade directly to the package's same-numbered file (lowrise)", () => {
+    expect(DAMAGE_ARTWORK.lowrise[1]).toBe("asset:damage-lowrise-01.webp");
+    expect(DAMAGE_ARTWORK.lowrise[2]).toBe("asset:damage-lowrise-02.webp");
+    expect(DAMAGE_ARTWORK.lowrise[3]).toBe("asset:damage-lowrise-03.webp");
+    expect(DAMAGE_ARTWORK.lowrise[4]).toBe("asset:damage-lowrise-04.webp");
+    expect(DAMAGE_ARTWORK.lowrise[5]).toBe("asset:damage-lowrise-05.webp");
   });
 });
