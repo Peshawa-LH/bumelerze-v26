@@ -87,7 +87,8 @@
     "viewWorld": "World",
     "viewSignificant": "Significant",
     "viewHistorical": "Historical",
-    "viewCatalog": "Catalog"
+    "viewCatalog": "Catalog",
+    "notableTag": "Notable"
   },
   "world": {
     "title": "World Catalog",

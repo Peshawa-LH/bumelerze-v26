@@ -87,7 +87,8 @@
     "viewWorld": "جیهان",
     "viewSignificant": "گرنگ",
     "viewHistorical": "مێژوویی",
-    "viewCatalog": "کاتالۆگ"
+    "viewCatalog": "کاتالۆگ",
+    "notableTag": "بەرچاو"
   },
   "world": {
     "title": "کاتالۆگی جیهانی",

@@ -14,12 +14,18 @@ import {
   EVENTS_REFETCH_INTERVAL_MS,
   EVENTS_STALE_TIME_MS,
   GEOFON_REGION_TIMEOUT_MS,
+  NOTABLE_TAIL_STALE_TIME_MS,
   USGS_REGION_TIMEOUT_MS,
 } from "./config";
 import { fetchEmscRegionEvents } from "./emsc";
 import { fetchGeofonRegionEvents } from "./geofon";
 import { mergeProviderEvents } from "./merge";
-import { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from "./usgs";
+import {
+  fetchUsgsEventById,
+  fetchUsgsNotableTailEvents,
+  fetchUsgsRegionEvents,
+  fetchUsgsWorldEvents,
+} from "./usgs";
 import type { Event } from "./types";
 
 /**
@@ -83,6 +89,7 @@ export type { PersistedClient };
 export const eventsQueryKeys = {
   region: ["events", "region"] as const,
   world: ["events", "world"] as const,
+  notableTail: ["events", "notableTail"] as const,
 };
 
 export interface UseEventsFeedResult {
@@ -271,6 +278,31 @@ export function useRegionEvents(): UseEventsFeedResult {
 /** Full world feed (World Catalog, spec-v1.md §4.2). */
 export function useWorldEvents(): UseEventsFeedResult {
   return useEventsFeed(eventsQueryKeys.world, fetchUsgsWorldEvents);
+}
+
+export interface UseNotableTailEventsResult {
+  events: Event[];
+}
+
+/**
+ * Notable-tail feed (config.ts `NOTABLE_TAIL_*`, `home-feed-policy.ts`'s
+ * M>=6/12-month carve-out) — deliberately NOT built on `useEventsFeed`:
+ * no `refetchInterval` (refetches only on mount/remount, e.g. app
+ * foreground), and a long `staleTime` override, since this query only
+ * backfills a rare, slow-changing tail (see usgs.ts's
+ * `fetchUsgsNotableTailEvents` doc comment for the full reasoning). A
+ * failure here silently falls back to an empty array — this is a "nice to
+ * have a bit more history" query, not safety-path data, so it never blocks
+ * or degrades Home's primary offline/error states.
+ */
+export function useNotableTailEvents(): UseNotableTailEventsResult {
+  const query = useQuery({
+    queryKey: eventsQueryKeys.notableTail,
+    queryFn: () => fetchUsgsNotableTailEvents(),
+    staleTime: NOTABLE_TAIL_STALE_TIME_MS,
+  });
+
+  return { events: query.data?.events ?? [] };
 }
 
 export interface UseEventByIdResult {

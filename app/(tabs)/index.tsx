@@ -1,11 +1,13 @@
 import { useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import {
   EventListScreen,
-  HOME_FEED_MIN_MAGNITUDE,
   PossibleEventCard,
+  selectHomeFeedEvents,
+  useNotableTailEvents,
   useRegionEvents,
   usePossibleEvents,
 } from "@/features/events";
@@ -20,7 +22,12 @@ import { useTheme } from "@/theme";
  * resolved HERE (most recent regional event within the last hour, else
  * unassociated) using the already-loaded region feed, not inside the pill
  * itself, so the pill component stays a dumb navigation trigger reusable on
- * Event Detail too.
+ * Event Detail too. The displayed list itself is picked by the adaptive
+ * Home-feed policy (`selectHomeFeedEvents`, `features/events/
+ * home-feed-policy.ts`, update-plan-2026-08.md §1.1) — this screen stays
+ * "dumb": it feeds the policy the region + notable-tail pools and renders
+ * whatever it decides, all window/floor/notable-carve-out logic lives in
+ * that one pure, unit-tested module.
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -48,15 +55,23 @@ export default function HomeScreen() {
     ? (events.find((event) => event.id === associatedEventId) ?? null)
     : null;
 
-  // Display floor only — see HOME_FEED_MIN_MAGNITUDE's config comment.
-  const shownEvents = events.filter(
-    (event) => event.magnitude.value >= HOME_FEED_MIN_MAGNITUDE,
+  // Adaptive Home-feed policy (update-plan-2026-08.md §1.1) — a pure
+  // function over the region feed pool (already up to
+  // REGION_FEED_WINDOW_DAYS, config.ts) UNION the rare M>=6/12-month
+  // notable-tail pool, which reaches further back than the region pool
+  // alone does. `selectHomeFeedEvents` handles its own dedup across the
+  // two pools — see its own doc comment.
+  const { events: notableTailEvents } = useNotableTailEvents();
+  const { events: shownEvents, notableIds } = useMemo(
+    () => selectHomeFeedEvents([...events, ...notableTailEvents]),
+    [events, notableTailEvents],
   );
 
   // D26 item 3: crowd-detected possible events, shown above the list —
-  // exempt from HOME_FEED_MIN_MAGNITUDE (they have no magnitude to compare
-  // against it in the first place). Empty/unconfigured resolves to an empty
-  // array, so this renders nothing extra when there's nothing to show.
+  // exempt from the adaptive policy's magnitude floor (they have no
+  // magnitude to compare against it in the first place). Empty/unconfigured
+  // resolves to an empty array, so this renders nothing extra when there's
+  // nothing to show.
   const { events: possibleEvents } = usePossibleEvents();
 
   return (
@@ -71,6 +86,7 @@ export default function HomeScreen() {
         emptyMessage={t("home.emptyState")}
         onRefetch={() => void refetch()}
         applyTopInset
+        notableEventIds={notableIds}
         headerContent={
           <>
             <View

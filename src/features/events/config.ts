@@ -70,8 +70,31 @@ export const GEOFON_FEEDS = {
   fdsnQuery: "https://geofon.gfz.de/fdsnws/event/1/query",
 } as const;
 
-/** Region feed window per the wave brief: last 30 days. */
-export const REGION_FEED_WINDOW_DAYS = 30;
+/**
+ * Region feed FETCH window (what USGS+EMSC+GEOFON are actually queried
+ * for, every poll — queries.ts's `fetchRegionEventsMerged`). Widened from
+ * the original flat 30 days to 180 (owner 2026-08-17, update-plan-2026-08.md
+ * §1.1: "what if there are lots of events, or not so much... should we show
+ * the last 6 months or just 3 months") so the client always holds a
+ * superset the ADAPTIVE HOME-FEED POLICY below (`home-feed-policy.ts`) can
+ * pick a narrower DISPLAY window from, entirely client-side, with no extra
+ * network round trip on the sparse-widen path. 180 days is also exactly the
+ * sparse-widen ladder's own cap (`HOME_FEED_WINDOW_STEPS_DAYS`) and covers
+ * the M>=5 "stays longer" notable tier (`HOME_FEED_NOTABLE_TIERS`) in full,
+ * so ONE pool serves both mechanisms.
+ *
+ * Bandwidth tradeoff, explicit: this is a 6x fetch-size increase over the
+ * old 30-day window, still unfiltered by magnitude (PROJECT.md: no
+ * aggressive background polling, but this is payload SIZE per poll, not
+ * poll FREQUENCY — the 60s cadence in EVENTS_REFETCH_INTERVAL_MS is
+ * unchanged). Accepted as the boring/simple option for this wave (one
+ * query, one cache key, no new plumbing); the M>=6 "12 months" notable
+ * tier deliberately does NOT extend this hot-path window further — see
+ * `NOTABLE_TAIL_*` below for how that tail is covered instead, at far
+ * lower bandwidth cost. Revisit only if a real device measurement shows
+ * this window is a problem in practice.
+ */
+export const REGION_FEED_WINDOW_DAYS = 180;
 
 /**
  * Home DISPLAY floor (owner directive 2026-08-16): the Home list shows only
@@ -81,9 +104,109 @@ export const REGION_FEED_WINDOW_DAYS = 30;
  * effects on Kurdistan"). Display-level ONLY: the region feed still fetches
  * and caches everything below the floor — the felt-report association,
  * event detail deep links, upcoming crowdsourced-detection matching, and the
- * catalog all keep seeing the full feed.
+ * catalog all keep seeing the full feed. This is also the BASELINE
+ * magnitude floor and the first (loosest) rung of
+ * `HOME_FEED_MAGNITUDE_FLOOR_STEPS` below.
  */
 export const HOME_FEED_MIN_MAGNITUDE = 3.0;
+
+/**
+ * Adaptive Home-feed policy (owner 2026-08-17, update-plan-2026-08.md §1.1:
+ * "we should have a mechanism so it is not left empty and not overclogged").
+ * Pure decision logic lives in `home-feed-policy.ts`'s `selectHomeFeedEvents`
+ * — this module only holds the tunable thresholds (D14: engineering-owned
+ * defaults, no science review needed), so the policy stays testable via
+ * fixtures without touching a live query.
+ *
+ * FUTURE (recorded, explicitly NOT built this wave): an operator-controlled
+ * "crisis mode" override for aftershock sequences — owner: "in case a big
+ * event happens in Kurdistan with aftershocks happening, then probably we
+ * need a more manual entry or setting controlled from our side." Parked
+ * until an admin/operator surface exists (same category as the D15
+ * moderation-dashboard precedent) — revisit when a real sequence demands
+ * it, not speculatively.
+ */
+
+/** Sparse-feed widen ladder — the policy tries these lookback windows, in
+ * order, at the BASELINE magnitude floor, and stops at the first one that
+ * meets `HOME_FEED_MIN_CARDS`. The first entry MUST equal the baseline
+ * (30 days); the last is the hard cap the policy never widens past on this
+ * path (only the notable-tier carve-out below can surface something
+ * older). Tunable engineering default. */
+export const HOME_FEED_WINDOW_STEPS_DAYS = [30, 60, 90, 180] as const;
+
+/** Below this many cards at a given window/floor combination, Home is
+ * "too empty" and the sparse-widen ladder kicks in. Tunable engineering
+ * default — deliberately small: Home is a panic-time screen, a handful of
+ * real regional cards is already a meaningful, non-empty feed. */
+export const HOME_FEED_MIN_CARDS = 5;
+
+/** Above this many cards, Home is "overclogged" and the dense-tighten
+ * ladder raises the magnitude floor (never shortens the window — recency
+ * stays intact, noise gets trimmed instead, per the owner's own framing).
+ * Tunable engineering default. */
+export const HOME_FEED_MAX_CARDS = 40;
+
+/** Dense-feed magnitude-floor ladder, applied AFTER the window is resolved
+ * by the sparse-widen step above. The first rung MUST equal
+ * `HOME_FEED_MIN_MAGNITUDE` (today's shipped floor) so the "no adaptive
+ * change needed" case reproduces the exact current behavior; the policy
+ * only climbs further if the previous rung is still over
+ * `HOME_FEED_MAX_CARDS`. Tunable engineering default. */
+export const HOME_FEED_MAGNITUDE_FLOOR_STEPS = [
+  HOME_FEED_MIN_MAGNITUDE,
+  3.5,
+  4.0,
+] as const;
+
+export interface HomeFeedNotableTier {
+  minMagnitude: number;
+  retentionDays: number;
+}
+
+/**
+ * Magnitude-tiered retention — the "high-magnitude events in Kurdistan
+ * should stay longer" ask, independent of the window/floor mechanism
+ * above: merged into the same Home list as a carve-out, matched regardless
+ * of how old the event is (bounded only by `retentionDays`). Tunable
+ * engineering defaults; owner-recommended values used verbatim (M>=5 for
+ * ~6 months, M>=6 for ~12 months).
+ *
+ * The M>=5/180-day tier is fully covered by the region feed's own fetch
+ * pool (`REGION_FEED_WINDOW_DAYS` above, also 180) — no extra query. The
+ * M>=6/365-day tier reaches further back than that pool goes, so it is
+ * backed by a SEPARATE, low-frequency, server-side-magnitude-filtered
+ * query (`NOTABLE_TAIL_*` below + `fetchUsgsNotableTailEvents` in
+ * usgs.ts) rather than by further widening the hot 60s-cadence pool — M>=6
+ * events in this region are rare enough that a small, rarely-refetched
+ * single-provider query is the battery/bandwidth-appropriate way to cover
+ * that last stretch, per PROJECT.md's "no aggressive background polling."
+ */
+export const HOME_FEED_NOTABLE_TIERS: readonly HomeFeedNotableTier[] = [
+  { minMagnitude: 5.0, retentionDays: 182 }, // ~6 months
+  { minMagnitude: 6.0, retentionDays: 365 }, // ~12 months
+];
+
+/** Lowest magnitude among `HOME_FEED_NOTABLE_TIERS` whose retention window
+ * exceeds `REGION_FEED_WINDOW_DAYS` — i.e. the floor the notable-tail query
+ * needs to fetch server-side so it (and only it) covers the gap the hot
+ * region-feed pool doesn't reach. Kept as its own constant (rather than
+ * derived at call time) so the notable-tail query's intent reads plainly
+ * at the call site in usgs.ts/queries.ts. */
+export const NOTABLE_TAIL_MIN_MAGNITUDE = 6.0;
+
+/** Lookback window for the notable-tail query — matches the longest
+ * `HOME_FEED_NOTABLE_TIERS.retentionDays` (365, the M>=6 tier). */
+export const NOTABLE_TAIL_WINDOW_DAYS = 365;
+
+/** The notable-tail query is refetched only on mount/app-foreground, not on
+ * a fixed interval (no `refetchInterval` set for it in queries.ts) — a
+ * long `staleTime` is the only cadence control it needs, since a FRESH
+ * M>=6 event is already inside the hot region-feed pool's 180-day window
+ * (and shows immediately via the normal display floor) the moment it
+ * happens; this query's only job is backfilling the 180-365 day tail,
+ * which changes on the order of years, not minutes. */
+export const NOTABLE_TAIL_STALE_TIME_MS = 12 * 60 * 60 * 1000; // 12h
 
 /** Polling cadence — deliberately gentle (PROJECT.md: no aggressive
  * background polling); pairs with the app-focus-aware refetch wiring in

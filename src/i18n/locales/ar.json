@@ -87,7 +87,8 @@
     "viewWorld": "العالم",
     "viewSignificant": "المهمة",
     "viewHistorical": "تاريخية",
-    "viewCatalog": "الكتالوج"
+    "viewCatalog": "الكتالوج",
+    "notableTag": "بارز"
   },
   "world": {
     "title": "الكتالوج العالمي",

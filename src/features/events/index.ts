@@ -1,10 +1,16 @@
 export type { Event, EventMagnitude, EventProvenance, EventProvider } from "./types";
 export {
+  HOME_FEED_MAGNITUDE_FLOOR_STEPS,
+  HOME_FEED_MAX_CARDS,
+  HOME_FEED_MIN_CARDS,
   HOME_FEED_MIN_MAGNITUDE,
+  HOME_FEED_NOTABLE_TIERS,
+  HOME_FEED_WINDOW_STEPS_DAYS,
   POSSIBLE_EVENTS_REFETCH_INTERVAL_MS,
   POSSIBLE_EVENTS_WINDOW_HOURS,
   REGION_BBOX,
   SIGNIFICANCE_THRESHOLDS,
+  type HomeFeedNotableTier,
 } from "./config";
 export {
   computeClientSig,
@@ -15,7 +21,12 @@ export {
   normalizeGeofonRow,
   normalizeUsgsFeature,
 } from "./normalize";
-export { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from "./usgs";
+export {
+  fetchUsgsEventById,
+  fetchUsgsNotableTailEvents,
+  fetchUsgsRegionEvents,
+  fetchUsgsWorldEvents,
+} from "./usgs";
 export { fetchEmscRegionEvents } from "./emsc";
 export { fetchGeofonRegionEvents, parseGeofonText } from "./geofon";
 export { isSameEarthquake, mergeProviderEvents } from "./merge";
@@ -25,11 +36,14 @@ export {
   eventsQueryKeys,
   fetchRegionEventsMerged,
   useEventById,
+  useNotableTailEvents,
   useRegionEvents,
   useWorldEvents,
   type UseEventByIdResult,
   type UseEventsFeedResult,
+  type UseNotableTailEventsResult,
 } from "./queries";
+export { selectHomeFeedEvents, type HomeFeedPolicyResult } from "./home-feed-policy";
 export { distanceFromUserKm, haversineDistanceKm, toRadians } from "./distance";
 export {
   formatAbsoluteDual,

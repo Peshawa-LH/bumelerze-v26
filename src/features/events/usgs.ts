@@ -1,4 +1,6 @@
 import {
+  NOTABLE_TAIL_MIN_MAGNITUDE,
+  NOTABLE_TAIL_WINDOW_DAYS,
   REGION_BBOX,
   REGION_FEED_WINDOW_DAYS,
   USGS_FEEDS,
@@ -68,10 +70,16 @@ async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
   return response.json();
 }
 
-function buildRegionQueryUrl(): string {
-  const startTime = new Date(
-    Date.now() - REGION_FEED_WINDOW_DAYS * 24 * 60 * 60 * 1000,
-  ).toISOString();
+interface RegionQueryOptions {
+  windowDays: number;
+  /** Server-side `minmagnitude` filter — omitted entirely (no floor) when
+   * `undefined`, matching the hot region feed's existing unfiltered
+   * behavior. */
+  minMagnitude?: number;
+}
+
+function buildRegionQueryUrl({ windowDays, minMagnitude }: RegionQueryOptions): string {
+  const startTime = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString();
 
   const params = new URLSearchParams({
     format: "geojson",
@@ -82,17 +90,51 @@ function buildRegionQueryUrl(): string {
     maxlongitude: String(REGION_BBOX.maxLon),
     orderby: "time",
   });
+  if (minMagnitude !== undefined) {
+    params.set("minmagnitude", String(minMagnitude));
+  }
 
   return `${USGS_FEEDS.fdsnQuery}?${params.toString()}`;
 }
 
-/** Region feed: fdsnws query, last 30 days, bbox from config.ts
- * (event-pipeline-design.md §4). `signal` is used by queries.ts's parallel
- * USGS+EMSC completeness merge (config.USGS_REGION_TIMEOUT_MS) to abort a
- * slow USGS request without blocking the EMSC leg — optional so every
- * existing direct caller (and every existing test) is unaffected. */
+/** Region feed: fdsnws query, last `REGION_FEED_WINDOW_DAYS` (config.ts),
+ * bbox from config.ts (event-pipeline-design.md §4), no magnitude floor —
+ * the adaptive Home-feed policy (`home-feed-policy.ts`) applies its own
+ * display floor client-side over this pool. `signal` is used by
+ * queries.ts's parallel USGS+EMSC+GEOFON completeness merge
+ * (config.USGS_REGION_TIMEOUT_MS) to abort a slow USGS request without
+ * blocking the other legs — optional so every existing direct caller (and
+ * every existing test) is unaffected. */
 export async function fetchUsgsRegionEvents(signal?: AbortSignal): Promise<UsgsFetchResult> {
-  const payload = await fetchJson(buildRegionQueryUrl(), signal);
+  const payload = await fetchJson(
+    buildRegionQueryUrl({ windowDays: REGION_FEED_WINDOW_DAYS }),
+    signal,
+  );
+  return parseFeatureCollection(payload, Date.now());
+}
+
+/**
+ * Notable-tail region feed (config.ts `NOTABLE_TAIL_*`, update-plan-2026-08.md
+ * §1.1): backfills the M>=6/12-month "stays longer" tier that
+ * `fetchUsgsRegionEvents`'s own `REGION_FEED_WINDOW_DAYS` pool doesn't
+ * reach. Server-side `minmagnitude` filter keeps this response tiny
+ * (regional M>=6 events are rare), and it's USGS-only — deliberately not
+ * merged with EMSC/GEOFON, the same reasoning as `fetchUsgsWorldEvents`'s
+ * own doc comment: the completeness gap the multi-provider merge exists to
+ * fix is a below-M4.5 phenomenon, not a concern at M>=6. Polled rarely (no
+ * `refetchInterval`, a long `staleTime` — see queries.ts), not every 60s
+ * like the hot region feed.
+ */
+export async function fetchUsgsNotableTailEvents(
+  signal?: AbortSignal,
+): Promise<UsgsFetchResult> {
+  const payload = await fetchJson(
+    buildRegionQueryUrl({
+      windowDays: NOTABLE_TAIL_WINDOW_DAYS,
+      minMagnitude: NOTABLE_TAIL_MIN_MAGNITUDE,
+    }),
+    signal,
+  );
   return parseFeatureCollection(payload, Date.now());
 }
 
