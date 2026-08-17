@@ -4,6 +4,7 @@ import en from "@/i18n/locales/en.json";
 import kmr from "@/i18n/locales/kmr.json";
 import { flattenKeys } from "@/i18n/locale-keys";
 
+import { SAFETY_ARTWORK, type SafetyImageId } from "../artwork";
 import {
   SAFETY_SECTIONS,
   allSafetyCards,
@@ -116,6 +117,183 @@ describe("safety content — section completeness", () => {
   it("gives every card at least one body paragraph", () => {
     for (const card of allSafetyCards()) {
       expect(card.bodyParagraphCount).toBeGreaterThanOrEqual(1);
+    }
+  });
+});
+
+/**
+ * Owner-artwork wave (2026-08-17), integration note §A.3: "the content-
+ * integrity test should assert that every declared artwork key resolves to
+ * a real entry in the require map" — the same guard `felt/__tests__/
+ * artwork.test.ts` provides for the felt-report tiles, applied here to
+ * every place a `SafetyImageId` can appear in the content registry
+ * (card-level `images`, do/dont `doImage`/`dontImage`, and accessibility
+ * `variant.image`).
+ */
+describe("safety content — artwork keys resolve", () => {
+  it("has a SAFETY_ARTWORK entry for every image id declared anywhere in the content registry", () => {
+    const declaredIds = new Set<SafetyImageId>();
+
+    for (const card of allSafetyCards()) {
+      for (const imageId of card.images ?? []) {
+        declaredIds.add(imageId);
+      }
+      for (const pair of card.doDontPairs ?? []) {
+        if (pair.doImage) declaredIds.add(pair.doImage);
+        if (pair.dontImage) declaredIds.add(pair.dontImage);
+      }
+      for (const variant of card.accessibilityVariants ?? []) {
+        if (variant.image) declaredIds.add(variant.image);
+      }
+    }
+
+    expect(declaredIds.size).toBeGreaterThan(0);
+
+    for (const imageId of declaredIds) {
+      expect(SAFETY_ARTWORK[imageId]).toBeDefined();
+    }
+  });
+
+  it("uses all 18 commissioned images at least once across the content registry", () => {
+    const declaredIds = new Set<SafetyImageId>();
+
+    for (const card of allSafetyCards()) {
+      for (const imageId of card.images ?? []) declaredIds.add(imageId);
+      for (const pair of card.doDontPairs ?? []) {
+        if (pair.doImage) declaredIds.add(pair.doImage);
+        if (pair.dontImage) declaredIds.add(pair.dontImage);
+      }
+      for (const variant of card.accessibilityVariants ?? []) {
+        if (variant.image) declaredIds.add(variant.image);
+      }
+    }
+
+    expect(declaredIds.size).toBe(Object.keys(SAFETY_ARTWORK).length);
+  });
+});
+
+/**
+ * Regression lock for the file-to-row mapping (the wave brief's explicit
+ * concern: "this is the exact place an off-by-one mapping would hide, and
+ * the felt wave already got bitten by a numbering assumption once"). Pins
+ * every card's `images` and every do/dont pair's `doImage`/`dontImage` to
+ * its exact expected id, so a future edit that shifts a pair, swaps a do/
+ * dont side, or reassigns a card's image fails here immediately instead of
+ * silently mis-illustrating a safety instruction.
+ */
+describe("safety content — image mapping regression lock", () => {
+  function findCard(cardId: string) {
+    const card = allSafetyCards().find((candidate) => candidate.id === cardId);
+    if (!card) throw new Error(`missing card: ${cardId}`);
+    return card;
+  }
+
+  function findPair(cardId: string, pairId: string) {
+    const pair = findCard(cardId).doDontPairs?.find(
+      (candidate) => candidate.id === pairId,
+    );
+    if (!pair) throw new Error(`missing pair: ${cardId}.${pairId}`);
+    return pair;
+  }
+
+  it("pins secureHome's three regional-hazard images in order", () => {
+    expect(findCard("secureHome").images).toEqual([
+      "secureFurniture",
+      "secureWaterTank",
+      "secureGasCylinder",
+    ]);
+  });
+
+  it("pins safeSpots' card images (the safe room, then the doorway myth)", () => {
+    expect(findCard("safeSpots").images).toEqual(["safeSpotRoom", "dontDoorway"]);
+  });
+
+  it("pins dropCoverHold's two card images and its doorway do/dont pair", () => {
+    expect(findCard("dropCoverHold").images).toEqual(["dropCoverHold", "coverHeadNeck"]);
+    expect(findPair("dropCoverHold", "protectHeadNeckVsDoorway")).toEqual({
+      id: "protectHeadNeckVsDoorway",
+      doImage: "dropCoverHold",
+      dontImage: "dontDoorway",
+    });
+  });
+
+  it("pins dropCoverHold's three accessibility-variant images to the right variant", () => {
+    const variants = findCard("dropCoverHold").accessibilityVariants ?? [];
+    expect(variants).toEqual([
+      { id: "wheelchair", image: "wheelchair" },
+      { id: "caneOrWalker", image: "caneOrWalker" },
+      { id: "bed", image: "inBed" },
+    ]);
+  });
+
+  it("pins indoors' stay-in-vs-run-outside pair (not the doorway images)", () => {
+    expect(findPair("indoors", "stayInVsRunOutside")).toEqual({
+      id: "stayInVsRunOutside",
+      doImage: "dropCoverHold",
+      dontImage: "dontRunOutside",
+    });
+  });
+
+  it("pins outdoors' card image and its do row to the same open-ground image, with no dont image", () => {
+    const card = findCard("outdoors");
+    expect(card.images).toEqual(["outdoorsOpenGround"]);
+    const pair = findPair("outdoors", "openGroundVsBuildings");
+    expect(pair.doImage).toBe("outdoorsOpenGround");
+    expect(pair.dontImage).toBeUndefined();
+  });
+
+  it("pins vehicle's pull-over-vs-overpass pair", () => {
+    expect(findPair("vehicle", "pullOverVsOverpass")).toEqual({
+      id: "pullOverVsOverpass",
+      doImage: "vehiclePullOver",
+      dontImage: "dontOverpass",
+    });
+  });
+
+  it("pins commonMyths' two pairs to distinct images (doorway myth vs. stairs/elevator)", () => {
+    expect(findPair("commonMyths", "headNeckVsDoorwayMyth")).toEqual({
+      id: "headNeckVsDoorwayMyth",
+      doImage: "dropCoverHold",
+      dontImage: "dontDoorway",
+    });
+    expect(findPair("commonMyths", "stairsVsElevator")).toEqual({
+      id: "stairsVsElevator",
+      doImage: "useStairs",
+      dontImage: "dontElevator",
+    });
+  });
+
+  it("pins checkHazards' gas-leak pair", () => {
+    expect(findPair("checkHazards", "gasLeakSafety")).toEqual({
+      id: "gasLeakSafety",
+      doImage: "gasLeakResponse",
+      dontImage: "dontSpark",
+    });
+  });
+
+  it("pins evacuateCarefully's reused stairs image, with its own reentry pair left image-free", () => {
+    const card = findCard("evacuateCarefully");
+    expect(card.images).toEqual(["useStairs"]);
+    const pair = findPair("evacuateCarefully", "reentryCaution");
+    expect(pair.doImage).toBeUndefined();
+    expect(pair.dontImage).toBeUndefined();
+  });
+
+  it("leaves the 6 deliberately image-free cards with no card-level or pair-level images", () => {
+    for (const cardId of [
+      "familyPlan",
+      "emergencyKit",
+      "schoolWork",
+      "aftershocks",
+      "reliableInfo",
+      "helpNeighbors",
+    ]) {
+      const card = findCard(cardId);
+      expect(card.images ?? []).toEqual([]);
+      for (const pair of card.doDontPairs ?? []) {
+        expect(pair.doImage).toBeUndefined();
+        expect(pair.dontImage).toBeUndefined();
+      }
     }
   });
 });

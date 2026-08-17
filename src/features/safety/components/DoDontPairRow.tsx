@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
+import { SAFETY_ARTWORK } from "../artwork";
 import { safetyDoDontKeys, type SafetyDoDontPair } from "../content";
 
 interface DoDontPairRowProps {
@@ -12,13 +14,18 @@ interface DoDontPairRowProps {
 
 /**
  * One do/don't pair — LastQuake's cartoon do/don't pattern (teardown-
- * lastquake.md §3: "green ✓ / red ✗ framed") without the cartoon art, which
- * is a future `visual-asset-generator` wave (see `iconPlaceholder` on
- * `SafetyDoDontPair`). The "do" and "dont" rows are each their own
- * accessible element with a localized "Do:"/"Don't:" prefix baked into the
- * accessibility label, so they read as distinct items to a screen reader
- * (not just distinct colors) — the wave brief's "distinct roles"
- * requirement.
+ * lastquake.md §3: "green ✓ / red ✗ framed"). The "do" and "dont" rows are
+ * each their own accessible element with a localized "Do:"/"Don't:" prefix
+ * baked into the accessibility label, so they read as distinct items to a
+ * screen reader (not just distinct colors) — the wave brief's "distinct
+ * roles" requirement.
+ *
+ * `pair.doImage`/`pair.dontImage` (owner-artwork wave, 2026-08-17): a small
+ * thumbnail per row when the commission illustrated that specific row (most
+ * don't have one — see `content.ts`'s doc comment). Purely decorative, same
+ * as `SafetyImageRow`: hidden from screen readers since the row's own
+ * `accessibilityLabel` already carries the full "Do: ..."/"Don't: ..."
+ * meaning, and never mirrored under RTL.
  */
 export function DoDontPairRow({ cardId, pair }: DoDontPairRowProps) {
   const { t } = useTranslation();
@@ -46,6 +53,16 @@ export function DoDontPairRow({ cardId, pair }: DoDontPairRowProps) {
         ]}
       >
         <Ionicons name="checkmark-circle" size={20} color={colors.status.success} />
+        {pair.doImage ? (
+          <Image
+            testID="dodont-row-artwork-do"
+            source={SAFETY_ARTWORK[pair.doImage]}
+            contentFit="contain"
+            style={styles.thumbnail}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
+        ) : null}
         <Text
           style={{
             flex: 1,
@@ -71,6 +88,16 @@ export function DoDontPairRow({ cardId, pair }: DoDontPairRowProps) {
         ]}
       >
         <Ionicons name="close-circle" size={20} color={colors.status.danger} />
+        {pair.dontImage ? (
+          <Image
+            testID="dodont-row-artwork-dont"
+            source={SAFETY_ARTWORK[pair.dontImage]}
+            contentFit="contain"
+            style={styles.thumbnail}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
+        ) : null}
         <Text
           style={{
             flex: 1,
@@ -92,5 +119,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     borderWidth: 1,
     borderRadius: 10,
+  },
+  thumbnail: {
+    width: 44,
+    height: 44,
+    flexShrink: 0,
   },
 });

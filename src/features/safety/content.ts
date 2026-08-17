@@ -17,6 +17,8 @@
  * no Supabase, no async loading state.
  */
 
+import type { SafetyImageId } from "./artwork";
+
 export type SafetySectionId = "prepare" | "survive" | "recover";
 
 /**
@@ -24,26 +26,32 @@ export type SafetySectionId = "prepare" | "survive" | "recover";
  * framed"). `id` is the suffix used to build both text keys, so a pair is
  * fully described by its id alone — no separate `doKey`/`dontKey` fields to
  * keep in sync.
+ *
+ * `doImage`/`dontImage` (owner-artwork wave, 2026-08-17): the commissioned
+ * 18-image set is per-row, not per-pair — a pair's "do" and "dont" sides
+ * illustrate two different scenes (e.g. sheltering under a table vs.
+ * standing in a doorway), never a shared one. This replaces the earlier
+ * single `iconPlaceholder?: string` field, which wrongly assumed one image
+ * per pair. Both are optional and independent: a pair may illustrate only
+ * its "do" side, only its "dont" side, both, or neither (most pairs in this
+ * app have neither).
  */
 export interface SafetyDoDontPair {
   id: string;
-  /**
-   * Placeholder for the future do/don't cartoon-pair illustration (the
-   * `visual-asset-generator` wave that also does the felt-report tier-1
-   * artwork, per D8's "redrawn for our context"). Not rendered as an image
-   * this wave — it only records which pair will need one, so adding real
-   * art later is a data change, not a layout change.
-   */
-  iconPlaceholder?: string;
+  doImage?: SafetyImageId;
+  dontImage?: SafetyImageId;
 }
 
 /**
  * One accessibility variant of a card's guidance (spec-v1.md §4.9 "e.g.
  * cane/walker instructions, MyShake benchmark"). `id` is the suffix used to
- * build both the disclosure label and body text keys.
+ * build both the disclosure label and body text keys. `image` (owner-artwork
+ * wave): each of the three Drop-Cover-Hold-On variants got its own
+ * commissioned illustration.
  */
 export interface SafetyAccessibilityVariant {
   id: string;
+  image?: SafetyImageId;
 }
 
 export interface SafetyCard {
@@ -51,6 +59,16 @@ export interface SafetyCard {
   id: string;
   /** How many `body1..bodyN` paragraph keys this card has (always >= 1). */
   bodyParagraphCount: number;
+  /**
+   * Ordered card-level illustration(s) (owner-artwork wave, 2026-08-17):
+   * most cards have none (the commission deliberately illustrates only 6 of
+   * the 15 cards at this level — see the research doc's "deliberately NOT
+   * illustrated" list), one has a single card illustration, and one
+   * (`secureHome`) has three, since its second paragraph covers two
+   * regional hazards (rooftop water tank, gas cylinder) that each needed
+   * their own picture. Rendered together as one small image row, in order.
+   */
+  images?: readonly SafetyImageId[];
   doDontPairs?: readonly SafetyDoDontPair[];
   accessibilityVariants?: readonly SafetyAccessibilityVariant[];
 }
@@ -80,9 +98,20 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
     id: "prepare",
     cards: [
       { id: "familyPlan", bodyParagraphCount: 2 },
-      { id: "secureHome", bodyParagraphCount: 2 },
+      {
+        id: "secureHome",
+        bodyParagraphCount: 2,
+        // body1 (furniture anchoring) + body2's two regional hazards
+        // (rooftop water tank, gas cylinder), in that order.
+        images: ["secureFurniture", "secureWaterTank", "secureGasCylinder"],
+      },
       { id: "emergencyKit", bodyParagraphCount: 2 },
-      { id: "safeSpots", bodyParagraphCount: 2 },
+      {
+        id: "safeSpots",
+        bodyParagraphCount: 2,
+        // body1 (the safe-spot room) + body2 (the doorway is NOT one).
+        images: ["safeSpotRoom", "dontDoorway"],
+      },
       { id: "schoolWork", bodyParagraphCount: 2 },
     ],
   },
@@ -95,27 +124,36 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
         // benchmark (teardown-myshake.md §2-3, teardown-lastquake.md §3).
         id: "dropCoverHold",
         bodyParagraphCount: 2,
-        doDontPairs: [{ id: "protectHeadNeckVsDoorway" }],
+        // body1 (the table posture) + body2 (the no-table fallback posture).
+        images: ["dropCoverHold", "coverHeadNeck"],
+        doDontPairs: [
+          { id: "protectHeadNeckVsDoorway", doImage: "dropCoverHold", dontImage: "dontDoorway" },
+        ],
         accessibilityVariants: [
-          { id: "wheelchair" },
-          { id: "caneOrWalker" },
-          { id: "bed" },
+          { id: "wheelchair", image: "wheelchair" },
+          { id: "caneOrWalker", image: "caneOrWalker" },
+          { id: "bed", image: "inBed" },
         ],
       },
       {
         id: "indoors",
         bodyParagraphCount: 1,
-        doDontPairs: [{ id: "stayInVsRunOutside" }],
+        doDontPairs: [
+          { id: "stayInVsRunOutside", doImage: "dropCoverHold", dontImage: "dontRunOutside" },
+        ],
       },
       {
         id: "outdoors",
         bodyParagraphCount: 1,
-        doDontPairs: [{ id: "openGroundVsBuildings" }],
+        images: ["outdoorsOpenGround"],
+        doDontPairs: [{ id: "openGroundVsBuildings", doImage: "outdoorsOpenGround" }],
       },
       {
         id: "vehicle",
         bodyParagraphCount: 1,
-        doDontPairs: [{ id: "pullOverVsOverpass" }],
+        doDontPairs: [
+          { id: "pullOverVsOverpass", doImage: "vehiclePullOver", dontImage: "dontOverpass" },
+        ],
       },
       {
         // A dedicated myth-busting card for the two habits people reach for
@@ -124,7 +162,10 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
         // "don't: doorway myth... don't: elevator").
         id: "commonMyths",
         bodyParagraphCount: 1,
-        doDontPairs: [{ id: "headNeckVsDoorwayMyth" }, { id: "stairsVsElevator" }],
+        doDontPairs: [
+          { id: "headNeckVsDoorwayMyth", doImage: "dropCoverHold", dontImage: "dontDoorway" },
+          { id: "stairsVsElevator", doImage: "useStairs", dontImage: "dontElevator" },
+        ],
       },
     ],
   },
@@ -135,11 +176,16 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
       {
         id: "checkHazards",
         bodyParagraphCount: 1,
-        doDontPairs: [{ id: "gasLeakSafety" }],
+        doDontPairs: [
+          { id: "gasLeakSafety", doImage: "gasLeakResponse", dontImage: "dontSpark" },
+        ],
       },
       {
         id: "evacuateCarefully",
         bodyParagraphCount: 1,
+        // Reused from `commonMyths`' `stairsVsElevator` do row — leaving a
+        // damaged building calmly by the stairs is the same scene either way.
+        images: ["useStairs"],
         doDontPairs: [{ id: "reentryCaution" }],
       },
       {

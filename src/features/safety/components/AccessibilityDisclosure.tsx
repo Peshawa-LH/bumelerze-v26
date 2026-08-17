@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
+import { SAFETY_ARTWORK } from "../artwork";
 import { safetyAccessibilityKeys, type SafetyAccessibilityVariant } from "../content";
 
 interface AccessibilityDisclosureProps {
@@ -20,6 +22,11 @@ interface AccessibilityDisclosureProps {
  * one grouped "if this applies to you" section, not N independent toggles.
  * Collapsed by default so it never adds scroll length to the panic-time
  * reading path for users who don't need it.
+ *
+ * Each variant's `image` (owner-artwork wave, 2026-08-17), when present,
+ * renders beside its label/body as a small decorative thumbnail — hidden
+ * from screen readers exactly like `SafetyImageRow`, since the label and
+ * body text already carry the full instruction.
  */
 export function AccessibilityDisclosure({
   cardId,
@@ -66,26 +73,41 @@ export function AccessibilityDisclosure({
           {variants.map((variant) => {
             const { labelKey, bodyKey } = safetyAccessibilityKeys(cardId, variant.id);
             return (
-              <View key={variant.id} style={{ gap: spacing[1] }}>
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontSize: typography.bodyMeta.fontSize,
-                    lineHeight: typography.bodyMeta.lineHeight,
-                    fontWeight: "600",
-                  }}
-                >
-                  {t(labelKey)}
-                </Text>
-                <Text
-                  style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.bodyMeta.fontSize,
-                    lineHeight: typography.bodyMeta.lineHeight,
-                  }}
-                >
-                  {t(bodyKey)}
-                </Text>
+              <View
+                key={variant.id}
+                style={[styles.variantRow, { gap: spacing[3] }]}
+              >
+                {variant.image ? (
+                  <Image
+                    testID="accessibility-variant-artwork"
+                    source={SAFETY_ARTWORK[variant.image]}
+                    contentFit="contain"
+                    style={styles.variantImage}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  />
+                ) : null}
+                <View style={{ flex: 1, gap: spacing[1] }}>
+                  <Text
+                    style={{
+                      color: colors.text.primary,
+                      fontSize: typography.bodyMeta.fontSize,
+                      lineHeight: typography.bodyMeta.lineHeight,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {t(labelKey)}
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.text.secondary,
+                      fontSize: typography.bodyMeta.fontSize,
+                      lineHeight: typography.bodyMeta.lineHeight,
+                    }}
+                  >
+                    {t(bodyKey)}
+                  </Text>
+                </View>
               </View>
             );
           })}
@@ -105,5 +127,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  variantRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  variantImage: {
+    width: 64,
+    height: 64,
+    flexShrink: 0,
   },
 });
