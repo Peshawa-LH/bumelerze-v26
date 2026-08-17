@@ -29,14 +29,31 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
   const magnitudeText = t("events.magnitudeDisplay", {
     value: formatMagnitudeValue(event.magnitude, locale),
   });
+  // Localized event NAME (owner 2026-08-17: "some of the event names are
+  // still in English, especially the ones in the Historical category") —
+  // a real translated string in every locale catalog, not derived from
+  // `placeLine`'s gazetteer-distance logic. `placeNameKey` (only set for
+  // the 2023 Kahramanmaraş doublet, the two events beyond the gazetteer's
+  // fallback radius) closes the one remaining English leak in `placeText`
+  // below — see `placeLine`'s own doc comment.
+  const nameText = t(`historical.eventNames.${event.noteKey}`);
   const placeText = placeLine(
-    { lat: event.lat, lon: event.lon, placeName: event.placeName },
+    {
+      lat: event.lat,
+      lon: event.lon,
+      placeName: event.placeName,
+      // `exactOptionalPropertyTypes`: only include the key when actually
+      // set, rather than assigning `undefined` explicitly.
+      ...(event.placeNameKey ? { placeNameKey: event.placeNameKey } : {}),
+    },
     locale,
     t,
   );
   const noteText = t(`historical.notes.${event.noteKey}`);
 
-  const accessibilityLabel = [yearText, magnitudeText, placeText, noteText].join(". ");
+  const accessibilityLabel = [yearText, magnitudeText, nameText, placeText, noteText].join(
+    ". ",
+  );
 
   return (
     <Pressable
@@ -79,6 +96,17 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
           {magnitudeText}
         </Text>
       </View>
+
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
+        }}
+      >
+        {nameText}
+      </Text>
 
       <Text
         style={{

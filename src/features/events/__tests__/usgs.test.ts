@@ -1,4 +1,9 @@
-import { fetchUsgsEventById } from "../usgs";
+import {
+  NOTABLE_TAIL_MIN_MAGNITUDE,
+  NOTABLE_TAIL_WINDOW_DAYS,
+  REGION_FEED_WINDOW_DAYS,
+} from "../config";
+import { fetchUsgsEventById, fetchUsgsNotableTailEvents, fetchUsgsRegionEvents } from "../usgs";
 
 /**
  * Regression coverage for the event-deeplink-hang bug
@@ -78,5 +83,53 @@ describe("fetchUsgsEventById", () => {
     mockFetchOnce({ unexpected: "shape" });
 
     await expect(fetchUsgsEventById("us2000bmcg")).resolves.toBeNull();
+  });
+});
+
+describe("region query window/floor (update-plan-2026-08.md §1.1 adaptive Home-feed policy)", () => {
+  const originalFetch = global.fetch;
+  let capturedUrl: string | undefined;
+
+  beforeEach(() => {
+    capturedUrl = undefined;
+    global.fetch = jest.fn((url: string) => {
+      capturedUrl = url;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({ type: "FeatureCollection", features: [], metadata: {} }),
+      });
+    }) as unknown as typeof fetch;
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it("fetchUsgsRegionEvents queries REGION_FEED_WINDOW_DAYS back with no minmagnitude floor", async () => {
+    await fetchUsgsRegionEvents();
+
+    expect(capturedUrl).toBeDefined();
+    const url = new URL(capturedUrl as string);
+    expect(url.searchParams.has("minmagnitude")).toBe(false);
+
+    const startTime = new Date(url.searchParams.get("starttime") as string).getTime();
+    const expectedStartTime = Date.now() - REGION_FEED_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    // Within a few seconds of the expected start time (both computed via
+    // Date.now(), a hair apart in wall-clock time).
+    expect(Math.abs(startTime - expectedStartTime)).toBeLessThan(5_000);
+  });
+
+  it("fetchUsgsNotableTailEvents queries NOTABLE_TAIL_WINDOW_DAYS back with the NOTABLE_TAIL_MIN_MAGNITUDE floor, server-side", async () => {
+    await fetchUsgsNotableTailEvents();
+
+    expect(capturedUrl).toBeDefined();
+    const url = new URL(capturedUrl as string);
+    expect(url.searchParams.get("minmagnitude")).toBe(String(NOTABLE_TAIL_MIN_MAGNITUDE));
+
+    const startTime = new Date(url.searchParams.get("starttime") as string).getTime();
+    const expectedStartTime = Date.now() - NOTABLE_TAIL_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    expect(Math.abs(startTime - expectedStartTime)).toBeLessThan(5_000);
   });
 });

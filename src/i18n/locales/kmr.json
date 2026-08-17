@@ -87,7 +87,8 @@
     "viewWorld": "Cîhan",
     "viewSignificant": "Girîng",
     "viewHistorical": "Dîrokî",
-    "viewCatalog": "Katalog"
+    "viewCatalog": "Katalog",
+    "notableTag": "Berçav"
   },
   "world": {
     "title": "Katalog a Cîhanê",
@@ -112,6 +113,23 @@
       "sarpolEZahab2018": "Erdhejeke navîn li nêzî Serpêlê Zehabê, li heman herêma sînor a erdheja 2017an.",
       "pazarcik2023": "Erdheja pêşî û ya herî mezin ji du erdhejên Kahramanmaraşê, li ser pergala Xeta Anatoliya Rojhilat.",
       "elbistan2023": "Erdheja duyemîn a Kahramanmaraşê, ku di heman rojê de nêzî 95 km bakurê ya pêşî çêbû."
+    },
+    "eventNames": {
+      "hamdaniya1944": "Erdheja 1944 li Al-Hemdaniya",
+      "baynjiwayn1946": "Erdheja 1946 li Pencwîn",
+      "jamjamal1958": "Erdheja 1958 li Çemçemal",
+      "mandali1967": "Erdheja 1967 li Mendelî",
+      "koysinceq1980": "Erdheja 1980 li Koya",
+      "aqrah1991": "Erdheja 1991 li Akrê",
+      "halabja2017": "Erdheja 2017 li Helebce-Serpêlê Zehab",
+      "javanrud2018": "Erdheja 2018 li Cewanro",
+      "sarpolEZahab2018": "Erdheja 2018 li Serpêlê Zehab",
+      "pazarcik2023": "Erdheja 2023 li Pazarcik",
+      "elbistan2023": "Erdheja 2023 li Elbistan"
+    },
+    "places": {
+      "pazarcik2023": "Pazarcik, Kahramanmaraş, Tirkiye",
+      "elbistan2023": "Elbistan, Kahramanmaraş, Tirkiye"
     }
   },
   "catalog": {

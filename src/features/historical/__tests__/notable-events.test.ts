@@ -89,6 +89,48 @@ describe("NOTABLE_HISTORICAL_EVENTS", () => {
     const catalogNoteKeys = Object.keys(en.historical.notes);
     expect(new Set(catalogNoteKeys)).toEqual(noteKeysInDataset);
   });
+
+  it("has a localized event NAME (historical.eventNames.<noteKey>) in all four locale catalogs, for every event (update-plan-2026-08.md §1.4)", () => {
+    const catalogs = { en, ckb, kmr, ar } as const;
+    for (const event of NOTABLE_HISTORICAL_EVENTS) {
+      for (const catalog of Object.values(catalogs)) {
+        const eventNames = (
+          catalog as { historical: { eventNames: Record<string, string> } }
+        ).historical.eventNames;
+        expect(typeof eventNames[event.noteKey]).toBe("string");
+        expect(eventNames[event.noteKey]?.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("has no unused eventName keys in the catalog (every catalog eventName is referenced by some event)", () => {
+    const noteKeysInDataset = new Set(
+      NOTABLE_HISTORICAL_EVENTS.map((event) => event.noteKey),
+    );
+    const catalogEventNameKeys = Object.keys(en.historical.eventNames);
+    expect(new Set(catalogEventNameKeys)).toEqual(noteKeysInDataset);
+  });
+
+  it("only sets placeNameKey for events beyond the gazetteer's fallback radius (today: the 2023 Kahramanmaraş doublet), and every placeNameKey resolves in all four locale catalogs", () => {
+    const catalogs = { en, ckb, kmr, ar } as const;
+    const eventsWithPlaceNameKey = NOTABLE_HISTORICAL_EVENTS.filter(
+      (event) => event.placeNameKey !== undefined,
+    );
+    expect(eventsWithPlaceNameKey.map((event) => event.id).sort()).toEqual(
+      ["us6000jllz", "us6000jlqa"].sort(),
+    );
+
+    for (const event of eventsWithPlaceNameKey) {
+      const suffix = event.placeNameKey?.replace("historical.places.", "");
+      expect(suffix).toBeTruthy();
+      for (const catalog of Object.values(catalogs)) {
+        const places = (catalog as { historical: { places: Record<string, string> } })
+          .historical.places;
+        expect(typeof places[suffix as string]).toBe("string");
+        expect(places[suffix as string]?.length).toBeGreaterThan(0);
+      }
+    }
+  });
 });
 
 describe("sortNewestFirst", () => {

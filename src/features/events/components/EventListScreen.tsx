@@ -34,6 +34,13 @@ interface EventListScreenProps {
    * needs its own top safe-area padding; pushed screens get that from the
    * native header and should leave this `false` (default). */
   applyTopInset?: boolean;
+  /** ids of events present in `events` only because of the adaptive
+   * Home-feed policy's magnitude-tiered notable carve-out
+   * (`home-feed-policy.ts`) — passed through to `EventCard` so it can show
+   * a "notable" cue instead of reading as a confusing, out-of-place-old
+   * card. Home is the only caller that ever passes this; World/Significant
+   * default to an empty set. */
+  notableEventIds?: ReadonlySet<string>;
 }
 
 const SKELETON_ROW_COUNT = 5;
@@ -58,6 +65,7 @@ export function EventListScreen({
   onRefetch,
   headerContent,
   applyTopInset = false,
+  notableEventIds,
 }: EventListScreenProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -173,6 +181,7 @@ export function EventListScreen({
             event={item}
             now={now}
             onPress={(event) => router.push(`/event/${event.id}`)}
+            isNotable={notableEventIds?.has(item.id) ?? false}
           />
         )}
         contentContainerStyle={[

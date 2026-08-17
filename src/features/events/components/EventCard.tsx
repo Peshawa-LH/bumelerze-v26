@@ -23,9 +23,17 @@ interface EventCardProps {
    * pull-to-refresh) naturally refresh this — no internal ticking timer in
    * Phase 1, matching the "boring choice" instruction for this wave. */
   now: number;
+  /** True when this card is only on Home because of the adaptive
+   * Home-feed policy's magnitude-tiered notable carve-out
+   * (`home-feed-policy.ts`) — i.e. it's older than the feed's normal
+   * window. Renders a small "notable" tag next to the provenance chip so
+   * an old, still-significant event doesn't read as fresh or confusingly
+   * out of place next to yesterday's smaller ones (update-plan-2026-08.md
+   * §1.1). Defaults to `false` for every other list (World, Significant). */
+  isNotable?: boolean;
 }
 
-function EventCardImpl({ event, onPress, now }: EventCardProps) {
+function EventCardImpl({ event, onPress, now, isNotable = false }: EventCardProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { colors, typography, spacing } = useTheme();
@@ -65,12 +73,15 @@ function EventCardImpl({ event, onPress, now }: EventCardProps) {
   const webDirProp =
     Platform.OS === "web" ? { dir: isRTLLocale(locale) ? "rtl" : "ltr" } : null;
 
+  const notableTagText = isNotable ? t("events.notableTag") : null;
+
   const accessibilityLabel = [
     t("events.magnitudeA11yLabel", {
       value: formatMagnitudeValue(event.magnitude.value, locale),
     }),
     placeText,
     relativeTimeText,
+    notableTagText,
   ]
     .filter(Boolean)
     .join(". ");
@@ -111,7 +122,32 @@ function EventCardImpl({ event, onPress, now }: EventCardProps) {
         >
           {magnitudeText}
         </Text>
-        <ProvenanceChip provider={event.provenance.provider} />
+        <View style={[styles.chipRow, { gap: spacing[1] }]}>
+          {notableTagText ? (
+            <View
+              style={[
+                styles.notableTag,
+                {
+                  borderColor: colors.status.info,
+                  paddingHorizontal: spacing[2],
+                  paddingVertical: spacing[1] / 2,
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color: colors.status.info,
+                  fontSize: typography.labelCaption.fontSize,
+                  lineHeight: typography.labelCaption.lineHeight,
+                  fontWeight: typography.labelCaption.fontWeight,
+                }}
+              >
+                {notableTagText}
+              </Text>
+            </View>
+          ) : null}
+          <ProvenanceChip provider={event.provenance.provider} />
+        </View>
       </View>
 
       <Text
@@ -158,5 +194,14 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: "row",
     gap: 12,
+  },
+  chipRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  notableTag: {
+    borderWidth: 1,
+    borderRadius: 999,
+    alignSelf: "flex-start",
   },
 });

@@ -19,21 +19,24 @@ jest.mock("expo-router", () => ({
 // format.ts, distance.ts etc. all run for real, so this test exercises the
 // actual rendering/formatting pipeline against canned data.
 //
-// `usePossibleEvents` (D26 item 3) is mocked here for the same reason
-// `useRegionEvents` already is: it's a real `useQuery` hook under the hood,
-// and this file's `renderWithProviders` deliberately has no
-// `QueryClientProvider` in its tree (see that function below) — mocking it
-// keeps every existing test in this file working unchanged, and lets the
-// dedicated possible-event test below control its return value directly
-// without needing real Supabase env wiring.
+// `usePossibleEvents` (D26 item 3) and `useNotableTailEvents` (adaptive
+// Home-feed policy, update-plan-2026-08.md §1.1) are mocked here for the
+// same reason `useRegionEvents` already is: they're real `useQuery` hooks
+// under the hood, and this file's `renderWithProviders` deliberately has no
+// `QueryClientProvider` in its tree (see that function below) — mocking
+// them keeps every existing test in this file working unchanged, and lets
+// the dedicated possible-event test below control its return value
+// directly without needing real Supabase env wiring.
 const mockUseRegionEvents = jest.fn();
 const mockUsePossibleEvents = jest.fn();
+const mockUseNotableTailEvents = jest.fn();
 jest.mock("@/features/events", () => {
   const actual = jest.requireActual("@/features/events");
   return {
     ...actual,
     useRegionEvents: () => mockUseRegionEvents(),
     usePossibleEvents: () => mockUsePossibleEvents(),
+    useNotableTailEvents: () => mockUseNotableTailEvents(),
   };
 });
 
@@ -99,6 +102,10 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     // Default: no possible events (the common case) — matches
     // `usePossibleEvents`' own "unconfigured/empty" shape.
     mockUsePossibleEvents.mockReturnValue({ events: [], isReady: false });
+    // Default: no notable-tail backfill (the common case — no M>=6 event in
+    // the last year). Individual tests override this to exercise the
+    // adaptive policy's notable carve-out.
+    mockUseNotableTailEvents.mockReturnValue({ events: [] });
   });
 
   afterEach(async () => {

@@ -87,7 +87,8 @@
     "viewWorld": "World",
     "viewSignificant": "Significant",
     "viewHistorical": "Historical",
-    "viewCatalog": "Catalog"
+    "viewCatalog": "Catalog",
+    "notableTag": "Notable"
   },
   "world": {
     "title": "World Catalog",
@@ -112,6 +113,23 @@
       "sarpolEZahab2018": "A moderate earthquake near Sarpol-e Zahab, in the same border region as the 2017 earthquake.",
       "pazarcik2023": "The first and larger of the two Kahramanmaraş earthquakes, on the East Anatolian Fault system.",
       "elbistan2023": "The second Kahramanmaraş earthquake, occurring the same day about 95 km north of the first."
+    },
+    "eventNames": {
+      "hamdaniya1944": "1944 Al-Hamdaniya earthquake",
+      "baynjiwayn1946": "1946 Penjwen earthquake",
+      "jamjamal1958": "1958 Chamchamal earthquake",
+      "mandali1967": "1967 Mandali earthquake",
+      "koysinceq1980": "1980 Koya earthquake",
+      "aqrah1991": "1991 Akre earthquake",
+      "halabja2017": "2017 Halabja-Sarpol-e Zahab earthquake",
+      "javanrud2018": "2018 Javanrud earthquake",
+      "sarpolEZahab2018": "2018 Sarpol-e Zahab earthquake",
+      "pazarcik2023": "2023 Pazarcık earthquake",
+      "elbistan2023": "2023 Elbistan earthquake"
+    },
+    "places": {
+      "pazarcik2023": "Pazarcık, Kahramanmaraş, Türkiye",
+      "elbistan2023": "Elbistan, Kahramanmaraş, Türkiye"
     }
   },
   "catalog": {

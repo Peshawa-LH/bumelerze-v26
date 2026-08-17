@@ -28,6 +28,15 @@ export interface PlaceLineEvent {
    * in scope — English stays acceptable there (ui-backlog.md wave 5 item
    * 4). */
   placeName: string;
+  /** Optional i18n key resolving to a translated place string, used
+   * INSTEAD of the raw `placeName` above when this event falls beyond the
+   * gazetteer's fallback radius. Live provider feeds never set this (their
+   * place strings are out-of-scope provider data, per `placeName`'s own
+   * comment) — this exists for small, APP-OWNED curated datasets (e.g. the
+   * Historical View's 11 events, `features/historical/notable-events.ts`)
+   * that need a real Kurdish/Arabic name for a far-world place instead of
+   * always falling back to English (update-plan-2026-08.md §1.4). */
+  placeNameKey?: string;
 }
 
 /** The bare "{{distance}} {{direction}} {{city}}" phrase, without the
@@ -72,7 +81,7 @@ export function placeLine(event: PlaceLineEvent, locale: string, t: TranslateFn)
   const [nearest] = nearestCities(event.lat, event.lon, 1);
 
   if (!nearest || nearest.distanceKm > NEAREST_CITY_FALLBACK_THRESHOLD_KM) {
-    return event.placeName;
+    return event.placeNameKey ? t(event.placeNameKey) : event.placeName;
   }
 
   const line = nearestCityLine(nearest, locale, t);

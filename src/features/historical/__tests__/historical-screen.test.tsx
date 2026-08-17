@@ -117,4 +117,34 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/event/us2000bmcg");
   });
+
+  it("renders a sample historical event's Sorani name (update-plan-2026-08.md §1.4)", async () => {
+    await i18n.changeLanguage("ckb");
+    await renderWithProviders(<HistoricalScreen />);
+
+    // The 1991 Akre event's localized Sorani name, sourced from
+    // historical.eventNames.aqrah1991 — not the raw English "Akre
+    // earthquake" the owner flagged.
+    expect(screen.getByText("بوومەلەرزەی ١٩٩١ لە ئاکرێ")).toBeTruthy();
+  });
+
+  it.each(["ckb", "kmr", "ar"] as const)(
+    "shows no English fallback string on the Historical screen in %s (update-plan-2026-08.md §1.4)",
+    async (locale) => {
+      await i18n.changeLanguage(locale);
+      await renderWithProviders(<HistoricalScreen />);
+
+      // The two Kahramanmaraş events are the only ones whose place text
+      // falls outside the gazetteer's fallback radius — before this fix
+      // they leaked the raw English `placeName` ("Pazarcık, Kahramanmaraş,
+      // Türkiye" / "Elbistan, Kahramanmaraş, Türkiye"). Neither the English
+      // event-name strings nor the raw English place strings should render
+      // in a non-English locale.
+      expect(screen.queryByText("Pazarcık, Kahramanmaraş, Türkiye")).toBeNull();
+      expect(screen.queryByText("Elbistan, Kahramanmaraş, Türkiye")).toBeNull();
+      expect(screen.queryByText("2023 Pazarcık earthquake")).toBeNull();
+      expect(screen.queryByText("2023 Elbistan earthquake")).toBeNull();
+      expect(screen.queryByText("1991 Akre earthquake")).toBeNull();
+    },
+  );
 });

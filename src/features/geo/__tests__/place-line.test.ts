@@ -55,6 +55,22 @@ describe("placeLine", () => {
 
     expect(result).toBe("10 km E of Tokyo, Japan");
   });
+
+  it("uses a translated placeNameKey override instead of the raw English placeName, for a far-world event (update-plan-2026-08.md §1.4)", async () => {
+    await i18n.changeLanguage("ckb");
+    // Same Kahramanmaraş coordinates as the Historical View's 2023 doublet.
+    const event = {
+      lat: 37.2256,
+      lon: 37.0143,
+      placeName: "Pazarcık, Kahramanmaraş, Türkiye",
+      placeNameKey: "historical.places.pazarcik2023",
+    };
+
+    const result = placeLine(event, "ckb", i18n.t.bind(i18n));
+
+    expect(result).toBe("پازارجق، کەهرەمانمەرەش، تورکیا");
+    expect(result).not.toContain("Kahramanmaraş");
+  });
 });
 
 describe("nearestCityLine / nearestCityDistanceLine", () => {
