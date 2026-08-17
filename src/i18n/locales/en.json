@@ -524,6 +524,7 @@
       "sectionTitle": "SHAKEmap",
       "updated": "Updated {{time}}",
       "citation": "SHAKEmap: {{producer}}, version {{version}}",
+      "engineVersion": "Hazard engine version {{version}}",
       "legendCaption": "Intensity (IMS-25): Bumelerze SHAKEmap scale",
       "mapA11yLabel": "SHAKEmap intensity map, maximum intensity {{level}}, near {{place}}",
       "dataUsed": {

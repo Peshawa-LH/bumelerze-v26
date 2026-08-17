@@ -72,3 +72,25 @@ export const SHAKEMAP_CITY_DOT_RADIUS = 1.75;
 export const SHAKEMAP_BASEMAP_BORDER_WIDTH = 0.75;
 export const SHAKEMAP_BASEMAP_COASTLINE_WIDTH = 0.75;
 export const SHAKEMAP_BASEMAP_LINE_OPACITY = 0.6;
+
+/**
+ * Live product query cadence (`shakemap_products`, "closing the last gap"
+ * wave) — deliberately NOT the feed/felt-map's active-polling cadence
+ * (`events/config.ts`'s `EVENTS_REFETCH_INTERVAL_MS`, `feltmap/config.ts`'s
+ * `FELTMAP_REFETCH_INTERVAL_MS`): a published `shakemap_products` row is
+ * immutable per version (D9's own versioning discipline — a recompute is a
+ * NEW row, never an edit of an existing one), so there is nothing to gain
+ * from polling it on a fixed interval the way a live-updating feed or a
+ * densifying felt-report count needs. No `refetchInterval` is set at all
+ * (PROJECT.md "battery-conscious... no aggressive background polling") —
+ * this stale time only controls how long a cached "did this event have a
+ * live product" answer is trusted before a normal mount/foreground/
+ * reconnect refetch is allowed to check again (e.g. a first compute
+ * landing minutes after a user first opened Event Detail with nothing to
+ * show yet).
+ */
+export const SHAKEMAP_LIVE_STALE_TIME_MS = 15 * 60 * 1000;
+/** Keeps a resolved live product around across a short backgrounding/
+ * screen revisit without a network round-trip — a day is generous and
+ * harmless since the artifact itself never changes for a given version. */
+export const SHAKEMAP_LIVE_GC_TIME_MS = 24 * 60 * 60 * 1000;

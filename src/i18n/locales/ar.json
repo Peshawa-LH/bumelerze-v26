@@ -524,6 +524,7 @@
       "sectionTitle": "خريطة الاهتزاز (SHAKEmap)",
       "updated": "آخر تحديث {{time}}",
       "citation": "خريطة الاهتزاز: {{producer}}، الإصدار {{version}}",
+      "engineVersion": "محرك المخاطر، الإصدار {{version}}",
       "legendCaption": "الشدة (IMS-25): مقياس خريطة الاهتزاز الخاص بـ بوملێرزە",
       "mapA11yLabel": "خريطة شدة الاهتزاز، أقصى شدة {{level}}، بالقرب من {{place}}",
       "dataUsed": {

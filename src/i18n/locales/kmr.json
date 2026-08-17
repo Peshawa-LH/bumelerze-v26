@@ -524,6 +524,7 @@
       "sectionTitle": "SHAKEmap",
       "updated": "Hate rojanekirin {{time}}",
       "citation": "SHAKEmap: {{producer}}, guhertoya {{version}}",
+      "engineVersion": "Motora xetereyê, guhertoya {{version}}",
       "legendCaption": "Tundî (IMS-25): pîvana SHAKEmap ya Bumelerze",
       "mapA11yLabel": "Nexşeya tundiya SHAKEmap, herî zêde tundî {{level}}, nêzî {{place}}",
       "dataUsed": {
