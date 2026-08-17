@@ -3,8 +3,8 @@
 **Bumelerze** (Kurdish *bûmelerze*, earthquake) is a Kurdish-first earthquake
 monitoring and felt-reporting app for the Kurdistan Region of Iraq. It shows
 what just shook, lets people say what they felt, and turns those reports back
-into usable intensity data. It is built by an earthquake engineer, for a region
-that gets shaken regularly and is not well served by the existing apps.
+into usable intensity data. It is built for a region that gets shaken regularly
+and is not well served by the existing apps.
 
 **Website:** <https://bumelerze.com> · **App:** <https://bumelerze.com/app> ·
 **Contact:** <hello@bumelerze.com>
@@ -25,7 +25,7 @@ that gets shaken regularly and is not well served by the existing apps.
 - **Crowdsourced detection.** When enough people report shaking with no event in
   any feed yet, the backend raises a "possible event", the way EMSC's LastQuake
   does. Small local earthquakes are often felt before any agency publishes them.
-- **Own-computed ShakeMaps.** For regional events, the project computes its own
+- **Own-computed SHAKEmaps.** For regional events, the project computes its own
   ground-motion and intensity fields instead of waiting for a USGS product that
   may never arrive for a M4.5 in Iraq.
 - **Safety guidance.** What to do during and after an earthquake, written for
@@ -45,7 +45,7 @@ that gets shaken regularly and is not well served by the existing apps.
   forwarded into someone else's system, and aggregated into intensity cells
   server-side.
 - **Provenance is recorded, not assumed.** Every catalog entry carries its
-  source and its merge history; every computed ShakeMap product records the
+  source and its merge history; every computed SHAKEmap product records the
   ground-motion models, the site data, and the distance method that produced it.
 - The **engine is separate from the app.** `shake-service/` is a standalone
   Python worker that publishes finished products; the app only consumes them.
@@ -60,7 +60,7 @@ data for exactly that reason.
 | Path                | What it is                                                            |
 | ------------------- | --------------------------------------------------------------------- |
 | `app/`, `src/`      | The Expo (React Native) + TypeScript app: routes, features, i18n, theme |
-| `shake-service/`    | Standalone Python ShakeMap engine and worker, plus the regional catalog |
+| `shake-service/`    | Standalone Python SHAKEmap engine and worker, plus the regional catalog |
 | `supabase/`         | Postgres migrations, RLS policies, and edge functions                   |
 | `website/`          | The static site at bumelerze.com, including the privacy policy          |
 | `assets/`           | App icons, brand marks, and the commissioned illustration set           |

@@ -1,6 +1,6 @@
 # bumelerze-shake-service
 
-Regional ShakeMap engine for **Bumelerze** (Kurdistan earthquake app). A
+Regional SHAKEmap engine for **Bumelerze** (Kurdistan earthquake app). A
 self-contained Python worker — no dependency on the Expo app or Supabase
 project; it produces the same product-shaped contract
 (`supabase/migrations/0006_shakemap_products.sql`) that USGS-sourced
@@ -34,7 +34,7 @@ about that was a preference; it is what the AGPL requires.
   Running an **unmodified** copy as a service triggers no extra obligation
   beyond the ordinary AGPL terms.
 - The AGPL is confined to this directory. Building an app that merely
-  *consumes* the ShakeMap products this worker publishes (JSON over HTTP, the
+  *consumes* the SHAKEmap products this worker publishes (JSON over HTTP, the
   way the Bumelerze app itself does) is data exchange, not linking, and does
   not make your app AGPL.
 

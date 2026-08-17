@@ -10,7 +10,7 @@ Short version:
 | Part of the repo                       | Licence                | File                                                  |
 | -------------------------------------- | ---------------------- | ----------------------------------------------------- |
 | The app, website, and database code     | Apache-2.0             | [`LICENSE`](LICENSE)                                  |
-| `shake-service/` (the ShakeMap engine)  | AGPL-3.0-or-later      | [`shake-service/LICENSE`](shake-service/LICENSE)      |
+| `shake-service/` (the SHAKEmap engine)  | AGPL-3.0-or-later      | [`shake-service/LICENSE`](shake-service/LICENSE)      |
 | Illustrations, icon, logo, the name     | All rights reserved    | [`assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md`](assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md) |
 | Earthquake and map data                 | Varies by source       | [`DATA-SOURCES.md`](DATA-SOURCES.md)                  |
 | Felt reports and photos sent by users   | Not a licence question | <https://bumelerze.com/privacy.html>                  |
@@ -42,7 +42,7 @@ Apache-2.0 also includes an explicit patent grant, which is the main reason it
 was chosen over MIT. Nobody contributing here can later sue users of this code
 over a patent covering their own contribution.
 
-## 2. The ShakeMap engine: AGPL-3.0-or-later
+## 2. The SHAKEmap engine: AGPL-3.0-or-later
 
 `shake-service/` is licensed differently, and this is not a stylistic choice.
 
@@ -66,7 +66,7 @@ service does not add that obligation.
 
 **What the AGPL here does *not* do.** It does not spread to the Bumelerze app.
 The app talks to the engine the way it talks to any other server: it downloads
-finished ShakeMap products as JSON over HTTP. That is data exchange, not
+finished SHAKEmap products as JSON over HTTP. That is data exchange, not
 linking. If you build your own app that reads the products this engine
 publishes, your app can be under whatever licence you like.
 
