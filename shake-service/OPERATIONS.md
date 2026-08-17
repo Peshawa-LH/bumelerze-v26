@@ -241,3 +241,115 @@ that event's state entry. Atlas events: same file, under
   single-authority note).
 - **Revisions** — magnitude/location/depth updates from any provider
   recompute automatically once they cross |ΔM| ≥ 0.1 / 5 km / 5 km.
+
+## 8. Publishing products (SupabaseUploader: index + Atlas repo)
+
+`SupabaseUploader` (`worker/uploader.py`) is TWO independent pieces, per an
+owner architecture decision — Supabase never holds artifact bytes:
+
+- **The Supabase INDEX** (`shakemap_products` rows — event reference,
+  version, engine provenance, review status, bbox, a public URL). Needs
+  `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` set (`shake-service/
+  .env.example`; NEVER the anon key — every write here bypasses RLS).
+  Without both set, `build_uploader()` (what `scripts/run_worker.py` and
+  `scripts/seed_atlas.py --upload-to-supabase` both call) silently falls
+  back to the pre-existing `LocalOnlyUploader` — check the worker's own
+  structured log for a `falling back to LocalOnlyUploader` line if an
+  upload you expected didn't happen.
+- **The Bumelerze Atlas artifact tree** (`AtlasRepoPublisher` — the actual
+  `cont_mi.json`/`info.json`/opt-in `grid.json` files, written to a local
+  directory: `BUMELERZE_ATLAS_PUBLISH_ROOT`, default `atlas-publish/` next
+  to this package). This is a STAGING copy only — publishing it to the
+  real, separately-hosted public Atlas repository/CDN is an operational
+  step outside this worker (§8d).
+
+### 8a. The live worker (going forward, no action needed once deployed)
+
+Once the daemon (`scripts/run_worker.py --daemon`) runs with Supabase
+credentials set, every future compute (`worker/pipeline.py`'s own upload
+step) reaches both the index and the local Atlas staging tree
+automatically — idempotent per `(event_id, producer, version,
+product_type)` on the index side and per (event_key, version) on the
+artifact side, so a daemon restart mid-cycle or a re-delivered feed poll
+never creates a duplicate row or file. Nothing in this section is needed
+for new events; it only applies to already-computed products.
+
+### 8b. Backfilling the curated 11 (Bumelerze Atlas seed archive)
+
+The Atlas SEED archive's own `bumelerze-atlas/worker_state.json` is a
+SEPARATE state file from the live worker's — `seed_atlas.py` writes it,
+`LocalOnlyUploader` by default. To also push the curated events through
+the index + artifact publisher:
+
+```bash
+export SUPABASE_URL=...
+export SUPABASE_SERVICE_ROLE_KEY=...
+# optional: export BUMELERZE_ATLAS_PUBLISH_ROOT=/path/to/atlas-publish
+./.venv/bin/python scripts/seed_atlas.py --upload-to-supabase --force
+# one event only:
+./.venv/bin/python scripts/seed_atlas.py --event us2000bmcg --upload-to-supabase --force
+```
+
+`--force` is REQUIRED here, not optional: `pipeline.run_pipeline`'s
+params-hash short circuit skips the uploader call entirely when an event's
+catalog params are unchanged since the last local seed (§2's own note) —
+without it, a plain re-run against the already-seeded 11 would report
+`recomputed: false` for every event and upload nothing. `--force` produces
+one new version per event (old local versions retained, D9 policy) with a
+freshly-fetched USGS origin time/place (needed to resolve the event via
+`upsert_event_from_client`, which the local-only path never needed) and
+pushes it through the real uploader. This also means the FIRST backfill
+publishes v(N+1), not the exact same version already sitting in
+`bumelerze-atlas/` — expected, and harmless (both are the same computation
+against the same USGS inputs; re-running is what proves this at all).
+
+### 8c. Engine-fix → recompute → republish (the procedure the uploader exists for)
+
+1. Ship the engine fix (a corrected GMPE/GMICE/conditioning constant, a new
+   distance method, whatever the correction is) and bump whatever version
+   string actually changed — `info.json`'s `"version"` block (`export.py`'s
+   `build_info_product`) is what carries this into
+   `shakemap_products.data_used["engine_version"]` on every future upload
+   (`worker/uploader.py`'s provenance carry-through).
+2. Identify affected products. Once live rows exist in `shakemap_products`,
+   a plain query answers "which products came from the OLD engine build":
+   ```sql
+   select event_id, producer, version, product_type, storage_path
+   from public.shakemap_products
+   where data_used->'engine_version'->>'service_version' <> '<new version>'
+      or data_used->'engine_version'->>'service_version' is null;
+   ```
+   (swap the JSON path for whichever field actually changed — `gsim_branches`/
+   `ems_model`/`mmi_model`/`conditioning` are all in the same block.)
+3. Recompute those events with `--force` (live-tracked events: §2's driver,
+   with `uploader=build_uploader(log_fn=print)` instead of
+   `LocalOnlyUploader`; Atlas events: §8b's command, `--event <id>` per
+   event or omit `--event` for all 11) — every recompute is a NEW version,
+   old ones retained, and the new version's index row AND artifact files
+   carry the corrected `engine_version` stamp; the per-event and site-wide
+   manifests in the Atlas staging tree are regenerated automatically
+   (`AtlasRepoPublisher`'s own docstring).
+4. Publish the refreshed Atlas staging tree (§8d) so the new artifact files
+   are actually reachable at the URLs the index rows now point at. For the
+   bundled Historical subset specifically, re-run
+   `scripts/bundle_atlas_for_app.py` after step 3 so the shipped app bundle
+   picks up the corrected version too. Live app reads from
+   `shakemap_products` directly are a follow-up, app-side wave — this
+   repo's own scope boundary for the uploader work.
+
+### 8d. What the orchestrator still owns (not this worker's job)
+
+This worker only ever writes `BUMELERZE_ATLAS_PUBLISH_ROOT` LOCALLY — it
+never creates the external Bumelerze Atlas repository and never pushes to
+it. Turning the local staging tree into the real, public, CDN-served
+archive is an operational step: create the external repo/site once, then
+sync `atlas-publish/`'s contents into it (a plain file copy/`rsync`/`git
+add` — the tree is already exactly what the site should serve, including
+its own `index.json`/`events/<key>/index.json` manifests) after each
+publish run. Once that repository has a real public URL, set
+`BUMELERZE_ATLAS_BASE_URL` so FUTURE uploads store real, resolvable URLs in
+`shakemap_products.storage_path` — existing rows published before that
+point keep their repo-relative paths until their event is recomputed (§8c)
+or the index rows are backfilled with the new base URL prefix (a one-off
+SQL `UPDATE`, not built as a script this wave since it is a single
+operational action, not a repeated one).

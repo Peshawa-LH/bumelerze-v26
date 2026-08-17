@@ -87,6 +87,28 @@ changed. What exists today, app-side:
   still explicitly deferred, see "What v0 deliberately defers" below
   (Storage bucket policies for `felt_photos` are no longer on this list —
   see the bullet above).
+- **`shakemap_products`** — ~~no writer exists; the table has been sitting
+  empty since 0006/0007~~ **DONE, SupabaseUploader integration wave — INDEX
+  only, per an owner architecture decision:** the shake-service worker's
+  `SupabaseUploader` (`shake_service/worker/uploader.py`) resolves each
+  product's event via the same `upsert_event_from_client` RPC (0011) the
+  app itself calls and upserts a `shakemap_products` row per file — event
+  reference, version, product type, engine provenance (carried through
+  `data_used`, no schema change needed), review status, a coarse bounding
+  box (migration 0019), and a public URL — idempotent per `(event_id,
+  producer, version, product_type)`. The artifact FILES themselves
+  (contours/metadata JSON, always; the raster grid, opt-in only —
+  vector-first) are NOT stored in Supabase at all: they're published into a
+  deterministic local directory tree (`AtlasRepoPublisher`) that becomes
+  the staging copy of the **Bumelerze Atlas**, a separate public data
+  repository the orchestrator creates/publishes outside this database
+  (rationale: bulk versioned artifacts don't belong growing forever inside
+  the app's own operational Postgres/Storage). Reads
+  `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` from the shake-service
+  process's own environment (see `shake-service/.env.example` and
+  `shake-service/README.md`) — a project reachable from wherever the worker
+  runs is a prerequisite; falls back to the pre-existing local-only
+  behavior when those two env vars aren't set.
 
 **Sources this maps to** (read these before changing anything here):
 `docs/research/spec-v1.md` §5, `docs/research/felt-report-science-v1.md`
@@ -110,6 +132,7 @@ Parts 3 + 5, `docs/research/event-pipeline-design.md`,
 | `0011_event_registry_and_assignment.sql` | `upsert_event_from_client()` (client-callable SECURITY DEFINER, resolves a (provider, provider_event_id) pair to the canonical `events.event_id`, with cross-provider dedup) + `assign_unassigned_felt_reports()` (service-role-only sweep, D26 auto-assignment). Foundation for the client attaching a felt report to a real event before any ingestion worker runs. |
 | `0015_felt_reports_select_own.sql` | Adds `felt_reports_select_own`/`felt_report_details_select_own` — `to authenticated` select policies keyed on `auth.uid() = user_id` (D26 item 7, My Data). Written not-yet-exercised (`user_id` was unpopulated at insert time); **2026-08-16 storage wave wires that in** — `SupabaseTransport` now populates `user_id` from an anonymous session on every `felt_reports` insert, so this policy is exercised for real as of that wave. |
 | `0016_felt_photos_storage.sql` | Private `felt-photos` Storage bucket (5 MB limit, jpeg/png/webp) + `storage.objects` RLS (INSERT/UPDATE, `to authenticated`, path-prefix-scoped to `auth.uid()`) + `felt_photos.report_id` unique constraint (client-upsert idempotency target). 2026-08-16 storage wave — closes the last felt-reports gap (window-3 photo upload). |
+| `0019_shakemap_products_index_fields.sql` | `shakemap_products` bounding-box columns (`bbox_min_lat`/`bbox_max_lat`/`bbox_min_lon`/`bbox_max_lon`) + a `storage_path` comment update. No Storage bucket: an owner architecture decision keeps `shakemap_products` a pure INDEX — artifact files publish to a separate external data repository, never Supabase Storage (`shake-service/OPERATIONS.md` §8). |
 
 **Naming caveat:** these use plain `NNNN_name.sql` numbering as requested.
 The Supabase CLI conventionally expects timestamp-prefixed filenames
@@ -132,7 +155,7 @@ step, not a schema change.
 | `felt_cells`                 | 15      | CDI + IMS-25 aggregates per (event, geohash, version).                 |
 | `notification_subscriptions` | 14      | Push token + near-me/HomeBase alert config.                            |
 | `telemetry_pings`            | 4       | Anonymous app-launch pings.                                            |
-| `shakemap_products`          | 8       | ShakeMap product contract (USGS or bumelerze-shake-service).           |
+| `shakemap_products`          | 15      | ShakeMap product INDEX (USGS or bumelerze-shake-service) — event/version/type/provenance/review-status/bbox/URL; artifact files live outside Supabase. |
 | `felt_cells_public` (view)   | 8       | Public-safe read surface over `felt_cells`.                            |
 
 ## Design choices (brief)

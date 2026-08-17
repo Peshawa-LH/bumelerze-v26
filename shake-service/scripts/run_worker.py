@@ -97,7 +97,7 @@ from shake_service import config, event_id  # noqa: E402
 from shake_service.worker import feed_watcher, pipeline, usgs_products  # noqa: E402
 from shake_service.worker.live_catalog import append_to_live_catalog  # noqa: E402
 from shake_service.worker.state import WorkerState  # noqa: E402
-from shake_service.worker.uploader import LocalOnlyUploader, ProductUploader  # noqa: E402
+from shake_service.worker.uploader import LocalOnlyUploader, ProductUploader, build_uploader  # noqa: E402
 
 ALL_HOUR_FEED_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
 FDSNWS_EVENT_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -511,7 +511,13 @@ def main() -> None:
     state_path = Path(args.state_path)
     products_root = Path(args.products_root)
     live_catalog_path = Path(args.live_catalog_path)
-    uploader = LocalOnlyUploader(log_fn=lambda msg: _log("uploader", message=msg))
+    # Real wiring (SupabaseUploader integration wave): `build_uploader` reads
+    # SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY from the environment and returns
+    # a real, network-enabled SupabaseUploader when both are set, or falls
+    # back to the old LocalOnlyUploader (with a logged reason) when they
+    # aren't — so a worker started without those two env vars behaves
+    # exactly as it always has, degrading safely rather than crashing.
+    uploader = build_uploader(log_fn=lambda msg: _log("uploader", message=msg))
     # Real wiring (D21): the actual CLI entrypoint opts INTO network-enabled
     # USGS product fetching — every testable function above this
     # (`process_decisions`/`run_once`/`run_daemon`) defaults to the

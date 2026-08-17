@@ -32,11 +32,25 @@ Network access required (USGS event detail + whatever shakemap/dyfi
 product content each event has) — this is an occasional, manually-run
 seeding script, not a scheduled job.
 
+`--upload-to-supabase` (SupabaseUploader integration wave): by default this
+script only writes the committed local archive (`LocalOnlyUploader`, as
+always) — pass this flag to ALSO push through `build_uploader()` (real
+`SupabaseUploader` when `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` are set,
+the same safe local-only fallback otherwise). Combine with `--force` for a
+ONE-TIME backfill of an event whose products are already committed and
+unchanged: `pipeline.run_pipeline`'s params-hash short circuit skips the
+uploader call entirely when nothing changed (by design — see
+`worker/pipeline.py`'s own docstring), so without `--force` a plain re-run
+against already-seeded, unchanged params would never actually call the
+uploader. `OPERATIONS.md` §8 has the full backfill runbook.
+
 Usage:
     ./.venv/bin/python scripts/seed_atlas.py
     ./.venv/bin/python scripts/seed_atlas.py --atlas-root bumelerze-atlas \\
         --state-path bumelerze-atlas/worker_state.json
     ./.venv/bin/python scripts/seed_atlas.py --event us2000bmcg  # one event only
+    ./.venv/bin/python scripts/seed_atlas.py --event us2000bmcg --force \\
+        --upload-to-supabase  # backfill one event into Supabase
 """
 
 from __future__ import annotations
@@ -53,7 +67,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # allow running
 from shake_service.worker import pipeline, usgs_products  # noqa: E402
 from shake_service.worker.feed_watcher import FeedEvent, TriggerDecision  # noqa: E402
 from shake_service.worker.state import WorkerState  # noqa: E402
-from shake_service.worker.uploader import LocalOnlyUploader  # noqa: E402
+from shake_service.worker.uploader import LocalOnlyUploader, ProductUploader, build_uploader  # noqa: E402
 
 SHAKE_SERVICE_ROOT = Path(__file__).resolve().parent.parent
 REPO_ROOT = SHAKE_SERVICE_ROOT.parent
@@ -161,7 +175,7 @@ def seed_event(
     ws: WorkerState,
     *,
     atlas_root: Path,
-    uploader: LocalOnlyUploader,
+    uploader: ProductUploader,
     fetch_text: usgs_products.FetchTextFn | None = None,
     force: bool = False,
 ) -> dict[str, Any]:
@@ -206,6 +220,19 @@ def seed_event(
 # ---------------------------------------------------------------------------
 
 
+def _resolve_uploader(*, upload_to_supabase: bool, log_fn: Any) -> ProductUploader:
+    """The one place `main()` decides which uploader to use — kept as its
+    own function so it's unit-testable in isolation (no network, no CLI
+    parsing) even though `--upload-to-supabase` + a live Supabase project
+    can only be exercised by hand. Default (`False`): the pre-existing
+    `LocalOnlyUploader`, unchanged — seeding still writes the committed
+    local archive either way. `True`: `build_uploader()`'s own
+    credentials-present/absent fallback (module docstring)."""
+    if not upload_to_supabase:
+        return LocalOnlyUploader(log_fn=log_fn)
+    return build_uploader(log_fn=log_fn)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--atlas-root", default=str(DEFAULT_ATLAS_ROOT))
@@ -219,6 +246,11 @@ def main() -> None:
         "--force", action="store_true",
         help="D22: force a new version even for events whose catalog params are unchanged "
         "(use after an ENGINE change — e.g. a new rupture model wired in — old versions retained)",
+    )
+    parser.add_argument(
+        "--upload-to-supabase", action="store_true",
+        help="also push through build_uploader() (module docstring) instead of only writing the "
+        "local archive — combine with --force for a one-time backfill of already-seeded events",
     )
     args = parser.parse_args()
 
@@ -235,7 +267,9 @@ def main() -> None:
             raise SystemExit(f"seed_atlas: unknown --event id(s), not in notable-events.ts: {sorted(missing)}")
 
     ws = WorkerState.load(state_path)
-    uploader = LocalOnlyUploader(log_fn=lambda msg: print(f"[uploader] {msg}"))
+    uploader = _resolve_uploader(
+        upload_to_supabase=args.upload_to_supabase, log_fn=lambda msg: print(f"[uploader] {msg}")
+    )
 
     summary: list[dict[str, Any]] = []
     for curated in curated_events:

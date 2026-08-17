@@ -226,3 +226,31 @@ def test_main_rejects_unknown_event_id(tmp_path, monkeypatch):
     )
     with pytest.raises(SystemExit):
         seed_atlas.main()
+
+
+# ---------------------------------------------------------------------------
+# _resolve_uploader — the --upload-to-supabase wiring (module docstring /
+# OPERATIONS.md §8's backfill runbook). No network: SupabaseUploader
+# construction alone never makes a request.
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_uploader_defaults_to_local_only():
+    uploader = seed_atlas._resolve_uploader(upload_to_supabase=False, log_fn=lambda *_: None)
+    assert isinstance(uploader, LocalOnlyUploader)
+
+
+def test_resolve_uploader_flag_without_credentials_still_falls_back_to_local_only(monkeypatch):
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    uploader = seed_atlas._resolve_uploader(upload_to_supabase=True, log_fn=lambda *_: None)
+    assert isinstance(uploader, LocalOnlyUploader)
+
+
+def test_resolve_uploader_flag_with_credentials_returns_supabase_uploader(monkeypatch):
+    from shake_service.worker.uploader import SupabaseUploader
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "secret")
+    uploader = seed_atlas._resolve_uploader(upload_to_supabase=True, log_fn=lambda *_: None)
+    assert isinstance(uploader, SupabaseUploader)

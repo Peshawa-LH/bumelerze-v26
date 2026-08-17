@@ -110,7 +110,7 @@ from shake_service import (
 )
 from shake_service.worker.feed_watcher import TriggerDecision
 from shake_service.worker.state import EventState, WorkerState
-from shake_service.worker.uploader import ProductUploader, ShakeMapProductRow
+from shake_service.worker.uploader import EventMeta, ProductUploader, ShakeMapProductRow
 from shake_service.worker.usgs_products import UsgsEventProducts, no_usgs_products
 
 UsgsProductsFetcher = Callable[[str], UsgsEventProducts]
@@ -437,6 +437,22 @@ def run_pipeline(
         product_paths=written,
         data_used=fm.data_used,
         review_status=export.DEFAULT_REVIEW_STATUS,
+        # (SupabaseUploader integration wave) — everything a real uploader
+        # needs to resolve/register the internal events.event_id via
+        # upsert_event_from_client (uploader.py's own "event_id mapping"
+        # note). LocalOnlyUploader ignores this. mag_type is not tracked by
+        # FeedEvent/EventState today (uploader.EventMeta's own docstring) —
+        # None is fine, the RPC's mag_type column is nullable.
+        event_meta=EventMeta(
+            provider=event.source,
+            origin_time_ms=event.time_ms,
+            lat=event.lat,
+            lon=event.lon,
+            depth_km=event.depth_km,
+            magnitude=event.mag,
+            mag_type=None,
+            place=event.place,
+        ),
     )
 
     return PipelineResult(
