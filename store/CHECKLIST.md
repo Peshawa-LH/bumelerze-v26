@@ -18,10 +18,12 @@ Peshawa's name).
    currently have a mandatory ~20-testers/14-day closed-testing period before
    production release eligibility — **[VERIFY AT SUBMISSION]**, this policy
    has changed before and affects the timeline, not just a dev-side task.
-3. **[Peshawa]** Register `bumelerze.com` and `bumelerze.app` (name-check C1,
-   `docs/research/name-trademark-check.md` §5) — cheap, defensive, and
-   independent of the store accounts; do this whenever convenient, doesn't
-   block anything else here.
+3. **[Peshawa]** ~~Register `bumelerze.com`~~ — **done**: `bumelerze.com` is
+   registered and live (site at <https://bumelerze.com>, privacy policy at
+   <https://bumelerze.com/privacy.html>, support email
+   `hello@bumelerze.com` — the values the store forms in §5 need).
+   `bumelerze.app` (name-check C1, `docs/research/name-trademark-check.md`
+   §5) remains optional-defensive and doesn't block anything here.
 4. **[Dev]** Once account credentials exist, run `npx expo login` and
    `eas init` from the repo root — this creates the Expo project record and
    writes `extra.eas.projectId` into `app.config.ts`. That field doesn't
@@ -88,7 +90,11 @@ Peshawa's name).
 17. **[Dev]** Paste the listing content from `store/listing/*.md` into App
     Store Connect and Play Console, following the store-locale mapping
     guidance in `store/listing/README.md` (Apple has no Kurdish locale slot;
-    Play's Kurdish-locale support needs a live check).
+    Play's Kurdish-locale support needs a live check). Enter the live URLs
+    and contact values from that README's "URLs and contact" table
+    (marketing/support URL <https://bumelerze.com>, support email
+    `hello@bumelerze.com`, privacy policy
+    <https://bumelerze.com/privacy.html>).
 18. **[Dev]** Upload screenshots per `store/screenshots/PLAN.md` once
     captured (post-dev-build, not yet done as of this wave).
 19. **[Dev]** Set category = **Weather** (primary) on both stores, +

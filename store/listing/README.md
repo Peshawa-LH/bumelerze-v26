@@ -3,9 +3,28 @@
 Docs folder, **not bundled in the app**. Authorable content for Apple App Store
 Connect and Google Play Console, ready before either developer account exists
 (D17). Per-locale listing text lives in `en.md` / `ckb.md` / `kmr.md` / `ar.md`;
-this file covers everything that isn't locale-specific text: store-locale
-mapping, character-count compliance, category, age rating, and the privacy
-summary.
+this file covers everything that isn't locale-specific text: URLs and contact,
+store-locale mapping, character-count compliance, category, age rating, and
+the privacy summary.
+
+## URLs and contact (live — paste as-is into both store forms)
+
+The domain is registered and the site is live (deployed from `website/` via
+GitHub Pages), so these are real values, no longer pending:
+
+| Store field | Value |
+|---|---|
+| Marketing URL / website | `https://bumelerze.com` |
+| Support URL | `https://bumelerze.com/support.html` |
+| Support email | `hello@bumelerze.com` |
+| Privacy policy URL | `https://bumelerze.com/privacy.html` |
+
+Locale variants of the privacy policy and support pages exist if a store
+locale slot accepts a per-locale URL: `https://bumelerze.com/ckb/privacy.html`
+(Sorani), `https://bumelerze.com/kmr/privacy.html` (Kurmanji),
+`https://bumelerze.com/ar/privacy.html` (Arabic) — same paths with
+`support.html` for the support pages. The English root URLs are the safe
+default wherever only one URL is allowed.
 
 ## Files
 
