@@ -55,6 +55,10 @@ jobs:
           # the anon key is Supabase's public key, protected by RLS.
           EXPO_PUBLIC_SUPABASE_URL: https://bcgyxepgruwardhozvfq.supabase.co
           EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I
+          # MapTiler publishable key (dev@bumelerze.com account) — same
+          # ship-in-the-client reasoning as the anon key above; restrict it
+          # to our origins in the MapTiler dashboard, not by hiding it.
+          EXPO_PUBLIC_MAPTILER_KEY: u55zrEViEes3KunGwdnn
         run: npx expo export --platform web --output-dir pages-dist/app
       - name: Assemble site (website at root, app under /app, SPA 404 fallback)
         run: |
