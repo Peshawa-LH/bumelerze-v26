@@ -77,11 +77,17 @@ More detail, including what to do if the AGPL does not work for you, is in
 
 **The illustrations are not open source.** The set in
 `assets/Bumelerze-App-Visual-Assets/` (the character cutouts, the 12 IMS
-intensity illustrations, the building-damage sequences, the preview sheets, and
-every derived file under `05-App-Ready/`) was commissioned specifically for
-Bumelerze. So were the app icon and logo (`assets/images/icon.png`,
-`assets/images/splash-icon.png`, the notification and adaptive icons, and
-`assets/brand/icon.svg` and `assets/brand/mark.svg`).
+intensity illustrations, the building-damage sequences, the safety-guidance
+illustrations, the preview sheets, and every derived file under
+`05-App-Ready/`) was commissioned specifically for Bumelerze. So was the
+official logo system, `assets/Bumelerze-App-Visual-Assets/08-Logo_Package/`
+(the app icon, the wordmark, and the mountain/seismic-waveform mark), and
+every copy of that same artwork generated from it: `assets/images/icon.png`,
+`assets/images/splash-icon.png`, the notification and adaptive icons, the
+favicon, `assets/brand/adaptive-icon-mark.svg` and
+`assets/brand/adaptive-icon-mark-monochrome.svg`, the horizontal logo used
+in the website header (`website/brand/`), and the store listing artwork
+under `store/` once it exists.
 
 All of that is **copyright 2026 Peshawa L. Hasan, all rights reserved**. The
 Apache-2.0 licence on the code does not reach it. It lives in the public
