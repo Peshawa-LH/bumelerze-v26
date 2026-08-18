@@ -848,9 +848,14 @@
     "contactLabel": "Têkilî (vebijarkî)",
     "contactPlaceholder": "E-name an jimara têlefonê, heke tu bersivekê dixwazî",
     "photo": {
-      "addLabel": "Wêneyekî dîmenê zêde bike",
-      "removeLabel": "Wêneyê dîmenê rake",
-      "hint": "Wêneyek dîmenê ya vebijarkî zêde bike"
+      "label": "Dîmenên ekranê (vebijarkî)",
+      "addLabel": "Dîmenan zêde bike",
+      "addMoreLabel": "Hê zêdetir zêde bike",
+      "hint": "Heta {{max}} dîmenan zêde bike",
+      "thumbnailLabel": "Dîmen {{index}} ji {{count}}",
+      "removeThumbnailLabel": "Dîmenê {{index}} rake",
+      "removeSymbol": "✕",
+      "limitReached": "Tu gihîştî sînorê {{count}} wêneyan. Yekê rake da ku tu yekî din zêde bikî."
     },
     "submit": "Nêrînê bişîne",
     "confirmation": {

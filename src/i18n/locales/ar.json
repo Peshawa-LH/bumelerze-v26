@@ -848,9 +848,14 @@
     "contactLabel": "وسيلة التواصل (اختياري)",
     "contactPlaceholder": "البريد الإلكتروني أو رقم الهاتف، إن كنت تود ردا",
     "photo": {
-      "addLabel": "إضافة لقطة شاشة",
-      "removeLabel": "إزالة لقطة الشاشة",
-      "hint": "أرفق لقطة شاشة اختيارية"
+      "label": "لقطات الشاشة (اختياري)",
+      "addLabel": "إضافة لقطات شاشة",
+      "addMoreLabel": "إضافة المزيد",
+      "hint": "أرفق حتى {{max}} لقطات شاشة",
+      "thumbnailLabel": "لقطة الشاشة {{index}} من {{count}}",
+      "removeThumbnailLabel": "إزالة لقطة الشاشة {{index}}",
+      "removeSymbol": "✕",
+      "limitReached": "وصلت إلى الحد الأقصى وهو {{count}} صور. أزل واحدة لإضافة صورة أخرى."
     },
     "submit": "إرسال الملاحظات",
     "confirmation": {

@@ -7,6 +7,26 @@ import type { SupportedLocale } from "@/i18n";
  * `src/features/felt/types.ts` already established for this repo.
  */
 
+/**
+ * One selected screenshot, still local at capture time — mirrors a single
+ * `feedback_photos` row-to-be (migration 0021). `photoId` is generated
+ * client-side (`queue.ts`'s `enqueueFeedback`) and reused as the eventual
+ * `feedback_photos.photo_id` primary key specifically so a queue retry of
+ * an already-uploaded photo is caught as a duplicate rather than uploaded
+ * (and stored) a second time — same "client-generated id doubles as the
+ * idempotency key" convention `FeedbackSubmission.feedbackId` itself
+ * already uses, see migration 0021's own header for why this moved from
+ * feedback_id-keyed to photo_id-keyed uniqueness.
+ */
+export interface FeedbackPhotoAttachment {
+  photoId: string;
+  /** A LOCAL file path/URI from `expo-image-picker`, never a remote URL at
+   * capture time — same contract `Tier2Report.photoUri` and this type's
+   * single-photo predecessor (`FeedbackSubmission.photoUri`, pre-0021)
+   * already established. */
+  uri: string;
+}
+
 /** The three platforms `feedback.platform`'s CHECK constraint allows
  * (migration 0020) — a narrower set than React Native's own `Platform.OS`
  * union (which also has "windows"/"macos", neither ever built by this
@@ -50,8 +70,11 @@ export interface FeedbackSubmission {
   /** Optional "so a tester can be followed up with" (wave brief). */
   contact: string | null;
   context: FeedbackContext;
-  /** A LOCAL file path/URI from `expo-image-picker`, never a remote URL at
-   * capture time — same contract as `Tier2Report.photoUri`. */
-  photoUri: string | null;
+  /** Zero or more selected screenshots, still local at capture time — see
+   * `FeedbackPhotoAttachment`'s own doc. An empty array means "no photos",
+   * replacing the pre-0021 `photoUri: string | null` shape now that more
+   * than one is allowed; capped client-side (`queue.ts`'s
+   * `FEEDBACK_PHOTO_MAX_COUNT`). */
+  photos: FeedbackPhotoAttachment[];
   createdAt: number;
 }
