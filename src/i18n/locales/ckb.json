@@ -209,6 +209,12 @@
     },
     "attribution": {
       "maptilerLogoA11yLabel": "MapTiler"
+    },
+    "eventSheet": {
+      "expandButtonLabel": "پیشاندانی وردەکاری زیاتر",
+      "collapseButtonLabel": "شاردنەوەی وردەکاری",
+      "closeButtonLabel": "داخستن",
+      "openFullButtonLabel": "کردنەوەی ڕووداوی تەواو"
     }
   },
   "sensor": {
@@ -510,6 +516,7 @@
     "loading": "بارکردنی ڕووداو…",
     "notFoundTitle": "ڕووداو نەدۆزرایەوە",
     "notFoundDescription": "نەمانتوانی ڕووداوی {{id}} بدۆزینەوە. لەوانەیە زۆر کۆن بێت، یان لینکەکە هەڵە بێت.",
+    "backToMap": "گەڕانەوە بۆ نەخشە",
     "timeSectionTitle": "کات",
     "utcTimeLabel": "کاتی جیهانی (UTC)",
     "localTimeLabel": "کاتی ناوخۆیی",

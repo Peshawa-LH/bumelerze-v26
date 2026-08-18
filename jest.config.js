@@ -11,4 +11,12 @@ module.exports = {
   moduleNameMapper: {
     "\\.css$": "<rootDir>/jest.css-mock.js",
   },
+  // react-native-worklets (react-native-reanimated 4's underlying engine)
+  // ships its own jest resolver that skips `.native.ts` files when resolving
+  // its own internals — without it, Jest's default "prefer .native" platform
+  // resolution pulls in the real native-turbomodule bootstrap
+  // (`NativeWorklets.native.ts`), which throws immediately outside a real
+  // native runtime. Required for the map event sheet's Reanimated-driven
+  // drag animation to be importable under Jest at all.
+  resolver: "react-native-worklets/jest/resolver.js",
 };

@@ -209,6 +209,12 @@
     },
     "attribution": {
       "maptilerLogoA11yLabel": "MapTiler"
+    },
+    "eventSheet": {
+      "expandButtonLabel": "إظهار مزيد من التفاصيل",
+      "collapseButtonLabel": "إخفاء التفاصيل",
+      "closeButtonLabel": "إغلاق",
+      "openFullButtonLabel": "فتح الحدث الكامل"
     }
   },
   "sensor": {
@@ -510,6 +516,7 @@
     "loading": "جارٍ تحميل الحدث…",
     "notFoundTitle": "لم يتم العثور على الحدث",
     "notFoundDescription": "لم نتمكن من العثور على الحدث {{id}}. قد يكون قديماً جداً، أو أن الرابط غير صحيح.",
+    "backToMap": "الرجوع إلى الخريطة",
     "timeSectionTitle": "الوقت",
     "utcTimeLabel": "التوقيت العالمي (UTC)",
     "localTimeLabel": "التوقيت المحلي",

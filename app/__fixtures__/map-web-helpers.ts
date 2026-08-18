@@ -118,6 +118,11 @@ export function setMockSetStyleFixture(
 export const mockMapFitBounds = jest.fn();
 export const mockMapSetStyle = jest.fn();
 export const mockMapOnce = jest.fn();
+/** The event-preview sheet's subtle recenter-on-select (`map.easeTo`,
+ * `map.web.tsx`'s marker `activate` handler) — recorded the same way every
+ * other camera call in this fixture is, so a test can assert on the
+ * `center`/`offset`/`duration` a marker selection actually requested. */
+export const mockMapEaseTo = jest.fn();
 
 /** Records the order `setWorkerUrl(...)` and `new Map(...)` are called in,
  * across all mocks below — locks map.web.tsx's requirement that the worker
@@ -304,6 +309,10 @@ export class MockMap {
     mockMapFitBounds(bounds, options);
   }
 
+  easeTo(options: unknown) {
+    mockMapEaseTo(options);
+  }
+
   /** Simulates MapLibre's real `setStyle()` behavior: replaces the ENTIRE
    * style document (wiping every source/layer WE added — terrain
    * hillshade, own-labels, locale-relabeled basemap layers), then fires any
@@ -469,6 +478,7 @@ export function resetMapWebMocks() {
   mockMapGetSource.mockClear();
   mockSourceSetData.mockClear();
   mockMapFitBounds.mockClear();
+  mockMapEaseTo.mockClear();
   mockMapSetStyle.mockClear();
   mockMapOnce.mockClear();
   setMockMapStyleFixture({});
