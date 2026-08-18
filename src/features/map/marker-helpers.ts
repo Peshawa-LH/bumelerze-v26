@@ -35,6 +35,22 @@ export interface RegionMapMarker {
   /** Visible dot diameter in px — the *hit* target is this plus
    * `MARKER_HIT_PADDING_PX` on each side, applied by the caller. */
   diameterPx: number;
+  /** True for the single most-recently-originated event in the input set —
+   * drives the distinct "what just happened" outline (`map.web.tsx`'s
+   * marker-build effect). */
+  isMostRecent: boolean;
+}
+
+/** The most recently-originated event's id in `events` (`null` for an
+ * empty set) — a plain linear scan, cheap at this app's real data volume
+ * (region/world pools are low hundreds of events at most). */
+function findMostRecentEventId(events: readonly Event[]): string | null {
+  if (events.length === 0) {
+    return null;
+  }
+  return events.reduce((latest, event) =>
+    event.originTime > latest.originTime ? event : latest,
+  ).id;
 }
 
 /**
@@ -61,8 +77,14 @@ export function magnitudeToMarkerDiameterPx(magnitudeValue: number): number {
  * the shared `magnitudeTone` module (EventCard's own accent-stripe logic,
  * design-language.md §3.2: magnitude-only coarse tone, never a real
  * intensity claim) — reused here rather than reinvented, same rule.
+ *
+ * Every event in `events` becomes exactly one marker (clustering was
+ * removed — the owner's explicit call after two rounds of tap-through bugs
+ * traced to it: overlap at low zoom is an accepted trade rather than a
+ * problem to solve with grouping).
  */
-export function buildRegionMarkers(events: Event[]): RegionMapMarker[] {
+export function buildRegionMarkers(events: readonly Event[]): RegionMapMarker[] {
+  const mostRecentId = findMostRecentEventId(events);
   return events.map((event) => ({
     id: event.id,
     lon: event.lon,
@@ -70,6 +92,7 @@ export function buildRegionMarkers(events: Event[]): RegionMapMarker[] {
     magnitudeValue: event.magnitude.value,
     tone: magnitudeTone(event.magnitude.value),
     diameterPx: magnitudeToMarkerDiameterPx(event.magnitude.value),
+    isMostRecent: event.id === mostRecentId,
   }));
 }
 

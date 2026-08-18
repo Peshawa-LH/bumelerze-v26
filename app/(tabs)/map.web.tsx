@@ -5,7 +5,6 @@ import type {
   GeoJSONSource,
   Map as MapLibreMap,
   Marker as MapLibreMarker,
-  MapLayerMouseEvent,
 } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
@@ -23,20 +22,12 @@ import {
 import { parseKurdishPlaces, placeLine, type KurdishPlace } from "@/features/geo";
 import {
   buildArabicNameTextField,
-  buildClusterCircleLayer,
-  buildClusterCountLayer,
-  buildClusterFeatureCollection,
-  buildClusterSource,
   buildMergedOwnLabelFeatureCollection,
   buildOwnLabelsLayer,
   buildOwnLabelsSource,
+  buildRegionMarkers,
   buildTerrainDemSource,
   buildTerrainHillshadeLayer,
-  CLUSTER_CIRCLE_LAYER_ID,
-  CLUSTER_LIST_MAX_SIZE,
-  CLUSTER_MAX_ZOOM,
-  CLUSTER_SOURCE_ID,
-  clusterRegionMarkers,
   computeDateBoundsMs,
   computeMagnitudeBounds,
   decideMapErrorAction,
@@ -50,7 +41,6 @@ import {
   isCompactMapControlsWidth,
   KURDISH_PLACES_CORE,
   MAP_FIT_BOUNDS_PADDING_PX,
-  MAP_INITIAL_MIN_ZOOM_COMPACT,
   MAP_RTL_TEXT_PLUGIN_URL,
   MAP_WORKER_URL,
   MapFilterPanel,
@@ -59,38 +49,44 @@ import {
   MapTilerAttributionLogo,
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_SOURCE_ID,
-  readClusterMetaFromProperties,
   regionBboxToLngLatBounds,
   resolveCatalogMapStyle,
-  resolveClusterExpansionZoom,
   ScopeToggle,
   shouldLocalizeToArabicScript,
   shouldRequestRTLTextPlugin,
-  sortClusterMembersForList,
   styleHasRasterDemSource,
   TERRAIN_DEM_SOURCE_ID,
   useEventSheetController,
   useMapPreferencesStore,
   useReducedMotionPreference,
   WORLD_VIEW_BBOX,
-  type ClusterMarkerFeature,
   type DateRangeMs,
   type EventPreviewSheetHandle,
   type MagnitudeRange,
   type MapScope,
   type MapStyleCatalogId,
   type MapStyleProviderId,
-  type PointMarkerFeature,
 } from "@/features/map";
 import { useTheme } from "@/theme";
 
 /** Fixed, deliberately modest pixel nudge applied to the map's viewport
  * center when a marker is selected (`easeTo`'s `offset`, in the marker
- * click handler below) so the newly-opened preview sheet doesn't sit
+ * activation handler below) so the newly-opened preview sheet doesn't sit
  * directly on top of it — see that call site's own doc comment for why this
  * is a small fixed constant rather than something computed from the sheet's
  * exact peek height. */
 const MAP_SHEET_SELECT_OFFSET_PX = 90;
+
+/** Max on-screen movement (px) between `pointerdown` and `pointerup` on a
+ * marker's hit element that still counts as a TAP rather than the start of
+ * a map pan/drag gesture that happened to begin on top of a marker —
+ * mirrors MapLibre's own default camera `clickTolerance` (3px, its
+ * `Map` constructor option) with a little more give for touch, since a
+ * finger's contact point drifts more between down and up than a mouse
+ * cursor does even during a stationary tap. See the marker-activation
+ * block below (marker-build effect) for why this is the primary tap
+ * detection at all, instead of the browser's native `click` event. */
+const MARKER_TAP_TOLERANCE_PX = 8;
 
 /**
  * Lazily loads the tier-3 (village/hamlet) Kurdish-places dataset — by far
@@ -194,11 +190,6 @@ function resolveOwnLabelsFont(
  * is just the MapLibre-API glue, exercised by the `map-web-*.test.tsx`
  * integration tests via the mocked `maplibre-gl` module (same split as the
  * marker-building loop further down this file).
- *
- * Returns the font stack it resolved for the own-labels layer (or `null`
- * if the style wasn't available at all) — `primeClusterLayer`'s count-label
- * symbol layer reuses this SAME resolved stack rather than re-deriving it,
- * one glyph-availability lookup per (re)prime, not two.
  */
 function primeTerrainAndLabelCache(
   map: MapLibreMap,
@@ -206,10 +197,10 @@ function primeTerrainAndLabelCache(
   locale: string,
   originalTextFields: Map<string, unknown>,
   kurdishPlaces: readonly KurdishPlace[],
-): readonly string[] | null {
+): void {
   const style = map.getStyle();
   if (!style) {
-    return null;
+    return;
   }
 
   if (!styleHasRasterDemSource(style.sources)) {
@@ -232,34 +223,6 @@ function primeTerrainAndLabelCache(
     ),
   );
   map.addLayer(buildOwnLabelsLayer(scheme, ownLabelsFont));
-  return ownLabelsFont;
-}
-
-/**
- * Re-primes the cluster GeoJSON source + circle/count layers (Problem 2's
- * GL half — `cluster-layer.ts`) on a freshly-loaded map, same lifecycle as
- * `primeTerrainAndLabelCache` right above (called once from the initial
- * "load" handler, and again from `handleStyleChange`'s post-swap
- * `"style.load"` — a `setStyle` wipes both). Starts EMPTY
- * (`buildClusterSource()`'s own default) — the marker-build effect further
- * down pushes real cluster data through `GeoJSONSource.setData` the moment
- * `loadState` flips to `"ready"`, the same "prime empty, fill via setData"
- * split `own-labels.ts` already uses for its own source.
- *
- * `textFont` is the SAME font stack `resolveOwnLabelsFont` already resolved
- * for the own-labels layer (read once by the caller, threaded to both) —
- * one glyph-availability lookup per (re)prime, not two.
- */
-function primeClusterLayer(
-  map: MapLibreMap,
-  fillColor: string,
-  strokeColor: string,
-  textColor: string,
-  textFont: readonly string[],
-): void {
-  map.addSource(CLUSTER_SOURCE_ID, buildClusterSource());
-  map.addLayer(buildClusterCircleLayer(fillColor, strokeColor));
-  map.addLayer(buildClusterCountLayer(textColor, textFont));
 }
 
 /**
@@ -363,10 +326,12 @@ function useIsCompactMapControls(): boolean {
  *
  * Content: halo+core markers for the already-loaded region feed
  * (`useRegionEvents` — no new fetching), sized/colored by magnitude, tap →
- * event detail; dense clusters collapse into GL badges below a zoom
- * threshold (`clustering.ts`/`cluster-layer.ts`, Problem 2 of the map-UX-
- * polish wave). No ShakeMap overlay, felt cells, or fault lines yet
- * (follow-up waves).
+ * a preview sheet over the map. Every event in the filtered set renders as
+ * its own marker at every zoom — overlap at low zoom is an accepted trade
+ * (clustering was tried and removed: two rounds of tap-through bugs traced
+ * to it, and the owner's explicit call afterward was that a badge that
+ * hides which events it stands for isn't worth the tidiness). No ShakeMap
+ * overlay, felt cells, or fault lines yet (follow-up waves).
  */
 export default function MapScreenWeb() {
   const { t, i18n } = useTranslation();
@@ -392,15 +357,8 @@ export default function MapScreenWeb() {
   // lets `react-hooks/exhaustive-deps` see that stability directly, rather
   // than defeating the effect's whole "only rebuild markers when the data
   // actually changes" purpose by depending on the ever-changing whole
-  // object. `selectList` is read the same way, directly inside the
-  // cluster-click handler registered once by the map-CREATION effect
-  // (never in that effect's own dependency array, same precedent as
-  // `prefersReducedMotion` a few lines below in that same handler) — safe
-  // because `useEventSheetController`'s `useCallback`s never change
-  // identity across the component's lifetime, so the closure never goes
-  // stale.
+  // object.
   const selectEvent = eventSheet.select;
-  const selectList = eventSheet.selectList;
   const sheetRef = useRef<EventPreviewSheetHandle>(null);
   const prefersReducedMotion = useReducedMotionPreference();
 
@@ -535,19 +493,6 @@ export default function MapScreenWeb() {
   const mapRef = useRef<MapLibreMap | null>(null);
   const maplibreModuleRef = useRef<typeof import("maplibre-gl") | null>(null);
   const markersRef = useRef<MapLibreMarker[]>([]);
-  // The LAST cluster feature set the marker-build effect (below) computed —
-  // replayed into a freshly re-primed cluster source right after a basemap
-  // style swap (`handleStyleChange`), since `setStyle` wipes that source
-  // but neither `filteredEvents` nor `zoom` change on a pure style pick, so
-  // the marker-build effect itself wouldn't otherwise re-run to refill it.
-  const lastClusterFeaturesRef = useRef<ClusterMarkerFeature[]>([]);
-  // Cluster id -> its member `Event`s, resolved against `filteredEvents` —
-  // rebuilt alongside `lastClusterFeaturesRef` every marker-build effect
-  // run (below), and read by the cluster-click handler (registered once by
-  // the map-creation effect) to hand LIST-mode content real event data
-  // without threading whole `Event` objects through the GL layer's
-  // GeoJSON properties (`cluster-layer.ts` keeps those flat/numeric).
-  const clusterMembersRef = useRef<Map<string, Event[]>>(new Map());
   // Re-entrancy gate for the creation effect below — deliberately a ref,
   // not state: the effect itself calls `setLoadState("loading")`, and if
   // `loadState` were also in that effect's dependency array, that very
@@ -591,14 +536,6 @@ export default function MapScreenWeb() {
     "idle",
   );
   const [retryTick, setRetryTick] = useState(0);
-  // The live map's current zoom — drives clustering (Problem 2:
-  // `clusterRegionMarkers(filteredEvents, zoom)` in the marker-build effect
-  // below). Seeded to an arbitrary placeholder; irrelevant before the map
-  // is ready, since the "load" handler sets the REAL fitted zoom
-  // synchronously in the same handler that flips `loadState` to `"ready"`
-  // (same render, no stale-zoom flash) — see that handler below, and
-  // `"zoomend"` keeps it current for every later zoom the user makes.
-  const [zoom, setZoom] = useState(0);
 
   // "Map loads lazily when the tab is focused" (wave brief) — the mount
   // effect below only starts loading `maplibre-gl` once this becomes true.
@@ -688,109 +625,36 @@ export default function MapScreenWeb() {
         // full story). `compact: false` keeps it always expanded rather
         // than hidden behind a toggle.
         map.addControl(new maplibre.AttributionControl({ compact: false }));
-        // Camera/interaction listeners — registered once per map INSTANCE
-        // (not re-registered on a later `setStyle`, unlike the terrain/
-        // own-labels/cluster SOURCES and LAYERS a style swap wipes): both
-        // are properties of the Map object's own event system, not of the
-        // style document, so they keep working across a basemap swap with
-        // no re-priming needed.
-        //
-        // "zoomend" (not the continuous "zoom") keeps `zoom` state — and
-        // therefore clustering — in sync with the user's final zoom level
-        // without rebuilding every marker on every intermediate frame of a
-        // pinch/scroll gesture (battery/perf-conscious, CLAUDE.md).
-        map.on("zoomend", () => {
-          setZoom(map.getZoom());
-        });
-        // Cluster-badge tap -> ALWAYS reveal something, never just move the
-        // camera (the reported bug: a badge tap that only eased the
-        // viewport was indistinguishable from a tap that did nothing at
-        // all, since neither one visibly "showed the user an earthquake").
-        // Two branches, split on member count against `CLUSTER_LIST_MAX_SIZE`
-        // (clustering.ts's own doc comment justifies the threshold):
-        //
-        //  - Small enough to list usefully: open the SAME preview sheet a
-        //    marker tap opens, in LIST content (`selectList`) — the member
-        //    events themselves are the "something revealed", not a camera
-        //    move. `clusterMembersRef` (populated by the marker-build
-        //    effect below on every clustering pass) resolves the clicked
-        //    badge's id back to real `Event`s; a still-subtle camera nudge
-        //    (same fixed offset the marker-select handler uses) keeps the
-        //    tapped badge's rough location visible above the sheet.
-        //  - Too large to list (Problem 2 was ALSO "a single tap can't
-        //    plausibly resolve 100+ events into markers"): keep the
-        //    original zoom-to-bounds behavior, still with the
-        //    always-clears-the-cutoff guarantee a previous wave added
-        //    (`resolveClusterExpansionZoom`) — a plain `fitBounds` has no
-        //    floor on the resulting zoom, only a `maxZoom` ceiling, so a
-        //    cluster whose members are spread wide could fit-and-land at or
-        //    below `CLUSTER_MAX_ZOOM` and immediately re-cluster into the
-        //    exact same badge. `cameraForBounds` computes the natural fit
-        //    CAMERA-ONLY (no movement) so `resolveClusterExpansionZoom` can
-        //    force the zoom past the cutoff first, and `easeTo` is what
-        //    actually moves the map, honoring `prefersReducedMotion` same
-        //    as every other camera move on this screen.
-        //
-        // Layer-scoped `.on(event, layerId, handler)` only fires for
-        // features actually hit on `CLUSTER_CIRCLE_LAYER_ID` — MapLibre's
-        // own hit-testing, no manual geometry math needed here.
-        map.on("click", CLUSTER_CIRCLE_LAYER_ID, (event: MapLayerMouseEvent) => {
-          const meta = readClusterMetaFromProperties(event.features?.[0]?.properties);
-          if (!meta) {
-            return;
-          }
-
-          if (meta.count <= CLUSTER_LIST_MAX_SIZE) {
-            const members = clusterMembersRef.current.get(meta.id);
-            if (!members || members.length === 0) {
-              return;
-            }
-            selectList(sortClusterMembersForList(members));
-            // Bounds midpoint, not the exact (possibly off-screen-after-pad)
-            // GeoJSON centroid — good enough for "keep the tapped badge's
-            // rough area visible above the sheet," the same subtle-nudge
-            // intent `MAP_SHEET_SELECT_OFFSET_PX` already serves for a
-            // single marker's `easeTo` below.
-            map.easeTo({
-              center: [
-                (meta.bounds.minLon + meta.bounds.maxLon) / 2,
-                (meta.bounds.minLat + meta.bounds.maxLat) / 2,
-              ],
-              offset: [0, -MAP_SHEET_SELECT_OFFSET_PX],
-              duration: prefersReducedMotion ? 0 : 300,
-            });
-            return;
-          }
-
-          const natural = map.cameraForBounds(regionBboxToLngLatBounds(meta.bounds), {
-            padding: MAP_FIT_BOUNDS_PADDING_PX,
-          });
-          if (!natural || natural.center === undefined || natural.zoom === undefined) {
-            return;
-          }
-          map.easeTo({
-            center: natural.center,
-            zoom: resolveClusterExpansionZoom(natural.zoom, CLUSTER_MAX_ZOOM),
-            duration: prefersReducedMotion ? 0 : 300,
-          });
-        });
         // "clicking the map background should dismiss it" (event-preview
-        // sheet wave) — a map-WIDE (not layer-scoped) "click" listener, so
-        // it only ever fires for a click that actually hit the WebGL canvas
-        // itself. A marker tap never reaches here at all: maplibre-gl's DOM
-        // `Marker` elements are separate overlay nodes stacked on top of the
-        // canvas, so clicking one is a plain DOM event on that element, not
-        // a canvas hit MapLibre would report through this handler — so this
-        // never fights with (or immediately undoes) a marker selecting a
-        // NEW event. A cluster-badge click, above, ALSO reaches here (the
-        // two listener kinds both fire for the same click) — dismissing
-        // whatever sheet was open at the same time a cluster zoom happens is
-        // the right call too: a cluster isn't the sheet's own selected
-        // marker. `sheetRef.current` is only non-null while the sheet is
-        // actually mounted (open), so this is a safe no-op the rest of the
-        // time — see `EventPreviewSheetHandle`'s doc comment for why this
-        // goes through the animated `requestClose()` path rather than
-        // clearing the selection directly.
+        // sheet wave) — a map-WIDE "click" listener, registered once per map
+        // INSTANCE (not re-registered on a later `setStyle`, unlike the
+        // terrain/own-labels SOURCES and LAYERS a style swap wipes: this is
+        // a property of the Map object's own event system, not of the style
+        // document, so it keeps working across a basemap swap with no
+        // re-priming needed).
+        //
+        // Real mechanism, confirmed by reading the installed maplibre-gl
+        // source directly (not assumed): maplibre-gl appends every DOM
+        // `Marker` element INSIDE `map.getCanvasContainer()` — the SAME
+        // element its own `MapEventHandler` listens on for the native
+        // browser "click" event that THIS handler is built from
+        // (`MapEventHandler.click` does no target filtering at all: any
+        // click that bubbles up through the container becomes a map "click"
+        // event, marker or not). Left alone, a marker's own click would
+        // bubble straight into this exact handler in the same synchronous
+        // dispatch and immediately re-close the sheet it just opened,
+        // whenever the sheet was already mounted (e.g. tapping a second
+        // marker while one is showing) — the marker-build effect's own
+        // activation handler below deliberately calls
+        // `event.stopPropagation()` so a marker tap never reaches here at
+        // all, which is what actually keeps the two from fighting, not
+        // marker elements being on some separate, un-bubbled event path (an
+        // earlier, incorrect assumption in this file). `sheetRef.current`
+        // is only non-null while the sheet is actually mounted (open), so
+        // this is a safe no-op the rest of the time — see
+        // `EventPreviewSheetHandle`'s doc comment for why this goes through
+        // the animated `requestClose()` path rather than clearing the
+        // selection directly.
         map.on("click", () => {
           sheetRef.current?.requestClose();
         });
@@ -800,35 +664,14 @@ export default function MapScreenWeb() {
           }
           hasLoaded = true;
 
-          // Phone-width "wall of badges" fix — see
-          // `MAP_INITIAL_MIN_ZOOM_COMPACT`'s own doc comment (config.ts) for
-          // the full diagnosis. Runs before every other "load" setup below
-          // (which doesn't depend on zoom) so the marker-build effect's
-          // FIRST clustering pass already sees the corrected zoom — no
-          // flash of the over-clustered default before this corrects it.
-          if (
-            isCompactMapControlsWidth(window.innerWidth) &&
-            map.getZoom() < MAP_INITIAL_MIN_ZOOM_COMPACT
-          ) {
-            map.jumpTo({ zoom: MAP_INITIAL_MIN_ZOOM_COMPACT });
-          }
-
-          const ownLabelsFont = primeTerrainAndLabelCache(
+          primeTerrainAndLabelCache(
             map,
             scheme,
             i18n.language,
             originalTextFieldsRef.current,
             kurdishPlacesRef.current,
           );
-          primeClusterLayer(
-            map,
-            colors.text.primary,
-            colors.surface.raised,
-            colors.text.inverse,
-            ownLabelsFont ?? OWN_LABELS_DEFAULT_FONT,
-          );
           applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
-          setZoom(map.getZoom());
           setLoadState("ready");
 
           // Kick off the lazy tier-3 (village) load now that the map has
@@ -1004,49 +847,27 @@ export default function MapScreenWeb() {
       // earlier session's automatic fallback.
       fallbackAttemptedRef.current = false;
       map.once("style.load", () => {
-        const ownLabelsFont = primeTerrainAndLabelCache(
+        primeTerrainAndLabelCache(
           map,
           scheme,
           i18n.language,
           originalTextFieldsRef.current,
           kurdishPlacesRef.current,
         );
-        // A style swap wipes the cluster source/layers too (same `setStyle`
-        // reset `primeTerrainAndLabelCache`'s own doc comment describes) —
-        // re-prime them here so cluster badges don't silently vanish after
-        // picking a different basemap. The marker-build effect below
-        // refills this fresh source with real data on its next run (its own
-        // deps include `loadState`, which this style swap doesn't change —
-        // it re-runs because `clusterRegionMarkers`'s LAST computed data
-        // still lives in `lastClusterFeaturesRef`, replayed below).
-        primeClusterLayer(
-          map,
-          colors.text.primary,
-          colors.surface.raised,
-          colors.text.inverse,
-          ownLabelsFont ?? OWN_LABELS_DEFAULT_FONT,
-        );
-        const clusterSource = map.getSource(CLUSTER_SOURCE_ID) as GeoJSONSource | undefined;
-        clusterSource?.setData(
-          buildClusterFeatureCollection(lastClusterFeaturesRef.current, i18n.language),
-        );
         applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
       });
       map.setStyle(resolved.url);
     },
-    [scheme, i18n.language, setStyleId, colors],
+    [scheme, i18n.language, setStyleId],
   );
 
-  // Rebuilds the marker layer (Problem 2: clustering) whenever the map
-  // becomes ready, the active scope/filters change, the underlying feed
-  // refetches (every 60s while foregrounded, queries.ts), or the map's own
-  // zoom settles (`"zoomend"` above) — cheap at this event volume (region/
-  // world pools are low hundreds at most, `clustering.ts`'s own doc
-  // comment). Unaffected by a basemap style swap (`handleStyleChange`
-  // above): DOM markers are independent overlays untouched by `setStyle`,
-  // and the cluster GL source is re-primed/refilled directly in that
-  // handler (from `lastClusterFeaturesRef`) rather than by this effect
-  // re-running, since none of THIS effect's own deps change on a pure
+  // Rebuilds the marker layer whenever the map becomes ready, the active
+  // scope/filters change, or the underlying feed refetches (every 60s while
+  // foregrounded, queries.ts) — cheap at this event volume (region/world
+  // pools are low hundreds at most). Unaffected by a basemap style swap
+  // (`handleStyleChange` above): DOM markers are independent overlays
+  // untouched by `setStyle`, so none of THIS effect's own deps change on a
+  // pure
   // style pick.
   useEffect(() => {
     const map = mapRef.current;
@@ -1062,47 +883,15 @@ export default function MapScreenWeb() {
       filteredEvents.map((event) => [event.id, event]),
     );
 
-    const clusteredMarkers = clusterRegionMarkers(filteredEvents, zoom);
-    const clusterFeatures = clusteredMarkers.filter(
-      (feature): feature is ClusterMarkerFeature => feature.kind === "cluster",
-    );
-    const pointFeatures = clusteredMarkers.filter(
-      (feature): feature is PointMarkerFeature => feature.kind === "point",
-    );
-
-    // Clustered groups render via the GL circle/count layers primed by
-    // `primeClusterLayer` — far cheaper than DOM markers at real overlap
-    // density, and remembered in `lastClusterFeaturesRef` so a later
-    // basemap style swap (`handleStyleChange`) can replay this exact data
-    // into its freshly re-primed source without waiting for this effect to
-    // re-run (nothing it depends on changes on a pure style pick).
-    lastClusterFeaturesRef.current = clusterFeatures;
-    const clusterSource = map.getSource(CLUSTER_SOURCE_ID) as GeoJSONSource | undefined;
-    clusterSource?.setData(buildClusterFeatureCollection(clusterFeatures, i18n.language));
-
-    // Cluster id -> member `Event`s (`clusterMembersRef`'s own doc comment)
-    // — rebuilt every pass alongside the GL data above, so the cluster-click
-    // handler (registered once, `clusterMembersRef.current` read live) always
-    // resolves a tapped badge's members against whatever THIS render's
-    // `filteredEvents` actually were, not a stale snapshot from an earlier
-    // poll/filter state.
-    const membersById = new Map<string, Event[]>();
-    for (const feature of clusterFeatures) {
-      membersById.set(
-        feature.id,
-        feature.memberIds
-          .map((memberId) => eventById.get(memberId))
-          .filter((memberEvent): memberEvent is Event => memberEvent !== undefined),
-      );
-    }
-    clusterMembersRef.current = membersById;
-
-    // Standalone (unclustered) events keep real DOM `maplibregl.Marker`s —
-    // the accessibility this whole split exists to preserve (role=button,
-    // keyboard activation, an aria-label built from magnitude + place,
-    // exactly as before this wave; `map-web-interaction.test.tsx` still
-    // covers this unchanged).
-    for (const marker of pointFeatures) {
+    // Every event in the filtered set is its own tappable DOM
+    // `maplibregl.Marker` — clustering was removed (the owner's explicit
+    // call: overlap at low zoom is an accepted trade, not a problem to
+    // solve with grouping). Real DOM elements, not a GL layer, is what
+    // preserves accessibility (role=button, keyboard activation, an
+    // aria-label built from magnitude + place — `map-web-interaction.test.tsx`
+    // covers this).
+    const markers = buildRegionMarkers(filteredEvents);
+    for (const marker of markers) {
       const sourceEvent = eventById.get(marker.id);
       const magnitudeLabel = t("events.magnitudeA11yLabel", {
         value: formatMagnitudeValue(marker.magnitudeValue, i18n.language),
@@ -1162,11 +951,11 @@ export default function MapScreenWeb() {
       haloEl.appendChild(coreEl);
       hitEl.appendChild(haloEl);
 
-      // Tapping a marker now RAISES THE PREVIEW SHEET (map-UX wave: "the map
+      // Tapping a marker RAISES THE PREVIEW SHEET (map-UX wave: "the map
       // doesn't close fully, but a slider type thing opens") instead of
       // navigating straight to `/event/[id]` — reaching the full event is
-      // now the SHEET's own job (its "open full event" action / dragging
-      // past its largest detent), not the marker's. `sourceEvent` is always
+      // the SHEET's own job (its "open full event" action / dragging past
+      // its largest detent), not the marker's. `sourceEvent` is always
       // resolved above from this same render pass's `eventById` map, so
       // there's nothing left to push a route for here.
       const activate = () => {
@@ -1187,7 +976,67 @@ export default function MapScreenWeb() {
           duration: prefersReducedMotion ? 0 : 300,
         });
       };
-      hitEl.addEventListener("click", activate);
+
+      // Selection is driven from POINTER events (`pointerdown`/`pointerup`),
+      // NOT the browser's native `click` — the actual, source-verified
+      // mechanism behind repeated "tap does nothing" reports on real
+      // phones: maplibre-gl appends every DOM `Marker` element INSIDE
+      // `map.getCanvasContainer()`, the very element its own single-finger
+      // pan handler (`TouchPanHandler.touchmove`, read directly out of the
+      // installed maplibre-gl 6.4.0 source) listens on for `touchmove` —
+      // that handler calls `e.preventDefault()` on the FIRST `touchmove` of
+      // any active touch sequence, with no minimum-distance gate before
+      // doing so. Canceling a `touchmove` mid-sequence is standard browser
+      // behavior that suppresses every synthesized mouse-compatibility
+      // event for the rest of that same touch, including the `click` a
+      // marker's own listener used to depend on — and a real finger
+      // practically always produces at least one `touchmove` between
+      // `touchstart`/`touchend` (sub-pixel jitter is enough), so a genuine
+      // phone tap on a marker reliably never reached a `click` listener at
+      // all, even though a JS-dispatched synthetic pointerdown/pointerup/
+      // click sequence (which never enters MapLibre's touch pipeline) did —
+      // exactly the gap between "works when I fire it from devtools" and
+      // "does nothing on my phone" the bug reports described.
+      // `pointerdown`/`pointerup` are raw-input events, independent of that
+      // touch-to-mouse compatibility pipeline, so they're immune to it.
+      //
+      // A small movement tolerance (`MARKER_TAP_TOLERANCE_PX`) still tells
+      // a genuine tap apart from the start of a map-pan gesture that
+      // happened to begin on top of a marker. `stopPropagation()` on the
+      // matched `pointerup` (and on any residual native `click` — see
+      // below) keeps this from ALSO being seen by the map's own
+      // container-level "click" listener (the map-creation effect above):
+      // `MapEventHandler.click` does no target filtering at all, so an
+      // un-stopped click bubbling up from a marker would immediately
+      // re-close the sheet it just opened whenever the sheet was already
+      // mounted — e.g. tapping a second marker while one is showing.
+      let pointerDownAt: { x: number; y: number } | null = null;
+      hitEl.addEventListener("pointerdown", (domEvent) => {
+        pointerDownAt = { x: domEvent.clientX, y: domEvent.clientY };
+      });
+      hitEl.addEventListener("pointerup", (domEvent) => {
+        const start = pointerDownAt;
+        pointerDownAt = null;
+        if (!start) {
+          return;
+        }
+        const dx = domEvent.clientX - start.x;
+        const dy = domEvent.clientY - start.y;
+        if (Math.sqrt(dx * dx + dy * dy) > MARKER_TAP_TOLERANCE_PX) {
+          return;
+        }
+        domEvent.stopPropagation();
+        activate();
+      });
+      // A residual native "click" can still follow `pointerup` on
+      // non-touch (mouse) input, or a touch tap that happened to produce
+      // zero `touchmove` events — `activate()` already ran from the
+      // matched `pointerup` above; this listener exists ONLY to stop that
+      // click from bubbling into the map's background-dismiss listener,
+      // never to select again.
+      hitEl.addEventListener("click", (domEvent) => {
+        domEvent.stopPropagation();
+      });
       hitEl.addEventListener("keydown", (domEvent) => {
         if (domEvent.key === "Enter" || domEvent.key === " ") {
           domEvent.preventDefault();
@@ -1203,7 +1052,6 @@ export default function MapScreenWeb() {
   }, [
     loadState,
     filteredEvents,
-    zoom,
     colors,
     t,
     i18n.language,
@@ -1389,29 +1237,25 @@ export default function MapScreenWeb() {
           </View>
         ) : null}
 
-        {/* Draggable event-preview sheet (map-UX wave, extended by the
-         * cluster-tap-reveals-events fix to a second LIST content kind) —
-         * rendered LAST so it stacks above every other overlay in this
-         * file's established "later JSX = on top" paint-order convention
-         * (see `controlsBackdrop`'s own doc comment). Mounted ONLY while
-         * something is selected: `EventPreviewSheet` itself owns its whole
-         * open/close animation lifecycle, so mounting = "start the entrance
-         * animation" and unmounting = "the close animation already
-         * finished" (its `onDismiss` prop, wired to `eventSheet.dismiss`,
-         * is what clears the selection and lets this conditional actually
-         * unmount it) — never torn down/recreated for any OTHER reason (a
-         * filter change, a style swap, a data refetch), so the map
-         * underneath keeps rendering completely undisturbed the whole time
-         * the sheet is open. `onSelectEvent={selectEvent}` is how tapping a
-         * row inside an open cluster LIST swaps the sheet over to that
-         * single event's normal preview. */}
+        {/* Draggable event-preview sheet (map-UX wave) — rendered LAST so it
+         * stacks above every other overlay in this file's established
+         * "later JSX = on top" paint-order convention (see
+         * `controlsBackdrop`'s own doc comment). Mounted ONLY while an event
+         * is selected: `EventPreviewSheet` itself owns its whole open/close
+         * animation lifecycle, so mounting = "start the entrance animation"
+         * and unmounting = "the close animation already finished" (its
+         * `onDismiss` prop, wired to `eventSheet.dismiss`, is what clears
+         * the selection and lets this conditional actually unmount it) —
+         * never torn down/recreated for any OTHER reason (a filter change,
+         * a style swap, a data refetch), so the map underneath keeps
+         * rendering completely undisturbed the whole time the sheet is
+         * open. */}
         {loadState === "ready" && eventSheet.content ? (
           <EventPreviewSheet
             ref={sheetRef}
             content={eventSheet.content}
             detent={eventSheet.detent}
             onDetentChange={eventSheet.setDetent}
-            onSelectEvent={selectEvent}
             onDismiss={eventSheet.dismiss}
           />
         ) : null}

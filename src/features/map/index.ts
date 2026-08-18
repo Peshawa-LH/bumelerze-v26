@@ -1,6 +1,5 @@
 export {
   MAP_FIT_BOUNDS_PADDING_PX,
-  MAP_INITIAL_MIN_ZOOM_COMPACT,
   MARKER_HIT_PADDING_PX,
   MARKER_MAGNITUDE_CEILING,
   MARKER_MAGNITUDE_FLOOR,
@@ -18,38 +17,6 @@ export {
   type RegionBbox,
   type RegionMapMarker,
 } from "./marker-helpers";
-export {
-  CLUSTER_EXPANSION_ZOOM_MARGIN,
-  CLUSTER_LIST_MAX_SIZE,
-  CLUSTER_MAX_ZOOM,
-  CLUSTER_MAX_DIAMETER_PX,
-  CLUSTER_MIN_DIAMETER_PX,
-  CLUSTER_MIN_SIZE,
-  CLUSTER_RADIUS_PX,
-  clusterRegionMarkers,
-  resolveClusterExpansionZoom,
-  sortClusterMembersForList,
-  type ClusteredMapMarker,
-  type ClusterMarkerFeature,
-  type ClusterOptions,
-  type PointMarkerFeature,
-} from "./clustering";
-export {
-  buildClusterCircleLayer,
-  buildClusterCountLayer,
-  buildClusterFeatureCollection,
-  buildClusterSource,
-  CLUSTER_CIRCLE_LAYER_ID,
-  CLUSTER_COUNT_LAYER_ID,
-  CLUSTER_SOURCE_ID,
-  EMPTY_CLUSTER_FEATURE_COLLECTION,
-  readClusterBoundsFromProperties,
-  readClusterMetaFromProperties,
-  type ClusterFeatureCollection,
-  type ClusterFeatureMeta,
-  type ClusterFeatureProperties,
-  type ClusterGeoFeature,
-} from "./cluster-layer";
 export {
   isCompactMapControlsWidth,
   MAP_CONTROLS_COMPACT_MAX_WIDTH_PX,
@@ -136,7 +103,6 @@ export {
   SHEET_OPEN_FULL_HEIGHT_FRACTION,
   SHEET_PEEK_HEIGHT_FRACTION,
   useEventSheetController,
-  type EventSheetContent,
   type EventSheetController,
   type SheetDetent,
   type SheetSnapOutcome,

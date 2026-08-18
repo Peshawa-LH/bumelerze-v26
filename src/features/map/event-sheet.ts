@@ -10,7 +10,7 @@ import type { Event } from "@/features/events";
  * as plain, framework-free functions/hooks, independently testable without
  * mounting the Reanimated/Gesture-Handler-driven `EventPreviewSheet`
  * component itself (same split this feature already uses everywhere else:
- * `clustering.ts`/`cluster-layer.ts`, `filters.ts`, `style-provider.ts`).
+ * `filters.ts`, `style-provider.ts`).
  * `EventPreviewSheet.tsx` is the thin glue that reads these values and wires
  * them to actual gestures/animations — deliberately NOT calling any of
  * these functions from inside a Gesture-Handler worklet callback itself
@@ -27,23 +27,8 @@ import type { Event } from "@/features/events";
  * all: reaching it means "leave the sheet and open the real `/event/[id]`
  * route" (`SheetSnapOutcome`'s own doc comment) — the wave brief's explicit
  * instruction not to fork a second implementation of the event-detail
- * screen inside the sheet. Only reachable from `"event"` content
- * (`resolveSheetSnapOutcome`'s content-aware caller in `EventPreviewSheet`)
- * — a cluster's member LIST has no "full event" of its own to open. */
+ * screen inside the sheet. */
 export type SheetDetent = "peek" | "expanded";
-
-/**
- * What the sheet is currently showing — the cluster-tap-reveals-events fix:
- * a cluster badge tap now opens the SAME sheet a marker tap does, just with
- * `"list"` content instead of `"event"` (`CLUSTER_LIST_MAX_SIZE`'s doc
- * comment, clustering.ts). `"list"` carries the already-sorted member
- * events (`sortClusterMembersForList`) directly — the sheet renders one
- * tappable row per member; tapping a row hands the map screen that event,
- * which calls `select()` to swap this content over to `"event"`.
- */
-export type EventSheetContent =
-  | { kind: "event"; event: Event }
-  | { kind: "list"; events: readonly Event[] };
 
 /** What a released drag (or a button tap) resolves to. `"dismiss"` and
  * `"openFull"` are both exits from the sheet's own detent state machine —
@@ -85,7 +70,10 @@ const SNAP_OUTCOME_ORDER: readonly SheetSnapOutcome[] = [
 
 /** The sheet's visible height, in px, for a given detent and container
  * (map-area) height. */
-export function sheetVisibleHeightPx(detent: SheetDetent, containerHeightPx: number): number {
+export function sheetVisibleHeightPx(
+  detent: SheetDetent,
+  containerHeightPx: number,
+): number {
   const fraction =
     detent === "expanded" ? SHEET_EXPANDED_HEIGHT_FRACTION : SHEET_PEEK_HEIGHT_FRACTION;
   return containerHeightPx * fraction;
@@ -106,7 +94,10 @@ export function sheetTranslateYForDetent(
   detent: SheetDetent,
   containerHeightPx: number,
 ): number {
-  return sheetTotalHeightPx(containerHeightPx) - sheetVisibleHeightPx(detent, containerHeightPx);
+  return (
+    sheetTotalHeightPx(containerHeightPx) -
+    sheetVisibleHeightPx(detent, containerHeightPx)
+  );
 }
 
 export interface ResolveSheetSnapInput {
@@ -171,10 +162,7 @@ export function resolveSheetSnapOutcome({
 
   const index = SNAP_OUTCOME_ORDER.indexOf(nearest);
   const step = velocityY > 0 ? -1 : 1;
-  const nextIndex = Math.min(
-    SNAP_OUTCOME_ORDER.length - 1,
-    Math.max(0, index + step),
-  );
+  const nextIndex = Math.min(SNAP_OUTCOME_ORDER.length - 1, Math.max(0, index + step));
   return SNAP_OUTCOME_ORDER[nextIndex] as SheetSnapOutcome;
 }
 
@@ -182,21 +170,14 @@ export interface EventSheetController {
   /** What the sheet is currently showing, or `null` when it's dismissed —
    * the single source of truth for "is the sheet open" (no separate
    * boolean to drift out of sync with it). */
-  content: EventSheetContent | null;
+  content: Event | null;
   detent: SheetDetent;
   /** Opens the sheet for `nextEvent` at the "peek" detent — also the
-   * correct call for re-tapping a DIFFERENT marker (or a row inside an
-   * open cluster LIST) while the sheet is already open (expanded or not):
-   * a newly selected event always starts from the smaller preview, never
-   * inherits whatever the previous content's detent was. */
+   * correct call for re-tapping a DIFFERENT marker while the sheet is
+   * already open (expanded or not): a newly selected event always starts
+   * from the smaller preview, never inherits whatever the previous
+   * content's detent was. */
   select: (nextEvent: Event) => void;
-  /** Opens the sheet in LIST mode for a cluster badge's member events, at
-   * the "expanded" detent (not "peek") — a list needs more vertical room
-   * to be immediately useful than a single event's compact preview does;
-   * starting there means the tap itself already reveals several rows,
-   * instead of costing the user an extra drag-to-expand just to see
-   * anything past the top one or two members. */
-  selectList: (events: readonly Event[]) => void;
   setDetent: (detent: SheetDetent) => void;
   /** Clears the selection (`content` back to `null`) AND resets `detent`
    * back to "peek" — so the NEXT `select()`/`selectList()` (a different
@@ -212,17 +193,12 @@ export interface EventSheetController {
  * opens on marker select, moves between detents, dismisses").
  */
 export function useEventSheetController(): EventSheetController {
-  const [content, setContent] = useState<EventSheetContent | null>(null);
+  const [content, setContent] = useState<Event | null>(null);
   const [detent, setDetentState] = useState<SheetDetent>("peek");
 
   const select = useCallback((nextEvent: Event) => {
-    setContent({ kind: "event", event: nextEvent });
+    setContent(nextEvent);
     setDetentState("peek");
-  }, []);
-
-  const selectList = useCallback((events: readonly Event[]) => {
-    setContent({ kind: "list", events });
-    setDetentState("expanded");
   }, []);
 
   const setDetent = useCallback((nextDetent: SheetDetent) => {
@@ -234,5 +210,5 @@ export function useEventSheetController(): EventSheetController {
     setDetentState("peek");
   }, []);
 
-  return { content, detent, select, selectList, setDetent, dismiss };
+  return { content, detent, select, setDetent, dismiss };
 }

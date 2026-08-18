@@ -232,7 +232,7 @@ describe("useEventSheetController", () => {
     expect(result.current.detent).toBe("peek");
   });
 
-  it("select() opens the sheet at the peek detent with 'event' content for the given event", async () => {
+  it("select() opens the sheet at the peek detent with the given event as content", async () => {
     const { result } = await renderHook(() => useEventSheetController());
     const event = makeEvent();
 
@@ -240,7 +240,7 @@ describe("useEventSheetController", () => {
       result.current.select(event);
     });
 
-    expect(result.current.content).toEqual({ kind: "event", event });
+    expect(result.current.content).toEqual(event);
     expect(result.current.detent).toBe("peek");
   });
 
@@ -256,7 +256,7 @@ describe("useEventSheetController", () => {
     });
 
     expect(result.current.detent).toBe("expanded");
-    expect(result.current.content).toEqual({ kind: "event", event });
+    expect(result.current.content).toEqual(event);
   });
 
   it("selecting a DIFFERENT event while expanded resets back to peek", async () => {
@@ -274,7 +274,7 @@ describe("useEventSheetController", () => {
       result.current.select(second);
     });
 
-    expect(result.current.content).toEqual({ kind: "event", event: second });
+    expect(result.current.content).toEqual(second);
     expect(result.current.detent).toBe("peek");
   });
 
@@ -293,33 +293,6 @@ describe("useEventSheetController", () => {
     });
 
     expect(result.current.content).toBeNull();
-    expect(result.current.detent).toBe("peek");
-  });
-
-  it("selectList() opens the sheet at the EXPANDED detent with 'list' content for the given events", async () => {
-    const { result } = await renderHook(() => useEventSheetController());
-    const members = [makeEvent({ id: "a" }), makeEvent({ id: "b" })];
-
-    await act(() => {
-      result.current.selectList(members);
-    });
-
-    expect(result.current.content).toEqual({ kind: "list", events: members });
-    expect(result.current.detent).toBe("expanded");
-  });
-
-  it("selecting a single event from an open list swaps content to 'event' and resets to peek", async () => {
-    const { result } = await renderHook(() => useEventSheetController());
-    const members = [makeEvent({ id: "a" }), makeEvent({ id: "b" })];
-
-    await act(() => {
-      result.current.selectList(members);
-    });
-    await act(() => {
-      result.current.select(members[0] as ReturnType<typeof makeEvent>);
-    });
-
-    expect(result.current.content).toEqual({ kind: "event", event: members[0] });
     expect(result.current.detent).toBe("peek");
   });
 });

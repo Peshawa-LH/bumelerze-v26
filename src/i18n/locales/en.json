@@ -214,8 +214,7 @@
       "expandButtonLabel": "Show more detail",
       "collapseButtonLabel": "Hide detail",
       "closeButtonLabel": "Close",
-      "openFullButtonLabel": "Open full event",
-      "clusterListTitle": "{{count}} earthquakes"
+      "openFullButtonLabel": "Open full event"
     }
   },
   "sensor": {

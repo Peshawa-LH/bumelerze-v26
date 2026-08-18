@@ -109,46 +109,18 @@ export function setMockMapStyleFixture(fixture: {
 let nextMockSetStyleLayers: MockStyleLayer[] | null = null;
 let nextMockSetStyleSources: Record<string, { type: string }> | null = null;
 export function setMockSetStyleFixture(
-  fixture: { layers?: MockStyleLayer[]; sources?: Record<string, { type: string }> } | null,
+  fixture: {
+    layers?: MockStyleLayer[];
+    sources?: Record<string, { type: string }>;
+  } | null,
 ) {
   nextMockSetStyleLayers = fixture?.layers ?? null;
   nextMockSetStyleSources = fixture?.sources ?? null;
 }
 
 export const mockMapFitBounds = jest.fn();
-/** `Map.cameraForBounds(bounds, options)` — the cluster-click handler's
- * "compute the natural bounds-fit camera WITHOUT moving the map" call
- * (`map.web.tsx`), which it then feeds through `resolveClusterExpansionZoom`
- * before actually moving the camera via `easeTo`. Returns whatever
- * `setMockCameraForBoundsResult` last configured (`{ center, zoom }` by
- * default — a real MapLibre map always returns a defined `zoom` for a valid,
- * non-degenerate bounds) so a test can drive both branches of
- * `resolveClusterExpansionZoom` (natural zoom already past the cutoff vs.
- * not) deterministically. */
-export const mockMapCameraForBounds = jest.fn(
-  (_bounds: unknown, _options?: unknown): { center: [number, number]; zoom: number } | undefined =>
-    mockCameraForBoundsResult,
-);
-let mockCameraForBoundsResult: { center: [number, number]; zoom: number } | undefined = {
-  center: [45.45, 35.55],
-  zoom: 6,
-};
-export function setMockCameraForBoundsResult(
-  result: { center: [number, number]; zoom: number } | undefined,
-) {
-  mockCameraForBoundsResult = result;
-}
 export const mockMapSetStyle = jest.fn();
 export const mockMapOnce = jest.fn();
-/** `Map.jumpTo(options)` — the phone-width initial-zoom nudge
- * (`MAP_INITIAL_MIN_ZOOM_COMPACT`, config.ts) calls this once, synchronously
- * inside the "load" handler, on a compact-width viewport whose raw bbox-fit
- * zoom came in too low. Unlike `easeTo`, the mock also updates `getZoom()`'s
- * return value (see `MockMap.jumpTo` below) — a real `jumpTo` is an instant,
- * synchronous camera set, so anything read via `getZoom()` immediately
- * afterward (this file's own `setZoom(map.getZoom())` a few lines later)
- * must see the corrected value, the same way a real map would. */
-export const mockMapJumpTo = jest.fn();
 /** The event-preview sheet's subtle recenter-on-select (`map.easeTo`,
  * `map.web.tsx`'s marker `activate` handler) — recorded the same way every
  * other camera call in this fixture is, so a test can assert on the
@@ -205,47 +177,16 @@ function resetMockRTLTextPlugin() {
   mockSetRTLTextPlugin.mockClear();
 }
 
-/** A layer-scoped `.on(event, layerId, handler)` event, matching the one
- * shape `map.web.tsx` actually reads off it (`event.features[0].properties`
- * — the cluster-click-to-zoom handler). */
-export interface MockLayerEvent {
-  features?: { properties: Record<string, unknown> }[];
-}
-
 /** Every `MockMap` constructed this test run, in construction order — lets
- * a test reach the live instance directly (`.setZoom`/`.fireZoomEnd`/
- * `.fireLayerEvent`) for clustering/zoom scenarios that a jest.fn() spy
- * alone can't drive (there's no DOM node a real zoom gesture or a GL
- * layer's hit-tested click could be dispatched against under jsdom).
- * Cleared by `resetMapWebMocks`. */
+ * a test reach the live instance directly (e.g. `.handlers.click?.()`) for
+ * scenarios a jest.fn() spy alone can't drive. Cleared by
+ * `resetMapWebMocks`. */
 export const mockMapInstances: MockMap[] = [];
-
-/**
- * Default zoom every fresh `MockMap` reports via `getZoom()` unless a test
- * overrides it (`setMockNextMapZoom`) — deliberately WELL ABOVE
- * `CLUSTER_MAX_ZOOM` (`clustering.ts`, 8) so every PRE-EXISTING test in this
- * suite (marker counts, filter/scope/style-picker behavior — none of which
- * are about clustering) keeps building exactly one DOM marker per event, as
- * it always has: clustering only ever activates in a test that explicitly
- * asks for it via `setMockNextMapZoom`/`map.setZoom`.
- */
-export const DEFAULT_MOCK_MAP_ZOOM = 12;
-let mockNextMapZoom: number | undefined;
-export function setMockNextMapZoom(zoom: number | undefined) {
-  mockNextMapZoom = zoom;
-}
 
 export class MockMap {
   options: Record<string, unknown>;
   handlers: Record<string, () => void> = {};
   private onceHandlers: Record<string, (() => void)[]> = {};
-  private layerHandlers: Record<string, Record<string, (event: MockLayerEvent) => void>> =
-    {};
-  /** See `DEFAULT_MOCK_MAP_ZOOM`'s doc comment. Mutable (`setZoom`) so a
-   * test can simulate the user zooming in/out, then `fireZoomEnd()` to
-   * mirror `map.web.tsx`'s own `"zoomend"` -> `setZoom(map.getZoom())`
-   * wiring. */
-  zoom: number = mockNextMapZoom ?? DEFAULT_MOCK_MAP_ZOOM;
   // Per-instance, independently mutable copies of the module-scope fixture
   // — `structuredClone` so no two map instances (e.g. the original +ONE
   // recreated by a retry/fallback within the same test) ever share layer
@@ -268,22 +209,10 @@ export class MockMap {
     mockMapInstances.push(this);
   }
 
-  /**
-   * Two real MapLibre overloads: `.on(event, handler)` (map-wide, e.g.
-   * "load"/"error"/"zoomend") and `.on(event, layerId, handler)`
-   * (layer-scoped, e.g. the cluster circle layer's "click") — distinguished
-   * here the same way the real library's overload resolution works, by
-   * whether the second argument is a function or a layer-id string.
-   */
-  on(event: string, handlerOrLayerId: (() => void) | string, maybeHandler?: (event: MockLayerEvent) => void) {
-    if (typeof handlerOrLayerId === "string") {
-      const layerId = handlerOrLayerId;
-      const handler = maybeHandler as (event: MockLayerEvent) => void;
-      this.layerHandlers[event] ??= {};
-      this.layerHandlers[event][layerId] = handler;
-      return;
-    }
-    const handler = handlerOrLayerId;
+  /** `.on(event, handler)` — map-wide listeners (e.g. "load"/"error"/the
+   * background-dismiss "click"), the only overload `map.web.tsx` uses since
+   * clustering (the one caller of the layer-scoped overload) was removed. */
+  on(event: string, handler: () => void) {
     this.handlers[event] = handler;
     if (event === "load" && !this.shouldError) {
       void Promise.resolve().then(() => act(() => handler()));
@@ -291,30 +220,6 @@ export class MockMap {
     if (event === "error" && this.shouldError) {
       void Promise.resolve().then(() => act(() => handler()));
     }
-  }
-
-  /** Test helper: simulates the user's zoom settling at a new level —
-   * updates `getZoom()`'s return value AND fires any registered "zoomend"
-   * handler, mirroring `map.web.tsx`'s own `map.on("zoomend", () =>
-   * setZoom(map.getZoom()))` wiring in one call. Callers still need to wrap
-   * this in RNTL's `act()` themselves (matching every other handler-firing
-   * helper in this file), since it synchronously drives a React state
-   * update in the component under test. */
-  setZoomAndFireZoomEnd(zoom: number) {
-    this.zoom = zoom;
-    this.handlers.zoomend?.();
-  }
-
-  getZoom() {
-    return this.zoom;
-  }
-
-  /** Test helper: simulates a layer-scoped hit (e.g. a cluster badge
-   * click) — invokes whatever handler `map.web.tsx` registered via
-   * `.on(event, layerId, handler)` for `layerId`, with a single feature
-   * carrying `properties`. */
-  fireLayerEvent(event: string, layerId: string, properties: Record<string, unknown>) {
-    this.layerHandlers[event]?.[layerId]?.({ features: [{ properties }] });
   }
 
   addControl(control: unknown) {
@@ -340,19 +245,8 @@ export class MockMap {
     mockMapFitBounds(bounds, options);
   }
 
-  cameraForBounds(bounds: unknown, options?: unknown) {
-    return mockMapCameraForBounds(bounds, options);
-  }
-
   easeTo(options: unknown) {
     mockMapEaseTo(options);
-  }
-
-  jumpTo(options: { zoom?: number }) {
-    mockMapJumpTo(options);
-    if (typeof options.zoom === "number") {
-      this.zoom = options.zoom;
-    }
   }
 
   /** Simulates MapLibre's real `setStyle()` behavior: replaces the ENTIRE
@@ -365,7 +259,9 @@ export class MockMap {
   setStyle(url: string) {
     mockMapSetStyle(url);
     this.options = { ...this.options, style: url };
-    this.styleLayers = structuredClone(nextMockSetStyleLayers ?? defaultMockStyleLayers());
+    this.styleLayers = structuredClone(
+      nextMockSetStyleLayers ?? defaultMockStyleLayers(),
+    );
     this.styleSources = structuredClone(
       nextMockSetStyleSources ?? defaultMockStyleSources(),
     );
@@ -520,15 +416,11 @@ export function resetMapWebMocks() {
   mockMapGetSource.mockClear();
   mockSourceSetData.mockClear();
   mockMapFitBounds.mockClear();
-  mockMapCameraForBounds.mockClear();
-  mockCameraForBoundsResult = { center: [45.45, 35.55], zoom: 6 };
   mockMapEaseTo.mockClear();
-  mockMapJumpTo.mockClear();
   mockMapSetStyle.mockClear();
   mockMapOnce.mockClear();
   setMockMapStyleFixture({});
   setMockSetStyleFixture(null);
   resetMockRTLTextPlugin();
   mockMapInstances.length = 0;
-  mockNextMapZoom = undefined;
 }

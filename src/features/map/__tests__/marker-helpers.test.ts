@@ -1,8 +1,5 @@
 import type { Event } from "@/features/events";
-import {
-  MARKER_MAX_DIAMETER_PX,
-  MARKER_MIN_DIAMETER_PX,
-} from "../config";
+import { MARKER_MAX_DIAMETER_PX, MARKER_MIN_DIAMETER_PX } from "../config";
 import {
   buildRegionMarkers,
   hexToRgba,
@@ -96,9 +93,28 @@ describe("buildRegionMarkers", () => {
   });
 
   it("preserves feed order and produces one marker per event", () => {
-    const events = [makeEvent({ id: "a" }), makeEvent({ id: "b" }), makeEvent({ id: "c" })];
+    const events = [
+      makeEvent({ id: "a" }),
+      makeEvent({ id: "b" }),
+      makeEvent({ id: "c" }),
+    ];
     const markers = buildRegionMarkers(events);
     expect(markers.map((marker) => marker.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("flags only the most-recently-originated event as isMostRecent", () => {
+    const markers = buildRegionMarkers([
+      makeEvent({ id: "old", originTime: Date.UTC(2026, 7, 15, 12, 0, 0) }),
+      makeEvent({ id: "new", originTime: Date.UTC(2026, 7, 15, 13, 0, 0) }),
+      makeEvent({ id: "middle", originTime: Date.UTC(2026, 7, 15, 12, 30, 0) }),
+    ]);
+    expect(markers.find((marker) => marker.id === "new")?.isMostRecent).toBe(true);
+    expect(markers.find((marker) => marker.id === "old")?.isMostRecent).toBe(false);
+    expect(markers.find((marker) => marker.id === "middle")?.isMostRecent).toBe(false);
+  });
+
+  it("returns an empty array (no crash) for an empty feed's isMostRecent computation", () => {
+    expect(buildRegionMarkers([])).toEqual([]);
   });
 });
 
