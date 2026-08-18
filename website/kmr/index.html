@@ -13,8 +13,11 @@
 <link rel="icon" type="image/png" sizes="16x16" href="../brand/bumelerze-favicon-16.png">
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
+<script src="../slider.js" defer></script>
 </head>
 <body>
+
+<a class="skip-link" href="#main">Biçe ser naveroka sereke</a>
 
 <nav class="lang-switcher" aria-label="Ziman">
   <ul>
@@ -30,7 +33,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="../brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="35">
+        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="Malper">
@@ -41,65 +44,286 @@
   </div>
 </header>
 
-<main>
-  <h1>Sepana erdhejê ya ku ji bo Kurdistanê hatiye çêkirin</h1>
-  <p class="lede">Agahiyên erdhejê yên zû, pêbawer û ji aliyê zanistî ve rast,
-  bi zimanê te. Bumelerze (<bdi>bûmelerze</bdi>, bi kurdî "erdhej") ji aliyê
-  lêkolînerên metirsiya erdhejê ve hatiye çêkirin, ku her roj li ser vê herêmê
-  dixebitin.</p>
-
-  <ul class="features">
-    <li>
-      <h3>Rûpela erdhejê ya zindî</h3>
-      <p>Pêşî Kurdistan. Erdhejên nû û yên dîrokî yên nêzî te û li seranserê
-      herêmê, ji sê çavkaniyên zanistî yên serbixwe (USGS, EMSC, GEOFON),
-      mezin û zelal, her carê sepanê vedikî, li ser înterneteke lawaz jî.</p>
-    </li>
-    <li>
-      <h3>Rapora hestkirinê bi yek destlêdanê</h3>
-      <p>"Min hîs kir!": bi yek destlêdanê bibêje te çi hîs kir, di çend
-      çirkeyan de. Rapor bêyî înternetê jî tên tomarkirin. Her rapor alîkariya
-      avakirina wêneyeke rast a civakê dike, ka erdhej li Kurdistanê bi rastî
-      çawa tên hîskirin.</p>
-    </li>
-    <li>
-      <h3>SHAKEmapên Bumelerze</h3>
-      <p>Nexşeyên me yên zanistî yên tundiya hejandinê, ji bo erdhejên herêmê
-      tên hesibandin, ji bo bûyerên ku tu servîseke cîhanî qet nexşe ji wan re
-      nake jî. Her nexşe çavkaniyên daneyên xwe nîşan dide, û ka zanyarek ew
-      vekolandiye an na.</p>
-    </li>
-    <li>
-      <h3>Rêbernameyên ewlehiyê</h3>
-      <p>Rêbernameyên bi zimanekî sade li ser tiştên ku berî, di dema û piştî
-      erdhejê de bikî, ji bo mal û kolanên Kurdistanê hatine nivîsandin, ne ji
-      cihekî din hatine wergerandin.</p>
-    </li>
+<nav class="page-nav" aria-label="Li ser vê rûpelê">
+  <ul>
+    <li><a href="#what">Çi dike</a></li>
+    <li><a href="#science">Zanist çawa dixebite</a></li>
+    <li><a href="#open-data">Daneyên vekirî</a></li>
+    <li><a href="#who">Ji bo kê ye</a></li>
+    <li><a href="#get">Bumelerze bistîne</a></li>
   </ul>
+</nav>
 
-  <h2>Sepanê bistîne</h2>
-  <div class="store-badges">
-    <span class="store-badge">App Store <span class="soon">Di demeke nêz de</span></span>
-    <span class="store-badge">Google Play <span class="soon">Di demeke nêz de</span></span>
-  </div>
-  <p class="meta">Bumelerze di qonaxa dawî ya amadekariyê de ye ji bo
-  weşandinê. Girêdanên firotgehan dê li vir xuya bibin gava sepan hat
-  weşandin.</p>
+<main id="main">
 
-  <h2>Têkilî</h2>
-  <p>Pirs, rastkirin an nêrîn:
-  <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <h1>Sepana <span class="accent">erdhejê</span> ya ku ji bo Kurdistanê hatiye çêkirin</h1>
+        <p class="lede">Agahiyên erdhejê yên zû, pêbawer û ji aliyê zanistî ve rast,
+        bi zimanê te. Bumelerze (<bdi>bûmelerze</bdi>, bi kurdî "erdhej") ji aliyê
+        lêkolînerên metirsiya erdhejê ve hatiye çêkirin, ku her roj li ser vê herêmê
+        dixebitin.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://bumelerze.com/app">Sepana webê veke</a>
+          <a class="btn btn-outline" href="#science">Bibîne ka ew çawa dixebite</a>
+        </div>
+      </div>
+
+      <div class="hero-slider" data-slider>
+        <p id="hero-slider-label" class="section-kicker hero-slider-label">Bumelerze çi dike</p>
+        <div class="hero-slider-viewport">
+          <div class="hero-slider-track" role="group" aria-roledescription="karusel" aria-labelledby="hero-slider-label">
+
+            <article class="hero-slide" id="slide-1" role="group" aria-roledescription="slayd" aria-label="1 ji 4" data-slide-label="Çavdêriya berdewam, roj û şev">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-monitoring.webp" width="440" height="440" loading="eager" fetchpriority="high"
+                  alt="Wêneyek ji hilbijêrka rapora hestkirinê ya sepanê: êvareke aram li malê, asta herî nizm a tundiya hejandinê, &quot;nehat hîskirin&quot;.">
+              </p>
+              <p class="hero-slide-eyebrow">Rûpela zindî</p>
+              <h2>Çavdêriya berdewam, roj û şev</h2>
+              <p>Bumelerze her dem çavdêriya Kurdistan û Iraqê dike, sê
+              tornahiyên zanistî yên serbixwe (<bdi>USGS</bdi>,
+              <bdi>EMSC</bdi>, <bdi>GEOFON</bdi>) dike yek rûpela zindî, da
+              ku tu di çend çirkeyan de bizanibî çi qewimiye, tewra li ser
+              înterneteke lawaz jî.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-2" role="group" aria-roledescription="slayd" aria-label="2 ji 4" data-slide-label="Bi yek destlêdanê bêje me tu çi hîs kir">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-felt-report.webp" width="440" height="440" loading="lazy"
+                  alt="Wêneyek ji hilbijêrka rapora hestkirinê ya sepanê: malbatek malek hejayî terikandiye, asteke tundiya hejandinê ya bihêztir.">
+              </p>
+              <p class="hero-slide-eyebrow">Raporên hestkirinê</p>
+              <h2>Bi yek destlêdanê bêje me tu çi hîs kir</h2>
+              <p>Piştî erdhejekê, wêneya ku herî nêzî ya te hîs kirî
+              hilbijêre. Tenê yek destlêdanê digire, bêyî înternetê jî
+              dixebite, û dibe daneyeke rasteqîn a civakê li şûna texmînê.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-3" role="group" aria-roledescription="slayd" aria-label="3 ji 4" data-slide-label="SHAKEmapên me yên xwe, li vir tên hesibandin">
+              <p class="hero-slide-figure">
+                <img class="symbol-mark" src="../brand/bumelerze-symbol-color.svg" width="232" height="100" loading="lazy" alt="">
+              </p>
+              <p class="hero-slide-eyebrow">SHAKEmapên Bumelerze</p>
+              <h2>SHAKEmapên me yên xwe, li vir tên hesibandin</h2>
+              <p>Bumelerze bi karanîna pîvana tundiyê ya <bdi>EMS-98</bdi>
+              û daneyên vekirî yên weşandî, nexşeyên xwe yên zanistî yên
+              tundiya hejandinê ji bo erdhejên herêmê dihesibîne, tewra ji
+              bo wan bûyerên ku tu servîseke cîhanî qet nexşe ji wan re
+              nake.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="slayd" aria-label="4 ji 4" data-slide-label="Rêbernameya ewlehiyê bi kurdî">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-safety.webp" width="440" height="440" loading="lazy"
+                  alt="Wêneyek ji rêbernameyên ewlehiyê yên sepanê: li jêr maseyekê bikeve, xwe biparêze û xwe bigire.">
+              </p>
+              <p class="hero-slide-eyebrow">Rêbernameyên ewlehiyê</p>
+              <h2>Rêbernameya ewlehiyê bi kurdî</h2>
+              <p>Rêbernameyên bi zimanekî sade li ser tiştên ku berî, di
+              dema û piştî erdhejê de bikî, ji bo mal û kolanên Kurdistanê
+              hatine nivîsandin: bikeve, xwe biparêze û xwe bigire, û
+              bêtir.</p>
+            </article>
+
+          </div>
+          <p class="hero-slider-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="hero-slider-controls">
+          <a class="hero-slider-arrow hero-slider-prev" href="#slide-1" aria-label="Slayda berê"></a>
+          <ul class="hero-slider-dots">
+            <li><a class="hero-dot" href="#slide-1" aria-current="true"><span class="visually-hidden">Slayd 1: Çavdêriya berdewam</span></a></li>
+            <li><a class="hero-dot" href="#slide-2"><span class="visually-hidden">Slayd 2: Raporên hestkirinê bi yek destlêdanê</span></a></li>
+            <li><a class="hero-dot" href="#slide-3"><span class="visually-hidden">Slayd 3: SHAKEmapên Bumelerze</span></a></li>
+            <li><a class="hero-dot" href="#slide-4"><span class="visually-hidden">Slayd 4: Rêbernameyên ewlehiyê</span></a></li>
+          </ul>
+          <a class="hero-slider-arrow hero-slider-next" href="#slide-4" aria-label="Slayda paşê"></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="what" aria-labelledby="what-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">Çi dike</p>
+      <h2 id="what-h2">Yek sepan, çar erk, ji bo awayê ku erdhej li vir bi rastî diqewimin hatiye çêkirin</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">01</span>
+          <h3>Rûpela erdhejê ya zindî</h3>
+          <p>Pêşî Kurdistan. Erdhejên nû û yên dîrokî yên nêzî te û li seranserê
+          herêmê, ji sê çavkaniyên zanistî yên serbixwe (<bdi>USGS</bdi>,
+          <bdi>EMSC</bdi>, <bdi>GEOFON</bdi>), mezin û zelal, her carê sepanê
+          vedikî, li ser înterneteke lawaz jî.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">02</span>
+          <h3>Rapora hestkirinê bi yek destlêdanê</h3>
+          <p>"Min hîs kir!": bi yek destlêdanê bibêje te çi hîs kir, di çend
+          çirkeyan de. Rapor bêyî înternetê jî tên tomarkirin. Her rapor
+          alîkariya avakirina wêneyeke rast a civakê dike, ka erdhej li
+          Kurdistanê bi rastî çawa tên hîskirin.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">03</span>
+          <h3>SHAKEmapên Bumelerze</h3>
+          <p>Nexşeyên me yên zanistî yên tundiya hejandinê, ji bo erdhejên
+          herêmê tên hesibandin, ji bo bûyerên ku tu servîseke cîhanî qet
+          nexşe ji wan re nake jî. Her nexşe çavkaniyên daneyên xwe nîşan
+          dide, û ka zanyarek ew vekolandiye an na.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">04</span>
+          <h3>Rêbernameyên ewlehiyê</h3>
+          <p>Rêbernameyên bi zimanekî sade li ser tiştên ku berî, di dema û
+          piştî erdhejê de bikî, ji bo mal û kolanên Kurdistanê hatine
+          nivîsandin, ne ji cihekî din hatine wergerandin.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section-ivory" id="science" aria-labelledby="science-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">Zanist çawa dixebite</p>
+      <h2 id="science-h2">Ji sê tornahiyan heta nexşeyeke ku tu dikarî pê bawer bikî</h2>
+      <p class="lede lede-wide">Ji bo şopandina vê tiştî ne hewce ye tu
+      bawernameya erdhejnasiyê hebe. Ev zincîre ji "erd hejiya" heta "va ye
+      çi kir" e, di sê gavan de.</p>
+      <div class="science-grid">
+        <div class="science-item">
+          <h3>1. Sê tornahî, yek rûpel</h3>
+          <p>Her erdhej li gorî <bdi>USGS</bdi>, <bdi>EMSC</bdi> û
+          <bdi>GEOFON</bdi>, sê tornahiyên navneteweyî yên serbixwe yên
+          çavdêriyê tê kontrolkirin. Bumelerze raporên wan ên heman
+          bûyerê dike yek tomara hundirîn, da ku tu yek têketineke zelal
+          bibînî li şûna sê yên nakok.</p>
+        </div>
+        <div class="science-item">
+          <h3>2. Tiştê te hîs kir girîng e</h3>
+          <p>Rapora te ya "Min hîs kir!" li gorî pîvana tundiya
+          makrosîsmîk a <bdi>EMS-98</bdi> tê nirxandin, heman celeb
+          pîvana ku di nirxandinên zirarê yên fermî de tê bikaranîn.
+          Raporên ji heman herêmê tên berhevkirin bo tundiyeke ku civak
+          dîtiye, şahidiyeke rasteqîn, ne tenê texmîneke ji modelekê.</p>
+        </div>
+        <div class="science-item">
+          <h3>3. SHAKEmapên Bumelerze</h3>
+          <p>Ji bo erdhejên herêmê, Bumelerze nexşeya xwe ya tundiya
+          hejandinê ji modelên tevgera erdê û, li cihê ku hene, ji heman
+          raporên hestkirinê dihesibîne. Her nexşe daneyên xwe yên têketî
+          û ka zanyarek ew vekolandiye an na destnîşan dike, tu qutîka
+          reş tune.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="open-data" aria-labelledby="open-data-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">Daneyên vekirî û çavkanîgirtî</p>
+      <h2 id="open-data-h2">Em çavkaniyên xwe destnîşan dikin. Tu dikarî kar ê me kontrol bikî.</h2>
+      <p class="lede lede-wide">Daneyên erdhejê yên Kurdistan û Iraqê kêm in
+      û di navbera servîsên ji bo herêmên din hatine çêkirin de belav
+      bûne. Bumelerze heye da ku vê valahiyê bigire, bêyî ku awayê xwe
+      veşêre.</p>
+      <div class="opendata-grid">
+        <div class="opendata-card">
+          <h3>Atlasa Bumelerze</h3>
+          <p>Katalogeke giştî û gerok a erdhejên herêmê, bi awayekî
+          vekirî hatiye weşandin da ku her kes, lêkolîner an niştecih,
+          bikaribe bibîne çi û li ku qewimiye.</p>
+          <a href="https://peshawa-lh.github.io/bumelerze-atlas/">Li Atlasê binêre <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="opendata-card">
+          <h3>Koda çavkaniyê</h3>
+          <p>Sepan, motora SHAKEmap û xeta daneyan bi awayekî vekirî û di
+          bin Lîsansa <bdi>Apache 2.0</bdi> de tên pêşxistin. Bixwîne,
+          kontrol bike, an pirsgirêkekê tomar bike.</p>
+          <a href="https://github.com/Peshawa-LH/bumelerze-v26">Depoyê bibîne <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="opendata-card">
+          <h3>Rûpelên bingehîn</h3>
+          <p>Rûpela zindî tevliheviyek e ji <bdi>USGS</bdi>,
+          <bdi>EMSC</bdi> û <bdi>GEOFON</bdi>, sê servîsên zanistî yên
+          çavdêriya erdhejê. Her bûyer û her SHAKEmapa Bumelerze
+          çavkaniyên xwe navdike.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-off" id="who" aria-labelledby="who-h2">
+    <div class="wrap">
+      <p class="section-kicker">Ji bo kê ye</p>
+      <h2 id="who-h2">Ji bo kesên ku pêşî hîs dikin hatiye çêkirin</h2>
+      <p>Her kesê li Herêma Kurdistanê an Iraqê yê ku dixwaze agahiyên
+      erdhejê yên zû û pêbawer bi zimanê xwe, di gava ku girîng e de, ne
+      wergerandî û ne jî ramaneke paşîn. Plansazên rewşa awarte û tîmên
+      bersivdayînê yên ku hewceyê wêneyeke rasteqîn a rast-dem in ka
+      erdhejek bi rastî çawa li erdê hatiye hîskirin, ji aliyê kesên wê
+      hîs kirine ve. Lêkolîner û xwendekarên ku hewceyê daneyên erdhejê
+      yên vekirî û çavkanîgirtî ne ji bo herêmeke ku demek dirêj
+      kêm-amûr û kêm-lêkolînbûye.</p>
+    </div>
+  </section>
+
+  <section class="section" id="get" aria-labelledby="get-h2">
+    <div class="wrap">
+      <p class="section-kicker">Bumelerze bistîne</p>
+      <h2 id="get-h2">Îro, li ser webê bi kar bîne</h2>
+      <p>Bumelerze di pêşxistina çalak de ye. Sepana temam jixwe îro
+      wekî sepaneke webê dixebite, ne hewce ye tu wê saz bikî:</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://bumelerze.com/app">Sepana webê veke</a>
+      </div>
+      <p class="meta">Sepanên xwemalî yên <bdi>iOS</bdi> û
+      <bdi>Android</bdi> dê werin piştî vê. Ev rûpel dê gava ew werin
+      weşandin girêdanên wan nîşan bide, heta wê demê li vir tu
+      nîşanên firotgehê tune ne.</p>
+      <p>Pirs, rastkirin an nêrîn:
+      <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+    </div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="privacy.html">Polîtikaya nepenîtiyê</a>
-      <a href="support.html">Piştgirî</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="Bumelerze" width="176" height="32">
+      <p class="footer-tagline">Çavdêriya erdhejê, raporên hestkirinê û
+      rêberiya ewlehiyê ji bo Herêma Kurdistanê, bi kurdî.</p>
     </div>
-    <p>Bumelerze: çavdêriya erdhejê û raporên hestkirinê ji bo Herêma
-    Kurdistanê. Çavkaniyên daneyan her tim tên gotin: USGS, EMSC, GEOFON û
-    Bumelerze Shake Service.</p>
+    <div class="footer-col">
+      <h4>Malper</h4>
+      <ul>
+        <li><a href="index.html">Destpêk</a></li>
+        <li><a href="privacy.html">Polîtikaya nepenîtiyê</a></li>
+        <li><a href="support.html">Piştgirî</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Daneyên vekirî</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">Atlasa Bumelerze</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">Depoya çavkaniyê</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Têkilî</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>Çavkaniyên daneyan: <bdi>USGS</bdi>, <bdi>EMSC</bdi>,
+      <bdi>GEOFON</bdi> û Bumelerze Shake Service.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">Lîsansa kodê: <bdi>Apache 2.0</bdi></a>
+      <span>© 2026 Bumelerze. Di pêşxistinê de.</span>
+    </div>
   </div>
 </footer>
 

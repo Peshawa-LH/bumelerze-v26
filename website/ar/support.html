@@ -14,7 +14,9 @@
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
 </head>
-<body>
+<body class="prose-page">
+
+<a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
 <nav class="lang-switcher" aria-label="اللغة">
   <ul>
@@ -30,7 +32,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="../brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="بوملێرزە" width="176" height="35">
+        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="بوملێرزە" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="الموقع">
@@ -41,7 +43,7 @@
   </div>
 </header>
 
-<main>
+<main id="main" class="wrap">
   <h1>الدعم</h1>
 
   <h2>الأسئلة الشائعة</h2>
@@ -65,10 +67,11 @@
     الإلكتروني أو رقم هاتفك.</dd>
 
     <dt>كيف أحذف بياناتي؟</dt>
-    <dd>اليوم، تُحفَظ كل بياناتك على جهازك فقط، لذا فإن حذف التطبيق يحذف كل
-    شيء. وعندما تصبح قاعدة بيانات التقارير مفعّلة، يمكنك أيضاً إرسال معرّف
-    جهازك الظاهر داخل التطبيق إلينا بالبريد الإلكتروني وسنحذف التقارير
-    المرتبطة به. التفاصيل: انظر <a href="privacy.html">سياسة الخصوصية</a>.</dd>
+    <dd>التقارير الشعورية التي ترسلها تُحفَظ في قاعدة بيانات بوملێرزە
+    الخاصة، وليس فقط على جهازك. راسلنا بمعرّف جهازك الظاهر داخل التطبيق على
+    <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a>
+    للسؤال عن التقارير المرتبطة بجهازك. التفاصيل: انظر
+    <a href="privacy.html">سياسة الخصوصية</a>.</dd>
 
     <dt>لماذا يطلب التطبيق موقعي؟</dt>
     <dd>فقط لعرض المسافة بينك وبين كل زلزال، ولإرفاق موضع بالتقارير الشعورية
@@ -83,11 +86,37 @@
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="index.html">الرئيسية</a>
-      <a href="privacy.html">سياسة الخصوصية</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="بوملێرزە" width="176" height="32">
+      <p class="footer-tagline">مراقبة الزلازل والتقارير الشعورية وإرشادات
+      السلامة لإقليم كوردستان، بالكوردية.</p>
     </div>
-    <p>بوملێرزە: مراقبة الزلازل والتقارير الشعورية لإقليم كوردستان.</p>
+    <div class="footer-col">
+      <h4>الموقع</h4>
+      <ul>
+        <li><a href="index.html">الرئيسية</a></li>
+        <li><a href="privacy.html">سياسة الخصوصية</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>بيانات مفتوحة</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">أطلس بوملێرزە</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">مستودع الشيفرة</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>تواصل</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>مصادر البيانات: <bdi>USGS</bdi>، <bdi>EMSC</bdi>،
+      <bdi>GEOFON</bdi>، وخدمة اهتزاز بوملێرزە.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">رخصة الشيفرة: <bdi>Apache 2.0</bdi></a>
+      <span>© ٢٠٢٦ بوملێرزە. قيد التطوير.</span>
+    </div>
   </div>
 </footer>
 

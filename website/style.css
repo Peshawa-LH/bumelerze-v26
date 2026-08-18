@@ -1,68 +1,163 @@
-/* Bumelerze website, single shared stylesheet.
- * Surface/text tokens follow the app's design language (internal
- * design-language reference): dark as the primary theme, true-black OLED
- * surfaces, big type, system font stack, no frameworks.
+/* Bumelerze website, single shared stylesheet. No build step: plain CSS,
+ * custom properties for tokens, logical properties throughout so every
+ * rule mirrors correctly under dir="rtl" (Sorani, Arabic) without a
+ * separate RTL stylesheet.
  *
- * Brand accent tokens (--brand / --brand-strong / --brand-gold /
- * --focus-ring) come from the official logo package's palette
- * (assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/bumelerze-colors.json:
- * Signal Red #C8202F, Endpoint Gold #F2B632). The website is a BRAND
- * surface, unlike the app's own in-product chrome, which deliberately keeps
- * a different, blue accent so Signal Red stays legible as "danger" inside
- * the app itself (see assets/brand/README.md's "brand-red-vs-app-red
- * split" for the full reasoning; this site does not carry that constraint).
- * `--brand-strong` (dark theme) is a lightened tint of Signal Red, not the
- * raw hex: the raw hex only reaches ~3.7:1 against this theme's
- * near-black surfaces, short of the 4.5:1 AA-normal-text floor this token
- * needs for body links and headings; the tint clears 5:1 against every
- * surface it appears on (measured, not eyeballed, see the exact figures
- * below). `--brand` (decorative, non-text uses: borders, icons) stays the
- * exact, unmodified Signal Red in both themes.
+ * ================================================================
+ * TOKENS: source of truth is the owner's own logo package,
+ * assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/
+ * bumelerze-colors.json + Brand-Info/brand-guidelines.md:
+ *   Signal Red #C8202F, Warm Ivory #FFF5E8, Endpoint Gold #F2B632,
+ *   Wordmark Ink #0B1219, Approved Navy #071D2B,
+ *   Presentation Off-White #FBF7F0.
+ * This is a BRAND surface (unlike the app's own in-product chrome, which
+ * deliberately keeps a different, blue accent so Signal Red stays legible
+ * as "danger" inside the app itself, see assets/brand/README.md's
+ * "brand-red-vs-app-red split"; this site does not carry that constraint
+ * and uses the full brand palette).
  *
- * RTL locales (ckb, ar) rely on dir="rtl" + the CSS logical properties used
- * throughout, nothing here is hard-coded left/right, and the brand logo
- * (an <img>/<picture>, not decorative CSS) is never transformed/mirrored
- * for RTL: a wordmark is not a directional icon.
+ * LIGHT THEME (default): base white, alternating warm-ivory /
+ * presentation-off-white section backgrounds for rhythm, wordmark-ink
+ * text, signal-red for headings/links/CTAs. Every pair below is the
+ * *measured* WCAG contrast ratio (relative-luminance formula), not
+ * eyeballed:
+ *   wordmark-ink on white              18.84:1  (AAA)
+ *   wordmark-ink on warm-ivory         17.47:1  (AAA)
+ *   wordmark-ink on presentation-off-white 17.64:1 (AAA)
+ *   signal-red on white                 5.67:1  (AA body text, not AAA:
+ *                                                 the brief's own number)
+ *   signal-red on warm-ivory            5.26:1  (AA)
+ *   signal-red on presentation-off-white 5.31:1 (AA)
+ *   --text-secondary #686C70 on white   5.29:1  (AA)
+ *     ... on warm-ivory                 4.91:1  (AA)
+ *     ... on presentation-off-white     4.96:1  (AA)
+ *   endpoint-gold on white              1.82:1  (FAILS: never text/focus
+ *                                                 ring on light surfaces)
+ * Because signal-red already clears 4.5:1 on every light surface, it may
+ * be used for headings AND body-weight links/emphasis in the light theme
+ * without a lightened variant (unlike the old dark-mode-only site, which
+ * needed one). It is still used sparingly per the brief ("legal for body
+ * text but should be used for emphasis"), not for full paragraphs.
+ *
+ * DARK THEME (prefers-color-scheme: dark): a *considered* decision, not
+ * an accident carried over from the old generic near-black theme. The
+ * previous dark mode used arbitrary near-black grays (#000/#141414) that
+ * had no relationship to the brand. This redesign keeps dark mode (D:
+ * night earthquakes are common, per CLAUDE.md's own hard requirements)
+ * but rebuilds it on the brand's OWN dark color, Approved Navy #071D2B,
+ * so both themes are genuinely "the brand" rather than one branded theme
+ * and one generic-gray one:
+ *   warm-ivory on approved-navy        15.97:1  (AAA)
+ *   --text-secondary-dark #8F9493 on approved-navy 5.60:1 (AA)
+ *   endpoint-gold on approved-navy      9.44:1  (AAA: gold only works as
+ *                                                 a focus ring/accent on
+ *                                                 DARK surfaces; it fails
+ *                                                 badly on light ones)
+ *   signal-red (raw) on approved-navy   3.04:1  (fails AA body text:
+ *                                                 raw red is DECORATIVE
+ *                                                 ONLY in dark theme:
+ *                                                 borders, icons, the
+ *                                                 waveform mark, and solid
+ *                                                 button/badge FILLS where
+ *                                                 the text sitting on top
+ *                                                 is white, not the red
+ *                                                 itself)
+ *   --brand-red-on-deep #E18082 (red lightened toward warm-ivory, t=0.45)
+ *     on approved-navy                    6.24:1  (AAA: every TEXT use of
+ *                                                 "brand red" in dark
+ *                                                 theme, links, .accent,
+ *                                                 kickers, aria-current
+ *                                                 states, resolves to this
+ *                                                 token instead of raw
+ *                                                 signal-red)
+ *   --brand-red-on-deep on --surface-alt (#112633, raised cards) 5.64:1
+ *   --brand-red-on-deep on --surface-alt-2 (#203440)   4.68:1  (clears
+ *                                                 4.5:1 AA-normal-text on
+ *                                                 every surface it can
+ *                                                 appear on, small text
+ *                                                 included, not just large
+ *                                                 headings)
+ *
+ * FOOTER: always Approved Navy with the reversed ivory logo, regardless of
+ * light/dark theme. Brand-guidelines.md: "use the ivory version on navy
+ * or another sufficiently dark background" is a constant, not a
+ * color-scheme-dependent choice. Its tokens (--footer-*) are therefore
+ * fixed, not re-defined inside the dark-theme media query:
+ *   warm-ivory on approved-navy          15.97:1
+ *   --footer-text-secondary #8F9493       5.60:1
+ *   --footer-link #DA646A (same red-on-deep tint as above) 4.93:1
+ *   endpoint-gold (focus ring) on navy    9.44:1
+ *
+ * Endpoint Gold is used exactly as the brand guidelines describe it: "the
+ * gold endpoint represents a reported observation", a small, deliberate
+ * accent (focus rings on dark surfaces, a tiny marker dot), never a large
+ * fill, and never body text or a light-surface focus ring (it fails
+ * contrast there).
+ * ================================================================
  */
 
 :root {
-  --surface-base: #000000;
-  --surface-raised: #141414;
-  --surface-sunken: #1e1e1e;
-  --text-primary: #f2f2f3;
-  --text-secondary: #a6a6aa;
-  --border-default: #2a2a2c;
-  --brand: #c8202f;
-  /* Signal Red lightened ~28% toward white: 5.69:1 vs #000 (surface-base),
-     5.00:1 vs #141414 (surface-raised, e.g. .features h3's card
-     background), both comfortably clear the 4.5:1 AA-normal-text floor;
-     the raw #c8202f only reaches ~3.7:1/~3.25:1 on these same two
-     surfaces. */
-  --brand-strong: #d75e69;
-  --brand-gold: #f2b632;
-  /* Endpoint Gold reaches 11.5:1 against true-black: reserved for the
-     dark-theme focus ring, a small, deliberate nod to the logo's own gold
-     "reported observation" endpoint dot on the one UI element that is
-     itself about marking where attention currently is. */
-  --focus-ring: var(--brand-gold);
+  --surface-base: #ffffff;
+  --surface-alt: #fff5e8; /* warm-ivory */
+  --surface-alt-2: #fbf7f0; /* presentation-off-white */
+  --surface-card: #ffffff;
+  --text-primary: #0b1219; /* wordmark-ink */
+  --text-secondary: #686c70;
+  --brand-red: #c8202f; /* signal-red: headings, links, CTAs, icons */
+  --brand-red-strong: #a81a27; /* pressed/hover state, darker than signal-red */
+  --gold: #f2b632; /* endpoint-gold: decorative only in light theme */
+  --border: rgba(11, 18, 25, 0.12);
+  --border-strong: rgba(11, 18, 25, 0.22);
+  --focus-ring: var(--brand-red);
+  --btn-text-on-red: #ffffff; /* 5.67:1 against signal-red */
+
+  /* Footer is always Approved Navy, independent of color-scheme. */
+  --footer-bg: #071d2b;
+  --footer-text: #fff5e8;
+  --footer-text-secondary: #8f9493;
+  --footer-link: #da646a;
+  --footer-border: rgba(255, 245, 232, 0.14);
+  --footer-focus-ring: #f2b632;
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
-    --surface-base: #ffffff;
-    --surface-raised: #f7f7f8;
-    --surface-sunken: #ededef;
-    --text-primary: #161616;
-    --text-secondary: #5b5b5e;
-    --border-default: #e2e2e5;
-    --brand: #c8202f;
-    /* Raw Signal Red: 5.67:1 vs white (surface-base), similarly clear
-       against surface-raised, no lightening needed on light surfaces. */
-    --brand-strong: #c8202f;
-    --brand-gold: #f2b632;
-    /* Gold fails badly on light backgrounds (~1.8:1): light-theme focus
-       ring stays the same red used for links/headings. */
-    --focus-ring: var(--brand-strong);
+    --surface-base: #071d2b; /* approved-navy */
+    --surface-alt: #112633; /* navy raised ~4% toward white */
+    --surface-alt-2: #203440; /* navy raised ~10% toward white */
+    --surface-card: #112633;
+    --text-primary: #fff5e8; /* warm-ivory */
+    --text-secondary: #8f9493;
+    --brand-red: #c8202f; /* decorative fills/icons/borders only, per the
+      brand token rule below: never used for TEXT in dark theme, its
+      contrast against every dark surface here falls between 2.28:1 and
+      3.04:1, well short of the 4.5:1 AA-normal-text floor */
+    --brand-red-strong: #a81a27; /* pressed/hover FILL: reuses the same
+      darkened value as light theme rather than a lightened one, because
+      this is a solid button fill with white text on top (never page
+      text): white-on-#a81a27 measures 7.39:1; the lightened alternative
+      tried here first (#e0838a) only reached 2.70:1 with white text,
+      which would have made the hover state itself an accessibility
+      regression */
+    --brand-red-on-deep: #e18082; /* red lightened toward warm-ivory,
+      t=0.45: this is the token every TEXT use of "brand red" resolves to
+      in dark theme (links, .accent, .section-kicker, aria-current states,
+      hover text) instead of raw --brand-red. Measured against all three
+      dark surfaces in use: 6.24:1 on approved-navy #071d2b, 5.64:1 on
+      --surface-alt #112633, 4.68:1 on --surface-alt-2 #203440, so it
+      clears 4.5:1 AA-normal-text everywhere it can appear, not just on
+      large headings like the first version of this token did. */
+    --gold: #f2b632;
+    --border: rgba(255, 245, 232, 0.14);
+    --border-strong: rgba(255, 245, 232, 0.26);
+    --focus-ring: var(--gold);
+    --btn-text-on-red: #ffffff;
+  }
+}
+
+@media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
+  :root {
+    --brand-red-on-deep: var(--brand-red);
   }
 }
 
@@ -72,17 +167,48 @@
 
 html {
   font-size: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 body {
   margin: 0;
   background: var(--surface-base);
   color: var(--text-primary);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans",
-    "Noto Sans Arabic", "Helvetica Neue", Arial, sans-serif;
-  font-size: 1.0625rem; /* body.default floor: never small type */
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Noto Sans",
+    "Noto Sans Arabic",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  /* System-font stack, deliberately: no web font is downloaded (Fonts note
+   * below). Every platform's own default UI font already resolves an
+   * Arabic-script fallback with full Central Kurdish letter coverage
+   * (ڵ ڕ ۆ ێ ە are standard Unicode Arabic-script code points, not custom
+   * glyphs): Android ships Noto Sans/Noto Naskh Arabic system-wide,
+   * Windows/Segoe UI falls back to a bundled Arabic-script face, and iOS
+   * falls back to its bundled Geeza Pro / San Francisco Arabic. Zero font
+   * bytes downloaded, zero flash-of-invisible-text risk on a weak
+   * connection, and correct glyph coverage on every target platform. */
+  font-size: 1.0625rem; /* body.default floor: never below 16sp/17px */
   line-height: 1.55;
   -webkit-text-size-adjust: 100%;
+  transition: none;
 }
 
 /* Arabic-script locales need taller line-height (design-language.md §2). */
@@ -90,26 +216,105 @@ html[dir="rtl"] body {
   line-height: 1.7;
 }
 
-main,
-.site-header-inner,
-.site-footer-inner {
-  max-width: 44rem;
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ---------- skip link ---------- */
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  inset-block-start: -3.5rem;
+  background: var(--brand-red);
+  color: #fff;
+  padding: 0.75rem 1.1rem;
+  border-radius: 0 0 8px 8px;
+  font-weight: 700;
+  text-decoration: none;
+  z-index: 100;
+  transition: inset-block-start 0.15s ease;
+}
+
+.skip-link:focus {
+  inset-block-start: 0;
+}
+
+/* ---------- visually hidden (screen-reader-only) text ---------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
+}
+
+/* ---------- layout primitives ---------- */
+
+.wrap {
+  max-width: 46rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+.wrap-wide {
+  max-width: 74rem;
   margin-inline: auto;
   padding-inline: 1.25rem;
 }
 
 main {
+  padding-block-end: 1rem;
+}
+
+.prose-page main {
   padding-block: 1rem 3rem;
+}
+
+.section {
+  padding-block: 3.25rem;
+  background: var(--surface-base);
+}
+
+.section-ivory {
+  background: var(--surface-alt);
+}
+
+.section-off {
+  background: var(--surface-alt-2);
+}
+
+.section-kicker {
+  color: var(--brand-red-on-deep);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.85rem;
+  margin-block-end: 0.4rem;
+}
+
+html[dir="rtl"] .section-kicker {
+  letter-spacing: 0;
 }
 
 /* ---------- header ---------- */
 
 .site-header {
-  border-block-end: 1px solid var(--border-default);
+  border-block-end: 1px solid var(--border);
   padding-block: 0.9rem;
+  background: var(--surface-base);
 }
 
 .site-header-inner {
+  max-width: 74rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -120,18 +325,20 @@ main {
   display: flex;
   align-items: center;
   text-decoration: none;
+  border-radius: 6px;
 }
 
-/* The horizontal logo (website/brand/) already contains the wordmark as
- * vector artwork: light-mode pages get the dark-ink version, dark-mode
- * pages get the ivory "reversed" version via the <picture>/<source>
- * prefers-color-scheme swap in each page's header (brand-guidelines.md:
- * "use the ivory version on navy or another sufficiently dark
- * background", this site's dark surface qualifies). Fixed intrinsic
- * width/height on the <img> keep layout stable before the SVG loads. */
+/* The horizontal logo already contains the wordmark as vector artwork:
+ * light-mode pages get the dark-ink version, dark-mode pages get the
+ * ivory "reversed" version via the <picture>/<source> prefers-color-scheme
+ * swap in each page's header (brand-guidelines.md: "use the ivory version
+ * on navy or another sufficiently dark background", this site's dark
+ * surface qualifies). Fixed intrinsic width/height on the <img> keep
+ * layout stable before the SVG loads. Never mirrored for RTL: a wordmark
+ * is not a directional icon. */
 .brand-logo {
   display: block;
-  height: 35px;
+  height: 32px;
   width: auto;
 }
 
@@ -147,22 +354,23 @@ main {
   text-decoration: none;
   font-weight: 600;
   padding-block: 0.35rem;
+  border-radius: 4px;
 }
 
 .site-nav a[aria-current="page"],
 .site-nav a:hover {
-  color: var(--text-primary);
+  color: var(--brand-red-on-deep);
 }
 
 /* ---------- language switcher ---------- */
 
 .lang-switcher {
-  border-block-end: 1px solid var(--border-default);
-  background: var(--surface-raised);
+  border-block-end: 1px solid var(--border);
+  background: var(--surface-alt-2);
 }
 
 .lang-switcher ul {
-  max-width: 44rem;
+  max-width: 74rem;
   margin: 0 auto;
   padding: 0.45rem 1.25rem;
   list-style: none;
@@ -177,6 +385,7 @@ main {
   text-decoration: none;
   padding-block: 0.3rem;
   display: inline-block;
+  border-radius: 4px;
 }
 
 .lang-switcher a:hover {
@@ -185,28 +394,34 @@ main {
 }
 
 .lang-switcher [aria-current="true"] {
-  color: var(--brand-strong);
+  color: var(--brand-red-on-deep);
   font-weight: 700;
 }
 
 /* ---------- typography ---------- */
 
 h1 {
-  font-size: clamp(1.9rem, 5.5vw, 2.6rem);
-  line-height: 1.25;
-  margin-block: 1.4rem 0.5rem;
+  font-size: clamp(2.1rem, 6vw, 3.25rem);
+  line-height: 1.15;
+  margin-block: 0 0.6rem;
   letter-spacing: -0.01em;
+  color: var(--text-primary);
 }
 
 html[dir="rtl"] h1 {
-  line-height: 1.4;
+  line-height: 1.35;
   letter-spacing: 0;
 }
 
+h1 .accent {
+  color: var(--brand-red-on-deep);
+}
+
 h2 {
-  font-size: 1.4rem;
-  line-height: 1.3;
-  margin-block: 2.2rem 0.6rem;
+  font-size: clamp(1.45rem, 3.4vw, 1.9rem);
+  line-height: 1.25;
+  margin-block: 0 0.9rem;
+  color: var(--text-primary);
 }
 
 html[dir="rtl"] h2 {
@@ -214,8 +429,9 @@ html[dir="rtl"] h2 {
 }
 
 h3 {
-  font-size: 1.15rem;
-  margin-block: 1.4rem 0.4rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-block: 1.2rem 0.4rem;
 }
 
 p,
@@ -224,19 +440,31 @@ li {
 }
 
 .lede {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   color: var(--text-secondary);
-  max-width: 38rem;
-  margin-block-start: 0;
+  max-width: 34rem;
+  margin-block: 0 1.6rem;
+}
+
+.lede-wide {
+  max-width: 42rem;
+}
+
+.hero-slider-label {
+  margin-inline: 0.1rem;
 }
 
 a {
-  color: var(--brand-strong);
+  color: var(--brand-red-on-deep);
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
 }
 
 :focus-visible {
   outline: 3px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline-offset: 3px;
   border-radius: 4px;
 }
 
@@ -248,68 +476,411 @@ bdi,
   direction: ltr;
 }
 
+/* ---------- buttons / CTAs ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding-inline: 1.4rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--brand-red);
+  color: var(--btn-text-on-red);
+}
+
+.btn-primary:hover {
+  background: var(--brand-red-strong);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.btn-outline:hover {
+  border-color: var(--brand-red);
+  color: var(--brand-red-on-deep);
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-block: 1.6rem 0;
+}
+
+/* ---------- page jump nav (index only) ---------- */
+
+.page-nav {
+  border-block: 1px solid var(--border);
+  background: var(--surface-alt-2);
+}
+
+.page-nav ul {
+  max-width: 74rem;
+  margin: 0 auto;
+  padding: 0.6rem 1.25rem;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.3rem;
+  font-size: 0.95rem;
+}
+
+.page-nav a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page-nav a:hover {
+  color: var(--brand-red-on-deep);
+}
+
+/* ================================================================
+ * HERO + SLIDER
+ *
+ * No-JS baseline: `.hero-slider-track` is a native horizontally
+ * scrolling, scroll-snapping flex row. It works with zero script: touch
+ * swipe, trackpad, and (once focused, tabindex="0") arrow-key scrolling
+ * all work natively in every modern browser, in both LTR and RTL (RTL
+ * flips the scroll start edge automatically because the browser reads the
+ * ancestor `dir`). The dot/prev/next controls are real <a href="#slide-N">
+ * anchors: activating one asks the browser to scroll the target slide
+ * into view, which works inside a nested scroll container with zero JS
+ * (standard fragment-navigation behavior, not a JS feature).
+ *
+ * JS enhancement (slider.js, deferred, ~2 KB unminified, no dependency):
+ * intercepts those same links to animate the scroll explicitly (so it can
+ * check prefers-reduced-motion itself rather than trust only the CSS),
+ * adds real ArrowLeft/ArrowRight key handling, and updates aria-current on
+ * the active dot + a visually-hidden live region ("Slide 2 of 4: ...") so
+ * screen-reader users get an announcement on every slide change: plain
+ * scroll-snap alone does not announce anything. If the script fails to
+ * load, every one of those affordances still functions at the native
+ * level described above; only the live-region announcement and the
+ * dot/keyboard polish are lost.
+ *
+ * Deliberately NEVER auto-advances, in any state, with or without JS. A
+ * panic-time / crisis-adjacent product (per this repo's own hard
+ * requirements: "motion minimal and interruptible") should not put
+ * unrequested motion in front of a stressed user, so this is not merely
+ * the reduced-motion behavior, it is the ONLY behavior, which also means
+ * there is no pause control to build, because there is nothing to pause.
+ * ================================================================ */
+
+.hero {
+  padding-block: 2.5rem 3rem;
+  background: var(--surface-alt);
+}
+
+.hero-inner {
+  max-width: 74rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.hero-copy {
+  flex: 1 1 22rem;
+  min-width: 0;
+}
+
+.hero-slider {
+  flex: 1 1 22rem;
+  min-width: 0;
+  max-width: 30rem;
+  margin-inline: auto;
+}
+
+.hero-slider-viewport {
+  position: relative;
+}
+
+.hero-slider-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 1rem;
+  border-radius: 16px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hero-slider-track::-webkit-scrollbar {
+  display: none;
+}
+
+.hero-slide {
+  scroll-snap-align: start;
+  flex: 0 0 92%;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.4rem 1.4rem 1.6rem;
+  min-height: 21rem;
+}
+
+@media (min-width: 46rem) {
+  .hero-slide {
+    flex-basis: 100%;
+  }
+}
+
+.hero-slide-figure {
+  margin: 0 0 0.9rem;
+  display: flex;
+  justify-content: center;
+}
+
+.hero-slide-figure img,
+.hero-slide-figure .symbol-mark {
+  width: 9.5rem;
+  height: 9.5rem;
+  object-fit: contain;
+}
+
+.hero-slide-eyebrow {
+  color: var(--brand-red-on-deep);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-block-end: 0.3rem;
+}
+
+html[dir="rtl"] .hero-slide-eyebrow {
+  letter-spacing: 0;
+}
+
+.hero-slide h2 {
+  font-size: 1.25rem;
+  margin-block-end: 0.5rem;
+}
+
+.hero-slide p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.hero-slider-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-block-start: 1rem;
+}
+
+.hero-slider-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  background: var(--surface-card);
+}
+
+.hero-slider-arrow:hover {
+  border-color: var(--brand-red);
+  color: var(--brand-red-on-deep);
+}
+
+.hero-slider-prev::before {
+  content: "\2039"; /* ‹ */
+}
+
+.hero-slider-next::before {
+  content: "\203a"; /* › */
+}
+
+html[dir="rtl"] .hero-slider-prev::before {
+  content: "\203a"; /* › : previous still means "toward slide 1" but that
+    is now the visual right, so the glyph flips to point that way. */
+}
+
+html[dir="rtl"] .hero-slider-next::before {
+  content: "\2039"; /* ‹ */
+}
+
+.hero-slider-dots {
+  display: flex;
+  gap: 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-dot {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 999px;
+}
+
+.hero-dot::before {
+  content: "";
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--border-strong);
+  display: block;
+}
+
+.hero-dot[aria-current="true"]::before {
+  background: var(--brand-red-on-deep);
+}
+
+.hero-slider-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
+}
+
+.symbol-mark {
+  display: inline-block;
+}
+
 /* ---------- feature grid ---------- */
 
-.features {
+.feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 0.9rem;
+  gap: 1.1rem;
   padding: 0;
-  margin-block: 1.8rem;
+  margin: 0;
   list-style: none;
 }
 
-.features li {
-  background: var(--surface-raised);
-  border: 1px solid var(--border-default);
-  border-radius: 12px;
-  padding: 1.1rem 1.2rem;
+.feature-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.3rem 1.3rem 1.4rem;
 }
 
-.features h3 {
-  margin-block: 0 0.35rem;
-  color: var(--brand-strong);
+.feature-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  background: var(--brand-red);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  margin-block-end: 0.7rem;
 }
 
-.features p {
+.feature-card h3 {
+  margin-block: 0 0.4rem;
+  font-size: 1.15rem;
+}
+
+.feature-card p {
   margin: 0;
   color: var(--text-secondary);
   font-size: 1rem;
 }
 
-/* ---------- store badges (placeholders, not links) ---------- */
+/* ---------- science / how-it-works ---------- */
 
-.store-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-block: 1.2rem;
+.science-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.5rem;
+  margin-block-start: 1.8rem;
 }
 
-.store-badge {
-  border: 1px solid var(--border-default);
-  background: var(--surface-sunken);
+.science-item {
+  border-inline-start: 4px solid var(--brand-red);
+  padding-inline-start: 1.1rem;
+}
+
+html[dir="rtl"] .science-item {
+  border-inline-start: none;
+  border-inline-end: 4px solid var(--brand-red);
+  padding-inline-start: 0;
+  padding-inline-end: 1.1rem;
+}
+
+.science-item h3 {
+  margin-block-start: 0;
+}
+
+.science-item p {
   color: var(--text-secondary);
-  border-radius: 10px;
-  padding: 0.7rem 1.1rem;
-  font-weight: 600;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  margin: 0;
 }
 
-.store-badge .soon {
-  font-size: 0.85rem;
-  font-weight: 400;
+/* ---------- open data ---------- */
+
+.opendata-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.1rem;
+  margin-block-start: 1.6rem;
+}
+
+.opendata-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.3rem;
+}
+
+.opendata-card h3 {
+  margin-block-start: 0;
+  font-size: 1.05rem;
+}
+
+.opendata-card p {
+  color: var(--text-secondary);
+  font-size: 0.98rem;
+  margin-block-end: 0.7rem;
+}
+
+.opendata-card a {
+  font-weight: 700;
 }
 
 /* ---------- notes, contact, FAQ ---------- */
 
 .note {
-  background: var(--surface-raised);
-  border: 1px solid var(--border-default);
+  background: var(--surface-alt-2);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 0.8rem 1rem;
+  padding: 0.9rem 1.1rem;
   color: var(--text-secondary);
   font-size: 0.98rem;
 }
@@ -331,32 +902,90 @@ dl.faq dd {
   color: var(--text-primary);
 }
 
-/* ---------- footer ---------- */
+/* ---------- footer (always Approved Navy, see token notes above) ---------- */
 
 .site-footer {
-  border-block-start: 1px solid var(--border-default);
-  padding-block: 1.4rem 2.2rem;
+  background: var(--footer-bg);
+  border-block-start: 1px solid var(--footer-border);
+  padding-block: 3rem 2.2rem;
   margin-block-start: 2rem;
+  color: var(--footer-text);
 }
 
 .site-footer-inner {
-  color: var(--text-secondary);
+  max-width: 74rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 2rem;
+}
+
+.footer-brand .brand-logo {
+  height: 30px;
+}
+
+.footer-tagline {
+  color: var(--footer-text-secondary);
   font-size: 0.95rem;
+  margin-block: 0.9rem 0;
+  max-width: 22rem;
+}
+
+.footer-col h4 {
+  color: var(--footer-text);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-block: 0 0.7rem;
+}
+
+html[dir="rtl"] .footer-col h4 {
+  letter-spacing: 0;
+}
+
+.footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
 .site-footer a {
-  color: var(--text-secondary);
+  color: var(--footer-link);
+  text-decoration: none;
 }
 
 .site-footer a:hover {
-  color: var(--text-primary);
+  text-decoration: underline;
 }
 
-.footer-links {
+.site-footer :focus-visible {
+  outline-color: var(--footer-focus-ring);
+}
+
+.footer-legal {
+  grid-column: 1 / -1;
+  border-block-start: 1px solid var(--footer-border);
+  padding-block-start: 1.4rem;
+  margin-block-start: 0.6rem;
+  color: var(--footer-text-secondary);
+  font-size: 0.88rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.4rem 1rem;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 45.99rem) {
+  .hero {
+    padding-block: 1.75rem 2.25rem;
+  }
+
+  .hero-inner {
+    gap: 1.75rem;
+  }
 }

@@ -12,8 +12,11 @@
 <link rel="icon" type="image/png" sizes="16x16" href="brand/bumelerze-favicon-16.png">
 <link rel="apple-touch-icon" href="brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="style.css">
+<script src="slider.js" defer></script>
 </head>
 <body>
+
+<a class="skip-link" href="#main">Skip to main content</a>
 
 <nav class="lang-switcher" aria-label="Language">
   <ul>
@@ -29,7 +32,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="35">
+        <img class="brand-logo" src="brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="Site">
@@ -40,64 +43,279 @@
   </div>
 </header>
 
-<main>
-  <h1>The earthquake app built for Kurdistan</h1>
-  <p class="lede">Fast, trustworthy, scientifically correct earthquake information,
-  in your own language. Bumelerze (<bdi>bûmelerze</bdi>, Kurdish for
-  “earthquake”) is built by seismic-risk researchers who work on this region
-  every day.</p>
-
-  <ul class="features">
-    <li>
-      <h3>Live earthquake feed</h3>
-      <p>Kurdistan first. Recent and historical earthquakes near you, combined
-      from three independent scientific sources (USGS, EMSC, GEOFON), big,
-      clear, and readable the moment you open the app, even on a weak
-      connection.</p>
-    </li>
-    <li>
-      <h3>One-tap felt report</h3>
-      <p>“I felt it!”: one tap tells us what you felt, in seconds. Reports are
-      saved even when you're offline. Every report helps build a real,
-      community-owned picture of how earthquakes feel on the ground in
-      Kurdistan.</p>
-    </li>
-    <li>
-      <h3>Bumelerze SHAKEmaps</h3>
-      <p>Our own scientific shaking-intensity maps, computed for earthquakes in
-      the region, including ones no global service ever maps. Every map shows
-      its data sources and whether a scientist has reviewed it.</p>
-    </li>
-    <li>
-      <h3>Safety guides</h3>
-      <p>Plain-language guidance on what to do before, during, and after an
-      earthquake, written for Kurdistan's homes and streets, not translated
-      from somewhere else.</p>
-    </li>
+<nav class="page-nav" aria-label="On this page">
+  <ul>
+    <li><a href="#what">What it does</a></li>
+    <li><a href="#science">How the science works</a></li>
+    <li><a href="#open-data">Open data</a></li>
+    <li><a href="#who">Who it's for</a></li>
+    <li><a href="#get">Get Bumelerze</a></li>
   </ul>
+</nav>
 
-  <h2>Get the app</h2>
-  <div class="store-badges">
-    <span class="store-badge">App Store <span class="soon">Coming soon</span></span>
-    <span class="store-badge">Google Play <span class="soon">Coming soon</span></span>
-  </div>
-  <p class="meta">Bumelerze is in final preparation for release. Store links
-  will appear here as soon as the app is published.</p>
+<main id="main">
 
-  <h2>Contact</h2>
-  <p>Questions, corrections, or feedback:
-  <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <h1>The <span class="accent">earthquake app</span> built for Kurdistan</h1>
+        <p class="lede">Fast, trustworthy, scientifically correct earthquake
+        information, in your own language. Bumelerze (<bdi>bûmelerze</bdi>,
+        Kurdish for “earthquake”) is built by seismic-risk researchers who
+        work on this region every day.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://bumelerze.com/app">Open the web app</a>
+          <a class="btn btn-outline" href="#science">See how it works</a>
+        </div>
+      </div>
+
+      <div class="hero-slider" data-slider>
+        <p id="hero-slider-label" class="section-kicker hero-slider-label">What Bumelerze does</p>
+        <div class="hero-slider-viewport">
+          <div class="hero-slider-track" role="group" aria-roledescription="carousel" aria-labelledby="hero-slider-label">
+
+            <article class="hero-slide" id="slide-1" role="group" aria-roledescription="slide" aria-label="1 of 4" data-slide-label="Continuous monitoring, day and night">
+              <p class="hero-slide-figure">
+                <img src="images/hero-monitoring.webp" width="440" height="440" loading="eager" fetchpriority="high"
+                  alt="Illustration from the app's felt-report picker: a calm evening at home, the lowest shaking-intensity level, &quot;not felt&quot;.">
+              </p>
+              <p class="hero-slide-eyebrow">Live feed</p>
+              <h2>Continuous monitoring, day and night</h2>
+              <p>Bumelerze watches Kurdistan and Iraq around the clock, combining
+              three independent scientific networks (USGS, EMSC, GEOFON) into
+              one live feed, so you see what happened within moments, even on a
+              weak connection.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-2" role="group" aria-roledescription="slide" aria-label="2 of 4" data-slide-label="One tap tells us what you felt">
+              <p class="hero-slide-figure">
+                <img src="images/hero-felt-report.webp" width="440" height="440" loading="lazy"
+                  alt="Illustration from the app's felt-report picker: a family leaving a shaking home, a stronger shaking-intensity level.">
+              </p>
+              <p class="hero-slide-eyebrow">Felt reports</p>
+              <h2>One tap tells us what you felt</h2>
+              <p>After an earthquake, pick the picture closest to what you
+              experienced. It takes one tap, it works offline, and it turns
+              into real community data instead of guesswork.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-3" role="group" aria-roledescription="slide" aria-label="3 of 4" data-slide-label="Our own SHAKEmaps, computed here">
+              <p class="hero-slide-figure">
+                <img class="symbol-mark" src="brand/bumelerze-symbol-color.svg" width="232" height="100" loading="lazy" alt="">
+              </p>
+              <p class="hero-slide-eyebrow">Bumelerze SHAKEmaps</p>
+              <h2>Our own SHAKEmaps, computed here</h2>
+              <p>Bumelerze computes its own scientific shaking-intensity maps
+              using the EMS-98 intensity scale and published open data, for
+              earthquakes in the region, including ones no global service
+              ever maps.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="slide" aria-label="4 of 4" data-slide-label="Safety guidance in Kurdish">
+              <p class="hero-slide-figure">
+                <img src="images/hero-safety.webp" width="440" height="440" loading="lazy"
+                  alt="Illustration from the app's safety guides: drop, cover, and hold on under a table.">
+              </p>
+              <p class="hero-slide-eyebrow">Safety guides</p>
+              <h2>Safety guidance in Kurdish</h2>
+              <p>Plain-language guidance on what to do before, during, and
+              after an earthquake, written for Kurdistan's homes and
+              streets: drop, cover, and hold on, and more.</p>
+            </article>
+
+          </div>
+          <p class="hero-slider-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="hero-slider-controls">
+          <a class="hero-slider-arrow hero-slider-prev" href="#slide-1" aria-label="Previous slide"></a>
+          <ul class="hero-slider-dots">
+            <li><a class="hero-dot" href="#slide-1" aria-current="true"><span class="visually-hidden">Slide 1: Continuous monitoring</span></a></li>
+            <li><a class="hero-dot" href="#slide-2"><span class="visually-hidden">Slide 2: One tap felt reports</span></a></li>
+            <li><a class="hero-dot" href="#slide-3"><span class="visually-hidden">Slide 3: Bumelerze SHAKEmaps</span></a></li>
+            <li><a class="hero-dot" href="#slide-4"><span class="visually-hidden">Slide 4: Safety guides</span></a></li>
+          </ul>
+          <a class="hero-slider-arrow hero-slider-next" href="#slide-4" aria-label="Next slide"></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="what" aria-labelledby="what-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">What it does</p>
+      <h2 id="what-h2">One app, four jobs, built for how earthquakes actually happen here</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">01</span>
+          <h3>Live earthquake feed</h3>
+          <p>Kurdistan first. Recent and historical earthquakes near you,
+          combined from three independent scientific sources (USGS, EMSC,
+          GEOFON), big, clear, and readable the moment you open the app,
+          even on a weak connection.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">02</span>
+          <h3>One-tap felt report</h3>
+          <p>“I felt it!”: one tap tells us what you felt, in seconds.
+          Reports are saved even when you're offline. Every report helps
+          build a real, community-owned picture of how earthquakes feel on
+          the ground in Kurdistan.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">03</span>
+          <h3>Bumelerze SHAKEmaps</h3>
+          <p>Our own scientific shaking-intensity maps, computed for
+          earthquakes in the region, including ones no global service ever
+          maps. Every map shows its data sources and whether a scientist
+          has reviewed it.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">04</span>
+          <h3>Safety guides</h3>
+          <p>Plain-language guidance on what to do before, during, and
+          after an earthquake, written for Kurdistan's homes and streets,
+          not translated from somewhere else.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section-ivory" id="science" aria-labelledby="science-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">How the science works</p>
+      <h2 id="science-h2">From three networks to a map you can trust</h2>
+      <p class="lede lede-wide">You don't need a seismology
+      degree to follow this. Here is the chain from “the ground moved” to
+      “here is what it did,” in three steps.</p>
+      <div class="science-grid">
+        <div class="science-item">
+          <h3>1. Three networks, one feed</h3>
+          <p>Every earthquake is checked against USGS, EMSC, and GEOFON,
+          three independent international monitoring networks. Bumelerze
+          merges their reports of the same event into a single internal
+          record, so you see one clear entry instead of three
+          conflicting ones.</p>
+        </div>
+        <div class="science-item">
+          <h3>2. What you felt matters</h3>
+          <p>Your “I felt it!” report is scored on the EMS-98 macroseismic
+          intensity scale, the same kind of scale used in official damage
+          assessments. Reports from the same area are aggregated into a
+          community-observed intensity, real testimony, not a guess from a
+          model alone.</p>
+        </div>
+        <div class="science-item">
+          <h3>3. Bumelerze SHAKEmaps</h3>
+          <p>For earthquakes in the region, Bumelerze computes its own
+          shaking-intensity map from ground-motion models and, where
+          available, those same felt reports. Every map states its inputs
+          and whether a scientist has reviewed it, no black box.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="open-data" aria-labelledby="open-data-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">Open, cited data</p>
+      <h2 id="open-data-h2">We cite our sources. You can check our work.</h2>
+      <p class="lede lede-wide">Earthquake data for Kurdistan
+      and Iraq is thin and scattered across services built for other
+      regions. Bumelerze exists to close that gap without hiding how it did
+      it.</p>
+      <div class="opendata-grid">
+        <div class="opendata-card">
+          <h3>The Bumelerze Atlas</h3>
+          <p>A public, browsable catalog of earthquakes in the region,
+          published in the open so anyone, researcher or resident, can look
+          up what happened and where.</p>
+          <a href="https://peshawa-lh.github.io/bumelerze-atlas/">Browse the Atlas <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="opendata-card">
+          <h3>Source code</h3>
+          <p>The app, the SHAKEmap engine, and the data pipeline are
+          developed in the open under the Apache License 2.0. Read it,
+          audit it, or file an issue.</p>
+          <a href="https://github.com/Peshawa-LH/bumelerze-v26">View the repository <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="opendata-card">
+          <h3>Underlying feeds</h3>
+          <p>The live feed is a merge of USGS, EMSC, and GEOFON, three
+          scientific earthquake-monitoring services. Every event and every
+          Bumelerze SHAKEmap names its sources.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-off" id="who" aria-labelledby="who-h2">
+    <div class="wrap">
+      <p class="section-kicker">Who it's for</p>
+      <h2 id="who-h2">Built for the people who feel it first</h2>
+      <p>Anyone in the Kurdistan Region or Iraq who wants fast, trustworthy
+      earthquake information in their own language, the moment it matters,
+      not translated and not an afterthought. Emergency planners and
+      response teams who need a real, real-time picture of how an
+      earthquake was actually felt on the ground, from the people who felt
+      it. Researchers and students who need open, citable seismic data for
+      a region that has long been under-instrumented and under-studied.</p>
+    </div>
+  </section>
+
+  <section class="section" id="get" aria-labelledby="get-h2">
+    <div class="wrap">
+      <p class="section-kicker">Get Bumelerze</p>
+      <h2 id="get-h2">Use it today, on the web</h2>
+      <p>Bumelerze is in active development. The full app already runs
+      today as a web app, no install required:</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://bumelerze.com/app">Open the web app</a>
+      </div>
+      <p class="meta">Native iOS and Android apps are next. This page will
+      link to them the moment they're published, no store badges here
+      until then.</p>
+      <p>Questions, corrections, or feedback:
+      <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+    </div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="privacy.html">Privacy policy</a>
-      <a href="support.html">Support</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="brand/bumelerze-primary-horizontal-reversed.svg" alt="Bumelerze" width="176" height="32">
+      <p class="footer-tagline">Earthquake monitoring, felt reports, and
+      safety guidance for the Kurdistan Region, in Kurdish.</p>
     </div>
-    <p>Bumelerze: earthquake monitoring and felt reports for the Kurdistan
-    Region. Data sources are always cited: USGS, EMSC, GEOFON, and the
-    Bumelerze Shake Service.</p>
+    <div class="footer-col">
+      <h4>Site</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="privacy.html">Privacy policy</a></li>
+        <li><a href="support.html">Support</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Open data</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">Bumelerze Atlas</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">Source repository</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>Data sources: USGS, EMSC, GEOFON, and the Bumelerze Shake
+      Service.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">Code license: Apache 2.0</a>
+      <span>© 2026 Bumelerze. In development.</span>
+    </div>
   </div>
 </footer>
 

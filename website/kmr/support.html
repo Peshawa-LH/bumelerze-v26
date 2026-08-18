@@ -14,7 +14,9 @@
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
 </head>
-<body>
+<body class="prose-page">
+
+<a class="skip-link" href="#main">Biçe ser naveroka sereke</a>
 
 <nav class="lang-switcher" aria-label="Ziman">
   <ul>
@@ -30,7 +32,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="../brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="35">
+        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="Malper">
@@ -41,7 +43,7 @@
   </div>
 </header>
 
-<main>
+<main id="main" class="wrap">
   <h1>Piştgirî</h1>
 
   <h2>Pirsên pir tên kirin</h2>
@@ -68,11 +70,12 @@
     jimareya têlefonê naxwaze.</dd>
 
     <dt>Ez çawa daneyên xwe jê dibim?</dt>
-    <dd>Îro, hemû daneyên te tenê li ser amûra te tên tomarkirin, ji ber vê
-    yekê jêbirina sepanê her tiştî jê dibe. Gava databasa raporan a Bumelerze
-    çalak bû, tu dikarî nasnameya amûra xwe ya di nav sepanê de bi e-nameyê ji
-    me re bişînî û em ê raporên bi wê ve girêdayî jê bibin. Hûrgulî: binêre
-    <a href="privacy.html">polîtikaya nepenîtiyê</a>.</dd>
+    <dd>Raporên hestkirinê yên tu dişînî di databasa Bumelerze ya xwe de tên
+    tomarkirin, ne tenê li ser amûra te. Nasnameya amûra xwe ya di nav sepanê
+    de bi e-nameyê ji
+    <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a>
+    re bişîne da ku pirsa raporên bi amûra xwe ve girêdayî bikî. Hûrgulî:
+    binêre <a href="privacy.html">polîtikaya nepenîtiyê</a>.</dd>
 
     <dt>Çima sepan cihê min dixwaze?</dt>
     <dd>Tenê ji bo nîşandana dûrahiya te ji her erdhejê û girêdana cihekî bi
@@ -89,12 +92,37 @@
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="index.html">Destpêk</a>
-      <a href="privacy.html">Polîtikaya nepenîtiyê</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="Bumelerze" width="176" height="32">
+      <p class="footer-tagline">Çavdêriya erdhejê, raporên hestkirinê û
+      rêberiya ewlehiyê ji bo Herêma Kurdistanê, bi kurdî.</p>
     </div>
-    <p>Bumelerze: çavdêriya erdhejê û raporên hestkirinê ji bo Herêma
-    Kurdistanê.</p>
+    <div class="footer-col">
+      <h4>Malper</h4>
+      <ul>
+        <li><a href="index.html">Destpêk</a></li>
+        <li><a href="privacy.html">Polîtikaya nepenîtiyê</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Daneyên vekirî</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">Atlasa Bumelerze</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">Depoya çavkaniyê</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Têkilî</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>Çavkaniyên daneyan: <bdi>USGS</bdi>, <bdi>EMSC</bdi>,
+      <bdi>GEOFON</bdi> û Bumelerze Shake Service.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">Lîsansa kodê: <bdi>Apache 2.0</bdi></a>
+      <span>© 2026 Bumelerze. Di pêşxistinê de.</span>
+    </div>
   </div>
 </footer>
 
