@@ -19,18 +19,25 @@ import {
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { CLUSTER_CIRCLE_LAYER_ID, CLUSTER_MAX_ZOOM, CLUSTER_SOURCE_ID } from "@/features/map";
+import {
+  CLUSTER_CIRCLE_LAYER_ID,
+  CLUSTER_EXPANSION_ZOOM_MARGIN,
+  CLUSTER_MAX_ZOOM,
+  CLUSTER_SOURCE_ID,
+} from "@/features/map";
 import {
   makeEvent,
   MockAttributionControl,
   MockMap,
+  mockMapCameraForBounds,
   mockMapConstructorOptions,
-  mockMapFitBounds,
+  mockMapEaseTo,
   mockMapInstances,
   MockMarker,
   mockMarkerConstructorOptions,
   mockGetRTLTextPluginStatus,
   MOCK_DATA_UPDATED_AT,
+  setMockCameraForBoundsResult,
   mockSetRTLTextPlugin,
   mockSetWorkerUrl,
   mockSourceSetData,
@@ -141,12 +148,34 @@ describe("MapScreenWeb clustering", () => {
     expect(featureCollection.features).toHaveLength(0);
   });
 
+  it("never clusters a group of only 2 events, however close, at any zoom below the cutoff", async () => {
+    // Regression: a below-minimum-size "cluster" hides more than it helps
+    // (wave brief) — two co-located events must render as two standalone,
+    // individually tappable markers, not a badge, even deep below
+    // CLUSTER_MAX_ZOOM.
+    setMockNextMapZoom(4);
+    mockUseRegionEvents.mockReturnValue({
+      events: [
+        makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
+        makeEvent({ id: "b", lat: 35.56, lon: 45.43 }),
+      ],
+      dataUpdatedAt: MOCK_DATA_UPDATED_AT,
+    });
+
+    await renderWithProviders(<MapScreenWeb />);
+
+    await waitFor(() => expect(mockMarkerConstructorOptions).toHaveLength(2));
+    const [, featureCollection] = findClusterSetDataCall()!;
+    expect(featureCollection.features).toHaveLength(0);
+  });
+
   it("re-clusters when the map's zoom settles, splitting a badge back into individual markers as the user zooms in", async () => {
     setMockNextMapZoom(4);
     mockUseRegionEvents.mockReturnValue({
       events: [
         makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
         makeEvent({ id: "b", lat: 35.56, lon: 45.43 }),
+        makeEvent({ id: "c", lat: 35.56, lon: 45.43 }),
       ],
       dataUpdatedAt: MOCK_DATA_UPDATED_AT,
     });
@@ -160,15 +189,17 @@ describe("MapScreenWeb clustering", () => {
       map.setZoomAndFireZoomEnd(CLUSTER_MAX_ZOOM);
     });
 
-    await waitFor(() => expect(mockMarkerConstructorOptions).toHaveLength(2));
+    await waitFor(() => expect(mockMarkerConstructorOptions).toHaveLength(3));
   });
 
-  it("clicking a cluster badge fits the viewport to its member events' bounds", async () => {
+  it("clicking a cluster badge eases the viewport to its member events' bounds", async () => {
     setMockNextMapZoom(4);
+    setMockCameraForBoundsResult({ center: [45.45, 35.55], zoom: CLUSTER_MAX_ZOOM + 2 });
     mockUseRegionEvents.mockReturnValue({
       events: [
         makeEvent({ id: "a", lat: 35.5, lon: 45.4 }),
-        makeEvent({ id: "b", lat: 35.6, lon: 45.5 }),
+        makeEvent({ id: "b", lat: 35.55, lon: 45.45 }),
+        makeEvent({ id: "c", lat: 35.6, lon: 45.5 }),
       ],
       dataUpdatedAt: MOCK_DATA_UPDATED_AT,
     });
@@ -179,7 +210,8 @@ describe("MapScreenWeb clustering", () => {
     });
 
     const map = mockMapInstances.at(-1)!;
-    mockMapFitBounds.mockClear();
+    mockMapCameraForBounds.mockClear();
+    mockMapEaseTo.mockClear();
     await act(async () => {
       map.fireLayerEvent("click", CLUSTER_CIRCLE_LAYER_ID, {
         minLon: 45.4,
@@ -189,13 +221,90 @@ describe("MapScreenWeb clustering", () => {
       });
     });
 
-    expect(mockMapFitBounds).toHaveBeenCalledWith(
+    expect(mockMapCameraForBounds).toHaveBeenCalledWith(
       [
         [45.4, 35.5],
         [45.5, 35.6],
       ],
       expect.objectContaining({ padding: expect.anything() }),
     );
+    // The natural fit's own zoom (already comfortably past the cutoff) is
+    // used as-is — no need to force a bigger jump than the bounds fit
+    // already gives.
+    expect(mockMapEaseTo).toHaveBeenCalledWith(
+      expect.objectContaining({ center: [45.45, 35.55], zoom: CLUSTER_MAX_ZOOM + 2 }),
+    );
+  });
+
+  it("forces the zoom past the cutoff when the cluster's natural bounds-fit wouldn't clear it — a badge tap always makes progress", async () => {
+    // Regression for the reported bug: a wide-spread cluster's fit-bounds
+    // zoom can land AT/BELOW CLUSTER_MAX_ZOOM, which — with the old plain
+    // `fitBounds` call — re-clustered the exact same members into the same
+    // badge (a tap that visibly changes nothing). `cameraForBounds` here
+    // reports a natural zoom still below the cutoff; the resulting camera
+    // move must clear it anyway.
+    setMockNextMapZoom(4);
+    setMockCameraForBoundsResult({ center: [45, 35], zoom: CLUSTER_MAX_ZOOM - 2 });
+    mockUseRegionEvents.mockReturnValue({
+      events: [
+        makeEvent({ id: "a", lat: 33.5, lon: 42 }),
+        makeEvent({ id: "b", lat: 34, lon: 42.5 }),
+        makeEvent({ id: "c", lat: 34.5, lon: 43 }),
+      ],
+      dataUpdatedAt: MOCK_DATA_UPDATED_AT,
+    });
+
+    await renderWithProviders(<MapScreenWeb />);
+    await waitFor(() => {
+      expect(findClusterSetDataCall()).toBeDefined();
+    });
+
+    const map = mockMapInstances.at(-1)!;
+    mockMapEaseTo.mockClear();
+    await act(async () => {
+      map.fireLayerEvent("click", CLUSTER_CIRCLE_LAYER_ID, {
+        minLon: 42,
+        maxLon: 43,
+        minLat: 33.5,
+        maxLat: 34.5,
+      });
+    });
+
+    expect(mockMapEaseTo).toHaveBeenCalledTimes(1);
+    const [easeToOptions] = mockMapEaseTo.mock.calls[0] as [{ zoom: number }];
+    expect(easeToOptions.zoom).toBeGreaterThan(CLUSTER_MAX_ZOOM);
+    expect(easeToOptions.zoom).toBe(CLUSTER_MAX_ZOOM + CLUSTER_EXPANSION_ZOOM_MARGIN);
+  });
+
+  it("does nothing if the cluster's bounds can't be resolved to a camera (no undefined-camera crash)", async () => {
+    setMockNextMapZoom(4);
+    setMockCameraForBoundsResult(undefined);
+    mockUseRegionEvents.mockReturnValue({
+      events: [
+        makeEvent({ id: "a", lat: 35.5, lon: 45.4 }),
+        makeEvent({ id: "b", lat: 35.55, lon: 45.45 }),
+        makeEvent({ id: "c", lat: 35.6, lon: 45.5 }),
+      ],
+      dataUpdatedAt: MOCK_DATA_UPDATED_AT,
+    });
+
+    await renderWithProviders(<MapScreenWeb />);
+    await waitFor(() => {
+      expect(findClusterSetDataCall()).toBeDefined();
+    });
+
+    const map = mockMapInstances.at(-1)!;
+    mockMapEaseTo.mockClear();
+    await act(async () => {
+      map.fireLayerEvent("click", CLUSTER_CIRCLE_LAYER_ID, {
+        minLon: 45.4,
+        maxLon: 45.5,
+        minLat: 35.5,
+        maxLat: 35.6,
+      });
+    });
+
+    expect(mockMapEaseTo).not.toHaveBeenCalled();
   });
 
   it("gives the single most-recent standalone marker a distinct outline treatment", async () => {

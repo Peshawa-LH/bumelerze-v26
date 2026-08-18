@@ -18,11 +18,14 @@ export {
   type RegionMapMarker,
 } from "./marker-helpers";
 export {
+  CLUSTER_EXPANSION_ZOOM_MARGIN,
   CLUSTER_MAX_ZOOM,
   CLUSTER_MAX_DIAMETER_PX,
   CLUSTER_MIN_DIAMETER_PX,
+  CLUSTER_MIN_SIZE,
   CLUSTER_RADIUS_PX,
   clusterRegionMarkers,
+  resolveClusterExpansionZoom,
   type ClusteredMapMarker,
   type ClusterMarkerFeature,
   type ClusterOptions,

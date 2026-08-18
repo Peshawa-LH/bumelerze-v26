@@ -33,6 +33,7 @@ import {
   buildTerrainDemSource,
   buildTerrainHillshadeLayer,
   CLUSTER_CIRCLE_LAYER_ID,
+  CLUSTER_MAX_ZOOM,
   CLUSTER_SOURCE_ID,
   clusterRegionMarkers,
   computeDateBoundsMs,
@@ -59,6 +60,7 @@ import {
   readClusterBoundsFromProperties,
   regionBboxToLngLatBounds,
   resolveCatalogMapStyle,
+  resolveClusterExpansionZoom,
   ScopeToggle,
   shouldLocalizeToArabicScript,
   shouldRequestRTLTextPlugin,
@@ -684,17 +686,41 @@ export default function MapScreenWeb() {
           setZoom(map.getZoom());
         });
         // Cluster-badge tap -> zoom to its member events' combined extent
-        // (Problem 2: "Clicking a cluster should zoom into its bounds").
+        // (Problem 2: "Clicking a cluster should zoom into its bounds") —
+        // and ALWAYS make visible progress doing it (wave brief: a tap that
+        // leaves the same badge on screen, still covering the same members,
+        // is the worst possible affordance). A plain `fitBounds` doesn't
+        // guarantee that: `FitBoundsOptions` has no floor on the resulting
+        // zoom, only a `maxZoom` ceiling, so a cluster whose members are
+        // spread wide could fit-and-land at or below `CLUSTER_MAX_ZOOM` and
+        // immediately re-cluster into the exact same badge. Instead,
+        // `cameraForBounds` computes the natural fit CAMERA-ONLY (no
+        // movement), `resolveClusterExpansionZoom` (clustering.ts) forces
+        // its zoom past the cutoff when the natural fit wouldn't clear it,
+        // and `easeTo` is what actually moves the map — the same "user
+        // selected something, ease the camera" primitive the marker-select
+        // handler below already uses, for a consistent feel and so
+        // `prefersReducedMotion` is honored here too.
+        //
         // Layer-scoped `.on(event, layerId, handler)` only fires for
         // features actually hit on `CLUSTER_CIRCLE_LAYER_ID` — MapLibre's
         // own hit-testing, no manual geometry math needed here.
         map.on("click", CLUSTER_CIRCLE_LAYER_ID, (event: MapLayerMouseEvent) => {
           const bounds = readClusterBoundsFromProperties(event.features?.[0]?.properties);
-          if (bounds) {
-            map.fitBounds(regionBboxToLngLatBounds(bounds), {
-              padding: MAP_FIT_BOUNDS_PADDING_PX,
-            });
+          if (!bounds) {
+            return;
           }
+          const natural = map.cameraForBounds(regionBboxToLngLatBounds(bounds), {
+            padding: MAP_FIT_BOUNDS_PADDING_PX,
+          });
+          if (!natural || natural.center === undefined || natural.zoom === undefined) {
+            return;
+          }
+          map.easeTo({
+            center: natural.center,
+            zoom: resolveClusterExpansionZoom(natural.zoom, CLUSTER_MAX_ZOOM),
+            duration: prefersReducedMotion ? 0 : 300,
+          });
         });
         // "clicking the map background should dismiss it" (event-preview
         // sheet wave) — a map-WIDE (not layer-scoped) "click" listener, so
