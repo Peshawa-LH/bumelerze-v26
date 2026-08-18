@@ -33,6 +33,7 @@ import {
   buildTerrainDemSource,
   buildTerrainHillshadeLayer,
   CLUSTER_CIRCLE_LAYER_ID,
+  CLUSTER_LIST_MAX_SIZE,
   CLUSTER_MAX_ZOOM,
   CLUSTER_SOURCE_ID,
   clusterRegionMarkers,
@@ -49,6 +50,7 @@ import {
   isCompactMapControlsWidth,
   KURDISH_PLACES_CORE,
   MAP_FIT_BOUNDS_PADDING_PX,
+  MAP_INITIAL_MIN_ZOOM_COMPACT,
   MAP_RTL_TEXT_PLUGIN_URL,
   MAP_WORKER_URL,
   MapFilterPanel,
@@ -57,13 +59,14 @@ import {
   MapTilerAttributionLogo,
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_SOURCE_ID,
-  readClusterBoundsFromProperties,
+  readClusterMetaFromProperties,
   regionBboxToLngLatBounds,
   resolveCatalogMapStyle,
   resolveClusterExpansionZoom,
   ScopeToggle,
   shouldLocalizeToArabicScript,
   shouldRequestRTLTextPlugin,
+  sortClusterMembersForList,
   styleHasRasterDemSource,
   TERRAIN_DEM_SOURCE_ID,
   useEventSheetController,
@@ -383,14 +386,21 @@ export default function MapScreenWeb() {
   const eventSheet = useEventSheetController();
   // Destructured out for the marker-build effect's own dependency array
   // below — `eventSheet` itself is a fresh object every render (its own
-  // doc comment explains why: `event`/`detent` need to be read live), but
+  // doc comment explains why: `content`/`detent` need to be read live), but
   // `select` is individually stable (`useEventSheetController`'s own
   // `useCallback`), so depending on THIS instead of `eventSheet.select`
   // lets `react-hooks/exhaustive-deps` see that stability directly, rather
   // than defeating the effect's whole "only rebuild markers when the data
   // actually changes" purpose by depending on the ever-changing whole
-  // object.
+  // object. `selectList` is read the same way, directly inside the
+  // cluster-click handler registered once by the map-CREATION effect
+  // (never in that effect's own dependency array, same precedent as
+  // `prefersReducedMotion` a few lines below in that same handler) — safe
+  // because `useEventSheetController`'s `useCallback`s never change
+  // identity across the component's lifetime, so the closure never goes
+  // stale.
   const selectEvent = eventSheet.select;
+  const selectList = eventSheet.selectList;
   const sheetRef = useRef<EventPreviewSheetHandle>(null);
   const prefersReducedMotion = useReducedMotionPreference();
 
@@ -531,6 +541,13 @@ export default function MapScreenWeb() {
   // but neither `filteredEvents` nor `zoom` change on a pure style pick, so
   // the marker-build effect itself wouldn't otherwise re-run to refill it.
   const lastClusterFeaturesRef = useRef<ClusterMarkerFeature[]>([]);
+  // Cluster id -> its member `Event`s, resolved against `filteredEvents` —
+  // rebuilt alongside `lastClusterFeaturesRef` every marker-build effect
+  // run (below), and read by the cluster-click handler (registered once by
+  // the map-creation effect) to hand LIST-mode content real event data
+  // without threading whole `Event` objects through the GL layer's
+  // GeoJSON properties (`cluster-layer.ts` keeps those flat/numeric).
+  const clusterMembersRef = useRef<Map<string, Event[]>>(new Map());
   // Re-entrancy gate for the creation effect below — deliberately a ref,
   // not state: the effect itself calls `setLoadState("loading")`, and if
   // `loadState` were also in that effect's dependency array, that very
@@ -685,32 +702,67 @@ export default function MapScreenWeb() {
         map.on("zoomend", () => {
           setZoom(map.getZoom());
         });
-        // Cluster-badge tap -> zoom to its member events' combined extent
-        // (Problem 2: "Clicking a cluster should zoom into its bounds") —
-        // and ALWAYS make visible progress doing it (wave brief: a tap that
-        // leaves the same badge on screen, still covering the same members,
-        // is the worst possible affordance). A plain `fitBounds` doesn't
-        // guarantee that: `FitBoundsOptions` has no floor on the resulting
-        // zoom, only a `maxZoom` ceiling, so a cluster whose members are
-        // spread wide could fit-and-land at or below `CLUSTER_MAX_ZOOM` and
-        // immediately re-cluster into the exact same badge. Instead,
-        // `cameraForBounds` computes the natural fit CAMERA-ONLY (no
-        // movement), `resolveClusterExpansionZoom` (clustering.ts) forces
-        // its zoom past the cutoff when the natural fit wouldn't clear it,
-        // and `easeTo` is what actually moves the map — the same "user
-        // selected something, ease the camera" primitive the marker-select
-        // handler below already uses, for a consistent feel and so
-        // `prefersReducedMotion` is honored here too.
+        // Cluster-badge tap -> ALWAYS reveal something, never just move the
+        // camera (the reported bug: a badge tap that only eased the
+        // viewport was indistinguishable from a tap that did nothing at
+        // all, since neither one visibly "showed the user an earthquake").
+        // Two branches, split on member count against `CLUSTER_LIST_MAX_SIZE`
+        // (clustering.ts's own doc comment justifies the threshold):
+        //
+        //  - Small enough to list usefully: open the SAME preview sheet a
+        //    marker tap opens, in LIST content (`selectList`) — the member
+        //    events themselves are the "something revealed", not a camera
+        //    move. `clusterMembersRef` (populated by the marker-build
+        //    effect below on every clustering pass) resolves the clicked
+        //    badge's id back to real `Event`s; a still-subtle camera nudge
+        //    (same fixed offset the marker-select handler uses) keeps the
+        //    tapped badge's rough location visible above the sheet.
+        //  - Too large to list (Problem 2 was ALSO "a single tap can't
+        //    plausibly resolve 100+ events into markers"): keep the
+        //    original zoom-to-bounds behavior, still with the
+        //    always-clears-the-cutoff guarantee a previous wave added
+        //    (`resolveClusterExpansionZoom`) — a plain `fitBounds` has no
+        //    floor on the resulting zoom, only a `maxZoom` ceiling, so a
+        //    cluster whose members are spread wide could fit-and-land at or
+        //    below `CLUSTER_MAX_ZOOM` and immediately re-cluster into the
+        //    exact same badge. `cameraForBounds` computes the natural fit
+        //    CAMERA-ONLY (no movement) so `resolveClusterExpansionZoom` can
+        //    force the zoom past the cutoff first, and `easeTo` is what
+        //    actually moves the map, honoring `prefersReducedMotion` same
+        //    as every other camera move on this screen.
         //
         // Layer-scoped `.on(event, layerId, handler)` only fires for
         // features actually hit on `CLUSTER_CIRCLE_LAYER_ID` — MapLibre's
         // own hit-testing, no manual geometry math needed here.
         map.on("click", CLUSTER_CIRCLE_LAYER_ID, (event: MapLayerMouseEvent) => {
-          const bounds = readClusterBoundsFromProperties(event.features?.[0]?.properties);
-          if (!bounds) {
+          const meta = readClusterMetaFromProperties(event.features?.[0]?.properties);
+          if (!meta) {
             return;
           }
-          const natural = map.cameraForBounds(regionBboxToLngLatBounds(bounds), {
+
+          if (meta.count <= CLUSTER_LIST_MAX_SIZE) {
+            const members = clusterMembersRef.current.get(meta.id);
+            if (!members || members.length === 0) {
+              return;
+            }
+            selectList(sortClusterMembersForList(members));
+            // Bounds midpoint, not the exact (possibly off-screen-after-pad)
+            // GeoJSON centroid — good enough for "keep the tapped badge's
+            // rough area visible above the sheet," the same subtle-nudge
+            // intent `MAP_SHEET_SELECT_OFFSET_PX` already serves for a
+            // single marker's `easeTo` below.
+            map.easeTo({
+              center: [
+                (meta.bounds.minLon + meta.bounds.maxLon) / 2,
+                (meta.bounds.minLat + meta.bounds.maxLat) / 2,
+              ],
+              offset: [0, -MAP_SHEET_SELECT_OFFSET_PX],
+              duration: prefersReducedMotion ? 0 : 300,
+            });
+            return;
+          }
+
+          const natural = map.cameraForBounds(regionBboxToLngLatBounds(meta.bounds), {
             padding: MAP_FIT_BOUNDS_PADDING_PX,
           });
           if (!natural || natural.center === undefined || natural.zoom === undefined) {
@@ -747,6 +799,20 @@ export default function MapScreenWeb() {
             return;
           }
           hasLoaded = true;
+
+          // Phone-width "wall of badges" fix — see
+          // `MAP_INITIAL_MIN_ZOOM_COMPACT`'s own doc comment (config.ts) for
+          // the full diagnosis. Runs before every other "load" setup below
+          // (which doesn't depend on zoom) so the marker-build effect's
+          // FIRST clustering pass already sees the corrected zoom — no
+          // flash of the over-clustered default before this corrects it.
+          if (
+            isCompactMapControlsWidth(window.innerWidth) &&
+            map.getZoom() < MAP_INITIAL_MIN_ZOOM_COMPACT
+          ) {
+            map.jumpTo({ zoom: MAP_INITIAL_MIN_ZOOM_COMPACT });
+          }
+
           const ownLabelsFont = primeTerrainAndLabelCache(
             map,
             scheme,
@@ -756,9 +822,9 @@ export default function MapScreenWeb() {
           );
           primeClusterLayer(
             map,
-            colors.brand.primary,
+            colors.text.primary,
             colors.surface.raised,
-            colors.brand.onPrimary,
+            colors.text.inverse,
             ownLabelsFont ?? OWN_LABELS_DEFAULT_FONT,
           );
           applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
@@ -955,9 +1021,9 @@ export default function MapScreenWeb() {
         // still lives in `lastClusterFeaturesRef`, replayed below).
         primeClusterLayer(
           map,
-          colors.brand.primary,
+          colors.text.primary,
           colors.surface.raised,
-          colors.brand.onPrimary,
+          colors.text.inverse,
           ownLabelsFont ?? OWN_LABELS_DEFAULT_FONT,
         );
         const clusterSource = map.getSource(CLUSTER_SOURCE_ID) as GeoJSONSource | undefined;
@@ -1013,6 +1079,23 @@ export default function MapScreenWeb() {
     lastClusterFeaturesRef.current = clusterFeatures;
     const clusterSource = map.getSource(CLUSTER_SOURCE_ID) as GeoJSONSource | undefined;
     clusterSource?.setData(buildClusterFeatureCollection(clusterFeatures, i18n.language));
+
+    // Cluster id -> member `Event`s (`clusterMembersRef`'s own doc comment)
+    // — rebuilt every pass alongside the GL data above, so the cluster-click
+    // handler (registered once, `clusterMembersRef.current` read live) always
+    // resolves a tapped badge's members against whatever THIS render's
+    // `filteredEvents` actually were, not a stale snapshot from an earlier
+    // poll/filter state.
+    const membersById = new Map<string, Event[]>();
+    for (const feature of clusterFeatures) {
+      membersById.set(
+        feature.id,
+        feature.memberIds
+          .map((memberId) => eventById.get(memberId))
+          .filter((memberEvent): memberEvent is Event => memberEvent !== undefined),
+      );
+    }
+    clusterMembersRef.current = membersById;
 
     // Standalone (unclustered) events keep real DOM `maplibregl.Marker`s —
     // the accessibility this whole split exists to preserve (role=button,
@@ -1306,25 +1389,29 @@ export default function MapScreenWeb() {
           </View>
         ) : null}
 
-        {/* Draggable event-preview sheet (map-UX wave) — rendered LAST so it
-         * stacks above every other overlay in this file's established
-         * "later JSX = on top" paint-order convention (see
-         * `controlsBackdrop`'s own doc comment). Mounted ONLY while an event
-         * is selected: `EventPreviewSheet` itself owns its whole open/close
-         * animation lifecycle, so mounting = "start the entrance animation"
-         * and unmounting = "the close animation already finished" (its
-         * `onDismiss` prop, wired to `eventSheet.dismiss`, is what clears
-         * the selection and lets this conditional actually unmount it) —
-         * never torn down/recreated for any OTHER reason (a filter change,
-         * a style swap, a data refetch), so the map underneath keeps
-         * rendering completely undisturbed the whole time the sheet is
-         * open. */}
-        {loadState === "ready" && eventSheet.event ? (
+        {/* Draggable event-preview sheet (map-UX wave, extended by the
+         * cluster-tap-reveals-events fix to a second LIST content kind) —
+         * rendered LAST so it stacks above every other overlay in this
+         * file's established "later JSX = on top" paint-order convention
+         * (see `controlsBackdrop`'s own doc comment). Mounted ONLY while
+         * something is selected: `EventPreviewSheet` itself owns its whole
+         * open/close animation lifecycle, so mounting = "start the entrance
+         * animation" and unmounting = "the close animation already
+         * finished" (its `onDismiss` prop, wired to `eventSheet.dismiss`,
+         * is what clears the selection and lets this conditional actually
+         * unmount it) — never torn down/recreated for any OTHER reason (a
+         * filter change, a style swap, a data refetch), so the map
+         * underneath keeps rendering completely undisturbed the whole time
+         * the sheet is open. `onSelectEvent={selectEvent}` is how tapping a
+         * row inside an open cluster LIST swaps the sheet over to that
+         * single event's normal preview. */}
+        {loadState === "ready" && eventSheet.content ? (
           <EventPreviewSheet
             ref={sheetRef}
-            event={eventSheet.event}
+            content={eventSheet.content}
             detent={eventSheet.detent}
             onDetentChange={eventSheet.setDetent}
+            onSelectEvent={selectEvent}
             onDismiss={eventSheet.dismiss}
           />
         ) : null}

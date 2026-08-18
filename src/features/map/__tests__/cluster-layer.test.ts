@@ -8,6 +8,7 @@ import {
   CLUSTER_SOURCE_ID,
   EMPTY_CLUSTER_FEATURE_COLLECTION,
   readClusterBoundsFromProperties,
+  readClusterMetaFromProperties,
 } from "../cluster-layer";
 import type { ClusterMarkerFeature } from "../clustering";
 
@@ -20,6 +21,7 @@ function makeCluster(overrides: Partial<ClusterMarkerFeature> = {}): ClusterMark
     count: 4,
     diameterPx: 40,
     bounds: { minLon: 45.4, maxLon: 45.5, minLat: 35.5, maxLat: 35.6 },
+    memberIds: ["a", "b"],
     ...overrides,
   };
 }
@@ -115,5 +117,58 @@ describe("readClusterBoundsFromProperties", () => {
         maxLat: 4,
       }),
     ).toBeNull();
+  });
+});
+
+describe("readClusterMetaFromProperties", () => {
+  it("extracts id, count and bounds from a well-formed properties object", () => {
+    expect(
+      readClusterMetaFromProperties({
+        id: "cluster-a-b",
+        count: 7,
+        minLon: 1,
+        maxLon: 2,
+        minLat: 3,
+        maxLat: 4,
+      }),
+    ).toEqual({
+      id: "cluster-a-b",
+      count: 7,
+      bounds: { minLon: 1, maxLon: 2, minLat: 3, maxLat: 4 },
+    });
+  });
+
+  it("returns null when id/count are missing or wrongly typed, even if bounds are valid", () => {
+    expect(
+      readClusterMetaFromProperties({ count: 7, minLon: 1, maxLon: 2, minLat: 3, maxLat: 4 }),
+    ).toBeNull();
+    expect(
+      readClusterMetaFromProperties({
+        id: "cluster-a-b",
+        minLon: 1,
+        maxLon: 2,
+        minLat: 3,
+        maxLat: 4,
+      }),
+    ).toBeNull();
+    expect(
+      readClusterMetaFromProperties({
+        id: 5,
+        count: 7,
+        minLon: 1,
+        maxLon: 2,
+        minLat: 3,
+        maxLat: 4,
+      }),
+    ).toBeNull();
+  });
+
+  it("returns null when bounds are missing/invalid, even if id/count are fine", () => {
+    expect(readClusterMetaFromProperties({ id: "cluster-a-b", count: 7 })).toBeNull();
+  });
+
+  it("returns null for null/non-object input", () => {
+    expect(readClusterMetaFromProperties(null)).toBeNull();
+    expect(readClusterMetaFromProperties("nope")).toBeNull();
   });
 });
