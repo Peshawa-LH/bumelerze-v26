@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import type { FeedbackContext, FeedbackSubmission } from "../types";
+import type { FeedbackContext, FeedbackPhotoAttachment, FeedbackSubmission } from "../types";
 
 /**
  * `SupabaseFeedbackTransport` — no real network call anywhere in this file,
@@ -98,14 +98,19 @@ const SAMPLE_SUBMISSION: FeedbackSubmission = {
   message: "The map crashed when I tapped a cluster.",
   contact: "tester@example.com",
   context: SAMPLE_CONTEXT,
-  photoUri: null,
+  photos: [],
   createdAt: 1_700_000_000_000,
+};
+
+const SAMPLE_PHOTO: FeedbackPhotoAttachment = {
+  photoId: "33333333-3333-4333-8333-333333333333",
+  uri: "file:///tmp/screenshot.jpg",
 };
 
 const SAMPLE_SUBMISSION_WITH_PHOTO: FeedbackSubmission = {
   ...SAMPLE_SUBMISSION,
   feedbackId: "22222222-2222-4222-8222-222222222222",
-  photoUri: "file:///tmp/screenshot.jpg",
+  photos: [SAMPLE_PHOTO],
 };
 
 beforeEach(() => {
@@ -167,20 +172,23 @@ describe("buildFeedbackInsert (pure mapping)", () => {
 });
 
 describe("buildFeedbackPhotoInsert (pure mapping)", () => {
-  it("maps a resolved storage path to a feedback_photos row", () => {
+  it("maps a photo id + resolved storage path to a feedback_photos row (migration 0021: keyed by photo_id, not feedback_id)", () => {
     const { buildFeedbackPhotoInsert } = loadTransport();
 
-    expect(buildFeedbackPhotoInsert("feedback-1", "uid/feedback-1.jpg")).toEqual({
+    expect(buildFeedbackPhotoInsert("photo-1", "feedback-1", "uid/feedback-1/photo-1.jpg")).toEqual({
+      photo_id: "photo-1",
       feedback_id: "feedback-1",
-      storage_path: "uid/feedback-1.jpg",
+      storage_path: "uid/feedback-1/photo-1.jpg",
     });
   });
 
-  it("every payload key is a real feedback_photos column (schema/app sync check)", () => {
+  it("every payload key is a real feedback_photos column (schema/app sync check, migration 0020 — 0021 adds no columns)", () => {
     const { buildFeedbackPhotoInsert } = loadTransport();
     const columns = loadMigrationColumns("feedback_photos");
 
-    for (const key of Object.keys(buildFeedbackPhotoInsert("feedback-1", "uid/feedback-1.jpg"))) {
+    for (const key of Object.keys(
+      buildFeedbackPhotoInsert("photo-1", "feedback-1", "uid/feedback-1/photo-1.jpg"),
+    )) {
       expect(columns).toContain(key);
     }
   });
@@ -293,7 +301,9 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     uploadError?: { message: string } | null;
     upsertError?: { message: string } | null;
   }) {
-    const upload = jest.fn(async () => ({ error: options.uploadError ?? null }));
+    const upload = jest.fn(async (_path: string, ..._rest: unknown[]) => ({
+      error: options.uploadError ?? null,
+    }));
     const storageFrom = jest.fn(() => ({ upload }));
     const upsert = jest.fn(async () => ({ error: options.upsertError ?? null }));
     const from = jest.fn(() => ({ upsert }));
@@ -306,41 +316,61 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     return { auth: { getSession }, storage: { from: storageFrom }, from, upload, storageFrom, upsert };
   }
 
-  it("returns 'uploaded' immediately (no-op) when there is no photo", async () => {
+  // The pre-0021 "no-op when there is no photo" case no longer applies at
+  // this layer: `photo` is now a required argument (one call per photo, see
+  // `queue.ts`'s per-photo upload pass), not read off `submission.photoUri`
+  // internally. That intent (never attempt an upload when nothing was
+  // picked) still lives on, one layer up, as queue.test.ts's "never
+  // attempts a photo upload when there are no photoUris".
+
+  it("uploads to <auth.uid()>/<feedback_id>/<photo_id>.jpg and upserts the feedback_photos row keyed on photo_id (migration 0021)", async () => {
     const { SupabaseFeedbackTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({});
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
-    const result = await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION);
-
-    expect(result).toEqual({ outcome: "uploaded" });
-    expect(client.storageFrom).not.toHaveBeenCalled();
-  });
-
-  it("uploads to <auth.uid()>/<feedback_id>.jpg and upserts the feedback_photos row on the happy path", async () => {
-    const { SupabaseFeedbackTransport } = loadTransport();
-    const supabaseLib = loadMockedSupabaseLib();
-    const client = mockStorageClient({});
-    supabaseLib.getSupabaseClient.mockReturnValue(client);
-
-    const result = await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO);
+    const result = await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
 
     expect(client.storageFrom).toHaveBeenCalledWith("feedback-photos");
     expect(client.upload).toHaveBeenCalledWith(
-      `anon-uid-1/${SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId}.jpg`,
+      `anon-uid-1/${SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId}/${SAMPLE_PHOTO.photoId}.jpg`,
       expect.anything(),
       expect.objectContaining({ upsert: true, contentType: "image/jpeg" }),
     );
     expect(client.from).toHaveBeenCalledWith("feedback_photos");
     expect(client.upsert).toHaveBeenCalledWith(
       {
+        photo_id: SAMPLE_PHOTO.photoId,
         feedback_id: SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId,
-        storage_path: `anon-uid-1/${SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId}.jpg`,
+        storage_path: `anon-uid-1/${SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId}/${SAMPLE_PHOTO.photoId}.jpg`,
       },
-      { onConflict: "feedback_id" },
+      { onConflict: "photo_id" },
     );
     expect(result).toEqual({ outcome: "uploaded" });
+  });
+
+  it("uploads two photos on the same submission to two DISTINCT, non-colliding storage paths", async () => {
+    const { SupabaseFeedbackTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockStorageClient({});
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+    const secondPhoto: FeedbackPhotoAttachment = {
+      photoId: "44444444-4444-4444-8444-444444444444",
+      uri: "file:///tmp/second.jpg",
+    };
+
+    await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO, SAMPLE_PHOTO);
+    await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO, secondPhoto);
+
+    const uploadedPaths = client.upload.mock.calls.map((call) => call[0]);
+    expect(new Set(uploadedPaths).size).toBe(2);
+    expect(uploadedPaths).toEqual([
+      `anon-uid-1/${SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId}/${SAMPLE_PHOTO.photoId}.jpg`,
+      `anon-uid-1/${SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId}/${secondPhoto.photoId}.jpg`,
+    ]);
   });
 
   it("defers (fails, retryable) rather than uploading when there is no anonymous session", async () => {
@@ -349,7 +379,10 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     const client = mockStorageClient({ session: null });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
-    const result = await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO);
+    const result = await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
 
     expect(client.storageFrom).not.toHaveBeenCalled();
     expect(result).toEqual({ outcome: "failed" });
@@ -361,7 +394,10 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     const client = mockStorageClient({ uploadError: { message: "bucket not found" } });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
-    const result = await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO);
+    const result = await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
 
     expect(client.from).not.toHaveBeenCalledWith("feedback_photos");
     expect(result).toEqual({ outcome: "failed" });
@@ -373,7 +409,10 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     const client = mockStorageClient({ upsertError: { message: "constraint violation" } });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
-    const result = await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO);
+    const result = await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
 
     expect(client.upload).toHaveBeenCalled();
     expect(result).toEqual({ outcome: "failed" });
@@ -384,7 +423,10 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     const supabaseLib = loadMockedSupabaseLib();
     supabaseLib.getSupabaseClient.mockReturnValue(null);
 
-    const result = await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO);
+    const result = await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
 
     expect(result).toEqual({ outcome: "failed" });
   });

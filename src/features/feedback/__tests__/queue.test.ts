@@ -42,13 +42,17 @@ function itemState(
   );
 }
 
+/** Looks up ONE photo's upload state (keyed by `photoId`, see `queue.ts`'s
+ * `photoStates: Record<string, FeedbackPhotoUploadState>`) — the plural
+ * successor to the pre-0021 singular `photoState` helper. */
 function photoState(
   store: ReturnType<typeof loadQueue>["useFeedbackQueueStore"],
   feedbackId: string,
+  photoId: string,
 ) {
   return (
     store.getState().items.find((item) => item.submission.feedbackId === feedbackId)
-      ?.photoState ?? null
+      ?.photoStates[photoId] ?? null
   );
 }
 
@@ -247,13 +251,15 @@ describe("processFeedbackQueue photo-upload pass", () => {
     const transport = transportWithPhoto({ outcome: "failed", retryable: true });
 
     const submission = await queue.enqueueFeedback(
-      { message: "With photo.", photoUri: "file:///tmp/shot.jpg" },
+      { message: "With photo.", photoUris: ["file:///tmp/shot.jpg"] },
       transport,
     );
     await waitFor(() => itemState(queue.useFeedbackQueueStore, submission.feedbackId) === "failed");
 
     expect(transport.uploadPhoto).not.toHaveBeenCalled();
-    expect(photoState(queue.useFeedbackQueueStore, submission.feedbackId)).toBe("pending-upload");
+    expect(
+      photoState(queue.useFeedbackQueueStore, submission.feedbackId, submission.photos[0]!.photoId),
+    ).toBe("pending-upload");
   });
 
   it("uploads the photo once the message reaches 'submitted', in the SAME drain", async () => {
@@ -261,15 +267,23 @@ describe("processFeedbackQueue photo-upload pass", () => {
     const transport = transportWithPhoto();
 
     const submission = await queue.enqueueFeedback(
-      { message: "With photo.", photoUri: "file:///tmp/shot.jpg" },
+      { message: "With photo.", photoUris: ["file:///tmp/shot.jpg"] },
       transport,
     );
 
-    await waitFor(() => photoState(queue.useFeedbackQueueStore, submission.feedbackId) === "uploaded");
+    await waitFor(
+      () =>
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, submission.photos[0]!.photoId) ===
+        "uploaded",
+    );
     expect(transport.uploadPhoto).toHaveBeenCalledTimes(1);
+    expect(transport.uploadPhoto).toHaveBeenCalledWith(
+      expect.objectContaining({ feedbackId: submission.feedbackId }),
+      submission.photos[0],
+    );
   });
 
-  it("marks photoState 'failed' on an upload failure without affecting the message's own 'submitted' state", async () => {
+  it("marks that photo's state 'failed' on an upload failure without affecting the message's own 'submitted' state", async () => {
     const queue = loadQueue();
     const transport = transportWithPhoto(
       { outcome: "submitted", serverFeedbackId: "unused" },
@@ -277,11 +291,15 @@ describe("processFeedbackQueue photo-upload pass", () => {
     );
 
     const submission = await queue.enqueueFeedback(
-      { message: "Photo fails, message must not.", photoUri: "file:///tmp/shot.jpg" },
+      { message: "Photo fails, message must not.", photoUris: ["file:///tmp/shot.jpg"] },
       transport,
     );
 
-    await waitFor(() => photoState(queue.useFeedbackQueueStore, submission.feedbackId) === "failed");
+    await waitFor(
+      () =>
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, submission.photos[0]!.photoId) ===
+        "failed",
+    );
     expect(itemState(queue.useFeedbackQueueStore, submission.feedbackId)).toBe("submitted");
   });
 
@@ -300,13 +318,21 @@ describe("processFeedbackQueue photo-upload pass", () => {
     };
 
     const submission = await queue.enqueueFeedback(
-      { message: "Retry the photo.", photoUri: "file:///tmp/shot.jpg" },
+      { message: "Retry the photo.", photoUris: ["file:///tmp/shot.jpg"] },
       transport,
     );
-    await waitFor(() => photoState(queue.useFeedbackQueueStore, submission.feedbackId) === "failed");
+    await waitFor(
+      () =>
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, submission.photos[0]!.photoId) ===
+        "failed",
+    );
 
     await queue.processFeedbackQueue(transport);
-    await waitFor(() => photoState(queue.useFeedbackQueueStore, submission.feedbackId) === "uploaded");
+    await waitFor(
+      () =>
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, submission.photos[0]!.photoId) ===
+        "uploaded",
+    );
     expect(uploadAttempt).toBe(2);
   });
 
@@ -320,17 +346,19 @@ describe("processFeedbackQueue photo-upload pass", () => {
     };
 
     const submission = await queue.enqueueFeedback(
-      { message: "No uploadPhoto on this transport.", photoUri: "file:///tmp/shot.jpg" },
+      { message: "No uploadPhoto on this transport.", photoUris: ["file:///tmp/shot.jpg"] },
       transport,
     );
 
     await waitFor(() => itemState(queue.useFeedbackQueueStore, submission.feedbackId) === "submitted");
     // photoState stays whatever it was seeded as — never crashes trying to
     // call an uploadPhoto that doesn't exist.
-    expect(photoState(queue.useFeedbackQueueStore, submission.feedbackId)).toBe("pending-upload");
+    expect(
+      photoState(queue.useFeedbackQueueStore, submission.feedbackId, submission.photos[0]!.photoId),
+    ).toBe("pending-upload");
   });
 
-  it("never attempts a photo upload when there is no photoUri", async () => {
+  it("never attempts a photo upload when there are no photoUris", async () => {
     const queue = loadQueue();
     const transport = transportWithPhoto();
 
@@ -338,6 +366,84 @@ describe("processFeedbackQueue photo-upload pass", () => {
     await waitFor(() => itemState(queue.useFeedbackQueueStore, submission.feedbackId) === "submitted");
 
     expect(transport.uploadPhoto).not.toHaveBeenCalled();
-    expect(photoState(queue.useFeedbackQueueStore, submission.feedbackId)).toBeNull();
+    expect(submission.photos).toEqual([]);
+  });
+
+  it("uploads several photos independently, one permanent failure never blocking or retrying the others", async () => {
+    const queue = loadQueue();
+    const outcomeByUri: Record<string, "uploaded" | "failed"> = {
+      "file:///tmp/one.jpg": "uploaded",
+      "file:///tmp/two.jpg": "failed",
+      "file:///tmp/three.jpg": "uploaded",
+    };
+    const transport: import("../queue").FeedbackTransport = {
+      submit: jest.fn(async (submission) => ({
+        outcome: "submitted" as const,
+        serverFeedbackId: submission.feedbackId,
+      })),
+      uploadPhoto: jest.fn(async (_submission, photo: import("../types").FeedbackPhotoAttachment) => ({
+        outcome: outcomeByUri[photo.uri] ?? "failed",
+      })),
+    };
+
+    const submission = await queue.enqueueFeedback(
+      {
+        message: "Three photos, one bad.",
+        photoUris: ["file:///tmp/one.jpg", "file:///tmp/two.jpg", "file:///tmp/three.jpg"],
+      },
+      transport,
+    );
+    expect(submission.photos).toHaveLength(3);
+    const [photoOne, photoTwo, photoThree] = submission.photos;
+
+    await waitFor(
+      () =>
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, photoOne!.photoId) === "uploaded" &&
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, photoTwo!.photoId) === "failed" &&
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, photoThree!.photoId) === "uploaded",
+    );
+
+    // The failing photo's own retry (backoff-free at the per-photo layer,
+    // see queue.ts) never re-attempts an already-uploaded sibling.
+    const callsForPhotoOne = (transport.uploadPhoto as jest.Mock).mock.calls.filter(
+      ([, photo]: [unknown, import("../types").FeedbackPhotoAttachment]) =>
+        photo.photoId === photoOne!.photoId,
+    );
+    expect(callsForPhotoOne).toHaveLength(1);
+    expect(itemState(queue.useFeedbackQueueStore, submission.feedbackId)).toBe("submitted");
+  });
+
+  it("truncates photoUris to FEEDBACK_PHOTO_MAX_COUNT defensively, even if a caller bypasses the UI cap", async () => {
+    const queue = loadQueue();
+    const transport = transportWithPhoto();
+    const tooMany = Array.from({ length: queue.FEEDBACK_PHOTO_MAX_COUNT + 3 }, (_, i) => `file:///tmp/${i}.jpg`);
+
+    const submission = await queue.enqueueFeedback({ message: "Too many.", photoUris: tooMany }, transport);
+
+    expect(submission.photos).toHaveLength(queue.FEEDBACK_PHOTO_MAX_COUNT);
+  });
+
+  it("re-draining after a full upload is a no-op: no duplicate uploadPhoto calls for already-uploaded photos", async () => {
+    const queue = loadQueue();
+    const transport = transportWithPhoto();
+
+    const submission = await queue.enqueueFeedback(
+      { message: "Idempotent re-drain.", photoUris: ["file:///tmp/one.jpg", "file:///tmp/two.jpg"] },
+      transport,
+    );
+    await waitFor(
+      () =>
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, submission.photos[0]!.photoId) ===
+          "uploaded" &&
+        photoState(queue.useFeedbackQueueStore, submission.feedbackId, submission.photos[1]!.photoId) ===
+          "uploaded",
+    );
+    expect(transport.uploadPhoto).toHaveBeenCalledTimes(2);
+
+    await queue.processFeedbackQueue(transport);
+    await queue.processFeedbackQueue(transport);
+
+    // Neither already-"uploaded" photo is re-attempted on a later drain.
+    expect(transport.uploadPhoto).toHaveBeenCalledTimes(2);
   });
 });

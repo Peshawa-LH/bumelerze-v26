@@ -848,9 +848,14 @@
     "contactLabel": "Contact (optional)",
     "contactPlaceholder": "Email or phone, if you'd like a reply",
     "photo": {
-      "addLabel": "Add a screenshot",
-      "removeLabel": "Remove screenshot",
-      "hint": "Attach an optional screenshot"
+      "label": "Screenshots (optional)",
+      "addLabel": "Add screenshots",
+      "addMoreLabel": "Add more",
+      "hint": "Attach up to {{max}} screenshots",
+      "thumbnailLabel": "Screenshot {{index}} of {{count}}",
+      "removeThumbnailLabel": "Remove screenshot {{index}}",
+      "removeSymbol": "✕",
+      "limitReached": "You've reached the limit of {{count}} photos. Remove one to add a different one."
     },
     "submit": "Send feedback",
     "confirmation": {

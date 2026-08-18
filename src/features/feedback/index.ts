@@ -1,6 +1,12 @@
-export { type FeedbackContext, type FeedbackPlatform, type FeedbackSubmission } from "./types";
+export {
+  type FeedbackContext,
+  type FeedbackPhotoAttachment,
+  type FeedbackPlatform,
+  type FeedbackSubmission,
+} from "./types";
 export { buildFeedbackContext } from "./context";
 export {
+  FEEDBACK_PHOTO_MAX_COUNT,
   PendingFeedbackTransport,
   enqueueFeedback,
   ensureFeedbackQueueForegroundSync,

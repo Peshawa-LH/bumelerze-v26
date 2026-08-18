@@ -13,7 +13,7 @@ import { buildFeedbackContext } from "./context";
 // on its own equivalent import: no circular-dependency risk since
 // `supabase-transport.ts` only imports types FROM this file.
 import { SupabaseFeedbackTransport } from "./supabase-transport";
-import type { FeedbackSubmission } from "./types";
+import type { FeedbackPhotoAttachment, FeedbackSubmission } from "./types";
 
 /**
  * Offline-first feedback submission queue — mirrors
@@ -57,8 +57,14 @@ export interface FeedbackTransport {
    * `PendingFeedbackTransport` omits it; `processFeedbackQueue`'s
    * photo-upload pass checks `typeof transport.uploadPhoto === "function"`
    * before calling it, so omitting it is "not attempted yet", never a
-   * crash. */
-  uploadPhoto?(submission: FeedbackSubmission): Promise<FeedbackPhotoUploadResult>;
+   * crash. Takes ONE `photo` at a time (not the whole submission's photo
+   * list) so each photo uploads, fails, and retries completely
+   * independently of its siblings — the wave-2 requirement that one bad
+   * photo in a set of several must never block or mark-failed the others. */
+  uploadPhoto?(
+    submission: FeedbackSubmission,
+    photo: FeedbackPhotoAttachment,
+  ): Promise<FeedbackPhotoUploadResult>;
 }
 
 /**
@@ -97,12 +103,27 @@ export type FeedbackQueueItemState =
   | "failed"; // the transport reported a retryable (or terminal) failure
 
 /** Screenshot upload state, independent of `FeedbackQueueItemState` above —
- * mirrors `PhotoUploadState` (`src/features/felt/queue.ts`). `null` means
- * "no photo attached". `processFeedbackQueue`'s photo-upload pass only
+ * mirrors `PhotoUploadState` (`src/features/felt/queue.ts`). Tracked per
+ * PHOTO (keyed by `FeedbackPhotoAttachment.photoId`), not per submission,
+ * since 0021 allows several: an item with no photos has an empty
+ * `photoStates` map. `processFeedbackQueue`'s photo-upload pass only
  * attempts an upload once the surrounding item's `state` is "submitted"
  * (the `feedback_photos.feedback_id` foreign key needs the `feedback` row
- * to exist first) and retries "failed" on every subsequent drain. */
+ * to exist first) and retries "failed" independently, per photo, on every
+ * subsequent drain. */
 export type FeedbackPhotoUploadState = "pending-upload" | "uploaded" | "failed";
+
+/** The cap this wave chose: 5 screenshots per submission. Enforced in the
+ * UI (`app/feedback.tsx`, non-scolding "you've reached the limit" copy
+ * rather than a rejected submission) and defensively re-applied here in
+ * `enqueueFeedback` in case a future caller ever bypasses that UI. Five
+ * covers the stated use case (a tester with "several screenshots" of one
+ * visual bug) with headroom, while still keeping a single feedback
+ * submission — and its upload burst on a possibly-weak network — bounded:
+ * unlike `felt_photos` this bucket has no per-report moderation queue to
+ * lean on, so the limit is the only backstop against an unbounded upload
+ * batch. */
+export const FEEDBACK_PHOTO_MAX_COUNT = 5;
 
 export interface FeedbackQueueItem {
   submission: FeedbackSubmission;
@@ -110,7 +131,9 @@ export interface FeedbackQueueItem {
   attempts: number;
   lastAttemptAt: number | null;
   nextRetryAt: number | null;
-  photoState: FeedbackPhotoUploadState | null;
+  /** Keyed by `FeedbackPhotoAttachment.photoId` — see
+   * `FeedbackPhotoUploadState`'s own doc above. */
+  photoStates: Record<string, FeedbackPhotoUploadState>;
 }
 
 const FEEDBACK_QUEUE_STORAGE_KEY = "bumelerze.feedback.queue";
@@ -127,6 +150,15 @@ interface FeedbackQueueState {
   setHasHydrated: (value: boolean) => void;
   _addItem: (item: FeedbackQueueItem) => void;
   _patchItem: (feedbackId: string, patch: Partial<FeedbackQueueItem>) => void;
+  /** Patches a SINGLE photo's upload state without touching any sibling
+   * photo's state — the store-level half of "one photo failing must never
+   * affect the others" (the other half is `processFeedbackQueue`'s
+   * per-photo `try`/`catch` in its upload pass, below). */
+  _patchPhotoState: (
+    feedbackId: string,
+    photoId: string,
+    photoState: FeedbackPhotoUploadState,
+  ) => void;
 }
 
 /** Internal — screens/hooks should go through the exported functions below,
@@ -144,6 +176,17 @@ export const useFeedbackQueueStore = create<FeedbackQueueState>()(
         set((state) => ({
           items: state.items.map((entry) =>
             entry.submission.feedbackId === feedbackId ? { ...entry, ...patch } : entry,
+          ),
+        })),
+      _patchPhotoState: (feedbackId, photoId, photoState) =>
+        set((state) => ({
+          items: state.items.map((entry) =>
+            entry.submission.feedbackId === feedbackId
+              ? {
+                  ...entry,
+                  photoStates: { ...entry.photoStates, [photoId]: photoState },
+                }
+              : entry,
           ),
         })),
     }),
@@ -168,7 +211,12 @@ export interface EnqueueFeedbackInput {
   /** Free-text route the Feedback screen was opened from — see
    * `context.ts`'s own doc. Omitted/undefined is stored as `null`. */
   screen?: string | null;
-  photoUri?: string | null;
+  /** LOCAL file uris only (`expo-image-picker` results), same contract the
+   * pre-0021 singular `photoUri` field had. Silently truncated to
+   * `FEEDBACK_PHOTO_MAX_COUNT` — a defensive backstop, the real cap is
+   * enforced in `app/feedback.tsx`'s own UI before this is ever called
+   * with more. */
+  photoUris?: string[];
 }
 
 /**
@@ -183,15 +231,23 @@ export async function enqueueFeedback(
   transport: FeedbackTransport = getDefaultFeedbackTransport(),
 ): Promise<FeedbackSubmission> {
   const deviceId = await getDeviceId();
+  const photos: FeedbackPhotoAttachment[] = (input.photoUris ?? [])
+    .slice(0, FEEDBACK_PHOTO_MAX_COUNT)
+    .map((uri) => ({ photoId: Crypto.randomUUID(), uri }));
   const submission: FeedbackSubmission = {
     feedbackId: Crypto.randomUUID(),
     deviceId,
     message: input.message,
     contact: input.contact ?? null,
     context: buildFeedbackContext(input.screen ?? null),
-    photoUri: input.photoUri ?? null,
+    photos,
     createdAt: Date.now(),
   };
+
+  const photoStates: Record<string, FeedbackPhotoUploadState> = {};
+  for (const photo of photos) {
+    photoStates[photo.photoId] = "pending-upload";
+  }
 
   useFeedbackQueueStore.getState()._addItem({
     submission,
@@ -199,7 +255,7 @@ export async function enqueueFeedback(
     attempts: 0,
     lastAttemptAt: null,
     nextRetryAt: null,
-    photoState: submission.photoUri ? "pending-upload" : null,
+    photoStates,
   });
 
   // Fire-and-forget: the durable write already happened above.
@@ -287,25 +343,40 @@ export async function processFeedbackQueue(
       // up for its photo upload in this SAME pass). Gated on
       // `state === "submitted"` because `feedback_photos.feedback_id`'s
       // foreign key needs the `feedback` row to already exist server-side.
+      // Flattened to one (submission, photo) pair PER PHOTO — not per
+      // item — so a submission with several photos uploads and retries
+      // each one completely independently: one photo's persistent failure
+      // must never block or retry-starve its siblings.
       if (typeof transport.uploadPhoto === "function") {
         const uploadPhoto = transport.uploadPhoto;
-        const { items: itemsAfterSubmit } = useFeedbackQueueStore.getState();
-        const photoEligible = itemsAfterSubmit.filter(
-          (item) =>
-            item.submission.photoUri &&
-            item.state === "submitted" &&
-            (item.photoState === "pending-upload" || item.photoState === "failed"),
-        );
+        const { items: itemsAfterSubmit, _patchPhotoState } = useFeedbackQueueStore.getState();
+        const photoEligible: { submission: FeedbackSubmission; photo: FeedbackPhotoAttachment }[] =
+          [];
+        for (const item of itemsAfterSubmit) {
+          if (item.state !== "submitted") {
+            continue;
+          }
+          for (const photo of item.submission.photos) {
+            const photoState = item.photoStates[photo.photoId];
+            if (photoState === "pending-upload" || photoState === "failed") {
+              photoEligible.push({ submission: item.submission, photo });
+            }
+          }
+        }
 
-        for (const item of photoEligible) {
-          const feedbackId = item.submission.feedbackId;
+        for (const { submission: photoSubmission, photo } of photoEligible) {
           try {
-            const result = await uploadPhoto(item.submission);
-            _patchItem(feedbackId, {
-              photoState: result.outcome === "uploaded" ? "uploaded" : "failed",
-            });
+            const result = await uploadPhoto(photoSubmission, photo);
+            _patchPhotoState(
+              photoSubmission.feedbackId,
+              photo.photoId,
+              result.outcome === "uploaded" ? "uploaded" : "failed",
+            );
           } catch {
-            _patchItem(feedbackId, { photoState: "failed" });
+            // One photo's own upload throwing must never affect any
+            // sibling photo (still queued for this same pass) or the
+            // surrounding message's already-"submitted" state.
+            _patchPhotoState(photoSubmission.feedbackId, photo.photoId, "failed");
           }
         }
       }

@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
-import { useFeedbackQueueStore } from "@/features/feedback";
+import { FEEDBACK_PHOTO_MAX_COUNT, useFeedbackQueueStore } from "@/features/feedback";
 
 /**
  * Feedback screen (owner directive, see `src/features/feedback/queue.ts`'s
@@ -25,6 +25,11 @@ import { useFeedbackQueueStore } from "@/features/feedback";
  * "awaiting-backend", never "submitted". This is exactly the env-gating
  * case the wave brief calls out: the confirmation screen must never claim
  * the feedback was sent under that condition.
+ *
+ * Multi-photo (migration 0021 wave): the picker mock now returns however
+ * many `assets` a test configures — `launchImageLibraryAsync` is a single
+ * call whether the user picked one screenshot or several, mirroring how
+ * `expo-image-picker`'s own `allowsMultipleSelection` API works.
  */
 
 const mockPush = jest.fn();
@@ -96,10 +101,27 @@ async function pressAndFlush(button: ReturnType<typeof screen.getByRole>) {
   });
 }
 
-async function addScreenshot() {
-  await pressAndFlush(
-    screen.getByRole("button", { name: i18n.t("feedback.photo.addLabel") }),
-  );
+function mockPickerAssets(uris: string[]) {
+  mockLaunchImageLibraryAsync.mockResolvedValueOnce({
+    canceled: false,
+    assets: uris.map((uri) => ({ uri })),
+  });
+}
+
+/** Presses whichever of the two photo-picker triggers is currently shown —
+ * "Add screenshots" (no photos yet) or "Add more" (at least one already
+ * attached) — the cap-reached state hides both, so callers should not use
+ * this once at the limit. */
+async function addScreenshots() {
+  const button = screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") })
+    ?? screen.getByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") });
+  await pressAndFlush(button);
+}
+
+function removeThumbnailButton(index: number) {
+  return screen.getByRole("button", {
+    name: i18n.t("feedback.photo.removeThumbnailLabel", { index }),
+  });
 }
 
 async function submit() {
@@ -152,49 +174,112 @@ describe("Feedback screen", () => {
     ).toBe(false);
   });
 
-  it("adding a screenshot shows a preview and a remove option; removing clears it", async () => {
-    mockLaunchImageLibraryAsync.mockResolvedValue({
-      canceled: false,
-      assets: [{ uri: "file:///tmp/screenshot.jpg" }],
-    });
+  it("adding one screenshot shows a thumbnail with a remove control; removing it clears the set", async () => {
+    mockPickerAssets(["file:///tmp/screenshot.jpg"]);
 
     await renderWithProviders(<FeedbackScreen />);
-    await addScreenshot();
+    await addScreenshots();
 
-    expect(
-      screen.getByRole("button", { name: i18n.t("feedback.photo.removeLabel") }),
-    ).toBeTruthy();
+    expect(removeThumbnailButton(1)).toBeTruthy();
 
     await act(async () => {
-      fireEvent.press(
-        screen.getByRole("button", { name: i18n.t("feedback.photo.removeLabel") }),
-      );
+      fireEvent.press(removeThumbnailButton(1));
     });
 
-    expect(
-      screen.queryByRole("button", { name: i18n.t("feedback.photo.removeLabel") }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 1 }) })).toBeNull();
+    // Back to "Add screenshots" (not "Add more") once the set is empty again.
     expect(screen.getByRole("button", { name: i18n.t("feedback.photo.addLabel") })).toBeTruthy();
   });
 
-  it("a canceled picker leaves the screenshot untouched", async () => {
-    mockLaunchImageLibraryAsync.mockResolvedValue({ canceled: true, assets: null });
+  it("multi-select: picking several screenshots at once gives each one its own thumbnail and remove control", async () => {
+    mockPickerAssets(["file:///tmp/one.jpg", "file:///tmp/two.jpg", "file:///tmp/three.jpg"]);
 
     await renderWithProviders(<FeedbackScreen />);
-    await addScreenshot();
+    await addScreenshots();
 
-    expect(mockLaunchImageLibraryAsync).toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: i18n.t("feedback.photo.addLabel") })).toBeTruthy();
+    expect(mockLaunchImageLibraryAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ allowsMultipleSelection: true, selectionLimit: FEEDBACK_PHOTO_MAX_COUNT }),
+    );
+    expect(removeThumbnailButton(1)).toBeTruthy();
+    expect(removeThumbnailButton(2)).toBeTruthy();
+    expect(removeThumbnailButton(3)).toBeTruthy();
+    // The trigger switches to "Add more" once at least one photo is attached.
+    expect(screen.getByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") })).toBeNull();
+  });
+
+  it("adding more in a second pass appends to (never replaces) the existing set", async () => {
+    mockPickerAssets(["file:///tmp/one.jpg"]);
+    await renderWithProviders(<FeedbackScreen />);
+    await addScreenshots();
+
+    mockPickerAssets(["file:///tmp/two.jpg", "file:///tmp/three.jpg"]);
+    await addScreenshots();
+
+    expect(removeThumbnailButton(1)).toBeTruthy();
+    expect(removeThumbnailButton(2)).toBeTruthy();
+    expect(removeThumbnailButton(3)).toBeTruthy();
+    // The second pass only ever needs to fill the REMAINING slots.
+    expect(mockLaunchImageLibraryAsync).toHaveBeenLastCalledWith(
+      expect.objectContaining({ selectionLimit: FEEDBACK_PHOTO_MAX_COUNT - 1 }),
+    );
+  });
+
+  it("removing one thumbnail before sending removes only that photo, not its siblings", async () => {
+    mockPickerAssets(["file:///tmp/one.jpg", "file:///tmp/two.jpg"]);
+    await renderWithProviders(<FeedbackScreen />);
+    await addScreenshots();
+
+    await act(async () => {
+      fireEvent.press(removeThumbnailButton(1));
+    });
+
+    // Exactly one remove control survives — the (renumbered) survivor.
+    expect(removeThumbnailButton(1)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 2 }) })).toBeNull();
+  });
+
+  it("a canceled picker leaves the existing set untouched", async () => {
+    mockPickerAssets(["file:///tmp/one.jpg"]);
+    await renderWithProviders(<FeedbackScreen />);
+    await addScreenshots();
+
+    mockLaunchImageLibraryAsync.mockResolvedValueOnce({ canceled: true, assets: null });
+    await addScreenshots();
+
+    expect(removeThumbnailButton(1)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 2 }) })).toBeNull();
+  });
+
+  it("enforces the photo cap: hides the add trigger and shows a calm limit message once reached", async () => {
+    mockPickerAssets(
+      Array.from({ length: FEEDBACK_PHOTO_MAX_COUNT }, (_, i) => `file:///tmp/${i}.jpg`),
+    );
+    await renderWithProviders(<FeedbackScreen />);
+    await addScreenshots();
+
+    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") })).toBeNull();
+    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") })).toBeNull();
     expect(
-      screen.queryByRole("button", { name: i18n.t("feedback.photo.removeLabel") }),
+      screen.getByText(i18n.t("feedback.photo.limitReached", { count: FEEDBACK_PHOTO_MAX_COUNT })),
+    ).toBeTruthy();
+  });
+
+  it("truncates to the remaining slots even if the platform picker ignores selectionLimit and returns more", async () => {
+    mockPickerAssets(Array.from({ length: FEEDBACK_PHOTO_MAX_COUNT + 2 }, (_, i) => `file:///tmp/${i}.jpg`));
+    await renderWithProviders(<FeedbackScreen />);
+    await addScreenshots();
+
+    expect(removeThumbnailButton(FEEDBACK_PHOTO_MAX_COUNT)).toBeTruthy();
+    expect(
+      screen.queryByRole("button", {
+        name: i18n.t("feedback.photo.removeThumbnailLabel", { index: FEEDBACK_PHOTO_MAX_COUNT + 1 }),
+      }),
     ).toBeNull();
   });
 
-  it("submitting durably queues the message with the trimmed contact, the screen it came from, and any photo", async () => {
-    mockLaunchImageLibraryAsync.mockResolvedValue({
-      canceled: false,
-      assets: [{ uri: "file:///tmp/screenshot.jpg" }],
-    });
+  it("submitting durably queues the message with the trimmed contact, the screen it came from, and every attached photo", async () => {
+    mockPickerAssets(["file:///tmp/one.jpg", "file:///tmp/two.jpg"]);
 
     await renderWithProviders(<FeedbackScreen />);
 
@@ -208,7 +293,7 @@ describe("Feedback screen", () => {
         "  tester@example.com  ",
       );
     });
-    await addScreenshot();
+    await addScreenshots();
     await submit();
 
     const items = useFeedbackQueueStore.getState().items;
@@ -216,7 +301,28 @@ describe("Feedback screen", () => {
     expect(items[0]?.submission.message).toBe("The map crashed.");
     expect(items[0]?.submission.contact).toBe("tester@example.com");
     expect(items[0]?.submission.context.screen).toBe("settings");
-    expect(items[0]?.submission.photoUri).toBe("file:///tmp/screenshot.jpg");
+    expect(items[0]?.submission.photos.map((photo) => photo.uri)).toEqual([
+      "file:///tmp/one.jpg",
+      "file:///tmp/two.jpg",
+    ]);
+    // Each photo gets its own distinct client-generated id.
+    const photoIds = items[0]?.submission.photos.map((photo) => photo.photoId) ?? [];
+    expect(new Set(photoIds).size).toBe(2);
+  });
+
+  it("submitting with no photos stores an empty photo list, not an error", async () => {
+    await renderWithProviders(<FeedbackScreen />);
+
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(i18n.t("feedback.messageLabel")),
+        "No photo this time.",
+      );
+    });
+    await submit();
+
+    const items = useFeedbackQueueStore.getState().items;
+    expect(items[0]?.submission.photos).toEqual([]);
   });
 
   it("submitting with no contact stores contact as null, not an empty string", async () => {

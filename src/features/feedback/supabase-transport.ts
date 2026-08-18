@@ -9,7 +9,7 @@ import type {
   FeedbackTransport,
   FeedbackTransportResult,
 } from "./queue";
-import type { FeedbackSubmission } from "./types";
+import type { FeedbackPhotoAttachment, FeedbackSubmission } from "./types";
 
 /** Private Storage bucket created by migration 0020 — see that file for the
  * bucket config (5 MB limit, jpeg/png/webp) and the storage.objects RLS
@@ -64,18 +64,22 @@ export function buildFeedbackInsert(
 }
 
 export interface FeedbackPhotoInsert {
+  photo_id: string;
   feedback_id: string;
   storage_path: string;
 }
 
-/** Maps a resolved storage path to a `feedback_photos` upsert row
- * (migration 0020's `feedback_photos_feedback_id_uq`) — same "upsert
- * keyed on the parent id" idempotency the felt-photos path uses. */
+/** Maps a resolved storage path to a `feedback_photos` upsert row. As of
+ * migration 0021, the upsert key is `photo_id` (client-generated, one per
+ * photo), not `feedback_id` (which 0020 had capped at one row and 0021
+ * drops that cap on) — see 0021's own header for why the idempotency
+ * anchor moved. */
 export function buildFeedbackPhotoInsert(
+  photoId: string,
   feedbackId: string,
   storagePath: string,
 ): FeedbackPhotoInsert {
-  return { feedback_id: feedbackId, storage_path: storagePath };
+  return { photo_id: photoId, feedback_id: feedbackId, storage_path: storagePath };
 }
 
 /** True for any Postgres/PostgREST error that isn't a known "this was
@@ -143,27 +147,23 @@ async function readPhotoBody(uri: string): Promise<Blob | ArrayBuffer> {
 }
 
 /**
- * Uploads an optional feedback screenshot to the private `feedback-photos`
- * Storage bucket (migration 0020) at `<auth.uid()>/<feedback_id>.jpg`, then
- * upserts the matching `feedback_photos` row. Never throws — every failure
- * path returns `{ outcome: "failed" }` so `queue.ts`'s photo-retry pass can
- * safely re-attempt on the next drain without the surrounding feedback
- * message ever being affected (wave brief: "the message must submit
- * successfully even if the photo upload fails or is slow"; "upload the
- * photo after the row lands, retry on later drains, and never block or
- * fail the message on it").
+ * Uploads ONE feedback screenshot to the private `feedback-photos` Storage
+ * bucket at `<auth.uid()>/<feedback_id>/<photo_id>.jpg` (migration 0021 —
+ * was `<auth.uid()>/<feedback_id>.jpg` under 0020, before more than one
+ * photo was possible), then upserts the matching `feedback_photos` row
+ * keyed on `photo_id`. Never throws — every failure path returns
+ * `{ outcome: "failed" }` so `queue.ts`'s per-photo retry pass can safely
+ * re-attempt just THIS photo on the next drain without the surrounding
+ * feedback message, or any sibling photo, ever being affected (wave
+ * brief: "the message must submit successfully even if the photo upload
+ * fails or is slow"; "each photo uploads independently ... one photo
+ * failing must not prevent the others from uploading").
  */
 export async function uploadFeedbackPhoto(
   client: SupabaseClient,
   submission: FeedbackSubmission,
+  photo: FeedbackPhotoAttachment,
 ): Promise<FeedbackPhotoUploadResult> {
-  const photoUri = submission.photoUri;
-  if (!photoUri) {
-    // Nothing to upload — not a failure, just a no-op the caller shouldn't
-    // have invoked (queue.ts only calls this when photoUri is set).
-    return { outcome: "uploaded" };
-  }
-
   const userId = await ensureAnonymousUserId(client);
   if (!userId) {
     // No provable identity -> no safe storage path to write to (migration
@@ -174,14 +174,14 @@ export async function uploadFeedbackPhoto(
   }
 
   try {
-    const body = await readPhotoBody(photoUri);
-    const storagePath = `${userId}/${submission.feedbackId}.jpg`;
+    const body = await readPhotoBody(photo.uri);
+    const storagePath = `${userId}/${submission.feedbackId}/${photo.photoId}.jpg`;
 
     const { error: uploadError } = await client.storage
       .from(FEEDBACK_PHOTOS_BUCKET)
       .upload(storagePath, body, {
         upsert: true, // retry-idempotent: re-running this on the same path overwrites, never duplicates
-        contentType: inferPhotoContentType(photoUri),
+        contentType: inferPhotoContentType(photo.uri),
       });
     if (uploadError) {
       return { outcome: "failed" };
@@ -189,8 +189,8 @@ export async function uploadFeedbackPhoto(
 
     const { error: rowError } = await client
       .from("feedback_photos")
-      .upsert(buildFeedbackPhotoInsert(submission.feedbackId, storagePath), {
-        onConflict: "feedback_id",
+      .upsert(buildFeedbackPhotoInsert(photo.photoId, submission.feedbackId, storagePath), {
+        onConflict: "photo_id",
       });
     if (rowError) {
       return { outcome: "failed" };
@@ -230,11 +230,14 @@ export const SupabaseFeedbackTransport: FeedbackTransport = {
     return { outcome: "failed", retryable: isRetryableInsertError(error.code) };
   },
 
-  async uploadPhoto(submission: FeedbackSubmission): Promise<FeedbackPhotoUploadResult> {
+  async uploadPhoto(
+    submission: FeedbackSubmission,
+    photo: FeedbackPhotoAttachment,
+  ): Promise<FeedbackPhotoUploadResult> {
     const client = getSupabaseClient();
     if (!client) {
       return { outcome: "failed" };
     }
-    return uploadFeedbackPhoto(client, submission);
+    return uploadFeedbackPhoto(client, submission, photo);
   },
 };

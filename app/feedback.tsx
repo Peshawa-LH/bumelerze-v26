@@ -1,15 +1,26 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
+import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { enqueueFeedback, useFeedbackQueueItemState } from "@/features/feedback";
+import { FEEDBACK_PHOTO_MAX_COUNT, enqueueFeedback, useFeedbackQueueItemState } from "@/features/feedback";
 import { useTheme } from "@/theme";
 
 const MESSAGE_MAX_LENGTH = 4000; // matches feedback.message's CHECK constraint, migration 0020
 const CONTACT_MAX_LENGTH = 320; // matches feedback.contact's CHECK constraint, migration 0020
+
+/** One screenshot as picked, before submission — a purely LOCAL id
+ * (`Crypto.randomUUID()`, distinct from the eventual `feedback_photos.
+ * photo_id` `enqueueFeedback` generates) just so React has a stable key
+ * and each thumbnail/remove-button pair can carry its own accessible
+ * label without relying on array index (which would shift under removal). */
+interface PickedPhoto {
+  id: string;
+  uri: string;
+}
 
 /**
  * Owner directive (see `src/features/feedback/queue.ts`'s own header for
@@ -34,7 +45,7 @@ export default function FeedbackScreen() {
 
   const [message, setMessage] = useState("");
   const [contact, setContact] = useState("");
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
 
   // Reflects the live queue state of the just-submitted item so the
@@ -44,25 +55,41 @@ export default function FeedbackScreen() {
   const queueState = useFeedbackQueueItemState(submittedId);
 
   const canSubmit = message.trim().length > 0;
+  const atPhotoLimit = photos.length >= FEEDBACK_PHOTO_MAX_COUNT;
 
   async function handleAddPhoto() {
     // Aggressive JPEG compression (quality 0.4), library-only, no editing
     // UI — identical policy to `app/felt-report/details.tsx`'s own photo
     // picker (same size-limit rationale: well under the 5 MB bucket cap,
-    // migration 0020, without a second native module).
+    // migration 0020, without a second native module). Multi-select where
+    // the platform supports it; a second (or third) tap on "Add more" lets
+    // a user top up the set later, since a tester often remembers another
+    // screenshot after the first pass — `photos` only ever grows via
+    // append, never a full replace, across calls.
+    const remainingSlots = FEEDBACK_PHOTO_MAX_COUNT - photos.length;
+    if (remainingSlots <= 0) {
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.4,
       allowsEditing: false,
-      allowsMultipleSelection: false,
+      allowsMultipleSelection: true,
+      // iOS honors this directly; Android/web may still return more than
+      // this, so the slice below is the real enforcement everywhere.
+      selectionLimit: remainingSlots,
     });
-    if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
+    if (result.canceled) {
+      return;
     }
+    const picked: PickedPhoto[] = result.assets
+      .slice(0, remainingSlots)
+      .map((asset) => ({ id: Crypto.randomUUID(), uri: asset.uri }));
+    setPhotos((current) => [...current, ...picked]);
   }
 
-  function handleRemovePhoto() {
-    setPhotoUri(null);
+  function handleRemovePhoto(id: string) {
+    setPhotos((current) => current.filter((photo) => photo.id !== id));
   }
 
   async function handleSubmit() {
@@ -75,7 +102,7 @@ export default function FeedbackScreen() {
       message: trimmedMessage,
       contact: trimmedContact.length > 0 ? trimmedContact : null,
       screen: originScreen ?? null,
-      photoUri,
+      photoUris: photos.map((photo) => photo.uri),
     });
     setSubmittedId(submission.feedbackId);
   }
@@ -251,18 +278,72 @@ export default function FeedbackScreen() {
           />
         </View>
 
-        {photoUri ? (
-          <View style={{ gap: spacing[2] }}>
-            <Image
-              source={{ uri: photoUri }}
-              style={styles.photoPreview}
-              accessibilityIgnoresInvertColors
-              accessibilityLabel={t("feedback.photo.hint")}
-            />
+        <View style={{ gap: spacing[2] }}>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.bodyDefault.fontSize,
+              fontWeight: "600",
+            }}
+          >
+            {t("feedback.photo.label")}
+          </Text>
+
+          {photos.length > 0 ? (
+            <View style={styles.thumbnailGrid}>
+              {photos.map((photo, index) => (
+                <View key={photo.id} style={styles.thumbnailWrapper}>
+                  <Image
+                    source={{ uri: photo.uri }}
+                    style={styles.thumbnail}
+                    accessibilityIgnoresInvertColors
+                    accessibilityLabel={t("feedback.photo.thumbnailLabel", {
+                      index: index + 1,
+                      count: photos.length,
+                    })}
+                  />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("feedback.photo.removeThumbnailLabel", {
+                      index: index + 1,
+                    })}
+                    onPress={() => handleRemovePhoto(photo.id)}
+                    hitSlop={8}
+                    style={[
+                      styles.removeBadge,
+                      { backgroundColor: colors.surface.base, borderColor: colors.border.default },
+                    ]}
+                  >
+                    <Text
+                      style={{ color: colors.text.primary, fontSize: typography.labelCaption.fontSize }}
+                      accessibilityElementsHidden
+                      importantForAccessibility="no-hide-descendants"
+                    >
+                      {t("feedback.photo.removeSymbol")}
+                    </Text>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          {atPhotoLimit ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={{
+                color: colors.text.secondary,
+                fontSize: typography.bodyMeta.fontSize,
+                lineHeight: typography.bodyMeta.lineHeight,
+              }}
+            >
+              {t("feedback.photo.limitReached", { count: FEEDBACK_PHOTO_MAX_COUNT })}
+            </Text>
+          ) : (
             <Pressable
               accessibilityRole="button"
-              onPress={handleRemovePhoto}
-              style={styles.secondaryButton}
+              accessibilityHint={t("feedback.photo.hint", { max: FEEDBACK_PHOTO_MAX_COUNT })}
+              onPress={() => void handleAddPhoto()}
+              style={[styles.photoButton, { borderColor: colors.border.default }]}
             >
               <Text
                 style={{
@@ -271,28 +352,11 @@ export default function FeedbackScreen() {
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
-                {t("feedback.photo.removeLabel")}
+                {photos.length > 0 ? t("feedback.photo.addMoreLabel") : t("feedback.photo.addLabel")}
               </Text>
             </Pressable>
-          </View>
-        ) : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityHint={t("feedback.photo.hint")}
-            onPress={() => void handleAddPhoto()}
-            style={[styles.photoButton, { borderColor: colors.border.default }]}
-          >
-            <Text
-              style={{
-                color: colors.text.link,
-                fontSize: typography.labelButton.fontSize,
-                fontWeight: typography.labelButton.fontWeight,
-              }}
-            >
-              {t("feedback.photo.addLabel")}
-            </Text>
-          </Pressable>
-        )}
+          )}
+        </View>
       </ScrollView>
 
       <Pressable
@@ -337,19 +401,34 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     minHeight: 48,
   },
-  photoPreview: {
+  thumbnailGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  thumbnailWrapper: {
+    width: 84,
+    height: 84,
+  },
+  thumbnail: {
     width: "100%",
-    aspectRatio: 4 / 3,
+    height: "100%",
     borderRadius: 10,
+  },
+  removeBadge: {
+    position: "absolute",
+    top: -6,
+    end: -6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   photoButton: {
     borderWidth: 1,
     borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 48,
-  },
-  secondaryButton: {
     alignItems: "center",
     justifyContent: "center",
     minHeight: 48,
