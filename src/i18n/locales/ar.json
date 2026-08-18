@@ -422,6 +422,9 @@
     "myDataSectionTitle": "بياناتي",
     "myDataSectionDescription": "اطّلع على تقارير الزلازل التي أرسلتها من هذا الجهاز.",
     "myDataOpen": "فتح بياناتي",
+    "feedbackSectionTitle": "الملاحظات",
+    "feedbackSectionDescription": "أخبرنا عن خطأ، أو فكرة، أو أي شيء آخر يخطر ببالك.",
+    "feedbackOpen": "أرسل ملاحظاتك",
     "devicePermissionsSectionTitle": "أذونات الجهاز",
     "devicePermissionsSectionDescription": "امنح إذن الموقع ومستشعر الحركة معاً بضغطة واحدة. يستخدم بوملێرزە موقعك لتحديد مكان تقارير الإحساس بالزلزال، ومستشعر الحركة لتشغيل العرض الحي في شاشة المستشعر.",
     "devicePermissionsAllowButton": "منح أذونات الجهاز",
@@ -836,5 +839,25 @@
     },
     "emptyStateMessage": "لم ترسل أي تقرير إحساس بعد. إذا شعرت بزلزال، أخبرنا. الأمر يستغرق ضغطة واحدة فقط.",
     "emptyStateCta": "أرسل تقرير زلزال"
+  },
+  "feedback": {
+    "title": "الملاحظات",
+    "description": "أخبرنا بما يعمل بشكل جيد، وما هو معطل، وما هو ناقص. رسالتك تساعدنا في تحسين بوملێرزە.",
+    "messageLabel": "رسالتك",
+    "messagePlaceholder": "ما الذي يدور في ذهنك؟",
+    "contactLabel": "وسيلة التواصل (اختياري)",
+    "contactPlaceholder": "البريد الإلكتروني أو رقم الهاتف، إن كنت تود ردا",
+    "photo": {
+      "addLabel": "إضافة لقطة شاشة",
+      "removeLabel": "إزالة لقطة الشاشة",
+      "hint": "أرفق لقطة شاشة اختيارية"
+    },
+    "submit": "إرسال الملاحظات",
+    "confirmation": {
+      "title": "شكراً لك",
+      "sentMessage": "تم إرسال ملاحظاتك. شكراً لك.",
+      "queuedMessage": "تم حفظ ملاحظاتك على جهازك. ستُرسل بمجرد أن يتمكن بوملێرزە من الوصول إلى الخادم.",
+      "close": "إغلاق"
+    }
   }
 }

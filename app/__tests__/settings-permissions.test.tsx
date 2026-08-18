@@ -118,6 +118,19 @@ describe("Settings screen — My Data + Device permissions", () => {
     expect(mockPush).toHaveBeenCalledWith("/my-data");
   });
 
+  it("navigates to /feedback, tagged with screen: 'settings', when the Feedback row is pressed", async () => {
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
+
+    expect(screen.getByText("Feedback")).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Give feedback" }));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/feedback",
+      params: { screen: "settings" },
+    });
+  });
+
   it("shows one combined Allow button and 'Not asked yet' for both permissions when undetermined", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();

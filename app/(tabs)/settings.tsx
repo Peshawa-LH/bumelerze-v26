@@ -122,6 +122,7 @@ export default function SettingsScreen() {
       <DevicePermissionsSection />
       <HandbookSection />
       <MyDataSection />
+      <FeedbackSection />
       <OnboardingSection />
       <FooterSection />
     </ScrollView>
@@ -170,6 +171,61 @@ function MyDataSection() {
           }}
         >
           {t("settings.myDataOpen")}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * Owner directive: "In the settings tab we can implement a feedback message
+ * where you press feedback then write a message ... I can get the list of
+ * feedback then share them with you for fixes." A single navigation row,
+ * same shape as `MyDataSection`/`HandbookSection` above — the form itself
+ * lives on its own screen (`app/feedback.tsx`). Passes `screen: "settings"`
+ * as a route param so the automatically-captured context
+ * (`src/features/feedback/context.ts`) can record where this submission
+ * came from without the feedback feature needing to know about every
+ * possible entry point.
+ */
+function FeedbackSection() {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const router = useRouter();
+
+  return (
+    <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
+        }}
+      >
+        {t("settings.feedbackSectionTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("settings.feedbackSectionDescription")}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push({ pathname: "/feedback", params: { screen: "settings" } })}
+        style={[styles.row, { borderColor: colors.border.default }]}
+      >
+        <Text
+          style={{
+            color: colors.text.primary,
+            fontSize: typography.bodyDefault.fontSize,
+          }}
+        >
+          {t("settings.feedbackOpen")}
         </Text>
       </Pressable>
     </View>

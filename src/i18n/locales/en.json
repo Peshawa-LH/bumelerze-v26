@@ -422,6 +422,9 @@
     "myDataSectionTitle": "My data",
     "myDataSectionDescription": "See the earthquake reports you've submitted from this device.",
     "myDataOpen": "Open My Data",
+    "feedbackSectionTitle": "Feedback",
+    "feedbackSectionDescription": "Tell us about a bug, an idea, or anything else on your mind.",
+    "feedbackOpen": "Give feedback",
     "devicePermissionsSectionTitle": "Device permissions",
     "devicePermissionsSectionDescription": "Allow location and motion-sensor access together, in one tap. Bumelerze uses your location to tag felt reports and the motion sensor to power the live view on the Sensor screen.",
     "devicePermissionsAllowButton": "Allow device permissions",
@@ -836,5 +839,25 @@
     },
     "emptyStateMessage": "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it. It takes one tap.",
     "emptyStateCta": "Report an earthquake"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "description": "Tell us what's working, what's broken, or what's missing. Your message helps us improve Bumelerze.",
+    "messageLabel": "Your message",
+    "messagePlaceholder": "What's on your mind?",
+    "contactLabel": "Contact (optional)",
+    "contactPlaceholder": "Email or phone, if you'd like a reply",
+    "photo": {
+      "addLabel": "Add a screenshot",
+      "removeLabel": "Remove screenshot",
+      "hint": "Attach an optional screenshot"
+    },
+    "submit": "Send feedback",
+    "confirmation": {
+      "title": "Thank you",
+      "sentMessage": "Your feedback has been sent. Thank you.",
+      "queuedMessage": "Your feedback is saved on your device. It will be sent once Bumelerze can reach the server.",
+      "close": "Close"
+    }
   }
 }
