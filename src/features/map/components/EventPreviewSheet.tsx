@@ -12,6 +12,7 @@ import {
 import {
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -30,6 +31,7 @@ import Animated, {
 
 import {
   distanceFromUserKm,
+  EventCard,
   formatAbsoluteDual,
   formatDepthKm,
   formatIsolatedDistance,
@@ -43,12 +45,14 @@ import {
 import { encodeEventRegistrationParam, toEventRegistration } from "@/features/felt";
 import { placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
+import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
 import {
   resolveSheetSnapOutcome,
   sheetTotalHeightPx,
   sheetTranslateYForDetent,
+  type EventSheetContent,
   type SheetDetent,
 } from "../event-sheet";
 import { useReducedMotionPreference } from "../reduced-motion";
@@ -81,15 +85,25 @@ export interface EventPreviewSheetHandle {
 }
 
 interface EventPreviewSheetProps {
-  /** The parent only ever mounts this component once an event is selected
-   * (`{selectedEvent ? <EventPreviewSheet event={selectedEvent} .../> :
-   * null}`) — so this is never null for the component's own lifetime,
-   * including while it's animating closed (the parent clears its selection
-   * from `onDismiss`, fired only once that animation's `finished` callback
-   * runs, not before). */
-  event: Event;
+  /** The parent only ever mounts this component once something is selected
+   * (`{selection ? <EventPreviewSheet content={selection} .../> : null}`)
+   * — so this is never null for the component's own lifetime, including
+   * while it's animating closed (the parent clears its selection from
+   * `onDismiss`, fired only once that animation's `finished` callback runs,
+   * not before). Two shapes (`EventSheetContent`, `event-sheet.ts`): a
+   * single event's normal preview, or a cluster badge's member LIST
+   * (cluster-tap-reveals-events fix) — `content.kind` drives which body
+   * renders below; detent/gesture/dismiss/keyboard/focus machinery is
+   * shared by both. */
+  content: EventSheetContent;
   detent: SheetDetent;
   onDetentChange: (detent: SheetDetent) => void;
+  /** Fires when a row in LIST content is tapped — the caller (the Map
+   * screen) re-selects that single event, which swaps this component's
+   * `content` prop over to `{ kind: "event", event }` on the next render
+   * (`useEventSheetController.select`). Unused while `content.kind ===
+   * "event"`. */
+  onSelectEvent: (event: Event) => void;
   /** Called once the close animation has visually finished (or immediately,
    * under reduced motion) — the parent's cue to clear its selection and let
    * this component unmount. */
@@ -97,7 +111,7 @@ interface EventPreviewSheetProps {
 }
 
 function EventPreviewSheetImpl(
-  { event, detent, onDetentChange, onDismiss }: EventPreviewSheetProps,
+  { content, detent, onDetentChange, onSelectEvent, onDismiss }: EventPreviewSheetProps,
   ref: Ref<EventPreviewSheetHandle>,
 ) {
   const { t, i18n } = useTranslation();
@@ -121,6 +135,18 @@ function EventPreviewSheetImpl(
   const dialogRef = useRef<View>(null);
 
   const isExpanded = detent === "expanded";
+  const currentEvent = content.kind === "event" ? content.event : null;
+
+  // A stable identity for "did the SELECTION genuinely change" (as opposed
+  // to a re-render passing an equal-but-new object/array), matching the
+  // pre-list-mode version's own `event.id` dependency — a plain event id
+  // for `"event"` content, or the joined member ids (already sorted by
+  // `sortClusterMembersForList`, so this key is stable for the same
+  // cluster) for `"list"` content. Feeds `animateToDetent`'s effect below so
+  // re-rendering with the SAME content (a parent re-render for an unrelated
+  // reason) never re-triggers the entrance/detent animation.
+  const contentKey =
+    content.kind === "event" ? content.event.id : content.events.map((event) => event.id).join(",");
 
   const handleLayout = useCallback((layoutEvent: LayoutChangeEvent) => {
     setContainerHeightPx(layoutEvent.nativeEvent.layout.height);
@@ -161,18 +187,22 @@ function EventPreviewSheetImpl(
   }, [containerHeightPx, prefersReducedMotion, translateY, onDismiss]);
 
   // (Re)targets the resting position whenever the requested detent changes,
-  // a NEW event is selected (`event.id` — the controller always resets
-  // `detent` back to "peek" on selection, but the numeric PIXEL target still
-  // needs recomputing here even when the detent VALUE is unchanged), or the
-  // container is measured/resized. Also the entrance animation: on first
-  // mount `translateY` starts at `OFFSCREEN_TRANSLATE_Y_PX` (see its own doc
-  // comment), so the very first run of this effect (once `onLayout` reports
-  // a real height) animates it up into view.
+  // a NEW selection is made (`contentKey` — the controller always resets
+  // `detent` to "peek"/"expanded" itself on selection, but the numeric PIXEL
+  // target still needs recomputing here even when the detent VALUE is
+  // unchanged), or the container is measured/resized. Also the entrance
+  // animation: on first mount `translateY` starts at
+  // `OFFSCREEN_TRANSLATE_Y_PX` (see its own doc comment), so the very first
+  // run of this effect (once `onLayout` reports a real height) animates it
+  // up into view.
   useEffect(() => {
     animateToDetent(detent);
-  }, [detent, event.id, animateToDetent]);
+  }, [detent, contentKey, animateToDetent]);
 
   const handleOpenFull = useCallback(() => {
+    if (!currentEvent) {
+      return;
+    }
     // Settle the sheet back to a clean "peek" baseline (not left mid-drag)
     // before navigating away — if the user returns to Map via the event
     // screen's own back affordance, the sheet greets them again at a normal
@@ -185,18 +215,21 @@ function EventPreviewSheetImpl(
     // comment for why a plain `router.push` alone isn't quite enough
     // (notification taps and other entry points push `/event/[id]` too, and
     // must NOT get a map-specific back affordance).
-    router.push({ pathname: "/event/[id]", params: { id: event.id, origin: "map" } });
-  }, [router, event.id, onDetentChange, animateToDetent]);
+    router.push({ pathname: "/event/[id]", params: { id: currentEvent.id, origin: "map" } });
+  }, [router, currentEvent, onDetentChange, animateToDetent]);
 
   const handleFeltReport = useCallback(() => {
+    if (!currentEvent) {
+      return;
+    }
     router.push({
       pathname: "/felt-report",
       params: {
-        eventId: event.id,
-        eventReg: encodeEventRegistrationParam(toEventRegistration(event)),
+        eventId: currentEvent.id,
+        eventReg: encodeEventRegistrationParam(toEventRegistration(currentEvent)),
       },
     });
-  }, [router, event]);
+  }, [router, currentEvent]);
 
   const handleDragEnd = useCallback(
     (currentTranslateYPx: number, velocityY: number) => {
@@ -214,13 +247,22 @@ function EventPreviewSheetImpl(
         return;
       }
       if (outcome === "openFull") {
-        handleOpenFull();
+        // A cluster's member LIST has no "full event" of its own to hand
+        // off to (`SheetDetent`'s doc comment) — clamp a drag that would
+        // otherwise navigate to the top real detent instead of doing
+        // nothing at all.
+        if (content.kind === "event") {
+          handleOpenFull();
+        } else {
+          animateToDetent("expanded");
+          onDetentChange("expanded");
+        }
         return;
       }
       animateToDetent(outcome);
       onDetentChange(outcome);
     },
-    [containerHeightPx, animateClose, animateToDetent, onDetentChange, handleOpenFull],
+    [containerHeightPx, animateClose, animateToDetent, onDetentChange, handleOpenFull, content.kind],
   );
 
   const maxTranslateYPx = containerHeightPx > 0 ? sheetTotalHeightPx(containerHeightPx) : 0;
@@ -284,46 +326,65 @@ function EventPreviewSheetImpl(
     transform: [{ translateY: translateY.value }],
   }));
 
-  const magnitudeText = t("events.magnitudeDisplay", {
-    value: formatMagnitudeValue(event.magnitude.value, locale),
-  });
-  const placeText = placeLine(event, locale, t);
-  const { local: localTimeText } = formatAbsoluteDual(event.originTime, locale, t);
+  // Shared "now" for every relative-time computation this render needs
+  // (the single-event body below, and each row's `EventCard` in list mode)
+  // — one instant per render pass, not a separately-impure `Date.now()`
+  // call per row (same reasoning `EventListScreen.tsx`/this component's
+  // pre-list-mode version already documents for why a non-memoized read
+  // here is correct, not a purity-rule violation).
+  // eslint-disable-next-line react-hooks/purity -- see comment above
+  const now = Date.now();
+
+  const magnitudeText = currentEvent
+    ? t("events.magnitudeDisplay", {
+        value: formatMagnitudeValue(currentEvent.magnitude.value, locale),
+      })
+    : "";
+  const placeText = currentEvent ? placeLine(currentEvent, locale, t) : "";
+  const { local: localTimeText } = currentEvent
+    ? formatAbsoluteDual(currentEvent.originTime, locale, t)
+    : { local: "" };
   // Same relative-time formatting `EventCard` uses for the feed (one module
   // owns it — `format.ts` — per typescript-react-native.md's "units &
-  // science" rule), not a bespoke sheet-only phrasing. Relative-time math
-  // only needs a roughly-current instant (re-selecting an event re-renders
-  // this fresh) — see `EventListScreen.tsx`'s own identical `now` read for
-  // the full rationale on why this deliberately non-memoized read is
-  // correct, not a bug the purity rule should block.
-  // eslint-disable-next-line react-hooks/purity -- see comment above
-  const relativeTime = getRelativeTime(event.originTime, Date.now());
-  const relativeTimeText =
-    relativeTime.unit === "justNow"
+  // science" rule), not a bespoke sheet-only phrasing.
+  const relativeTime = currentEvent ? getRelativeTime(currentEvent.originTime, now) : null;
+  const relativeTimeText = !relativeTime
+    ? ""
+    : relativeTime.unit === "justNow"
       ? t("events.relativeTime.justNow")
       : t(`events.relativeTime.${relativeTime.unit}`, {
           value: formatRelativeTimeValue(relativeTime.value, locale),
         });
 
   const userFix = useUserDistanceAnchor();
-  const distanceText = userFix.hasFix
-    ? t("events.distanceFromYou", {
-        distance: formatIsolatedDistance(
-          distanceFromUserKm(event, userFix),
-          locale,
-          t("units.km"),
-        ),
-      })
-    : null;
+  const distanceText =
+    currentEvent && userFix.hasFix
+      ? t("events.distanceFromYou", {
+          distance: formatIsolatedDistance(
+            distanceFromUserKm(currentEvent, userFix),
+            locale,
+            t("units.km"),
+          ),
+        })
+      : null;
 
-  const a11yLabel = [
-    t("events.magnitudeA11yLabel", {
-      value: formatMagnitudeValue(event.magnitude.value, locale),
-    }),
-    placeText,
-  ]
-    .filter(Boolean)
-    .join(". ");
+  const clusterListTitle =
+    content.kind === "list"
+      ? t("map.eventSheet.clusterListTitle", {
+          count: localizeDigits(String(content.events.length), locale),
+        })
+      : "";
+
+  const a11yLabel = currentEvent
+    ? [
+        t("events.magnitudeA11yLabel", {
+          value: formatMagnitudeValue(currentEvent.magnitude.value, locale),
+        }),
+        placeText,
+      ]
+        .filter(Boolean)
+        .join(". ")
+    : clusterListTitle;
 
   const webDialogProps: Partial<ViewProps> | null =
     Platform.OS === "web"
@@ -345,65 +406,109 @@ function EventPreviewSheetImpl(
       style={styles.overlay}
       testID="event-preview-sheet-overlay"
     >
-      <GestureDetector gesture={panGesture}>
-        <Animated.View
-          style={[
-            styles.sheet,
-            animatedStyle,
-            {
-              height: containerHeightPx > 0 ? sheetTotalHeightPx(containerHeightPx) : 0,
-              backgroundColor: colors.surface.raised,
-              borderColor: colors.border.default,
-            },
-          ]}
+      <Animated.View
+        style={[
+          styles.sheet,
+          animatedStyle,
+          {
+            height: containerHeightPx > 0 ? sheetTotalHeightPx(containerHeightPx) : 0,
+            backgroundColor: colors.surface.raised,
+            borderColor: colors.border.default,
+          },
+        ]}
+      >
+        <View
+          ref={dialogRef}
+          {...webDialogProps}
+          style={styles.dialogContent}
+          testID="event-preview-sheet"
         >
-          <View
-            ref={dialogRef}
-            {...webDialogProps}
-            style={styles.dialogContent}
-            testID="event-preview-sheet"
-          >
+          {/* Draggable region: the grab handle + top icon row only — NOT the
+           * body below. A cluster LIST body holds a real `ScrollView`
+           * (`EventCard` rows); wrapping the whole sheet in one Pan gesture
+           * (as the single-event-only version of this component used to)
+           * would fight that ScrollView's own vertical pan for every touch,
+           * since RNGH's `Gesture.Pan()` has no built-in "let a nested
+           * scrollable win first" behavior without extra native-gesture
+           * plumbing this app doesn't otherwise need. Restricting the drag
+           * handle to the chrome above the scrollable content is the same
+           * pattern most native bottom sheets use, and sidesteps the
+           * conflict entirely rather than trying to resolve it. */}
+          <GestureDetector gesture={panGesture}>
+            <View>
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={[styles.handleRow, { paddingTop: spacing[2] }]}
+              >
+                <View style={[styles.grabHandle, { backgroundColor: colors.border.default }]} />
+              </View>
+
+              <View style={[styles.topControlsRow, { paddingHorizontal: spacing[3] }]}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isExpanded
+                      ? t("map.eventSheet.collapseButtonLabel")
+                      : t("map.eventSheet.expandButtonLabel")
+                  }
+                  onPress={() => {
+                    const nextDetent: SheetDetent = isExpanded ? "peek" : "expanded";
+                    onDetentChange(nextDetent);
+                    animateToDetent(nextDetent);
+                  }}
+                  hitSlop={12}
+                  style={styles.iconButton}
+                >
+                  <Ionicons
+                    name={isExpanded ? "chevron-down" : "chevron-up"}
+                    size={20}
+                    color={colors.text.secondary}
+                  />
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t("map.eventSheet.closeButtonLabel")}
+                  onPress={animateClose}
+                  hitSlop={12}
+                  style={styles.iconButton}
+                >
+                  <Ionicons name="close" size={20} color={colors.text.secondary} />
+                </Pressable>
+              </View>
+            </View>
+          </GestureDetector>
+
+          {content.kind === "list" ? (
             <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={[styles.handleRow, { paddingTop: spacing[2] }]}
+              style={[
+                styles.body,
+                { paddingHorizontal: spacing[4], paddingBottom: spacing[4], gap: spacing[2] },
+              ]}
             >
-              <View style={[styles.grabHandle, { backgroundColor: colors.border.default }]} />
-            </View>
-
-            <View style={[styles.topControlsRow, { paddingHorizontal: spacing[3] }]}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isExpanded
-                    ? t("map.eventSheet.collapseButtonLabel")
-                    : t("map.eventSheet.expandButtonLabel")
-                }
-                onPress={() => {
-                  const nextDetent: SheetDetent = isExpanded ? "peek" : "expanded";
-                  onDetentChange(nextDetent);
-                  animateToDetent(nextDetent);
+              <Text
+                accessibilityRole="header"
+                allowFontScaling
+                style={{
+                  color: colors.text.primary,
+                  fontSize: typography.bodyDefault.fontSize,
+                  lineHeight: typography.bodyDefault.lineHeight,
+                  fontWeight: "600",
                 }}
-                hitSlop={12}
-                style={styles.iconButton}
               >
-                <Ionicons
-                  name={isExpanded ? "chevron-down" : "chevron-up"}
-                  size={20}
-                  color={colors.text.secondary}
-                />
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t("map.eventSheet.closeButtonLabel")}
-                onPress={animateClose}
-                hitSlop={12}
-                style={styles.iconButton}
+                {clusterListTitle}
+              </Text>
+              <ScrollView
+                style={styles.listScroll}
+                contentContainerStyle={{ gap: spacing[2] }}
+                showsVerticalScrollIndicator={false}
               >
-                <Ionicons name="close" size={20} color={colors.text.secondary} />
-              </Pressable>
+                {content.events.map((member) => (
+                  <EventCard key={member.id} event={member} onPress={onSelectEvent} now={now} />
+                ))}
+              </ScrollView>
             </View>
-
+          ) : (
             <View
               style={[
                 styles.body,
@@ -423,7 +528,7 @@ function EventPreviewSheetImpl(
                 >
                   {magnitudeText}
                 </Text>
-                <ProvenanceChip provider={event.provenance.provider} />
+                {currentEvent ? <ProvenanceChip provider={currentEvent.provenance.provider} /> : null}
               </View>
 
               <Text
@@ -462,7 +567,7 @@ function EventPreviewSheetImpl(
                 ) : null}
               </View>
 
-              {isExpanded ? (
+              {isExpanded && currentEvent ? (
                 <View style={{ gap: spacing[1] }}>
                   <Text
                     allowFontScaling
@@ -483,7 +588,9 @@ function EventPreviewSheetImpl(
                     }}
                   >
                     {t("eventDetail.depthSectionTitle")}:{" "}
-                    {isolateNumeric(`${formatDepthKm(event.depthKm, locale)} ${t("units.km")}`)}
+                    {isolateNumeric(
+                      `${formatDepthKm(currentEvent.depthKm, locale)} ${t("units.km")}`,
+                    )}
                   </Text>
                 </View>
               ) : null}
@@ -538,9 +645,9 @@ function EventPreviewSheetImpl(
                 </Pressable>
               </View>
             </View>
-          </View>
-        </Animated.View>
-      </GestureDetector>
+          )}
+        </View>
+      </Animated.View>
     </View>
   );
 }
@@ -594,6 +701,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   body: {
+    flex: 1,
+  },
+  listScroll: {
     flex: 1,
   },
   topRow: {

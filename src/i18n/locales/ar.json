@@ -214,7 +214,8 @@
       "expandButtonLabel": "إظهار مزيد من التفاصيل",
       "collapseButtonLabel": "إخفاء التفاصيل",
       "closeButtonLabel": "إغلاق",
-      "openFullButtonLabel": "فتح الحدث الكامل"
+      "openFullButtonLabel": "فتح الحدث الكامل",
+      "clusterListTitle": "{{count}} زلزال"
     }
   },
   "sensor": {

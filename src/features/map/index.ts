@@ -19,6 +19,7 @@ export {
 } from "./marker-helpers";
 export {
   CLUSTER_EXPANSION_ZOOM_MARGIN,
+  CLUSTER_LIST_MAX_SIZE,
   CLUSTER_MAX_ZOOM,
   CLUSTER_MAX_DIAMETER_PX,
   CLUSTER_MIN_DIAMETER_PX,
@@ -26,6 +27,7 @@ export {
   CLUSTER_RADIUS_PX,
   clusterRegionMarkers,
   resolveClusterExpansionZoom,
+  sortClusterMembersForList,
   type ClusteredMapMarker,
   type ClusterMarkerFeature,
   type ClusterOptions,
@@ -41,7 +43,9 @@ export {
   CLUSTER_SOURCE_ID,
   EMPTY_CLUSTER_FEATURE_COLLECTION,
   readClusterBoundsFromProperties,
+  readClusterMetaFromProperties,
   type ClusterFeatureCollection,
+  type ClusterFeatureMeta,
   type ClusterFeatureProperties,
   type ClusterGeoFeature,
 } from "./cluster-layer";
@@ -131,6 +135,7 @@ export {
   SHEET_OPEN_FULL_HEIGHT_FRACTION,
   SHEET_PEEK_HEIGHT_FRACTION,
   useEventSheetController,
+  type EventSheetContent,
   type EventSheetController,
   type SheetDetent,
   type SheetSnapOutcome,
