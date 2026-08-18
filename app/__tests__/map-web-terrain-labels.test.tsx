@@ -108,22 +108,19 @@ describe("MapScreenWeb terrain hillshade", () => {
   it("adds the terrain DEM source + hillshade layer, before the first line/symbol layer", async () => {
     await renderWithProviders(<MapScreenWeb />);
 
-    // Three sources get added on a fresh load: terrain hillshade, the
+    // Two sources get added on a fresh load: terrain hillshade and the
     // own-labels gazetteer layer (`map-web-own-labels.test.tsx` covers the
-    // latter in full), and the event-cluster GL source (Problem 2 —
-    // `map-web-clustering.test.tsx` covers that one) — this test only
-    // cares about the terrain half.
+    // latter in full) — this test only cares about the terrain half.
     await waitFor(() => {
-      expect(mockMapAddSource).toHaveBeenCalledTimes(3);
+      expect(mockMapAddSource).toHaveBeenCalledTimes(2);
     });
     expect(mockMapAddSource).toHaveBeenCalledWith(
       TERRAIN_DEM_SOURCE_ID,
       expect.objectContaining({ type: "raster-dem", encoding: "terrarium" }),
     );
 
-    // Four layers: hillshade, own-labels, and the cluster circle + count
-    // layers.
-    expect(mockMapAddLayer).toHaveBeenCalledTimes(4);
+    // Two layers: hillshade and own-labels.
+    expect(mockMapAddLayer).toHaveBeenCalledTimes(2);
     const terrainCall = mockMapAddLayer.mock.calls.find(
       ([layer]) => (layer as { id: string }).id === TERRAIN_HILLSHADE_LAYER_ID,
     ) as [{ id: string }, string];
@@ -257,12 +254,11 @@ describe("MapScreenWeb MapTiler → OpenFreeMap runtime fallback", () => {
     expect(secondOptions?.style).toContain("tiles.openfreemap.org");
 
     // The map never shows the offline/error state — the fallback was
-    // silent and the second instance reached "load" successfully. Terrain
-    // + own-labels + cluster priming ran against that second, now-live
-    // instance too (see the terrain-source test above for why this is 3,
-    // not 2).
+    // silent and the second instance reached "load" successfully. Terrain +
+    // own-labels priming ran against that second, now-live instance too
+    // (see the terrain-source test above for why this is 2).
     await waitFor(() => {
-      expect(mockMapAddSource).toHaveBeenCalledTimes(3);
+      expect(mockMapAddSource).toHaveBeenCalledTimes(2);
     });
     expect(screen.queryByText(i18n.t("map.offlineTitle"))).toBeNull();
   });
