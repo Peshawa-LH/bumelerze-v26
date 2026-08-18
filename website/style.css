@@ -1,10 +1,28 @@
-/* Bumelerze website — single shared stylesheet.
- * Tokens follow the app's design language (internal design-language reference):
- * dark as the primary theme, true-black OLED surfaces, Zagros Blue brand hue
- * pulled from src/theme/palette.ts (light #1F4E5F / dark #3E7C93), big type,
- * system font stack, no images, no frameworks. RTL locales (ckb, ar) rely on
- * dir="rtl" + the CSS logical properties used throughout — nothing here is
- * hard-coded left/right.
+/* Bumelerze website, single shared stylesheet.
+ * Surface/text tokens follow the app's design language (internal
+ * design-language reference): dark as the primary theme, true-black OLED
+ * surfaces, big type, system font stack, no frameworks.
+ *
+ * Brand accent tokens (--brand / --brand-strong / --brand-gold /
+ * --focus-ring) come from the official logo package's palette
+ * (assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/bumelerze-colors.json:
+ * Signal Red #C8202F, Endpoint Gold #F2B632). The website is a BRAND
+ * surface, unlike the app's own in-product chrome, which deliberately keeps
+ * a different, blue accent so Signal Red stays legible as "danger" inside
+ * the app itself (see assets/brand/README.md's "brand-red-vs-app-red
+ * split" for the full reasoning; this site does not carry that constraint).
+ * `--brand-strong` (dark theme) is a lightened tint of Signal Red, not the
+ * raw hex: the raw hex only reaches ~3.7:1 against this theme's
+ * near-black surfaces, short of the 4.5:1 AA-normal-text floor this token
+ * needs for body links and headings; the tint clears 5:1 against every
+ * surface it appears on (measured, not eyeballed, see the exact figures
+ * below). `--brand` (decorative, non-text uses: borders, icons) stays the
+ * exact, unmodified Signal Red in both themes.
+ *
+ * RTL locales (ckb, ar) rely on dir="rtl" + the CSS logical properties used
+ * throughout, nothing here is hard-coded left/right, and the brand logo
+ * (an <img>/<picture>, not decorative CSS) is never transformed/mirrored
+ * for RTL: a wordmark is not a directional icon.
  */
 
 :root {
@@ -14,9 +32,19 @@
   --text-primary: #f2f2f3;
   --text-secondary: #a6a6aa;
   --border-default: #2a2a2c;
-  --brand: #3e7c93;
-  --brand-strong: #5ea3bb;
-  --focus-ring: #5ea3bb;
+  --brand: #c8202f;
+  /* Signal Red lightened ~28% toward white: 5.69:1 vs #000 (surface-base),
+     5.00:1 vs #141414 (surface-raised, e.g. .features h3's card
+     background), both comfortably clear the 4.5:1 AA-normal-text floor;
+     the raw #c8202f only reaches ~3.7:1/~3.25:1 on these same two
+     surfaces. */
+  --brand-strong: #d75e69;
+  --brand-gold: #f2b632;
+  /* Endpoint Gold reaches 11.5:1 against true-black: reserved for the
+     dark-theme focus ring, a small, deliberate nod to the logo's own gold
+     "reported observation" endpoint dot on the one UI element that is
+     itself about marking where attention currently is. */
+  --focus-ring: var(--brand-gold);
 }
 
 @media (prefers-color-scheme: light) {
@@ -27,9 +55,14 @@
     --text-primary: #161616;
     --text-secondary: #5b5b5e;
     --border-default: #e2e2e5;
-    --brand: #1f4e5f;
-    --brand-strong: #1f4e5f;
-    --focus-ring: #1f4e5f;
+    --brand: #c8202f;
+    /* Raw Signal Red: 5.67:1 vs white (surface-base), similarly clear
+       against surface-raised, no lightening needed on light surfaces. */
+    --brand-strong: #c8202f;
+    --brand-gold: #f2b632;
+    /* Gold fails badly on light backgrounds (~1.8:1): light-theme focus
+       ring stays the same red used for links/headings. */
+    --focus-ring: var(--brand-strong);
   }
 }
 
@@ -86,16 +119,20 @@ main {
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
   text-decoration: none;
-  color: var(--text-primary);
-  font-weight: 700;
-  font-size: 1.25rem;
 }
 
-.brand-link svg {
-  color: var(--brand);
-  flex-shrink: 0;
+/* The horizontal logo (website/brand/) already contains the wordmark as
+ * vector artwork: light-mode pages get the dark-ink version, dark-mode
+ * pages get the ivory "reversed" version via the <picture>/<source>
+ * prefers-color-scheme swap in each page's header (brand-guidelines.md:
+ * "use the ivory version on navy or another sufficiently dark
+ * background", this site's dark surface qualifies). Fixed intrinsic
+ * width/height on the <img> keep layout stable before the SVG loads. */
+.brand-logo {
+  display: block;
+  height: 35px;
+  width: auto;
 }
 
 .site-nav {
