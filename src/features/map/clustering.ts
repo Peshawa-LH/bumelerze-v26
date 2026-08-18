@@ -35,17 +35,41 @@
  * events at most, `marker-helpers.ts`'s own doc comment), a simple O(n²)
  * greedy grouping is cheap enough to redo on every zoom change — no
  * incremental/hierarchical index needed.
+ *
+ * Two invariants this module enforces so a cluster badge is never a dead
+ * end: (1) groups below `CLUSTER_MIN_SIZE` render as plain standalone
+ * points, never a one/two-member badge that costs a tap for no readability
+ * win; (2) `resolveClusterExpansionZoom` guarantees a tapped badge's forced
+ * camera move always clears `CLUSTER_MAX_ZOOM`, so the tap always visibly
+ * splits the group apart rather than possibly re-landing on the same badge.
  */
 import { magnitudeTone, type Event, type MagnitudeTone } from "@/features/events";
+import { MARKER_HIT_PADDING_PX, MARKER_MAX_DIAMETER_PX } from "./config";
 import type { RegionBbox } from "./marker-helpers";
 import { magnitudeToMarkerDiameterPx } from "./marker-helpers";
 
+/** The largest a single marker's own TAP target ever gets — the biggest
+ * magnitude-scaled dot (`MARKER_MAX_DIAMETER_PX`) plus its hit-padding halo
+ * on each side (`MARKER_HIT_PADDING_PX`, config.ts). Two markers whose
+ * centers are exactly this far apart have their hit targets just touching —
+ * the threshold past which showing them as two separate markers starts
+ * costing tap accuracy instead of helping it. */
+const MAX_MARKER_HIT_RADIUS_PX = MARKER_MAX_DIAMETER_PX / 2 + MARKER_HIT_PADDING_PX;
+
 /** Screen-pixel radius (at the given zoom) within which two events are
- * grouped into the same cluster — tuned to comfortably swallow the
- * magnitude-scaled marker diameters (`MARKER_MIN/MAX_DIAMETER_PX`,
- * config.ts) that would otherwise overlap, without being so large that
- * genuinely distinct nearby towns' events get lumped into one badge. */
-export const CLUSTER_RADIUS_PX = 48;
+ * grouped into the same cluster. Set to exactly the largest marker's own hit
+ * radius (`MAX_MARKER_HIT_RADIUS_PX`, 27px today) rather than a wider,
+ * tasted-by-eye value: that's the precise distance at which two full-size
+ * markers' tap targets would start overlapping, which is the actual problem
+ * clustering exists to solve (Problem 2's "overlap into an unreadable
+ * blob"). A wider radius (the previous 48px, ~1.8x this) swallowed far more
+ * real-world area than any marker overlap justified — at the Kurdistan
+ * region's default fitted zoom (~5-6), 48px projects to well over 100km,
+ * which is how a normal-density feed ended up as a single mega-cluster with
+ * zero standalone markers anywhere on screen. 27px keeps the same
+ * "never let markers visually collide" guarantee while clustering roughly
+ * 45% less real-world area at any given zoom. */
+export const CLUSTER_RADIUS_PX = MAX_MARKER_HIT_RADIUS_PX;
 
 /** At/above this zoom, clustering stops entirely regardless of density —
  * "splitting apart as the user zooms in" (wave brief). Chosen above the
@@ -54,6 +78,25 @@ export const CLUSTER_RADIUS_PX = 48;
  * view clusters dense areas, while zooming in to inspect a specific town's
  * events reliably reaches individual markers. */
 export const CLUSTER_MAX_ZOOM = 8;
+
+/** Below this member count, a "cluster" hides more than it helps: a badge
+ * standing in for just two events costs the user a tap (to expand it) AND
+ * hides which two events it actually is, for no readability win a single
+ * pair of markers wouldn't already have. 3 is the conventional minimum
+ * cluster size (the same floor supercluster and most map-cluster libraries
+ * default to) — below it, `clusterRegionMarkers` renders the group as plain
+ * standalone points instead. */
+export const CLUSTER_MIN_SIZE = 3;
+
+/** Extra zoom, past `CLUSTER_MAX_ZOOM`, that a cluster-badge tap's forced
+ * camera move (`resolveClusterExpansionZoom` below) lands on top of the
+ * cutoff — not strictly required (`clusterRegionMarkers` already treats
+ * `zoom >= CLUSTER_MAX_ZOOM` as "never cluster," so landing exactly ON the
+ * cutoff is technically sufficient), but a small, deliberate margin makes
+ * the zoom-in animation visibly register as progress even when the tapped
+ * cluster's natural fit-bounds zoom sits right at the cutoff already, and
+ * gives floating-point camera math a bit of headroom against the boundary. */
+export const CLUSTER_EXPANSION_ZOOM_MARGIN = 0.5;
 
 export const CLUSTER_MIN_DIAMETER_PX = 30;
 export const CLUSTER_MAX_DIAMETER_PX = 54;
@@ -101,6 +144,7 @@ export type ClusteredMapMarker = ClusterMarkerFeature | PointMarkerFeature;
 export interface ClusterOptions {
   radiusPx?: number;
   maxZoom?: number;
+  minSize?: number;
 }
 
 interface ProjectedPoint {
@@ -211,6 +255,7 @@ export function clusterRegionMarkers(
   }
   const radiusPx = options.radiusPx ?? CLUSTER_RADIUS_PX;
   const maxZoom = options.maxZoom ?? CLUSTER_MAX_ZOOM;
+  const minSize = options.minSize ?? CLUSTER_MIN_SIZE;
   const mostRecentId = findMostRecentEventId(events);
 
   if (zoom >= maxZoom) {
@@ -246,11 +291,38 @@ export function clusterRegionMarkers(
     groups.push(group);
   }
 
-  return groups.map((group) => {
-    if (group.length === 1) {
-      const event = (group[0] as ProjectedPoint).event;
-      return toPointFeature(event, event.id === mostRecentId);
+  // A group below `minSize` renders as its own standalone points, NOT a
+  // cluster badge (`CLUSTER_MIN_SIZE`'s doc comment) — a badge that only
+  // stands in for one or two events costs a tap and hides which events they
+  // are, for no overlap-avoidance win a lone marker (or two adjacent ones)
+  // wouldn't already have.
+  return groups.flatMap((group): ClusteredMapMarker[] => {
+    if (group.length < minSize) {
+      return group.map((point) => toPointFeature(point.event, point.event.id === mostRecentId));
     }
-    return toClusterFeature(group.map((point) => point.event));
+    return [toClusterFeature(group.map((point) => point.event))];
   });
+}
+
+/**
+ * A cluster-badge tap must ALWAYS make visible progress (never re-land on
+ * the same badge covering the same members) — see this module's own
+ * `CLUSTER_MAX_ZOOM`: `clusterRegionMarkers` treats any zoom at/above it as
+ * "never cluster," so forcing the post-tap zoom to clear that cutoff is a
+ * hard guarantee the tapped members split apart, independent of how far
+ * apart they actually are on the ground. `naturalZoom` is whatever a plain
+ * bounds-fit (`Map.cameraForBounds`) would land on for the cluster's member
+ * extent; when that's already past the cutoff (a tight, nearby group), it's
+ * used as-is — no need to force a bigger jump than the bounds fit already
+ * gives. When it isn't (a cluster whose members are spread wide enough that
+ * fitting their bounds alone doesn't clear the cutoff — exactly the "tap a
+ * badge, watch it not visibly change" bug this fixes), the zoom is forced
+ * to `maxZoom + CLUSTER_EXPANSION_ZOOM_MARGIN` instead.
+ */
+export function resolveClusterExpansionZoom(
+  naturalZoom: number,
+  maxZoom: number = CLUSTER_MAX_ZOOM,
+  margin: number = CLUSTER_EXPANSION_ZOOM_MARGIN,
+): number {
+  return naturalZoom >= maxZoom ? naturalZoom : maxZoom + margin;
 }

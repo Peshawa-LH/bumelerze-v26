@@ -116,6 +116,28 @@ export function setMockSetStyleFixture(
 }
 
 export const mockMapFitBounds = jest.fn();
+/** `Map.cameraForBounds(bounds, options)` — the cluster-click handler's
+ * "compute the natural bounds-fit camera WITHOUT moving the map" call
+ * (`map.web.tsx`), which it then feeds through `resolveClusterExpansionZoom`
+ * before actually moving the camera via `easeTo`. Returns whatever
+ * `setMockCameraForBoundsResult` last configured (`{ center, zoom }` by
+ * default — a real MapLibre map always returns a defined `zoom` for a valid,
+ * non-degenerate bounds) so a test can drive both branches of
+ * `resolveClusterExpansionZoom` (natural zoom already past the cutoff vs.
+ * not) deterministically. */
+export const mockMapCameraForBounds = jest.fn(
+  (_bounds: unknown, _options?: unknown): { center: [number, number]; zoom: number } | undefined =>
+    mockCameraForBoundsResult,
+);
+let mockCameraForBoundsResult: { center: [number, number]; zoom: number } | undefined = {
+  center: [45.45, 35.55],
+  zoom: 6,
+};
+export function setMockCameraForBoundsResult(
+  result: { center: [number, number]; zoom: number } | undefined,
+) {
+  mockCameraForBoundsResult = result;
+}
 export const mockMapSetStyle = jest.fn();
 export const mockMapOnce = jest.fn();
 /** The event-preview sheet's subtle recenter-on-select (`map.easeTo`,
@@ -309,6 +331,10 @@ export class MockMap {
     mockMapFitBounds(bounds, options);
   }
 
+  cameraForBounds(bounds: unknown, options?: unknown) {
+    return mockMapCameraForBounds(bounds, options);
+  }
+
   easeTo(options: unknown) {
     mockMapEaseTo(options);
   }
@@ -478,6 +504,8 @@ export function resetMapWebMocks() {
   mockMapGetSource.mockClear();
   mockSourceSetData.mockClear();
   mockMapFitBounds.mockClear();
+  mockMapCameraForBounds.mockClear();
+  mockCameraForBoundsResult = { center: [45.45, 35.55], zoom: 6 };
   mockMapEaseTo.mockClear();
   mockMapSetStyle.mockClear();
   mockMapOnce.mockClear();

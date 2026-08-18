@@ -1,9 +1,12 @@
 import type { Event } from "@/features/events";
 import {
+  CLUSTER_EXPANSION_ZOOM_MARGIN,
   CLUSTER_MAX_DIAMETER_PX,
   CLUSTER_MAX_ZOOM,
   CLUSTER_MIN_DIAMETER_PX,
+  CLUSTER_MIN_SIZE,
   clusterRegionMarkers,
+  resolveClusterExpansionZoom,
   type ClusterMarkerFeature,
   type PointMarkerFeature,
 } from "../clustering";
@@ -43,16 +46,40 @@ describe("clusterRegionMarkers", () => {
     expect(feature).toMatchObject({ kind: "point", id: "solo", isMostRecent: true });
   });
 
-  it("groups co-located events into one cluster below the max zoom", () => {
+  it("groups 3+ co-located events (at/above the minimum cluster size) into one cluster below the max zoom", () => {
     const events = [
       makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
       makeEvent({ id: "b", lat: 35.56, lon: 45.43 }),
+      makeEvent({ id: "c", lat: 35.56, lon: 45.43 }),
     ];
     const features = clusterRegionMarkers(events, KURDISTAN_ZOOM);
     expect(features).toHaveLength(1);
     const [cluster] = features as [ClusterMarkerFeature];
     expect(cluster.kind).toBe("cluster");
-    expect(cluster.count).toBe(2);
+    expect(cluster.count).toBe(3);
+  });
+
+  it("never groups a pair of only 2 co-located events into a cluster badge, however close, below the minimum cluster size", () => {
+    // Regression: a badge standing in for just 2 events costs a tap and
+    // hides which events they are, for no readability win two adjacent
+    // markers wouldn't already have (CLUSTER_MIN_SIZE's doc comment).
+    const events = [
+      makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
+      makeEvent({ id: "b", lat: 35.56, lon: 45.43 }),
+    ];
+    const features = clusterRegionMarkers(events, KURDISTAN_ZOOM);
+    expect(features).toHaveLength(2);
+    expect(features.every((feature) => feature.kind === "point")).toBe(true);
+  });
+
+  it("respects an explicit minSize override", () => {
+    const events = [
+      makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
+      makeEvent({ id: "b", lat: 35.56, lon: 45.43 }),
+    ];
+    const features = clusterRegionMarkers(events, KURDISTAN_ZOOM, { minSize: 2 });
+    expect(features).toHaveLength(1);
+    expect(features[0]?.kind).toBe("cluster");
   });
 
   it("keeps events far apart as separate standalone points at the same zoom", () => {
@@ -60,7 +87,7 @@ describe("clusterRegionMarkers", () => {
       makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
       // ~20 degrees of longitude away — projects hundreds of px apart even
       // at a zoomed-out level 5, comfortably beyond the default cluster
-      // radius (48px).
+      // radius.
       makeEvent({ id: "b", lat: 35.56, lon: 65.43 }),
     ];
     const features = clusterRegionMarkers(events, KURDISTAN_ZOOM);
@@ -105,6 +132,7 @@ describe("clusterRegionMarkers", () => {
     const events = [
       makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
       makeEvent({ id: "b", lat: 35.56, lon: 45.43 }),
+      makeEvent({ id: "c", lat: 35.56, lon: 45.43 }),
     ];
     const [cluster] = clusterRegionMarkers(events, KURDISTAN_ZOOM) as [ClusterMarkerFeature];
     expect(cluster.bounds.maxLon).toBeGreaterThan(cluster.bounds.minLon);
@@ -114,7 +142,8 @@ describe("clusterRegionMarkers", () => {
   it("cluster bounds cover every member's actual coordinates when they're spread within the radius", () => {
     const events = [
       makeEvent({ id: "a", lat: 35.5, lon: 45.4 }),
-      makeEvent({ id: "b", lat: 35.52, lon: 45.42 }),
+      makeEvent({ id: "b", lat: 35.51, lon: 45.41 }),
+      makeEvent({ id: "c", lat: 35.52, lon: 45.42 }),
     ];
     const [cluster] = clusterRegionMarkers(events, KURDISTAN_ZOOM) as [ClusterMarkerFeature];
     expect(cluster.bounds.minLat).toBeLessThanOrEqual(35.5);
@@ -124,15 +153,16 @@ describe("clusterRegionMarkers", () => {
   });
 
   it("cluster diameter grows with member count, clamped to the configured range", () => {
-    const twoMembers = [
+    const smallMembers = [
       makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
       makeEvent({ id: "b", lat: 35.56, lon: 45.43 }),
+      makeEvent({ id: "c", lat: 35.56, lon: 45.43 }),
     ];
     const manyMembers = Array.from({ length: 25 }, (_, index) =>
       makeEvent({ id: `many-${index}`, lat: 35.56, lon: 45.43 }),
     );
 
-    const [smallCluster] = clusterRegionMarkers(twoMembers, KURDISTAN_ZOOM) as [
+    const [smallCluster] = clusterRegionMarkers(smallMembers, KURDISTAN_ZOOM) as [
       ClusterMarkerFeature,
     ];
     const [bigCluster] = clusterRegionMarkers(manyMembers, KURDISTAN_ZOOM) as [
@@ -162,5 +192,37 @@ describe("clusterRegionMarkers", () => {
     const features = clusterRegionMarkers(events, 3, { maxZoom: 2 });
     expect(features).toHaveLength(2);
     expect(features.every((feature) => feature.kind === "point")).toBe(true);
+  });
+
+  it("CLUSTER_MIN_SIZE is the conventional minimum of 3", () => {
+    expect(CLUSTER_MIN_SIZE).toBe(3);
+  });
+});
+
+describe("resolveClusterExpansionZoom", () => {
+  it("uses the natural fit zoom as-is when it already clears the cutoff", () => {
+    expect(resolveClusterExpansionZoom(CLUSTER_MAX_ZOOM + 3, CLUSTER_MAX_ZOOM)).toBe(
+      CLUSTER_MAX_ZOOM + 3,
+    );
+  });
+
+  it("uses the natural fit zoom as-is when it lands exactly on the cutoff", () => {
+    expect(resolveClusterExpansionZoom(CLUSTER_MAX_ZOOM, CLUSTER_MAX_ZOOM)).toBe(CLUSTER_MAX_ZOOM);
+  });
+
+  it("forces the zoom past the cutoff, by the configured margin, when the natural fit falls short — this is what guarantees a cluster tap always makes progress", () => {
+    const naturalZoom = CLUSTER_MAX_ZOOM - 3;
+    const resolved = resolveClusterExpansionZoom(naturalZoom, CLUSTER_MAX_ZOOM);
+    expect(resolved).toBeGreaterThan(CLUSTER_MAX_ZOOM);
+    expect(resolved).toBe(CLUSTER_MAX_ZOOM + CLUSTER_EXPANSION_ZOOM_MARGIN);
+  });
+
+  it("forces progress even for a badly-spread cluster whose fit zoom is very low (e.g. a wide, whole-region cluster)", () => {
+    const resolved = resolveClusterExpansionZoom(0, CLUSTER_MAX_ZOOM);
+    expect(resolved).toBeGreaterThan(CLUSTER_MAX_ZOOM);
+  });
+
+  it("respects an explicit margin override", () => {
+    expect(resolveClusterExpansionZoom(2, 8, 1.5)).toBe(9.5);
   });
 });
