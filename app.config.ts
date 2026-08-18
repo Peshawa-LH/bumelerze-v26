@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import type { ExpoConfig } from "expo/config";
 
 // Environment config lives here (not app.json) so Phase-2+ work can branch on
@@ -10,6 +13,37 @@ import type { ExpoConfig } from "expo/config";
 // per-dynamic-segment rewrites instead. Unset (local dev, tests, native
 // builds) nothing changes.
 const webBaseUrl = process.env.BUMELERZE_WEB_BASE_URL;
+
+// Brand colors for icon/splash chrome come straight from the logo
+// package's own machine-readable tokens (not hand-copied hex) — the same
+// file `scripts/generate-assets.js` reads to rasterize icon.png/
+// splash-icon.png, so app.config.ts and the generated PNGs can never drift
+// out of sync. This is the LOGO's palette (Signal Red / Warm Ivory /
+// Endpoint Gold / Approved Navy) — a deliberately different, untouched
+// palette from the app's in-product semantic colors in
+// src/theme/palette.ts (intensityRamp, actionRed, status.danger), which
+// this file does not read. See assets/brand/README.md for why those two
+// palettes are kept apart.
+interface LogoColorToken {
+  hex: string;
+}
+interface LogoColorTokens {
+  colors: Record<string, LogoColorToken>;
+}
+const logoColorsPath = path.join(
+  __dirname,
+  "assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/bumelerze-colors.json",
+);
+const logoColors: LogoColorTokens = JSON.parse(fs.readFileSync(logoColorsPath, "utf8"));
+function logoColorHex(key: string): string {
+  const token = logoColors.colors[key];
+  if (!token) {
+    throw new Error(`${logoColorsPath}: missing colors["${key}"] — logo package tokens changed shape.`);
+  }
+  return token.hex;
+}
+const signalRed = logoColorHex("signal-red");
+const approvedNavy = logoColorHex("approved-navy");
 
 const config: ExpoConfig = {
   name: "Bumelerze",
@@ -25,10 +59,11 @@ const config: ExpoConfig = {
   },
   android: {
     adaptiveIcon: {
-      // Zagros Blue (brand.primaryLight, src/theme/palette.ts) — still
-      // flagged owner-review there; regenerate via
-      // `node scripts/generate-assets.js` after that hue is finalized.
-      backgroundColor: "#1F4E5F",
+      // Signal Red (logoColors, the logo package's field color) — matches
+      // the round/square app icon so every launcher mask shape reproduces
+      // the same look. Regenerate the foreground/monochrome images via
+      // `node scripts/generate-assets.js` if the logo package changes.
+      backgroundColor: signalRed,
       foregroundImage: "./assets/images/android-icon-foreground.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
@@ -43,16 +78,18 @@ const config: ExpoConfig = {
     [
       "expo-splash-screen",
       {
-        // Brand background both modes (src/theme/palette.ts `brand`, still
-        // owner-review — design-language.md §3): primaryLight for the light
-        // splash, primaryDark for the dark splash. The mark itself (white
-        // rings, transparent field) is the same asset in both — it was
-        // designed to read clearly against either brand value.
-        backgroundColor: "#1F4E5F",
+        // Signal Red for the light splash. The logo package's own
+        // brand-guidelines.md calls out Approved Navy as the dark
+        // background its ivory/gold mark was designed to read against
+        // ("Reversed logo: use the ivory version on navy or another
+        // sufficiently dark background") — used for the dark splash below.
+        // The mark itself (ivory mountain/waveform + gold endpoint,
+        // transparent field) is the same asset in both.
+        backgroundColor: signalRed,
         image: "./assets/images/splash-icon.png",
         imageWidth: 96,
         dark: {
-          backgroundColor: "#3E7C93",
+          backgroundColor: approvedNavy,
           image: "./assets/images/splash-icon.png",
         },
       },
@@ -99,7 +136,11 @@ const config: ExpoConfig = {
         // Android status-bar notification icons must be a pure white
         // silhouette on a transparent field (OS renders everything else as
         // solid black) — never the full-color app icon. `color` is the
-        // notification accent tint; brand.primaryLight (palette.ts).
+        // notification accent tint; deliberately still brand.primaryLight
+        // ("Zagros Blue", src/theme/palette.ts), NOT the logo's Signal Red —
+        // an earthquake-alert notification tinted the same red the app uses
+        // for danger/intensity would read as more severe than it is. See
+        // assets/brand/README.md for the full brand-red-vs-app-red split.
         icon: "./assets/images/notification-icon.png",
         color: "#1F4E5F",
       },
