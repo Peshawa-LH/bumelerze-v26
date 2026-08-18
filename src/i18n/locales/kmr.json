@@ -209,6 +209,12 @@
     },
     "attribution": {
       "maptilerLogoA11yLabel": "MapTiler"
+    },
+    "eventSheet": {
+      "expandButtonLabel": "Hûrgiliyên zêdetir nîşan bide",
+      "collapseButtonLabel": "Hûrgiliyan veşêre",
+      "closeButtonLabel": "Bigire",
+      "openFullButtonLabel": "Bûyera tevahî veke"
     }
   },
   "sensor": {
@@ -510,6 +516,7 @@
     "loading": "Bûyer tê barkirin…",
     "notFoundTitle": "Bûyer nehat dîtin",
     "notFoundDescription": "Me nekarî bûyera {{id}} bibîne. Dibe ku pir kevn be, an jî girêdan çewt be.",
+    "backToMap": "Vegere nexşeyê",
     "timeSectionTitle": "Dem",
     "utcTimeLabel": "UTC",
     "localTimeLabel": "Herêmî",

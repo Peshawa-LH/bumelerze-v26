@@ -209,6 +209,12 @@
     },
     "attribution": {
       "maptilerLogoA11yLabel": "MapTiler"
+    },
+    "eventSheet": {
+      "expandButtonLabel": "Show more detail",
+      "collapseButtonLabel": "Hide detail",
+      "closeButtonLabel": "Close",
+      "openFullButtonLabel": "Open full event"
     }
   },
   "sensor": {
@@ -510,6 +516,7 @@
     "loading": "Loading event…",
     "notFoundTitle": "Event not found",
     "notFoundDescription": "We couldn't find event {{id}}. It may be too old, or the link may be incorrect.",
+    "backToMap": "Back to map",
     "timeSectionTitle": "Time",
     "utcTimeLabel": "UTC",
     "localTimeLabel": "Local",

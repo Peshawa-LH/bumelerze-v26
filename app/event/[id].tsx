@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, type ReactNode } from "react";
+import { useCallback, useMemo, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -34,11 +34,31 @@ import { useTheme } from "@/theme";
  * doesn't have yet.
  */
 export default function EventDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, origin } = useLocalSearchParams<{ id: string; origin?: string }>();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+
+  // Map-event-sheet wave (owner: "an option to go back to the map"):
+  // `origin === "map"` is set ONLY by the Map screen's preview sheet
+  // (`EventPreviewSheet`'s `handleOpenFull`) when it pushes this route — a
+  // notification tap or any other entry point into `/event/[id]` never sets
+  // it, so this affordance only ever appears for the ONE path the owner was
+  // actually asking about, not globally. `router.back()` already lands back
+  // on Map by construction whenever `origin` is set this way (the sheet is
+  // only ever open while already ON the Map screen, so pushing this route
+  // always has Map directly beneath it on the stack) — `canGoBack()` +
+  // `replace` as a fallback only guards the unusual case where something
+  // else already cleared the stack out from under this screen before the
+  // button is pressed.
+  const handleBackToMap = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/map");
+    }
+  }, [router]);
 
   const region = useRegionEvents();
   const world = useWorldEvents();
@@ -78,6 +98,33 @@ export default function EventDetailScreen() {
             gap: spacing[5],
           }}
         >
+          {/* Map-event-sheet wave: an explicit, always-visible "back to
+           * map" affordance, styled like this screen's own
+           * `historicalContextLink` below — deliberately no directional
+           * chevron/arrow glyph (Ionicons doesn't auto-mirror for RTL, and
+           * this app has no established icon-flipping convention yet to
+           * reuse; a plain text link avoids that pitfall entirely). Shown
+           * ONLY for `origin === "map"` — see `handleBackToMap`'s own doc
+           * comment for why. */}
+          {origin === "map" ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleBackToMap}
+              hitSlop={12}
+              style={styles.backToMapRow}
+            >
+              <Text
+                style={{
+                  color: colors.text.link,
+                  fontSize: typography.labelButton.fontSize,
+                  fontWeight: typography.labelButton.fontWeight,
+                }}
+              >
+                {t("eventDetail.backToMap")}
+              </Text>
+            </Pressable>
+          ) : null}
+
           {isLoading ? (
             <Text
               style={{
@@ -529,5 +576,8 @@ const styles = StyleSheet.create({
   myReportRow: {
     borderWidth: 1,
     borderRadius: 12,
+  },
+  backToMapRow: {
+    alignSelf: "flex-start",
   },
 });

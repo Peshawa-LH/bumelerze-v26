@@ -118,8 +118,27 @@ export {
   MAPTILER_LOGO_WIDTH_PX,
 } from "./attribution";
 export { useMapPreferencesStore, type MapPreferencesState } from "./preferences-store";
+export {
+  resolveSheetSnapOutcome,
+  sheetTotalHeightPx,
+  sheetTranslateYForDetent,
+  sheetVisibleHeightPx,
+  SHEET_EXPANDED_HEIGHT_FRACTION,
+  SHEET_FLICK_VELOCITY_PX_PER_SEC,
+  SHEET_OPEN_FULL_HEIGHT_FRACTION,
+  SHEET_PEEK_HEIGHT_FRACTION,
+  useEventSheetController,
+  type EventSheetController,
+  type SheetDetent,
+  type SheetSnapOutcome,
+} from "./event-sheet";
+export { useReducedMotionPreference } from "./reduced-motion";
 export { ScopeToggle } from "./components/ScopeToggle";
 export { MapControlIconButton } from "./components/MapControlIconButton";
 export { MapFilterPanel } from "./components/MapFilterPanel";
 export { MapStylePicker } from "./components/MapStylePicker";
 export { MapTilerAttributionLogo } from "./components/MapTilerAttributionLogo";
+export {
+  EventPreviewSheet,
+  type EventPreviewSheetHandle,
+} from "./components/EventPreviewSheet";

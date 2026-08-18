@@ -1,6 +1,6 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import type {
   GeoJSONSource,
   Map as MapLibreMap,
@@ -39,6 +39,7 @@ import {
   computeMagnitudeBounds,
   decideMapErrorAction,
   DEFAULT_MAP_SCOPE,
+  EventPreviewSheet,
   filterEventsByMagnitudeAndDate,
   findHillshadeBeforeLayerId,
   findNameLabelLayerIds,
@@ -63,10 +64,13 @@ import {
   shouldRequestRTLTextPlugin,
   styleHasRasterDemSource,
   TERRAIN_DEM_SOURCE_ID,
+  useEventSheetController,
   useMapPreferencesStore,
+  useReducedMotionPreference,
   WORLD_VIEW_BBOX,
   type ClusterMarkerFeature,
   type DateRangeMs,
+  type EventPreviewSheetHandle,
   type MagnitudeRange,
   type MapScope,
   type MapStyleCatalogId,
@@ -74,6 +78,14 @@ import {
   type PointMarkerFeature,
 } from "@/features/map";
 import { useTheme } from "@/theme";
+
+/** Fixed, deliberately modest pixel nudge applied to the map's viewport
+ * center when a marker is selected (`easeTo`'s `offset`, in the marker
+ * click handler below) so the newly-opened preview sheet doesn't sit
+ * directly on top of it — see that call site's own doc comment for why this
+ * is a small fixed constant rather than something computed from the sheet's
+ * exact peek height. */
+const MAP_SHEET_SELECT_OFFSET_PX = 90;
 
 /**
  * Lazily loads the tier-3 (village/hamlet) Kurdish-places dataset — by far
@@ -355,10 +367,30 @@ export default function MapScreenWeb() {
   const { t, i18n } = useTranslation();
   const { colors, scheme, spacing, typography } = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   const { events: regionEvents, dataUpdatedAt: regionDataUpdatedAt } = useRegionEvents();
   const { events: worldEvents, dataUpdatedAt: worldDataUpdatedAt } = useWorldEvents();
+
+  // Event-preview sheet (map-UX wave: "the map doesn't close fully, but a
+  // slider type thing opens") — `eventSheet` is the sheet's own state
+  // machine (`event-sheet.ts`, independently tested), `sheetRef` is how the
+  // MAP's own "click the background to dismiss" handler (registered once,
+  // inside the map-creation effect below, which never re-runs on a
+  // selection change) reaches the sheet's ANIMATED close path — see that
+  // handler's own doc comment.
+  const eventSheet = useEventSheetController();
+  // Destructured out for the marker-build effect's own dependency array
+  // below — `eventSheet` itself is a fresh object every render (its own
+  // doc comment explains why: `event`/`detent` need to be read live), but
+  // `select` is individually stable (`useEventSheetController`'s own
+  // `useCallback`), so depending on THIS instead of `eventSheet.select`
+  // lets `react-hooks/exhaustive-deps` see that stability directly, rather
+  // than defeating the effect's whole "only rebuild markers when the data
+  // actually changes" purpose by depending on the ever-changing whole
+  // object.
+  const selectEvent = eventSheet.select;
+  const sheetRef = useRef<EventPreviewSheetHandle>(null);
+  const prefersReducedMotion = useReducedMotionPreference();
 
   // Persisted basemap style pick (update-plan-2026-08.md §4.3/Part 3:
   // "Persist his choice locally so it survives reloads") — selectors, not
@@ -475,16 +507,6 @@ export default function MapScreenWeb() {
       ),
     [scopedEvents, effectiveMagnitudeRange, effectiveDateRange],
   );
-
-  // Kept as a ref (synced via effect, never written during render — the
-  // React Compiler's react-hooks/refs rule forbids ref writes in render) so
-  // each marker's click handler, created once when the marker is built,
-  // always calls through to the LATEST router even though the closure
-  // itself is never recreated on a router identity change.
-  const routerRef = useRef(router);
-  useEffect(() => {
-    routerRef.current = router;
-  }, [router]);
 
   // Same "closure captured a value at effect-setup time, but needs the
   // LATEST one when an async callback actually resolves" concern as
@@ -673,6 +695,26 @@ export default function MapScreenWeb() {
               padding: MAP_FIT_BOUNDS_PADDING_PX,
             });
           }
+        });
+        // "clicking the map background should dismiss it" (event-preview
+        // sheet wave) — a map-WIDE (not layer-scoped) "click" listener, so
+        // it only ever fires for a click that actually hit the WebGL canvas
+        // itself. A marker tap never reaches here at all: maplibre-gl's DOM
+        // `Marker` elements are separate overlay nodes stacked on top of the
+        // canvas, so clicking one is a plain DOM event on that element, not
+        // a canvas hit MapLibre would report through this handler — so this
+        // never fights with (or immediately undoes) a marker selecting a
+        // NEW event. A cluster-badge click, above, ALSO reaches here (the
+        // two listener kinds both fire for the same click) — dismissing
+        // whatever sheet was open at the same time a cluster zoom happens is
+        // the right call too: a cluster isn't the sheet's own selected
+        // marker. `sheetRef.current` is only non-null while the sheet is
+        // actually mounted (open), so this is a safe no-op the rest of the
+        // time — see `EventPreviewSheetHandle`'s doc comment for why this
+        // goes through the animated `requestClose()` path rather than
+        // clearing the selection directly.
+        map.on("click", () => {
+          sheetRef.current?.requestClose();
         });
         map.on("load", () => {
           if (cancelled) {
@@ -1011,7 +1053,31 @@ export default function MapScreenWeb() {
       haloEl.appendChild(coreEl);
       hitEl.appendChild(haloEl);
 
-      const activate = () => routerRef.current.push(`/event/${marker.id}`);
+      // Tapping a marker now RAISES THE PREVIEW SHEET (map-UX wave: "the map
+      // doesn't close fully, but a slider type thing opens") instead of
+      // navigating straight to `/event/[id]` — reaching the full event is
+      // now the SHEET's own job (its "open full event" action / dragging
+      // past its largest detent), not the marker's. `sourceEvent` is always
+      // resolved above from this same render pass's `eventById` map, so
+      // there's nothing left to push a route for here.
+      const activate = () => {
+        if (!sourceEvent) {
+          return;
+        }
+        selectEvent(sourceEvent);
+        // Subtle recenter (wave brief: "consider whether to nudge the map's
+        // centre so the selected marker is not hidden behind the sheet; if
+        // you do, keep it subtle") — an `offset` shifts where the given
+        // `center` ends up ON SCREEN rather than moving the actual map
+        // center coordinate further than necessary; a small, fixed pixel
+        // nudge (not computed from the sheet's exact peek height) is
+        // deliberately modest, not a full re-frame of the viewport.
+        map.easeTo({
+          center: [marker.lon, marker.lat],
+          offset: [0, -MAP_SHEET_SELECT_OFFSET_PX],
+          duration: prefersReducedMotion ? 0 : 300,
+        });
+      };
       hitEl.addEventListener("click", activate);
       hitEl.addEventListener("keydown", (domEvent) => {
         if (domEvent.key === "Enter" || domEvent.key === " ") {
@@ -1025,7 +1091,16 @@ export default function MapScreenWeb() {
         .addTo(map);
       markersRef.current.push(markerInstance);
     }
-  }, [loadState, filteredEvents, zoom, colors, t, i18n.language]);
+  }, [
+    loadState,
+    filteredEvents,
+    zoom,
+    colors,
+    t,
+    i18n.language,
+    selectEvent,
+    prefersReducedMotion,
+  ]);
 
   const showOverlayLoading = loadState === "idle" || loadState === "loading";
 
@@ -1203,6 +1278,29 @@ export default function MapScreenWeb() {
               {t("map.loading")}
             </Text>
           </View>
+        ) : null}
+
+        {/* Draggable event-preview sheet (map-UX wave) — rendered LAST so it
+         * stacks above every other overlay in this file's established
+         * "later JSX = on top" paint-order convention (see
+         * `controlsBackdrop`'s own doc comment). Mounted ONLY while an event
+         * is selected: `EventPreviewSheet` itself owns its whole open/close
+         * animation lifecycle, so mounting = "start the entrance animation"
+         * and unmounting = "the close animation already finished" (its
+         * `onDismiss` prop, wired to `eventSheet.dismiss`, is what clears
+         * the selection and lets this conditional actually unmount it) —
+         * never torn down/recreated for any OTHER reason (a filter change,
+         * a style swap, a data refetch), so the map underneath keeps
+         * rendering completely undisturbed the whole time the sheet is
+         * open. */}
+        {loadState === "ready" && eventSheet.event ? (
+          <EventPreviewSheet
+            ref={sheetRef}
+            event={eventSheet.event}
+            detent={eventSheet.detent}
+            onDetentChange={eventSheet.setDetent}
+            onDismiss={eventSheet.dismiss}
+          />
         ) : null}
       </View>
     </View>
