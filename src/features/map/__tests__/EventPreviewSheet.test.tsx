@@ -128,9 +128,10 @@ describe("EventPreviewSheet: preview content", () => {
     const event = makeEvent();
     await renderSheet(
       <EventPreviewSheet
-        event={event}
+        content={{ kind: "event", event }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -156,9 +157,10 @@ describe("EventPreviewSheet: preview content", () => {
     mockUseUserDistanceAnchor.mockReturnValue({ hasFix: true, lat: 35.56, lon: 45.6 });
     await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -169,9 +171,10 @@ describe("EventPreviewSheet: preview content", () => {
   it("shows local time and depth ADDITIONALLY once expanded", async () => {
     await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="expanded"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -186,9 +189,10 @@ describe("EventPreviewSheet: expand/collapse control", () => {
     const onDetentChange = jest.fn();
     const { rerender } = await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={onDetentChange}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -205,9 +209,10 @@ describe("EventPreviewSheet: expand/collapse control", () => {
     await rerender(
       <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>
         <EventPreviewSheet
-          event={makeEvent()}
+          content={{ kind: "event", event: makeEvent() }}
           detent="expanded"
           onDetentChange={onDetentChange}
+          onSelectEvent={jest.fn()}
           onDismiss={jest.fn()}
         />
       </SafeAreaProvider>,
@@ -223,9 +228,10 @@ describe("EventPreviewSheet: close", () => {
     const onDismiss = jest.fn();
     await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={onDismiss}
       />,
     );
@@ -246,9 +252,10 @@ describe("EventPreviewSheet: close", () => {
     await renderSheet(
       <EventPreviewSheet
         ref={ref}
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={onDismiss}
       />,
     );
@@ -269,9 +276,10 @@ describe("EventPreviewSheet: reduced motion", () => {
     const onDetentChange = jest.fn();
     await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={onDetentChange}
+        onSelectEvent={jest.fn()}
         onDismiss={onDismiss}
       />,
     );
@@ -299,9 +307,10 @@ describe("EventPreviewSheet: navigation", () => {
     const event = makeEvent();
     await renderSheet(
       <EventPreviewSheet
-        event={event}
+        content={{ kind: "event", event }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -323,9 +332,10 @@ describe("EventPreviewSheet: navigation", () => {
     const event = makeEvent();
     await renderSheet(
       <EventPreviewSheet
-        event={event}
+        content={{ kind: "event", event }}
         detent="expanded"
         onDetentChange={onDetentChange}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -359,9 +369,10 @@ describe("EventPreviewSheet: keyboard and focus (web)", () => {
     const onDismiss = jest.fn();
     await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={onDismiss}
       />,
     );
@@ -377,9 +388,10 @@ describe("EventPreviewSheet: keyboard and focus (web)", () => {
     const onDismiss = jest.fn();
     await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={onDismiss}
       />,
     );
@@ -394,9 +406,10 @@ describe("EventPreviewSheet: keyboard and focus (web)", () => {
   it("marks the dialog with role=\"dialog\" and a non-empty accessible label describing the event, so it announces itself to screen readers the moment focus lands on it", async () => {
     await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -422,9 +435,10 @@ describe("EventPreviewSheet: keyboard and focus (web)", () => {
   it("mounting and unmounting on web never throws (the focus-management effect's cleanup runs cleanly)", async () => {
     const { unmount } = await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -437,9 +451,10 @@ describe("EventPreviewSheet: accessibility", () => {
   it("expand, close, felt-report and open-full-event controls are all real buttons with non-empty accessible names", async () => {
     await renderSheet(
       <EventPreviewSheet
-        event={makeEvent()}
+        content={{ kind: "event", event: makeEvent() }}
         detent="peek"
         onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );
@@ -458,4 +473,111 @@ describe("EventPreviewSheet: accessibility", () => {
   // hard requirement) is already enforced statically, for every source
   // file including this one, by `src/__tests__/a11y-invariants.test.ts`'s
   // "never disables font scaling" scan — no need to duplicate it here.
+});
+
+describe("EventPreviewSheet: list content (cluster-tap-reveals-events fix)", () => {
+  it("shows the localized member count as a heading, and one row per member event", async () => {
+    const members = [
+      makeEvent({ id: "a", placeName: "A" }),
+      makeEvent({ id: "b", placeName: "B" }),
+      makeEvent({ id: "c", placeName: "C" }),
+    ];
+    await renderSheet(
+      <EventPreviewSheet
+        content={{ kind: "list", events: members }}
+        detent="expanded"
+        onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText(i18n.t("map.eventSheet.clusterListTitle", { count: "3" })),
+    ).toBeTruthy();
+    for (const member of members) {
+      expect(screen.getByTestId(`event-card-${member.id}`)).toBeTruthy();
+    }
+  });
+
+  it("tapping a row calls onSelectEvent with that member's event, not any navigation", async () => {
+    const onSelectEvent = jest.fn();
+    const members = [makeEvent({ id: "a" }), makeEvent({ id: "b" })];
+    await renderSheet(
+      <EventPreviewSheet
+        content={{ kind: "list", events: members }}
+        detent="expanded"
+        onDetentChange={jest.fn()}
+        onSelectEvent={onSelectEvent}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("event-card-b"));
+    });
+
+    expect(onSelectEvent).toHaveBeenCalledWith(members[1]);
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("does not render the single-event felt-report/open-full-event actions", async () => {
+    await renderSheet(
+      <EventPreviewSheet
+        content={{ kind: "list", events: [makeEvent({ id: "a" })] }}
+        detent="expanded"
+        onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: i18n.t("felt.pill.label") })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: i18n.t("map.eventSheet.openFullButtonLabel") }),
+    ).toBeNull();
+  });
+
+  it("still closes via Escape, same as single-event content", async () => {
+    const originalPlatformOS = Platform.OS;
+    Platform.OS = "web";
+    const onDismiss = jest.fn();
+    await renderSheet(
+      <EventPreviewSheet
+        content={{ kind: "list", events: [makeEvent({ id: "a" })] }}
+        detent="expanded"
+        onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    await act(async () => {
+      window.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape" }));
+    });
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    Platform.OS = originalPlatformOS;
+  });
+
+  it("gives the dialog a non-empty accessible label describing the group, not a single event", async () => {
+    const originalPlatformOS = Platform.OS;
+    Platform.OS = "web";
+    await renderSheet(
+      <EventPreviewSheet
+        content={{ kind: "list", events: [makeEvent({ id: "a" }), makeEvent({ id: "b" })] }}
+        detent="expanded"
+        onDetentChange={jest.fn()}
+        onSelectEvent={jest.fn()}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    const dialog = screen.getByTestId("event-preview-sheet");
+    expect(dialog.props.role).toBe("dialog");
+    expect(dialog.props["aria-label"]).toBe(
+      i18n.t("map.eventSheet.clusterListTitle", { count: "2" }),
+    );
+    Platform.OS = originalPlatformOS;
+  });
 });

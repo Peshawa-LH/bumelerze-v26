@@ -140,6 +140,15 @@ export function setMockCameraForBoundsResult(
 }
 export const mockMapSetStyle = jest.fn();
 export const mockMapOnce = jest.fn();
+/** `Map.jumpTo(options)` — the phone-width initial-zoom nudge
+ * (`MAP_INITIAL_MIN_ZOOM_COMPACT`, config.ts) calls this once, synchronously
+ * inside the "load" handler, on a compact-width viewport whose raw bbox-fit
+ * zoom came in too low. Unlike `easeTo`, the mock also updates `getZoom()`'s
+ * return value (see `MockMap.jumpTo` below) — a real `jumpTo` is an instant,
+ * synchronous camera set, so anything read via `getZoom()` immediately
+ * afterward (this file's own `setZoom(map.getZoom())` a few lines later)
+ * must see the corrected value, the same way a real map would. */
+export const mockMapJumpTo = jest.fn();
 /** The event-preview sheet's subtle recenter-on-select (`map.easeTo`,
  * `map.web.tsx`'s marker `activate` handler) — recorded the same way every
  * other camera call in this fixture is, so a test can assert on the
@@ -339,6 +348,13 @@ export class MockMap {
     mockMapEaseTo(options);
   }
 
+  jumpTo(options: { zoom?: number }) {
+    mockMapJumpTo(options);
+    if (typeof options.zoom === "number") {
+      this.zoom = options.zoom;
+    }
+  }
+
   /** Simulates MapLibre's real `setStyle()` behavior: replaces the ENTIRE
    * style document (wiping every source/layer WE added — terrain
    * hillshade, own-labels, locale-relabeled basemap layers), then fires any
@@ -507,6 +523,7 @@ export function resetMapWebMocks() {
   mockMapCameraForBounds.mockClear();
   mockCameraForBoundsResult = { center: [45.45, 35.55], zoom: 6 };
   mockMapEaseTo.mockClear();
+  mockMapJumpTo.mockClear();
   mockMapSetStyle.mockClear();
   mockMapOnce.mockClear();
   setMockMapStyleFixture({});

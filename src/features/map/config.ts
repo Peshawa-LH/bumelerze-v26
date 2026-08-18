@@ -104,3 +104,38 @@ export const MARKER_HIT_PADDING_PX = 10;
 /** Padding (px) around the fitted region bbox so edge markers aren't
  * clipped by the viewport/screen edge on initial load. */
 export const MAP_FIT_BOUNDS_PADDING_PX = 32;
+
+/**
+ * Minimum initial zoom forced on a COMPACT-width (phone) viewport once the
+ * map's own bbox-fit "load" settles — the "wall of badges" fix. `fitBounds`
+ * sizes the initial camera so the FULL `REGION_BBOX` fits within whichever
+ * viewport dimension constrains it; on a phone-portrait width that's
+ * typically the map's actual on-screen WIDTH (the bbox's longitude extent,
+ * ~7.5°), landing at a noticeably lower zoom than the exact same fit
+ * reaches on a wide desktop window (clustering.ts's own doc comments
+ * estimated ~5-6). At that low zoom, the clustering radius (a FIXED
+ * on-screen pixel distance, `CLUSTER_RADIUS_PX`) covers a much larger
+ * real-world area, so a normal-density feed collapses into a handful of
+ * dense cluster badges with barely any standalone markers on screen —
+ * confirmed against the live feed at a real 375px viewport (the phone-width
+ * diagnosis this constant fixes).
+ *
+ * Retuning `CLUSTER_RADIUS_PX` further can't fix a genuinely low STARTING
+ * zoom (a previous wave already tried exactly that); this instead nudges
+ * the initial camera in past the raw bbox fit, ONLY on compact widths
+ * (`isCompactMapControlsWidth`, `responsive.ts` — the same phone/desktop
+ * line this screen's own controls layout already draws), trading "the
+ * whole region visible in one glance" for "the default view already shows
+ * real, individually-tappable events" — the deliberate call for a
+ * panic-time app (CLAUDE.md) where the user's very first look at the map
+ * should land on actual earthquakes, not administrative badges. The wider
+ * frame stays one pinch-zoom-out (or the World-scope toggle) away, and a
+ * roomy desktop window is untouched (never compact-width, so this never
+ * applies there). 6.5, not a rounder 6 or 7: tuned against the live region
+ * feed at exactly the 375x812 viewport this bug was diagnosed against
+ * (`map-web-clustering.test.tsx`'s phone-width regression test) — high
+ * enough that the default view stops being mostly badges, low enough that
+ * Kurdistan's core (Slemani/Hewler/Duhok/Kirkuk) still all sit on screen at
+ * once without excessive edge-cropping.
+ */
+export const MAP_INITIAL_MIN_ZOOM_COMPACT = 6.5;

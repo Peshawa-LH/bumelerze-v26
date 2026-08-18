@@ -98,11 +98,24 @@ export function buildClusterSource(
  * its own, same reasoning `own-labels.ts`'s scheme-tuned paint takes, just
  * threaded through explicit params here instead of a `scheme` enum since
  * the caller already has the exact resolved semantic-token values on hand.
- * Reuses `colors.brand.primary`/`colors.brand.onPrimary` — the SAME
- * "selected/aggregate" pairing already used by `ScopeToggle`/
- * `MapStylePicker`'s active state elsewhere on this screen — rather than
- * inventing a new palette entry (design-language.md's magnitude-vs-
- * intensity rule this app never conflates).
+ *
+ * Deliberately NEUTRAL chrome tokens (`colors.text.primary`/
+ * `colors.text.inverse` — the caller, `map.web.tsx`), NOT a status/brand
+ * hue. This module used to reuse `colors.brand.primary` ("Zagros Blue"),
+ * reasoned as the same "selected/aggregate" pairing `ScopeToggle`/
+ * `MapStylePicker` use — but at real data volumes that blue sat close
+ * enough to `status.info` (the tone MOST individual event markers get,
+ * `magnitude-tone.ts`: everything under M4.5) that a cluster badge and an
+ * ordinary small-magnitude marker read as the same kind of blue circle,
+ * which is exactly what made cluster taps feel like dead ends (owner
+ * report, phone-width diagnosis). A near-black/near-white neutral fill
+ * (opposite of the active theme's own text color, so it's never confused
+ * with EITHER a magnitude tone or the brand hue) reads unambiguously as
+ * "aggregate chrome," never as a data point — the same convention most
+ * map-clustering UIs use (grey/neutral cluster bubbles vs. colored pins).
+ * Still never the EMS intensity ramp (design-language.md's magnitude-vs-
+ * intensity rule this app never conflates) — these are `text.*` tokens, not
+ * `intensity.*`.
  */
 export function buildClusterCircleLayer(
   fillColor: string,
@@ -172,4 +185,33 @@ export function readClusterBoundsFromProperties(properties: unknown): RegionBbox
     return null;
   }
   return { minLon, maxLon, minLat, maxLat };
+}
+
+export interface ClusterFeatureMeta {
+  id: string;
+  count: number;
+  bounds: RegionBbox;
+}
+
+/**
+ * Reads back everything the cluster-click handler (`map.web.tsx`) needs to
+ * decide list-vs-zoom (`CLUSTER_LIST_MAX_SIZE`) from a clicked feature's
+ * `properties` — `id` (looked up against the marker-build effect's own
+ * id -> member-events ref for the list path) and `count` (the threshold
+ * check itself), alongside the same bounds `readClusterBoundsFromProperties`
+ * already extracts (the zoom path still needs them). One combined reader
+ * so the handler makes exactly one properties pass instead of two
+ * differently-shaped ones.
+ */
+export function readClusterMetaFromProperties(properties: unknown): ClusterFeatureMeta | null {
+  const bounds = readClusterBoundsFromProperties(properties);
+  if (!bounds || !properties || typeof properties !== "object") {
+    return null;
+  }
+  const record = properties as Record<string, unknown>;
+  const { id, count } = record;
+  if (typeof id !== "string" || typeof count !== "number") {
+    return null;
+  }
+  return { id, count, bounds };
 }

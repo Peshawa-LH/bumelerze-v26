@@ -88,6 +88,31 @@ export const CLUSTER_MAX_ZOOM = 8;
  * standalone points instead. */
 export const CLUSTER_MIN_SIZE = 3;
 
+/**
+ * Largest cluster member count that gets LIST treatment on tap — see
+ * `map.web.tsx`'s cluster-click handler and `event-sheet.ts`'s `"list"`
+ * content kind. Regression fix for the reported bug: a cluster-badge tap
+ * used to only ever move the camera, which was no outcome at all for a
+ * user who cannot tell a badge from a real event marker; below this size,
+ * the tap now opens the SAME preview sheet already used for a single event,
+ * showing every member as a tappable row instead.
+ *
+ * 20, not "every cluster, however large": the sheet's list body is a
+ * scrollable `View`, so it CAN technically hold any count, but a list only
+ * stays "useful" (the wave brief's own word) while browsing it is still
+ * plausibly a few flicks, not a long scroll through a small database. The
+ * sheet's own expanded detent (`SHEET_EXPANDED_HEIGHT_FRACTION`, 62% of a
+ * ~700px phone map area) comfortably shows 6-8 rows before scrolling is
+ * needed; 20 is roughly 3x that natural on-screen count — generous enough
+ * that the overwhelming majority of this app's real clusters (single digits
+ * to low twenties, per the phone-width diagnosis this fixes) get the fast,
+ * no-navigation list path, while a badge past this size (the same
+ * diagnosis's 117-member outlier) is a genuinely dense area better served
+ * by zooming in to see its geographic structure than by a scroll-heavy
+ * list — it keeps the existing forced-zoom behavior below.
+ */
+export const CLUSTER_LIST_MAX_SIZE = 20;
+
 /** Extra zoom, past `CLUSTER_MAX_ZOOM`, that a cluster-badge tap's forced
  * camera move (`resolveClusterExpansionZoom` below) lands on top of the
  * cutoff — not strictly required (`clusterRegionMarkers` already treats
@@ -122,6 +147,15 @@ export interface ClusterMarkerFeature {
    * viewport to (`map.web.tsx`'s cluster click handler). Always a non-
    * degenerate (nonzero-area) box, even for co-located events. */
   bounds: RegionBbox;
+  /** This cluster's member event ids, in whatever order the greedy grouping
+   * pass encountered them (NOT the sorted order the `id` hash above uses) —
+   * `map.web.tsx`'s marker-build effect resolves these back to full `Event`
+   * objects (against the same render's `filteredEvents`) and keeps that
+   * lookup in a ref, so the cluster-click handler can hand the LIST-mode
+   * sheet real event data without threading whole `Event` objects through
+   * the GL layer's GeoJSON properties (`cluster-layer.ts` deliberately keeps
+   * those flat/numeric — see its own doc comment). */
+  memberIds: readonly string[];
 }
 
 export interface PointMarkerFeature {
@@ -226,6 +260,7 @@ function toClusterFeature(members: readonly Event[]): ClusterMarkerFeature {
     count: members.length,
     diameterPx: clusterDiameterPx(members.length),
     bounds: { minLon, maxLon, minLat, maxLat },
+    memberIds: members.map((event) => event.id),
   };
 }
 
@@ -319,6 +354,22 @@ export function clusterRegionMarkers(
  * badge, watch it not visibly change" bug this fixes), the zoom is forced
  * to `maxZoom + CLUSTER_EXPANSION_ZOOM_MARGIN` instead.
  */
+/**
+ * Row order for a cluster's LIST-mode sheet (`CLUSTER_LIST_MAX_SIZE`'s doc
+ * comment) — most-recently-originated first. Matches this app's existing
+ * "what just happened" priority (the single most-recent STANDALONE marker
+ * already gets its own distinct outline, `toPointFeature`'s caller in
+ * `map.web.tsx`) rather than largest-magnitude-first: Bumelerze is an
+ * alert/panic-time app first (CLAUDE.md), where "did something just happen
+ * near me" is the more urgent question a tap on a cluster is usually asking
+ * than "what's the biggest thing in this group" — a strong M4 from ten
+ * minutes ago is more actionable right now than an M5 from three weeks ago
+ * sitting in the same badge. A new `Event[]`, never mutates the input.
+ */
+export function sortClusterMembersForList(members: readonly Event[]): Event[] {
+  return [...members].sort((a, b) => b.originTime - a.originTime);
+}
+
 export function resolveClusterExpansionZoom(
   naturalZoom: number,
   maxZoom: number = CLUSTER_MAX_ZOOM,

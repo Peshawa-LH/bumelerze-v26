@@ -214,7 +214,8 @@
       "expandButtonLabel": "Hûrgiliyên zêdetir nîşan bide",
       "collapseButtonLabel": "Hûrgiliyan veşêre",
       "closeButtonLabel": "Bigire",
-      "openFullButtonLabel": "Bûyera tevahî veke"
+      "openFullButtonLabel": "Bûyera tevahî veke",
+      "clusterListTitle": "{{count}} erdhej"
     }
   },
   "sensor": {

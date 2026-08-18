@@ -21,14 +21,29 @@ import type { Event } from "@/features/events";
  */
 
 /** Two detents the sheet itself can rest at — "dismissed" is represented by
- * `event === null` at the call site (there is no content to detent once the
- * sheet has nothing to show), not a third value here. A THIRD, larger detent
- * ("full") is deliberately NOT a resting state of this component at all:
- * reaching it means "leave the sheet and open the real `/event/[id]` route"
- * (`SheetSnapOutcome`'s own doc comment) — the wave brief's explicit
+ * `content === null` at the call site (there is no content to detent once
+ * the sheet has nothing to show), not a third value here. A THIRD, larger
+ * detent ("full") is deliberately NOT a resting state of this component at
+ * all: reaching it means "leave the sheet and open the real `/event/[id]`
+ * route" (`SheetSnapOutcome`'s own doc comment) — the wave brief's explicit
  * instruction not to fork a second implementation of the event-detail
- * screen inside the sheet. */
+ * screen inside the sheet. Only reachable from `"event"` content
+ * (`resolveSheetSnapOutcome`'s content-aware caller in `EventPreviewSheet`)
+ * — a cluster's member LIST has no "full event" of its own to open. */
 export type SheetDetent = "peek" | "expanded";
+
+/**
+ * What the sheet is currently showing — the cluster-tap-reveals-events fix:
+ * a cluster badge tap now opens the SAME sheet a marker tap does, just with
+ * `"list"` content instead of `"event"` (`CLUSTER_LIST_MAX_SIZE`'s doc
+ * comment, clustering.ts). `"list"` carries the already-sorted member
+ * events (`sortClusterMembersForList`) directly — the sheet renders one
+ * tappable row per member; tapping a row hands the map screen that event,
+ * which calls `select()` to swap this content over to `"event"`.
+ */
+export type EventSheetContent =
+  | { kind: "event"; event: Event }
+  | { kind: "list"; events: readonly Event[] };
 
 /** What a released drag (or a button tap) resolves to. `"dismiss"` and
  * `"openFull"` are both exits from the sheet's own detent state machine —
@@ -164,21 +179,29 @@ export function resolveSheetSnapOutcome({
 }
 
 export interface EventSheetController {
-  /** The event currently shown by the sheet, or `null` when it's dismissed
-   * — the single source of truth for "is the sheet open" (no separate
+  /** What the sheet is currently showing, or `null` when it's dismissed —
+   * the single source of truth for "is the sheet open" (no separate
    * boolean to drift out of sync with it). */
-  event: Event | null;
+  content: EventSheetContent | null;
   detent: SheetDetent;
   /** Opens the sheet for `nextEvent` at the "peek" detent — also the
-   * correct call for re-tapping a DIFFERENT marker while the sheet is
-   * already open (expanded or not): a newly selected event always starts
-   * from the smaller preview, never inherits the previous event's detent. */
+   * correct call for re-tapping a DIFFERENT marker (or a row inside an
+   * open cluster LIST) while the sheet is already open (expanded or not):
+   * a newly selected event always starts from the smaller preview, never
+   * inherits whatever the previous content's detent was. */
   select: (nextEvent: Event) => void;
+  /** Opens the sheet in LIST mode for a cluster badge's member events, at
+   * the "expanded" detent (not "peek") — a list needs more vertical room
+   * to be immediately useful than a single event's compact preview does;
+   * starting there means the tap itself already reveals several rows,
+   * instead of costing the user an extra drag-to-expand just to see
+   * anything past the top one or two members. */
+  selectList: (events: readonly Event[]) => void;
   setDetent: (detent: SheetDetent) => void;
-  /** Clears the selection (`event` back to `null`) AND resets `detent` back
-   * to "peek" — so the NEXT `select()` (a different marker, or the same one
-   * tapped again later) always starts clean, regardless of how the
-   * previous sheet session ended. */
+  /** Clears the selection (`content` back to `null`) AND resets `detent`
+   * back to "peek" — so the NEXT `select()`/`selectList()` (a different
+   * marker/cluster, or the same one tapped again later) always starts
+   * clean, regardless of how the previous sheet session ended. */
   dismiss: () => void;
 }
 
@@ -189,12 +212,17 @@ export interface EventSheetController {
  * opens on marker select, moves between detents, dismisses").
  */
 export function useEventSheetController(): EventSheetController {
-  const [event, setEvent] = useState<Event | null>(null);
+  const [content, setContent] = useState<EventSheetContent | null>(null);
   const [detent, setDetentState] = useState<SheetDetent>("peek");
 
   const select = useCallback((nextEvent: Event) => {
-    setEvent(nextEvent);
+    setContent({ kind: "event", event: nextEvent });
     setDetentState("peek");
+  }, []);
+
+  const selectList = useCallback((events: readonly Event[]) => {
+    setContent({ kind: "list", events });
+    setDetentState("expanded");
   }, []);
 
   const setDetent = useCallback((nextDetent: SheetDetent) => {
@@ -202,9 +230,9 @@ export function useEventSheetController(): EventSheetController {
   }, []);
 
   const dismiss = useCallback(() => {
-    setEvent(null);
+    setContent(null);
     setDetentState("peek");
   }, []);
 
-  return { event, detent, select, setDetent, dismiss };
+  return { content, detent, select, selectList, setDetent, dismiss };
 }

@@ -1,12 +1,14 @@
 import type { Event } from "@/features/events";
 import {
   CLUSTER_EXPANSION_ZOOM_MARGIN,
+  CLUSTER_LIST_MAX_SIZE,
   CLUSTER_MAX_DIAMETER_PX,
   CLUSTER_MAX_ZOOM,
   CLUSTER_MIN_DIAMETER_PX,
   CLUSTER_MIN_SIZE,
   clusterRegionMarkers,
   resolveClusterExpansionZoom,
+  sortClusterMembersForList,
   type ClusterMarkerFeature,
   type PointMarkerFeature,
 } from "../clustering";
@@ -196,6 +198,41 @@ describe("clusterRegionMarkers", () => {
 
   it("CLUSTER_MIN_SIZE is the conventional minimum of 3", () => {
     expect(CLUSTER_MIN_SIZE).toBe(3);
+  });
+
+  it("exposes each cluster's member event ids, so a caller can resolve real Event data for a list-mode sheet", () => {
+    const events = [
+      makeEvent({ id: "a", lat: 35.56, lon: 45.43 }),
+      makeEvent({ id: "b", lat: 35.56, lon: 45.43 }),
+      makeEvent({ id: "c", lat: 35.56, lon: 45.43 }),
+    ];
+    const [cluster] = clusterRegionMarkers(events, KURDISTAN_ZOOM) as [ClusterMarkerFeature];
+    expect([...cluster.memberIds].sort()).toEqual(["a", "b", "c"]);
+  });
+});
+
+describe("sortClusterMembersForList", () => {
+  it("orders members most-recently-originated first", () => {
+    const events = [
+      makeEvent({ id: "old", originTime: 1000 }),
+      makeEvent({ id: "newest", originTime: 5000 }),
+      makeEvent({ id: "mid", originTime: 3000 }),
+    ];
+    const sorted = sortClusterMembersForList(events);
+    expect(sorted.map((event) => event.id)).toEqual(["newest", "mid", "old"]);
+  });
+
+  it("never mutates the input array", () => {
+    const events = [makeEvent({ id: "a", originTime: 1000 }), makeEvent({ id: "b", originTime: 2000 })];
+    const original = [...events];
+    sortClusterMembersForList(events);
+    expect(events).toEqual(original);
+  });
+});
+
+describe("CLUSTER_LIST_MAX_SIZE", () => {
+  it("is comfortably above the minimum cluster size, so most real clusters get list treatment", () => {
+    expect(CLUSTER_LIST_MAX_SIZE).toBeGreaterThan(CLUSTER_MIN_SIZE);
   });
 });
 

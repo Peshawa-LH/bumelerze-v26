@@ -214,7 +214,8 @@
       "expandButtonLabel": "پیشاندانی وردەکاری زیاتر",
       "collapseButtonLabel": "شاردنەوەی وردەکاری",
       "closeButtonLabel": "داخستن",
-      "openFullButtonLabel": "کردنەوەی ڕووداوی تەواو"
+      "openFullButtonLabel": "کردنەوەی ڕووداوی تەواو",
+      "clusterListTitle": "{{count}} بوومەلەرزە"
     }
   },
   "sensor": {
