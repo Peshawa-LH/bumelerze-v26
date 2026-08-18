@@ -139,6 +139,7 @@ export default function RootLayout() {
                   options={{ headerShown: true }}
                 />
                 <Stack.Screen name="my-data" options={{ headerShown: true }} />
+                <Stack.Screen name="feedback" options={{ headerShown: true }} />
                 <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
               </>
             ) : (

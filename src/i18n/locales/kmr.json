@@ -422,6 +422,9 @@
     "myDataSectionTitle": "Daneyên min",
     "myDataSectionDescription": "Rapora erdhejan ku te ji vê cîhazê şandiye bibîne.",
     "myDataOpen": "Daneyên min veke",
+    "feedbackSectionTitle": "Nêrîn",
+    "feedbackSectionDescription": "Ji me re li ser çewtiyekê, ramanekê, an her tiştê din ê li ser hişê te bibêje.",
+    "feedbackOpen": "Nêrînê bişîne",
     "devicePermissionsSectionTitle": "Destûrên cîhazê",
     "devicePermissionsSectionDescription": "Bi yek lêdanê destûra cîh û sensora tevgerê bide pêkve. Bumelerze cîhê te bikar tîne ji bo nîşankirina raporên hestkirinê, û sensora tevgerê jî dîmena zindî ya rûpela Sensor pê dixebite.",
     "devicePermissionsAllowButton": "Destûrên cîhazê bide",
@@ -836,5 +839,25 @@
     },
     "emptyStateMessage": "Te hê tu raporek hestkirinê neşandiye. Heke tu erdhejekê hîs bikî, ji me re bibêje. Bi tenê yek lêdanê.",
     "emptyStateCta": "Erdhejê rapor bike"
+  },
+  "feedback": {
+    "title": "Nêrîn",
+    "description": "Ji me re bibêje çi baş dixebite, çi şikestiye, an çi kêm e. Peyama te dibe alîkar ku em Bumelerze baştir bikin.",
+    "messageLabel": "Peyama te",
+    "messagePlaceholder": "Çi li ser hişê te ye?",
+    "contactLabel": "Têkilî (vebijarkî)",
+    "contactPlaceholder": "E-name an jimara têlefonê, heke tu bersivekê dixwazî",
+    "photo": {
+      "addLabel": "Wêneyekî dîmenê zêde bike",
+      "removeLabel": "Wêneyê dîmenê rake",
+      "hint": "Wêneyek dîmenê ya vebijarkî zêde bike"
+    },
+    "submit": "Nêrînê bişîne",
+    "confirmation": {
+      "title": "Spas",
+      "sentMessage": "Nêrîna te hate şandin. Spas.",
+      "queuedMessage": "Nêrîna te li ser cîhaza te hate tomarkirin. Ew ê were şandin gava Bumelerze bigihîje pêşkêşkerê.",
+      "close": "Bigire"
+    }
   }
 }
