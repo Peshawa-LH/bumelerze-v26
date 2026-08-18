@@ -13,7 +13,9 @@
 <link rel="apple-touch-icon" href="brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="prose-page">
+
+<a class="skip-link" href="#main">Skip to main content</a>
 
 <nav class="lang-switcher" aria-label="Language">
   <ul>
@@ -29,7 +31,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="35">
+        <img class="brand-logo" src="brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="Site">
@@ -40,7 +42,7 @@
   </div>
 </header>
 
-<main>
+<main id="main" class="wrap">
   <h1>Support</h1>
 
   <h2>Frequently asked questions</h2>
@@ -66,10 +68,11 @@
     name, email, or phone number.</dd>
 
     <dt>How do I delete my data?</dt>
-    <dd>Today, all your data is stored on your device only, so deleting the app
-    deletes everything. Once Bumelerze's report database is live, you can also
-    email us your in-app device ID and we will delete the reports associated
-    with it. Details: see the <a href="privacy.html">privacy policy</a>.</dd>
+    <dd>Felt reports you send are stored in Bumelerze's own database, not just
+    on your device. Email us your in-app device ID at
+    <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a>
+    to ask about the reports tied to your device. Details: see the
+    <a href="privacy.html">privacy policy</a>.</dd>
 
     <dt>Why does the app ask for my location?</dt>
     <dd>Only to show the distance from you to each earthquake and to attach a
@@ -84,12 +87,37 @@
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="index.html">Home</a>
-      <a href="privacy.html">Privacy policy</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="brand/bumelerze-primary-horizontal-reversed.svg" alt="Bumelerze" width="176" height="32">
+      <p class="footer-tagline">Earthquake monitoring, felt reports, and
+      safety guidance for the Kurdistan Region, in Kurdish.</p>
     </div>
-    <p>Bumelerze: earthquake monitoring and felt reports for the Kurdistan
-    Region.</p>
+    <div class="footer-col">
+      <h4>Site</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="privacy.html">Privacy policy</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Open data</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">Bumelerze Atlas</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">Source repository</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>Data sources: USGS, EMSC, GEOFON, and the Bumelerze Shake
+      Service.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">Code license: Apache 2.0</a>
+      <span>© 2026 Bumelerze. In development.</span>
+    </div>
   </div>
 </footer>
 

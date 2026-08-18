@@ -13,8 +13,11 @@
 <link rel="icon" type="image/png" sizes="16x16" href="../brand/bumelerze-favicon-16.png">
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
+<script src="../slider.js" defer></script>
 </head>
 <body>
+
+<a class="skip-link" href="#main">بازدان بۆ ناوەڕۆکی سەرەکی</a>
 
 <nav class="lang-switcher" aria-label="زمان">
   <ul>
@@ -30,7 +33,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="../brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="بوومەلەرزە" width="176" height="35">
+        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="بوومەلەرزە" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="ماڵپەڕ">
@@ -41,64 +44,282 @@
   </div>
 </header>
 
-<main>
-  <h1>ئەپی بوومەلەرزە کە بۆ کوردستان دروستکراوە</h1>
-  <p class="lede">زانیاری خێرا، متمانەپێکراو و زانستی دروست دەربارەی
-  بوومەلەرزەکان، بە زمانی خۆت. بوومەلەرزە لەلایەن توێژەرانی مەترسی
-  بوومەلەرزەوە دروستکراوە کە ڕۆژانە لەسەر ئەم ناوچەیە کاردەکەن.</p>
-
-  <ul class="features">
-    <li>
-      <h3>لیستی زیندووی بوومەلەرزەکان</h3>
-      <p>سەرەتا کوردستان. بوومەلەرزە نوێ و مێژووییەکان لە نزیکت و لە سەرانسەری
-      ناوچەکە، لە سێ سەرچاوەی زانستی سەربەخۆوە (<bdi>USGS</bdi>،
-      <bdi>EMSC</bdi>، <bdi>GEOFON</bdi>)، بەرچاو و ڕوون، هەر کاتێک
-      ئەپەکە دەکەیتەوە، تەنانەت لەسەر ئینتەرنێتی لاواز.</p>
-    </li>
-    <li>
-      <h3>ڕاپۆرتی هەستکردن بە یەک دەستلێدان</h3>
-      <p>«هەستم پێکرد!»: بە یەک دەستلێدان بڵێ چیت هەستکرد، لە چەند چرکەیەکدا.
-      ڕاپۆرتەکان تەنانەت بێ ئینتەرنێتیش پاشەکەوت دەکرێن. هەر ڕاپۆرتێک یارمەتی
-      بونیادنانی وێنەیەکی ڕاستەقینەی کۆمەڵگا دەدات لەوەی بوومەلەرزەکان لە
-      کوردستان چۆن هەست پێدەکرێن.</p>
-    </li>
-    <li>
-      <h3>نەخشەی لەرزینی بوومەلەرزە</h3>
-      <p>نەخشەی زانستی توندی لەرزینی تایبەت بە خۆمان، بۆ بوومەلەرزەکانی
-      ناوچەکە دروست دەکرێت، تەنانەت بۆ ئەو ڕووداوانەی کە هیچ خزمەتگوزارییەکی
-      جیهانی نەخشەیان بۆ ناکات. هەر نەخشەیەک سەرچاوەکانی داتاکەی نیشان دەدات و
-      ئەوەش کە ئایا زانایەک پێداچوونەوەی بۆ کردووە.</p>
-    </li>
-    <li>
-      <h3>ڕێنمایی سەلامەتی</h3>
-      <p>ڕێنمایی بە زمانێکی سادە دەربارەی ئەوەی پێش، لەکاتی و دوای بوومەلەرزە
-      چی بکەیت، نووسراوە بۆ ماڵ و شەقامەکانی کوردستان، نەک وەرگێڕدراوە لە
-      شوێنێکی تر.</p>
-    </li>
+<nav class="page-nav" aria-label="لەم پەڕەیەدا">
+  <ul>
+    <li><a href="#what">چی دەکات</a></li>
+    <li><a href="#science">زانستەکە چۆن کاردەکات</a></li>
+    <li><a href="#open-data">داتای کراوە</a></li>
+    <li><a href="#who">بۆ کێیە</a></li>
+    <li><a href="#get">بوومەلەرزە وەربگرە</a></li>
   </ul>
+</nav>
 
-  <h2>ئەپەکە وەربگرە</h2>
-  <div class="store-badges">
-    <span class="store-badge"><bdi>App Store</bdi> <span class="soon">بەم زووانە</span></span>
-    <span class="store-badge"><bdi>Google Play</bdi> <span class="soon">بەم زووانە</span></span>
-  </div>
-  <p class="meta">بوومەلەرزە لە قۆناغی کۆتایی ئامادەکاریدایە بۆ بڵاوکردنەوە.
-  بەستەرەکانی فرۆشگا هەر کاتێک ئەپەکە بڵاوکرایەوە لێرە دەردەکەون.</p>
+<main id="main">
 
-  <h2>پەیوەندی</h2>
-  <p>پرسیار، ڕاستکردنەوە یان سەرنج:
-  <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <h1>ئەپی <span class="accent">بوومەلەرزە</span> کە بۆ کوردستان دروستکراوە</h1>
+        <p class="lede">زانیاری خێرا، متمانەپێکراو و زانستی دروست دەربارەی
+        بوومەلەرزەکان، بە زمانی خۆت. بوومەلەرزە لەلایەن توێژەرانی مەترسی
+        بوومەلەرزەوە دروستکراوە کە ڕۆژانە لەسەر ئەم ناوچەیە کاردەکەن.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://bumelerze.com/app">کردنەوەی ئەپی وێب</a>
+          <a class="btn btn-outline" href="#science">ببینە چۆن کاردەکات</a>
+        </div>
+      </div>
+
+      <div class="hero-slider" data-slider>
+        <p id="hero-slider-label" class="section-kicker hero-slider-label">بوومەلەرزە چی دەکات</p>
+        <div class="hero-slider-viewport">
+          <div class="hero-slider-track" role="group" aria-roledescription="گەڕۆکە" aria-labelledby="hero-slider-label">
+
+            <article class="hero-slide" id="slide-1" role="group" aria-roledescription="سلاید" aria-label="١ لە ٤" data-slide-label="چاودێری بەردەوام، شەو و ڕۆژ">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-monitoring.webp" width="440" height="440" loading="eager" fetchpriority="high"
+                  alt="وێنەیەک لە هەڵبژاردەی ڕاپۆرتی هەستکردنی ئەپەکە: ئێوارەیەکی ئارام لە ماڵەوە، نزمترین ئاستی توندی لەرزین، «هەست پێنەکراوە».">
+              </p>
+              <p class="hero-slide-eyebrow">لیستی زیندوو</p>
+              <h2>چاودێری بەردەوام، شەو و ڕۆژ</h2>
+              <p>بوومەلەرزە بەردەوام چاودێری کوردستان و عێراق دەکات، سێ
+              تۆڕی زانستی سەربەخۆ (<bdi>USGS</bdi>، <bdi>EMSC</bdi>،
+              <bdi>GEOFON</bdi>) دەکاتە یەک لیستی زیندوو، بۆ ئەوەی لە چەند
+              چرکەیەکدا بزانیت چی ڕوویداوە، تەنانەت لەسەر ئینتەرنێتی لاواز.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-2" role="group" aria-roledescription="سلاید" aria-label="٢ لە ٤" data-slide-label="بە یەک دەستلێدان پێمان بڵێ چیت هەستکرد">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-felt-report.webp" width="440" height="440" loading="lazy"
+                  alt="وێنەیەک لە هەڵبژاردەی ڕاپۆرتی هەستکردنی ئەپەکە: خێزانێک ماڵێکی لەرزۆک بەجێدەهێڵن، ئاستێکی بەهێزتری توندی لەرزین.">
+              </p>
+              <p class="hero-slide-eyebrow">ڕاپۆرتی هەستکردن</p>
+              <h2>بە یەک دەستلێدان پێمان بڵێ چیت هەستکرد</h2>
+              <p>دوای بوومەلەرزەیەک، ئەو وێنەیە هەڵبژێرە کە نزیکترینە
+              لەوەی هەستت پێکرد. تەنها یەک دەستلێدانی دەوێت، بەبێ
+              ئینتەرنێتیش کاردەکات، و دەبێتە داتایەکی ڕاستەقینەی کۆمەڵگا
+              لە جیاتی گریمانە.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-3" role="group" aria-roledescription="سلاید" aria-label="٣ لە ٤" data-slide-label="نەخشە لەرزینی تایبەت بە خۆمان، لێرە دەژمێردرێت">
+              <p class="hero-slide-figure">
+                <img class="symbol-mark" src="../brand/bumelerze-symbol-color.svg" width="232" height="100" loading="lazy" alt="">
+              </p>
+              <p class="hero-slide-eyebrow">نەخشە لەرزینەکانی بوومەلەرزە</p>
+              <h2>نەخشە لەرزینی تایبەت بە خۆمان، لێرە دەژمێردرێت</h2>
+              <p>بوومەلەرزە نەخشەی زانستی تایبەت بە خۆی بۆ توندی لەرزین
+              دەژمێرێت، بە بەکارهێنانی پێوەری توندی <bdi>EMS-98</bdi> و
+              داتای کراوەی بڵاوکراوە، بۆ بوومەلەرزەکانی ناوچەکە، تەنانەت
+              ئەوانەی هیچ خزمەتگوزارییەکی جیهانی نەخشەیان بۆ دانانێت.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="سلاید" aria-label="٤ لە ٤" data-slide-label="ڕێنمایی سەلامەتی بە کوردی">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-safety.webp" width="440" height="440" loading="lazy"
+                  alt="وێنەیەک لە ڕێنمایی سەلامەتی ئەپەکە: بکەوە، خۆت بپارێزە و لەژێر مێزێک پتەو بگرە.">
+              </p>
+              <p class="hero-slide-eyebrow">ڕێنمایی سەلامەتی</p>
+              <h2>ڕێنمایی سەلامەتی بە کوردی</h2>
+              <p>ڕێنمایی بە زمانێکی سادە دەربارەی ئەوەی چی بکەیت پێش،
+              لەکاتی و دوای بوومەلەرزەیەک، نووسراوە بۆ ماڵ و شەقامەکانی
+              کوردستان: بکەوە، خۆت بپارێزە و پتەو بگرە، و زیاتر.</p>
+            </article>
+
+          </div>
+          <p class="hero-slider-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="hero-slider-controls">
+          <a class="hero-slider-arrow hero-slider-prev" href="#slide-1" aria-label="سلایدی پێشوو"></a>
+          <ul class="hero-slider-dots">
+            <li><a class="hero-dot" href="#slide-1" aria-current="true"><span class="visually-hidden">سلایدی ١: چاودێری بەردەوام</span></a></li>
+            <li><a class="hero-dot" href="#slide-2"><span class="visually-hidden">سلایدی ٢: ڕاپۆرتی هەستکردن بە یەک دەستلێدان</span></a></li>
+            <li><a class="hero-dot" href="#slide-3"><span class="visually-hidden">سلایدی ٣: نەخشە لەرزینەکانی بوومەلەرزە</span></a></li>
+            <li><a class="hero-dot" href="#slide-4"><span class="visually-hidden">سلایدی ٤: ڕێنمایی سەلامەتی</span></a></li>
+          </ul>
+          <a class="hero-slider-arrow hero-slider-next" href="#slide-4" aria-label="سلایدی داهاتوو"></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="what" aria-labelledby="what-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">چی دەکات</p>
+      <h2 id="what-h2">یەک ئەپ، چوار ئەرک، دروستکراوە بۆ ئەوەی بوومەلەرزەکان بەڕاستی چۆن لێرە ڕوودەدەن</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">٠١</span>
+          <h3>لیستی زیندووی بوومەلەرزەکان</h3>
+          <p>سەرەتا کوردستان. بوومەلەرزە نوێ و مێژووییەکان لە نزیکت و لە سەرانسەری
+          ناوچەکە، لە سێ سەرچاوەی زانستی سەربەخۆوە (<bdi>USGS</bdi>،
+          <bdi>EMSC</bdi>، <bdi>GEOFON</bdi>)، بەرچاو و ڕوون، هەر کاتێک
+          ئەپەکە دەکەیتەوە، تەنانەت لەسەر ئینتەرنێتی لاواز.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">٠٢</span>
+          <h3>ڕاپۆرتی هەستکردن بە یەک دەستلێدان</h3>
+          <p>«هەستم پێکرد!»: بە یەک دەستلێدان بڵێ چیت هەستکرد، لە چەند چرکەیەکدا.
+          ڕاپۆرتەکان تەنانەت لە کاتی نەبوونی ئینتەرنێتیشدا پاشەکەوت دەکرێن.
+          هەر ڕاپۆرتێک یارمەتی دروستکردنی وێنەیەکی ڕاستەقینەی کۆمەڵگا دەدات
+          لەوەی چۆن بوومەلەرزەکان لەسەر زەوی لە کوردستان هەست پێدەکرێن.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">٠٣</span>
+          <h3>نەخشە لەرزینەکانی بوومەلەرزە</h3>
+          <p>نەخشەی زانستیی توندی لەرزینی تایبەت بە خۆمان، بۆ بوومەلەرزەکانی
+          ناوچەکە دەژمێردرێت، تەنانەت ئەوانەی هیچ خزمەتگوزارییەکی جیهانی
+          نەخشەیان بۆ دانانێت. هەر نەخشەیەک سەرچاوەکانی داتاکەی و ئەوەی
+          زانایەک پێداچوونەوەی بۆ کردووە یان نا نیشان دەدات.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">٠٤</span>
+          <h3>ڕێنمایی سەلامەتی</h3>
+          <p>ڕێنمایی بە زمانێکی سادە دەربارەی ئەوەی چی بکەیت پێش، لەکاتی و
+          دوای بوومەلەرزەیەک، نووسراوە بۆ ماڵ و شەقامەکانی کوردستان، نەک
+          وەرگێڕدراو لە شوێنێکی تر.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section-ivory" id="science" aria-labelledby="science-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">زانستەکە چۆن کاردەکات</p>
+      <h2 id="science-h2">لە سێ تۆڕەوە بۆ نەخشەیەک کە دەتوانیت متمانەی پێبکەیت</h2>
+      <p class="lede lede-wide">پێویستت بە بڕوانامەی لەرزەناسی نییە بۆ ئەوەی
+      ئەمە بەدواداچن. ئەمە زنجیرەکەیە لە «زەوی لەرزی» بۆ «ئەمە کارێکە
+      کردی»، بە سێ هەنگاو.</p>
+      <div class="science-grid">
+        <div class="science-item">
+          <h3>١. سێ تۆڕ، یەک لیست</h3>
+          <p>هەر بوومەلەرزەیەک لەگەڵ <bdi>USGS</bdi>، <bdi>EMSC</bdi> و
+          <bdi>GEOFON</bdi> پشکنین دەکرێت، سێ تۆڕی نێودەوڵەتیی سەربەخۆی
+          چاودێری. بوومەلەرزە ڕاپۆرتەکانیان بۆ هەمان ڕووداو دەکاتە یەک
+          تۆماری ناوخۆیی، بۆ ئەوەی تۆ یەک بابەتی ڕوون ببینیت لە جیاتی سێ
+          بابەتی ناکۆک.</p>
+        </div>
+        <div class="science-item">
+          <h3>٢. ئەوەی هەستت پێکرد گرنگە</h3>
+          <p>ڕاپۆرتی «هەستم پێکرد!»ی تۆ بەپێی پێوەری توندی مەکرۆسیسمی
+          <bdi>EMS-98</bdi> نمرە دەکرێت، هەمان جۆر پێوەرەی لە
+          هەڵسەنگاندنە فەرمییەکانی زیاندا بەکاردێت. ڕاپۆرتەکانی هەمان
+          ناوچە کۆدەکرێنەوە بۆ توندییەکی بینراوی کۆمەڵگا، شایەتییەکی
+          ڕاستەقینە، نەک تەنها گریمانەیەک لە مۆدێلێکەوە.</p>
+        </div>
+        <div class="science-item">
+          <h3>٣. نەخشە لەرزینەکانی بوومەلەرزە</h3>
+          <p>بۆ بوومەلەرزەکانی ناوچەکە، بوومەلەرزە نەخشەی توندی لەرزینی
+          تایبەت بە خۆی لە مۆدێلەکانی جوڵەی زەوی دەژمێرێت، و لە کوێدا
+          بەردەست بێت، لەو هەمان ڕاپۆرتە هەستکراوانە. هەر نەخشەیەک داتا
+          داخڵکراوەکانی و ئەوەی ئایا زانایەک پێداچوونەوەی بۆ کردووە ڕوون
+          دەکاتەوە، هیچ سندوقێکی ڕەشی تێدا نییە.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="open-data" aria-labelledby="open-data-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">داتای کراوە و ئاماژەپێدراو</p>
+      <h2 id="open-data-h2">ئێمە سەرچاوەکانمان ئاماژە پێدەکەین. تۆ دەتوانیت کارەکەمان بپشکنیت.</h2>
+      <p class="lede lede-wide">داتای بوومەلەرزە بۆ کوردستان و عێراق کەم و
+      پەرشوبڵاوە لەنێو خزمەتگوزارییەکاندا کە بۆ ناوچەی تر دروستکراون.
+      بوومەلەرزە بۆ داخستنی ئەم بۆشاییە بوونی هەیە، بەبێ شاردنەوەی
+      چۆنیەتی ئەنجامدانی.</p>
+      <div class="opendata-grid">
+        <div class="opendata-card">
+          <h3>ئەتلەسی بوومەلەرزە</h3>
+          <p>کاتالۆگێکی گشتی و گەڕانپێکراو بۆ بوومەلەرزەکانی ناوچەکە، بە
+          شێوەی کراوە بڵاوکراوەتەوە بۆ ئەوەی هەرکەسێک، توێژەر یان
+          دانیشتوو، بتوانێت بزانێت چی و لەکوێ ڕوویداوە.</p>
+          <a href="https://peshawa-lh.github.io/bumelerze-atlas/">گەڕان لە ئەتلەسەکە <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="opendata-card">
+          <h3>کۆدی سەرچاوە</h3>
+          <p>ئەپەکە، ئەنجینی نەخشە لەرزینەکان و هێڵی داتاکان بە شێوەی
+          کراوە و لەژێر مۆڵەتی <bdi>Apache 2.0</bdi> دروستدەکرێن.
+          بیخوێنەرەوە، پشکنینی بکە، یان کێشەیەک تۆمار بکە.</p>
+          <a href="https://github.com/Peshawa-LH/bumelerze-v26">بینینی کۆگاکە <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="opendata-card">
+          <h3>لیستە سەرەکییەکان</h3>
+          <p>لیستی زیندوو تێکەڵەیەکە لە <bdi>USGS</bdi>، <bdi>EMSC</bdi> و
+          <bdi>GEOFON</bdi>، سێ خزمەتگوزاری زانستیی چاودێریکردنی
+          بوومەلەرزە. هەر ڕووداوێک و هەر نەخشە لەرزینێکی بوومەلەرزە ناوی
+          سەرچاوەکانی خۆی دەردەخات.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-off" id="who" aria-labelledby="who-h2">
+    <div class="wrap">
+      <p class="section-kicker">بۆ کێیە</p>
+      <h2 id="who-h2">دروستکراوە بۆ ئەو کەسانەی یەکەم جار هەستی پێدەکەن</h2>
+      <p>هەر کەسێک لە هەرێمی کوردستان یان عێراق کە داوای زانیاری خێرا و
+      متمانەپێکراوی بوومەلەرزە بە زمانی خۆی دەکات، هەر کاتێک گرنگە، نەک
+      وەرگێڕدراو و نەک بیرکردنەوەیەکی دواتر. پلاندانەرانی کارەساتی
+      مەترسیدار و تیمە وەڵامدەرەوەکان کە پێویستیان بە وێنەیەکی ڕاستەقینەی
+      کاتی ڕاستەقینەیە بۆ ئەوەی بوومەلەرزەیەک بەڕاستی چۆن لەسەر زەوی
+      هەستپێکراوە، لەلایەن ئەو کەسانەوە کە هەستیان پێکردووە. توێژەران و
+      خوێندکاران کە پێویستیان بە داتای لەرزەیی کراوە و ئاماژەپێدراوە بۆ
+      ناوچەیەک کە بۆ ماوەیەکی درێژ کەم ئامێر و کەم توێژراوە.</p>
+    </div>
+  </section>
+
+  <section class="section" id="get" aria-labelledby="get-h2">
+    <div class="wrap">
+      <p class="section-kicker">بوومەلەرزە وەربگرە</p>
+      <h2 id="get-h2">ئەمڕۆ بەکاری بهێنە، لەسەر وێب</h2>
+      <p>بوومەلەرزە لە پێشکەوتنی چالاکدایە. ئەپە تەواوەکە ئێستا وەک
+      ئەپێکی وێب کاردەکات، پێویست بە دامەزراندن ناکات:</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://bumelerze.com/app">کردنەوەی ئەپی وێب</a>
+      </div>
+      <p class="meta">ئەپی سروشتیی <bdi>iOS</bdi> و <bdi>Android</bdi>
+      دواتر دێن. ئەم پەڕەیە بەستەرێکیان بۆ دەخاتەڕوو هەر کاتێک
+      بڵاوکرانەوە، هیچ باجی فرۆشگا لێرە نییە هەتا ئەو کاتە.</p>
+      <p>پرسیار، ڕاستکردنەوە، یان بیروڕا:
+      <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+    </div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="privacy.html">سیاسەتی تایبەتمەندی</a>
-      <a href="support.html">پشتگیری</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="بوومەلەرزە" width="176" height="32">
+      <p class="footer-tagline">چاودێریکردنی بوومەلەرزە، ڕاپۆرتی هەستکردن
+      و ڕێنمایی سەلامەتی بۆ هەرێمی کوردستان، بە کوردی.</p>
     </div>
-    <p>بوومەلەرزە: چاودێری بوومەلەرزە و ڕاپۆرتی هەستکردن بۆ هەرێمی کوردستان.
-    سەرچاوەکانی داتا هەمیشە دەخرێنە ڕوو: <bdi>USGS</bdi>، <bdi>EMSC</bdi>،
-    <bdi>GEOFON</bdi> و خزمەتگوزاری لەرزینی بوومەلەرزە.</p>
+    <div class="footer-col">
+      <h4>ماڵپەڕ</h4>
+      <ul>
+        <li><a href="index.html">ماڵەوە</a></li>
+        <li><a href="privacy.html">سیاسەتی تایبەتمەندی</a></li>
+        <li><a href="support.html">پشتگیری</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>داتای کراوە</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">ئەتلەسی بوومەلەرزە</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">کۆگای سەرچاوە</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>پەیوەندی</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>سەرچاوەکانی داتا: <bdi>USGS</bdi>، <bdi>EMSC</bdi>،
+      <bdi>GEOFON</bdi> و خزمەتی لەرزینی بوومەلەرزە.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">مۆڵەتی کۆد: <bdi>Apache 2.0</bdi></a>
+      <span>© ٢٠٢٦ بوومەلەرزە. لە پێشکەوتندایە.</span>
+    </div>
   </div>
 </footer>
 

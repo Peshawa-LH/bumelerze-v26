@@ -14,7 +14,9 @@
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
 </head>
-<body>
+<body class="prose-page">
+
+<a class="skip-link" href="#main">بازدان بۆ ناوەڕۆکی سەرەکی</a>
 
 <nav class="lang-switcher" aria-label="زمان">
   <ul>
@@ -30,7 +32,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="../brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="بوومەلەرزە" width="176" height="35">
+        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="بوومەلەرزە" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="ماڵپەڕ">
@@ -41,7 +43,7 @@
   </div>
 </header>
 
-<main>
+<main id="main" class="wrap">
   <h1>پشتگیری</h1>
 
   <h2>پرسیارە دووبارەکان</h2>
@@ -67,11 +69,12 @@
     ناو، ئیمەیڵ یان ژمارە مۆبایلت ناکات.</dd>
 
     <dt>چۆن داتاکانم بسڕمەوە؟</dt>
-    <dd>ئەمڕۆ، هەموو داتاکانت تەنها لەسەر ئامێرەکەت پاشەکەوت کراون، بۆیە
-    سڕینەوەی ئەپەکە هەموو شتێک دەسڕێتەوە. کاتێک بنکەدراوی ڕاپۆرتەکانی
-    بوومەلەرزە چالاک بوو، دەتوانیت ناسنامەی ئامێرەکەت کە لەناو ئەپەکەدایە
-    بە ئیمەیڵ بۆمان بنێریت و ئێمە ئەو ڕاپۆرتانە دەسڕینەوە کە پێوەی
-    بەستراونەتەوە. وردەکاری: بڕوانە
+    <dd>ڕاپۆرتی هەستکردنی کە دەینێریت لە بنکەدراوی تایبەتی بوومەلەرزەدا
+    پاشەکەوت دەکرێن، نەک تەنها لەسەر ئامێرەکەت. ناسنامەی ئامێرەکەت کە لەناو
+    ئەپەکەدایە بە ئیمەیڵ بنێرە بۆ
+    <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a>
+    بۆ پرسیارکردن دەربارەی ئەو ڕاپۆرتانەی بە ئامێرەکەتەوە بەستراونەتەوە.
+    وردەکاری: بڕوانە
     <a href="privacy.html">سیاسەتی تایبەتمەندی</a>.</dd>
 
     <dt>بۆچی ئەپەکە داوای شوێنەکەم دەکات؟</dt>
@@ -88,11 +91,37 @@
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="index.html">ماڵەوە</a>
-      <a href="privacy.html">سیاسەتی تایبەتمەندی</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="بوومەلەرزە" width="176" height="32">
+      <p class="footer-tagline">چاودێریکردنی بوومەلەرزە، ڕاپۆرتی هەستکردن
+      و ڕێنمایی سەلامەتی بۆ هەرێمی کوردستان، بە کوردی.</p>
     </div>
-    <p>بوومەلەرزە: چاودێری بوومەلەرزە و ڕاپۆرتی هەستکردن بۆ هەرێمی کوردستان.</p>
+    <div class="footer-col">
+      <h4>ماڵپەڕ</h4>
+      <ul>
+        <li><a href="index.html">ماڵەوە</a></li>
+        <li><a href="privacy.html">سیاسەتی تایبەتمەندی</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>داتای کراوە</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">ئەتلەسی بوومەلەرزە</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">کۆگای سەرچاوە</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>پەیوەندی</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>سەرچاوەکانی داتا: <bdi>USGS</bdi>، <bdi>EMSC</bdi>،
+      <bdi>GEOFON</bdi> و خزمەتی لەرزینی بوومەلەرزە.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">مۆڵەتی کۆد: <bdi>Apache 2.0</bdi></a>
+      <span>© ٢٠٢٦ بوومەلەرزە. لە پێشکەوتندایە.</span>
+    </div>
   </div>
 </footer>
 

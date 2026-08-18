@@ -13,8 +13,11 @@
 <link rel="icon" type="image/png" sizes="16x16" href="../brand/bumelerze-favicon-16.png">
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
+<script src="../slider.js" defer></script>
 </head>
 <body>
+
+<a class="skip-link" href="#main">تخطَّ إلى المحتوى الرئيسي</a>
 
 <nav class="lang-switcher" aria-label="اللغة">
   <ul>
@@ -30,7 +33,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="../brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="بوملێرزە" width="176" height="35">
+        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="بوملێرزە" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="الموقع">
@@ -41,61 +44,269 @@
   </div>
 </header>
 
-<main>
-  <h1>تطبيق الزلازل المصمَّم لكوردستان</h1>
-  <p class="lede">معلومات زلزالية سريعة وموثوقة وصحيحة علمياً، بلغتك.
-  بوملێرزە (من الكوردية <bdi>bûmelerze</bdi>، أي «زلزال») طوّره باحثون في
-  مخاطر الزلازل يعملون على هذه المنطقة يومياً.</p>
-
-  <ul class="features">
-    <li>
-      <h3>قائمة زلازل حية</h3>
-      <p>كوردستان أولاً. الزلازل الحديثة والتاريخية بالقرب منك وفي أنحاء
-      المنطقة، من ثلاثة مصادر علمية مستقلة (<bdi>USGS</bdi>،
-      <bdi>EMSC</bdi>، <bdi>GEOFON</bdi>)، بخط كبير وواضح لحظة فتح
-      التطبيق، حتى على اتصال ضعيف.</p>
-    </li>
-    <li>
-      <h3>تقرير شعوري بلمسة واحدة</h3>
-      <p>«شعرت به!»: لمسة واحدة تخبرنا بما شعرت به، في ثوانٍ. تُحفَظ
-      التقارير حتى من دون اتصال بالإنترنت. كل تقرير يساعد في بناء صورة
-      مجتمعية حقيقية لكيفية الشعور بالزلازل فعلياً في كوردستان.</p>
-    </li>
-    <li>
-      <h3>خرائط اهتزاز بوملێرزە</h3>
-      <p>خرائط شدة اهتزاز علمية خاصة بنا، تُحسَب لزلازل المنطقة، بما فيها
-      أحداث لا تضع لها أي خدمة عالمية خريطة أصلاً. كل خريطة تعرض مصادر
-      بياناتها وما إذا كان عالِم قد راجعها.</p>
-    </li>
-    <li>
-      <h3>إرشادات السلامة</h3>
-      <p>إرشادات بلغة بسيطة حول ما تفعله قبل الزلزال وأثناءه وبعده، كُتبت
-      لبيوت كوردستان وشوارعها، لا مترجمة من مكان آخر.</p>
-    </li>
+<nav class="page-nav" aria-label="في هذه الصفحة">
+  <ul>
+    <li><a href="#what">ما الذي يقدمه</a></li>
+    <li><a href="#science">كيف يعمل العلم</a></li>
+    <li><a href="#open-data">بيانات مفتوحة</a></li>
+    <li><a href="#who">لمن هذا التطبيق</a></li>
+    <li><a href="#get">احصل على بوملێرزە</a></li>
   </ul>
+</nav>
 
-  <h2>احصل على التطبيق</h2>
-  <div class="store-badges">
-    <span class="store-badge"><bdi>App Store</bdi> <span class="soon">قريباً</span></span>
-    <span class="store-badge"><bdi>Google Play</bdi> <span class="soon">قريباً</span></span>
-  </div>
-  <p class="meta">بوملێرزە في المرحلة الأخيرة من التحضير للإطلاق. ستظهر روابط
-  المتاجر هنا فور نشر التطبيق.</p>
+<main id="main">
 
-  <h2>تواصل معنا</h2>
-  <p>أسئلة، تصحيحات، أو ملاحظات:
-  <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <h1>تطبيق <span class="accent">الزلازل</span> المصمَّم لكوردستان</h1>
+        <p class="lede">معلومات زلزالية سريعة وموثوقة وصحيحة علمياً، بلغتك.
+        بوملێرزە (من الكوردية <bdi>bûmelerze</bdi>، أي «زلزال») طوّره باحثون في
+        مخاطر الزلازل يعملون على هذه المنطقة يومياً.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://bumelerze.com/app">افتح تطبيق الويب</a>
+          <a class="btn btn-outline" href="#science">شاهد كيف يعمل</a>
+        </div>
+      </div>
+
+      <div class="hero-slider" data-slider>
+        <p id="hero-slider-label" class="section-kicker hero-slider-label">ما الذي يقدمه بوملێرزە</p>
+        <div class="hero-slider-viewport">
+          <div class="hero-slider-track" role="group" aria-roledescription="عرض شرائح" aria-labelledby="hero-slider-label">
+
+            <article class="hero-slide" id="slide-1" role="group" aria-roledescription="شريحة" aria-label="١ من ٤" data-slide-label="مراقبة مستمرة، ليلاً ونهاراً">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-monitoring.webp" width="440" height="440" loading="eager" fetchpriority="high"
+                  alt="رسم من أداة اختيار تقرير الشعور في التطبيق: أمسية هادئة في المنزل، أدنى مستوى لشدة الاهتزاز، «لم يُشعَر به».">
+              </p>
+              <p class="hero-slide-eyebrow">القائمة الحية</p>
+              <h2>مراقبة مستمرة، ليلاً ونهاراً</h2>
+              <p>يراقب بوملێرزە كوردستان والعراق على مدار الساعة، ويجمع
+              ثلاث شبكات علمية مستقلة (<bdi>USGS</bdi>، <bdi>EMSC</bdi>،
+              <bdi>GEOFON</bdi>) في قائمة حية واحدة، لتشاهد ما حدث خلال
+              لحظات، حتى على اتصال ضعيف.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-2" role="group" aria-roledescription="شريحة" aria-label="٢ من ٤" data-slide-label="لمسة واحدة تخبرنا بما شعرت به">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-felt-report.webp" width="440" height="440" loading="lazy"
+                  alt="رسم من أداة اختيار تقرير الشعور في التطبيق: عائلة تغادر منزلاً يهتز، مستوى أقوى لشدة الاهتزاز.">
+              </p>
+              <p class="hero-slide-eyebrow">التقارير الشعورية</p>
+              <h2>لمسة واحدة تخبرنا بما شعرت به</h2>
+              <p>بعد الزلزال، اختر الصورة الأقرب لما عشته. تحتاج لمسة
+              واحدة فقط، تعمل دون اتصال، وتتحول إلى بيانات مجتمعية حقيقية
+              بدل التخمين.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-3" role="group" aria-roledescription="شريحة" aria-label="٣ من ٤" data-slide-label="خرائط اهتزازنا الخاصة، تُحسَب هنا">
+              <p class="hero-slide-figure">
+                <img class="symbol-mark" src="../brand/bumelerze-symbol-color.svg" width="232" height="100" loading="lazy" alt="">
+              </p>
+              <p class="hero-slide-eyebrow">خرائط اهتزاز بوملێرزە</p>
+              <h2>خرائط اهتزازنا الخاصة، تُحسَب هنا</h2>
+              <p>يحسب بوملێرزە خرائط شدة اهتزاز علمية خاصة به باستخدام
+              مقياس الشدة <bdi>EMS-98</bdi> وبيانات مفتوحة منشورة، لزلازل
+              المنطقة، بما فيها أحداث لا تضع لها أي خدمة عالمية خريطة
+              أصلاً.</p>
+            </article>
+
+            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="شريحة" aria-label="٤ من ٤" data-slide-label="إرشادات السلامة بالكوردية">
+              <p class="hero-slide-figure">
+                <img src="../images/hero-safety.webp" width="440" height="440" loading="lazy"
+                  alt="رسم من إرشادات السلامة في التطبيق: انبطح واحتمِ وتشبّث أسفل طاولة.">
+              </p>
+              <p class="hero-slide-eyebrow">إرشادات السلامة</p>
+              <h2>إرشادات السلامة بالكوردية</h2>
+              <p>إرشادات بلغة بسيطة حول ما تفعله قبل الزلزال وأثناءه
+              وبعده، كُتبت لبيوت كوردستان وشوارعها: انبطح، احتمِ، وتشبّث،
+              وأكثر.</p>
+            </article>
+
+          </div>
+          <p class="hero-slider-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="hero-slider-controls">
+          <a class="hero-slider-arrow hero-slider-prev" href="#slide-1" aria-label="الشريحة السابقة"></a>
+          <ul class="hero-slider-dots">
+            <li><a class="hero-dot" href="#slide-1" aria-current="true"><span class="visually-hidden">الشريحة ١: مراقبة مستمرة</span></a></li>
+            <li><a class="hero-dot" href="#slide-2"><span class="visually-hidden">الشريحة ٢: تقارير شعورية بلمسة واحدة</span></a></li>
+            <li><a class="hero-dot" href="#slide-3"><span class="visually-hidden">الشريحة ٣: خرائط اهتزاز بوملێرزە</span></a></li>
+            <li><a class="hero-dot" href="#slide-4"><span class="visually-hidden">الشريحة ٤: إرشادات السلامة</span></a></li>
+          </ul>
+          <a class="hero-slider-arrow hero-slider-next" href="#slide-4" aria-label="الشريحة التالية"></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="what" aria-labelledby="what-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">ما الذي يقدمه</p>
+      <h2 id="what-h2">تطبيق واحد، أربع مهام، مصمَّم على واقع الزلازل هنا</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">٠١</span>
+          <h3>قائمة زلازل حية</h3>
+          <p>كوردستان أولاً. الزلازل الحديثة والتاريخية بالقرب منك وفي أنحاء
+          المنطقة، من ثلاثة مصادر علمية مستقلة (<bdi>USGS</bdi>،
+          <bdi>EMSC</bdi>، <bdi>GEOFON</bdi>)، بخط كبير وواضح لحظة فتح
+          التطبيق، حتى على اتصال ضعيف.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">٠٢</span>
+          <h3>تقرير شعوري بلمسة واحدة</h3>
+          <p>«شعرت به!»: لمسة واحدة تخبرنا بما شعرت به، في ثوانٍ. تُحفَظ
+          التقارير حتى من دون اتصال بالإنترنت. كل تقرير يساعد في بناء صورة
+          مجتمعية حقيقية لكيفية الشعور بالزلازل فعلياً في كوردستان.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">٠٣</span>
+          <h3>خرائط اهتزاز بوملێرزە</h3>
+          <p>خرائط شدة اهتزاز علمية خاصة بنا، تُحسَب لزلازل المنطقة، بما فيها
+          أحداث لا تضع لها أي خدمة عالمية خريطة أصلاً. كل خريطة تعرض مصادر
+          بياناتها وما إذا كان عالِم قد راجعها.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-num" aria-hidden="true">٠٤</span>
+          <h3>إرشادات السلامة</h3>
+          <p>إرشادات بلغة بسيطة حول ما تفعله قبل الزلزال وأثناءه وبعده، كُتبت
+          لبيوت كوردستان وشوارعها، لا مترجمة من مكان آخر.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section-ivory" id="science" aria-labelledby="science-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">كيف يعمل العلم</p>
+      <h2 id="science-h2">من ثلاث شبكات إلى خريطة يمكنك الوثوق بها</h2>
+      <p class="lede lede-wide">لست بحاجة لشهادة في علم الزلازل لمتابعة هذا.
+      إليك السلسلة من «تحركت الأرض» إلى «هذا ما فعلته»، في ثلاث خطوات.</p>
+      <div class="science-grid">
+        <div class="science-item">
+          <h3>١. ثلاث شبكات، قائمة واحدة</h3>
+          <p>يُتحقَّق من كل زلزال مقابل <bdi>USGS</bdi> و<bdi>EMSC</bdi>
+          و<bdi>GEOFON</bdi>، وهي ثلاث شبكات مراقبة دولية مستقلة. يدمج
+          بوملێرزە تقاريرها عن الحدث نفسه في سجل داخلي واحد، فترى إدخالاً
+          واضحاً واحداً بدل ثلاثة متضاربة.</p>
+        </div>
+        <div class="science-item">
+          <h3>٢. ما شعرت به مهم</h3>
+          <p>يُقيَّم تقرير «شعرت به!» على مقياس الشدة الزلزالية
+          الماكروسيزمية <bdi>EMS-98</bdi>، وهو نفس نوع المقياس المستخدم
+          في التقييمات الرسمية للأضرار. تُجمَّع التقارير من المنطقة نفسها
+          في شدة رصدها المجتمع، شهادة حقيقية، لا تخميناً من نموذج وحده.</p>
+        </div>
+        <div class="science-item">
+          <h3>٣. خرائط اهتزاز بوملێرزە</h3>
+          <p>لزلازل المنطقة، يحسب بوملێرزە خريطة شدة اهتزاز خاصة به من
+          نماذج حركة الأرض، وحيثما توفرت، من تلك التقارير الشعورية نفسها.
+          تُبيّن كل خريطة مدخلاتها وما إذا كان عالِم قد راجعها، لا صندوق
+          أسود.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="open-data" aria-labelledby="open-data-h2">
+    <div class="wrap-wide">
+      <p class="section-kicker">بيانات مفتوحة وموثَّقة</p>
+      <h2 id="open-data-h2">نذكر مصادرنا. يمكنك التحقق من عملنا.</h2>
+      <p class="lede lede-wide">بيانات الزلازل الخاصة بكوردستان والعراق شحيحة
+      ومتناثرة بين خدمات صُممت لمناطق أخرى. وُجد بوملێرزە لسد هذه الفجوة دون
+      إخفاء كيفية قيامه بذلك.</p>
+      <div class="opendata-grid">
+        <div class="opendata-card">
+          <h3>أطلس بوملێرزە</h3>
+          <p>كتالوج عام قابل للتصفح لزلازل المنطقة، منشور بشكل مفتوح حتى
+          يتمكن أي شخص، باحثاً كان أو مقيماً، من معرفة ما حدث وأين.</p>
+          <a href="https://peshawa-lh.github.io/bumelerze-atlas/">تصفح الأطلس <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="opendata-card">
+          <h3>الشيفرة المصدرية</h3>
+          <p>يُطوَّر التطبيق ومحرك خرائط الاهتزاز وخط أنابيب البيانات
+          بشكل مفتوح تحت رخصة <bdi>Apache 2.0</bdi>. اقرأها، دقّق فيها،
+          أو سجّل مشكلة.</p>
+          <a href="https://github.com/Peshawa-LH/bumelerze-v26">عرض المستودع <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="opendata-card">
+          <h3>القوائم الأساسية</h3>
+          <p>القائمة الحية دمج لـ<bdi>USGS</bdi> و<bdi>EMSC</bdi>
+          و<bdi>GEOFON</bdi>، وهي ثلاث خدمات علمية لمراقبة الزلازل. يذكر
+          كل حدث وكل خريطة اهتزاز من بوملێرزە مصادره.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-off" id="who" aria-labelledby="who-h2">
+    <div class="wrap">
+      <p class="section-kicker">لمن هذا التطبيق</p>
+      <h2 id="who-h2">مصمَّم لمن يشعرون به أولاً</h2>
+      <p>أي شخص في إقليم كوردستان أو العراق يريد معلومات زلزالية سريعة
+      وموثوقة بلغته، في اللحظة التي تهم، غير مترجمة وليست فكرة لاحقة.
+      مخططو الطوارئ وفرق الاستجابة الذين يحتاجون صورة حقيقية وآنية
+      لكيفية الشعور الفعلي بالزلزال على الأرض، من الأشخاص الذين شعروا
+      به. الباحثون والطلاب الذين يحتاجون بيانات زلزالية مفتوحة وقابلة
+      للاستشهاد لمنطقة ظلت لفترة طويلة قليلة الأجهزة وقليلة الدراسة.</p>
+    </div>
+  </section>
+
+  <section class="section" id="get" aria-labelledby="get-h2">
+    <div class="wrap">
+      <p class="section-kicker">احصل على بوملێرزە</p>
+      <h2 id="get-h2">استخدمه اليوم، على الويب</h2>
+      <p>بوملێرزە في تطوير نشط. التطبيق الكامل يعمل اليوم بالفعل كتطبيق
+      ويب، دون الحاجة لتثبيت:</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://bumelerze.com/app">افتح تطبيق الويب</a>
+      </div>
+      <p class="meta">تطبيقات <bdi>iOS</bdi> و<bdi>Android</bdi> الأصلية
+      قادمة لاحقاً. سترتبط هذه الصفحة بها فور نشرها، لا شارات متاجر هنا
+      حتى ذلك الحين.</p>
+      <p>أسئلة، تصحيحات، أو ملاحظات:
+      <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+    </div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="privacy.html">سياسة الخصوصية</a>
-      <a href="support.html">الدعم</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="بوملێرزە" width="176" height="32">
+      <p class="footer-tagline">مراقبة الزلازل والتقارير الشعورية وإرشادات
+      السلامة لإقليم كوردستان، بالكوردية.</p>
     </div>
-    <p>بوملێرزە: مراقبة الزلازل والتقارير الشعورية لإقليم كوردستان. مصادر
-    البيانات مذكورة دائماً: <bdi>USGS</bdi>، <bdi>EMSC</bdi>،
-    <bdi>GEOFON</bdi>، وخدمة اهتزاز بوملێرزە.</p>
+    <div class="footer-col">
+      <h4>الموقع</h4>
+      <ul>
+        <li><a href="index.html">الرئيسية</a></li>
+        <li><a href="privacy.html">سياسة الخصوصية</a></li>
+        <li><a href="support.html">الدعم</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>بيانات مفتوحة</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">أطلس بوملێرزە</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">مستودع الشيفرة</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>تواصل</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>مصادر البيانات: <bdi>USGS</bdi>، <bdi>EMSC</bdi>،
+      <bdi>GEOFON</bdi>، وخدمة اهتزاز بوملێرزە.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">رخصة الشيفرة: <bdi>Apache 2.0</bdi></a>
+      <span>© ٢٠٢٦ بوملێرزە. قيد التطوير.</span>
+    </div>
   </div>
 </footer>
 

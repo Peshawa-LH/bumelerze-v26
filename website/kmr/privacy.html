@@ -1,9 +1,8 @@
 <!doctype html>
 <!-- translation: draft-machine, pending native review -->
-<!-- DRAFT — pending owner (Peshawa) review before publication. -->
-<!-- Content sourced strictly from store/listing/README.md "Privacy / data-safety
-     summary" (verified against the codebase 2026-08-09). Revise this page when
-     the Supabase backend goes live. -->
+<!-- DRAFT: pending owner (Peshawa) review before publication. -->
+<!-- Revised 2026-08-18 to match the live Supabase backend; translated from
+     the corrected English source, not device-only wording. -->
 <html lang="kmr" dir="ltr">
 <head>
 <meta charset="utf-8">
@@ -18,7 +17,9 @@
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
 </head>
-<body>
+<body class="prose-page">
+
+<a class="skip-link" href="#main">Biçe ser naveroka sereke</a>
 
 <nav class="lang-switcher" aria-label="Ziman">
   <ul>
@@ -34,7 +35,7 @@
     <a class="brand-link" href="index.html">
       <picture>
         <source srcset="../brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
-        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="35">
+        <img class="brand-logo" src="../brand/bumelerze-primary-horizontal.svg" alt="Bumelerze" width="176" height="32">
       </picture>
     </a>
     <nav class="site-nav" aria-label="Malper">
@@ -45,9 +46,9 @@
   </div>
 </header>
 
-<main>
+<main id="main" class="wrap">
   <h1>Polîtikaya nepenîtiyê</h1>
-  <p class="meta">Dîroka destpêkirinê: 16 Tebax 2026</p>
+  <p class="meta">Dîroka destpêkirinê: 18 Tebax 2026</p>
 
   <h2>Bi kurtî</h2>
   <ul>
@@ -57,25 +58,28 @@
     şopîner.</strong></li>
     <li><strong>Em tu carî daneyên te nafiroşin û parve nakin</strong> ji bo
     reklaman an ji bo tu armancên bazirganî.</li>
-    <li>Her tiştê ku sepan berhev dike ji bo yek armancê ye: veguherandina
-    raporên hestkirinê yên civakê bo zanisteke erdhejê ya çêtir ji bo
-    Kurdistanê.</li>
+    <li>Gava tu raporeke hestkirinê dişînî, ew tê şandin û tomarkirin di
+    databasa Bumelerze ya xwe de da ku em nexşeyên hejandinê yên civakê
+    ava bikin. Rapora te ya takekesî tu carî ji giştiyan re nayê nîşandan:
+    tenê daneyên berhevkirî tên weşandin, gava rapor ji bo herêmekê têra
+    xwe hebin.</li>
   </ul>
 
   <h2>Sepan çi berhev dike</h2>
 
-  <h3>Nasnameya amûrê ya anonîm</h3>
-  <p>Sepan di sazkirina yekem de nasnameyeke tesadufî (<bdi>UUID</bdi>) li ser
-  amûra te çêdike. Ew bi raporên te yên hestkirinê ve tê girêdan da ku raporên
-  ducarî an sexte yên ji heman sazkirinê bên naskirin. Ew <strong>bi nasnameya
-  te ya kesane ve nayê girêdan</strong>: hesab tune ne, û sazkirineke nû
-  nasnameyeke nû werdigire.</p>
+  <h3>Nasnameya anonîm</h3>
+  <p>Cara yekem ku tu sepanê vedikî, ew nasnameyeke anonîm ji bo sazkirina te
+  çêdike (bi karanîna Weşana Anonîm a Supabase) û nasnameyeke amûrê ya
+  tesadufî li ser têlefona te çêdike jî. Ne yek ji van <strong>bi nav,
+  e-name an jimareya te ya têlefonê ve nayê girêdan</strong>: qeydkirin an
+  hesabek ne hewce ye, û sazkirineke nû her tim nasnameyeke nû werdigire.</p>
 
   <h3>Raporên hestkirinê</h3>
-  <p>Gava tu bi xwe hildibijêrî ku raporeke "Min hîs kir!" bişînî, rapor van
-  dihewîne: asta hejandinê ya ku te hilbijart, dem, bersivên te yên pirsên
-  pêvek ên vebijarkî, şiroveyeke vebijarkî, wêneyeke vebijarkî, cihê te
-  (li jêr binêre) û nasnameya amûrê ya anonîm. Şandina raporê her tim
+  <p>Gava tu bi xwe hildibijêrî ku raporeke "Min hîs kir!" bişînî, ew dikare
+  van bihewîne: asta hejandinê ya ku te hilbijart, radeya zirarê û cureyê
+  avahiyê yên vebijarkî, bersivên te yên pirsên pêvek ên vebijarkî,
+  şiroveyeke vebijarkî, wêneyeke vebijarkî, cihê te di gava raporê de (li
+  jêr binêre), û demek. Şandina raporê, û her qada wê ya vebijarkî, her tim
   hilbijartina te ye.</p>
 
   <h3>Cih</h3>
@@ -87,36 +91,52 @@
   dîsa jî dixebitin; tu bajarê xwe ji lîsteyekê hildibijêrî.</p>
 
   <h2>Daneyên te diçin ku derê</h2>
-  <p>Îro, raporên hestkirinê <strong>tenê li ser amûra te</strong> tên
-  tomarkirin û nayên şandin tu derê. Tenê daxwazên torê yên ku sepan dike,
-  daxwazên tenê-xwendinê ne ji servîsên daneyên erdhejê yên giştî re (USGS,
-  EMSC, GEOFON); di wan daxwazan de tiştek li ser te tune.</p>
-  <p>Gava databasa raporan a Bumelerze bi xwe çalak bibe, raporên hestkirinê
-  (bi nasnameya amûrê ya anonîm û cihê raporê ve) dê jê re bên şandin da ku
-  nexşeyên hejandinê yên civakê bên avakirin. Ew database ya Bumelerze ye, û
-  daneyên tê de dê dîsa jî tu carî neyên firotin, parvekirin an ji bo reklaman
-  bikaranîn. Ev polîtika dê berî ku ew guhertin bikeve meriyetê bê
-  rojanekirin.</p>
+  <p>Raporên hestkirinê yên tu dişînî tên şandin û tomarkirin di databasa
+  Bumelerze ya xwe de (li ser Supabase, li Ewropayê, Frankfurt). Ew dane ya
+  Bumelerze ye û tu carî nayê firotin, parvekirin, an ji bo reklaman
+  bikaranîn.</p>
+  <ul>
+    <li>Wêneyeke vebijarkî ya tu lê zêde dikî diçe depoyeke taybet ku tenê
+    projeya Bumelerze dikare bixwîne. Ji bo kontrolê tê hilgirtin û
+    <strong>ne giştî ye</strong>.</li>
+    <li>Şiroveyeke vebijarkî berî ku bikaribe giştî xuya bibe ji aliyê
+    kontrolê ve tê vekolan.</li>
+    <li>Rapora te ya takekesî, bi cihê wê yê rast ve jî, <strong>tu carî ji
+    giştiyan re nayê nîşandan</strong>. Daneyên hejandinê yên berhevkirî
+    yên herêmekê tenê gava rapor têra xwe li wir hebin (niha herî kêm sê)
+    tên weşandin, ji ber vê yekê tu rapor bi tenê nayê naskirin li ser
+    nexşeya giştî.</li>
+    <li>Berhemên SHAKEmap ên Bumelerze, yên bi awayekî vekirî li Atlasa
+    Bumelerze tên weşandin, ji van daneyên berhevkirî û zanistî tên
+    çêkirin û tu agahiya kesane tê de tune.</li>
+    <li>Daxwazên torê yên din ên ku sepan dike, tenê daxwazên
+    tenê-xwendinê ne ji servîsên daneyên erdhejê yên giştî re (USGS, EMSC,
+    GEOFON); di wan de tiştek li ser te tune.</li>
+  </ul>
 
   <h2>Telemetrî</h2>
-  <p>Pîngeke telemetriyê ya kêmtirîn û anonîm di vekirina sepanê de (ji bo
-  jimartina sazkirinên çalak) tê plankirin lê <strong>îro ne çalak e</strong>:
-  sepana niha qet telemetriyê naşîne. Heke û gava bê çalakirin, ew ê anonîm be,
-  tenê bi nasnameya amûrê ya tesadufî ve girêdayî be, tu carî bi nasnameyeke
-  kesane ve na.</p>
+  <p>Sepan pîngeke piçûk û anonîm dişîne gava vedibe, herî pir carekê di her
+  danişîna sepanê de, da ku em hejmareke qerase ya sazkirinên çalak
+  bizanibin. Ew tenê cihekî qerase (li gorî bajar/herêmê, ne cihê te yê
+  rast) û platforma amûra te (iOS, Android, an web) tomar dike.
+  <strong>Tu nasnameya amûrê ya bi tu awayî tê de tune</strong>, tewra ya
+  jorîn jî na, û nayê girêdan bi te an bi raporên te ve. Ev di rûpela
+  Mîhengan a sepanê de eşkere ye.</p>
 
   <h2>Jêbirina daneyên te</h2>
-  <p>Îro, ji ber ku tiştek ji amûra te dernakeve, jêbirina sepanê hemû daneyên
-  te jê dibe. Gava databasa raporan çalak bû, tu dikarî daxwaza jêbirina
-  raporên ku bi nasnameya amûra te ve girêdayî ne bikî, bi nivîsandina ji
+  <p>Ji
   <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a>
-  re (nasname di nav sepanê de tê nîşandan da ku tu bikaribî wê bidî bêyî ku
-  tiştekî kesane eşkere bikî).</p>
+  re binivîse û nasnameya amûra xwe ya di nav sepanê de destnîşan bike
+  (di nav sepanê de tê nîşandan, ji ber vê yekê tu dikarî wê parve bikî
+  bêyî ku tiştekî kesane eşkere bikî) da ku pirsa raporên bi amûra xwe ve
+  girêdayî bikî. Bumelerze hê amûreke tam-xweser a jêbirinê ya
+  xweser-xizmetê tune; e-name rêya ku tu îro dikarî têkiliyê pê re
+  daynî ye.</p>
 
   <h2>Guhertinên vê polîtikayê</h2>
-  <p>Heke pratîkên me yên daneyan biguherin, bo nimûne gava databasa raporan
-  çalak bibe, ev rûpel dê bê rojanekirin û dîroka destpêkirinê ya jorîn dê
-  berî ku guhertin bikeve meriyetê bê guhertin.</p>
+  <p>Heke pratîkên me yên daneyan biguherin, ev rûpel dê bê rojanekirin û
+  dîroka destpêkirinê ya jorîn dê berî ku guhertin bikeve meriyetê bê
+  guhertin.</p>
 
   <h2>Têkilî</h2>
   <p><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
@@ -124,12 +144,37 @@
 
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <div class="footer-links">
-      <a href="index.html">Destpêk</a>
-      <a href="support.html">Piştgirî</a>
+    <div class="footer-col footer-brand">
+      <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="Bumelerze" width="176" height="32">
+      <p class="footer-tagline">Çavdêriya erdhejê, raporên hestkirinê û
+      rêberiya ewlehiyê ji bo Herêma Kurdistanê, bi kurdî.</p>
     </div>
-    <p>Bumelerze: çavdêriya erdhejê û raporên hestkirinê ji bo Herêma
-    Kurdistanê.</p>
+    <div class="footer-col">
+      <h4>Malper</h4>
+      <ul>
+        <li><a href="index.html">Destpêk</a></li>
+        <li><a href="support.html">Piştgirî</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Daneyên vekirî</h4>
+      <ul>
+        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">Atlasa Bumelerze</a></li>
+        <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">Depoya çavkaniyê</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Têkilî</h4>
+      <ul>
+        <li><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></li>
+      </ul>
+    </div>
+    <div class="footer-legal">
+      <span>Çavkaniyên daneyan: <bdi>USGS</bdi>, <bdi>EMSC</bdi>,
+      <bdi>GEOFON</bdi> û Bumelerze Shake Service.</span>
+      <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">Lîsansa kodê: <bdi>Apache 2.0</bdi></a>
+      <span>© 2026 Bumelerze. Di pêşxistinê de.</span>
+    </div>
   </div>
 </footer>
 
