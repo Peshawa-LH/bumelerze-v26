@@ -302,6 +302,116 @@ def test_run_once_no_qualifying_events_saves_empty_state_cleanly(tmp_path):
     assert ws.events == {}
 
 
+def test_run_once_tolerates_a_feed_failure_and_still_saves_state(tmp_path, capsys):
+    """Regression coverage for the scheduled-CI robustness fix: `run_once`
+    used to let a single feed's `requests.RequestException` abort the WHOLE
+    cycle before the final `ws.save` call, silently discarding whatever
+    earlier legs in the same cycle had already processed. Real internet
+    flakiness (the GitHub Actions scheduled lane's normal operating
+    condition, unlike a human re-running this by hand) makes that a real
+    state-loss risk, not just a theoretical one — this test pins the fixed
+    behavior: one feed failing must not block the others, and state from
+    whatever succeeded must still be saved."""
+    state_path = tmp_path / "worker_state.json"
+    products_root = tmp_path / "products"
+
+    def flaky_fetch(url, params=None):
+        if url == run_worker.ALL_HOUR_FEED_URL:
+            raise run_worker.requests.RequestException("all_hour feed is down")
+        if url == run_worker.FDSNWS_EVENT_URL:
+            return _feature_collection(_feature(event_id="us_flaky_1", mag=4.1, lat=35.4, lon=45.1))
+        return _feature_collection()
+
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    ws = run_worker.run_once(
+        state_path=state_path, products_root=products_root, uploader=uploader,
+        fetch_fn=flaky_fetch, fetch_text_fn=_no_text,
+    )
+
+    # The USGS region-sweep's event, processed AFTER the failing all_hour
+    # poll in the same cycle, was not lost.
+    assert ws.get_event("us_flaky_1") is not None
+    reloaded = WorkerState.load(state_path)
+    assert reloaded.get_event("us_flaky_1") is not None
+
+    out = capsys.readouterr().out
+    logged_events = [json.loads(line)["event"] for line in out.strip().splitlines()]
+    assert "all_hour_poll_failed" in logged_events
+    assert "cycle_end" in logged_events  # reached despite the failed leg
+
+
+def test_run_once_a_non_network_exception_still_propagates_after_saving_state(tmp_path):
+    """A real bug (not feed downtime) must still fail the run loudly — the
+    tolerant try/except is scoped to `requests.RequestException` only."""
+    state_path = tmp_path / "worker_state.json"
+    products_root = tmp_path / "products"
+
+    def broken_fetch(url, params=None):
+        raise ValueError("not a network error -- a real bug")
+
+    uploader = run_worker.LocalOnlyUploader(log_fn=lambda *_: None)
+    with pytest.raises(ValueError, match="not a network error"):
+        run_worker.run_once(
+            state_path=state_path, products_root=products_root, uploader=uploader,
+            fetch_fn=broken_fetch, fetch_text_fn=_no_text,
+        )
+    # ws.save still ran (the `finally` block) even though the exception
+    # propagated afterwards.
+    assert state_path.exists()
+
+
+# ---------------------------------------------------------------------------
+# --require-supabase: fail loudly instead of a silent LocalOnlyUploader
+# fallback — the scheduled CI lane's own preflight check.
+# ---------------------------------------------------------------------------
+
+
+def test_require_supabase_env_passes_when_both_vars_set():
+    run_worker.require_supabase_env(
+        env={"SUPABASE_URL": "https://x.supabase.co", "SUPABASE_SERVICE_ROLE_KEY": "secret"}
+    )  # must not raise
+
+
+def test_require_supabase_env_raises_when_both_missing():
+    with pytest.raises(run_worker.MissingSupabaseCredentialsError) as exc_info:
+        run_worker.require_supabase_env(env={})
+    message = str(exc_info.value)
+    assert "SUPABASE_URL" in message
+    assert "SUPABASE_SERVICE_ROLE_KEY" in message
+
+
+def test_require_supabase_env_raises_when_only_one_is_set():
+    with pytest.raises(run_worker.MissingSupabaseCredentialsError):
+        run_worker.require_supabase_env(env={"SUPABASE_URL": "https://x.supabase.co"})
+    with pytest.raises(run_worker.MissingSupabaseCredentialsError):
+        run_worker.require_supabase_env(env={"SUPABASE_SERVICE_ROLE_KEY": "secret"})
+
+
+def test_require_supabase_env_error_is_a_system_exit_with_exit_code_2():
+    with pytest.raises(SystemExit) as exc_info:
+        run_worker.require_supabase_env(env={})
+    assert exc_info.value.code != 0  # a non-zero exit -- a real CI failure, not a silent pass
+
+
+def test_main_exits_before_any_network_call_when_require_supabase_and_creds_missing(monkeypatch, tmp_path):
+    """`--require-supabase` must fail BEFORE `run_once`/`run_daemon` (and
+    therefore before any feed poll or `build_uploader()` call) ever runs --
+    not merely before the upload step."""
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+
+    def fail_if_called(**kwargs):
+        raise AssertionError("run_once must not be reached when --require-supabase fails preflight")
+
+    monkeypatch.setattr(run_worker, "run_once", fail_if_called)
+    monkeypatch.setattr(
+        sys, "argv",
+        ["run_worker.py", "--once", "--require-supabase", "--state-path", str(tmp_path / "s.json")],
+    )
+    with pytest.raises(SystemExit):
+        run_worker.main()
+
+
 # ---------------------------------------------------------------------------
 # --daemon: immediate first-cycle polling + clean SIGINT shutdown
 # ---------------------------------------------------------------------------

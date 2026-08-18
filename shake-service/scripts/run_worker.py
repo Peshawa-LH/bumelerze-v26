@@ -83,6 +83,7 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import json
+import os
 import signal
 import sys
 import time
@@ -357,47 +358,79 @@ def run_once(
     emsc_sweep_start: str | None = None,
     geofon_sweep_start: str | None = None,
 ) -> WorkerState:
+    """One full poll cycle (all four feed legs), then exit. Originally built
+    for a human/cron caller who could just re-run it; now ALSO the entry
+    point `.github/workflows/shake-worker.yml`'s scheduled lane calls
+    unattended, where a transient network blip on any ONE of the four feeds
+    is the expected common case, not an edge case — so, like `run_daemon`,
+    each leg is independently try/excepted (tolerant of feed downtime, one
+    outage never blocks the others) and `ws.save` always runs, in a
+    `finally`, even if a leg fails or raises. This was NOT true before this
+    change: a single feed exception used to abort the whole cycle before
+    reaching the final `ws.save` call, silently discarding whatever the
+    EARLIER legs in the same cycle had already processed (bml ids allocated
+    in memory, versions bumped) — harmless for a human re-running the
+    script by hand, but a real state-loss risk for an unattended scheduled
+    job hitting the open internet four times a cycle. A non-network
+    exception (a real bug, not feed downtime) still propagates after the
+    `finally` saves whatever succeeded — never swallowed, so a genuine
+    defect still fails the CI run loudly."""
     ws = WorkerState.load(state_path)
     _log("cycle_start", mode="once")
 
-    # Order IS the canonical-id mechanism (module docstring): USGS polls
-    # run FIRST, EMSC second, GEOFON third — an event carried by several
-    # providers is created under the highest-authority id available and
-    # every later record cross-provider-dedups against it (feed_watcher
-    # module docstring: §2 authority order USGS > EMSC > GEOFON).
-    all_hour_decisions = poll_all_hour(ws, fetch_fn=fetch_fn)
-    process_decisions(
-        all_hour_decisions, ws, products_root=products_root, uploader=uploader,
-        usgs_products_fetcher=usgs_products_fetcher,
-        live_catalog_path=live_catalog_path,
-    )
+    try:
+        # Order IS the canonical-id mechanism (module docstring): USGS
+        # polls run FIRST, EMSC second, GEOFON third — an event carried by
+        # several providers is created under the highest-authority id
+        # available and every later record cross-provider-dedups against it
+        # (feed_watcher module docstring: §2 authority order
+        # USGS > EMSC > GEOFON).
+        try:
+            all_hour_decisions = poll_all_hour(ws, fetch_fn=fetch_fn)
+            process_decisions(
+                all_hour_decisions, ws, products_root=products_root, uploader=uploader,
+                usgs_products_fetcher=usgs_products_fetcher,
+                live_catalog_path=live_catalog_path,
+            )
+        except requests.RequestException as exc:
+            _log("all_hour_poll_failed", error=str(exc))
 
-    updated_after = sweep_updated_after or _default_sweep_updated_after()
-    sweep_decisions = poll_region_sweep(ws, updated_after=updated_after, fetch_fn=fetch_fn)
-    process_decisions(
-        sweep_decisions, ws, products_root=products_root, uploader=uploader,
-        usgs_products_fetcher=usgs_products_fetcher,
-        live_catalog_path=live_catalog_path,
-    )
+        try:
+            updated_after = sweep_updated_after or _default_sweep_updated_after()
+            sweep_decisions = poll_region_sweep(ws, updated_after=updated_after, fetch_fn=fetch_fn)
+            process_decisions(
+                sweep_decisions, ws, products_root=products_root, uploader=uploader,
+                usgs_products_fetcher=usgs_products_fetcher,
+                live_catalog_path=live_catalog_path,
+            )
+        except requests.RequestException as exc:
+            _log("region_sweep_failed", error=str(exc))
 
-    emsc_start = emsc_sweep_start or _default_emsc_sweep_start()
-    emsc_decisions = poll_emsc_sweep(ws, start_time=emsc_start, fetch_fn=fetch_fn)
-    process_decisions(
-        emsc_decisions, ws, products_root=products_root, uploader=uploader,
-        usgs_products_fetcher=usgs_products_fetcher,
-        live_catalog_path=live_catalog_path,
-    )
+        try:
+            emsc_start = emsc_sweep_start or _default_emsc_sweep_start()
+            emsc_decisions = poll_emsc_sweep(ws, start_time=emsc_start, fetch_fn=fetch_fn)
+            process_decisions(
+                emsc_decisions, ws, products_root=products_root, uploader=uploader,
+                usgs_products_fetcher=usgs_products_fetcher,
+                live_catalog_path=live_catalog_path,
+            )
+        except requests.RequestException as exc:
+            _log("emsc_sweep_failed", error=str(exc))
 
-    geofon_start = geofon_sweep_start or _default_geofon_sweep_start()
-    geofon_decisions = poll_geofon_sweep(ws, start_time=geofon_start, fetch_text_fn=fetch_text_fn)
-    process_decisions(
-        geofon_decisions, ws, products_root=products_root, uploader=uploader,
-        usgs_products_fetcher=usgs_products_fetcher,
-        live_catalog_path=live_catalog_path,
-    )
+        try:
+            geofon_start = geofon_sweep_start or _default_geofon_sweep_start()
+            geofon_decisions = poll_geofon_sweep(ws, start_time=geofon_start, fetch_text_fn=fetch_text_fn)
+            process_decisions(
+                geofon_decisions, ws, products_root=products_root, uploader=uploader,
+                usgs_products_fetcher=usgs_products_fetcher,
+                live_catalog_path=live_catalog_path,
+            )
+        except requests.RequestException as exc:
+            _log("geofon_sweep_failed", error=str(exc))
+    finally:
+        ws.save(state_path)
+        _log("cycle_end", mode="once", state_path=str(state_path))
 
-    ws.save(state_path)
-    _log("cycle_end", mode="once", state_path=str(state_path))
     return ws
 
 
@@ -495,6 +528,37 @@ def run_daemon(
         _log("daemon_stop", state_path=str(state_path))
 
 
+class MissingSupabaseCredentialsError(SystemExit):
+    """Raised by `require_supabase_env` — a `SystemExit` subclass so it
+    behaves exactly like any other CLI-fatal condition (exit code, message
+    to stderr) while still being a distinct, catchable type for tests."""
+
+
+def require_supabase_env(*, env: dict[str, str] | None = None) -> None:
+    """`--require-supabase`'s check: raise (exit code 2, a clear stderr
+    message) if `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` are not both set,
+    INSTEAD of letting `build_uploader()` silently degrade to
+    `LocalOnlyUploader`. That silent fallback is the right default for a
+    human running this by hand (`OPERATIONS.md`'s whole point), but wrong
+    for an unattended scheduled job: a scheduled sweep that quietly computes
+    products nobody will ever see (written to an ephemeral CI runner's
+    disk, never indexed, never published) is worse than one that fails
+    loudly and gets noticed (task brief: "a silent no-op scheduled job is
+    worse than a failing one"). `env` defaults to the real process
+    environment; tests pass a plain dict to avoid mutating `os.environ`."""
+    real_env = env if env is not None else os.environ
+    missing = [
+        name for name in ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY") if not real_env.get(name)
+    ]
+    if missing:
+        raise MissingSupabaseCredentialsError(
+            f"run_worker.py --require-supabase: missing required secret(s) {missing} — "
+            "refusing to run in silent LocalOnlyUploader fallback mode. Set these as "
+            "GitHub Actions secrets (see shake-service/OPERATIONS.md, 'Scheduled lane') "
+            "or omit --require-supabase for a deliberate local-only run."
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -506,7 +570,16 @@ def main() -> None:
         "--live-catalog-path", default=str(DEFAULT_LIVE_CATALOG_PATH),
         help="append-only JSONL of every newly detected canonical event (worker/live_catalog.py)",
     )
+    parser.add_argument(
+        "--require-supabase", action="store_true",
+        help="exit 2 with a clear message if SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY are not set, "
+        "instead of silently falling back to LocalOnlyUploader — for unattended/scheduled runs "
+        "(the GitHub Actions scheduled lane always passes this; manual/local runs should not).",
+    )
     args = parser.parse_args()
+
+    if args.require_supabase:
+        require_supabase_env()
 
     state_path = Path(args.state_path)
     products_root = Path(args.products_root)

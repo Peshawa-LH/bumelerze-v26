@@ -46,6 +46,7 @@ def _write_product_files(
     version_block: dict[str, Any] | None = None,
     event_block: dict[str, Any] | None = None,
     grid_block: dict[str, Any] | None = None,
+    vs30_block: dict[str, Any] | None = None,
 ) -> dict[str, Path]:
     paths = _product_paths(tmp_path)
     paths["cont_mi"].write_text(json.dumps({"type": "FeatureCollection", "features": []}))
@@ -57,6 +58,8 @@ def _write_product_files(
         info_payload["event"] = event_block
     if grid_block is not None:
         info_payload["grid"] = grid_block
+    if vs30_block is not None:
+        info_payload["vs30"] = vs30_block
     paths["info"].write_text(json.dumps(info_payload))
     return paths
 
@@ -379,6 +382,41 @@ def test_supabase_uploader_carries_engine_version_block_from_info_json(tmp_path)
     for row in index_writer.rows_by_key.values():
         assert row["data_used"]["engine_version"] == version_block
     assert publisher.publish_calls[0]["engine_version"] == version_block
+
+
+def test_supabase_uploader_carries_vs30_provenance_block_from_info_json(tmp_path):
+    """A degraded compute (the real Vs30 raster unavailable — e.g. this
+    repo's own CI runner) must be distinguishable from a full one at the
+    QUERYABLE index layer, not only inside the artifact file — see
+    `_vs30_from_info`'s own docstring. `vs30_source: "rock-default"` here
+    stands in for exactly that degraded case."""
+    vs30_block = {"sampler": "UniformRockVs30", "vs30_source": "rock-default", "vs30_source_error": None}
+    index_writer = FakeIndexWriter()
+    publisher = FakeArtifactPublisher()
+    uploader = SupabaseUploader(index_writer=index_writer, artifact_publisher=publisher, log_fn=lambda *_: None)
+    paths = _write_product_files(tmp_path, vs30_block=vs30_block)
+
+    records = uploader.upload_products(
+        event_id="ev", version=1, product_paths=paths, data_used={"source": "catalog"}, event_meta=_event_meta(),
+    )
+
+    for record in records:
+        assert record.data_used["vs30"] == vs30_block
+    for row in index_writer.rows_by_key.values():
+        assert row["data_used"]["vs30"] == vs30_block
+
+
+def test_supabase_uploader_omits_vs30_key_when_info_has_no_vs30_block(tmp_path):
+    index_writer = FakeIndexWriter()
+    publisher = FakeArtifactPublisher()
+    uploader = SupabaseUploader(index_writer=index_writer, artifact_publisher=publisher, log_fn=lambda *_: None)
+    paths = _write_product_files(tmp_path)  # no vs30_block passed
+
+    records = uploader.upload_products(
+        event_id="ev", version=1, product_paths=paths, data_used={"source": "catalog"}, event_meta=_event_meta(),
+    )
+
+    assert all("vs30" not in r.data_used for r in records)
 
 
 def test_supabase_uploader_tolerates_missing_info_file(tmp_path):

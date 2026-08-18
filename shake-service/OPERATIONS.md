@@ -353,3 +353,155 @@ point keep their repo-relative paths until their event is recomputed (§8c)
 or the index rows are backfilled with the new base URL prefix (a one-off
 SQL `UPDATE`, not built as a script this wave since it is a single
 operational action, not a repeated one).
+
+## 9. The scheduled lane (GitHub Actions, non-urgent catch-up)
+
+The worker "only runs when the owner's laptop is on" problem has a
+two-lane fix. This section covers the NON-urgent lane, which exists today;
+a dedicated always-on host for rapid response is future work that will
+reuse the same entry points (`scripts/run_worker.py --once`,
+`build_uploader()`) this lane already uses.
+
+**What it is.** A GitHub Actions workflow — staged in this repo at
+`shake-service/deploy/atlas-shake-worker.yml`, deployed by the orchestrator
+to `.github/workflows/shake-worker.yml` **inside the separate
+`Peshawa-LH/bumelerze-atlas` repository**, not this one (see
+`shake-service/deploy/README.md` for exactly why and the deployment
+command) — that runs `scripts/run_worker.py --once` on a schedule.
+
+**What it does, in order:** checks the two required Supabase secrets are
+present (fails loudly otherwise, see below) → checks out the Atlas repo
+(itself) and a read-only, anonymous checkout of this app repo for
+`shake-service/` → installs Python 3.11 + this package's pinned
+dependencies (pip-cached; GDAL is the one line in the lockfile it
+deliberately re-resolves against whatever system libgdal the runner
+provides, not the exact pin — a genuine cross-machine ABI constraint, not
+laziness; see the workflow file's own comment) → restores the previous
+run's `worker_state.json`/`live-catalog.jsonl` from a GitHub Actions cache
+→ optionally restores/fetches a cached Vs30 raster (see below) → runs ONE
+full sweep (USGS `all_hour` poll + USGS/EMSC/GEOFON region sweeps,
+identical decision logic to a locally-run `--once`/`--daemon`, unchanged)
+→ saves the updated state back to the cache → commits and pushes any newly
+published products straight into its own (the Atlas repo's) working tree,
+using the automatic `GITHUB_TOKEN` (no configured push credential at all).
+
+**What it covers:** periodic catch-up between manual/daemon runs, picking
+up a missed feed update, and — its main real use — recomputation after an
+engine fix or backfill (§8c/§8b's procedures work unchanged with this lane
+as the runner). **What it explicitly does NOT cover:** rapid response.
+GitHub's own documentation warns scheduled workflow runs can be delayed
+under platform load and explicitly discourages very short cadences; this
+workflow runs every **20 minutes** — double the worker's own existing
+10-minute EMSC/GEOFON completeness-sweep cadence, chosen so that even one
+skipped/delayed scheduled run still keeps the effective worst-case gap
+close to the ~20-30 minute window this lane is meant to serve, without
+being mistaken for (or competing with) the future always-on host's
+rapid-response job.
+
+**Triggering it manually:** the workflow also has a `workflow_dispatch`
+trigger — from the Atlas repo's Actions tab, "Shake-service scheduled
+worker" → "Run workflow", no inputs required. Useful right after an engine
+fix, instead of waiting for the next scheduled tick.
+
+**Secrets, and where they live.** `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`
+are created on the **`bumelerze-atlas`** repository's own Actions secrets
+(not this repo's) — see `shake-service/deploy/README.md`'s table for exact
+names/scopes. If either is absent, the workflow's own first step fails the
+run immediately with `::error::...`, AND (defense in depth)
+`scripts/run_worker.py --once --require-supabase` — the new CLI flag this
+task added — would refuse to run even if that shell check were ever
+bypassed: it exits 2 with a clear message instead of letting
+`build_uploader()` silently fall back to `LocalOnlyUploader`, which would
+otherwise compute real products on an ephemeral runner and then discard
+them when the job ends — a scheduled job that silently no-ops is strictly
+worse than one that fails and gets noticed. `--require-supabase` is
+opt-in — manual/local runs (`OPERATIONS.md`'s whole normal use case) never
+pass it, so `build_uploader()`'s existing graceful local-only fallback is
+completely unchanged for a human running this by hand.
+
+**Vs30: the honest-degradation decision.** The engine's real Vs30
+site-amplification raster (`shake_service/vs30.py`'s `RasterVs30`, backed
+by a ~610 MB file, `shake_service/config.py`'s `DEFAULT_VS30_RASTER_PATH` —
+an absolute path that exists only on Peshawa's own machine today) will
+never be present on a fresh GitHub Actions runner unless this lane fetches
+its own copy. Three options were on the table: (a) fetch it from durable
+storage if a URL is configured, caching it between runs; (b) refuse to
+compute at all when it's unavailable; (c) compute anyway with the
+already-honest rock-760 fallback, clearly labeled as degraded. **Chosen:
+(a) with automatic, already-implemented (c) as the fallback — never (b).**
+Reasoning: (b) would gut this lane's actual purpose — most triggering
+events genuinely need a map, and refusing to compute would turn "periodic
+catch-up / backfill" into "periodic no-op" for the common case. (a) is
+supported as an opt-in: set the `VS30_RASTER_URL` secret (see
+`shake-service/deploy/README.md`) to any HTTPS location the workflow can
+`curl`, and it is fetched once and cached (`actions/cache`, keyed
+`vs30-raster-v1`) for every run after. When that secret is unset — the
+default, until the owner uploads the raster somewhere fetchable — the
+engine's OWN existing, already-built graceful fallback
+(`shake_service.vs30.default_sampler()`) takes over automatically: it logs
+a loud, structured line and falls back to `UniformRockVs30` (rock-760
+uniform site conditions). Critically, **this was never allowed to be
+silent or indistinguishable from a full-quality product**: every product's
+`info.json` already carried a top-level `vs30.vs30_source` field
+(`"raster"` | `"rock-default"`) before this task started — but that field
+lived ONLY inside the artifact file, invisible to anyone querying the fast
+`shakemap_products` INDEX table without fetching and parsing every
+artifact. This task closed that gap
+(`shake_service/worker/uploader.py`'s new `_vs30_from_info`): the same
+`vs30` block now also rides along in the INDEX row's `data_used` jsonb, so
+"is this product full-quality or degraded" is answerable with a plain
+Supabase query, not just by opening the artifact — a degraded product must
+never be indistinguishable from a full one at ANY layer a consumer might
+reasonably query.
+
+**State persistence and the single-allocation-authority risk.** GitHub
+Actions runners are ephemeral — the workflow persists `worker_state.json`
+(and `live-catalog.jsonl`) between runs via `actions/cache`, keyed on
+`github.run_id` with a prefix `restore-keys` fallback (the standard pattern
+for a cache that must be updated every run, since `actions/cache` cannot
+overwrite an existing key). As long as that cache stays warm — which a
+20-minute cadence keeps true in practice, well under GitHub's ~7-day
+unused-cache eviction window — this workflow's cache IS a single,
+continuous counter space, safe under `event_id.py`'s "single allocation
+authority" rule. **The risk is a SECOND writer, not this one alone:**
+running `scripts/run_worker.py --daemon` locally against a *different*
+`worker_state.json` at the same time as this workflow is enabled would
+create exactly the "two independent counter files... collide" scenario
+`event_id.py`'s own docstring warns about (a real event could get two
+different bml ids from the two state files, or two different events could
+get the same id). Until the documented FUTURE handover lands (allocation
+moves to a Postgres sequence behind an edge function, `event_id.py`'s own
+"FUTURE handover" note), **only one process should be minting live bml ids
+at a time** — once this scheduled lane is enabled, treat it as that one
+process for routine live triggering, and use the manual driver-script
+procedures in §2/§4 (which operate on a specific, already-known state file
+you control) rather than a concurrently-running local `--daemon`.
+
+**Idempotency, proven, not assumed.** Re-running the exact same sweep input
+twice must never duplicate a row or double-publish a file. This already
+follows from properties this repo's own test suite pins independently, not
+anything new: `pipeline.run_pipeline`'s params-hash short circuit (no
+recompute, no re-upload, for an unchanged event); `SupabaseUploader`'s
+`shakemap_products` upsert on its own `(event_id, producer, version,
+product_type)` unique constraint (a replayed row merges, never
+duplicates); and `AtlasRepoPublisher.publish` overwriting the same
+`(event_key, version)` path with the same bytes on a retry. This task's own
+`run_once` robustness fix (see the workflow file's own comment, and
+`tests/test_run_worker.py`'s new feed-failure-tolerance tests) closes the
+one gap that mattered for THIS lane specifically: `run_once` used to let a
+single feed's network exception abort the whole cycle before its own final
+state save, silently discarding whatever earlier feed legs in the same
+cycle had already processed — harmless for a human re-running the script
+by hand, but a real state-loss risk for an unattended job hitting the open
+internet four times a cycle. It now saves state in a `finally`, tolerating
+each feed leg's own `requests.RequestException` independently (mirroring
+`run_daemon`'s pre-existing policy) while still letting a genuine
+non-network bug fail the run loudly.
+
+**What this lane never does:** trigger a compute for an event outside the
+existing trigger policy (§7's bbox/magnitude gates are untouched — nothing
+about running in CI changes `feed_watcher.triggers_shakemap`), or push
+anything to `bumelerze-v26` (the app repo) — the workflow's read-only,
+anonymous, `persist-credentials: false` checkout of that repo cannot push
+to it even by accident.
+

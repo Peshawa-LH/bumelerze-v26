@@ -560,6 +560,28 @@ def _load_info_json(info_path: Path | None, *, log_fn: Any) -> dict[str, Any] | 
         return None
 
 
+def _vs30_from_info(info: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Carries `info.json`'s top-level `"vs30"` block (`export.py`'s
+    `build_info_product`, sourced from `ForwardMap.vs30_meta`) into the
+    INDEX row's `data_used` jsonb, same rationale as
+    `_engine_version_from_info` just above. Without this, a degraded
+    compute (the real Vs30 raster unavailable — e.g. a CI runner that
+    doesn't have the ~610 MB backbone raster hydrated,
+    `shake_service/vs30.py`'s own DEFAULT-ON/LOUD-fallback docstring) is
+    honestly tagged `vs30.vs30_source: "rock-default"` inside the
+    published `info.json` artifact, but a caller/dashboard querying
+    `shakemap_products` directly (the fast, queryable index this repo's
+    own docs describe — never opening every artifact file) could not tell
+    a degraded product from a full one without fetching and parsing that
+    artifact. This function closes that gap — a degraded product must
+    never be indistinguishable from a full one at ANY layer a consumer
+    might reasonably query, not just inside the artifact bytes."""
+    if info is None:
+        return None
+    vs30 = info.get("vs30")
+    return vs30 if isinstance(vs30, dict) else None
+
+
 def _engine_version_from_info(info: dict[str, Any] | None) -> dict[str, Any] | None:
     """Carries the engine-version block through instead of dropping it: the
     computed `info.json` already has a `"version"` block (service version,
@@ -740,8 +762,14 @@ class SupabaseUploader(ProductUploader):
 
         info = _load_info_json(product_paths.get("info"), log_fn=self._log)
         engine_version = _engine_version_from_info(info)
+        vs30_info = _vs30_from_info(info)
         bbox = _bbox_from_info(info, event_meta=event_meta)
-        enriched_data_used = {**data_used, "engine_version": engine_version} if engine_version else data_used
+        enriched_data_used = dict(data_used)
+        if engine_version:
+            enriched_data_used["engine_version"] = engine_version
+        if vs30_info:
+            # Never silently missing — see _vs30_from_info's own docstring.
+            enriched_data_used["vs30"] = vs30_info
 
         # bml id over provider id (module docstring's "artifact directory
         # key" note) — data_used["bumelerze_id"] is set unconditionally by
