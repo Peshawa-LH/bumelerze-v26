@@ -11,6 +11,21 @@
  * (design-language.md "Handoff notes"):
  *   1. Brand blue / action red exact hex (owner-review item).
  * The intensity ramp below is no longer a placeholder — see provenance note.
+ *
+ * BRAND-LOGO INTEGRATION NOTE (visual-asset-generator, brand-logo task):
+ * the owner's finished logo package
+ * (`assets/Bumelerze-App-Visual-Assets/08-Logo_Package/`) is now the
+ * official visual identity for icon/splash/favicon/website/store surfaces —
+ * see `assets/brand/README.md`'s "brand-red-vs-app-red split" section for
+ * the full reasoning. That package's Signal Red (`#C8202F`) is chromatically
+ * almost identical to `actionRed`/`status.danger` below (~1.02 contrast
+ * delta against `actionRed.light` — perceptually the same color), so this
+ * file's `brand` export deliberately STAYS in the blue family rather than
+ * adopting the logo's red: reusing near-danger-red as ordinary chrome
+ * (links, the active tab, primary buttons) would make routine UI read as
+ * alarms and blunt the intensity ramp's own red high end. That "stay blue"
+ * call is now settled, not still-placeholder; only the exact hex below
+ * remains open to future refinement.
  */
 
 /** 12-step neutral gray ramp, white (0) to near-black (1100). */
@@ -58,6 +73,35 @@ export const brand = {
 export const actionRed = {
   light: "#C6202D",
   dark: "#E8433E",
+} as const;
+
+/**
+ * Logo brand palette — the owner's finished logo package
+ * (`assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/bumelerze-colors.json`),
+ * used for brand-IDENTITY surfaces: the app icon, splash screen, favicon,
+ * website, and store listings (see `assets/brand/README.md`'s
+ * "brand-red-vs-app-red split"). Registered here so these six colors are
+ * available by name from the same place every other color in the app is —
+ * NOT because in-product UI should reach for them. It should not: `brand`
+ * above (Zagros Blue) is the app's actual chrome color, and
+ * `intensityRamp`/`damageGradePalette` are the app's scientific-scale
+ * colors — this palette is neither, and no component should read from it
+ * for ordinary interface work.
+ *
+ * Hand-copied from the JSON file above (React Native has no runtime
+ * filesystem access to read it directly at render time) — keep this block
+ * in sync if the logo package's tokens ever change.
+ * `scripts/generate-assets.js` and `app.config.ts` both read that same JSON
+ * file directly instead of duplicating it, so neither of those can drift;
+ * this one hand-copied block is the only place that can.
+ */
+export const logoBrand = {
+  signalRed: "#C8202F",
+  warmIvory: "#FFF5E8",
+  endpointGold: "#F2B632",
+  wordmarkInk: "#0B1219",
+  approvedNavy: "#071D2B",
+  presentationOffWhite: "#FBF7F0",
 } as const;
 
 export const status = {

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import {
   damageGradeOnFillDark,
   damageGradeOnFillLight,
@@ -5,6 +8,7 @@ import {
   intensityOnFillDark,
   intensityOnFillLight,
   intensityRamp,
+  logoBrand,
   neutral,
 } from "../palette";
 import { darkColors, lightColors } from "../semantic";
@@ -258,5 +262,30 @@ describe("brand.onPrimary (dark theme) — WCAG-AA contrast against brand.primar
     expect(
       contrastRatio(darkColors.brand.onPrimary, darkColors.brand.primary),
     ).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe("logoBrand — must never drift from the logo package's own tokens", () => {
+  // palette.ts's `logoBrand` is a hand-copy (React Native has no runtime
+  // filesystem access to read the JSON file directly) — this test is the
+  // guard against that copy going stale, reading the same JSON file this
+  // Node/Jest process CAN see.
+  const tokensPath = join(
+    __dirname,
+    "../../../assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/bumelerze-colors.json",
+  );
+  const tokens = JSON.parse(readFileSync(tokensPath, "utf8")) as {
+    colors: Record<string, { hex: string }>;
+  };
+
+  it.each([
+    ["signalRed", "signal-red"],
+    ["warmIvory", "warm-ivory"],
+    ["endpointGold", "endpoint-gold"],
+    ["wordmarkInk", "wordmark-ink"],
+    ["approvedNavy", "approved-navy"],
+    ["presentationOffWhite", "presentation-off-white"],
+  ] as const)("logoBrand.%s matches the logo package's colors['%s']", (key, tokenKey) => {
+    expect(logoBrand[key]).toBe(tokens.colors[tokenKey]?.hex);
   });
 });
