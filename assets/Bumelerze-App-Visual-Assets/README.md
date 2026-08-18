@@ -10,8 +10,10 @@ This folder is the complete handoff package for the Bumelerze earthquake app.
 - `04-Previews/` contains light- and dark-background review sheets. Preview sheets are not production assets.
 - `05-App-Ready/` contains resized PNG and WebP files ready for app integration.
 - `06-Reference/` contains the production brief and IMS-25 source reference for future revisions.
+- `07-Safety-Images/` contains the approved before/during/after safety-guidance illustrations.
+- `08-Logo_Package/` contains the official Bumelerze logo system: SVG/PNG marks, app icons and favicons, brand guidelines, and machine-readable color tokens. See its own `README.md` and `Brand-Info/brand-guidelines.md` before resizing, recoloring, or placing the logo. `scripts/generate-assets.js` at the repository root reads this folder directly to produce the Expo app's icon/splash/favicon assets; treat its SVG files as the source of truth, not the generated PNGs elsewhere in the repo.
 
-The 32 master production images are 1254 x 1254 RGBA PNGs with transparent backgrounds. They are the canonical source files.
+The 32 master production images under `01`–`03` are 1254 x 1254 RGBA PNGs with transparent backgrounds. They are the canonical source files for the illustration set. `08-Logo_Package/` is a separate, independently versioned deliverable (currently version 1.3, see its `Brand-Info/version-history.md`) with its own file formats and sizes; see that folder's own manifest rather than this section.
 
 ## App-ready formats
 

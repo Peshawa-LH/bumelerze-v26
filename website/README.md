@@ -23,10 +23,21 @@ fallback deploy recipe.
 | `ckb/` | Sorani Kurdish (RTL) — same three pages |
 | `kmr/` | Kurmanji Kurdish — same three pages |
 | `ar/` | Arabic (RTL) — same three pages |
-| `style.css` | The one shared stylesheet (app design language: dark-first, Zagros Blue) |
+| `style.css` | The one shared stylesheet (dark-first surfaces; brand accent colors from the logo package) |
+| `brand/` | Copies of the official logo package's horizontal logo (light + dark-background versions) and favicon artwork; see its own README note below |
+| `favicon.ico` | Multi-size ICO, browsers request this from the site root by convention regardless of page depth |
 
-Total site weight is a few tens of KB — no images (the brand mark is inline
-SVG), system fonts only.
+Site weight is still small: a shared stylesheet, a handful of SVG/PNG brand
+files (a few hundred KB total, mostly the two horizontal-logo SVGs and the
+favicon set), system fonts only, no JavaScript, no frameworks.
+
+Every page's `<header>` shows the real horizontal logo
+(`brand/bumelerze-primary-horizontal.svg`), swapped for the ivory
+"reversed" version (`brand/bumelerze-primary-horizontal-reversed.svg`) on
+dark-mode visits via a `<picture>`/`prefers-color-scheme` source, exactly
+per the logo package's own guidance for dark backgrounds. The logo image is
+never mirrored on the RTL pages (ckb, ar): a wordmark is not a directional
+icon.
 
 ## How to deploy (Cloudflare Pages, drag-and-drop — ~5 minutes)
 
