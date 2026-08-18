@@ -3,7 +3,6 @@ import { Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
 import type { ColorValue } from "react-native";
 
-import { BumelerzeSymbolIcon } from "@/components/icons/BumelerzeSymbolIcon";
 import { useTheme } from "@/theme";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -34,14 +33,6 @@ export default function TabLayout() {
     };
   }
 
-  // Sensor tab: the real Bumelerze brand mark (owner directive) instead of
-  // a generic Ionicons glyph — full color by design, so it does not take a
-  // `color` prop the way `icon()` above does; only `focused` drives its
-  // active/inactive look (BumelerzeSymbolIcon.tsx).
-  function sensorIcon({ focused, size }: { focused: boolean; size: number }) {
-    return <BumelerzeSymbolIcon size={size} focused={focused} />;
-  }
-
   return (
     <Tabs
       screenOptions={{
@@ -64,7 +55,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="sensor"
-        options={{ title: t("tabs.sensor"), tabBarIcon: sensorIcon }}
+        options={{ title: t("tabs.sensor"), tabBarIcon: icon("pulse") }}
       />
       <Tabs.Screen
         name="safety"
