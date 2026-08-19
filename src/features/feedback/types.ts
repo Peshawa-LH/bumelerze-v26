@@ -47,10 +47,6 @@ export interface FeedbackContext {
   appVersion: string | null;
   locale: SupportedLocale | null;
   platform: FeedbackPlatform | null;
-  /** Free-text route the Feedback screen was opened from, e.g. "settings" —
-   * see `supabase/migrations/0020_feedback.sql`'s own comment on why this is
-   * a free string, not an enum. */
-  screen: string | null;
 }
 
 /**

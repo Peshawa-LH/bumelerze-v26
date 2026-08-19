@@ -7,8 +7,10 @@ import type { FeedbackContext, FeedbackPhotoAttachment, FeedbackSubmission } fro
  * `SupabaseFeedbackTransport` — no real network call anywhere in this file,
  * mirroring `src/features/felt/__tests__/supabase-transport.test.ts`'s own
  * discipline exactly (mock `@/lib/supabase` at the seam; parse
- * `supabase/migrations/0020_feedback.sql` itself with a small regex column
- * extractor so the client-side payload mapping and the DB schema can never
+ * `supabase/migrations/0020_feedback.sql` (table creation) AND
+ * `supabase/migrations/0022_feedback_triage.sql` (the `screen` column
+ * drop) with a small regex extractor so the client-side payload mapping
+ * and the DB schema — as it stands TODAY, not just at 0020 — can never
  * silently drift apart).
  */
 
@@ -44,10 +46,38 @@ function extractTableColumns(sql: string, tableName: string): string[] {
   return columns;
 }
 
+/** Columns a later migration dropped from `tableName` — parsed straight out
+ * of `ALTER TABLE ... DROP COLUMN [IF EXISTS] <col>;` statements, same
+ * "read the real SQL, don't hand-maintain a parallel list" discipline as
+ * `extractTableColumns` itself. */
+function extractDroppedColumns(sql: string, tableName: string): string[] {
+  const pattern = new RegExp(
+    `alter table public\\.${tableName}\\s+drop column(?: if exists)? (\\w+)`,
+    "gi",
+  );
+  const dropped: string[] = [];
+  for (const match of sql.matchAll(pattern)) {
+    if (match[1]) {
+      dropped.push(match[1]);
+    }
+  }
+  return dropped;
+}
+
+function readMigration(fileName: string): string {
+  const sqlPath = path.join(__dirname, "../../../../supabase/migrations", fileName);
+  return fs.readFileSync(sqlPath, "utf8");
+}
+
+/** The columns `tableName` actually has TODAY — 0020's `CREATE TABLE`
+ * columns, minus anything a later migration (currently just 0022) dropped.
+ * Any future migration that drops or adds columns on this table should
+ * extend this function rather than have callers reach for a single
+ * migration file directly. */
 function loadMigrationColumns(tableName: string): string[] {
-  const sqlPath = path.join(__dirname, "../../../../supabase/migrations/0020_feedback.sql");
-  const sql = fs.readFileSync(sqlPath, "utf8");
-  return extractTableColumns(sql, tableName);
+  const created = extractTableColumns(readMigration("0020_feedback.sql"), tableName);
+  const dropped = extractDroppedColumns(readMigration("0022_feedback_triage.sql"), tableName);
+  return created.filter((column) => !dropped.includes(column));
 }
 
 // `signInAnonymously` defaults to a no-op success — `ensureAnonymousUserId`
@@ -89,7 +119,6 @@ const SAMPLE_CONTEXT: FeedbackContext = {
   appVersion: "0.1.0",
   locale: "en",
   platform: "android",
-  screen: "settings",
 };
 
 const SAMPLE_SUBMISSION: FeedbackSubmission = {
@@ -130,7 +159,6 @@ describe("buildFeedbackInsert (pure mapping)", () => {
       app_version: "0.1.0",
       locale: "en",
       platform: "android",
-      screen: "settings",
       created_at: new Date(1_700_000_000_000).toISOString(),
     });
   });
@@ -149,7 +177,7 @@ describe("buildFeedbackInsert (pure mapping)", () => {
     const noContext: FeedbackSubmission = {
       ...SAMPLE_SUBMISSION,
       contact: null,
-      context: { appVersion: null, locale: null, platform: null, screen: null },
+      context: { appVersion: null, locale: null, platform: null },
     };
 
     expect(buildFeedbackInsert(noContext)).toMatchObject({
@@ -157,11 +185,26 @@ describe("buildFeedbackInsert (pure mapping)", () => {
       app_version: null,
       locale: null,
       platform: null,
-      screen: null,
     });
   });
 
-  it("every payload key is a real feedback column (schema/app sync check, migration 0020)", () => {
+  it("never sends screen (migration 0022 dropped the column; owner: never wanted)", () => {
+    const { buildFeedbackInsert } = loadTransport();
+
+    expect(buildFeedbackInsert(SAMPLE_SUBMISSION)).not.toHaveProperty("screen");
+  });
+
+  it("never sends a triage field — status/category/triage_note/updated_at are owner-assigned only, server-side (migration 0022)", () => {
+    const { buildFeedbackInsert } = loadTransport();
+
+    const payload = buildFeedbackInsert(SAMPLE_SUBMISSION);
+    expect(payload).not.toHaveProperty("status");
+    expect(payload).not.toHaveProperty("category");
+    expect(payload).not.toHaveProperty("triage_note");
+    expect(payload).not.toHaveProperty("updated_at");
+  });
+
+  it("every payload key is a real, still-current feedback column (schema/app sync check, migrations 0020 + 0022)", () => {
     const { buildFeedbackInsert } = loadTransport();
     const columns = loadMigrationColumns("feedback");
 

@@ -133,6 +133,9 @@ Parts 3 + 5, `docs/research/event-pipeline-design.md`,
 | `0015_felt_reports_select_own.sql` | Adds `felt_reports_select_own`/`felt_report_details_select_own` — `to authenticated` select policies keyed on `auth.uid() = user_id` (D26 item 7, My Data). Written not-yet-exercised (`user_id` was unpopulated at insert time); **2026-08-16 storage wave wires that in** — `SupabaseTransport` now populates `user_id` from an anonymous session on every `felt_reports` insert, so this policy is exercised for real as of that wave. |
 | `0016_felt_photos_storage.sql` | Private `felt-photos` Storage bucket (5 MB limit, jpeg/png/webp) + `storage.objects` RLS (INSERT/UPDATE, `to authenticated`, path-prefix-scoped to `auth.uid()`) + `felt_photos.report_id` unique constraint (client-upsert idempotency target). 2026-08-16 storage wave — closes the last felt-reports gap (window-3 photo upload). |
 | `0019_shakemap_products_index_fields.sql` | `shakemap_products` bounding-box columns (`bbox_min_lat`/`bbox_max_lat`/`bbox_min_lon`/`bbox_max_lon`) + a `storage_path` comment update. No Storage bucket: an owner architecture decision keeps `shakemap_products` a pure INDEX — artifact files publish to a separate external data repository, never Supabase Storage (`shake-service/OPERATIONS.md` §8). |
+| `0020_feedback.sql`                    | `feedback` + `feedback_photos` (private, service-role-reviewed in-app feedback) + the `feedback-photos` Storage bucket. |
+| `0021_feedback_multi_photo.sql`        | Allows several `feedback_photos` rows per `feedback_id` (was capped at one).                                          |
+| `0022_feedback_triage.sql`             | Adds owner-only triage columns to `feedback` (`status`, `category`, `triage_note`, trigger-maintained `updated_at`) and drops the unused `screen` column. See "Feedback triage" below. |
 
 **Naming caveat:** these use plain `NNNN_name.sql` numbering as requested.
 The Supabase CLI conventionally expects timestamp-prefixed filenames
@@ -301,3 +304,55 @@ references auth.users` backed by Supabase Anonymous Auth (see Design
    an authenticated identity can be enforced by RLS. This is a real design
    decision, not a stub — worth confirming it's the intended shape before
    the Expo app's notification-settings screen is wired to it.
+
+## Feedback triage (migration 0022)
+
+`feedback` now carries four triage-only columns, assigned by whoever
+reviews the table (today: the owner, via the dashboard or the orchestrator's
+tooling — service role only, never the client): `status` (`unseen` on
+arrival → `in_review` → `solved`, or `wont_do` for anything deliberately
+skipped), `category` (nullable — `bug` / `improvement` / `suggestion` /
+`question` / `other`), `triage_note` (free text), and `updated_at`
+(trigger-maintained on every edit). There is still no `select` policy on
+`feedback` — the query below is meant to be run from the SQL editor (or any
+service-role connection), not exposed to the app.
+
+"Who sent it" has no dedicated column — submissions are anonymous by
+design. Two things stand in for it: `contact`, if the sender chose to leave
+one, and `device_id`, which groups every message from the same install even
+when no contact was given.
+
+Run this to get a readable hand-off list, unseen items first, most recently
+active within each status first:
+
+```sql
+select
+  case status
+    when 'unseen' then 0
+    when 'in_review' then 1
+    when 'solved' then 2
+    when 'wont_do' then 3
+  end as status_rank,
+  status,
+  coalesce(category, '(untriaged)') as category,
+  left(message, 140) || (case when char_length(message) > 140 then '…' else '' end) as message_preview,
+  coalesce(contact, '(no contact given)') as contact,
+  left(device_id, 8) || '…' as device,
+  (
+    select count(*)
+    from public.feedback_photos fp
+    where fp.feedback_id = f.feedback_id
+  ) as photo_count,
+  age(now(), created_at) as age,
+  created_at,
+  triage_note
+from public.feedback f
+order by status_rank, updated_at desc;
+```
+
+Notes on reading the output: `status_rank`/`status` sort unseen work to the
+top; `age` is a Postgres interval (e.g. `3 days 04:12:00`), which the SQL
+editor renders directly — cast to `date_trunc('minute', age(now(),
+created_at))` if a coarser display is preferred. `device` is deliberately
+truncated (it's a grouping key, not something to read in full here); select
+`device_id` directly when following up on one specific install's history.
