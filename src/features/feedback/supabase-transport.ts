@@ -33,17 +33,21 @@ export interface FeedbackInsert {
   app_version: string | null;
   locale: string | null;
   platform: string | null;
-  screen: string | null;
   created_at: string;
 }
 
 /**
- * Maps a `FeedbackSubmission` to a `feedback` insert row (migration 0020).
- * Deliberately NOT sent (left to the database): `created_at`'s server-side
- * default is never used — the client's own capture time IS sent (matching
- * `buildFeltReportInsert`'s `created_at`, "captured on-device"), since a
- * feedback message may sit in the offline queue for a while before this
- * insert is attempted and the on-device moment is the truthful one.
+ * Maps a `FeedbackSubmission` to a `feedback` insert row (migration 0020;
+ * `screen` dropped by migration 0022 — the client stopped sending it in the
+ * same wave, see `context.ts`'s own doc). Deliberately NOT sent (left to
+ * the database): `created_at`'s server-side default is never used — the
+ * client's own capture time IS sent (matching `buildFeltReportInsert`'s
+ * `created_at`, "captured on-device"), since a feedback message may sit in
+ * the offline queue for a while before this insert is attempted and the
+ * on-device moment is the truthful one. Also never sent, by design: the
+ * triage fields migration 0022 adds (`status`/`category`/`triage_note`/
+ * `updated_at`) — those are owner-assigned only, server-side, and this
+ * payload must never carry them (there is no client UI for them at all).
  */
 export function buildFeedbackInsert(
   submission: FeedbackSubmission,
@@ -58,7 +62,6 @@ export function buildFeedbackInsert(
     app_version: submission.context.appVersion,
     locale: submission.context.locale,
     platform: submission.context.platform,
-    screen: submission.context.screen,
     created_at: new Date(submission.createdAt).toISOString(),
   };
 }

@@ -25,17 +25,20 @@ function normalizeLocale(): SupportedLocale | null {
 /**
  * Builds the automatically-captured context for one feedback submission
  * (wave brief: "Capture the context automatically rather than asking" —
- * app version, locale, platform, and where possible which screen the user
- * came from). Called once, at enqueue time (`queue.ts`'s `enqueueFeedback`)
- * — never re-derived later, so the captured context reflects the app state
- * at the moment the user actually submitted, not whenever a queued retry
- * happens to run.
+ * app version, locale, platform). Called once, at enqueue time
+ * (`queue.ts`'s `enqueueFeedback`) — never re-derived later, so the
+ * captured context reflects the app state at the moment the user actually
+ * submitted, not whenever a queued retry happens to run.
+ *
+ * There used to be a fourth field here, `screen` — which route the
+ * Feedback screen was opened from. Migration 0022 drops the matching
+ * `feedback.screen` column (owner: never populated with anything
+ * meaningful, never wanted) — see that migration's own comment for why.
  */
-export function buildFeedbackContext(screen: string | null): FeedbackContext {
+export function buildFeedbackContext(): FeedbackContext {
   return {
     appVersion: Constants.expoConfig?.version ?? null,
     locale: normalizeLocale(),
     platform: normalizePlatform(),
-    screen,
   };
 }

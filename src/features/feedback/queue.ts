@@ -208,9 +208,6 @@ export const useFeedbackQueueStore = create<FeedbackQueueState>()(
 export interface EnqueueFeedbackInput {
   message: string;
   contact?: string | null;
-  /** Free-text route the Feedback screen was opened from — see
-   * `context.ts`'s own doc. Omitted/undefined is stored as `null`. */
-  screen?: string | null;
   /** LOCAL file uris only (`expo-image-picker` results), same contract the
    * pre-0021 singular `photoUri` field had. Silently truncated to
    * `FEEDBACK_PHOTO_MAX_COUNT` — a defensive backstop, the real cap is
@@ -239,7 +236,7 @@ export async function enqueueFeedback(
     deviceId,
     message: input.message,
     contact: input.contact ?? null,
-    context: buildFeedbackContext(input.screen ?? null),
+    context: buildFeedbackContext(),
     photos,
     createdAt: Date.now(),
   };

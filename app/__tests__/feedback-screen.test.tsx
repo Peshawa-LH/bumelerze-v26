@@ -36,10 +36,8 @@ const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockCanDismiss = jest.fn(() => false);
 const mockDismiss = jest.fn();
-const routeParams: { screen?: string } = { screen: "settings" };
 
 jest.mock("expo-router", () => ({
-  useLocalSearchParams: () => routeParams,
   useRouter: () => ({
     push: mockPush,
     back: mockBack,
@@ -138,7 +136,6 @@ describe("Feedback screen", () => {
     mockCanDismiss.mockReset().mockReturnValue(false);
     mockLaunchImageLibraryAsync.mockReset();
     useFeedbackQueueStore.setState({ items: [] });
-    routeParams.screen = "settings";
     if (i18n.language !== "en") {
       await i18n.changeLanguage("en");
     }
@@ -278,7 +275,7 @@ describe("Feedback screen", () => {
     ).toBeNull();
   });
 
-  it("submitting durably queues the message with the trimmed contact, the screen it came from, and every attached photo", async () => {
+  it("submitting durably queues the message with the trimmed contact and every attached photo", async () => {
     mockPickerAssets(["file:///tmp/one.jpg", "file:///tmp/two.jpg"]);
 
     await renderWithProviders(<FeedbackScreen />);
@@ -300,7 +297,7 @@ describe("Feedback screen", () => {
     expect(items).toHaveLength(1);
     expect(items[0]?.submission.message).toBe("The map crashed.");
     expect(items[0]?.submission.contact).toBe("tester@example.com");
-    expect(items[0]?.submission.context.screen).toBe("settings");
+    expect(items[0]?.submission.context).not.toHaveProperty("screen");
     expect(items[0]?.submission.photos.map((photo) => photo.uri)).toEqual([
       "file:///tmp/one.jpg",
       "file:///tmp/two.jpg",

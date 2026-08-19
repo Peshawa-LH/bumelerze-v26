@@ -96,7 +96,6 @@ describe("enqueueFeedback + PendingFeedbackTransport (Supabase not configured)",
     const submission = await enqueueFeedback({
       message: "The map crashed when I tapped a cluster.",
       contact: null,
-      screen: "settings",
     });
 
     const stored = useFeedbackQueueStore

@@ -182,11 +182,12 @@ function MyDataSection() {
  * where you press feedback then write a message ... I can get the list of
  * feedback then share them with you for fixes." A single navigation row,
  * same shape as `MyDataSection`/`HandbookSection` above — the form itself
- * lives on its own screen (`app/feedback.tsx`). Passes `screen: "settings"`
- * as a route param so the automatically-captured context
- * (`src/features/feedback/context.ts`) can record where this submission
- * came from without the feedback feature needing to know about every
- * possible entry point.
+ * lives on its own screen (`app/feedback.tsx`). Used to also pass
+ * `screen: "settings"` as a route param so the automatically-captured
+ * context could record where a submission came from; migration 0022 drops
+ * the matching `feedback.screen` column (owner: never wanted, never
+ * populated with anything meaningful), so this is now a plain navigation
+ * with no params.
  */
 function FeedbackSection() {
   const { t } = useTranslation();
@@ -216,7 +217,7 @@ function FeedbackSection() {
       </Text>
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push({ pathname: "/feedback", params: { screen: "settings" } })}
+        onPress={() => router.push("/feedback")}
         style={[styles.row, { borderColor: colors.border.default }]}
       >
         <Text

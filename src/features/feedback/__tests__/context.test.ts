@@ -7,11 +7,14 @@ import { buildFeedbackContext } from "../context";
 /**
  * `buildFeedbackContext` — automatically-captured context (wave brief:
  * "Capture the context automatically rather than asking: app version from
- * the real version string (not hardcoded), current locale, platform, and
- * where possible which screen the user came from"). `expo-constants` is
- * mocked explicitly (rather than relying on jest-expo's own default) so the
- * asserted app version is deterministic and clearly tied to the mock, not
- * incidentally whatever this repo's `app.config.ts` happens to say today.
+ * the real version string (not hardcoded), current locale, platform").
+ * `expo-constants` is mocked explicitly (rather than relying on jest-expo's
+ * own default) so the asserted app version is deterministic and clearly
+ * tied to the mock, not incidentally whatever this repo's `app.config.ts`
+ * happens to say today.
+ *
+ * There used to be a fourth captured field, `screen` — dropped along with
+ * `feedback.screen` itself (migration 0022, owner: never wanted).
  *
  * Statically imported (no `jest.resetModules()`/fresh-`require()` dance,
  * unlike `device-id.test.ts`): `context.ts` has no per-call module-level
@@ -38,26 +41,22 @@ describe("buildFeedbackContext", () => {
   });
 
   it("captures the real app version from expo-constants, never a hardcoded string", () => {
-    expect(buildFeedbackContext(null).appVersion).toBe("9.9.9");
+    expect(buildFeedbackContext().appVersion).toBe("9.9.9");
   });
 
   it("captures the current i18next locale", async () => {
     await i18n.changeLanguage("ckb");
 
-    expect(buildFeedbackContext(null).locale).toBe("ckb");
+    expect(buildFeedbackContext().locale).toBe("ckb");
   });
 
   it("captures the platform, narrowed to ios | android | web", () => {
     Platform.OS = "android";
 
-    expect(buildFeedbackContext(null).platform).toBe("android");
+    expect(buildFeedbackContext().platform).toBe("android");
   });
 
-  it("passes the screen argument straight through", () => {
-    expect(buildFeedbackContext("settings").screen).toBe("settings");
-  });
-
-  it("defaults screen to null when not provided a real route", () => {
-    expect(buildFeedbackContext(null).screen).toBeNull();
+  it("never includes a screen field (migration 0022 dropped it; owner: never wanted)", () => {
+    expect(buildFeedbackContext()).not.toHaveProperty("screen");
   });
 });

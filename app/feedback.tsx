@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
@@ -37,7 +37,6 @@ interface PickedPhoto {
  * bare import).
  */
 export default function FeedbackScreen() {
-  const { screen: originScreen } = useLocalSearchParams<{ screen?: string }>();
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -101,7 +100,6 @@ export default function FeedbackScreen() {
     const submission = await enqueueFeedback({
       message: trimmedMessage,
       contact: trimmedContact.length > 0 ? trimmedContact : null,
-      screen: originScreen ?? null,
       photoUris: photos.map((photo) => photo.uri),
     });
     setSubmittedId(submission.feedbackId);
