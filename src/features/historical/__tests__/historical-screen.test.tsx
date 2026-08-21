@@ -30,7 +30,21 @@ jest.mock("expo-router", () => {
   };
 });
 
-// Imported after the mock above so the mocked module graph is in place.
+// The real Ionicons host drops its `name` prop once rendered (it resolves
+// to a font glyph `children` string that itself renders empty under jest's
+// font resolution) — stubbing to a plain `Text` that echoes `name` as text
+// content is the only reliable way to assert the catalog-link chevron's
+// LTR-vs-RTL mirroring (same technique as `HeaderBackButton.test.tsx`).
+jest.mock("@expo/vector-icons", () => {
+  const { createElement } = jest.requireActual("react");
+  const { Text } = jest.requireActual("react-native");
+  return {
+    Ionicons: ({ name, testID }: { name: string; testID?: string }) =>
+      createElement(Text, { testID }, name),
+  };
+});
+
+// Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
 import HistoricalScreen from "../../../../app/historical";
 
@@ -103,6 +117,47 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     expect(
       screen.getByText("بوومەلەرزەیەکی مامناوەند لە نزیک عەقرە، لە پارێزگای دهۆک."),
     ).toBeTruthy();
+  });
+
+  it("shows a header with a back control (owner: pushed screens need a way back)", async () => {
+    await i18n.changeLanguage("en");
+    await renderWithProviders(<HistoricalScreen />);
+
+    expect(mockScreenOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerShown: true,
+        headerLeft: expect.any(Function),
+      }),
+    );
+  });
+
+  it("still opens /catalog from the footer link, now the only in-app path to it", async () => {
+    await i18n.changeLanguage("en");
+    await renderWithProviders(<HistoricalScreen />);
+
+    fireEvent.press(screen.getByText("See the full catalog"));
+
+    expect(mockPush).toHaveBeenCalledWith("/catalog");
+  });
+
+  it("points the catalog link's chevron forward (toward reading-end) in English", async () => {
+    expect(isRTLLocale("en")).toBe(false);
+    await i18n.changeLanguage("en");
+    await renderWithProviders(<HistoricalScreen />);
+
+    expect(
+      screen.getByTestId("historical-catalog-link-chevron").props.children,
+    ).toBe("chevron-forward");
+  });
+
+  it("mirrors the catalog link's chevron for the Sorani (RTL) locale", async () => {
+    expect(isRTLLocale("ckb")).toBe(true);
+    await i18n.changeLanguage("ckb");
+    await renderWithProviders(<HistoricalScreen />);
+
+    expect(
+      screen.getByTestId("historical-catalog-link-chevron").props.children,
+    ).toBe("chevron-back");
   });
 
   it("navigates to /event/[id] on row tap (mocked router)", async () => {

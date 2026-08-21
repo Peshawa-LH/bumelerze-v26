@@ -16,8 +16,13 @@ import { useTheme } from "@/theme";
 
 /**
  * Home / region-first feed (spec-v1.md §4.1) — the default landing screen,
- * cached-first. Header row links to World Catalog and Significant Events
- * (pushed routes, not tabs — D11 region-first inversion). Also hosts the
+ * cached-first. Header row links to World, Significant, and Historical
+ * (pushed routes, not tabs — D11 region-first inversion); Catalog was a
+ * fourth header link until owner feedback (2026-08-21: "we don't remove the
+ * catalog, instead in order to access catalog you go through Historical")
+ * — a direct Home link made the header crowded on a phone, so Catalog is
+ * now reachable only one tap further in, from Historical's own footer link
+ * (`app/historical.tsx`). Also hosts the
  * persistent felt-report pill (D8, wave brief point 4) — association is
  * resolved HERE (most recent regional event within the last hour, else
  * unassociated) using the already-loaded region feed, not inside the pill
@@ -158,21 +163,6 @@ export default function HomeScreen() {
                     {t("events.viewHistorical")}
                   </Text>
                 </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => router.push("/catalog")}
-                  hitSlop={{ top: 10, bottom: 10 }}
-                >
-                  <Text
-                    style={{
-                      color: colors.text.link,
-                      fontSize: typography.labelButton.fontSize,
-                      fontWeight: typography.labelButton.fontWeight,
-                    }}
-                  >
-                    {t("events.viewCatalog")}
-                  </Text>
-                </Pressable>
               </View>
             </View>
             {possibleEvents.length > 0 ? (
@@ -210,9 +200,10 @@ const styles = StyleSheet.create({
   },
   links: {
     flexDirection: "row",
-    // Four links now share this row (World/Significant/Historical/Catalog)
-    // — flexWrap is the "small overflow pattern" the wave brief allows for
-    // a crowded header row, letting the row grow to a second line on
+    // Three links share this row (World/Significant/Historical, Catalog
+    // dropped 2026-08-21 — see this file's own top-of-file doc comment) —
+    // flexWrap is still the "small overflow pattern" the wave brief allows
+    // for a crowded header row, letting the row grow to a second line on
     // narrow devices or longer-translation locales (e.g. Sorani) instead
     // of clipping or squeezing hit targets below the 44dp minimum.
     flexWrap: "wrap",

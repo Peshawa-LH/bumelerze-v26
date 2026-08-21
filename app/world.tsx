@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { EventListScreen, useWorldEvents } from "@/features/events";
 
 /** World Catalog (spec-v1.md §4.2) — full unfiltered world feed, pushed
@@ -19,7 +20,13 @@ export default function WorldScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("world.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("world.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <EventListScreen
         events={events}
         isInitialLoading={isInitialLoading}

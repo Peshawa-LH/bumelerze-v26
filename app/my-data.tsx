@@ -4,6 +4,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import {
   ContributionRow,
   IdentityHeader,
@@ -52,7 +53,13 @@ export default function MyDataScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.surface.base }]}>
-      <Stack.Screen options={{ title: t("myData.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("myData.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <FlatList
         data={hasHydrated ? rows : []}
         keyExtractor={(row) => row.reportId}

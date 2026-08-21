@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useTheme } from "@/theme";
 import {
   CATALOG_DATABASE_NAME,
@@ -69,7 +70,13 @@ export default function CatalogScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("catalog.title"), headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: t("catalog.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <ErrorBoundary
         fallback={(_error, retry) => (
           <CatalogUnavailable

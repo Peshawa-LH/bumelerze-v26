@@ -1,5 +1,8 @@
 {
   "_status": "draft-machine",
+  "nav": {
+    "back": "Vegere"
+  },
   "tabs": {
     "home": "Destpêk",
     "map": "Nexşe",
@@ -88,7 +91,6 @@
     "viewWorld": "Cîhan",
     "viewSignificant": "Girîng",
     "viewHistorical": "Dîrokî",
-    "viewCatalog": "Katalog",
     "notableTag": "Berçav"
   },
   "world": {

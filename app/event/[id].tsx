@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import {
   distanceFromUserKm,
   formatAbsoluteDual,
@@ -88,7 +89,13 @@ export default function EventDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("eventDetail.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("eventDetail.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <View style={styles.flex}>
         <ScrollView
           style={{ backgroundColor: colors.surface.base }}

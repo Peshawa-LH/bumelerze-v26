@@ -6,6 +6,7 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { FEEDBACK_PHOTO_MAX_COUNT, enqueueFeedback, useFeedbackQueueItemState } from "@/features/feedback";
 import { useTheme } from "@/theme";
 
@@ -128,7 +129,13 @@ export default function FeedbackScreen() {
           },
         ]}
       >
-        <Stack.Screen options={{ title: t("feedback.title") }} />
+        <Stack.Screen
+          options={{
+            title: t("feedback.title"),
+            headerShown: true,
+            headerLeft: () => <HeaderBackButton />,
+          }}
+        />
         <View style={{ gap: spacing[4] }}>
           <Text
             accessibilityRole="header"
@@ -189,7 +196,13 @@ export default function FeedbackScreen() {
         },
       ]}
     >
-      <Stack.Screen options={{ title: t("feedback.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("feedback.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <Text
         accessibilityRole="header"
         style={{

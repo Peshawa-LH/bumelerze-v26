@@ -4,6 +4,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { pickLocalizedName } from "@/features/geo";
 import { formatMagnitudeValue } from "@/features/events";
 import {
@@ -128,7 +129,13 @@ export default function NotificationSettingsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("notificationSettings.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("notificationSettings.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <ScrollView
         style={{ backgroundColor: colors.surface.base }}
         contentContainerStyle={[
