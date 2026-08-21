@@ -69,6 +69,6 @@ describe("HandbookScreen", () => {
       screen.getByText("This location is outside the Iraqi Seismic Code 2017 zonation map."),
     ).toBeTruthy();
     expect(screen.getByText("No Vs30 data at this location.")).toBeTruthy();
-    expect(screen.queryByText("Nearby Sulaimani soil/site points")).toBeNull();
+    expect(screen.queryByText(i18n.t("handbook.rows.soil.label"))).toBeNull();
   });
 });

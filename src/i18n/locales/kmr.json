@@ -791,23 +791,23 @@
       },
       "vs30": {
         "label": "Vs30",
-        "sublabel": "Leza pêla lerizê ya navîn, 30 m ya jorîn",
-        "value": "{{value}} m/s",
+        "sublabel": "Texmîna modela gerdûnî ya li ser bingeha topografyayê, ne pîvaneke rasterast a cihî ye",
+        "value": "≈{{value}} m/s",
         "unavailable": "Li vî cihî daneya Vs30 tune ye."
       },
       "siteClass": {
         "label": "Çîna cihê",
         "sublabel": "Ji Vs30 hatiye derxistin",
-        "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
-        "citation": "Eurocode 8 (EN 1998-1) Tabloya 3.1; çînên NEHRP (ASCE 7-16 Tabloya 20.3-1)",
+        "value": "EC8 {{ec8}}",
+        "citation": "Eurocode 8 (EN 1998-1) Tabloya 3.1",
         "unavailable": "Ne berdest e: li vî cihî nimûneya Vs30 tune ye."
       },
       "soil": {
-        "label": "Xalên axê/cihê Silêmanî yên nêzîk",
+        "label": "Xala axê/cihê ya herî nêzîk",
         "citation": "Lêkolîna axê/cihê Silêmanî, 2024 (Peshawa L. Hasan, kampanyaya DAAD-Iraq / KISC)",
-        "distance": "{{distance}} km dûr e",
-        "classLine": "EC8 {{ec8}} / NEHRP {{nehrp}}",
-        "vs30EstimateLine": "Texmîna Vs30 ≈ {{value}} m/s"
+        "sublabel": "{{count}} xalên qadê di nav {{radius}} km de",
+        "nearestValue": "{{method}}, {{distance}} km, EC8 {{ec8}}",
+        "nearestValueNoClass": "{{method}}, {{distance}} km"
       },
       "gmpe": {
         "label": "Modelên tevgera erdê yên vê sepanê bikar tîne",

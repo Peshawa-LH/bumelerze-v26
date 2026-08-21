@@ -4,12 +4,10 @@ import { useTranslation } from "react-i18next";
 import { GMPE_SET_LABEL } from "../config";
 import {
   formatHandbookResultsTitle,
+  formatNearbySoilSummary,
+  formatNearestSoilPoint,
   formatPgaValue,
   formatSiteClassValue,
-  formatSoilClassLine,
-  formatSoilDistance,
-  formatSoilMethodLabel,
-  formatVs30EstimateLine,
   formatVs30Value,
 } from "../format";
 import type { HandbookLookupResult } from "../types";
@@ -67,6 +65,11 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
 
   const isEntirelyOutOfCoverage =
     result.pgaZone === null && result.vs30MS === null && result.nearbySoilPoints.length === 0;
+  // `noUncheckedIndexedAccess` types index 0 as possibly-undefined even
+  // though `nearbySoilPoints` is sorted nearest-first and non-empty
+  // whenever this is used below — narrowing it once here (rather than a
+  // non-null assertion at the call site) keeps that guarantee explicit.
+  const nearestSoilPoint = result.nearbySoilPoints[0];
 
   return (
     <View style={{ gap: spacing[3] }}>
@@ -134,41 +137,23 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
         <RowShell
           label={t("handbook.rows.siteClass.label")}
           sublabel={t("handbook.rows.siteClass.sublabel")}
-          value={formatSiteClassValue(result.siteClass.ec8, result.siteClass.nehrp, t)}
+          value={formatSiteClassValue(result.siteClass.ec8, t)}
           citation={t("handbook.rows.siteClass.citation")}
         />
       ) : null}
 
-      {/* --- Nearby Sulaimani soil points (hidden entirely when empty) --- */}
-      {result.nearbySoilPoints.length > 0 ? (
-        <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[2], padding: spacing[3] }]}>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-            {t("handbook.rows.soil.label")}
-          </Text>
-          {result.nearbySoilPoints.map(({ point, distanceKm }) => {
-            const classLine = formatSoilClassLine(point.ec8, point.nehrp, t);
-            return (
-              <View key={point.id} style={{ gap: spacing[1] }}>
-                <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize, fontWeight: "600" }}>
-                  {formatSoilMethodLabel(point.method, t)} — {formatSoilDistance(distanceKm, locale, t)}
-                </Text>
-                {classLine ? (
-                  <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-                    {classLine}
-                  </Text>
-                ) : null}
-                {point.vs30EstimateMS !== null ? (
-                  <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-                    {formatVs30EstimateLine(point.vs30EstimateMS, locale, t)}
-                  </Text>
-                ) : null}
-              </View>
-            );
-          })}
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontStyle: "italic" }}>
-            {t("handbook.rows.soil.citation")}
-          </Text>
-        </View>
+      {/* --- Nearest Sulaimani soil/site point (hidden entirely when empty;
+       * owner feedback 2026-08-21: was a per-point list that could run to
+       * the full 303-point dataset, now a single summarized row —
+       * `formatNearestSoilPoint`'s doc comment explains why no per-point
+       * Vs30 numeral is shown, only the field EC8 classification) --- */}
+      {nearestSoilPoint ? (
+        <RowShell
+          label={t("handbook.rows.soil.label")}
+          sublabel={formatNearbySoilSummary(result.nearbySoilPoints.length, t)}
+          value={formatNearestSoilPoint(nearestSoilPoint, locale, t)}
+          citation={t("handbook.rows.soil.citation")}
+        />
       ) : null}
 
       {/* --- GMPE transparency row (static, not coordinate-dependent) --- */}

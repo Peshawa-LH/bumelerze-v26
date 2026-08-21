@@ -791,23 +791,23 @@
       },
       "vs30": {
         "label": "Vs30",
-        "sublabel": "تێزووری خێرایی شەپۆلی بڕشکاندن، ٣٠ مەتری سەرەوە",
-        "value": "{{value}} م/چ",
+        "sublabel": "مۆدێلی جیهانیی لێژی توپۆگرافیا، نەک پێوانەیەکی ڕاستەوخۆی شوێن",
+        "value": "≈{{value}} م/چ",
         "unavailable": "هیچ دراوەیەکی Vs30 لەم شوێنە نییە."
       },
       "siteClass": {
         "label": "پۆلی زەوی",
         "sublabel": "لە Vs30 وەرگیراوە",
-        "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
-        "citation": "یوروکۆدی ٨ (EN 1998-1) خشتەی ٣.١؛ پۆلەکانی NEHRP (ASCE 7-16 خشتەی 20.3-1)",
+        "value": "EC8 {{ec8}}",
+        "citation": "یوروکۆدی ٨ (EN 1998-1) خشتەی ٣.١",
         "unavailable": "بەردەست نییە: هیچ نموونەیەکی Vs30 لەم شوێنە نییە."
       },
       "soil": {
-        "label": "خاڵە زەوی/شوێنەکانی سلێمانی نزیک",
+        "label": "نزیکترین خاڵی پێوانکراوی زەوی/شوێن",
         "citation": "لێکۆڵینەوەی زەوی/شوێنی سلێمانی، ٢٠٢٤ (پێشەوا ل. حەسەن، کەمپینی زانکۆیی DAAD-Iraq / KISC)",
-        "distance": "{{distance}} کم دوورە",
-        "classLine": "EC8 {{ec8}} / NEHRP {{nehrp}}",
-        "vs30EstimateLine": "خەمڵاندنی Vs30 ≈ {{value}} م/چ"
+        "sublabel": "{{count}} خاڵی مەیدانی لە مەودای {{radius}} کم",
+        "nearestValue": "{{method}}، {{distance}} کم، EC8 {{ec8}}",
+        "nearestValueNoClass": "{{method}}، {{distance}} کم"
       },
       "gmpe": {
         "label": "مۆدێلە بزوینی-زەوییەکانی بەکارهاتوو لەم ئەپەدا",
