@@ -84,7 +84,22 @@ describe("formatNearestSoilPoint", () => {
 
 describe("formatNearbySoilSummary", () => {
   it("states the total count and the fixed search radius", () => {
-    expect(formatNearbySoilSummary(1, i18n.t)).toBe("1 field points within 15 km");
-    expect(formatNearbySoilSummary(303, i18n.t)).toBe("303 field points within 15 km");
+    expect(formatNearbySoilSummary(1, "en", i18n.t)).toBe(
+      `${isolateNumeric("1")} field points within ${isolateNumeric("15")} km`,
+    );
+    expect(formatNearbySoilSummary(303, "en", i18n.t)).toBe(
+      `${isolateNumeric("303")} field points within ${isolateNumeric("15")} km`,
+    );
+  });
+
+  // Regression (browser RTL check, 2026-08-22): both numerals used to be
+  // interpolated raw, so a Sorani reader saw Latin "303"/"15" inside a
+  // sentence whose every other numeral was Eastern Arabic-Indic.
+  it("localizes both numerals for Eastern Arabic-Indic locales", async () => {
+    await i18n.changeLanguage("ckb");
+    const line = formatNearbySoilSummary(303, "ckb", i18n.t);
+    expect(line).toContain(isolateNumeric("٣٠٣"));
+    expect(line).toContain(isolateNumeric("١٥"));
+    expect(line).not.toMatch(/[0-9]/);
   });
 });

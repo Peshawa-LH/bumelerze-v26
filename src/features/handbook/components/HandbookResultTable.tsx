@@ -150,7 +150,7 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
       {nearestSoilPoint ? (
         <RowShell
           label={t("handbook.rows.soil.label")}
-          sublabel={formatNearbySoilSummary(result.nearbySoilPoints.length, t)}
+          sublabel={formatNearbySoilSummary(result.nearbySoilPoints.length, locale, t)}
           value={formatNearestSoilPoint(nearestSoilPoint, locale, t)}
           citation={t("handbook.rows.soil.citation")}
         />

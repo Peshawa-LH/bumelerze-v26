@@ -805,7 +805,7 @@
       "soil": {
         "label": "Xala axê/cihê ya herî nêzîk",
         "citation": "Lêkolîna axê/cihê Silêmanî, 2024 (Peshawa L. Hasan, kampanyaya DAAD-Iraq / KISC)",
-        "sublabel": "{{count}} xalên qadê di nav {{radius}} km de",
+        "sublabel": "{{countText}} xalên qadê di nav {{radiusText}} km de",
         "nearestValue": "{{method}}, {{distance}} km, EC8 {{ec8}}",
         "nearestValueNoClass": "{{method}}, {{distance}} km"
       },

@@ -86,10 +86,25 @@ export function formatNearestSoilPoint(
   return t("handbook.rows.soil.nearestValue", { method, distance, ec8: nearest.point.ec8 });
 }
 
-/** "{{count}} field points within {{radius}} km" — `count` is the total
- * number of points within radius (including the one summarized by
+/** "{{countText}} field points within {{radiusText}} km" — `count` is the
+ * total number of points within radius (including the one summarized by
  * `formatNearestSoilPoint`), so the reader knows the single line shown is
- * a sample, not the whole picture. */
-export function formatNearbySoilSummary(count: number, t: TranslateFn): string {
-  return t("handbook.rows.soil.sublabel", { count, radius: SOIL_NEARBY_RADIUS_KM });
+ * a sample, not the whole picture.
+ *
+ * Both numerals go through `localizeDigits` + `isolateNumeric` like every
+ * other numeral in this screen — interpolating the raw numbers instead
+ * left them in Latin digits inside otherwise Eastern-Arabic-Indic Sorani
+ * and Arabic sentences (caught in browser RTL verification, 2026-08-22).
+ * The bare numeric `count` is still passed alongside so i18next can pick
+ * a plural form from it. */
+export function formatNearbySoilSummary(
+  count: number,
+  locale: string,
+  t: TranslateFn,
+): string {
+  return t("handbook.rows.soil.sublabel", {
+    count,
+    countText: isolateNumeric(localizeDigits(String(count), locale)),
+    radiusText: isolateNumeric(localizeDigits(String(SOIL_NEARBY_RADIUS_KM), locale)),
+  });
 }
