@@ -1,4 +1,4 @@
-export { GMPE_SET_LABEL, SOIL_NEARBY_RADIUS_KM } from "./config";
+export { GMPE_SET_LABEL, SOIL_NEARBY_RADIUS_KM, VS30_DISPLAY_PRECISION_MS } from "./config";
 export {
   type CoordinateFieldError,
   type CoordinateValidation,
@@ -12,12 +12,11 @@ export { PGA_ZONES, SOIL_POINTS, VS30_GRID } from "./data";
 export {
   formatHandbookCoordinates,
   formatHandbookResultsTitle,
+  formatNearbySoilSummary,
+  formatNearestSoilPoint,
   formatPgaValue,
   formatSiteClassValue,
-  formatSoilClassLine,
-  formatSoilDistance,
   formatSoilMethodLabel,
-  formatVs30EstimateLine,
   formatVs30Value,
 } from "./format";
 export { lookupHandbookData } from "./lookup";

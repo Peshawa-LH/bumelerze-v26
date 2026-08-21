@@ -791,23 +791,23 @@
       },
       "vs30": {
         "label": "Vs30",
-        "sublabel": "Average shear-wave velocity, top 30 m",
-        "value": "{{value}} m/s",
+        "sublabel": "Global topographic-slope model, not a site measurement",
+        "value": "≈{{value}} m/s",
         "unavailable": "No Vs30 data at this location."
       },
       "siteClass": {
         "label": "Site class",
         "sublabel": "Derived from Vs30",
-        "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
-        "citation": "Eurocode 8 (EN 1998-1) Table 3.1; NEHRP site classes (ASCE 7-16 Table 20.3-1)",
+        "value": "EC8 {{ec8}}",
+        "citation": "Eurocode 8 (EN 1998-1) Table 3.1",
         "unavailable": "Not available: no Vs30 sample at this location."
       },
       "soil": {
-        "label": "Nearby Sulaimani soil/site points",
+        "label": "Nearest measured soil/site point",
         "citation": "Sulaimani soil/site investigation, 2024 (Peshawa L. Hasan, DAAD-Iraq / KISC field campaign)",
-        "distance": "{{distance}} km away",
-        "classLine": "EC8 {{ec8}} / NEHRP {{nehrp}}",
-        "vs30EstimateLine": "Estimated Vs30 ≈ {{value}} m/s"
+        "sublabel": "{{count}} field points within {{radius}} km",
+        "nearestValue": "{{method}}, {{distance}} km, EC8 {{ec8}}",
+        "nearestValueNoClass": "{{method}}, {{distance}} km"
       },
       "gmpe": {
         "label": "Ground-motion models used in this app",

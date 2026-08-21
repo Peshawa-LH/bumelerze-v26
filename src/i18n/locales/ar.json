@@ -791,23 +791,23 @@
       },
       "vs30": {
         "label": "Vs30",
-        "sublabel": "متوسط سرعة الموجة القصية، أعلى 30 مترًا",
-        "value": "{{value}} م/ث",
+        "sublabel": "نموذج عالمي لانحدار التضاريس، وليس قياسًا للموقع",
+        "value": "≈{{value}} م/ث",
         "unavailable": "لا تتوفر بيانات Vs30 لهذا الموقع."
       },
       "siteClass": {
         "label": "فئة الموقع",
         "sublabel": "مشتقة من Vs30",
-        "value": "EC8 {{ec8}} / NEHRP {{nehrp}}",
-        "citation": "اليوروكود 8 (EN 1998-1) الجدول 3.1؛ فئات NEHRP (ASCE 7-16 الجدول 20.3-1)",
+        "value": "EC8 {{ec8}}",
+        "citation": "اليوروكود 8 (EN 1998-1) الجدول 3.1",
         "unavailable": "غير متاح: لا توجد قراءة Vs30 لهذا الموقع."
       },
       "soil": {
-        "label": "نقاط تربة/موقع السليمانية القريبة",
+        "label": "أقرب نقطة تربة/موقع مقاسة",
         "citation": "دراسة تربة/موقع السليمانية، 2024 (بيشەوا ل. حەسەن، حملة DAAD-Iraq / KISC الميدانية)",
-        "distance": "تبعد {{distance}} كم",
-        "classLine": "EC8 {{ec8}} / NEHRP {{nehrp}}",
-        "vs30EstimateLine": "تقدير Vs30 ≈ {{value}} م/ث"
+        "sublabel": "{{count}} نقطة ميدانية ضمن {{radius}} كم",
+        "nearestValue": "{{method}}، {{distance}} كم، EC8 {{ec8}}",
+        "nearestValueNoClass": "{{method}}، {{distance}} كم"
       },
       "gmpe": {
         "label": "نماذج الحركة الأرضية المستخدمة في هذا التطبيق",
