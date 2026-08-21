@@ -1,5 +1,8 @@
 {
   "_status": "source",
+  "nav": {
+    "back": "Back"
+  },
   "tabs": {
     "home": "Home",
     "map": "Map",
@@ -88,7 +91,6 @@
     "viewWorld": "World",
     "viewSignificant": "Significant",
     "viewHistorical": "Historical",
-    "viewCatalog": "Catalog",
     "notableTag": "Notable"
   },
   "world": {

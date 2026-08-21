@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { HandbookScreen } from "@/features/handbook";
 
 /**
@@ -14,7 +15,13 @@ export default function HandbookRoute() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("handbook.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("handbook.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <HandbookScreen />
     </>
   );

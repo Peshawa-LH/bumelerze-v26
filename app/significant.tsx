@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import {
   EventListScreen,
   isRegionSignificant,
@@ -66,7 +67,13 @@ export default function SignificantScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("significant.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("significant.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <EventListScreen
         events={events}
         isInitialLoading={isInitialLoading}

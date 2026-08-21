@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react-native";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { AccessibilityInfo, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -137,6 +137,25 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
 
     // Provenance chip.
     expect(screen.getByText("USGS")).toBeTruthy();
+  });
+
+  it("shows exactly three header links (World, Significant, Historical) with Catalog removed (owner 2026-08-21: header felt crowded on a phone)", async () => {
+    await renderWithProviders(<HomeScreen />);
+
+    expect(screen.getByRole("button", { name: "World" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Significant" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Historical" })).toBeTruthy();
+    // Catalog is reachable one tap further in, from Historical's own footer
+    // link (`app/historical.tsx`) — not from this header row anymore.
+    expect(screen.queryByRole("button", { name: "Catalog" })).toBeNull();
+  });
+
+  it("pushes /world from the World header link", async () => {
+    await renderWithProviders(<HomeScreen />);
+
+    fireEvent.press(screen.getByRole("button", { name: "World" }));
+
+    expect(mockPush).toHaveBeenCalledWith("/world");
   });
 
   it("hides sub-3.0 micro-events from the Home list (owner directive 2026-08-16 display floor) while keeping M>=3 events", async () => {

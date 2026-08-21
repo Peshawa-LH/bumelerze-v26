@@ -129,17 +129,26 @@ export default function RootLayout() {
             {onboardingCompleted ? (
               <>
                 <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="event/[id]" options={{ headerShown: true }} />
-                <Stack.Screen name="world" options={{ headerShown: true }} />
-                <Stack.Screen name="significant" options={{ headerShown: true }} />
-                <Stack.Screen name="historical" options={{ headerShown: true }} />
-                <Stack.Screen name="handbook" options={{ headerShown: true }} />
-                <Stack.Screen
-                  name="notification-settings"
-                  options={{ headerShown: true }}
-                />
-                <Stack.Screen name="my-data" options={{ headerShown: true }} />
-                <Stack.Screen name="feedback" options={{ headerShown: true }} />
+                {/* Each of these pushed screens owns `headerShown`/`title`/
+                 * `headerLeft` itself via its own inline `<Stack.Screen
+                 * options={{...}}>` (rendered from within the route
+                 * component) — a static `options={{headerShown: true}}`
+                 * declared HERE, at this level, was tried first and found
+                 * to be silently ineffective (verified against a built web
+                 * export: the header never rendered at all, not even its
+                 * title, only once the screen's OWN inline declaration set
+                 * `headerShown` did it appear) — matching how `catalog`,
+                 * never declared here at all, already worked correctly.
+                 * Bare declarations below just register the route names;
+                 * they carry no options. */}
+                <Stack.Screen name="event/[id]" />
+                <Stack.Screen name="world" />
+                <Stack.Screen name="significant" />
+                <Stack.Screen name="historical" />
+                <Stack.Screen name="handbook" />
+                <Stack.Screen name="notification-settings" />
+                <Stack.Screen name="my-data" />
+                <Stack.Screen name="feedback" />
                 <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
               </>
             ) : (

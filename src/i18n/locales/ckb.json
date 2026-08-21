@@ -1,5 +1,8 @@
 {
   "_status": "draft-machine",
+  "nav": {
+    "back": "گەڕانەوە"
+  },
   "tabs": {
     "home": "ماڵەوە",
     "map": "نەخشە",
@@ -88,7 +91,6 @@
     "viewWorld": "جیهان",
     "viewSignificant": "گرنگ",
     "viewHistorical": "مێژوویی",
-    "viewCatalog": "کاتالۆگ",
     "notableTag": "بەرچاو"
   },
   "world": {

@@ -1,14 +1,17 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { HeaderBackButton } from "@/components/HeaderBackButton";
 import {
   HistoricalEventRow,
   NOTABLE_HISTORICAL_EVENTS,
   sortNewestFirst,
   type NotableHistoricalEvent,
 } from "@/features/historical";
+import { isRTLLocale } from "@/i18n";
 import { useTheme } from "@/theme";
 
 /**
@@ -20,10 +23,11 @@ import { useTheme } from "@/theme";
  * deep link into Event Detail.
  */
 export default function HistoricalScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const isRTL = isRTLLocale(i18n.language);
 
   const events = sortNewestFirst(NOTABLE_HISTORICAL_EVENTS);
 
@@ -33,7 +37,13 @@ export default function HistoricalScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("historical.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("historical.title"),
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton />,
+        }}
+      />
       <View style={[styles.container, { backgroundColor: colors.surface.base }]}>
         <FlatList
           data={events}
@@ -47,29 +57,44 @@ export default function HistoricalScreen() {
             <HistoricalEventRow event={item} onPress={handlePress} />
           )}
           ListFooterComponent={
-            // regional-catalog wave entry point 2/2 (the other is Home's
-            // header link row) — this curated ~10-event list is "since
-            // 1900" context (spec-v1.md §4.7); the full bundled/offline
-            // catalog (872-2023, thousands of events, filterable) lives one
-            // tap away for anyone who wants more than the hand-picked set.
+            // Owner: "we don't remove the catalog, instead in order to
+            // access catalog you go through Historical" — since Home's own
+            // header link row dropped its direct Catalog link, this row is
+            // now the ONLY in-app path to `/catalog` (regional-catalog
+            // wave's original entry point 2/2, the other having been
+            // removed). A trailing chevron (mirrored for RTL below) plus
+            // start-aligned text reads as a real navigation destination
+            // rather than a plain button, matching the owner's ask for a
+            // clearer affordance now that it's carrying more weight.
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push("/catalog")}
               style={[
                 styles.catalogLink,
-                { borderColor: colors.border.default, padding: spacing[4] },
+                {
+                  borderColor: colors.border.default,
+                  padding: spacing[4],
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
               ]}
             >
               <Text
                 style={{
+                  flex: 1,
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
                   fontWeight: typography.labelButton.fontWeight,
-                  textAlign: "center",
+                  textAlign: isRTL ? "right" : "left",
                 }}
               >
                 {t("historical.catalogLink")}
               </Text>
+              <Ionicons
+                testID="historical-catalog-link-chevron"
+                name={isRTL ? "chevron-back" : "chevron-forward"}
+                size={20}
+                color={colors.text.link}
+              />
             </Pressable>
           }
           contentContainerStyle={{
@@ -92,6 +117,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     minHeight: 44,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    gap: 8,
   },
 });
