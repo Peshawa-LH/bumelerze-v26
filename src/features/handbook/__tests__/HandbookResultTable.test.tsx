@@ -86,7 +86,7 @@ describe("HandbookResultTable", () => {
     // list — the whole point of this fix.
     expect(screen.getByText("Nearest measured soil/site point")).toBeTruthy();
     expect(
-      screen.getByText(formatNearbySoilSummary(FULL_RESULT.nearbySoilPoints.length, i18n.t)),
+      screen.getByText(formatNearbySoilSummary(FULL_RESULT.nearbySoilPoints.length, "en", i18n.t)),
     ).toBeTruthy();
     expect(
       screen.getByText(formatNearestSoilPoint(NEAREST_POINT, "en", i18n.t)),

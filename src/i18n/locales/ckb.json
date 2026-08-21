@@ -805,7 +805,7 @@
       "soil": {
         "label": "نزیکترین خاڵی پێوانکراوی زەوی/شوێن",
         "citation": "لێکۆڵینەوەی زەوی/شوێنی سلێمانی، ٢٠٢٤ (پێشەوا ل. حەسەن، کەمپینی زانکۆیی DAAD-Iraq / KISC)",
-        "sublabel": "{{count}} خاڵی مەیدانی لە مەودای {{radius}} کم",
+        "sublabel": "{{countText}} خاڵی مەیدانی لە مەودای {{radiusText}} کم",
         "nearestValue": "{{method}}، {{distance}} کم، EC8 {{ec8}}",
         "nearestValueNoClass": "{{method}}، {{distance}} کم"
       },

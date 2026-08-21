@@ -805,7 +805,7 @@
       "soil": {
         "label": "Nearest measured soil/site point",
         "citation": "Sulaimani soil/site investigation, 2024 (Peshawa L. Hasan, DAAD-Iraq / KISC field campaign)",
-        "sublabel": "{{count}} field points within {{radius}} km",
+        "sublabel": "{{countText}} field points within {{radiusText}} km",
         "nearestValue": "{{method}}, {{distance}} km, EC8 {{ec8}}",
         "nearestValueNoClass": "{{method}}, {{distance}} km"
       },

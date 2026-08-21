@@ -805,7 +805,7 @@
       "soil": {
         "label": "أقرب نقطة تربة/موقع مقاسة",
         "citation": "دراسة تربة/موقع السليمانية، 2024 (بيشەوا ل. حەسەن، حملة DAAD-Iraq / KISC الميدانية)",
-        "sublabel": "{{count}} نقطة ميدانية ضمن {{radius}} كم",
+        "sublabel": "{{countText}} نقطة ميدانية ضمن {{radiusText}} كم",
         "nearestValue": "{{method}}، {{distance}} كم، EC8 {{ec8}}",
         "nearestValueNoClass": "{{method}}، {{distance}} كم"
       },
