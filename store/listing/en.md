@@ -17,7 +17,7 @@
 
 ## Short description (Google Play, ≤80 chars)
 
-**Live earthquake alerts, felt reports, and ShakeMaps for Kurdistan.**
+**Live earthquake alerts, felt reports, and SHAKEmaps for Kurdistan.**
 *(66 / 80 chars)*
 
 ## Full description (≤4000 chars, both stores)
@@ -40,7 +40,7 @@ clear, and readable the moment you open the app.
 connection. Every report you send helps build a real, community-owned dataset of how
 earthquakes actually feel on the ground in Kurdistan — not borrowed from anyone else.
 
-🗺️ **ShakeMap** — Bumelerze computes its own scientific intensity maps for earthquakes
+🗺️ **SHAKEmap** — Bumelerze computes its own scientific intensity maps for earthquakes
 in the region, including ones no global service ever maps. Every map shows its data
 sources and review status, so you always know how it was made.
 
@@ -53,7 +53,7 @@ from somewhere else.
 
 **BUILT ON REAL SCIENCE**
 
-Bumelerze isn't a repost of a foreign feed. Its ShakeMaps are computed by the team's
+Bumelerze isn't a repost of a foreign feed. Its SHAKEmaps are computed by the team's
 own tools, its intensity scale follows the EMS-98 standard used by seismologists, its
 data sources are always cited, and every map shows whether it's still automatic or has
 been reviewed by a scientist. Built by a seismic-risk PhD researcher who works on

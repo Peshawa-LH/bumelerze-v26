@@ -24,7 +24,7 @@ listing matches on-screen terminology.
 
 ## Short description (Google Play, ≤80 chars)
 
-**Agahiyên erdhejê yên zindî, raporên hestkirinê û ShakeMap ji bo Kurdistanê.**
+**Agahiyên erdhejê yên zindî, raporên hestkirinê û SHAKEmap ji bo Kurdistanê.**
 *(75 / 80 chars)*
 
 ## Full description (≤4000 chars, both stores)
@@ -47,7 +47,7 @@ zelal, her carê sepanê vedikî.
 ser înternetê yê lawaz jî. Her ragihandina ku tu dişînî, dibe alîkar ji bo
 avakirina daneyeke rastîn a civaka Bumelerze — ne ji tiştekî din hatî wergirtin.
 
-🗺️ **ShakeMap** — Bumelerze nexşeyên tundiya xwe yên zanistî ji bo erdhejên herêmê
+🗺️ **SHAKEmap** — Bumelerze nexşeyên tundiya xwe yên zanistî ji bo erdhejên herêmê
 çêdike, tewra ji bo bûyerên ku tu xizmeta cîhanî nexşeya wan nake jî. Her nexşe
 çavkaniyên daneyê û rewşa kontrolkirinê nîşan dide, da ku tu her tim bizanibî ka
 çawa hatiye çêkirin.
@@ -61,7 +61,7 @@ nivîsandin, ne ji cihekî din hatiye wergerandin.
 
 **LI SER ZANISTA RASTÎN HATIYE AVAKIRIN**
 
-Bumelerze ne dubarekirina xizmeteke biyanî ye. ShakeMapên wê bi amûrên xweyên
+Bumelerze ne dubarekirina xizmeteke biyanî ye. SHAKEmapên wê bi amûrên xweyên
 taybet têne çêkirin, pîvana tundiyê li gorî standarda EMS-98 ya zanyarên
 erdhejnasiyê tê bikaranîn, çavkaniyên daneyê her tim eşkere ne, û her nexşe nîşan
 dide ka hê otomatîk e an ji aliyê zanyarekî ve hatiye kontrolkirin. Ji aliyê
@@ -82,6 +82,6 @@ hesab ne pêwîst e.
 ## Keywords (Apple, ≤100 chars)
 
 ```
-erdhej,Kurdistan,Kurdistanê,Hewlêr,Duhok,Slêmanî,erdhejnasî,ShakeMap,tundî,Zagros
+erdhej,Kurdistan,Kurdistanê,Hewlêr,Duhok,Slêmanî,erdhejnasî,SHAKEmap,tundî,Zagros
 ```
 *(81 / 100 chars)*
