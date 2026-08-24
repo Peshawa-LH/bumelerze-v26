@@ -15,8 +15,8 @@ import {
 
 /**
  * Catalog screen (regional-catalog wave) — the bundled, offline Kurdistan/
- * Iraq earthquake catalog (872-2023, `shake-service/scripts/
- * build_regional_catalog.py`; see `shake-service/regional-catalog/
+ * Iraq earthquake catalog (872-2023, `bumelerze-engine/scripts/
+ * build_regional_catalog.py`; see `bumelerze-engine/regional-catalog/
  * BUILD_REPORT.md` for source counts and data-quality notes). Reachable
  * from Home's header link row and a "full catalog" row on the Historical
  * screen (both push here).

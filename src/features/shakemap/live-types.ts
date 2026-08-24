@@ -124,7 +124,7 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 }
 
 /**
- * Ports `shake-service/scripts/bundle_atlas_for_app.py`'s
+ * Ports `bumelerze-engine/scripts/bundle_atlas_for_app.py`'s
  * `data_used_summary_key` to TypeScript, so a LIVE product gets the exact
  * same honest, small-N-floor-aware classification the bundled Atlas
  * already computes at build time (that script's own doc comment: an event

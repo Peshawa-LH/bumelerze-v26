@@ -10,7 +10,7 @@ import type { ContourRing, IntensityContourLevel, IntensityContourSet } from "./
  * `MultiLineString` (see fixture README: every ring in the Halabja fixture
  * came from real `MultiLineString` coordinates); `MultiPolygon` is
  * accepted too since D9's contract is producer-agnostic and a future
- * `bumelerze-shake-service` output — or a different USGS product vintage —
+ * `bumelerze-engine` output — or a different USGS product vintage —
  * could ship filled polygons directly. For `MultiPolygon`, only each
  * polygon's OUTER ring (coordinates[0]) is kept — interior holes are
  * dropped. This is a deliberate simplification for this wave's renderer

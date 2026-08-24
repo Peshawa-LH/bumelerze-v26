@@ -22,7 +22,7 @@ mirror's `geojson/` exports:
 ## Processing
 
 Trimmed and simplified by a one-off Node script (not shipped — build-time
-data prep only, same spirit as `bumelerze-shake-service`'s `seed_atlas.py`
+data prep only, same spirit as `bumelerze-engine`'s `seed_atlas.py`
 for the historical atlas bundle):
 
 1. **Clip** every line to a padded bbox around Kurdistan and its neighbors —
@@ -61,6 +61,6 @@ names etc. aren't used — the map draws lines, not labels, for this layer).
 ## Regenerating
 
 Not currently scripted as a repo command (one-off, like the Atlas bundler is
-a separate Python tool in `shake-service/`) — re-run the same fetch +
+a separate Python tool in `bumelerze-engine`) — re-run the same fetch +
 clip + simplify steps above against a fresh Natural Earth release if the
 bbox or tolerance ever needs to change.

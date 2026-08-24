@@ -65,11 +65,11 @@ and merged into one deduplicated event list.
 
 ## 2. The bundled regional catalog
 
-`shake-service/regional-catalog/` contains a compiled catalog of about 21,000
+`assets/catalog/bumelerze-catalog.sqlite` is a compiled catalog of about 21,000
 events for Iraq and the Zagros margin (lat 28.5 to 39.5, lon 38.0 to 50.5),
 merged from five source catalogs. The merge rules, per-source counts, and
-data-quality caveats are in
-[`shake-service/regional-catalog/BUILD_REPORT.md`](shake-service/regional-catalog/BUILD_REPORT.md).
+data-quality caveats are in `regional-catalog/BUILD_REPORT.md` in the
+`bumelerze-engine` repository, which builds this file.
 
 The source catalogs themselves are not redistributed in this repository; only
 the merged result is. Their individual terms:
@@ -266,7 +266,8 @@ on a dataset is worse than none.
 
 ### Vs30 site conditions: USGS Global Vs30 Mosaic
 
-- **Used by:** `shake-service/shake_service/vs30.py` (`RasterVs30`). The raster
+- **Used by:** `shake_service/vs30.py` (`RasterVs30`) in the `bumelerze-engine`
+  repository. The raster
   file itself is held outside this repository and is not redistributed here.
 - **Terms:** **CC0 1.0 Universal** (public-domain dedication), per
   <https://www.usgs.gov/data/us-geological-survey-global-vs30-mosaic>. No
@@ -291,9 +292,8 @@ on a dataset is worse than none.
 - **Provider:** GEM Foundation. Pinned at `openquake.engine==3.26.2`.
 - **Licence:** **AGPL-3.0-or-later** (confirmed from the installed
   distribution's own metadata: `License-Expression: AGPL-3.0-or-later`).
-- This is why `shake-service/` is AGPL. See
-  [`LICENSING.md`](LICENSING.md) and
-  [`shake-service/README.md`](shake-service/README.md).
+- This is why the engine is AGPL. See [`LICENSING.md`](LICENSING.md) and the
+  `bumelerze-engine` repository's own README.
 
 ### Ground-motion models (used as OpenQuake hazardlib GSIM classes)
 
@@ -301,7 +301,7 @@ Chiou and Youngs (2014); Akkar et al. (2014, Rjb); Boore et al. (2014); Kale et
 al. (2015, Iran). These are published equations from the scientific literature,
 implemented in OpenQuake. Cite the papers; the implementations come under
 OpenQuake's licence. The selection and weighting are documented in
-`shake-service/shake_service/config.py`.
+`shake_service/config.py` in the `bumelerze-engine` repository.
 
 ### Intensity conversion and conditioning
 
@@ -360,12 +360,13 @@ appears among the direct dependencies, and the single LGPL and MPL entries in
 the transitive set are file-level or weak copyleft that does not affect the
 app's own licensing.
 
-**Python** (`shake-service/requirements.txt`, 57 pinned packages): the
+**Python** (`requirements.txt` in the `bumelerze-engine` repository, 57 pinned
+packages): the
 scientific stack is predominantly BSD-3-Clause (numpy, scipy, pandas,
 scikit-image, numba, matplotlib's own PSF-style licence, shapely, h5py) and MIT,
 with GDAL/fiona/pyogrio under MIT-style terms, Django under BSD-3-Clause, and
 **openquake.engine under AGPL-3.0-or-later**, which is the only copyleft
-dependency and the one that determines `shake-service/`'s licence. Each package
+dependency and the one that determines that repository's licence. Each package
 ships its own licence text in its installed distribution.
 
 ## 8. Data the app collects itself

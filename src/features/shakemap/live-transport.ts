@@ -59,7 +59,7 @@ function eventCacheKey(event: Event): string {
 /**
  * Resolves `event` (the client's own already-normalized feed record) to
  * the canonical server `events.event_id` uuid via `upsert_event_from_client`
- * (migration 0011) — the SAME RPC the shake-service worker's own uploader
+ * (migration 0011) — the SAME RPC the bumelerze-engine worker's own uploader
  * calls server-side to register the event a product is published against
  * (`shake_service/worker/uploader.py`'s module docstring, "event_id
  * mapping"), so by the time a live product actually exists for this event
@@ -125,7 +125,7 @@ async function fetchArtifactJson(url: string): Promise<unknown> {
  * "bumelerze"` — D21, our own product only, never USGS pass-through),
  * pick the newest (`selectLatestLiveProductRow`), then fetch that row's
  * public artifact URL. Read-only end to end — this never writes a
- * `shakemap_products` row itself (only the shake-service worker's own
+ * `shakemap_products` row itself (only the bumelerze-engine worker's own
  * uploader does that); the one write this transport can trigger is
  * `upsert_event_from_client`'s idempotent event registration, identical to
  * what `features/felt`'s own resolver already does for the same event.

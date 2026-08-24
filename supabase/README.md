@@ -89,7 +89,7 @@ changed. What exists today, app-side:
   see the bullet above).
 - **`shakemap_products`** — ~~no writer exists; the table has been sitting
   empty since 0006/0007~~ **DONE, SupabaseUploader integration wave — INDEX
-  only, per an owner architecture decision:** the shake-service worker's
+  only, per an owner architecture decision:** the bumelerze-engine worker's
   `SupabaseUploader` (`shake_service/worker/uploader.py`) resolves each
   product's event via the same `upsert_event_from_client` RPC (0011) the
   app itself calls and upserts a `shakemap_products` row per file — event
@@ -104,9 +104,9 @@ changed. What exists today, app-side:
   repository the orchestrator creates/publishes outside this database
   (rationale: bulk versioned artifacts don't belong growing forever inside
   the app's own operational Postgres/Storage). Reads
-  `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` from the shake-service
-  process's own environment (see `shake-service/.env.example` and
-  `shake-service/README.md`) — a project reachable from wherever the worker
+  `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` from the bumelerze-engine
+  process's own environment (see `bumelerze-engine/.env.example` and
+  `bumelerze-engine/README.md`) — a project reachable from wherever the worker
   runs is a prerequisite; falls back to the pre-existing local-only
   behavior when those two env vars aren't set.
 
@@ -126,13 +126,13 @@ Parts 3 + 5, `docs/research/event-pipeline-design.md`,
 | `0005_notifications_and_telemetry.sql` | `notification_subscriptions`, `telemetry_pings`.                                                                       |
 | `0006_shakemap_products.sql`           | `shakemap_products` (D9 product contract).                                                                             |
 | `0007_shakemap_review_status.sql`      | `shakemap_products` review-status column addition.                                                                      |
-| `0008_bumelerze_event_id.sql`          | `bumelerze_event_id` addition for cross-referencing the shake-service worker's own event ids.                          |
+| `0008_bumelerze_event_id.sql`          | `bumelerze_event_id` addition for cross-referencing the bumelerze-engine worker's own event ids.                          |
 | `0009_felt_damage_typology.sql`        | `felt_report_details.damage_typology` + widened `building_damage_level` check (2026-08-15 flow restructure).           |
 | `0010_spatial_ref_sys_hygiene.sql`     | Revokes anon/authenticated `SELECT` on PostGIS's `spatial_ref_sys` (advisor finding: RLS-disabled table exposed via the API). |
 | `0011_event_registry_and_assignment.sql` | `upsert_event_from_client()` (client-callable SECURITY DEFINER, resolves a (provider, provider_event_id) pair to the canonical `events.event_id`, with cross-provider dedup) + `assign_unassigned_felt_reports()` (service-role-only sweep, D26 auto-assignment). Foundation for the client attaching a felt report to a real event before any ingestion worker runs. |
 | `0015_felt_reports_select_own.sql` | Adds `felt_reports_select_own`/`felt_report_details_select_own` — `to authenticated` select policies keyed on `auth.uid() = user_id` (D26 item 7, My Data). Written not-yet-exercised (`user_id` was unpopulated at insert time); **2026-08-16 storage wave wires that in** — `SupabaseTransport` now populates `user_id` from an anonymous session on every `felt_reports` insert, so this policy is exercised for real as of that wave. |
 | `0016_felt_photos_storage.sql` | Private `felt-photos` Storage bucket (5 MB limit, jpeg/png/webp) + `storage.objects` RLS (INSERT/UPDATE, `to authenticated`, path-prefix-scoped to `auth.uid()`) + `felt_photos.report_id` unique constraint (client-upsert idempotency target). 2026-08-16 storage wave — closes the last felt-reports gap (window-3 photo upload). |
-| `0019_shakemap_products_index_fields.sql` | `shakemap_products` bounding-box columns (`bbox_min_lat`/`bbox_max_lat`/`bbox_min_lon`/`bbox_max_lon`) + a `storage_path` comment update. No Storage bucket: an owner architecture decision keeps `shakemap_products` a pure INDEX — artifact files publish to a separate external data repository, never Supabase Storage (`shake-service/OPERATIONS.md` §8). |
+| `0019_shakemap_products_index_fields.sql` | `shakemap_products` bounding-box columns (`bbox_min_lat`/`bbox_max_lat`/`bbox_min_lon`/`bbox_max_lon`) + a `storage_path` comment update. No Storage bucket: an owner architecture decision keeps `shakemap_products` a pure INDEX — artifact files publish to a separate external data repository, never Supabase Storage (`bumelerze-engine/OPERATIONS.md` §8). |
 | `0020_feedback.sql`                    | `feedback` + `feedback_photos` (private, service-role-reviewed in-app feedback) + the `feedback-photos` Storage bucket. |
 | `0021_feedback_multi_photo.sql`        | Allows several `feedback_photos` rows per `feedback_id` (was capped at one).                                          |
 | `0022_feedback_triage.sql`             | Adds owner-only triage columns to `feedback` (`status`, `category`, `triage_note`, trigger-maintained `updated_at`) and drops the unused `screen` column. See "Feedback triage" below. |
@@ -158,7 +158,7 @@ step, not a schema change.
 | `felt_cells`                 | 15      | CDI + IMS-25 aggregates per (event, geohash, version).                 |
 | `notification_subscriptions` | 14      | Push token + near-me/HomeBase alert config.                            |
 | `telemetry_pings`            | 4       | Anonymous app-launch pings.                                            |
-| `shakemap_products`          | 15      | shakemap product INDEX (USGS or bumelerze-shake-service) — event/version/type/provenance/review-status/bbox/URL; artifact files live outside Supabase. |
+| `shakemap_products`          | 15      | shakemap product INDEX (USGS or bumelerze-engine) — event/version/type/provenance/review-status/bbox/URL; artifact files live outside Supabase. |
 | `felt_cells_public` (view)   | 8       | Public-safe read surface over `felt_cells`.                            |
 
 ## Design choices (brief)

@@ -60,3 +60,9 @@ public/mapbox-gl-rtl-text.js
 # (src/features/geo/data/kurdish-places-*.json) is committed; only the raw
 # fetch cache is not.
 scripts/.cache/
+
+# The SHAKEmap engine moved to its own repository (Peshawa-LH/bumelerze-engine)
+# on 2026-08-24. A local shake-service/ directory may still exist as a leftover
+# checkout on machines that predate the split; ignore it so it can never be
+# re-added to this repo by accident.
+/shake-service/

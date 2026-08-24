@@ -47,9 +47,10 @@ and is not well served by the existing apps.
 - **Provenance is recorded, not assumed.** Every catalog entry carries its
   source and its merge history; every computed shakemap product records the
   ground-motion models, the site data, and the distance method that produced it.
-- The **engine is separate from the app.** `shake-service/` is a standalone
-  Python worker that publishes finished products; the app only consumes them.
-  That keeps the science reviewable on its own terms and keeps the app simple.
+- The **engine is separate from the app.** It lives in its own repository,
+  `bumelerze-engine`, as a standalone Python worker that publishes finished
+  products; this app only consumes them. That keeps the science reviewable on
+  its own terms and keeps the app simple.
 
 Where a number is uncertain, the aim is to say so rather than round it into
 false confidence. The regional catalog's build report is committed alongside the
@@ -60,7 +61,6 @@ data for exactly that reason.
 | Path                | What it is                                                            |
 | ------------------- | --------------------------------------------------------------------- |
 | `app/`, `src/`      | The Expo (React Native) + TypeScript app: routes, features, i18n, theme |
-| `shake-service/`    | Standalone Python SHAKEmap engine and worker, plus the regional catalog |
 | `supabase/`         | Postgres migrations, RLS policies, and edge functions                   |
 | `website/`          | The static site at bumelerze.com, including the privacy policy          |
 | `assets/`           | App icons, brand marks, and the commissioned illustration set           |
@@ -83,8 +83,9 @@ To produce the web build that gets deployed:
 npx expo export --platform web --output-dir pages-dist/app
 ```
 
-The `shake-service/` worker is a separate Python package with its own
-environment and its own README; it is not needed to run the app.
+The SHAKEmap engine and worker live in a separate repository,
+`bumelerze-engine`, with their own environment and README. Neither is needed
+to run this app: the app reads finished products from the Bumelerze Atlas.
 
 ## Contributing
 
@@ -101,11 +102,12 @@ shaking, a screen that breaks in RTL.
 
 ## Licensing
 
-The repository is not under a single licence:
+This repository is Apache-2.0, but not everything shipped with the project
+is:
 
 - **App, website, and database code:** Apache-2.0 ([`LICENSE`](LICENSE))
-- **`shake-service/`:** AGPL-3.0-or-later, because it builds on the OpenQuake
-  Engine ([`shake-service/LICENSE`](shake-service/LICENSE))
+- **The SHAKEmap engine**, in the separate `bumelerze-engine` repository:
+  AGPL-3.0-or-later, because it builds on the OpenQuake Engine
 - **Illustrations, icon, logo, and the name:** all rights reserved, not covered
   by the code licence
 - **Data:** varies by source, listed in [`DATA-SOURCES.md`](DATA-SOURCES.md)

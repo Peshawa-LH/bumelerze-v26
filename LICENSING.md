@@ -7,10 +7,10 @@ actual licence files are what legally counts.
 
 Short version:
 
-| Part of the repo                       | Licence                | File                                                  |
+| Part of the project                    | Licence                | File                                                  |
 | -------------------------------------- | ---------------------- | ----------------------------------------------------- |
 | The app, website, and database code     | Apache-2.0             | [`LICENSE`](LICENSE)                                  |
-| `shake-service/` (the SHAKEmap engine)  | AGPL-3.0-or-later      | [`shake-service/LICENSE`](shake-service/LICENSE)      |
+| The SHAKEmap engine (separate repo, `bumelerze-engine`) | AGPL-3.0-or-later | `LICENSE` in that repository |
 | Illustrations, icon, logo, the name     | All rights reserved    | [`assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md`](assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md) |
 | Earthquake and map data                 | Varies by source       | [`DATA-SOURCES.md`](DATA-SOURCES.md)                  |
 | Felt reports and photos sent by users   | Not a licence question | <https://bumelerze.com/privacy.html>                  |
@@ -44,14 +44,15 @@ over a patent covering their own contribution.
 
 ## 2. The SHAKEmap engine: AGPL-3.0-or-later
 
-`shake-service/` is licensed differently, and this is not a stylistic choice.
+The engine lives in its own repository, `bumelerze-engine`, and is licensed
+differently from this one. That is not a stylistic choice.
 
 The engine computes ground-motion fields using the **OpenQuake Engine** from the
 GEM Foundation (`openquake.engine==3.26.2`). It imports `openquake.hazardlib`
 directly and drives its GSIM classes as a Python library. OpenQuake is
 AGPL-3.0-or-later. Code that links against an AGPL library is a derivative work
-of it and has to carry the same licence. So `shake-service/` is AGPL, and there
-was no option to make it anything else while keeping OpenQuake.
+of it and has to carry the same licence. So the engine is AGPL, and there was
+no option to make it anything else while keeping OpenQuake.
 
 The AGPL is a strong copyleft licence. If you take this engine and modify it,
 your modified version has to be AGPL too, and its source has to be available to
@@ -70,8 +71,8 @@ finished SHAKEmap products as JSON over HTTP. That is data exchange, not
 linking. If you build your own app that reads the products this engine
 publishes, your app can be under whatever licence you like.
 
-More detail, including what to do if the AGPL does not work for you, is in
-[`shake-service/README.md`](shake-service/README.md).
+More detail, including what to do if the AGPL does not work for you, is in the
+engine repository's own README.
 
 ## 3. Artwork and brand: all rights reserved
 
@@ -145,7 +146,7 @@ inherit. You are the data controller for your users, and you need your own.
 
 The app's JavaScript dependencies are overwhelmingly MIT-licensed, with a small
 number under Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, and a handful of other
-permissive licences. The Python side of `shake-service/` is mostly BSD and
+permissive licences. The engine's Python side is mostly BSD and
 MIT-licensed scientific packages, on top of AGPL-licensed OpenQuake. Each
 package keeps its own licence text in its own distribution;
 [`DATA-SOURCES.md`](DATA-SOURCES.md) summarises the picture by licence family.
