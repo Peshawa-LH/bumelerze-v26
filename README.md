@@ -45,7 +45,7 @@ and is not well served by the existing apps.
   forwarded into someone else's system, and aggregated into intensity cells
   server-side.
 - **Provenance is recorded, not assumed.** Every catalog entry carries its
-  source and its merge history; every computed SHAKEmap product records the
+  source and its merge history; every computed shakemap product records the
   ground-motion models, the site data, and the distance method that produced it.
 - The **engine is separate from the app.** `shake-service/` is a standalone
   Python worker that publishes finished products; the app only consumes them.
