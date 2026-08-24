@@ -11,7 +11,7 @@ Short version:
 | -------------------------------------- | ---------------------- | ----------------------------------------------------- |
 | The app, website, and database code     | Apache-2.0             | [`LICENSE`](LICENSE)                                  |
 | The SHAKEmap engine (separate repo, `bumelerze-engine`) | AGPL-3.0-or-later | `LICENSE` in that repository |
-| Illustrations, icon, logo, the name     | All rights reserved    | [`assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md`](assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md) |
+| Illustrations, icon, logo, the name     | All rights reserved    | [`assets/artwork/LICENSE-ARTWORK.md`](assets/artwork/LICENSE-ARTWORK.md) |
 | Earthquake and map data                 | Varies by source       | [`DATA-SOURCES.md`](DATA-SOURCES.md)                  |
 | Felt reports and photos sent by users   | Not a licence question | <https://bumelerze.com/privacy.html>                  |
 
@@ -76,13 +76,14 @@ engine repository's own README.
 
 ## 3. Artwork and brand: all rights reserved
 
-**The illustrations are not open source.** The set in
-`assets/Bumelerze-App-Visual-Assets/` (the character cutouts, the 12 IMS
-intensity illustrations, the building-damage sequences, the safety-guidance
-illustrations, the preview sheets, and every derived file under
-`05-App-Ready/`) was commissioned specifically for Bumelerze. So was the
-official logo system, `assets/Bumelerze-App-Visual-Assets/08-Logo_Package/`
-(the app icon, the wordmark, and the mountain/seismic-waveform mark), and
+**The illustrations are not open source.** The 12 IMS intensity
+illustrations, the building-damage sequences and the safety-guidance
+illustrations bundled in `assets/artwork/` were commissioned specifically
+for Bumelerze, as was the wider package they are drawn from (character
+cutouts, preview sheets and source exports), which is internal design
+material held outside this repository. So was the official logo system in
+`assets/brand/logo/` (the app icon, the wordmark, and the
+mountain/seismic-waveform mark), and
 every copy of that same artwork generated from it: `assets/images/icon.png`,
 `assets/images/splash-icon.png`, the notification and adaptive icons, the
 favicon, `assets/brand/adaptive-icon-mark.svg` and
@@ -102,7 +103,7 @@ models.
 
 Requests are welcome, especially for public-safety or educational work in the
 region: <hello@bumelerze.com>. See
-[`assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md`](assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md).
+[`assets/artwork/LICENSE-ARTWORK.md`](assets/artwork/LICENSE-ARTWORK.md).
 
 ## 4. Data: see DATA-SOURCES.md
 

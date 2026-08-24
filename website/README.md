@@ -36,7 +36,7 @@ definitions live in the long comment at the top of `style.css`.
 | `ar/` | Arabic (RTL), the same three pages |
 | `style.css` | The one shared stylesheet: tokens, contrast notes, every component |
 | `slider.js` | Progressive-enhancement script for the homepage hero slider only; deferred, no dependency, no autoplay ever (see the design-decision comment in `style.css`) |
-| `images/` | Optimized WebP illustrations used in the hero slider, resized and re-compressed from the source artwork in `assets/Bumelerze-App-Visual-Assets/` (not hotlinked into that archive) |
+| `images/` | Optimized WebP illustrations used in the hero slider, resized and re-compressed from the commissioned artwork package, which lives outside this repository (not hotlinked into it) |
 | `brand/` | Copies of the official logo package's horizontal logo (light + dark-background versions), the symbol-only mark, and favicon artwork; see its own README note below |
 | `favicon.ico` | Multi-size ICO, browsers request this from the site root by convention regardless of page depth |
 

@@ -1,6 +1,6 @@
 /**
  * Regression-locks `artwork.ts`'s two static require() maps against the
- * `Bumelerze-App-Visual-Assets` package (owner artwork wave, 2026-08-16).
+ * commissioned artwork package (owner artwork wave, 2026-08-16).
  *
  * `jest-expo`'s asset transform collapses every image `require()` to the
  * same value (`module.exports = 1`, see `assetFileTransformer.js`), so
@@ -20,29 +20,29 @@
  */
 
 // prettier-ignore
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-01.webp", () => "asset:level-01.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-02.webp", () => "asset:level-02.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-03.webp", () => "asset:level-03.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-04.webp", () => "asset:level-04.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-05.webp", () => "asset:level-05.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-06.webp", () => "asset:level-06.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-07.webp", () => "asset:level-07.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-08.webp", () => "asset:level-08.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-09.webp", () => "asset:level-09.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-10.webp", () => "asset:level-10.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-11.webp", () => "asset:level-11.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-12.webp", () => "asset:level-12.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-01.webp", () => "asset:level-01.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-02.webp", () => "asset:level-02.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-03.webp", () => "asset:level-03.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-04.webp", () => "asset:level-04.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-05.webp", () => "asset:level-05.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-06.webp", () => "asset:level-06.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-07.webp", () => "asset:level-07.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-08.webp", () => "asset:level-08.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-09.webp", () => "asset:level-09.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-10.webp", () => "asset:level-10.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-11.webp", () => "asset:level-11.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/level-12.webp", () => "asset:level-12.webp", { virtual: true });
 
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-01.webp", () => "asset:damage-highrise-01.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-02.webp", () => "asset:damage-highrise-02.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-03.webp", () => "asset:damage-highrise-03.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-04.webp", () => "asset:damage-highrise-04.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-05.webp", () => "asset:damage-highrise-05.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-01.webp", () => "asset:damage-lowrise-01.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-02.webp", () => "asset:damage-lowrise-02.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-03.webp", () => "asset:damage-lowrise-03.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-04.webp", () => "asset:damage-lowrise-04.webp", { virtual: true });
-jest.mock("../../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-05.webp", () => "asset:damage-lowrise-05.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-highrise-01.webp", () => "asset:damage-highrise-01.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-highrise-02.webp", () => "asset:damage-highrise-02.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-highrise-03.webp", () => "asset:damage-highrise-03.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-highrise-04.webp", () => "asset:damage-highrise-04.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-highrise-05.webp", () => "asset:damage-highrise-05.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-lowrise-01.webp", () => "asset:damage-lowrise-01.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-lowrise-02.webp", () => "asset:damage-lowrise-02.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-lowrise-03.webp", () => "asset:damage-lowrise-03.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-lowrise-04.webp", () => "asset:damage-lowrise-04.webp", { virtual: true });
+jest.mock("../../../../assets/artwork/felt/damage-lowrise-05.webp", () => "asset:damage-lowrise-05.webp", { virtual: true });
 
 // Imported after the jest.mock calls above so the mocked module graph is
 // in place before this loads.

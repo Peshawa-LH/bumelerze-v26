@@ -14,7 +14,7 @@
  *
  * BRAND-LOGO INTEGRATION NOTE (visual-asset-generator, brand-logo task):
  * the owner's finished logo package
- * (`assets/Bumelerze-App-Visual-Assets/08-Logo_Package/`) is now the
+ * (`assets/brand/logo/`, tokens in `assets/brand/tokens/`) is now the
  * official visual identity for icon/splash/favicon/website/store surfaces —
  * see `assets/brand/README.md`'s "brand-red-vs-app-red split" section for
  * the full reasoning. That package's Signal Red (`#C8202F`) is chromatically
@@ -77,7 +77,7 @@ export const actionRed = {
 
 /**
  * Logo brand palette — the owner's finished logo package
- * (`assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/bumelerze-colors.json`),
+ * (`assets/brand/tokens/bumelerze-colors.json`),
  * used for brand-IDENTITY surfaces: the app icon, splash screen, favicon,
  * website, and store listings (see `assets/brand/README.md`'s
  * "brand-red-vs-app-red split"). Registered here so these six colors are

@@ -2,7 +2,7 @@ import type { ImageSource } from "expo-image";
 
 /**
  * Owner-commissioned Safety-section artwork, wired in from
- * `assets/Bumelerze-App-Visual-Assets/` exactly like `src/features/felt/artwork.ts`
+ * `assets/artwork/` exactly like `src/features/felt/artwork.ts`
  * (see that file's doc comment for the full rationale — same package, same
  * checksummed handoff, same reasons). Mirrors its two conventions:
  *
@@ -41,22 +41,22 @@ export type SafetyImageId =
   | "safeSpotRoom";
 
 export const SAFETY_ARTWORK: Record<SafetyImageId, ImageSource> = {
-  dropCoverHold: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-drop-cover-hold.webp"),
-  coverHeadNeck: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-cover-head-neck.webp"),
-  wheelchair: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-wheelchair.webp"),
-  caneOrWalker: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-cane-walker.webp"),
-  inBed: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-in-bed.webp"),
-  dontDoorway: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-dont-doorway.webp"),
-  dontRunOutside: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-dont-run-outside.webp"),
-  outdoorsOpenGround: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-outdoors-open-ground.webp"),
-  vehiclePullOver: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-vehicle-pull-over.webp"),
-  dontOverpass: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-dont-overpass.webp"),
-  useStairs: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-use-stairs.webp"),
-  dontElevator: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-dont-elevator.webp"),
-  gasLeakResponse: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-gas-leak-response.webp"),
-  dontSpark: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-dont-spark.webp"),
-  secureFurniture: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-secure-furniture.webp"),
-  secureWaterTank: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-secure-water-tank.webp"),
-  secureGasCylinder: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-secure-gas-cylinder.webp"),
-  safeSpotRoom: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/safety-safe-spot-room.webp"),
+  dropCoverHold: require("../../../assets/artwork/safety/safety-drop-cover-hold.webp"),
+  coverHeadNeck: require("../../../assets/artwork/safety/safety-cover-head-neck.webp"),
+  wheelchair: require("../../../assets/artwork/safety/safety-wheelchair.webp"),
+  caneOrWalker: require("../../../assets/artwork/safety/safety-cane-walker.webp"),
+  inBed: require("../../../assets/artwork/safety/safety-in-bed.webp"),
+  dontDoorway: require("../../../assets/artwork/safety/safety-dont-doorway.webp"),
+  dontRunOutside: require("../../../assets/artwork/safety/safety-dont-run-outside.webp"),
+  outdoorsOpenGround: require("../../../assets/artwork/safety/safety-outdoors-open-ground.webp"),
+  vehiclePullOver: require("../../../assets/artwork/safety/safety-vehicle-pull-over.webp"),
+  dontOverpass: require("../../../assets/artwork/safety/safety-dont-overpass.webp"),
+  useStairs: require("../../../assets/artwork/safety/safety-use-stairs.webp"),
+  dontElevator: require("../../../assets/artwork/safety/safety-dont-elevator.webp"),
+  gasLeakResponse: require("../../../assets/artwork/safety/safety-gas-leak-response.webp"),
+  dontSpark: require("../../../assets/artwork/safety/safety-dont-spark.webp"),
+  secureFurniture: require("../../../assets/artwork/safety/safety-secure-furniture.webp"),
+  secureWaterTank: require("../../../assets/artwork/safety/safety-secure-water-tank.webp"),
+  secureGasCylinder: require("../../../assets/artwork/safety/safety-secure-gas-cylinder.webp"),
+  safeSpotRoom: require("../../../assets/artwork/safety/safety-safe-spot-room.webp"),
 };

@@ -272,7 +272,7 @@ describe("logoBrand — must never drift from the logo package's own tokens", ()
   // Node/Jest process CAN see.
   const tokensPath = join(
     __dirname,
-    "../../../assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/bumelerze-colors.json",
+    "../../../assets/brand/tokens/bumelerze-colors.json",
   );
   const tokens = JSON.parse(readFileSync(tokensPath, "utf8")) as {
     colors: Record<string, { hex: string }>;
