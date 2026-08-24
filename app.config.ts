@@ -32,7 +32,7 @@ interface LogoColorTokens {
 }
 const logoColorsPath = path.join(
   __dirname,
-  "assets/Bumelerze-App-Visual-Assets/08-Logo_Package/Design-Tokens/bumelerze-colors.json",
+  "assets/brand/tokens/bumelerze-colors.json",
 );
 const logoColors: LogoColorTokens = JSON.parse(fs.readFileSync(logoColorsPath, "utf8"));
 function logoColorHex(key: string): string {

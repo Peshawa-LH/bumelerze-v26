@@ -319,12 +319,13 @@ docstring records the provenance and any deliberate divergence.
 - **EMS-98**, the European Macroseismic Scale 1998 (Grunthal, ed.), is the
   intensity scale used throughout.
 - **IMS-25** is the illustrated scale the felt-report artwork follows; the
-  reference material is in `assets/Bumelerze-App-Visual-Assets/06-Reference/`.
+  reference material is held with the commissioned artwork package outside
+  this repository.
 - **[VERIFY]** Reproduction terms for the IMS-25 reference material itself have
   not been checked. The Bumelerze illustrations are original work commissioned
   for this app (see
-  [`assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md`](assets/Bumelerze-App-Visual-Assets/LICENSE-ARTWORK.md)),
-  not copies of the scale's own figures, but the reference folder's status
+  [`assets/artwork/LICENSE-ARTWORK.md`](assets/artwork/LICENSE-ARTWORK.md)),
+  not copies of the scale's own figures, but the reference material's status
   should be confirmed.
 
 ## 7. Third-party software dependencies

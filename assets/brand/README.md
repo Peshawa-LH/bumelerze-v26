@@ -2,9 +2,13 @@
 
 ## The mark
 
-The Bumelerze mark is the owner's finished logo system, delivered as
-`assets/Bumelerze-App-Visual-Assets/08-Logo_Package/`. **That package is
-the source of truth**, not this directory. It is a two-peak Zagros mountain
+The Bumelerze mark is the owner's finished logo system. The vectors live
+in `logo/` and the machine-readable colour tokens in `tokens/`, both here.
+**The canonical package** (previews, PNG exports, brand guidelines,
+reference selections) is internal design material and lives outside this
+repository, in
+`BumelerzeApp/Bumelerze_illustration_Artworks/Bumelerze-App-Visual-Assets/08-Logo_Package/`.
+Change the mark there first, then re-export into `logo/`. It is a two-peak Zagros mountain
 profile flowing into a seismic waveform (seismogram/P-wave trace), ending in
 a small gold endpoint dot representing a reported observation: "a signal
 moving from terrain to measurable community data" (the package's own
@@ -32,8 +36,8 @@ export PATH="/opt/homebrew/bin:$PATH"   # ensure node/npm are on PATH
 node scripts/generate-assets.js         # or: npm run generate:assets
 ```
 
-This reads `assets/Bumelerze-App-Visual-Assets/08-Logo_Package/SVG/` and
-`Design-Tokens/bumelerze-colors.json` and writes/overwrites:
+This reads `assets/brand/logo/` and `assets/brand/tokens/bumelerze-colors.json`
+and writes/overwrites:
 
 | File | Purpose |
 |---|---|

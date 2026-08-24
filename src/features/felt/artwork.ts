@@ -3,13 +3,12 @@ import type { ImageSource } from "expo-image";
 import type { BuildingDamageGrade, CartoonLevel, DamageTypology } from "./types";
 
 /**
- * Owner-commissioned artwork wired in from
- * `assets/Bumelerze-App-Visual-Assets/` — the committed, canonical handoff
- * package; see its own `README.md` and `asset-manifest.json`. Required
- * directly from that package rather than copied file-by-file elsewhere: the
- * package is already the single source of truth (checksummed,
- * `SHA256SUMS.txt`), and Metro bundles any asset it can `require()`
- * regardless of which folder it lives in.
+ * Owner-commissioned artwork, bundled from `assets/artwork/felt/`. That
+ * folder holds only the files the app actually ships; the full commissioned
+ * package (character sheets, source exports, previews, checksums) is
+ * internal design material kept outside this repository, in the project's
+ * working folder. See `assets/artwork/README.md` for where, and for how to
+ * add or replace a file.
  *
  * Format: WebP-512 (not PNG-512) — the package's own WebP-512 set is
  * ~3.8 MB total for all 22 tiles vs. ~5.5 MB for PNG-512 at the same
@@ -33,18 +32,18 @@ import type { BuildingDamageGrade, CartoonLevel, DamageTypology } from "./types"
  * `CartoonLevel` 1..12 exactly (both already 1-indexed, no shift needed).
  */
 export const LEVEL_ARTWORK: Record<CartoonLevel, ImageSource> = {
-  1: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-01.webp"),
-  2: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-02.webp"),
-  3: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-03.webp"),
-  4: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-04.webp"),
-  5: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-05.webp"),
-  6: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-06.webp"),
-  7: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-07.webp"),
-  8: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-08.webp"),
-  9: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-09.webp"),
-  10: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-10.webp"),
-  11: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-11.webp"),
-  12: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/level-12.webp"),
+  1: require("../../../assets/artwork/felt/level-01.webp"),
+  2: require("../../../assets/artwork/felt/level-02.webp"),
+  3: require("../../../assets/artwork/felt/level-03.webp"),
+  4: require("../../../assets/artwork/felt/level-04.webp"),
+  5: require("../../../assets/artwork/felt/level-05.webp"),
+  6: require("../../../assets/artwork/felt/level-06.webp"),
+  7: require("../../../assets/artwork/felt/level-07.webp"),
+  8: require("../../../assets/artwork/felt/level-08.webp"),
+  9: require("../../../assets/artwork/felt/level-09.webp"),
+  10: require("../../../assets/artwork/felt/level-10.webp"),
+  11: require("../../../assets/artwork/felt/level-11.webp"),
+  12: require("../../../assets/artwork/felt/level-12.webp"),
 };
 
 /**
@@ -62,17 +61,17 @@ export const LEVEL_ARTWORK: Record<CartoonLevel, ImageSource> = {
  */
 export const DAMAGE_ARTWORK: Record<DamageTypology, Record<BuildingDamageGrade, ImageSource>> = {
   highrise: {
-    1: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-01.webp"),
-    2: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-02.webp"),
-    3: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-03.webp"),
-    4: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-04.webp"),
-    5: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-highrise-05.webp"),
+    1: require("../../../assets/artwork/felt/damage-highrise-01.webp"),
+    2: require("../../../assets/artwork/felt/damage-highrise-02.webp"),
+    3: require("../../../assets/artwork/felt/damage-highrise-03.webp"),
+    4: require("../../../assets/artwork/felt/damage-highrise-04.webp"),
+    5: require("../../../assets/artwork/felt/damage-highrise-05.webp"),
   },
   lowrise: {
-    1: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-01.webp"),
-    2: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-02.webp"),
-    3: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-03.webp"),
-    4: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-04.webp"),
-    5: require("../../../assets/Bumelerze-App-Visual-Assets/05-App-Ready/Visuals/WebP-512/damage-lowrise-05.webp"),
+    1: require("../../../assets/artwork/felt/damage-lowrise-01.webp"),
+    2: require("../../../assets/artwork/felt/damage-lowrise-02.webp"),
+    3: require("../../../assets/artwork/felt/damage-lowrise-03.webp"),
+    4: require("../../../assets/artwork/felt/damage-lowrise-04.webp"),
+    5: require("../../../assets/artwork/felt/damage-lowrise-05.webp"),
   },
 };
