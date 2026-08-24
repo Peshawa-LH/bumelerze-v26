@@ -111,7 +111,7 @@ one category, no secondary slot).
    data + push alerts," which is exactly Bumelerze's core loop.
 2. **"News" is the wrong content model.** News/Magazines implies editorial,
    curated articles. Bumelerze is a live data and sensor tool (event feed,
-   ShakeMap, accelerometer readout) — categorizing it as News risks reviewer
+   shakemap, accelerometer readout) — categorizing it as News risks reviewer
    confusion about what the app actually does, and Apple can push back on or
    recategorize apps whose primary category doesn't match functionality.
 3. **Utilities fits as a secondary signal**, not primary: the live sensor

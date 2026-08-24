@@ -1,11 +1,11 @@
 /**
  * Curated Historical View (lite) dataset — spec-v1.md §4.7: "list of seeded
  * historical + notable regional events... each linking to its (seeded)
- * ShakeMap in Event Detail." This is deliberately a small, hand-picked,
+ * shakemap in Event Detail." This is deliberately a small, hand-picked,
  * bundled list (not a live ComCat query) — the whole point of "lite" scope
  * (D11) is that this screen renders instantly offline; Event Detail's
  * existing `byId` deep-link path (features/events/queries.ts `useEventById`)
- * and `ShakeMapSection` do the live-data/ShakeMap work when the device has
+ * and `ShakeMapSection` do the live-data/shakemap work when the device has
  * connectivity.
  *
  * Every `id` below is a real USGS ComCat/fdsnws event id, individually
@@ -33,7 +33,7 @@ export interface NotableHistoricalEvent {
   /** USGS ComCat/fdsnws event id — feeds straight into `/event/[id]`,
    * reusing Event Detail's existing `useEventById` fallback fetch and
    * `ShakeMapSection` (both already handle "not cached, not yet fetched"
-   * and "no ShakeMap product" states without any change from this feature). */
+   * and "no shakemap product" states without any change from this feature). */
   id: string;
   /** Origin year, UTC — used for the list's newest-first ordering and the
    * row's localized year display. Kept as a plain field (not derived from

@@ -330,7 +330,7 @@ function useIsCompactMapControls(): boolean {
  * its own marker at every zoom — overlap at low zoom is an accepted trade
  * (clustering was tried and removed: two rounds of tap-through bugs traced
  * to it, and the owner's explicit call afterward was that a badge that
- * hides which events it stands for isn't worth the tidiness). No ShakeMap
+ * hides which events it stands for isn't worth the tidiness). No shakemap
  * overlay, felt cells, or fault lines yet (follow-up waves).
  */
 export default function MapScreenWeb() {

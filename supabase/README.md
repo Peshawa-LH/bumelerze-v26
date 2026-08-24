@@ -158,7 +158,7 @@ step, not a schema change.
 | `felt_cells`                 | 15      | CDI + IMS-25 aggregates per (event, geohash, version).                 |
 | `notification_subscriptions` | 14      | Push token + near-me/HomeBase alert config.                            |
 | `telemetry_pings`            | 4       | Anonymous app-launch pings.                                            |
-| `shakemap_products`          | 15      | ShakeMap product INDEX (USGS or bumelerze-shake-service) — event/version/type/provenance/review-status/bbox/URL; artifact files live outside Supabase. |
+| `shakemap_products`          | 15      | shakemap product INDEX (USGS or bumelerze-shake-service) — event/version/type/provenance/review-status/bbox/URL; artifact files live outside Supabase. |
 | `felt_cells_public` (view)   | 8       | Public-safe read surface over `felt_cells`.                            |
 
 ## Design choices (brief)

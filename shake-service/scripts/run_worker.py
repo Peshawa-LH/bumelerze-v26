@@ -12,7 +12,7 @@ decisions) is assigned a `bml<year><base36>` id
 (`shake_service/event_id.py` — the worker state file is the single
 allocation authority today) and appended as one JSONL line to
 `regional-catalog/live-catalog.jsonl` (`worker/live_catalog.py`), whether
-or not a ShakeMap was computed for it.
+or not a SHAKEmap was computed for it.
 
 Two modes:
 

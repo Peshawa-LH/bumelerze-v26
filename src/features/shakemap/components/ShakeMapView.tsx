@@ -32,7 +32,7 @@ import type { IntensityContourSet } from "../types";
 /**
  * ARCHITECTURE NOTE (D9, decided — no MapLibre in this wave): MapLibre RN
  * is a native module that runs in neither Expo Go nor web, and web is
- * currently this project's only verification medium. ShakeMap display
+ * currently this project's only verification medium. SHAKEmap display
  * therefore ships as a self-contained SVG projection renderer
  * (react-native-svg, already a dependency for `SeismogramChart`) —
  * visually similar to USGS's own static intensity map images and fully
@@ -90,7 +90,7 @@ export interface ShakeMapViewProps {
 }
 
 /**
- * MMI intensity-contour map for one event's ShakeMap product (spec-v1.md
+ * MMI intensity-contour map for one event's shakemap product (spec-v1.md
  * §4.5): filled contour rings (theme intensity ramp, D7), epicenter
  * marker, up to ~5 gazetteer city dots, and a fixed I..XII intensity
  * legend strip. Renders nothing conditionally itself — callers

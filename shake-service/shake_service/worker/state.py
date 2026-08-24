@@ -102,7 +102,7 @@ class EventState:
     # `last_version == 0` + `params_hash == ""` is the "detected/tracked,
     # nothing computed yet" stub shape `event_id.ensure_bumelerze_id`
     # creates for catalog-only detections (events with a bml id that the
-    # trigger policy did not select for a ShakeMap).
+    # trigger policy did not select for a SHAKEmap).
     provider_aliases: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

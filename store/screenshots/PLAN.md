@@ -12,7 +12,7 @@ that build exists.
 | # | Screen | Route | Why it's here |
 |---|---|---|---|
 | 1 | Home feed, Sorani | `app/(tabs)/index.tsx` | The first thing every user sees; region-first feed is the core value prop — leads the set. |
-| 2 | Event detail + ShakeMap, Halabja event | `app/event/[id].tsx` (+ `ShakeMapSection`) | The single most differentiating feature (own ShakeMaps, not reposted USGS/EMSC) — use the Halabja-border event since it's the one ShakeMap output already web-verified against real data (PROJECT.md Phase 1 status), so the screenshot shows something scientifically real, not a placeholder. |
+| 2 | Event detail + shakemap, Halabja event | `app/event/[id].tsx` (+ `ShakeMapSection`) | The single most differentiating feature (own shakemaps, not reposted USGS/EMSC) — use the Halabja-border event since it's the one shakemap output already web-verified against real data (PROJECT.md Phase 1 status), so the screenshot shows something scientifically real, not a placeholder. |
 | 3 | Felt-report tier 1 | `app/felt-report/index.tsx` / `step/[step].tsx` | The one-tap "did you feel it?" cartoon picker — the community-data feature, and the app's most panic-time-relevant screen. |
 | 4 | Catalog with filters | `app/catalog.tsx` | Shows depth (regional catalog, not just a live-feed toy) and the filter UI for the P3 (researcher) persona. |
 | 5 | Safety guidance | `app/(tabs)/safety.tsx` | Before/during/after content — the "why this app matters beyond curiosity" screen. |
@@ -21,7 +21,7 @@ that build exists.
 | 8 | Historical view | `app/historical.tsx` | Kurdistan's own seismic history (Halabja 2017, Chamchamal 1958, etc.) — reinforces "built by people who know this region," ties to the trust story in the listing description. |
 
 This order is also the recommended store-gallery order (first 2-3 images matter
-most for conversion on both stores — lead with the feed + the ShakeMap, the two
+most for conversion on both stores — lead with the feed + the shakemap, the two
 strongest "this is real and different" signals).
 
 ## Device sizes required per store

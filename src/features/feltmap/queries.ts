@@ -27,7 +27,7 @@ export interface UseFeltMapResult {
    *   follows for its own (synchronous) lookup.
    * "ready": at least one cell to draw.
    * "offline": configured, but the query is in an error state — spec-v1.md
-   *   §4.5's offline state ("ShakeMap/felt-map/comments show 'unavailable
+   *   §4.5's offline state ("shakemap/felt-map/comments show 'unavailable
    *   offline' rather than blank/error"). Deliberately a single state
    *   regardless of whether stale cached cells exist underneath the failed
    *   fetch: a live-updating "how many people felt this" aggregate reads as

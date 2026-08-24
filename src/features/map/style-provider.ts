@@ -18,7 +18,7 @@
  *   documented alternative rather than deleted outright — a legitimate
  *   choice if a future wave wants the flatter/lighter-weight look back
  *   (fewer layers than `outdoor-v4-dark`'s 170) for a data-overlay-heavy
- *   screen (e.g. behind a dense ShakeMap raster).
+ *   screen (e.g. behind a dense shakemap raster).
  *
  *   Other dark styles probed the same way (live `style.json` fetch,
  *   2026-08-17) and NOT chosen: `backdrop-dark` (does have hillshade/

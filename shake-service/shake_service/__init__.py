@@ -1,4 +1,4 @@
-"""bumelerze-shake-service — regional ShakeMap engine (Python worker).
+"""bumelerze-shake-service — regional SHAKEmap engine (Python worker).
 
 Wave A scope (this package, current state): the hazardlib GMPE adapter
 foundation — config, magnitude conversion, rupture-parameter derivation,

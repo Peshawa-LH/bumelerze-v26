@@ -26,7 +26,7 @@ git push origin main
 
 **Why it has to live there, not here:** every GitHub repository's Actions
 runs receive an automatic `GITHUB_TOKEN` scoped to write to THAT repository
-only. This workflow's whole job is to publish computed ShakeMap products
+only. This workflow's whole job is to publish computed shakemap products
 into the Atlas repo's own `events/`/`index.json` tree — running it FROM
 that repo means the built-in token already is the right credential, with
 zero extra secrets to create, rotate, or accidentally leak. Running it from

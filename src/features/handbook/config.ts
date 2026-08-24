@@ -5,7 +5,7 @@
  * (spec-v1.md §7: "within ~15 km"). */
 export const SOIL_NEARBY_RADIUS_KM = 15;
 
-/** The D20-confirmed GMPE set this app's hazard/ShakeMap computations use
+/** The D20-confirmed GMPE set this app's hazard/SHAKEmap computations use
  * (`docs/decisions.md` D20) — surfaced verbatim in the handbook's
  * transparency row, never recomputed or paraphrased here so it can't drift
  * from the decision record. */

@@ -21,7 +21,7 @@ export interface FeltMapSectionProps {
  *    project configured yet, OR configured but this event has no
  *    displayable cells yet (spec-v1.md §4.5: "no empty-state noise on old
  *    events" is the wave brief's own phrasing for this case).
- *  - `"offline"`: the spec-v1.md §4.5 offline state ("ShakeMap/felt-map
+ *  - `"offline"`: the spec-v1.md §4.5 offline state ("shakemap/felt-map
  *    /comments show 'unavailable offline' rather than blank/error") — a
  *    short message plus a retry affordance, never a silent failure (no
  *    silent catches — repo rule).

@@ -22,7 +22,7 @@ interface CatalogDetailSheetProps {
  * `RehearsalAlertModal` (screen-reader-accessible tap-outside-to-dismiss
  * without swallowing the content into one unreadable Pressable — see that
  * component's accessibility-fix doc comment). These are archival events —
- * no live refetch, no felt-report/ShakeMap affordance here. */
+ * no live refetch, no felt-report/shakemap affordance here. */
 export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;

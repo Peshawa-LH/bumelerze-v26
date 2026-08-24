@@ -1,4 +1,4 @@
--- Bumelerze schema v0 — ShakeMap product contract
+-- Bumelerze schema v0 — shakemap product contract
 -- Implements D9 / spec-v1 §5.3: one product-shaped contract for both
 -- producers (USGS-sourced products and bumelerze-shake-service output).
 

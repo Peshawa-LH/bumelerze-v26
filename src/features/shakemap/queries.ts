@@ -5,7 +5,7 @@ import { parseIntensityContours } from "./contours";
 import type { AtlasBundleEntry, IntensityContourSet } from "./types";
 
 /**
- * Bundled-only ShakeMap lookup (D21, `docs/decisions.md`: "Displayed
+ * Bundled-only shakemap lookup (D21, `docs/decisions.md`: "Displayed
  * maps are ALWAYS bumelerze-shake-service products ... USGS ShakeMap
  * products are never user-facing" — the live USGS fetch path
  * (`usgs-products.ts`, `fetchIntensityContours`) was REMOVED this wave,
@@ -16,7 +16,7 @@ import type { AtlasBundleEntry, IntensityContourSet } from "./types";
  *
  * Only the Bumelerze Atlas's curated events have a bundled product —
  * every other event resolves to `"absent"` HERE, same as the old "no
- * ShakeMap product" case. This hook stays exactly that narrow on purpose:
+ * shakemap product" case. This hook stays exactly that narrow on purpose:
  * `ShakeMapSection` does not call it directly anymore — it calls
  * `live-queries.ts`'s `useResolvedShakeMap`, which composes this bundled
  * lookup with the live `shakemap_products` lookup

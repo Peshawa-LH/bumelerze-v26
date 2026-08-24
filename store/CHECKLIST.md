@@ -123,15 +123,15 @@ Peshawa's name).
       major regional earthquakes draw public anxiety). Bumelerze explicitly
       does **not** do early warning/prediction in v1 (D6, `spec-v1.md` §1):
       it reports events **after** they happen, from published USGS/EMSC data
-      plus the team's own post-event ShakeMap computation. State this
+      plus the team's own post-event SHAKEmap computation. State this
       plainly and upfront in the review notes rather than waiting to be
       asked.
-    - **"What's the scientific basis for the ShakeMaps/intensity claims?"** —
-      EMS-98 intensity scale (D7), ShakeMaps computed via the team's own
+    - **"What's the scientific basis for the shakemaps/intensity claims?"** —
+      EMS-98 intensity scale (D7), shakemaps computed via the team's own
       GMPE-based engine (`bumelerze-shake-service`, D9/D19/D20, built on
       `openquake.hazardlib`), built and maintained by a seismic-risk PhD
       researcher who works on the Zagros/Iraq region professionally. Every
-      ShakeMap in-app shows its data sources and automatic-vs-reviewed
+      shakemap in-app shows its data sources and automatic-vs-reviewed
       status (`shakemap.reviewStatus` strings, already in the app) — point
       reviewers at that in-app transparency rather than just asserting
       credibility in prose.
