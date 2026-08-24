@@ -20,7 +20,7 @@ export const REGION_BBOX = {
 
 /**
  * Significance-score classification thresholds, event-pipeline-design.md §3.
- * All tunable; region-significant deliberately aligns with the shake-service
+ * All tunable; region-significant deliberately aligns with the bumelerze-engine
  * M>=3.5 trigger band (D9).
  */
 export const SIGNIFICANCE_THRESHOLDS = {
@@ -231,7 +231,7 @@ export const GEOFON_REGION_TIMEOUT_MS = 8_000;
  * <= 100 km AND |ΔM| <= 1.5 (the magnitude guard applies only when both
  * records carry a magnitude — in the client's normalized `Event` model both
  * always do, since normalize.ts drops magnitude-less features). Mirrored by
- * the shake-service worker's own dedup helper (feed_watcher.py) — keep the
+ * the bumelerze-engine worker's own dedup helper (feed_watcher.py) — keep the
  * two in sync when tuning.
  */
 export const DEDUP_MAX_TIME_DELTA_MS = 16_000;

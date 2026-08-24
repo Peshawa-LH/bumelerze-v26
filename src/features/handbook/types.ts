@@ -1,8 +1,8 @@
 /**
  * Engineer's Handbook (spec-v1.md §7, design-brief.md §9) — types mirror
- * the three bundled JSON files `shake-service/scripts/build_handbook_data.py`
+ * the three bundled JSON files `bumelerze-engine/scripts/build_handbook_data.py`
  * produces into `data/` (see that script's module docstring for the
- * extraction/simplification details and `shake-service/handbook-data/
+ * extraction/simplification details and `bumelerze-engine/handbook-data/
  * HANDBOOK_DATA_REPORT.md` for per-source counts and the two open
  * licensing/provenance flags). These are archival, bundled, offline-by-
  * construction lookups — like `features/catalog`, there is no network

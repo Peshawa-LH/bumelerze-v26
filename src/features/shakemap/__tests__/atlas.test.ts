@@ -1,8 +1,8 @@
 /**
  * Bumelerze Atlas bundle sync-check (D21): `atlas/index.ts` is GENERATED
- * (`shake-service/scripts/bundle_atlas_for_app.py`) from
- * `shake-service/bumelerze-atlas/`, itself seeded
- * (`shake-service/scripts/seed_atlas.py`) from the exact same curated list
+ * (`bumelerze-engine/scripts/bundle_atlas_for_app.py`) from
+ * `bumelerze-engine/bumelerze-atlas/`, itself seeded
+ * (`bumelerze-engine/scripts/seed_atlas.py`) from the exact same curated list
  * this test imports directly — `NOTABLE_HISTORICAL_EVENTS`
  * (`src/features/historical/notable-events.ts`). This test is the app-side
  * half of that sync guarantee: if the curated list ever changes without

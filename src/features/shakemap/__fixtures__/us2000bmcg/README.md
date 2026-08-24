@@ -9,7 +9,7 @@ one.
 **D21 update (`docs/decisions.md`):** the live USGS ShakeMap display
 path (`usgs-products.ts`, event-detail fetch, `fetchIntensityContours`) was
 REMOVED app-side this wave — the app now only ever displays bundled
-`bumelerze-shake-service` products (`src/features/shakemap/atlas/`, see its
+`bumelerze-engine` products (`src/features/shakemap/atlas/`, see its
 own generated `index.ts`). `detail-fragment.json` (the USGS event-detail
 product-selection fixture) was removed along with `usgs-products.ts`/its
 tests. `cont_mi.trimmed.json` below is KEPT — `contours.ts`'s

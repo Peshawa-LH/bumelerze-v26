@@ -1,9 +1,9 @@
 /**
  * Regional Catalog browser (regional-catalog wave) — types mirror the
  * `events` table columns produced by
- * `shake-service/scripts/build_regional_catalog.py` (see that script's
+ * `bumelerze-engine/scripts/build_regional_catalog.py` (see that script's
  * module docstring for the merge/dedup algorithm and
- * `shake-service/regional-catalog/BUILD_REPORT.md` for per-source counts
+ * `bumelerze-engine/regional-catalog/BUILD_REPORT.md` for per-source counts
  * and data-quality notes). These are archival, already-merged events —
  * unlike `features/events` (the live USGS feed), there is no provider
  * fetch here, only local SQL against the bundled, read-only database.
@@ -34,7 +34,7 @@ export interface CatalogRow {
   /** Canonical Bumelerze event id (`bml` + 4-digit year + base-36 per-year
    * counter, e.g. `bml2017000s` = the 2017 Halabja mainshock), assigned
    * retroactively by the catalog build — scheme:
-   * `shake-service/shake_service/event_id.py` /
+   * `bumelerze-engine/shake_service/event_id.py` /
    * `docs/research/bumelerze-id-scheme.md`. Shown ONLY in the catalog
    * detail sheet (archival/internal context) — deliberately not surfaced
    * anywhere else in the app. */
