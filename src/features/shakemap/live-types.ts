@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { AtlasBundleEntry, DataUsedSummaryKey } from "./types";
 
 /**
- * Row/artifact contracts for the LIVE ShakeMap product path — the
+ * Row/artifact contracts for the LIVE shakemap product path — the
  * "closing the last gap" wave. Reads `public.shakemap_products`
  * (`supabase/migrations/0006_shakemap_products.sql`,
  * `0007_shakemap_review_status.sql`, `0019_shakemap_products_index_fields
@@ -58,7 +58,7 @@ export interface ParsedLiveShakeMapProductRows {
    * should never actually fail this schema (it's our own table, written by
    * one uploader), so in practice this stays 0; the tolerance exists so a
    * schema drift degrades gracefully rather than taking the whole live
-   * ShakeMap path down with it (never the bundled Atlas fallback, per the
+   * shakemap path down with it (never the bundled Atlas fallback, per the
    * resolver's own precedence). */
   skippedCount: number;
 }

@@ -159,7 +159,7 @@ def ensure_bumelerze_id(ws: Any, event: Any, *, now_iso: str) -> str:
     THE first-detection allocation point (called by
     `scripts/run_worker.py`'s `process_decisions` for every newly detected
     canonical event, `"new"` and `"catalog"` decisions alike — allocation
-    does not depend on whether the ShakeMap pipeline triggers).
+    does not depend on whether the SHAKEmap pipeline triggers).
 
     The stub (`last_version=0`, `params_hash=""`) marks "detected and
     id-assigned, nothing computed yet": `params_hash=""` can never equal a

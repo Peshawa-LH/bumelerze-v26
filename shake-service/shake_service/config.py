@@ -227,7 +227,7 @@ ZAGROS_POLYGON_LONLAT: tuple[tuple[float, float], ...] = (
 
 # Target resolution: ~0.0167 deg (~1.8 km at the equator, using vs30.py's own
 # 111.32 km/deg flat-earth convention) -- task-specified default, fine enough
-# that a ShakeMap-scale product doesn't look blocky at the neighbourhood
+# that a shakemap-scale product doesn't look blocky at the neighbourhood
 # level. Used as-is for the small/moderate bands.
 SITE_SPACING_DEG_TARGET: float = 0.0167
 _KM_PER_DEG: float = 111.32
@@ -257,7 +257,7 @@ def forward_grid_spacing_km(band: MagnitudeBand) -> float:
 
 
 # ---------------------------------------------------------------------------
-# 6b. ShakeMap trigger policy geometry (owner directive, 2026-08-14 —
+# 6b. SHAKEmap trigger policy geometry (owner directive, 2026-08-14 —
 #     supersedes D9's M>=3.5 regional floor for the AUTO path):
 #     "ANY event in Iraq or with effect on Kurdistan, no magnitude floor."
 #     The policy itself lives in `worker/feed_watcher.triggers_shakemap`;

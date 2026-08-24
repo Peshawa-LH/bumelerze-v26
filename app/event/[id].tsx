@@ -28,7 +28,7 @@ import { useTheme } from "@/theme";
 
 /**
  * Event Detail — header scope only (spec-v1.md §4.5, spec-v1.md §9 Phase 1
- * cut: "no ShakeMap/felt-map/comments yet"). Reads from the already-cached
+ * cut: "no shakemap/felt-map/comments yet"). Reads from the already-cached
  * region/world feed queries first (the common case — arriving from a list
  * row or a notification tap once those exist); falls back to a direct
  * fdsnws `eventid` lookup only for a cold-start deep link the cache
@@ -456,7 +456,7 @@ function EventDetailHeader({
 
       {/* Lazy, self-contained (spec-v1.md §4.5 ordering: Distance -> ShakeMap
        * -> Source) — mounted unconditionally, but renders nothing for the
-       * common no-ShakeMap-product event (no empty shell) and never blocks
+       * common no-shakemap-product event (no empty shell) and never blocks
        * this header, which is already fully rendered above from feed data. */}
       <ShakeMapSection event={event} />
 

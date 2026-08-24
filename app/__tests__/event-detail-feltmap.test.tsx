@@ -202,7 +202,7 @@ describe("Event Detail: felt-map section (real screen, fixture transport)", () =
       expect(screen.getByText(i18n.t("eventDetail.feltMap.sectionTitle"))).toBeTruthy(),
     );
     const shakemapTitle = screen.queryByText(i18n.t("eventDetail.shakemap.sectionTitle"));
-    // us-not-in-atlas fixture event has no bundled ShakeMap product, so the
+    // us-not-in-atlas fixture event has no bundled shakemap product, so the
     // ShakeMap section itself renders nothing (D21) — this assertion only
     // has to prove the felt map doesn't depend on it being present.
     expect(shakemapTitle).toBeNull();

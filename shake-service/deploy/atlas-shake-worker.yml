@@ -8,7 +8,7 @@
 #
 # Why the Atlas repo, not the app repo: every GitHub repository's Actions
 # runs get an automatic `GITHUB_TOKEN` scoped to write to THAT repository
-# only. The scheduled worker's whole job is to publish computed ShakeMap
+# only. The scheduled worker's whole job is to publish computed shakemap
 # products into the Atlas repo's own `events/`/`index.json` tree -- running
 # the workflow FROM that repo means the built-in token is already exactly
 # the right credential, with zero secrets to create for the publish step.

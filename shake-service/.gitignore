@@ -11,7 +11,7 @@ __pycache__/
 .cache/
 
 # scripts/run_worker.py runtime artifacts: local worker state + exported
-# ShakeMap products (default paths — see run_worker.py --state-path/
+# shakemap products (default paths — see run_worker.py --state-path/
 # --products-root). Neither is a checked-in artifact; both are regenerated
 # by the worker itself. Anchored (leading "/") so this does NOT also catch
 # bumelerze-atlas/worker_state.json below, which IS committed.

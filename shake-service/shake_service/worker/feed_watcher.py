@@ -57,7 +57,7 @@ Trigger policy (owner directive 2026-08-14, superseding D9's M>=3.5
 regional floor: "ANY event in Iraq or with effect on Kurdistan, no
 magnitude floor" — `triggers_shakemap` is the single implementation):
 
-- An event triggers a ShakeMap when its epicenter is inside
+- An event triggers a SHAKEmap when its epicenter is inside
   `config.IRAQ_BBOX` (any magnitude — Iraq is the audience, "in Iraq" IS
   the effect), OR when its epicenter lies within
   `config.grid_extent_km(config.magnitude_band(mag))` of the Kurdistan
@@ -463,7 +463,7 @@ def find_cross_provider_match(event: FeedEvent, ws: WorkerState) -> EventState |
 
 # `"catalog"`: a newly detected canonical event (inside MONITORED_BBOX,
 # post-cross-provider-dedup) that the trigger policy did NOT select for a
-# ShakeMap — the caller records it (bml id + live-catalog append) but runs
+# SHAKEmap — the caller records it (bml id + live-catalog append) but runs
 # no pipeline. `"new"`/`"update"`/`"skip"` keep their existing meanings.
 DecisionKind = Literal["new", "update", "skip", "catalog"]
 

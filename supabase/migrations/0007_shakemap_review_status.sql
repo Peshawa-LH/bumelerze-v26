@@ -1,5 +1,5 @@
 -- Bumelerze schema — D21 scientist-review status on shakemap_products
--- (`docs/decisions.md` D21 "Own ShakeMaps everywhere; USGS demoted to
+-- (`docs/decisions.md` D21 "Own shakemaps everywhere; USGS demoted to
 -- data + validation; Bumelerze Atlas": "every product carries review_status
 -- (automatic | reviewed); the app displays it (provenance-as-UI). Peshawa
 -- flips the flag via a simple review channel (script/dashboard first, admin

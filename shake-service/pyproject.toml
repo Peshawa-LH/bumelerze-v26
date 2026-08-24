@@ -1,7 +1,7 @@
 [project]
 name = "bumelerze-shake-service"
 version = "0.1.0"
-description = "Regional ShakeMap engine for Bumelerze (Kurdistan earthquake app) — hazardlib GMPE adapter + gmpe_forward/mvn engine (extracted from SHAKEmaps-Toolkit-v26)."
+description = "Regional SHAKEmap engine for Bumelerze (Kurdistan earthquake app) — hazardlib GMPE adapter + gmpe_forward/mvn engine (extracted from SHAKEmaps-Toolkit-v26)."
 requires-python = ">=3.11"
 readme = "README.md"
 

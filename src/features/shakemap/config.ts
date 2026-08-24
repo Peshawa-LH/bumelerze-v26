@@ -1,5 +1,5 @@
 /**
- * Tunable engineering constants for the ShakeMap product pipeline (D14:
+ * Tunable engineering constants for the shakemap product pipeline (D14:
  * engineering-owned defaults, no science review needed) — mirrors
  * `features/events/config.ts`'s "one config module, never inlined" rule.
  */

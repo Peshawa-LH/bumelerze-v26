@@ -58,7 +58,7 @@ def append_to_live_catalog(
     """Append one first-detection line for `event` (a
     `feed_watcher.FeedEvent`, duck-typed) and return the dict written.
     `triggered` records whether the trigger policy selected the event for
-    a ShakeMap at detection time (provenance only — a later revision can
+    a SHAKEmap at detection time (provenance only — a later revision can
     still promote a catalog-only event; the line is not rewritten when it
     does, per the module contract). Creates the parent directory on first
     use. The caller is responsible for calling this exactly once per

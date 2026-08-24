@@ -29,7 +29,7 @@ for the historical atlas bundle):
    `{ minLon: 35, maxLon: 55, minLat: 25, maxLat: 45 }` (covers Iraq, Iran,
    Turkey, Syria, and enough of Jordan/Saudi Arabia/Kuwait/the Gulf/the
    Mediterranean/Caspian/Red Sea coastlines for context at any plausible
-   ShakeMap contour extent), padded by 2° on each side so lines don't
+   shakemap contour extent), padded by 2° on each side so lines don't
    visibly truncate right at the fixture's own edge. Liang-Barsky segment
    clipping — a polyline that exits and re-enters the box becomes multiple
    sub-lines, never mis-joined across the gap.
