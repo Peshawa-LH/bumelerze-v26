@@ -63,6 +63,26 @@ and merged into one deduplicated event list.
   of the GFZ Helmholtz Centre for Geosciences using data from the GEVN partner
   networks."
 
+### ISC (International Seismological Centre)
+
+- **Endpoint:** `http://www.isc.ac.uk/fdsnws/event/1/query` (server-side
+  ingester only, `supabase/functions/ingest-events/`; not a client-side feed —
+  see that function's README). Polled daily as a backfill/correction sweep,
+  not a live feed: the ISC Bulletin is reviewed and runs roughly 13 months
+  behind. Carries records authored by ISN (Iraqi Meteorological and
+  Seismology Organisation), SLUB (Seismological Laboratory of University of
+  Basrah), ISK (Kandilli Observatory / KOERI, Turkey), TEH/THR (Tehran
+  University / IIEES, Iran), AFAD (Turkey), and IDC (CTBTO) — each source
+  record's `author_agency`/`magnitude_author` (migration 0023) preserves
+  which one actually authored it, so per-event attribution can name the real
+  contributing agency, not just "ISC".
+- **[VERIFY]** ISC's terms-of-use page (`isc.ac.uk/termsofuse/`) returned
+  404 when checked 2026-08-27; the bulletin's own text response footer lists
+  contributing agencies by name (per-agency full names + country) but states
+  no explicit licence. Confirm ISC's actual data terms, and the individual
+  terms of ISN/SLUB specifically, before this data is surfaced to end users
+  beyond internal corroboration counting.
+
 ## 2. The bundled regional catalog
 
 `assets/catalog/bumelerze-catalog.sqlite` is a compiled catalog of about 21,000
