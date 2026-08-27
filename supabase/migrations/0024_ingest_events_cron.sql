@@ -21,18 +21,29 @@
 -- itself. Re-uses 0017's literal key value rather than inventing a
 -- placeholder — same live project, same anon key.
 --
--- NOT applied to production by this wave's author — orchestrator applies
--- per the task brief ("Do not apply migrations to production").
+-- Applied to production 2026-08-27 (with the corrected guard below; the
+-- original shipped a shadowing bug that made a fresh replay fail).
 
 create extension if not exists pg_net;
 
+-- Idempotent re-run guard. NOTE the variable name: an alias called
+-- `jobname` is shadowed by `cron.job.jobname` inside the EXISTS, so the
+-- predicate collapses to `x = x` -- true for every name as soon as
+-- cron.job holds any row at all, and cron.unschedule then throws on names
+-- that were never scheduled ("could not find valid entry for job ..."). A
+-- distinctly-named loop variable is the fix; do not rename it back.
 do $$
+declare
+  target text;
 begin
-  perform cron.unschedule(jobname)
-  from unnest(array[
+  foreach target in array array[
     'ingest_events_emsc', 'ingest_events_usgs', 'ingest_events_geofon', 'ingest_events_isc'
-  ]) as jobname
-  where exists (select 1 from cron.job where cron.job.jobname = jobname);
+  ]
+  loop
+    if exists (select 1 from cron.job where cron.job.jobname = target) then
+      perform cron.unschedule(target);
+    end if;
+  end loop;
 end
 $$;
 
