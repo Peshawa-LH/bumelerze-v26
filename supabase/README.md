@@ -136,6 +136,10 @@ Parts 3 + 5, `docs/research/event-pipeline-design.md`,
 | `0020_feedback.sql`                    | `feedback` + `feedback_photos` (private, service-role-reviewed in-app feedback) + the `feedback-photos` Storage bucket. |
 | `0021_feedback_multi_photo.sql`        | Allows several `feedback_photos` rows per `feedback_id` (was capped at one).                                          |
 | `0022_feedback_triage.sql`             | Adds owner-only triage columns to `feedback` (`status`, `category`, `triage_note`, trigger-maintained `updated_at`) and drops the unused `screen` column. See "Feedback triage" below. |
+| `0023_event_source_provenance.sql`     | Per-agency provenance columns on `event_source_records` (`author_agency`, `magnitude_author`), widens the provider allow-list (`isc`, reserved `kur`), public read on `event_source_records`, and the `events_with_sources` read view for the multi-source ingester (`supabase/functions/ingest-events/`). |
+| `0024_ingest_events_cron.sql`          | `pg_cron` schedules (`pg_net` HTTP POST) that invoke `ingest-events` per channel: EMSC/USGS every minute, GEOFON every 5 minutes, ISC daily. |
+| `0025_bumelerze_id_allocator.sql`      | Postgres becomes the single `bumelerze_id` allocation authority: `bumelerze_id_counters` (one row per origin year), a byte-for-byte SQL port of `shake_service/event_id.py`'s base-36 format (`bumelerze_base36`, `format_bumelerze_id`), and the atomic allocator RPCs (`allocate_bumelerze_id`, `allocate_bumelerze_id_batch`) — service-role only. 2026 is seeded at counter 999 (reserved band for the pre-existing bumelerze-engine worker's own legacy allocations, whose true high-water mark is unknown). See "bumelerze_id allocation authority" below. |
+| `0026_wire_bumelerze_id_allocation.sql` | Wires the migration-0025 allocator into `upsert_event_from_client`'s "genuinely new physical event" branch (every event that path creates now gets a real id, allocated before the row is inserted), backfills the pre-existing null rows in origin-time order, and adds `events_bumelerze_id_required_when_published` (a `status = 'published'` event can never be missing one). Crowd-detected (`status = 'possible'`) events are deliberately NOT allocated one here — see the migration's own header. |
 
 **Naming caveat:** these use plain `NNNN_name.sql` numbering as requested.
 The Supabase CLI conventionally expects timestamp-prefixed filenames
@@ -249,6 +253,100 @@ step, not a schema change.
   friends, notification_subscriptions). Nothing in v1 needs a client-
   initiated delete; add if/when account deletion or a "retract my report"
   feature is built.
+
+## `bumelerze_id` allocation authority (migrations 0025/0026)
+
+Postgres is now the single allocator of `bumelerze_id` ("bml id"). Full
+scheme: `docs/research/bumelerze-id-scheme.md`. What changed and why:
+
+- **Three would-be allocators, no authority, verified against production
+  2026-08-27:** the bumelerze-engine worker had been minting `bml2026...`
+  from an unreadable GitHub Actions cache since January (true high-water
+  mark unknown, confirmed >= 82 published-product counter); the archival
+  catalog rebuild left 1,776 origin-year-2026 events
+  `bumelerze_id = NULL`/`id_status = 'pending-live-authority'`; and
+  `upsert_event_from_client` had always inserted `bumelerze_id = NULL` (0/40
+  live events had one). Migrations 0025/0026 fix all three at once by
+  making Postgres the one allocator and wiring the one server-side
+  event-creation path (`upsert_event_from_client`, which both the app and
+  `supabase/functions/ingest-events/` call — never a raw `insert into
+  events`) to use it.
+- **Allocator:** `public.bumelerze_id_counters` (one row per origin year) +
+  `public.allocate_bumelerze_id(p_year integer) returns text` and
+  `public.allocate_bumelerze_id_batch(p_year integer, p_count integer)
+  returns text[]`, both `service_role`-only, both a single atomic
+  `INSERT ... ON CONFLICT (year) DO UPDATE ... RETURNING` (race-free under
+  the four overlapping `pg_cron` ingest channels, 0024) — see 0025's own
+  header comment for the full locking argument. Format functions
+  (`bumelerze_base36`, `format_bumelerze_id`) are a byte-for-byte SQL port
+  of `shake_service/event_id.py`.
+- **2026 reserved band:** the worker's true high-water mark is unknowable
+  (its state lives in a cache this project cannot read), so 2026 is seeded
+  at counter 999 — the first Postgres-issued 2026 id is `bml202600rs`
+  (counter 1000), an order of magnitude above the only confirmed number
+  (82). Counters 1-999 stay permanently reserved for the worker's legacy
+  allocations; nothing here ever issues them. Every other year is unseeded
+  and starts at counter 1.
+- **Crowd-detected (`status = 'possible'`) events are NOT allocated an id**
+  by this handover — only `upsert_event_from_client`'s "genuinely new
+  physical event" branch (agency-catalog events) allocates one; a possible
+  event either gets reconciled onto a (now id-bearing) agency event or ages
+  out unconfirmed, in both cases without ever needing its own id. See
+  0026's header for why this is flagged as a separate, not-yet-made product
+  decision rather than folded in silently.
+
+### Archival backfill handshake (the 1,776 origin-2026 archival rows)
+
+The archival catalog (`bumelerze-engine/regional-catalog/`) is a SQLite
+database + a gzipped CSV ledger, not a Postgres table — this project cannot
+reach into it, and per the handover brief this repo does not modify
+`bumelerze-engine`. Instead, whoever runs the engine-side backfill script
+should do the following, in order, against a project where migration 0025
+is applied:
+
+1. **Determine the batch.** Query the archival catalog for the rows still
+   carrying `bumelerze_id IS NULL` / `id_status = 'pending-live-authority'`
+   and sort them by origin time ascending (the same "give them ids in
+   origin-time order" rule migration 0026 uses for its own backfill, and
+   the same ordering `scripts/build_regional_catalog.py` already uses for
+   retroactive assignment). Group by origin year — today that is a single
+   group, all 1,776 rows are origin year 2026.
+2. **Reserve one block per origin year**, via a `service_role`-authenticated
+   call (never the anon/publishable key — the RPC is revoked from
+   `anon`/`authenticated`, migration 0025):
+
+   ```python
+   result = supabase.rpc(
+       "allocate_bumelerze_id_batch",
+       {"p_year": 2026, "p_count": 1776},
+   ).execute()
+   ids = result.data  # text[], length 1776, in allocation order
+   ```
+
+   This is ONE call per origin year, not one call per event — 1,776
+   individual RPC round-trips would work too (each is equally race-free)
+   but are needless network overhead for a batch import.
+3. **Assign `ids[0]` to the earliest-origin-time row in that year's group,
+   `ids[1]` to the next, and so on** — i.e. zip the origin-time-sorted
+   archival rows against the returned array in order. Write the result back
+   into the archival catalog's own `bumelerze_id` column and
+   `bml-id-ledger.csv.gz`, and flip `id_status` off
+   `'pending-live-authority'`.
+4. **Do this exactly once per row.** `allocate_bumelerze_id_batch` has no
+   idempotency key of its own (unlike `upsert_event_from_client`'s
+   `(provider, provider_event_id)` dedup) — it is a pure "give me N more
+   counters" primitive, so calling it twice for the same logical batch
+   burns a second block of 1,776 real counters that then sit unused
+   forever. That is not incorrect (gaps are allowed, reuse is not) but it
+   is wasteful and shifts every subsequent live id up by 1,776 for no
+   reason — treat the backfill script as run-once, and check the archival
+   catalog's own `id_status` column before re-running it.
+5. These archival ids and Postgres's own live `events.bumelerze_id` values
+   share the SAME counter per year (there is only one `allocate_*` family),
+   so there is no separate reconciliation step needed after this — unlike
+   the worker's 1-999 reserved band (a genuinely disjoint, unreachable
+   legacy namespace), the archival catalog and the live `events` table both
+   draw from this project's one authority from this point forward.
 
 ## Local dev / project linking
 
