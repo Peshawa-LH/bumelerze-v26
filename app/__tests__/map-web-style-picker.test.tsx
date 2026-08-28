@@ -53,7 +53,7 @@ import {
   mockUseWorldEvents,
   resetMapWebMocks,
   testSafeAreaMetrics,
-} from "./map-web-helpers";
+} from "@/features/map/__fixtures__/map-web-helpers";
 
 jest.mock("expo-router", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require required inside a jest.mock factory
