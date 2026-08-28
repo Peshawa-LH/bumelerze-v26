@@ -12,7 +12,6 @@ export {
   formatCatalogDepth,
   formatCatalogMagnitude,
   formatCatalogPlace,
-  formatCatalogResultsCount,
   formatCatalogYear,
 } from "./format";
 export {

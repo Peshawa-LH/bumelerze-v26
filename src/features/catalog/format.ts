@@ -52,9 +52,15 @@ export function formatCatalogDepth(
  * simpler than `formatAbsoluteDual` (no dual UTC/local — every catalog
  * event's local time zone at the time of occurrence is ambiguous/unknown
  * for many decades-old records, so this only ever shows the one
- * unambiguous value: UTC). */
-export function formatCatalogDateTimeUtc(isoTime: string, locale: string): string {
-  const date = new Date(isoTime);
+ * unambiguous value: UTC).
+ *
+ * `epochSeconds` is the db's `t` column (schema v3) — SECONDS, not
+ * milliseconds, hence the `* 1000` below. Negative values (events before
+ * 1970; this catalog starts in 872) are valid `Date` inputs and format
+ * correctly with no special-casing — `Date` and `Intl.DateTimeFormat` both
+ * support the full proleptic Gregorian range this needs. */
+export function formatCatalogDateTimeUtc(epochSeconds: number, locale: string): string {
+  const date = new Date(epochSeconds * 1000);
   const datePart = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
     year: "numeric",
     month: "numeric",
@@ -73,9 +79,4 @@ export function formatCatalogDateTimeUtc(isoTime: string, locale: string): strin
 
 export function formatCatalogCoordinates(row: Pick<CatalogRow, "lat" | "lon">, locale: string): string {
   return formatCoordinates(row.lat, row.lon, locale);
-}
-
-/** Localized results-count line ("N earthquakes"), digit-localized. */
-export function formatCatalogResultsCount(count: number, locale: string, t: TranslateFn): string {
-  return t("catalog.resultsCount", { count: localizeDigits(String(count), locale) });
 }

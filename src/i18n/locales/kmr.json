@@ -144,7 +144,6 @@
   },
   "catalog": {
     "title": "Katalog a Erdhejan",
-    "resultsCount": "{{count}} erdhej",
     "emptyState": "Tu erdhej bi van fîlteran re li hev nayên.",
     "loading": "Katalog tê barkirin…",
     "errorTitle": "Katalog nehat barkirin.",
@@ -159,6 +158,7 @@
     },
     "sources": {
       "BUMELERZE": "Bumelerze",
+      "ISC": "ISC",
       "ISCGEM": "ISC-GEM",
       "ONUR2017": "Onur 2017",
       "EMME": "EMME",

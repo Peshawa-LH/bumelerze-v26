@@ -14,9 +14,10 @@ export interface BuiltQuery {
 }
 
 const EVENTS_COLUMNS =
-  "id, bumelerze_id AS bumelerzeId, time, year, lat, lon, depth_km AS depthKm, mag, mag_type AS magType, " +
+  "bumelerze_id AS bumelerzeId, t AS time, year, lat, lon, depth_km AS depthKm, mag, mag_type AS magType, " +
   "source_catalog AS sourceCatalog, source_id AS sourceId, " +
-  "contributing_sources AS contributingSources, merged_count AS mergedCount";
+  "contributing_sources AS contributingSources, merged_count AS mergedCount, " +
+  "author_agency AS authorAgency";
 
 /**
  * Shared `WHERE` clause builder for both the page query and the count
@@ -61,7 +62,10 @@ function buildWhereClause(filters: CatalogFilters): { clause: string; params: (s
  * newest-first convention `features/historical` already uses for its
  * curated list — the most scientifically/publicly interesting default
  * ordering for a general-purpose browse, and stable across pages since
- * `time` is unique-ish and indexed (build script's `idx_events_time`). */
+ * `t` (epoch seconds, schema v3) is unique-ish and indexed
+ * (`idx_events_t`). Ordering by the raw integer column works identically
+ * for the negative (pre-1970) values in this catalog — negative epoch
+ * seconds still sort chronologically, so no special-casing is needed. */
 export function buildCatalogPageQuery(
   filters: CatalogFilters,
   limit: number,
@@ -69,7 +73,7 @@ export function buildCatalogPageQuery(
 ): BuiltQuery {
   const { clause, params } = buildWhereClause(filters);
   return {
-    sql: `SELECT ${EVENTS_COLUMNS} FROM events${clause} ORDER BY time DESC LIMIT ? OFFSET ?`,
+    sql: `SELECT ${EVENTS_COLUMNS} FROM events${clause} ORDER BY t DESC LIMIT ? OFFSET ?`,
     params: [...params, limit, offset],
   };
 }

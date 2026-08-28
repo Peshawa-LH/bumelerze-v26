@@ -144,7 +144,6 @@
   },
   "catalog": {
     "title": "كتالوج الزلازل",
-    "resultsCount": "{{count}} زلزال",
     "emptyState": "لا توجد زلازل تطابق هذه الفلاتر.",
     "loading": "جارٍ تحميل الكتالوج…",
     "errorTitle": "تعذر تحميل الكتالوج.",
@@ -159,6 +158,7 @@
     },
     "sources": {
       "BUMELERZE": "بوملێرزە",
+      "ISC": "ISC",
       "ISCGEM": "ISC-GEM",
       "ONUR2017": "أونور 2017",
       "EMME": "EMME",
