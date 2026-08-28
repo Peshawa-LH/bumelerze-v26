@@ -8,6 +8,7 @@ import {
   SupabaseSourceCorroborationTransport,
   useEventSourceAgencies,
   type SourceCorroboration,
+  type SourceCorroborationByEventId,
   type SourceCorroborationTransport,
 } from "../source-corroboration";
 import type { Event } from "../types";
@@ -120,7 +121,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
       makeEvent(),
     ]);
 
-    expect(result.size).toBe(0);
+    expect(Object.keys(result)).toHaveLength(0);
   });
 
   it("returns an empty map without querying for an empty event list", async () => {
@@ -129,7 +130,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
 
     const result = await SupabaseSourceCorroborationTransport.fetchCorroboration([]);
 
-    expect(result.size).toBe(0);
+    expect(Object.keys(result)).toHaveLength(0);
     expect(fake.eventSourceRecordsIn).not.toHaveBeenCalled();
   });
 
@@ -151,7 +152,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
       makeEvent(),
     ]);
 
-    expect(result.get("us7000abcd")).toEqual<SourceCorroboration>({
+    expect(result["us7000abcd"]).toEqual<SourceCorroboration>({
       agencies: ["NEIC"],
     });
   });
@@ -182,7 +183,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
       }),
     ]);
 
-    expect(result.get("gfz2024abcd")).toEqual<SourceCorroboration>({
+    expect(result["gfz2024abcd"]).toEqual<SourceCorroboration>({
       agencies: ["GEOFON"],
     });
   });
@@ -214,7 +215,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
     // (relayed via EMSC, then again via the ISC bulletin) is ONE agency
     // agreeing, not two (source-and-ingestion-plan.md §6.2 / this module's
     // own doc comment).
-    expect(result.get("us7000abcd")).toEqual<SourceCorroboration>({
+    expect(result["us7000abcd"]).toEqual<SourceCorroboration>({
       agencies: ["NEIC", "AFAD", "ISN"],
     });
   });
@@ -269,9 +270,9 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
     // Two providers present -> exactly two `event_source_records` requests
     // (one per provider group), never three (one per card).
     expect(fake.eventSourceRecordsIn).toHaveBeenCalledTimes(2);
-    expect(result.get("us1")).toEqual({ agencies: ["NEIC"] });
-    expect(result.get("us2")).toEqual({ agencies: ["NEIC"] });
-    expect(result.get("em1")).toEqual({ agencies: ["AFAD"] });
+    expect(result["us1"]).toEqual({ agencies: ["NEIC"] });
+    expect(result["us2"]).toEqual({ agencies: ["NEIC"] });
+    expect(result["em1"]).toEqual({ agencies: ["AFAD"] });
   });
 
   it("leaves an event out of the result map when it isn't in the registry yet", async () => {
@@ -282,7 +283,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
       makeEvent(),
     ]);
 
-    expect(result.has("us7000abcd")).toBe(false);
+    expect(result["us7000abcd"]).toBeUndefined();
   });
 
   it("throws (no silent catch) when the event_source_records lookup errors", async () => {
@@ -311,9 +312,9 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
 // contract as usePossibleEvents/useFeltMap.
 // ---------------------------------------------------------------------------
 function fixtureTransport(
-  map: Map<string, SourceCorroboration>,
+  byEventId: SourceCorroborationByEventId,
 ): SourceCorroborationTransport {
-  return { fetchCorroboration: jest.fn(async () => map) };
+  return { fetchCorroboration: jest.fn(async () => byEventId) };
 }
 
 async function renderSourceAgencies(
@@ -336,7 +337,7 @@ describe("useEventSourceAgencies", () => {
 
   it("never calls the transport when Supabase is unconfigured", async () => {
     mockedIsSupabaseConfigured.mockReturnValue(false);
-    const transport = fixtureTransport(new Map());
+    const transport = fixtureTransport({});
 
     const { result } = await renderSourceAgencies([makeEvent()], transport);
 
@@ -345,7 +346,7 @@ describe("useEventSourceAgencies", () => {
   });
 
   it("never calls the transport for an empty event list", async () => {
-    const transport = fixtureTransport(new Map());
+    const transport = fixtureTransport({});
 
     const { result } = await renderSourceAgencies([], transport);
 
@@ -355,9 +356,9 @@ describe("useEventSourceAgencies", () => {
 
   it("resolves the transport's map once configured with events", async () => {
     const event = makeEvent();
-    const transport = fixtureTransport(
-      new Map([[event.id, { agencies: ["NEIC", "AFAD"] }]]),
-    );
+    const transport = fixtureTransport({
+      [event.id]: { agencies: ["NEIC", "AFAD"] },
+    });
 
     const { result } = await renderSourceAgencies([event], transport);
 

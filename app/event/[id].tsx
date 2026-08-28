@@ -13,6 +13,7 @@ import {
   formatIsolatedDistance,
   formatMagnitudeValue,
   isolateNumeric,
+  MAX_NAMED_SOURCE_TAGS_FULL,
   TagRow,
   useEventById,
   useEventSourceAgencies,
@@ -345,7 +346,14 @@ function EventDetailHeader({
         >
           {placeText}
         </Text>
-        <TagRow provider={event.provenance.provider} agencies={sourceAgencies} />
+        {/* The detail page is where the full corroboration belongs: the
+         * card stays compact (owner directive 2026-08-28), but here there
+         * is room to name every agency that located this earthquake. */}
+        <TagRow
+          provider={event.provenance.provider}
+          agencies={sourceAgencies}
+          maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL}
+        />
       </View>
 
       <DetailSection

@@ -1,7 +1,11 @@
 import { render, screen } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
-import { buildTagRowAccessibilityLabel, TagRow } from "../components/TagRow";
+import {
+  buildTagRowAccessibilityLabel,
+  MAX_NAMED_SOURCE_TAGS_FULL,
+  TagRow,
+} from "../components/TagRow";
 
 /**
  * Owner brief 2026-08-28: generalises the old `ProvenanceChip` + inline
@@ -9,6 +13,12 @@ import { buildTagRowAccessibilityLabel, TagRow } from "../components/TagRow";
  * shakemap-slot), with a combined form once the corroborating-agency list
  * runs long. Coverage explicitly asked for in the brief: one, two, three,
  * and five sources.
+ *
+ * Since 2026-08-28 the DEFAULT is one source tag, not three: the owner saw
+ * "US EMSC GFZ" crowd a phone card and asked for one. The multi-tag cases
+ * below therefore pass `maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL}`
+ * explicitly, because they describe the event-detail surface rather than
+ * the card.
  *
  * Every individual pill is deliberately hidden from the accessibility tree
  * (`Tag`'s own `accessibilityElementsHidden` — the row's combined label is
@@ -38,13 +48,13 @@ describe("TagRow", () => {
   });
 
   it("renders one named tag per agency for two sources", async () => {
-    await render(<TagRow provider="usgs" agencies={["USGS", "EMSC"]} />);
+    await render(<TagRow provider="usgs" agencies={["USGS", "EMSC"]} maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />);
     expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
     expect(screen.getByText("EMSC", HIDDEN)).toBeTruthy();
   });
 
   it("renders one named tag per agency for three sources, with no combined tag", async () => {
-    await render(<TagRow provider="usgs" agencies={["USGS", "EMSC", "ISN"]} />);
+    await render(<TagRow provider="usgs" agencies={["USGS", "EMSC", "ISN"]} maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />);
     expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
     expect(screen.getByText("EMSC", HIDDEN)).toBeTruthy();
     expect(screen.getByText("ISN", HIDDEN)).toBeTruthy();
@@ -56,6 +66,7 @@ describe("TagRow", () => {
       <TagRow
         provider="usgs"
         agencies={["USGS", "EMSC", "ISN", "AFAD", "NEIC"]}
+        maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL}
       />,
     );
     expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
@@ -110,7 +121,7 @@ describe("TagRow", () => {
   describe("standalone accessibility", () => {
     it("exposes one combined accessible element by default (standalone)", async () => {
       await render(
-        <TagRow provider="usgs" agencies={["USGS", "EMSC"]} isNotable />,
+        <TagRow provider="usgs" agencies={["USGS", "EMSC"]} isNotable maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />,
       );
       const combined = screen.getByLabelText(
         `${i18n.t("events.tagRow.sourcesA11yLabel", { agencies: "USGS, EMSC" })}. ${i18n.t("events.notableTag")}`,
@@ -120,7 +131,7 @@ describe("TagRow", () => {
 
     it("mentions the '+N more' phrasing in the combined label once the list is long", async () => {
       await render(
-        <TagRow provider="usgs" agencies={["USGS", "EMSC", "ISN", "AFAD"]} />,
+        <TagRow provider="usgs" agencies={["USGS", "EMSC", "ISN", "AFAD"]} maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />,
       );
       const expected = i18n.t("events.tagRow.sourcesWithMoreA11yLabel", {
         agencies: "USGS, EMSC, ISN",
@@ -149,8 +160,26 @@ describe("TagRow", () => {
 
 describe("buildTagRowAccessibilityLabel", () => {
   it("builds the same sentence TagRow would expose standalone, for EventCard to fold into its own label", () => {
+    // The card shows ONE visual tag, but its spoken label still conveys the
+    // corroboration: "Located by USGS and 1 more". That is the whole reason
+    // the compact default does not lose information for screen-reader users.
     const label = buildTagRowAccessibilityLabel(
       { provider: "usgs", agencies: ["USGS", "EMSC"], isNotable: true },
+      i18n.t.bind(i18n),
+    );
+    expect(label).toBe(
+      `${i18n.t("events.tagRow.sourcesWithMoreA11yLabel", { agencies: "USGS", count: 1 })}. ${i18n.t("events.notableTag")}`,
+    );
+  });
+
+  it("names every agency when the caller opts into the full list, as the event-detail header does", () => {
+    const label = buildTagRowAccessibilityLabel(
+      {
+        provider: "usgs",
+        agencies: ["USGS", "EMSC"],
+        isNotable: true,
+        maxSourceTags: MAX_NAMED_SOURCE_TAGS_FULL,
+      },
       i18n.t.bind(i18n),
     );
     expect(label).toBe(

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { z } from "zod";
 
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
@@ -98,7 +99,7 @@ function dedupeAgencies(
 export interface SourceCorroborationTransport {
   fetchCorroboration(
     events: readonly Event[],
-  ): Promise<Map<string, SourceCorroboration>>;
+  ): Promise<SourceCorroborationByEventId>;
 }
 
 /**
@@ -110,12 +111,12 @@ export const SupabaseSourceCorroborationTransport: SourceCorroborationTransport 
   {
     async fetchCorroboration(
       events: readonly Event[],
-    ): Promise<Map<string, SourceCorroboration>> {
+    ): Promise<SourceCorroborationByEventId> {
       const client = getSupabaseClient();
       if (!client || events.length === 0) {
         // Defensive only — `useEventSourceAgencies` gates the query itself
         // on `isSupabaseConfigured()` and an empty event list.
-        return new Map();
+        return {};
       }
 
       // Step 1: (provider, providerId) -> internal event_id, one .in()
@@ -177,7 +178,7 @@ export const SupabaseSourceCorroborationTransport: SourceCorroborationTransport 
 
       const resolved = (await Promise.all(lookupRequests)).flat();
       if (resolved.length === 0) {
-        return new Map();
+        return {};
       }
 
       // Step 2: internal event_id -> corroborating sources, again chunked.
@@ -209,16 +210,28 @@ export const SupabaseSourceCorroborationTransport: SourceCorroborationTransport 
         }),
       );
 
-      const byAppEventId = new Map<string, SourceCorroboration>();
+      const byAppEventId: Record<string, SourceCorroboration> = {};
       for (const { event, internalId } of resolved) {
         const corroboration = sourcesByInternalId.get(internalId);
         if (corroboration) {
-          byAppEventId.set(event.id, corroboration);
+          byAppEventId[event.id] = corroboration;
         }
       }
       return byAppEventId;
     },
   };
+
+/**
+ * The query's cached shape MUST be plain JSON. `app/_layout.tsx` wraps the
+ * tree in `PersistQueryClientProvider`, which serialises every cache entry
+ * to AsyncStorage — a `Map` does not survive that round trip, it rehydrates
+ * as `{}`, and any consumer calling `.get()` on it throws
+ * "sourceAgenciesByEventId.get is not a function" on the next cold start.
+ * That crashed the whole feed once (caught in the browser, not by tests,
+ * because the tests mock this hook). Keep the wire/cache shape a Record and
+ * build the Map in the hook.
+ */
+export type SourceCorroborationByEventId = Record<string, SourceCorroboration>;
 
 const EMPTY_CORROBORATION_MAP: ReadonlyMap<string, SourceCorroboration> =
   new Map();
@@ -257,5 +270,14 @@ export function useEventSourceAgencies(
     staleTime: 60_000,
   });
 
-  return query.data ?? EMPTY_CORROBORATION_MAP;
+  const data = query.data;
+  return useMemo(() => {
+    if (!data || typeof data !== "object") {
+      return EMPTY_CORROBORATION_MAP;
+    }
+    // `Object.entries` handles both a fresh fetch and a rehydrated cache
+    // entry; see SourceCorroborationByEventId's note on why this can never
+    // assume a Map.
+    return new Map(Object.entries(data));
+  }, [data]);
 }

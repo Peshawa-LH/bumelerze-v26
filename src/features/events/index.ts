@@ -63,6 +63,7 @@ export { EventListScreen } from "./components/EventListScreen";
 export { OfflineBanner } from "./components/OfflineBanner";
 export {
   buildTagRowAccessibilityLabel,
+  MAX_NAMED_SOURCE_TAGS_FULL,
   TagRow,
   type TagRowContentProps,
 } from "./components/TagRow";

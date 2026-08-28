@@ -9,7 +9,16 @@ import type { EventProvider } from "../types";
  * beyond that we collapse into one "+N" tag rather than let the row
  * overflow a phone-width card (owner brief: "three named plus '+2' rather
  * than overflowing a phone card"). */
-const MAX_NAMED_SOURCE_TAGS = 3;
+/**
+ * How many agency tags a surface shows. Owner directive 2026-08-28, after
+ * seeing three chips ("US EMSC GFZ") crowd a phone card: "we dont need to
+ * write all teh sources one is enough". The corroboration data is still
+ * collected and still worth showing, so it is split by surface rather than
+ * dropped: the CARD shows the single authoritative agency, the event-detail
+ * header shows the full list. `maxSourceTags` selects between them.
+ */
+const MAX_NAMED_SOURCE_TAGS_COMPACT = 1;
+export const MAX_NAMED_SOURCE_TAGS_FULL = 3;
 
 export interface TagRowContentProps {
   /** Fallback single-source label (today's `ProvenanceChip` behaviour),
@@ -22,10 +31,13 @@ export interface TagRowContentProps {
    * (e.g. "ISN", "AFAD", "NEIC"), first-seen order, already deduplicated
    * by `useEventSourceAgencies`. `undefined` or empty means "no
    * corroboration data for this event" — render the `provider` fallback
-   * chip instead. Several agencies agreeing IS the corroboration signal
-   * (source-and-ingestion-plan.md §6.2), so this list is shown in full up
-   * to `MAX_NAMED_SOURCE_TAGS`, not collapsed to a single "verified" tag. */
+   * chip instead. How many of these are shown depends on the surface; see
+   * `maxSourceTags`. */
   agencies?: readonly string[] | undefined;
+  /** Compact (1 tag) on a list card, full (up to 3, plus "+N") on the
+   * event-detail header. Defaults to compact: a card is the crowded
+   * surface and the one the owner asked to quieten. */
+  maxSourceTags?: number;
   /** Unchanged behaviour: Home's adaptive-policy notable carve-out
    * (`home-feed-policy.ts`). */
   isNotable?: boolean;
@@ -50,10 +62,16 @@ interface TagRowContent {
  * `accessibilityLabel` instead of letting this component claim its own
  * accessible node (see `TagRow`'s `standalone` prop doc comment). */
 function computeTagRowContent(
-  { provider, agencies, isNotable = false, hasShakemap = false }: TagRowContentProps,
+  {
+    provider,
+    agencies,
+    isNotable = false,
+    hasShakemap = false,
+    maxSourceTags = MAX_NAMED_SOURCE_TAGS_COMPACT,
+  }: TagRowContentProps,
   t: TFunction,
 ): TagRowContent {
-  const namedAgencies = (agencies ?? []).slice(0, MAX_NAMED_SOURCE_TAGS);
+  const namedAgencies = (agencies ?? []).slice(0, maxSourceTags);
   const remainingCount = Math.max((agencies?.length ?? 0) - namedAgencies.length, 0);
 
   const sourceTagLabels =
