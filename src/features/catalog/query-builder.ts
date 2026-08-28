@@ -17,7 +17,7 @@ const EVENTS_COLUMNS =
   "bumelerze_id AS bumelerzeId, t AS time, year, lat, lon, depth_km AS depthKm, mag, mag_type AS magType, " +
   "source_catalog AS sourceCatalog, source_id AS sourceId, " +
   "contributing_sources AS contributingSources, merged_count AS mergedCount, " +
-  "author_agency AS authorAgency";
+  "author_agency AS authorAgency, region";
 
 /**
  * Shared `WHERE` clause builder for both the page query and the count

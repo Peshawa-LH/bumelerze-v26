@@ -40,6 +40,7 @@ const HALABJA_ROW: CatalogRow = {
   contributingSources: "ONUR2017,USGS",
   mergedCount: 2,
   authorAgency: "us",
+  region: null,
 };
 
 const AQRAH_ROW: CatalogRow = {
@@ -57,6 +58,7 @@ const AQRAH_ROW: CatalogRow = {
   contributingSources: "EMME",
   mergedCount: 1,
   authorAgency: null,
+  region: null,
 };
 
 function mockCatalog(rows: CatalogRow[], overrides: Partial<ReturnType<typeof useCatalogList>> = {}) {

@@ -56,6 +56,7 @@ const FIXTURE_ROWS: CatalogRow[] = [
     contributingSources: "ONUR2017,USGS",
     mergedCount: 2,
     authorAgency: "us",
+    region: null,
   },
   {
     bumelerzeId: "bml19580002",
@@ -74,6 +75,7 @@ const FIXTURE_ROWS: CatalogRow[] = [
     contributingSources: "ISCGEM",
     mergedCount: 1,
     authorAgency: null,
+    region: null,
   },
 ];
 

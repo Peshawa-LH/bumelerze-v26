@@ -22,15 +22,33 @@ export function formatCatalogMagnitude(row: Pick<CatalogRow, "mag">, locale: str
 }
 
 /** Localized place line built from the gazetteer, same primitive
- * `HistoricalEventRow` uses — archival catalog rows carry no English
- * provider `place` string (unlike a live USGS feature), so the far-fallback
- * is a plain coordinate pair instead of invented prose. */
+ * `HistoricalEventRow` uses.
+ *
+ * The far-field fallback is the locating agency's own `region` string,
+ * backfilled into the catalog from the cached feed responses. Before that
+ * existed the fallback was a bare coordinate pair, and since the catalog
+ * reaches well past the Kurdish gazetteer's range, 85% of rows rendered as
+ * "38.163, 38.459". Coordinates remain the last resort for the ~13% of
+ * rows no FDSN response covered (pre-instrumental and regional-catalog
+ * records).
+ *
+ * Deliberately not translated, same reasoning as `PlaceLineEvent.placeName`:
+ * these are far-world places outside the app's Kurdish-language mission,
+ * and inventing translations for them is not in scope. */
 export function formatCatalogPlace(
-  row: Pick<CatalogRow, "lat" | "lon">,
+  row: Pick<CatalogRow, "lat" | "lon" | "region">,
   locale: string,
   t: TranslateFn,
 ): string {
-  return placeLine({ lat: row.lat, lon: row.lon, placeName: formatCoordinates(row.lat, row.lon, locale) }, locale, t);
+  return placeLine(
+    {
+      lat: row.lat,
+      lon: row.lon,
+      placeName: row.region ?? formatCoordinates(row.lat, row.lon, locale),
+    },
+    locale,
+    t,
+  );
 }
 
 /** Depth numeral + localized unit, isolated for safe embedding in an RTL

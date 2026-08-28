@@ -32,11 +32,24 @@ export const CATALOG_YEAR_STEP = 10;
  * `t`, and `author_agency` was added — a v2-schema query against a v2 file
  * cannot serve v3 rows, so this bump is required, not cosmetic. Old copies
  * are cleaned up in app/catalog.tsx (`cleanUpLegacyDatabases`). */
-export const CATALOG_DATABASE_NAME = "bumelerze-catalog-v3.sqlite";
+/**
+ * Bump this on EVERY change to the exported catalog schema, not merely
+ * when the data changes. `assetSource` copies the bundled database out
+ * once and then keeps the copy forever, so an install that already holds
+ * an older copy under the same name never sees the new columns and every
+ * query against them fails with "Couldn't load the catalog".
+ *
+ * v3 shipped twice by mistake on 2026-08-28: once without `region` and
+ * once with it. The second shipment broke any install that had opened the
+ * first, which is exactly the failure this comment exists to prevent.
+ * v4 is that fix.
+ */
+export const CATALOG_DATABASE_NAME = "bumelerze-catalog-v4.sqlite";
 
 /** Previous on-device copy names, deleted fire-and-forget at catalog mount
  * so stale multi-megabyte databases don't accumulate across upgrades. */
 export const LEGACY_CATALOG_DATABASE_NAMES = [
   "bumelerze-catalog.sqlite",
   "bumelerze-catalog-v2.sqlite",
+  "bumelerze-catalog-v3.sqlite",
 ] as const;

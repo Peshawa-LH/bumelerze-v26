@@ -72,6 +72,14 @@ export interface CatalogRow {
    * UI (no wave brief field for it); kept on the row type so a future
    * detail-sheet field is a one-line addition, not a query change. */
   authorAgency: string | null;
+  /** The locating agency's own place description, e.g. "13 km NNE of
+   * Sincik, Turkey". Used only as the far-field FALLBACK: the Kurdish
+   * gazetteer still wins wherever it has a town within range, so a
+   * Sulaimani event keeps its Kurdish place line. `null` for the
+   * pre-instrumental and regional-catalog rows that no FDSN response
+   * covered (about 13% of the catalog), which fall back to coordinates as
+   * before. */
+  region: string | null;
 }
 
 /** All filters optional/undefined = "no constraint on this field". An

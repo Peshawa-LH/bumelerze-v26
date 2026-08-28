@@ -21,6 +21,7 @@ const ROW: CatalogRow = {
   contributingSources: "ONUR2017,USGS",
   mergedCount: 2,
   authorAgency: "us",
+  region: null,
 };
 
 // Pre-1970 fixture (the catalog runs back to 872) — a negative epoch value
