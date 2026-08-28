@@ -91,7 +91,14 @@
     "viewWorld": "Cîhan",
     "viewSignificant": "Girîng",
     "viewHistorical": "Dîrokî",
-    "notableTag": "Berçav"
+    "notableTag": "Berçav",
+    "shakemapTag": "SHAKEmap",
+    "shakemapTagA11yLabel": "SHAKEmap heye",
+    "tagRow": {
+      "moreSourcesTag": "+{{count}}",
+      "sourcesA11yLabel": "Ji aliyê {{agencies}} ve hatiye tomarkirin",
+      "sourcesWithMoreA11yLabel": "Ji aliyê {{agencies}} û {{count}} din ve hatiye tomarkirin"
+    }
   },
   "world": {
     "title": "Katalog a Cîhanê",

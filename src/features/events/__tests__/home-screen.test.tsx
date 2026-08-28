@@ -40,6 +40,20 @@ jest.mock("@/features/events", () => {
   };
 });
 
+// `EventListScreen` imports `useEventSourceAgencies` by its concrete
+// relative path, not the barrel (this feature folder's own convention,
+// same reason `EventCard`/`types` are relative imports too) — mocking the
+// barrel above does NOT intercept that call, so it needs its own mock here
+// for the same "no QueryClientProvider in this file's tree" reason as
+// above.
+jest.mock("../source-corroboration", () => {
+  const actual = jest.requireActual("../source-corroboration");
+  return {
+    ...actual,
+    useEventSourceAgencies: () => new Map(),
+  };
+});
+
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
 import HomeScreen from "../../../../app/(tabs)/index";
@@ -135,8 +149,12 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     // earlier "always Latin" call, per Peshawa's native-speaker review).
     expect(screen.getByText("٤.٦ پلە")).toBeTruthy();
 
-    // Provenance chip.
-    expect(screen.getByText("USGS")).toBeTruthy();
+    // Source tag (TagRow's fallback provider chip, no corroboration data
+    // mocked in this test) — hidden from the a11y tree individually (the
+    // card's own combined `accessibilityLabel` is what a screen reader
+    // hears), same `includeHiddenElements` convention as
+    // `ShakeMapView.test.tsx`/`FeltMapView.test.tsx`.
+    expect(screen.getByText("USGS", { includeHiddenElements: true })).toBeTruthy();
   });
 
   it("shows exactly three header links (World, Significant, Historical) with Catalog removed (owner 2026-08-21: header felt crowded on a phone)", async () => {

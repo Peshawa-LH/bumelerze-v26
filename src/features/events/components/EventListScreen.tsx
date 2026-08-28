@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/theme";
+import { useEventSourceAgencies } from "../source-corroboration";
 import type { Event } from "../types";
 import { EventCard } from "./EventCard";
 import { OfflineBanner } from "./OfflineBanner";
@@ -79,6 +80,14 @@ export function EventListScreen({
   // intentionally non-memoized so it never goes stale across re-renders.
   // eslint-disable-next-line react-hooks/purity -- see comment above
   const now = Date.now();
+
+  // Batched corroboration lookup for the WHOLE on-screen list, one call
+  // here rather than one per `EventCard` (owner brief: "batched, not one
+  // request per card"). Degrades to an empty map (every card falls back to
+  // its own provider chip) when Supabase is unreachable or an event isn't
+  // in the registry yet — never a loading state of its own, never blocks
+  // this list's own render.
+  const sourceAgenciesByEventId = useEventSourceAgencies(events);
 
   // iOS VoiceOver companion to `OfflineBanner`'s `accessibilityLiveRegion`
   // (Android-only) — announces the offline/stale-data state on the
@@ -182,6 +191,7 @@ export function EventListScreen({
             now={now}
             onPress={(event) => router.push(`/event/${event.id}`)}
             isNotable={notableEventIds?.has(item.id) ?? false}
+            sourceAgencies={sourceAgenciesByEventId.get(item.id)?.agencies}
           />
         )}
         contentContainerStyle={[

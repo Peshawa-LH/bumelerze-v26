@@ -91,7 +91,14 @@
     "viewWorld": "العالم",
     "viewSignificant": "المهمة",
     "viewHistorical": "تاريخية",
-    "notableTag": "بارز"
+    "notableTag": "بارز",
+    "shakemapTag": "خريطة الاهتزاز",
+    "shakemapTagA11yLabel": "خريطة الاهتزاز متوفرة",
+    "tagRow": {
+      "moreSourcesTag": "+{{count}}",
+      "sourcesA11yLabel": "مسجَّل من قبل {{agencies}}",
+      "sourcesWithMoreA11yLabel": "مسجَّل من قبل {{agencies}} و{{count}} أخرى"
+    }
   },
   "world": {
     "title": "الكتالوج العالمي",

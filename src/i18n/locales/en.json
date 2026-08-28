@@ -91,7 +91,14 @@
     "viewWorld": "World",
     "viewSignificant": "Significant",
     "viewHistorical": "Historical",
-    "notableTag": "Notable"
+    "notableTag": "Notable",
+    "shakemapTag": "SHAKEmap",
+    "shakemapTagA11yLabel": "SHAKEmap available",
+    "tagRow": {
+      "moreSourcesTag": "+{{count}}",
+      "sourcesA11yLabel": "Located by {{agencies}}",
+      "sourcesWithMoreA11yLabel": "Located by {{agencies}} and {{count}} more"
+    }
   },
   "world": {
     "title": "World Catalog",
