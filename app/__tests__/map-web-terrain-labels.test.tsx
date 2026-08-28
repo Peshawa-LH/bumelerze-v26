@@ -35,7 +35,7 @@ import {
   setMockMapErrorQueue,
   setMockMapStyleFixture,
   testSafeAreaMetrics,
-} from "../__fixtures__/map-web-helpers";
+} from "./map-web-helpers";
 import {
   OWN_LABELS_SOURCE_ID,
   TERRAIN_DEM_SOURCE_ID,

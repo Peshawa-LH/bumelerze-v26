@@ -33,7 +33,7 @@ import {
   resetMapWebMocks,
   setMockMapStyleFixture,
   testSafeAreaMetrics,
-} from "../__fixtures__/map-web-helpers";
+} from "./map-web-helpers";
 import {
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_LAYER_ID,

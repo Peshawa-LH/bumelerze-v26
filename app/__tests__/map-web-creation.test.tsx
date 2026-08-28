@@ -32,7 +32,7 @@ import {
   resetMapWebMocks,
   setMockRTLTextPluginStatus,
   testSafeAreaMetrics,
-} from "../__fixtures__/map-web-helpers";
+} from "./map-web-helpers";
 import { MAP_RTL_TEXT_PLUGIN_URL, MAP_WORKER_URL } from "@/features/map";
 
 jest.mock("expo-router", () => {
