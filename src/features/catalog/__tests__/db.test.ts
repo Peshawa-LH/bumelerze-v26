@@ -42,9 +42,9 @@ function makeFakeDb(fixtureRows: CatalogRow[]): CatalogDb & {
 
 const FIXTURE_ROWS: CatalogRow[] = [
   {
-    id: "bumelerze-000001",
     bumelerzeId: "bml2017000s",
-    time: "2017-11-12T18:18:17.180Z",
+    // 2017-11-12T18:18:17Z as epoch seconds (schema v3's `t` column).
+    time: 1510510697,
     year: 2017,
     lat: 34.9109,
     lon: 45.9592,
@@ -55,11 +55,14 @@ const FIXTURE_ROWS: CatalogRow[] = [
     sourceId: "us2000bmcg",
     contributingSources: "ONUR2017,USGS",
     mergedCount: 2,
+    authorAgency: "us",
   },
   {
-    id: "bumelerze-000002",
     bumelerzeId: "bml19580002",
-    time: "1958-05-05T05:21:34.000Z",
+    // 1958-05-05T05:21:34Z as epoch seconds — negative, since it predates
+    // the Unix epoch. Deliberately kept in the fixture so the pre-1970
+    // case is exercised the same way it is on the real bundled catalog.
+    time: -367958306,
     year: 1958,
     lat: 35.644,
     lon: 44.668,
@@ -70,6 +73,7 @@ const FIXTURE_ROWS: CatalogRow[] = [
     sourceId: "884317",
     contributingSources: "ISCGEM",
     mergedCount: 1,
+    authorAgency: null,
   },
 ];
 

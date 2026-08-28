@@ -3,12 +3,13 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
 import { CatalogDetailSheet } from "../components/CatalogDetailSheet";
+import { formatCatalogDateTimeUtc } from "../format";
 import type { CatalogRow } from "../types";
 
 const ROW: CatalogRow = {
-  id: "bumelerze-020659",
   bumelerzeId: "bml2017000s",
-  time: "2017-11-12T18:18:17.180Z",
+  // 2017-11-12T18:18:17Z as epoch seconds (schema v3's `t` column).
+  time: 1510510697,
   year: 2017,
   lat: 34.9109,
   lon: 45.9592,
@@ -19,6 +20,16 @@ const ROW: CatalogRow = {
   sourceId: "us2000bmcg",
   contributingSources: "ONUR2017,USGS",
   mergedCount: 2,
+  authorAgency: "us",
+};
+
+// Pre-1970 fixture (the catalog runs back to 872) — a negative epoch value
+// is the normal, expected case here, not an edge case to guard against.
+const PRE_1970_ROW: CatalogRow = {
+  ...ROW,
+  bumelerzeId: "bml19580002",
+  time: -367958306, // 1958-05-05T05:21:34Z
+  year: 1958,
 };
 
 function renderSheet(row: CatalogRow | null) {
@@ -59,5 +70,21 @@ describe("CatalogDetailSheet", () => {
     expect(screen.getByText("ژمارەی بوومەلەرزە")).toBeTruthy();
     // The id value itself stays Latin/untranslated (an identifier).
     expect(screen.getByText("bml2017000s")).toBeTruthy();
+  });
+
+  it("converts the epoch-seconds `time` column to the correct UTC date/time (schema v3)", async () => {
+    await i18n.changeLanguage("en");
+    await renderSheet(ROW);
+
+    expect(screen.getByText(formatCatalogDateTimeUtc(ROW.time, "en"))).toBeTruthy();
+    expect(screen.getByText("11/12/2017 18:18:17 UTC")).toBeTruthy();
+  });
+
+  it("renders a correct date for a pre-1970 event (negative epoch seconds, not an error case)", async () => {
+    await i18n.changeLanguage("en");
+    await renderSheet(PRE_1970_ROW);
+
+    expect(screen.getByText(formatCatalogDateTimeUtc(PRE_1970_ROW.time, "en"))).toBeTruthy();
+    expect(screen.getByText("5/5/1958 05:21:34 UTC")).toBeTruthy();
   });
 });

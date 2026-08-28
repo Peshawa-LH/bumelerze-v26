@@ -9,7 +9,7 @@ describe("buildCatalogPageQuery", () => {
   it("has no WHERE clause when no filters are set", () => {
     const { sql, params } = buildCatalogPageQuery({}, 40, 0);
     expect(sql).not.toContain("WHERE");
-    expect(sql).toContain("ORDER BY time DESC LIMIT ? OFFSET ?");
+    expect(sql).toContain("ORDER BY t DESC LIMIT ? OFFSET ?");
     expect(params).toEqual([40, 0]);
   });
 
@@ -71,11 +71,12 @@ describe("buildCatalogPageQuery", () => {
 
   it("orders results newest-first", () => {
     const { sql } = buildCatalogPageQuery({}, 40, 0);
-    expect(sql).toMatch(/ORDER BY time DESC/);
+    expect(sql).toMatch(/ORDER BY t DESC/);
   });
 
-  it("selects camelCase-aliased columns matching CatalogRow", () => {
+  it("selects camelCase-aliased columns matching CatalogRow (schema v3: no `id`, `t` not `time`)", () => {
     const { sql } = buildCatalogPageQuery({}, 1, 0);
+    expect(sql).toContain("t AS time");
     expect(sql).toContain("depth_km AS depthKm");
     expect(sql).toContain("mag_type AS magType");
     expect(sql).toContain("source_catalog AS sourceCatalog");
@@ -83,6 +84,8 @@ describe("buildCatalogPageQuery", () => {
     expect(sql).toContain("bumelerze_id AS bumelerzeId");
     expect(sql).toContain("contributing_sources AS contributingSources");
     expect(sql).toContain("merged_count AS mergedCount");
+    expect(sql).toContain("author_agency AS authorAgency");
+    expect(sql).not.toMatch(/^SELECT id,/);
   });
 });
 

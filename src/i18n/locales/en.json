@@ -144,7 +144,6 @@
   },
   "catalog": {
     "title": "Earthquake Catalog",
-    "resultsCount": "{{count}} earthquakes",
     "emptyState": "No earthquakes match these filters.",
     "loading": "Loading catalog…",
     "errorTitle": "Couldn't load the catalog.",
@@ -159,6 +158,7 @@
     },
     "sources": {
       "BUMELERZE": "Bumelerze",
+      "ISC": "ISC",
       "ISCGEM": "ISC-GEM",
       "ONUR2017": "Onur 2017",
       "EMME": "EMME",

@@ -3,7 +3,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n, { isRTLLocale } from "@/i18n";
 import { CatalogListScreen } from "../components/CatalogListScreen";
-import { formatCatalogMagnitude, formatCatalogResultsCount, formatCatalogYear } from "../format";
+import { formatCatalogMagnitude, formatCatalogYear } from "../format";
 import type { CatalogBounds, CatalogRow } from "../types";
 
 // Mocking `../use-catalog` (not expo-sqlite/SQLiteProvider) is the same
@@ -26,9 +26,9 @@ const mockedUseCatalogList = useCatalogList as jest.MockedFunction<typeof useCat
 const BOUNDS: CatalogBounds = { magMin: 0.86, magMax: 7.7, yearMin: 872, yearMax: 2023 };
 
 const HALABJA_ROW: CatalogRow = {
-  id: "bumelerze-020659",
   bumelerzeId: "bml2017000s",
-  time: "2017-11-12T18:18:17.180Z",
+  // 2017-11-12T18:18:17Z as epoch seconds (schema v3's `t` column).
+  time: 1510510697,
   year: 2017,
   lat: 34.9109,
   lon: 45.9592,
@@ -39,12 +39,13 @@ const HALABJA_ROW: CatalogRow = {
   sourceId: "us2000bmcg",
   contributingSources: "ONUR2017,USGS",
   mergedCount: 2,
+  authorAgency: "us",
 };
 
 const AQRAH_ROW: CatalogRow = {
-  id: "bumelerze-000042",
   bumelerzeId: "bml19910007",
-  time: "1991-07-24T09:45:41.000Z",
+  // 1991-07-24T09:45:41Z as epoch seconds.
+  time: 680348741,
   year: 1991,
   lat: 36.52,
   lon: 44.066,
@@ -55,6 +56,7 @@ const AQRAH_ROW: CatalogRow = {
   sourceId: "1234",
   contributingSources: "EMME",
   mergedCount: 1,
+  authorAgency: null,
 };
 
 function mockCatalog(rows: CatalogRow[], overrides: Partial<ReturnType<typeof useCatalogList>> = {}) {
@@ -90,7 +92,7 @@ describe("CatalogListScreen", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("renders rows in ckb (Sorani, RTL) with localized magnitude/year and a results count", async () => {
+  it("renders rows in ckb (Sorani, RTL) with localized magnitude/year and no results count", async () => {
     expect(isRTLLocale("ckb")).toBe(true);
     await i18n.changeLanguage("ckb");
     mockCatalog([HALABJA_ROW, AQRAH_ROW]);
@@ -109,8 +111,13 @@ describe("CatalogListScreen", () => {
     expect(screen.getAllByText("USGS").length).toBeGreaterThan(0);
     expect(screen.getAllByText("EMME").length).toBeGreaterThan(0);
 
-    // Digit-localized results count ("٢ بوومەلەرزە").
-    expect(screen.getByText(formatCatalogResultsCount(2, "ckb", t))).toBeTruthy();
+    // Owner directive 2026-08-28: never display a raw event count for the
+    // catalog (risks reading as "this catalog is small"). Assert nothing
+    // renders a digit-prefixed "N earthquakes" string — anchored on a
+    // leading digit (not just the word "بوومەلەرزە", which also legitimately
+    // labels the union filter chip) so this specifically targets the
+    // removed results-count line, not the chip.
+    expect(screen.queryByText(/^[٠-٩0-9]+\s+بوومەلەرزە/)).toBeNull();
   });
 
   it("shows the empty state when no rows match the filters", async () => {

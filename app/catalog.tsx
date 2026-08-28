@@ -15,10 +15,9 @@ import {
 
 /**
  * Catalog screen (regional-catalog wave) — the bundled, offline Kurdistan/
- * Iraq earthquake catalog (872-2023, `bumelerze-engine/scripts/
- * build_regional_catalog.py`; see `bumelerze-engine/regional-catalog/
- * BUILD_REPORT.md` for source counts and data-quality notes). Reachable
- * from Home's header link row and a "full catalog" row on the Historical
+ * Iraq earthquake catalog (872-2026, `bumelerze-engine/scripts/
+ * export_app_catalog.py`, schema v3, 150,072 events). Reachable from
+ * Home's header link row and a "full catalog" row on the Historical
  * screen (both push here).
  *
  * `SQLiteProvider`'s `assetSource` is expo-sqlite's own standard bundled-

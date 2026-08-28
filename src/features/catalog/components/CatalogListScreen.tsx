@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/theme";
 import { useCatalogBounds, useCatalogList } from "../use-catalog";
-import { formatCatalogResultsCount } from "../format";
 import type { CatalogFilters, CatalogRow as CatalogRowData } from "../types";
 import { CatalogDetailSheet } from "./CatalogDetailSheet";
 import { CatalogFilterBar, type CatalogFilterValues } from "./CatalogFilterBar";
@@ -25,8 +24,7 @@ import { CatalogRow } from "./CatalogRow";
  * would plausibly help.
  */
 export function CatalogListScreen() {
-  const { t, i18n } = useTranslation();
-  const locale = i18n.language;
+  const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -61,7 +59,7 @@ export function CatalogListScreen() {
       }
     : {};
 
-  const { rows, totalCount, isLoading, isLoadingMore, hasMore, error, loadMore } =
+  const { rows, isLoading, isLoadingMore, hasMore, error, loadMore } =
     useCatalogList(queryFilters);
 
   const anyError = boundsError ?? error;
@@ -102,7 +100,7 @@ export function CatalogListScreen() {
     <View style={[styles.flex, { backgroundColor: colors.surface.base }]}>
       <FlatList
         data={rows}
-        keyExtractor={(row) => row.id}
+        keyExtractor={(row) => row.bumelerzeId}
         renderItem={({ item }) => <CatalogRow row={item} onPress={setSelectedRow} />}
         onEndReachedThreshold={0.4}
         onEndReached={() => {
@@ -112,21 +110,15 @@ export function CatalogListScreen() {
         }}
         ListHeaderComponent={
           <View style={{ gap: spacing[2] }}>
+            {/* Deliberately no results-count line here (owner directive
+                2026-08-28): showing "N earthquakes" risks reading as "this
+                catalog is small" depending on the active filters, so the
+                UI never surfaces a raw row count for the archival browser. */}
             <CatalogFilterBar
               bounds={bounds}
               values={effectiveFilterValues}
               onChange={setFilterValues}
             />
-            <Text
-              style={{
-                color: colors.text.secondary,
-                fontSize: typography.bodyMeta.fontSize,
-                lineHeight: typography.bodyMeta.lineHeight,
-                paddingHorizontal: spacing[4],
-              }}
-            >
-              {formatCatalogResultsCount(totalCount, locale, t)}
-            </Text>
           </View>
         }
         ListEmptyComponent={

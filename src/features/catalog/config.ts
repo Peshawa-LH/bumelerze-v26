@@ -26,10 +26,17 @@ export const CATALOG_YEAR_STEP = 10;
  * EXISTING install querying its stale first-launch copy. That exact bug
  * shipped when the bml `bumelerze_id` column landed (2026-08-15, caught by
  * Peshawa on-device: new query, old copied db, catalog dead on upgrades
- * while fresh installs worked). v2 = the bml-id schema. Old copies are
- * cleaned up in app/catalog.tsx (`deleteLegacyCatalogCopies`). */
-export const CATALOG_DATABASE_NAME = "bumelerze-catalog-v2.sqlite";
+ * while fresh installs worked). v2 = the bml-id schema. v3 = the
+ * `export_app_catalog.py` rebuild (2026-08-28): `bumelerze_id` became the
+ * primary key (surrogate `id` column dropped), `time` became epoch-seconds
+ * `t`, and `author_agency` was added — a v2-schema query against a v2 file
+ * cannot serve v3 rows, so this bump is required, not cosmetic. Old copies
+ * are cleaned up in app/catalog.tsx (`cleanUpLegacyDatabases`). */
+export const CATALOG_DATABASE_NAME = "bumelerze-catalog-v3.sqlite";
 
 /** Previous on-device copy names, deleted fire-and-forget at catalog mount
  * so stale multi-megabyte databases don't accumulate across upgrades. */
-export const LEGACY_CATALOG_DATABASE_NAMES = ["bumelerze-catalog.sqlite"] as const;
+export const LEGACY_CATALOG_DATABASE_NAMES = [
+  "bumelerze-catalog.sqlite",
+  "bumelerze-catalog-v2.sqlite",
+] as const;

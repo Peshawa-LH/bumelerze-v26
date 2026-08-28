@@ -97,8 +97,9 @@ describe("CatalogFilterBar", () => {
     const chips = screen.getAllByRole("checkbox");
     expect(chips[0]!.props.accessibilityLabel).toBe("Bumelerze");
     expect(chips[0]!.props.accessibilityState.checked).toBe(true);
-    // The five source chips follow, all unchecked.
-    expect(chips).toHaveLength(6);
+    // The six source chips follow (ISC, ISCGEM, ONUR2017, EMME, USGS,
+    // KISC), all unchecked.
+    expect(chips).toHaveLength(7);
   });
 
   it("unselects the Bumelerze chip when a source subset is chosen", async () => {
