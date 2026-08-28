@@ -13,8 +13,9 @@ import {
   formatIsolatedDistance,
   formatMagnitudeValue,
   isolateNumeric,
-  ProvenanceChip,
+  TagRow,
   useEventById,
+  useEventSourceAgencies,
   useRegionEvents,
   useWorldEvents,
 } from "@/features/events";
@@ -309,6 +310,10 @@ function EventDetailHeader({
 
   const placeText = placeLine(event, locale, t);
 
+  // Same batched transport as the list screens — a single-element array is
+  // just the degenerate batch, never a second per-event code path.
+  const sourceAgencies = useEventSourceAgencies([event]).get(event.id)?.agencies;
+
   return (
     <View style={{ gap: spacing[6] }}>
       <View style={{ gap: spacing[1] }}>
@@ -340,7 +345,7 @@ function EventDetailHeader({
         >
           {placeText}
         </Text>
-        <ProvenanceChip provider={event.provenance.provider} />
+        <TagRow provider={event.provenance.provider} agencies={sourceAgencies} />
       </View>
 
       <DetailSection

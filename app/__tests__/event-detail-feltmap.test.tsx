@@ -71,12 +71,17 @@ const mockChamchamalEvent: Event = {
 };
 
 // Only the network-backed feed hooks are overridden — everything else in
-// "@/features/events" (formatting, ProvenanceChip, etc.) runs for real,
-// same as home-screen.test.tsx's own "@/features/events" mock.
+// "@/features/events" (formatting, TagRow, etc.) runs for real, same as
+// home-screen.test.tsx's own "@/features/events" mock. `useEventSourceAgencies`
+// is ALSO overridden (unlike the feltmap transport, which fixture-swaps at
+// its own transport seam below): this test flips Supabase "configured" on
+// via real env vars pointed at a fake URL, and the real transport would
+// otherwise issue a genuine network request against it.
 jest.mock("@/features/events", () => {
   const actual = jest.requireActual("@/features/events");
   return {
     ...actual,
+    useEventSourceAgencies: () => new Map(),
     useRegionEvents: () => ({
       events: [mockChamchamalEvent],
       isOfflineIsh: false,

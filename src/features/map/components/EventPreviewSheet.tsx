@@ -37,7 +37,8 @@ import {
   formatRelativeTimeValue,
   getRelativeTime,
   isolateNumeric,
-  ProvenanceChip,
+  TagRow,
+  useEventSourceAgencies,
   type Event,
 } from "@/features/events";
 import { encodeEventRegistrationParam, toEventRegistration } from "@/features/felt";
@@ -122,6 +123,15 @@ function EventPreviewSheetImpl(
 
   const isExpanded = detent === "expanded";
   const currentEvent = content;
+
+  // Single-event corroboration lookup (still the same batched transport as
+  // the list screens — an array of one is just the degenerate batch size,
+  // never a second per-card code path). Degrades to `undefined` (TagRow's
+  // provider fallback) when Supabase is unreachable or this event isn't in
+  // the registry yet.
+  const sourceAgencies = useEventSourceAgencies([currentEvent]).get(
+    currentEvent.id,
+  )?.agencies;
 
   // A stable identity for "did the SELECTION genuinely change" (as opposed
   // to a re-render passing an equal-but-new object) — feeds
@@ -440,21 +450,26 @@ function EventPreviewSheetImpl(
               },
             ]}
           >
-            <View style={styles.topRow}>
-              <Text
-                allowFontScaling
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.magnitudeCompact.fontSize,
-                  lineHeight: typography.magnitudeCompact.lineHeight,
-                  fontWeight: typography.magnitudeCompact.fontWeight,
-                  fontVariant: ["tabular-nums"],
-                }}
-              >
-                {magnitudeText}
-              </Text>
-              <ProvenanceChip provider={currentEvent.provenance.provider} />
-            </View>
+            <Text
+              allowFontScaling
+              style={{
+                color: colors.text.primary,
+                fontSize: typography.magnitudeCompact.fontSize,
+                lineHeight: typography.magnitudeCompact.lineHeight,
+                fontWeight: typography.magnitudeCompact.fontWeight,
+                fontVariant: ["tabular-nums"],
+              }}
+            >
+              {magnitudeText}
+            </Text>
+            {/* Own full-width row, same reasoning as EventCard's identical
+             * split: up to three named source tags need the sheet's full
+             * width to wrap within, not the remainder left over from the
+             * magnitude text. */}
+            <TagRow
+              provider={currentEvent.provenance.provider}
+              agencies={sourceAgencies}
+            />
 
             <Text
               allowFontScaling
@@ -626,11 +641,6 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
   },
   metaRow: {
     flexDirection: "row",

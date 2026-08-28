@@ -61,8 +61,18 @@ export { magnitudeTone, type MagnitudeTone } from "./magnitude-tone";
 export { EventCard } from "./components/EventCard";
 export { EventListScreen } from "./components/EventListScreen";
 export { OfflineBanner } from "./components/OfflineBanner";
-export { ProvenanceChip } from "./components/ProvenanceChip";
+export {
+  buildTagRowAccessibilityLabel,
+  TagRow,
+  type TagRowContentProps,
+} from "./components/TagRow";
 export { PossibleEventCard } from "./components/PossibleEventCard";
+export {
+  SupabaseSourceCorroborationTransport,
+  useEventSourceAgencies,
+  type SourceCorroboration,
+  type SourceCorroborationTransport,
+} from "./source-corroboration";
 export {
   parsePossibleEventRows,
   possibleEventsQueryKeys,

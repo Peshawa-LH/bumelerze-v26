@@ -91,7 +91,14 @@
     "viewWorld": "جیهان",
     "viewSignificant": "گرنگ",
     "viewHistorical": "مێژوویی",
-    "notableTag": "بەرچاو"
+    "notableTag": "بەرچاو",
+    "shakemapTag": "نەخشەی لەرزین",
+    "shakemapTagA11yLabel": "نەخشەی لەرزین بەردەستە",
+    "tagRow": {
+      "moreSourcesTag": "+{{count}}",
+      "sourcesA11yLabel": "تۆمارکراوە لەلایەن {{agencies}}ەوە",
+      "sourcesWithMoreA11yLabel": "تۆمارکراوە لەلایەن {{agencies}}ەوە و {{count}} زیاتر"
+    }
   },
   "world": {
     "title": "کاتالۆگی جیهانی",

@@ -12,6 +12,7 @@
  * `map-web-*.test.tsx` needs it: real `window`/`document` for the
  * Escape-key and focus-management behavior this file exercises.
  */
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import { createRef, type ReactElement } from "react";
 import { Platform } from "react-native";
@@ -19,6 +20,16 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
 import type { Event } from "@/features/events";
+
+// `EventPreviewSheet` now calls the real `useEventSourceAgencies`
+// (`@/features/events/source-corroboration`) for its tag row — disabled
+// here since no Supabase env vars are set (`isSupabaseConfigured()` stays
+// false), but `useQuery` itself still needs a `QueryClientProvider` in the
+// tree regardless of `enabled`, same requirement as every other
+// react-query-backed hook this file's harness already wraps for.
+const testQueryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false, gcTime: 0 } },
+});
 
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
@@ -100,7 +111,9 @@ function makeEvent(overrides: Partial<Event> = {}): Event {
  */
 async function renderSheet(ui: ReactElement) {
   const result = await render(
-    <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>,
+    <QueryClientProvider client={testQueryClient}>
+      <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>
+    </QueryClientProvider>,
   );
   await act(async () => {
     fireEvent(screen.getByTestId("event-preview-sheet-overlay"), "layout", {
@@ -148,7 +161,15 @@ describe("EventPreviewSheet: preview content", () => {
     // (same as `EventCard`) — this default event's lat/lon resolve near
     // Slemani.
     expect(screen.getByText(/Slemani/)).toBeTruthy();
-    expect(screen.getByText(i18n.t("events.provenance.usgs"))).toBeTruthy();
+    // TagRow's individual pills are hidden from the a11y tree (the row's
+    // own combined `accessibilityLabel` is what a screen reader hears) —
+    // same `includeHiddenElements` convention as
+    // `ShakeMapView.test.tsx`/`FeltMapView.test.tsx`.
+    expect(
+      screen.getByText(i18n.t("events.provenance.usgs"), {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
     expect(screen.queryByText(/from you/)).toBeNull();
 
     // Expanded-only content (local time, depth) is absent at peek.
@@ -212,14 +233,16 @@ describe("EventPreviewSheet: expand/collapse control", () => {
     expect(mockWithSpring).toHaveBeenCalled();
 
     await rerender(
-      <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>
-        <EventPreviewSheet
-          content={makeEvent()}
-          detent="expanded"
-          onDetentChange={onDetentChange}
-          onDismiss={jest.fn()}
-        />
-      </SafeAreaProvider>,
+      <QueryClientProvider client={testQueryClient}>
+        <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>
+          <EventPreviewSheet
+            content={makeEvent()}
+            detent="expanded"
+            onDetentChange={onDetentChange}
+            onDismiss={jest.fn()}
+          />
+        </SafeAreaProvider>
+      </QueryClientProvider>,
     );
     expect(
       screen.getByRole("button", { name: i18n.t("map.eventSheet.collapseButtonLabel") }),

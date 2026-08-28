@@ -12,7 +12,7 @@ import {
 } from "../format";
 import { magnitudeTone } from "../magnitude-tone";
 import type { Event } from "../types";
-import { ProvenanceChip } from "./ProvenanceChip";
+import { buildTagRowAccessibilityLabel, TagRow } from "./TagRow";
 
 interface EventCardProps {
   event: Event;
@@ -26,14 +26,26 @@ interface EventCardProps {
   /** True when this card is only on Home because of the adaptive
    * Home-feed policy's magnitude-tiered notable carve-out
    * (`home-feed-policy.ts`) — i.e. it's older than the feed's normal
-   * window. Renders a small "notable" tag next to the provenance chip so
-   * an old, still-significant event doesn't read as fresh or confusingly
-   * out of place next to yesterday's smaller ones (update-plan-2026-08.md
-   * §1.1). Defaults to `false` for every other list (World, Significant). */
+   * window. Renders a small "notable" tag in the tag row so an old, still-
+   * significant event doesn't read as fresh or confusingly out of place
+   * next to yesterday's smaller ones (update-plan-2026-08.md §1.1).
+   * Defaults to `false` for every other list (World, Significant). */
   isNotable?: boolean;
+  /** Distinct authoring agencies for this event from the corroboration
+   * registry (`useEventSourceAgencies`, batched once per list — never
+   * fetched per card). `undefined` when the registry has no match yet
+   * (Supabase unreachable, or this event simply isn't there) — `TagRow`
+   * falls back to the single provider chip in that case. */
+  sourceAgencies?: readonly string[] | undefined;
 }
 
-function EventCardImpl({ event, onPress, now, isNotable = false }: EventCardProps) {
+function EventCardImpl({
+  event,
+  onPress,
+  now,
+  isNotable = false,
+  sourceAgencies,
+}: EventCardProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { colors, typography, spacing } = useTheme();
@@ -73,7 +85,10 @@ function EventCardImpl({ event, onPress, now, isNotable = false }: EventCardProp
   const webDirProp =
     Platform.OS === "web" ? { dir: isRTLLocale(locale) ? "rtl" : "ltr" } : null;
 
-  const notableTagText = isNotable ? t("events.notableTag") : null;
+  const tagRowA11yLabel = buildTagRowAccessibilityLabel(
+    { provider: event.provenance.provider, agencies: sourceAgencies, isNotable },
+    t,
+  );
 
   const accessibilityLabel = [
     t("events.magnitudeA11yLabel", {
@@ -81,7 +96,7 @@ function EventCardImpl({ event, onPress, now, isNotable = false }: EventCardProp
     }),
     placeText,
     relativeTimeText,
-    notableTagText,
+    tagRowA11yLabel,
   ]
     .filter(Boolean)
     .join(". ");
@@ -105,50 +120,37 @@ function EventCardImpl({ event, onPress, now, isNotable = false }: EventCardProp
         },
       ]}
     >
-      <View style={styles.topRow}>
-        <Text
-          allowFontScaling
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.magnitudeCompact.fontSize,
-            lineHeight: typography.magnitudeCompact.lineHeight,
-            fontWeight: typography.magnitudeCompact.fontWeight,
-            fontVariant: ["tabular-nums"],
-            // No forced writingDirection: "M 4.1" (en/kmr) is an LTR run
-            // and "٤.١ پلە" (ckb/ar) an RTL run — Unicode auto-direction
-            // resolves each correctly; forcing LTR would flip the Kurdish
-            // template to "پلە ٤.١" read order.
-          }}
-        >
-          {magnitudeText}
-        </Text>
-        <View style={[styles.chipRow, { gap: spacing[1] }]}>
-          {notableTagText ? (
-            <View
-              style={[
-                styles.notableTag,
-                {
-                  borderColor: colors.status.info,
-                  paddingHorizontal: spacing[2],
-                  paddingVertical: spacing[1] / 2,
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  color: colors.status.info,
-                  fontSize: typography.labelCaption.fontSize,
-                  lineHeight: typography.labelCaption.lineHeight,
-                  fontWeight: typography.labelCaption.fontWeight,
-                }}
-              >
-                {notableTagText}
-              </Text>
-            </View>
-          ) : null}
-          <ProvenanceChip provider={event.provenance.provider} />
-        </View>
-      </View>
+      <Text
+        allowFontScaling
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.magnitudeCompact.fontSize,
+          lineHeight: typography.magnitudeCompact.lineHeight,
+          fontWeight: typography.magnitudeCompact.fontWeight,
+          fontVariant: ["tabular-nums"],
+          // No forced writingDirection: "M 4.1" (en/kmr) is an LTR run
+          // and "٤.١ پلە" (ckb/ar) an RTL run — Unicode auto-direction
+          // resolves each correctly; forcing LTR would flip the Kurdish
+          // template to "پلە ٤.١" read order.
+        }}
+      >
+        {magnitudeText}
+      </Text>
+
+      {/* Own full-width row (not squeezed beside the magnitude, spec change
+       * from the old single-chip layout): with up to three named source
+       * tags plus notable/shakemap, this can run to two lines on a narrow
+       * phone at large font scale — `TagRow`'s own `flexWrap: "wrap"`
+       * handles that, but only if it has the card's full width to wrap
+       * within, which a row shared with the magnitude text would not
+       * reliably give it (owner brief: "rather than overflowing a phone
+       * card"). */}
+      <TagRow
+        standalone={false}
+        provider={event.provenance.provider}
+        agencies={sourceAgencies}
+        isNotable={isNotable}
+      />
 
       <Text
         style={{
@@ -186,22 +188,8 @@ const styles = StyleSheet.create({
     borderStartWidth: 4,
     borderRadius: 12,
   },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
   metaRow: {
     flexDirection: "row",
     gap: 12,
-  },
-  chipRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  notableTag: {
-    borderWidth: 1,
-    borderRadius: 999,
-    alignSelf: "flex-start",
   },
 });
