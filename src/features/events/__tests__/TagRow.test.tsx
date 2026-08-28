@@ -47,6 +47,28 @@ describe("TagRow", () => {
     expect(screen.queryByText("EMSC", HIDDEN)).toBeNull();
   });
 
+  it("renders USGS's raw network code 'US' under its familiar name", async () => {
+    // The registry stores what the feed reports, and USGS reports itself as
+    // "US". Unmapped, the same organisation showed as "US" on a corroborated
+    // card and "USGS" everywhere else, reading as two different sources.
+    await render(<TagRow provider="usgs" agencies={["US"]} />);
+    expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
+    expect(screen.queryByText("US", HIDDEN)).toBeNull();
+  });
+
+  it("shows only the leading agency on a banner, never a '+N' (owner directive)", async () => {
+    // A list banner carries exactly three tag kinds: source, notable,
+    // shakemap. Three agencies agreeing must still render as ONE source tag.
+    await render(
+      <TagRow provider="usgs" agencies={["US", "CSEM", "GFZ"]} isNotable />,
+    );
+    expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
+    expect(screen.queryByText("EMSC", HIDDEN)).toBeNull();
+    expect(screen.queryByText("GEOFON", HIDDEN)).toBeNull();
+    expect(screen.queryByText(/^\+/, HIDDEN)).toBeNull();
+    expect(screen.getByText(i18n.t("events.notableTag"), HIDDEN)).toBeTruthy();
+  });
+
   it("renders one named tag per agency for two sources", async () => {
     await render(<TagRow provider="usgs" agencies={["USGS", "EMSC"]} maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />);
     expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
@@ -160,15 +182,16 @@ describe("TagRow", () => {
 
 describe("buildTagRowAccessibilityLabel", () => {
   it("builds the same sentence TagRow would expose standalone, for EventCard to fold into its own label", () => {
-    // The card shows ONE visual tag, but its spoken label still conveys the
-    // corroboration: "Located by USGS and 1 more". That is the whole reason
-    // the compact default does not lose information for screen-reader users.
+    // A banner carries exactly three tag kinds (source, notable, shakemap)
+    // and never a "+N". The spoken label matches that rather than quietly
+    // adding "and 1 more", so a screen-reader user hears what a sighted
+    // user sees; the full agency list lives on event detail.
     const label = buildTagRowAccessibilityLabel(
       { provider: "usgs", agencies: ["USGS", "EMSC"], isNotable: true },
       i18n.t.bind(i18n),
     );
     expect(label).toBe(
-      `${i18n.t("events.tagRow.sourcesWithMoreA11yLabel", { agencies: "USGS", count: 1 })}. ${i18n.t("events.notableTag")}`,
+      `${i18n.t("events.tagRow.sourcesA11yLabel", { agencies: "USGS" })}. ${i18n.t("events.notableTag")}`,
     );
   });
 

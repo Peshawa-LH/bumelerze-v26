@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
+import { agencyDisplayLabel } from "../agency-labels";
 import type { EventProvider } from "../types";
 
 /** Only the first N distinct authoring agencies get their own named tag;
@@ -71,8 +72,20 @@ function computeTagRowContent(
   }: TagRowContentProps,
   t: TFunction,
 ): TagRowContent {
-  const namedAgencies = (agencies ?? []).slice(0, maxSourceTags);
-  const remainingCount = Math.max((agencies?.length ?? 0) - namedAgencies.length, 0);
+  const namedAgencies = (agencies ?? [])
+    .slice(0, maxSourceTags)
+    .map(agencyDisplayLabel);
+  // The compact surface (list banners) shows exactly three tag kinds and no
+  // more: source, notable, shakemap. Owner directive 2026-08-28, tightened
+  // after a first pass rendered "US +2": "one source tagged the main one
+  // thats enough ... for the banners only one tag for the source". So the
+  // "+N" collapse exists only where the full list does, on event detail.
+  // The spoken label follows the visual rather than quietly adding "and N
+  // more", so a screen-reader user hears what a sighted user sees.
+  const showsRemainderTag = maxSourceTags > MAX_NAMED_SOURCE_TAGS_COMPACT;
+  const remainingCount = showsRemainderTag
+    ? Math.max((agencies?.length ?? 0) - namedAgencies.length, 0)
+    : 0;
 
   const sourceTagLabels =
     namedAgencies.length > 0
