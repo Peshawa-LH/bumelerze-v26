@@ -13,9 +13,17 @@ const VS30_D_BAND = 250;
  * the code does not cover and the form opens empty — the behaviour these
  * tests were written against. The pre-fill path has its own cases at the
  * end. */
-const NO_ISC2025: Isc2025Result = { zone: null, nearestDistrict: null };
+const NO_ISC2025: Isc2025Result = { values: null, zone: null, nearestDistrict: null };
 
 const DERBENDIKHAN: Isc2025Result = {
+  values: {
+    ss2475: 1.25,
+    s12475: 0.5,
+    pga2475: 0.25,
+    ss1000: 0.81,
+    s11000: 0.32,
+    pga1000: 0.16,
+  },
   zone: { zone: "IV", ssMinG: 0.95, ssMaxG: 1.35, ring: [] },
   nearestDistrict: {
     district: {

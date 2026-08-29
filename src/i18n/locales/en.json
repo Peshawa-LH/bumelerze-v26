@@ -820,11 +820,11 @@
     "resultsTitle": "Results for {{lat}}, {{lon}}",
     "rows": {
       "isc2025": {
-        "label": "Design spectral acceleration",
-        "citation": "Iraqi Seismic Code 2025, 2475-year return period (IMOS)",
-        "value": "Ss {{ss}}g / S1 {{s1}}g",
+        "label": "Design ground motions",
+        "citation": "Iraqi Seismic Code 2025 (forthcoming edition), 2475-year return period, IMOS. Interpolated between the code's published district values.",
+        "value": "Ss {{ss}}g / S1 {{s1}}g / PGA {{pga}}g",
         "zone": "Zone {{zone}}",
-        "district": "nearest district {{district}}, {{distance}} km",
+        "district": "nearest published district {{district}}, {{distance}} km",
         "separator": " · ",
         "outsideCoverage": "This location is outside the Iraqi Seismic Code 2025 coverage."
       },
@@ -874,7 +874,7 @@
         "notOfRecord": "It is for preliminary sizing, sanity-checking another tool, and teaching. It does not replace a site-specific geotechnical investigation, the code text itself, or a submission-ready spectrum.",
         "ssS1Source": "Ss and S1 must be entered by you, from ISC-2017 Figures 2-2/1(a) and (b). This app does not yet ship those maps, and a shortcut from PGA to Ss is not reliable enough to offer here.",
         "vs30Proxy": "The site class below is estimated from a global terrain-slope model at about 5 km resolution, not a site measurement. Replace it whenever you have real geotechnical data.",
-        "ssS1FromCode": "Ss and S1 are pre-filled from the Iraqi Seismic Code 2025 district table, taken from the nearest tabulated district rather than interpolated to your exact point. Check the district and distance shown below, and replace both whenever you hold a site-specific study."
+        "ssS1FromCode": "Ss and S1 come from the Iraqi Seismic Code 2025, a forthcoming edition that is not yet in force, interpolated to this coordinate from its published district values. The spectrum shape below still follows the 2017 code's rules. Replace both whenever you hold a site-specific study."
       },
       "formTitle": "Design inputs",
       "ssS1Note": "Read Ss (0.2 s) and S1 (1.0 s) off ISC-2017 Figures 2-2/1(a) and (b) for this site.",
@@ -939,8 +939,8 @@
         "r": "R"
       },
       "codeValues": {
-        "prefilled": "Pre-filled from the Iraqi Seismic Code 2025 values for {{district}}, {{distance}} km away.",
-        "overridden": "You have changed the code values for {{district}}, {{distance}} km away.",
+        "prefilled": "From the Iraqi Seismic Code 2025 at this location. Nearest published district: {{district}}, {{distance}} km.",
+        "overridden": "You have changed the code values. Nearest published district: {{district}}, {{distance}} km.",
         "reset": "Restore the code values"
       },
       "ssS1NoteFromCode": "Ss (0.2 s) and S1 (1.0 s) are filled in from the code table. Change either one if you hold a site-specific study."

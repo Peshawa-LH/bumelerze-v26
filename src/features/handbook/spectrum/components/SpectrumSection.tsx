@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ISC2025_MAX_USEFUL_DISTANCE_KM } from "../../config";
 import type { Isc2025Result } from "../../types";
 import type { SpectrumCodeValues } from "../types";
 import { CHART_DEFAULT_T_MAX, CHART_EXTENDED_T_MAX } from "../config";
@@ -28,21 +27,17 @@ interface SpectrumSectionProps {
   locale: string;
 }
 
-/** Only offer the code's numbers where they mean something: inside a mapped
- * zone band, or close enough to a tabulated district. Otherwise the form
- * opens empty and the engineer supplies both, which is the honest state for
- * a site the code does not cover. */
+/** The interpolated values at the queried point, or null outside the code's
+ * coverage — where the form opens empty and the engineer supplies both,
+ * which is the honest state for a site the code does not cover. */
 function toCodeValues(isc2025: Isc2025Result): SpectrumCodeValues | null {
   const nearest = isc2025.nearestDistrict;
-  if (!nearest) {
-    return null;
-  }
-  if (isc2025.zone === null && nearest.distanceKm > ISC2025_MAX_USEFUL_DISTANCE_KM) {
+  if (!isc2025.values || !nearest) {
     return null;
   }
   return {
-    ss: nearest.district.ss2475G,
-    s1: nearest.district.s12475G,
+    ss: isc2025.values.ss2475,
+    s1: isc2025.values.s12475,
     districtName: nearest.district.nameEn,
     distanceKm: nearest.distanceKm,
   };
