@@ -23,6 +23,7 @@ export { lookupHandbookData } from "./lookup";
 export { lookupPgaZone, pointInRing } from "./point-in-polygon";
 export { siteClassFromVs30 } from "./site-class";
 export { nearbySoilPoints } from "./soil-nearest";
+export * from "./spectrum";
 export type {
   HandbookLookupResult,
   NearbySoilPoint,

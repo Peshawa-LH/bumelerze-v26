@@ -830,7 +830,78 @@
       "dem-vs30": "DEM-based Vs30 estimate"
     },
     "disclaimer": "These values are a reference for preliminary use. They are not a substitute for a site-specific geotechnical investigation or for the design code text itself.",
-    "outOfCoverage": "No bundled data covers this location."
+    "outOfCoverage": "No bundled data covers this location.",
+    "spectrum": {
+      "sectionTitle": "Design response spectrum (ISC-2017)",
+      "banner": {
+        "title": "This is a calculator, not a design spectrum of record.",
+        "notOfRecord": "It is for preliminary sizing, sanity-checking another tool, and teaching. It does not replace a site-specific geotechnical investigation, the code text itself, or a submission-ready spectrum.",
+        "ssS1Source": "Ss and S1 must be entered by you, from ISC-2017 Figures 2-2/1(a) and (b). This app does not yet ship those maps, and a shortcut from PGA to Ss is not reliable enough to offer here.",
+        "vs30Proxy": "The site class below is estimated from a global terrain-slope model at about 5 km resolution, not a site measurement. Replace it whenever you have real geotechnical data."
+      },
+      "formTitle": "Enter Ss and S1",
+      "ssS1Note": "Read Ss (0.2 s) and S1 (1.0 s) off ISC-2017 Figures 2-2/1(a) and (b) for this site.",
+      "ssLabel": "Ss (g)",
+      "ssPlaceholder": "0.30",
+      "s1Label": "S1 (g)",
+      "s1Placeholder": "0.10",
+      "errorEmpty": "Enter a value.",
+      "errorNotANumber": "Enter a number.",
+      "errorOutOfRange": "Out of range.",
+      "siteClassLabel": "Site class",
+      "siteClassDerivedNote": "Estimated from Vs30 at this coordinate: {{siteClass}}. Tap another letter to override.",
+      "siteClassNoDerivedNote": "No Vs30 data at this coordinate — pick a site class.",
+      "siteClassOptionA11y": "Site class {{siteClass}}",
+      "resetSiteClass": "Use the estimated class ({{siteClass}}) again",
+      "occupancyLabel": "Occupancy category",
+      "occupancy": {
+        "I_II": "I or II (ordinary)",
+        "III": "III (assembly / high-occupancy)",
+        "IV": "IV (essential facility)"
+      },
+      "rLabel": "R (response modification coefficient)",
+      "rNote": "Only R = 4 (intermediate RC moment frame) is verified against the code's own worked example. Every other system needs the full Table 3-2/1 from your own copy of ISC-2017 — enter it directly below.",
+      "rChipLabel": "R = {{r}} ({{systemLabel}})",
+      "rOptions": {
+        "rcMomentFrameIntermediate": "intermediate RC moment frame"
+      },
+      "rPlaceholder": "4",
+      "chartError": "The chart could not be drawn. The control-point table below still has every value.",
+      "chartA11yLabel": "Design response spectrum. Plateau {{plateau}} g between T0 = {{t0}} s and Ts = {{ts}} s, then decaying as SD1 over T, with SD1 = {{sd1}} g.",
+      "legend": {
+        "code": "Code spectrum",
+        "reduced": "Reduced (Sa x I / R)",
+        "csPlateau": "Cs (unreduced) = SDS / (R/I)",
+        "csFloor": "Cs floor = 0.044 SDS I"
+      },
+      "rangeToggle": {
+        "showFull": "Show full range (0-8 s, includes TL)",
+        "showDefault": "Show default range (0-4 s)"
+      },
+      "table": {
+        "title": "Control points",
+        "copy": "Copy table",
+        "copied": "Copied",
+        "ss": "Ss",
+        "s1": "S1",
+        "siteClass": "Site class",
+        "fa": "Fa",
+        "fv": "Fv",
+        "sms": "SMS",
+        "sm1": "SM1",
+        "sds": "SDS",
+        "sd1": "SD1",
+        "t0": "T0",
+        "ts": "Ts",
+        "tl": "TL",
+        "saPlateau": "Sa plateau (T0 to Ts)",
+        "saAtOneSecond": "Sa at T = 1.0 s",
+        "sdc": "Seismic design category",
+        "csUnreduced": "Cs = SDS / (R/I)",
+        "csFloor": "Cs floor = 0.044 SDS I",
+        "r": "R"
+      }
+    }
   },
   "myData": {
     "title": "My Data",

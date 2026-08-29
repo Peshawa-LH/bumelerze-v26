@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/theme";
 import { lookupHandbookData } from "../lookup";
+import { SpectrumSection } from "../spectrum";
 import type { HandbookLookupResult } from "../types";
 import { CoordinateInputForm } from "./CoordinateInputForm";
 import { HandbookResultTable } from "./HandbookResultTable";
@@ -21,7 +22,7 @@ import { HandbookResultTable } from "./HandbookResultTable";
  * treatment the felt-report flow gets.
  */
 export function HandbookScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -53,6 +54,8 @@ export function HandbookScreen() {
       <CoordinateInputForm onSubmit={handleSubmit} />
 
       {result ? <HandbookResultTable result={result} /> : null}
+
+      {result ? <SpectrumSection vs30MS={result.vs30MS} locale={i18n.language} /> : null}
 
       <View
         style={{
