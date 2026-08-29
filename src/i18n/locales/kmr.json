@@ -830,7 +830,78 @@
       "dem-vs30": "Texmîna Vs30 ya li ser bingeha DEM"
     },
     "disclaimer": "Ev nirx ji bo bikaranîna destpêkê ne, jêder in. Ew şûna lêkolîna geoteknîkî ya taybet a cihê an jî nivîsa qanûna sêwiranê bi xwe nagirin.",
-    "outOfCoverage": "Tu daneya bicihkirî vî cihî nagire."
+    "outOfCoverage": "Tu daneya bicihkirî vî cihî nagire.",
+    "spectrum": {
+      "sectionTitle": "Spektruma bersiva sêwiranê (ISC-2017)",
+      "banner": {
+        "title": "Ev hesabkerek e, ne spektruma sêwiranê ya fermî ye.",
+        "notOfRecord": "Ji bo pîvandina destpêkê, kontrolkirina encama amûrekî din, û fêrbûnê ye. Ev şûna lêkolîna geoteknîkî ya taybet a cihî, nivîsa qanûnê bi xwe, an spektruma amade ji bo pêşkêşkirinê nagire.",
+        "ssS1Source": "Divê tu bi xwe Ss û S1 binivîsî, ji Wêneyên 2-2/1(a) û (b) ên ISC-2017. Ev sepan hê van nexşeyan nade, û kurteriya ji PGA berbi Ss ne ewqas pêbawer e ku em vê derê pêşkêş bikin.",
+        "vs30Proxy": "Pola axê ya jêrîn ji modelek gerdûnî ya şibê topografîk bi nêzîkî 5 km tê texmînkirin, ne pîvana rasterast a cihî. Her gav ku daneya rastîn a geoteknîkî hebe, wê biguherîne."
+      },
+      "formTitle": "Ss û S1 binivîse",
+      "ssS1Note": "Ss (0.2 çirke) û S1 (1.0 çirke) ji Wêneyên 2-2/1(a) û (b) ên ISC-2017 ji bo vî cihî wergire.",
+      "ssLabel": "Ss (g)",
+      "ssPlaceholder": "0.30",
+      "s1Label": "S1 (g)",
+      "s1Placeholder": "0.10",
+      "errorEmpty": "Nirxekê binivîse.",
+      "errorNotANumber": "Hejmarekê binivîse.",
+      "errorOutOfRange": "Ji sînor derve ye.",
+      "siteClassLabel": "Pola axê",
+      "siteClassDerivedNote": "Ji Vs30 ya vê koordînatê hatiye texmînkirin: {{siteClass}}. Ji bo guherandinê tîpek din hilbijêre.",
+      "siteClassNoDerivedNote": "Tu daneya Vs30 ya vê koordînatê tune, pola axê hilbijêre.",
+      "siteClassOptionA11y": "Pola axê {{siteClass}}",
+      "resetSiteClass": "Dîsa pola texmînkirî bikar bîne ({{siteClass}})",
+      "occupancyLabel": "Pola bikaranînê",
+      "occupancy": {
+        "I_II": "I an II (asayî)",
+        "III": "III (civîn / gelemperiya bilind)",
+        "IV": "IV (avahiyên bingehîn)"
+      },
+      "rLabel": "R (koefîsyana guherandina bersivê)",
+      "rNote": "Tenê R = 4 (çarçoveya betona hesin a navîn) li gorî mînaka hesabkirî ya qanûnê xwe hatiye pejirandin. Her pergalek din pêdiviya wê bi tabloya 3-2/1 ya tevahî ya kopiya te ya ISC-2017 heye, rasterast li jêr binivîse.",
+      "rChipLabel": "R = {{r}} ({{systemLabel}})",
+      "rOptions": {
+        "rcMomentFrameIntermediate": "çarçoveya betona hesin a navîn"
+      },
+      "rPlaceholder": "4",
+      "chartError": "Grafîk nehat xêzkirin. Tabloya xalên kontrolê ya jêrîn hemû nirxan digire.",
+      "chartA11yLabel": "Spektruma bersiva sêwiranê. Platoya {{plateau}} g di navbera T0 = {{t0}} çirke û Ts = {{ts}} çirkeyê de, paşê wek SD1 li ser T kêm dibe, bi SD1 = {{sd1}} g.",
+      "legend": {
+        "code": "Spektruma qanûnê",
+        "reduced": "Kêmkirî (Sa x I / R)",
+        "csPlateau": "Cs (nekêmkirî) = SDS / (R/I)",
+        "csFloor": "Sinorê jêrîn ê Cs = 0.044 SDS I"
+      },
+      "rangeToggle": {
+        "showFull": "Dawiya tevahî nîşan bide (0-8 çirke, TL tê de ye)",
+        "showDefault": "Dawiya bingehîn nîşan bide (0-4 çirke)"
+      },
+      "table": {
+        "title": "Xalên kontrolê",
+        "copy": "Tabloyê kopî bike",
+        "copied": "Hate kopîkirin",
+        "ss": "Ss",
+        "s1": "S1",
+        "siteClass": "Pola axê",
+        "fa": "Fa",
+        "fv": "Fv",
+        "sms": "SMS",
+        "sm1": "SM1",
+        "sds": "SDS",
+        "sd1": "SD1",
+        "t0": "T0",
+        "ts": "Ts",
+        "tl": "TL",
+        "saPlateau": "Platoya Sa (T0 heta Ts)",
+        "saAtOneSecond": "Sa li T = 1.0 çirke",
+        "sdc": "Pola sêwirana bihejê",
+        "csUnreduced": "Cs = SDS / (R/I)",
+        "csFloor": "Sinorê jêrîn ê Cs = 0.044 SDS I",
+        "r": "R"
+      }
+    }
   },
   "myData": {
     "title": "Daneyên min",
