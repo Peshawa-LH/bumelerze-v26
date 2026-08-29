@@ -819,6 +819,15 @@
     "lookupButton": "Lêgerîn",
     "resultsTitle": "Encam ji bo {{lat}}, {{lon}}",
     "rows": {
+      "isc2025": {
+        "label": "Lezkirina bersiva tayfî ya sêwiranê",
+        "citation": "Koda Erdhejê ya Iraqê 2025, dema dubarebûnê 2475 sal",
+        "value": "Ss {{ss}}g / S1 {{s1}}g",
+        "zone": "Herêma {{zone}}",
+        "district": "qeza herî nêzîk {{district}}, {{distance}} km",
+        "separator": " · ",
+        "outsideCoverage": "Ev cih li derveyî pêwendiya Koda Erdhejê ya Iraqê 2025 e."
+      },
       "pga": {
         "label": "PGA ya sêwiranê",
         "citation": "Qanûna Erdhejê ya Iraqê 2017, nexşeya herêmkirina PGA ya sêwiranê",
@@ -864,9 +873,10 @@
         "title": "Ev hesabkerek e, ne spektruma sêwiranê ya fermî ye.",
         "notOfRecord": "Ji bo pîvandina destpêkê, kontrolkirina encama amûrekî din, û fêrbûnê ye. Ev şûna lêkolîna geoteknîkî ya taybet a cihî, nivîsa qanûnê bi xwe, an spektruma amade ji bo pêşkêşkirinê nagire.",
         "ssS1Source": "Divê tu bi xwe Ss û S1 binivîsî, ji Wêneyên 2-2/1(a) û (b) ên ISC-2017. Ev sepan hê van nexşeyan nade, û kurteriya ji PGA berbi Ss ne ewqas pêbawer e ku em vê derê pêşkêş bikin.",
-        "vs30Proxy": "Pola axê ya jêrîn ji modelek gerdûnî ya şibê topografîk bi nêzîkî 5 km tê texmînkirin, ne pîvana rasterast a cihî. Her gav ku daneya rastîn a geoteknîkî hebe, wê biguherîne."
+        "vs30Proxy": "Pola axê ya jêrîn ji modelek gerdûnî ya şibê topografîk bi nêzîkî 5 km tê texmînkirin, ne pîvana rasterast a cihî. Her gav ku daneya rastîn a geoteknîkî hebe, wê biguherîne.",
+        "ssS1FromCode": "Ss û S1 ji tabloya qezayan a Koda Erdhejê ya Iraqê 2025 hatine dagirtin, ji qeza herî nêzîk hatine girtin û ne ji bo xala te ya tam hatine hesibandin. Qeza û dûrahiyê li jêr kontrol bike, û herduyan biguherîne dema lêkolîneke taybet a cihê te hebe."
       },
-      "formTitle": "Ss û S1 binivîse",
+      "formTitle": "Têketinên sêwiranê",
       "ssS1Note": "Ss (0.2 çirke) û S1 (1.0 çirke) ji Wêneyên 2-2/1(a) û (b) ên ISC-2017 ji bo vî cihî wergire.",
       "ssLabel": "Ss (g)",
       "ssPlaceholder": "0.30",
@@ -927,7 +937,13 @@
         "csUnreduced": "Cs = SDS / (R/I)",
         "csFloor": "Sinorê jêrîn ê Cs = 0.044 SDS I",
         "r": "R"
-      }
+      },
+      "codeValues": {
+        "prefilled": "Ji nirxên Koda Erdhejê ya Iraqê 2025 ji bo {{district}} hatiye dagirtin, {{distance}} km dûr.",
+        "overridden": "Te nirxên kodê ji bo {{district}} guherandine, {{distance}} km dûr.",
+        "reset": "Nirxên kodê vegerîne"
+      },
+      "ssS1NoteFromCode": "Ss (0.2 s) û S1 (1.0 s) ji tabloya kodê hatine dagirtin. Yek ji wan biguherîne heke lêkolîneke taybet a cihî li ba te hebe."
     }
   },
   "myData": {

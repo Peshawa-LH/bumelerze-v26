@@ -22,3 +22,13 @@ export const GMPE_SET_LABEL = "CY14, ASB14, BSSA14, Kale15-Iran";
  * without hiding it (D14: caveat, don't hide).
  */
 export const VS30_DISPLAY_PRECISION_MS = 25;
+
+/**
+ * Beyond this distance from the nearest tabulated district, and with no
+ * zone band containing the point either, the ISC-2025 row reports "outside
+ * the code's coverage" rather than a value. 150 km is chosen to be clearly
+ * outside Iraq rather than to express confidence: inside the country the
+ * district table is dense enough that any site is far closer than this,
+ * and the zone band answers wherever the table does not.
+ */
+export const ISC2025_MAX_USEFUL_DISTANCE_KM = 150;

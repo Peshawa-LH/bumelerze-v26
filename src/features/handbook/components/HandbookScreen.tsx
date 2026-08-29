@@ -55,7 +55,18 @@ export function HandbookScreen() {
 
       {result ? <HandbookResultTable result={result} /> : null}
 
-      {result ? <SpectrumSection vs30MS={result.vs30MS} locale={i18n.language} /> : null}
+      {/* Keyed on the coordinate so a new lookup starts a clean spectrum.
+       * The form seeds Ss/S1 and the site class from the point ONCE per
+       * mount, so without this a second lookup would silently keep the
+       * first site's design values. */}
+      {result ? (
+        <SpectrumSection
+          key={`${result.lat},${result.lon}`}
+          vs30MS={result.vs30MS}
+          isc2025={result.isc2025}
+          locale={i18n.language}
+        />
+      ) : null}
 
       <View
         style={{

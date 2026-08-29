@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
+import { formatDistanceKm, isolateNumeric } from "@/features/events";
 import { VERIFIED_R_VALUES } from "../config";
 import { occupancyLabelKey } from "../format";
 import type { IscSiteClass, OccupancyCategory } from "../types";
@@ -31,6 +32,7 @@ interface SpectrumInputsFormProps {
   /** `null` when the coordinate has no Vs30 sample — the pre-fill/"derived"
    * framing is skipped and the engineer picks a class with no default. */
   derivedSiteClass: IscSiteClass | null;
+  locale: string;
 }
 
 /**
@@ -40,9 +42,14 @@ interface SpectrumInputsFormProps {
  * recomputes the spectrum live (`SpectrumSection` reads `state.inputs`
  * directly), matching "quick tool" framing over a multi-step wizard.
  */
-export function SpectrumInputsForm({ state, derivedSiteClass }: SpectrumInputsFormProps) {
+export function SpectrumInputsForm({
+  state,
+  derivedSiteClass,
+  locale,
+}: SpectrumInputsFormProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
+  const { codeValues } = state;
 
   return (
     <View style={{ gap: spacing[4] }}>
@@ -59,8 +66,35 @@ export function SpectrumInputsForm({ state, derivedSiteClass }: SpectrumInputsFo
       </Text>
 
       <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-        {t("handbook.spectrum.ssS1Note")}
+        {t(codeValues ? "handbook.spectrum.ssS1NoteFromCode" : "handbook.spectrum.ssS1Note")}
       </Text>
+
+      {/* Provenance for the pre-filled pair. The distance is shown because
+       * these are published values AT a district, not interpolated to the
+       * queried point — a value from 3 km away and one from 60 km away are
+       * different claims and must not read the same. */}
+      {codeValues ? (
+        <View style={{ gap: spacing[1] }}>
+          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+            {t(
+              state.isOverriddenFromCode
+                ? "handbook.spectrum.codeValues.overridden"
+                : "handbook.spectrum.codeValues.prefilled",
+              {
+                district: codeValues.districtName,
+                distance: isolateNumeric(formatDistanceKm(codeValues.distanceKm, locale)),
+              },
+            )}
+          </Text>
+          {state.isOverriddenFromCode ? (
+            <Pressable accessibilityRole="button" onPress={state.resetToCodeValues} hitSlop={8}>
+              <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+                {t("handbook.spectrum.codeValues.reset")}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
 
       {/* --- Ss --- */}
       <View style={{ gap: spacing[2] }}>
