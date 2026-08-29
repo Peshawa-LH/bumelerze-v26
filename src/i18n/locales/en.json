@@ -979,7 +979,19 @@
         "unlimited": "No height limit in category {{sdc}}.",
         "overLimit": "Taller than the {{limit}} m limit for category {{sdc}}.",
         "withinLimit": "Height limit in category {{sdc}}: {{limit}} m."
-      }
+      },
+      "period": {
+        "ta": "Ta = {{ta}} s  (Ct {{ct}}, x {{x}}, Table 3-9/2)",
+        "cuTa": "Cu·Ta = {{cuTa}} s  (Cu {{cu}}, Table 3-9/1) — the ceiling if you have a period from analysis",
+        "cs": "Cs = {{cs}} at Ta, governed by {{governedBy}}",
+        "needsHeight": "Enter a building height to get Ta and the governing Cs.",
+        "governedBy": {
+          "plateau": "SDS / (R/I)",
+          "periodCap": "the SD1 / (T·R/I) cap",
+          "floor": "the 0.044·SDS·I floor"
+        }
+      },
+      "driftLimit": "Allowable storey drift: {{ratio}} × hsx (Table 3-12/1)"
     }
   },
   "myData": {

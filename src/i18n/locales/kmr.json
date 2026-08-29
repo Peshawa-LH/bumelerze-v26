@@ -979,7 +979,19 @@
         "unlimited": "Di kategoriya {{sdc}} de sînorê bilindahiyê tune.",
         "overLimit": "Ji sînorê {{limit}} m ji bo kategoriya {{sdc}} bilindtir e.",
         "withinLimit": "Sînorê bilindahiyê di kategoriya {{sdc}} de: {{limit}} m."
-      }
+      },
+      "period": {
+        "ta": "Ta = {{ta}} çirke  (Ct {{ct}}, x {{x}}, Tabloya 3-9/2)",
+        "cuTa": "Cu·Ta = {{cuTa}} çirke  (Cu {{cu}}, Tabloya 3-9/1) — sînorê jorîn heke demeke te ji analîzê hebe",
+        "cs": "Cs = {{cs}} li Ta, ji aliyê {{governedBy}} ve tê birêvebirin",
+        "needsHeight": "Bilindahiya avahiyê binivîse ji bo Ta û Cs ya biryardar.",
+        "governedBy": {
+          "plateau": "SDS / (R/I)",
+          "periodCap": "sînorê SD1 / (T·R/I)",
+          "floor": "binê 0.044·SDS·I"
+        }
+      },
+      "driftLimit": "Şemitîna qatê ya destûrdar: {{ratio}} × hsx (Tabloya 3-12/1)"
     }
   },
   "myData": {
