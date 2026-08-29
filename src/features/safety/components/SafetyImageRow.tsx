@@ -11,9 +11,17 @@ interface SafetyImageRowProps {
  * Card-level illustration row (owner-artwork wave, 2026-08-17): renders a
  * card's `images` (0-3 today, see `SafetyCard.images`) as small side-by-side
  * thumbnails above the body text. Sized to support the reading, not compete
- * with it — capped at 120 logical px per tile even when there's only one,
+ * with it — a fixed 96 logical px per tile even when there is only one,
  * which keeps a single-image card (e.g. `safeSpots`) from turning into a
  * hero banner.
+ *
+ * The 96 is deliberate and load-bearing, not a leftover: after the six
+ * supplementary illustrations landed (2026-08-28) most illustrated cards
+ * carry exactly ONE image, and a lone tile at this size reads as sparse
+ * next to a three-tile row. Enlarging single-image rows is a real design
+ * question and an open one; it is not a bug to be quietly fixed here,
+ * because the whole point of the cap is that the picture must not outrank
+ * the text a person reads under stress.
  *
  * Decorative only: the card's title/body text already carries the full
  * meaning (research brief: "show the thing a sentence cannot show", not
