@@ -58,7 +58,27 @@
       "iraq": "عێراق",
       "iran": "ئێران",
       "turkey": "تورکیا",
-      "syria": "سووریا"
+      "syria": "سووریا",
+      "farField": {
+        "turkey": "تورکیا",
+        "iranArmeniaAzerbaijanBorder": "ناوچەی سنووری ئێران-ئەرمینیا-ئازەربایجان",
+        "iranIraqBorder": "ناوچەی سنووری ئێران-عێراق",
+        "westernIran": "ڕۆژئاوای ئێران",
+        "turkeyIranBorder": "ناوچەی سنووری تورکیا-ئێران",
+        "northwesternIran": "باکووری ڕۆژئاوای ئێران",
+        "iraq": "عێراق",
+        "jordanSyria": "ناوچەی ئوردن-سووریا",
+        "caspianSea": "دەریای خەزەر",
+        "northernAndCentralIran": "باکوور و ناوەڕاستی ئێران",
+        "easternArabianPeninsula": "ڕۆژهەڵاتی دووڕگەی عەرەبی",
+        "iran": "ئێران",
+        "southernIran": "باشووری ئێران",
+        "persianGulf": "کەنداوی فارس",
+        "azerbaijan": "ئازەربایجان",
+        "westernArabianPeninsula": "ڕۆژئاوای دووڕگەی عەرەبی",
+        "easternTurkey": "ڕۆژهەڵاتی تورکیا",
+        "northernIran": "باکووری ئێران"
+      }
     },
     "placeLine": {
       "template": "{{distance}} {{direction}}ی {{city}}ەوە",

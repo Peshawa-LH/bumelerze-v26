@@ -35,6 +35,8 @@ export {
 } from "./place-line";
 export {
   isPointInKurdistanRegion,
+  resolveFarFieldRegionKey,
   resolveRegionLabelKey,
+  type FarFieldRegionKey,
   type RegionLabelKey,
 } from "./region";

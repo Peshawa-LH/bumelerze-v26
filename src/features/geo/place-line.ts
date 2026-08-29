@@ -8,7 +8,7 @@ import { DIRECTION_I18N_KEYS } from "./bearing";
 import { NEAREST_CITY_FALLBACK_THRESHOLD_KM } from "./config";
 import { pickLocalizedName } from "./gazetteer";
 import { nearestCities, type NearestCityResult } from "./nearest";
-import { resolveRegionLabelKey } from "./region";
+import { resolveFarFieldRegionKey, resolveRegionLabelKey } from "./region";
 
 /** react-i18next's own `t` type, aliased here so every call site (screens
  * passing their `useTranslation()` `t` in) can pass it straight through
@@ -72,16 +72,32 @@ export function nearestCityDistanceLine(
  * Localized place line for an event (ui-backlog.md wave 5 item 3):
  * "{distance} {direction} of {city}, {region}" built entirely from the
  * bundled gazetteer, replacing USGS's English `place` string for any event
- * within `NEAREST_CITY_FALLBACK_THRESHOLD_KM` of a bundled city. Farther
- * events fall back to the raw provider string (see `PlaceLineEvent.placeName`
- * doc comment) — a world-catalog earthquake that's nowhere near Kurdistan
- * gets no localized treatment, by design.
+ * within `NEAREST_CITY_FALLBACK_THRESHOLD_KM` of a bundled city. This near
+ * field is unchanged by D28 — it never regresses to a country/region name.
+ *
+ * Farther events (D28 decision 1, `feedback-waves.md` "F6 resolved") render
+ * a translated Flinn-Engdahl region name when the provider's place string is
+ * one of the known F-E labels (`resolveFarFieldRegionKey`), and only fall
+ * back to the raw provider string — USGS's untranslated bearing-format
+ * prose, or an F-E region not yet in the table — otherwise. A curated
+ * `placeNameKey` (app-owned datasets, e.g. Historical View) always wins over
+ * both, as before. A world-catalog earthquake that's nowhere near Kurdistan
+ * still gets no gazetteer/near-field treatment, by design — but it no
+ * longer sits next to a Kurdish-language line in raw English when we do
+ * have its region name.
  */
 export function placeLine(event: PlaceLineEvent, locale: string, t: TranslateFn): string {
   const [nearest] = nearestCities(event.lat, event.lon, 1);
 
   if (!nearest || nearest.distanceKm > NEAREST_CITY_FALLBACK_THRESHOLD_KM) {
-    return event.placeNameKey ? t(event.placeNameKey) : event.placeName;
+    if (event.placeNameKey) {
+      return t(event.placeNameKey);
+    }
+    const farFieldRegionKey = resolveFarFieldRegionKey(event.placeName);
+    if (farFieldRegionKey) {
+      return t(`geo.regions.farField.${farFieldRegionKey}`);
+    }
+    return event.placeName;
   }
 
   const line = nearestCityLine(nearest, locale, t);
