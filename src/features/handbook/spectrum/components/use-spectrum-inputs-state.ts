@@ -1,6 +1,13 @@
 import { useState } from "react";
 
-import { R_INPUT_BOUND, S1_INPUT_BOUND, SS_INPUT_BOUND, VERIFIED_R_VALUES } from "../config";
+import {
+  BUILDING_HEIGHT_BOUND,
+  DEFAULT_STRUCTURAL_SYSTEM_ID,
+  R_INPUT_BOUND,
+  S1_INPUT_BOUND,
+  SS_INPUT_BOUND,
+} from "../config";
+import { findStructuralSystem, type StructuralSystem } from "../structural-systems";
 import type {
   IscSiteClass,
   OccupancyCategory,
@@ -34,6 +41,21 @@ export interface SpectrumInputsState {
   occupancy: OccupancyCategory;
   setOccupancy: (occupancy: OccupancyCategory) => void;
 
+  /** The chosen seismic-force-resisting system, or `null` when the engineer
+   * picked "other" and is entering `R` by hand. */
+  system: StructuralSystem | null;
+  systemId: string | null;
+  setSystemId: (id: string | null) => void;
+
+  /** Building height above the base, metres. `null` until entered; the
+   * height limit still displays without it, only the pass/fail waits. */
+  heightText: string;
+  heightError: NumberFieldError | null;
+  heightM: number | null;
+  setHeightText: (text: string) => void;
+
+  /** Free entry, used ONLY when `system` is null. With a system chosen,
+   * `R` comes from the code table and must not be editable. */
   rText: string;
   rError: NumberFieldError | null;
   setRText: (text: string) => void;
@@ -79,11 +101,19 @@ export function useSpectrumInputsState(
   const [siteClass, setSiteClassState] = useState<IscSiteClass>(derivedSiteClass);
   const [isSiteClassOverridden, setIsSiteClassOverridden] = useState(false);
   const [occupancy, setOccupancy] = useState<OccupancyCategory>("I_II");
-  const [rText, setRText] = useState(String(VERIFIED_R_VALUES[0]?.r ?? 4));
+  const [systemId, setSystemId] = useState<string | null>(DEFAULT_STRUCTURAL_SYSTEM_ID);
+  const [heightText, setHeightText] = useState("");
+  const system = systemId === null ? null : findStructuralSystem(systemId);
+  // Seeded from the default system so "other" starts at a familiar number
+  // rather than blank; only ever read when no system is chosen.
+  const [rText, setRText] = useState(String(system?.r ?? 4));
 
   const ssValidation = validatePositiveNumberField(ssText, SS_INPUT_BOUND);
   const s1Validation = validatePositiveNumberField(s1Text, S1_INPUT_BOUND);
   const rValidation = validatePositiveNumberField(rText, R_INPUT_BOUND);
+  const heightValidation = validatePositiveNumberField(heightText, BUILDING_HEIGHT_BOUND);
+  // Height is optional: blank is a legitimate state, not an error.
+  const heightError = heightValidation.error === "empty" ? null : heightValidation.error;
 
   // "empty" is the natural first-paint state for Ss/S1 (no submit button on
   // this live calculator, unlike CoordinateInputForm) — surfacing it as a
@@ -111,9 +141,13 @@ export function useSpectrumInputsState(
   const isOverriddenFromCode =
     codeValues !== null && (ssText !== codeSsText || s1Text !== codeS1Text);
 
+  // With a system chosen, `R` is the code's, not the field's — so the form
+  // stays usable even if the (hidden) free-entry buffer is mid-edit.
+  const effectiveR = system ? system.r : rValidation.value;
+
   const inputs: SpectrumInputs | null =
-    ssValidation.value !== null && s1Validation.value !== null && rValidation.value !== null
-      ? { ss: ssValidation.value, s1: s1Validation.value, siteClass, occupancy, r: rValidation.value }
+    ssValidation.value !== null && s1Validation.value !== null && effectiveR !== null
+      ? { ss: ssValidation.value, s1: s1Validation.value, siteClass, occupancy, r: effectiveR }
       : null;
 
   return {
@@ -132,6 +166,13 @@ export function useSpectrumInputsState(
     resetSiteClassToDerived,
     occupancy,
     setOccupancy,
+    system,
+    systemId,
+    setSystemId,
+    heightText,
+    heightError,
+    heightM: heightValidation.value,
+    setHeightText,
     rText,
     rError: rValidation.error,
     setRText,

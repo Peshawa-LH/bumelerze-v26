@@ -9,8 +9,9 @@ import type { SpectrumCodeValues } from "../types";
 import { CHART_DEFAULT_T_MAX, CHART_EXTENDED_T_MAX } from "../config";
 import { computeSpectrumParameters } from "../compute";
 import { buildSpectrumCurve } from "../curve";
-import { formatCoefficient, formatPeriodSeconds } from "../format";
+import { formatCoefficient, formatPeriodSeconds, formatPlainNumber } from "../format";
 import { iscSiteClassFromVs30 } from "../isc-site-class";
+import { checkHeight } from "../structural-systems";
 import { SpectrumChart } from "./SpectrumChart";
 import { SpectrumControlPointTable } from "./SpectrumControlPointTable";
 import { SpectrumInputsForm } from "./SpectrumInputsForm";
@@ -116,6 +117,75 @@ export function SpectrumSection({ vs30MS, isc2025, locale }: SpectrumSectionProp
       </View>
 
       <SpectrumInputsForm state={state} derivedSiteClass={derivedSiteClass} locale={locale} />
+
+      {/* --- System coefficients and the height-limit check ---
+       * The height limit is the part an arithmetic calculator cannot give:
+       * the app already knows this site's design category, so it can say
+       * the chosen system is not permitted here at all, which is a
+       * compliance answer rather than a number. */}
+      {state.system && params ? (
+        (() => {
+          const check = checkHeight(state.system, params.seismicDesignCategory, state.heightM);
+          const blocked = check.status === "notPermitted" || check.status === "overLimit";
+          return (
+            <View
+              style={{
+                borderWidth: 1,
+                borderRadius: 12,
+                borderColor: blocked ? colors.status.danger : colors.border.default,
+                backgroundColor: colors.surface.raised,
+                padding: spacing[4],
+                gap: spacing[2],
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.text.primary,
+                  fontSize: typography.bodyMeta.fontSize,
+                  fontWeight: "600",
+                }}
+              >
+                {t(`handbook.spectrum.systems.${state.system.id}`)}
+              </Text>
+              <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                {t("handbook.spectrum.systemCoefficients", {
+                  r: formatPlainNumber(state.system.r, locale),
+                  omega0: formatPlainNumber(state.system.omega0, locale),
+                  cd: formatPlainNumber(state.system.cd, locale),
+                })}
+              </Text>
+              <Text
+                accessibilityRole={blocked ? "alert" : undefined}
+                style={{
+                  color: blocked ? colors.status.danger : colors.text.secondary,
+                  fontSize: typography.bodyMeta.fontSize,
+                }}
+              >
+                {check.status === "notPermitted"
+                  ? t("handbook.spectrum.heightCheck.notPermitted", {
+                      sdc: params.seismicDesignCategory,
+                    })
+                  : check.status === "unlimited"
+                    ? t("handbook.spectrum.heightCheck.unlimited", {
+                        sdc: params.seismicDesignCategory,
+                      })
+                    : check.status === "overLimit"
+                      ? t("handbook.spectrum.heightCheck.overLimit", {
+                          sdc: params.seismicDesignCategory,
+                          limit: formatPlainNumber(check.limitM, locale),
+                        })
+                      : t("handbook.spectrum.heightCheck.withinLimit", {
+                          sdc: params.seismicDesignCategory,
+                          limit: formatPlainNumber(check.limitM, locale),
+                        })}
+              </Text>
+              <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontStyle: "italic" }}>
+                {t("handbook.spectrum.systemCitation")}
+              </Text>
+            </View>
+          );
+        })()
+      ) : null}
 
       {state.inputs && params && curve ? (
         <View style={{ gap: spacing[4] }}>

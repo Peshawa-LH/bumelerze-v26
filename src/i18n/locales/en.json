@@ -943,7 +943,43 @@
         "overridden": "You have changed the code values. Nearest published district: {{district}}, {{distance}} km.",
         "reset": "Restore the code values"
       },
-      "ssS1NoteFromCode": "Ss (0.2 s) and S1 (1.0 s) are filled in from the code table. Change either one if you hold a site-specific study."
+      "ssS1NoteFromCode": "Ss (0.2 s) and S1 (1.0 s) are filled in from the code table. Change either one if you hold a site-specific study.",
+      "systems": {
+        "bw.rcShearWallSpecial": "Special reinforced concrete shear walls",
+        "bw.rcShearWallOrdinary": "Ordinary reinforced concrete shear walls",
+        "bw.masonryShearWallSpecial": "Special reinforced masonry shear walls",
+        "bw.masonryShearWallIntermediate": "Intermediate reinforced masonry shear walls",
+        "bw.masonryShearWallOrdinary": "Ordinary reinforced masonry shear walls",
+        "bf.steelEbfMomentConnections": "Steel eccentrically braced frames, moment-resisting connections",
+        "bf.steelEbfNonMomentConnections": "Steel eccentrically braced frames, non-moment-resisting connections",
+        "bf.steelCbfSpecial": "Special steel concentrically braced frames",
+        "bf.steelCbfOrdinary": "Ordinary steel concentrically braced frames",
+        "bf.rcShearWallSpecial": "Special reinforced concrete shear walls",
+        "bf.rcShearWallOrdinary": "Ordinary reinforced concrete shear walls",
+        "mf.steelSpecial": "Special steel moment frames",
+        "mf.steelIntermediate": "Intermediate steel moment frames",
+        "mf.steelOrdinary": "Ordinary steel moment frames",
+        "mf.rcSpecial": "Special reinforced concrete moment frames",
+        "mf.rcIntermediate": "Intermediate reinforced concrete moment frames"
+      },
+      "systemCategories": {
+        "momentFrame": "Moment-resisting frame systems",
+        "bearingWall": "Bearing wall systems",
+        "buildingFrame": "Building frame systems"
+      },
+      "systemLabel": "Seismic-force-resisting system",
+      "systemCoefficients": "R {{r}} · Ω0 {{omega0}} · Cd {{cd}}",
+      "systemOther": "Other system (I will enter R myself)",
+      "systemSubsetNote": "These are the systems from Table 3-2/1 verified for this app. For anything else, choose “Other” and take R from your own copy of the code.",
+      "systemCitation": "Iraqi Seismic Code 2017, Table 3-2/1",
+      "heightLabel": "Building height above the base (m), optional",
+      "heightPlaceholder": "for example 24",
+      "heightCheck": {
+        "notPermitted": "Not permitted in seismic design category {{sdc}}.",
+        "unlimited": "No height limit in category {{sdc}}.",
+        "overLimit": "Taller than the {{limit}} m limit for category {{sdc}}.",
+        "withinLimit": "Height limit in category {{sdc}}: {{limit}} m."
+      }
     }
   },
   "myData": {
