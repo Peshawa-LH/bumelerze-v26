@@ -28,6 +28,9 @@
  *   assets/images/notification-icon.png             96x96,    transparent, pure white
  *   assets/images/splash-icon.png                   512x512,  transparent (ivory + gold)
  *   assets/images/favicon.png                       48x48,    OPAQUE
+ *   website/brand/*                                 copied from the active release's source dir (see below)
+ *   website/favicon.ico                             copied from the active release's source dir
+ *   store/icon-512.png                              512x512,  OPAQUE — Google Play "hi-res" listing icon
  *
  * IMPORTANT — brand split (see assets/brand/README.md's "brand-red-vs-app-red
  * split" for the reasoning behind the choice below, not repeated here):
@@ -36,6 +39,11 @@
  * dot). The app's in-product semantic colors (src/theme/palette.ts —
  * intensityRamp, damageGradePalette, actionRed, status.danger) are a
  * SEPARATE, untouched palette; this script never reads or writes them.
+ *
+ * BETA SWITCH — see `ACTIVE_BRAND_RELEASE` below, the one place that picks
+ * between the non-Beta v2.0 identity and the Beta identity (both live in
+ * this repo side by side; nothing is deleted when you flip it). Grep
+ * `ACTIVE_BRAND_RELEASE` to find every place this value is read.
  */
 
 const fs = require("fs");
@@ -47,6 +55,82 @@ const LOGO_SVG_DIR = path.join(ROOT, "assets/brand/logo");
 const LOGO_TOKENS_FILE = path.join(ROOT, "assets/brand/tokens/bumelerze-colors.json");
 const BRAND_DIR = path.join(ROOT, "assets/brand");
 const IMAGES_DIR = path.join(ROOT, "assets/images");
+const WEBSITE_BRAND_DIR = path.join(ROOT, "website/brand");
+const WEBSITE_ROOT = path.join(ROOT, "website");
+const STORE_DIR = path.join(ROOT, "store");
+
+// ---------------------------------------------------------------------------
+// BRAND RELEASE SWITCH — the single named constant that decides which
+// identity ships: the pre-release "v2" non-Beta package (unlabeled mark) or
+// the "beta" package (same mark, same colors, with the approved BETA
+// release-band/pill added to the square/round app icon, favicon, and
+// horizontal wordmark — see assets/brand/README.md "Beta vs v2.0"). Flip
+// this one value and re-run `node scripts/generate-assets.js` to change
+// every generated icon/favicon/website wordmark/store icon in one pass.
+// Both source sets stay committed regardless of which one is active, so
+// dropping Beta at launch is this one edit, not a re-import.
+//
+//   "beta" — ships the BETA release-band identity (current default; the app
+//            is pre-release and the owner wants Beta branding live now).
+//   "v2"   — ships the plain, unlabeled v2.0 identity for the real launch.
+const ACTIVE_BRAND_RELEASE = "beta"; // "beta" | "v2"
+
+// Per-release source files. The Android adaptive-icon foreground/monochrome/
+// notification icon and the splash centerpiece are DELIBERATELY excluded
+// from this table: they are built from `bumelerze-symbol-color.svg` (the
+// bare mark, no background field, no lettering), which the Beta package's
+// own Brand-Info/production-notes.md confirms is unchanged between releases
+// ("Bare symbol files are also unchanged; Beta identification is carried by
+// the selected app icons and named-logo lockups"). It is also
+// architecturally impossible to safely carry the Beta band into that layer:
+// the band sits in the outer ~20% of the square icon canvas, entirely
+// outside Android's adaptive-icon safe zone (the guaranteed-visible central
+// 66%-diameter circle) — see assets/brand/README.md "Beta vs v2.0" for the
+// full explanation. So Android's adaptive/monochrome/notification icons and
+// the splash mark are release-neutral by design, in both releases.
+const BRAND_RELEASES = {
+  v2: {
+    logoDir: LOGO_SVG_DIR,
+    squareIconFile: "bumelerze-app-icon-square.svg",
+    faviconFile: "bumelerze-favicon.svg",
+    website: {
+      sourceDir: path.join(WEBSITE_ROOT, "brand-v2"),
+      primaryHorizontalFile: "bumelerze-primary-horizontal.svg",
+      primaryHorizontalReversedFile: "bumelerze-primary-horizontal-reversed.svg",
+      faviconSvgFile: "bumelerze-favicon.svg",
+      favicon16File: "bumelerze-favicon-16.png",
+      favicon32File: "bumelerze-favicon-32.png",
+      appleTouchIconFile: "bumelerze-app-icon-square-256.png",
+      faviconIcoFile: "favicon.ico",
+    },
+  },
+  beta: {
+    logoDir: path.join(BRAND_DIR, "logo-beta"),
+    squareIconFile: "bumelerze-beta-app-icon-square.svg",
+    faviconFile: "bumelerze-beta-favicon.svg",
+    website: {
+      sourceDir: path.join(WEBSITE_ROOT, "brand-beta"),
+      primaryHorizontalFile: "bumelerze-primary-horizontal.svg",
+      primaryHorizontalReversedFile: "bumelerze-primary-horizontal-reversed.svg",
+      faviconSvgFile: "bumelerze-favicon.svg",
+      favicon16File: "bumelerze-favicon-16.png",
+      favicon32File: "bumelerze-favicon-32.png",
+      appleTouchIconFile: "bumelerze-app-icon-square-256.png",
+      faviconIcoFile: "favicon.ico",
+    },
+  },
+};
+
+function activeRelease() {
+  const release = BRAND_RELEASES[ACTIVE_BRAND_RELEASE];
+  if (!release) {
+    throw new Error(
+      `generate-assets.js: ACTIVE_BRAND_RELEASE="${ACTIVE_BRAND_RELEASE}" is not a known release — ` +
+        `expected one of ${Object.keys(BRAND_RELEASES).join(", ")}.`,
+    );
+  }
+  return release;
+}
 
 // ---------------------------------------------------------------------------
 // 1. Load the brand palette straight from the logo package's own machine-
@@ -275,7 +359,62 @@ async function assertPureWhiteSilhouette(filePath) {
   console.log(`[assets]   verified pure-white silhouette: ${path.relative(ROOT, filePath)}`);
 }
 
+// ---------------------------------------------------------------------------
+// 5. Website + store outputs, driven by the same ACTIVE_BRAND_RELEASE switch.
+// ---------------------------------------------------------------------------
+
+// The website (website/index.html + the 3 locale copies) is a pure static
+// site with no build step and no templating (website/README.md), so it
+// references a fixed, flat set of filenames under website/brand/ — it never
+// hand-codes "v2" or "beta" anywhere. Both source sets are preserved
+// side by side (website/brand-v2/, the pre-existing non-Beta files;
+// website/brand-beta/, added for this switch) and this function copies the
+// ACTIVE release's files onto those fixed filenames, the same way the rest
+// of this script rasterizes onto fixed filenames in assets/images/.
+// website/brand/ is therefore a GENERATED directory: do not hand-edit it,
+// re-run this script instead. bumelerze-symbol-color.svg is copied
+// unconditionally from assets/brand/logo/ (not from either release folder)
+// because it is the release-neutral bare mark, identical in both releases.
+function syncWebsiteBrand(release) {
+  fs.mkdirSync(WEBSITE_BRAND_DIR, { recursive: true });
+  const src = release.website.sourceDir;
+  const copies = [
+    [release.website.primaryHorizontalFile, "bumelerze-primary-horizontal.svg"],
+    [release.website.primaryHorizontalReversedFile, "bumelerze-primary-horizontal-reversed.svg"],
+    [release.website.faviconSvgFile, "bumelerze-favicon.svg"],
+    [release.website.favicon16File, "bumelerze-favicon-16.png"],
+    [release.website.favicon32File, "bumelerze-favicon-32.png"],
+    [release.website.appleTouchIconFile, "bumelerze-app-icon-square-256.png"],
+  ];
+  for (const [srcFile, destFile] of copies) {
+    fs.copyFileSync(path.join(src, srcFile), path.join(WEBSITE_BRAND_DIR, destFile));
+  }
+  fs.copyFileSync(
+    path.join(LOGO_SVG_DIR, "bumelerze-symbol-color.svg"),
+    path.join(WEBSITE_BRAND_DIR, "bumelerze-symbol-color.svg"),
+  );
+  // favicon.ico lives at the website root (browsers request /favicon.ico by
+  // convention regardless of page depth), not under brand/.
+  fs.copyFileSync(path.join(src, release.website.faviconIcoFile), path.join(WEBSITE_ROOT, "favicon.ico"));
+  console.log(`[assets] synced website/brand/ + website/favicon.ico from ${path.relative(ROOT, src)}`);
+}
+
+// Google Play Console's "hi-res" store-listing icon (distinct from the
+// launcher icon embedded in the app bundle): 512x512, opaque, PNG. Apple's
+// App Store Connect marketing icon reuses assets/images/icon.png directly at
+// upload time (same 1024x1024 opaque spec already produced above) — no
+// separate file needed for that store. Built from the SAME active-release
+// square icon SVG as icon.png, so the two can never show different branding.
+async function generateStoreIcon(release, colors) {
+  fs.mkdirSync(STORE_DIR, { recursive: true });
+  const squareIconSvg = fs.readFileSync(path.join(release.logoDir, release.squareIconFile), "utf8");
+  await renderOpaque(squareIconSvg, 512, colors.signalRed, path.join(STORE_DIR, "icon-512.png"));
+}
+
 async function main() {
+  const release = activeRelease();
+  console.log(`[assets] ACTIVE_BRAND_RELEASE="${ACTIVE_BRAND_RELEASE}" (${release.logoDir === LOGO_SVG_DIR ? "non-Beta v2.0" : "Beta"} identity)`);
+
   const colors = loadLogoColors();
   console.log(
     `[assets] brand palette from ${path.relative(ROOT, LOGO_TOKENS_FILE)}: ` +
@@ -293,15 +432,18 @@ async function main() {
   fs.mkdirSync(BRAND_DIR, { recursive: true });
   fs.mkdirSync(IMAGES_DIR, { recursive: true });
 
-  // --- iOS / generic app icon — full-bleed master from the package itself,
-  // rendered at exactly the size it was authored for (1024). MUST be
-  // opaque: the App Store rejects an icon with an alpha channel.
-  const squareIconSvg = fs.readFileSync(path.join(LOGO_SVG_DIR, "bumelerze-app-icon-square.svg"), "utf8");
+  // --- iOS / generic app icon — full-bleed master from the ACTIVE release
+  // (assets/brand/logo/ for v2.0, assets/brand/logo-beta/ for Beta), rendered
+  // at exactly the size it was authored for (1024). MUST be opaque: the App
+  // Store rejects an icon with an alpha channel. This is also the only icon
+  // surface where the Beta release-band is visible: see the BRAND_RELEASES
+  // comment above for why Android's adaptive layers stay release-neutral.
+  const squareIconSvg = fs.readFileSync(path.join(release.logoDir, release.squareIconFile), "utf8");
   await renderOpaque(squareIconSvg, 1024, colors.signalRed, path.join(IMAGES_DIR, "icon.png"));
 
-  // --- Web favicon — the package's dedicated favicon master, same
+  // --- Web favicon — the ACTIVE release's dedicated favicon master, same
   // treatment (opaque, small).
-  const faviconSvg = fs.readFileSync(path.join(LOGO_SVG_DIR, "bumelerze-favicon.svg"), "utf8");
+  const faviconSvg = fs.readFileSync(path.join(release.logoDir, release.faviconFile), "utf8");
   await renderOpaque(faviconSvg, 48, colors.signalRed, path.join(IMAGES_DIR, "favicon.png"));
 
   // --- Android adaptive-icon foreground — ivory mark + gold dot only,
@@ -363,6 +505,11 @@ async function main() {
     dotColor: colors.endpointGold,
   });
   await renderTransparent(splashSvg, 512, path.join(IMAGES_DIR, "splash-icon.png"));
+
+  // --- Website header/footer wordmark + favicon, and the Play Store hi-res
+  // listing icon — same active-release switch as icon.png/favicon.png above.
+  syncWebsiteBrand(release);
+  await generateStoreIcon(release, colors);
 
   console.log("[assets] done.");
 }

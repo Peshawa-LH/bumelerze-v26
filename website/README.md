@@ -37,8 +37,10 @@ definitions live in the long comment at the top of `style.css`.
 | `style.css` | The one shared stylesheet: tokens, contrast notes, every component |
 | `slider.js` | Progressive-enhancement script for the homepage hero slider only; deferred, no dependency, no autoplay ever (see the design-decision comment in `style.css`) |
 | `images/` | Optimized WebP illustrations used in the hero slider, resized and re-compressed from the commissioned artwork package, which lives outside this repository (not hotlinked into it) |
-| `brand/` | Copies of the official logo package's horizontal logo (light + dark-background versions), the symbol-only mark, and favicon artwork; see its own README note below |
-| `favicon.ico` | Multi-size ICO, browsers request this from the site root by convention regardless of page depth |
+| `brand/` | **Generated.** The horizontal logo (light + dark-background versions), the symbol-only mark, and favicon artwork, copied from whichever of `brand-v2/` or `brand-beta/` is active. Do not hand-edit; re-run `node scripts/generate-assets.js` from the repo root instead. |
+| `brand-v2/` | Source: the plain, unlabeled v2.0 identity's copies of the same files (preserved so dropping Beta at launch needs no re-import) |
+| `brand-beta/` | Source: the Beta identity's copies (BETA release-band wordmark, favicon) — current default, added 2026-08-29 |
+| `favicon.ico` | **Generated**, same switch as `brand/`. Multi-size ICO, browsers request this from the site root by convention regardless of page depth |
 
 Site weight: a shared stylesheet, a tiny slider script, three ~20 to 35 KB
 WebP illustrations plus two logo SVGs, system fonts only (no web font
@@ -55,6 +57,14 @@ package's own guidance for dark backgrounds. The footer always shows the
 reversed logo on its own fixed Approved Navy background, regardless of
 theme. The logo image is never mirrored on the RTL pages (ckb, ar): a
 wordmark is not a directional icon.
+
+None of the 12 HTML pages reference "beta" or "v2" anywhere — they always
+point at the fixed filenames under `brand/`. Which identity actually shows up
+there is controlled from exactly one place, `ACTIVE_BRAND_RELEASE` in
+`scripts/generate-assets.js` (see `assets/brand/README.md` "Beta vs
+v2.0"), which also drives the app's own icon/favicon and the Play Store
+hi-res icon — flip that one constant and re-run the script to change all of
+them together.
 
 ## How to deploy (Cloudflare Pages, drag-and-drop, about 5 minutes)
 
@@ -96,6 +106,11 @@ problem.
 
 ## What to update when things go live
 
+- **Drop the Beta identity** → set `ACTIVE_BRAND_RELEASE = "v2"` in
+  `scripts/generate-assets.js` and re-run it. Regenerates the app icon,
+  favicon, this site's header/footer wordmark, and the Play Store hi-res
+  icon in one pass; no HTML edits needed. See `assets/brand/README.md`
+  "Beta vs v2.0".
 - **Native apps publish** → the "Get Bumelerze" section on each `index.html`
   currently points only at the web app (`https://bumelerze.com/app`) and
   says native iOS/Android apps are next; add real store links there once they
