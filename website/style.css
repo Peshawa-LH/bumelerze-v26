@@ -342,10 +342,22 @@ html[dir="rtl"] .section-kicker {
   width: auto;
 }
 
+/* One chrome block above the fold: the brand logo plus a single nav group
+ * (site-nav + language switcher) that share the header's own background
+ * and border rather than each stacking their own full-width bar. See
+ * `.header-nav-group` / `.lang-switcher-inline` below. */
+
+.header-nav-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.5rem;
+  margin-inline-start: auto;
+}
+
 .site-nav {
   display: flex;
   gap: 1.1rem;
-  margin-inline-start: auto;
   flex-wrap: wrap;
 }
 
@@ -362,25 +374,20 @@ html[dir="rtl"] .section-kicker {
   color: var(--brand-red-on-deep);
 }
 
-/* ---------- language switcher ---------- */
+/* ---------- language switcher (folded into the header, secondary) ----------
+ * The site is English-only today (all ckb/kmr/ar pages are still
+ * machine-draft translations pending native review), so the switcher is
+ * deliberately smaller and quieter than the primary site-nav rather than a
+ * full-width bar of its own promising four finished languages. */
 
-.lang-switcher {
-  border-block-end: 1px solid var(--border);
-  background: var(--surface-alt-2);
-}
-
-.lang-switcher ul {
-  max-width: 74rem;
-  margin: 0 auto;
-  padding: 0.45rem 1.25rem;
-  list-style: none;
+.lang-switcher-inline {
   display: flex;
+  gap: 0.55rem 0.9rem;
   flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
 }
 
-.lang-switcher a {
+.lang-switcher-inline a {
   color: var(--text-secondary);
   text-decoration: none;
   padding-block: 0.3rem;
@@ -388,12 +395,12 @@ html[dir="rtl"] .section-kicker {
   border-radius: 4px;
 }
 
-.lang-switcher a:hover {
+.lang-switcher-inline a:hover {
   color: var(--text-primary);
   text-decoration: underline;
 }
 
-.lang-switcher [aria-current="true"] {
+.lang-switcher-inline [aria-current="true"] {
   color: var(--brand-red-on-deep);
   font-weight: 700;
 }
@@ -520,33 +527,10 @@ bdi,
   margin-block: 1.6rem 0;
 }
 
-/* ---------- page jump nav (index only) ---------- */
-
-.page-nav {
-  border-block: 1px solid var(--border);
-  background: var(--surface-alt-2);
-}
-
-.page-nav ul {
-  max-width: 74rem;
-  margin: 0 auto;
-  padding: 0.6rem 1.25rem;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.3rem;
-  font-size: 0.95rem;
-}
-
-.page-nav a {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.page-nav a:hover {
-  color: var(--brand-red-on-deep);
-}
+/* The old dedicated "on this page" anchor bar (five section jump links)
+ * was removed in the 2026-08-29 condensation: at three to four sections
+ * the page is short enough to scroll, and it was the third stacked
+ * navigation bar competing with the headline for the first screen. */
 
 /* ================================================================
  * HERO + SLIDER
@@ -813,64 +797,38 @@ html[dir="rtl"] .hero-slider-next::before {
   font-size: 1rem;
 }
 
-/* ---------- science / how-it-works ---------- */
+/* ---------- credibility grid (merged "how the science works" + "open
+   data": the 2026-08-29 condensation combined these into one section) ---------- */
 
-.science-grid {
+.credibility-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   gap: 1.5rem;
   margin-block-start: 1.8rem;
 }
 
-.science-item {
+.credibility-item {
   border-inline-start: 4px solid var(--brand-red);
   padding-inline-start: 1.1rem;
 }
 
-html[dir="rtl"] .science-item {
+html[dir="rtl"] .credibility-item {
   border-inline-start: none;
   border-inline-end: 4px solid var(--brand-red);
   padding-inline-start: 0;
   padding-inline-end: 1.1rem;
 }
 
-.science-item h3 {
+.credibility-item h3 {
   margin-block-start: 0;
 }
 
-.science-item p {
+.credibility-item p {
   color: var(--text-secondary);
-  margin: 0;
+  margin: 0 0 0.5rem;
 }
 
-/* ---------- open data ---------- */
-
-.opendata-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1.1rem;
-  margin-block-start: 1.6rem;
-}
-
-.opendata-card {
-  background: var(--surface-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.3rem;
-}
-
-.opendata-card h3 {
-  margin-block-start: 0;
-  font-size: 1.05rem;
-}
-
-.opendata-card p {
-  color: var(--text-secondary);
-  font-size: 0.98rem;
-  margin-block-end: 0.7rem;
-}
-
-.opendata-card a {
+.credibility-item a {
   font-weight: 700;
 }
 
@@ -987,5 +945,15 @@ html[dir="rtl"] .footer-col h4 {
 
   .hero-inner {
     gap: 1.75rem;
+  }
+
+  /* Below tablet width, the logo takes its own line and the nav group
+   * (site-nav, then the smaller language row) stacks under it full width,
+   * instead of every link trying to share one line with the wordmark. */
+  .header-nav-group {
+    flex-direction: column;
+    width: 100%;
+    margin-inline-start: 0;
+    gap: 0.35rem;
   }
 }
