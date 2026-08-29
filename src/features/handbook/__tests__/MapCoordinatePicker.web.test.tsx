@@ -71,6 +71,10 @@ class MockMap {
     this.handlers[event] = handler;
   }
 
+  resize() {
+    mockMapResize();
+  }
+
   remove() {
     mockMapRemove();
   }
@@ -85,6 +89,7 @@ class MockNavigationControl {
 
 const mockMapAddControl = jest.fn();
 const mockMapRemove = jest.fn();
+const mockMapResize = jest.fn();
 const mockMarkerAddTo = jest.fn();
 const mockMarkerRemove = jest.fn();
 const mockSetWorkerUrl = jest.fn();
@@ -95,6 +100,22 @@ let mockMapInstances: MockMap[] = [];
 // `{ virtual: true }`: maplibre-gl ships ESM-only, which Jest's default CJS
 // resolution can't load — irrelevant here since the real package is never
 // exercised. Same pattern `map-web-creation.test.tsx` uses.
+/** jsdom has no ResizeObserver. The component needs one to notice that its
+ * container grew after the modal finished sliding in, so the mock records
+ * the callback and lets a test fire it. */
+let resizeCallbacks: ResizeObserverCallback[] = [];
+const mockObserve = jest.fn();
+const mockDisconnect = jest.fn();
+class MockResizeObserver {
+  constructor(cb: ResizeObserverCallback) {
+    resizeCallbacks.push(cb);
+  }
+  observe = mockObserve;
+  unobserve = jest.fn();
+  disconnect = mockDisconnect;
+}
+(globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver;
+
 jest.mock(
   "maplibre-gl",
   () => ({
@@ -227,5 +248,46 @@ describe("MapCoordinatePicker (web)", () => {
 
     expect(onSelect).not.toHaveBeenCalled();
     expect(screen.queryByText("No location selected yet.")).toBeNull();
+  });
+
+  /**
+   * Regression: MapLibre measures its container once, at construction, and
+   * that happens here while the Modal is still sliding in. Without a
+   * ResizeObserver the map latched onto a collapsed container and never
+   * re-measured -- on a 375x812 phone the canvas stayed 100 px tall inside
+   * a 600 px map area, 12% of the screen. The picker was present and the
+   * pin worked; the map was simply far too small to aim with, which is
+   * exactly the kind of defect a render-only test misses.
+   */
+  it("re-measures the map once its container settles after the modal opens", async () => {
+    mockMapResize.mockClear();
+    resizeCallbacks = [];
+    await renderPicker({});
+    await act(async () => {
+      fireEvent.press(screen.getByText("Pick on the map"));
+    });
+
+    expect(mockObserve).toHaveBeenCalled();
+    expect(resizeCallbacks.length).toBeGreaterThan(0);
+
+    // The container finishes animating and reports its real size.
+    await act(async () => {
+      resizeCallbacks.forEach((cb) =>
+        cb([] as unknown as ResizeObserverEntry[], {} as ResizeObserver),
+      );
+    });
+    expect(mockMapResize).toHaveBeenCalled();
+  });
+
+  it("stops observing when the picker closes", async () => {
+    mockDisconnect.mockClear();
+    await renderPicker({});
+    await act(async () => {
+      fireEvent.press(screen.getByText("Pick on the map"));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText("Close"));
+    });
+    expect(mockDisconnect).toHaveBeenCalled();
   });
 });

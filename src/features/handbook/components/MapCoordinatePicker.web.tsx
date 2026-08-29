@@ -68,6 +68,7 @@ export function MapCoordinatePicker({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<MapLibreMarker | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const maplibreModuleRef = useRef<typeof import("maplibre-gl") | null>(null);
 
   /** Creates the marker on first pick, or just moves it on every later tap
@@ -170,10 +171,31 @@ export function MapCoordinatePicker({
       map.on("click", (event) => {
         placeMarkerAt(event.lngLat.lat, event.lngLat.lng);
       });
+
+      // MapLibre measures its container ONCE, at construction. Here that
+      // lands while the Modal is still sliding in, so the map latched onto
+      // a collapsed container and never re-measured: on a 375x812 phone the
+      // canvas stayed 100 px tall inside a 600 px map area -- 12% of the
+      // screen, present and clickable but far too small to aim a pin with.
+      //
+      // A ResizeObserver rather than a one-shot resize() after a timeout,
+      // because a timeout races the slide animation and would still be
+      // wrong on rotation or a window resize. Guarded because jsdom and
+      // older WebViews do not all provide it, and a missing observer must
+      // degrade to the old behaviour, not throw.
+      if (typeof ResizeObserver !== "undefined" && containerRef.current) {
+        const observer = new ResizeObserver(() => {
+          mapRef.current?.resize();
+        });
+        observer.observe(containerRef.current);
+        resizeObserverRef.current = observer;
+      }
     });
 
     return () => {
       cancelled = true;
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
       markerRef.current?.remove();
       markerRef.current = null;
       mapRef.current?.remove();
