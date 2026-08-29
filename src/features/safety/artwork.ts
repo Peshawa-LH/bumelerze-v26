@@ -8,8 +8,8 @@ import type { ImageSource } from "expo-image";
  *
  * - **Format:** WebP-512 (not PNG-512) for the same ~30% bundle-size saving
  *   with no quality tradeoff (`expo-image` decodes WebP natively on both
- *   platforms) — the 18 files here add ~3.3 MB to the bundle, in the same
- *   frugal ballpark as the felt package's 22 tiles.
+ *   platforms) — the 24 files here add proportionally to the bundle, in the
+ *   same frugal ballpark as the felt package's 22 tiles.
  * - **Literal paths only:** every `require()` argument below is a full
  *   literal string, never built from a shared constant — Metro's static
  *   dependency collector only recognizes that exact shape, and an
@@ -19,6 +19,19 @@ import type { ImageSource } from "expo-image";
  * `SafetyImageId` is also exported from here (rather than `content.ts`)
  * because the id set and the require map are one artifact: adding an id
  * without a matching `require()` is a compile error, not a runtime one.
+ *
+ * **Six supplementary images (owner-artwork wave, 2026-08-29):** the
+ * original commission deliberately illustrated only 6 of the 15 safety
+ * cards at the card level (see `content.ts`'s doc comment). The designer's
+ * 2026-08-25 delivery adds a second image for each of the 6 cards that had
+ * none, so every card in the safety guide now carries at least one
+ * illustration. Same treatment as the other 18: decorative, rendered
+ * through `SafetyImageRow`/`SafetyCard`, and hidden from screen readers —
+ * the card's own title/body text (already written and already translated
+ * in all four locales) is what carries the meaning, exactly like the
+ * original 18. `familyPlan` / `emergencyKit` / `schoolWorkPlan` /
+ * `aftershocks` / `reliableInformation` / `helpNeighbors` below map one
+ * frame each to the six named cards; see `content.ts` for the card wiring.
  */
 export type SafetyImageId =
   | "dropCoverHold"
@@ -38,7 +51,13 @@ export type SafetyImageId =
   | "secureFurniture"
   | "secureWaterTank"
   | "secureGasCylinder"
-  | "safeSpotRoom";
+  | "safeSpotRoom"
+  | "familyPlan"
+  | "emergencyKit"
+  | "schoolWorkPlan"
+  | "aftershocks"
+  | "reliableInformation"
+  | "helpNeighbors";
 
 export const SAFETY_ARTWORK: Record<SafetyImageId, ImageSource> = {
   dropCoverHold: require("../../../assets/artwork/safety/safety-drop-cover-hold.webp"),
@@ -59,4 +78,10 @@ export const SAFETY_ARTWORK: Record<SafetyImageId, ImageSource> = {
   secureWaterTank: require("../../../assets/artwork/safety/safety-secure-water-tank.webp"),
   secureGasCylinder: require("../../../assets/artwork/safety/safety-secure-gas-cylinder.webp"),
   safeSpotRoom: require("../../../assets/artwork/safety/safety-safe-spot-room.webp"),
+  familyPlan: require("../../../assets/artwork/safety/safety-family-plan.webp"),
+  emergencyKit: require("../../../assets/artwork/safety/safety-emergency-kit.webp"),
+  schoolWorkPlan: require("../../../assets/artwork/safety/safety-school-work-plan.webp"),
+  aftershocks: require("../../../assets/artwork/safety/safety-aftershocks.webp"),
+  reliableInformation: require("../../../assets/artwork/safety/safety-reliable-information.webp"),
+  helpNeighbors: require("../../../assets/artwork/safety/safety-help-neighbors.webp"),
 };

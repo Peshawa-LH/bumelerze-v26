@@ -111,7 +111,8 @@ describe("Safety screen", () => {
     await renderWithProviders(<SafetyScreen />);
 
     // PREPARE (default tab): secureHome has 3 card images, safeSpots has 2,
-    // familyPlan/emergencyKit/schoolWork have none — 5 total on this tab.
+    // familyPlan/emergencyKit/schoolWork have 1 each (2026-08-29
+    // supplementary wave) — 8 total on this tab.
     // `includeHiddenElements` is required because these images are
     // `accessibilityElementsHidden` (decorative), which also hides them
     // from RNTL's default queries — see `LevelTile.test.tsx` for the same
@@ -119,7 +120,7 @@ describe("Safety screen", () => {
     const artwork = screen.getAllByTestId("safety-card-artwork", {
       includeHiddenElements: true,
     });
-    expect(artwork).toHaveLength(5);
+    expect(artwork).toHaveLength(8);
 
     for (const image of artwork) {
       expect(image.props.accessibilityElementsHidden).toBe(true);
@@ -127,18 +128,19 @@ describe("Safety screen", () => {
     }
   });
 
-  it("renders no card-level artwork on a tab whose visible cards are all image-free", async () => {
+  it("renders card-level artwork on the Recover tab for every card that declares one", async () => {
     await i18n.changeLanguage("en");
     await renderWithProviders(<SafetyScreen />);
 
     await press(screen.getByRole("tab", { name: "Recover" }));
 
-    // aftershocks, checkHazards (pair images only, no card image),
-    // evacuateCarefully (1 card image), reliableInfo, helpNeighbors.
+    // aftershocks (1, 2026-08-29), checkHazards (pair images only, no card
+    // image), evacuateCarefully (1 card image), reliableInfo (1, 2026-08-29),
+    // helpNeighbors (1, 2026-08-29) — 4 total on this tab.
     const artwork = screen.getAllByTestId("safety-card-artwork", {
       includeHiddenElements: true,
     });
-    expect(artwork).toHaveLength(1);
+    expect(artwork).toHaveLength(4);
   });
 
   it("renders do/dont row artwork on the correct row, not swapped, decorative-only", async () => {

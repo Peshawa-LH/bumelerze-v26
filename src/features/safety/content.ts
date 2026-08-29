@@ -60,13 +60,18 @@ export interface SafetyCard {
   /** How many `body1..bodyN` paragraph keys this card has (always >= 1). */
   bodyParagraphCount: number;
   /**
-   * Ordered card-level illustration(s) (owner-artwork wave, 2026-08-17):
-   * most cards have none (the commission deliberately illustrates only 6 of
-   * the 15 cards at this level — see the research doc's "deliberately NOT
-   * illustrated" list), one has a single card illustration, and one
-   * (`secureHome`) has three, since its second paragraph covers two
-   * regional hazards (rooftop water tank, gas cylinder) that each needed
-   * their own picture. Rendered together as one small image row, in order.
+   * Ordered card-level illustration(s) (owner-artwork wave, 2026-08-17, plus
+   * the 2026-08-29 supplementary wave): the original commission illustrated
+   * only 6 of the 15 cards at this level, leaving 9 with none — the
+   * supplementary wave added a second-round image to exactly those 6 cards
+   * (`familyPlan`, `emergencyKit`, `schoolWork`, `aftershocks`,
+   * `reliableInfo`, `helpNeighbors`), so 12 of the 15 cards now have one.
+   * `indoors`, `vehicle`, `commonMyths`, and `checkHazards` illustrate only
+   * through their `doDontPairs` rows and remain card-image-free by design.
+   * Most image-bearing cards have exactly one; `secureHome` has three, since
+   * its second paragraph covers two regional hazards (rooftop water tank,
+   * gas cylinder) that each needed their own picture. Rendered together as
+   * one small image row, in order.
    */
   images?: readonly SafetyImageId[];
   doDontPairs?: readonly SafetyDoDontPair[];
@@ -97,7 +102,7 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
   {
     id: "prepare",
     cards: [
-      { id: "familyPlan", bodyParagraphCount: 2 },
+      { id: "familyPlan", bodyParagraphCount: 2, images: ["familyPlan"] },
       {
         id: "secureHome",
         bodyParagraphCount: 2,
@@ -105,14 +110,14 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
         // (rooftop water tank, gas cylinder), in that order.
         images: ["secureFurniture", "secureWaterTank", "secureGasCylinder"],
       },
-      { id: "emergencyKit", bodyParagraphCount: 2 },
+      { id: "emergencyKit", bodyParagraphCount: 2, images: ["emergencyKit"] },
       {
         id: "safeSpots",
         bodyParagraphCount: 2,
         // body1 (the safe-spot room) + body2 (the doorway is NOT one).
         images: ["safeSpotRoom", "dontDoorway"],
       },
-      { id: "schoolWork", bodyParagraphCount: 2 },
+      { id: "schoolWork", bodyParagraphCount: 2, images: ["schoolWorkPlan"] },
     ],
   },
   {
@@ -172,7 +177,7 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
   {
     id: "recover",
     cards: [
-      { id: "aftershocks", bodyParagraphCount: 2 },
+      { id: "aftershocks", bodyParagraphCount: 2, images: ["aftershocks"] },
       {
         id: "checkHazards",
         bodyParagraphCount: 1,
@@ -191,11 +196,13 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
       {
         id: "reliableInfo",
         bodyParagraphCount: 1,
+        images: ["reliableInformation"],
         doDontPairs: [{ id: "verifyBeforeSharing" }],
       },
       {
         id: "helpNeighbors",
         bodyParagraphCount: 1,
+        images: ["helpNeighbors"],
         doDontPairs: [{ id: "helpSafely" }],
       },
     ],

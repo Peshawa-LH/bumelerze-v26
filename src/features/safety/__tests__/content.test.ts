@@ -154,7 +154,7 @@ describe("safety content — artwork keys resolve", () => {
     }
   });
 
-  it("uses all 18 commissioned images at least once across the content registry", () => {
+  it("uses all 24 commissioned images at least once across the content registry", () => {
     const declaredIds = new Set<SafetyImageId>();
 
     for (const card of allSafetyCards()) {
@@ -279,21 +279,19 @@ describe("safety content — image mapping regression lock", () => {
     expect(pair.dontImage).toBeUndefined();
   });
 
-  it("leaves the 6 deliberately image-free cards with no card-level or pair-level images", () => {
-    for (const cardId of [
-      "familyPlan",
-      "emergencyKit",
-      "schoolWork",
-      "aftershocks",
-      "reliableInfo",
-      "helpNeighbors",
-    ]) {
+  it("pins the 6 supplementary-wave cards to their single new image each (2026-08-29)", () => {
+    expect(findCard("familyPlan").images).toEqual(["familyPlan"]);
+    expect(findCard("emergencyKit").images).toEqual(["emergencyKit"]);
+    expect(findCard("schoolWork").images).toEqual(["schoolWorkPlan"]);
+    expect(findCard("aftershocks").images).toEqual(["aftershocks"]);
+    expect(findCard("reliableInfo").images).toEqual(["reliableInformation"]);
+    expect(findCard("helpNeighbors").images).toEqual(["helpNeighbors"]);
+  });
+
+  it("leaves the 4 cards with no card-level illustration (doDontPairs-only) untouched by the supplementary wave", () => {
+    for (const cardId of ["indoors", "vehicle", "commonMyths", "checkHazards"]) {
       const card = findCard(cardId);
       expect(card.images ?? []).toEqual([]);
-      for (const pair of card.doDontPairs ?? []) {
-        expect(pair.doImage).toBeUndefined();
-        expect(pair.dontImage).toBeUndefined();
-      }
     }
   });
 });
