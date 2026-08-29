@@ -1,10 +1,23 @@
 import { useState } from "react";
 
 import { R_INPUT_BOUND, S1_INPUT_BOUND, SS_INPUT_BOUND, VERIFIED_R_VALUES } from "../config";
-import type { IscSiteClass, OccupancyCategory, SpectrumInputs } from "../types";
+import type {
+  IscSiteClass,
+  OccupancyCategory,
+  SpectrumCodeValues,
+  SpectrumInputs,
+} from "../types";
 import { type NumberFieldError, validatePositiveNumberField } from "../validation";
 
 export interface SpectrumInputsState {
+  /** The code values this form started from, `null` when the coordinate is
+   * outside ISC-2025 coverage and the engineer must supply both. */
+  codeValues: SpectrumCodeValues | null;
+  /** True once either field no longer matches what the code offered, so
+   * the UI can stop attributing the numbers to the code. */
+  isOverriddenFromCode: boolean;
+  resetToCodeValues: () => void;
+
   ssText: string;
   ssError: NumberFieldError | null;
   setSsText: (text: string) => void;
@@ -43,14 +56,26 @@ export interface SpectrumInputsState {
  *
  * `derivedSiteClass` is the ISC-2017 class computed from the coordinate's
  * Vs30 sample (`iscSiteClassFromVs30`, §7.4: "site class pre-filled from
- * the coordinate and overridable"). Passing a NEW `derivedSiteClass` (a new
- * coordinate was looked up) only resets the site class when the engineer
- * has not already overridden it — an explicit override must never be
- * silently clobbered by a re-lookup.
+ * the coordinate and overridable").
+ *
+ * `codeValues` pre-fills `Ss`/`S1` from the ISC-2025 lookup on the same
+ * "derived but overridable" footing. Both are seeded ONCE per mount rather
+ * than synchronised by effect, because the screen remounts this section per
+ * coordinate (`HandbookScreen` keys it on the looked-up point) — a new site
+ * is a new problem, and carrying one city's `Ss` into another city's
+ * spectrum is the one failure this form must not have.
  */
-export function useSpectrumInputsState(derivedSiteClass: IscSiteClass): SpectrumInputsState {
-  const [ssText, setSsText] = useState("");
-  const [s1Text, setS1Text] = useState("");
+export function useSpectrumInputsState(
+  derivedSiteClass: IscSiteClass,
+  codeValues: SpectrumCodeValues | null = null,
+): SpectrumInputsState {
+  // Two decimals, unlocalized: this is a parse buffer, not display text.
+  // The value the engineer READS is formatted by `format.ts` like every
+  // other numeral in the app.
+  const codeSsText = codeValues ? codeValues.ss.toFixed(2) : "";
+  const codeS1Text = codeValues ? codeValues.s1.toFixed(2) : "";
+  const [ssText, setSsText] = useState(codeSsText);
+  const [s1Text, setS1Text] = useState(codeS1Text);
   const [siteClass, setSiteClassState] = useState<IscSiteClass>(derivedSiteClass);
   const [isSiteClassOverridden, setIsSiteClassOverridden] = useState(false);
   const [occupancy, setOccupancy] = useState<OccupancyCategory>("I_II");
@@ -78,12 +103,23 @@ export function useSpectrumInputsState(derivedSiteClass: IscSiteClass): Spectrum
     setIsSiteClassOverridden(false);
   }
 
+  function resetToCodeValues() {
+    setSsText(codeSsText);
+    setS1Text(codeS1Text);
+  }
+
+  const isOverriddenFromCode =
+    codeValues !== null && (ssText !== codeSsText || s1Text !== codeS1Text);
+
   const inputs: SpectrumInputs | null =
     ssValidation.value !== null && s1Validation.value !== null && rValidation.value !== null
       ? { ss: ssValidation.value, s1: s1Validation.value, siteClass, occupancy, r: rValidation.value }
       : null;
 
   return {
+    codeValues,
+    isOverriddenFromCode,
+    resetToCodeValues,
     ssText,
     ssError,
     setSsText,

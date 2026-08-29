@@ -2,11 +2,40 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react-nativ
 import * as Clipboard from "expo-clipboard";
 
 import i18n, { isRTLLocale } from "@/i18n";
+import type { Isc2025Result } from "../../types";
 import { SpectrumSection } from "../components/SpectrumSection";
 
 // Sulaimani-ish Vs30 that lands in the ISC D band (180-370 m/s) — matches
 // the median-grid case the design doc's §3.6 calls out.
 const VS30_D_BAND = 250;
+
+/** Most cases below exercise hand-entered Ss/S1, so they pass a coordinate
+ * the code does not cover and the form opens empty — the behaviour these
+ * tests were written against. The pre-fill path has its own cases at the
+ * end. */
+const NO_ISC2025: Isc2025Result = { zone: null, nearestDistrict: null };
+
+const DERBENDIKHAN: Isc2025Result = {
+  zone: { zone: "IV", ssMinG: 0.95, ssMaxG: 1.35, ring: [] },
+  nearestDistrict: {
+    district: {
+      id: "18.4",
+      nameEn: "Derbendikhan",
+      nameAr: "دربندیخان",
+      governorate: "Sulaymaniyah",
+      lat: 35.196,
+      lon: 45.733,
+      ss2475G: 1.25,
+      s12475G: 0.5,
+      ss1000G: 0.81,
+      s11000G: 0.32,
+      pga2475G: 0.25,
+      pga1000G: 0.16,
+      zone: "IV",
+    },
+    distanceKm: 12.4,
+  },
+};
 
 describe("SpectrumSection", () => {
   const originalLanguage = i18n.language;
@@ -20,7 +49,7 @@ describe("SpectrumSection", () => {
 
   it("shows the form and the honesty banner, but no chart/table, before Ss/S1 are entered", async () => {
     await i18n.changeLanguage("en");
-    await render(<SpectrumSection vs30MS={VS30_D_BAND} locale="en" />);
+    await render(<SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} locale="en" />);
 
     expect(screen.getByText(i18n.t("handbook.spectrum.sectionTitle"))).toBeTruthy();
     expect(screen.getByText(i18n.t("handbook.spectrum.banner.notOfRecord"))).toBeTruthy();
@@ -30,7 +59,7 @@ describe("SpectrumSection", () => {
 
   it("pre-fills the site class from the derived Vs30-based ISC class (D for 250 m/s)", async () => {
     await i18n.changeLanguage("en");
-    await render(<SpectrumSection vs30MS={VS30_D_BAND} locale="en" />);
+    await render(<SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} locale="en" />);
 
     expect(
       screen.getByText(i18n.t("handbook.spectrum.siteClassDerivedNote", { siteClass: "D" })),
@@ -39,7 +68,7 @@ describe("SpectrumSection", () => {
 
   it("reproduces the ISC-2017 Appendix B Baghdad example end-to-end once Ss/S1 are typed in", async () => {
     await i18n.changeLanguage("en");
-    await render(<SpectrumSection vs30MS={VS30_D_BAND} locale="en" />);
+    await render(<SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} locale="en" />);
 
     await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.ssLabel")), "0.3");
     await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.s1Label")), "0.1");
@@ -58,7 +87,7 @@ describe("SpectrumSection", () => {
   it("copies the control-point table to the clipboard", async () => {
     await i18n.changeLanguage("en");
     const setStringSpy = jest.spyOn(Clipboard, "setStringAsync").mockResolvedValue(true);
-    await render(<SpectrumSection vs30MS={VS30_D_BAND} locale="en" />);
+    await render(<SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} locale="en" />);
 
     await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.ssLabel")), "0.3");
     await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.s1Label")), "0.1");
@@ -73,7 +102,7 @@ describe("SpectrumSection", () => {
 
   it("lets the engineer override the derived site class, and offers a reset back to it", async () => {
     await i18n.changeLanguage("en");
-    await render(<SpectrumSection vs30MS={VS30_D_BAND} locale="en" />);
+    await render(<SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} locale="en" />);
 
     await fireEvent.press(screen.getByLabelText(i18n.t("handbook.spectrum.siteClassOptionA11y", { siteClass: "C" })));
 
@@ -85,7 +114,7 @@ describe("SpectrumSection", () => {
   it("renders end-to-end in ckb (Sorani, RTL) with no crash and shows the notation symbols untranslated", async () => {
     expect(isRTLLocale("ckb")).toBe(true);
     await i18n.changeLanguage("ckb");
-    await render(<SpectrumSection vs30MS={VS30_D_BAND} locale="ckb" />);
+    await render(<SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} locale="ckb" />);
 
     await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.ssLabel")), "0.3");
     await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.s1Label")), "0.1");
@@ -99,7 +128,7 @@ describe("SpectrumSection", () => {
 
   it("measures and draws the SVG chart once its container reports a nonzero layout width", async () => {
     await i18n.changeLanguage("en");
-    await render(<SpectrumSection vs30MS={VS30_D_BAND} locale="en" />);
+    await render(<SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} locale="en" />);
 
     await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.ssLabel")), "0.3");
     await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.s1Label")), "0.1");
@@ -111,5 +140,75 @@ describe("SpectrumSection", () => {
 
     expect(screen.getByTestId("spectrum-code-curve")).toBeTruthy();
     expect(screen.getByTestId("spectrum-reduced-curve")).toBeTruthy();
+  });
+});
+
+describe("SpectrumSection pre-filled from the Iraqi Seismic Code 2025", () => {
+  const originalLanguage = i18n.language;
+
+  afterEach(async () => {
+    if (i18n.language !== originalLanguage) {
+      await i18n.changeLanguage(originalLanguage);
+    }
+  });
+
+  it("computes a spectrum immediately, with no typing at all", async () => {
+    await i18n.changeLanguage("en");
+    await render(
+      <SpectrumSection vs30MS={VS30_D_BAND} isc2025={DERBENDIKHAN} locale="en" />,
+    );
+
+    // The whole point of the change: opening the handbook on a coordinate
+    // now yields a spectrum, where before it yielded an empty form.
+    expect(screen.getByText(i18n.t("handbook.spectrum.table.title"))).toBeTruthy();
+    // Ss 1.25 / S1 0.50, site class D, R 4, occupancy I/II.
+    // SDS = (2/3) * Fa * Ss with Fa = 1.0 at Ss >= 1.25 -> 0.833
+    expect(screen.getAllByText(/0\.833/).length).toBeGreaterThan(0);
+  });
+
+  it("names the district and distance the values came from", async () => {
+    await i18n.changeLanguage("en");
+    await render(
+      <SpectrumSection vs30MS={VS30_D_BAND} isc2025={DERBENDIKHAN} locale="en" />,
+    );
+
+    expect(screen.getByText(/Derbendikhan/)).toBeTruthy();
+  });
+
+  it("offers a restore once the engineer overrides a code value", async () => {
+    await i18n.changeLanguage("en");
+    await render(
+      <SpectrumSection vs30MS={VS30_D_BAND} isc2025={DERBENDIKHAN} locale="en" />,
+    );
+
+    expect(screen.queryByText(i18n.t("handbook.spectrum.codeValues.reset"))).toBeNull();
+
+    await fireEvent.changeText(screen.getByLabelText(i18n.t("handbook.spectrum.ssLabel")), "0.3");
+
+    const reset = screen.getByText(i18n.t("handbook.spectrum.codeValues.reset"));
+    expect(reset).toBeTruthy();
+
+    await fireEvent.press(reset);
+    expect(screen.queryByText(i18n.t("handbook.spectrum.codeValues.reset"))).toBeNull();
+  });
+
+  it("leaves the form empty where the code has no coverage", async () => {
+    await i18n.changeLanguage("en");
+    await render(
+      <SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} locale="en" />,
+    );
+
+    expect(screen.queryByText(i18n.t("handbook.spectrum.table.title"))).toBeNull();
+    expect(screen.getByText(i18n.t("handbook.spectrum.banner.ssS1Source"))).toBeTruthy();
+  });
+
+  it("renders the pre-filled path in ckb (Sorani, RTL) without crashing", async () => {
+    await i18n.changeLanguage("ckb");
+    await render(
+      <SpectrumSection vs30MS={VS30_D_BAND} isc2025={DERBENDIKHAN} locale="ckb" />,
+    );
+
+    expect(screen.getByText(i18n.t("handbook.spectrum.table.title"))).toBeTruthy();
+    expect(screen.getByText("SDS")).toBeTruthy();
   });
 });

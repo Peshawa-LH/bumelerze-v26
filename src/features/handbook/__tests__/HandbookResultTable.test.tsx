@@ -39,6 +39,27 @@ const FULL_RESULT: HandbookLookupResult = {
   vs30Citation: "Index of /pub/srtm30_plus. Retrieved February 8, 2023 from https://topex.ucsd.edu/pub/srtm30_plus/",
   siteClass: { ec8: "B", nehrp: "C" },
   nearbySoilPoints: [NEAREST_POINT, SECOND_POINT],
+  isc2025: {
+    zone: { zone: "IV", ssMinG: 0.95, ssMaxG: 1.35, ring: [] },
+    nearestDistrict: {
+      district: {
+        id: "18.4",
+        nameEn: "Derbendikhan",
+        nameAr: "دربندیخان",
+        governorate: "Sulaymaniyah",
+        lat: 35.196,
+        lon: 45.733,
+        ss2475G: 1.25,
+        s12475G: 0.5,
+        ss1000G: 0.81,
+        s11000G: 0.32,
+        pga2475G: 0.25,
+        pga1000G: 0.16,
+        zone: "IV",
+      },
+      distanceKm: 27.9,
+    },
+  },
 };
 
 const OUT_OF_COVERAGE_RESULT: HandbookLookupResult = {
@@ -48,6 +69,7 @@ const OUT_OF_COVERAGE_RESULT: HandbookLookupResult = {
   vs30MS: null,
   vs30Citation: FULL_RESULT.vs30Citation,
   siteClass: null,
+  isc2025: { zone: null, nearestDistrict: null },
   nearbySoilPoints: [],
 };
 

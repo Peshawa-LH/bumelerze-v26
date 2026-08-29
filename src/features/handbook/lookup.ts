@@ -1,4 +1,5 @@
 import { PGA_ZONES, SOIL_POINTS, VS30_GRID } from "./data";
+import { lookupIsc2025 } from "./isc2025";
 import { lookupPgaZone } from "./point-in-polygon";
 import { siteClassFromVs30 } from "./site-class";
 import { nearbySoilPoints } from "./soil-nearest";
@@ -24,5 +25,6 @@ export function lookupHandbookData(lat: number, lon: number): HandbookLookupResu
     vs30Citation: VS30_GRID.citation,
     siteClass: vs30MS === null ? null : siteClassFromVs30(vs30MS),
     nearbySoilPoints: nearbySoilPoints(lat, lon, SOIL_POINTS),
+    isc2025: lookupIsc2025(lat, lon),
   };
 }

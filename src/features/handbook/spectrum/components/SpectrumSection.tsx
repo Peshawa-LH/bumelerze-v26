@@ -4,6 +4,9 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ISC2025_MAX_USEFUL_DISTANCE_KM } from "../../config";
+import type { Isc2025Result } from "../../types";
+import type { SpectrumCodeValues } from "../types";
 import { CHART_DEFAULT_T_MAX, CHART_EXTENDED_T_MAX } from "../config";
 import { computeSpectrumParameters } from "../compute";
 import { buildSpectrumCurve } from "../curve";
@@ -20,7 +23,29 @@ interface SpectrumSectionProps {
    * exactly so the section can sit directly below the existing result
    * table with no extra plumbing. */
   vs30MS: number | null;
+  /** The coordinate's ISC-2025 lookup, used to pre-fill `Ss`/`S1`. */
+  isc2025: Isc2025Result;
   locale: string;
+}
+
+/** Only offer the code's numbers where they mean something: inside a mapped
+ * zone band, or close enough to a tabulated district. Otherwise the form
+ * opens empty and the engineer supplies both, which is the honest state for
+ * a site the code does not cover. */
+function toCodeValues(isc2025: Isc2025Result): SpectrumCodeValues | null {
+  const nearest = isc2025.nearestDistrict;
+  if (!nearest) {
+    return null;
+  }
+  if (isc2025.zone === null && nearest.distanceKm > ISC2025_MAX_USEFUL_DISTANCE_KM) {
+    return null;
+  }
+  return {
+    ss: nearest.district.ss2475G,
+    s1: nearest.district.s12475G,
+    districtName: nearest.district.nameEn,
+    distanceKm: nearest.distanceKm,
+  };
 }
 
 /**
@@ -31,13 +56,13 @@ interface SpectrumSectionProps {
  * professional deep-dive tool one step past the lookup table, not
  * something that competes with it for attention on first paint.
  */
-export function SpectrumSection({ vs30MS, locale }: SpectrumSectionProps) {
+export function SpectrumSection({ vs30MS, isc2025, locale }: SpectrumSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const [showFullRange, setShowFullRange] = useState(false);
 
   const derivedSiteClass = vs30MS === null ? null : iscSiteClassFromVs30(vs30MS);
-  const state = useSpectrumInputsState(derivedSiteClass ?? "D");
+  const state = useSpectrumInputsState(derivedSiteClass ?? "D", toCodeValues(isc2025));
 
   const tMax = showFullRange ? CHART_EXTENDED_T_MAX : CHART_DEFAULT_T_MAX;
 
@@ -84,14 +109,18 @@ export function SpectrumSection({ vs30MS, locale }: SpectrumSectionProps) {
           {t("handbook.spectrum.banner.notOfRecord")}
         </Text>
         <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-          {t("handbook.spectrum.banner.ssS1Source")}
+          {t(
+            state.codeValues
+              ? "handbook.spectrum.banner.ssS1FromCode"
+              : "handbook.spectrum.banner.ssS1Source",
+          )}
         </Text>
         <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
           {t("handbook.spectrum.banner.vs30Proxy")}
         </Text>
       </View>
 
-      <SpectrumInputsForm state={state} derivedSiteClass={derivedSiteClass} />
+      <SpectrumInputsForm state={state} derivedSiteClass={derivedSiteClass} locale={locale} />
 
       {state.inputs && params && curve ? (
         <View style={{ gap: spacing[4] }}>

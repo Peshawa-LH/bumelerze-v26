@@ -1,9 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { GMPE_SET_LABEL } from "../config";
+import { GMPE_SET_LABEL, ISC2025_MAX_USEFUL_DISTANCE_KM } from "../config";
 import {
   formatHandbookResultsTitle,
+  formatIsc2025Source,
+  formatIsc2025Value,
   formatNearbySoilSummary,
   formatNearestSoilPoint,
   formatPgaValue,
@@ -63,6 +65,16 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
 
+  // The ISC-2025 table spans the whole country, so "no nearest district"
+  // never happens inside Iraq; what does happen is a district so far away
+  // that quoting it would be misleading. With no zone band either, that is
+  // the honest out-of-coverage case.
+  const isc2025Nearest = result.isc2025.nearestDistrict;
+  const hasIsc2025 =
+    isc2025Nearest !== null &&
+    (result.isc2025.zone !== null ||
+      isc2025Nearest.distanceKm <= ISC2025_MAX_USEFUL_DISTANCE_KM);
+
   const isEntirelyOutOfCoverage =
     result.pgaZone === null && result.vs30MS === null && result.nearbySoilPoints.length === 0;
   // `noUncheckedIndexedAccess` types index 0 as possibly-undefined even
@@ -93,6 +105,32 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
           {t("handbook.outOfCoverage")}
         </Text>
       ) : null}
+
+      {/* --- ISC-2025 design spectral accelerations ---
+       * First because it is the row an engineer actually designs from, and
+       * because it is what feeds the spectrum section below. */}
+      {hasIsc2025 && isc2025Nearest ? (
+        <RowShell
+          label={t("handbook.rows.isc2025.label")}
+          sublabel={formatIsc2025Source(result.isc2025, locale, t)}
+          value={formatIsc2025Value(
+            isc2025Nearest.district.ss2475G,
+            isc2025Nearest.district.s12475G,
+            locale,
+            t,
+          )}
+          citation={t("handbook.rows.isc2025.citation")}
+        />
+      ) : (
+        <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[1], padding: spacing[3] }]}>
+          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+            {t("handbook.rows.isc2025.label")}
+          </Text>
+          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize }}>
+            {t("handbook.rows.isc2025.outsideCoverage")}
+          </Text>
+        </View>
+      )}
 
       {/* --- PGA row --- */}
       {result.pgaZone ? (

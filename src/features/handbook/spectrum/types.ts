@@ -7,11 +7,13 @@
  * disagrees with a stale mental model of ASCE 7, the research document and
  * the code text it quotes win.
  *
- * Wave 1 only (`handbook-spectra-design.md` §9): the engineer supplies `Ss`
- * and `S1` directly. Deriving them from a coordinate needs ISC-2017 Figures
- * 2-2/1(a)/(b) digitized, which is Wave 3 and explicitly out of scope here
- * (see `spectrum/config.ts`'s doc comment on why no `Ss`/`S1` lookup table
- * ships in this module).
+ * `Ss`/`S1` now arrive from the coordinate (`features/handbook/isc2025.ts`)
+ * and remain overridable, which is the "wave 3" this module previously
+ * deferred. It did not arrive the way that note anticipated: rather than
+ * digitizing ISC-2017 Figures 2-2/1(a)/(b), the values are read from the
+ * ISC-2025 district table and zone map, which publish `Ss` directly. The
+ * engineer can still type both by hand, and must whenever they hold a
+ * site-specific study.
  */
 
 /** ISC-2017 site classes reachable from Vs30 alone (Table 7-1/1). Class F
@@ -31,15 +33,27 @@ export type SeismicDesignCategory = "A" | "B" | "C" | "D";
  * always present here even though the UI pre-fills it from the coordinate's
  * Vs30 and lets the engineer override it — by the time this reaches the
  * compute layer, "derived" and "overridden" are the same shape. */
-export interface SpectrumInputs {
-  /** Mapped short-period (0.2 s) spectral acceleration, g. From ISC-2017
-   * Figure 2-2/1(a) — the engineer's own source, not computed by this app
-   * (§3.4/§3.5: our bundled PGA map is a different map and a PGA→Ss
-   * shortcut is provably wrong by ~2x at the one Iraqi city both values are
-   * known for). */
+/** The code-derived `Ss`/`S1` offered as the form's starting point, with
+ * the provenance the UI is required to show alongside them: these are
+ * published values AT a district, not interpolated to the queried point. */
+export interface SpectrumCodeValues {
   ss: number;
-  /** Mapped 1-second spectral acceleration, g. From ISC-2017 Figure
-   * 2-2/1(b), same caveat as `ss`. */
+  s1: number;
+  districtName: string;
+  distanceKm: number;
+}
+
+export interface SpectrumInputs {
+  /** Mapped short-period (0.2 s) spectral acceleration, g. Pre-filled from
+   * the ISC-2025 district table and overridable. Never derived from a PGA
+   * map: the PGA→Ss shortcut is wrong by about 2x, which the 2025 table
+   * confirms across all 79 districts (it holds Ss = 5 x PGA where the
+   * source study's own spectra give about 2.2x). */
+  ss: number;
+  /** Mapped 1-second spectral acceleration, g. Same source as `ss`. Note
+   * the published table fixes S1 at 0.4 x Ss nationwide, while the source
+   * study's spectra vary from roughly 0.33 to 0.6 — shipped as published,
+   * because a design tool reproduces the code rather than correcting it. */
   s1: number;
   siteClass: IscSiteClass;
   occupancy: OccupancyCategory;

@@ -3,7 +3,12 @@ import type { TFunction } from "i18next";
 import { formatCoordinates, formatDistanceKm, isolateNumeric } from "@/features/events";
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
 import { SOIL_NEARBY_RADIUS_KM, VS30_DISPLAY_PRECISION_MS } from "./config";
-import type { HandbookLookupResult, NearbySoilPoint, SoilMethod } from "./types";
+import type {
+  HandbookLookupResult,
+  Isc2025Result,
+  NearbySoilPoint,
+  SoilMethod,
+} from "./types";
 
 type TranslateFn = TFunction;
 
@@ -107,4 +112,47 @@ export function formatNearbySoilSummary(
     countText: isolateNumeric(localizeDigits(String(count), locale)),
     radiusText: isolateNumeric(localizeDigits(String(SOIL_NEARBY_RADIUS_KM), locale)),
   });
+}
+
+/** "Ss {{ss}}g / S1 {{s1}}g" at the 2475-year return period — the pair the
+ * ISC spectrum is built from. The PGA column of the same source table is
+ * deliberately never formatted or shown (see `types.ts`). */
+export function formatIsc2025Value(
+  ss2475G: number,
+  s12475G: number,
+  locale: string,
+  t: TranslateFn,
+): string {
+  return t("handbook.rows.isc2025.value", {
+    ss: isolateNumeric(formatFixedLocalized(ss2475G, 2, locale)),
+    s1: isolateNumeric(formatFixedLocalized(s12475G, 2, locale)),
+  });
+}
+
+/**
+ * The provenance line under the value: which district it was read from and
+ * how far away that is, plus the zone band when the point falls inside
+ * one. The distance is not decoration — the value is a published number at
+ * that district, not an interpolation to the queried point, so how far the
+ * reader is from it is part of the claim.
+ */
+export function formatIsc2025Source(
+  isc2025: Isc2025Result,
+  locale: string,
+  t: TranslateFn,
+): string {
+  const nearest = isc2025.nearestDistrict;
+  const parts: string[] = [];
+  if (isc2025.zone) {
+    parts.push(t("handbook.rows.isc2025.zone", { zone: isc2025.zone.zone }));
+  }
+  if (nearest) {
+    parts.push(
+      t("handbook.rows.isc2025.district", {
+        district: nearest.district.nameEn,
+        distance: isolateNumeric(formatDistanceKm(nearest.distanceKm, locale)),
+      }),
+    );
+  }
+  return parts.join(t("handbook.rows.isc2025.separator"));
 }
