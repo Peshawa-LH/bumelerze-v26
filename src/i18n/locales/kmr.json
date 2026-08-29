@@ -943,7 +943,43 @@
         "overridden": "Te nirxên kodê guherandine. Qeza weşandî ya herî nêzîk: {{district}}, {{distance}} km.",
         "reset": "Nirxên kodê vegerîne"
       },
-      "ssS1NoteFromCode": "Ss (0.2 s) û S1 (1.0 s) ji tabloya kodê hatine dagirtin. Yek ji wan biguherîne heke lêkolîneke taybet a cihî li ba te hebe."
+      "ssS1NoteFromCode": "Ss (0.2 s) û S1 (1.0 s) ji tabloya kodê hatine dagirtin. Yek ji wan biguherîne heke lêkolîneke taybet a cihî li ba te hebe.",
+      "systems": {
+        "bw.rcShearWallSpecial": "Dîwarên birînê yên beton armê yên taybet",
+        "bw.rcShearWallOrdinary": "Dîwarên birînê yên beton armê yên asayî",
+        "bw.masonryShearWallSpecial": "Dîwarên birînê yên xiştî yên armêkirî yên taybet",
+        "bw.masonryShearWallIntermediate": "Dîwarên birînê yên xiştî yên armêkirî yên navîn",
+        "bw.masonryShearWallOrdinary": "Dîwarên birînê yên xiştî yên armêkirî yên asayî",
+        "bf.steelEbfMomentConnections": "Çarçoveyên pola yên bendkirî yên nenavendî, girêdanên li ber momentê",
+        "bf.steelEbfNonMomentConnections": "Çarçoveyên pola yên bendkirî yên nenavendî, girêdanên ne li ber momentê",
+        "bf.steelCbfSpecial": "Çarçoveyên pola yên bendkirî yên navendî yên taybet",
+        "bf.steelCbfOrdinary": "Çarçoveyên pola yên bendkirî yên navendî yên asayî",
+        "bf.rcShearWallSpecial": "Dîwarên birînê yên beton armê yên taybet",
+        "bf.rcShearWallOrdinary": "Dîwarên birînê yên beton armê yên asayî",
+        "mf.steelSpecial": "Çarçoveyên momentê yên pola yên taybet",
+        "mf.steelIntermediate": "Çarçoveyên momentê yên pola yên navîn",
+        "mf.steelOrdinary": "Çarçoveyên momentê yên pola yên asayî",
+        "mf.rcSpecial": "Çarçoveyên momentê yên beton armê yên taybet",
+        "mf.rcIntermediate": "Çarçoveyên momentê yên beton armê yên navîn"
+      },
+      "systemCategories": {
+        "momentFrame": "Sîstemên çarçoveyê yên li ber momentê",
+        "bearingWall": "Sîstemên dîwarên hilgir",
+        "buildingFrame": "Sîstemên çarçoveya avahiyê"
+      },
+      "systemLabel": "Sîstema li ber hêza erdhejê",
+      "systemCoefficients": "R {{r}} · Ω0 {{omega0}} · Cd {{cd}}",
+      "systemOther": "Sîstemeke din (ez ê R bi xwe binivîsim)",
+      "systemSubsetNote": "Ev sîstemên ji Tabloya 3-2/1 in ku ji bo vê sepanê hatine piştrastkirin. Ji bo yên din “Sîstemeke din” hilbijêre û R ji kopiya xwe ya kodê bigire.",
+      "systemCitation": "Koda Erdhejê ya Iraqê 2017, Tabloya 3-2/1",
+      "heightLabel": "Bilindahiya avahiyê ji bingehê (m), bijarte",
+      "heightPlaceholder": "mînak 24",
+      "heightCheck": {
+        "notPermitted": "Di kategoriya sêwirana erdhejê {{sdc}} de nayê destûrkirin.",
+        "unlimited": "Di kategoriya {{sdc}} de sînorê bilindahiyê tune.",
+        "overLimit": "Ji sînorê {{limit}} m ji bo kategoriya {{sdc}} bilindtir e.",
+        "withinLimit": "Sînorê bilindahiyê di kategoriya {{sdc}} de: {{limit}} m."
+      }
     }
   },
   "myData": {

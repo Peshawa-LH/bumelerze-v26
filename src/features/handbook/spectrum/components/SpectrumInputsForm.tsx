@@ -3,13 +3,18 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
 import { formatDistanceKm, isolateNumeric } from "@/features/events";
-import { VERIFIED_R_VALUES } from "../config";
-import { occupancyLabelKey } from "../format";
+import { STRUCTURAL_SYSTEMS, type StructuralSystemCategory } from "../structural-systems";
+import { formatPlainNumber, occupancyLabelKey } from "../format";
 import type { IscSiteClass, OccupancyCategory } from "../types";
 import type { NumberFieldError } from "../validation";
 import type { SpectrumInputsState } from "./use-spectrum-inputs-state";
 
 const SITE_CLASSES: readonly IscSiteClass[] = ["A", "B", "C", "D", "E"];
+const CATEGORY_ORDER: readonly StructuralSystemCategory[] = [
+  "momentFrame",
+  "bearingWall",
+  "buildingFrame",
+];
 const OCCUPANCIES: readonly OccupancyCategory[] = ["I_II", "III", "IV"];
 
 /** `ssError`/`s1Error` never actually carry "empty" (the hook filters it to
@@ -250,62 +255,138 @@ export function SpectrumInputsForm({
         </View>
       </View>
 
-      {/* --- R --- */}
+      {/* --- Seismic-force-resisting system ---
+       * Replaces blind `R` entry: choosing the real system yields R, and
+       * with it the overstrength and deflection-amplification factors the
+       * engineer needs downstream, plus the height limit the app can check
+       * against this site's design category. */}
       <View style={{ gap: spacing[2] }}>
         <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-          {t("handbook.spectrum.rLabel")}
+          {t("handbook.spectrum.systemLabel")}
         </Text>
+        {CATEGORY_ORDER.map((category) => (
+          <View key={category} style={{ gap: spacing[1] }}>
+            <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+              {t(`handbook.spectrum.systemCategories.${category}`)}
+            </Text>
+            {STRUCTURAL_SYSTEMS.filter((sys) => sys.category === category).map((sys) => {
+              const selected = state.systemId === sys.id;
+              return (
+                <Pressable
+                  key={sys.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  onPress={() => state.setSystemId(sys.id)}
+                  style={[
+                    styles.systemRow,
+                    {
+                      borderColor: selected ? colors.brand.primary : colors.border.default,
+                      backgroundColor: selected ? colors.surface.raised : "transparent",
+                      padding: spacing[3],
+                    },
+                  ]}
+                >
+                  <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize }}>
+                    {t(`handbook.spectrum.systems.${sys.id}`)}
+                  </Text>
+                  <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                    {t("handbook.spectrum.systemCoefficients", {
+                      r: formatPlainNumber(sys.r, locale),
+                      omega0: formatPlainNumber(sys.omega0, locale),
+                      cd: formatPlainNumber(sys.cd, locale),
+                    })}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: state.systemId === null }}
+          onPress={() => state.setSystemId(null)}
+          style={[
+            styles.systemRow,
+            {
+              borderColor: state.systemId === null ? colors.brand.primary : colors.border.default,
+              backgroundColor: state.systemId === null ? colors.surface.raised : "transparent",
+              padding: spacing[3],
+            },
+          ]}
+        >
+          <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize }}>
+            {t("handbook.spectrum.systemOther")}
+          </Text>
+        </Pressable>
         <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
-          {t("handbook.spectrum.rNote")}
+          {t("handbook.spectrum.systemSubsetNote")}
         </Text>
-        <View style={[styles.chipRow, { gap: spacing[2] }]}>
-          {VERIFIED_R_VALUES.map(({ r, labelKey }) => (
-            <Pressable
-              key={r}
-              accessibilityRole="button"
-              onPress={() => state.setRText(String(r))}
-              style={[
-                styles.chip,
-                {
-                  borderColor: Number(state.rText) === r ? colors.brand.primary : colors.border.default,
-                  backgroundColor: Number(state.rText) === r ? colors.brand.primary : "transparent",
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  color: Number(state.rText) === r ? colors.brand.onPrimary : colors.text.primary,
-                  fontSize: typography.labelButton.fontSize,
-                  fontWeight: typography.labelButton.fontWeight,
-                }}
-              >
-                {t("handbook.spectrum.rChipLabel", { r, systemLabel: t(labelKey) })}
-              </Text>
-            </Pressable>
-          ))}
+      </View>
+
+      {/* --- R, only when no system is chosen --- */}
+      {state.systemId === null ? (
+        <View style={{ gap: spacing[2] }}>
+          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+            {t("handbook.spectrum.rLabel")}
+          </Text>
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+            {t("handbook.spectrum.rNote")}
+          </Text>
+          <TextInput
+            value={state.rText}
+            onChangeText={state.setRText}
+            placeholder={t("handbook.spectrum.rPlaceholder")}
+            placeholderTextColor={colors.text.tertiary}
+            accessibilityLabel={t("handbook.spectrum.rLabel")}
+            keyboardType="default"
+            autoCorrect={false}
+            style={[
+              styles.input,
+              {
+                color: colors.text.primary,
+                borderColor: state.rError ? colors.status.danger : colors.border.default,
+                backgroundColor: colors.surface.raised,
+                fontSize: typography.bodyDefault.fontSize,
+                padding: spacing[3],
+              },
+            ]}
+          />
+          {state.rError ? (
+            <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+              {t(fieldErrorKey(state.rError))}
+            </Text>
+          ) : null}
         </View>
+      ) : null}
+
+      {/* --- Building height (optional) --- */}
+      <View style={{ gap: spacing[2] }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+          {t("handbook.spectrum.heightLabel")}
+        </Text>
         <TextInput
-          value={state.rText}
-          onChangeText={state.setRText}
-          placeholder={t("handbook.spectrum.rPlaceholder")}
+          value={state.heightText}
+          onChangeText={state.setHeightText}
+          placeholder={t("handbook.spectrum.heightPlaceholder")}
           placeholderTextColor={colors.text.tertiary}
-          accessibilityLabel={t("handbook.spectrum.rLabel")}
+          accessibilityLabel={t("handbook.spectrum.heightLabel")}
           keyboardType="default"
           autoCorrect={false}
           style={[
             styles.input,
             {
               color: colors.text.primary,
-              borderColor: state.rError ? colors.status.danger : colors.border.default,
+              borderColor: state.heightError ? colors.status.danger : colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
               padding: spacing[3],
             },
           ]}
         />
-        {state.rError ? (
+        {state.heightError ? (
           <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
-            {t(fieldErrorKey(state.rError))}
+            {t(fieldErrorKey(state.heightError))}
           </Text>
         ) : null}
       </View>
@@ -322,6 +403,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 12,
     minHeight: 48,
+    justifyContent: "center",
+  },
+  systemRow: {
+    borderWidth: 1,
+    borderRadius: 12,
+    minHeight: 44,
     justifyContent: "center",
   },
   chipRow: {

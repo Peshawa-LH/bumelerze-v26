@@ -40,6 +40,18 @@ export const VERIFIED_R_VALUES: readonly { r: number; labelKey: string }[] = [
   { r: 4, labelKey: "handbook.spectrum.rOptions.rcMomentFrameIntermediate" },
 ];
 
+/** Opening selection: an intermediate reinforced-concrete moment frame.
+ * Chosen because it is the ordinary case in Kurdistan and because its
+ * `R = 4` is the one value ISC-2017's own Appendix B worked example
+ * confirms end to end, so the form's first paint reproduces the code's own
+ * example rather than an arbitrary pick. */
+export const DEFAULT_STRUCTURAL_SYSTEM_ID = "mf.rcIntermediate";
+
+/** Building height above the base, metres. The upper bound is not a code
+ * limit — the code expresses limits per system and design category — just
+ * input sanity, wide enough for anything built in Iraq. */
+export const BUILDING_HEIGHT_BOUND = { min: 1, max: 400 };
+
 /** Reasonable free-entry bounds for `R` — wide enough to cover every real
  * structural system (unreinforced masonry near 1.5 through ductile steel
  * frames near 8) without accepting a typo like `40`. Not a code citation,
