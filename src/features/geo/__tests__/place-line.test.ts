@@ -56,6 +56,53 @@ describe("placeLine", () => {
     expect(result).toBe("10 km E of Tokyo, Japan");
   });
 
+  it("keeps the near-field Kurdish place line unchanged for a Sulaimani event (D28: never regress to a region name)", async () => {
+    await i18n.changeLanguage("ckb");
+    // A few km from Sulaimani, well inside NEAREST_CITY_FALLBACK_THRESHOLD_KM.
+    const event = { lat: 35.56, lon: 45.43, placeName: "Iran-Iraq border region" };
+
+    const result = placeLine(event, "ckb", i18n.t.bind(i18n));
+
+    expect(result).toContain("سلێمانی");
+    expect(result).toContain("کوردستان (عێراق)");
+    // The provider's far-field region string must never leak into a
+    // near-field line, even though it happens to be a known F-E region.
+    expect(result).not.toContain("Iran-Iraq");
+  });
+
+  it("renders a translated Flinn-Engdahl region for a far-field event instead of provider prose (D28 decision 1)", async () => {
+    await i18n.changeLanguage("en");
+    // EMSC's flynn_region for a Turkey event, well beyond the fallback
+    // threshold from any gazetteer city — see normalize.ts's
+    // normalizeEmscFeature, which already passes flynn_region through as
+    // placeName.
+    const event = { lat: 39.0, lon: 35.0, placeName: "Turkey" };
+
+    const result = placeLine(event, "en", i18n.t.bind(i18n));
+
+    expect(result).toBe("Turkey");
+  });
+
+  it("renders a translated Flinn-Engdahl region in Sorani for the same far-field event", async () => {
+    await i18n.changeLanguage("ckb");
+    const event = { lat: 39.0, lon: 35.0, placeName: "Iran-Armenia-Azerbaijan border region" };
+
+    const result = placeLine(event, "ckb", i18n.t.bind(i18n));
+
+    expect(result).toBe("ناوچەی سنووری ئێران-ئەرمینیا-ئازەربایجان");
+  });
+
+  it("falls back to the English F-E name (not coordinates, not empty) for an unmapped far-field region", async () => {
+    await i18n.changeLanguage("ckb");
+    const event = { lat: 10.0, lon: 100.0, placeName: "Sumatra region" };
+
+    const result = placeLine(event, "ckb", i18n.t.bind(i18n));
+
+    expect(result).toBe("Sumatra region");
+    expect(result.length).toBeGreaterThan(0);
+    expect(/^-?\d+(\.\d+)?, -?\d+(\.\d+)?$/.test(result)).toBe(false);
+  });
+
   it("uses a translated placeNameKey override instead of the raw English placeName, for a far-world event (update-plan-2026-08.md §1.4)", async () => {
     await i18n.changeLanguage("ckb");
     // Same Kahramanmaraş coordinates as the Historical View's 2023 doublet.

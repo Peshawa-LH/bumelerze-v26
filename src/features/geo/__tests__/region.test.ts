@@ -1,5 +1,9 @@
 import { GAZETTEER_CITIES } from "../gazetteer";
-import { isPointInKurdistanRegion, resolveRegionLabelKey } from "../region";
+import {
+  isPointInKurdistanRegion,
+  resolveFarFieldRegionKey,
+  resolveRegionLabelKey,
+} from "../region";
 
 describe("isPointInKurdistanRegion", () => {
   it("is true for Erbil, Slemani, and Duhok's own coordinates", () => {
@@ -36,5 +40,27 @@ describe("resolveRegionLabelKey", () => {
     const kirkuk = GAZETTEER_CITIES.find((city) => city.id === "kirkuk")!;
     expect(kirkuk.inKurdistanRegion).toBe(false);
     expect(resolveRegionLabelKey(kirkuk, kirkuk.lat, kirkuk.lon)).toBe("kurdistanIraq");
+  });
+});
+
+describe("resolveFarFieldRegionKey", () => {
+  it("resolves the highest-frequency catalog region labels (D28 decision 1)", () => {
+    expect(resolveFarFieldRegionKey("Turkey")).toBe("turkey");
+    expect(resolveFarFieldRegionKey("Iran-Armenia-Azerbaijan border region")).toBe(
+      "iranArmeniaAzerbaijanBorder",
+    );
+    expect(resolveFarFieldRegionKey("Iran-Iraq border region")).toBe("iranIraqBorder");
+    expect(resolveFarFieldRegionKey("Persian Gulf")).toBe("persianGulf");
+  });
+
+  it("resolves case-drift variants seen in the catalog data to the same key", () => {
+    expect(resolveFarFieldRegionKey("western Iran")).toBe("westernIran");
+    expect(resolveFarFieldRegionKey("Western Iran")).toBe("westernIran");
+    expect(resolveFarFieldRegionKey("eastern Turkey")).toBe("easternTurkey");
+  });
+
+  it("returns null for an unmapped region or bearing-format provider prose", () => {
+    expect(resolveFarFieldRegionKey("142 km SSE of Hasaki, Syria")).toBeNull();
+    expect(resolveFarFieldRegionKey("Sumatra region")).toBeNull();
   });
 });

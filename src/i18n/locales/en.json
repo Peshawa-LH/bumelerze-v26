@@ -58,7 +58,27 @@
       "iraq": "Iraq",
       "iran": "Iran",
       "turkey": "Turkey",
-      "syria": "Syria"
+      "syria": "Syria",
+      "farField": {
+        "turkey": "Turkey",
+        "iranArmeniaAzerbaijanBorder": "Iran-Armenia-Azerbaijan border region",
+        "iranIraqBorder": "Iran-Iraq border region",
+        "westernIran": "Western Iran",
+        "turkeyIranBorder": "Turkey-Iran border region",
+        "northwesternIran": "Northwestern Iran",
+        "iraq": "Iraq",
+        "jordanSyria": "Jordan-Syria region",
+        "caspianSea": "Caspian Sea",
+        "northernAndCentralIran": "Northern and central Iran",
+        "easternArabianPeninsula": "Eastern Arabian Peninsula",
+        "iran": "Iran",
+        "southernIran": "Southern Iran",
+        "persianGulf": "Persian Gulf",
+        "azerbaijan": "Azerbaijan",
+        "westernArabianPeninsula": "Western Arabian Peninsula",
+        "easternTurkey": "Eastern Turkey",
+        "northernIran": "Northern Iran"
+      }
     },
     "placeLine": {
       "template": "{{distance}} {{direction}} of {{city}}",

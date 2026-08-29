@@ -58,7 +58,27 @@
       "iraq": "Iraq",
       "iran": "Îran",
       "turkey": "Tirkiye",
-      "syria": "Sûriye"
+      "syria": "Sûriye",
+      "farField": {
+        "turkey": "Tirkiye",
+        "iranArmeniaAzerbaijanBorder": "Herêma sînorê Îran-Ermenistan-Azerbaycanê",
+        "iranIraqBorder": "Herêma sînorê Îran-Iraqê",
+        "westernIran": "Rojavayê Îranê",
+        "turkeyIranBorder": "Herêma sînorê Tirkiye-Îranê",
+        "northwesternIran": "Bakur-rojavayê Îranê",
+        "iraq": "Iraq",
+        "jordanSyria": "Herêma Urdun-Sûriyeyê",
+        "caspianSea": "Behra Hazarê",
+        "northernAndCentralIran": "Bakur û navîna Îranê",
+        "easternArabianPeninsula": "Rojhilatê Nîvgirava Erebî",
+        "iran": "Îran",
+        "southernIran": "Başûrê Îranê",
+        "persianGulf": "Kendava Farisan",
+        "azerbaijan": "Azerbaycan",
+        "westernArabianPeninsula": "Rojavayê Nîvgirava Erebî",
+        "easternTurkey": "Rojhilatê Tirkiyeyê",
+        "northernIran": "Bakurê Îranê"
+      }
     },
     "placeLine": {
       "template": "{{distance}} {{direction}} ji {{city}}",
