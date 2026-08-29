@@ -114,27 +114,29 @@ export function formatNearbySoilSummary(
   });
 }
 
-/** "Ss {{ss}}g / S1 {{s1}}g" at the 2475-year return period — the pair the
- * ISC spectrum is built from. The PGA column of the same source table is
- * deliberately never formatted or shown (see `types.ts`). */
+/** "Ss {{ss}}g / S1 {{s1}}g / PGA {{pga}}g" at the 2475-year return period.
+ * All three are published by IMOS as their own map sheets, each of which
+ * agrees with its column of the district table, so all three are shown. */
 export function formatIsc2025Value(
   ss2475G: number,
   s12475G: number,
+  pga2475G: number,
   locale: string,
   t: TranslateFn,
 ): string {
   return t("handbook.rows.isc2025.value", {
     ss: isolateNumeric(formatFixedLocalized(ss2475G, 2, locale)),
     s1: isolateNumeric(formatFixedLocalized(s12475G, 2, locale)),
+    pga: isolateNumeric(formatFixedLocalized(pga2475G, 2, locale)),
   });
 }
 
 /**
- * The provenance line under the value: which district it was read from and
- * how far away that is, plus the zone band when the point falls inside
- * one. The distance is not decoration — the value is a published number at
- * that district, not an interpolation to the queried point, so how far the
- * reader is from it is part of the claim.
+ * The provenance line: the zone band the code's own sheet paints this point
+ * in, plus the nearest district the code prints a number for and how far
+ * away it is. The values above are interpolated TO the queried point, so
+ * the district is no longer the source of the number — it is the anchor a
+ * reader can check against the published table.
  */
 export function formatIsc2025Source(
   isc2025: Isc2025Result,

@@ -1,6 +1,7 @@
 import { haversineDistanceKm } from "@/features/events/distance";
 
 import { ISC2025_DISTRICTS, ISC2025_SS_ZONES } from "./data";
+import { evaluateIsc2025 } from "./isc2025-surface";
 import { pointInRing } from "./point-in-polygon";
 import type { Isc2025District, Isc2025Result, Isc2025SsZone } from "./types";
 
@@ -16,23 +17,21 @@ import type { Isc2025District, Isc2025Result, Isc2025SsZone } from "./types";
  * `bumelerze-engine/scripts/build_isc2025_hazard.py`; per-run counts are in
  * `bumelerze-engine/handbook-data/ISC2025_REPORT.md`.
  *
- * TWO ANSWERS, DELIBERATELY NOT MERGED
- * ------------------------------------
- * The district table is a published value AT a published point; the zone
- * map is a published band covering everywhere. They answer different
- * questions and are kept apart rather than blended into one interpolated
- * number the code never printed:
+ * THREE ANSWERS, EACH DOING A DIFFERENT JOB
+ * -----------------------------------------
+ * - `values` are the design numbers AT the queried point, interpolated
+ *   through all 79 published district values (`isc2025-surface.ts`). This
+ *   is what the engineer designs from.
+ * - `zone` is the band the code's own sheet paints the point in. It is an
+ *   independent check on `values`, drawn from a different artifact.
+ * - `nearestDistrict` is provenance and a sanity anchor: the closest place
+ *   where the code prints a number outright.
  *
- * - `district` is exact where the site IS the district, and progressively
- *   less relevant with distance, so its `distanceKm` always travels with
- *   it and the UI must show it.
- * - `zone` bounds `Ss` for any site inside Iraq, including sites nowhere
- *   near a tabulated district.
- *
- * Interpolating between districts would invent values, and across the
- * Zagros front the gradient is steep enough (Ss runs 0.2 to 1.9 g over the
- * country) that an invented value could sit a whole class away from both
- * neighbours.
+ * Serving the nearest district as THE value was the first approach here
+ * and it was wrong: leave-one-out scores it at 0.140 g RMS against 0.029 g
+ * for the interpolant, because across the Zagros front "nearest" can be
+ * 40 km away and a whole class out. Sulaimani borrowed Chamchamal, 44 km
+ * off, and read 1.09 g where the surface gives 1.22 g.
  */
 
 /** Zones are tested strongest-first so that any overlap introduced by the
@@ -83,8 +82,13 @@ export function nearestIsc2025District(
  * lookup.
  */
 export function lookupIsc2025(lat: number, lon: number): Isc2025Result {
+  const zone = lookupSsZone(lat, lon);
   return {
-    zone: lookupSsZone(lat, lon),
+    // Gated on the zone polygons rather than on distance: they ARE the
+    // country's mapped extent. A cubic RBF extrapolates without bound, so
+    // a point in Turkey must get null, not a confident large number.
+    values: zone === null ? null : evaluateIsc2025(lat, lon),
+    zone,
     nearestDistrict: nearestIsc2025District(lat, lon),
   };
 }

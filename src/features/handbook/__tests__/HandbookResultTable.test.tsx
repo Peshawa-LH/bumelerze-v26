@@ -40,6 +40,14 @@ const FULL_RESULT: HandbookLookupResult = {
   siteClass: { ec8: "B", nehrp: "C" },
   nearbySoilPoints: [NEAREST_POINT, SECOND_POINT],
   isc2025: {
+  values: {
+      ss2475: 1.22,
+      s12475: 0.49,
+      pga2475: 0.24,
+      ss1000: 0.79,
+      s11000: 0.32,
+      pga1000: 0.16,
+    },
     zone: { zone: "IV", ssMinG: 0.95, ssMaxG: 1.35, ring: [] },
     nearestDistrict: {
       district: {
@@ -69,7 +77,7 @@ const OUT_OF_COVERAGE_RESULT: HandbookLookupResult = {
   vs30MS: null,
   vs30Citation: FULL_RESULT.vs30Citation,
   siteClass: null,
-  isc2025: { zone: null, nearestDistrict: null },
+  isc2025: { values: null, zone: null, nearestDistrict: null },
   nearbySoilPoints: [],
 };
 

@@ -11,12 +11,14 @@
  */
 import isc2025DistrictsData from "./data/isc2025-districts.json";
 import isc2025SsZonesData from "./data/isc2025-ss-zones.json";
+import isc2025SurfaceData from "./data/isc2025-surface.json";
 import pgaZonesData from "./data/pga-zones.json";
 import soilPointsData from "./data/soil-points.json";
 import vs30GridData from "./data/vs30-grid.json";
 import type {
   Isc2025District,
   Isc2025SsZone,
+  Isc2025SurfaceModel,
   PgaZone,
   SoilPoint,
   Vs30Grid,
@@ -31,3 +33,4 @@ export const SOIL_POINTS = soilPointsData as unknown as readonly SoilPoint[];
  * `./.venv/bin/python scripts/build_isc2025_hazard.py`. */
 export const ISC2025_DISTRICTS = isc2025DistrictsData as unknown as readonly Isc2025District[];
 export const ISC2025_SS_ZONES = isc2025SsZonesData as unknown as readonly Isc2025SsZone[];
+export const ISC2025_SURFACE = isc2025SurfaceData as unknown as Isc2025SurfaceModel;

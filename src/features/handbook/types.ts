@@ -115,6 +115,31 @@ export interface Isc2025District {
   zone: string;
 }
 
+/** The six published ISC-2025 fields: three quantities x two return
+ * periods. Keys match the generator's own output. */
+export type Isc2025Field =
+  | "ss2475" | "s12475" | "pga2475"
+  | "ss1000" | "s11000" | "pga1000";
+
+/** Solved cubic-RBF weights, emitted by the engine so nothing is solved on
+ * device. See `isc2025-surface.ts` for the evaluation form. */
+export interface Isc2025SurfaceModel {
+  kernel: string;
+  centres: readonly (readonly [number, number])[];
+  shift: readonly [number, number];
+  scale: readonly [number, number];
+  fields: Record<
+    Isc2025Field,
+    {
+      w: readonly number[];
+      poly: readonly number[];
+      /** Published range of this field, used to clamp the interpolant. */
+      min: number;
+      max: number;
+    }
+  >;
+}
+
 export interface NearestIsc2025DistrictResult {
   district: Isc2025District;
   distanceKm: number;
@@ -123,13 +148,17 @@ export interface NearestIsc2025DistrictResult {
 /** Both ISC-2025 answers for a coordinate, deliberately unmerged — see
  * `isc2025.ts` for why interpolating between districts is refused. */
 export interface Isc2025Result {
+  /** The interpolated design values AT the queried point, or null when it
+   * falls outside Iraq. This is the answer to show: the district below is
+   * provenance, not the value. */
+  values: Record<Isc2025Field, number> | null;
   /** Null when the point falls outside the mapped zonation (outside Iraq,
    * or on the far southern coastal tip the traced bands do not reach) —
    * the spec's honest-empty-state rule, never a nearest-band guess. */
   zone: Isc2025SsZone | null;
-  /** Never null in practice (the table spans the whole country), but the
-   * distance can be large, and the UI must always show it: a value from a
-   * district 80 km away is a weaker claim than one from 3 km away. */
+  /** Kept as provenance and as a sanity anchor, no longer as the answer:
+   * `values` interpolates to the queried point instead of borrowing a
+   * district up to 44 km away. */
   nearestDistrict: NearestIsc2025DistrictResult | null;
 }
 
