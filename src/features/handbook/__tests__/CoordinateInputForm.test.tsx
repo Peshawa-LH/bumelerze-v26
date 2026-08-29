@@ -82,6 +82,20 @@ describe("CoordinateInputForm", () => {
     expect(onSubmit).toHaveBeenCalledWith(35.561, 45.431);
   });
 
+  it("has no map-picker affordance under the default (native) platform resolution", async () => {
+    // `MapCoordinatePicker` is a `.tsx`/`.web.tsx` platform split
+    // (`components/MapCoordinatePicker.tsx`'s own doc comment: there is no
+    // native MapLibre map yet) — this repo's jest-expo preset resolves the
+    // plain, suffix-less import to the NATIVE file by default, same as a
+    // real native build would, so this asserts the actual shipped native
+    // behavior rather than a mock of it.
+    await render(<CoordinateInputForm onSubmit={jest.fn()} />);
+
+    expect(screen.queryByText("Pick on the map")).toBeNull();
+    // Manual entry and the gazetteer town picker are unaffected.
+    expect(screen.getByText("Pick a town instead")).toBeTruthy();
+  });
+
   it("fills the fields from a picked gazetteer town", async () => {
     const onSubmit = jest.fn();
     await render(<CoordinateInputForm onSubmit={onSubmit} />);

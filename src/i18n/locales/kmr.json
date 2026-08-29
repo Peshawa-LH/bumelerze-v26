@@ -807,7 +807,14 @@
       "useMyLocation": "Cihê min bikar bîne",
       "locationUnavailable": "Cih ne berdest e. Di Sazkariyan de destûra cihê veke.",
       "pickTown": "Li şûna wê bajarokekî hilbijêre",
-      "hidePickTown": "Koordînatan bi destan binivîse"
+      "hidePickTown": "Koordînatan bi destan binivîse",
+      "pickOnMap": "Li ser nexşê hilbijêre",
+      "mapPickerTitle": "Cihek hilbijêre",
+      "mapPickerClose": "Bigire",
+      "mapPickerHint": "Li ser nexşê bitikîne da ku nîşanek dayne, an jî nîşanê bikişîne da ku wê rast bikî.",
+      "mapPickerNoSelection": "Hê tu cih nehatiye hilbijartin.",
+      "mapPickerSelected": "Hilbijartî: {{lat}}, {{lon}}",
+      "mapPickerConfirm": "Vî cihî bikar bîne"
     },
     "lookupButton": "Lêgerîn",
     "resultsTitle": "Encam ji bo {{lat}}, {{lon}}",

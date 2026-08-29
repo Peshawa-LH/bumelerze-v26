@@ -807,7 +807,14 @@
       "useMyLocation": "بەکارهێنانی شوێنی من",
       "locationUnavailable": "شوێن بەردەست نییە. شوێن لە ڕێکخستنەکاندا چالاک بکە.",
       "pickTown": "لەبری ئەوە شارۆچکەیەک هەڵبژێرە",
-      "hidePickTown": "کۆردینات بە دەست بنووسە"
+      "hidePickTown": "کۆردینات بە دەست بنووسە",
+      "pickOnMap": "لەسەر نەخشە هەڵبژێرە",
+      "mapPickerTitle": "شوێنێک هەڵبژێرە",
+      "mapPickerClose": "داخستن",
+      "mapPickerHint": "دەست لەسەر نەخشە بدە بۆ دانانی نیشانە، یان نیشانەکە ڕابکێشە بۆ ڕێکخستنی.",
+      "mapPickerNoSelection": "تا ئێستا هیچ شوێنێک هەڵنەبژێردراوە.",
+      "mapPickerSelected": "هەڵبژێردراو: {{lat}}, {{lon}}",
+      "mapPickerConfirm": "ئەم شوێنە بەکاربهێنە"
     },
     "lookupButton": "گەڕان",
     "resultsTitle": "ئەنجام بۆ {{lat}}, {{lon}}",
