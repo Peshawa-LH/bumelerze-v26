@@ -979,7 +979,19 @@
         "unlimited": "لە پۆلی {{sdc}} سنووری بەرزی نییە.",
         "overLimit": "بەرزتر لە سنووری {{limit}} م بۆ پۆلی {{sdc}}.",
         "withinLimit": "سنووری بەرزی لە پۆلی {{sdc}}: {{limit}} م."
-      }
+      },
+      "period": {
+        "ta": "Ta = {{ta}} چرکە  (Ct {{ct}}، x {{x}}، خشتەی ٣-٩/٢)",
+        "cuTa": "Cu·Ta = {{cuTa}} چرکە  (Cu {{cu}}، خشتەی ٣-٩/١) — سنووری سەرەوە ئەگەر ماوەت لە شیکارییەوە هەبێت",
+        "cs": "Cs = {{cs}} لە Ta، بەپێی {{governedBy}}",
+        "needsHeight": "بەرزی بینا بنووسە بۆ وەرگرتنی Ta و Cs ی حوکمڕان.",
+        "governedBy": {
+          "plateau": "SDS / (R/I)",
+          "periodCap": "سنووری SD1 / (T·R/I)",
+          "floor": "بنەڕەتی 0.044·SDS·I"
+        }
+      },
+      "driftLimit": "ئاڵوگۆڕی ڕێگەپێدراوی نهۆم: {{ratio}} × hsx (خشتەی ٣-١٢/١)"
     }
   },
   "myData": {

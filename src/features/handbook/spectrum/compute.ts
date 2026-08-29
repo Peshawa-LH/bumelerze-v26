@@ -91,3 +91,51 @@ export function computeSpectrumParameters(inputs: SpectrumInputs): SpectrumParam
     csFloor: 0.044 * sds * importanceFactor, // eq. (3-9/4), no extra 0.01 floor
   };
 }
+
+/** Which of the code's three expressions governs `Cs` at this period. */
+export type CsGovernedBy = "plateau" | "periodCap" | "floor";
+
+export interface GoverningCs {
+  /** The `Cs` to design with, in `V = Cs W` (eq. 3-9/1). */
+  cs: number;
+  governedBy: CsGovernedBy;
+  /** `SDS / (R/I)` — eq. 3-9/2. */
+  plateau: number;
+  /** `SD1 / (T (R/I))` — eq. 3-9/3's "need not exceed". */
+  periodCap: number;
+  /** `0.044 SDS I` — eq. 3-9/4's "shall not be less than". */
+  floor: number;
+  /** The period the cap was evaluated at, seconds. */
+  t: number;
+}
+
+/**
+ * The governing `Cs` at a period, completing what `computeSpectrumParameters`
+ * could only leave as two T-independent pieces.
+ *
+ * ISC-2017 gives exactly three expressions — eq. 3-9/2, 3-9/3 and 3-9/4 —
+ * and **no long-period branch**. ASCE 7 adds `Cs = SD1 TL / (T^2 (R/I))`
+ * for `T > TL` and a `Cs >= 0.5 S1 / (R/I)` minimum where `S1 >= 0.6g`;
+ * neither appears in this code and neither is applied here. Reproducing the
+ * code means reproducing what it omits too. With `TL = 6 s` nationally
+ * (`config.ts`) the omission is nearly unreachable for buildings anyway,
+ * but it is a deliberate fidelity choice, not an oversight.
+ */
+export function governingCs(
+  params: SpectrumParameters,
+  r: number,
+  t: number,
+): GoverningCs {
+  const ratio = r / params.importanceFactor;
+  const plateau = params.csUnreduced;
+  const periodCap = params.sd1 / (t * ratio);
+  const floor = params.csFloor;
+
+  const capped = Math.min(plateau, periodCap);
+  const cs = Math.max(capped, floor);
+
+  const governedBy: CsGovernedBy =
+    cs === floor && floor > capped ? "floor" : periodCap < plateau ? "periodCap" : "plateau";
+
+  return { cs, governedBy, plateau, periodCap, floor, t };
+}

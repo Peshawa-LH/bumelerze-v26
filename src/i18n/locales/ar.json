@@ -979,7 +979,19 @@
         "unlimited": "لا يوجد حد للارتفاع في الفئة {{sdc}}.",
         "overLimit": "أعلى من الحد {{limit}} م للفئة {{sdc}}.",
         "withinLimit": "حد الارتفاع في الفئة {{sdc}}: {{limit}} م."
-      }
+      },
+      "period": {
+        "ta": "Ta = {{ta}} ثانية  (Ct {{ct}}، x {{x}}، الجدول ٣-٩/٢)",
+        "cuTa": "Cu·Ta = {{cuTa}} ثانية  (Cu {{cu}}، الجدول ٣-٩/١) — الحد الأعلى إذا كانت لديك فترة من التحليل",
+        "cs": "Cs = {{cs}} عند Ta، يحكمها {{governedBy}}",
+        "needsHeight": "أدخل ارتفاع المبنى للحصول على Ta وقيمة Cs الحاكمة.",
+        "governedBy": {
+          "plateau": "SDS / (R/I)",
+          "periodCap": "حد SD1 / (T·R/I)",
+          "floor": "الحد الأدنى 0.044·SDS·I"
+        }
+      },
+      "driftLimit": "ازاحة الطابق المسموح بها: {{ratio}} × hsx (الجدول ٣-١٢/١)"
     }
   },
   "myData": {

@@ -31,6 +31,21 @@ export function formatPlainNumber(value: number, locale: string): string {
   return isolateNumeric(localizeDigits(text, locale));
 }
 
+/**
+ * Small code constants that must survive verbatim: `Ct` 0.044, the 0.007
+ * masonry drift ratio, `Cu` 1.4, the exponent `x` 0.9.
+ *
+ * `formatPlainNumber` rounds to 2 decimals, which is right for a
+ * free-entry `R` and WRONG here: it renders `Ct = 0.044` as "0.04" and the
+ * 0.007 drift limit as "0.01", a 43% error on a published limit. Caught in
+ * browser verification, 2026-08-30. Up to 4 decimals, trailing zeros
+ * trimmed, so 0.02 stays "0.02" and 0.044 stays "0.044".
+ */
+export function formatCodeCoefficient(value: number, locale: string): string {
+  const text = Number(value.toFixed(4)).toString();
+  return isolateNumeric(localizeDigits(text, locale));
+}
+
 /** ISC-2017 site class and seismic design category letters are notation
  * (same convention as the Roman-numeral PGA zone label and every other
  * mathematical symbol in this app, `handbook/types.ts`'s doc comment) —

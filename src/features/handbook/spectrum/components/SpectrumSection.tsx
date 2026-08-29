@@ -7,9 +7,16 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import type { Isc2025Result } from "../../types";
 import type { SpectrumCodeValues } from "../types";
 import { CHART_DEFAULT_T_MAX, CHART_EXTENDED_T_MAX } from "../config";
-import { computeSpectrumParameters } from "../compute";
+import { computeSpectrumParameters, governingCs } from "../compute";
+import { allowableDrift } from "../drift";
+import { computePeriod } from "../period";
 import { buildSpectrumCurve } from "../curve";
-import { formatCoefficient, formatPeriodSeconds, formatPlainNumber } from "../format";
+import {
+  formatCodeCoefficient,
+  formatCoefficient,
+  formatPeriodSeconds,
+  formatPlainNumber,
+} from "../format";
 import { iscSiteClassFromVs30 } from "../isc-site-class";
 import { checkHeight } from "../structural-systems";
 import { SpectrumChart } from "./SpectrumChart";
@@ -179,6 +186,56 @@ export function SpectrumSection({ vs30MS, isc2025, locale }: SpectrumSectionProp
                           limit: formatPlainNumber(check.limitM, locale),
                         })}
               </Text>
+              {/* Period and the governing Cs, both of which need a height.
+               * Without one the app shows neither rather than guessing a
+               * building size. */}
+              {state.heightM !== null && state.inputs ? (
+                (() => {
+                  const period = computePeriod(state.system!, state.heightM, params.sd1);
+                  // Designed at Ta itself, which the code permits and which
+                  // is the conservative choice: Cu*Ta is only a ceiling for
+                  // a period obtained by modal analysis, which this app does
+                  // not do.
+                  const cs = governingCs(params, state.inputs.r, period.ta);
+                  return (
+                    <View style={{ gap: spacing[1] }}>
+                      <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                        {t("handbook.spectrum.period.ta", {
+                          ta: formatPeriodSeconds(period.ta, locale),
+                          ct: formatCodeCoefficient(period.ct, locale),
+                          x: formatCodeCoefficient(period.x, locale),
+                        })}
+                      </Text>
+                      <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                        {t("handbook.spectrum.period.cuTa", {
+                          cuTa: formatPeriodSeconds(period.cuTa, locale),
+                          cu: formatCodeCoefficient(period.cu, locale),
+                        })}
+                      </Text>
+                      <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
+                        {t("handbook.spectrum.period.cs", {
+                          cs: formatCoefficient(cs.cs, locale),
+                          governedBy: t(`handbook.spectrum.period.governedBy.${cs.governedBy}`),
+                        })}
+                      </Text>
+                    </View>
+                  );
+                })()
+              ) : (
+                <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+                  {t("handbook.spectrum.period.needsHeight")}
+                </Text>
+              )}
+
+              <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                {t("handbook.spectrum.driftLimit", {
+                  ratio: formatCodeCoefficient(
+                    allowableDrift(state.system!, state.occupancy).ratio,
+                    locale,
+                  ),
+                })}
+              </Text>
+
               <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontStyle: "italic" }}>
                 {t("handbook.spectrum.systemCitation")}
               </Text>
