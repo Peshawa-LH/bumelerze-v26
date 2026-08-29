@@ -807,7 +807,14 @@
       "useMyLocation": "استخدام موقعي",
       "locationUnavailable": "الموقع غير متاح. فعّل إذن الموقع من الإعدادات.",
       "pickTown": "اختر بلدة بدلاً من ذلك",
-      "hidePickTown": "أدخل الإحداثيات يدويًا"
+      "hidePickTown": "أدخل الإحداثيات يدويًا",
+      "pickOnMap": "اختر من الخريطة",
+      "mapPickerTitle": "اختر موقعًا",
+      "mapPickerClose": "إغلاق",
+      "mapPickerHint": "اضغط على الخريطة لوضع علامة، أو اسحب العلامة لتعديلها.",
+      "mapPickerNoSelection": "لم يتم تحديد موقع بعد.",
+      "mapPickerSelected": "المحدد: {{lat}}, {{lon}}",
+      "mapPickerConfirm": "استخدم هذا الموقع"
     },
     "lookupButton": "بحث",
     "resultsTitle": "النتائج لـ {{lat}}, {{lon}}",

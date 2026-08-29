@@ -10,6 +10,7 @@ import {
   validateLatitude,
   validateLongitude,
 } from "../coordinate-validation";
+import { MapCoordinatePicker } from "./MapCoordinatePicker";
 
 interface CoordinateInputFormProps {
   onSubmit: (lat: number, lon: number) => void;
@@ -73,6 +74,21 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
     setLonError(null);
     setIsPickingTown(false);
   }
+
+  function handleSelectFromMap(lat: number, lon: number) {
+    setLatText(lat.toFixed(4));
+    setLonText(lon.toFixed(4));
+    setLatError(null);
+    setLonError(null);
+  }
+
+  // Best-effort parse of whatever is currently in the text fields, purely
+  // to give the map picker a sensible initial view (`MapCoordinatePicker`'s
+  // own doc comment) — errors are ignored here on purpose: a mid-typing
+  // invalid value should never block opening the map, it should just fall
+  // back to the map's own Kurdistan default view.
+  const parsedInitialLat = validateLatitude(latText).value;
+  const parsedInitialLon = validateLongitude(lonText).value;
 
   return (
     <View style={{ gap: spacing[3] }}>
@@ -187,6 +203,11 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
             {isPickingTown ? t("handbook.coordinates.hidePickTown") : t("handbook.coordinates.pickTown")}
           </Text>
         </Pressable>
+        <MapCoordinatePicker
+          initialLat={parsedInitialLat}
+          initialLon={parsedInitialLon}
+          onSelect={handleSelectFromMap}
+        />
       </View>
       {!anchor.hasFix ? (
         <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
@@ -237,8 +258,15 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    // `flexWrap` + a matching `gap` (not `justifyContent: "space-between"`
+    // alone): a third action (the map picker) joined "Use my location" and
+    // "Pick a town instead" here, and long Sorani/Arabic labels at 200%
+    // font scale need to be able to drop to a second line instead of
+    // clipping or overflowing the row's own width.
+    flexWrap: "wrap",
     alignItems: "center",
+    columnGap: 16,
+    rowGap: 8,
   },
   townRow: {
     borderWidth: 1,

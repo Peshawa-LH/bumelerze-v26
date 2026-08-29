@@ -807,7 +807,14 @@
       "useMyLocation": "Use my location",
       "locationUnavailable": "Location isn't available. Turn on location access in Settings.",
       "pickTown": "Pick a town instead",
-      "hidePickTown": "Enter coordinates manually"
+      "hidePickTown": "Enter coordinates manually",
+      "pickOnMap": "Pick on the map",
+      "mapPickerTitle": "Pick a location",
+      "mapPickerClose": "Close",
+      "mapPickerHint": "Tap the map to drop a pin, or drag the pin to adjust it.",
+      "mapPickerNoSelection": "No location selected yet.",
+      "mapPickerSelected": "Selected: {{lat}}, {{lon}}",
+      "mapPickerConfirm": "Use this location"
     },
     "lookupButton": "Look up",
     "resultsTitle": "Results for {{lat}}, {{lon}}",
