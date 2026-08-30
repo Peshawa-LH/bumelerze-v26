@@ -9,7 +9,9 @@ import type { Isc2025Result } from "../../types";
 import type { SpectrumCodeValues } from "../types";
 import { CHART_DEFAULT_T_MAX, CHART_EXTENDED_T_MAX } from "../config";
 import { computeSpectrumParameters, governingCs } from "../compute";
-import { buildEc8Curve, type Ec8GroundType } from "../ec8";
+import { buildEc8Curve, ec8Parameters, type Ec8GroundType } from "../ec8";
+import { methodDuplicatesIsc, spectrumMethod, SPECTRUM_METHODS } from "../methods";
+import { canPrintReport, printReport } from "../print-report";
 import { allowableDrift } from "../drift";
 import { computePeriod } from "../period";
 import { buildSpectrumCurve } from "../curve";
@@ -51,6 +53,9 @@ function toCodeValues(isc2025: Isc2025Result): SpectrumCodeValues | null {
   return {
     ss: isc2025.values.ss2475,
     s1: isc2025.values.s12475,
+    // EC8 is fed the 1000-year PGA; see `methods.ts` for why 1000 and not
+    // the 2475 the ISC path uses.
+    ag: isc2025.values.pga1000,
     districtName: nearest.district.nameEn,
     distanceKm: nearest.distanceKm,
   };
@@ -81,7 +86,46 @@ export function SpectrumSection({
   // warning itself would not be — the first line is the one that has to be
   // read, the rest explains it.
   const [bannerOpen, setBannerOpen] = useState(false);
-  const [showEc8, setShowEc8] = useState(false);
+
+  function sheetData() {
+    if (!state.inputs || !params) {
+      return null;
+    }
+    const nearest = isc2025.nearestDistrict;
+    return {
+      lat,
+      lon,
+      ss2475: isc2025.values?.ss2475 ?? state.inputs.ss,
+      s12475: isc2025.values?.s12475 ?? state.inputs.s1,
+      pga2475: isc2025.values?.pga2475 ?? 0,
+      nearestDistrict: nearest
+        ? { name: nearest.district.nameEn, distanceKm: nearest.distanceKm }
+        : null,
+      zone: isc2025.zone?.zone ?? null,
+      vs30MS,
+      inputs: state.inputs,
+      params,
+      system: state.system,
+      heightM: state.heightM,
+    };
+  }
+
+  function handlePrintReport() {
+    const base = sheetData();
+    if (!base) {
+      return;
+    }
+    printReport(
+      {
+        ...base,
+        method: state.method,
+        ec8GroundType,
+        ag: state.agValue,
+        generatedAt: new Date().toISOString().slice(0, 16).replace("T", " "),
+      },
+      t,
+    );
+  }
 
   async function copyCalculationSheet() {
     if (!state.inputs || !params) {
@@ -118,7 +162,18 @@ export function SpectrumSection({
   const tMax = showFullRange ? CHART_EXTENDED_T_MAX : CHART_DEFAULT_T_MAX;
 
   const params = state.inputs ? computeSpectrumParameters(state.inputs) : null;
-  const curve = state.inputs && params ? buildSpectrumCurve(params, state.inputs.r, tMax) : null;
+  const iscCurve = state.inputs && params ? buildSpectrumCurve(params, state.inputs.r, tMax) : null;
+
+  // EC8 replaces the curve rather than overlaying it: the engineer picked a
+  // method, so that method's spectrum is THE spectrum. It has no reduced
+  // counterpart here because EC8 reduces by the behaviour factor `q`
+  // (§3.2.2.5), which is not `R` and which this tool does not ask for.
+  const isEc8 = state.method === "ec8";
+  const ec8Curve =
+    isEc8 && ec8GroundType && state.agValue !== null
+      ? { code: buildEc8Curve(state.agValue, ec8GroundType, tMax), reduced: [] }
+      : null;
+  const curve = isEc8 ? ec8Curve : iscCurve;
 
   return (
     <View style={{ gap: spacing[4] }}>
@@ -133,6 +188,61 @@ export function SpectrumSection({
       >
         {t("handbook.spectrum.sectionTitle")}
       </Text>
+
+      {/* Method selector. The maps are always the Iraqi ones — ISC-2025 is
+       * the only published hazard for Iraq — and this picks whose equations
+       * turn those values into a spectrum. */}
+      <View style={{ gap: spacing[2] }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+          {t("handbook.spectrum.methodLabel")}
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing[2] }}>
+          {SPECTRUM_METHODS.map((m) => {
+            const selected = state.method === m.id;
+            const disabled = m.id === "ec8" && !ec8GroundType;
+            return (
+              <Pressable
+                key={m.id}
+                accessibilityRole="button"
+                accessibilityState={{ selected, disabled }}
+                disabled={disabled}
+                onPress={() => state.setMethod(m.id)}
+                style={{
+                  borderWidth: 1,
+                  borderRadius: 999,
+                  paddingVertical: spacing[2],
+                  paddingHorizontal: spacing[3],
+                  minHeight: 44,
+                  justifyContent: "center",
+                  opacity: disabled ? 0.4 : 1,
+                  borderColor: selected ? colors.brand.primary : colors.border.default,
+                  backgroundColor: selected ? colors.brand.primary : "transparent",
+                }}
+              >
+                <Text
+                  style={{
+                    color: selected ? colors.brand.onPrimary : colors.text.primary,
+                    fontSize: typography.labelButton.fontSize,
+                    fontWeight: typography.labelButton.fontWeight,
+                  }}
+                >
+                  {t(`handbook.spectrum.methods.${m.id}`)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+          {t("handbook.spectrum.methodReturnPeriod", {
+            years: spectrumMethod(state.method).returnPeriodYears,
+          })}
+        </Text>
+        {methodDuplicatesIsc(state.method) ? (
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+            {t("handbook.spectrum.methodNote.asce710")}
+          </Text>
+        ) : null}
+      </View>
 
       {/* Persistent framing banner (§6.1 proxy-Vs30 note, §7's "not a
        * design spectrum of record" instruction) — attached to the
@@ -192,7 +302,7 @@ export function SpectrumSection({
        * the app already knows this site's design category, so it can say
        * the chosen system is not permitted here at all, which is a
        * compliance answer rather than a number. */}
-      {params && (state.system || state.heightM !== null) ? (
+      {!isEc8 && params && (state.system || state.heightM !== null) ? (
         (() => {
           const check = state.system
             ? checkHeight(state.system, params.seismicDesignCategory, state.heightM)
@@ -320,11 +430,7 @@ export function SpectrumSection({
               params={params}
               tMax={tMax}
               locale={locale}
-              comparison={
-                showEc8 && ec8GroundType && isc2025.values
-                  ? buildEc8Curve(isc2025.values.pga2475, ec8GroundType, tMax)
-                  : undefined
-              }
+
               accessibilityLabel={t("handbook.spectrum.chartA11yLabel", {
                 plateau: formatCoefficient(params.sds, locale),
                 t0: formatPeriodSeconds(params.t0, locale),
@@ -334,38 +440,11 @@ export function SpectrumSection({
             />
           </ErrorBoundary>
 
-          {/* Why there is no separate ASCE curve: there would be nothing to
-           * see. ISC-2017 took ASCE 7-05/7-10's four branches AND its
-           * Fa/Fv tables unchanged, so an ASCE 7-10 spectrum plots exactly
-           * on the solid line already drawn. Saying so is more useful than
-           * drawing a second identical curve. */}
           <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
-            {t("handbook.spectrum.asceNote")}
+            {t(`handbook.spectrum.methodNote.${state.method}`, {
+              groundType: ec8GroundType ?? "-",
+            })}
           </Text>
-
-          {/* Eurocode 8 comparison. A second, independent code shape built
-           * from the same ground motion is the most direct answer to "is my
-           * spectrum right?" — and the caveats travel with it, because an
-           * EC8 curve fed a 2475-year ag is not an EC8 design spectrum. */}
-          {ec8GroundType && isc2025.values ? (
-            <View style={{ gap: spacing[1] }}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ selected: showEc8 }}
-                onPress={() => setShowEc8((value) => !value)}
-                hitSlop={8}
-              >
-                <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
-                  {t(showEc8 ? "handbook.spectrum.ec8.hide" : "handbook.spectrum.ec8.show")}
-                </Text>
-              </Pressable>
-              {showEc8 ? (
-                <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-                  {t("handbook.spectrum.ec8.caveat", { groundType: ec8GroundType })}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
 
           <Pressable
             accessibilityRole="button"
@@ -382,7 +461,26 @@ export function SpectrumSection({
             </Text>
           </Pressable>
 
-          <SpectrumControlPointTable inputs={state.inputs} params={params} locale={locale} />
+          {isEc8 && ec8GroundType && state.agValue !== null ? (
+            <View style={{ gap: spacing[1] }}>
+              <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
+                {t("handbook.spectrum.ec8.paramsTitle")}
+              </Text>
+              <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                {t("handbook.spectrum.ec8.params", {
+                  ag: formatCoefficient(state.agValue, locale),
+                  groundType: ec8GroundType,
+                  s: formatCodeCoefficient(ec8Parameters(ec8GroundType).s, locale),
+                  tb: formatCodeCoefficient(ec8Parameters(ec8GroundType).tb, locale),
+                  tc: formatCodeCoefficient(ec8Parameters(ec8GroundType).tc, locale),
+                  td: formatCodeCoefficient(ec8Parameters(ec8GroundType).td, locale),
+                  plateau: formatCoefficient(state.agValue * ec8Parameters(ec8GroundType).s * 2.5, locale),
+                })}
+              </Text>
+            </View>
+          ) : (
+            <SpectrumControlPointTable inputs={state.inputs} params={params} locale={locale} />
+          )}
 
           {/* The whole parameter set as pasteable text, each line naming its
            * clause. This is what gets the tool into a real calculation
@@ -405,6 +503,36 @@ export function SpectrumSection({
               {t(sheetCopied ? "handbook.sheet.copied" : "handbook.sheet.copy")}
             </Text>
           </Pressable>
+
+          {/* Printable report. Hidden where there is no print dialog to
+           * drive (native), rather than shown as a button that does
+           * nothing. */}
+          {canPrintReport ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={handlePrintReport}
+              style={{
+                borderWidth: 1,
+                borderRadius: 12,
+                borderColor: colors.brand.primary,
+                backgroundColor: colors.brand.primary,
+                padding: spacing[3],
+                alignItems: "center",
+                minHeight: 44,
+                justifyContent: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.brand.onPrimary,
+                  fontSize: typography.bodyDefault.fontSize,
+                  fontWeight: "600",
+                }}
+              >
+                {t("handbook.report.action")}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
     </View>

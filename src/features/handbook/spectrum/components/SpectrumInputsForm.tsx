@@ -107,7 +107,42 @@ export function SpectrumInputsForm({
         </View>
       ) : null}
 
+      {/* Eurocode 8 needs `ag` on type A ground, not Ss/S1: different
+       * equations take different mapped inputs. */}
+      {state.method === "ec8" ? (
+        <View style={{ gap: spacing[2] }}>
+          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+            {t("handbook.spectrum.agLabel")}
+          </Text>
+          <TextInput
+            value={state.agText}
+            onChangeText={state.setAgText}
+            placeholder={t("handbook.spectrum.ssPlaceholder")}
+            placeholderTextColor={colors.text.tertiary}
+            accessibilityLabel={t("handbook.spectrum.agLabel")}
+            keyboardType="default"
+            autoCorrect={false}
+            style={[
+              styles.input,
+              {
+                color: colors.text.primary,
+                borderColor: state.agError ? colors.status.danger : colors.border.default,
+                backgroundColor: colors.surface.raised,
+                fontSize: typography.bodyDefault.fontSize,
+                padding: spacing[3],
+              },
+            ]}
+          />
+          {state.agError ? (
+            <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+              {t(fieldErrorKey(state.agError))}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
       {/* --- Ss --- */}
+      {state.method !== "ec8" ? (
       <View style={{ gap: spacing[2] }}>
         <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
           {t("handbook.spectrum.ssLabel")}
@@ -137,8 +172,10 @@ export function SpectrumInputsForm({
           </Text>
         ) : null}
       </View>
+      ) : null}
 
       {/* --- S1 --- */}
+      {state.method !== "ec8" ? (
       <View style={{ gap: spacing[2] }}>
         <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
           {t("handbook.spectrum.s1Label")}
@@ -168,6 +205,7 @@ export function SpectrumInputsForm({
           </Text>
         ) : null}
       </View>
+      ) : null}
 
       {/* --- Site class override --- */}
       <View style={{ gap: spacing[2] }}>

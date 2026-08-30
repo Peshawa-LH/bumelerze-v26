@@ -999,12 +999,27 @@
       "ec8": {
         "show": "Compare with Eurocode 8",
         "hide": "Hide the Eurocode 8 comparison",
-        "caveat": "Dashed line: EN 1998-1 Type 1 elastic spectrum, ground type {{groundType}}, 5% damping, using the ISC-2025 PGA as ag. This is a shape comparison, not a Eurocode design spectrum: EC8's own reference is the 475-year hazard, Iraq has no EC8 national annex, and EC8 ground types are not ISC site classes."
+        "caveat": "Dashed line: EN 1998-1 Type 1 elastic spectrum, ground type {{groundType}}, 5% damping, using the ISC-2025 PGA as ag. This is a shape comparison, not a Eurocode design spectrum: EC8's own reference is the 475-year hazard, Iraq has no EC8 national annex, and EC8 ground types are not ISC site classes.",
+        "paramsTitle": "Eurocode 8 parameters",
+        "params": "ag {{ag}} g · ground type {{groundType}} · S {{s}} · TB {{tb}} s · TC {{tc}} s · TD {{td}} s · plateau 2.5·S·ag = {{plateau}} g"
       },
       "systemOptional": "Response modification coefficient R",
       "systemLookup": "Look up R, Ω0 and Cd from the code table",
       "rNoteFree": "From ISC-2017 Table 3-2/1 for your system. The spectrum above does not depend on R; it is needed for the base shear and the reduced curve.",
-      "asceNote": "The solid curve is also the ASCE 7-10 spectrum: ISC-2017 uses ASCE's four branches and its Fa and Fv tables unchanged, so an ASCE 7-10 curve would fall exactly on it. ASCE 7-16 revised the site coefficients and would differ, but that standard is not held here."
+      "asceNote": "The solid curve is also the ASCE 7-10 spectrum: ISC-2017 uses ASCE's four branches and its Fa and Fv tables unchanged, so an ASCE 7-10 curve would fall exactly on it. ASCE 7-16 revised the site coefficients and would differ, but that standard is not held here.",
+      "methodLabel": "Calculate the spectrum with",
+      "methods": {
+        "isc": "Iraqi code",
+        "asce710": "ASCE 7-10",
+        "ec8": "Eurocode 8"
+      },
+      "methodReturnPeriod": "Mapped values taken at the {{years}}-year return period.",
+      "methodNote": {
+        "isc": "ISC-2017 §2-2/5 equations, with Ss and S1 from the ISC-2025 maps and Fa, Fv from Table 2-2/1.",
+        "asce710": "ASCE 7-10 uses the same four branches and the same Fa and Fv tables as the Iraqi code, so this curve is identical to it. ASCE 7-16 revised the site coefficients and would differ; that standard is not available here.",
+        "ec8": "EN 1998-1 §3.2.2.2 Type 1 elastic spectrum, ground type {{groundType}}, 5% damping. EC8's own reference is the 475-year hazard, which the Iraqi maps do not publish, so the 1000-year values are used. Iraq has no EC8 national annex, so S, TB, TC and TD are the standard's recommended values."
+      },
+      "agLabel": "ag, design ground acceleration on type A ground (g)"
     },
     "sheet": {
       "copy": "Copy the calculation sheet",
@@ -1026,6 +1041,19 @@
       "verticalOmitted": "Vertical seismic term omitted: SDS <= 0.125.",
       "rhoNote": "rho is the redundancy factor (§3-3/3): you must determine it, this tool does not.",
       "footer": "Preliminary reference only. Not a substitute for a site-specific geotechnical investigation or for the code text itself. Verify every value against your own copy of the code."
+    },
+    "report": {
+      "action": "Generate a printable report",
+      "title": "Seismic design parameters",
+      "generated": "Generated",
+      "method": "Calculation method",
+      "hazardBasis": "Hazard basis",
+      "hazardBasisValue": "Iraqi Seismic Code 2025 maps, {{years}}-year return period",
+      "parameters": "Design parameters",
+      "disclaimerTitle": "Preliminary reference only",
+      "disclaimer": "This report is produced by the Bumelerze Engineer's Handbook for preliminary use. It is not a design document and not a substitute for a site-specific geotechnical investigation or for the code text itself. Mapped values are interpolated between the published district values of the Iraqi Seismic Code 2025, which is a forthcoming edition not yet in force; the calculation rules are those of the Iraqi Seismic Code 2017 unless another method is named above. Verify every value against your own copy of the code before use.",
+      "footer": "Bumelerze · bumelerze.com · Prepared by the person named on the project, not by Bumelerze.",
+      "popupBlocked": "Your browser blocked the report window. Allow pop-ups for this site and try again."
     }
   },
   "myData": {
