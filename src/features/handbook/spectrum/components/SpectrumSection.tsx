@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
@@ -18,6 +19,7 @@ import {
   formatPlainNumber,
 } from "../format";
 import { iscSiteClassFromVs30 } from "../isc-site-class";
+import { buildCalculationSheet } from "../calculation-sheet";
 import { checkHeight } from "../structural-systems";
 import { SpectrumChart } from "./SpectrumChart";
 import { SpectrumControlPointTable } from "./SpectrumControlPointTable";
@@ -32,6 +34,10 @@ interface SpectrumSectionProps {
   vs30MS: number | null;
   /** The coordinate's ISC-2025 lookup, used to pre-fill `Ss`/`S1`. */
   isc2025: Isc2025Result;
+  /** The looked-up point, carried so the calculation sheet can name the
+   * site it belongs to. */
+  lat: number;
+  lon: number;
   locale: string;
 }
 
@@ -59,10 +65,46 @@ function toCodeValues(isc2025: Isc2025Result): SpectrumCodeValues | null {
  * professional deep-dive tool one step past the lookup table, not
  * something that competes with it for attention on first paint.
  */
-export function SpectrumSection({ vs30MS, isc2025, locale }: SpectrumSectionProps) {
+export function SpectrumSection({
+  vs30MS,
+  isc2025,
+  lat,
+  lon,
+  locale,
+}: SpectrumSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const [showFullRange, setShowFullRange] = useState(false);
+  const [sheetCopied, setSheetCopied] = useState(false);
+
+  async function copyCalculationSheet() {
+    if (!state.inputs || !params) {
+      return;
+    }
+    const nearest = isc2025.nearestDistrict;
+    await Clipboard.setStringAsync(
+      buildCalculationSheet(
+        {
+          lat,
+          lon,
+          ss2475: isc2025.values?.ss2475 ?? state.inputs.ss,
+          s12475: isc2025.values?.s12475 ?? state.inputs.s1,
+          pga2475: isc2025.values?.pga2475 ?? 0,
+          nearestDistrict: nearest
+            ? { name: nearest.district.nameEn, distanceKm: nearest.distanceKm }
+            : null,
+          zone: isc2025.zone?.zone ?? null,
+          vs30MS,
+          inputs: state.inputs,
+          params,
+          system: state.system,
+          heightM: state.heightM,
+        },
+        t,
+      ),
+    );
+    setSheetCopied(true);
+  }
 
   const derivedSiteClass = vs30MS === null ? null : iscSiteClassFromVs30(vs30MS);
   const state = useSpectrumInputsState(derivedSiteClass ?? "D", toCodeValues(isc2025));
@@ -283,6 +325,28 @@ export function SpectrumSection({ vs30MS, isc2025, locale }: SpectrumSectionProp
           </Pressable>
 
           <SpectrumControlPointTable inputs={state.inputs} params={params} locale={locale} />
+
+          {/* The whole parameter set as pasteable text, each line naming its
+           * clause. This is what gets the tool into a real calculation
+           * report: the saving is not the arithmetic, it is the fifteen
+           * lookups and having to justify each one. */}
+          <Pressable
+            accessibilityRole="button"
+            onPress={copyCalculationSheet}
+            style={{
+              borderWidth: 1,
+              borderRadius: 12,
+              borderColor: colors.border.default,
+              padding: spacing[3],
+              alignItems: "center",
+              minHeight: 44,
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: colors.text.link, fontSize: typography.bodyDefault.fontSize }}>
+              {t(sheetCopied ? "handbook.sheet.copied" : "handbook.sheet.copy")}
+            </Text>
+          </Pressable>
         </View>
       ) : null}
     </View>

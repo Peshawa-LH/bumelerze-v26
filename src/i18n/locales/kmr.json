@@ -992,6 +992,27 @@
         }
       },
       "driftLimit": "Şemitîna qatê ya destûrdar: {{ratio}} × hsx (Tabloya 3-12/1)"
+    },
+    "sheet": {
+      "copy": "Pelê hesabê kopî bike",
+      "copied": "Pelê hesabê hat kopîkirin",
+      "title": "Parametreyên sêwirana erdhejê yên Bumelerze",
+      "location": "Cih",
+      "nearestDistrict": "Qeza weşandî ya herî nêzîk",
+      "zone": "Herêma erdhejê",
+      "groundMotion": "-- Livîna erdê ya nexşekirî (Koda Iraqê 2025, çapa bê) --",
+      "vs30Source": "modela çiyayîtiya cîhanî, ne pîvana cihî",
+      "siteClass": "Pola cihî",
+      "designParameters": "-- Parametreyên sêwiranê (Koda Iraqê 2017) --",
+      "sdc": "Kategoriya sêwirana erdhejê",
+      "system": "-- Sîstema li ber hêza erdhejê (2017) --",
+      "systemName": "Sîstem",
+      "heightLimit": "Sînorê bilindahiyê",
+      "driftLimit": "Şemitîna qatê ya destûrdar",
+      "loadEffects": "-- Bandorên barê erdhejê (2017 §3-4) --",
+      "verticalOmitted": "Bandora erdhejê ya stûnî hat berdan: SDS <= 0.125.",
+      "rhoNote": "rho faktora pêbaweriyê ye (§3-3/3): divê tu wê diyar bikî, ev amûr nake.",
+      "footer": "Tenê çavkaniyeke destpêkî. Ne cîgirê lêkolîna axê ya taybet a cihî ye û ne jî ya nivîsa kodê. Her nirxê ji kopiya xwe ya kodê kontrol bike."
     }
   },
   "myData": {
