@@ -995,7 +995,12 @@
       },
       "driftLimit": "Şemitîna qatê ya destûrdar: {{ratio}} × hsx (Tabloya 3-12/1)",
       "systemChange": "Biguherîne",
-      "systemHideList": "Lîsteyê veşêre"
+      "systemHideList": "Lîsteyê veşêre",
+      "ec8": {
+        "show": "Bi Eurocode 8 re bide ber hev",
+        "hide": "Berhevdana Eurocode 8 veşêre",
+        "caveat": "Xêza qutbûyî: tayfa elastîk a Cure 1 li gorî EN 1998-1, cureya erdê {{groundType}}, damping 5%, bi PGA ya Koda Iraqê 2025 wek ag. Ev berhevdana şiklî ye, ne tayfa sêwirana Eurocode: referansa EC8 metirsiya 475 salî ye, Iraq pêvekeke neteweyî ya EC8 tune, û cureyên erdê yên EC8 ne polên cihî yên koda Iraqê ne."
+      }
     },
     "sheet": {
       "copy": "Pelê hesabê kopî bike",

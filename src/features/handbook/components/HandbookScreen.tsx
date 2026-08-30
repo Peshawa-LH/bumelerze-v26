@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme";
 import { lookupHandbookData } from "../lookup";
 import { SpectrumSection } from "../spectrum";
+import type { Ec8GroundType } from "../spectrum/ec8";
 import type { HandbookLookupResult } from "../types";
 import { CoordinateInputForm } from "./CoordinateInputForm";
 import { HandbookResultTable } from "./HandbookResultTable";
@@ -63,6 +64,7 @@ export function HandbookScreen() {
         <SpectrumSection
           key={`${result.lat},${result.lon}`}
           vs30MS={result.vs30MS}
+          ec8GroundType={(result.siteClass?.ec8 ?? null) as Ec8GroundType | null}
           isc2025={result.isc2025}
           lat={result.lat}
           lon={result.lon}
