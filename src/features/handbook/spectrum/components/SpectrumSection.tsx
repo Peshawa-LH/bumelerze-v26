@@ -115,6 +115,26 @@ export function SpectrumSection({
     if (!base) {
       return;
     }
+    // The printed curve is the very points that are on screen, not a
+    // recomputation, so the report can never disagree with the chart.
+    const series = curve
+      ? [
+          {
+            points: curve.code.map((p) => ({ t: p.t, sa: p.sa })),
+            label: t("handbook.spectrum.legend.code"),
+          },
+          ...(curve.reduced.length > 1
+            ? [
+                {
+                  points: curve.reduced.map((p) => ({ t: p.t, sa: p.sa })),
+                  dashed: true,
+                  label: t("handbook.spectrum.legend.reduced"),
+                },
+              ]
+            : []),
+        ]
+      : [];
+
     printReport(
       {
         ...base,
@@ -122,6 +142,8 @@ export function SpectrumSection({
         ec8GroundType,
         ag: state.agValue,
         generatedAt: new Date().toISOString().slice(0, 16).replace("T", " "),
+        chartSeries: series,
+        chartTMax: tMax,
       },
       t,
     );

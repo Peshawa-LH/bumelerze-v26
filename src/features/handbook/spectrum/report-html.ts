@@ -3,7 +3,9 @@ import type { TFunction } from "i18next";
 import { buildCalculationSheet, type CalculationSheetInput } from "./calculation-sheet";
 import { ec8Parameters, type Ec8GroundType } from "./ec8";
 import { spectrumMethod, type SpectrumMethodId } from "./methods";
+import { buildReportChartSvg, type ReportChartSeries } from "./report-chart";
 import { BUMELERZE_LOGO_SVG } from "./report-logo";
+import { buildReportMapSvg } from "./report-map";
 
 /**
  * A printable one-page report: the design parameters for one site under one
@@ -40,6 +42,10 @@ export interface ReportInput extends CalculationSheetInput {
   ag: number | null;
   /** ISO timestamp, passed in so this stays pure and testable. */
   generatedAt: string;
+  /** The plotted spectrum, passed in rather than recomputed so the printed
+   * curve is provably the same one the engineer saw on screen. */
+  chartSeries: readonly ReportChartSeries[];
+  chartTMax: number;
 }
 
 function escapeHtml(value: string): string {
@@ -70,9 +76,14 @@ export function buildReportHtml(data: ReportInput, t: TFunction): string {
 <title>${escapeHtml(t("handbook.report.title"))}</title>
 <style>
   @page { size: A4; margin: 16mm; }
+  /* The report is a paper document and must look like one on any screen.
+   * Without this a dark-themed browser renders it black on black, which is
+   * how it first appeared in review: the viewer's theme must not reach it. */
+  :root { color-scheme: light; }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-         color: #111; margin: 0; font-size: 11pt; line-height: 1.45; }
+         color: #111; background: #fff; margin: 0; font-size: 11pt; line-height: 1.45;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   header { display: flex; align-items: center; justify-content: space-between;
            gap: 16px; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 16px; }
   header svg { height: 34px; width: auto; }
@@ -90,6 +101,12 @@ export function buildReportHtml(data: ReportInput, t: TFunction): string {
   .disclaimer { border: 1.5px solid #111; padding: 10px 12px; font-size: 9pt; margin-top: 16px; }
   footer { margin-top: 14px; font-size: 8pt; color: #666;
            border-top: 1px solid #e4e4e4; padding-top: 8px; }
+  .figures { display: flex; gap: 14px; align-items: flex-start; margin: 4px 0 14px; }
+  .figures figure { margin: 0; flex: 1 1 0; min-width: 0; }
+  .figures .fig-body svg { width: 100%; height: auto; display: block; }
+  .figures figcaption { font-size: 8pt; color: #555; margin-top: 4px; }
+  /* Keep a figure from being split across a page break. */
+  figure, table, .disclaimer { break-inside: avoid; page-break-inside: avoid; }
 </style>
 </head>
 <body>
@@ -110,6 +127,20 @@ export function buildReportHtml(data: ReportInput, t: TFunction): string {
   <tr><th>${escapeHtml(t("handbook.report.hazardBasis"))}</th><td>${escapeHtml(t("handbook.report.hazardBasisValue", { years: method.returnPeriodYears }))}</td></tr>
   ${ec8Row}
 </table>
+
+<div class="figures">
+  <figure>
+    <div class="fig-body">${buildReportMapSvg(data.lat, data.lon)}</div>
+    <figcaption>${escapeHtml(t("handbook.report.mapCaption"))}</figcaption>
+  </figure>
+  <figure>
+    <div class="fig-body">${buildReportChartSvg(data.chartSeries, data.chartTMax, {
+      period: escapeHtml(t("handbook.report.axisPeriod")),
+      acceleration: escapeHtml(t("handbook.report.axisAcceleration")),
+    })}</div>
+    <figcaption>${escapeHtml(t("handbook.report.chartCaption", { method: methodName }))}</figcaption>
+  </figure>
+</div>
 
 <h2>${escapeHtml(t("handbook.report.parameters"))}</h2>
 <pre>${escapeHtml(sheet)}</pre>
