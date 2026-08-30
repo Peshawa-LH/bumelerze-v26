@@ -23,6 +23,19 @@ function report(over: Partial<ReportInput> = {}): string {
       ec8GroundType: null,
       ag: null,
       generatedAt: "2026-08-30 09:00",
+      chartSeries: [
+        {
+          points: [
+            { t: 0, sa: 0.33 },
+            { t: 0.11, sa: 0.81 },
+            { t: 0.53, sa: 0.81 },
+            { t: 2, sa: 0.21 },
+            { t: 4, sa: 0.11 },
+          ],
+          label: "Code spectrum",
+        },
+      ],
+      chartTMax: 4,
       ...over,
     },
     i18n.t.bind(i18n),
@@ -33,6 +46,27 @@ describe("buildReportHtml", () => {
   const original = i18n.language;
   beforeEach(async () => { await i18n.changeLanguage("en"); });
   afterEach(async () => { await i18n.changeLanguage(original); });
+
+  it("embeds the locator map and the spectrum plot as inline SVG", () => {
+    const html = report();
+    // Three SVGs: the logo, the hazard-zone locator, the spectrum plot.
+    expect((html.match(/<svg/g) ?? []).length).toBeGreaterThanOrEqual(3);
+    // The locator draws the shipped zone bands, in the official colours.
+    expect(html).toContain("#ffaa00");
+    // The marker crosshair is drawn, so the site is actually shown.
+    expect(html).toContain("<circle");
+    expect(html).toContain(i18n.t("handbook.report.mapCaption"));
+    expect(html).toContain(i18n.t("handbook.report.axisPeriod"));
+  });
+
+  it("plots the very points that were on screen, not a recomputation", () => {
+    const html = report({
+      chartSeries: [{ points: [{ t: 0, sa: 0.5 }, { t: 1, sa: 0.25 }], label: "X" }],
+      chartTMax: 1,
+    });
+    expect(html).toContain("<polyline");
+    expect(html).toContain(">X<");
+  });
 
   it("is a self-contained document with the logo inlined", () => {
     const html = report();

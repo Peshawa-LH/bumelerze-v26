@@ -1053,7 +1053,11 @@
       "disclaimerTitle": "Preliminary reference only",
       "disclaimer": "This report is produced by the Bumelerze Engineer's Handbook for preliminary use. It is not a design document and not a substitute for a site-specific geotechnical investigation or for the code text itself. Mapped values are interpolated between the published district values of the Iraqi Seismic Code 2025, which is a forthcoming edition not yet in force; the calculation rules are those of the Iraqi Seismic Code 2017 unless another method is named above. Verify every value against your own copy of the code before use.",
       "footer": "Bumelerze · bumelerze.com · Prepared by the person named on the project, not by Bumelerze.",
-      "popupBlocked": "Your browser blocked the report window. Allow pop-ups for this site and try again."
+      "popupBlocked": "Your browser blocked the report window. Allow pop-ups for this site and try again.",
+      "mapCaption": "Site location on the Iraqi Seismic Code 2025 Ss zonation (zones I to V).",
+      "chartCaption": "Design response spectrum, {{method}}.",
+      "axisPeriod": "Period T (s)",
+      "axisAcceleration": "Spectral acceleration (g)"
     }
   },
   "myData": {

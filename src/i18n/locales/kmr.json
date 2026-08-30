@@ -1053,7 +1053,11 @@
       "disclaimerTitle": "Tenê çavkaniyeke destpêkî",
       "disclaimer": "Ev rapor ji Destûra Endezyar a Bumelerze ji bo bikaranîna destpêkî hatiye çêkirin. Ne belgeyeke sêwiranê ye û ne cîgirê lêkolîna axê ya taybet a cihî ye û ne jî ya nivîsa kodê. Nirxên nexşeyî di navbera nirxên qezayan ên weşandî yên Koda Erdhejê ya Iraqê 2025 de hatine hesibandin, ku çapeke bê ye û hê nehatiye meriyetê; rêzikên hesabê jî yên Koda 2017 in heke li jor rêbazeke din nehatibe navandin. Berî bikaranînê her nirxê ji kopiya xwe ya kodê kontrol bike.",
       "footer": "Bumelerze · bumelerze.com · Ji aliyê kesê ku di projeyê de hatiye navandin ve hatiye amadekirin, ne ji aliyê Bumelerze ve.",
-      "popupBlocked": "Geroka te pencereya raporê asteng kir. Ji bo vê malperê pop-up destûr bide û dîsa biceribîne."
+      "popupBlocked": "Geroka te pencereya raporê asteng kir. Ji bo vê malperê pop-up destûr bide û dîsa biceribîne.",
+      "mapCaption": "Cihê projeyê li ser nexşeya herêmên Ss ya Koda Erdhejê ya Iraqê 2025 (herêm I heta V).",
+      "chartCaption": "Tayfa bersiva sêwiranê, {{method}}.",
+      "axisPeriod": "Dem T (s)",
+      "axisAcceleration": "Lezkirina tayfî (g)"
     }
   },
   "myData": {
