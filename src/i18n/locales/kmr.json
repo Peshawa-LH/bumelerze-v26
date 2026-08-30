@@ -874,7 +874,9 @@
         "notOfRecord": "Ji bo pîvandina destpêkê, kontrolkirina encama amûrekî din, û fêrbûnê ye. Ev şûna lêkolîna geoteknîkî ya taybet a cihî, nivîsa qanûnê bi xwe, an spektruma amade ji bo pêşkêşkirinê nagire.",
         "ssS1Source": "Divê tu bi xwe Ss û S1 binivîsî, ji Wêneyên 2-2/1(a) û (b) ên ISC-2017. Ev sepan hê van nexşeyan nade, û kurteriya ji PGA berbi Ss ne ewqas pêbawer e ku em vê derê pêşkêş bikin.",
         "vs30Proxy": "Pola axê ya jêrîn ji modelek gerdûnî ya şibê topografîk bi nêzîkî 5 km tê texmînkirin, ne pîvana rasterast a cihî. Her gav ku daneya rastîn a geoteknîkî hebe, wê biguherîne.",
-        "ssS1FromCode": "Ss û S1 ji Koda Erdhejê ya Iraqê 2025 tên, çapeke bê ku hê nehatiye meriyetê, û ji nirxên qezayan ên weşandî bo vê koordînatê hatine hesibandin. Şiklê tayfê li jêr hê li gorî rêzikên koda 2017 e. Herduyan biguherîne dema lêkolîneke taybet a cihê te hebe."
+        "ssS1FromCode": "Ss û S1 ji Koda Erdhejê ya Iraqê 2025 tên, çapeke bê ku hê nehatiye meriyetê, û ji nirxên qezayan ên weşandî bo vê koordînatê hatine hesibandin. Şiklê tayfê li jêr hê li gorî rêzikên koda 2017 e. Herduyan biguherîne dema lêkolîneke taybet a cihê te hebe.",
+        "show": "Sînorên vê amûrê bixwîne",
+        "hide": "Veşêre"
       },
       "formTitle": "Têketinên sêwiranê",
       "ssS1Note": "Ss (0.2 çirke) û S1 (1.0 çirke) ji Wêneyên 2-2/1(a) û (b) ên ISC-2017 ji bo vî cihî wergire.",
@@ -991,7 +993,9 @@
           "floor": "binê 0.044·SDS·I"
         }
       },
-      "driftLimit": "Şemitîna qatê ya destûrdar: {{ratio}} × hsx (Tabloya 3-12/1)"
+      "driftLimit": "Şemitîna qatê ya destûrdar: {{ratio}} × hsx (Tabloya 3-12/1)",
+      "systemChange": "Biguherîne",
+      "systemHideList": "Lîsteyê veşêre"
     },
     "sheet": {
       "copy": "Pelê hesabê kopî bike",
