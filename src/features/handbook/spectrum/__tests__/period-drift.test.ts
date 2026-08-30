@@ -189,3 +189,30 @@ describe("formatCodeCoefficient", () => {
     }
   });
 });
+
+describe("no structural system chosen", () => {
+  /**
+   * Choosing a system is optional: the spectrum never needed it, and most
+   * engineers know their own R. The code still answers, through its own
+   * catch-all rows, so Ta, Cs and the drift limit stay available.
+   */
+  it("falls back to the code's own 'all other structural systems' period row", () => {
+    expect(periodCoefficientsFor(null)).toMatchObject({ ct: 0.055, x: 0.75, row: "allOther" });
+    expect(approximatePeriod(null, 24)).toBeCloseTo(0.055 * Math.pow(24, 0.75), 10);
+  });
+
+  it("falls back to the drift table's 'all other structures' row", () => {
+    expect(driftStructureTypeFor(null)).toBe("allOther");
+    expect(allowableDrift(null, "I_II").ratio).toBe(0.02);
+    expect(allowableDrift(null, "IV").ratio).toBe(0.01);
+  });
+
+  it("still yields a governing Cs from a hand-entered R", () => {
+    const inputs = { ss: 1.22, s1: 0.49, siteClass: "C", occupancy: "I_II", r: 4 } as const;
+    const params = computeSpectrumParameters(inputs);
+    const period = computePeriod(null, 24, params.sd1);
+    const cs = governingCs(params, inputs.r, period.ta);
+    expect(cs.cs).toBeGreaterThan(0);
+    expect(["plateau", "periodCap", "floor"]).toContain(cs.governedBy);
+  });
+});

@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import {
   BUILDING_HEIGHT_BOUND,
+  DEFAULT_R,
   DEFAULT_STRUCTURAL_SYSTEM_ID,
   R_INPUT_BOUND,
   S1_INPUT_BOUND,
@@ -106,7 +107,7 @@ export function useSpectrumInputsState(
   const system = systemId === null ? null : findStructuralSystem(systemId);
   // Seeded from the default system so "other" starts at a familiar number
   // rather than blank; only ever read when no system is chosen.
-  const [rText, setRText] = useState(String(system?.r ?? 4));
+  const [rText, setRText] = useState(String(system?.r ?? DEFAULT_R));
 
   const ssValidation = validatePositiveNumberField(ssText, SS_INPUT_BOUND);
   const s1Validation = validatePositiveNumberField(s1Text, S1_INPUT_BOUND);

@@ -197,10 +197,12 @@ export function SpectrumSection({
        * the app already knows this site's design category, so it can say
        * the chosen system is not permitted here at all, which is a
        * compliance answer rather than a number. */}
-      {state.system && params ? (
+      {params && (state.system || state.heightM !== null) ? (
         (() => {
-          const check = checkHeight(state.system, params.seismicDesignCategory, state.heightM);
-          const blocked = check.status === "notPermitted" || check.status === "overLimit";
+          const check = state.system
+            ? checkHeight(state.system, params.seismicDesignCategory, state.heightM)
+            : null;
+          const blocked = check?.status === "notPermitted" || check?.status === "overLimit";
           return (
             <View
               style={{
@@ -215,44 +217,48 @@ export function SpectrumSection({
               {/* The system's NAME is not repeated here: the picker above
                * already shows it, and this block is about what follows from
                * it. */}
-              <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
-                {t("handbook.spectrum.systemCoefficients", {
-                  r: formatPlainNumber(state.system.r, locale),
-                  omega0: formatPlainNumber(state.system.omega0, locale),
-                  cd: formatPlainNumber(state.system.cd, locale),
-                })}
-              </Text>
-              <Text
-                accessibilityRole={blocked ? "alert" : undefined}
-                style={{
-                  color: blocked ? colors.status.danger : colors.text.secondary,
-                  fontSize: typography.bodyMeta.fontSize,
-                }}
-              >
-                {check.status === "notPermitted"
-                  ? t("handbook.spectrum.heightCheck.notPermitted", {
-                      sdc: params.seismicDesignCategory,
-                    })
-                  : check.status === "unlimited"
-                    ? t("handbook.spectrum.heightCheck.unlimited", {
+              {state.system ? (
+                <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
+                  {t("handbook.spectrum.systemCoefficients", {
+                    r: formatCodeCoefficient(state.system.r, locale),
+                    omega0: formatCodeCoefficient(state.system.omega0, locale),
+                    cd: formatCodeCoefficient(state.system.cd, locale),
+                  })}
+                </Text>
+              ) : null}
+              {check ? (
+                <Text
+                  accessibilityRole={blocked ? "alert" : undefined}
+                  style={{
+                    color: blocked ? colors.status.danger : colors.text.secondary,
+                    fontSize: typography.bodyMeta.fontSize,
+                  }}
+                >
+                  {check.status === "notPermitted"
+                    ? t("handbook.spectrum.heightCheck.notPermitted", {
                         sdc: params.seismicDesignCategory,
                       })
-                    : check.status === "overLimit"
-                      ? t("handbook.spectrum.heightCheck.overLimit", {
+                    : check.status === "unlimited"
+                      ? t("handbook.spectrum.heightCheck.unlimited", {
                           sdc: params.seismicDesignCategory,
-                          limit: formatPlainNumber(check.limitM, locale),
                         })
-                      : t("handbook.spectrum.heightCheck.withinLimit", {
-                          sdc: params.seismicDesignCategory,
-                          limit: formatPlainNumber(check.limitM, locale),
-                        })}
-              </Text>
+                      : check.status === "overLimit"
+                        ? t("handbook.spectrum.heightCheck.overLimit", {
+                            sdc: params.seismicDesignCategory,
+                            limit: formatCodeCoefficient(check.limitM, locale),
+                          })
+                        : t("handbook.spectrum.heightCheck.withinLimit", {
+                            sdc: params.seismicDesignCategory,
+                            limit: formatCodeCoefficient(check.limitM, locale),
+                          })}
+                </Text>
+              ) : null}
               {/* Period and the governing Cs, both of which need a height.
                * Without one the app shows neither rather than guessing a
                * building size. */}
               {state.heightM !== null && state.inputs ? (
                 (() => {
-                  const period = computePeriod(state.system!, state.heightM, params.sd1);
+                  const period = computePeriod(state.system, state.heightM, params.sd1);
                   // Designed at Ta itself, which the code permits and which
                   // is the conservative choice: Cu*Ta is only a ceiling for
                   // a period obtained by modal analysis, which this app does
@@ -291,7 +297,7 @@ export function SpectrumSection({
               <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
                 {t("handbook.spectrum.driftLimit", {
                   ratio: formatCodeCoefficient(
-                    allowableDrift(state.system!, state.occupancy).ratio,
+                    allowableDrift(state.system, state.occupancy).ratio,
                     locale,
                   ),
                 })}
@@ -332,6 +338,15 @@ export function SpectrumSection({
               })}
             />
           </ErrorBoundary>
+
+          {/* Why there is no separate ASCE curve: there would be nothing to
+           * see. ISC-2017 took ASCE 7-05/7-10's four branches AND its
+           * Fa/Fv tables unchanged, so an ASCE 7-10 spectrum plots exactly
+           * on the solid line already drawn. Saying so is more useful than
+           * drawing a second identical curve. */}
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+            {t("handbook.spectrum.asceNote")}
+          </Text>
 
           {/* Eurocode 8 comparison. A second, independent code shape built
            * from the same ground motion is the most direct answer to "is my

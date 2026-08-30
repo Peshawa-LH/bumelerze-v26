@@ -43,7 +43,14 @@ const DRIFT_LIMITS: Record<DriftStructureType, Record<OccupancyCategory, number>
  * assumption the app invented. `allOther` is the correct default, and an
  * engineer who meets that row's conditions knows to read it themselves.
  */
-export function driftStructureTypeFor(system: StructuralSystem): DriftStructureType {
+export function driftStructureTypeFor(
+  system: StructuralSystem | null,
+): DriftStructureType {
+  // No system chosen falls to the table's own "all other structures" row,
+  // the same catch-all the code provides.
+  if (!system) {
+    return "allOther";
+  }
   // Our masonry systems are all bearing-wall shear walls, not the
   // cantilever form (which the code footnotes as walls acting as vertical
   // cantilevers from the base with negligible moment transfer between
@@ -61,7 +68,7 @@ export interface AllowableDrift {
 }
 
 export function allowableDrift(
-  system: StructuralSystem,
+  system: StructuralSystem | null,
   occupancy: OccupancyCategory,
 ): AllowableDrift {
   const structureType = driftStructureTypeFor(system);

@@ -40,12 +40,26 @@ export const VERIFIED_R_VALUES: readonly { r: number; labelKey: string }[] = [
   { r: 4, labelKey: "handbook.spectrum.rOptions.rcMomentFrameIntermediate" },
 ];
 
-/** Opening selection: an intermediate reinforced-concrete moment frame.
- * Chosen because it is the ordinary case in Kurdistan and because its
- * `R = 4` is the one value ISC-2017's own Appendix B worked example
- * confirms end to end, so the form's first paint reproduces the code's own
- * example rather than an arbitrary pick. */
-export const DEFAULT_STRUCTURAL_SYSTEM_ID = "mf.rcIntermediate";
+/**
+ * No system is selected by default: the form opens with a plain `R` field.
+ *
+ * The RESPONSE SPECTRUM does not depend on the structural system at all —
+ * ISC-2017 §2-2/5 builds it from `SDS`, `SD1`, `T0`, `Ts` and `TL` only, and
+ * `R` enters nowhere in it. `R` is needed for base shear, the reduced
+ * curve, drift amplification and the load combinations, and most engineers
+ * already know theirs. Forcing a 16-row list in front of everyone to reach
+ * a number they could type was the wrong default.
+ *
+ * Choosing a system is still offered, and still worth it: it is what yields
+ * `Omega0`, `Cd` and the height-limit compliance check, none of which an
+ * engineer can get from `R` alone.
+ */
+export const DEFAULT_STRUCTURAL_SYSTEM_ID: string | null = null;
+
+/** Opening `R`. ISC-2017's own Appendix B worked example uses 4 for an
+ * intermediate reinforced-concrete moment frame, so the form's first paint
+ * reproduces the code's own example rather than an arbitrary pick. */
+export const DEFAULT_R = 4;
 
 /** Building height above the base, metres. The upper bound is not a code
  * limit — the code expresses limits per system and design category — just

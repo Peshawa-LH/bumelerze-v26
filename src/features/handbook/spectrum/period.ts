@@ -41,7 +41,15 @@ const ALL_OTHER: PeriodCoefficients = { ct: 0.055, x: 0.75, row: "allOther" };
  * holds by construction here — it would not if dual systems were added, and
  * those must map to `allOther` rather than to a moment-frame row.
  */
-export function periodCoefficientsFor(system: StructuralSystem): PeriodCoefficients {
+export function periodCoefficientsFor(
+  system: StructuralSystem | null,
+): PeriodCoefficients {
+  // No system chosen: the code's own catch-all row, "all other structural
+  // systems". That is the correct answer rather than a refusal — Ta is
+  // still well defined, just from the conservative generic row.
+  if (!system) {
+    return ALL_OTHER;
+  }
   switch (system.id) {
     case "mf.steelSpecial":
     case "mf.steelIntermediate":
@@ -60,7 +68,10 @@ export function periodCoefficientsFor(system: StructuralSystem): PeriodCoefficie
 
 /** ISC-2017 Eq. 3-9/5: `Ta = Ct · hn^x`, `hn` in metres from the base to
  * the highest level. */
-export function approximatePeriod(system: StructuralSystem, heightM: number): number {
+export function approximatePeriod(
+  system: StructuralSystem | null,
+  heightM: number,
+): number {
   const { ct, x } = periodCoefficientsFor(system);
   return ct * Math.pow(heightM, x);
 }
@@ -98,7 +109,7 @@ export interface PeriodResult {
 }
 
 export function computePeriod(
-  system: StructuralSystem,
+  system: StructuralSystem | null,
   heightM: number,
   sd1: number,
 ): PeriodResult {

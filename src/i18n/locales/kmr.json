@@ -1000,7 +1000,11 @@
         "show": "Bi Eurocode 8 re bide ber hev",
         "hide": "Berhevdana Eurocode 8 veşêre",
         "caveat": "Xêza qutbûyî: tayfa elastîk a Cure 1 li gorî EN 1998-1, cureya erdê {{groundType}}, damping 5%, bi PGA ya Koda Iraqê 2025 wek ag. Ev berhevdana şiklî ye, ne tayfa sêwirana Eurocode: referansa EC8 metirsiya 475 salî ye, Iraq pêvekeke neteweyî ya EC8 tune, û cureyên erdê yên EC8 ne polên cihî yên koda Iraqê ne."
-      }
+      },
+      "systemOptional": "Hevkara guherîna bersivê R",
+      "systemLookup": "R, Ω0 û Cd ji tabloya kodê bibîne",
+      "rNoteFree": "Ji Tabloya 3-2/1 ya Koda Iraqê 2017 ji bo sîstema te. Tayfa jorîn bi R ve girêdayî nîne; ew ji bo birîna bingehê û xêza kêmkirî hewce ye.",
+      "asceNote": "Xêza tîr her weha tayfa ASCE 7-10 e: Koda Iraqê 2017 çar şaxên ASCE û tabloyên wê yên Fa û Fv bêguhertin bi kar tîne, loma xêzeke ASCE 7-10 tam li ser wê dikeve. ASCE 7-16 hevkarên cihî guhertine û wê cuda be, lê ew standard li vir nîne."
     },
     "sheet": {
       "copy": "Pelê hesabê kopî bike",
