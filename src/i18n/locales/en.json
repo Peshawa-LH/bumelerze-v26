@@ -995,7 +995,12 @@
       },
       "driftLimit": "Allowable storey drift: {{ratio}} × hsx (Table 3-12/1)",
       "systemChange": "Change",
-      "systemHideList": "Hide the list"
+      "systemHideList": "Hide the list",
+      "ec8": {
+        "show": "Compare with Eurocode 8",
+        "hide": "Hide the Eurocode 8 comparison",
+        "caveat": "Dashed line: EN 1998-1 Type 1 elastic spectrum, ground type {{groundType}}, 5% damping, using the ISC-2025 PGA as ag. This is a shape comparison, not a Eurocode design spectrum: EC8's own reference is the 475-year hazard, Iraq has no EC8 national annex, and EC8 ground types are not ISC site classes."
+      }
     },
     "sheet": {
       "copy": "Copy the calculation sheet",

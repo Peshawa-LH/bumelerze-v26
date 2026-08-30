@@ -9,6 +9,7 @@ import type { Isc2025Result } from "../../types";
 import type { SpectrumCodeValues } from "../types";
 import { CHART_DEFAULT_T_MAX, CHART_EXTENDED_T_MAX } from "../config";
 import { computeSpectrumParameters, governingCs } from "../compute";
+import { buildEc8Curve, type Ec8GroundType } from "../ec8";
 import { allowableDrift } from "../drift";
 import { computePeriod } from "../period";
 import { buildSpectrumCurve } from "../curve";
@@ -32,6 +33,9 @@ interface SpectrumSectionProps {
    * exactly so the section can sit directly below the existing result
    * table with no extra plumbing. */
   vs30MS: number | null;
+  /** EC8 ground type from the same Vs30 sample, for the optional Eurocode 8
+   * comparison. Null where there is no Vs30 to classify from. */
+  ec8GroundType: Ec8GroundType | null;
   /** The coordinate's ISC-2025 lookup, used to pre-fill `Ss`/`S1`. */
   isc2025: Isc2025Result;
   /** The looked-up point, carried so the calculation sheet can name the
@@ -67,6 +71,7 @@ function toCodeValues(isc2025: Isc2025Result): SpectrumCodeValues | null {
  */
 export function SpectrumSection({
   vs30MS,
+  ec8GroundType,
   isc2025,
   lat,
   lon,
@@ -81,6 +86,7 @@ export function SpectrumSection({
   // warning itself would not be — the first line is the one that has to be
   // read, the rest explains it.
   const [bannerOpen, setBannerOpen] = useState(false);
+  const [showEc8, setShowEc8] = useState(false);
 
   async function copyCalculationSheet() {
     if (!state.inputs || !params) {
@@ -313,6 +319,11 @@ export function SpectrumSection({
               params={params}
               tMax={tMax}
               locale={locale}
+              comparison={
+                showEc8 && ec8GroundType && isc2025.values
+                  ? buildEc8Curve(isc2025.values.pga2475, ec8GroundType, tMax)
+                  : undefined
+              }
               accessibilityLabel={t("handbook.spectrum.chartA11yLabel", {
                 plateau: formatCoefficient(params.sds, locale),
                 t0: formatPeriodSeconds(params.t0, locale),
@@ -321,6 +332,30 @@ export function SpectrumSection({
               })}
             />
           </ErrorBoundary>
+
+          {/* Eurocode 8 comparison. A second, independent code shape built
+           * from the same ground motion is the most direct answer to "is my
+           * spectrum right?" — and the caveats travel with it, because an
+           * EC8 curve fed a 2475-year ag is not an EC8 design spectrum. */}
+          {ec8GroundType && isc2025.values ? (
+            <View style={{ gap: spacing[1] }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ selected: showEc8 }}
+                onPress={() => setShowEc8((value) => !value)}
+                hitSlop={8}
+              >
+                <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+                  {t(showEc8 ? "handbook.spectrum.ec8.hide" : "handbook.spectrum.ec8.show")}
+                </Text>
+              </Pressable>
+              {showEc8 ? (
+                <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                  {t("handbook.spectrum.ec8.caveat", { groundType: ec8GroundType })}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
 
           <Pressable
             accessibilityRole="button"

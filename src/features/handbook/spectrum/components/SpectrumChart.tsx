@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
-import { StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Polyline, Text as SvgText } from "react-native-svg";
 
@@ -9,6 +9,11 @@ import { formatCoefficient, formatPeriodSeconds } from "../format";
 import type { SpectrumCurve, SpectrumParameters } from "../types";
 
 interface SpectrumChartProps {
+  /** Optional second code's spectrum, drawn dashed for comparison. Kept as
+   * a bare point list rather than a `SpectrumCurve` because a comparison
+   * standard has no `R`-reduced counterpart here. */
+  comparison?: readonly SpectrumCurve["code"][number][] | undefined;
+  comparisonLabel?: string | undefined;
   curve: SpectrumCurve;
   params: SpectrumParameters;
   tMax: number;
@@ -49,13 +54,39 @@ function niceMax(value: number): number {
  * locale for the same reason (§8.2: moving it right while data still runs
  * left-to-right would read as mirrored without being mirrored).
  */
-export function SpectrumChart({ curve, params, tMax, locale, accessibilityLabel }: SpectrumChartProps) {
+/** The handbook screen's horizontal padding, both sides combined. */
+const SCREEN_HORIZONTAL_PADDING = 40;
+/** Narrow enough for the smallest phone, wide enough to be readable. */
+const MIN_CHART_WIDTH = 280;
+
+export function SpectrumChart({
+  curve,
+  params,
+  tMax,
+  locale,
+  accessibilityLabel,
+  comparison,
+}: SpectrumChartProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const [width, setWidth] = useState(0);
+  // Seeded from the window rather than 0. The chart draws only once it has
+  // a width, and `onLayout` is not guaranteed to arrive: in a hidden or
+  // zero-width container it fires with 0 and may never fire again, which
+  // rendered NOTHING — no chart, no error, no fallback. An approximate
+  // width that `onLayout` then corrects is strictly better than a silently
+  // empty plot. `SCREEN_HORIZONTAL_PADDING` is the handbook screen's own
+  // padding either side, so this matches the real container closely.
+  const [width, setWidth] = useState(() =>
+    Math.max(Dimensions.get("window").width - SCREEN_HORIZONTAL_PADDING, MIN_CHART_WIDTH),
+  );
 
   function handleLayout(event: LayoutChangeEvent) {
-    setWidth(event.nativeEvent.layout.width);
+    const measured = event.nativeEvent.layout.width;
+    // Ignore a zero measurement: it means "not laid out yet", not "no
+    // space", and accepting it would blank a chart that was drawing fine.
+    if (measured > 0) {
+      setWidth(measured);
+    }
   }
 
   const plotWidth = Math.max(width - CHART_PADDING_LEFT - CHART_PADDING_RIGHT, 0);
@@ -64,6 +95,7 @@ export function SpectrumChart({ curve, params, tMax, locale, accessibilityLabel 
   const dataMax = Math.max(
     ...curve.code.map((p) => p.sa),
     ...curve.reduced.map((p) => p.sa),
+    ...(comparison ?? []).map((p) => p.sa),
     params.csUnreduced,
     0.1,
   );
@@ -186,6 +218,19 @@ export function SpectrumChart({ curve, params, tMax, locale, accessibilityLabel 
                 stroke={colors.status.info}
                 strokeWidth={1}
                 strokeDasharray="1,3"
+              />
+            ) : null}
+
+            {/* Comparison spectrum (another standard) — dashed, drawn
+             * under the ISC curves so it never hides them. */}
+            {comparison && comparison.length > 1 ? (
+              <Polyline
+                testID="spectrum-comparison-curve"
+                points={toPoints(comparison)}
+                fill="none"
+                stroke={colors.text.tertiary}
+                strokeWidth={2}
+                strokeDasharray="6 4"
               />
             ) : null}
 
