@@ -15,9 +15,24 @@ import type {
   SpectrumCodeValues,
   SpectrumInputs,
 } from "../types";
+import {
+  DEFAULT_SPECTRUM_METHOD,
+  type SpectrumMethodId,
+} from "../methods";
 import { type NumberFieldError, validatePositiveNumberField } from "../validation";
 
 export interface SpectrumInputsState {
+  /** Which standard's equations build the spectrum. */
+  method: SpectrumMethodId;
+  setMethod: (method: SpectrumMethodId) => void;
+
+  /** Eurocode 8's design ground acceleration on type A ground. Only read
+   * when `method` is `ec8`; the ISC path uses `Ss`/`S1` instead. */
+  agText: string;
+  agError: NumberFieldError | null;
+  agValue: number | null;
+  setAgText: (text: string) => void;
+
   /** The code values this form started from, `null` when the coordinate is
    * outside ISC-2025 coverage and the engineer must supply both. */
   codeValues: SpectrumCodeValues | null;
@@ -97,8 +112,11 @@ export function useSpectrumInputsState(
   // other numeral in the app.
   const codeSsText = codeValues ? codeValues.ss.toFixed(2) : "";
   const codeS1Text = codeValues ? codeValues.s1.toFixed(2) : "";
+  const codeAgText = codeValues ? codeValues.ag.toFixed(2) : "";
   const [ssText, setSsText] = useState(codeSsText);
   const [s1Text, setS1Text] = useState(codeS1Text);
+  const [agText, setAgText] = useState(codeAgText);
+  const [method, setMethod] = useState<SpectrumMethodId>(DEFAULT_SPECTRUM_METHOD);
   const [siteClass, setSiteClassState] = useState<IscSiteClass>(derivedSiteClass);
   const [isSiteClassOverridden, setIsSiteClassOverridden] = useState(false);
   const [occupancy, setOccupancy] = useState<OccupancyCategory>("I_II");
@@ -112,6 +130,8 @@ export function useSpectrumInputsState(
   const ssValidation = validatePositiveNumberField(ssText, SS_INPUT_BOUND);
   const s1Validation = validatePositiveNumberField(s1Text, S1_INPUT_BOUND);
   const rValidation = validatePositiveNumberField(rText, R_INPUT_BOUND);
+  const agValidation = validatePositiveNumberField(agText, SS_INPUT_BOUND);
+  const agError = agValidation.error === "empty" ? null : agValidation.error;
   const heightValidation = validatePositiveNumberField(heightText, BUILDING_HEIGHT_BOUND);
   // Height is optional: blank is a legitimate state, not an error.
   const heightError = heightValidation.error === "empty" ? null : heightValidation.error;
@@ -137,10 +157,12 @@ export function useSpectrumInputsState(
   function resetToCodeValues() {
     setSsText(codeSsText);
     setS1Text(codeS1Text);
+    setAgText(codeAgText);
   }
 
   const isOverriddenFromCode =
-    codeValues !== null && (ssText !== codeSsText || s1Text !== codeS1Text);
+    codeValues !== null &&
+    (ssText !== codeSsText || s1Text !== codeS1Text || agText !== codeAgText);
 
   // With a system chosen, `R` is the code's, not the field's — so the form
   // stays usable even if the (hidden) free-entry buffer is mid-edit.
@@ -152,6 +174,12 @@ export function useSpectrumInputsState(
       : null;
 
   return {
+    method,
+    setMethod,
+    agText,
+    agError,
+    agValue: agValidation.value,
+    setAgText,
     codeValues,
     isOverriddenFromCode,
     resetToCodeValues,

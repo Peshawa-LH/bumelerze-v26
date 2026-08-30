@@ -39,6 +39,9 @@ export type SeismicDesignCategory = "A" | "B" | "C" | "D";
 export interface SpectrumCodeValues {
   ss: number;
   s1: number;
+  /** `ag` for Eurocode 8, the ISC-2025 PGA at the 1000-year return period.
+   * EC8's own reference is 475 years, which these maps do not publish. */
+  ag: number;
   districtName: string;
   distanceKm: number;
 }

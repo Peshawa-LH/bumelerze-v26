@@ -999,12 +999,27 @@
       "ec8": {
         "show": "Bi Eurocode 8 re bide ber hev",
         "hide": "Berhevdana Eurocode 8 veşêre",
-        "caveat": "Xêza qutbûyî: tayfa elastîk a Cure 1 li gorî EN 1998-1, cureya erdê {{groundType}}, damping 5%, bi PGA ya Koda Iraqê 2025 wek ag. Ev berhevdana şiklî ye, ne tayfa sêwirana Eurocode: referansa EC8 metirsiya 475 salî ye, Iraq pêvekeke neteweyî ya EC8 tune, û cureyên erdê yên EC8 ne polên cihî yên koda Iraqê ne."
+        "caveat": "Xêza qutbûyî: tayfa elastîk a Cure 1 li gorî EN 1998-1, cureya erdê {{groundType}}, damping 5%, bi PGA ya Koda Iraqê 2025 wek ag. Ev berhevdana şiklî ye, ne tayfa sêwirana Eurocode: referansa EC8 metirsiya 475 salî ye, Iraq pêvekeke neteweyî ya EC8 tune, û cureyên erdê yên EC8 ne polên cihî yên koda Iraqê ne.",
+        "paramsTitle": "Parametreyên Eurocode 8",
+        "params": "ag {{ag}} g · cureya erdê {{groundType}} · S {{s}} · TB {{tb}} s · TC {{tc}} s · TD {{td}} s · plato 2.5·S·ag = {{plateau}} g"
       },
       "systemOptional": "Hevkara guherîna bersivê R",
       "systemLookup": "R, Ω0 û Cd ji tabloya kodê bibîne",
       "rNoteFree": "Ji Tabloya 3-2/1 ya Koda Iraqê 2017 ji bo sîstema te. Tayfa jorîn bi R ve girêdayî nîne; ew ji bo birîna bingehê û xêza kêmkirî hewce ye.",
-      "asceNote": "Xêza tîr her weha tayfa ASCE 7-10 e: Koda Iraqê 2017 çar şaxên ASCE û tabloyên wê yên Fa û Fv bêguhertin bi kar tîne, loma xêzeke ASCE 7-10 tam li ser wê dikeve. ASCE 7-16 hevkarên cihî guhertine û wê cuda be, lê ew standard li vir nîne."
+      "asceNote": "Xêza tîr her weha tayfa ASCE 7-10 e: Koda Iraqê 2017 çar şaxên ASCE û tabloyên wê yên Fa û Fv bêguhertin bi kar tîne, loma xêzeke ASCE 7-10 tam li ser wê dikeve. ASCE 7-16 hevkarên cihî guhertine û wê cuda be, lê ew standard li vir nîne.",
+      "methodLabel": "Tayfê bihesibîne bi",
+      "methods": {
+        "isc": "Koda Iraqê",
+        "asce710": "ASCE 7-10",
+        "ec8": "Eurocode 8"
+      },
+      "methodReturnPeriod": "Nirxên nexşeyî li dema dubarebûnê ya {{years}} salî hatine girtin.",
+      "methodNote": {
+        "isc": "Hevkêşeyên Koda Iraqê 2017 §2-2/5, bi Ss û S1 ji nexşeyên 2025 û Fa, Fv ji Tabloya 2-2/1.",
+        "asce710": "ASCE 7-10 heman çar şax û heman tabloyên Fa û Fv wek koda Iraqê bi kar tîne, loma ev xêz tam wek wê ye. ASCE 7-16 hevkarên cihî guhertine û wê cuda be; ew standard li vir nîne.",
+        "ec8": "Tayfa elastîk a Cure 1 li gorî EN 1998-1 §3.2.2.2, cureya erdê {{groundType}}, damping 5%. Referansa EC8 metirsiya 475 salî ye ku nexşeyên Iraqê naweşînin, loma nirxên 1000 salî tên bikaranîn. Iraq pêvekeke neteweyî ya EC8 tune, loma S, TB, TC û TD nirxên pêşniyarkirî yên standardê ne."
+      },
+      "agLabel": "ag, lezkirina erdê ya sêwiranê li ser erda cureya A (g)"
     },
     "sheet": {
       "copy": "Pelê hesabê kopî bike",
@@ -1026,6 +1041,19 @@
       "verticalOmitted": "Bandora erdhejê ya stûnî hat berdan: SDS <= 0.125.",
       "rhoNote": "rho faktora pêbaweriyê ye (§3-3/3): divê tu wê diyar bikî, ev amûr nake.",
       "footer": "Tenê çavkaniyeke destpêkî. Ne cîgirê lêkolîna axê ya taybet a cihî ye û ne jî ya nivîsa kodê. Her nirxê ji kopiya xwe ya kodê kontrol bike."
+    },
+    "report": {
+      "action": "Rapora çapkirinê çêbike",
+      "title": "Parametreyên sêwirana erdhejê",
+      "generated": "Hatiye çêkirin",
+      "method": "Rêbaza hesabê",
+      "hazardBasis": "Bingeha metirsiyê",
+      "hazardBasisValue": "Nexşeyên Koda Erdhejê ya Iraqê 2025, dema dubarebûnê {{years}} sal",
+      "parameters": "Parametreyên sêwiranê",
+      "disclaimerTitle": "Tenê çavkaniyeke destpêkî",
+      "disclaimer": "Ev rapor ji Destûra Endezyar a Bumelerze ji bo bikaranîna destpêkî hatiye çêkirin. Ne belgeyeke sêwiranê ye û ne cîgirê lêkolîna axê ya taybet a cihî ye û ne jî ya nivîsa kodê. Nirxên nexşeyî di navbera nirxên qezayan ên weşandî yên Koda Erdhejê ya Iraqê 2025 de hatine hesibandin, ku çapeke bê ye û hê nehatiye meriyetê; rêzikên hesabê jî yên Koda 2017 in heke li jor rêbazeke din nehatibe navandin. Berî bikaranînê her nirxê ji kopiya xwe ya kodê kontrol bike.",
+      "footer": "Bumelerze · bumelerze.com · Ji aliyê kesê ku di projeyê de hatiye navandin ve hatiye amadekirin, ne ji aliyê Bumelerze ve.",
+      "popupBlocked": "Geroka te pencereya raporê asteng kir. Ji bo vê malperê pop-up destûr bide û dîsa biceribîne."
     }
   },
   "myData": {
