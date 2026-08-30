@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/theme";
 import { formatDistanceKm, isolateNumeric } from "@/features/events";
 import { STRUCTURAL_SYSTEMS, type StructuralSystemCategory } from "../structural-systems";
-import { formatCodeCoefficient, formatPlainNumber, occupancyLabelKey } from "../format";
+import { formatCodeCoefficient, occupancyLabelKey } from "../format";
 import type { IscSiteClass, OccupancyCategory } from "../types";
 import type { NumberFieldError } from "../validation";
 import type { SpectrumInputsState } from "./use-spectrum-inputs-state";
