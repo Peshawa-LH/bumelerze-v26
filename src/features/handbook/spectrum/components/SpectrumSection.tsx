@@ -13,12 +13,7 @@ import { buildEc8Curve, type Ec8GroundType } from "../ec8";
 import { allowableDrift } from "../drift";
 import { computePeriod } from "../period";
 import { buildSpectrumCurve } from "../curve";
-import {
-  formatCodeCoefficient,
-  formatCoefficient,
-  formatPeriodSeconds,
-  formatPlainNumber,
-} from "../format";
+import { formatCodeCoefficient, formatCoefficient, formatPeriodSeconds } from "../format";
 import { iscSiteClassFromVs30 } from "../isc-site-class";
 import { buildCalculationSheet } from "../calculation-sheet";
 import { checkHeight } from "../structural-systems";
