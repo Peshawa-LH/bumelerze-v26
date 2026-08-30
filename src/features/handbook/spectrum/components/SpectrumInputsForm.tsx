@@ -268,26 +268,34 @@ export function SpectrumInputsForm({
        * against this site's design category. */}
       <View style={{ gap: spacing[2] }}>
         <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-          {t("handbook.spectrum.systemLabel")}
+          {t(state.system ? "handbook.spectrum.systemLabel" : "handbook.spectrum.systemOptional")}
         </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ expanded: systemListOpen }}
-          onPress={() => setSystemListOpen((open) => !open)}
-          style={[
-            styles.systemRow,
-            { borderColor: colors.border.default, padding: spacing[3] },
-          ]}
-        >
-          <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize }}>
-            {state.system
-              ? t(`handbook.spectrum.systems.${state.system.id}`)
-              : t("handbook.spectrum.systemOther")}
-          </Text>
-          <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
-            {t(systemListOpen ? "handbook.spectrum.systemHideList" : "handbook.spectrum.systemChange")}
-          </Text>
-        </Pressable>
+        {state.system ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: systemListOpen }}
+            onPress={() => setSystemListOpen((open) => !open)}
+            style={[styles.systemRow, { borderColor: colors.border.default, padding: spacing[3] }]}
+          >
+            <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize }}>
+              {t(`handbook.spectrum.systems.${state.system.id}`)}
+            </Text>
+            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+              {t(systemListOpen ? "handbook.spectrum.systemHideList" : "handbook.spectrum.systemChange")}
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: systemListOpen }}
+            onPress={() => setSystemListOpen((open) => !open)}
+            hitSlop={8}
+          >
+            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+              {t(systemListOpen ? "handbook.spectrum.systemHideList" : "handbook.spectrum.systemLookup")}
+            </Text>
+          </Pressable>
+        )}
 
         {systemListOpen ? (
           <View style={{ gap: spacing[2] }}>
@@ -367,7 +375,7 @@ export function SpectrumInputsForm({
             {t("handbook.spectrum.rLabel")}
           </Text>
           <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
-            {t("handbook.spectrum.rNote")}
+            {t("handbook.spectrum.rNoteFree")}
           </Text>
           <TextInput
             value={state.rText}

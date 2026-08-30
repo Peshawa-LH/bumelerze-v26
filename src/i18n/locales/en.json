@@ -1000,7 +1000,11 @@
         "show": "Compare with Eurocode 8",
         "hide": "Hide the Eurocode 8 comparison",
         "caveat": "Dashed line: EN 1998-1 Type 1 elastic spectrum, ground type {{groundType}}, 5% damping, using the ISC-2025 PGA as ag. This is a shape comparison, not a Eurocode design spectrum: EC8's own reference is the 475-year hazard, Iraq has no EC8 national annex, and EC8 ground types are not ISC site classes."
-      }
+      },
+      "systemOptional": "Response modification coefficient R",
+      "systemLookup": "Look up R, Ω0 and Cd from the code table",
+      "rNoteFree": "From ISC-2017 Table 3-2/1 for your system. The spectrum above does not depend on R; it is needed for the base shear and the reduced curve.",
+      "asceNote": "The solid curve is also the ASCE 7-10 spectrum: ISC-2017 uses ASCE's four branches and its Fa and Fv tables unchanged, so an ASCE 7-10 curve would fall exactly on it. ASCE 7-16 revised the site coefficients and would differ, but that standard is not held here."
     },
     "sheet": {
       "copy": "Copy the calculation sheet",
