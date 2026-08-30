@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import * as Clipboard from "expo-clipboard";
 
 import i18n, { isRTLLocale } from "@/i18n";
@@ -60,6 +60,13 @@ describe("SpectrumSection", () => {
     await render(<SpectrumSection vs30MS={VS30_D_BAND} isc2025={NO_ISC2025} lat={35.56} lon={45.43} locale="en" />);
 
     expect(screen.getByText(i18n.t("handbook.spectrum.sectionTitle"))).toBeTruthy();
+    // The headline warning is always visible; its supporting paragraphs
+    // fold away to keep the page short, and open on request.
+    expect(screen.getByText(i18n.t("handbook.spectrum.banner.title"))).toBeTruthy();
+    expect(screen.queryByText(i18n.t("handbook.spectrum.banner.notOfRecord"))).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByText(i18n.t("handbook.spectrum.banner.show")));
+    });
     expect(screen.getByText(i18n.t("handbook.spectrum.banner.notOfRecord"))).toBeTruthy();
     expect(screen.getByLabelText(i18n.t("handbook.spectrum.ssLabel"))).toBeTruthy();
     expect(screen.queryByText(i18n.t("handbook.spectrum.table.title"))).toBeNull();
@@ -207,6 +214,9 @@ describe("SpectrumSection pre-filled from the Iraqi Seismic Code 2025", () => {
     );
 
     expect(screen.queryByText(i18n.t("handbook.spectrum.table.title"))).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByText(i18n.t("handbook.spectrum.banner.show")));
+    });
     expect(screen.getByText(i18n.t("handbook.spectrum.banner.ssS1Source"))).toBeTruthy();
   });
 

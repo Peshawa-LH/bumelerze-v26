@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
 import { formatDistanceKm, isolateNumeric } from "@/features/events";
 import { STRUCTURAL_SYSTEMS, type StructuralSystemCategory } from "../structural-systems";
-import { formatPlainNumber, occupancyLabelKey } from "../format";
+import { formatCodeCoefficient, formatPlainNumber, occupancyLabelKey } from "../format";
 import type { IscSiteClass, OccupancyCategory } from "../types";
 import type { NumberFieldError } from "../validation";
 import type { SpectrumInputsState } from "./use-spectrum-inputs-state";
@@ -55,6 +56,11 @@ export function SpectrumInputsForm({
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const { codeValues } = state;
+  // Collapsed by default. Listing all 16 systems inline cost 1103 px, a
+  // third more than a phone screen, on a page already 7.6 screens long —
+  // and an engineer picks a system once, then never looks at the list
+  // again. The chosen one stays visible; the rest is one tap away.
+  const [systemListOpen, setSystemListOpen] = useState(false);
 
   return (
     <View style={{ gap: spacing[4] }}>
@@ -264,64 +270,94 @@ export function SpectrumInputsForm({
         <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
           {t("handbook.spectrum.systemLabel")}
         </Text>
-        {CATEGORY_ORDER.map((category) => (
-          <View key={category} style={{ gap: spacing[1] }}>
-            <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
-              {t(`handbook.spectrum.systemCategories.${category}`)}
-            </Text>
-            {STRUCTURAL_SYSTEMS.filter((sys) => sys.category === category).map((sys) => {
-              const selected = state.systemId === sys.id;
-              return (
-                <Pressable
-                  key={sys.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  onPress={() => state.setSystemId(sys.id)}
-                  style={[
-                    styles.systemRow,
-                    {
-                      borderColor: selected ? colors.brand.primary : colors.border.default,
-                      backgroundColor: selected ? colors.surface.raised : "transparent",
-                      padding: spacing[3],
-                    },
-                  ]}
-                >
-                  <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize }}>
-                    {t(`handbook.spectrum.systems.${sys.id}`)}
-                  </Text>
-                  <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-                    {t("handbook.spectrum.systemCoefficients", {
-                      r: formatPlainNumber(sys.r, locale),
-                      omega0: formatPlainNumber(sys.omega0, locale),
-                      cd: formatPlainNumber(sys.cd, locale),
-                    })}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        ))}
-
         <Pressable
           accessibilityRole="button"
-          accessibilityState={{ selected: state.systemId === null }}
-          onPress={() => state.setSystemId(null)}
+          accessibilityState={{ expanded: systemListOpen }}
+          onPress={() => setSystemListOpen((open) => !open)}
           style={[
             styles.systemRow,
-            {
-              borderColor: state.systemId === null ? colors.brand.primary : colors.border.default,
-              backgroundColor: state.systemId === null ? colors.surface.raised : "transparent",
-              padding: spacing[3],
-            },
+            { borderColor: colors.border.default, padding: spacing[3] },
           ]}
         >
-          <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize }}>
-            {t("handbook.spectrum.systemOther")}
+          <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize }}>
+            {state.system
+              ? t(`handbook.spectrum.systems.${state.system.id}`)
+              : t("handbook.spectrum.systemOther")}
+          </Text>
+          <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+            {t(systemListOpen ? "handbook.spectrum.systemHideList" : "handbook.spectrum.systemChange")}
           </Text>
         </Pressable>
-        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
-          {t("handbook.spectrum.systemSubsetNote")}
-        </Text>
+
+        {systemListOpen ? (
+          <View style={{ gap: spacing[2] }}>
+            {CATEGORY_ORDER.map((category) => (
+              <View key={category} style={{ gap: spacing[1] }}>
+                <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+                  {t(`handbook.spectrum.systemCategories.${category}`)}
+                </Text>
+                {STRUCTURAL_SYSTEMS.filter((sys) => sys.category === category).map((sys) => {
+                  const selected = state.systemId === sys.id;
+                  return (
+                    <Pressable
+                      key={sys.id}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      onPress={() => {
+                        state.setSystemId(sys.id);
+                        setSystemListOpen(false);
+                      }}
+                      style={[
+                        styles.systemRow,
+                        {
+                          borderColor: selected ? colors.brand.primary : colors.border.default,
+                          backgroundColor: selected ? colors.surface.raised : "transparent",
+                          padding: spacing[3],
+                        },
+                      ]}
+                    >
+                      <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize }}>
+                        {t(`handbook.spectrum.systems.${sys.id}`)}
+                      </Text>
+                      <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                        {t("handbook.spectrum.systemCoefficients", {
+                          r: formatCodeCoefficient(sys.r, locale),
+                          omega0: formatCodeCoefficient(sys.omega0, locale),
+                          cd: formatCodeCoefficient(sys.cd, locale),
+                        })}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ selected: state.systemId === null }}
+              onPress={() => {
+                state.setSystemId(null);
+                setSystemListOpen(false);
+              }}
+              style={[
+                styles.systemRow,
+                {
+                  borderColor: state.systemId === null ? colors.brand.primary : colors.border.default,
+                  backgroundColor: state.systemId === null ? colors.surface.raised : "transparent",
+                  padding: spacing[3],
+                },
+              ]}
+            >
+              <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize }}>
+                {t("handbook.spectrum.systemOther")}
+              </Text>
+            </Pressable>
+
+                        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+              {t("handbook.spectrum.systemSubsetNote")}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       {/* --- R, only when no system is chosen --- */}

@@ -76,6 +76,11 @@ export function SpectrumSection({
   const { colors, typography, spacing } = useTheme();
   const [showFullRange, setShowFullRange] = useState(false);
   const [sheetCopied, setSheetCopied] = useState(false);
+  // The headline warning stays visible always; its three supporting
+  // paragraphs fold away. Collapsing the DETAIL is fine, collapsing the
+  // warning itself would not be — the first line is the one that has to be
+  // read, the rest explains it.
+  const [bannerOpen, setBannerOpen] = useState(false);
 
   async function copyCalculationSheet() {
     if (!state.inputs || !params) {
@@ -150,19 +155,33 @@ export function SpectrumSection({
         >
           {t("handbook.spectrum.banner.title")}
         </Text>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-          {t("handbook.spectrum.banner.notOfRecord")}
-        </Text>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-          {t(
-            state.codeValues
-              ? "handbook.spectrum.banner.ssS1FromCode"
-              : "handbook.spectrum.banner.ssS1Source",
-          )}
-        </Text>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-          {t("handbook.spectrum.banner.vs30Proxy")}
-        </Text>
+        {bannerOpen ? (
+          <>
+            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+              {t("handbook.spectrum.banner.notOfRecord")}
+            </Text>
+            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+              {t(
+                state.codeValues
+                  ? "handbook.spectrum.banner.ssS1FromCode"
+                  : "handbook.spectrum.banner.ssS1Source",
+              )}
+            </Text>
+            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+              {t("handbook.spectrum.banner.vs30Proxy")}
+            </Text>
+          </>
+        ) : null}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: bannerOpen }}
+          onPress={() => setBannerOpen((open) => !open)}
+          hitSlop={8}
+        >
+          <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+            {t(bannerOpen ? "handbook.spectrum.banner.hide" : "handbook.spectrum.banner.show")}
+          </Text>
+        </Pressable>
       </View>
 
       <SpectrumInputsForm state={state} derivedSiteClass={derivedSiteClass} locale={locale} />
@@ -187,16 +206,10 @@ export function SpectrumSection({
                 gap: spacing[2],
               }}
             >
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.bodyMeta.fontSize,
-                  fontWeight: "600",
-                }}
-              >
-                {t(`handbook.spectrum.systems.${state.system.id}`)}
-              </Text>
-              <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+              {/* The system's NAME is not repeated here: the picker above
+               * already shows it, and this block is about what follows from
+               * it. */}
+              <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
                 {t("handbook.spectrum.systemCoefficients", {
                   r: formatPlainNumber(state.system.r, locale),
                   omega0: formatPlainNumber(state.system.omega0, locale),

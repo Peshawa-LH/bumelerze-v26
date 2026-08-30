@@ -874,7 +874,9 @@
         "notOfRecord": "It is for preliminary sizing, sanity-checking another tool, and teaching. It does not replace a site-specific geotechnical investigation, the code text itself, or a submission-ready spectrum.",
         "ssS1Source": "Ss and S1 must be entered by you, from ISC-2017 Figures 2-2/1(a) and (b). This app does not yet ship those maps, and a shortcut from PGA to Ss is not reliable enough to offer here.",
         "vs30Proxy": "The site class below is estimated from a global terrain-slope model at about 5 km resolution, not a site measurement. Replace it whenever you have real geotechnical data.",
-        "ssS1FromCode": "Ss and S1 come from the Iraqi Seismic Code 2025, a forthcoming edition that is not yet in force, interpolated to this coordinate from its published district values. The spectrum shape below still follows the 2017 code's rules. Replace both whenever you hold a site-specific study."
+        "ssS1FromCode": "Ss and S1 come from the Iraqi Seismic Code 2025, a forthcoming edition that is not yet in force, interpolated to this coordinate from its published district values. The spectrum shape below still follows the 2017 code's rules. Replace both whenever you hold a site-specific study.",
+        "show": "Read the limits of this tool",
+        "hide": "Hide"
       },
       "formTitle": "Design inputs",
       "ssS1Note": "Read Ss (0.2 s) and S1 (1.0 s) off ISC-2017 Figures 2-2/1(a) and (b) for this site.",
@@ -991,7 +993,9 @@
           "floor": "the 0.044·SDS·I floor"
         }
       },
-      "driftLimit": "Allowable storey drift: {{ratio}} × hsx (Table 3-12/1)"
+      "driftLimit": "Allowable storey drift: {{ratio}} × hsx (Table 3-12/1)",
+      "systemChange": "Change",
+      "systemHideList": "Hide the list"
     },
     "sheet": {
       "copy": "Copy the calculation sheet",
