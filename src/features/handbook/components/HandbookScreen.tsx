@@ -64,6 +64,8 @@ export function HandbookScreen() {
           key={`${result.lat},${result.lon}`}
           vs30MS={result.vs30MS}
           isc2025={result.isc2025}
+          lat={result.lat}
+          lon={result.lon}
           locale={i18n.language}
         />
       ) : null}

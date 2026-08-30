@@ -992,6 +992,27 @@
         }
       },
       "driftLimit": "Allowable storey drift: {{ratio}} × hsx (Table 3-12/1)"
+    },
+    "sheet": {
+      "copy": "Copy the calculation sheet",
+      "copied": "Calculation sheet copied",
+      "title": "Bumelerze seismic design parameters",
+      "location": "Location",
+      "nearestDistrict": "Nearest published district",
+      "zone": "Seismic zone",
+      "groundMotion": "-- Mapped ground motion (ISC-2025, forthcoming edition) --",
+      "vs30Source": "global terrain-slope model, not a site measurement",
+      "siteClass": "Site class",
+      "designParameters": "-- Design parameters (ISC-2017) --",
+      "sdc": "Seismic design category",
+      "system": "-- Seismic-force-resisting system (ISC-2017) --",
+      "systemName": "System",
+      "heightLimit": "Height limit",
+      "driftLimit": "Allowable storey drift",
+      "loadEffects": "-- Seismic load effects (ISC-2017 §3-4) --",
+      "verticalOmitted": "Vertical seismic term omitted: SDS <= 0.125.",
+      "rhoNote": "rho is the redundancy factor (§3-3/3): you must determine it, this tool does not.",
+      "footer": "Preliminary reference only. Not a substitute for a site-specific geotechnical investigation or for the code text itself. Verify every value against your own copy of the code."
     }
   },
   "myData": {
