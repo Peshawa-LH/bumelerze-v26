@@ -11,7 +11,7 @@ import { CHART_DEFAULT_T_MAX, CHART_EXTENDED_T_MAX } from "../config";
 import { computeSpectrumParameters, governingCs } from "../compute";
 import { buildEc8Curve, ec8Parameters, type Ec8GroundType } from "../ec8";
 import { methodDuplicatesIsc, spectrumMethod, SPECTRUM_METHODS } from "../methods";
-import { canPrintReport, printReport } from "../print-report";
+import { canPrintReport, downloadReport, printReport } from "../print-report";
 import { allowableDrift } from "../drift";
 import { computePeriod } from "../period";
 import { buildSpectrumCurve } from "../curve";
@@ -110,10 +110,10 @@ export function SpectrumSection({
     };
   }
 
-  function handlePrintReport() {
+  function reportPayload() {
     const base = sheetData();
     if (!base) {
-      return;
+      return null;
     }
     // The printed curve is the very points that are on screen, not a
     // recomputation, so the report can never disagree with the chart.
@@ -135,18 +135,29 @@ export function SpectrumSection({
         ]
       : [];
 
-    printReport(
-      {
-        ...base,
-        method: state.method,
-        ec8GroundType,
-        ag: state.agValue,
-        generatedAt: new Date().toISOString().slice(0, 16).replace("T", " "),
-        chartSeries: series,
-        chartTMax: tMax,
-      },
-      t,
-    );
+    return {
+      ...base,
+      method: state.method,
+      ec8GroundType,
+      ag: state.agValue,
+      generatedAt: new Date().toISOString().slice(0, 16).replace("T", " "),
+      chartSeries: series,
+      chartTMax: tMax,
+    };
+  }
+
+  function handleDownloadReport() {
+    const payload = reportPayload();
+    if (payload) {
+      downloadReport(payload, t);
+    }
+  }
+
+  function handlePrintReport() {
+    const payload = reportPayload();
+    if (payload) {
+      printReport(payload, t);
+    }
   }
 
   async function copyCalculationSheet() {
@@ -532,7 +543,7 @@ export function SpectrumSection({
           {canPrintReport ? (
             <Pressable
               accessibilityRole="button"
-              onPress={handlePrintReport}
+              onPress={handleDownloadReport}
               style={{
                 borderWidth: 1,
                 borderRadius: 12,
@@ -552,6 +563,14 @@ export function SpectrumSection({
                 }}
               >
                 {t("handbook.report.action")}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {canPrintReport ? (
+            <Pressable accessibilityRole="button" onPress={handlePrintReport} hitSlop={8}>
+              <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, textAlign: "center" }}>
+                {t("handbook.report.print")}
               </Text>
             </Pressable>
           ) : null}
