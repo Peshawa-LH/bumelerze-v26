@@ -1,5 +1,10 @@
 import { ISC2025_DISTRICTS, ISC2025_SS_ZONES } from "../data";
-import { lookupIsc2025, lookupSsZone, nearestIsc2025District } from "../isc2025";
+import {
+  districtDisplayName,
+  lookupIsc2025,
+  lookupSsZone,
+  nearestIsc2025District,
+} from "../isc2025";
 
 /**
  * These run against the REAL bundled JSON rather than fixtures, because the
@@ -131,5 +136,33 @@ describe("lookupIsc2025", () => {
     const result = lookupIsc2025(35.196, 45.733);
     expect(result.nearestDistrict?.district.nameEn).toBe("Derbendikhan");
     expect(result.zone?.zone).toBeDefined();
+  });
+});
+
+describe("districtDisplayName", () => {
+  /**
+   * Found in Sorani RTL verification, 2026-08-31: a Latin transliteration
+   * stranded inside a right-to-left sentence. The code prints every
+   * district in Arabic and that name is in the data, so Arabic-script
+   * readers get it.
+   */
+  const chamchamal = ISC2025_DISTRICTS.find((d) => d.nameEn === "Chamchamal")!;
+
+  it("uses the code's own Arabic name for Arabic-script locales", () => {
+    expect(districtDisplayName(chamchamal, "ckb")).toBe(chamchamal.nameAr);
+    expect(districtDisplayName(chamchamal, "ar")).toBe(chamchamal.nameAr);
+    expect(districtDisplayName(chamchamal, "ckb")).not.toMatch(/[A-Za-z]/);
+  });
+
+  it("uses the Latin name for Latin-script locales", () => {
+    expect(districtDisplayName(chamchamal, "en")).toBe("Chamchamal");
+    expect(districtDisplayName(chamchamal, "kmr")).toBe("Chamchamal");
+  });
+
+  it("has an Arabic name for every shipped district", () => {
+    for (const d of ISC2025_DISTRICTS) {
+      expect(d.nameAr.length).toBeGreaterThan(1);
+      expect(districtDisplayName(d, "ckb")).not.toMatch(/[A-Za-z]/);
+    }
   });
 });

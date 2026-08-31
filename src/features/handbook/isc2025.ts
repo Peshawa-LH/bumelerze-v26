@@ -92,3 +92,17 @@ export function lookupIsc2025(lat: number, lon: number): Isc2025Result {
     nearestDistrict: nearestIsc2025District(lat, lon),
   };
 }
+
+/**
+ * The district's name in the reader's script.
+ *
+ * The code prints every district in Arabic, and that name is carried in the
+ * data. Sorani is written in Arabic script, so a Sorani or Arabic reader
+ * should see the code's own name rather than a Latin transliteration
+ * stranded inside a right-to-left sentence. Kurmanji and English take the
+ * Latin name. Caught in RTL verification, 2026-08-31.
+ */
+export function districtDisplayName(district: Isc2025District, locale: string): string {
+  const arabicScript = locale === "ar" || locale === "ckb";
+  return arabicScript && district.nameAr ? district.nameAr : district.nameEn;
+}
