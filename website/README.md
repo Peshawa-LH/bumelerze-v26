@@ -30,10 +30,11 @@ definitions live in the long comment at the top of `style.css`.
 | Path | What it is |
 |---|---|
 | `index.html` | English homepage: hero with a slider, feature grid, how-the-science-works, open-data, who-it's-for, and get-the-app sections |
+| `handbook.html` | English page for the Engineer's handbook: what it is, the three standards it works in, and the report it produces. Conceptual, no code values on it; the tool itself lives in the app at `/app` |
 | `privacy.html`, `support.html` | English privacy policy and support/FAQ pages |
-| `ckb/` | Sorani Kurdish (RTL), the same three pages |
-| `kmr/` | Kurmanji Kurdish, the same three pages |
-| `ar/` | Arabic (RTL), the same three pages |
+| `ckb/` | Sorani Kurdish (RTL), the same four pages |
+| `kmr/` | Kurmanji Kurdish, the same four pages |
+| `ar/` | Arabic (RTL), the same four pages |
 | `style.css` | The one shared stylesheet: tokens, contrast notes, every component |
 | `slider.js` | Progressive-enhancement script for the homepage hero slider only; deferred, no dependency, no autoplay ever (see the design-decision comment in `style.css`) |
 | `images/` | Optimized WebP illustrations used in the hero slider, resized and re-compressed from the commissioned artwork package, which lives outside this repository (not hotlinked into it) |
@@ -58,7 +59,7 @@ reversed logo on its own fixed Approved Navy background, regardless of
 theme. The logo image is never mirrored on the RTL pages (ckb, ar): a
 wordmark is not a directional icon.
 
-None of the 12 HTML pages reference "beta" or "v2" anywhere — they always
+None of the 16 HTML pages reference "beta" or "v2" anywhere — they always
 point at the fixed filenames under `brand/`. Which identity actually shows up
 there is controlled from exactly one place, `ACTIVE_BRAND_RELEASE` in
 `scripts/generate-assets.js` (see `assets/brand/README.md` "Beta vs
@@ -116,7 +117,7 @@ problem.
   says native iOS/Android apps are next; add real store links there once they
   exist rather than a placeholder badge.
 - ~~**Domain + email live**~~ → done (2026-08): the pending-domain note
-  paragraphs are removed from all 12 HTML files and every contact link points
+  paragraphs are removed from all HTML files and every contact link points
   at the live `hello@bumelerze.com` address.
 - ~~**Supabase backend goes live**~~ → done (2026-08-18): all four
   `privacy.html` locales and both `support.html` "How do I delete my data"
