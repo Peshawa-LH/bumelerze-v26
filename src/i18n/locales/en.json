@@ -1043,7 +1043,7 @@
       "footer": "Preliminary reference only. Not a substitute for a site-specific geotechnical investigation or for the code text itself. Verify every value against your own copy of the code."
     },
     "report": {
-      "action": "Generate a printable report",
+      "action": "Download the report",
       "title": "Seismic design parameters",
       "generated": "Generated",
       "method": "Calculation method",
@@ -1057,7 +1057,8 @@
       "mapCaption": "Site location on the Iraqi Seismic Code 2025 Ss zonation (zones I to V).",
       "chartCaption": "Design response spectrum, {{method}}.",
       "axisPeriod": "Period T (s)",
-      "axisAcceleration": "Spectral acceleration (g)"
+      "axisAcceleration": "Spectral acceleration (g)",
+      "print": "Or print it / save as PDF"
     }
   },
   "myData": {

@@ -14,3 +14,7 @@ export const canPrintReport = false;
 export function printReport(_data: ReportInput, _t: TFunction): void {
   // Intentionally empty; `canPrintReport` gates the caller.
 }
+
+export function downloadReport(_data: ReportInput, _t: TFunction): void {
+  // Intentionally empty; `canPrintReport` gates the caller.
+}

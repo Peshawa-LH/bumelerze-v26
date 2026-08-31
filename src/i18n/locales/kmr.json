@@ -1043,7 +1043,7 @@
       "footer": "Tenê çavkaniyeke destpêkî. Ne cîgirê lêkolîna axê ya taybet a cihî ye û ne jî ya nivîsa kodê. Her nirxê ji kopiya xwe ya kodê kontrol bike."
     },
     "report": {
-      "action": "Rapora çapkirinê çêbike",
+      "action": "Raporê dakêşe",
       "title": "Parametreyên sêwirana erdhejê",
       "generated": "Hatiye çêkirin",
       "method": "Rêbaza hesabê",
@@ -1057,7 +1057,8 @@
       "mapCaption": "Cihê projeyê li ser nexşeya herêmên Ss ya Koda Erdhejê ya Iraqê 2025 (herêm I heta V).",
       "chartCaption": "Tayfa bersiva sêwiranê, {{method}}.",
       "axisPeriod": "Dem T (s)",
-      "axisAcceleration": "Lezkirina tayfî (g)"
+      "axisAcceleration": "Lezkirina tayfî (g)",
+      "print": "An jî çap bike / wek PDF tomar bike"
     }
   },
   "myData": {
