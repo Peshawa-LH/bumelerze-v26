@@ -17,6 +17,7 @@ import { computePeriod } from "../period";
 import { buildSpectrumCurve } from "../curve";
 import { formatCodeCoefficient, formatCoefficient, formatPeriodSeconds } from "../format";
 import { iscSiteClassFromVs30 } from "../isc-site-class";
+import { districtDisplayName } from "../../isc2025";
 import { buildCalculationSheet } from "../calculation-sheet";
 import { checkHeight } from "../structural-systems";
 import { SpectrumChart } from "./SpectrumChart";
@@ -45,7 +46,7 @@ interface SpectrumSectionProps {
 /** The interpolated values at the queried point, or null outside the code's
  * coverage — where the form opens empty and the engineer supplies both,
  * which is the honest state for a site the code does not cover. */
-function toCodeValues(isc2025: Isc2025Result): SpectrumCodeValues | null {
+function toCodeValues(isc2025: Isc2025Result, locale: string): SpectrumCodeValues | null {
   const nearest = isc2025.nearestDistrict;
   if (!isc2025.values || !nearest) {
     return null;
@@ -56,7 +57,7 @@ function toCodeValues(isc2025: Isc2025Result): SpectrumCodeValues | null {
     // EC8 is fed the 1000-year PGA; see `methods.ts` for why 1000 and not
     // the 2475 the ISC path uses.
     ag: isc2025.values.pga1000,
-    districtName: nearest.district.nameEn,
+    districtName: districtDisplayName(nearest.district, locale),
     distanceKm: nearest.distanceKm,
   };
 }
@@ -99,7 +100,7 @@ export function SpectrumSection({
       s12475: isc2025.values?.s12475 ?? state.inputs.s1,
       pga2475: isc2025.values?.pga2475 ?? 0,
       nearestDistrict: nearest
-        ? { name: nearest.district.nameEn, distanceKm: nearest.distanceKm }
+        ? { name: districtDisplayName(nearest.district, locale), distanceKm: nearest.distanceKm }
         : null,
       zone: isc2025.zone?.zone ?? null,
       vs30MS,
@@ -174,7 +175,7 @@ export function SpectrumSection({
           s12475: isc2025.values?.s12475 ?? state.inputs.s1,
           pga2475: isc2025.values?.pga2475 ?? 0,
           nearestDistrict: nearest
-            ? { name: nearest.district.nameEn, distanceKm: nearest.distanceKm }
+            ? { name: districtDisplayName(nearest.district, locale), distanceKm: nearest.distanceKm }
             : null,
           zone: isc2025.zone?.zone ?? null,
           vs30MS,
@@ -190,7 +191,7 @@ export function SpectrumSection({
   }
 
   const derivedSiteClass = vs30MS === null ? null : iscSiteClassFromVs30(vs30MS);
-  const state = useSpectrumInputsState(derivedSiteClass ?? "D", toCodeValues(isc2025));
+  const state = useSpectrumInputsState(derivedSiteClass ?? "D", toCodeValues(isc2025, locale));
 
   const tMax = showFullRange ? CHART_EXTENDED_T_MAX : CHART_DEFAULT_T_MAX;
 
@@ -267,7 +268,10 @@ export function SpectrumSection({
         </View>
         <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
           {t("handbook.spectrum.methodReturnPeriod", {
-            years: spectrumMethod(state.method).returnPeriodYears,
+            // Localized, not interpolated raw: a bare 2475 renders in Latin
+            // digits inside an otherwise Eastern Arabic-Indic Sorani or
+            // Arabic sentence. Caught in RTL verification, 2026-08-31.
+            years: formatCodeCoefficient(spectrumMethod(state.method).returnPeriodYears, locale),
           })}
         </Text>
         {methodDuplicatesIsc(state.method) ? (

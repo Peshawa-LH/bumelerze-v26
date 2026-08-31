@@ -216,3 +216,20 @@ describe("no structural system chosen", () => {
     expect(["plateau", "periodCap", "floor"]).toContain(cs.governedBy);
   });
 });
+
+describe("numerals inside translated sentences", () => {
+  /**
+   * Regression for a bug found in Sorani RTL verification, 2026-08-31: the
+   * return period was interpolated as a raw number, so "2475" rendered in
+   * Latin digits inside an otherwise Eastern Arabic-Indic sentence. Every
+   * numeral that lands in a translated string has to go through the
+   * localizing formatters, not `String(n)`.
+   */
+  it("localizes a return period for Sorani and Arabic", () => {
+    for (const locale of ["ckb", "ar"]) {
+      const text = formatCodeCoefficient(2475, locale);
+      expect(text).not.toMatch(/[0-9]/);
+    }
+    expect(bare(formatCodeCoefficient(2475, "en"))).toBe("2475");
+  });
+});

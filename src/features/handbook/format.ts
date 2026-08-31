@@ -3,6 +3,7 @@ import type { TFunction } from "i18next";
 import { formatCoordinates, formatDistanceKm, isolateNumeric } from "@/features/events";
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
 import { SOIL_NEARBY_RADIUS_KM, VS30_DISPLAY_PRECISION_MS } from "./config";
+import { districtDisplayName } from "./isc2025";
 import type {
   HandbookLookupResult,
   Isc2025Result,
@@ -151,7 +152,7 @@ export function formatIsc2025Source(
   if (nearest) {
     parts.push(
       t("handbook.rows.isc2025.district", {
-        district: nearest.district.nameEn,
+        district: districtDisplayName(nearest.district, locale),
         distance: isolateNumeric(formatDistanceKm(nearest.distanceKm, locale)),
       }),
     );
