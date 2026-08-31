@@ -19,6 +19,7 @@ function report(over: Partial<ReportInput> = {}): string {
       inputs, params,
       system: findStructuralSystem("mf.rcSpecial"),
       heightM: 24,
+      locale: "en",
       method: "isc",
       ec8GroundType: null,
       ag: null,
@@ -122,8 +123,38 @@ describe("buildReportHtml", () => {
 
   it("renders in a right-to-left locale without losing the disclaimer", async () => {
     await i18n.changeLanguage("ckb");
-    const html = report();
+    const html = report({ locale: "ckb" });
     expect(html).toContain(i18n.t("handbook.report.disclaimer"));
     expect(html).toContain("<svg");
+  });
+
+  describe("direction", () => {
+    it("writes a left-to-right document for a Latin-script locale", () => {
+      for (const locale of ["en", "kmr"]) {
+        const html = report({ locale });
+        expect(html).toContain(`<html lang="${locale}" dir="ltr">`);
+      }
+    });
+
+    it("writes a right-to-left document for an Arabic-script locale", () => {
+      // Before this the report was always `lang="en" dir="ltr"`, so a
+      // Sorani report was a Kurdish document in an English frame: labels
+      // on the wrong side and the logo opposite where the eye starts.
+      for (const locale of ["ckb", "ar"]) {
+        const html = report({ locale });
+        expect(html).toContain(`<html lang="${locale}" dir="rtl">`);
+      }
+    });
+
+    it("keeps the calculation sheet left-to-right in every locale", () => {
+      // Column-aligned ASCII: mirroring it would break the alignment that
+      // makes it readable, while bidi still lays out each Kurdish run
+      // inside a line correctly.
+      expect(report({ locale: "ckb" })).toContain("direction: ltr");
+    });
+
+    it("aligns the generated-on stamp to whichever edge the locale ends at", () => {
+      expect(report({ locale: "en" })).toContain("text-align: end");
+    });
   });
 });

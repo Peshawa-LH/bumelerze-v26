@@ -1060,7 +1060,8 @@
       "axisAcceleration": "Lezkirina tayfî (g)",
       "print": "An wê veke ji bo çapkirinê, li wir nivîs bijartî dimîne",
       "pdfFailed": "Di vê gerokê de PDF nehat çêkirin, loma rapor wek dosyayeke HTML hate tomarkirin. Wê veke û ji wir bo PDF çap bike.",
-      "building": "PDF tê çêkirin…"
+      "building": "PDF tê çêkirin…",
+      "districtValue": "{{district}}, {{distance}} km"
     }
   },
   "myData": {

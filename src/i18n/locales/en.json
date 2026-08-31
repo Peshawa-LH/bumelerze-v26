@@ -1060,7 +1060,8 @@
       "axisAcceleration": "Spectral acceleration (g)",
       "print": "Or open it to print, where the text stays selectable",
       "pdfFailed": "The PDF could not be built in this browser, so the report was saved as an HTML file instead. Open it and print to PDF from there.",
-      "building": "Building the PDF…"
+      "building": "Building the PDF…",
+      "districtValue": "{{district}}, {{distance}} km"
     }
   },
   "myData": {

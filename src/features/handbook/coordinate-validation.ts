@@ -1,3 +1,5 @@
+import { toAsciiDigits } from "@/lib/format-numbers";
+
 export type CoordinateFieldError = "empty" | "notANumber" | "outOfRange";
 
 export interface CoordinateValidation {
@@ -6,18 +8,26 @@ export interface CoordinateValidation {
 }
 
 /**
- * Validates one decimal-degrees text field. Deliberately accepts plain
- * Latin-digit input only (`Number()` on the raw string) — the coordinate
- * TextInput itself is Latin-only by design (typescript-react-native.md:
- * "digit-localized DISPLAY but accept Latin input", spec-v1.md §7); any
+ * Validates one decimal-degrees text field.
+ *
+ * The field WRITES Latin digits (typescript-react-native.md:
+ * "digit-localized DISPLAY but accept Latin input", spec-v1.md §7), and
  * localized-digit rendering happens only on the read-back/results side via
  * `@/lib/format-numbers`, never here.
+ *
+ * What it ACCEPTS is wider, and deliberately so: the raw text is passed
+ * through `toAsciiDigits` first. A Sorani or Arabic reader types on their
+ * own keyboard, and every numeral the app shows them is Eastern
+ * Arabic-Indic; entering a coordinate that way used to return NaN and a
+ * flat "not a number", which for the primary audience of a Kurdish-first
+ * app is a wall rather than a validation message. Widening what is
+ * accepted cannot change what is written.
  */
 export function validateCoordinateField(
   raw: string,
   bound: { min: number; max: number },
 ): CoordinateValidation {
-  const trimmed = raw.trim();
+  const trimmed = toAsciiDigits(raw.trim());
   if (trimmed.length === 0) {
     return { value: null, error: "empty" };
   }

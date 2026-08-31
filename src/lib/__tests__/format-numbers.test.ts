@@ -1,4 +1,4 @@
-import { formatFixedLocalized, localizeDigits } from "../format-numbers";
+import { formatFixedLocalized, localizeDigits, toAsciiDigits } from "../format-numbers";
 
 describe("localizeDigits", () => {
   it("renders Eastern Arabic-Indic digits for ckb and ar", () => {
@@ -36,5 +36,32 @@ describe("formatFixedLocalized", () => {
 
   it("supports zero decimals", () => {
     expect(formatFixedLocalized(3, 0, "ckb")).toBe("٣");
+  });
+});
+
+describe("toAsciiDigits", () => {
+  it("leaves Latin input untouched", () => {
+    expect(toAsciiDigits("35.5600")).toBe("35.5600");
+    expect(toAsciiDigits("-0.25")).toBe("-0.25");
+  });
+
+  it("accepts the Eastern Arabic-Indic digits the app itself renders", () => {
+    // The exact round trip a Sorani reader closes: they see ٣٥.٥٦ in the
+    // results and type it back into the next field.
+    expect(toAsciiDigits(localizeDigits("35.56", "ckb"))).toBe("35.56");
+    expect(toAsciiDigits("٤٥٫٤٣")).toBe("45.43");
+  });
+
+  it("accepts Extended Arabic-Indic digits from a Persian keyboard", () => {
+    expect(toAsciiDigits("۳۵.۵۶")).toBe("35.56");
+  });
+
+  it("maps the Arabic decimal separator to the one this app uses", () => {
+    expect(toAsciiDigits("١٫٢٢")).toBe("1.22");
+  });
+
+  it("leaves anything that is not a digit alone, so bad input still fails", () => {
+    expect(toAsciiDigits("abc")).toBe("abc");
+    expect(toAsciiDigits("")).toBe("");
   });
 });

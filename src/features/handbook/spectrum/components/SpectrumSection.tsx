@@ -78,7 +78,7 @@ export function SpectrumSection({
   lon,
   locale,
 }: SpectrumSectionProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const [showFullRange, setShowFullRange] = useState(false);
   const [sheetCopied, setSheetCopied] = useState(false);
@@ -139,6 +139,7 @@ export function SpectrumSection({
 
     return {
       ...base,
+      locale: i18n.language,
       method: state.method,
       ec8GroundType,
       ag: state.agValue,

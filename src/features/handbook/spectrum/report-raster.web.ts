@@ -69,10 +69,15 @@ function layoutInIsolation(
     // layout synchronously, and the report needs nothing else to load --
     // its figures are inline SVG and its fonts are the system's.
 
-    const { styles, content } = buildReportFragment(data, t);
+    const { styles, content, dir, lang } = buildReportFragment(data, t);
     const root = doc.createElement("div");
     root.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
     root.setAttribute("class", "report-page");
+    // Direction lives on the document root, and the capture has no
+    // document: without these two the Sorani PDF would come out
+    // left-to-right however the HTML report is written.
+    root.setAttribute("dir", dir);
+    root.setAttribute("lang", lang);
     // Through the DOM rather than by string concatenation: the report's
     // markup is HTML (`<br>`, unquoted-safe attributes) and foreignObject
     // takes XHTML. Parsing then re-serialising is what converts it.
