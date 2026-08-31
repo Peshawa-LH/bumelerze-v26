@@ -2,6 +2,9 @@ import type { TFunction } from "i18next";
 
 import { buildCalculationSheet, type CalculationSheetInput } from "./calculation-sheet";
 import { ec8Parameters, type Ec8GroundType } from "./ec8";
+import { isRTLLocale } from "@/i18n";
+import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
+
 import { spectrumMethod, type SpectrumMethodId } from "./methods";
 import {
   buildReportChartSvg,
@@ -39,6 +42,14 @@ import { buildReportMapSvg, REPORT_MAP_ASPECT } from "./report-map";
  */
 
 export interface ReportInput extends CalculationSheetInput {
+  /**
+   * The locale the report is written in. Passed in rather than read off
+   * `t`: the document needs `lang` and `dir` on its root element, and a
+   * Sorani report laid out left-to-right is a Kurdish document in an
+   * English frame -- labels on the wrong side, the logo on the wrong side,
+   * and the reading order fighting the script.
+   */
+  locale: string;
   method: SpectrumMethodId;
   /** Only meaningful under Eurocode 8. */
   ec8GroundType: Ec8GroundType | null;
@@ -50,6 +61,27 @@ export interface ReportInput extends CalculationSheetInput {
    * curve is provably the same one the engineer saw on screen. */
   chartSeries: readonly ReportChartSeries[];
   chartTMax: number;
+}
+
+/**
+ * Wraps a run in `<bdi>`, which isolates it from the surrounding
+ * direction.
+ *
+ * The summary block's numerals are localized, unlike the calculation
+ * sheet's -- see the note on the sheet in `calculation-sheet.ts`. The
+ * sheet is a machine-readable artifact bound for a spreadsheet; this
+ * block is the report's own prose, sitting beside a sentence that already
+ * writes its year in Eastern digits, and it reads as the app does.
+ *
+ * Without this the right-to-left report reordered its own data: the
+ * timestamp "2026-08-31 20:00" came out as "20:00 2026-08-31", and the
+ * coordinate pair "35.5600, 45.4300" came out latitude-last. Both are two
+ * neutral-separated numeric runs, which the bidi algorithm is entitled to
+ * lay out right to left -- and on a seismic report a silently transposed
+ * coordinate is the worst possible defect.
+ */
+function bdi(value: string): string {
+  return `<bdi>${escapeHtml(value)}</bdi>`;
 }
 
 function escapeHtml(value: string): string {
@@ -75,7 +107,7 @@ function buildReportParts(
     data.method === "ec8" && data.ec8GroundType && data.ag !== null
       ? (() => {
           const p = ec8Parameters(data.ec8GroundType);
-          return `<dt>${escapeHtml(t("handbook.spectrum.ec8.paramsTitle"))}</dt><dd>ag ${data.ag.toFixed(3)} g &middot; ${escapeHtml(data.ec8GroundType)} &middot; S ${p.s} &middot; TB ${p.tb} s &middot; TC ${p.tc} s &middot; TD ${p.td} s</dd>`;
+          return `<dt>${escapeHtml(t("handbook.spectrum.ec8.paramsTitle"))}</dt><dd>${bdi(`ag ${data.ag.toFixed(3)} g \u00b7 ${data.ec8GroundType} \u00b7 S ${p.s} \u00b7 TB ${p.tb} s \u00b7 TC ${p.tc} s \u00b7 TD ${p.td} s`)}</dd>`;
         })()
       : "";
 
@@ -92,7 +124,7 @@ function buildReportParts(
            gap: 16px; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
   .report-page header svg { height: 34px; width: auto; }
   .report-page h1 { font-size: 15pt; margin: 0 0 8px; }
-  .meta { font-size: 9pt; color: #555; text-align: right; }
+  .meta { font-size: 9pt; color: #555; text-align: end; }
   /* Identity on the left, the two figures on the right, one band. Stacked
    * they cost 300 px of a 1024 px page and still left the figures' row
    * half empty, because a capped figure strip cannot use the full width
@@ -110,7 +142,14 @@ function buildReportParts(
    * runs longer than the rest of the report put together and pushes the
    * page over; in two it sits beside itself and the report closes on one
    * A4 side, which is what an engineer files. */
-  .report-page pre { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* The sheet stays left-to-right in every locale. It is column-aligned
+   * plain text whose numerals are deliberately ASCII (see
+   * calculation-sheet.ts): flipping it would break the alignment that
+   * makes it readable and pasteable, while the bidi algorithm still lays
+   * out each Kurdish or Arabic run inside a line correctly. This is the
+   * same treatment a terminal gives mixed-script output. */
+  .report-page pre { direction: ltr; text-align: left;
+        white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 7.6pt; line-height: 1.3; background: #fafafa; border: 1px solid #e4e4e4;
         padding: 9px 10px; border-radius: 4px; margin: 0 0 10px;
         columns: 2; column-gap: 18px; column-rule: 1px solid #e8e8e8; }
@@ -134,13 +173,16 @@ function buildReportParts(
   .figures figcaption { font-size: 8pt; color: #555; margin-top: 4px; }
   /* Keep a figure from being split across a page break. */
   figure, .summary, .disclaimer { break-inside: avoid; page-break-inside: avoid; }
-  /* The PDF path renders this same markup inside a plain div rather than
-   * a document body, so the root has to carry the page's own box too. */
+  /* The root carries this class in BOTH paths: on <body> in the
+   * standalone document and on the wrapper div the PDF rasteriser draws.
+   * Every rule below that names an element also names this class, so the
+   * two render identically -- when the class was on the div only, the
+   * document lost the logo size and the sheet's columns. */
   .report-page { margin: 0; }`;
   const content = `<header>
   <div>${BUMELERZE_LOGO_SVG}</div>
   <div class="meta">
-    ${escapeHtml(t("handbook.report.generated"))}<br>${escapeHtml(data.generatedAt)}
+    ${escapeHtml(t("handbook.report.generated"))}<br>${bdi(data.generatedAt)}
   </div>
 </header>
 
@@ -148,11 +190,16 @@ function buildReportParts(
 
 <div class="topstrip">
 <dl class="summary">
-  <dt>${escapeHtml(t("handbook.sheet.location"))}</dt><dd>${data.lat.toFixed(4)}, ${data.lon.toFixed(4)}</dd>
-  ${data.nearestDistrict ? `<dt>${escapeHtml(t("handbook.sheet.nearestDistrict"))}</dt><dd>${escapeHtml(data.nearestDistrict.name)}, ${data.nearestDistrict.distanceKm.toFixed(1)} km</dd>` : ""}
-  ${data.zone ? `<dt>${escapeHtml(t("handbook.sheet.zone"))}</dt><dd>${escapeHtml(data.zone)}</dd>` : ""}
+  <dt>${escapeHtml(t("handbook.sheet.location"))}</dt><dd>${bdi(`${formatFixedLocalized(data.lat, 4, data.locale)}, ${formatFixedLocalized(data.lon, 4, data.locale)}`)}</dd>
+  ${data.nearestDistrict ? `<dt>${escapeHtml(t("handbook.sheet.nearestDistrict"))}</dt><dd>${escapeHtml(
+            t("handbook.report.districtValue", {
+              district: data.nearestDistrict.name,
+              distance: formatFixedLocalized(data.nearestDistrict.distanceKm, 1, data.locale),
+            }),
+          )}</dd>` : ""}
+  ${data.zone ? `<dt>${escapeHtml(t("handbook.sheet.zone"))}</dt><dd>${bdi(data.zone)}</dd>` : ""}
   <dt>${escapeHtml(t("handbook.report.method"))}</dt><dd><strong>${escapeHtml(methodName)}</strong></dd>
-  <dt>${escapeHtml(t("handbook.report.hazardBasis"))}</dt><dd>${escapeHtml(t("handbook.report.hazardBasisValue", { years: method.returnPeriodYears }))}</dd>
+  <dt>${escapeHtml(t("handbook.report.hazardBasis"))}</dt><dd>${escapeHtml(t("handbook.report.hazardBasisValue", { years: localizeDigits(String(method.returnPeriodYears), data.locale) }))}</dd>
   ${ec8Row}
 </dl>
 
@@ -189,8 +236,9 @@ function buildReportParts(
  * the print path opens in its own window. */
 export function buildReportHtml(data: ReportInput, t: TFunction): string {
   const { styles, content } = buildReportParts(data, t);
+  const dir = isRTLLocale(data.locale) ? "rtl" : "ltr";
   return `<!doctype html>
-<html lang="en">
+<html lang="${escapeHtml(data.locale)}" dir="${dir}">
 <head>
 <meta charset="utf-8">
 <title>${escapeHtml(t("handbook.report.title"))}</title>
@@ -198,7 +246,7 @@ export function buildReportHtml(data: ReportInput, t: TFunction): string {
 ${styles}
 </style>
 </head>
-<body>
+<body class="report-page">
 ${content}
 </body>
 </html>`;
@@ -215,6 +263,10 @@ ${content}
 export function buildReportFragment(
   data: ReportInput,
   t: TFunction,
-): { styles: string; content: string } {
-  return buildReportParts(data, t);
+): { styles: string; content: string; dir: "rtl" | "ltr"; lang: string } {
+  return {
+    ...buildReportParts(data, t),
+    dir: isRTLLocale(data.locale) ? "rtl" : "ltr",
+    lang: data.locale,
+  };
 }

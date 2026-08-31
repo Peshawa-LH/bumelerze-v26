@@ -67,6 +67,35 @@ export function localizeDigits(numeral: string, locale: string): string {
 }
 
 /**
+ * The reverse direction: any digit glyph this app might be handed, back to
+ * ASCII, so a number can be parsed.
+ *
+ * Output localization and input acceptance are deliberately NOT symmetric.
+ * We only ever WRITE Eastern Arabic-Indic digits, but a reader of Sorani or
+ * Arabic is typing on their own keyboard, and there was nothing to stop
+ * them entering a coordinate or an `Ss` in the numerals they read
+ * everywhere else in the app -- where `Number()` returned NaN and the field
+ * said "not a number" with no hint as to why. For the primary audience of
+ * a Kurdish-first app that is a wall, not a validation message.
+ *
+ * So input accepts more than output produces: Eastern Arabic-Indic
+ * (U+0660-0669), Extended Arabic-Indic (U+06F0-06F9, a Persian keyboard on
+ * a Kurdish device), and the Arabic decimal separator U+066B, which maps to
+ * the '.' this app uses in every locale. Everything else passes through
+ * untouched so genuinely invalid input is still rejected.
+ */
+export function toAsciiDigits(text: string): string {
+  return text.replace(/[\u0660-\u0669\u06f0-\u06f9\u066b]/g, (character) => {
+    const code = character.charCodeAt(0);
+    if (code === 0x066b) {
+      return ".";
+    }
+    const base = code >= 0x06f0 ? 0x06f0 : 0x0660;
+    return String(code - base);
+  });
+}
+
+/**
  * `value.toFixed(decimals)`, then digit-localized. The single choke point
  * every fixed-decimal scientific numeral (magnitude, distance, depth,
  * coordinates) should be built from.
