@@ -938,7 +938,8 @@
         "sdc": "Seismic design category",
         "csUnreduced": "Cs = SDS / (R/I)",
         "csFloor": "Cs floor = 0.044 SDS I",
-        "r": "R"
+        "r": "R",
+        "importance": "Importance factor I"
       },
       "codeValues": {
         "prefilled": "From the Iraqi Seismic Code 2025 at this location. Nearest published district: {{district}}, {{distance}} km.",

@@ -938,7 +938,8 @@
         "sdc": "Pola sêwirana bihejê",
         "csUnreduced": "Cs = SDS / (R/I)",
         "csFloor": "Sinorê jêrîn ê Cs = 0.044 SDS I",
-        "r": "R"
+        "r": "R",
+        "importance": "Faktora girîngiyê I"
       },
       "codeValues": {
         "prefilled": "Ji Koda Erdhejê ya Iraqê 2025 li vî cihî. Qeza weşandî ya herî nêzîk: {{district}}, {{distance}} km.",
