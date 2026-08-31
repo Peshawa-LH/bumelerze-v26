@@ -71,6 +71,14 @@ export interface CalculationSheetOptions {
    * says the same six facts twice within 40 mm reads as a draft.
    */
   includeSiteHeader?: boolean;
+  /**
+   * Which edition the mapped values were read off, for the clause tag on
+   * each of them. Defaults to 2025, the app's default source. A sheet that
+   * tags 2017 band values as "ISC-2025" is a citation to a document that
+   * does not contain them, which is the one error a clause reference
+   * exists to prevent.
+   */
+  sourceTag?: string;
 }
 
 export function buildCalculationSheet(
@@ -79,6 +87,7 @@ export function buildCalculationSheet(
   options: CalculationSheetOptions = {},
 ): string {
   const { params, inputs, system } = data;
+  const tag = options.sourceTag ?? "ISC-2025";
   const out: string[] = [];
 
   if (options.includeSiteHeader !== false) {
@@ -95,15 +104,15 @@ export function buildCalculationSheet(
       );
     }
     if (data.zone) {
-      out.push(line(t("handbook.sheet.zone"), data.zone, "ISC-2025 Ss map"));
+      out.push(line(t("handbook.sheet.zone"), data.zone, `${tag} Ss map`));
     }
     out.push("");
   }
 
-  out.push(t("handbook.sheet.groundMotion"));
-  out.push(line("Ss", `${n(data.ss2475, 2)} g`, "ISC-2025, 2475-yr"));
-  out.push(line("S1", `${n(data.s12475, 2)} g`, "ISC-2025, 2475-yr"));
-  out.push(line("PGA", `${n(data.pga2475, 2)} g`, "ISC-2025, 2475-yr"));
+  out.push(t("handbook.sheet.groundMotion", { source: tag }));
+  out.push(line("Ss", `${n(data.ss2475, 2)} g`, `${tag}, 2475-yr`));
+  out.push(line("S1", `${n(data.s12475, 2)} g`, `${tag}, 2475-yr`));
+  out.push(line("PGA", `${n(data.pga2475, 2)} g`, `${tag}, 2475-yr`));
   if (data.vs30MS !== null) {
     out.push(line("Vs30", `${Math.round(data.vs30MS)} m/s`, t("handbook.sheet.vs30Source")));
   }

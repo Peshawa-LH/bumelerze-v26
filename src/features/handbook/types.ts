@@ -186,3 +186,29 @@ export interface HandbookLookupResult {
    * hand. */
   isc2025: Isc2025Result;
 }
+
+/** One band of an ISC-2017 hazard map: the figure's own Roman-numeral
+ * label and the g value it prints for that band. */
+export interface Isc2017Band {
+  zone: string;
+  valueG: number;
+  ring: readonly (readonly [number, number])[];
+}
+
+export type Isc2017Quantity = "ss" | "s1" | "pga";
+
+export interface Isc2017Zones {
+  returnPeriodYears: number;
+  quantities: Record<Isc2017Quantity, readonly Isc2017Band[]>;
+}
+
+export interface Isc2017Result {
+  /** The three mapped values, or null if the site is off any of the three
+   * maps. Named to match `Isc2025Result`'s 2475-year fields: both sources
+   * are 2% in 50 years, so they are the same quantity from two vintages. */
+  values: { ss2475: number; s12475: number; pga2475: number } | null;
+  ssBand: Isc2017Band | null;
+  s1Band: Isc2017Band | null;
+  pgaBand: Isc2017Band | null;
+  returnPeriodYears: number;
+}

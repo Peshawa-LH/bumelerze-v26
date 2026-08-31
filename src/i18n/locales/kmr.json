@@ -1015,11 +1015,25 @@
       },
       "methodReturnPeriod": "Nirxên nexşeyî li dema dubarebûnê ya {{years}} salî hatine girtin.",
       "methodNote": {
-        "isc": "Hevkêşeyên Koda Iraqê 2017 §2-2/5, bi Ss û S1 ji nexşeyên 2025 û Fa, Fv ji Tabloya 2-2/1.",
+        "isc": "Hevkêşeyên Koda Iraqê 2017 §2-2/5, bi Ss û S1 ji nexşeyên {{source}} û Fa, Fv ji Tabloya 2-2/1.",
         "asce710": "ASCE 7-10 heman çar şax û heman tabloyên Fa û Fv wek koda Iraqê bi kar tîne, loma ev xêz tam wek wê ye. ASCE 7-16 hevkarên cihî guhertine û wê cuda be; ew standard li vir nîne.",
-        "ec8": "Tayfa elastîk a Cure 1 li gorî EN 1998-1 §3.2.2.2, cureya erdê {{groundType}}, damping 5%. Referansa EC8 metirsiya 475 salî ye ku nexşeyên Iraqê naweşînin, loma nirxên 1000 salî tên bikaranîn. Iraq pêvekeke neteweyî ya EC8 tune, loma S, TB, TC û TD nirxên pêşniyarkirî yên standardê ne."
+        "ec8": "Tayfa elastîk a Cure 1 li gorî EN 1998-1 §3.2.2.2, cureya erdê {{groundType}}, damping 5%. Referansa EC8 metirsiya 475 salî ye ku nexşeyên Iraqê naweşînin, loma nirxên 1000 salî tên bikaranîn. Iraq pêvekeke neteweyî ya EC8 tune, loma S, TB, TC û TD nirxên pêşniyarkirî yên standardê ne.",
+        "ec8Ag": "Eurocode 8 ag-yeke 475-salî hêvî dike. Ev çavkanî {{years}} salan diweşîne, ku ya herî nêzîk e."
       },
-      "agLabel": "ag, lezkirina erdê ya sêwiranê li ser erda cureya A (g)"
+      "agLabel": "ag, lezkirina erdê ya sêwiranê li ser erda cureya A (g)",
+      "sourceLabel": "Çavkaniya metirsiyê",
+      "sources": {
+        "isc2025": "Koda Iraqê 2025",
+        "isc2017": "Koda Iraqê 2017"
+      },
+      "sourceNote": {
+        "isc2025": "Çapa bê, hê ne di meriyetê de ye. Nirx di navbera 79 nirxên qezayan ên weşandî de têne hesibandin, loma taybetî xala te ne.",
+        "isc2017": "Çapa di meriyetê de. Nirx ew herêm e ku cihê te tê de ye, ji nexşeyên koda bi xwe hatiye xwendin, loma her cihê di heman herêmê de heman hejmarê dixwîne."
+      },
+      "sourceShort": {
+        "isc2025": "2025",
+        "isc2017": "2017"
+      }
     },
     "sheet": {
       "copy": "Pelê hesabê kopî bike",
@@ -1028,7 +1042,7 @@
       "location": "Cih",
       "nearestDistrict": "Qeza weşandî ya herî nêzîk",
       "zone": "Herêma erdhejê",
-      "groundMotion": "-- Livîna erdê ya nexşekirî (Koda Iraqê 2025, çapa bê) --",
+      "groundMotion": "-- Lerzîna erdê ya nexşekirî ({{source}}) --",
       "vs30Source": "modela çiyayîtiya cîhanî, ne pîvana cihî",
       "siteClass": "Pola cihî",
       "designParameters": "-- Parametreyên sêwiranê (Koda Iraqê 2017) --",
@@ -1048,20 +1062,29 @@
       "generated": "Hatiye çêkirin",
       "method": "Rêbaza hesabê",
       "hazardBasis": "Bingeha metirsiyê",
-      "hazardBasisValue": "Nexşeyên Koda Erdhejê ya Iraqê 2025, dema dubarebûnê {{years}} sal",
+      "hazardBasisValue": "Nexşeyên {{source}}, dema vegerê {{years}} sal",
       "parameters": "Parametreyên sêwiranê",
       "disclaimerTitle": "Tenê çavkaniyeke destpêkî",
-      "disclaimer": "Ev rapor ji Destûra Endezyar a Bumelerze ji bo bikaranîna destpêkî hatiye çêkirin. Ne belgeyeke sêwiranê ye û ne cîgirê lêkolîna axê ya taybet a cihî ye û ne jî ya nivîsa kodê. Nirxên nexşeyî di navbera nirxên qezayan ên weşandî yên Koda Erdhejê ya Iraqê 2025 de hatine hesibandin, ku çapeke bê ye û hê nehatiye meriyetê; rêzikên hesabê jî yên Koda 2017 in heke li jor rêbazeke din nehatibe navandin. Berî bikaranînê her nirxê ji kopiya xwe ya kodê kontrol bike.",
       "footer": "Bumelerze · bumelerze.com · Ji aliyê kesê ku di projeyê de hatiye navandin ve hatiye amadekirin, ne ji aliyê Bumelerze ve.",
       "popupBlocked": "Geroka te pencereya raporê asteng kir. Ji bo vê malperê pop-up destûr bide û dîsa biceribîne.",
-      "mapCaption": "Cihê projeyê li ser nexşeya herêmên Ss ya Koda Erdhejê ya Iraqê 2025 (herêm I heta V).",
+      "mapCaption": "Cihê projeyê li ser herêmkirina Ss ya {{source}} (herêmên {{bands}}).",
       "chartCaption": "Tayfa bersiva sêwiranê, {{method}}.",
       "axisPeriod": "Dem T (s)",
       "axisAcceleration": "Lezkirina tayfî (g)",
       "print": "An wê veke ji bo çapkirinê, li wir nivîs bijartî dimîne",
       "pdfFailed": "Di vê gerokê de PDF nehat çêkirin, loma rapor wek dosyayeke HTML hate tomarkirin. Wê veke û ji wir bo PDF çap bike.",
       "building": "PDF tê çêkirin…",
-      "districtValue": "{{district}}, {{distance}} km"
+      "districtValue": "{{district}}, {{distance}} km",
+      "source": "Çavkaniya metirsiyê",
+      "resolution": "Hûrgulî",
+      "resolutionValue": {
+        "interpolated": "ji bo vê xalê hatiye hesibandin",
+        "banded": "herêma ku ev cih tê de ye"
+      },
+      "disclaimerBySource": {
+        "isc2025": "Ev rapor ji aliyê Pirtûka endezyar a Bumelerze ve ji bo bikaranîna destpêkî hatiye çêkirin. Ne belgeyeke sêwiranê ye û ne şûngirê lêkolîneke jeoteknîkî ya taybet bi cihî ye û ne şûngirê nivîsa kodê ye. Nirxên nexşeyê di navbera nirxên qezayên weşandî yên Koda erdhejê ya Iraqê 2025 de têne hesibandin, ku çapeke bê ye û hê ne di meriyetê de ye; rêzikên hesabê yên Koda Iraqê 2017 in heke rêbazeke din li jor nehatibe navandin. Berî bikaranînê her nirxê li gorî kopiya xwe ya kodê kontrol bike.",
+        "isc2017": "Ev rapor ji aliyê Pirtûka endezyar a Bumelerze ve ji bo bikaranîna destpêkî hatiye çêkirin. Ne belgeyeke sêwiranê ye û ne şûngirê lêkolîneke jeoteknîkî ya taybet bi cihî ye û ne şûngirê nivîsa kodê ye. Nirxên nexşeyê ew herêmên weşandî ne yên Koda erdhejê ya Iraqê 2017, çapa di meriyetê de, li vî cihî hatine xwendin: her cihê di nav herêmekê de nirxa wê herêmê hildigire. Berî bikaranînê her nirxê li gorî kopiya xwe ya kodê kontrol bike."
+      }
     }
   },
   "myData": {

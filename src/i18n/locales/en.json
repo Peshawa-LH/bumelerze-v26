@@ -1015,11 +1015,25 @@
       },
       "methodReturnPeriod": "Mapped values taken at the {{years}}-year return period.",
       "methodNote": {
-        "isc": "ISC-2017 §2-2/5 equations, with Ss and S1 from the ISC-2025 maps and Fa, Fv from Table 2-2/1.",
+        "isc": "ISC-2017 §2-2/5 equations, with Ss and S1 from the {{source}} maps and Fa, Fv from Table 2-2/1.",
         "asce710": "ASCE 7-10 uses the same four branches and the same Fa and Fv tables as the Iraqi code, so this curve is identical to it. ASCE 7-16 revised the site coefficients and would differ; that standard is not available here.",
-        "ec8": "EN 1998-1 §3.2.2.2 Type 1 elastic spectrum, ground type {{groundType}}, 5% damping. EC8's own reference is the 475-year hazard, which the Iraqi maps do not publish, so the 1000-year values are used. Iraq has no EC8 national annex, so S, TB, TC and TD are the standard's recommended values."
+        "ec8": "EN 1998-1 §3.2.2.2 Type 1 elastic spectrum, ground type {{groundType}}, 5% damping. EC8's own reference is the 475-year hazard, which the Iraqi maps do not publish, so the 1000-year values are used. Iraq has no EC8 national annex, so S, TB, TC and TD are the standard's recommended values.",
+        "ec8Ag": "Eurocode 8 expects a 475-year ag. This source publishes {{years}} years, which is the closest it offers."
       },
-      "agLabel": "ag, design ground acceleration on type A ground (g)"
+      "agLabel": "ag, design ground acceleration on type A ground (g)",
+      "sourceLabel": "Hazard source",
+      "sources": {
+        "isc2025": "Iraqi code 2025",
+        "isc2017": "Iraqi code 2017"
+      },
+      "sourceNote": {
+        "isc2025": "Forthcoming edition, not yet in force. Values are interpolated between the 79 published district values, so they are specific to your point.",
+        "isc2017": "The edition in force. Values are the band your site falls in, read off the code's own maps, so every site inside a band reads the same number."
+      },
+      "sourceShort": {
+        "isc2025": "2025",
+        "isc2017": "2017"
+      }
     },
     "sheet": {
       "copy": "Copy the calculation sheet",
@@ -1028,7 +1042,7 @@
       "location": "Location",
       "nearestDistrict": "Nearest published district",
       "zone": "Seismic zone",
-      "groundMotion": "-- Mapped ground motion (ISC-2025, forthcoming edition) --",
+      "groundMotion": "-- Mapped ground motion ({{source}}) --",
       "vs30Source": "global terrain-slope model, not a site measurement",
       "siteClass": "Site class",
       "designParameters": "-- Design parameters (ISC-2017) --",
@@ -1048,20 +1062,29 @@
       "generated": "Generated",
       "method": "Calculation method",
       "hazardBasis": "Hazard basis",
-      "hazardBasisValue": "Iraqi Seismic Code 2025 maps, {{years}}-year return period",
+      "hazardBasisValue": "{{source}} maps, {{years}}-year return period",
       "parameters": "Design parameters",
       "disclaimerTitle": "Preliminary reference only",
-      "disclaimer": "This report is produced by the Bumelerze Engineer's Handbook for preliminary use. It is not a design document and not a substitute for a site-specific geotechnical investigation or for the code text itself. Mapped values are interpolated between the published district values of the Iraqi Seismic Code 2025, which is a forthcoming edition not yet in force; the calculation rules are those of the Iraqi Seismic Code 2017 unless another method is named above. Verify every value against your own copy of the code before use.",
       "footer": "Bumelerze · bumelerze.com · Prepared by the person named on the project, not by Bumelerze.",
       "popupBlocked": "Your browser blocked the report window. Allow pop-ups for this site and try again.",
-      "mapCaption": "Site location on the Iraqi Seismic Code 2025 Ss zonation (zones I to V).",
+      "mapCaption": "Site location on the {{source}} Ss zonation (zones {{bands}}).",
       "chartCaption": "Design response spectrum, {{method}}.",
       "axisPeriod": "Period T (s)",
       "axisAcceleration": "Spectral acceleration (g)",
       "print": "Or open it to print, where the text stays selectable",
       "pdfFailed": "The PDF could not be built in this browser, so the report was saved as an HTML file instead. Open it and print to PDF from there.",
       "building": "Building the PDF…",
-      "districtValue": "{{district}}, {{distance}} km"
+      "districtValue": "{{district}}, {{distance}} km",
+      "source": "Hazard source",
+      "resolution": "Resolution",
+      "resolutionValue": {
+        "interpolated": "interpolated to this point",
+        "banded": "the band this site falls in"
+      },
+      "disclaimerBySource": {
+        "isc2025": "This report is produced by the Bumelerze Engineer's Handbook for preliminary use. It is not a design document and not a substitute for a site-specific geotechnical investigation or for the code text itself. Mapped values are interpolated between the published district values of the Iraqi Seismic Code 2025, which is a forthcoming edition not yet in force; the calculation rules are those of the Iraqi Seismic Code 2017 unless another method is named above. Verify every value against your own copy of the code before use.",
+        "isc2017": "This report is produced by the Bumelerze Engineer's Handbook for preliminary use. It is not a design document and not a substitute for a site-specific geotechnical investigation or for the code text itself. Mapped values are the zonation bands published in the Iraqi Seismic Code 2017, the edition in force, read at this site: every location inside a band carries that band's value. Verify every value against your own copy of the code before use."
+      }
     }
   },
   "myData": {
