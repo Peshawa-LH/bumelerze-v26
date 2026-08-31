@@ -1043,7 +1043,7 @@
       "footer": "Preliminary reference only. Not a substitute for a site-specific geotechnical investigation or for the code text itself. Verify every value against your own copy of the code."
     },
     "report": {
-      "action": "Download the report",
+      "action": "Download the report (PDF)",
       "title": "Seismic design parameters",
       "generated": "Generated",
       "method": "Calculation method",
@@ -1058,7 +1058,9 @@
       "chartCaption": "Design response spectrum, {{method}}.",
       "axisPeriod": "Period T (s)",
       "axisAcceleration": "Spectral acceleration (g)",
-      "print": "Or print it / save as PDF"
+      "print": "Or open it to print, where the text stays selectable",
+      "pdfFailed": "The PDF could not be built in this browser, so the report was saved as an HTML file instead. Open it and print to PDF from there.",
+      "building": "Building the PDF…"
     }
   },
   "myData": {

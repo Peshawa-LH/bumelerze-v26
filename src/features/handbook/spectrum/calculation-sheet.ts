@@ -55,29 +55,50 @@ function n(value: number, decimals = 3): string {
   return value.toFixed(decimals);
 }
 
+export interface CalculationSheetOptions {
+  /**
+   * The closing "preliminary reference only" line. On by default, because
+   * a sheet pasted into an email carries nothing else that says what it
+   * is. The printed report turns it OFF: that page already states the same
+   * thing in a boxed callout, and printing the paragraph twice on one A4
+   * side wastes the space and reads as an oversight.
+   */
+  includeFooter?: boolean;
+  /**
+   * The title rule and the site block (location, nearest district, zone).
+   * On by default. The printed report turns it OFF because its own
+   * headline and summary grid state all four already, and a page that
+   * says the same six facts twice within 40 mm reads as a draft.
+   */
+  includeSiteHeader?: boolean;
+}
+
 export function buildCalculationSheet(
   data: CalculationSheetInput,
   t: TFunction,
+  options: CalculationSheetOptions = {},
 ): string {
   const { params, inputs, system } = data;
   const out: string[] = [];
 
-  out.push(t("handbook.sheet.title"));
-  out.push("=".repeat(t("handbook.sheet.title").length));
-  out.push("");
-  out.push(line(t("handbook.sheet.location"), `${n(data.lat, 4)}, ${n(data.lon, 4)}`));
-  if (data.nearestDistrict) {
-    out.push(
-      line(
-        t("handbook.sheet.nearestDistrict"),
-        `${data.nearestDistrict.name}, ${n(data.nearestDistrict.distanceKm, 1)} km`,
-      ),
-    );
+  if (options.includeSiteHeader !== false) {
+    out.push(t("handbook.sheet.title"));
+    out.push("=".repeat(t("handbook.sheet.title").length));
+    out.push("");
+    out.push(line(t("handbook.sheet.location"), `${n(data.lat, 4)}, ${n(data.lon, 4)}`));
+    if (data.nearestDistrict) {
+      out.push(
+        line(
+          t("handbook.sheet.nearestDistrict"),
+          `${data.nearestDistrict.name}, ${n(data.nearestDistrict.distanceKm, 1)} km`,
+        ),
+      );
+    }
+    if (data.zone) {
+      out.push(line(t("handbook.sheet.zone"), data.zone, "ISC-2025 Ss map"));
+    }
+    out.push("");
   }
-  if (data.zone) {
-    out.push(line(t("handbook.sheet.zone"), data.zone, "ISC-2025 Ss map"));
-  }
-  out.push("");
 
   out.push(t("handbook.sheet.groundMotion"));
   out.push(line("Ss", `${n(data.ss2475, 2)} g`, "ISC-2025, 2475-yr"));
@@ -172,6 +193,8 @@ export function buildCalculationSheet(
     out.push("");
   }
 
-  out.push(t("handbook.sheet.footer"));
+  if (options.includeFooter !== false) {
+    out.push(t("handbook.sheet.footer"));
+  }
   return out.join("\n");
 }
