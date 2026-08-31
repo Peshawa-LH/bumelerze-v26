@@ -938,7 +938,8 @@
         "sdc": "پۆلی دیزاینی بوومەلەرزەیی",
         "csUnreduced": "Cs = SDS / (R/I)",
         "csFloor": "کەمترین Cs = ٠.٠٤٤ SDS I",
-        "r": "R"
+        "r": "R",
+        "importance": "هۆکاری گرنگی I"
       },
       "codeValues": {
         "prefilled": "لە کۆدی بوومەلەرزەیی عێراقی ٢٠٢٥ بۆ ئەم شوێنە. نزیکترین قەزای بڵاوکراوە: {{district}}، {{distance}} کم.",

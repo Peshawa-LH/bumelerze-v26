@@ -938,7 +938,8 @@
         "sdc": "فئة التصميم الزلزالي",
         "csUnreduced": "Cs = SDS / (R/I)",
         "csFloor": "الحد الأدنى لـ Cs = 0.044 SDS I",
-        "r": "R"
+        "r": "R",
+        "importance": "معامل الأهمية I"
       },
       "codeValues": {
         "prefilled": "من الكود الزلزالي العراقي ٢٠٢٥ عند هذا الموقع. أقرب قضاء منشور: {{district}}، {{distance}} كم.",

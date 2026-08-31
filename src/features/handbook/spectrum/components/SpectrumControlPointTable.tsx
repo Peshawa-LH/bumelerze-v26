@@ -7,6 +7,7 @@ import { useTheme } from "@/theme";
 import { isolateNumeric } from "@/features/events";
 import { spectralAcceleration } from "../curve";
 import {
+  formatCodeCoefficient,
   formatCoefficient,
   formatIscSiteClass,
   formatPeriodSeconds,
@@ -84,6 +85,14 @@ export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumCo
     {
       labelKey: "handbook.spectrum.table.sdc",
       value: formatSeismicDesignCategory(params.seismicDesignCategory),
+    },
+    // The importance factor earns its own row because it is the ONE number
+    // the occupancy selector sets, and without it changing occupancy looked
+    // like it did nothing: everything above here is independent of `I`, and
+    // the two rows below that do move sit at the bottom of a long table.
+    {
+      labelKey: "handbook.spectrum.table.importance",
+      value: formatCodeCoefficient(params.importanceFactor, locale),
     },
     { labelKey: "handbook.spectrum.table.csUnreduced", value: formatCoefficient(params.csUnreduced, locale) },
     { labelKey: "handbook.spectrum.table.csFloor", value: formatCoefficient(params.csFloor, locale) },

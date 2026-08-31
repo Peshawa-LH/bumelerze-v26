@@ -90,3 +90,37 @@ describe("computeSpectrumParameters — seismic design category boundaries", () 
     expect(highR.csUnreduced).toBeLessThan(lowR.csUnreduced);
   });
 });
+
+describe("occupancy category", () => {
+  /**
+   * Reported as "changing occupancy does nothing". It does — but only to
+   * `I`, and through it to `Cs` and the drift check. The spectrum itself is
+   * independent of occupancy by ISC-2017 §2-2/5, whose four branches use
+   * `SDS`, `SD1`, `T0`, `Ts` and `TL` and nothing else. These tests pin both
+   * halves of that, so neither can drift into the other.
+   */
+  const base = { ss: 1.22, s1: 0.49, siteClass: "C", r: 4 } as const;
+  const params = (occupancy: "I_II" | "III" | "IV") =>
+    computeSpectrumParameters({ ...base, occupancy } as SpectrumInputs);
+
+  it("applies ISC-2017 Table 2-3/1's importance factors", () => {
+    expect(params("I_II").importanceFactor).toBe(1.0);
+    expect(params("III").importanceFactor).toBe(1.25);
+    expect(params("IV").importanceFactor).toBe(1.5);
+  });
+
+  it("scales the base-shear coefficient with the importance factor", () => {
+    expect(params("III").csUnreduced / params("I_II").csUnreduced).toBeCloseTo(1.25, 6);
+    expect(params("IV").csUnreduced / params("I_II").csUnreduced).toBeCloseTo(1.5, 6);
+    expect(params("IV").csFloor / params("I_II").csFloor).toBeCloseTo(1.5, 6);
+  });
+
+  it("leaves the design spectrum itself untouched, as the code requires", () => {
+    for (const occupancy of ["III", "IV"] as const) {
+      expect(params(occupancy).sds).toBe(params("I_II").sds);
+      expect(params(occupancy).sd1).toBe(params("I_II").sd1);
+      expect(params(occupancy).t0).toBe(params("I_II").t0);
+      expect(params(occupancy).ts).toBe(params("I_II").ts);
+    }
+  });
+});
