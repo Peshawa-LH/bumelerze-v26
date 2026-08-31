@@ -890,15 +890,24 @@ dl.faq dd {
   max-width: 22rem;
 }
 
-.footer-col h4 {
+/* The footer's column labels are `h2`, not `h4`. They are top-level
+ * groups inside the contentinfo landmark, not subsections of whichever
+ * main section happened to come last, and jumping from the page's last
+ * `h2` straight to an `h4` skipped a level for anyone navigating by
+ * heading. Both selectors carry two classes on purpose: they have to
+ * outrank the global `h2` rules, including `html[dir="rtl"] h2`, which
+ * would otherwise replace the line height these labels inherit from the
+ * body and shift the footer's spacing on the Sorani and Arabic pages. */
+.site-footer .footer-col h2 {
   color: var(--footer-text);
   font-size: 0.85rem;
+  line-height: inherit;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-block: 0 0.7rem;
 }
 
-html[dir="rtl"] .footer-col h4 {
+html[dir="rtl"] .site-footer .footer-col h2 {
   letter-spacing: 0;
 }
 
