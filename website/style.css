@@ -957,3 +957,152 @@ html[dir="rtl"] .footer-col h4 {
     gap: 0.35rem;
   }
 }
+
+/* ---------- engineer's handbook page (handbook.html) ----------
+ * The page reuses the site's own sections, kickers, feature grid and
+ * credibility grid; only the four things it needs and nothing else has
+ * does it add here: the hazard map beside the hero, the line art inside
+ * the step cards, the origin tag above each standard, and the report
+ * mock-up. */
+
+/* The zone fills are the IMOS-2025 sheet's five bands, desaturated so
+ * they sit on the site's ivory and navy grounds instead of on white
+ * paper. They are map data, not theme colour, so they are defined as
+ * their own tokens and kept legible against BOTH grounds rather than
+ * inherited from the surface tokens. */
+:root {
+  --zone-1: #c3c7ca;
+  --zone-2: #e4f2c4;
+  --zone-3: #f5e04a;
+  --zone-4: #f0a12f;
+  --zone-5: #d8322e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --zone-1: #7c8388;
+    --zone-2: #a9c47f;
+    --zone-3: #cbb43a;
+    --zone-4: #c08430;
+    --zone-5: #b8322f;
+  }
+}
+
+/* Sits in the hero's flex row where the homepage puts its slider, so the
+ * two pages share one above-the-fold rhythm. */
+.hb-map {
+  flex: 1 1 20rem;
+  min-width: 0;
+  max-width: 24rem;
+  margin: 0;
+  margin-inline: auto;
+}
+
+.hb-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hb-map figcaption {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-block-start: 0.7rem;
+}
+
+/* Each band is stroked in its own fill as well: the traced rings meet
+ * along a shared boundary, and without the stroke the seam between two
+ * neighbours shows the page background through as a hairline speck. */
+.hb-map path {
+  stroke-width: 0.8;
+}
+
+.hb-map .z1 { fill: var(--zone-1); stroke: var(--zone-1); }
+.hb-map .z2 { fill: var(--zone-2); stroke: var(--zone-2); }
+.hb-map .z3 { fill: var(--zone-3); stroke: var(--zone-3); }
+.hb-map .z4 { fill: var(--zone-4); stroke: var(--zone-4); }
+.hb-map .z5 { fill: var(--zone-5); stroke: var(--zone-5); }
+
+/* A map is not a directional icon: never mirrored on the RTL pages. */
+.hb-pin circle {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.hb-pin circle:first-child {
+  stroke-width: 1;
+  opacity: 0.35;
+}
+
+.hb-pin .hb-pin-dot {
+  fill: var(--text-primary);
+  stroke: none;
+}
+
+.hb-art {
+  margin-block: 0.2rem 0.6rem;
+}
+
+.hb-art svg {
+  display: block;
+  width: 100%;
+  max-width: 8.5rem;
+  height: auto;
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1.4;
+}
+
+.hb-art .stroke-accent {
+  stroke: var(--brand-red);
+  stroke-width: 2.4;
+}
+
+.hb-art .fill-accent {
+  fill: var(--brand-red);
+  stroke: none;
+}
+
+.hb-art .dashed {
+  stroke-dasharray: 4 3;
+  opacity: 0.6;
+}
+
+.hb-tag {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.hb-report {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.hb-report > * {
+  flex: 1 1 20rem;
+  min-width: 0;
+}
+
+/* The mock is a sheet of paper, so it keeps paper colours in both
+ * themes; the frame around it is what adapts. */
+.hb-sheet {
+  margin: 0;
+  max-width: 26rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.hb-sheet svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
