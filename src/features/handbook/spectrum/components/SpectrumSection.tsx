@@ -17,6 +17,13 @@ import { computePeriod } from "../period";
 import { buildSpectrumCurve } from "../curve";
 import { formatCodeCoefficient, formatCoefficient, formatPeriodSeconds } from "../format";
 import { iscSiteClassFromVs30 } from "../isc-site-class";
+import {
+  DEFAULT_HAZARD_SOURCE,
+  HAZARD_SOURCES,
+  readHazard,
+  readingFromIsc2025,
+  type HazardSourceId,
+} from "../../hazard-source";
 import { districtDisplayName } from "../../isc2025";
 import { buildCalculationSheet } from "../calculation-sheet";
 import { checkHeight } from "../structural-systems";
@@ -46,17 +53,24 @@ interface SpectrumSectionProps {
 /** The interpolated values at the queried point, or null outside the code's
  * coverage — where the form opens empty and the engineer supplies both,
  * which is the honest state for a site the code does not cover. */
-function toCodeValues(isc2025: Isc2025Result, locale: string): SpectrumCodeValues | null {
+function toCodeValues(
+  reading: ReturnType<typeof readHazard>,
+  isc2025: Isc2025Result,
+  locale: string,
+): SpectrumCodeValues | null {
+  // The district is provenance from the 2025 table and is shown whichever
+  // source is selected: it is the nearest place either edition prints a
+  // number outright, which is the anchor a checker looks for.
   const nearest = isc2025.nearestDistrict;
-  if (!isc2025.values || !nearest) {
+  if (!reading.values || !nearest) {
     return null;
   }
   return {
-    ss: isc2025.values.ss2475,
-    s1: isc2025.values.s12475,
-    // EC8 is fed the 1000-year PGA; see `methods.ts` for why 1000 and not
-    // the 2475 the ISC path uses.
-    ag: isc2025.values.pga1000,
+    ss: reading.values.ss2475,
+    s1: reading.values.s12475,
+    // Which return period this `ag` is depends on the source; see
+    // `hazard-source.ts`. 2025 offers 1000, 2017 only 2475.
+    ag: reading.ec8Ag?.valueG ?? reading.values.pga2475,
     districtName: districtDisplayName(nearest.district, locale),
     distanceKm: nearest.distanceKm,
   };
@@ -88,6 +102,11 @@ export function SpectrumSection({
   // warning itself would not be — the first line is the one that has to be
   // read, the rest explains it.
   const [bannerOpen, setBannerOpen] = useState(false);
+  const [sourceId, setSourceId] = useState<HazardSourceId>(DEFAULT_HAZARD_SOURCE);
+  // 2025 comes from the lookup the screen already did and passed in; only
+  // 2017 needs resolving here. See `readingFromIsc2025`.
+  const reading =
+    sourceId === "isc2025" ? readingFromIsc2025(isc2025) : readHazard(sourceId, lat, lon);
 
   function sheetData() {
     if (!state.inputs || !params) {
@@ -97,13 +116,13 @@ export function SpectrumSection({
     return {
       lat,
       lon,
-      ss2475: isc2025.values?.ss2475 ?? state.inputs.ss,
-      s12475: isc2025.values?.s12475 ?? state.inputs.s1,
-      pga2475: isc2025.values?.pga2475 ?? 0,
+      ss2475: reading.values?.ss2475 ?? state.inputs.ss,
+      s12475: reading.values?.s12475 ?? state.inputs.s1,
+      pga2475: reading.values?.pga2475 ?? 0,
       nearestDistrict: nearest
         ? { name: districtDisplayName(nearest.district, locale), distanceKm: nearest.distanceKm }
         : null,
-      zone: isc2025.zone?.zone ?? null,
+      zone: reading.zoneLabel,
       vs30MS,
       inputs: state.inputs,
       params,
@@ -140,6 +159,8 @@ export function SpectrumSection({
     return {
       ...base,
       locale: i18n.language,
+      hazardSource: sourceId,
+      resolution: reading.source.resolution,
       method: state.method,
       ec8GroundType,
       ag: state.agValue,
@@ -177,13 +198,13 @@ export function SpectrumSection({
         {
           lat,
           lon,
-          ss2475: isc2025.values?.ss2475 ?? state.inputs.ss,
-          s12475: isc2025.values?.s12475 ?? state.inputs.s1,
-          pga2475: isc2025.values?.pga2475 ?? 0,
+          ss2475: reading.values?.ss2475 ?? state.inputs.ss,
+          s12475: reading.values?.s12475 ?? state.inputs.s1,
+          pga2475: reading.values?.pga2475 ?? 0,
           nearestDistrict: nearest
             ? { name: districtDisplayName(nearest.district, locale), distanceKm: nearest.distanceKm }
             : null,
-          zone: isc2025.zone?.zone ?? null,
+          zone: reading.zoneLabel,
           vs30MS,
           inputs: state.inputs,
           params,
@@ -197,7 +218,10 @@ export function SpectrumSection({
   }
 
   const derivedSiteClass = vs30MS === null ? null : iscSiteClassFromVs30(vs30MS);
-  const state = useSpectrumInputsState(derivedSiteClass ?? "D", toCodeValues(isc2025, locale));
+  const state = useSpectrumInputsState(
+    derivedSiteClass ?? "D",
+    toCodeValues(reading, isc2025, locale),
+  );
 
   const tMax = showFullRange ? CHART_EXTENDED_T_MAX : CHART_DEFAULT_T_MAX;
 
@@ -229,9 +253,55 @@ export function SpectrumSection({
         {t("handbook.spectrum.sectionTitle")}
       </Text>
 
-      {/* Method selector. The maps are always the Iraqi ones — ISC-2025 is
-       * the only published hazard for Iraq — and this picks whose equations
-       * turn those values into a spectrum. */}
+      {/* Source selector: WHICH published map the values are read off.
+       * 2017 is the edition in force, 2025 the forthcoming one, and
+       * practice is split — so this is the engineer's call, not ours. Sits
+       * above the method selector because it decides the inputs the method
+       * then operates on. */}
+      <View style={{ gap: spacing[2] }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+          {t("handbook.spectrum.sourceLabel")}
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing[2] }}>
+          {HAZARD_SOURCES.map((source) => {
+            const selected = sourceId === source.id;
+            return (
+              <Pressable
+                key={source.id}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                onPress={() => setSourceId(source.id)}
+                style={{
+                  borderWidth: 1,
+                  borderRadius: 999,
+                  paddingVertical: spacing[2],
+                  paddingHorizontal: spacing[3],
+                  minHeight: 44,
+                  justifyContent: "center",
+                  borderColor: selected ? colors.brand.primary : colors.border.default,
+                  backgroundColor: selected ? colors.brand.primary : "transparent",
+                }}
+              >
+                <Text
+                  style={{
+                    color: selected ? colors.brand.onPrimary : colors.text.primary,
+                    fontSize: typography.labelButton.fontSize,
+                    fontWeight: typography.labelButton.fontWeight,
+                  }}
+                >
+                  {t(`handbook.spectrum.sources.${source.id}`)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+          {t(`handbook.spectrum.sourceNote.${sourceId}`)}
+        </Text>
+      </View>
+
+      {/* Method selector: whose EQUATIONS turn those mapped values into a
+       * spectrum. Orthogonal to the source above. */}
       <View style={{ gap: spacing[2] }}>
         <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
           {t("handbook.spectrum.methodLabel")}
@@ -283,6 +353,13 @@ export function SpectrumSection({
         {methodDuplicatesIsc(state.method) ? (
           <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
             {t("handbook.spectrum.methodNote.asce710")}
+          </Text>
+        ) : null}
+        {isEc8 && reading.ec8Ag ? (
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+            {t("handbook.spectrum.methodNote.ec8Ag", {
+              years: formatCodeCoefficient(reading.ec8Ag.returnPeriodYears, locale),
+            })}
           </Text>
         ) : null}
       </View>
@@ -486,6 +563,9 @@ export function SpectrumSection({
           <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
             {t(`handbook.spectrum.methodNote.${state.method}`, {
               groundType: ec8GroundType ?? "-",
+              // The ISC note names the maps the values came off, which is
+              // the selected source, not a fixed edition.
+              source: t(`handbook.spectrum.sourceShort.${sourceId}`),
             })}
           </Text>
 

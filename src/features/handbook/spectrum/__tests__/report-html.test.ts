@@ -20,6 +20,8 @@ function report(over: Partial<ReportInput> = {}): string {
       system: findStructuralSystem("mf.rcSpecial"),
       heightM: 24,
       locale: "en",
+      hazardSource: "isc2025",
+      resolution: "interpolated",
       method: "isc",
       ec8GroundType: null,
       ag: null,
@@ -56,7 +58,9 @@ describe("buildReportHtml", () => {
     expect(html).toContain("#ffaa00");
     // The marker crosshair is drawn, so the site is actually shown.
     expect(html).toContain("<circle");
-    expect(html).toContain(i18n.t("handbook.report.mapCaption"));
+    expect(html).toContain(
+      i18n.t("handbook.report.mapCaption", { source: "Iraqi code 2025", bands: "I-V" }),
+    );
     expect(html).toContain(i18n.t("handbook.report.axisPeriod"));
   });
 
@@ -99,7 +103,7 @@ describe("buildReportHtml", () => {
   it("always carries the disclaimer", () => {
     const html = report();
     expect(html).toContain(i18n.t("handbook.report.disclaimerTitle"));
-    expect(html).toContain(i18n.t("handbook.report.disclaimer"));
+    expect(html).toContain(i18n.t("handbook.report.disclaimerBySource.isc2025"));
   });
 
   it("states that the values are forthcoming-edition and preliminary", () => {
@@ -124,7 +128,7 @@ describe("buildReportHtml", () => {
   it("renders in a right-to-left locale without losing the disclaimer", async () => {
     await i18n.changeLanguage("ckb");
     const html = report({ locale: "ckb" });
-    expect(html).toContain(i18n.t("handbook.report.disclaimer"));
+    expect(html).toContain(i18n.t("handbook.report.disclaimerBySource.isc2025"));
     expect(html).toContain("<svg");
   });
 
@@ -156,5 +160,40 @@ describe("buildReportHtml", () => {
     it("aligns the generated-on stamp to whichever edge the locale ends at", () => {
       expect(report({ locale: "en" })).toContain("text-align: end");
     });
+  });
+});
+
+describe("the report names the source it actually used", () => {
+  /**
+   * The same coordinate returns different numbers under the two editions —
+   * Sulaimani reads Ss 1.22 g on the 2025 maps and 0.70 g on the 2017 ones
+   * — so a page that does not say which it read cannot be checked at all.
+   * Every place the old text hard-coded "2025" is asserted here.
+   */
+  it("names 2017 everywhere when 2017 was selected", () => {
+    const html = report({ hazardSource: "isc2017", resolution: "banded" });
+    expect(html).toContain("Iraqi code 2017");
+    expect(html).toContain("ISC-2017, 2475-yr");
+    expect(html).toContain("the band this site falls in");
+    expect(html).toContain("zones I-X");
+    expect(html).toContain("the edition in force");
+    expect(html).not.toContain("ISC-2025, 2475-yr");
+  });
+
+  it("still names 2025 everywhere when 2025 was selected", () => {
+    const html = report({ hazardSource: "isc2025", resolution: "interpolated" });
+    expect(html).toContain("Iraqi code 2025");
+    expect(html).toContain("ISC-2025, 2475-yr");
+    expect(html).toContain("interpolated to this point");
+    expect(html).toContain("zones I-V");
+    expect(html).not.toContain("ISC-2017, 2475-yr");
+  });
+
+  it("draws the selected source's own zonation, not the other one's", () => {
+    // Ten bands are 2017's; five are 2025's. A locator showing one
+    // edition's bands beside the other's numbers contradicts its own table.
+    const bands = (html: string) => (html.match(/<rect x="[\d.]+" y="\d+" width="[\d.]+" height="10"/g) ?? []).length;
+    expect(bands(report({ hazardSource: "isc2017", resolution: "banded" }))).toBe(10);
+    expect(bands(report({ hazardSource: "isc2025", resolution: "interpolated" }))).toBe(5);
   });
 });

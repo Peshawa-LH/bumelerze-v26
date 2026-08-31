@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   BUILDING_HEIGHT_BOUND,
@@ -96,12 +96,20 @@ export interface SpectrumInputsState {
  * Vs30 sample (`iscSiteClassFromVs30`, §7.4: "site class pre-filled from
  * the coordinate and overridable").
  *
- * `codeValues` pre-fills `Ss`/`S1` from the ISC-2025 lookup on the same
- * "derived but overridable" footing. Both are seeded ONCE per mount rather
- * than synchronised by effect, because the screen remounts this section per
- * coordinate (`HandbookScreen` keys it on the looked-up point) — a new site
- * is a new problem, and carrying one city's `Ss` into another city's
- * spectrum is the one failure this form must not have.
+ * `codeValues` pre-fills `Ss`/`S1` from the selected hazard source on the
+ * same "derived but overridable" footing. Seeded per mount, because the
+ * screen remounts this section per coordinate (`HandbookScreen` keys it on
+ * the looked-up point) — a new site is a new problem, and carrying one
+ * city's `Ss` into another city's spectrum is the one failure this form
+ * must not have.
+ *
+ * The mapped fields ALSO re-seed when `codeValues` itself changes, which
+ * happens when the engineer switches hazard source. Switching from the
+ * 2017 maps to the 2025 ones is a request for those numbers; leaving the
+ * previous edition's `Ss` sitting in the field would answer with the old
+ * source under the new source's name. Only the three mapped fields
+ * re-seed: the method, system, `R` and height are the engineer's own work
+ * and survive the switch.
  */
 export function useSpectrumInputsState(
   derivedSiteClass: IscSiteClass,
@@ -126,6 +134,18 @@ export function useSpectrumInputsState(
   // Seeded from the default system so "other" starts at a familiar number
   // rather than blank; only ever read when no system is chosen.
   const [rText, setRText] = useState(String(system?.r ?? DEFAULT_R));
+
+  const codeKey = `${codeSsText}|${codeS1Text}|${codeAgText}`;
+  const seededFrom = useRef(codeKey);
+  useEffect(() => {
+    if (seededFrom.current === codeKey) {
+      return;
+    }
+    seededFrom.current = codeKey;
+    setSsText(codeSsText);
+    setS1Text(codeS1Text);
+    setAgText(codeAgText);
+  }, [codeKey, codeSsText, codeS1Text, codeAgText]);
 
   const ssValidation = validatePositiveNumberField(ssText, SS_INPUT_BOUND);
   const s1Validation = validatePositiveNumberField(s1Text, S1_INPUT_BOUND);

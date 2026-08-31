@@ -3,6 +3,8 @@ import type { TFunction } from "i18next";
 import { buildCalculationSheet, type CalculationSheetInput } from "./calculation-sheet";
 import { ec8Parameters, type Ec8GroundType } from "./ec8";
 import { isRTLLocale } from "@/i18n";
+
+import type { HazardSourceId } from "../hazard-source";
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
 
 import { spectrumMethod, type SpectrumMethodId } from "./methods";
@@ -50,6 +52,12 @@ export interface ReportInput extends CalculationSheetInput {
    * and the reading order fighting the script.
    */
   locale: string;
+  /** Which published map the values were read off, and what kind of answer
+   * it gives. Both are printed: the same coordinate returns different
+   * numbers under the two editions, so a report that does not name its
+   * source cannot be checked. */
+  hazardSource: HazardSourceId;
+  resolution: "interpolated" | "banded";
   method: SpectrumMethodId;
   /** Only meaningful under Eurocode 8. */
   ec8GroundType: Ec8GroundType | null;
@@ -101,6 +109,7 @@ function buildReportParts(
   const sheet = buildCalculationSheet(data, t, {
     includeFooter: false,
     includeSiteHeader: false,
+    sourceTag: data.hazardSource === "isc2017" ? "ISC-2017" : "ISC-2025",
   });
 
   const ec8Row =
@@ -198,15 +207,23 @@ function buildReportParts(
             }),
           )}</dd>` : ""}
   ${data.zone ? `<dt>${escapeHtml(t("handbook.sheet.zone"))}</dt><dd>${bdi(data.zone)}</dd>` : ""}
+  <dt>${escapeHtml(t("handbook.report.source"))}</dt><dd><strong>${escapeHtml(t(`handbook.spectrum.sources.${data.hazardSource}`))}</strong></dd>
+  <dt>${escapeHtml(t("handbook.report.resolution"))}</dt><dd>${escapeHtml(t(`handbook.report.resolutionValue.${data.resolution}`))}</dd>
   <dt>${escapeHtml(t("handbook.report.method"))}</dt><dd><strong>${escapeHtml(methodName)}</strong></dd>
-  <dt>${escapeHtml(t("handbook.report.hazardBasis"))}</dt><dd>${escapeHtml(t("handbook.report.hazardBasisValue", { years: localizeDigits(String(method.returnPeriodYears), data.locale) }))}</dd>
+  <dt>${escapeHtml(t("handbook.report.hazardBasis"))}</dt><dd>${escapeHtml(t("handbook.report.hazardBasisValue", {
+              source: t(`handbook.spectrum.sources.${data.hazardSource}`),
+              years: localizeDigits(String(method.returnPeriodYears), data.locale),
+            }))}</dd>
   ${ec8Row}
 </dl>
 
 <div class="figures">
   <figure class="fig-map">
-    <div class="fig-body">${buildReportMapSvg(data.lat, data.lon)}</div>
-    <figcaption>${escapeHtml(t("handbook.report.mapCaption"))}</figcaption>
+    <div class="fig-body">${buildReportMapSvg(data.lat, data.lon, data.hazardSource)}</div>
+    <figcaption>${escapeHtml(t("handbook.report.mapCaption", {
+      source: t(`handbook.spectrum.sources.${data.hazardSource}`),
+      bands: data.hazardSource === "isc2017" ? "I-X" : "I-V",
+    }))}</figcaption>
   </figure>
   <figure class="fig-chart">
     <div class="fig-body">${buildReportChartSvg(data.chartSeries, data.chartTMax, {
@@ -223,7 +240,7 @@ function buildReportParts(
 
 <div class="disclaimer">
   <strong>${escapeHtml(t("handbook.report.disclaimerTitle"))}</strong><br>
-  ${escapeHtml(t("handbook.report.disclaimer"))}
+  ${escapeHtml(t(`handbook.report.disclaimerBySource.${data.hazardSource}`))}
 </div>
 
 <footer>${escapeHtml(t("handbook.report.footer"))}</footer>`;

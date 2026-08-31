@@ -1,4 +1,5 @@
-import { ISC2025_SS_ZONES } from "../data";
+import { ISC2017_ZONES, ISC2025_SS_ZONES } from "../data";
+import type { HazardSourceId } from "../hazard-source";
 
 /**
  * A locator map for the printed report, as inline SVG.
@@ -20,7 +21,7 @@ import { ISC2025_SS_ZONES } from "../data";
 
 /** The official IMOS-2025 sheet's own fills, so the printed locator reads
  * as the same map an engineer has on their desk. */
-const ZONE_FILL: Record<string, string> = {
+const ZONE_FILL_2025: Record<string, string> = {
   I: "#b2b2b2",
   II: "#e9ffbe",
   III: "#ffff00",
@@ -28,8 +29,54 @@ const ZONE_FILL: Record<string, string> = {
   V: "#ff0000",
 };
 
-/** Drawn from strongest to weakest so a band never hides a stronger one. */
-const DRAW_ORDER = ["I", "II", "III", "IV", "V"] as const;
+/** ISC-2017's ten `Ss` bands, sampled from the legend swatches printed in
+ * Figure 2-2/1(a) itself rather than approximated, for the same reason as
+ * the 2025 palette: the locator should read as the figure on the desk. */
+const ZONE_FILL_2017: Record<string, string> = {
+  I: "#c7c7c7",
+  II: "#dcdcdc",
+  III: "#dfeaec",
+  IV: "#f9fdcd",
+  V: "#f5d661",
+  VI: "#f6a74f",
+  VII: "#f8684d",
+  VIII: "#ff5f33",
+  IX: "#f74917",
+  X: "#cb1a17",
+};
+
+/** Drawn weakest first so a band never hides a stronger one. */
+const DRAW_ORDER_2025 = ["I", "II", "III", "IV", "V"] as const;
+const DRAW_ORDER_2017 = [
+  "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+] as const;
+
+interface LocatorBand {
+  zone: string;
+  ring: readonly (readonly [number, number])[];
+}
+
+/** The selected source's own Ss zonation. The report must show the map the
+ * values were read off; showing 2025's bands beside 2017's numbers would
+ * be a figure that contradicts its own table. */
+function locatorBands(source: HazardSourceId): {
+  bands: LocatorBand[];
+  fill: Record<string, string>;
+  order: readonly string[];
+} {
+  if (source === "isc2017") {
+    return {
+      bands: ISC2017_ZONES.quantities.ss.map((b) => ({ zone: b.zone, ring: b.ring })),
+      fill: ZONE_FILL_2017,
+      order: DRAW_ORDER_2017,
+    };
+  }
+  return {
+    bands: ISC2025_SS_ZONES.map((z) => ({ zone: z.zone, ring: z.ring })),
+    fill: ZONE_FILL_2025,
+    order: DRAW_ORDER_2025,
+  };
+}
 
 const WIDTH = 320;
 /* Iraq is very nearly square once longitude is corrected for latitude, so a
@@ -42,8 +89,12 @@ const PAD = 6;
  * spectrum plot's height instead of letting a portrait map tower over it. */
 export const REPORT_MAP_ASPECT = WIDTH / HEIGHT;
 
-export function buildReportMapSvg(lat: number, lon: number): string {
-  const rings = ISC2025_SS_ZONES;
+export function buildReportMapSvg(
+  lat: number,
+  lon: number,
+  source: HazardSourceId = "isc2025",
+): string {
+  const { bands: rings, fill: ZONE_FILL, order: DRAW_ORDER } = locatorBands(source);
   if (rings.length === 0) {
     return "";
   }
@@ -102,10 +153,14 @@ export function buildReportMapSvg(lat: number, lon: number): string {
 </g>`
     : "";
 
+  // Spaced by however many bands the source has: 2025 prints five, 2017
+  // prints ten, and a fixed 30 px step ran the tenth swatch off the frame.
+  const step = (WIDTH - 16) / DRAW_ORDER.length;
+  const swatch = Math.min(22, step - 4);
   const legend = DRAW_ORDER.map(
     (label, i) =>
-      `<rect x="${8 + i * 30}" y="${HEIGHT - 20}" width="22" height="10" fill="${ZONE_FILL[label]}" stroke="#666" stroke-width="0.4"/>` +
-      `<text x="${19 + i * 30}" y="${HEIGHT - 24}" font-size="7" text-anchor="middle" fill="#333">${label}</text>`,
+      `<rect x="${(8 + i * step).toFixed(1)}" y="${HEIGHT - 20}" width="${swatch.toFixed(1)}" height="10" fill="${ZONE_FILL[label]}" stroke="#666" stroke-width="0.4"/>` +
+      `<text x="${(8 + i * step + swatch / 2).toFixed(1)}" y="${HEIGHT - 24}" font-size="7" text-anchor="middle" fill="#333">${label}</text>`,
   ).join("");
 
   return `<svg viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg" role="img">
