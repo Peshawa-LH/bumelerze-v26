@@ -1043,7 +1043,7 @@
       "footer": "Tenê çavkaniyeke destpêkî. Ne cîgirê lêkolîna axê ya taybet a cihî ye û ne jî ya nivîsa kodê. Her nirxê ji kopiya xwe ya kodê kontrol bike."
     },
     "report": {
-      "action": "Raporê dakêşe",
+      "action": "Raporê dakêşe (PDF)",
       "title": "Parametreyên sêwirana erdhejê",
       "generated": "Hatiye çêkirin",
       "method": "Rêbaza hesabê",
@@ -1058,7 +1058,9 @@
       "chartCaption": "Tayfa bersiva sêwiranê, {{method}}.",
       "axisPeriod": "Dem T (s)",
       "axisAcceleration": "Lezkirina tayfî (g)",
-      "print": "An jî çap bike / wek PDF tomar bike"
+      "print": "An wê veke ji bo çapkirinê, li wir nivîs bijartî dimîne",
+      "pdfFailed": "Di vê gerokê de PDF nehat çêkirin, loma rapor wek dosyayeke HTML hate tomarkirin. Wê veke û ji wir bo PDF çap bike.",
+      "building": "PDF tê çêkirin…"
     }
   },
   "myData": {

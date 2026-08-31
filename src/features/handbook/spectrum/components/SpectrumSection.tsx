@@ -82,6 +82,7 @@ export function SpectrumSection({
   const { colors, typography, spacing } = useTheme();
   const [showFullRange, setShowFullRange] = useState(false);
   const [sheetCopied, setSheetCopied] = useState(false);
+  const [buildingPdf, setBuildingPdf] = useState(false);
   // The headline warning stays visible always; its three supporting
   // paragraphs fold away. Collapsing the DETAIL is fine, collapsing the
   // warning itself would not be — the first line is the one that has to be
@@ -149,9 +150,13 @@ export function SpectrumSection({
 
   function handleDownloadReport() {
     const payload = reportPayload();
-    if (payload) {
-      downloadReport(payload, t);
+    if (!payload || buildingPdf) {
+      return;
     }
+    // Rasterising an A4 page takes a moment. Without a busy flag a second
+    // tap starts a second render and the engineer gets two files.
+    setBuildingPdf(true);
+    void downloadReport(payload, t).finally(() => setBuildingPdf(false));
   }
 
   function handlePrintReport() {
@@ -548,6 +553,7 @@ export function SpectrumSection({
             <Pressable
               accessibilityRole="button"
               onPress={handleDownloadReport}
+              accessibilityState={{ disabled: buildingPdf, busy: buildingPdf }}
               style={{
                 borderWidth: 1,
                 borderRadius: 12,
@@ -566,7 +572,7 @@ export function SpectrumSection({
                   fontWeight: "600",
                 }}
               >
-                {t("handbook.report.action")}
+                {t(buildingPdf ? "handbook.report.building" : "handbook.report.action")}
               </Text>
             </Pressable>
           ) : null}

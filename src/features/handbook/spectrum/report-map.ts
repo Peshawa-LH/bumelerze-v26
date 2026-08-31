@@ -32,8 +32,15 @@ const ZONE_FILL: Record<string, string> = {
 const DRAW_ORDER = ["I", "II", "III", "IV", "V"] as const;
 
 const WIDTH = 320;
-const HEIGHT = 380;
+/* Iraq is very nearly square once longitude is corrected for latitude, so a
+ * 380-tall frame left ~33 px of empty paper above and below the country.
+ * 345 hugs it, with room for the legend strip along the bottom. */
+const HEIGHT = 345;
 const PAD = 6;
+
+/** Width over height, so the report can size this figure to match the
+ * spectrum plot's height instead of letting a portrait map tower over it. */
+export const REPORT_MAP_ASPECT = WIDTH / HEIGHT;
 
 export function buildReportMapSvg(lat: number, lon: number): string {
   const rings = ISC2025_SS_ZONES;

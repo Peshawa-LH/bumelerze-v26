@@ -23,6 +23,9 @@ export interface ReportChartSeries {
 
 const WIDTH = 520;
 const HEIGHT = 300;
+
+/** Width over height; see `REPORT_MAP_ASPECT`. */
+export const REPORT_CHART_ASPECT = WIDTH / HEIGHT;
 const LEFT = 52;
 const RIGHT = 14;
 const TOP = 14;

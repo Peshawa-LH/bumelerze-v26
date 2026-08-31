@@ -1,44 +1,60 @@
 import type { TFunction } from "i18next";
 
 import { buildReportHtml, type ReportInput } from "./report-html";
+import { buildReportPdf } from "./report-raster.web";
 
 export const canPrintReport = true;
 
-/** `bumelerze-seismic-report_35.560N-45.430E_2026-08-31.html` — the site and
+/** `bumelerze-seismic-report_35.560N-45.430E_2026-08-31.pdf` — the site and
  * the date are in the name because these end up in a project folder beside
- * a dozen others, and a file called `report.html` is a file nobody can
+ * a dozen others, and a file called `report.pdf` is a file nobody can
  * identify a week later. */
-function reportFileName(data: ReportInput): string {
+function reportFileName(data: ReportInput, extension: "pdf" | "html"): string {
   const ns = data.lat >= 0 ? "N" : "S";
   const ew = data.lon >= 0 ? "E" : "W";
   const day = data.generatedAt.slice(0, 10).replace(/[^0-9-]/g, "") || "report";
-  return `bumelerze-seismic-report_${Math.abs(data.lat).toFixed(3)}${ns}-${Math.abs(data.lon).toFixed(3)}${ew}_${day}.html`;
+  return `bumelerze-seismic-report_${Math.abs(data.lat).toFixed(3)}${ns}-${Math.abs(data.lon).toFixed(3)}${ew}_${day}.${extension}`;
 }
 
-/**
- * Saves the report as a file the engineer can keep, email or attach to a
- * submission.
- *
- * A single self-contained HTML file rather than a generated PDF: the report
- * is inline SVG throughout, and every client-side PDF library rasterises
- * that into something soft and unselectable. This file opens in any
- * browser, on any device, with no app — and printing it from there produces
- * a PDF with vector figures and selectable text, which is a better PDF than
- * a library would have made. It also survives being forwarded, which a
- * print dialog does not.
- */
-export function downloadReport(data: ReportInput, t: TFunction): void {
-  const blob = new Blob([buildReportHtml(data, t)], { type: "text/html;charset=utf-8" });
+function saveBlob(blob: Blob, name: string): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = reportFileName(data);
+  anchor.download = name;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  // Revoked on the next tick, not immediately: some browsers have not
+  // Revoked on a later tick, not immediately: some browsers have not
   // finished reading the blob when click() returns.
   window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
+/**
+ * Saves the report as a PDF the engineer can keep, email or attach to a
+ * submission.
+ *
+ * The page is rasterised by the browser and wrapped in a PDF rather than
+ * typeset by a PDF library, because no JS library shapes Arabic script:
+ * see `report-raster.web.ts`. The cost is that the text is pixels rather
+ * than selectable glyphs, which is why the HTML report stays on offer
+ * beside it for anyone who needs live text.
+ *
+ * If anything in that path fails — an old browser, a blocked canvas — the
+ * HTML file is saved instead, and the engineer is told, because silently
+ * handing over a different format than the button promised is exactly the
+ * bug this replaced.
+ */
+export async function downloadReport(data: ReportInput, t: TFunction): Promise<void> {
+  try {
+    const pdf = await buildReportPdf(data, t);
+    saveBlob(new Blob([pdf as BlobPart], { type: "application/pdf" }), reportFileName(data, "pdf"));
+  } catch {
+    saveBlob(
+      new Blob([buildReportHtml(data, t)], { type: "text/html;charset=utf-8" }),
+      reportFileName(data, "html"),
+    );
+    window.alert(t("handbook.report.pdfFailed"));
+  }
 }
 
 /**
