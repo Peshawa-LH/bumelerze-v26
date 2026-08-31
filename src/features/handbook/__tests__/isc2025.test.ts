@@ -118,6 +118,32 @@ describe("lookupSsZone", () => {
     expect(lookupSsZone(48.8566, 2.3522)).toBeNull();
   });
 
+  it("covers the lakes, which the sheet paints no band over", () => {
+    // The zonation sheet leaves open water uncoloured, so these six came
+    // through the extractor as unclassified islands and every one of them
+    // returned NO zone: a pin dropped on Lake Tharthar told an engineer
+    // nothing. They are inside Iraq and a site on their shore is designed
+    // like any other, so the build fills them from the band around them.
+    const water: [string, number, number][] = [
+      ["Lake Tharthar", 34.0, 43.2],
+      ["Lake Razzaza", 32.75, 43.65],
+      ["Qadisiyah reservoir", 34.33, 42.32],
+      ["Lake Dukan", 36.18, 44.87],
+      ["Sawa / Muthanna marsh", 31.45, 45.21],
+      ["central marshes", 32.37, 46.53],
+    ];
+    const unmapped = water.filter(([, lat, lon]) => lookupSsZone(lat, lon) === null);
+    expect(unmapped.map(([name]) => name)).toEqual([]);
+  });
+
+  it("splits a lake that straddles a class break instead of picking one side", () => {
+    // Tharthar spans the I/II boundary. Filling it as one blob would have
+    // put its whole 2,700 km2 in a single band; each pixel takes the band
+    // nearest to it instead, so the break still runs under the water.
+    expect(lookupSsZone(34.0, 43.2)?.zone).toBe("I");
+    expect(lookupSsZone(33.8, 43.45)?.zone).toBe("II");
+  });
+
   it("agrees with the published band for the great majority of districts", () => {
     // Not 79/79: five districts sit within 0.03 g of a class break, where
     // the sheet's painted band and the table's rounded value disagree, and
