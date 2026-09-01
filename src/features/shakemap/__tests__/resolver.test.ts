@@ -18,6 +18,7 @@ function fakeRiskProduct(buildingsHeavy: number): RiskProduct {
     },
     districts: { stage: "pga_lognormal", timeOfDay: "night", nDraws: 200, districts: [], skippedCount: 0 },
     damageContours: null,
+    reportUrl: null,
   };
 }
 

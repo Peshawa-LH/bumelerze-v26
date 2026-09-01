@@ -1,7 +1,9 @@
 import damageContoursFixture from "../__fixtures__/us6000jllz/cont_damage.trimmed.json";
 import districtsFixture from "../__fixtures__/us6000jllz/districts.json";
 import riskSummaryFixture from "../__fixtures__/us6000jllz/risk_summary.json";
+import { ATLAS_BASE_URL } from "../config";
 import {
+  buildBundledReportUrl,
   parseDamageContours,
   parseRiskDistricts,
   parseRiskProduct,
@@ -176,5 +178,31 @@ describe("parseRiskProduct", () => {
     expect(parseRiskProduct(null)).toBeNull();
     expect(parseRiskProduct([])).toBeNull();
     expect(parseRiskProduct("not-an-object")).toBeNull();
+  });
+
+  it("carries a real reportUrl through when the raw payload has one", () => {
+    const product = parseRiskProduct({ ...rawProduct, reportUrl: "https://example.test/report.pdf" });
+
+    expect(product?.reportUrl).toBe("https://example.test/report.pdf");
+  });
+
+  it("defaults reportUrl to null when the raw payload has none (never fabricated)", () => {
+    const product = parseRiskProduct(rawProduct);
+
+    expect(product?.reportUrl).toBeNull();
+  });
+
+  it("defaults reportUrl to null for a malformed (non-string) reportUrl value", () => {
+    const product = parseRiskProduct({ ...rawProduct, reportUrl: 12345 });
+
+    expect(product?.reportUrl).toBeNull();
+  });
+});
+
+describe("buildBundledReportUrl", () => {
+  it("derives the deterministic per-version Atlas report path", () => {
+    expect(buildBundledReportUrl("us6000jllz", 5)).toBe(
+      `${ATLAS_BASE_URL}/events/us6000jllz/v5/report.pdf`,
+    );
   });
 });

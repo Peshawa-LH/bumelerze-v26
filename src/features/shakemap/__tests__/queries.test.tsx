@@ -1,5 +1,6 @@
 import { renderHook } from "@testing-library/react-native";
 
+import { ATLAS_BASE_URL } from "../config";
 import { useShakeMap } from "../queries";
 import type { AtlasBundleEntry } from "../types";
 
@@ -37,6 +38,23 @@ jest.mock("../atlas", () => ({
           },
         ],
       },
+      // Deliberately no `reportUrl` inside this raw blob — matches the
+      // real bundled atlas data shape (bundle_atlas_for_app.py never
+      // publishes one), so `useShakeMap` must derive it itself
+      // (`risk.ts`'s `buildBundledReportUrl`).
+      risk: {
+        summary: {
+          generated_at: "2026-09-01T00:00:00.000Z",
+          stage: "pga_lognormal",
+          time_of_day: "night",
+          n_draws: 200,
+          exposure: { buildings_in_grid: 100, countries: ["Iraq"] },
+          buildings_heavy: 10,
+          buildings_heavy_p05_p50_p95: [8, 10, 12],
+          exposed_population: 1000,
+        },
+        districts: { stage: "pga_lognormal", time_of_day: "night", n_draws: 200, districts: [] },
+      },
     },
   },
 }));
@@ -55,6 +73,15 @@ describe("useShakeMap", () => {
     expect(result.current.product).toEqual(mockedEntry());
     expect(result.current.contours?.levels).toHaveLength(1);
     expect(result.current.contours?.levels[0]?.value).toBe(6);
+  });
+
+  it("derives the bundled report URL (ATLAS_BASE_URL/events/<id>/v<version>/report.pdf) when the raw risk blob carries none", async () => {
+    const { result } = await renderHook(() => useShakeMap("us2000bmcg", true));
+
+    expect(result.current.risk).not.toBeNull();
+    expect(result.current.risk?.reportUrl).toBe(
+      `${ATLAS_BASE_URL}/events/us2000bmcg/v1/report.pdf`,
+    );
   });
 
   it("resolves to absent (not an error) for an event with no bundled atlas product", async () => {

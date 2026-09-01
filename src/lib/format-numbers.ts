@@ -21,6 +21,7 @@
  * point as '.') and then run it through `localizeDigits`/
  * `formatFixedLocalized` here, rather than reimplementing digit choice.
  */
+import type { TFunction } from "i18next";
 
 const EASTERN_ARABIC_INDIC_DIGITS = [
   "٠",
@@ -122,4 +123,56 @@ export function formatIntegerLocalized(value: number, locale: string): string {
   const grouped = Math.abs(rounded).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   const signed = rounded < 0 ? `-${grouped}` : grouped;
   return localizeDigits(signed, locale);
+}
+
+/**
+ * Rounds `value` to `figures` significant figures — the shared rounding
+ * rule `formatApproximate` below builds on. `0` is a special case (no
+ * well-defined "significant figure" of zero); every other value keeps its
+ * sign.
+ */
+function roundToSignificantFigures(value: number, figures: number): number {
+  if (value === 0) {
+    return 0;
+  }
+  const sign = value < 0 ? -1 : 1;
+  const magnitude = Math.floor(Math.log10(Math.abs(value)));
+  const factor = Math.pow(10, magnitude - figures + 1);
+  return sign * Math.round(Math.abs(value) / factor) * factor;
+}
+
+function formatDividedLocalized(divided: number, locale: string): string {
+  return Number.isInteger(divided)
+    ? formatIntegerLocalized(divided, locale)
+    : formatFixedLocalized(divided, 1, locale);
+}
+
+/**
+ * "About 17 million" / "About 380 thousand" / "About 920" — the risk
+ * dashboard's own "never raw digits, always a rounded, plain-language
+ * figure" convention (owner: "people understand visuals, not direct
+ * numbers; direct numbers are in the Atlas for engineers"). Rounds `value`
+ * to 2 significant figures (`roundToSignificantFigures`) and, for anything
+ * a thousand or larger, expresses it with a translated unit word
+ * (`eventDetail.risk.units.thousand`/`.million`) rather than a long run of
+ * digits — the CALLER is responsible for its own "About {{value}}"
+ * wrapper (this function returns just the figure + unit, e.g. `"17
+ * million"`, not the full sentence), since different call sites wrap it
+ * differently (a tile headline vs. a province-row caption vs. an
+ * accessibility label).
+ */
+export function formatApproximate(value: number, locale: string, t: TFunction): string {
+  const rounded = roundToSignificantFigures(value, 2);
+  const abs = Math.abs(rounded);
+  if (abs >= 1_000_000) {
+    return t("eventDetail.risk.units.million", {
+      count: formatDividedLocalized(rounded / 1_000_000, locale),
+    });
+  }
+  if (abs >= 1_000) {
+    return t("eventDetail.risk.units.thousand", {
+      count: formatDividedLocalized(rounded / 1_000, locale),
+    });
+  }
+  return formatIntegerLocalized(rounded, locale);
 }

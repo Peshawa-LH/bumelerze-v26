@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { ATLAS_BASE_URL } from "./config";
 import { damageValueToLevel } from "./damage-ramp";
 import { extractContourLevels } from "./contours";
 import type {
@@ -197,6 +198,12 @@ export interface RawRiskProductPayload {
   summary?: unknown;
   districts?: unknown;
   damageContours?: unknown;
+  /** Already-resolved absolute URL (or `undefined`/`null`) — unlike the
+   * three fields above, this is never raw JSON to parse further; the live
+   * transport resolves it (`resolveArtifactUrl`) before ever handing it
+   * here, and `buildBundledReportUrl` below derives the bundled-path
+   * equivalent. */
+  reportUrl?: unknown;
 }
 
 function asRiskPayload(raw: unknown): RawRiskProductPayload | null {
@@ -228,6 +235,26 @@ export function parseRiskProduct(raw: unknown): RiskProduct | null {
 
   const damageContours =
     payload.damageContours !== undefined ? parseDamageContours(payload.damageContours) : null;
+  const reportUrl =
+    typeof payload.reportUrl === "string" && payload.reportUrl.length > 0
+      ? payload.reportUrl
+      : null;
 
-  return { summary, districts, damageContours };
+  return { summary, districts, damageContours, reportUrl };
+}
+
+/**
+ * Derives the downloadable-report URL for a BUNDLED event (`queries.ts`'s
+ * `useShakeMap`) — the eleven curated Historical events publish no live
+ * `report` `shakemap_products` row of their own, but the engine publishes
+ * a `report.pdf` at this same deterministic path for every version of
+ * every event it computes (bundled or not), so the URL can be derived
+ * from the two values a bundled `AtlasBundleEntry` already carries
+ * (`eventId`, `version`) rather than needing a third bundled field. Only
+ * ever used as a FALLBACK when the parsed product's own `reportUrl` is
+ * `null` (`queries.ts`) — a bundled `risk` blob that DID carry a real
+ * `reportUrl` (a future bundling wave might start doing this) always wins.
+ */
+export function buildBundledReportUrl(eventId: string, version: number): string {
+  return `${ATLAS_BASE_URL}/events/${eventId}/v${version}/report.pdf`;
 }

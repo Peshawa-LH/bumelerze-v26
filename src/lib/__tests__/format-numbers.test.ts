@@ -1,4 +1,11 @@
-import { formatFixedLocalized, formatIntegerLocalized, localizeDigits, toAsciiDigits } from "../format-numbers";
+import i18n from "@/i18n";
+import {
+  formatApproximate,
+  formatFixedLocalized,
+  formatIntegerLocalized,
+  localizeDigits,
+  toAsciiDigits,
+} from "../format-numbers";
 
 describe("localizeDigits", () => {
   it("renders Eastern Arabic-Indic digits for ckb and ar", () => {
@@ -63,6 +70,32 @@ describe("formatIntegerLocalized", () => {
 
   it("handles negative values", () => {
     expect(formatIntegerLocalized(-1234, "en")).toBe("-1,234");
+  });
+});
+
+describe("formatApproximate", () => {
+  it("rounds to 2 significant figures with a translated \"million\" unit at/above 1,000,000", () => {
+    expect(formatApproximate(17_079_988, "en", i18n.t)).toBe("17 million");
+  });
+
+  it("rounds to 2 significant figures with a translated \"thousand\" unit at/above 1,000", () => {
+    expect(formatApproximate(379_500, "en", i18n.t)).toBe("380 thousand");
+  });
+
+  it("shows a plain localized integer below 1,000 (no unit word)", () => {
+    expect(formatApproximate(920, "en", i18n.t)).toBe("920");
+  });
+
+  it("keeps a fractional value when 2 significant figures don't land on a whole unit", () => {
+    expect(formatApproximate(1_250_000, "en", i18n.t)).toBe("1.3 million");
+  });
+
+  it("returns \"0\" for zero, never a unit word", () => {
+    expect(formatApproximate(0, "en", i18n.t)).toBe("0");
+  });
+
+  it("localizes digits for ckb/ar", () => {
+    expect(formatApproximate(920, "ckb", i18n.t)).toBe(localizeDigits("920", "ckb"));
   });
 });
 

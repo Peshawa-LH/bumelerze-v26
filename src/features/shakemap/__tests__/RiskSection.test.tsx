@@ -50,7 +50,7 @@ function fakeProduct(overrides: Partial<ResolvedShakeMapProduct> = {}): Resolved
   };
 }
 
-function realRisk(): RiskProduct {
+function realRisk(overrides: Partial<RiskProduct> = {}): RiskProduct {
   const risk = parseRiskProduct({
     summary: riskSummaryFixture,
     districts: districtsFixture,
@@ -59,7 +59,16 @@ function realRisk(): RiskProduct {
   if (!risk) {
     throw new Error("fixture risk product failed to parse — fixture is broken");
   }
-  return risk;
+  return { ...risk, ...overrides };
+}
+
+function mockReady(riskOverrides: Partial<RiskProduct> = {}, productOverrides: Partial<ResolvedShakeMapProduct> = {}) {
+  mockedUseResolvedShakeMap.mockReturnValue({
+    status: "ready",
+    product: fakeProduct(productOverrides),
+    contours: { levels: [], skippedCount: 0 },
+    risk: realRisk(riskOverrides),
+  });
 }
 
 describe("RiskSection", () => {
@@ -86,103 +95,163 @@ describe("RiskSection", () => {
     expect(toJSON()).toBeNull();
   });
 
-  it("renders the section title and headline with the real (trimmed) us6000jllz numbers", async () => {
-    mockedUseResolvedShakeMap.mockReturnValue({
-      status: "ready",
-      product: fakeProduct(),
-      contours: { levels: [], skippedCount: 0 },
-      risk: realRisk(),
-    });
+  it("renders the section title and the red damage-alert band (P50 158,965 is well over the 10,000 red threshold)", async () => {
+    mockReady();
 
     await render(<RiskSection event={EVENT} />);
 
     expect(screen.getByText(i18n.t("eventDetail.risk.sectionTitle"))).toBeTruthy();
-    expect(
-      screen.getByText(
-        i18n.t("eventDetail.risk.headline", { p50: "158,965", p05: "116,423", p95: "209,051" }),
-      ),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(i18n.t("eventDetail.risk.exposedPopulation", { count: "17,079,988" })),
-    ).toBeTruthy();
+    const tag = screen.getByTestId("risk-damage-band-tag");
+    expect(tag.props.accessibilityLabel).toContain(i18n.t("eventDetail.risk.band.red.title"));
+    expect(screen.getByText(i18n.t("eventDetail.risk.band.red.sentence"))).toBeTruthy();
   });
 
-  it("shows the first 8 districts by default with a 'Show all (10)' toggle, worst-first", async () => {
-    mockedUseResolvedShakeMap.mockReturnValue({
-      status: "ready",
-      product: fakeProduct(),
-      contours: { levels: [], skippedCount: 0 },
-      risk: realRisk(),
+  it("shows a lower band for a small event (P50 under 100)", async () => {
+    mockReady({
+      summary: {
+        ...realRisk().summary,
+        buildingsHeavy: 5,
+        buildingsHeavyP05P50P95: [2, 5, 9],
+      },
     });
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.getByText(i18n.t("eventDetail.risk.band.green.title"))).toBeTruthy();
+  });
+
+  it("renders the impact scale with an accessibility label describing the band and approximate figures", async () => {
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+
+    const scale = screen.getByTestId("risk-impact-scale");
+    expect(scale.props.accessibilityLabel).toContain(i18n.t("eventDetail.risk.band.red.title"));
+    expect(scale.props.accessibilityLabel).toMatch(/159 thousand|160 thousand/);
+  });
+
+  it("renders the two exposure tiles with rounded, unit-worded approximate figures (never raw digits)", async () => {
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+
+    // Real fixture: exposedPopulation 17,079,988 -> "About 17 million";
+    // exposure.buildingsInGrid 1,953,862 -> "About 2 million".
+    expect(
+      screen.getByText(i18n.t("eventDetail.risk.aboutValue", { value: "17 million" })),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(i18n.t("eventDetail.risk.aboutValue", { value: "2 million" })),
+    ).toBeTruthy();
+    expect(screen.queryByText(/17,079,988/)).toBeNull();
+    expect(screen.queryByText(/1,953,862/)).toBeNull();
+  });
+
+  it("renders the damage-grade stacked bar with three rounded-percent segments summing to 100", async () => {
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+
+    const bar = screen.getByTestId("risk-damage-grade-bar");
+    const segments = screen.getAllByTestId(/^risk-damage-grade-bar-/);
+    expect(segments.length).toBeGreaterThan(0);
+    expect(bar.props.accessibilityLabel).toBeTruthy();
+  });
+
+  it("shows the first 6 provinces by default with a 'Show all' toggle, worst-first", async () => {
+    mockReady();
 
     await render(<RiskSection event={EVENT} />);
 
     expect(screen.getByText("HATAY")).toBeTruthy();
     // "ELAZIĞ" is the fixture's 10th (last) district row — beyond the
-    // first-8 cutoff, must not render until "Show all" is tapped.
+    // first-6 cutoff for the redesigned dashboard.
     expect(screen.queryByText("ELAZIĞ")).toBeNull();
     expect(
       screen.getByText(i18n.t("eventDetail.risk.showAll", { count: "10" })),
     ).toBeTruthy();
   });
 
-  it("reveals every district and switches to 'Show fewer' when the toggle is tapped", async () => {
-    mockedUseResolvedShakeMap.mockReturnValue({
-      status: "ready",
-      product: fakeProduct(),
-      contours: { levels: [], skippedCount: 0 },
-      risk: realRisk(),
-    });
+  it("reveals every province and switches to 'Show fewer' when the toggle is tapped", async () => {
+    mockReady();
 
     await render(<RiskSection event={EVENT} />);
-    await fireEvent.press(screen.getByTestId("risk-districts-show-all"));
+    await fireEvent.press(screen.getByTestId("risk-provinces-show-all"));
 
     expect(screen.getByText(i18n.t("eventDetail.risk.showFewer"))).toBeTruthy();
-    // All 10 fixture districts now visible — the 10th one wasn't shown
-    // before the toggle.
-    expect(districtsFixture.districts).toHaveLength(10);
-    for (const district of districtsFixture.districts) {
-      expect(screen.getByText(district.adm1_name)).toBeTruthy();
-    }
+    expect(screen.getByText("ELAZIĞ")).toBeTruthy();
   });
 
-  it("shows the provenance block: fragility stage, draw count, time-of-day snapshot, review status, and the casualties-not-published sentence", async () => {
-    mockedUseResolvedShakeMap.mockReturnValue({
-      status: "ready",
-      product: fakeProduct({ reviewStatus: "automatic" }),
-      contours: { levels: [], skippedCount: 0 },
-      risk: realRisk(),
+  it("tags a province with low coverage as 'partly inside map'", async () => {
+    const risk = realRisk();
+    const lowCoverageDistrict = { ...risk.districts.districts[0]!, coverage: 0.2 };
+    mockReady({
+      districts: { ...risk.districts, districts: [lowCoverageDistrict, ...risk.districts.districts.slice(1)] },
     });
 
     await render(<RiskSection event={EVENT} />);
 
-    expect(
-      screen.getByText(i18n.t("eventDetail.risk.provenance.stage", { stage: "pga_lognormal" })),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(i18n.t("eventDetail.risk.provenance.draws", { count: "200" })),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(i18n.t("eventDetail.risk.provenance.timeOfDay.night")),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(i18n.t("eventDetail.shakemap.reviewStatus.automatic")),
-    ).toBeTruthy();
-    expect(screen.getByText(i18n.t("eventDetail.risk.casualtiesNote"))).toBeTruthy();
+    expect(screen.getByText(i18n.t("eventDetail.risk.partlyInsideMap"))).toBeTruthy();
   });
 
-  it("never renders any fatality/injury number — only the fixed 'not published' sentence", async () => {
-    mockedUseResolvedShakeMap.mockReturnValue({
-      status: "ready",
-      product: fakeProduct(),
-      contours: { levels: [], skippedCount: 0 },
-      risk: realRisk(),
-    });
+  it("shows the provenance chips: review status, time of day, simulation count, and fragility method (never the raw stage code)", async () => {
+    mockReady({}, { reviewStatus: "automatic" });
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.getByText(i18n.t("eventDetail.risk.chips.provisional"))).toBeTruthy();
+    expect(screen.getByText(i18n.t("eventDetail.risk.chips.timeOfDay.night"))).toBeTruthy();
+    expect(
+      screen.getByText(i18n.t("eventDetail.risk.chips.simulations", { count: "200" })),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        i18n.t("eventDetail.risk.chips.fragility", { method: i18n.t("eventDetail.risk.stageNames.pgaLognormal") }),
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText(/pga_lognormal/)).toBeNull();
+  });
+
+  it("shows the reviewed chip when the product has been scientist-reviewed", async () => {
+    mockReady({}, { reviewStatus: "reviewed" });
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.getByText(i18n.t("eventDetail.risk.chips.reviewed"))).toBeTruthy();
+  });
+
+  it("shows the casualties-not-published sentence and the Atlas pointer, with no link out", async () => {
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.getByText(i18n.t("eventDetail.risk.casualtiesNote"))).toBeTruthy();
+    expect(screen.getByText(i18n.t("eventDetail.risk.detailedFigures"))).toBeTruthy();
+  });
+
+  it("shows the download-report button when the risk product carries a reportUrl", async () => {
+    mockReady({ reportUrl: "https://example.test/events/us6000jllz/v5/report.pdf" });
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.getByTestId("risk-download-report")).toBeTruthy();
+    expect(screen.getByText(i18n.t("eventDetail.risk.downloadReport"))).toBeTruthy();
+  });
+
+  it("hides the download-report button when there is no reportUrl", async () => {
+    mockReady({ reportUrl: null });
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.queryByTestId("risk-download-report")).toBeNull();
+  });
+
+  it("never renders any fatality/injury number anywhere in the dashboard", async () => {
+    mockReady();
 
     await render(<RiskSection event={EVENT} />);
 
     expect(screen.queryByText(/fatalit/i)).toBeNull();
-    // The one and only "casualt*" mention is the fixed policy sentence.
     const casualtyMentions = screen.getAllByText(/casualt/i);
     expect(casualtyMentions).toHaveLength(1);
     expect(casualtyMentions[0]?.props.children).toEqual(
