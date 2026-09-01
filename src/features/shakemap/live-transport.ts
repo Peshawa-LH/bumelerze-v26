@@ -4,6 +4,7 @@ import type { Event } from "@/features/events";
 import { toEventRegistration, type EventRegistration } from "@/features/felt";
 import { getSupabaseClient } from "@/lib/supabase";
 
+import { ATLAS_BASE_URL } from "./config";
 import {
   LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS,
   computeDataUsedSummaryKey,
@@ -12,6 +13,7 @@ import {
   selectLatestLiveProductRow,
   type LiveShakeMapProduct,
 } from "./live-types";
+import type { RawRiskProductPayload } from "./risk";
 
 /**
  * Small transport seam (same shape/spirit as `feltmap/transport.ts`'s
@@ -117,6 +119,97 @@ async function fetchArtifactJson(url: string): Promise<unknown> {
   return response.json();
 }
 
+/** Resolves one `shakemap_products.storage_path` value to a fetchable URL
+ * — already-absolute (`http(s)://...`) paths pass through untouched;
+ * anything else is treated as a Supabase-Storage-relative path and
+ * resolved against `ATLAS_BASE_URL` (`config.ts`'s own doc comment: two
+ * eras of `storage_path` value coexist in the live table). */
+function resolveArtifactUrl(storagePath: string): string {
+  if (/^https?:\/\//i.test(storagePath)) {
+    return storagePath;
+  }
+  return `${ATLAS_BASE_URL}/${storagePath.replace(/^\/+/, "")}`;
+}
+
+/** `shakemap_products` rows this event's risk-chain query can carry —
+ * `product_type` itself is selected (unlike the contours query above,
+ * which only filters on it) since a single `.in(...)` query returns rows
+ * of THREE different types together, and the row shape otherwise gives no
+ * way to tell them apart. */
+const RISK_ROW_COLUMNS = ["product_type", "storage_path"] as const;
+
+/** The three risk-chain artifact types a version can publish alongside its
+ * `contours` row (migration 0027) — `risk_grid` (the opt-in per-cell
+ * raster) is deliberately excluded, this wave's `RiskSection` never needs
+ * it. */
+const RISK_PRODUCT_TYPES = ["risk_contours", "risk_districts", "risk_summary"] as const;
+
+/**
+ * Best-effort fetch of one event version's risk bundle — a SEPARATE query
+ * from the contours row above, pinned to the SAME `version` (D9's own
+ * versioning discipline: a risk product only makes sense read alongside
+ * the exact hazard version it was computed from). Wrapped end to end in a
+ * single try/catch: ANY failure here — the query erroring, a required
+ * artifact (summary or districts) missing, a malformed response, a slow/
+ * unreachable artifact URL — degrades to `null` ("no risk"), never to a
+ * thrown rejection of the whole `fetchLiveProduct` call. This is the
+ * documented, deliberate divergence from the contours path's "throw on a
+ * real failure" convention: the intensity map is the always-present
+ * feature this whole section exists to show, and a risk product is purely
+ * additive on top of it — it must never be able to take the intensity map
+ * down with it.
+ */
+async function fetchRiskBundle(
+  client: SupabaseClient,
+  internalEventId: string,
+  version: number,
+): Promise<RawRiskProductPayload | null> {
+  try {
+    const { data, error } = await client
+      .from("shakemap_products")
+      .select(RISK_ROW_COLUMNS.join(", "))
+      .eq("event_id", internalEventId)
+      .eq("producer", "bumelerze")
+      .eq("version", version)
+      .in("product_type", RISK_PRODUCT_TYPES);
+
+    if (error || !Array.isArray(data)) {
+      return null;
+    }
+
+    const storagePathByType = new Map<string, string>();
+    for (const row of data) {
+      if (row === null || typeof row !== "object") {
+        continue;
+      }
+      const record = row as Record<string, unknown>;
+      if (typeof record.product_type === "string" && typeof record.storage_path === "string") {
+        storagePathByType.set(record.product_type, record.storage_path);
+      }
+    }
+
+    const summaryPath = storagePathByType.get("risk_summary");
+    const districtsPath = storagePathByType.get("risk_districts");
+    if (!summaryPath || !districtsPath) {
+      // Both required for a coherent dashboard (RiskSection's headline +
+      // district table both need them) — a partial publish is treated the
+      // same as no risk product at all, never a half-populated section.
+      return null;
+    }
+    const damageContoursPath = storagePathByType.get("risk_contours");
+
+    const [summary, districts, damageContours] = await Promise.all([
+      fetchArtifactJson(resolveArtifactUrl(summaryPath)),
+      fetchArtifactJson(resolveArtifactUrl(districtsPath)),
+      damageContoursPath ? fetchArtifactJson(resolveArtifactUrl(damageContoursPath)) : null,
+    ]);
+
+    return { summary, districts, damageContours };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * The real `LiveShakeMapTransport`, wired the moment a Supabase project
  * exists (`isSupabaseConfigured()` gate lives in `live-queries.ts`, same
@@ -172,7 +265,11 @@ export const SupabaseLiveShakeMapTransport: LiveShakeMapTransport = {
     // failure" convention as `features/events/usgs.ts`'s `fetchJson`;
     // again, `useLiveShakeMap` is what turns this into a soft fallback
     // rather than a visible error.
-    const contours = await fetchArtifactJson(chosen.storage_path);
+    const contours = await fetchArtifactJson(resolveArtifactUrl(chosen.storage_path));
+
+    // Best-effort, same version — see `fetchRiskBundle`'s own doc comment
+    // for why this never throws/blocks the intensity map above.
+    const risk = await fetchRiskBundle(client, internalEventId, chosen.version);
 
     return {
       eventId: event.id,
@@ -183,6 +280,7 @@ export const SupabaseLiveShakeMapTransport: LiveShakeMapTransport = {
       generatedAt: chosen.created_at,
       contours,
       engineVersion: extractEngineVersion(chosen.data_used),
+      risk,
     };
   },
 };

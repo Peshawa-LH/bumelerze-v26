@@ -24,7 +24,7 @@ import { FeltReportPill, useOwnQueueItemForEvent } from "@/features/felt";
 import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
-import { ShakeMapSection } from "@/features/shakemap";
+import { RiskSection, ShakeMapSection } from "@/features/shakemap";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
@@ -472,6 +472,12 @@ function EventDetailHeader({
        * common no-shakemap-product event (no empty shell) and never blocks
        * this header, which is already fully rendered above from feed data. */}
       <ShakeMapSection event={event} />
+
+      {/* Damage-estimate dashboard (D46 risk chain, `risk-dashboard`
+       * wave), directly below ShakeMap — mounted unconditionally too;
+       * `RiskSection` itself renders nothing for the common no-risk-
+       * product event (only 3 events carry one at launch). */}
+      <RiskSection event={event} />
 
       {/* Felt map (spec-v1.md §4.5 "Felt map tab: our own CDI-aggregated
        * grid cells"), a sibling of ShakeMap directly below it — mounted

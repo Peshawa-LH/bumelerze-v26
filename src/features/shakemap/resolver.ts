@@ -1,4 +1,10 @@
-import type { AtlasBundleEntry, DataUsedSummaryKey, IntensityContourSet, ReviewStatus } from "./types";
+import type {
+  AtlasBundleEntry,
+  DataUsedSummaryKey,
+  IntensityContourSet,
+  ReviewStatus,
+  RiskProduct,
+} from "./types";
 import type { EngineVersionSummary, LiveShakeMapProduct } from "./live-types";
 
 export type ShakeMapProductSource = "live" | "bundled";
@@ -8,10 +14,15 @@ export type ShakeMapProductSource = "live" | "bundled";
  * raw payload, because each source's own hook (`useLiveShakeMap`/
  * `useShakeMap`) already did that parsing/validation before a candidate is
  * considered "ready" at all. `resolveShakeMapProduct` below therefore never
- * needs to know how either candidate was produced. */
+ * needs to know how either candidate was produced. `risk` is optional
+ * (`risk-dashboard` wave) — most events have no risk product at all, and
+ * older test fixtures/candidates built before this wave never set it,
+ * which is exactly the same "absent, not fabricated" case as an event with
+ * a real risk-less intensity product. */
 export interface ShakeMapCandidate<TProduct> {
   product: TProduct;
   contours: IntensityContourSet;
+  risk?: RiskProduct | null;
 }
 
 /** Provenance fields `ShakeMapSection` renders, normalized across both
@@ -35,6 +46,10 @@ export interface ResolvedShakeMapProduct {
 export interface ResolvedShakeMap {
   product: ResolvedShakeMapProduct;
   contours: IntensityContourSet;
+  /** `null` whenever the winning candidate carried none (the overwhelming
+   * majority of events) — never fabricated, same "absence over
+   * misattribution" rule (D21) the rest of this module already follows. */
+  risk: RiskProduct | null;
 }
 
 /**
@@ -76,6 +91,7 @@ export function resolveShakeMapProduct(
         engineVersion: live.product.engineVersion,
       },
       contours: live.contours,
+      risk: live.risk ?? null,
     };
   }
   if (bundled) {
@@ -89,6 +105,7 @@ export function resolveShakeMapProduct(
         engineVersion: null,
       },
       contours: bundled.contours,
+      risk: bundled.risk ?? null,
     };
   }
   return null;

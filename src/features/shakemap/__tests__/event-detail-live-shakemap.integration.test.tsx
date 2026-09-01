@@ -143,7 +143,8 @@ describe("ShakeMapSection — live product integration", () => {
     );
 
     // us2000bmcg IS one of the 11 bundled Historical events (real bundled
-    // version 3, atlas/data/us2000bmcg.json) — the live fixture above
+    // version 6, atlas/data/us2000bmcg.json, "risk-dashboard" wave's
+    // engine regeneration bumped it from 3 to 6) — the live fixture above
     // publishes version 9 for the SAME event id.
     await renderWithClient(eventWithId("us2000bmcg"));
 
@@ -152,10 +153,10 @@ describe("ShakeMapSection — live product integration", () => {
         i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "9" }),
       ),
     ).toBeTruthy();
-    // The bundled entry's own version (3) must not be what's shown.
+    // The bundled entry's own version (6) must not be what's shown.
     expect(
       screen.queryByText(
-        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "3" }),
+        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "6" }),
       ),
     ).toBeNull();
   });
@@ -169,11 +170,11 @@ describe("ShakeMapSection — live product integration", () => {
     await renderWithClient(eventWithId("us2000bmcg"));
 
     // Falls back to the bundled entry's own version (the real bundled
-    // Atlas entry for us2000bmcg is v3 — atlas/data/us2000bmcg.json),
+    // Atlas entry for us2000bmcg is v6 — atlas/data/us2000bmcg.json),
     // never blank.
     expect(
       await screen.findByText(
-        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "3" }),
+        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "6" }),
       ),
     ).toBeTruthy();
     // The bundled path never carries an engine-version line.

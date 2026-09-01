@@ -575,7 +575,37 @@
       "reviewStatus": {
         "automatic": "Automatic map, not yet reviewed by a scientist",
         "reviewed": "Reviewed by a scientist"
-      }
+      },
+      "layer": {
+        "intensity": "Intensity",
+        "damage": "Damage"
+      },
+      "legendCaptionDamage": "Expected damage grade (IMS-25)",
+      "mapA11yLabelDamage": "SHAKEmap damage map, expected damage grade {{level}}, near {{place}}"
+    },
+    "risk": {
+      "sectionTitle": "Damage estimate",
+      "headline": "About {{p50}} buildings heavily damaged ({{p05}} to {{p95}})",
+      "exposedPopulation": "About {{count}} people in the shaking area",
+      "rangeText": "{{p50}} ({{p05}} to {{p95}})",
+      "table": {
+        "district": "District",
+        "heavyBuildings": "Heavily damaged",
+        "population": "Population"
+      },
+      "showAll": "Show all ({{count}})",
+      "showFewer": "Show fewer",
+      "provenance": {
+        "stage": "Fragility stage: {{stage}}",
+        "draws": "{{count}} simulation draws",
+        "timeOfDay": {
+          "day": "Day-time occupancy snapshot",
+          "night": "Night-time occupancy snapshot",
+          "transit": "Transit-time occupancy snapshot"
+        }
+      },
+      "casualtiesNote": "Casualty estimates are computed but not published.",
+      "districtRowA11y": "{{district}}: about {{heavy}} buildings heavily damaged, {{p05}} to {{p95}}; population {{population}}"
     },
     "feltMap": {
       "sectionTitle": "Felt map",

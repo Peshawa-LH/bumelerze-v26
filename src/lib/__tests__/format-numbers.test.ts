@@ -1,4 +1,4 @@
-import { formatFixedLocalized, localizeDigits, toAsciiDigits } from "../format-numbers";
+import { formatFixedLocalized, formatIntegerLocalized, localizeDigits, toAsciiDigits } from "../format-numbers";
 
 describe("localizeDigits", () => {
   it("renders Eastern Arabic-Indic digits for ckb and ar", () => {
@@ -36,6 +36,33 @@ describe("formatFixedLocalized", () => {
 
   it("supports zero decimals", () => {
     expect(formatFixedLocalized(3, 0, "ckb")).toBe("٣");
+  });
+});
+
+describe("formatIntegerLocalized", () => {
+  it("groups thousands with a comma, then localizes digits", () => {
+    expect(formatIntegerLocalized(158965, "en")).toBe("158,965");
+    expect(formatIntegerLocalized(158965, "kmr")).toBe("158,965");
+    expect(formatIntegerLocalized(17079988, "en")).toBe("17,079,988");
+  });
+
+  it("uses a plain comma (not the locale's own numeral punctuation) in Sorani/Arabic too — same international-scientific-value convention as the decimal point", () => {
+    expect(formatIntegerLocalized(158965, "ckb")).toBe("١٥٨,٩٦٥");
+    expect(formatIntegerLocalized(158965, "ar")).toBe("١٥٨,٩٦٥");
+  });
+
+  it("does not add a comma below 1000", () => {
+    expect(formatIntegerLocalized(999, "en")).toBe("999");
+    expect(formatIntegerLocalized(0, "en")).toBe("0");
+  });
+
+  it("rounds to the nearest whole number first", () => {
+    expect(formatIntegerLocalized(1234.6, "en")).toBe("1,235");
+    expect(formatIntegerLocalized(1234.4, "en")).toBe("1,234");
+  });
+
+  it("handles negative values", () => {
+    expect(formatIntegerLocalized(-1234, "en")).toBe("-1,234");
   });
 });
 

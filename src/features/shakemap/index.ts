@@ -1,12 +1,28 @@
 export type {
   AtlasBundleEntry,
   ContourRing,
+  DamageContourLevel,
+  DamageContourSet,
   DataUsedSummaryKey,
   IntensityContourLevel,
   IntensityContourSet,
   ReviewStatus,
+  RiskDistrict,
+  RiskDistricts,
+  RiskExposure,
+  RiskProduct,
+  RiskSummary,
+  RiskTimeOfDay,
 } from "./types";
 export { parseIntensityContours } from "./contours";
+export { damageValueToLevel, DAMAGE_GRADE_LABELS } from "./damage-ramp";
+export {
+  parseDamageContours,
+  parseRiskDistricts,
+  parseRiskProduct,
+  parseRiskSummary,
+  type RawRiskProductPayload,
+} from "./risk";
 export { ATLAS_INDEX, ATLAS_EVENT_IDS } from "./atlas";
 export { mmiValueToLevel, INTENSITY_ROMAN_NUMERALS } from "./intensity-ramp";
 export {
@@ -26,8 +42,9 @@ export {
 export { useShakeMap, type UseShakeMapResult, type UseShakeMapStatus } from "./queries";
 export { BASEMAP_BBOX, BASEMAP_BORDERS, BASEMAP_COASTLINE, type BasemapLine } from "./basemap/basemap";
 export { clipLineToBbox } from "./projection";
-export { ShakeMapView, type ShakeMapViewProps } from "./components/ShakeMapView";
+export { ShakeMapView, type ShakeMapLayer, type ShakeMapViewProps } from "./components/ShakeMapView";
 export { ShakeMapSection, type ShakeMapSectionProps } from "./components/ShakeMapSection";
+export { RiskSection, type RiskSectionProps } from "./components/RiskSection";
 
 // "Closing the last gap" wave — live shakemap_products path.
 export {
