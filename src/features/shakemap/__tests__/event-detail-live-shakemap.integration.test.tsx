@@ -15,6 +15,9 @@ import type { ReactNode } from "react";
 import React from "react";
 
 import i18n from "@/i18n";
+import { ATLAS_INDEX } from "../atlas";
+
+const BUNDLED_HALABJA_VERSION = String(ATLAS_INDEX["us2000bmcg"]?.version ?? "");
 import type { Event } from "@/features/events";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import halabjaContours from "../__fixtures__/us2000bmcg/cont_mi.trimmed.json";
@@ -142,10 +145,10 @@ describe("ShakeMapSection — live product integration", () => {
       >,
     );
 
-    // us2000bmcg IS one of the 11 bundled Historical events (real bundled
-    // version 6, atlas/data/us2000bmcg.json, "risk-dashboard" wave's
-    // engine regeneration bumped it from 3 to 6) — the live fixture above
-    // publishes version 9 for the SAME event id.
+    // us2000bmcg IS one of the 11 bundled Historical events (its bundled
+    // version is whatever atlas/data/us2000bmcg.json carries, read below so
+    // an engine regeneration never breaks this test) — the live fixture
+    // above publishes version 9 for the SAME event id.
     await renderWithClient(eventWithId("us2000bmcg"));
 
     expect(
@@ -153,10 +156,10 @@ describe("ShakeMapSection — live product integration", () => {
         i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "9" }),
       ),
     ).toBeTruthy();
-    // The bundled entry's own version (6) must not be what's shown.
+    // The bundled entry's own version must not be what's shown.
     expect(
       screen.queryByText(
-        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "6" }),
+        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: BUNDLED_HALABJA_VERSION }),
       ),
     ).toBeNull();
   });
@@ -169,12 +172,11 @@ describe("ShakeMapSection — live product integration", () => {
 
     await renderWithClient(eventWithId("us2000bmcg"));
 
-    // Falls back to the bundled entry's own version (the real bundled
-    // Atlas entry for us2000bmcg is v6 — atlas/data/us2000bmcg.json),
-    // never blank.
+    // Falls back to the bundled entry's own version (read from the bundle
+    // itself), never blank.
     expect(
       await screen.findByText(
-        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: "6" }),
+        i18n.t("eventDetail.shakemap.citation", { producer: "Bumelerze", version: BUNDLED_HALABJA_VERSION }),
       ),
     ).toBeTruthy();
     // The bundled path never carries an engine-version line.
