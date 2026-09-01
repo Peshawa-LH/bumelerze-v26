@@ -585,27 +585,75 @@
     },
     "risk": {
       "sectionTitle": "تقدير الأضرار",
-      "headline": "نحو {{p50}} مبنى تضرر بشدة ({{p05}} إلى {{p95}})",
-      "exposedPopulation": "نحو {{count}} شخص في منطقة الاهتزاز",
-      "rangeText": "{{p50}} ({{p05}} إلى {{p95}})",
-      "table": {
-        "district": "المحافظة",
-        "heavyBuildings": "مبانٍ متضررة بشدة",
-        "population": "عدد السكان"
-      },
-      "showAll": "عرض الكل ({{count}})",
-      "showFewer": "عرض أقل",
-      "provenance": {
-        "stage": "مرحلة النمذجة: {{stage}}",
-        "draws": "{{count}} محاكاة مونت كارلو",
-        "timeOfDay": {
-          "day": "تقدير لوقت النهار",
-          "night": "تقدير لوقت الليل",
-          "transit": "تقدير لوقت التنقل"
+      "band": {
+        "green": {
+          "title": "طفيف",
+          "sentence": "يُتوقع ضرر قليل أو معدوم في المباني"
+        },
+        "yellow": {
+          "title": "متوسط",
+          "sentence": "تضررت بعض المباني، ومعظمها قابل للإصلاح"
+        },
+        "orange": {
+          "title": "شديد",
+          "sentence": "ضرر واسع النطاق، والعديد من المباني غير صالحة للاستخدام"
+        },
+        "red": {
+          "title": "واسع النطاق",
+          "sentence": "دمار واسع في جميع أنحاء المنطقة"
         }
       },
+      "impactScale": {
+        "title": "مبانٍ متضررة بشدة",
+        "a11yLabel": "فئة {{band}}. نحو {{p50}} مبنى تضرر بشدة، النطاق من {{p05}} إلى {{p95}}"
+      },
+      "units": {
+        "thousand": "{{count}} ألف",
+        "million": "{{count}} مليون"
+      },
+      "aboutValue": "نحو {{value}}",
+      "peopleTile": {
+        "title": "الأشخاص في منطقة الاهتزاز"
+      },
+      "buildingsTile": {
+        "title": "المباني في منطقة الاهتزاز"
+      },
+      "stackedBar": {
+        "title": "ضرر المباني في أنحاء المنطقة",
+        "little": "ضرر قليل أو معدوم",
+        "heavy": "ضرر شديد",
+        "severe": "ضرر شديد جدا أو انهيار",
+        "legendItem": "{{label}} ({{percent}}%)",
+        "a11ySegment": "{{label}}: {{percent}} بالمئة"
+      },
+      "provincesTitle": "أكثر المحافظات تضررا",
+      "provinceCaption": "نحو {{value}} مبنى",
+      "provinceRowA11y": "{{province}}، فئة {{band}}، نحو {{value}} مبنى تضرر بشدة",
+      "partlyInsideMap": "جزء منها داخل الخريطة",
+      "chips": {
+        "provisional": "أولي",
+        "reviewed": "تمت مراجعته",
+        "timeOfDay": {
+          "day": "وقت النهار",
+          "night": "وقت الليل",
+          "transit": "وقت التنقل"
+        },
+        "simulations": "{{count}} محاكاة",
+        "fragility": "الهشاشة: {{method}}"
+      },
+      "stageNames": {
+        "pgaLognormal": "منحنيات PGA",
+        "gl2004": "نموذج مقروسيزمي",
+        "ims25Rules": "قواعد IMS-25",
+        "unknown": "نموذج الهشاشة"
+      },
+      "detailedFigures": "الأرقام التفصيلية: أطلس بوملێرزە",
+      "showAll": "عرض الكل ({{count}})",
+      "showFewer": "عرض أقل",
       "casualtiesNote": "تُحسب تقديرات الضحايا لكنها لا تُنشر.",
-      "districtRowA11y": "{{district}}: نحو {{heavy}} مبنى تضرر بشدة، {{p05}} إلى {{p95}}؛ عدد السكان {{population}}"
+      "downloadReport": "تنزيل التقرير (PDF)",
+      "downloadReportHint": "يفتح تقرير PDF من أطلس بوملێرزە لهذا الحدث",
+      "downloadReportOffline": "تعذر فتح التقرير. تحقق من اتصالك وحاول مرة أخرى."
     },
     "feltMap": {
       "sectionTitle": "خريطة الشعور بالزلزال",

@@ -133,7 +133,76 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
       summary: { url: "https://example.test/v5/risk_summary.json" },
       districts: { url: "https://example.test/v5/districts.json" },
       damageContours: { url: "https://example.test/v5/cont_damage.json" },
+      reportUrl: null,
     });
+  });
+
+  it("carries the report row's storage_path through as reportUrl (a pointer, never fetched/JSON-parsed)", async () => {
+    mockedGetSupabaseClient.mockReturnValue(
+      client(
+        { data: [contoursRow()], error: null },
+        {
+          data: [
+            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
+            { product_type: "report", storage_path: "https://example.test/v5/report.pdf" },
+          ],
+          error: null,
+        },
+      ) as unknown as ReturnType<typeof getSupabaseClient>,
+    );
+
+    const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
+
+    expect(product?.risk).toEqual({
+      summary: { url: "https://example.test/v5/risk_summary.json" },
+      districts: { url: "https://example.test/v5/districts.json" },
+      damageContours: null,
+      reportUrl: "https://example.test/v5/report.pdf",
+    });
+    // Never fetched as JSON — a PDF response body would fail `.json()`.
+    expect(fetchedUrls).not.toContain("https://example.test/v5/report.pdf");
+  });
+
+  it("resolves a relative report storage_path against ATLAS_BASE_URL too", async () => {
+    mockedGetSupabaseClient.mockReturnValue(
+      client(
+        { data: [contoursRow()], error: null },
+        {
+          data: [
+            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
+            { product_type: "report", storage_path: "events/us2000bmcg/v5/report.pdf" },
+          ],
+          error: null,
+        },
+      ) as unknown as ReturnType<typeof getSupabaseClient>,
+    );
+
+    const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
+
+    expect((product?.risk as { reportUrl?: string | null } | undefined)?.reportUrl).toBe(
+      `${ATLAS_BASE_URL}/events/us2000bmcg/v5/report.pdf`,
+    );
+  });
+
+  it("defaults reportUrl to null when no report row was published for this version", async () => {
+    mockedGetSupabaseClient.mockReturnValue(
+      client(
+        { data: [contoursRow()], error: null },
+        {
+          data: [
+            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
+          ],
+          error: null,
+        },
+      ) as unknown as ReturnType<typeof getSupabaseClient>,
+    );
+
+    const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
+
+    expect((product?.risk as { reportUrl?: string | null } | undefined)?.reportUrl).toBeNull();
   });
 
   it("resolves a relative risk storage_path against ATLAS_BASE_URL before fetching", async () => {

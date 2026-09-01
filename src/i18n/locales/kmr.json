@@ -585,27 +585,75 @@
     },
     "risk": {
       "sectionTitle": "Texmîna zererê",
-      "headline": "Nêzîkî {{p50}} avahî bi giranî zirar dîtine ({{p05}} heta {{p95}})",
-      "exposedPopulation": "Nêzîkî {{count}} kes li herêma erdhejê",
-      "rangeText": "{{p50}} ({{p05}} heta {{p95}})",
-      "table": {
-        "district": "Herêm",
-        "heavyBuildings": "Avahiyên bi giranî zererdîtî",
-        "population": "Nifûs"
-      },
-      "showAll": "Hemûyan nîşan bide ({{count}})",
-      "showFewer": "Kêmtir nîşan bide",
-      "provenance": {
-        "stage": "Qonaxa modêlkirinê: {{stage}}",
-        "draws": "{{count}} ceribandinên Monte Carlo",
-        "timeOfDay": {
-          "day": "Texmîna li gorî demjimêrên rojê",
-          "night": "Texmîna li gorî demjimêrên şevê",
-          "transit": "Texmîna li gorî demjimêrên rêwîtiyê"
+      "band": {
+        "green": {
+          "title": "Kêm",
+          "sentence": "Zirara avahiyan kêm an tune tê pêşbînîkirin"
+        },
+        "yellow": {
+          "title": "Navîn",
+          "sentence": "Hin avahî zirar dîtine, piranî dikarin werin çêkirin"
+        },
+        "orange": {
+          "title": "Giran",
+          "sentence": "Zirar berfireh e, gelek avahî nayên bikaranîn"
+        },
+        "red": {
+          "title": "Pir berfireh",
+          "sentence": "Wêrankirineke berfireh li seranserê herêmê"
         }
       },
+      "impactScale": {
+        "title": "Avahiyên bi giranî zirardîtî",
+        "a11yLabel": "Asta {{band}}. Nêzîkî {{p50}} avahî bi giranî zirar dîtine, navber ji {{p05}} heta {{p95}}"
+      },
+      "units": {
+        "thousand": "{{count}} hezar",
+        "million": "{{count}} mîlyon"
+      },
+      "aboutValue": "Nêzîkî {{value}}",
+      "peopleTile": {
+        "title": "Kes li herêma erdhejê"
+      },
+      "buildingsTile": {
+        "title": "Avahî li herêma erdhejê"
+      },
+      "stackedBar": {
+        "title": "Zirara avahiyan li seranserê herêmê",
+        "little": "Zirar kêm an tune",
+        "heavy": "Zirara giran",
+        "severe": "Zirara pir giran an rûxîn",
+        "legendItem": "{{label}} (%{{percent}})",
+        "a11ySegment": "{{label}}: sedî {{percent}}"
+      },
+      "provincesTitle": "Herêmên herî zirardîtî",
+      "provinceCaption": "Nêzîkî {{value}} avahî",
+      "provinceRowA11y": "{{province}}, asta {{band}}, nêzîkî {{value}} avahî bi giranî zirar dîtine",
+      "partlyInsideMap": "Beşek di nexşeyê de ye",
+      "chips": {
+        "provisional": "Destpêkî",
+        "reviewed": "Hatiye kontrolkirin",
+        "timeOfDay": {
+          "day": "Dema rojê",
+          "night": "Dema şevê",
+          "transit": "Dema rêwîtiyê"
+        },
+        "simulations": "{{count}} ceribandin",
+        "fragility": "Fragîlîte: {{method}}"
+      },
+      "stageNames": {
+        "pgaLognormal": "Kelûpelên PGA",
+        "gl2004": "Modela makrosîzmîk",
+        "ims25Rules": "Rêzikên IMS-25",
+        "unknown": "Modela fragîlîteyê"
+      },
+      "detailedFigures": "Hejmarên berfireh: Atlasa Bumelerze",
+      "showAll": "Hemûyan nîşan bide ({{count}})",
+      "showFewer": "Kêmtir nîşan bide",
       "casualtiesNote": "Texmînên windahiyên mirovî têne hesibandin lê belav nabin.",
-      "districtRowA11y": "{{district}}: nêzîkî {{heavy}} avahî bi giranî zirar dîtine, {{p05}} heta {{p95}}; nifûs {{population}}"
+      "downloadReport": "Rapora dakêşe (PDF)",
+      "downloadReportHint": "Rapora PDF ya Atlasa Bumelerze ji bo vê bûyerê vedike",
+      "downloadReportOffline": "Rapor venebû. Girêdana xwe kontrol bike û dîsa biceribîne."
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",

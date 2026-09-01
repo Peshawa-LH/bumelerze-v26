@@ -138,11 +138,13 @@ function resolveArtifactUrl(storagePath: string): string {
  * way to tell them apart. */
 const RISK_ROW_COLUMNS = ["product_type", "storage_path"] as const;
 
-/** The three risk-chain artifact types a version can publish alongside its
- * `contours` row (migration 0027) — `risk_grid` (the opt-in per-cell
- * raster) is deliberately excluded, this wave's `RiskSection` never needs
- * it. */
-const RISK_PRODUCT_TYPES = ["risk_contours", "risk_districts", "risk_summary"] as const;
+/** The risk-chain artifact types a version can publish alongside its
+ * `contours` row (migrations 0027/0028) — `risk_grid` (the opt-in
+ * per-cell raster) is deliberately excluded, this wave's `RiskSection`
+ * never needs it. `report` (the downloadable PDF, migration 0028) is a
+ * pointer only — its `storage_path` IS the artifact (a PDF URL), never
+ * fetched-and-JSON-parsed the way the other three are. */
+const RISK_PRODUCT_TYPES = ["risk_contours", "risk_districts", "risk_summary", "report"] as const;
 
 /**
  * Best-effort fetch of one event version's risk bundle — a SEPARATE query
@@ -197,14 +199,17 @@ async function fetchRiskBundle(
       return null;
     }
     const damageContoursPath = storagePathByType.get("risk_contours");
+    const reportPath = storagePathByType.get("report");
 
     const [summary, districts, damageContours] = await Promise.all([
       fetchArtifactJson(resolveArtifactUrl(summaryPath)),
       fetchArtifactJson(resolveArtifactUrl(districtsPath)),
       damageContoursPath ? fetchArtifactJson(resolveArtifactUrl(damageContoursPath)) : null,
     ]);
+    // Not fetched — see `RISK_PRODUCT_TYPES`'s own doc comment above.
+    const reportUrl = reportPath ? resolveArtifactUrl(reportPath) : null;
 
-    return { summary, districts, damageContours };
+    return { summary, districts, damageContours, reportUrl };
   } catch {
     return null;
   }

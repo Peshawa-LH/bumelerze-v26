@@ -200,4 +200,12 @@ export interface RiskProduct {
   summary: RiskSummary;
   districts: RiskDistricts;
   damageContours: DamageContourSet | null;
+  /** Absolute URL of this version's downloadable `report.pdf`
+   * (`RiskProvenanceChips.tsx`'s "Download report" button, D46 follow-up).
+   * `null` hides the button entirely — for a LIVE product this means the
+   * `report` `shakemap_products` row genuinely wasn't published yet; for a
+   * bundled product it is never null (`risk.ts`'s `buildBundledReportUrl`
+   * derives it deterministically from the event id + version, the same
+   * two values every bundled entry already carries). */
+  reportUrl: string | null;
 }

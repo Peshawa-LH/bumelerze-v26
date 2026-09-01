@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { ATLAS_INDEX } from "./atlas";
 import { parseIntensityContours } from "./contours";
-import { parseRiskProduct } from "./risk";
+import { buildBundledReportUrl, parseRiskProduct } from "./risk";
 import type { AtlasBundleEntry, IntensityContourSet, RiskProduct } from "./types";
 
 /**
@@ -57,7 +57,15 @@ export function useShakeMap(eventId: string, enabled: boolean): UseShakeMapResul
       return ABSENT;
     }
     const contours = parseIntensityContours(entry.contours);
-    const risk = entry.risk !== undefined ? parseRiskProduct(entry.risk) : null;
+    const parsedRisk = entry.risk !== undefined ? parseRiskProduct(entry.risk) : null;
+    // Bundled `risk` blobs never carry a real `reportUrl` of their own
+    // (`risk.ts`'s `buildBundledReportUrl` doc comment) — derive the
+    // deterministic Atlas path from the same eventId/version every
+    // bundled entry already carries, only as a fallback (a future
+    // bundling wave that DOES start including a real one would win).
+    const risk: RiskProduct | null = parsedRisk
+      ? { ...parsedRisk, reportUrl: parsedRisk.reportUrl ?? buildBundledReportUrl(entry.eventId, entry.version) }
+      : null;
     return { status: "ready", product: entry, contours, risk };
   }, [eventId, enabled]);
 }
