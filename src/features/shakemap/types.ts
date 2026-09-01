@@ -41,6 +41,16 @@ export interface AtlasBundleEntry {
    * render time, same schema/validation path a future live product would
    * go through (never trusted blindly just because it's bundled). */
   contours: unknown;
+  /** Optional risk-chain bundle (D46 damage/exposure products,
+   * `risk-dashboard` wave): `{ summary, districts, damageContours? }`, each
+   * raw and byte-identical to the engine's own `risk_summary.json`/
+   * `districts.json`/`cont_damage.json` — parsed via `risk.ts`'s
+   * `parseRiskProduct` at render/resolve time, same "never trust blindly"
+   * discipline `contours` above already follows. Present only for events
+   * that actually have a real risk product computed (three at launch:
+   * us6000jllz, us6000jlqa, us2000bmcg); absent (`undefined`) for every
+   * other bundled event — never a fabricated empty shell. */
+  risk?: unknown;
 }
 
 /** One MMI contour ring: a sequence of `[lon, lat]` points (GeoJSON
@@ -74,4 +84,120 @@ export interface IntensityContourSet {
    * schema validation and were skipped — tolerant-parsing bookkeeping,
    * same convention as `events/usgs.ts`'s `skippedCount`. */
   skippedCount: number;
+}
+
+/**
+ * Risk-chain product types (D46, `risk-dashboard` wave) — parsed by
+ * `risk.ts`'s tolerant parsers, read by `RiskSection`. Field names are
+ * camelCased app-side; the underlying JSON (`risk_summary.json`,
+ * `districts.json`, `cont_damage.json`) is snake_case, same convention
+ * `live-types.ts`'s `EngineVersionSummary` already follows for its own
+ * source JSON. Deliberately narrower than the full source products —
+ * only the fields `RiskSection`/`ShakeMapView`'s damage layer actually
+ * read; casualty/fatality fields are never modelled here at all (D45:
+ * "casualty estimates are computed but not published" — nothing to parse
+ * even if a future product version added one, since this type has no slot
+ * for it). */
+
+export type RiskTimeOfDay = "day" | "night" | "transit";
+
+/** `risk_summary.json`'s `exposure` block, narrowed to what the
+ * provenance block/headline actually cite. */
+export interface RiskExposure {
+  buildingsInGrid: number;
+  countries: readonly string[];
+}
+
+/** Parsed `risk_summary.json` (national/event-wide totals + the run's own
+ * settings) — one per event version, alongside `RiskDistricts` and an
+ * optional `DamageContourSet`. */
+export interface RiskSummary {
+  generatedAt: string;
+  /** Fragility/hazard-conditioning stage id (e.g. `"pga_lognormal"`) —
+   * shown verbatim in the provenance block, not translated (an internal
+   * pipeline-stage identifier, same treatment `dataUsedSummaryKey` gives
+   * OTHER provenance strings that ARE translated — this one is closer to a
+   * version tag than a sentence). */
+  stage: string;
+  timeOfDay: RiskTimeOfDay;
+  /** Monte Carlo draw count backing every P05/P50/P95 range in this
+   * product (`mc_settings.n_samples_config` upstream). */
+  nDraws: number;
+  /** `hazard_version.conditioning`'s human-readable method string, e.g.
+   * "mvn (Engler et al. 2022) on stations+dyfi..." — `null` when the
+   * source product doesn't carry it (older/differently-shaped runs),
+   * mirroring `EngineVersionSummary`'s own "never fabricated" rule. */
+  hazardVersionConditioning: string | null;
+  exposure: RiskExposure;
+  /** Buildings at DG3+ (heavily damaged or worse), point estimate — the
+   * headline number. */
+  buildingsHeavy: number;
+  /** [P05, P50, P95] of `buildingsHeavy` across the Monte Carlo draws. */
+  buildingsHeavyP05P50P95: readonly [number, number, number];
+  exposedPopulation: number;
+  /** Always `false` today (D45's own publish gate) — read only so a
+   * provenance line can say so; never gates displaying any casualty
+   * number, because none is ever parsed in the first place. */
+  casualtiesPublished: boolean;
+}
+
+/** One `districts.json` row (one ADM1/province). */
+export interface RiskDistrict {
+  adm1Id: string;
+  adm1Name: string;
+  country: string;
+  /** Fraction (0..1) of this district's building stock actually covered
+   * by the exposure grid — a low value means the headline number for this
+   * district is a partial-coverage undercount, not a confident total. */
+  coverage: number;
+  buildingsInGrid: number;
+  buildingsHeavy: number;
+  buildingsDg4Plus: number;
+  buildingsHeavyP05P50P95: readonly [number, number, number];
+  buildingsDg4PlusP05P50P95: readonly [number, number, number];
+  exposedPopulation: number;
+}
+
+/** Parsed `districts.json` — already producer-sorted worst-first;
+ * `parseRiskDistricts` preserves that order rather than re-sorting, since
+ * `RiskSection`'s "first 8, then Show all" behavior depends on it. */
+export interface RiskDistricts {
+  stage: string;
+  timeOfDay: RiskTimeOfDay;
+  nDraws: number;
+  districts: RiskDistrict[];
+  /** Tolerant-parsing bookkeeping, same convention as
+   * `IntensityContourSet.skippedCount` — a malformed district row is
+   * dropped and counted, never a reason to discard every other row. */
+  skippedCount: number;
+}
+
+/** One expected-damage-grade contour ring level (DG ramp index 1..5) —
+ * the damage-chain sibling of `IntensityContourLevel`. */
+export interface DamageContourLevel {
+  value: number;
+  /** `value` rounded and clamped to the DG ramp's 1..5 index range
+   * (`damage-ramp.ts`) — the index into `theme.colors.damageGrade`. */
+  level: number;
+  rings: ContourRing[];
+}
+
+/** Parsed `cont_damage.json` — same shape/ordering contract as
+ * `IntensityContourSet` (ascending by `value`, so a renderer painting in
+ * order gets correct z-ordering for free). */
+export interface DamageContourSet {
+  levels: DamageContourLevel[];
+  skippedCount: number;
+}
+
+/** The full risk product for one event version — `summary` and
+ * `districts` are both required (a risk product with only one of the two
+ * is treated as absent, `risk.ts`'s `parseRiskProduct`); `damageContours`
+ * is optional since `risk_contours` is the one risk artifact `ShakeMapView`
+ * can still work without (the intensity layer stays fully usable, just no
+ * "Damage" toggle option). */
+export interface RiskProduct {
+  summary: RiskSummary;
+  districts: RiskDistricts;
+  damageContours: DamageContourSet | null;
 }

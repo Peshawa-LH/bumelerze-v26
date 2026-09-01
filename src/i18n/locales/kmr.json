@@ -575,7 +575,37 @@
       "reviewStatus": {
         "automatic": "Nexşeya otomatîk, hê ji aliyê zanyarekî ve nehatiye kontrolkirin",
         "reviewed": "Ji aliyê zanyarekî ve hatiye kontrolkirin"
-      }
+      },
+      "layer": {
+        "intensity": "Tundî",
+        "damage": "Zerar"
+      },
+      "legendCaptionDamage": "Asta zerara pêşbînîkirî (IMS-25)",
+      "mapA11yLabelDamage": "Nexşeya zererê, asta zerarê ya herî zêde {{level}}, nêzî {{place}}"
+    },
+    "risk": {
+      "sectionTitle": "Texmîna zererê",
+      "headline": "Nêzîkî {{p50}} avahî bi giranî zirar dîtine ({{p05}} heta {{p95}})",
+      "exposedPopulation": "Nêzîkî {{count}} kes li herêma erdhejê",
+      "rangeText": "{{p50}} ({{p05}} heta {{p95}})",
+      "table": {
+        "district": "Herêm",
+        "heavyBuildings": "Avahiyên bi giranî zererdîtî",
+        "population": "Nifûs"
+      },
+      "showAll": "Hemûyan nîşan bide ({{count}})",
+      "showFewer": "Kêmtir nîşan bide",
+      "provenance": {
+        "stage": "Qonaxa modêlkirinê: {{stage}}",
+        "draws": "{{count}} ceribandinên Monte Carlo",
+        "timeOfDay": {
+          "day": "Texmîna li gorî demjimêrên rojê",
+          "night": "Texmîna li gorî demjimêrên şevê",
+          "transit": "Texmîna li gorî demjimêrên rêwîtiyê"
+        }
+      },
+      "casualtiesNote": "Texmînên windahiyên mirovî têne hesibandin lê belav nabin.",
+      "districtRowA11y": "{{district}}: nêzîkî {{heavy}} avahî bi giranî zirar dîtine, {{p05}} heta {{p95}}; nifûs {{population}}"
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",

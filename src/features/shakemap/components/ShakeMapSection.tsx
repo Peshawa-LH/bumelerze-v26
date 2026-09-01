@@ -111,6 +111,7 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
         locale={i18n.language}
         t={t}
         placeText={placeText}
+        damageContours={shakeMap.risk?.damageContours ?? null}
       />
       <View style={{ gap: spacing[1] }}>
         <Text style={bodyStyle}>

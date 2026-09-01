@@ -2,7 +2,8 @@ import { useMemo } from "react";
 
 import { ATLAS_INDEX } from "./atlas";
 import { parseIntensityContours } from "./contours";
-import type { AtlasBundleEntry, IntensityContourSet } from "./types";
+import { parseRiskProduct } from "./risk";
+import type { AtlasBundleEntry, IntensityContourSet, RiskProduct } from "./types";
 
 /**
  * Bundled-only shakemap lookup (D21, `docs/decisions.md`: "Displayed
@@ -33,9 +34,12 @@ export interface UseShakeMapResult {
   status: UseShakeMapStatus;
   product: AtlasBundleEntry | null;
   contours: IntensityContourSet | null;
+  /** `null` for the common case (no bundled risk product for this event) —
+   * see `AtlasBundleEntry.risk`'s own doc comment. */
+  risk: RiskProduct | null;
 }
 
-const ABSENT: UseShakeMapResult = { status: "absent", product: null, contours: null };
+const ABSENT: UseShakeMapResult = { status: "absent", product: null, contours: null, risk: null };
 
 /**
  * `enabled` is kept for call-site compatibility (`ShakeMapSection` mounts
@@ -53,6 +57,7 @@ export function useShakeMap(eventId: string, enabled: boolean): UseShakeMapResul
       return ABSENT;
     }
     const contours = parseIntensityContours(entry.contours);
-    return { status: "ready", product: entry, contours };
+    const risk = entry.risk !== undefined ? parseRiskProduct(entry.risk) : null;
+    return { status: "ready", product: entry, contours, risk };
   }, [eventId, enabled]);
 }

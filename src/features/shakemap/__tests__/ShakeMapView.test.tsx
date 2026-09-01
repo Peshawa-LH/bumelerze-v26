@@ -2,8 +2,10 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react-nativ
 
 import i18n from "@/i18n";
 import { SHAKEMAP_CITY_DOT_RADIUS, SHAKEMAP_LABEL_FONT_SIZE } from "../config";
+import damageContoursFixture from "../__fixtures__/us6000jllz/cont_damage.trimmed.json";
 import halabjaContours from "../__fixtures__/us2000bmcg/cont_mi.trimmed.json";
 import { parseIntensityContours } from "../contours";
+import { parseDamageContours } from "../risk";
 import { ShakeMapView } from "../components/ShakeMapView";
 
 // Real Halabja epicenter (fixture README) — inside the fixture contours'
@@ -224,5 +226,140 @@ describe("ShakeMapView", () => {
       // Regression guard against the pre-fix hardcoded fontSize (9).
       expect(label.props.font.fontSize).toBeLessThan(9);
     }
+  });
+
+  it("renders the epicenter as a 5-point star Polygon, not a circle", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
+      />,
+    );
+    await measureContainer();
+
+    const star = screen.getByTestId("shakemap-epicenter");
+    // A star Polygon compiles to a `d` attribute with real path data (same
+    // "compiled output is the real proof" convention the basemap-line
+    // tests above already use) and 10 alternating outer/inner vertices —
+    // a circle would never compile to a `d` string at all.
+    expect(typeof star.props.d).toBe("string");
+    expect(star.props.d.length).toBeGreaterThan(0);
+  });
+
+  it("shows no layer toggle when no damage contours are supplied (most events)", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
+      />,
+    );
+    await measureContainer();
+
+    expect(screen.queryByTestId("shakemap-layer-toggle-intensity")).toBeNull();
+    expect(screen.queryByTestId("shakemap-layer-toggle-damage")).toBeNull();
+  });
+
+  it("shows the Intensity/Damage toggle and defaults to Intensity when a real damage product exists", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    const damageContours = parseDamageContours(damageContoursFixture);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
+        damageContours={damageContours}
+      />,
+    );
+    await measureContainer();
+
+    const intensityOption = screen.getByTestId("shakemap-layer-toggle-intensity");
+    const damageOption = screen.getByTestId("shakemap-layer-toggle-damage");
+    expect(intensityOption.props.accessibilityState.selected).toBe(true);
+    expect(damageOption.props.accessibilityState.selected).toBe(false);
+    // Default Intensity layer: the ordinary MMI contour polygons render,
+    // no DG damage polygons yet.
+    expect(screen.getAllByTestId(CONTOUR_TEST_ID_PATTERN).length).toBeGreaterThan(0);
+    expect(screen.queryAllByTestId(/^shakemap-damage-contour-/)).toHaveLength(0);
+    expect(screen.getByText(i18n.t("eventDetail.shakemap.legendCaption"))).toBeTruthy();
+  });
+
+  it("switches to the Damage layer on tap: DG contours render, MMI contours stop, legend switches to DG labels", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    const damageContours = parseDamageContours(damageContoursFixture);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
+        damageContours={damageContours}
+      />,
+    );
+    await measureContainer();
+
+    await fireEvent.press(screen.getByTestId("shakemap-layer-toggle-damage"));
+
+    expect(screen.getByTestId("shakemap-layer-toggle-damage").props.accessibilityState.selected).toBe(
+      true,
+    );
+    const totalDamageRings =
+      damageContours?.levels.reduce((sum, level) => sum + level.rings.length, 0) ?? 0;
+    expect(totalDamageRings).toBeGreaterThan(0);
+    expect(screen.getAllByTestId(/^shakemap-damage-contour-/)).toHaveLength(totalDamageRings);
+    expect(screen.queryAllByTestId(CONTOUR_TEST_ID_PATTERN)).toHaveLength(0);
+    expect(screen.getByText(i18n.t("eventDetail.shakemap.legendCaptionDamage"))).toBeTruthy();
+    expect(screen.getByText("DG1", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByText("DG5", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.queryByText("I", { includeHiddenElements: true })).toBeNull();
+  });
+
+  it("updates the map accessibilityLabel to say Damage when the Damage layer is active", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    const damageContours = parseDamageContours(damageContoursFixture);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
+        damageContours={damageContours}
+      />,
+    );
+    await measureContainer();
+
+    await fireEvent.press(screen.getByTestId("shakemap-layer-toggle-damage"));
+
+    const map = screen.getByTestId("shakemap-map-container");
+    expect(map.props.accessibilityLabel).toContain("12 km SE of Halabja, Kurdistan Region");
+    expect(map.props.accessibilityLabel).toMatch(/damage/i);
+  });
+
+  it("ignores an empty (levels: []) damage contour set — no toggle appears", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+        placeText="12 km SE of Halabja, Kurdistan Region"
+        damageContours={{ levels: [], skippedCount: 0 }}
+      />,
+    );
+    await measureContainer();
+
+    expect(screen.queryByTestId("shakemap-layer-toggle-damage")).toBeNull();
   });
 });

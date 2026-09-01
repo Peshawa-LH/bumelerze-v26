@@ -575,7 +575,37 @@
       "reviewStatus": {
         "automatic": "خريطة تلقائية، لم تُراجَع من قِبل عالم بعد",
         "reviewed": "روجعت من قِبل عالم"
-      }
+      },
+      "layer": {
+        "intensity": "الشدة",
+        "damage": "الضرر"
+      },
+      "legendCaptionDamage": "درجة الضرر المتوقعة (IMS-25)",
+      "mapA11yLabelDamage": "خريطة الضرر، أقصى درجة ضرر {{level}}، بالقرب من {{place}}"
+    },
+    "risk": {
+      "sectionTitle": "تقدير الأضرار",
+      "headline": "نحو {{p50}} مبنى تضرر بشدة ({{p05}} إلى {{p95}})",
+      "exposedPopulation": "نحو {{count}} شخص في منطقة الاهتزاز",
+      "rangeText": "{{p50}} ({{p05}} إلى {{p95}})",
+      "table": {
+        "district": "المحافظة",
+        "heavyBuildings": "مبانٍ متضررة بشدة",
+        "population": "عدد السكان"
+      },
+      "showAll": "عرض الكل ({{count}})",
+      "showFewer": "عرض أقل",
+      "provenance": {
+        "stage": "مرحلة النمذجة: {{stage}}",
+        "draws": "{{count}} محاكاة مونت كارلو",
+        "timeOfDay": {
+          "day": "تقدير لوقت النهار",
+          "night": "تقدير لوقت الليل",
+          "transit": "تقدير لوقت التنقل"
+        }
+      },
+      "casualtiesNote": "تُحسب تقديرات الضحايا لكنها لا تُنشر.",
+      "districtRowA11y": "{{district}}: نحو {{heavy}} مبنى تضرر بشدة، {{p05}} إلى {{p95}}؛ عدد السكان {{population}}"
     },
     "feltMap": {
       "sectionTitle": "خريطة الشعور بالزلزال",

@@ -9,8 +9,9 @@ import { parseIntensityContours } from "./contours";
 import { SupabaseLiveShakeMapTransport, type LiveShakeMapTransport } from "./live-transport";
 import type { LiveShakeMapProduct } from "./live-types";
 import { useShakeMap, type UseShakeMapStatus } from "./queries";
+import { parseRiskProduct } from "./risk";
 import { resolveShakeMapProduct, type ResolvedShakeMapProduct, type ShakeMapCandidate } from "./resolver";
-import type { IntensityContourSet } from "./types";
+import type { IntensityContourSet, RiskProduct } from "./types";
 
 export const liveShakeMapQueryKeys = {
   event: (eventId: string) => ["shakemap", "live", eventId] as const,
@@ -64,7 +65,16 @@ export function useLiveShakeMap(
     }
     try {
       const contours = parseIntensityContours(query.data.contours);
-      return { product: query.data, contours };
+      // Risk is best-effort even here: `query.data.risk` was already
+      // fetched tolerantly by the transport (any missing/failed risk
+      // artifact -> `null`, never a thrown rejection of the whole
+      // product) — `parseRiskProduct` on top of that is one more layer of
+      // "never let a risk-parsing bug break the always-present intensity
+      // map", same reasoning `contours.ts`'s own tolerant per-feature
+      // parsing follows.
+      const risk: RiskProduct | null =
+        query.data.risk !== undefined ? parseRiskProduct(query.data.risk) : null;
+      return { product: query.data, contours, risk };
     } catch {
       // Malformed artifact (wave brief: "a malformed or unreachable
       // product must never break the event screen") — degrades to "no
@@ -79,6 +89,7 @@ export interface UseResolvedShakeMapResult {
   status: UseShakeMapStatus;
   product: ResolvedShakeMapProduct | null;
   contours: IntensityContourSet | null;
+  risk: RiskProduct | null;
 }
 
 /**
@@ -97,12 +108,17 @@ export function useResolvedShakeMap(event: Event, enabled: boolean): UseResolved
   return useMemo(() => {
     const bundledCandidate =
       bundled.status === "ready" && bundled.product && bundled.contours
-        ? { product: bundled.product, contours: bundled.contours }
+        ? { product: bundled.product, contours: bundled.contours, risk: bundled.risk }
         : null;
     const resolved = resolveShakeMapProduct(live, bundledCandidate);
     if (!resolved) {
-      return { status: "absent" as const, product: null, contours: null };
+      return { status: "absent" as const, product: null, contours: null, risk: null };
     }
-    return { status: "ready" as const, product: resolved.product, contours: resolved.contours };
-  }, [live, bundled.status, bundled.product, bundled.contours]);
+    return {
+      status: "ready" as const,
+      product: resolved.product,
+      contours: resolved.contours,
+      risk: resolved.risk,
+    };
+  }, [live, bundled.status, bundled.product, bundled.contours, bundled.risk]);
 }

@@ -94,3 +94,18 @@ export const SHAKEMAP_LIVE_STALE_TIME_MS = 15 * 60 * 1000;
  * screen revisit without a network round-trip — a day is generous and
  * harmless since the artifact itself never changes for a given version. */
 export const SHAKEMAP_LIVE_GC_TIME_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Public Bumelerze Atlas static site base URL (`risk-dashboard` wave). Two
+ * eras of `shakemap_products.storage_path` value now coexist in the live
+ * table: older rows (every hazard-only product published before the risk
+ * chain landed) store a Supabase-Storage-relative path like
+ * `"events/us6000jllz/v4/cont_mi.json"`; newer rows (risk products
+ * onward) store the absolute public URL directly, e.g.
+ * `"https://peshawa-lh.github.io/bumelerze-atlas/events/us6000jllz/v5/
+ * cont_damage.json"`. `live-transport.ts`'s `resolveArtifactUrl` resolves
+ * any non-`http(s)` `storage_path` against this base before fetching (for
+ * every artifact type, contours included) so both eras of row keep
+ * working through the exact same code path — never a per-row special
+ * case. */
+export const ATLAS_BASE_URL = "https://peshawa-lh.github.io/bumelerze-atlas";

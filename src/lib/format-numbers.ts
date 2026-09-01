@@ -107,3 +107,19 @@ export function formatFixedLocalized(
 ): string {
   return localizeDigits(value.toFixed(decimals), locale);
 }
+
+/**
+ * Whole-number counts with thousands grouping (building/population counts
+ * in the risk dashboard — `RiskSection`), then digit-localized. Grouping
+ * uses a plain comma in every locale, same "scientific/quantitative values
+ * keep international punctuation, only the digit glyphs localize"
+ * reasoning this module's own doc comment already applies to the decimal
+ * point. Rounds to the nearest whole number first (these are always
+ * counts, never fractional).
+ */
+export function formatIntegerLocalized(value: number, locale: string): string {
+  const rounded = Math.round(value);
+  const grouped = Math.abs(rounded).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const signed = rounded < 0 ? `-${grouped}` : grouped;
+  return localizeDigits(signed, locale);
+}

@@ -57,6 +57,7 @@ describe("ShakeMapSection", () => {
       status: "absent",
       product: null,
       contours: null,
+      risk: null,
     });
 
     const { toJSON } = await render(<ShakeMapSection event={HALABJA_EVENT} />);
@@ -69,6 +70,7 @@ describe("ShakeMapSection", () => {
       status: "ready",
       product: fakeProduct(),
       contours,
+      risk: null,
     });
 
     await render(<ShakeMapSection event={HALABJA_EVENT} />);
@@ -87,6 +89,7 @@ describe("ShakeMapSection", () => {
       status: "ready",
       product: fakeProduct({ source: "live" }),
       contours,
+      risk: null,
     });
 
     await render(<ShakeMapSection event={HALABJA_EVENT} />);
@@ -100,6 +103,7 @@ describe("ShakeMapSection", () => {
       status: "ready",
       product: fakeProduct({ dataUsedSummaryKey: "stationAndDyfiConditioned" }),
       contours,
+      risk: null,
     });
 
     await render(<ShakeMapSection event={HALABJA_EVENT} />);
@@ -115,6 +119,7 @@ describe("ShakeMapSection", () => {
       status: "ready",
       product: fakeProduct({ reviewStatus: "automatic" }),
       contours,
+      risk: null,
     });
 
     await render(<ShakeMapSection event={HALABJA_EVENT} />);
@@ -130,6 +135,7 @@ describe("ShakeMapSection", () => {
       status: "ready",
       product: fakeProduct({ reviewStatus: "reviewed" }),
       contours,
+      risk: null,
     });
 
     await render(<ShakeMapSection event={HALABJA_EVENT} />);
@@ -154,6 +160,7 @@ describe("ShakeMapSection", () => {
         },
       }),
       contours,
+      risk: null,
     });
 
     await render(<ShakeMapSection event={HALABJA_EVENT} />);
@@ -169,6 +176,7 @@ describe("ShakeMapSection", () => {
       status: "ready",
       product: fakeProduct({ source: "bundled", engineVersion: null }),
       contours,
+      risk: null,
     });
 
     await render(<ShakeMapSection event={HALABJA_EVENT} />);
@@ -183,6 +191,7 @@ describe("ShakeMapSection", () => {
       status: "ready",
       product: null,
       contours: null,
+      risk: null,
     });
 
     const { toJSON } = await render(<ShakeMapSection event={HALABJA_EVENT} />);

@@ -1,0 +1,35 @@
+{
+  "product_schema_version": 1,
+  "producer": "bumelerze-engine/risk_service",
+  "product_version": 5,
+  "generated_at": "2026-09-01T21:32:26.435387+00:00",
+  "event": {
+    "lat": 37.2256,
+    "lon": 37.0143,
+    "depth_km": 10.0,
+    "mag_mw": 7.8
+  },
+  "hazard_version": {
+    "service_version": "0.1.0",
+    "conditioning": "mvn (Engler et al. 2022) on stations+dyfi with reverse-GMICE sigma (UQ-B, D46)"
+  },
+  "stage": "pga_lognormal",
+  "hazard_field": "pga_g",
+  "time_of_day": "night",
+  "n_draws": 200,
+  "exposure": {
+    "buildings_in_grid": 1953862,
+    "countries": [
+      "Iraq",
+      "Turkey"
+    ]
+  },
+  "casualties_published": false,
+  "buildings_heavy": 136378,
+  "buildings_heavy_p05_p50_p95": [
+    116423,
+    158965,
+    209051
+  ],
+  "exposed_population": 17079988
+}

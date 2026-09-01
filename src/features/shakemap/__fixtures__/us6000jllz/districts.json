@@ -1,0 +1,209 @@
+{
+  "product_schema_version": 1,
+  "producer": "bumelerze-engine/risk_service",
+  "stage": "pga_lognormal",
+  "time_of_day": "night",
+  "n_draws": 200,
+  "districts": [
+    {
+      "adm1_id": "TR-31",
+      "adm1_name": "HATAY",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 168279,
+      "buildings_heavy": 39988,
+      "buildings_dg4plus": 32940,
+      "buildings_heavy_p05_p50_p95": [
+        34291,
+        43414,
+        53933
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        28087,
+        35930,
+        45790
+      ],
+      "exposed_population": 1311929
+    },
+    {
+      "adm1_id": "TR-46",
+      "adm1_name": "KAHRAMANMARAŞ",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 108874,
+      "buildings_heavy": 20490,
+      "buildings_dg4plus": 16556,
+      "buildings_heavy_p05_p50_p95": [
+        17704,
+        22351,
+        28593
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        14373,
+        18281,
+        23540
+      ],
+      "exposed_population": 892844
+    },
+    {
+      "adm1_id": "TR-44",
+      "adm1_name": "MALATYA",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 78698,
+      "buildings_heavy": 16067,
+      "buildings_dg4plus": 12129,
+      "buildings_heavy_p05_p50_p95": [
+        11215,
+        17860,
+        23461
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        8097,
+        14083,
+        19331
+      ],
+      "exposed_population": 617639
+    },
+    {
+      "adm1_id": "TR-01",
+      "adm1_name": "ADANA",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 287492,
+      "buildings_heavy": 14356,
+      "buildings_dg4plus": 10890,
+      "buildings_heavy_p05_p50_p95": [
+        10605,
+        16851,
+        27673
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        7926,
+        12955,
+        22190
+      ],
+      "exposed_population": 2190163
+    },
+    {
+      "adm1_id": "TR-27",
+      "adm1_name": "GAZİANTEP",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 163473,
+      "buildings_heavy": 12755,
+      "buildings_dg4plus": 9819,
+      "buildings_heavy_p05_p50_p95": [
+        10858,
+        14849,
+        22581
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        8410,
+        11520,
+        17560
+      ],
+      "exposed_population": 1869646
+    },
+    {
+      "adm1_id": "TR-80",
+      "adm1_name": "OSMANİYE",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 73702,
+      "buildings_heavy": 9223,
+      "buildings_dg4plus": 7313,
+      "buildings_heavy_p05_p50_p95": [
+        6818,
+        10436,
+        14893
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        5448,
+        8322,
+        12316
+      ],
+      "exposed_population": 506420
+    },
+    {
+      "adm1_id": "TR-02",
+      "adm1_name": "ADIYAMAN",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 45244,
+      "buildings_heavy": 8811,
+      "buildings_dg4plus": 7127,
+      "buildings_heavy_p05_p50_p95": [
+        7220,
+        9650,
+        12722
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        5780,
+        7962,
+        10682
+      ],
+      "exposed_population": 457233
+    },
+    {
+      "adm1_id": "TR-63",
+      "adm1_name": "ŞANLIURFA",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 133287,
+      "buildings_heavy": 5056,
+      "buildings_dg4plus": 3766,
+      "buildings_heavy_p05_p50_p95": [
+        4012,
+        6244,
+        9905
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        2991,
+        4729,
+        7776
+      ],
+      "exposed_population": 2035520
+    },
+    {
+      "adm1_id": "TR-33",
+      "adm1_name": "MERSİN",
+      "country": "Turkey",
+      "coverage": 0.656,
+      "buildings_in_grid": 160499,
+      "buildings_heavy": 3442,
+      "buildings_dg4plus": 2497,
+      "buildings_heavy_p05_p50_p95": [
+        2615,
+        4622,
+        7803
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        1887,
+        3474,
+        6012
+      ],
+      "exposed_population": 1177375
+    },
+    {
+      "adm1_id": "TR-23",
+      "adm1_name": "ELAZIĞ",
+      "country": "Turkey",
+      "coverage": 1.0,
+      "buildings_in_grid": 62865,
+      "buildings_heavy": 1855,
+      "buildings_dg4plus": 1214,
+      "buildings_heavy_p05_p50_p95": [
+        1286,
+        2501,
+        4795
+      ],
+      "buildings_dg4plus_p05_p50_p95": [
+        862,
+        1745,
+        3461
+      ],
+      "exposed_population": 551617
+    }
+  ]
+}

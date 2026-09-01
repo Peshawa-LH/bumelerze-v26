@@ -160,4 +160,60 @@ describe("useLiveShakeMap", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(transport.fetchLiveProduct).not.toHaveBeenCalled();
   });
+
+  it("parses a risk bundle carried on the transport's product into the candidate's risk field", async () => {
+    setSupabaseConfigured(true);
+    const transport = fixtureTransport(
+      fixtureProduct({
+        risk: {
+          summary: {
+            generated_at: "2026-09-01T00:00:00.000Z",
+            stage: "pga_lognormal",
+            time_of_day: "night",
+            n_draws: 200,
+            exposure: { buildings_in_grid: 100, countries: ["Turkey"] },
+            buildings_heavy: 500,
+            buildings_heavy_p05_p50_p95: [400, 500, 600],
+            exposed_population: 10000,
+          },
+          districts: {
+            stage: "pga_lognormal",
+            time_of_day: "night",
+            n_draws: 200,
+            districts: [],
+          },
+          damageContours: null,
+        },
+      }),
+    );
+
+    const { result } = await renderLiveShakeMap(EVENT, transport);
+
+    await waitFor(() => expect(result.current).not.toBeNull());
+    expect(result.current?.risk?.summary.buildingsHeavy).toBe(500);
+    expect(result.current?.risk?.damageContours).toBeNull();
+  });
+
+  it("resolves risk to null (never breaks the contours candidate) when the risk field is malformed", async () => {
+    setSupabaseConfigured(true);
+    const transport = fixtureTransport(
+      fixtureProduct({ risk: { summary: "not-an-object" } as unknown as never }),
+    );
+
+    const { result } = await renderLiveShakeMap(EVENT, transport);
+
+    await waitFor(() => expect(result.current).not.toBeNull());
+    expect(result.current?.contours.levels).toHaveLength(1);
+    expect(result.current?.risk).toBeNull();
+  });
+
+  it("resolves risk to null when the transport's product carries none at all", async () => {
+    setSupabaseConfigured(true);
+    const transport = fixtureTransport(fixtureProduct());
+
+    const { result } = await renderLiveShakeMap(EVENT, transport);
+
+    await waitFor(() => expect(result.current).not.toBeNull());
+    expect(result.current?.risk).toBeNull();
+  });
 });

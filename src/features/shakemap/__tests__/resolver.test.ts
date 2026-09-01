@@ -1,6 +1,25 @@
 import { resolveShakeMapProduct, type ShakeMapCandidate } from "../resolver";
-import type { AtlasBundleEntry, IntensityContourSet } from "../types";
+import type { AtlasBundleEntry, IntensityContourSet, RiskProduct } from "../types";
 import type { LiveShakeMapProduct } from "../live-types";
+
+function fakeRiskProduct(buildingsHeavy: number): RiskProduct {
+  return {
+    summary: {
+      generatedAt: "2026-09-01T00:00:00.000Z",
+      stage: "pga_lognormal",
+      timeOfDay: "night",
+      nDraws: 200,
+      hazardVersionConditioning: null,
+      exposure: { buildingsInGrid: 100, countries: ["Turkey"] },
+      buildingsHeavy,
+      buildingsHeavyP05P50P95: [buildingsHeavy - 10, buildingsHeavy, buildingsHeavy + 10],
+      exposedPopulation: 1000,
+      casualtiesPublished: false,
+    },
+    districts: { stage: "pga_lognormal", timeOfDay: "night", nDraws: 200, districts: [], skippedCount: 0 },
+    damageContours: null,
+  };
+}
 
 const CONTOURS: IntensityContourSet = { levels: [], skippedCount: 0 };
 
@@ -94,5 +113,34 @@ describe("resolveShakeMapProduct", () => {
       null,
     );
     expect(provisional?.product.reviewStatus).toBe("automatic");
+  });
+
+  it("carries the live candidate's risk product through when live wins", () => {
+    const risk = fakeRiskProduct(1000);
+    const resolved = resolveShakeMapProduct(
+      { ...liveCandidate(), risk },
+      { ...bundledCandidate(), risk: fakeRiskProduct(1) },
+    );
+
+    expect(resolved?.risk).toBe(risk);
+  });
+
+  it("carries the bundled candidate's risk product through when it wins", () => {
+    const risk = fakeRiskProduct(1000);
+    const resolved = resolveShakeMapProduct(null, { ...bundledCandidate(), risk });
+
+    expect(resolved?.risk).toBe(risk);
+  });
+
+  it("resolves risk to null when the winning candidate carries none (most events)", () => {
+    const resolved = resolveShakeMapProduct(liveCandidate(), bundledCandidate());
+
+    expect(resolved?.risk).toBeNull();
+  });
+
+  it("resolves risk to null when the winning candidate explicitly carries null", () => {
+    const resolved = resolveShakeMapProduct(null, { ...bundledCandidate(), risk: null });
+
+    expect(resolved?.risk).toBeNull();
   });
 });

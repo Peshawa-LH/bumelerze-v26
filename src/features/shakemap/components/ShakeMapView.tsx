@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Polygon, Polyline, Text as SvgText } from "react-native-svg";
 
 import { pickLocalizedName } from "@/features/geo";
@@ -18,6 +18,7 @@ import {
   SHAKEMAP_VIEW_HEIGHT,
   SHAKEMAP_VIEW_WIDTH,
 } from "../config";
+import { DAMAGE_GRADE_LABELS } from "../damage-ramp";
 import { INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
 import { layoutCityLabels, type LabelCandidate } from "../label-layout";
 import {
@@ -27,7 +28,31 @@ import {
   type LonLatBoundingBox,
   type Projector,
 } from "../projection";
-import type { IntensityContourSet } from "../types";
+import type { DamageContourSet, IntensityContourSet } from "../types";
+
+/** Which contour layer the map is currently painting — a small toggle
+ * above the map switches between the two when a damage product exists
+ * (owner: intensity is the default, damage is opt-in). */
+export type ShakeMapLayer = "intensity" | "damage";
+
+/** Five-pointed star polygon points (SVG `points="x,y x,y ..."`), centered
+ * at `(cx, cy)` — the epicenter marker (owner: "epicenter star, not a
+ * too-big circle"). Points alternate outer/inner radius, starting
+ * straight up, same construction every 5-point star icon uses. */
+function starPoints(cx: number, cy: number, outerRadius: number): string {
+  const innerRadius = outerRadius * 0.4;
+  const points: string[] = [];
+  for (let i = 0; i < 10; i += 1) {
+    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+    // Start pointing straight up (-90deg), then step 36deg (360/10) per
+    // point so 5 outer + 5 inner points interleave evenly.
+    const angle = (Math.PI / 180) * (i * 36 - 90);
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+    points.push(`${x},${y}`);
+  }
+  return points.join(" ");
+}
 
 /**
  * ARCHITECTURE NOTE (D9, decided — no MapLibre in this wave): MapLibre RN
@@ -87,6 +112,13 @@ export interface ShakeMapViewProps {
    * screen-reader user gets the same "where" context a sighted user reads
    * off the epicenter marker + nearby-city labels drawn on the map SVG. */
   placeText: string;
+  /** Optional expected-damage-grade contour set (`risk-dashboard` wave,
+   * D46) — when present and non-empty, a small Intensity/Damage segmented
+   * toggle appears above the map (default Intensity) and the Damage option
+   * becomes selectable; `null`/`undefined`/empty means no risk product
+   * exists for this event, and the map behaves exactly as before this
+   * wave (no toggle at all). */
+  damageContours?: DamageContourSet | null;
 }
 
 /**
@@ -103,13 +135,23 @@ export function ShakeMapView({
   locale,
   t,
   placeText,
+  damageContours,
 }: ShakeMapViewProps) {
   const { colors, typography, spacing } = useTheme();
   const [measuredWidth, setMeasuredWidth] = useState(0);
+  const [layer, setLayer] = useState<ShakeMapLayer>("intensity");
 
   function handleLayout(event: LayoutChangeEvent) {
     setMeasuredWidth(event.nativeEvent.layout.width);
   }
+
+  // Toggle only ever shows/matters when there is real damage-layer data to
+  // switch to — an event with a risk product but no `cont_damage.json`
+  // (damageContours null/empty, `risk.ts`'s own "damageContours optional"
+  // doc comment) still gets the Intensity map exactly as before, just
+  // without the toggle.
+  const hasDamageLayer = Boolean(damageContours && damageContours.levels.length > 0);
+  const activeLayer: ShakeMapLayer = hasDamageLayer ? layer : "intensity";
 
   const bbox = computeContourBoundingBox(contours.levels, [
     [epicenter.lon, epicenter.lat],
@@ -122,6 +164,7 @@ export function ShakeMapView({
   const cities = pickMapCities(bbox, epicenter);
   const epicenterPoint = projector.project(epicenter.lon, epicenter.lat);
   const highestLevel = contours.levels[contours.levels.length - 1];
+  const highestDamageLevel = damageContours?.levels[damageContours.levels.length - 1];
 
   // Static basemap layer (wave brief point 2 — "there should be a basemap
   // similar to SHAKEmaps toolkit"): country border lines + coastline,
@@ -157,8 +200,64 @@ export function ShakeMapView({
       ? (measuredWidth / SHAKEMAP_VIEW_WIDTH) * SHAKEMAP_VIEW_HEIGHT
       : SHAKEMAP_VIEW_HEIGHT;
 
+  const mapA11yLabel =
+    activeLayer === "damage"
+      ? t("eventDetail.shakemap.mapA11yLabelDamage", {
+          level: highestDamageLevel ? DAMAGE_GRADE_LABELS[highestDamageLevel.level] : "",
+          place: placeText,
+        })
+      : t("eventDetail.shakemap.mapA11yLabel", {
+          level: highestLevel ? INTENSITY_ROMAN_NUMERALS[highestLevel.level] : "",
+          place: placeText,
+        });
+
   return (
     <View style={{ gap: spacing[2] }}>
+      {/* Layer toggle — only shown when there is a real damage layer to
+       * switch to (owner's damage-map ask, `risk-dashboard` wave); the
+       * ambient locale direction is fine here (unlike the map itself,
+       * this is ordinary UI chrome, not a geographic projection). */}
+      {hasDamageLayer ? (
+        <View
+          style={[styles.layerToggleRow, { gap: spacing[1] }]}
+          accessibilityRole="tablist"
+        >
+          {(["intensity", "damage"] as const).map((option) => {
+            const selected = activeLayer === option;
+            return (
+              <Pressable
+                key={option}
+                testID={`shakemap-layer-toggle-${option}`}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}
+                onPress={() => setLayer(option)}
+                hitSlop={8}
+                style={[
+                  styles.layerToggleOption,
+                  {
+                    backgroundColor: selected ? colors.brand.primary : colors.surface.sunken,
+                    borderRadius: 8,
+                    paddingVertical: spacing[1],
+                    paddingHorizontal: spacing[3],
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: selected ? colors.brand.onPrimary : colors.text.secondary,
+                    fontSize: typography.labelCaption.fontSize,
+                    lineHeight: typography.labelCaption.lineHeight,
+                    fontWeight: "600",
+                  }}
+                >
+                  {t(`eventDetail.shakemap.layer.${option}`)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
+
       <Text
         style={{
           color: colors.text.secondary,
@@ -167,7 +266,9 @@ export function ShakeMapView({
           fontWeight: typography.labelCaption.fontWeight,
         }}
       >
-        {t("eventDetail.shakemap.legendCaption")}
+        {activeLayer === "damage"
+          ? t("eventDetail.shakemap.legendCaptionDamage")
+          : t("eventDetail.shakemap.legendCaption")}
       </Text>
 
       {/* The map itself never mirrors under RTL (design-language.md §5
@@ -183,10 +284,7 @@ export function ShakeMapView({
         onLayout={handleLayout}
         accessible
         accessibilityRole="image"
-        accessibilityLabel={t("eventDetail.shakemap.mapA11yLabel", {
-          level: highestLevel ? INTENSITY_ROMAN_NUMERALS[highestLevel.level] : "",
-          place: placeText,
-        })}
+        accessibilityLabel={mapA11yLabel}
         style={[styles.mapContainer, { direction: "ltr" }]}
       >
         {measuredWidth > 0 ? (
@@ -228,26 +326,47 @@ export function ShakeMapView({
               />
             ))}
 
-            {contours.levels.map((level) =>
-              level.rings.map((ring, ringIndex) => {
-                const points = ring.points
-                  .map(([lon, lat]) => {
-                    const { x, y } = projector.project(lon, lat);
-                    return `${x},${y}`;
-                  })
-                  .join(" ");
-                return (
-                  <Polygon
-                    key={`${level.value}-${ringIndex}`}
-                    testID={`shakemap-contour-${level.value}-${ringIndex}`}
-                    points={points}
-                    fill={rampColor(colors, level.level)}
-                    fillOpacity={0.6}
-                    stroke="none"
-                  />
-                );
-              }),
-            )}
+            {activeLayer === "intensity"
+              ? contours.levels.map((level) =>
+                  level.rings.map((ring, ringIndex) => {
+                    const points = ring.points
+                      .map(([lon, lat]) => {
+                        const { x, y } = projector.project(lon, lat);
+                        return `${x},${y}`;
+                      })
+                      .join(" ");
+                    return (
+                      <Polygon
+                        key={`${level.value}-${ringIndex}`}
+                        testID={`shakemap-contour-${level.value}-${ringIndex}`}
+                        points={points}
+                        fill={rampColor(colors, level.level)}
+                        fillOpacity={0.6}
+                        stroke="none"
+                      />
+                    );
+                  }),
+                )
+              : (damageContours?.levels ?? []).map((level) =>
+                  level.rings.map((ring, ringIndex) => {
+                    const points = ring.points
+                      .map(([lon, lat]) => {
+                        const { x, y } = projector.project(lon, lat);
+                        return `${x},${y}`;
+                      })
+                      .join(" ");
+                    return (
+                      <Polygon
+                        key={`damage-${level.value}-${ringIndex}`}
+                        testID={`shakemap-damage-contour-${level.value}-${ringIndex}`}
+                        points={points}
+                        fill={colors.damageGrade[level.level] ?? colors.damageGrade[1] ?? colors.status.warning}
+                        fillOpacity={0.6}
+                        stroke="none"
+                      />
+                    );
+                  }),
+                )}
 
             {cities.map((city) => {
               const { x, y } = projector.project(city.lon, city.lat);
@@ -313,65 +432,79 @@ export function ShakeMapView({
               </SvgText>
             ))}
 
-            {/* Epicenter marker: a halo circle for contrast against
-             * whatever intensity color sits underneath, plus a filled
-             * center dot — deliberately simple (no MapLibre-style custom
-             * icon asset this wave). */}
-            <Circle
-              cx={epicenterPoint.x}
-              cy={epicenterPoint.y}
-              r={7}
-              fill="none"
-              stroke={colors.surface.base}
-              strokeWidth={3}
-            />
-            <Circle
-              cx={epicenterPoint.x}
-              cy={epicenterPoint.y}
-              r={7}
-              fill="none"
-              stroke={colors.status.danger}
-              strokeWidth={1.5}
-            />
-            <Circle
-              cx={epicenterPoint.x}
-              cy={epicenterPoint.y}
-              r={3}
+            {/* Epicenter marker: a five-pointed star, not a circle (owner:
+             * "epicenter star, not a too-big circle") — a thin
+             * `surface.base` halo stroke keeps it legible against whatever
+             * intensity/damage color sits underneath, same contrast trick
+             * the old halo circle used. */}
+            <Polygon
+              testID="shakemap-epicenter"
+              points={starPoints(epicenterPoint.x, epicenterPoint.y, 6)}
               fill={colors.status.danger}
+              stroke={colors.surface.base}
+              strokeWidth={1}
+              strokeLinejoin="round"
             />
           </Svg>
         ) : null}
       </View>
 
       {/* Legend strip — same non-mirroring rule as the map: Roman numerals
-       * always read I -> XII left to right regardless of locale. */}
+       * (or DG codes, in Damage mode) always read left to right regardless
+       * of locale. */}
       <View
         style={[styles.legendRow, { direction: "ltr", gap: spacing[1] }]}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        {INTENSITY_ROMAN_NUMERALS.slice(1).map((numeral, index) => {
-          const level = index + 1;
-          return (
-            <View key={level} style={styles.legendItem}>
-              <View
-                style={[
-                  styles.legendSwatch,
-                  { backgroundColor: rampColor(colors, level) },
-                ]}
-              />
-              <Text
-                style={{
-                  color: colors.text.secondary,
-                  fontSize: 9,
-                  fontWeight: "600",
-                }}
-              >
-                {numeral}
-              </Text>
-            </View>
-          );
-        })}
+        {activeLayer === "intensity"
+          ? INTENSITY_ROMAN_NUMERALS.slice(1).map((numeral, index) => {
+              const level = index + 1;
+              return (
+                <View key={level} style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendSwatch,
+                      { backgroundColor: rampColor(colors, level) },
+                    ]}
+                  />
+                  <Text
+                    style={{
+                      color: colors.text.secondary,
+                      fontSize: 9,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {numeral}
+                  </Text>
+                </View>
+              );
+            })
+          : DAMAGE_GRADE_LABELS.slice(1).map((label, index) => {
+              const level = index + 1;
+              return (
+                <View key={level} style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendSwatch,
+                      {
+                        backgroundColor:
+                          colors.damageGrade[level] ?? colors.damageGrade[1] ?? colors.status.warning,
+                      },
+                    ]}
+                  />
+                  <Text
+                    style={{
+                      color: colors.text.secondary,
+                      fontSize: 9,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {label}
+                  </Text>
+                </View>
+              );
+            })}
       </View>
     </View>
   );
@@ -396,5 +529,12 @@ const styles = StyleSheet.create({
     width: 16,
     height: 10,
     borderRadius: 2,
+  },
+  layerToggleRow: {
+    flexDirection: "row",
+    alignSelf: "flex-start",
+  },
+  layerToggleOption: {
+    alignItems: "center",
   },
 });
