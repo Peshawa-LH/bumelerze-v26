@@ -63,15 +63,24 @@ export const SHAKEMAP_CITY_DOT_RADIUS = 1.75;
 /**
  * Static basemap layer (map-presentation wave — owner: "there should be a
  * basemap similar to SHAKEmaps toolkit"): country border lines + coastline,
- * drawn under the intensity contours (`basemap/` fixture). Subtle by
- * design — this is context, not the map's own subject — and low-opacity
- * enough that a 60%-opacity contour fill painted on top still reads
- * clearly (wave brief: "contours keep their opacity so boundaries read
- * through").
+ * drawn under the intensity contours (`basemap/` fixture). Started subtle
+ * by design, then went too far — owner (web-map wave): "I don't see a
+ * basemap" — the border-divider color and 60% opacity that felt "just
+ * context" in the light theme were effectively invisible on the dark
+ * theme's near-black surface. Bumped to a real text-toned color
+ * (`colors.text.secondary`, `ShakeMapViewSvg.tsx`) at near-full opacity;
+ * the 60%-opacity contour fills painted on top still read clearly over it
+ * (wave brief: "contours keep their opacity so boundaries read through").
  */
-export const SHAKEMAP_BASEMAP_BORDER_WIDTH = 0.75;
-export const SHAKEMAP_BASEMAP_COASTLINE_WIDTH = 0.75;
-export const SHAKEMAP_BASEMAP_LINE_OPACITY = 0.6;
+export const SHAKEMAP_BASEMAP_BORDER_WIDTH = 1.0;
+export const SHAKEMAP_BASEMAP_COASTLINE_WIDTH = 1.0;
+// 0.9, not the original 0.6 — owner: "I don't see a basemap... the static
+// SVG (thin border/coastline lines, invisible on the dark theme)". The
+// lines also switched from `colors.border.default` (a near-invisible
+// subtle-divider tone) to `colors.text.secondary` (`ShakeMapViewSvg.tsx`)
+// — a border-divider color was never meant to carry real map content, only
+// to separate two already-visible surfaces from each other.
+export const SHAKEMAP_BASEMAP_LINE_OPACITY = 0.9;
 
 /**
  * Live product query cadence (`shakemap_products`, "closing the last gap"

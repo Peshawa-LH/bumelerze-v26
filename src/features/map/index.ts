@@ -117,3 +117,8 @@ export {
   EventPreviewSheet,
   type EventPreviewSheetHandle,
 } from "./components/EventPreviewSheet";
+export {
+  ensureRTLTextPluginLoaded,
+  loadMapLibre,
+  type MapLibreModule,
+} from "./maplibre-loader";
