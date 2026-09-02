@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Event } from "@/features/events";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
+import { resolveAtlasLookupId } from "./atlas-lookup";
 import { SHAKEMAP_LIVE_GC_TIME_MS, SHAKEMAP_LIVE_STALE_TIME_MS } from "./config";
 import { parseIntensityContours } from "./contours";
 import { SupabaseLiveShakeMapTransport, type LiveShakeMapTransport } from "./live-transport";
@@ -102,7 +103,11 @@ export interface UseResolvedShakeMapResult {
  * had, so callers that only cared about that shape need no other change.
  */
 export function useResolvedShakeMap(event: Event, enabled: boolean): UseResolvedShakeMapResult {
-  const bundled = useShakeMap(event.id, enabled);
+  // "resolve by either id" (wave brief): a bml id that names one of the 11
+  // curated Historical events resolves to its bundled provider-id key
+  // first; every other event falls through to its own `id` unchanged —
+  // see `resolveAtlasLookupId`'s own doc comment.
+  const bundled = useShakeMap(resolveAtlasLookupId(event), enabled);
   const live = useLiveShakeMap(event, enabled);
 
   return useMemo(() => {

@@ -2,7 +2,12 @@ import ar from "@/i18n/locales/ar.json";
 import ckb from "@/i18n/locales/ckb.json";
 import en from "@/i18n/locales/en.json";
 import kmr from "@/i18n/locales/kmr.json";
-import { NOTABLE_HISTORICAL_EVENTS, sortNewestFirst } from "../notable-events";
+import {
+  NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID,
+  NOTABLE_HISTORICAL_EVENTS,
+  NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID,
+  sortNewestFirst,
+} from "../notable-events";
 
 /**
  * Dataset integrity checks for the curated Historical View (lite) list
@@ -129,6 +134,55 @@ describe("NOTABLE_HISTORICAL_EVENTS", () => {
         expect(typeof places[suffix as string]).toBe("string");
         expect(places[suffix as string]?.length).toBeGreaterThan(0);
       }
+    }
+  });
+});
+
+/**
+ * Bumelerze identity (owner directive 2026-09-02: "we sometimes use the
+ * USGS ids and the USGS-assigned name for events; we have to fix this...
+ * we cannot replicate their id or event names"). Verified mapping against
+ * the live database — see the task brief this wave shipped from.
+ */
+describe("NOTABLE_HISTORICAL_EVENTS bumelerzeId mapping", () => {
+  const EXPECTED_MAPPING: Readonly<Record<string, string>> = {
+    iscgem899464: "bml19440001",
+    iscgem898547: "bml19460001",
+    iscgem884317: "bml19580001",
+    iscgem839648: "bml19670001",
+    usp0001bb6: "bml19800001",
+    usp0004uk3: "bml19910001",
+    us2000bmcg: "bml20170001",
+    us1000ghda: "bml20180001",
+    us1000hwdw: "bml20180002",
+    us6000jllz: "bml20230001",
+    us6000jlqa: "bml20230002",
+  };
+
+  it("has exactly the verified bml id for every one of the 11 curated events", () => {
+    expect(NOTABLE_HISTORICAL_EVENTS).toHaveLength(Object.keys(EXPECTED_MAPPING).length);
+    for (const event of NOTABLE_HISTORICAL_EVENTS) {
+      expect(event.bumelerzeId).toBe(EXPECTED_MAPPING[event.id]);
+    }
+  });
+
+  it("has unique bml ids (one per physical event, migration 0008's own uniqueness rule)", () => {
+    const bmlIds = NOTABLE_HISTORICAL_EVENTS.map((event) => event.bumelerzeId);
+    expect(new Set(bmlIds).size).toBe(bmlIds.length);
+  });
+
+  it("has every bml id shaped like a canonical Bumelerze id (bml + 4-digit year + base-36 suffix)", () => {
+    for (const event of NOTABLE_HISTORICAL_EVENTS) {
+      expect(event.bumelerzeId).toMatch(/^bml\d{4}[0-9a-z]{4,}$/);
+    }
+  });
+
+  it("builds a complete, bijective provider-id <-> bml-id alias map", () => {
+    expect(NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID.size).toBe(NOTABLE_HISTORICAL_EVENTS.length);
+    expect(NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID.size).toBe(NOTABLE_HISTORICAL_EVENTS.length);
+    for (const event of NOTABLE_HISTORICAL_EVENTS) {
+      expect(NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID.get(event.bumelerzeId)).toBe(event.id);
+      expect(NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID.get(event.id)).toBe(event.bumelerzeId);
     }
   });
 });

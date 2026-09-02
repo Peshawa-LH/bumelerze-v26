@@ -82,6 +82,7 @@ const testSafeAreaMetrics = {
 function makeEvent(overrides: Partial<Event> = {}): Event {
   return {
     id: "us7000abcd",
+    bumelerzeId: null,
     originTime: Date.now() - 5 * 60_000,
     lat: 35.56,
     lon: 45.43,

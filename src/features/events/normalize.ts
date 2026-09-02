@@ -5,8 +5,9 @@ import {
 } from "./config";
 import type { EmscFeature } from "./emsc-schema";
 import type { GeofonRow } from "./geofon-schema";
+import type { EventsWithSourcesRow, PrimarySourceRow } from "./supabase-event-schema";
 import type { UsgsFeature } from "./usgs-schema";
-import type { Event } from "./types";
+import type { Event, EventProvider } from "./types";
 
 /** True when a point falls inside the region bbox (event-pipeline-design.md
  * §4). Pure function, kept separate from normalization so distance/UI code
@@ -79,6 +80,10 @@ export function normalizeUsgsFeature(
 
   const event: Event = {
     id,
+    // Live USGS feed features never carry a bml id at parse time — see
+    // `types.ts`'s own doc comment; resolved later, per screen, via
+    // `resolveBumelerzeId` (`bumelerze-id.ts`), never fabricated here.
+    bumelerzeId: null,
     originTime: properties.time,
     lat,
     lon,
@@ -174,6 +179,9 @@ export function normalizeGeofonRow(row: GeofonRow, fetchedAt: number): Event | n
 
   const event: Event = {
     id: row.eventId,
+    // See `normalizeUsgsFeature`'s own comment above — same "never
+    // fabricated at parse time" rule applies to every feed normalizer.
+    bumelerzeId: null,
     originTime,
     lat: row.latitude,
     lon: row.longitude,
@@ -222,6 +230,8 @@ export function normalizeEmscFeature(
 
   const event: Event = {
     id: properties.unid,
+    // See `normalizeUsgsFeature`'s own comment above — same rule.
+    bumelerzeId: null,
     originTime,
     lat: properties.lat,
     lon: properties.lon,
@@ -247,4 +257,79 @@ export function normalizeEmscFeature(
   };
 
   return event;
+}
+
+/** `Event.provenance.provider` is deliberately narrow (`usgs`|`emsc`|
+ * `geofon` — the app's own three LIVE feed sources, `types.ts`). A
+ * Supabase-registered event may have been first sighted through a wider
+ * provider set (`isc`, `iscgem`, `afad`, `manual`, ... — migration 0023's
+ * widened `event_source_records_provider_check`), including every one of
+ * the 11 curated Historical events, whose USGS ComCat ids simply happen to
+ * carry an `iscgem`-shaped string (`notable-events.ts`'s own header
+ * comment: "every id below is a real USGS ComCat/fdsnws event id"). Only
+ * fields structurally typed as `EventProvider` (dedup cache keys, the
+ * `events.provenance.${provider}` i18n tag lookup) need the narrowed value;
+ * the true raw provider string is preserved verbatim for display via
+ * `Event.placeName`'s own Source-section citation, never lost. */
+const KNOWN_EVENT_PROVIDERS: readonly EventProvider[] = ["usgs", "emsc", "geofon"];
+
+function toEventProvider(raw: string): EventProvider {
+  return (KNOWN_EVENT_PROVIDERS as readonly string[]).includes(raw)
+    ? (raw as EventProvider)
+    : "usgs";
+}
+
+/**
+ * `public.events_with_sources` row (+ its earliest `event_source_records`
+ * sighting, migration 0023) -> internal `Event` — the Supabase-row
+ * counterpart of `normalizeUsgsFeature`/`normalizeEmscFeature`/
+ * `normalizeGeofonRow` above: same "normalize once at the boundary" rule
+ * (this file's own header comment), for the one source those three don't
+ * cover — a `/event/[id]` cold-start bml-id visit no cached feed knows
+ * (`supabase-event.ts`'s `fetchSupabaseEventByBumelerzeId`, the only
+ * caller). `primarySource` is `null` for the rare row with no readable
+ * `event_source_records` sighting at all (RLS-hidden/deleted, or a
+ * genuinely source-less manual entry) — falls back to a `"usgs"`
+ * placeholder provider tag and the event's own uuid as a last-resort
+ * provider id, so the `Event` this produces is still fully usable (never a
+ * partial/nullable shape leaking into the rest of the app), just without a
+ * real provider citation.
+ */
+export function normalizeSupabaseEventRow(
+  row: EventsWithSourcesRow,
+  primarySource: PrimarySourceRow | null,
+): Event {
+  const originTime = Date.parse(row.origin_time);
+  const updatedAt = Date.parse(row.updated_at);
+  const magnitudeValue = row.magnitude;
+
+  return {
+    id: primarySource?.provider_event_id ?? row.event_id,
+    bumelerzeId: row.bumelerze_id,
+    originTime: Number.isNaN(originTime) ? Date.now() : originTime,
+    lat: row.lat,
+    lon: row.lon,
+    depthKm: row.depth_km ?? 0,
+    magnitude: {
+      value: magnitudeValue,
+      type: row.mag_type ?? "unknown",
+    },
+    placeName: row.place ?? "",
+    provenance: {
+      provider: toEventProvider(primarySource?.provider ?? "usgs"),
+      providerId: primarySource?.provider_event_id ?? row.event_id,
+      fetchedAt: Date.now(),
+      providerUpdatedAt: Number.isNaN(updatedAt) ? Date.now() : updatedAt,
+    },
+    // No PAGER-equivalent alert field on a Supabase-registered row (same
+    // "no alert data" case `normalizeGeofonRow`/`normalizeEmscFeature`
+    // already document) — the sig score still reflects the real magnitude.
+    sig: computeClientSig(magnitudeValue, null),
+    isRegional: isInRegionBbox(row.lat, row.lon),
+    // No provider event-page URL survives a registry round trip (the raw
+    // per-provider payload lives in `event_source_records.raw_payload`,
+    // never selected here — bandwidth-cheap, same reasoning
+    // `events_with_sources`' own doc comment gives for omitting it).
+    url: "",
+  };
 }

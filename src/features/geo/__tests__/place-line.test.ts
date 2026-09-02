@@ -1,4 +1,5 @@
 import i18n from "@/i18n";
+import { NOTABLE_HISTORICAL_EVENTS } from "@/features/historical";
 import { nearestCities } from "../nearest";
 import { nearestCityDistanceLine, nearestCityLine, placeLine } from "../place-line";
 
@@ -117,6 +118,30 @@ describe("placeLine", () => {
 
     expect(result).toBe("پازارجق، کەهرەمانمەرەش، تورکیا");
     expect(result).not.toContain("Kahramanmaraş");
+  });
+
+  it("never renders the provider's own raw place string as the headline, for any curated Historical event (owner directive 2026-09-02)", async () => {
+    // Near-field events (no `placeNameKey`) always resolve through the
+    // gazetteer's own distance/direction/region sentence, in EVERY locale
+    // — structurally never the raw provider string. The two far-field
+    // Kahramanmaraş events resolve through a curated `placeNameKey`
+    // translation instead; that translation is intentionally byte-identical
+    // to the raw provider string ONLY in English (the source locale the
+    // curator copied it from, `historical.places.*`'s own en.json entry) —
+    // it is still OUR OWN catalog text, not a live passthrough of
+    // `event.placeName`, but the two happen to coincide, so this assertion
+    // is scoped to the three locales where the translation actually
+    // diverges (ckb/kmr/ar — a different script entirely).
+    for (const locale of ["en", "ckb", "kmr", "ar"] as const) {
+      await i18n.changeLanguage(locale);
+      for (const event of NOTABLE_HISTORICAL_EVENTS) {
+        if (locale === "en" && event.placeNameKey) {
+          continue;
+        }
+        const result = placeLine(event, locale, i18n.t.bind(i18n));
+        expect(result).not.toBe(event.placeName);
+      }
+    }
   });
 });
 

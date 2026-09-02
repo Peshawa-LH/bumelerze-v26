@@ -33,6 +33,7 @@ function queryBuilder(result: { data: unknown; error: unknown }) {
 
 const HALABJA_EVENT: Event = {
   id: "us2000bmcg",
+  bumelerzeId: null,
   originTime: 1510510697000,
   lat: 34.9109,
   lon: 45.9592,

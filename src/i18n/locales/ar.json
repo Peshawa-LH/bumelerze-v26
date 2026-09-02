@@ -549,6 +549,7 @@
     "notFoundTitle": "لم يتم العثور على الحدث",
     "notFoundDescription": "لم نتمكن من العثور على الحدث {{id}}. قد يكون قديماً جداً، أو أن الرابط غير صحيح.",
     "backToMap": "الرجوع إلى الخريطة",
+    "bumelerzeIdRow": "رقم بوملێرزە: {{id}}",
     "timeSectionTitle": "الوقت",
     "utcTimeLabel": "التوقيت العالمي (UTC)",
     "localTimeLabel": "التوقيت المحلي",
@@ -559,6 +560,7 @@
     "sourceSectionTitle": "المصدر",
     "sourceUpdated": "آخر تحديث {{time}}",
     "sourceCitation": "بيانات الحدث: {{network}} (عبر خدمة FDSN)",
+    "sourceProviderTitle": "{{network}} يسجل هذا الحدث باسم: {{title}}",
     "shakemap": {
       "sectionTitle": "خريطة الاهتزاز (SHAKEmap)",
       "updated": "آخر تحديث {{time}}",

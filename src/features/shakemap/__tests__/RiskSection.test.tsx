@@ -21,6 +21,7 @@ const mockedUseResolvedShakeMap = useResolvedShakeMap as jest.MockedFunction<
 
 const EVENT: Event = {
   id: "us6000jllz",
+  bumelerzeId: null,
   originTime: 1675668633000,
   lat: 37.2256,
   lon: 37.0143,

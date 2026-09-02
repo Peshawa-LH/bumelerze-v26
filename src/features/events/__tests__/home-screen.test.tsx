@@ -71,6 +71,7 @@ function renderWithProviders(ui: ReactElement) {
 
 const sampleEvent: Event = {
   id: "us7000abcd",
+  bumelerzeId: null,
   originTime: Date.now() - 5 * 60_000, // 5 minutes ago
   lat: 35.56,
   lon: 45.43,

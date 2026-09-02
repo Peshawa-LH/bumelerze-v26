@@ -19,6 +19,7 @@ const CONTAINER_HEIGHT_PX = 1000;
 function makeEvent(overrides: Partial<Event> = {}): Event {
   return {
     id: "us7000abcd",
+    bumelerzeId: null,
     originTime: Date.UTC(2026, 7, 15, 12, 0, 0),
     lat: 35.56,
     lon: 45.43,

@@ -48,6 +48,7 @@ jest.mock("expo-router", () => {
 function buildEvent(overrides: Partial<Event> = {}): Event {
   return {
     id: mockEventId,
+    bumelerzeId: null,
     originTime: Date.now() - 5 * 60_000,
     lat: 35.56,
     lon: 45.43,

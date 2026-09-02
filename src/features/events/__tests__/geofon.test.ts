@@ -30,6 +30,7 @@ describe("parseGeofonText", () => {
     expect(result.events).toHaveLength(1);
     expect(result.events[0]).toEqual({
       id: "gfz2026oyxe",
+      bumelerzeId: null,
       originTime: VERIFIED_ORIGIN_TIME_UTC,
       lat: 35.406,
       lon: 44.659,

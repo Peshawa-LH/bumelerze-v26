@@ -160,7 +160,7 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     ).toBe("chevron-back");
   });
 
-  it("navigates to /event/[id] on row tap (mocked router)", async () => {
+  it("navigates to /event/[id] on row tap using the Bumelerze id, not the provider id (owner directive 2026-09-02)", async () => {
     await i18n.changeLanguage("en");
     await renderWithProviders(<HistoricalScreen />);
 
@@ -170,7 +170,9 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     const halabjaLabel = screen.getByLabelText(/2017\. M 7\.3/);
     fireEvent.press(halabjaLabel);
 
-    expect(mockPush).toHaveBeenCalledWith("/event/us2000bmcg");
+    // bml20170001, not the USGS id (us2000bmcg) — see notable-events.ts's
+    // verified mapping.
+    expect(mockPush).toHaveBeenCalledWith("/event/bml20170001");
   });
 
   it("renders a sample historical event's Sorani name (update-plan-2026-08.md §1.4)", async () => {
