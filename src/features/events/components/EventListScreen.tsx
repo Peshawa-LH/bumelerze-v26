@@ -189,7 +189,13 @@ export function EventListScreen({
           <EventCard
             event={item}
             now={now}
-            onPress={(event) => router.push(`/event/${event.id}`)}
+            // Bumelerze identity first, the provider id only as a fallback
+            // (owner directive 2026-09-02) — most feed events don't carry
+            // a `bumelerzeId` yet (`types.ts`'s own doc comment), so this
+            // still commonly pushes the provider id today; Event Detail's
+            // own redirect (`app/event/[id].tsx`) closes that gap the
+            // moment one resolves, without this list needing to wait for it.
+            onPress={(event) => router.push(`/event/${event.bumelerzeId ?? event.id}`)}
             isNotable={notableEventIds?.has(item.id) ?? false}
             sourceAgencies={sourceAgenciesByEventId.get(item.id)?.agencies}
           />

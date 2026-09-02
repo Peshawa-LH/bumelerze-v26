@@ -549,6 +549,7 @@
     "notFoundTitle": "ڕووداو نەدۆزرایەوە",
     "notFoundDescription": "نەمانتوانی ڕووداوی {{id}} بدۆزینەوە. لەوانەیە زۆر کۆن بێت، یان لینکەکە هەڵە بێت.",
     "backToMap": "گەڕانەوە بۆ نەخشە",
+    "bumelerzeIdRow": "ژمارەی بوومەلەرزە: {{id}}",
     "timeSectionTitle": "کات",
     "utcTimeLabel": "کاتی جیهانی (UTC)",
     "localTimeLabel": "کاتی ناوخۆیی",
@@ -559,6 +560,7 @@
     "sourceSectionTitle": "سەرچاوە",
     "sourceUpdated": "نوێکراوەتەوە لە {{time}}",
     "sourceCitation": "داتای ڕووداو: {{network}} (لە ڕێگەی خزمەتگوزاری FDSN)",
+    "sourceProviderTitle": "{{network}} ئەم ڕووداوە بەم ناوەی خوارەوە تۆمار دەکات: {{title}}",
     "shakemap": {
       "sectionTitle": "نەخشەی لەرزین",
       "updated": "نوێکراوەتەوە لە {{time}}",

@@ -30,11 +30,20 @@
  */
 
 export interface NotableHistoricalEvent {
-  /** USGS ComCat/fdsnws event id — feeds straight into `/event/[id]`,
-   * reusing Event Detail's existing `useEventById` fallback fetch and
-   * `ShakeMapSection` (both already handle "not cached, not yet fetched"
-   * and "no shakemap product" states without any change from this feature). */
+  /** USGS ComCat/fdsnws event id — kept as this dataset's stable engine-
+   * facing key (an engine script parses this file by regex for `id:` and
+   * `magnitude:`/`lat:`/`lon:`, so this key is never renamed) and as
+   * `Event Detail`'s `useEventById` cold-start fallback key when
+   * `bumelerzeId` below can't be resolved. It is NO LONGER what
+   * `/event/[id]` pushes for navigation — see `bumelerzeId`. */
   id: string;
+  /** Canonical Bumelerze event id ("bml id" — migration 0025/0026),
+   * verified against the live database for all eleven curated events
+   * (owner directive 2026-09-02: "we cannot replicate their id or event
+   * names" — USGS ids/names are provenance only, never our identity
+   * surface). This is what `/event/[id]` pushes and what the header shows;
+   * `id` above stays the fallback fetch key only. */
+  bumelerzeId: string;
   /** Origin year, UTC — used for the list's newest-first ordering and the
    * row's localized year display. Kept as a plain field (not derived from
    * `originTime`) so the dataset stays trivially human-checkable. */
@@ -76,6 +85,7 @@ export interface NotableHistoricalEvent {
 export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   {
     id: "iscgem899464",
+    bumelerzeId: "bml19440001",
     year: 1944,
     originTime: Date.UTC(1944, 6, 17, 10, 53, 49),
     magnitude: 5.99,
@@ -87,6 +97,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "iscgem898547",
+    bumelerzeId: "bml19460001",
     year: 1946,
     originTime: Date.UTC(1946, 7, 17, 23, 37, 40),
     magnitude: 5.75,
@@ -98,6 +109,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "iscgem884317",
+    bumelerzeId: "bml19580001",
     year: 1958,
     originTime: Date.UTC(1958, 4, 5, 5, 21, 34),
     magnitude: 5.53,
@@ -109,6 +121,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "iscgem839648",
+    bumelerzeId: "bml19670001",
     year: 1967,
     originTime: Date.UTC(1967, 0, 11, 11, 20, 45),
     magnitude: 6.1,
@@ -120,6 +133,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "usp0001bb6",
+    bumelerzeId: "bml19800001",
     year: 1980,
     originTime: Date.UTC(1980, 11, 18, 12, 34, 15),
     magnitude: 5.8,
@@ -131,6 +145,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "usp0004uk3",
+    bumelerzeId: "bml19910001",
     year: 1991,
     originTime: Date.UTC(1991, 6, 24, 9, 45, 41),
     magnitude: 5.5,
@@ -142,6 +157,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "us2000bmcg",
+    bumelerzeId: "bml20170001",
     year: 2017,
     originTime: Date.UTC(2017, 10, 12, 18, 18, 17),
     magnitude: 7.3,
@@ -153,6 +169,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "us1000ghda",
+    bumelerzeId: "bml20180001",
     year: 2018,
     originTime: Date.UTC(2018, 7, 25, 18, 13, 25),
     magnitude: 6.0,
@@ -164,6 +181,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "us1000hwdw",
+    bumelerzeId: "bml20180002",
     year: 2018,
     originTime: Date.UTC(2018, 10, 25, 18, 17, 32),
     magnitude: 6.3,
@@ -175,6 +193,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "us6000jllz",
+    bumelerzeId: "bml20230001",
     year: 2023,
     originTime: Date.UTC(2023, 1, 6, 1, 17, 34),
     magnitude: 7.8,
@@ -187,6 +206,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
   {
     id: "us6000jlqa",
+    bumelerzeId: "bml20230002",
     year: 2023,
     originTime: Date.UTC(2023, 1, 6, 10, 24, 48),
     magnitude: 7.5,
@@ -205,3 +225,23 @@ export function sortNewestFirst(
 ): NotableHistoricalEvent[] {
   return [...events].sort((a, b) => b.originTime - a.originTime);
 }
+
+/**
+ * `bumelerzeId -> provider id` alias map — the ONLY thing a bml-id
+ * `/event/[id]` visit for one of these 11 curated events needs to reach its
+ * bundled Atlas shakemap entry (`shakemap/atlas/index.ts`, generated,
+ * unavoidably still keyed by provider id) without a network round trip.
+ * Built once, module scope — this dataset is a small compile-time constant,
+ * never re-created per render. Also used, in reverse spirit, by
+ * `app/event/[id].tsx`'s cache lookup ("find the event in the cached feeds
+ * by bumelerzeId or by alias").
+ */
+export const NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID: ReadonlyMap<string, string> = new Map(
+  NOTABLE_HISTORICAL_EVENTS.map((event) => [event.bumelerzeId, event.id]),
+);
+
+/** Reverse of the map above — `provider id -> bumelerzeId` — for the "old
+ * link/notification carries a provider id" resolution direction. */
+export const NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID: ReadonlyMap<string, string> = new Map(
+  NOTABLE_HISTORICAL_EVENTS.map((event) => [event.id, event.bumelerzeId]),
+);

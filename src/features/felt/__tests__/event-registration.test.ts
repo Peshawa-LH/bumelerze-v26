@@ -4,6 +4,7 @@ import { toEventRegistration } from "../event-registration";
 
 const SAMPLE_EVENT: Event = {
   id: "us1000abcd",
+  bumelerzeId: null,
   originTime: 1_700_000_000_000,
   lat: 35.56,
   lon: 45.43,

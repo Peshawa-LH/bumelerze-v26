@@ -69,6 +69,7 @@ function liveRow(overrides: Record<string, unknown> = {}) {
 function eventWithId(id: string): Event {
   return {
     id,
+    bumelerzeId: null,
     originTime: 1510510697000,
     lat: 34.9109,
     lon: 45.9592,

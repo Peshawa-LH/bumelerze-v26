@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,10 +12,13 @@ import {
   formatDepthKm,
   formatIsolatedDistance,
   formatMagnitudeValue,
+  isBumelerzeId,
   isolateNumeric,
   MAX_NAMED_SOURCE_TAGS_FULL,
   TagRow,
+  useBumelerzeId,
   useEventById,
+  useEventByBumelerzeId,
   useEventSourceAgencies,
   useRegionEvents,
   useWorldEvents,
@@ -23,6 +26,10 @@ import {
 import { FeltReportPill, useOwnQueueItemForEvent } from "@/features/felt";
 import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
+import {
+  NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID,
+  NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID,
+} from "@/features/historical";
 import { useUserDistanceAnchor } from "@/features/location";
 import { RiskSection, ShakeMapSection } from "@/features/shakemap";
 import { localizeDigits } from "@/lib/format-numbers";
@@ -35,6 +42,24 @@ import { useTheme } from "@/theme";
  * row or a notification tap once those exist); falls back to a direct
  * fdsnws `eventid` lookup only for a cold-start deep link the cache
  * doesn't have yet.
+ *
+ * **Identity (owner directive 2026-09-02): the canonical route id is the
+ * Bumelerze `bml` id, never a provider id** — USGS/EMSC/GEOFON ids and
+ * event names are provenance only, cited in the Source section, never our
+ * own identity surface. Two entry shapes:
+ *  - **A `bml` id** (`isBumelerzeId(id)`): look for it in the cached feeds
+ *    (by `event.bumelerzeId`, which a live feed event never carries yet —
+ *    see `types.ts` — or, for the 11 curated Historical events, by the
+ *    static provider-id ALIAS `NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID`), else
+ *    fetch it straight from Supabase (`useEventByBumelerzeId`) and
+ *    normalize it (`supabase-event.ts`).
+ *  - **A provider id** (old links, a notification payload, a feed row that
+ *    still only carries one) — resolved the existing way (cache, else the
+ *    USGS `byId` fetch), then `router.replace`d to `/event/<bml>` the
+ *    moment a bml id is known for it, either instantly from the static
+ *    curated-event alias (no network) or from `useBumelerzeId`'s Supabase
+ *    lookup. The screen renders fully at the OLD url while that resolves —
+ *    the redirect is a URL hygiene step, never a loading gate.
  */
 export default function EventDetailScreen() {
   const { id, origin } = useLocalSearchParams<{ id: string; origin?: string }>();
@@ -42,6 +67,16 @@ export default function EventDetailScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+
+  const routeIsBumelerzeId = Boolean(id) && isBumelerzeId(id);
+  // Static, offline, zero-cost: only ever non-null for the 11 curated
+  // Historical events, in whichever direction the route param needs.
+  const staticProviderIdAlias = routeIsBumelerzeId
+    ? (NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID.get(id) ?? null)
+    : null;
+  const staticBumelerzeIdAlias = !routeIsBumelerzeId
+    ? (NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID.get(id) ?? null)
+    : null;
 
   // Map-event-sheet wave (owner: "an option to go back to the map"):
   // `origin === "map"` is set ONLY by the Map screen's preview sheet
@@ -66,22 +101,88 @@ export default function EventDetailScreen() {
   const region = useRegionEvents();
   const world = useWorldEvents();
 
-  const cachedEvent = useMemo(
-    () =>
-      region.events.find((event) => event.id === id) ??
-      world.events.find((event) => event.id === id) ??
-      null,
-    [region.events, world.events, id],
+  // The provider id a cached feed event would carry for THIS route param —
+  // either the param itself (a provider-id route) or its curated alias (a
+  // bml-id route for one of the 11 Historical events).
+  const cacheProviderIdCandidate = routeIsBumelerzeId ? staticProviderIdAlias : id;
+
+  const cachedEvent = useMemo(() => {
+    if (routeIsBumelerzeId) {
+      const byBumelerzeId =
+        region.events.find((event) => event.bumelerzeId === id) ??
+        world.events.find((event) => event.bumelerzeId === id) ??
+        null;
+      if (byBumelerzeId) {
+        return byBumelerzeId;
+      }
+    }
+    if (!cacheProviderIdCandidate) {
+      return null;
+    }
+    return (
+      region.events.find((event) => event.id === cacheProviderIdCandidate) ??
+      world.events.find((event) => event.id === cacheProviderIdCandidate) ??
+      null
+    );
+  }, [region.events, world.events, id, routeIsBumelerzeId, cacheProviderIdCandidate]);
+
+  // A provider-id route only ever fetches via the USGS `byId` fdsnws
+  // lookup, unchanged; a bml-id route (no cache hit, and no static curated
+  // alias to have already matched above) falls back to Supabase directly —
+  // see this file's own header doc comment.
+  const shouldFetchById =
+    !cachedEvent &&
+    !routeIsBumelerzeId &&
+    Boolean(id) &&
+    !region.isInitialLoading &&
+    !world.isInitialLoading;
+  const byId = useEventById(routeIsBumelerzeId ? undefined : id, shouldFetchById);
+
+  const shouldFetchByBumelerzeId =
+    !cachedEvent && routeIsBumelerzeId && !region.isInitialLoading && !world.isInitialLoading;
+  const byBumelerzeId = useEventByBumelerzeId(
+    routeIsBumelerzeId ? id : undefined,
+    shouldFetchByBumelerzeId,
   );
 
-  const shouldFetchById =
-    !cachedEvent && Boolean(id) && !region.isInitialLoading && !world.isInitialLoading;
-  const byId = useEventById(id, shouldFetchById);
-
-  const event = cachedEvent ?? byId.event;
+  const event = cachedEvent ?? (routeIsBumelerzeId ? byBumelerzeId.event : byId.event);
   const isLoading =
-    !event && (region.isInitialLoading || world.isInitialLoading || byId.isLoading);
+    !event &&
+    (region.isInitialLoading ||
+      world.isInitialLoading ||
+      (routeIsBumelerzeId ? byBumelerzeId.isLoading : byId.isLoading));
   const isNotFound = !event && !isLoading;
+
+  // Resolve this event's bml id from Supabase ONLY when we don't already
+  // know one another way (a bml-id route, or the static curated alias) —
+  // `useBumelerzeId` itself no-ops (stays disabled) whenever `enabled` is
+  // false, so this never issues a network request those two cases don't
+  // need. `event` may still be `null` momentarily (loading) — `useBumelerzeId`
+  // handles that too (its own `enabled` gate requires a non-null event).
+  const shouldResolveBumelerzeId = !routeIsBumelerzeId && !staticBumelerzeIdAlias && Boolean(event);
+  const resolvedBumelerzeId = useBumelerzeId(
+    shouldResolveBumelerzeId ? event : null,
+    shouldResolveBumelerzeId,
+  );
+
+  // The bml id to show in the header the moment ANY source knows it — the
+  // event's own field (set directly for a Supabase-normalized event),
+  // else the route param itself (we arrived via a bml-id alias match),
+  // else the static curated alias, else whatever `useBumelerzeId` resolved.
+  const displayBumelerzeId =
+    event?.bumelerzeId ??
+    (routeIsBumelerzeId ? id : null) ??
+    staticBumelerzeIdAlias ??
+    resolvedBumelerzeId.bumelerzeId;
+
+  // URL hygiene only (this file's own header doc comment) — never a loading
+  // gate; the screen already has everything it needs to render fully at
+  // the OLD (provider-id) url the instant `displayBumelerzeId` is known.
+  useEffect(() => {
+    if (!routeIsBumelerzeId && displayBumelerzeId) {
+      router.replace(`/event/${displayBumelerzeId}`);
+    }
+  }, [routeIsBumelerzeId, displayBumelerzeId, router]);
 
   // Local-only lookup (D8, wave brief point 4): this device's own queued
   // report for this event, if any — there is no backend to ask for a
@@ -174,6 +275,7 @@ export default function EventDetailScreen() {
           {event ? (
             <EventDetailHeader
               event={event}
+              bumelerzeId={displayBumelerzeId}
               locale={i18n.language}
               colors={colors}
               typography={typography}
@@ -269,6 +371,12 @@ export default function EventDetailScreen() {
 
 interface EventDetailHeaderProps {
   event: NonNullable<ReturnType<typeof useEventById>["event"]>;
+  /** The event's bml id, from whichever source resolved it first — see
+   * `EventDetailScreen`'s own `displayBumelerzeId` doc comment. `null`
+   * whenever nothing has resolved one yet (or ever will — most feed events,
+   * most of the time); the header still renders fully without it, just
+   * without the "Bumelerze ID" row (never a loading gate). */
+  bumelerzeId: string | null;
   locale: string;
   colors: ReturnType<typeof useTheme>["colors"];
   typography: ReturnType<typeof useTheme>["typography"];
@@ -279,6 +387,7 @@ interface EventDetailHeaderProps {
 
 function EventDetailHeader({
   event,
+  bumelerzeId,
   locale,
   colors,
   typography,
@@ -354,6 +463,23 @@ function EventDetailHeader({
           agencies={sourceAgencies}
           maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL}
         />
+        {/* Bumelerze's own identity (owner directive 2026-09-02: "we
+         * cannot replicate [USGS's] id or event names") — shown the moment
+         * it's known, from whichever source resolved it
+         * (`EventDetailScreen`'s own `displayBumelerzeId`); silently absent
+         * otherwise, never a loading placeholder. */}
+        {bumelerzeId ? (
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+              lineHeight: typography.bodyMeta.lineHeight,
+              fontVariant: ["tabular-nums"],
+            }}
+          >
+            {t("eventDetail.bumelerzeIdRow", { id: isolateNumeric(bumelerzeId) })}
+          </Text>
+        ) : null}
       </View>
 
       <DetailSection
@@ -520,6 +646,30 @@ function EventDetailHeader({
             network: event.provenance.provider.toUpperCase(),
           })}
         </Text>
+        {/* The provider's OWN free-text place/title (USGS `properties.place`,
+         * EMSC `flynn_region`) — cited here, and ONLY here, never as this
+         * screen's headline (owner directive 2026-09-02: "we cannot
+         * replicate their id or event names"; `placeText` above is always
+         * our own localized place line). Hidden for the common case where
+         * the provider text is empty or is already exactly what the
+         * headline shows (e.g. a curated Historical event whose
+         * `placeNameKey` translation happens to read the same) — citing an
+         * identical string twice on one screen is noise, not provenance. */}
+        {event.placeName && event.placeName !== placeText ? (
+          <Text
+            style={{
+              marginTop: spacing[2],
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+              lineHeight: typography.bodyMeta.lineHeight,
+            }}
+          >
+            {t("eventDetail.sourceProviderTitle", {
+              network: event.provenance.provider.toUpperCase(),
+              title: event.placeName,
+            })}
+          </Text>
+        ) : null}
       </DetailSection>
     </View>
   );

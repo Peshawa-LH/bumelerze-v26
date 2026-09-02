@@ -31,8 +31,14 @@ export default function HistoricalScreen() {
 
   const events = sortNewestFirst(NOTABLE_HISTORICAL_EVENTS);
 
+  // Bumelerze identity, not the provider's (owner directive 2026-09-02:
+  // "we cannot replicate [USGS's] id or event names") — every one of these
+  // 11 curated events already carries a verified `bumelerzeId`
+  // (`notable-events.ts`), so navigation always has one to push; `event.id`
+  // (the USGS ComCat id) stays Event Detail's own cold-start fallback key,
+  // never the URL.
   function handlePress(event: NotableHistoricalEvent) {
-    router.push(`/event/${event.id}`);
+    router.push(`/event/${event.bumelerzeId}`);
   }
 
   return (

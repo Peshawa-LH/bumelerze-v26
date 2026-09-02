@@ -115,6 +115,7 @@ describe("significance classification (event-pipeline-design.md §3 thresholds)"
   function makeEvent(overrides: Partial<Event>): Event {
     return {
       id: "test-event",
+      bumelerzeId: null,
       originTime: 0,
       lat: 36.0,
       lon: 44.5,

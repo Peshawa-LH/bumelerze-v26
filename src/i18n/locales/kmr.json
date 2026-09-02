@@ -549,6 +549,7 @@
     "notFoundTitle": "Bûyer nehat dîtin",
     "notFoundDescription": "Me nekarî bûyera {{id}} bibîne. Dibe ku pir kevn be, an jî girêdan çewt be.",
     "backToMap": "Vegere nexşeyê",
+    "bumelerzeIdRow": "Nasnameya Bumelerze: {{id}}",
     "timeSectionTitle": "Dem",
     "utcTimeLabel": "UTC",
     "localTimeLabel": "Herêmî",
@@ -559,6 +560,7 @@
     "sourceSectionTitle": "Çavkanî",
     "sourceUpdated": "Hate rojanekirin {{time}}",
     "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)",
+    "sourceProviderTitle": "{{network}} vê bûyerê weha binav dike: {{title}}",
     "shakemap": {
       "sectionTitle": "SHAKEmap",
       "updated": "Hate rojanekirin {{time}}",

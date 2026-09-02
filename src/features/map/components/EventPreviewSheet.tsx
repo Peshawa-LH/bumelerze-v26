@@ -206,9 +206,12 @@ function EventPreviewSheetImpl(
     // comment for why a plain `router.push` alone isn't quite enough
     // (notification taps and other entry points push `/event/[id]` too, and
     // must NOT get a map-specific back affordance).
+    // Bumelerze identity first, the provider id only as a fallback (owner
+    // directive 2026-09-02) — see `EventListScreen`'s identical push for
+    // why this commonly still falls back today and why that's fine.
     router.push({
       pathname: "/event/[id]",
-      params: { id: currentEvent.id, origin: "map" },
+      params: { id: currentEvent.bumelerzeId ?? currentEvent.id, origin: "map" },
     });
   }, [router, currentEvent, onDetentChange, animateToDetent]);
 

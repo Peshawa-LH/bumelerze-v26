@@ -12,6 +12,7 @@ const NOW = 1_700_000_000_000;
 function makeEvent(overrides: Partial<Event>): Event {
   return {
     id: "evt-default",
+    bumelerzeId: null,
     originTime: NOW,
     lat: 36.19,
     lon: 44.01,

@@ -549,6 +549,7 @@
     "notFoundTitle": "Event not found",
     "notFoundDescription": "We couldn't find event {{id}}. It may be too old, or the link may be incorrect.",
     "backToMap": "Back to map",
+    "bumelerzeIdRow": "Bumelerze ID: {{id}}",
     "timeSectionTitle": "Time",
     "utcTimeLabel": "UTC",
     "localTimeLabel": "Local",
@@ -559,6 +560,7 @@
     "sourceSectionTitle": "Source",
     "sourceUpdated": "Updated {{time}}",
     "sourceCitation": "Event data: {{network}} (via FDSN web service)",
+    "sourceProviderTitle": "{{network}} lists this event as: {{title}}",
     "shakemap": {
       "sectionTitle": "SHAKEmap",
       "updated": "Updated {{time}}",

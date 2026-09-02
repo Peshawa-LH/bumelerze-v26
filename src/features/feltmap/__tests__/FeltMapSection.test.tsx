@@ -19,6 +19,7 @@ const mockedUseFeltMap = useFeltMap as jest.MockedFunction<typeof useFeltMap>;
 
 const CHAMCHAMAL_EVENT: Event = {
   id: "fixture-chamchamal-20260813",
+  bumelerzeId: null,
   originTime: Date.UTC(2026, 7, 13, 22, 28, 0),
   lat: CHAMCHAMAL_CENTER.lat,
   lon: CHAMCHAMAL_CENTER.lon,

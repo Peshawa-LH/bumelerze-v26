@@ -18,6 +18,7 @@ function makeEvent(
   const mag = overrides.mag ?? 4.0;
   return {
     id,
+    bumelerzeId: null,
     originTime: overrides.originTime ?? BASE_TIME,
     lat: overrides.lat ?? BASE_LAT,
     lon: overrides.lon ?? BASE_LON,

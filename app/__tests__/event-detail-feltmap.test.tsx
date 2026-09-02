@@ -53,6 +53,7 @@ jest.mock("expo-router", () => {
 
 const mockChamchamalEvent: Event = {
   id: FELTMAP_FIXTURE_EVENT_ID,
+  bumelerzeId: null,
   originTime: Date.UTC(2026, 7, 13, 22, 28, 0),
   lat: CHAMCHAMAL_CENTER.lat,
   lon: CHAMCHAMAL_CENTER.lon,

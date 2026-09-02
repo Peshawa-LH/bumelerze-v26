@@ -55,6 +55,20 @@ export interface Event {
    * never imply "USGS id" so a future dedup/merge step can repoint it at an
    * internal UUID without a rename (event-pipeline-design.md §1). */
   id: string;
+  /** Canonical Bumelerze event id ("bml id" — `bml` + 4-digit origin year +
+   * base-36 per-year counter, e.g. `bml20230002`, migration 0025/0026),
+   * allocated server-side in Supabase once an event is registered there.
+   * `null` for the common case: a live feed event this session has not yet
+   * (or may never) resolve against Supabase (`resolveBumelerzeId`,
+   * `bumelerze-id.ts`) — `id`/`provenance.providerId` (the USGS/EMSC/GEOFON
+   * id) stay the only identity a freshly-normalized feed event carries.
+   * Populated directly when the `Event` itself came FROM Supabase
+   * (`supabase-event.ts`'s `normalizeSupabaseEventRow`, `events.bumelerze_id`).
+   * Provider ids are provenance only (owner directive 2026-09-02: "we
+   * cannot replicate USGS's id or event names") — every user-facing
+   * identity surface (the `/event/[id]` route, headers, share text) must
+   * prefer this field the moment it is known, never the provider id. */
+  bumelerzeId: string | null;
   /** Origin time, UTC ms. */
   originTime: number;
   lat: number;

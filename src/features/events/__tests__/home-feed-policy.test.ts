@@ -17,6 +17,7 @@ function makeEvent(
 ): Event {
   return {
     id,
+    bumelerzeId: null,
     originTime: overrides.originTime ?? NOW - 5 * 60_000,
     lat: 35.56,
     lon: 45.43,

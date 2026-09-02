@@ -369,6 +369,7 @@ export const MOCK_DATA_UPDATED_AT = Date.UTC(2026, 7, 17, 12, 0, 0);
 export function makeEvent(overrides: Partial<Event> = {}): Event {
   return {
     id: "us7000abcd",
+    bumelerzeId: null,
     originTime: Date.UTC(2026, 7, 15, 12, 0, 0),
     lat: 35.56,
     lon: 45.43,

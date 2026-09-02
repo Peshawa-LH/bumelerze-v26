@@ -28,6 +28,7 @@ const mockedIsSupabaseConfigured = isSupabaseConfigured as jest.MockedFunction<
 function makeEvent(overrides: Partial<Event> = {}): Event {
   return {
     id: "us7000abcd",
+    bumelerzeId: null,
     originTime: Date.now(),
     lat: 35.56,
     lon: 45.43,
