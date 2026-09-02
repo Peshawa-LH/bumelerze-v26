@@ -82,7 +82,8 @@
     },
     "placeLine": {
       "template": "{{distance}} {{direction}}ی {{city}}ەوە",
-      "withRegion": "{{line}}، {{region}}"
+      "withRegion": "{{line}}، {{region}}",
+      "coordinates": "نزیک {{lat}}، {{lon}}"
     }
   },
   "events": {

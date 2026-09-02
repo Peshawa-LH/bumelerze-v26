@@ -5,7 +5,7 @@ import type { TFunction } from "i18next";
 // `EventCard`, itself importing from `@/features/geo`).
 import { formatIsolatedDistance } from "@/features/events/format";
 import { DIRECTION_I18N_KEYS } from "./bearing";
-import { NEAREST_CITY_FALLBACK_THRESHOLD_KM } from "./config";
+import { NEAREST_CITY_FALLBACK_THRESHOLD_KM, REGIONAL_NAMING_MAX_KM } from "./config";
 import { pickLocalizedName } from "./gazetteer";
 import { nearestCities, type NearestCityResult } from "./nearest";
 import { resolveFarFieldRegionKey, resolveRegionLabelKey } from "./region";
@@ -93,11 +93,28 @@ export function placeLine(event: PlaceLineEvent, locale: string, t: TranslateFn)
     if (event.placeNameKey) {
       return t(event.placeNameKey);
     }
+    // Owner directive 2026-09-02: a provider's own event title (USGS
+    // `place`, EMSC `flynn_region`) is never our headline for an event in
+    // or around the region. Beyond the gazetteer radius but still within
+    // `REGIONAL_NAMING_MAX_KM` of a known city, the line is our own
+    // distance-and-direction line; only far-world events fall through to
+    // a far-field region name or, last, the provider's English text.
     const farFieldRegionKey = resolveFarFieldRegionKey(event.placeName);
     if (farFieldRegionKey) {
+      // A translated Flinn-Engdahl region name is ours (D28), and reads
+      // better than a 600 km distance line.
       return t(`geo.regions.farField.${farFieldRegionKey}`);
     }
-    return event.placeName;
+    if (nearest && nearest.distanceKm <= REGIONAL_NAMING_MAX_KM) {
+      return nearestCityLine(nearest, locale, t);
+    }
+    if (event.placeName) {
+      return event.placeName;
+    }
+    return t("geo.placeLine.coordinates", {
+      lat: event.lat.toFixed(2),
+      lon: event.lon.toFixed(2),
+    });
   }
 
   const line = nearestCityLine(nearest, locale, t);

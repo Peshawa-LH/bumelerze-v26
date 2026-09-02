@@ -165,3 +165,16 @@ describe("nearestCityLine / nearestCityDistanceLine", () => {
     expect(withoutDirection).toContain("from Halabja");
   });
 });
+
+
+describe("placeLine never echoes a provider title (owner directive 2026-09-02)", () => {
+  it("uses our nearest-city line beyond the gazetteer radius when no region is recognised", () => {
+    const line = placeLine(
+      { lat: 38.02, lon: 37.2, placeName: "Elbistan earthquake, Kahramanmaras earthquake sequence" },
+      "en",
+      i18n.t,
+    );
+    expect(line).not.toContain("Elbistan earthquake");
+    expect(line).toMatch(/km/);
+  });
+});

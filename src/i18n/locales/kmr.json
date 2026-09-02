@@ -82,7 +82,8 @@
     },
     "placeLine": {
       "template": "{{distance}} {{direction}} ji {{city}}",
-      "withRegion": "{{line}}, {{region}}"
+      "withRegion": "{{line}}, {{region}}",
+      "coordinates": "Nêzîkî {{lat}}, {{lon}}"
     }
   },
   "events": {

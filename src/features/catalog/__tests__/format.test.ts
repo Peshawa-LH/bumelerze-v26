@@ -51,17 +51,18 @@ describe("formatCatalogPlace", () => {
     expect(line.length).toBeGreaterThan("Iraq".length);
   });
 
-  it("falls back to the agency region when the gazetteer has nothing close", () => {
+  it("never uses the agency's place text as the headline beyond the gazetteer radius (owner directive 2026-09-02)", () => {
     // Far western Turkey, well outside the gazetteer.
     const line = formatCatalogPlace(
       makeRow({ lat: 38.163, lon: 38.459, region: "13 km NNE of Sincik, Turkey" }),
       "en",
       t,
     );
-    expect(line).toContain("Sincik");
+    expect(line).not.toContain("Sincik");
+    expect(line).toMatch(/km/);
   });
 
-  it("falls back to coordinates only when there is no region either", () => {
+  it("gives our own distance line, not coordinates, when there is no region either", () => {
     // The ~13% of rows no FDSN response covered: pre-instrumental and
     // regional-catalog records.
     const line = formatCatalogPlace(
@@ -69,6 +70,6 @@ describe("formatCatalogPlace", () => {
       "en",
       t,
     );
-    expect(line).toMatch(/38\.16/);
+    expect(line).toMatch(/km/);
   });
 });

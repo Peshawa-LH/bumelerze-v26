@@ -34,3 +34,13 @@ export const NEAREST_CITY_FALLBACK_THRESHOLD_KM = 300;
  * (ui-backlog.md wave 5 item 5: "list of the 3 nearest gazetteer
  * cities"). */
 export const DEFAULT_NEAREST_CITY_COUNT = 3;
+
+/**
+ * Owner directive 2026-09-02: a provider's event title is never our headline
+ * for events in and around the region. Up to this distance from the nearest
+ * gazetteer city the headline is always our own distance-and-direction line,
+ * even beyond `NEAREST_CITY_FALLBACK_THRESHOLD_KM`; only far-world events
+ * (a Tokyo or a Sumatra event in the world feed) fall back to a far-field
+ * region name or, last, the provider's English place text.
+ */
+export const REGIONAL_NAMING_MAX_KM = 800;

@@ -82,7 +82,8 @@
     },
     "placeLine": {
       "template": "{{distance}} {{direction}} من {{city}}",
-      "withRegion": "{{line}}، {{region}}"
+      "withRegion": "{{line}}، {{region}}",
+      "coordinates": "قرب {{lat}}، {{lon}}"
     }
   },
   "events": {

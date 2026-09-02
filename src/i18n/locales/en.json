@@ -82,7 +82,8 @@
     },
     "placeLine": {
       "template": "{{distance}} {{direction}} of {{city}}",
-      "withRegion": "{{line}}, {{region}}"
+      "withRegion": "{{line}}, {{region}}",
+      "coordinates": "Near {{lat}}, {{lon}}"
     }
   },
   "events": {
