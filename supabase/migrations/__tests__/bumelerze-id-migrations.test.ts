@@ -157,3 +157,22 @@ describe("0026_wire_bumelerze_id_allocation.sql", () => {
     expect(sql).not.toMatch(/create or replace function public\.detect_possible_events/);
   });
 });
+
+describe("0029_dedup_radius_50km.sql", () => {
+  const sql = readMigration("0029_dedup_radius_50km.sql");
+
+  it("re-issues upsert_event_from_client with the 50 km cross-provider radius (config.ts DEDUP_MAX_DISTANCE_KM)", () => {
+    expect(sql).toMatch(/create or replace function public\.upsert_event_from_client/);
+    expect(sql).toMatch(/ST_DWithin\([\s\S]*?50000 -- 50 km/);
+    expect(sql).not.toMatch(/100000 -- 100 km, meters/);
+  });
+
+  it("keeps the crowd 'possible' event match at 100 km", () => {
+    expect(sql).toMatch(/<= 600 -- 10 min[\s\S]*?100000 -- 100 km/);
+  });
+
+  it("still allocates the bml id inside the new-event insert and keeps the grants", () => {
+    expect(sql.indexOf("v_bml_id := public.allocate_bumelerze_id(")).toBeGreaterThan(-1);
+    expect(sql).toMatch(/grant execute on function public\.upsert_event_from_client[\s\S]*?anon, authenticated, service_role/);
+  });
+});

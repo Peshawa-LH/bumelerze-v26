@@ -39,12 +39,13 @@ function makeEvent(
 
 /**
  * Golden pairs for the §2 spatial-temporal match
- * (event-pipeline-design.md §2 step 3: |Δt| <= 16 s AND distance <= 100 km
+ * (event-pipeline-design.md §2 step 3: |Δt| <= 16 s AND distance <= 50 km
+ * since engine review ruling H1.c, 2026-09-06; was 100 km
  * AND |ΔM| <= 1.5, all inclusive). Distance goldens are hand-computed
  * haversine values (R = 6371 km):
- * - Δlat 0.89°  at fixed lon → ~98.96 km  (inside the 100 km threshold)
- * - Δlat 0.91°  at fixed lon → ~101.19 km (outside)
- * - Δlon 1.00°  at lat 35    → ~91.08 km  (inside — cos(35°) shrink)
+ * - Δlat 0.44°  at fixed lon → ~48.93 km  (inside the 50 km threshold)
+ * - Δlat 0.46°  at fixed lon → ~51.15 km  (outside)
+ * - Δlon 0.50°  at lat 35    → ~45.54 km  (inside — cos(35°) shrink)
  */
 describe("isSameEarthquake (§2 dedup thresholds)", () => {
   const usgs = makeEvent("usgs", "us7000test");
@@ -65,18 +66,18 @@ describe("isSameEarthquake (§2 dedup thresholds)", () => {
     expect(isSameEarthquake(usgs, emsc)).toBe(false);
   });
 
-  it("distance boundary: ~98.96 km (Δlat 0.89°) matches", () => {
-    const emsc = makeEvent("emsc", "e", { lat: BASE_LAT + 0.89 });
+  it("distance boundary: ~48.93 km (Δlat 0.44°) matches", () => {
+    const emsc = makeEvent("emsc", "e", { lat: BASE_LAT + 0.44 });
     expect(isSameEarthquake(usgs, emsc)).toBe(true);
   });
 
-  it("distance boundary: ~101.19 km (Δlat 0.91°) does not match", () => {
-    const emsc = makeEvent("emsc", "e", { lat: BASE_LAT + 0.91 });
+  it("distance boundary: ~51.15 km (Δlat 0.46°) does not match", () => {
+    const emsc = makeEvent("emsc", "e", { lat: BASE_LAT + 0.46 });
     expect(isSameEarthquake(usgs, emsc)).toBe(false);
   });
 
-  it("distance: a full degree of longitude at lat 35 (~91.08 km) still matches", () => {
-    const emsc = makeEvent("emsc", "e", { lon: BASE_LON + 1.0 });
+  it("distance: half a degree of longitude at lat 35 (~45.54 km) still matches", () => {
+    const emsc = makeEvent("emsc", "e", { lon: BASE_LON + 0.5 });
     expect(isSameEarthquake(usgs, emsc)).toBe(true);
   });
 

@@ -27,7 +27,7 @@ import type { Event } from "./types";
 
 /**
  * §2 step-3 spatial-temporal match: same physical earthquake when
- * |Δ origin time| <= 16 s AND epicentral distance <= 100 km AND
+ * |Δ origin time| <= 16 s AND epicentral distance <= 50 km AND
  * |ΔM| <= 1.5. All three thresholds are inclusive (<=) and live in
  * config.ts. The |ΔM| guard is defined "when both magnitudes exist" in the
  * design doc; in the normalized `Event` model a magnitude value always

@@ -228,14 +228,15 @@ export const GEOFON_REGION_TIMEOUT_MS = 8_000;
  * Cross-provider dedup thresholds, event-pipeline-design.md §2 step 3
  * (spatial-temporal match, all tunable): two provider records are the same
  * physical earthquake when |Δ origin time| <= 16 s AND epicentral distance
- * <= 100 km AND |ΔM| <= 1.5 (the magnitude guard applies only when both
+ * <= 50 km AND |ΔM| <= 1.5 (the magnitude guard applies only when both
  * records carry a magnitude — in the client's normalized `Event` model both
  * always do, since normalize.ts drops magnitude-less features). Mirrored by
- * the bumelerze-engine worker's own dedup helper (feed_watcher.py) — keep the
- * two in sync when tuning.
+ * the bumelerze-engine worker's own dedup helper (feed_watcher.py) and by
+ * `upsert_event_from_client` (migration 0029) — keep the three in sync when
+ * tuning. 50 km since the engine review ruling H1.c (2026-09-06); was 100 km.
  */
 export const DEDUP_MAX_TIME_DELTA_MS = 16_000;
-export const DEDUP_MAX_DISTANCE_KM = 100;
+export const DEDUP_MAX_DISTANCE_KM = 50;
 export const DEDUP_MAX_MAG_DELTA = 1.5;
 
 /**
