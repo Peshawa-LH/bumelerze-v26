@@ -32,6 +32,12 @@ const STAGE_NAME_KEYS: Record<string, string> = {
   pga_lognormal: "eventDetail.risk.stageNames.pgaLognormal",
   gl2004: "eventDetail.risk.stageNames.gl2004",
   ims25_rules: "eventDetail.risk.stageNames.ims25Rules",
+  // Bumelerze Engine v2.0 Phase 4's own stage string for the same
+  // macroseismic/GL2004 method the older `gl2004` id already named —
+  // mapped to a DIFFERENT i18n key (not reused) so a future need to word
+  // the two slightly differently (this one names the IMS-25 damage-grade
+  // scale it feeds) never has to fight the older string's translations.
+  gl2004_macroseismic: "eventDetail.risk.stageNames.gl2004Macroseismic",
 };
 
 function stageNameKey(stage: string): string {

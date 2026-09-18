@@ -630,8 +630,17 @@
         "a11ySegment": "{{label}}: {{percent}} بالمئة"
       },
       "provincesTitle": "أكثر المحافظات تضررا",
+      "areasTitle": "أكثر المناطق تضررا",
+      "areaLevels": {
+        "city": "المدن",
+        "subdistrict": "النواحي",
+        "district": "الأقضية",
+        "governorate": "المحافظات"
+      },
       "provinceCaption": "نحو {{value}} مبنى",
       "provinceRowA11y": "{{province}}، فئة {{band}}، نحو {{value}} مبنى تضرر بشدة",
+      "areaRowA11y": "{{area}}، فئة {{band}}، نحو {{value}} مبنى تضرر بشدة",
+      "areaLevelA11y": "عرض {{level}}",
       "partlyInsideMap": "جزء منها داخل الخريطة",
       "chips": {
         "provisional": "أولي",
@@ -647,6 +656,7 @@
       "stageNames": {
         "pgaLognormal": "منحنيات PGA",
         "gl2004": "نموذج مقروسيزمي",
+        "gl2004Macroseismic": "نموذج مقروسيزمي، IMS-25",
         "ims25Rules": "قواعد IMS-25",
         "unknown": "نموذج الهشاشة"
       },

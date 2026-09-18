@@ -630,8 +630,17 @@
         "a11ySegment": "{{label}}: {{percent}} percent"
       },
       "provincesTitle": "Provinces most affected",
+      "areasTitle": "Most affected areas",
+      "areaLevels": {
+        "city": "Cities",
+        "subdistrict": "Sub-districts",
+        "district": "Districts",
+        "governorate": "Governorates"
+      },
       "provinceCaption": "About {{value}} buildings",
       "provinceRowA11y": "{{province}}, {{band}} band, about {{value}} buildings heavily damaged",
+      "areaRowA11y": "{{area}}, {{band}} band, about {{value}} buildings heavily damaged",
+      "areaLevelA11y": "Show {{level}}",
       "partlyInsideMap": "Partly inside map",
       "chips": {
         "provisional": "Provisional",
@@ -647,6 +656,7 @@
       "stageNames": {
         "pgaLognormal": "PGA curves",
         "gl2004": "Macroseismic model",
+        "gl2004Macroseismic": "Macroseismic model, IMS-25",
         "ims25Rules": "IMS-25 rules",
         "unknown": "Fragility model"
       },

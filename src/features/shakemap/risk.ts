@@ -6,6 +6,9 @@ import { extractContourLevels } from "./contours";
 import type {
   DamageContourLevel,
   DamageContourSet,
+  RiskArea,
+  RiskAreaLevel,
+  RiskAreas,
   RiskDistrict,
   RiskDistricts,
   RiskProduct,
@@ -14,10 +17,11 @@ import type {
 } from "./types";
 
 /**
- * Tolerant zod parsers for the three risk-chain artifacts (D46,
- * `risk-dashboard` wave) a `shakemap_products` version can optionally
- * carry alongside its intensity `contours`: `risk_summary.json`,
- * `districts.json`, `cont_damage.json`. Same "never trust blindly, parse
+ * Tolerant zod parsers for the risk-chain artifacts (D46, `risk-dashboard`
+ * wave; `areas.json` added in the `risk-areas` wave) a `shakemap_products`
+ * version can optionally carry alongside its intensity `contours`:
+ * `risk_summary.json`, `districts.json`, `cont_damage.json`, `areas.json`.
+ * Same "never trust blindly, parse
  * once at the resolve boundary" discipline `contours.ts` already
  * establishes for the always-present intensity product — every parser
  * here returns `null` (never throws) for a missing/malformed payload,
@@ -157,6 +161,111 @@ export function parseRiskDistricts(payload: unknown): RiskDistricts | null {
 }
 
 // ---------------------------------------------------------------------------
+// areas.json
+// ---------------------------------------------------------------------------
+
+const riskAreaLevelSchema = z.enum(["governorate", "district", "subdistrict", "city"]);
+
+/** Fixed level order — the single place every parser/component that needs
+ * to iterate all four levels gets it from, so it can never re-diverge
+ * between `parseRiskAreas` and, say, `RiskAreaList`'s own level switch. */
+export const RISK_AREA_LEVELS: readonly RiskAreaLevel[] = [
+  "governorate",
+  "district",
+  "subdistrict",
+  "city",
+];
+
+const riskAreaPayloadSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  level: riskAreaLevelSchema,
+  parent_id: z.string().nullable(),
+  coverage: z.number(),
+  buildings_in_grid: z.number(),
+  buildings_heavy: z.number(),
+  buildings_dg4plus: z.number(),
+  // Absent when the product's own `n_draws` is 0 (`types.ts`'s
+  // `RiskArea.buildingsHeavyP05P50P95` doc comment) — optional, never
+  // defaulted to a fabricated triple.
+  buildings_heavy_p05_p50_p95: triple.optional(),
+  buildings_dg4plus_p05_p50_p95: triple.optional(),
+  exposed_population: z.number(),
+});
+
+const riskAreasLevelsPayloadSchema = z.object({
+  governorate: z.array(z.unknown()).optional(),
+  district: z.array(z.unknown()).optional(),
+  subdistrict: z.array(z.unknown()).optional(),
+  city: z.array(z.unknown()).optional(),
+});
+
+const riskAreasPayloadSchema = z.object({
+  damage_model: z.string(),
+  time_of_day: timeOfDaySchema,
+  n_draws: z.number(),
+  levels: riskAreasLevelsPayloadSchema,
+});
+
+/**
+ * Parses `areas.json` (already fetched) into `RiskAreas`, or `null` for a
+ * top-level shape that isn't even the expected object — same tolerant,
+ * per-row-skipping discipline `parseRiskDistricts` already establishes,
+ * extended across four independent level buckets instead of one flat
+ * array. A level key missing from the payload entirely is treated as an
+ * empty list for that level (never a reason to reject the whole product);
+ * `skippedCount` is summed across all four levels. Producer order
+ * (worst-first, per level) is preserved, never re-sorted.
+ */
+export function parseRiskAreas(payload: unknown): RiskAreas | null {
+  const parsed = riskAreasPayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    return null;
+  }
+
+  const levels: Record<RiskAreaLevel, RiskArea[]> = {
+    governorate: [],
+    district: [],
+    subdistrict: [],
+    city: [],
+  };
+  let skippedCount = 0;
+
+  for (const level of RISK_AREA_LEVELS) {
+    const rawRows = parsed.data.levels[level] ?? [];
+    for (const raw of rawRows) {
+      const item = riskAreaPayloadSchema.safeParse(raw);
+      if (!item.success) {
+        skippedCount += 1;
+        continue;
+      }
+      const d = item.data;
+      levels[level].push({
+        id: d.id,
+        name: d.name,
+        level: d.level,
+        parentId: d.parent_id,
+        coverage: d.coverage,
+        buildingsInGrid: d.buildings_in_grid,
+        buildingsHeavy: d.buildings_heavy,
+        buildingsDg4Plus: d.buildings_dg4plus,
+        buildingsHeavyP05P50P95: d.buildings_heavy_p05_p50_p95 ?? null,
+        buildingsDg4PlusP05P50P95: d.buildings_dg4plus_p05_p50_p95 ?? null,
+        exposedPopulation: d.exposed_population,
+      });
+    }
+  }
+
+  return {
+    damageModel: parsed.data.damage_model,
+    timeOfDay: parsed.data.time_of_day as RiskTimeOfDay,
+    nDraws: parsed.data.n_draws,
+    levels,
+    skippedCount,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // cont_damage.json
 // ---------------------------------------------------------------------------
 
@@ -198,8 +307,12 @@ export interface RawRiskProductPayload {
   summary?: unknown;
   districts?: unknown;
   damageContours?: unknown;
+  /** Optional `areas.json` payload (`risk-areas` wave) — same "present but
+   * malformed/missing degrades gracefully" treatment `damageContours`
+   * already gets, never required for the product to parse. */
+  areas?: unknown;
   /** Already-resolved absolute URL (or `undefined`/`null`) — unlike the
-   * three fields above, this is never raw JSON to parse further; the live
+   * fields above, this is never raw JSON to parse further; the live
    * transport resolves it (`resolveArtifactUrl`) before ever handing it
    * here, and `buildBundledReportUrl` below derives the bundled-path
    * equivalent. */
@@ -235,12 +348,13 @@ export function parseRiskProduct(raw: unknown): RiskProduct | null {
 
   const damageContours =
     payload.damageContours !== undefined ? parseDamageContours(payload.damageContours) : null;
+  const areas = payload.areas !== undefined ? parseRiskAreas(payload.areas) : null;
   const reportUrl =
     typeof payload.reportUrl === "string" && payload.reportUrl.length > 0
       ? payload.reportUrl
       : null;
 
-  return { summary, districts, damageContours, reportUrl };
+  return { summary, districts, damageContours, areas, reportUrl };
 }
 
 /**

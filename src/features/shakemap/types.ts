@@ -42,14 +42,19 @@ export interface AtlasBundleEntry {
    * go through (never trusted blindly just because it's bundled). */
   contours: unknown;
   /** Optional risk-chain bundle (D46 damage/exposure products,
-   * `risk-dashboard` wave): `{ summary, districts, damageContours? }`, each
-   * raw and byte-identical to the engine's own `risk_summary.json`/
-   * `districts.json`/`cont_damage.json` — parsed via `risk.ts`'s
+   * `risk-dashboard` wave): `{ summary, districts, damageContours?, areas? }`,
+   * each raw and byte-identical to the engine's own `risk_summary.json`/
+   * `districts.json`/`cont_damage.json`/`areas.json` — parsed via `risk.ts`'s
    * `parseRiskProduct` at render/resolve time, same "never trust blindly"
    * discipline `contours` above already follows. Present only for events
    * that actually have a real risk product computed (three at launch:
    * us6000jllz, us6000jlqa, us2000bmcg); absent (`undefined`) for every
-   * other bundled event — never a fabricated empty shell. */
+   * other bundled event — never a fabricated empty shell. `areas` is newer
+   * than the other three (`risk-areas` wave) — a bundled entry generated
+   * before that wave simply carries no `areas` key at all, which
+   * `parseRiskProduct` already treats identically to a missing
+   * `damageContours` key: the product still parses, `areas` just resolves
+   * to `null`. */
   risk?: unknown;
 }
 
@@ -141,6 +146,71 @@ export interface RiskSummary {
   casualtiesPublished: boolean;
 }
 
+/**
+ * One `areas.json` level (D46 follow-up, `risk-areas` wave) — a SEPARATE,
+ * finer-grained ranked-area product alongside `districts.json`'s single
+ * ADM1 level: governorate (ADM1, same granularity `RiskDistrict` already
+ * covers), district (ADM2), subdistrict (ADM3), and city (GHS urban-centre
+ * points, not an OCHA admin level at all). Fixed set, fixed order — no
+ * locale/producer is ever allowed to invent a fifth.
+ */
+export type RiskAreaLevel = "governorate" | "district" | "subdistrict" | "city";
+
+/** One `areas.json` row, any level — deliberately the same field shape
+ * `RiskDistrict` uses for its own per-area figures (coverage/buildings/
+ * exposure), plus the identity fields (`id`, `name`, `level`, `parentId`)
+ * a multi-level product needs that a single-level one (`RiskDistrict`)
+ * doesn't. No casualty slot, same D45 rule every other risk-chain type in
+ * this file follows. */
+export interface RiskArea {
+  /** OCHA COD-AB p-code (governorate/district/subdistrict) or GHS
+   * urban-centre id (city) — the producer's own id space per level,
+   * never renumbered app-side. */
+  id: string;
+  /** English name, as published — this product carries no localized
+   * name field to translate through. */
+  name: string;
+  level: RiskAreaLevel;
+  /** Parent area's own id, one level up — `null` only for a row with no
+   * modeled parent (never actually emitted at today's four levels, since
+   * even the top, `governorate`, carries its country p-code as parent;
+   * kept nullable because the producer's own field is). */
+  parentId: string | null;
+  /** Fraction (0..1) of this area's building stock actually covered by
+   * the exposure grid — same "a low value means a partial-coverage
+   * undercount" reasoning `RiskDistrict.coverage`'s own doc comment
+   * documents. */
+  coverage: number;
+  buildingsInGrid: number;
+  buildingsHeavy: number;
+  buildingsDg4Plus: number;
+  /** `null` only when the product's own `n_draws` is `0` — a point
+   * estimate with no Monte Carlo range to show alongside it, never
+   * fabricated as `[value, value, value]`. */
+  buildingsHeavyP05P50P95: readonly [number, number, number] | null;
+  buildingsDg4PlusP05P50P95: readonly [number, number, number] | null;
+  exposedPopulation: number;
+}
+
+/** Parsed `areas.json` — one event version's four-level ranked-area
+ * product. Each level's row array is already producer-sorted worst-first
+ * (same "never re-sort" contract `RiskDistricts.districts` documents),
+ * independently per level. */
+export interface RiskAreas {
+  /** Damage/fragility model id backing this product (e.g.
+   * `"gl2004_macroseismic"`) — same "internal pipeline id, shown through a
+   * translated name, never verbatim" treatment `RiskSummary.stage` gets
+   * (`RiskProvenanceChips.tsx`'s `STAGE_NAME_KEYS`). */
+  damageModel: string;
+  timeOfDay: RiskTimeOfDay;
+  nDraws: number;
+  levels: Record<RiskAreaLevel, RiskArea[]>;
+  /** Tolerant-parsing bookkeeping, same convention as `RiskDistricts.
+   * skippedCount` — summed across all four levels, one bad row anywhere
+   * never discards any other row. */
+  skippedCount: number;
+}
+
 /** One `districts.json` row (one ADM1/province). */
 export interface RiskDistrict {
   adm1Id: string;
@@ -200,6 +270,14 @@ export interface RiskProduct {
   summary: RiskSummary;
   districts: RiskDistricts;
   damageContours: DamageContourSet | null;
+  /** Optional `areas.json` product (`risk-areas` wave) — `null` for the
+   * overwhelming majority of events that predate this product or whose
+   * publish didn't carry one, same "absent, not fabricated" rule
+   * `damageContours` already follows; unlike `damageContours`, an absent
+   * `areas` never degrades anything else, `RiskSection` simply falls back
+   * to the coarser `RiskProvinceList` (the `districts` product above) it
+   * already rendered before this wave. */
+  areas: RiskAreas | null;
   /** Absolute URL of this version's downloadable `report.pdf`
    * (`RiskProvenanceChips.tsx`'s "Download report" button, D46 follow-up).
    * `null` hides the button entirely — for a LIVE product this means the

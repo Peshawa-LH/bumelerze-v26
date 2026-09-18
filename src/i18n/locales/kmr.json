@@ -630,8 +630,17 @@
         "a11ySegment": "{{label}}: sedî {{percent}}"
       },
       "provincesTitle": "Herêmên herî zirardîtî",
+      "areasTitle": "Cihên herî zirardîtî",
+      "areaLevels": {
+        "city": "Bajar",
+        "subdistrict": "Nahiye",
+        "district": "Qeza",
+        "governorate": "Parêzgeh"
+      },
       "provinceCaption": "Nêzîkî {{value}} avahî",
       "provinceRowA11y": "{{province}}, asta {{band}}, nêzîkî {{value}} avahî bi giranî zirar dîtine",
+      "areaRowA11y": "{{area}}, asta {{band}}, nêzîkî {{value}} avahî bi giranî zirar dîtine",
+      "areaLevelA11y": "{{level}} nîşan bide",
       "partlyInsideMap": "Beşek di nexşeyê de ye",
       "chips": {
         "provisional": "Destpêkî",
@@ -647,6 +656,7 @@
       "stageNames": {
         "pgaLognormal": "Kelûpelên PGA",
         "gl2004": "Modela makrosîzmîk",
+        "gl2004Macroseismic": "Modela makrosîzmîk, IMS-25",
         "ims25Rules": "Rêzikên IMS-25",
         "unknown": "Modela fragîlîteyê"
       },

@@ -5,6 +5,7 @@ import type { Event } from "@/features/events";
 import { useTheme } from "@/theme";
 import { useResolvedShakeMap } from "../live-queries";
 import { classifyDamageBand } from "../risk-alert";
+import { RiskAreaList } from "./RiskAreaList";
 import { RiskDamageBandTag } from "./RiskDamageBandTag";
 import { RiskDamageGradeBar } from "./RiskDamageGradeBar";
 import { RiskExposureTiles } from "./RiskExposureTiles";
@@ -24,8 +25,12 @@ export interface RiskSectionProps {
  * Content, top to bottom: the damage alert band
  * (`RiskDamageBandTag`), the impact scale (`RiskImpactScale`), the two
  * exposure tiles (`RiskExposureTiles`), the damage-grade stacked bar
- * (`RiskDamageGradeBar`), the ranked province list (`RiskProvinceList`),
- * and the provenance chip strip + report download (`RiskProvenanceChips`).
+ * (`RiskDamageGradeBar`), the ranked area list — `RiskAreaList` (the
+ * four-level, switchable `areas.json` product, `risk-areas` wave) when the
+ * resolved risk product carries one, else the older single-level
+ * `RiskProvinceList` (`districts.json`) so a bundled/older event with no
+ * `areas` product still shows something — and the provenance chip strip +
+ * report download (`RiskProvenanceChips`).
  *
  * Visually drawn in Bumelerze's own language (rounded theme-token cards,
  * chips, gradient rail — never PAGER's colored-banner/histogram look; see
@@ -48,7 +53,7 @@ export function RiskSection({ event }: RiskSectionProps) {
   }
 
   const { risk, product } = shakeMap;
-  const { summary, districts, reportUrl } = risk;
+  const { summary, districts, areas, reportUrl } = risk;
   const locale = i18n.language;
   const [p05, p50, p95] = summary.buildingsHeavyP05P50P95;
   const band = classifyDamageBand(p50);
@@ -109,14 +114,25 @@ export function RiskSection({ event }: RiskSectionProps) {
         spacing={spacing}
       />
 
-      <RiskProvinceList
-        districts={districts.districts}
-        locale={locale}
-        t={t}
-        colors={colors}
-        typography={typography}
-        spacing={spacing}
-      />
+      {areas ? (
+        <RiskAreaList
+          areas={areas}
+          locale={locale}
+          t={t}
+          colors={colors}
+          typography={typography}
+          spacing={spacing}
+        />
+      ) : (
+        <RiskProvinceList
+          districts={districts.districts}
+          locale={locale}
+          t={t}
+          colors={colors}
+          typography={typography}
+          spacing={spacing}
+        />
+      )}
 
       <RiskProvenanceChips
         stage={summary.stage}

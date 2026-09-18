@@ -48,3 +48,18 @@ values, multiple rings per level.
 
 Dropped: the other 7 MMI levels (3.0–7.5 minus 4.5), the other
 rings/points per kept level.
+
+## `areas.json` (`risk-areas` wave)
+
+Unlike `cont_mi.trimmed.json` above, this one is HAND-MADE, not trimmed
+from a real engine run (Bumelerze Engine v2.0 Phase 4's `areas.json`
+product had not yet been computed for a real Kurdistan-region event at the
+time this fixture was written) — but schema-true: every field matches
+`risk.ts`'s `parseRiskAreas` schema exactly, and the id/parent chain is
+internally consistent (`IQG06` → `IQG06Q01`/`IQG06Q02` → `IQG06Q01N01`/
+`IQG06Q01N02` → city ids `13214`/`13270`), so it exercises real
+worst-first/parent-id/coverage/quantile-triple behavior even though the
+specific building counts are illustrative. Two rows per level
+(governorate/district/subdistrict/city), each level already sorted
+worst-first, matching this file's own README convention of documenting
+what a fixture is and is not.

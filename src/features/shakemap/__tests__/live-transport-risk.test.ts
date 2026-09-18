@@ -88,8 +88,8 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
       return {
         select: jest.fn((columns: string) =>
           // The risk-bundle query selects "product_type, storage_path"
-          // (needs product_type to tell the three risk artifact types
-          // apart); the contours query never selects product_type at all.
+          // (needs product_type to tell the risk artifact types apart);
+          // the contours query never selects product_type at all.
           columns.includes("product_type") ? queryBuilder(riskResult) : queryBuilder(contoursResult),
         ),
       };
@@ -134,8 +134,36 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
       summary: { url: "https://example.test/v5/risk_summary.json" },
       districts: { url: "https://example.test/v5/districts.json" },
       damageContours: { url: "https://example.test/v5/cont_damage.json" },
+      areas: null,
       reportUrl: null,
     });
+  });
+
+  it("fetches the risk_areas artifact too, alongside the other risk-chain rows, when present", async () => {
+    mockedGetSupabaseClient.mockReturnValue(
+      client(
+        { data: [contoursRow()], error: null },
+        {
+          data: [
+            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
+            { product_type: "risk_areas", storage_path: "https://example.test/v5/areas.json" },
+          ],
+          error: null,
+        },
+      ) as unknown as ReturnType<typeof getSupabaseClient>,
+    );
+
+    const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
+
+    expect(product?.risk).toEqual({
+      summary: { url: "https://example.test/v5/risk_summary.json" },
+      districts: { url: "https://example.test/v5/districts.json" },
+      damageContours: null,
+      areas: { url: "https://example.test/v5/areas.json" },
+      reportUrl: null,
+    });
+    expect(fetchedUrls).toContain("https://example.test/v5/areas.json");
   });
 
   it("carries the report row's storage_path through as reportUrl (a pointer, never fetched/JSON-parsed)", async () => {
@@ -159,6 +187,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
       summary: { url: "https://example.test/v5/risk_summary.json" },
       districts: { url: "https://example.test/v5/districts.json" },
       damageContours: null,
+      areas: null,
       reportUrl: "https://example.test/v5/report.pdf",
     });
     // Never fetched as JSON — a PDF response body would fail `.json()`.

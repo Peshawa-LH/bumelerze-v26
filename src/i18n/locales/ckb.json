@@ -630,8 +630,17 @@
         "a11ySegment": "{{label}}: {{percent}} لەسەدا"
       },
       "provincesTitle": "پارێزگا زیانلێکەوتووەکان",
+      "areasTitle": "زۆرترین ناوچە زیانلێکەوتووەکان",
+      "areaLevels": {
+        "city": "شارەکان",
+        "subdistrict": "ناحیەکان",
+        "district": "قەزاکان",
+        "governorate": "پارێزگاکان"
+      },
       "provinceCaption": "نزیکەی {{value}} خانوو",
       "provinceRowA11y": "{{province}}، پۆلی {{band}}، نزیکەی {{value}} خانوو بە توندی زیانیان پێگەیشتووە",
+      "areaRowA11y": "{{area}}، پۆلی {{band}}، نزیکەی {{value}} خانوو بە توندی زیانیان پێگەیشتووە",
+      "areaLevelA11y": "نیشاندانی {{level}}",
       "partlyInsideMap": "بەشێکی لەناو نەخشەکەدایە",
       "chips": {
         "provisional": "سەرەتایی",
@@ -647,6 +656,7 @@
       "stageNames": {
         "pgaLognormal": "کەوانەکانی PGA",
         "gl2004": "مۆدێلی مکرۆسیزمی",
+        "gl2004Macroseismic": "مۆدێلی مکرۆسیزمی، IMS-25",
         "ims25Rules": "یاساکانی IMS-25",
         "unknown": "مۆدێلی هەڵسەنگاندن"
       },

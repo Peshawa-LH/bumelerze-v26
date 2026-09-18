@@ -1,3 +1,4 @@
+import areasFixture from "../__fixtures__/us2000bmcg/areas.json";
 import damageContoursFixture from "../__fixtures__/us6000jllz/cont_damage.trimmed.json";
 import districtsFixture from "../__fixtures__/us6000jllz/districts.json";
 import riskSummaryFixture from "../__fixtures__/us6000jllz/risk_summary.json";
@@ -5,6 +6,7 @@ import { ATLAS_BASE_URL } from "../config";
 import {
   buildBundledReportUrl,
   parseDamageContours,
+  parseRiskAreas,
   parseRiskDistricts,
   parseRiskProduct,
   parseRiskSummary,
@@ -135,6 +137,91 @@ describe("parseDamageContours", () => {
   });
 });
 
+describe("parseRiskAreas", () => {
+  it("parses the hand-made (schema-true) us2000bmcg areas.json, all four levels worst-first", () => {
+    const areas = parseRiskAreas(areasFixture);
+
+    expect(areas).not.toBeNull();
+    expect(areas?.damageModel).toBe("gl2004_macroseismic");
+    expect(areas?.timeOfDay).toBe("night");
+    expect(areas?.nDraws).toBe(200);
+    expect(areas?.skippedCount).toBe(0);
+
+    expect(areas?.levels.governorate).toHaveLength(2);
+    expect(areas?.levels.district).toHaveLength(2);
+    expect(areas?.levels.subdistrict).toHaveLength(2);
+    expect(areas?.levels.city).toHaveLength(2);
+
+    const [firstGovernorate, secondGovernorate] = areas?.levels.governorate ?? [];
+    expect(firstGovernorate?.id).toBe("IQG06");
+    expect(firstGovernorate?.name).toBe("Al-Sulaymaniyah");
+    expect(firstGovernorate?.level).toBe("governorate");
+    expect(firstGovernorate?.parentId).toBe("IQ");
+    expect(firstGovernorate?.buildingsHeavyP05P50P95).toEqual([400, 1100, 3000]);
+    // Worst-first: the producer's own per-level order is preserved.
+    expect(firstGovernorate!.buildingsHeavy).toBeGreaterThanOrEqual(secondGovernorate!.buildingsHeavy);
+
+    const [firstCity] = areas?.levels.city ?? [];
+    expect(firstCity?.id).toBe("13214");
+    expect(firstCity?.parentId).toBe("IQG06Q01N01");
+    expect(firstCity?.coverage).toBe(1.0);
+  });
+
+  it("returns null for a top-level shape that isn't the expected object", () => {
+    expect(parseRiskAreas(undefined)).toBeNull();
+    expect(parseRiskAreas(null)).toBeNull();
+    expect(parseRiskAreas([])).toBeNull();
+    expect(parseRiskAreas({ levels: "not-an-object" })).toBeNull();
+  });
+
+  it("skips one malformed row in one level and keeps every other row (tolerant per-item parsing)", () => {
+    const fixture = areasFixture as { levels: { city: unknown[] } };
+    const withOneBadRow = {
+      ...areasFixture,
+      levels: {
+        ...areasFixture.levels,
+        city: [...fixture.levels.city, { id: "99999" /* missing every other required field */ }],
+      },
+    };
+
+    const areas = parseRiskAreas(withOneBadRow);
+
+    expect(areas).not.toBeNull();
+    expect(areas?.skippedCount).toBe(1);
+    expect(areas?.levels.city).toHaveLength(2);
+    expect(areas?.levels.governorate).toHaveLength(2);
+  });
+
+  it("treats a missing level key as an empty list for that level rather than rejecting the product", () => {
+    const { subdistrict: _omit, ...levelsWithoutSubdistrict } = areasFixture.levels;
+    const areas = parseRiskAreas({ ...areasFixture, levels: levelsWithoutSubdistrict });
+
+    expect(areas).not.toBeNull();
+    expect(areas?.levels.subdistrict).toEqual([]);
+    expect(areas?.levels.city).toHaveLength(2);
+  });
+
+  it("carries a null P05-P50-P95 triple through rather than fabricating one when the row has none (n_draws: 0 case)", () => {
+    const fixture = areasFixture as {
+      levels: { governorate: Record<string, unknown>[] };
+    };
+    const [firstGovernorate, ...restGovernorates] = fixture.levels.governorate;
+    const { buildings_heavy_p05_p50_p95: _omit, ...rowWithoutTriple } = firstGovernorate as Record<
+      string,
+      unknown
+    >;
+
+    const areas = parseRiskAreas({
+      ...areasFixture,
+      n_draws: 0,
+      levels: { ...areasFixture.levels, governorate: [rowWithoutTriple, ...restGovernorates] },
+    });
+
+    expect(areas?.nDraws).toBe(0);
+    expect(areas?.levels.governorate[0]?.buildingsHeavyP05P50P95).toBeNull();
+  });
+});
+
 describe("parseRiskProduct", () => {
   const rawProduct = {
     summary: riskSummaryFixture,
@@ -159,6 +246,31 @@ describe("parseRiskProduct", () => {
 
     expect(product).not.toBeNull();
     expect(product?.damageContours).toBeNull();
+  });
+
+  it("fills areas from the payload when present", () => {
+    const product = parseRiskProduct({ ...rawProduct, areas: areasFixture });
+
+    expect(product).not.toBeNull();
+    expect(product?.areas).not.toBeNull();
+    expect(product?.areas?.levels.city).toHaveLength(2);
+    expect(product?.areas?.damageModel).toBe("gl2004_macroseismic");
+  });
+
+  it("defaults areas to null when absent — the risk product still parses successfully without it (optional)", () => {
+    const product = parseRiskProduct(rawProduct);
+
+    expect(product).not.toBeNull();
+    expect(product?.summary.buildingsHeavy).toBe(136378);
+    expect(product?.areas).toBeNull();
+  });
+
+  it("defaults areas to null for a malformed areas payload, without failing the rest of the product", () => {
+    const product = parseRiskProduct({ ...rawProduct, areas: { not: "an areas.json shape" } });
+
+    expect(product).not.toBeNull();
+    expect(product?.areas).toBeNull();
+    expect(product?.districts.districts).toHaveLength(10);
   });
 
   it("returns null (whole product absent) when summary is missing — summary and districts are both required", () => {

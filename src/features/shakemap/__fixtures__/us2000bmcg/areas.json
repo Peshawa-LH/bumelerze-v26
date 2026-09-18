@@ -1,0 +1,133 @@
+{
+  "product_schema_version": 1,
+  "producer": "bumelerze-engine/risk_service",
+  "damage_model": "gl2004_macroseismic",
+  "time_of_day": "night",
+  "n_draws": 200,
+  "level_sources": {
+    "governorate": "OCHA COD-AB ADM1",
+    "district": "OCHA COD-AB ADM2",
+    "subdistrict": "OCHA COD-AB ADM3",
+    "city": "GHSL urban centres"
+  },
+  "counts": {
+    "governorate": 2,
+    "district": 2,
+    "subdistrict": 2,
+    "city": 2
+  },
+  "levels": {
+    "governorate": [
+      {
+        "id": "IQG06",
+        "name": "Al-Sulaymaniyah",
+        "level": "governorate",
+        "parent_id": "IQ",
+        "coverage": 0.98,
+        "buildings_in_grid": 330000,
+        "buildings_heavy": 1200,
+        "buildings_dg4plus": 300,
+        "buildings_heavy_p05_p50_p95": [400, 1100, 3000],
+        "buildings_dg4plus_p05_p50_p95": [90, 280, 900],
+        "exposed_population": 2400000
+      },
+      {
+        "id": "IQG10",
+        "name": "Erbil",
+        "level": "governorate",
+        "parent_id": "IQ",
+        "coverage": 0.95,
+        "buildings_in_grid": 210000,
+        "buildings_heavy": 640,
+        "buildings_dg4plus": 140,
+        "buildings_heavy_p05_p50_p95": [200, 600, 1500],
+        "buildings_dg4plus_p05_p50_p95": [40, 130, 420],
+        "exposed_population": 1600000
+      }
+    ],
+    "district": [
+      {
+        "id": "IQG06Q01",
+        "name": "Sulaymaniyah",
+        "level": "district",
+        "parent_id": "IQG06",
+        "coverage": 0.99,
+        "buildings_in_grid": 90000,
+        "buildings_heavy": 700,
+        "buildings_dg4plus": 180,
+        "buildings_heavy_p05_p50_p95": [230, 650, 1800],
+        "buildings_dg4plus_p05_p50_p95": [55, 170, 520],
+        "exposed_population": 700000
+      },
+      {
+        "id": "IQG06Q02",
+        "name": "Chamchamal",
+        "level": "district",
+        "parent_id": "IQG06",
+        "coverage": 0.9,
+        "buildings_in_grid": 20000,
+        "buildings_heavy": 150,
+        "buildings_dg4plus": 35,
+        "buildings_heavy_p05_p50_p95": [45, 140, 380],
+        "buildings_dg4plus_p05_p50_p95": [10, 32, 95],
+        "exposed_population": 130000
+      }
+    ],
+    "subdistrict": [
+      {
+        "id": "IQG06Q01N01",
+        "name": "Sulaymaniyah Center",
+        "level": "subdistrict",
+        "parent_id": "IQG06Q01",
+        "coverage": 0.99,
+        "buildings_in_grid": 40000,
+        "buildings_heavy": 350,
+        "buildings_dg4plus": 90,
+        "buildings_heavy_p05_p50_p95": [110, 330, 900],
+        "buildings_dg4plus_p05_p50_p95": [28, 85, 260],
+        "exposed_population": 300000
+      },
+      {
+        "id": "IQG06Q01N02",
+        "name": "Qularaisi",
+        "level": "subdistrict",
+        "parent_id": "IQG06Q01",
+        "coverage": 0.85,
+        "buildings_in_grid": 6000,
+        "buildings_heavy": 40,
+        "buildings_dg4plus": 9,
+        "buildings_heavy_p05_p50_p95": [12, 38, 100],
+        "buildings_dg4plus_p05_p50_p95": [3, 9, 28],
+        "exposed_population": 35000
+      }
+    ],
+    "city": [
+      {
+        "id": "13214",
+        "name": "Sulaymaniyah",
+        "level": "city",
+        "parent_id": "IQG06Q01N01",
+        "coverage": 1.0,
+        "buildings_in_grid": 38000,
+        "buildings_heavy": 340,
+        "buildings_dg4plus": 88,
+        "buildings_heavy_p05_p50_p95": [108, 325, 880],
+        "buildings_dg4plus_p05_p50_p95": [27, 83, 255],
+        "exposed_population": 295000
+      },
+      {
+        "id": "13270",
+        "name": "Chamchamal",
+        "level": "city",
+        "parent_id": "IQG06Q02",
+        "coverage": 0.92,
+        "buildings_in_grid": 9000,
+        "buildings_heavy": 75,
+        "buildings_dg4plus": 18,
+        "buildings_heavy_p05_p50_p95": [22, 70, 190],
+        "buildings_dg4plus_p05_p50_p95": [5, 17, 52],
+        "exposed_population": 55000
+      }
+    ]
+  }
+}
