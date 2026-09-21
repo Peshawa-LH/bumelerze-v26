@@ -254,3 +254,56 @@ describe("RiskAreaList", () => {
     expect(rows[0]?.props.accessibilityLabel).toContain("Sulaymaniyah");
   });
 });
+
+describe("place names (2026-09-21)", () => {
+  /** The fixture's areas with one governorate row swapped for a named one. */
+  function withNamedGovernorate(names: Record<string, string> | null): RiskAreas {
+    const base = realAreas();
+    const row = base.levels.governorate[0] ?? base.levels.city[0]!;
+    return {
+      ...base,
+      levels: {
+        ...base.levels,
+        city: [],
+        subdistrict: [],
+        district: [],
+        governorate: [{ ...row, name: "Slemani", names }],
+      },
+    };
+  }
+
+  it("shows a Kurdish area under its Kurdish name, not the boundary file's transliteration", async () => {
+    // OCHA COD-AB calls Slemani "Al-Sulaymaniyah". The producer corrects
+    // that and ships the Sorani and Kurmanji forms alongside it.
+    const { colors, typography, spacing } = await themeArgs();
+    await render(
+      <RiskAreaList
+        areas={withNamedGovernorate({ en: "Slemani", ckb: "سلێمانی", kmr: "Silêmanî", ar: "السليمانية" })}
+        locale="ckb"
+        t={i18n.t}
+        colors={colors}
+        typography={typography}
+        spacing={spacing}
+      />,
+    );
+
+    expect(screen.getByText("سلێمانی")).toBeTruthy();
+    expect(screen.queryByText("Slemani")).toBeNull();
+  });
+
+  it("falls back to the English name for a locale the producer has no form for", async () => {
+    const { colors, typography, spacing } = await themeArgs();
+    await render(
+      <RiskAreaList
+        areas={withNamedGovernorate(null)}
+        locale="ckb"
+        t={i18n.t}
+        colors={colors}
+        typography={typography}
+        spacing={spacing}
+      />,
+    );
+
+    expect(screen.getByText("Slemani")).toBeTruthy();
+  });
+});

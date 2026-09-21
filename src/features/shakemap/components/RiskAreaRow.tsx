@@ -66,9 +66,13 @@ export function RiskAreaRow({
   const barWidth = relativeWidthPercent(area.buildingsHeavy, worstBuildingsHeavy);
   const isPartlyInsideMap = area.coverage < LOW_COVERAGE_THRESHOLD;
 
+  // The producer corrects the boundary file's Arabic transliterations and
+  // ships the Kurdish forms with them, so a Sorani reader sees سلێمانی
+  // rather than "Slemani", and neither sees "Al-Sulaymaniyah".
+  const displayName = area.names?.[locale] ?? area.name;
   const captionValue = formatApproximate(area.buildingsHeavy, locale, t);
   const a11yLabel = t("eventDetail.risk.areaRowA11y", {
-    area: area.name,
+    area: displayName,
     band: t(`eventDetail.risk.band.${band}.title`),
     value: captionValue,
   });
@@ -103,7 +107,7 @@ export function RiskAreaRow({
           }}
           numberOfLines={1}
         >
-          {area.name}
+          {displayName}
         </Text>
         <View style={[styles.tagsRow, { gap: spacing[1] }]}>
           {isPartlyInsideMap ? (

@@ -281,6 +281,8 @@ const riskAreaPayloadSchema = z.object({
   buildings_heavy_p05_p50_p95: triple.optional(),
   buildings_dg4plus_p05_p50_p95: triple.optional(),
   exposed_population: z.number(),
+  names: z.record(z.string(), z.string()).optional(),
+  name_verified: z.boolean().optional(),
   buildings_by_grade: z.array(z.number()).optional(),
   // Governorate rows carry the full 26-type matrix under
   // `buildings_by_type`; everything below carries its three most damaged
@@ -350,6 +352,8 @@ export function parseRiskAreas(payload: unknown): RiskAreas | null {
         buildingsHeavyP05P50P95: d.buildings_heavy_p05_p50_p95 ?? null,
         buildingsDg4PlusP05P50P95: d.buildings_dg4plus_p05_p50_p95 ?? null,
         exposedPopulation: d.exposed_population,
+        names: d.names ?? null,
+        nameVerified: d.name_verified ?? null,
         buildingsByGrade: d.buildings_by_grade ?? null,
         damagedTypes: parseTypeDamage(d.buildings_by_type ?? d.top_damaged_types),
         populationByIntensity: parsePopulationByIntensity(d.population_by_intensity_band),

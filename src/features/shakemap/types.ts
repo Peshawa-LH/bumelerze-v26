@@ -244,6 +244,14 @@ export interface RiskArea {
   buildingsHeavyP05P50P95: readonly [number, number, number] | null;
   buildingsDg4PlusP05P50P95: readonly [number, number, number] | null;
   exposedPopulation: number;
+  /** The area's name in the app's four locales, where the producer knows
+   * them. The boundary datasets transliterate Iraqi place names through
+   * Arabic, so the producer corrects them and ships the Kurdish forms
+   * alongside. `null` when it has no entry for this area. */
+  names: Readonly<Record<string, string>> | null;
+  /** `false` when the producer's corrected spelling is its own proposal
+   * rather than one from the owner's gazetteer. */
+  nameVerified: boolean | null;
   /** DG0..DG5 for this area. Schema 2; `null` before it. */
   buildingsByGrade: readonly number[] | null;
   /** The full 26-type matrix at governorate level, the three most
