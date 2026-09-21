@@ -260,12 +260,13 @@ export const intensityOnFillDark: readonly string[] = [
  * `features/felt/damage.ts` is retired by this change) — a damage grade is
  * not literally an EMS intensity, so it shouldn't borrow that ramp's colors.
  *
- * Exact hexes as specified: DG3 `#F9EC33`, DG4 `#DF532A`, DG5 `#440001` (a
- * deliberate, exact echo of the EMS ramp's PRE-unification canonical XII —
- * "total collapse = the worst/darkest color in the app" — chosen
- * independently of whatever `intensityRamp`'s own XII happens to be after
- * the 2.1 unification, since this palette no longer samples that ramp at
- * all). DG1/DG2 (greens) were ours to choose:
+ * Exact hexes as specified: DG3 `#F9EC33`, DG4 `#DF532A`, DG5 `#B3141A`.
+ * DG5 was `#440001`, an echo of the EMS ramp's pre-unification canonical
+ * XII, on the reasoning that total collapse should be the darkest colour
+ * in the app. The owner overruled that on 2026-09-21: at the top of a
+ * ramp that runs green to yellow to orange, a near-black maroon reads as
+ * a hole rather than as the strongest grade, and it separated from DG4
+ * only by darkness. DG1/DG2 (greens) were ours to choose:
  *   - DG2 (light green) = `#8FC891`, reused verbatim from `intensityRamp`'s
  *     level V — already contrast-verified in this app, and reusing it keeps
  *     the damage palette visually related to the intensity ramp's own
@@ -285,7 +286,10 @@ export const intensityOnFillDark: readonly string[] = [
  *   DG4 #DF532A — dark text 4.29:1 (light theme) / 4.66:1 (dark theme) — same borderline case as
  *     `intensityRamp`'s IX (identical hex): best available option, still clears the 3:1
  *     graphical-object floor even where it falls just short of the stricter 4.5:1 normal-text bar
- *   DG5 #440001 — white text 16.85:1 (light theme) / 15.06:1 (dark theme) — clears 4.5:1 easily
+ *   DG5 #B3141A — white text 6.93:1 (light theme) — clears 4.5:1. Red, not the near-black
+ *     maroon it used to be (owner, 2026-09-21: "damage grade 5 should be red"). The old
+ *     #440001 read as a hole in the ramp rather than as its top, and separated from DG4
+ *     only by darkness; #B3141A is 1.78:1 against DG4 and unmistakably the strongest grade.
  */
 export const damageGradePalette: readonly string[] = [
   "", // index 0 unused
@@ -293,7 +297,7 @@ export const damageGradePalette: readonly string[] = [
   "#8FC891", // DG2
   "#F9EC33", // DG3
   "#DF532A", // DG4
-  "#440001", // DG5 — partial/full collapse
+  "#B3141A", // DG5 — partial/full collapse
 ];
 
 /** `damageGradePalette` on-fill text, light-theme reading — same
@@ -306,7 +310,7 @@ export const damageGradeOnFillLight: readonly string[] = [
   neutral[1000], // DG2 — dark text wins
   neutral[1000], // DG3 — dark text wins
   neutral[1000], // DG4 — dark text wins (borderline, see note above)
-  "#FFFFFF", // DG5 — light text wins (dark text only ~1.01:1)
+  "#FFFFFF", // DG5 — light text wins (6.93:1 against dark text's 2.61:1)
 ];
 
 /** `damageGradePalette` on-fill text, dark-theme reading — mirrors

@@ -187,7 +187,10 @@ describe("damage-grade palette — own 5-color set, decoupled from the intensity
   it("matches the owner-specified hexes exactly for DG3/DG4/DG5", () => {
     expect(damageGradePalette[3]).toBe("#F9EC33");
     expect(damageGradePalette[4]).toBe("#DF532A");
-    expect(damageGradePalette[5]).toBe("#440001");
+    // Owner, 2026-09-21: "damage grade 5 should be red". #440001 was a
+    // near-black maroon that read as a hole at the top of a green-to-
+    // orange ramp and separated from DG4 by darkness alone.
+    expect(damageGradePalette[5]).toBe("#B3141A");
   });
 
   it("DG2 (light green) reuses the intensity ramp's level V verbatim", () => {
