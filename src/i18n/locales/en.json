@@ -627,7 +627,9 @@
         "heavy": "Heavy damage",
         "severe": "Very heavy damage or collapse",
         "legendItem": "{{label}} ({{percent}}%)",
-        "a11ySegment": "{{label}}: {{percent}} percent"
+        "a11ySegment": "{{label}}: {{percent}} percent",
+        "moderate": "Moderate damage",
+        "underOnePercent": "<1"
       },
       "provincesTitle": "Provinces most affected",
       "areasTitle": "Most affected areas",
@@ -666,7 +668,23 @@
       "casualtiesNote": "Casualty estimates are computed but not published.",
       "downloadReport": "Download report (PDF)",
       "downloadReportHint": "Opens the Bumelerze Atlas PDF report for this event",
-      "downloadReportOffline": "Could not open the report. Check your connection and try again."
+      "downloadReportOffline": "Could not open the report. Check your connection and try again.",
+      "shakingLevels": {
+        "title": "People by shaking level",
+        "a11yRow": "Shaking level {{level}}: about {{value}} people"
+      },
+      "buildingTypes": {
+        "title": "Damage by building type",
+        "explainer": "The share of each type's own buildings that were heavily damaged",
+        "vulnerabilityClass": "Class {{class}}",
+        "percent": "{{value}}%",
+        "rowCaption": "About {{value}} buildings",
+        "a11yRow": "{{type}}: {{percent}} heavily damaged, about {{value}} buildings"
+      },
+      "detail": {
+        "show": "See the detail",
+        "hide": "Hide the detail"
+      }
     },
     "feltMap": {
       "sectionTitle": "Felt map",

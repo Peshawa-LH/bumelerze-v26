@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import i18n from "@/i18n";
 import type { Event } from "@/features/events";
 import damageContoursFixture from "../__fixtures__/us6000jllz/cont_damage.trimmed.json";
+import schema2SummaryFixture from "../__fixtures__/schema2/risk_summary.json";
 import districtsFixture from "../__fixtures__/us6000jllz/districts.json";
 import riskSummaryFixture from "../__fixtures__/us6000jllz/risk_summary.json";
 import { RiskSection } from "../components/RiskSection";
@@ -121,10 +122,25 @@ describe("RiskSection", () => {
     expect(screen.getByText(i18n.t("eventDetail.risk.band.green.title"))).toBeTruthy();
   });
 
+  it("keeps the numeric range one tap away, behind the detail control", async () => {
+    // Peshawa, 2026-09-21: lead with the band word, put the range behind
+    // a tap. Heavy damage on the 2017 event spans roughly 20,000 to
+    // 290,000 buildings, a factor of fifteen, so a headline number
+    // implies a precision the model does not have.
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.queryByTestId("risk-impact-scale")).toBeNull();
+    await fireEvent.press(screen.getByTestId("risk-detail-toggle"));
+    expect(screen.getByTestId("risk-impact-scale")).toBeTruthy();
+  });
+
   it("renders the impact scale with an accessibility label describing the band and approximate figures", async () => {
     mockReady();
 
     await render(<RiskSection event={EVENT} />);
+    await fireEvent.press(screen.getByTestId("risk-detail-toggle"));
 
     const scale = screen.getByTestId("risk-impact-scale");
     expect(scale.props.accessibilityLabel).toContain(i18n.t("eventDetail.risk.band.red.title"));
@@ -258,5 +274,149 @@ describe("RiskSection", () => {
     expect(casualtyMentions[0]?.props.children).toEqual(
       i18n.t("eventDetail.risk.casualtiesNote"),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Product schema 2 — the damage dashboard's own data (2026-09-21)
+// ---------------------------------------------------------------------------
+
+
+function mockSchema2() {
+  const risk = parseRiskProduct({
+    summary: schema2SummaryFixture,
+    districts: districtsFixture,
+    damageContours: damageContoursFixture,
+  });
+  if (!risk) {
+    throw new Error("schema 2 fixture failed to parse — fixture is broken");
+  }
+  mockedUseResolvedShakeMap.mockReturnValue({
+    status: "ready",
+    product: fakeProduct(),
+    contours: { levels: [], skippedCount: 0 },
+    risk,
+  });
+}
+
+describe("RiskSection, product schema 2", () => {
+  beforeEach(() => {
+    mockedUseResolvedShakeMap.mockReset();
+  });
+
+  it("shows people by shaking level instead of everyone inside the map window", async () => {
+    mockSchema2();
+
+    await render(<RiskSection event={EVENT} />);
+
+    // The 2017 fixture has 32.7 million inside the grid and 125,028 at
+    // intensity VIII. The first number is close to the population of
+    // Iraq and says nothing; the tile that showed it must be gone.
+    expect(screen.getByTestId("risk-shaking-level-8")).toBeTruthy();
+    expect(screen.getByTestId("risk-shaking-level-7")).toBeTruthy();
+    expect(screen.queryByTestId("risk-exposure-tile-people")).toBeNull();
+    expect(screen.getByTestId("risk-exposure-tile-buildings")).toBeTruthy();
+  });
+
+  it("keeps the schema 1 people tile for versions published before the change", async () => {
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.getByTestId("risk-exposure-tile-people")).toBeTruthy();
+    expect(screen.queryByTestId("risk-shaking-level-8")).toBeNull();
+  });
+
+  it("shows damage by IMS-25 building type behind the detail control", async () => {
+    mockSchema2();
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.queryByTestId("risk-building-type-M1")).toBeNull();
+    await fireEvent.press(screen.getByTestId("risk-detail-toggle"));
+    expect(screen.getByTestId("risk-building-type-M1")).toBeTruthy();
+    expect(screen.getByTestId("risk-building-type-M6")).toBeTruthy();
+  });
+
+  it("renders no building-type block at all for a schema 1 product", async () => {
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+    await fireEvent.press(screen.getByTestId("risk-detail-toggle"));
+
+    expect(screen.queryByTestId("risk-building-type-M1")).toBeNull();
+  });
+
+  it("never reports a damage band that has buildings in it as zero percent", async () => {
+    // At national scale real damage is a fraction of a percent of the
+    // whole stock: 24,511 heavily damaged buildings out of 7.8 million
+    // rounds to 0, and "Heavy damage (0%)" over an event that wrecked
+    // thousands of homes is false.
+    mockSchema2();
+
+    await render(<RiskSection event={EVENT} />);
+
+    const bar = screen.getByTestId("risk-damage-grade-bar");
+    expect(bar.props.accessibilityLabel).not.toMatch(/\b0%/);
+    expect(
+      screen.getByText(
+        i18n.t("eventDetail.risk.stackedBar.legendItem", {
+          label: i18n.t("eventDetail.risk.stackedBar.heavy"),
+          percent: i18n.t("eventDetail.risk.stackedBar.underOnePercent"),
+        }),
+      ),
+    ).toBeTruthy();
+  });
+
+  it("ranks building types by share, not by count", async () => {
+    // The producer sorts by count, which answers "where is most of the
+    // damage". This block asks "which kinds of building are failing", and
+    // ordering by one while drawing bars from the other reads as
+    // unsorted. Class A must lead on this fixture.
+    mockSchema2();
+
+    await render(<RiskSection event={EVENT} />);
+    await fireEvent.press(screen.getByTestId("risk-detail-toggle"));
+
+    // M1 (rubble stone, class A) has FEWER damaged buildings than M6 but
+    // a far higher share, and must therefore appear first.
+    const order: string[] = [];
+    const walk = (node: unknown): void => {
+      if (Array.isArray(node)) {
+        node.forEach(walk);
+        return;
+      }
+      const n = node as { props?: Record<string, unknown>; children?: unknown } | null;
+      if (n && typeof n.props?.testID === "string" && n.props.testID.startsWith("risk-building-type-")) {
+        order.push(n.props.testID.replace("risk-building-type-", ""));
+      }
+      if (n?.children) {
+        walk(n.children);
+      }
+    };
+    walk(screen.toJSON());
+
+    expect(order[0]).toBe("M1");
+    expect(order.indexOf("M1")).toBeLessThan(order.indexOf("M6"));
+  });
+
+  it("reports the share of a type's own stock, which is what a count hides", async () => {
+    // The whole reason the share is published. In this fixture
+    // manufactured stone with concrete floors (M6) has MORE heavy damage
+    // than rubble-stone masonry (M1) purely because there is so much of
+    // it standing, while M1 is an order of magnitude likelier to be
+    // wrecked. A dashboard ranking by count alone inverts that.
+    mockSchema2();
+
+    await render(<RiskSection event={EVENT} />);
+    await fireEvent.press(screen.getByTestId("risk-detail-toggle"));
+
+    const m6 = screen.getByTestId("risk-building-type-M6");
+    const m1 = screen.getByTestId("risk-building-type-M1");
+    const shareOf = (node: { props: { accessibilityLabel?: string } }) => {
+      const label = node.props.accessibilityLabel ?? "";
+      return Number(/(\d+(?:\.\d+)?)/.exec(label.replace(/[^\d.%]/g, " "))?.[1] ?? "0");
+    };
+    expect(shareOf(m1)).toBeGreaterThan(shareOf(m6));
   });
 });

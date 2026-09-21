@@ -627,7 +627,9 @@
         "heavy": "زیانی توند",
         "severe": "زیانی زۆر توند یان روخان",
         "legendItem": "{{label}} (%{{percent}})",
-        "a11ySegment": "{{label}}: {{percent}} لەسەدا"
+        "a11ySegment": "{{label}}: {{percent}} لەسەدا",
+        "moderate": "زیانی مامناوەند",
+        "underOnePercent": "<١"
       },
       "provincesTitle": "پارێزگا زیانلێکەوتووەکان",
       "areasTitle": "زۆرترین ناوچە زیانلێکەوتووەکان",
@@ -666,7 +668,23 @@
       "casualtiesNote": "خەمڵاندنی تەلەفات دەکرێت بەڵام بڵاو ناکرێتەوە.",
       "downloadReport": "داگرتنی ڕاپۆرت (PDF)",
       "downloadReportHint": "ڕاپۆرتی PDF ئەتلەسی بوومەلەرزە بۆ ئەم ڕووداوە دەکاتەوە",
-      "downloadReportOffline": "نەتوانرا ڕاپۆرتەکە بکرێتەوە. پەیوەندییەکەت بپشکنە و دووبارە هەوڵ بدەوە."
+      "downloadReportOffline": "نەتوانرا ڕاپۆرتەکە بکرێتەوە. پەیوەندییەکەت بپشکنە و دووبارە هەوڵ بدەوە.",
+      "shakingLevels": {
+        "title": "خەڵک بەپێی ئاستی لەرزین",
+        "a11yRow": "ئاستی لەرزین {{level}}: نزیکەی {{value}} کەس"
+      },
+      "buildingTypes": {
+        "title": "زیان بەپێی جۆری بینا",
+        "explainer": "ڕێژەی ئەو بیناکانەی هەر جۆرێک کە زیانی قورسیان بەرکەوتووە",
+        "vulnerabilityClass": "پۆلی {{class}}",
+        "percent": "%{{value}}",
+        "rowCaption": "نزیکەی {{value}} بینا",
+        "a11yRow": "{{type}}: {{percent}} زیانی قورس، نزیکەی {{value}} بینا"
+      },
+      "detail": {
+        "show": "بینینی وردەکاری",
+        "hide": "شاردنەوەی وردەکاری"
+      }
     },
     "feltMap": {
       "sectionTitle": "نەخشەی هەستکراو",

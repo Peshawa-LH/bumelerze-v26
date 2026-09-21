@@ -627,7 +627,9 @@
         "heavy": "Zirara giran",
         "severe": "Zirara pir giran an rûxîn",
         "legendItem": "{{label}} (%{{percent}})",
-        "a11ySegment": "{{label}}: sedî {{percent}}"
+        "a11ySegment": "{{label}}: sedî {{percent}}",
+        "moderate": "Zerara navîncî",
+        "underOnePercent": "<1"
       },
       "provincesTitle": "Herêmên herî zirardîtî",
       "areasTitle": "Cihên herî zirardîtî",
@@ -666,7 +668,23 @@
       "casualtiesNote": "Texmînên windahiyên mirovî têne hesibandin lê belav nabin.",
       "downloadReport": "Rapora dakêşe (PDF)",
       "downloadReportHint": "Rapora PDF ya Atlasa Bumelerze ji bo vê bûyerê vedike",
-      "downloadReportOffline": "Rapor venebû. Girêdana xwe kontrol bike û dîsa biceribîne."
+      "downloadReportOffline": "Rapor venebû. Girêdana xwe kontrol bike û dîsa biceribîne.",
+      "shakingLevels": {
+        "title": "Mirov li gorî asta hejînê",
+        "a11yRow": "Asta hejînê {{level}}: nêzîkî {{value}} kes"
+      },
+      "buildingTypes": {
+        "title": "Zerar li gorî cureyê avahiyê",
+        "explainer": "Rêjeya avahiyên her cureyî yên ku zerareke giran dîtine",
+        "vulnerabilityClass": "Pola {{class}}",
+        "percent": "%{{value}}",
+        "rowCaption": "Nêzîkî {{value}} avahî",
+        "a11yRow": "{{type}}: {{percent}} zerara giran, nêzîkî {{value}} avahî"
+      },
+      "detail": {
+        "show": "Hûrgiliyan bibîne",
+        "hide": "Hûrgiliyan veşêre"
+      }
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",

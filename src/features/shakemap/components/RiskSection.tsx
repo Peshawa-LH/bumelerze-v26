@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Event } from "@/features/events";
@@ -6,12 +7,14 @@ import { useTheme } from "@/theme";
 import { useResolvedShakeMap } from "../live-queries";
 import { classifyDamageBand } from "../risk-alert";
 import { RiskAreaList } from "./RiskAreaList";
+import { RiskBuildingTypes } from "./RiskBuildingTypes";
 import { RiskDamageBandTag } from "./RiskDamageBandTag";
 import { RiskDamageGradeBar } from "./RiskDamageGradeBar";
 import { RiskExposureTiles } from "./RiskExposureTiles";
 import { RiskImpactScale } from "./RiskImpactScale";
 import { RiskProvenanceChips } from "./RiskProvenanceChips";
 import { RiskProvinceList } from "./RiskProvinceList";
+import { RiskShakingLevels } from "./RiskShakingLevels";
 
 export interface RiskSectionProps {
   event: Event;
@@ -44,6 +47,7 @@ export interface RiskSectionProps {
  * follows.
  */
 export function RiskSection({ event }: RiskSectionProps) {
+  const [detailOpen, setDetailOpen] = useState(false);
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const shakeMap = useResolvedShakeMap(event, true);
@@ -71,19 +75,23 @@ export function RiskSection({ event }: RiskSectionProps) {
 
       <RiskDamageBandTag band={band} t={t} colors={colors} typography={typography} spacing={spacing} />
 
-      <RiskImpactScale
-        p05={p05}
-        p50={p50}
-        p95={p95}
-        locale={locale}
-        t={t}
-        colors={colors}
-        typography={typography}
-        spacing={spacing}
-      />
+      {summary.populationByIntensity ? (
+        <RiskShakingLevels
+          populationByIntensity={summary.populationByIntensity}
+          locale={locale}
+          t={t}
+          colors={colors}
+          typography={typography}
+          spacing={spacing}
+        />
+      ) : null}
 
       <RiskExposureTiles
-        exposedPopulation={summary.exposedPopulation}
+        // The people tile counted everyone inside the map window, which
+        // for a large event is most of the country. Where the product can
+        // break that down by shaking level (schema 2), the block above
+        // says it properly and the tile would only contradict it.
+        exposedPopulation={summary.populationByIntensity ? null : summary.exposedPopulation}
         buildingsInGrid={summary.exposure.buildingsInGrid}
         locale={locale}
         t={t}
@@ -95,17 +103,18 @@ export function RiskSection({ event }: RiskSectionProps) {
       <RiskDamageGradeBar
         buildingsInGrid={summary.exposure.buildingsInGrid}
         buildingsHeavy={summary.buildingsHeavy}
+        buildingsByGrade={summary.buildingsByGrade}
         buildingsDg4Plus={
-          // The national total doesn't carry its own dg4plus figure
-          // (`RiskSummary` deliberately narrower than the source product —
-          // `types.ts`'s own doc comment); the district rows do, so the
-          // stacked bar sums them instead. Falls back to `buildingsHeavy`
-          // (treating every heavy building as DG3, the conservative
-          // under-estimate for the "very heavy" slice) when there are no
-          // district rows to sum at all.
-          districts.districts.length > 0
-            ? districts.districts.reduce((sum, district) => sum + district.buildingsDg4Plus, 0)
-            : summary.buildingsHeavy
+          // Schema 2 carries the whole DG0..DG5 split nationally, so DG4+
+          // is read straight off it. Before schema 2 the national summary
+          // had no DG4+ figure of its own and this summed the district
+          // rows instead, which is only right when those rows cover the
+          // same event and the same grid.
+          summary.buildingsByGrade && summary.buildingsByGrade.length === 6
+            ? (summary.buildingsByGrade[4] ?? 0) + (summary.buildingsByGrade[5] ?? 0)
+            : districts.districts.length > 0
+              ? districts.districts.reduce((sum, district) => sum + district.buildingsDg4Plus, 0)
+              : summary.buildingsHeavy
         }
         locale={locale}
         t={t}
@@ -113,6 +122,50 @@ export function RiskSection({ event }: RiskSectionProps) {
         typography={typography}
         spacing={spacing}
       />
+
+      <Pressable
+        onPress={() => setDetailOpen((open) => !open)}
+        accessibilityRole="button"
+        testID="risk-detail-toggle"
+      >
+        <Text style={{ ...titleStyle, color: colors.text.link }}>
+          {detailOpen
+            ? t("eventDetail.risk.detail.hide")
+            : t("eventDetail.risk.detail.show")}
+        </Text>
+      </Pressable>
+
+      {detailOpen ? (
+        <View style={{ gap: spacing[4] }}>
+          {/* The range lives here rather than at the top (Peshawa,
+              2026-09-21). Heavy damage on the 2017 event spans roughly
+              20,000 to 290,000 buildings, a factor of fifteen, so a
+              headline number implies a precision the model does not have.
+              The band word leads; the numbers are one tap away. */}
+          <RiskImpactScale
+            p05={p05}
+            p50={p50}
+            p95={p95}
+            locale={locale}
+            t={t}
+            colors={colors}
+            typography={typography}
+            spacing={spacing}
+          />
+
+          {summary.buildingsByType && summary.typeCatalog ? (
+            <RiskBuildingTypes
+              types={summary.buildingsByType}
+              catalog={summary.typeCatalog}
+              locale={locale}
+              t={t}
+              colors={colors}
+              typography={typography}
+              spacing={spacing}
+            />
+          ) : null}
+        </View>
+      ) : null}
 
       {areas ? (
         <RiskAreaList

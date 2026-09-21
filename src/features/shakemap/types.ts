@@ -79,6 +79,39 @@ export interface ContourRing {
   holes?: readonly (readonly (readonly [number, number])[])[];
 }
 
+/**
+ * One IMS-25 building type's damage. Product schema 2.
+ *
+ * `shareHeavy` is the fraction of THIS type's own stock heavily damaged,
+ * and it is the number that carries the vulnerability model's statement.
+ * A count on its own hides it: on the 2017 event manufactured stone with
+ * concrete floors has the second highest count of heavy damage in the
+ * country purely because there is so much of it, at 0.2 percent of its
+ * own stock, while rubble-stone masonry sits at 2.5 percent.
+ */
+export interface RiskBuildingTypeDamage {
+  /** IMS-25 type code, the key into `RiskTypeCatalog`. */
+  code: string;
+  buildings: number;
+  /** Buildings of this type at damage grade 3 or worse. */
+  buildingsHeavy: number;
+  /** `buildingsHeavy / buildings`, 0..1. */
+  shareHeavy: number;
+  /** DG0..DG5 counts; carried nationally and per governorate only. */
+  buildingsByGrade: readonly number[] | null;
+}
+
+/** IMS-25 type metadata, carried once per product rather than on every
+ * row of every area (which tripled the product). Keyed by type code. */
+export type RiskTypeCatalog = Readonly<
+  Record<string, { group: string; description: string; vulnerabilityClass: string }>
+>;
+
+/** People by whole IMS-25 intensity degree, keyed by degree (5 = "V").
+ * Product schema 2, and the replacement for "people in the shaken area",
+ * which counted everyone inside the map window. */
+export type RiskPopulationByIntensity = Readonly<Record<number, number>>;
+
 /** All rings sharing one MMI value, plus the ramp-index this value maps to
  * (`level`, 1..12 — see `intensity-ramp.ts`). */
 export interface IntensityContourLevel {
@@ -156,6 +189,15 @@ export interface RiskSummary {
    * provenance line can say so; never gates displaying any casualty
    * number, because none is ever parsed in the first place. */
   casualtiesPublished: boolean;
+  /** DG0..DG5 counts. Product schema 2; `null` for a version published
+   * before it, which every currently published version is until the
+   * Atlas is recomputed. Every consumer must handle the null. */
+  buildingsByGrade: readonly number[] | null;
+  /** Damage per IMS-25 type, heaviest first. Schema 2; `null` before. */
+  buildingsByType: readonly RiskBuildingTypeDamage[] | null;
+  typeCatalog: RiskTypeCatalog | null;
+  /** Schema 2; `null` before. */
+  populationByIntensity: RiskPopulationByIntensity | null;
 }
 
 /**
@@ -202,6 +244,12 @@ export interface RiskArea {
   buildingsHeavyP05P50P95: readonly [number, number, number] | null;
   buildingsDg4PlusP05P50P95: readonly [number, number, number] | null;
   exposedPopulation: number;
+  /** DG0..DG5 for this area. Schema 2; `null` before it. */
+  buildingsByGrade: readonly number[] | null;
+  /** The full 26-type matrix at governorate level, the three most
+   * damaged types below that. Schema 2; `null` before it. */
+  damagedTypes: readonly RiskBuildingTypeDamage[] | null;
+  populationByIntensity: RiskPopulationByIntensity | null;
 }
 
 /** Parsed `areas.json` — one event version's four-level ranked-area
@@ -209,6 +257,9 @@ export interface RiskArea {
  * (same "never re-sort" contract `RiskDistricts.districts` documents),
  * independently per level. */
 export interface RiskAreas {
+  /** IMS-25 type metadata for every `RiskArea.damagedTypes` row below.
+   * Schema 2; `null` before it. */
+  typeCatalog: RiskTypeCatalog | null;
   /** Damage/fragility model id backing this product (e.g.
    * `"gl2004_macroseismic"`) — same "internal pipeline id, shown through a
    * translated name, never verbatim" treatment `RiskSummary.stage` gets

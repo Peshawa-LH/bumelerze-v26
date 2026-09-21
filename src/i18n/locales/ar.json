@@ -627,7 +627,9 @@
         "heavy": "ضرر شديد",
         "severe": "ضرر شديد جدا أو انهيار",
         "legendItem": "{{label}} ({{percent}}%)",
-        "a11ySegment": "{{label}}: {{percent}} بالمئة"
+        "a11ySegment": "{{label}}: {{percent}} بالمئة",
+        "moderate": "أضرار متوسطة",
+        "underOnePercent": "<١"
       },
       "provincesTitle": "أكثر المحافظات تضررا",
       "areasTitle": "أكثر المناطق تضررا",
@@ -666,7 +668,23 @@
       "casualtiesNote": "تُحسب تقديرات الضحايا لكنها لا تُنشر.",
       "downloadReport": "تنزيل التقرير (PDF)",
       "downloadReportHint": "يفتح تقرير PDF من أطلس بوملێرزە لهذا الحدث",
-      "downloadReportOffline": "تعذر فتح التقرير. تحقق من اتصالك وحاول مرة أخرى."
+      "downloadReportOffline": "تعذر فتح التقرير. تحقق من اتصالك وحاول مرة أخرى.",
+      "shakingLevels": {
+        "title": "السكان حسب مستوى الاهتزاز",
+        "a11yRow": "مستوى الاهتزاز {{level}}: نحو {{value}} شخص"
+      },
+      "buildingTypes": {
+        "title": "الأضرار حسب نوع المبنى",
+        "explainer": "نسبة مباني كل نوع التي لحقت بها أضرار جسيمة",
+        "vulnerabilityClass": "الفئة {{class}}",
+        "percent": "{{value}}%",
+        "rowCaption": "نحو {{value}} مبنى",
+        "a11yRow": "{{type}}: {{percent}} أضرار جسيمة، نحو {{value}} مبنى"
+      },
+      "detail": {
+        "show": "عرض التفاصيل",
+        "hide": "إخفاء التفاصيل"
+      }
     },
     "feltMap": {
       "sectionTitle": "خريطة الشعور بالزلزال",

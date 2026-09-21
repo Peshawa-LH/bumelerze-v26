@@ -15,6 +15,13 @@ function fakeRiskProduct(buildingsHeavy: number): RiskProduct {
       buildingsHeavyP05P50P95: [buildingsHeavy - 10, buildingsHeavy, buildingsHeavy + 10],
       exposedPopulation: 1000,
       casualtiesPublished: false,
+      // Schema 1: this fixture deliberately stays on the shape every
+      // currently published version has, so the resolver is exercised
+      // against the data the app actually receives today.
+      buildingsByGrade: null,
+      buildingsByType: null,
+      typeCatalog: null,
+      populationByIntensity: null,
     },
     districts: { stage: "pga_lognormal", timeOfDay: "night", nDraws: 200, districts: [], skippedCount: 0 },
     damageContours: null,

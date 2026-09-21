@@ -6,7 +6,11 @@ import { formatApproximate } from "@/lib/format-numbers";
 import type { Theme } from "@/theme";
 
 export interface RiskExposureTilesProps {
-  exposedPopulation: number;
+  /** `null` when the product can break population down by shaking level
+   * (schema 2), because `RiskShakingLevels` then says it properly and
+   * this tile, which counts everyone inside the map window, would only
+   * contradict it. */
+  exposedPopulation: number | null;
   buildingsInGrid: number;
   locale: string;
   t: TranslateFn;
@@ -78,17 +82,19 @@ export function RiskExposureTiles({
 }: RiskExposureTilesProps) {
   return (
     <View style={[styles.row, { gap: spacing[3] }]}>
-      <Tile
-        testID="risk-exposure-tile-people"
-        icon="people"
-        title={t("eventDetail.risk.peopleTile.title")}
-        value={t("eventDetail.risk.aboutValue", {
-          value: formatApproximate(exposedPopulation, locale, t),
-        })}
-        colors={colors}
-        typography={typography}
-        spacing={spacing}
-      />
+      {exposedPopulation === null ? null : (
+        <Tile
+          testID="risk-exposure-tile-people"
+          icon="people"
+          title={t("eventDetail.risk.peopleTile.title")}
+          value={t("eventDetail.risk.aboutValue", {
+            value: formatApproximate(exposedPopulation, locale, t),
+          })}
+          colors={colors}
+          typography={typography}
+          spacing={spacing}
+        />
+      )}
       <Tile
         testID="risk-exposure-tile-buildings"
         icon="business"

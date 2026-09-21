@@ -9,11 +9,14 @@ import type {
   RiskArea,
   RiskAreaLevel,
   RiskAreas,
+  RiskBuildingTypeDamage,
   RiskDistrict,
   RiskDistricts,
   RiskProduct,
+  RiskPopulationByIntensity,
   RiskSummary,
   RiskTimeOfDay,
+  RiskTypeCatalog,
 } from "./types";
 
 /**
@@ -41,6 +44,85 @@ const timeOfDaySchema = z.enum(["day", "night", "transit"]);
 const triple = z.tuple([z.number(), z.number(), z.number()]);
 
 // ---------------------------------------------------------------------------
+// Product schema 2 (2026-09-21): the damage dashboard's own data
+// ---------------------------------------------------------------------------
+//
+// Every one of these is optional and parses to `null` when absent, because
+// every version published before the Atlas is recomputed lacks them and
+// must keep rendering exactly as it does today.
+
+const typeDamagePayloadSchema = z.object({
+  code: z.string(),
+  buildings: z.number(),
+  buildings_heavy: z.number(),
+  share_heavy: z.number(),
+  buildings_by_grade: z.array(z.number()).optional(),
+});
+
+const typeCatalogPayloadSchema = z.record(
+  z.string(),
+  z.object({
+    group: z.string(),
+    description: z.string(),
+    vulnerability_class: z.string(),
+  }),
+);
+
+/** Intensity degrees arrive as object KEYS, so they are strings in JSON
+ * and numbers everywhere in the app. Anything that is not a whole degree
+ * in 1..12 is dropped rather than shown in a band the legend has no
+ * colour for. */
+const populationByIntensityPayloadSchema = z.record(z.string(), z.number());
+
+function parseTypeDamage(
+  rows: readonly z.infer<typeof typeDamagePayloadSchema>[] | undefined,
+): RiskBuildingTypeDamage[] | null {
+  if (!rows || rows.length === 0) {
+    return null;
+  }
+  return rows.map((r) => ({
+    code: r.code,
+    buildings: r.buildings,
+    buildingsHeavy: r.buildings_heavy,
+    shareHeavy: r.share_heavy,
+    buildingsByGrade: r.buildings_by_grade ?? null,
+  }));
+}
+
+function parseTypeCatalog(
+  raw: z.infer<typeof typeCatalogPayloadSchema> | undefined,
+): RiskTypeCatalog | null {
+  if (!raw) {
+    return null;
+  }
+  const out: Record<string, { group: string; description: string; vulnerabilityClass: string }> = {};
+  for (const [code, v] of Object.entries(raw)) {
+    out[code] = {
+      group: v.group,
+      description: v.description,
+      vulnerabilityClass: v.vulnerability_class,
+    };
+  }
+  return out;
+}
+
+function parsePopulationByIntensity(
+  raw: Record<string, number> | undefined,
+): RiskPopulationByIntensity | null {
+  if (!raw) {
+    return null;
+  }
+  const out: Record<number, number> = {};
+  for (const [degree, people] of Object.entries(raw)) {
+    const d = Number(degree);
+    if (Number.isInteger(d) && d >= 1 && d <= 12 && people > 0) {
+      out[d] = people;
+    }
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+// ---------------------------------------------------------------------------
 // risk_summary.json
 // ---------------------------------------------------------------------------
 
@@ -63,6 +145,10 @@ const riskSummaryPayloadSchema = z.object({
   buildings_heavy_p05_p50_p95: triple,
   exposed_population: z.number(),
   casualties_published: z.boolean().optional(),
+  buildings_by_grade: z.array(z.number()).optional(),
+  buildings_by_type: z.array(typeDamagePayloadSchema).optional(),
+  type_catalog: typeCatalogPayloadSchema.optional(),
+  population_by_intensity_band: populationByIntensityPayloadSchema.optional(),
 });
 
 /** Parses `risk_summary.json` (already fetched) into `RiskSummary`, or
@@ -87,6 +173,10 @@ export function parseRiskSummary(payload: unknown): RiskSummary | null {
     buildingsHeavyP05P50P95: d.buildings_heavy_p05_p50_p95,
     exposedPopulation: d.exposed_population,
     casualtiesPublished: d.casualties_published ?? false,
+    buildingsByGrade: d.buildings_by_grade ?? null,
+    buildingsByType: parseTypeDamage(d.buildings_by_type),
+    typeCatalog: parseTypeCatalog(d.type_catalog),
+    populationByIntensity: parsePopulationByIntensity(d.population_by_intensity_band),
   };
 }
 
@@ -191,6 +281,13 @@ const riskAreaPayloadSchema = z.object({
   buildings_heavy_p05_p50_p95: triple.optional(),
   buildings_dg4plus_p05_p50_p95: triple.optional(),
   exposed_population: z.number(),
+  buildings_by_grade: z.array(z.number()).optional(),
+  // Governorate rows carry the full 26-type matrix under
+  // `buildings_by_type`; everything below carries its three most damaged
+  // types under `top_damaged_types`. One field here, either source.
+  buildings_by_type: z.array(typeDamagePayloadSchema).optional(),
+  top_damaged_types: z.array(typeDamagePayloadSchema).optional(),
+  population_by_intensity_band: populationByIntensityPayloadSchema.optional(),
 });
 
 const riskAreasLevelsPayloadSchema = z.object({
@@ -205,6 +302,7 @@ const riskAreasPayloadSchema = z.object({
   time_of_day: timeOfDaySchema,
   n_draws: z.number(),
   levels: riskAreasLevelsPayloadSchema,
+  type_catalog: typeCatalogPayloadSchema.optional(),
 });
 
 /**
@@ -252,11 +350,15 @@ export function parseRiskAreas(payload: unknown): RiskAreas | null {
         buildingsHeavyP05P50P95: d.buildings_heavy_p05_p50_p95 ?? null,
         buildingsDg4PlusP05P50P95: d.buildings_dg4plus_p05_p50_p95 ?? null,
         exposedPopulation: d.exposed_population,
+        buildingsByGrade: d.buildings_by_grade ?? null,
+        damagedTypes: parseTypeDamage(d.buildings_by_type ?? d.top_damaged_types),
+        populationByIntensity: parsePopulationByIntensity(d.population_by_intensity_band),
       });
     }
   }
 
   return {
+    typeCatalog: parseTypeCatalog(parsed.data.type_catalog),
     damageModel: parsed.data.damage_model,
     timeOfDay: parsed.data.time_of_day as RiskTimeOfDay,
     nDraws: parsed.data.n_draws,

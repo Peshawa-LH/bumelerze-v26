@@ -1,0 +1,196 @@
+{
+  "product_schema_version": 2,
+  "generated_at": "2026-09-21T17:23:41.820741+00:00",
+  "stage": "gl2004_macroseismic",
+  "time_of_day": "transit",
+  "n_draws": 50,
+  "hazard_version": {
+    "conditioning": null
+  },
+  "exposure": {
+    "buildings_in_grid": 7795086,
+    "countries": [
+      "Iraq"
+    ]
+  },
+  "buildings_heavy": 27141,
+  "buildings_heavy_p05_p50_p95": [
+    13298,
+    42039,
+    139218
+  ],
+  "exposed_population": 32724192,
+  "casualties_published": false,
+  "buildings_by_grade": [
+    6955956,
+    668144,
+    143845,
+    24511,
+    2546,
+    83
+  ],
+  "buildings_by_type": [
+    {
+      "code": "M3",
+      "buildings": 1343284,
+      "buildings_heavy": 5834,
+      "share_heavy": 0.0043,
+      "buildings_by_grade": [
+        1133179,
+        169300,
+        34970,
+        5371,
+        454,
+        9
+      ]
+    },
+    {
+      "code": "M6",
+      "buildings": 2529184,
+      "buildings_heavy": 5422,
+      "share_heavy": 0.0021,
+      "buildings_by_grade": [
+        2307607,
+        181285,
+        34869,
+        5051,
+        367,
+        5
+      ]
+    },
+    {
+      "code": "M2",
+      "buildings": 271985,
+      "buildings_heavy": 4929,
+      "share_heavy": 0.0181,
+      "buildings_by_grade": [
+        189091,
+        59746,
+        18219,
+        4267,
+        632,
+        29
+      ]
+    },
+    {
+      "code": "M5",
+      "buildings": 967132,
+      "buildings_heavy": 4629,
+      "share_heavy": 0.0048,
+      "buildings_by_grade": [
+        812462,
+        123693,
+        26347,
+        4240,
+        381,
+        8
+      ]
+    },
+    {
+      "code": "M1",
+      "buildings": 179973,
+      "buildings_heavy": 4474,
+      "share_heavy": 0.0249,
+      "buildings_by_grade": [
+        114809,
+        45383,
+        15307,
+        3844,
+        600,
+        31
+      ]
+    },
+    {
+      "code": "RC1-L",
+      "buildings": 555037,
+      "buildings_heavy": 1215,
+      "share_heavy": 0.0022,
+      "buildings_by_grade": [
+        503290,
+        42606,
+        7926,
+        1130,
+        84,
+        1
+      ]
+    },
+    {
+      "code": "RC2-L",
+      "buildings": 346087,
+      "buildings_heavy": 193,
+      "share_heavy": 0.0006,
+      "buildings_by_grade": [
+        331317,
+        12768,
+        1808,
+        185,
+        9,
+        0
+      ]
+    },
+    {
+      "code": "RC1-M",
+      "buildings": 310358,
+      "buildings_heavy": 110,
+      "share_heavy": 0.0004,
+      "buildings_by_grade": [
+        300870,
+        8275,
+        1102,
+        106,
+        5,
+        0
+      ]
+    }
+  ],
+  "type_catalog": {
+    "M3": {
+      "group": "Masonry",
+      "description": "Simple stone",
+      "vulnerability_class": "B"
+    },
+    "M6": {
+      "group": "Masonry",
+      "description": "Manufactured stone with RC floors",
+      "vulnerability_class": "C"
+    },
+    "M2": {
+      "group": "Masonry",
+      "description": "Adobe, earth brick",
+      "vulnerability_class": "A"
+    },
+    "M5": {
+      "group": "Masonry",
+      "description": "Manufactured stone units, timber floors",
+      "vulnerability_class": "B"
+    },
+    "M1": {
+      "group": "Masonry",
+      "description": "Rubble stone, fieldstone",
+      "vulnerability_class": "A"
+    },
+    "RC1-L": {
+      "group": "RC_cast_in_situ",
+      "description": "RC frame — no / low code (ERD-L)",
+      "vulnerability_class": "C"
+    },
+    "RC2-L": {
+      "group": "RC_cast_in_situ",
+      "description": "RC wall — no / low code (ERD-L)",
+      "vulnerability_class": "C"
+    },
+    "RC1-M": {
+      "group": "RC_cast_in_situ",
+      "description": "RC frame — moderate code (ERD-M)",
+      "vulnerability_class": "D"
+    }
+  },
+  "population_by_intensity_band": {
+    "3": 14,
+    "4": 2421791,
+    "5": 24085435,
+    "6": 5370209,
+    "7": 721713,
+    "8": 125028
+  }
+}
