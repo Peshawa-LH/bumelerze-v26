@@ -82,7 +82,7 @@ describe("parseIntensityContours", () => {
     expect(() => parseIntensityContours(null)).toThrow();
   });
 
-  it("keeps only each MultiPolygon's outer ring, dropping holes", () => {
+  it("keeps each MultiPolygon's outer ring AND its holes", () => {
     const payload = {
       type: "FeatureCollection",
       features: [
@@ -101,7 +101,7 @@ describe("parseIntensityContours", () => {
                   [45, 35.1],
                   [45, 35],
                 ],
-                // hole (must be dropped)
+                // hole (must be kept, so the band below shows through)
                 [
                   [45.02, 35.02],
                   [45.03, 35.02],
@@ -118,7 +118,79 @@ describe("parseIntensityContours", () => {
     const result = parseIntensityContours(payload);
     expect(result.levels).toHaveLength(1);
     expect(result.levels[0]?.rings).toHaveLength(1);
-    expect(result.levels[0]?.rings[0]?.points).toHaveLength(5);
+    const ring = result.levels[0]?.rings[0];
+    expect(ring?.points).toHaveLength(5);
+    expect(ring?.closed).toBe(true);
+    expect(ring?.holes).toHaveLength(1);
+    expect(ring?.holes?.[0]).toHaveLength(4);
+  });
+
+  it("marks a MultiLineString ring open when it did not close on itself", () => {
+    // The far-field bug: a contour that ran off the edge of the
+    // producer's grid comes back as an OPEN path. Nothing here can close
+    // it correctly, because the correct closure walks the grid boundary
+    // rather than joining the path's two ends, so it must be flagged and
+    // left unfilled by the renderers.
+    const ringFor = (coordinates: number[][][]) =>
+      parseIntensityContours({
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            properties: { value: 5 },
+            geometry: { type: "MultiLineString", coordinates },
+          },
+        ],
+      }).levels[0]?.rings[0];
+
+    const open = ringFor([
+      [
+        [42.7, 34.5],
+        [45, 36],
+        [49.2, 35.5],
+      ],
+    ]);
+    expect(open?.closed).toBe(false);
+
+    const closed = ringFor([
+      [
+        [45, 35],
+        [46, 35],
+        [46, 36],
+        [45, 35],
+      ],
+    ]);
+    expect(closed?.closed).toBe(true);
+  });
+
+  it("caps each level by ring AREA, not by how many points a ring has", () => {
+    // A long, wiggly thread of coastline detail has more points than the
+    // compact block it winds around, but covers far less map. Ranking by
+    // point count dropped the block and kept the thread.
+    const square = (x: number, y: number, size: number) => [
+      [x, y],
+      [x + size, y],
+      [x + size, y + size],
+      [x, y + size],
+      [x, y],
+    ];
+    const thread = Array.from({ length: 60 }, (_, i) => [45 + i * 0.0001, 35 + (i % 2) * 0.0001]);
+    thread.push(thread[0]!);
+
+    const result = parseIntensityContours({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: { value: 6 },
+          geometry: { type: "MultiLineString", coordinates: [thread, square(46, 36, 1)] },
+        },
+      ],
+    });
+    const rings = result.levels[0]?.rings ?? [];
+    expect(rings).toHaveLength(2);
+    expect(rings[0]?.points).toHaveLength(5); // the big square, ranked first
+    expect(rings[1]?.points).toHaveLength(61); // the many-point thread, second
   });
 
   it("drops degenerate rings with fewer than 3 points", () => {

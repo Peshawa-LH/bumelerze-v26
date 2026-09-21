@@ -58,13 +58,25 @@ export interface AtlasBundleEntry {
   risk?: unknown;
 }
 
-/** One MMI contour ring: a sequence of `[lon, lat]` points (GeoJSON
+/** One contour ring: a sequence of `[lon, lat]` points (GeoJSON
  * coordinate order preserved end to end so `projection.ts` never has to
- * remember which axis is which). Never assumed closed — `ShakeMapView`
- * relies on SVG `Polygon`'s own auto-close behavior rather than requiring
- * `points[0] === points[last]`. */
+ * remember which axis is which). The final point need not repeat the
+ * first; renderers close the outline themselves.
+ *
+ * `closed` says whether the ring bounds a region at all. A filled band
+ * from `bands_mi.json` always does. A line from a `cont_mi.json`-style
+ * product does only if it did not run off the edge of the producer's
+ * grid: an open path has no interior, and joining its two ends to invent
+ * one draws a chord across open space. Renderers must stroke an open ring
+ * and fill only closed ones.
+ *
+ * `holes` are interior rings cut out of `points`, so a band with a
+ * low-intensity island in it shows the band below through the gap instead
+ * of painting over it. Only filled-polygon products carry them. */
 export interface ContourRing {
   points: readonly (readonly [number, number])[];
+  closed?: boolean;
+  holes?: readonly (readonly (readonly [number, number])[])[];
 }
 
 /** All rings sharing one MMI value, plus the ramp-index this value maps to

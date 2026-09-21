@@ -6,7 +6,8 @@
  *
  * Maps every curated historical event id
  * (src/features/historical/notable-events.ts) to its bundled
- * bumelerze-shake-service product — raw cont_mi.json contours +
+ * bumelerze-shake-service product — bands_mi.json filled
+ * intensity bands +
  * review_status + a data-used summary key, computed entirely
  * offline (scripts/seed_atlas.py), zero network cost
  * at render time (D21: "Displayed maps are ALWAYS

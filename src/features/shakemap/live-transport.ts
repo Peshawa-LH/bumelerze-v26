@@ -145,8 +145,12 @@ const RISK_ROW_COLUMNS = ["product_type", "storage_path"] as const;
  * pointer only — its `storage_path` IS the artifact (a PDF URL), never
  * fetched-and-JSON-parsed the way the others are. `risk_areas` (migration
  * 0030, `risk-areas` wave) is optional like `risk_contours` — its absence
- * never blocks the rest of the risk bundle from resolving. */
+ * never blocks the rest of the risk bundle from resolving.
+ * `risk_contour_bands` (migration 0031) is the FILLED damage geometry and
+ * is preferred over `risk_contours`, which is a line product whose open
+ * contours this app cannot close correctly. */
 const RISK_PRODUCT_TYPES = [
+  "risk_contour_bands",
   "risk_contours",
   "risk_districts",
   "risk_summary",
@@ -206,7 +210,10 @@ async function fetchRiskBundle(
       // same as no risk product at all, never a half-populated section.
       return null;
     }
-    const damageContoursPath = storagePathByType.get("risk_contours");
+    // Bands first: `risk_contours` is the line product, kept only as the
+    // fallback for versions published before migration 0031.
+    const damageContoursPath =
+      storagePathByType.get("risk_contour_bands") ?? storagePathByType.get("risk_contours");
     const areasPath = storagePathByType.get("risk_areas");
     const reportPath = storagePathByType.get("report");
 
@@ -253,23 +260,36 @@ export const SupabaseLiveShakeMapTransport: LiveShakeMapTransport = {
       return null;
     }
 
-    const { data, error } = await client
-      .from("shakemap_products")
-      .select(LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS.join(", "))
-      .eq("event_id", internalEventId)
-      .eq("producer", "bumelerze")
-      .eq("product_type", "contours");
+    // `contour_bands` (migration 0031) is the FILLED geometry this app
+    // paints. `contours` is the line product, faithful to USGS's own
+    // `cont_mi.json`: a contour that leaves the producer's grid is an
+    // OPEN path, and no client can close it correctly, because the
+    // correct closure walks the grid boundary rather than joining the
+    // path's two ends. It stays as the fallback for versions published
+    // before the band product existed, where the renderers now stroke
+    // open rings instead of filling them.
+    const queryProductType = async (productType: string) => {
+      const { data, error } = await client
+        .from("shakemap_products")
+        .select(LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS.join(", "))
+        .eq("event_id", internalEventId)
+        .eq("producer", "bumelerze")
+        .eq("product_type", productType);
 
-    if (error) {
-      // Genuine data-layer failure — no silent catch (this transport's own
-      // doc comment above; same convention as `SupabaseFeltMapTransport`'s
-      // identical rethrow). `useLiveShakeMap` is the layer that decides to
-      // fail THIS specific best-effort feature soft rather than surface a
-      // visible error state.
-      throw error;
-    }
+      if (error) {
+        // Genuine data-layer failure — no silent catch (this transport's
+        // own doc comment above; same convention as
+        // `SupabaseFeltMapTransport`'s identical rethrow).
+        // `useLiveShakeMap` is the layer that decides to fail THIS
+        // specific best-effort feature soft rather than surface a visible
+        // error state.
+        throw error;
+      }
+      return parseLiveShakeMapProductRows(data ?? []).rows;
+    };
 
-    const { rows } = parseLiveShakeMapProductRows(data ?? []);
+    const bandRows = await queryProductType("contour_bands");
+    const rows = bandRows.length > 0 ? bandRows : await queryProductType("contours");
     const chosen = selectLatestLiveProductRow(rows);
     if (!chosen) {
       return null;

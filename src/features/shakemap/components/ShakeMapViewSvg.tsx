@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
 import { StyleSheet, View } from "react-native";
-import Svg, { Circle, Polygon, Polyline, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, Path, Polygon, Polyline, Text as SvgText } from "react-native-svg";
 
 import { pickLocalizedName } from "@/features/geo";
 import type { TranslateFn } from "@/features/geo";
@@ -29,7 +29,7 @@ import {
   type Projector,
 } from "../projection";
 import { starPointsAttribute } from "../star-marker";
-import type { DamageContourSet, IntensityContourSet } from "../types";
+import type { ContourRing, DamageContourSet, IntensityContourSet } from "../types";
 import { ShakeMapLayerToggle } from "./ShakeMapLayerToggle";
 import { ShakeMapLegend, type ShakeMapLayer } from "./ShakeMapLegend";
 
@@ -47,6 +47,27 @@ export type { ShakeMapLayer };
  * map lands later (dev-build phase) the exact same product model feeds it
  * with no data-layer change — only this component gets swapped/extended.
  */
+
+/**
+ * One contour ring as SVG path data: its outline, then each of its holes
+ * as a further closed subpath. Drawn with `fillRule="evenodd"` the holes
+ * cut out of the outline, so a band enclosing a low-intensity island
+ * shows the band below through the gap instead of painting over it.
+ *
+ * This replaced `<Polygon>`, which has no cutout mechanism at all: every
+ * ring was filled solid, so the nesting of the bands was wrong wherever
+ * one enclosed another.
+ */
+function ringPathData(ring: ContourRing, projector: Projector): string {
+  const subpath = (points: readonly (readonly [number, number])[]): string =>
+    `${points
+      .map(([lon, lat], index) => {
+        const { x, y } = projector.project(lon, lat);
+        return `${index === 0 ? "M" : "L"}${x},${y}`;
+      })
+      .join(" ")} Z`;
+  return [subpath(ring.points), ...(ring.holes ?? []).map(subpath)].join(" ");
+}
 
 /** MMI value rounds to a ramp index 1..12; index 0 is the theme ramp's own
  * unused placeholder (see `theme/palette.ts`). Provides a safe fallback so
@@ -261,44 +282,34 @@ export function ShakeMapView({
 
             {activeLayer === "intensity"
               ? contours.levels.map((level) =>
-                  level.rings.map((ring, ringIndex) => {
-                    const points = ring.points
-                      .map(([lon, lat]) => {
-                        const { x, y } = projector.project(lon, lat);
-                        return `${x},${y}`;
-                      })
-                      .join(" ");
-                    return (
-                      <Polygon
+                  level.rings.map((ring, ringIndex) =>
+                    ring.closed === false ? null : (
+                      <Path
                         key={`${level.value}-${ringIndex}`}
                         testID={`shakemap-contour-${level.value}-${ringIndex}`}
-                        points={points}
+                        d={ringPathData(ring, projector)}
+                        fillRule="evenodd"
                         fill={rampColor(colors, level.level)}
                         fillOpacity={0.6}
                         stroke="none"
                       />
-                    );
-                  }),
+                    ),
+                  ),
                 )
               : (damageContours?.levels ?? []).map((level) =>
-                  level.rings.map((ring, ringIndex) => {
-                    const points = ring.points
-                      .map(([lon, lat]) => {
-                        const { x, y } = projector.project(lon, lat);
-                        return `${x},${y}`;
-                      })
-                      .join(" ");
-                    return (
-                      <Polygon
+                  level.rings.map((ring, ringIndex) =>
+                    ring.closed === false ? null : (
+                      <Path
                         key={`damage-${level.value}-${ringIndex}`}
                         testID={`shakemap-damage-contour-${level.value}-${ringIndex}`}
-                        points={points}
+                        d={ringPathData(ring, projector)}
+                        fillRule="evenodd"
                         fill={colors.damageGrade[level.level] ?? colors.damageGrade[1] ?? colors.status.warning}
                         fillOpacity={0.6}
                         stroke="none"
                       />
-                    );
-                  }),
+                    ),
+                  ),
                 )}
 
             {cities.map((city) => {

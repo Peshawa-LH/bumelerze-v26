@@ -73,6 +73,19 @@ function closeRing(points: readonly (readonly [number, number])[]): [number, num
  * `SHAKEMAP_MAX_RINGS_PER_LEVEL` is already enforced upstream
  * (`contours.ts`'s own ring cap at parse time), so nothing further to cap
  * here.
+ *
+ * A ring's `holes` become the polygon's interior rings, so a band with a
+ * low-intensity island in it shows the band below through the gap.
+ *
+ * A ring marked `closed: false` is SKIPPED. Those come from a line
+ * product (`cont_mi.json`) whose contour ran off the edge of the
+ * producer's grid: it has no interior, and the chord that would close it
+ * runs across open space. Filling them is what broke the far field of
+ * every map until `bands_mi.json` existed. Dropping them loses an outer
+ * isoline on a pre-2026-09-21 Atlas version; drawing them loses the
+ * corner of the map underneath the chord. This source feeds both the fill
+ * and the line layer, so the choice is one or the other, and a missing
+ * isoline is the smaller, more honest error.
  */
 export function buildContourFeatureCollection(
   levels: readonly ContourLevelLike[],
@@ -81,13 +94,19 @@ export function buildContourFeatureCollection(
   const features: ContourPolygonFeature[] = [];
   for (const level of sorted) {
     for (const ring of level.rings) {
-      if (ring.points.length < 3) {
+      if (ring.points.length < 3 || ring.closed === false) {
         continue;
+      }
+      const rings = [closeRing(ring.points)];
+      for (const hole of ring.holes ?? []) {
+        if (hole.length >= 3) {
+          rings.push(closeRing(hole));
+        }
       }
       features.push({
         type: "Feature",
         properties: { level: level.level, value: level.value },
-        geometry: { type: "Polygon", coordinates: [closeRing(ring.points)] },
+        geometry: { type: "Polygon", coordinates: rings },
       });
     }
   }

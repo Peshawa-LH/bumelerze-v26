@@ -11,14 +11,23 @@ import type { ContourRing, IntensityContourSet } from "./types";
  * came from real `MultiLineString` coordinates); `MultiPolygon` is
  * accepted too since D9's contract is producer-agnostic and a future
  * `bumelerze-engine` output — or a different USGS product vintage —
- * could ship filled polygons directly. For `MultiPolygon`, only each
- * polygon's OUTER ring (coordinates[0]) is kept — interior holes are
- * dropped. This is a deliberate simplification for this wave's renderer
- * (which fills whole rings as flat color bands, see `ShakeMapView.tsx`'s
- * top-of-file tradeoff comment): a hole would need to render as a
- * cutout, which the simple "paint each ring in ascending value order"
- * approach below doesn't support. Revisit if/when a producer's contours
- * actually carry meaningful holes.
+ * could ship filled polygons directly.
+ *
+ * Since 2026-09-21 our own producer ships BOTH: `cont_mi.json` stays the
+ * line product, and `bands_mi.json` carries closed `value >= level`
+ * polygons WITH holes, which is what this app renders. The line product
+ * cannot be filled correctly here and never could: a contour that leaves
+ * the grid through its boundary is an open path, and closing it by
+ * joining its last point back to its first draws a chord across open
+ * space instead of walking the boundary. That is what broke the far field
+ * of every map until the band product existed. `MultiLineString` is still
+ * accepted, for USGS products and for any Atlas version published before
+ * the change, but its rings are marked open and are stroked rather than
+ * filled.
+ *
+ * A `MultiPolygon`'s interior rings are kept as `holes` so a band with a
+ * low-intensity island in it lets the band below show through rather than
+ * painting over it.
  */
 const lonLatTuple = z.tuple([z.number(), z.number()]);
 
@@ -52,21 +61,61 @@ const contourFeatureCollectionSchema = z.object({
   features: z.array(z.unknown()),
 });
 
+/** Twice a ring's signed area (the shoelace sum). Used only to rank rings
+ * by how much of the map they cover, so the per-level cap drops the least
+ * significant ones — point count, which this replaced, measures how
+ * wiggly a ring is, not how big. */
+function ringArea(points: readonly (readonly [number, number])[]): number {
+  let sum = 0;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i, i += 1) {
+    sum += points[j]![0] * points[i]![1] - points[i]![0] * points[j]![1];
+  }
+  return Math.abs(sum) / 2;
+}
+
 /** Rings implied by one feature's geometry — a `MultiLineString`'s lines
- * directly, or a `MultiPolygon`'s outer rings only (see schema doc
- * comment above). */
+ * (open, stroke-only), or a `MultiPolygon`'s polygons with their holes
+ * (closed, fillable). See the schema doc comment above. */
 function ringsFromGeometry(
   geometry: z.infer<typeof contourGeometrySchema>,
 ): ContourRing[] {
   if (geometry.type === "MultiLineString") {
-    return geometry.coordinates.map((points) => ({ points }));
+    return geometry.coordinates.map((points) => ({
+      points,
+      // A marching-squares path that ran off the edge of the producer's
+      // grid. Nothing downstream can close it correctly, so it must not
+      // be filled — `closed: false` is how the renderers know.
+      closed: isClosedRing(points),
+    }));
   }
-  // MultiPolygon: coordinates is polygon[] -> ring[] -> point[]; take each
-  // polygon's first (outer) ring only.
+  // MultiPolygon: coordinates is polygon[] -> ring[] -> point[]. Ring 0 is
+  // the exterior, the rest are holes.
   return geometry.coordinates.flatMap((polygon) => {
-    const outerRing = polygon[0];
-    return outerRing ? [{ points: outerRing }] : [];
+    const [outerRing, ...holes] = polygon;
+    if (!outerRing) {
+      return [];
+    }
+    return [
+      {
+        points: outerRing,
+        closed: true,
+        holes: holes.filter((hole) => hole.length >= SHAKEMAP_MIN_RING_POINTS),
+      },
+    ];
   });
+}
+
+function isClosedRing(
+  points: readonly (readonly [number, number])[],
+): boolean {
+  const first = points[0];
+  const last = points[points.length - 1];
+  return (
+    first !== undefined &&
+    last !== undefined &&
+    first[0] === last[0] &&
+    first[1] === last[1]
+  );
 }
 
 /** One value's worth of rings, before a ramp-index is assigned — the
@@ -137,10 +186,12 @@ export function extractContourLevels(payload: unknown): ExtractedContourLevels {
     .map(({ value, rings }) => ({
       value,
       // Perf guard (PROJECT.md: low-end Android is the baseline device) —
-      // keep the largest (most area-significant) rings, drop small
-      // fragments beyond the cap, biggest-first.
+      // keep the rings covering the most map AREA, drop the rest,
+      // biggest-first. Ranking by point count instead (which this
+      // replaced) kept whichever rings were wiggliest, so a long thread
+      // of coastline detail displaced the compact block it wound around.
       rings: [...rings]
-        .sort((a, b) => b.points.length - a.points.length)
+        .sort((a, b) => ringArea(b.points) - ringArea(a.points))
         .slice(0, SHAKEMAP_MAX_RINGS_PER_LEVEL),
     }));
 

@@ -49,7 +49,7 @@ const INTERNAL_UUID = "11111111-1111-4111-8111-111111111111";
 function validRow(overrides: Record<string, unknown> = {}) {
   return {
     version: 2,
-    storage_path: "https://example.test/events/us2000bmcg/v2/cont_mi.json",
+    storage_path: "https://example.test/events/us2000bmcg/v2/bands_mi.json",
     data_used: {
       conditioning_applied: { ems: true },
       instrument_stations_parsed: 4,
@@ -88,7 +88,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     global.fetch = originalFetch;
   });
 
-  it("resolves the event uuid, queries shakemap_products with the right filters, and fetches the artifact", async () => {
+  it("asks for the filled band product first, and fetches that artifact", async () => {
     mockRpc.mockResolvedValue({ data: INTERNAL_UUID, error: null });
     mockEq3.mockResolvedValue({ data: [validRow()], error: null });
 
@@ -101,9 +101,14 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     expect(mockFrom).toHaveBeenCalledWith("shakemap_products");
     expect(mockEq1).toHaveBeenCalledWith("event_id", INTERNAL_UUID);
     expect(mockEq2).toHaveBeenCalledWith("producer", "bumelerze");
-    expect(mockEq3).toHaveBeenCalledWith("product_type", "contours");
+    // `contour_bands` is the FILLED geometry. The app never asks for
+    // `contours` (the line product) while bands exist: an open contour in
+    // a line product cannot be closed correctly by a client, and filling
+    // it by joining its two ends draws a chord across open space.
+    expect(mockEq3).toHaveBeenCalledWith("product_type", "contour_bands");
+    expect(mockEq3).not.toHaveBeenCalledWith("product_type", "contours");
     expect(global.fetch).toHaveBeenCalledWith(
-      "https://example.test/events/us2000bmcg/v2/cont_mi.json",
+      "https://example.test/events/us2000bmcg/v2/bands_mi.json",
     );
 
     expect(product).not.toBeNull();
@@ -111,6 +116,25 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     expect(product?.reviewStatus).toBe("automatic");
     expect(product?.dataUsedSummaryKey).toBe("stationConditioned");
     expect(product?.engineVersion?.serviceVersion).toBe("0.1.0");
+    expect(product?.contours).toEqual(CONTOURS_PAYLOAD);
+  });
+
+  it("falls back to the line product for a version published before bands existed", async () => {
+    mockRpc.mockResolvedValue({ data: INTERNAL_UUID, error: null });
+    mockEq3
+      .mockResolvedValueOnce({ data: [], error: null })
+      .mockResolvedValueOnce({
+        data: [validRow({ storage_path: "https://example.test/events/us2000bmcg/v2/cont_mi.json" })],
+        error: null,
+      });
+
+    const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
+
+    expect(mockEq3).toHaveBeenNthCalledWith(1, "product_type", "contour_bands");
+    expect(mockEq3).toHaveBeenNthCalledWith(2, "product_type", "contours");
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://example.test/events/us2000bmcg/v2/cont_mi.json",
+    );
     expect(product?.contours).toEqual(CONTOURS_PAYLOAD);
   });
 

@@ -117,3 +117,54 @@ describe("contourBoundsToLngLatBounds", () => {
     expect(bounds).toEqual([[44, 34], [46, 36]]);
   });
 });
+
+describe("buildContourFeatureCollection — bands (2026-09-21)", () => {
+  const square = (x: number, y: number, size: number): [number, number][] => [
+    [x, y],
+    [x + size, y],
+    [x + size, y + size],
+    [x, y + size],
+  ];
+
+  it("emits a ring's holes as the polygon's interior rings", () => {
+    const [feature] = buildContourFeatureCollection([
+      {
+        value: 6,
+        level: 6,
+        rings: [{ points: square(45, 35, 1), closed: true, holes: [square(45.2, 35.2, 0.2)] }],
+      },
+    ]).features;
+
+    expect(feature?.geometry.coordinates).toHaveLength(2);
+    expect(feature?.geometry.coordinates[0]).toHaveLength(5); // closed exterior
+    expect(feature?.geometry.coordinates[1]).toHaveLength(5); // closed hole
+  });
+
+  it("skips an open ring instead of filling the chord that would close it", () => {
+    // The far-field bug. A contour that left the producer's grid has no
+    // interior; joining its last point back to its first draws across
+    // open space, which is what cut wedges out of every published map.
+    const { features } = buildContourFeatureCollection([
+      {
+        value: 5,
+        level: 5,
+        rings: [
+          { points: square(42.7, 34, 6), closed: false },
+          { points: square(45, 35, 1), closed: true },
+        ],
+      },
+    ]);
+
+    expect(features).toHaveLength(1);
+    expect(features[0]?.geometry.coordinates[0]?.[0]).toEqual([45, 35]);
+  });
+
+  it("still fills a ring that says nothing about being closed", () => {
+    // Back-compat: `closed` is optional, and a ring from before it
+    // existed must keep rendering exactly as it did.
+    const { features } = buildContourFeatureCollection([
+      { value: 5, level: 5, rings: [{ points: square(45, 35, 1) }] },
+    ]);
+    expect(features).toHaveLength(1);
+  });
+});
