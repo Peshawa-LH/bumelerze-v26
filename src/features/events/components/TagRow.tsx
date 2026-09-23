@@ -75,8 +75,8 @@ function computeTagRowContent(
   const namedAgencies = (agencies ?? [])
     .slice(0, maxSourceTags)
     .map(agencyDisplayLabel);
-  // The compact surface (list banners) shows exactly three tag kinds and no
-  // more: source, notable, shakemap. Owner directive 2026-08-28, tightened
+  // The compact surface (list banners) shows at most two tags: source, then
+  // whichever of notable/shakemap applies (shakemap wins; see below). Owner directive 2026-08-28, tightened
   // after a first pass rendered "US +2": "one source tagged the main one
   // thats enough ... for the banners only one tag for the source". So the
   // "+N" collapse exists only where the full list does, on event detail.
@@ -93,7 +93,12 @@ function computeTagRowContent(
       : // No registry match yet — today's single provider chip.
         [t(`events.provenance.${provider}`)];
 
-  const notableLabel = isNotable ? t("events.notableTag") : null;
+  // SHAKEmap supersedes notable (owner directive 2026-09-23). Three chips
+  // crowd a phone card, which is why the source tags were cut to one in
+  // the first place, and the pair is largely redundant: an event big
+  // enough to be carried as notable is normally one we computed a map
+  // for, and the map is the more useful of the two things to say.
+  const notableLabel = isNotable && !hasShakemap ? t("events.notableTag") : null;
   const shakemapLabel = hasShakemap ? t("events.shakemapTag") : null;
 
   const sourcesA11yText =
@@ -106,6 +111,8 @@ function computeTagRowContent(
           agencies: sourceTagLabels.join(", "),
         });
 
+  // `notableLabel`, not `isNotable` — the spoken label follows the visual
+  // (this module's own rule above), so a suppressed chip is not announced.
   const a11yLabel = [
     sourcesA11yText,
     notableLabel,
@@ -147,7 +154,8 @@ interface TagRowProps extends TagRowContentProps {
  * tabbing I like we should keep for the sources especially and in the
  * future we can mark events that have a shakemap"). Generalises the old
  * ad-hoc `ProvenanceChip` + inline "notable" tag pairing into one ordered
- * row: source tag(s), then notable, then shakemap.
+ * row: source tag(s), then notable OR shakemap — never both, since
+ * 2026-09-23.
  *
  * In `standalone` mode this is ONE accessible element with a combined label
  * (typescript-react-native.md: screen readers should hear a sentence, not

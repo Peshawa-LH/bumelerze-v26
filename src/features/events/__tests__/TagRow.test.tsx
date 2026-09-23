@@ -120,24 +120,49 @@ describe("TagRow", () => {
     expect(screen.getByText(i18n.t("events.shakemapTag"), HIDDEN)).toBeTruthy();
   });
 
-  it("orders tags as sources, then notable, then shakemap", async () => {
-    await render(
-      <TagRow provider="usgs" agencies={["USGS"]} isNotable hasShakemap />,
-    );
+  it("orders tags as sources, then notable", async () => {
+    await render(<TagRow provider="usgs" agencies={["USGS"]} isNotable />);
     expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
     expect(screen.getByText(i18n.t("events.notableTag"), HIDDEN)).toBeTruthy();
-    expect(screen.getByText(i18n.t("events.shakemapTag"), HIDDEN)).toBeTruthy();
 
     // react-native-testing-library exposes host-tree order via each node's
     // parent traversal; simplest robust check here is DOM-order via
-    // `toJSON()` string positions, since all three render as plain <Text>.
+    // `toJSON()` string positions, since both render as plain <Text>.
     const tree = JSON.stringify(screen.toJSON());
-    const sourceIndex = tree.indexOf("USGS");
-    const notableIndex = tree.indexOf(i18n.t("events.notableTag"));
-    const shakemapIndex = tree.indexOf(i18n.t("events.shakemapTag"));
+    expect(tree.indexOf("USGS")).toBeLessThan(
+      tree.indexOf(i18n.t("events.notableTag")),
+    );
+  });
 
-    expect(sourceIndex).toBeLessThan(notableIndex);
-    expect(notableIndex).toBeLessThan(shakemapIndex);
+  it("orders tags as sources, then shakemap", async () => {
+    await render(<TagRow provider="usgs" agencies={["USGS"]} hasShakemap />);
+    const tree = JSON.stringify(screen.toJSON());
+    expect(tree.indexOf("USGS")).toBeLessThan(
+      tree.indexOf(i18n.t("events.shakemapTag")),
+    );
+  });
+
+  it("drops the notable tag when the event has a shakemap", async () => {
+    // Owner directive 2026-09-23: three chips crowd a phone card, and the
+    // pair is largely redundant — a notable event is normally one we
+    // computed a map for, and the map is the more useful thing to say.
+    await render(
+      <TagRow provider="usgs" agencies={["USGS"]} isNotable hasShakemap />,
+    );
+    expect(screen.getByText(i18n.t("events.shakemapTag"), HIDDEN)).toBeTruthy();
+    expect(screen.queryByText(i18n.t("events.notableTag"), HIDDEN)).toBeNull();
+  });
+
+  it("does not announce the suppressed notable tag to a screen reader", async () => {
+    // The spoken label follows the visual (this row's own rule): a chip a
+    // sighted user cannot see must not be read out either.
+    await render(
+      <TagRow provider="usgs" agencies={["USGS"]} isNotable hasShakemap />,
+    );
+    const combined = screen.getByLabelText(
+      `${i18n.t("events.tagRow.sourcesA11yLabel", { agencies: "USGS" })}. ${i18n.t("events.shakemapTagA11yLabel")}`,
+    );
+    expect(combined).toBeTruthy();
   });
 
   describe("standalone accessibility", () => {
