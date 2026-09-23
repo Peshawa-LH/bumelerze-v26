@@ -196,7 +196,8 @@
       "sourceLabel": "المصدر",
       "sourceIdLabel": "رقم المصدر",
       "bumelerzeIdLabel": "رقم بوملێرزە",
-      "unknown": "غير معروف"
+      "unknown": "غير معروف",
+      "viewShakeMap": "عرض خريطة الاهتزاز"
     }
   },
   "map": {

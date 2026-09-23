@@ -1,8 +1,10 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/theme";
+import { PUBLISHED_ID_BY_CATALOG_ID } from "../published-crosswalk";
 import {
   formatCatalogCoordinates,
   formatCatalogDateTimeUtc,
@@ -22,12 +24,21 @@ interface CatalogDetailSheetProps {
  * `RehearsalAlertModal` (screen-reader-accessible tap-outside-to-dismiss
  * without swallowing the content into one unreadable Pressable — see that
  * component's accessibility-fix doc comment). These are archival events —
- * no live refetch, no felt-report/shakemap affordance here. */
+ * no live refetch and no felt-report affordance here.
+ *
+ * One exception to "archival only": an event Bumelerze has published a
+ * shaking map for gets a link to it. The catalogue and the event database
+ * number their rows independently (D61), so the row's own id is not the
+ * one that map was published under; `published-crosswalk.ts` is the
+ * offline map between them, and its absence means nothing was published,
+ * which is the common case. */
 export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const publishedId = row ? (PUBLISHED_ID_BY_CATALOG_ID.get(row.bumelerzeId) ?? null) : null;
 
   return (
     <Modal visible={row !== null} transparent animationType="slide" onRequestClose={onClose}>
@@ -130,6 +141,41 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                   colors={colors}
                   typography={typography}
                 />
+                {/* Only when a map was actually published for this
+                    earthquake. The published id is deliberately not shown:
+                    two ids for one event is the internal bookkeeping of
+                    D61, not something a reader needs. Close first, then
+                    push — leaving the modal up over the pushed screen
+                    traps focus for a screen reader. */}
+                {publishedId ? (
+                  <Pressable
+                    accessibilityRole="link"
+                    accessibilityLabel={t("catalog.detail.viewShakeMap")}
+                    onPress={() => {
+                      onClose();
+                      router.push(`/event/${publishedId}`);
+                    }}
+                    style={({ pressed }) => [
+                      styles.shakeMapLink,
+                      {
+                        borderColor: colors.border.default,
+                        backgroundColor: pressed ? colors.surface.sunken : "transparent",
+                        paddingVertical: spacing[3],
+                        paddingHorizontal: spacing[3],
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        color: colors.text.link,
+                        fontSize: typography.labelButton.fontSize,
+                        fontWeight: typography.labelButton.fontWeight,
+                      }}
+                    >
+                      {t("catalog.detail.viewShakeMap")}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </>
             ) : null}
           </ScrollView>
@@ -196,5 +242,14 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: 2,
+  },
+  shakeMapLink: {
+    // 44 is the minimum comfortable touch target; the panic-time UX rule
+    // applies here too even though this screen is archival.
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderRadius: 8,
   },
 });

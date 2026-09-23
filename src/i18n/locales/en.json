@@ -196,7 +196,8 @@
       "sourceLabel": "Source",
       "sourceIdLabel": "Source ID",
       "bumelerzeIdLabel": "Bumelerze ID",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "viewShakeMap": "View shaking map"
     }
   },
   "map": {

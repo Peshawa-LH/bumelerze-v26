@@ -196,7 +196,8 @@
       "sourceLabel": "سەرچاوە",
       "sourceIdLabel": "ژمارەی سەرچاوە",
       "bumelerzeIdLabel": "ژمارەی بوومەلەرزە",
-      "unknown": "نەزانراو"
+      "unknown": "نەزانراو",
+      "viewShakeMap": "بینینی نەخشەی لەرزین"
     }
   },
   "map": {
