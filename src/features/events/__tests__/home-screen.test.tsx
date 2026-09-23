@@ -375,7 +375,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
 
     await renderWithProviders(<HomeScreen />);
 
-    expect(screen.getByText("SHAKEmap", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByText("shakemap", { includeHiddenElements: true })).toBeTruthy();
   });
 
   it("does not tag an event with no published map", async () => {
@@ -386,7 +386,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
 
     await renderWithProviders(<HomeScreen />);
 
-    expect(screen.queryByText("SHAKEmap", { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByText("shakemap", { includeHiddenElements: true })).toBeNull();
   });
 
   it("does not tag an event the registry has no entry for", async () => {
@@ -397,6 +397,6 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
 
     await renderWithProviders(<HomeScreen />);
 
-    expect(screen.queryByText("SHAKEmap", { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByText("shakemap", { includeHiddenElements: true })).toBeNull();
   });
 });

@@ -291,6 +291,54 @@ export const intensityOnFillDark: readonly string[] = [
  *     #440001 read as a hole in the ramp rather than as its top, and separated from DG4
  *     only by darkness; #B3141A is 1.78:1 against DG4 and unmistakably the strongest grade.
  */
+/**
+ * Magnitude-band accent for an event card's edge stripe. Five steps,
+ * blue -> green -> yellow -> orange -> red, on the standard USGS magnitude
+ * classes (minor / light / moderate / strong / major, edges at whole
+ * numbers M4, M5, M6, M7 — `features/events/magnitude-tone.ts` owns the
+ * bucketing).
+ *
+ * NOT A SCIENTIFIC SCALE, and deliberately not `intensityRamp`. A
+ * magnitude is one number for the whole earthquake; the shaking a person
+ * feels depends on distance and depth, which is what `intensityRamp`
+ * colours. design-language.md §3.2 names conflating the two as
+ * LastQuake's own card-design mistake, so this ramp shares the intuitive
+ * cool-to-hot ORDER without borrowing a single EMS hex: the closest pair
+ * (strong #D2691E vs EMS X) still differ by 1.36:1, and the EMS swatches
+ * are pastels made for filled areas while these are saturated mid-tones
+ * made for a 4px stripe on a near-black card. The magnitude numeral
+ * itself stays neutral text, which §3.2 requires and this does not change.
+ *
+ * Why five and not the three this replaced: the old edges (4.5 / 6.0) put
+ * 86% of every event a user can browse into one colour and rendered an
+ * M6.0 identically to an M7.8 — the single distinction that matters most
+ * in this region, where the 2017 (M7.3) and 2023 (M7.8) events are the
+ * reference earthquakes. Five bands spread the same catalogue
+ * 71.7 / 24.1 / 3.8 / 0.4 / 0.1 percent (owner directive 2026-09-23).
+ *
+ * Contrast (WCAG 2.x relative luminance, computed not eyeballed — see
+ * `theme/__tests__/palette.test.ts`). A stripe is a graphical object, so
+ * the bar is the 3:1 non-text floor, and every step clears it against
+ * BOTH theme's card surfaces (`#141414` dark, `#FFFFFF` light):
+ *   minor    #2E6E9E — 3.37:1 dark / 5.47:1 light
+ *   light    #2E9E5B — 5.40:1 dark / 3.41:1 light
+ *   moderate #A8880A — 5.43:1 dark / 3.39:1 light — a dark gold, not EMS VI's
+ *     lemon #F9EC33, which is 2.55:1 on white and would vanish in light theme
+ *   strong   #D2691E — 5.07:1 dark / 3.63:1 light
+ *   major    #C3202B — 3.12:1 dark / 5.90:1 light
+ *
+ * Colour is never the only carrier here: the magnitude numeral sits
+ * beside the stripe at display size, so a red/green-confusable reader
+ * loses nothing the card does not also state in text.
+ */
+export const magnitudeBandPalette = {
+  minor: "#2E6E9E",
+  light: "#2E9E5B",
+  moderate: "#A8880A",
+  strong: "#D2691E",
+  major: "#C3202B",
+} as const;
+
 export const damageGradePalette: readonly string[] = [
   "", // index 0 unused
   "#1B5E20", // DG1 — no visible damage

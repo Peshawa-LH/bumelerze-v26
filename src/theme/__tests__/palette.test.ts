@@ -10,6 +10,7 @@ import {
   intensityRamp,
   logoBrand,
   neutral,
+  magnitudeBandPalette,
 } from "../palette";
 import { darkColors, lightColors } from "../semantic";
 
@@ -290,5 +291,36 @@ describe("logoBrand — must never drift from the logo package's own tokens", ()
     ["presentationOffWhite", "presentation-off-white"],
   ] as const)("logoBrand.%s matches the logo package's colors['%s']", (key, tokenKey) => {
     expect(logoBrand[key]).toBe(tokens.colors[tokenKey]?.hex);
+  });
+});
+
+/** The event-card magnitude stripe (owner directive 2026-09-23). A stripe
+ * is a graphical object, so the bar is WCAG's 3:1 non-text floor, and it
+ * has to clear it on BOTH themes because this ramp is theme-independent. */
+describe("magnitudeBandPalette", () => {
+  const bands = ["minor", "light", "moderate", "strong", "major"] as const;
+
+  it.each(bands)("keeps %s legible on both theme surfaces", (band) => {
+    const hex = magnitudeBandPalette[band];
+    expect(contrastRatio(hex, DARK_SURFACE)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(hex, LIGHT_SURFACE)).toBeGreaterThanOrEqual(3);
+  });
+
+  it("borrows no color from the EMS-98 intensity ramp", () => {
+    // design-language.md §3.2: magnitude must never be colored as
+    // intensity. Sharing the cool-to-hot ORDER is the point; sharing a hex
+    // would make a size hint look like a shaking measurement.
+    const ems = new Set(intensityRamp.filter(Boolean));
+    for (const band of bands) {
+      expect(ems.has(magnitudeBandPalette[band])).toBe(false);
+    }
+  });
+
+  it("is theme-independent — one ramp, not a light/dark pair", () => {
+    expect(lightColors.magnitudeBand).toBe(darkColors.magnitudeBand);
+  });
+
+  it("has five distinct colors", () => {
+    expect(new Set(bands.map((b) => magnitudeBandPalette[b])).size).toBe(5);
   });
 });

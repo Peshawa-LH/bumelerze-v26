@@ -124,7 +124,7 @@ function EventCardImpl({
         {
           backgroundColor: colors.surface.raised,
           borderColor: colors.border.default,
-          borderStartColor: colors.status[tone],
+          borderStartColor: colors.magnitudeBand[tone],
           padding: spacing[4],
           gap: spacing[1],
           opacity: pressed ? 0.85 : 1,

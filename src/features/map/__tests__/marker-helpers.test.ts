@@ -75,15 +75,19 @@ describe("buildRegionMarkers", () => {
     expect(marker).toMatchObject({ id: "ev1", lat: 36.19, lon: 44.01 });
   });
 
-  it("assigns tone via the shared magnitudeTone thresholds (info/warning/danger)", () => {
-    const [low, mid, high] = buildRegionMarkers([
-      makeEvent({ id: "low", magnitude: { value: 2.0, type: "ml" } }),
-      makeEvent({ id: "mid", magnitude: { value: 5.0, type: "mb" } }),
-      makeEvent({ id: "high", magnitude: { value: 6.5, type: "mww" } }),
+  it("assigns tone via the shared magnitudeTone bands, so a marker and its card agree", () => {
+    const [minor, light, moderate, strong, major] = buildRegionMarkers([
+      makeEvent({ id: "minor", magnitude: { value: 2.0, type: "ml" } }),
+      makeEvent({ id: "light", magnitude: { value: 4.0, type: "ml" } }),
+      makeEvent({ id: "moderate", magnitude: { value: 5.0, type: "mb" } }),
+      makeEvent({ id: "strong", magnitude: { value: 6.5, type: "mww" } }),
+      makeEvent({ id: "major", magnitude: { value: 7.3, type: "mww" } }),
     ]);
-    expect(low?.tone).toBe("info");
-    expect(mid?.tone).toBe("warning");
-    expect(high?.tone).toBe("danger");
+    expect(minor?.tone).toBe("minor");
+    expect(light?.tone).toBe("light");
+    expect(moderate?.tone).toBe("moderate");
+    expect(strong?.tone).toBe("strong");
+    expect(major?.tone).toBe("major");
   });
 
   it("sizes each marker's diameter from its own magnitude", () => {

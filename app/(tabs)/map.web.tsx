@@ -919,14 +919,15 @@ export default function MapScreenWeb() {
       // colored exactly as before, plus an opaque CORE at its center. When
       // several markers overlap, the halos blend softly instead of
       // stacking into a solid blob, while each core stays a crisp, fully-
-      // opaque dot — still colored purely by `colors.status[tone]`
+      // opaque dot — still colored purely by `colors.magnitudeBand[tone]`
       // (`magnitudeTone`, never the EMS intensity ramp — design-language.md
-      // §3.2). The single most-recent event in the current set gets a
+      // §3.2), the same five-band ramp the event cards use so a marker and
+      // its card never disagree about how big an earthquake was. The single most-recent event in the current set gets a
       // distinct outline in `colors.action.felt` (this app's existing
       // "urgent" accent, already reserved for the felt-report CTA/true
       // danger states — reused here, not a new color) plus a soft matching
       // glow, so "what just happened" reads at a glance.
-      const toneColor = colors.status[marker.tone];
+      const toneColor = colors.magnitudeBand[marker.tone];
       const haloEl = document.createElement("div");
       haloEl.style.width = `${marker.diameterPx}px`;
       haloEl.style.height = `${marker.diameterPx}px`;

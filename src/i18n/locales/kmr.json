@@ -113,8 +113,8 @@
     "viewSignificant": "Girîng",
     "viewHistorical": "Dîrokî",
     "notableTag": "Berçav",
-    "shakemapTag": "SHAKEmap",
-    "shakemapTagA11yLabel": "SHAKEmap heye",
+    "shakemapTag": "shakemap",
+    "shakemapTagA11yLabel": "shakemap heye",
     "tagRow": {
       "moreSourcesTag": "+{{count}}",
       "sourcesA11yLabel": "Ji aliyê {{agencies}} ve hatiye tomarkirin",

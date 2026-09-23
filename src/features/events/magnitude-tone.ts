@@ -1,29 +1,50 @@
 /**
- * TODO(felt-impact-colors): conservative, magnitude-only visual accent.
+ * Conservative, magnitude-only visual accent for an event card's edge
+ * stripe.
  *
  * This is deliberately NOT an intensity mapping. design-language.md §3.2 is
  * explicit that magnitude must always render in neutral text color and that
  * only felt-impact/shakemap-derived intensity may drive color — conflating
- * the two is named as LastQuake's own card-design mistake. We have no
- * felt-impact or shakemap data yet (Phase 2/3), so `EventCard` cannot show
- * a real `IntensityBadge`.
+ * the two is named as LastQuake's own card-design mistake. A magnitude is
+ * one number for the whole earthquake; what a person feels depends on
+ * distance and depth. So the stripe borrows the intuitive cool-to-hot
+ * ORDER of a shaking scale without borrowing the EMS-98 ramp's colors
+ * (`theme/palette.ts`'s `magnitudeBandPalette` documents the separation and
+ * the contrast figures), and the numeral beside it stays neutral text.
  *
- * What this DOES do: pick one of the app's existing neutral `status.*`
- * tokens (not the EMS-98 `intensity` ramp) as a coarse "how big" accent —
- * a thin border stripe, nothing claiming to be a scientific severity
- * estimate. Replace this whole module with real intensity-badge coloring
- * once Phase 2/3 ships felt reports / shakemap output; the magnitude
- * numeral itself must stay neutral forever regardless (design-language.md
- * §3.2 is a hard rule, not a placeholder).
+ * The bands are the standard USGS magnitude classes, so they carry a
+ * meaning a reader can recognise rather than edges invented for this app,
+ * and whole-number edges let someone place an event from the numeral
+ * alone.
+ *
+ * Owner directive 2026-09-23, replacing three bands at 4.5/6.0. Those put
+ * 86% of every browsable event into one color and rendered an M6.0
+ * identically to an M7.8 — the distinction that matters most in a region
+ * whose reference earthquakes are the 2017 (M7.3) and 2023 (M7.8) events.
  */
-export type MagnitudeTone = "info" | "warning" | "danger";
+export type MagnitudeBand = "minor" | "light" | "moderate" | "strong" | "major";
 
-export function magnitudeTone(magnitudeValue: number): MagnitudeTone {
+/** Kept as the old name so the call sites and their tests stay honest
+ * about what this is: a tone, not a severity. */
+export type MagnitudeTone = MagnitudeBand;
+
+/**
+ * USGS magnitude class for a value. Ascending edges, checked descending so
+ * the boundary itself belongs to the HIGHER band: an M6.0 is strong, not
+ * moderate.
+ */
+export function magnitudeTone(magnitudeValue: number): MagnitudeBand {
+  if (magnitudeValue >= 7) {
+    return "major";
+  }
   if (magnitudeValue >= 6) {
-    return "danger";
+    return "strong";
   }
-  if (magnitudeValue >= 4.5) {
-    return "warning";
+  if (magnitudeValue >= 5) {
+    return "moderate";
   }
-  return "info";
+  if (magnitudeValue >= 4) {
+    return "light";
+  }
+  return "minor";
 }

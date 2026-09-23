@@ -15,6 +15,7 @@ import {
   intensityOnFillDark,
   intensityOnFillLight,
   intensityRamp,
+  magnitudeBandPalette,
   neutral,
   status,
 } from "./palette";
@@ -51,6 +52,10 @@ export interface SemanticColors {
     danger: string;
     info: string;
   };
+  /** Event-card magnitude stripe. Not a scientific scale — see
+   * `magnitudeBandPalette`. Theme-independent: one ramp that clears the
+   * 3:1 non-text floor on both surfaces. */
+  magnitudeBand: typeof magnitudeBandPalette;
   /** Index 1..12 = EMS-98 I..XII. Index 0 is an unused placeholder. */
   intensity: readonly string[];
   intensityOnFill: readonly string[];
@@ -90,6 +95,7 @@ export const lightColors: SemanticColors = {
     feltOnFill: neutral[0],
   },
   status,
+  magnitudeBand: magnitudeBandPalette,
   intensity: intensityRamp,
   intensityOnFill: intensityOnFillLight,
   damageGrade: damageGradePalette,
@@ -135,6 +141,7 @@ export const darkColors: SemanticColors = {
     feltOnFill: neutral[1100],
   },
   status,
+  magnitudeBand: magnitudeBandPalette,
   intensity: intensityRamp,
   intensityOnFill: intensityOnFillDark,
   damageGrade: damageGradePalette,
