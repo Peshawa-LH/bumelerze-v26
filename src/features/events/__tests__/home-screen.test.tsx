@@ -46,11 +46,15 @@ jest.mock("@/features/events", () => {
 // barrel above does NOT intercept that call, so it needs its own mock here
 // for the same "no QueryClientProvider in this file's tree" reason as
 // above.
+// Mutable so a test can hand the list real corroboration (which is also
+// what carries "this event has a published shaking map") without a second
+// mock factory.
+const mockCorroboration = { current: new Map<string, unknown>() };
 jest.mock("../source-corroboration", () => {
   const actual = jest.requireActual("../source-corroboration");
   return {
     ...actual,
-    useEventSourceAgencies: () => new Map(),
+    useEventSourceAgencies: () => mockCorroboration.current,
   };
 });
 
@@ -121,6 +125,9 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     // the last year). Individual tests override this to exercise the
     // adaptive policy's notable carve-out.
     mockUseNotableTailEvents.mockReturnValue({ events: [] });
+    // Default: the registry knows nothing about these events, which is
+    // what every pre-existing test in this file assumes.
+    mockCorroboration.current = new Map();
   });
 
   afterEach(async () => {
@@ -355,5 +362,41 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
 
     const card = screen.getByTestId(`event-card-${sampleEvent.id}`);
     expect(card.props.dir).toBeUndefined();
+  });
+
+  /** The card tells a reader, at a glance, whether Bumelerze has computed
+   * a shaking map for an event — the same pill treatment as the source tag
+   * (owner directive 2026-09-23). */
+  it("tags an event whose shaking map has been published", async () => {
+    await i18n.changeLanguage("en");
+    mockCorroboration.current = new Map([
+      [sampleEvent.id, { agencies: ["USGS"], hasShakemap: true }],
+    ]);
+
+    await renderWithProviders(<HomeScreen />);
+
+    expect(screen.getByText("SHAKEmap", { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  it("does not tag an event with no published map", async () => {
+    await i18n.changeLanguage("en");
+    mockCorroboration.current = new Map([
+      [sampleEvent.id, { agencies: ["USGS"], hasShakemap: false }],
+    ]);
+
+    await renderWithProviders(<HomeScreen />);
+
+    expect(screen.queryByText("SHAKEmap", { includeHiddenElements: true })).toBeNull();
+  });
+
+  it("does not tag an event the registry has no entry for", async () => {
+    // Absent data is absent knowledge, never "no map" — a Supabase outage
+    // must not claim an event has nothing.
+    await i18n.changeLanguage("en");
+    mockCorroboration.current = new Map();
+
+    await renderWithProviders(<HomeScreen />);
+
+    expect(screen.queryByText("SHAKEmap", { includeHiddenElements: true })).toBeNull();
   });
 });

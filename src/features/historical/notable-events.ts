@@ -75,6 +75,15 @@ export interface NotableHistoricalEvent {
    * above. Suffix into `historical.places.*` in the i18n catalogs
    * (update-plan-2026-08.md §1.4 — no English leakage on this screen). */
   placeNameKey?: string;
+  /** Pins this event to the top of the Historical list, above the
+   * newest-first ordering. Exactly one entry carries it (asserted in the
+   * dataset's own tests), and it is a curation decision, not a derived
+   * one: the 2023 Kahramanmaraş doublet is larger and more recent, but it
+   * happened ~400 km outside the region this app serves. The 2017
+   * Iraq-Iran border earthquake is the defining event for a Kurdish
+   * reader, and burying it below two Turkish ones misrepresents what this
+   * screen is for (owner directive 2026-09-23). */
+  featured?: true;
 }
 
 /**
@@ -158,6 +167,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   {
     id: "us2000bmcg",
     bumelerzeId: "bml20170001",
+    featured: true,
     year: 2017,
     originTime: Date.UTC(2017, 10, 12, 18, 18, 17),
     magnitude: 7.3,
@@ -219,11 +229,20 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
 ] as const;
 
-/** Newest-first, per spec-v1.md §4.7 — the single sort the screen needs. */
+/** The featured event first, then newest-first (spec-v1.md §4.7).
+ *
+ * The name is kept because the ordering below the pin is unchanged and an
+ * engine script and four call sites reference it. See `featured` on
+ * `NotableHistoricalEvent` for why one event sits above that ordering. */
 export function sortNewestFirst(
   events: readonly NotableHistoricalEvent[],
 ): NotableHistoricalEvent[] {
-  return [...events].sort((a, b) => b.originTime - a.originTime);
+  return [...events].sort((a, b) => {
+    if (a.featured !== b.featured) {
+      return a.featured ? -1 : 1;
+    }
+    return b.originTime - a.originTime;
+  });
 }
 
 /**

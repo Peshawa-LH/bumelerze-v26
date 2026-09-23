@@ -67,6 +67,12 @@ const eventWithSourcesRowSchema = z.object({
 /** One event's corroboration, keyed by the app's own `Event.id` (not the
  * internal registry uuid — that's a lookup detail this module hides). */
 export interface SourceCorroboration {
+  /** `true` when Bumelerze has published a shaking map for this event
+   * (`shakemap_products` holds at least one row for it). Drives the
+   * "SHAKEmap" tag on the card. Absent corroboration data means absent
+   * knowledge, never "no map" — the tag is simply not shown, the same way
+   * `agencies` falls back to the provider chip. */
+  hasShakemap: boolean;
   /** Distinct authoring agencies, first-seen order (registry insertion
    * order — `events_with_sources`' own `jsonb_agg(... order by fetched_at
    * asc)`), already deduplicated by `dedupeAgencies` below. Falls back to
@@ -205,7 +211,35 @@ export const SupabaseSourceCorroborationTransport: SourceCorroborationTransport 
             }
             sourcesByInternalId.set(result.data.event_id, {
               agencies: dedupeAgencies(result.data.sources),
+              hasShakemap: false,
             });
+          }
+        }),
+      );
+
+      // Step 3: which of those events have a published shaking map. One
+      // `.in()` per chunk against `shakemap_products`, the same read-only,
+      // anon-selectable shape as the two above — deliberately NOT the
+      // per-event `useLiveShakeMap` path, which resolves through
+      // `upsert_event_from_client` and CREATES a row when none matches. A
+      // list must never write.
+      const withShakemap = new Set<string>();
+      await Promise.all(
+        chunk(internalIds, CORROBORATION_BATCH_SIZE).map(async (batch) => {
+          const { data, error } = await client
+            .from("shakemap_products")
+            .select("event_id")
+            .in("event_id", batch);
+
+          if (error) {
+            throw error;
+          }
+
+          for (const row of data ?? []) {
+            const eventId = (row as { event_id?: unknown }).event_id;
+            if (typeof eventId === "string" && eventId.length > 0) {
+              withShakemap.add(eventId);
+            }
           }
         }),
       );
@@ -213,8 +247,16 @@ export const SupabaseSourceCorroborationTransport: SourceCorroborationTransport 
       const byAppEventId: Record<string, SourceCorroboration> = {};
       for (const { event, internalId } of resolved) {
         const corroboration = sourcesByInternalId.get(internalId);
-        if (corroboration) {
-          byAppEventId[event.id] = corroboration;
+        const hasShakemap = withShakemap.has(internalId);
+        // An event can have a published map and no `events_with_sources`
+        // row, so the entry is emitted when EITHER holds — keying it off
+        // corroboration alone would drop the tag for exactly the events
+        // the registry knows least about.
+        if (corroboration || hasShakemap) {
+          byAppEventId[event.id] = {
+            agencies: corroboration?.agencies ?? [],
+            hasShakemap,
+          };
         }
       }
       return byAppEventId;

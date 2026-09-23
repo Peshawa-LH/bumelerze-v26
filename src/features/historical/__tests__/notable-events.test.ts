@@ -188,11 +188,11 @@ describe("NOTABLE_HISTORICAL_EVENTS bumelerzeId mapping", () => {
 });
 
 describe("sortNewestFirst", () => {
-  it("orders events by originTime descending, without mutating the input", () => {
+  it("orders everything below the featured event newest-first, without mutating the input", () => {
     const sorted = sortNewestFirst(NOTABLE_HISTORICAL_EVENTS);
 
     expect(sorted).toHaveLength(NOTABLE_HISTORICAL_EVENTS.length);
-    for (let i = 1; i < sorted.length; i += 1) {
+    for (let i = 2; i < sorted.length; i += 1) {
       const previous = sorted[i - 1];
       const current = sorted[i];
       expect(previous).toBeDefined();
@@ -207,9 +207,19 @@ describe("sortNewestFirst", () => {
     expect(NOTABLE_HISTORICAL_EVENTS[0]?.id).toBe("iscgem899464");
   });
 
-  it("puts the most recent event (2023 Kahramanmaraş doublet) first, larger shock first", () => {
+  it("leads with the 2017 Iraq-Iran border earthquake, not the largest or the newest", () => {
+    // The 2023 Kahramanmaraş doublet is bigger (M7.8) and more recent, but
+    // it happened ~400 km outside the region this app serves. Burying the
+    // defining regional event below two Turkish ones misrepresents what
+    // the screen is for.
     const sorted = sortNewestFirst(NOTABLE_HISTORICAL_EVENTS);
-    expect(sorted[0]?.id).toBe("us6000jlqa"); // Elbistan — later same-day shock
-    expect(sorted[1]?.id).toBe("us6000jllz"); // Pazarcık — earlier same-day, larger
+    expect(sorted[0]?.bumelerzeId).toBe("bml20170001");
+    expect(sorted[1]?.id).toBe("us6000jlqa"); // Elbistan — then newest-first resumes
+    expect(sorted[2]?.id).toBe("us6000jllz"); // Pazarcık — earlier same-day, larger
+  });
+
+  it("pins exactly one event", () => {
+    // Two would make the top of the list depend on array order.
+    expect(NOTABLE_HISTORICAL_EVENTS.filter((event) => event.featured)).toHaveLength(1);
   });
 });

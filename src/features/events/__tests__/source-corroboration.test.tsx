@@ -71,6 +71,9 @@ interface EventsWithSourcesFixtureRow {
 function buildFakeSupabaseClient(fixture: {
   sourceRecords: SourceRecordFixtureRow[];
   eventsWithSources: EventsWithSourcesFixtureRow[];
+  /** Internal event ids that have at least one published product. Omitted
+   * means none, which is the pre-existing fixtures' expectation. */
+  shakemapProducts?: string[];
 }) {
   const eventSourceRecordsIn = jest.fn(
     async (_col: string, ids: readonly string[], provider: string) => ({
@@ -82,6 +85,13 @@ function buildFakeSupabaseClient(fixture: {
   );
   const eventsWithSourcesIn = jest.fn(async (_col: string, ids: readonly string[]) => ({
     data: fixture.eventsWithSources.filter((row) => ids.includes(row.event_id)),
+    error: null as { message: string } | null,
+  }));
+
+  const shakemapProductsIn = jest.fn(async (_col: string, ids: readonly string[]) => ({
+    data: (fixture.shakemapProducts ?? [])
+      .filter((eventId) => ids.includes(eventId))
+      .map((eventId) => ({ event_id: eventId })),
     error: null as { message: string } | null,
   }));
 
@@ -104,10 +114,17 @@ function buildFakeSupabaseClient(fixture: {
         })),
       };
     }
+    if (table === "shakemap_products") {
+      return {
+        select: jest.fn(() => ({
+          in: shakemapProductsIn,
+        })),
+      };
+    }
     throw new Error(`unexpected table: ${table}`);
   });
 
-  return { from, eventSourceRecordsIn, eventsWithSourcesIn };
+  return { from, eventSourceRecordsIn, eventsWithSourcesIn, shakemapProductsIn };
 }
 
 describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
@@ -155,6 +172,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
 
     expect(result["us7000abcd"]).toEqual<SourceCorroboration>({
       agencies: ["NEIC"],
+      hasShakemap: false,
     });
   });
 
@@ -186,6 +204,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
 
     expect(result["gfz2024abcd"]).toEqual<SourceCorroboration>({
       agencies: ["GEOFON"],
+      hasShakemap: false,
     });
   });
 
@@ -218,6 +237,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
     // own doc comment).
     expect(result["us7000abcd"]).toEqual<SourceCorroboration>({
       agencies: ["NEIC", "AFAD", "ISN"],
+      hasShakemap: false,
     });
   });
 
@@ -271,9 +291,76 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
     // Two providers present -> exactly two `event_source_records` requests
     // (one per provider group), never three (one per card).
     expect(fake.eventSourceRecordsIn).toHaveBeenCalledTimes(2);
-    expect(result["us1"]).toEqual({ agencies: ["NEIC"] });
-    expect(result["us2"]).toEqual({ agencies: ["NEIC"] });
-    expect(result["em1"]).toEqual({ agencies: ["AFAD"] });
+    expect(result["us1"]).toEqual({ agencies: ["NEIC"], hasShakemap: false });
+    expect(result["us2"]).toEqual({ agencies: ["NEIC"], hasShakemap: false });
+    expect(result["em1"]).toEqual({ agencies: ["AFAD"], hasShakemap: false });
+  });
+
+  it("marks an event whose shaking map Bumelerze has published", async () => {
+    const fake = buildFakeSupabaseClient({
+      sourceRecords: [
+        { event_id: "internal-1", provider: "usgs", provider_event_id: "us7000abcd" },
+      ],
+      eventsWithSources: [
+        { event_id: "internal-1", sources: [{ provider: "usgs", authorAgency: "NEIC" }] },
+      ],
+      shakemapProducts: ["internal-1"],
+    });
+    mockedGetSupabaseClient.mockReturnValue(fake as never);
+
+    const result = await SupabaseSourceCorroborationTransport.fetchCorroboration([
+      makeEvent(),
+    ]);
+
+    expect(result["us7000abcd"]).toEqual<SourceCorroboration>({
+      agencies: ["NEIC"],
+      hasShakemap: true,
+    });
+    // Read-only, and batched with the other two steps rather than one
+    // request per card: a list must never go through the per-event live
+    // path, which resolves via `upsert_event_from_client` and CREATES a row.
+    expect(fake.shakemapProductsIn).toHaveBeenCalledTimes(1);
+  });
+
+  it("marks an event that has a map but no corroboration row", async () => {
+    // Keying the result off corroboration alone would drop the tag for
+    // exactly the events the registry knows least about.
+    const fake = buildFakeSupabaseClient({
+      sourceRecords: [
+        { event_id: "internal-1", provider: "usgs", provider_event_id: "us7000abcd" },
+      ],
+      eventsWithSources: [],
+      shakemapProducts: ["internal-1"],
+    });
+    mockedGetSupabaseClient.mockReturnValue(fake as never);
+
+    const result = await SupabaseSourceCorroborationTransport.fetchCorroboration([
+      makeEvent(),
+    ]);
+
+    expect(result["us7000abcd"]).toEqual<SourceCorroboration>({
+      agencies: [],
+      hasShakemap: true,
+    });
+  });
+
+  it("leaves hasShakemap false for an event with no published products", async () => {
+    const fake = buildFakeSupabaseClient({
+      sourceRecords: [
+        { event_id: "internal-1", provider: "usgs", provider_event_id: "us7000abcd" },
+      ],
+      eventsWithSources: [
+        { event_id: "internal-1", sources: [{ provider: "usgs", authorAgency: "NEIC" }] },
+      ],
+      shakemapProducts: ["internal-other"],
+    });
+    mockedGetSupabaseClient.mockReturnValue(fake as never);
+
+    const result = await SupabaseSourceCorroborationTransport.fetchCorroboration([
+      makeEvent(),
+    ]);
+
+    expect(result["us7000abcd"]?.hasShakemap).toBe(false);
   });
 
   it("leaves an event out of the result map when it isn't in the registry yet", async () => {
@@ -358,13 +445,13 @@ describe("useEventSourceAgencies", () => {
   it("resolves the transport's map once configured with events", async () => {
     const event = makeEvent();
     const transport = fixtureTransport({
-      [event.id]: { agencies: ["NEIC", "AFAD"] },
+      [event.id]: { agencies: ["NEIC", "AFAD"], hasShakemap: false },
     });
 
     const { result } = await renderSourceAgencies([event], transport);
 
     await waitFor(() => {
-      expect(result.current.get(event.id)).toEqual({ agencies: ["NEIC", "AFAD"] });
+      expect(result.current.get(event.id)).toEqual({ agencies: ["NEIC", "AFAD"], hasShakemap: false });
     });
   });
 });

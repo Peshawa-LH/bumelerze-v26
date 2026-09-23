@@ -37,6 +37,11 @@ interface EventCardProps {
    * (Supabase unreachable, or this event simply isn't there) — `TagRow`
    * falls back to the single provider chip in that case. */
   sourceAgencies?: readonly string[] | undefined;
+  /** `true` when Bumelerze has published a shaking map for this event
+   * (`useEventSourceAgencies`, same batched read as `sourceAgencies`).
+   * `false` also covers "not known yet", so the tag is absent rather than
+   * wrong while the registry read is in flight. */
+  hasShakemap?: boolean;
 }
 
 function EventCardImpl({
@@ -45,6 +50,7 @@ function EventCardImpl({
   now,
   isNotable = false,
   sourceAgencies,
+  hasShakemap = false,
 }: EventCardProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
@@ -86,7 +92,12 @@ function EventCardImpl({
     Platform.OS === "web" ? { dir: isRTLLocale(locale) ? "rtl" : "ltr" } : null;
 
   const tagRowA11yLabel = buildTagRowAccessibilityLabel(
-    { provider: event.provenance.provider, agencies: sourceAgencies, isNotable },
+    {
+      provider: event.provenance.provider,
+      agencies: sourceAgencies,
+      isNotable,
+      hasShakemap,
+    },
     t,
   );
 
@@ -150,6 +161,7 @@ function EventCardImpl({
         provider={event.provenance.provider}
         agencies={sourceAgencies}
         isNotable={isNotable}
+        hasShakemap={hasShakemap}
       />
 
       <Text

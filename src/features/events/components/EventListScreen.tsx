@@ -198,6 +198,7 @@ export function EventListScreen({
             onPress={(event) => router.push(`/event/${event.bumelerzeId ?? event.id}`)}
             isNotable={notableEventIds?.has(item.id) ?? false}
             sourceAgencies={sourceAgenciesByEventId.get(item.id)?.agencies}
+            hasShakemap={sourceAgenciesByEventId.get(item.id)?.hasShakemap ?? false}
           />
         )}
         contentContainerStyle={[

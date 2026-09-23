@@ -92,13 +92,13 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
       .filter((row) => Boolean(row.props.accessibilityLabel));
     expect(rows).toHaveLength(NOTABLE_HISTORICAL_EVENTS.length);
 
-    // Newest-first ordering: the first rendered row is the 2023 Elbistan
-    // event (later of the same-day Kahramanmaraş doublet), the last is the
-    // oldest (1944 Al-Hamdaniya).
-    const newestFirst = sortNewestFirst(NOTABLE_HISTORICAL_EVENTS);
-    expect(newestFirst[0]?.id).toBe("us6000jlqa");
-    expect(newestFirst.at(-1)?.id).toBe("iscgem899464");
-    expect(rows[0]?.props.accessibilityLabel).toEqual(expect.stringContaining("٢٠٢٣"));
+    // The featured 2017 Iraq-Iran border earthquake leads; below it the
+    // ordering is newest-first, so the last row is the oldest (1944
+    // Al-Hamdaniya).
+    const ordered = sortNewestFirst(NOTABLE_HISTORICAL_EVENTS);
+    expect(ordered[0]?.bumelerzeId).toBe("bml20170001");
+    expect(ordered.at(-1)?.id).toBe("iscgem899464");
+    expect(rows[0]?.props.accessibilityLabel).toEqual(expect.stringContaining("٢٠١٧"));
     expect(rows.at(-1)?.props.accessibilityLabel).toEqual(
       expect.stringContaining("١٩٤٤"),
     );
