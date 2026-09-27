@@ -258,11 +258,6 @@
     "checking": "Checking your phone's motion sensor…",
     "unavailable": "This device doesn't have a motion sensor Bumelerze can read, so the live view isn't available here.",
     "permissionDenied": "Bumelerze needs motion-sensor access to show the live view. You can allow it from your device settings.",
-    "explainer": {
-      "sentence1": "Your phone contains a tiny accelerometer chip, the same physics a professional seismometer uses to measure shaking.",
-      "sentence2": "Shake your phone gently and watch your own seismogram appear below.",
-      "sentence3": "This view is just for you: nothing here is recorded, saved, or sent anywhere."
-    },
     "axisX": "X",
     "axisY": "Y",
     "axisZ": "Z",
@@ -279,7 +274,14 @@
     },
     "motionNote": "Gravity is removed, so a phone lying still reads flat. Each channel is centred on zero at a fixed ±0.5 g scale.",
     "spaceA11yLabel": "Live 3D view of your phone's motion: a dot moves along the X, Y and Z axes and leaves a short trail",
-    "stationsButton": "Live seismic stations"
+    "phone": {
+      "title": "Your phone as a seismometer",
+      "lead": "Its accelerometer uses the same physics as a professional seismometer. Nothing here is recorded or sent."
+    },
+    "mode": {
+      "phone": "Phone sensor",
+      "stations": "Live stations"
+    }
   },
   "safety": {
     "title": "Safety",
@@ -1262,15 +1264,14 @@
     "submitFailed": "Sending failed on this device. Your text is still here — please try again."
   },
   "stations": {
-    "title": "Live seismic stations",
-    "intro": "Open seismic stations around Kurdistan. Tap one to watch its last ten minutes. Data arrive minutes behind real time — this is a window on the ground, not an alert.",
+    "intro": "Open data seismic stations around Kurdistan region and Iraq. Tab a station to watch available data streams.",
     "tier": {
       "live": "Live",
-      "recent": "Recent",
-      "silent": "No recent data",
+      "recent": "Delayed",
+      "silent": "No data",
       "unknown": "Checking…"
     },
-    "lastSample": "Last sample {{minutes}} min ago",
+    "lastSample": "Last sample {{minutes}} min ago · refreshes every 30 s",
     "noData": "No data from this station in the last day.",
     "loading": "Loading the last ten minutes…",
     "error": "Could not load this station right now.",
@@ -1280,6 +1281,7 @@
     "mapA11yLabel": "Map of seismic stations around Kurdistan",
     "chartA11yLabel": "Last ten minutes of ground motion at {{name}}",
     "listTitle": "{{count}} stations",
-    "webOnlyMap": "The station map needs the web app for now; the list below works everywhere."
+    "webOnlyMap": "The station map needs the web app for now; the list below works everywhere.",
+    "lastSampleSeconds": "Last sample {{seconds}} s ago · refreshes every 30 s"
   }
 }

@@ -1,32 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { isolateNumeric } from "@/features/events";
 import { useTheme } from "@/theme";
-import { freshnessFromCatalog } from "../freshness";
-import type { LiveStation } from "../types";
+import type { LiveStation, StationFreshness } from "../types";
 import { freshnessColor } from "./colors";
 
 interface StationListProps {
   stations: LiveStation[];
+  tiers: Record<string, StationFreshness>;
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
 
 /** The catalogue as a list, nearest first — the whole view on native
  * (no map without the dev build) and the picker under the map on web. */
-export function StationList({ stations, selectedId, onSelect }: StationListProps) {
+export function StationList({ stations, tiers, selectedId, onSelect }: StationListProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const [now] = useState(() => Date.now());
 
   return (
     <View style={{ gap: spacing[1] }}>
       {stations.map((station) => {
         const selected = station.id === selectedId;
-        const tier = freshnessFromCatalog(station.lastSeenAt, now);
+        const tier = tiers[station.id] ?? "unknown";
         return (
           <Pressable
             key={station.id}

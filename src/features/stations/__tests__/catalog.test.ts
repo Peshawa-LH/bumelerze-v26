@@ -23,7 +23,6 @@ describe("live station catalogue", () => {
       sensor: Record<string, unknown>;
     }[]) {
       for (const key of [
-        "title",
         "intro",
         "lastSample",
         "noData",
@@ -34,7 +33,9 @@ describe("live station catalogue", () => {
       ]) {
         expect(typeof locale.stations[key]).toBe("string");
       }
-      expect(typeof locale.sensor.stationsButton).toBe("string");
+      expect(typeof (locale.sensor.mode as Record<string, unknown>).stations).toBe(
+        "string",
+      );
     }
   });
 });

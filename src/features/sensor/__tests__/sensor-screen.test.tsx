@@ -169,7 +169,7 @@ describe("Sensor screen", () => {
     await flush();
 
     expect(screen.getByText(i18n.t("sensor.title"))).toBeTruthy();
-    expect(screen.getByText(i18n.t("sensor.explainer.sentence1"))).toBeTruthy();
+    expect(screen.getByText(i18n.t("sensor.phone.lead"))).toBeTruthy();
   });
 
   it("removes the accelerometer listener on unmount (battery discipline)", async () => {

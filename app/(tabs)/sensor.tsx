@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -20,6 +19,7 @@ import {
   useAccelerometerStream,
   ViewSwitch,
 } from "@/features/sensor";
+import { StationsPanel } from "@/features/stations";
 import { useTheme } from "@/theme";
 
 /**
@@ -28,14 +28,17 @@ import { useTheme } from "@/theme";
  * record/replay is v1.5, background triggering is v2+ research — neither
  * exists here). Client-only: no backend, no network dependency, no location.
  */
+type SensorMode = "phone" | "stations";
+const SENSOR_MODES: readonly SensorMode[] = ["phone", "stations"];
+
 export default function SensorScreen() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   const { status, samples, frameAt, requestWebPermission } = useAccelerometerStream();
   const [view, setView] = useState<SensorView>("traces");
+  const [mode, setMode] = useState<SensorMode>("phone");
   const isWeb = Platform.OS === "web";
 
   return (
@@ -61,63 +64,62 @@ export default function SensorScreen() {
         {t("sensor.title")}
       </Text>
 
-      <View style={{ gap: spacing[2] }}>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-          }}
-        >
-          {t("sensor.explainer.sentence1")}
-        </Text>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-          }}
-        >
-          {t("sensor.explainer.sentence2")}
-        </Text>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-          }}
-        >
-          {t("sensor.explainer.sentence3")}
-        </Text>
-      </View>
-
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.push("/stations")}
-        style={({ pressed }) => [
-          styles.enableButton,
-          {
-            borderWidth: 1.5,
-            borderColor: colors.brand.primary,
-            backgroundColor: "transparent",
-            opacity: pressed ? 0.85 : 1,
-            paddingVertical: spacing[3],
-          },
+      {/* Two modes of one tab (owner, 2026-09-27: the stations view stays
+          inside the Sensor tab, bottom tabs in place, no pushed screen). */}
+      <View
+        accessibilityRole="tablist"
+        style={[
+          styles.modeTrack,
+          { backgroundColor: colors.surface.sunken, borderColor: colors.border.subtle },
         ]}
       >
+        {SENSOR_MODES.map((option) => {
+          const selected = option === mode;
+          const fg = selected ? colors.brand.onPrimary : colors.text.secondary;
+          return (
+            <Pressable
+              key={option}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              accessibilityLabel={t(`sensor.mode.${option}`)}
+              onPress={() => setMode(option)}
+              style={[
+                styles.modeOption,
+                {
+                  backgroundColor: selected ? colors.brand.primary : "transparent",
+                  paddingVertical: spacing[2],
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color: fg,
+                  fontSize: typography.labelButton.fontSize,
+                  fontWeight: typography.labelButton.fontWeight,
+                }}
+              >
+                {t(`sensor.mode.${option}`)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {mode === "stations" ? <StationsPanel /> : null}
+
+      {mode === "phone" ? (
         <Text
           style={{
-            color: colors.brand.primary,
-            fontSize: typography.h3.fontSize,
-            lineHeight: typography.h3.lineHeight,
-            fontWeight: typography.labelButton.fontWeight,
+            color: colors.text.secondary,
+            fontSize: typography.bodyDefault.fontSize,
+            lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
-          {t("sensor.stationsButton")}
+          {t("sensor.phone.lead")}
         </Text>
-      </Pressable>
+      ) : null}
 
-      {status === "checking" ? (
+      {mode === "phone" && status === "checking" ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing[3] }}>
           <ActivityIndicator color={colors.brand.primary} />
           <Text
@@ -133,7 +135,7 @@ export default function SensorScreen() {
         </View>
       ) : null}
 
-      {status === "desktop" ? (
+      {mode === "phone" && status === "desktop" ? (
         <Text
           accessibilityRole="alert"
           style={{
@@ -146,7 +148,8 @@ export default function SensorScreen() {
         </Text>
       ) : null}
 
-      {status === "unavailable" || status === "permission-denied" ? (
+      {(mode === "phone" && status === "unavailable") ||
+      status === "permission-denied" ? (
         <Text
           accessibilityRole="alert"
           style={{
@@ -165,7 +168,7 @@ export default function SensorScreen() {
         </Text>
       ) : null}
 
-      {status === "permission-required" ? (
+      {mode === "phone" && status === "permission-required" ? (
         <View style={{ gap: spacing[3] }}>
           <Text
             style={{
@@ -202,7 +205,7 @@ export default function SensorScreen() {
         </View>
       ) : null}
 
-      {status === "streaming" ? (
+      {mode === "phone" && status === "streaming" ? (
         <View style={{ gap: spacing[3] }}>
           <ViewSwitch value={view} onChange={setView} />
           <ChannelLegend />
@@ -237,6 +240,19 @@ export default function SensorScreen() {
 }
 
 const styles = StyleSheet.create({
+  modeTrack: {
+    flexDirection: "row",
+    borderRadius: 999,
+    borderWidth: 1,
+    padding: 3,
+  },
+  modeOption: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 999,
+    minHeight: 44,
+  },
   // Deliberately larger than the app's usual 48dp primary-button floor —
   // this is the one button on this screen a panicked user has to find and
   // tap correctly on a small, low-end Android or an old iPhone before the

@@ -1,7 +1,9 @@
-import type { LiveStation } from "../types";
+import type { LiveStation, StationFreshness } from "../types";
 
 export interface StationsMapProps {
   stations: LiveStation[];
+  /** Freshness per station id (queries.ts `useStationFreshness`). */
+  tiers: Record<string, StationFreshness>;
   selectedId: string | null;
   onSelect: (id: string) => void;
   accessibilityLabel: string;

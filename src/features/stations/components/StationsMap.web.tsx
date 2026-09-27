@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -9,7 +9,6 @@ import {
   useMapPreferencesStore,
 } from "@/features/map";
 import { useTheme } from "@/theme";
-import { freshnessFromCatalog } from "../freshness";
 import type { LiveStation, StationFreshness } from "../types";
 import { freshnessColor } from "./colors";
 import type { StationsMapProps } from "./StationsMap";
@@ -51,8 +50,8 @@ function drawTriangle(color: string): ImageData | null {
 
 function toFeatureCollection(
   stations: LiveStation[],
+  tiers: Record<string, StationFreshness>,
   selectedId: string | null,
-  now: number,
 ) {
   return {
     type: "FeatureCollection" as const,
@@ -61,7 +60,7 @@ function toFeatureCollection(
       id: station.id,
       properties: {
         id: station.id,
-        tier: freshnessFromCatalog(station.lastSeenAt, now),
+        tier: tiers[station.id] ?? "unknown",
         selected: station.id === selectedId,
       },
       geometry: { type: "Point" as const, coordinates: [station.lon, station.lat] },
@@ -77,6 +76,7 @@ function toFeatureCollection(
  */
 export function StationsMap({
   stations,
+  tiers,
   selectedId,
   onSelect,
   accessibilityLabel,
@@ -91,13 +91,9 @@ export function StationsMap({
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
-  // One clock reading per mount: the catalogue's build-time sighting is
-  // hours old at best, so a fresh reading per render would only make the
-  // render impure without changing a colour.
-  const [now] = useState(() => Date.now());
   const data = useMemo(
-    () => toFeatureCollection(stations, selectedId, now),
-    [stations, selectedId, now],
+    () => toFeatureCollection(stations, tiers, selectedId),
+    [stations, tiers, selectedId],
   );
   const colorsRef = useRef(colors);
   useEffect(() => {

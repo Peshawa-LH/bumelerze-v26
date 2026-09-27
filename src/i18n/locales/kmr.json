@@ -258,11 +258,6 @@
     "checking": "Sensora tevgerê ya têlefona te tê kontrolkirin…",
     "unavailable": "Ev cîhaz sensorek tevgerê ya ku Bumelerze karibe bixwîne tune ye, ji ber vê yekê dîmena rasterast li vir ne berdest e.",
     "permissionDenied": "Bumelerze ji bo nîşandana dîmena rasterast destûra gihîştina sensora tevgerê hewce dike. Tu dikarî ji sazkariyên cîhaza xwe destûrê bidî.",
-    "explainer": {
-      "sentence1": "Di têlefona te de çîpek piçûk a lerizanpîvê (accelerometer) heye, heman fîzîka ku sismometreke pîşeyî ji bo pîvana lerizînê bikar tîne.",
-      "sentence2": "Bi hêminî têlefona xwe bihejîne û li seismograma xwe ya di jêr de xuya dibe temaşe bike.",
-      "sentence3": "Ev dîmen tenê ji bo te ye: tiştek li vir nayê tomarkirin, tomarkirin, an jî bo tu deverê nayê şandin."
-    },
     "axisX": "X",
     "axisY": "Y",
     "axisZ": "Z",
@@ -279,7 +274,14 @@
     },
     "motionNote": "Rakêşana erdê hatiye rakirin, ji ber vê telefonek bêliv xêzeke rast nîşan dide. Her kanal li ser sifirê hatiye navendkirin bi pîvaneke sabit a ±0,5 g.",
     "spaceA11yLabel": "Dîmena 3D ya zindî ya livîna telefona te: xalek li ser tewereyên X, Y û Z dilive û şopeke kurt li dû xwe dihêle",
-    "stationsButton": "Stasyonên erdhejê yên zindî"
+    "phone": {
+      "title": "Telefona te wek seysmometre",
+      "lead": "Akselerometreya wê heman fizîka seysmometreyeke pîşeyî bi kar tîne. Li vir tiştek nayê tomarkirin an şandin."
+    },
+    "mode": {
+      "phone": "Sensora telefonê",
+      "stations": "Stasyonên zindî"
+    }
   },
   "safety": {
     "title": "Ewlehî",
@@ -1262,15 +1264,14 @@
     "submitFailed": "Şandin li ser vê cîhazê bi ser neket. Nivîsa te hîn li vir e — ji kerema xwe dîsa biceribîne."
   },
   "stations": {
-    "title": "Stasyonên erdhejê yên zindî",
-    "intro": "Stasyonên erdhejê yên vekirî li dora Kurdistanê. Yekê bitikîne da ku deh deqîqeyên dawî bibînî. Dane çend deqîqe piştî dema rastî tên — ev pencereyek li ser erdê ye, ne hişyarî.",
+    "intro": "Stasyonên daneyên vekirî yên erdhejê li dora herêma Kurdistanê û Iraqê. Stasyonekê bitikîne da ku daneyên berdest bibînî.",
     "tier": {
       "live": "Zindî",
-      "recent": "Nû",
-      "silent": "Daneyên nû tune",
+      "recent": "Derengmayî",
+      "silent": "Dane tune",
       "unknown": "Tê kontrolkirin…"
     },
-    "lastSample": "Nimûneya dawî berî {{minutes}} deqîqeyan",
+    "lastSample": "Nimûneya dawî berî {{minutes}} deqîqeyan · her 30 çirkeyan nû dibe",
     "noData": "Di roja borî de ti dane ji vê stasyonê nehat.",
     "loading": "Deh deqîqeyên dawî tên barkirin…",
     "error": "Niha ev stasyon nayê barkirin.",
@@ -1280,6 +1281,7 @@
     "mapA11yLabel": "Nexşeya stasyonên erdhejê li dora Kurdistanê",
     "chartA11yLabel": "Deh deqîqeyên dawî yên livîna erdê li {{name}}",
     "listTitle": "{{count}} stasyon",
-    "webOnlyMap": "Nexşeya stasyonan niha pêdivî bi sepana webê heye; lîsteya jêrîn li her derê dixebite."
+    "webOnlyMap": "Nexşeya stasyonan niha pêdivî bi sepana webê heye; lîsteya jêrîn li her derê dixebite.",
+    "lastSampleSeconds": "Nimûneya dawî berî {{seconds}} çirkeyan · her 30 çirkeyan nû dibe"
   }
 }

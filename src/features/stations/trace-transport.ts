@@ -10,6 +10,9 @@ export const TRACE_WINDOW_MS = 10 * 60 * 1000;
 
 export interface StationTraceTransport {
   fetchTrace(station: LiveStation, now?: number): Promise<StationTrace | null>;
+  /** True when the station has any data in the last `TRACE_WINDOW_MS` —
+   * the map's "live" test, one small request per station, no decoding. */
+  probeRecent(station: LiveStation, now?: number): Promise<boolean>;
 }
 
 function fdsnTime(ms: number): string {
@@ -101,6 +104,12 @@ export function mergeSegments(
 }
 
 export const FdsnStationTraceTransport: StationTraceTransport = {
+  async probeRecent(station, now = Date.now()) {
+    const response = await fetch(buildDataselectUrl(station, now - TRACE_WINDOW_MS, now));
+    if (response.status === 204 || !response.ok) return false;
+    const buffer = await response.arrayBuffer();
+    return buffer.byteLength > 0;
+  },
   async fetchTrace(station, now = Date.now()) {
     const url = buildDataselectUrl(station, now - TRACE_WINDOW_MS, now);
     const response = await fetch(url);
