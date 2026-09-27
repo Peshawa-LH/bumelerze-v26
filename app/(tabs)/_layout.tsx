@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
 import type { ColorValue } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/theme";
 
@@ -18,6 +19,8 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
 export default function TabLayout() {
   const { t } = useTranslation();
   const { colors, typography } = useTheme();
+  const insets = useSafeAreaInsets();
+  const labelFontSize = typography.labelCaption.fontFamily ? 11 : typography.labelCaption.fontSize;
 
   function icon(name: IoniconName) {
     return function renderIcon({
@@ -42,6 +45,16 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface.raised,
           borderTopColor: colors.border.default,
+          // Explicit height: React Navigation's default is a fixed 48 px,
+          // which the below-icon stack (28 px icon + a label whose line box
+          // is ~14 px + 10 px padding) overflows, so the bottom of every
+          // label was clipped — worst for Sorani's deep descenders (owner,
+          // 2026-09-27, seen on PC and phone). 58 px fits the stack; the
+          // safe-area inset is added on top so the bar clears a home
+          // indicator without squeezing the labels.
+          height: 58 + insets.bottom,
+          paddingBottom: insets.bottom,
+          paddingTop: 4,
         },
         // Always below the icon. React Navigation's default switches to
         // beside-icon in a landscape-shaped viewport and gives the label a
@@ -60,7 +73,9 @@ export default function TabLayout() {
         // phone widths from 375 px never needed either.
         tabBarItemStyle: { paddingHorizontal: 2 },
         tabBarLabelStyle: {
-          fontSize: typography.labelCaption.fontFamily ? 11 : typography.labelCaption.fontSize,
+          fontSize: labelFontSize,
+          // A real line box, so descenders are drawn rather than clipped.
+          lineHeight: Math.round(labelFontSize * 1.35),
           fontWeight: typography.labelCaption.fontWeight,
           ...(typography.labelCaption.fontFamily
             ? { fontFamily: typography.labelCaption.fontFamily }
