@@ -270,7 +270,8 @@
     },
     "view": {
       "traces": "Şepol",
-      "space": "3D"
+      "space": "3D",
+      "spectrum": "Spektrum"
     },
     "motionNote": "Rakêşana erdê hatiye rakirin, ji ber vê telefonek bêliv xêzeke rast nîşan dide. Her kanal li ser sifirê hatiye navendkirin bi pîvaneke sabit a ±0,5 g.",
     "spaceA11yLabel": "Dîmena 3D ya zindî ya livîna telefona te: xalek li ser tewereyên X, Y û Z dilive û şopeke kurt li dû xwe dihêle",
@@ -281,6 +282,12 @@
     "mode": {
       "phone": "Sensora telefonê",
       "stations": "Stasyonên zindî"
+    },
+    "spectrum": {
+      "periodAxis": "Dem (s)",
+      "saAxis": "Sa (g)",
+      "a11yLabel": "Spektruma bersivê ya deh çirkeyên dawî yên livînê, ji bo her tewereyê",
+      "note": "Spektruma bersivê ya deh çirkeyên dawî: avahiyek bi her demeke xwezayî dê çiqas bihata hejandin, dampînga 5 %. Li gorî tewereya herî bihêz hatiye pîvan."
     }
   },
   "safety": {

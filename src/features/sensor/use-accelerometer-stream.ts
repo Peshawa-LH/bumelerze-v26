@@ -13,6 +13,11 @@ import {
 } from "./constants";
 import { binForPlot, selectWindow } from "./downsample";
 import { GravityFilter } from "./low-pass-filter";
+import {
+  computeResponseSpectrum,
+  SPECTRUM_INTERVAL_MS,
+  type ResponseSpectrum,
+} from "./response-spectrum";
 import { RingBuffer } from "./ring-buffer";
 import type { SensorSample } from "./types";
 
@@ -67,6 +72,9 @@ export interface UseAccelerometerStreamResult {
    * figures scroll against this, not against the newest sample's own
    * timestamp, which arrives unevenly and made the whole trace lurch. */
   frameAt: number;
+  /** Response spectrum of the window, recomputed every
+   * `SPECTRUM_INTERVAL_MS`; null until the first computation. */
+  spectrum: ResponseSpectrum | null;
   /** Web-only action for the "permission-required" state — must be invoked
    * directly from a `Pressable`'s `onPress` so the browser still sees it as
    * a user gesture by the time the permission prompt fires. A no-op on
@@ -179,6 +187,8 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     samples: [],
     at: 0,
   });
+  const [spectrum, setSpectrum] = useState<ResponseSpectrum | null>(null);
+  const lastSpectrumAtRef = useRef(0);
   // Lazy one-time init via useState (not a ref mutated during render, which
   // the same rule above forbids even for the common "if (!ref.current)"
   // idiom) — the buffer instance itself is intentionally mutable, we only
@@ -234,6 +244,8 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     buffer.clear();
     gravity.reset();
     setFrame({ samples: [], at: 0 });
+    setSpectrum(null);
+    lastSpectrumAtRef.current = 0;
     const push = (reading: { x: number; y: number; z: number }) => {
       buffer.push({ ...gravity.apply(reading), t: Date.now() });
     };
@@ -256,6 +268,15 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
       const now = Date.now();
       const windowed = selectWindow(buffer.toArray(), now, PLOT_WINDOW_MS);
       setFrame({ samples: binForPlot(windowed, PLOT_BIN_MS), at: now });
+      // The spectrum needs the raw rate (a 40 ms bin cannot see 0.05 s
+      // periods) and only a few updates a second to read as live.
+      if (
+        now - lastSpectrumAtRef.current >= SPECTRUM_INTERVAL_MS &&
+        windowed.length > 1
+      ) {
+        lastSpectrumAtRef.current = now;
+        setSpectrum(computeResponseSpectrum(windowed));
+      }
     }, PLOT_RENDER_INTERVAL_MS);
 
     return true;
@@ -485,5 +506,11 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     }, [buffer, beginStreaming, beginStreamingWeb, stopStreaming, restartTick]),
   );
 
-  return { status, samples: frame.samples, frameAt: frame.at, requestWebPermission };
+  return {
+    status,
+    samples: frame.samples,
+    frameAt: frame.at,
+    spectrum,
+    requestWebPermission,
+  };
 }

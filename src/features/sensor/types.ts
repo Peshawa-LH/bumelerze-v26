@@ -20,4 +20,4 @@ export interface SensorSample extends AccelerometerVector {
 }
 
 /** Which figure the Sensor screen shows: the stacked traces or the 3D view. */
-export type SensorView = "traces" | "space";
+export type SensorView = "traces" | "space" | "spectrum";

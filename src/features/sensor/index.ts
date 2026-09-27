@@ -28,3 +28,11 @@ export { SpaceView } from "./components/SpaceView";
 export { TraceStack } from "./components/TraceStack";
 export { ViewSwitch } from "./components/ViewSwitch";
 export { clamp, PHONE_EDGES, PHONE_HALF, phoneCorners, projectPoint } from "./projection";
+export { SpectrumChart } from "./components/SpectrumChart";
+export {
+  computeResponseSpectrum,
+  SPECTRUM_DAMPING,
+  SPECTRUM_INTERVAL_MS,
+  SPECTRUM_PERIODS_S,
+  type ResponseSpectrum,
+} from "./response-spectrum";

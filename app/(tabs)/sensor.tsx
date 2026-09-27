@@ -15,6 +15,7 @@ import {
   ChannelLegend,
   type SensorView,
   SpaceView,
+  SpectrumChart,
   TraceStack,
   useAccelerometerStream,
   ViewSwitch,
@@ -36,7 +37,8 @@ export default function SensorScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const { status, samples, frameAt, requestWebPermission } = useAccelerometerStream();
+  const { status, samples, frameAt, spectrum, requestWebPermission } =
+    useAccelerometerStream();
   const [view, setView] = useState<SensorView>("traces");
   const [mode, setMode] = useState<SensorMode>("phone");
   const isWeb = Platform.OS === "web";
@@ -216,11 +218,18 @@ export default function SensorScreen() {
               frameAt={frameAt}
               accessibilityLabel={t("sensor.chartA11yLabel")}
             />
-          ) : (
+          ) : view === "space" ? (
             <SpaceView
               samples={samples}
               frameAt={frameAt}
               accessibilityLabel={t("sensor.spaceA11yLabel")}
+            />
+          ) : (
+            <SpectrumChart
+              spectrum={spectrum}
+              periodAxisLabel={t("sensor.spectrum.periodAxis")}
+              saAxisLabel={t("sensor.spectrum.saAxis")}
+              accessibilityLabel={t("sensor.spectrum.a11yLabel")}
             />
           )}
 
@@ -231,7 +240,7 @@ export default function SensorScreen() {
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >
-            {t("sensor.motionNote")}
+            {view === "spectrum" ? t("sensor.spectrum.note") : t("sensor.motionNote")}
           </Text>
         </View>
       ) : null}

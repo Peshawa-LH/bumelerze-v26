@@ -270,7 +270,8 @@
     },
     "view": {
       "traces": "Traces",
-      "space": "3D"
+      "space": "3D",
+      "spectrum": "Spectrum"
     },
     "motionNote": "Gravity is removed, so a phone lying still reads flat. Each channel is centred on zero at a fixed ±0.5 g scale.",
     "spaceA11yLabel": "Live 3D view of your phone's motion: a dot moves along the X, Y and Z axes and leaves a short trail",
@@ -281,6 +282,12 @@
     "mode": {
       "phone": "Phone sensor",
       "stations": "Live stations"
+    },
+    "spectrum": {
+      "periodAxis": "Period (s)",
+      "saAxis": "Sa (g)",
+      "a11yLabel": "Response spectrum of the last ten seconds of motion, per axis",
+      "note": "Response spectrum of the last ten seconds: how hard a building of each natural period would have been shaken, 5 % damping. Scaled to the strongest axis."
     }
   },
   "safety": {

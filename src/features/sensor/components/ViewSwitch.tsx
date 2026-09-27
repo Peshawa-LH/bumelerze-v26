@@ -10,9 +10,13 @@ interface ViewSwitchProps {
   onChange: (view: SensorView) => void;
 }
 
-const OPTIONS: readonly { view: SensorView; icon: "pulse-outline" | "cube-outline" }[] = [
+const OPTIONS: readonly {
+  view: SensorView;
+  icon: "pulse-outline" | "cube-outline" | "stats-chart-outline";
+}[] = [
   { view: "traces", icon: "pulse-outline" },
   { view: "space", icon: "cube-outline" },
+  { view: "spectrum", icon: "stats-chart-outline" },
 ];
 
 /** Two-way switch between the trace stack and the 3D view. */
