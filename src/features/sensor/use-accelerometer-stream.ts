@@ -1,6 +1,6 @@
 import { useFocusEffect } from "expo-router";
 import { Accelerometer } from "expo-sensors";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Platform } from "react-native";
 
 import {
@@ -12,9 +12,9 @@ import {
   WEB_SILENT_TIMEOUT_MS,
 } from "./constants";
 import { downsampleForPlot, selectWindow } from "./downsample";
-import { removeGravityFromSeries } from "./low-pass-filter";
+import { GravityFilter } from "./low-pass-filter";
 import { RingBuffer } from "./ring-buffer";
-import type { AxisKey, AxisVisibility, SensorSample } from "./types";
+import type { SensorSample } from "./types";
 
 /**
  * - "checking": availability/permission check in flight (usually sub-frame).
@@ -58,21 +58,17 @@ export type SensorStreamStatus =
 
 export interface UseAccelerometerStreamResult {
   status: SensorStreamStatus;
-  /** Windowed, gravity-processed (per current toggle), downsampled — ready
-   * to hand straight to the chart. */
+  /** Windowed, gravity-removed, downsampled — ready to hand straight to
+   * either figure. Gravity is always removed (owner, 2026-09-27: every
+   * channel centred on zero, amplitudes only), by one filter that runs
+   * per sample at ingestion, so the trace never shows a warm-up ramp. */
   samples: SensorSample[];
-  activeAxes: AxisVisibility;
-  toggleAxis: (axis: AxisKey) => void;
-  removeGravity: boolean;
-  setRemoveGravity: (value: boolean) => void;
   /** Web-only action for the "permission-required" state — must be invoked
    * directly from a `Pressable`'s `onPress` so the browser still sees it as
    * a user gesture by the time the permission prompt fires. A no-op on
    * native platforms. */
   requestWebPermission: () => void;
 }
-
-const ALL_AXES_VISIBLE: AxisVisibility = { x: true, y: true, z: true };
 
 /** Standard gravity, m/s² per g. `SensorSample` is in g (native
  * `expo-sensors` reports g); `devicemotion` reports m/s². */
@@ -111,8 +107,15 @@ function addWebMotionListener(
     removeEventListener?: (type: string, cb: (e: unknown) => void) => void;
   };
   const handler = (e: unknown) => {
-    const acc = (e as { accelerationIncludingGravity?: { x: number | null; y: number | null; z: number | null } | null })
-      .accelerationIncludingGravity;
+    const acc = (
+      e as {
+        accelerationIncludingGravity?: {
+          x: number | null;
+          y: number | null;
+          z: number | null;
+        } | null;
+      }
+    ).accelerationIncludingGravity;
     if (!acc || acc.x == null || acc.y == null || acc.z == null) return;
     onSample({ x: acc.x / G_MS2, y: acc.y / G_MS2, z: acc.z / G_MS2 });
   };
@@ -169,24 +172,16 @@ function hasWebMotionPermissionApi(): boolean {
 export function useAccelerometerStream(): UseAccelerometerStreamResult {
   const [status, setStatus] = useState<SensorStreamStatus>("checking");
   const [samples, setSamples] = useState<SensorSample[]>([]);
-  const [activeAxes, setActiveAxes] = useState<AxisVisibility>(ALL_AXES_VISIBLE);
-  const [removeGravity, setRemoveGravity] = useState(false);
-
-  // Read inside the render-tick interval without needing to tear the
-  // interval down and restart it every time the user flips the toggle.
-  // Synced via an effect (never written during render — refs must only be
-  // read/written in effects/handlers, not render, per the React Compiler's
-  // react-hooks/refs rule).
-  const removeGravityRef = useRef(removeGravity);
-  useEffect(() => {
-    removeGravityRef.current = removeGravity;
-  }, [removeGravity]);
-
   // Lazy one-time init via useState (not a ref mutated during render, which
   // the same rule above forbids even for the common "if (!ref.current)"
   // idiom) — the buffer instance itself is intentionally mutable, we only
   // need a stable identity across renders.
   const [buffer] = useState(() => new RingBuffer<SensorSample>(RING_BUFFER_CAPACITY));
+  // One gravity filter per stream, applied to every sample as it arrives.
+  // The first version re-ran the filter from scratch over the visible
+  // window on every render tick, so the window's first second was always
+  // the filter warming up — a ramp that slid along as the window moved.
+  const [gravity] = useState(() => new GravityFilter());
 
   const subscriptionRef = useRef<{ remove: () => void } | null>(null);
   const renderIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -230,24 +225,19 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
    */
   const beginStreaming = useCallback((): boolean => {
     buffer.clear();
+    gravity.reset();
     setSamples([]);
+    const push = (reading: { x: number; y: number; z: number }) => {
+      buffer.push({ ...gravity.apply(reading), t: Date.now() });
+    };
 
     try {
       if (Platform.OS === "web") {
         // See `addWebMotionListener`: real acceleration, not the shim's tilt.
-        subscriptionRef.current = addWebMotionListener((reading) => {
-          buffer.push({ x: reading.x, y: reading.y, z: reading.z, t: Date.now() });
-        });
+        subscriptionRef.current = addWebMotionListener(push);
       } else {
         Accelerometer.setUpdateInterval(ACCELEROMETER_UPDATE_INTERVAL_MS);
-        subscriptionRef.current = Accelerometer.addListener((reading) => {
-          buffer.push({
-            x: reading.x,
-            y: reading.y,
-            z: reading.z,
-            t: Date.now(),
-          });
-        });
+        subscriptionRef.current = Accelerometer.addListener(push);
       }
     } catch {
       return false;
@@ -258,14 +248,11 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     renderIntervalRef.current = setInterval(() => {
       const raw = buffer.toArray();
       const windowed = selectWindow(raw, Date.now(), PLOT_WINDOW_MS);
-      const processed = removeGravityRef.current
-        ? removeGravityFromSeries(windowed)
-        : windowed;
-      setSamples(downsampleForPlot(processed, MAX_PLOT_POINTS));
+      setSamples(downsampleForPlot(windowed, MAX_PLOT_POINTS));
     }, PLOT_RENDER_INTERVAL_MS);
 
     return true;
-  }, [buffer]);
+  }, [buffer, gravity]);
 
   /**
    * Web-only wrapper: starts streaming exactly like native, but also arms a
@@ -491,17 +478,5 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     }, [buffer, beginStreaming, beginStreamingWeb, stopStreaming, restartTick]),
   );
 
-  const toggleAxis = useCallback((axis: AxisKey) => {
-    setActiveAxes((previous) => ({ ...previous, [axis]: !previous[axis] }));
-  }, []);
-
-  return {
-    status,
-    samples,
-    activeAxes,
-    toggleAxis,
-    removeGravity,
-    setRemoveGravity,
-    requestWebPermission,
-  };
+  return { status, samples, requestWebPermission };
 }

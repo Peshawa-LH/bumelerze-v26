@@ -256,19 +256,22 @@
       "sentence2": "Shake your phone gently and watch your own seismogram appear below.",
       "sentence3": "This view is just for you: nothing here is recorded, saved, or sent anywhere."
     },
-    "gravityToggle": "Remove gravity",
-    "gravityNote": "With gravity on, a phone lying still still shows a steady line on one axis; that's Earth's gravity, not shaking. Turn gravity off to see only motion.",
     "axisX": "X",
     "axisY": "Y",
     "axisZ": "Z",
-    "axisA11yHint": "Show or hide the {{axis}} axis on the chart",
     "chartA11yLabel": "Live accelerometer chart showing the last ten seconds of motion",
     "web": {
       "enableButton": "Enable motion sensor",
       "enableHint": "Your browser needs a quick tap to allow this before it can show live motion.",
       "explanation": "We couldn't get live motion data from your browser. On iPhone, check Settings → Safari → Motion & Orientation Access and make sure it's turned on, then reload this page. Some browsers and computers don't have a motion sensor at all. If that's the case here, this live view just won't be available.",
       "desktop": "The live seismogram needs a phone's motion sensor. Open bumelerze.com/app on your phone to try it."
-    }
+    },
+    "view": {
+      "traces": "Traces",
+      "space": "3D"
+    },
+    "motionNote": "Gravity is removed, so a phone lying still reads flat. Each channel is centred on zero at a fixed ±0.5 g scale.",
+    "spaceA11yLabel": "Live 3D view of your phone's motion: a dot moves along the X, Y and Z axes and leaves a short trail"
   },
   "safety": {
     "title": "Safety",

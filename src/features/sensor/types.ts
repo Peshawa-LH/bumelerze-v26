@@ -19,4 +19,5 @@ export interface SensorSample extends AccelerometerVector {
   t: number;
 }
 
-export type AxisVisibility = Record<AxisKey, boolean>;
+/** Which figure the Sensor screen shows: the stacked traces or the 3D view. */
+export type SensorView = "traces" | "space";

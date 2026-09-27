@@ -144,7 +144,9 @@ describe("Sensor screen on web", () => {
     // `permission-required` button to ever show. Tests simulating a browser
     // with no permission-request API at all (the Android-Chrome shape, or
     // pre-13 iOS Safari) delete this global themselves.
-    (globalThis as { DeviceMotionEvent?: { requestPermission?: unknown } }).DeviceMotionEvent = {
+    (
+      globalThis as { DeviceMotionEvent?: { requestPermission?: unknown } }
+    ).DeviceMotionEvent = {
       requestPermission: jest.fn(),
     };
     installMotionListenerSpies();

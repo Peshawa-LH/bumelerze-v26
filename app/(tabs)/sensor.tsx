@@ -1,10 +1,10 @@
+import { useState } from "react";
 import {
   ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from "react-native";
@@ -12,9 +12,12 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
-  AxisToggleChips,
-  SeismogramChart,
+  ChannelLegend,
+  type SensorView,
+  SpaceView,
+  TraceStack,
   useAccelerometerStream,
+  ViewSwitch,
 } from "@/features/sensor";
 import { useTheme } from "@/theme";
 
@@ -29,15 +32,8 @@ export default function SensorScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const {
-    status,
-    samples,
-    activeAxes,
-    toggleAxis,
-    removeGravity,
-    setRemoveGravity,
-    requestWebPermission,
-  } = useAccelerometerStream();
+  const { status, samples, requestWebPermission } = useAccelerometerStream();
+  const [view, setView] = useState<SensorView>("traces");
   const isWeb = Platform.OS === "web";
 
   return (
@@ -180,40 +176,20 @@ export default function SensorScreen() {
 
       {status === "streaming" ? (
         <View style={{ gap: spacing[3] }}>
-          <AxisToggleChips activeAxes={activeAxes} onToggle={toggleAxis} />
+          <ViewSwitch value={view} onChange={setView} />
+          <ChannelLegend />
 
-          <SeismogramChart
-            samples={samples}
-            activeAxes={activeAxes}
-            accessibilityLabel={t("sensor.chartA11yLabel")}
-          />
-
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: spacing[3],
-            }}
-          >
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.bodyDefault.fontSize,
-                lineHeight: typography.bodyDefault.lineHeight,
-                flexShrink: 1,
-              }}
-            >
-              {t("sensor.gravityToggle")}
-            </Text>
-            <Switch
-              value={removeGravity}
-              onValueChange={setRemoveGravity}
-              accessibilityRole="switch"
-              accessibilityLabel={t("sensor.gravityToggle")}
-              trackColor={{ true: colors.brand.primary }}
+          {view === "traces" ? (
+            <TraceStack
+              samples={samples}
+              accessibilityLabel={t("sensor.chartA11yLabel")}
             />
-          </View>
+          ) : (
+            <SpaceView
+              samples={samples}
+              accessibilityLabel={t("sensor.spaceA11yLabel")}
+            />
+          )}
 
           <Text
             style={{
@@ -222,7 +198,7 @@ export default function SensorScreen() {
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >
-            {t("sensor.gravityNote")}
+            {t("sensor.motionNote")}
           </Text>
         </View>
       ) : null}

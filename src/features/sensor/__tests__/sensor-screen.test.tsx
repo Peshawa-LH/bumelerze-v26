@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen } from "@testing-library/react-native";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -55,6 +55,16 @@ async function renderWithProviders(ui: ReactElement) {
 async function flush() {
   await act(async () => {
     await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+}
+
+/** Press inside one act scope, then let the resulting state settle — a bare
+ * `fireEvent.press` followed by a second `act` overlaps React's act scopes. */
+async function pressAndFlush(element: ReturnType<typeof screen.getByText>) {
+  await act(async () => {
+    fireEvent.press(element);
     await Promise.resolve();
     await Promise.resolve();
   });
@@ -124,6 +134,29 @@ describe("Sensor screen", () => {
     expect(screen.getByText(i18n.t("sensor.axisX"))).toBeTruthy();
     expect(screen.getByText(i18n.t("sensor.axisY"))).toBeTruthy();
     expect(screen.getByText(i18n.t("sensor.axisZ"))).toBeTruthy();
+  });
+
+  it("switches from the trace stack to the 3D view and back", async () => {
+    mockIsAvailableAsync.mockResolvedValue(true);
+    mockGetPermissionsAsync.mockResolvedValue({
+      status: "granted",
+      granted: true,
+      canAskAgain: true,
+      expires: "never",
+    });
+
+    await renderWithProviders(<SensorScreen />);
+    await flush();
+
+    expect(screen.getByLabelText(i18n.t("sensor.chartA11yLabel"))).toBeTruthy();
+    expect(screen.queryByLabelText(i18n.t("sensor.spaceA11yLabel"))).toBeNull();
+
+    await pressAndFlush(screen.getByText(i18n.t("sensor.view.space")));
+    expect(screen.getByLabelText(i18n.t("sensor.spaceA11yLabel"))).toBeTruthy();
+    expect(screen.queryByLabelText(i18n.t("sensor.chartA11yLabel"))).toBeNull();
+
+    await pressAndFlush(screen.getByText(i18n.t("sensor.view.traces")));
+    expect(screen.getByLabelText(i18n.t("sensor.chartA11yLabel"))).toBeTruthy();
   });
 
   it("renders the explainer text and title in Sorani (RTL)", async () => {

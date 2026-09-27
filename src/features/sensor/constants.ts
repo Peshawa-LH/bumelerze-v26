@@ -60,11 +60,18 @@ export const MAX_PLOT_POINTS = 150;
 export const WEB_SILENT_TIMEOUT_MS = 1500;
 
 /**
- * Minimum Y-axis half-span in g. A resting phone on a flat surface produces
- * an extremely low-noise trace (a small fraction of a g of jitter on most
- * MEMS accelerometers). Auto-scaling tightly to that tiny range would blow a
- * hairline of sensor noise up into a chart that reads as constant shaking.
- * Flooring the half-span at ±0.05 g keeps a resting phone reading as a calm,
- * readable near-flat line.
+ * Fixed vertical half-span of every trace strip, in g. Nothing about the
+ * axes follows the data: a resting phone (a few thousandths of a g of
+ * noise) reads as a calm flat line, a gentle shake (a few tenths) fills
+ * the strip, a hard one clips at the edge. Auto-scaling to the window,
+ * which the first version did, made the whole picture breathe and jump
+ * every frame (owner, 2026-09-27).
  */
-export const MIN_Y_HALF_SPAN_G = 0.05;
+export const TRACE_HALF_SPAN_G = 0.5;
+
+/** The 3D view's half-span, in g — the same scale as the traces, so the
+ * dot leaves the phone slab at the same shaking level that fills a strip. */
+export const SPACE_HALF_SPAN_G = 0.5;
+
+/** How long the 3D view's trail persists behind the dot. */
+export const SPACE_TRAIL_MS = 1500;
