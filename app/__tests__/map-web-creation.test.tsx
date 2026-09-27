@@ -110,8 +110,8 @@ describe("MapScreenWeb creation", () => {
       [48.5, 38.5],
     ]);
     // The default `AttributionControl` is suppressed (`attributionControl:
-    // false`) so an explicit instance can be added with `compact: false`
-    // (always expanded, never hidden behind a toggle). No
+    // false`) so an explicit instance can be added with `compact: true`
+    // (the (i) button; owner 2026-09-27, see config.ts). No
     // `customAttribution` is passed — the vector source's own TileJSON
     // already supplies the correct credit line, and MapLibre collects that
     // automatically; adding a hand-typed copy on top is what used to
@@ -120,7 +120,7 @@ describe("MapScreenWeb creation", () => {
     expect(options?.attributionControl).toBe(false);
     expect(mockMapAddControl).toHaveBeenCalledTimes(1);
     const [attributionControl] = mockMapAddControl.mock.calls[0] as [MockAttributionControl];
-    expect(attributionControl.options).toEqual({ compact: false });
+    expect(attributionControl.options).toEqual({ compact: true });
   });
 
   it("assigns the worker URL before constructing the map", async () => {

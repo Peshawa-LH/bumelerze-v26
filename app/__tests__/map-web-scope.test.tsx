@@ -49,6 +49,15 @@ jest.mock("expo-router", () => {
   };
 });
 
+// "Home" frames the reader's own area when a fix is ALREADY known (never
+// prompts); the default here is no fix, which keeps every pre-existing
+// assertion (Kurdistan bbox) exactly as it was.
+const mockUserAnchor = { current: { hasFix: false, lat: null, lon: null } as
+  { hasFix: true; lat: number; lon: number } | { hasFix: false; lat: null; lon: null } };
+jest.mock("@/features/location/use-user-distance-anchor", () => ({
+  useUserDistanceAnchor: () => mockUserAnchor.current,
+}));
+
 jest.mock("@/features/events", () => {
   const actual = jest.requireActual("@/features/events");
   return {
@@ -109,7 +118,7 @@ describe("MapScreenWeb scope toggle", () => {
     expect(mockMarkerSetLngLat).toHaveBeenCalledWith([45.43, 35.56]); // makeEvent's default lon/lat
     expect(mockMapFitBounds).not.toHaveBeenCalled();
     expect(
-      screen.getByRole("radio", { name: i18n.t("map.scope.kurdistan") }),
+      screen.getByRole("radio", { name: i18n.t("map.scope.home") }),
     ).toBeTruthy();
     expect(screen.getByRole("radio", { name: i18n.t("map.scope.world") })).toBeTruthy();
   });
@@ -178,7 +187,7 @@ describe("MapScreenWeb scope toggle", () => {
     await waitFor(() => expect(mockMapFitBounds).toHaveBeenCalledTimes(1));
 
     await act(async () => {
-      fireEvent.press(screen.getByRole("radio", { name: i18n.t("map.scope.kurdistan") }));
+      fireEvent.press(screen.getByRole("radio", { name: i18n.t("map.scope.home") }));
     });
     await waitFor(() => expect(mockMapFitBounds).toHaveBeenCalledTimes(2));
 
@@ -188,6 +197,37 @@ describe("MapScreenWeb scope toggle", () => {
     expect(secondBounds).toEqual([
       [41.0, 33.0],
       [48.5, 38.5],
+    ]);
+  });
+});
+
+describe("MapScreenWeb Home scope with a known location", () => {
+  afterEach(() => {
+    mockUserAnchor.current = { hasFix: false, lat: null, lon: null };
+  });
+
+  it("frames roughly 150 km around the reader instead of the whole region", async () => {
+    mockUserAnchor.current = { hasFix: true, lat: 35.56, lon: 45.43 }; // Slemani
+    mockUseRegionEvents.mockReturnValue({
+      events: [makeEvent()],
+      dataUpdatedAt: MOCK_DATA_UPDATED_AT,
+      isInitialLoading: false,
+    });
+
+    await renderWithProviders(<MapScreenWeb />);
+    await waitFor(() => expect(mockMapFitBounds).not.toHaveBeenCalled());
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole("radio", { name: i18n.t("map.scope.world") }));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole("radio", { name: i18n.t("map.scope.home") }));
+    });
+
+    const lastCall = mockMapFitBounds.mock.calls.at(-1);
+    expect(lastCall?.[0]).toEqual([
+      [45.43 - 0.9, 35.56 - 0.7],
+      [45.43 + 0.9, 35.56 + 0.7],
     ]);
   });
 });

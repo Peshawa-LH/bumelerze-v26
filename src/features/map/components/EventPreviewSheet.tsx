@@ -129,9 +129,11 @@ function EventPreviewSheetImpl(
   // never a second per-card code path). Degrades to `undefined` (TagRow's
   // provider fallback) when Supabase is unreachable or this event isn't in
   // the registry yet.
-  const sourceAgencies = useEventSourceAgencies([currentEvent]).get(
-    currentEvent.id,
-  )?.agencies;
+  const corroboration = useEventSourceAgencies([currentEvent]).get(currentEvent.id);
+  const sourceAgencies = corroboration?.agencies;
+  // Same batched read carries "a shaking map is published for this event"
+  // (owner, 2026-09-27: the sheet should say so, like the list cards do).
+  const hasShakemap = corroboration?.hasShakemap ?? false;
 
   // A stable identity for "did the SELECTION genuinely change" (as opposed
   // to a re-render passing an equal-but-new object) — feeds
@@ -472,6 +474,7 @@ function EventPreviewSheetImpl(
             <TagRow
               provider={currentEvent.provenance.provider}
               agencies={sourceAgencies}
+              hasShakemap={hasShakemap}
             />
 
             <Text

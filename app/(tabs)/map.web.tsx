@@ -67,6 +67,7 @@ import {
   type MapStyleCatalogId,
   type MapStyleProviderId,
 } from "@/features/map";
+import { useUserDistanceAnchor } from "@/features/location/use-user-distance-anchor";
 import { useTheme } from "@/theme";
 
 /** Fixed, deliberately modest pixel nudge applied to the map's viewport
@@ -333,6 +334,14 @@ function useIsCompactMapControls(): boolean {
  * hides which events it stands for isn't worth the tidiness). No shakemap
  * overlay, felt cells, or fault lines yet (follow-up waves).
  */
+/** ~150 km around a point: the reader's own area at a glance. Lat/lon
+ * half-spans are fixed degrees rather than a projection: at this latitude
+ * 0.7° lat and 0.9° lon are both ~75–80 km, and Home is a framing, not a
+ * measurement. */
+export function homeBboxAround(lat: number, lon: number) {
+  return { minLat: lat - 0.7, maxLat: lat + 0.7, minLon: lon - 0.9, maxLon: lon + 0.9 };
+}
+
 export default function MapScreenWeb() {
   const { t, i18n } = useTranslation();
   const { colors, scheme, spacing, typography } = useTheme();
@@ -377,6 +386,19 @@ export default function MapScreenWeb() {
   // the other scope's very different natural distribution (World is
   // M4.5+/7 days; Kurdistan is the full region pool).
   const [scope, setScope] = useState<MapScope>(DEFAULT_MAP_SCOPE);
+  // "Home" (owner, 2026-09-27): frame the reader's own area when a location
+  // fix is ALREADY available, otherwise the Kurdistan region exactly as
+  // before. `useUserDistanceAnchor` is read-only — it never prompts — so
+  // this can never surprise anyone with a permission dialog.
+  const userAnchor = useUserDistanceAnchor();
+  const { hasFix: hasUserFix, lat: userLat, lon: userLon } = userAnchor;
+  const homeBounds = useMemo(
+    () =>
+      hasUserFix && userLat !== null && userLon !== null
+        ? regionBboxToLngLatBounds(homeBboxAround(userLat, userLon))
+        : regionBboxToLngLatBounds(REGION_BBOX),
+    [hasUserFix, userLat, userLon],
+  );
   const scopedEvents = scope === "world" ? worldEvents : regionEvents;
   // React Query's own fetch-success timestamp for whichever feed is active
   // — used below as the date filter's "now" edge INSTEAD OF a plain
@@ -622,9 +644,12 @@ export default function MapScreenWeb() {
         // DEM source's `TERRAIN_ATTRIBUTION`) is collected by MapLibre
         // automatically; adding a hand-typed copy on top duplicated it on
         // screen (config.ts's doc comment above `MAP_WORKER_URL` has the
-        // full story). `compact: false` keeps it always expanded rather
-        // than hidden behind a toggle.
-        map.addControl(new maplibre.AttributionControl({ compact: false }));
+        // full story). `compact: true` (owner, 2026-09-27: "too many text
+        // references") collapses it to MapLibre's own (i) button that
+        // expands on tap — the form OpenStreetMap's attribution guidelines
+        // accept on small screens, and the credit text is never removed.
+        // MapTiler's logo requirement is separate (`MapTilerAttributionLogo`).
+        map.addControl(new maplibre.AttributionControl({ compact: true }));
         // "clicking the map background should dismiss it" (event-preview
         // sheet wave) — a map-WIDE "click" listener, registered once per map
         // INSTANCE (not re-registered on a later `setStyle`, unlike the
@@ -799,18 +824,25 @@ export default function MapScreenWeb() {
   // the very first "ready" transition (scope still at its initial value)
   // correctly does nothing here.
   const previousScopeRef = useRef<MapScope>(scope);
+  const previousHomeBoundsRef = useRef(homeBounds);
   useEffect(() => {
     const map = mapRef.current;
-    if (loadState !== "ready" || !map || previousScopeRef.current === scope) {
+    if (loadState !== "ready" || !map) {
       return;
     }
+    const scopeChanged = previousScopeRef.current !== scope;
+    // A location fix that arrives after first paint moves Home once, so a
+    // reader who opened the map before the fix still lands on their area.
+    // `homeBounds` is memoized on the fix itself, so identity is the signal.
+    const homeMoved = scope === "kurdistan" && previousHomeBoundsRef.current !== homeBounds;
     previousScopeRef.current = scope;
-    const bounds =
-      scope === "world"
-        ? regionBboxToLngLatBounds(WORLD_VIEW_BBOX)
-        : regionBboxToLngLatBounds(REGION_BBOX);
+    previousHomeBoundsRef.current = homeBounds;
+    if (!scopeChanged && !homeMoved) {
+      return;
+    }
+    const bounds = scope === "world" ? regionBboxToLngLatBounds(WORLD_VIEW_BBOX) : homeBounds;
     map.fitBounds(bounds, { padding: MAP_FIT_BOUNDS_PADDING_PX });
-  }, [scope, loadState]);
+  }, [scope, loadState, homeBounds]);
 
   // Live basemap style swap (§4.3/Part 3) — `map.setStyle` on the EXISTING
   // map instance (never recreates it, unlike the initial-load path above),

@@ -10,7 +10,9 @@ interface ScopeToggleProps {
 }
 
 const SCOPE_LABEL_KEYS: Record<MapScope, string> = {
-  kurdistan: "map.scope.kurdistan",
+  // The regional scope reads "Home" (owner, 2026-09-27): it is the reader's
+  // own area, framed on their location when one is already known.
+  kurdistan: "map.scope.home",
   world: "map.scope.world",
 };
 

@@ -31,9 +31,11 @@ export const MAP_STYLE_URLS = {
  * HTML strings, which is exactly what made the credit line render twice on
  * screen. Fix: don't hand-maintain a duplicate copy — the source already
  * supplies the correct text, so `AttributionControl` is constructed below
- * with `compact: false` only (always expanded, never hidden behind a
- * toggle — wave brief: "REQUIRED: visible attribution... do not hide it")
- * and no `customAttribution`.
+ * with `compact: true` and no `customAttribution`. Compact (owner,
+ * 2026-09-27) collapses the credit line to MapLibre's own (i) button that
+ * expands on tap, which OpenStreetMap's attribution guidelines accept on
+ * small screens; the credit itself is never removed. This supersedes the
+ * August brief's "always expanded".
  */
 
 /**
