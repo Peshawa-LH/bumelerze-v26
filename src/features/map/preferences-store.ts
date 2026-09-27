@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+import type { MapLayerId, MapOverlayState } from "./layer-registry";
 import { DEFAULT_MAP_STYLE_CATALOG_ID, type MapStyleCatalogId } from "./style-catalog";
 
 /**
@@ -23,8 +24,11 @@ import { DEFAULT_MAP_STYLE_CATALOG_ID, type MapStyleCatalogId } from "./style-ca
  */
 export interface MapPreferencesState {
   styleId: MapStyleCatalogId;
+  /** Layers panel choices (layer-registry.ts); absent = the layer's default. */
+  overlays: MapOverlayState;
   hasHydrated: boolean;
   setStyleId: (styleId: MapStyleCatalogId) => void;
+  setOverlay: (id: MapLayerId, on: boolean) => void;
   setHasHydrated: (value: boolean) => void;
 }
 
@@ -32,8 +36,11 @@ export const useMapPreferencesStore = create<MapPreferencesState>()(
   persist(
     (set) => ({
       styleId: DEFAULT_MAP_STYLE_CATALOG_ID,
+      overlays: {},
       hasHydrated: false,
       setStyleId: (styleId) => set({ styleId }),
+      setOverlay: (id, on) =>
+        set((state) => ({ overlays: { ...state.overlays, [id]: on } })),
       setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
@@ -41,7 +48,7 @@ export const useMapPreferencesStore = create<MapPreferencesState>()(
       storage: createJSONStorage(() => AsyncStorage),
       // Only `styleId` is meaningful across launches — `hasHydrated` and the
       // actions are runtime-only.
-      partialize: (state) => ({ styleId: state.styleId }),
+      partialize: (state) => ({ styleId: state.styleId, overlays: state.overlays }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

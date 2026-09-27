@@ -46,6 +46,10 @@ import {
   MapFilterPanel,
   MARKER_HIT_PADDING_PX,
   MapStylePicker,
+  applyFaultsOverlay,
+  isOverlayOn,
+  type MapLayerId,
+  type MapOverlayState,
   MapTilerAttributionLogo,
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_SOURCE_ID,
@@ -198,11 +202,15 @@ function primeTerrainAndLabelCache(
   locale: string,
   originalTextFields: Map<string, unknown>,
   kurdishPlaces: readonly KurdishPlace[],
+  overlays: MapOverlayState,
 ): void {
   const style = map.getStyle();
   if (!style) {
     return;
   }
+  // Layers panel overlays (layer-registry.ts) are wiped by a style swap
+  // like everything else we add, so they are re-applied here with the rest.
+  applyFaultsOverlay(map, isOverlayOn(overlays, "faults-gem"), scheme);
 
   if (!styleHasRasterDemSource(style.sources)) {
     map.addSource(TERRAIN_DEM_SOURCE_ID, buildTerrainDemSource());
@@ -377,6 +385,13 @@ export default function MapScreenWeb() {
   // convention (`usePrefsStore` call sites elsewhere).
   const styleId = useMapPreferencesStore((state) => state.styleId);
   const setStyleId = useMapPreferencesStore((state) => state.setStyleId);
+  const overlays = useMapPreferencesStore((state) => state.overlays);
+  const setOverlay = useMapPreferencesStore((state) => state.setOverlay);
+  // Read inside map callbacks without re-registering them on every toggle.
+  const overlaysRef = useRef(overlays);
+  useEffect(() => {
+    overlaysRef.current = overlays;
+  }, [overlays]);
   const hasStyleHydrated = useMapPreferencesStore((state) => state.hasHydrated);
 
   // Kurdistan/World scope (§4.1) — Kurdistan default (region-first
@@ -706,6 +721,7 @@ export default function MapScreenWeb() {
             i18n.language,
             originalTextFieldsRef.current,
             kurdishPlacesRef.current,
+            overlaysRef.current,
           );
           applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
           setLoadState("ready");
@@ -845,13 +861,15 @@ export default function MapScreenWeb() {
     // A location fix that arrives after first paint moves Home once, so a
     // reader who opened the map before the fix still lands on their area.
     // `homeBounds` is memoized on the fix itself, so identity is the signal.
-    const homeMoved = scope === "kurdistan" && previousHomeBoundsRef.current !== homeBounds;
+    const homeMoved =
+      scope === "kurdistan" && previousHomeBoundsRef.current !== homeBounds;
     previousScopeRef.current = scope;
     previousHomeBoundsRef.current = homeBounds;
     if (!scopeChanged && !homeMoved) {
       return;
     }
-    const bounds = scope === "world" ? regionBboxToLngLatBounds(WORLD_VIEW_BBOX) : homeBounds;
+    const bounds =
+      scope === "world" ? regionBboxToLngLatBounds(WORLD_VIEW_BBOX) : homeBounds;
     map.fitBounds(bounds, { padding: MAP_FIT_BOUNDS_PADDING_PX });
   }, [scope, loadState, homeBounds]);
 
@@ -896,12 +914,26 @@ export default function MapScreenWeb() {
           i18n.language,
           originalTextFieldsRef.current,
           kurdishPlacesRef.current,
+          overlaysRef.current,
         );
         applyLocaleLabels(map, i18n.language, originalTextFieldsRef.current);
       });
       map.setStyle(resolved.url);
     },
     [scheme, i18n.language, setStyleId],
+  );
+
+  // Same shape as `handleStyleChange` above: persist the choice, then act on
+  // the live map instance directly.
+  const handleToggleOverlay = useCallback(
+    (id: MapLayerId, on: boolean) => {
+      setOverlay(id, on);
+      const map = mapRef.current;
+      if (map && id === "faults-gem" && map.isStyleLoaded()) {
+        applyFaultsOverlay(map, on, scheme);
+      }
+    },
+    [scheme, setOverlay],
   );
 
   // Rebuilds the marker layer whenever the map becomes ready, the active
@@ -1187,6 +1219,8 @@ export default function MapScreenWeb() {
                 expanded={openControl === "style"}
                 onToggleExpanded={() => toggleControl("style")}
                 compact={isCompactControls}
+                overlays={overlays}
+                onToggleOverlay={handleToggleOverlay}
               />
             </View>
           </View>

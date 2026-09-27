@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
@@ -9,6 +9,12 @@ import {
   MAP_STYLE_LABEL_KEYS,
   type MapStyleCatalogId,
 } from "../style-catalog";
+import {
+  isOverlayOn,
+  TOGGLEABLE_MAP_LAYERS,
+  type MapLayerId,
+  type MapOverlayState,
+} from "../layer-registry";
 import { MapControlIconButton } from "./MapControlIconButton";
 
 interface MapStylePickerProps {
@@ -19,6 +25,11 @@ interface MapStylePickerProps {
   /** See `MapFilterPanel`'s identically-named prop — same compact-icon/
    * floating-popover treatment for the phone-width default. */
   compact?: boolean;
+  /** Layers panel (layer-registry.ts): the toggleable overlays' state and
+   * the setter. Optional so hosts without overlays render the picker as
+   * before. */
+  overlays?: MapOverlayState;
+  onToggleOverlay?: (id: MapLayerId, on: boolean) => void;
 }
 
 /**
@@ -37,11 +48,16 @@ export function MapStylePicker({
   expanded,
   onToggleExpanded,
   compact = false,
+  overlays,
+  onToggleOverlay,
 }: MapStylePickerProps) {
   const { t } = useTranslation();
   const { colors, spacing, typography } = useTheme();
 
-  const isNonDefaultStyle = value !== DEFAULT_MAP_STYLE_CATALOG_ID;
+  const anyOverlayOn =
+    overlays !== undefined &&
+    TOGGLEABLE_MAP_LAYERS.some((layer) => isOverlayOn(overlays, layer.id));
+  const isNonDefaultStyle = value !== DEFAULT_MAP_STYLE_CATALOG_ID || anyOverlayOn;
   // Same base-hint-plus-current-value composition as `MapFilterPanel`'s
   // `collapsedIconA11yLabel` — see that component's doc comment.
   const collapsedIconA11yLabel = isNonDefaultStyle
@@ -138,6 +154,68 @@ export function MapStylePicker({
           })}
         </View>
       ) : null}
+
+      {expanded && overlays !== undefined && onToggleOverlay !== undefined ? (
+        <View
+          style={[
+            styles.layersSection,
+            {
+              borderTopColor: colors.border.default,
+              padding: spacing[2],
+              gap: spacing[2],
+            },
+          ]}
+        >
+          <Text
+            allowFontScaling
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.labelCaption.fontSize,
+              lineHeight: typography.labelCaption.lineHeight,
+              fontWeight: "600",
+            }}
+          >
+            {t("map.layers.title")}
+          </Text>
+          {TOGGLEABLE_MAP_LAYERS.map((layer) => {
+            const on = isOverlayOn(overlays, layer.id);
+            return (
+              <View key={layer.id} style={{ gap: 2 }}>
+                <View style={[styles.layerRow, { gap: spacing[2] }]}>
+                  <Text
+                    allowFontScaling
+                    style={{
+                      flexShrink: 1,
+                      color: colors.text.primary,
+                      fontSize: typography.bodyMeta.fontSize,
+                      lineHeight: typography.bodyMeta.lineHeight,
+                    }}
+                  >
+                    {t(layer.titleKey)}
+                  </Text>
+                  <Switch
+                    value={on}
+                    onValueChange={(next) => onToggleOverlay(layer.id, next)}
+                    accessibilityRole="switch"
+                    accessibilityLabel={t(layer.titleKey)}
+                    trackColor={{ true: colors.brand.primary }}
+                  />
+                </View>
+                <Text
+                  allowFontScaling
+                  style={{
+                    color: colors.text.tertiary,
+                    fontSize: typography.labelCaption.fontSize,
+                    lineHeight: typography.labelCaption.lineHeight,
+                  }}
+                >
+                  {t(layer.attributionKey)}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -157,6 +235,15 @@ const styles = StyleSheet.create({
   chipRow: {
     flexDirection: "row",
     flexWrap: "wrap",
+  },
+  layersSection: {
+    borderTopWidth: 1,
+  },
+  layerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: 36,
   },
   chip: {
     borderWidth: 1.5,

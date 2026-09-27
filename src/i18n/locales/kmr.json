@@ -244,6 +244,13 @@
     "eventSheet": {
       "closeButtonLabel": "Bigire",
       "openFullButtonLabel": "Bûyera tevahî veke"
+    },
+    "layers": {
+      "title": "Qat",
+      "events": "Erdhej",
+      "eventsAttribution": "Çavkaniyên USGS, EMSC û GEOFON",
+      "faults": "Xetên şikestinê (fault)",
+      "faultsAttribution": "Databasa Faultên Çalak ên Cîhanî ya GEM (CC BY-SA 4.0)"
     }
   },
   "sensor": {

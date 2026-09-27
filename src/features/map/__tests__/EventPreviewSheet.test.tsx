@@ -64,11 +64,12 @@ jest.mock("react-native-reanimated", () => {
   };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- see comment above; must match the mocked module instance
+/* eslint-disable @typescript-eslint/no-require-imports -- see comment above; must match the mocked module instance */
 const {
   withSpring: mockWithSpring,
   withTiming: mockWithTiming,
 } = require("react-native-reanimated");
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above

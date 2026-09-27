@@ -244,6 +244,13 @@
     "eventSheet": {
       "closeButtonLabel": "إغلاق",
       "openFullButtonLabel": "فتح الحدث الكامل"
+    },
+    "layers": {
+      "title": "الطبقات",
+      "events": "الزلازل",
+      "eventsAttribution": "مصادر USGS وEMSC وGEOFON",
+      "faults": "خطوط الصدوع",
+      "faultsAttribution": "قاعدة بيانات الصدوع النشطة العالمية GEM (CC BY-SA 4.0)"
     }
   },
   "sensor": {

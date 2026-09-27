@@ -60,3 +60,16 @@ describe("useMapPreferencesStore", () => {
     expect(useMapPreferencesStore.getState().styleId).toBe("hybrid");
   });
 });
+
+describe("useMapPreferencesStore overlays", () => {
+  it("starts with no overlay choices and persists a toggle", async () => {
+    const { useMapPreferencesStore } = loadStore();
+    await waitForHydration(() => useMapPreferencesStore.getState().hasHydrated);
+    expect(useMapPreferencesStore.getState().overlays).toEqual({});
+
+    useMapPreferencesStore.getState().setOverlay("faults-gem", true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const stored = await loadAsyncStorage().getItem("bumelerze.map-preferences");
+    expect(JSON.parse(stored ?? "{}").state.overlays).toEqual({ "faults-gem": true });
+  });
+});

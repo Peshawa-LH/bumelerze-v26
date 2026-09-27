@@ -244,6 +244,13 @@
     "eventSheet": {
       "closeButtonLabel": "داخستن",
       "openFullButtonLabel": "کردنەوەی ڕووداوی تەواو"
+    },
+    "layers": {
+      "title": "چینەکان",
+      "events": "بوومەلەرزەکان",
+      "eventsAttribution": "سەرچاوەکانی USGS و EMSC و GEOFON",
+      "faults": "هێڵە شکاوەکان (فۆڵتەکان)",
+      "faultsAttribution": "بنکەدراوی فۆڵتە چالاکەکانی جیهانی GEM (CC BY-SA 4.0)"
     }
   },
   "sensor": {

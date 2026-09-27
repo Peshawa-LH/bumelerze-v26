@@ -244,6 +244,13 @@
     "eventSheet": {
       "closeButtonLabel": "Close",
       "openFullButtonLabel": "Open full event"
+    },
+    "layers": {
+      "title": "Layers",
+      "events": "Earthquakes",
+      "eventsAttribution": "USGS, EMSC and GEOFON feeds",
+      "faults": "Fault lines",
+      "faultsAttribution": "GEM Global Active Faults Database (CC BY-SA 4.0)"
     }
   },
   "sensor": {

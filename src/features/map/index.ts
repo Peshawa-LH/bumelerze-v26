@@ -121,3 +121,17 @@ export {
   loadMapLibre,
   type MapLibreModule,
 } from "./maplibre-loader";
+export {
+  applyFaultsOverlay,
+  buildFaultsLayer,
+  buildFaultsSource,
+  FAULTS_GEOJSON_URL,
+  FAULTS_LAYER_ID,
+  FAULTS_SOURCE_ID,
+  isOverlayOn,
+  MAP_LAYERS,
+  TOGGLEABLE_MAP_LAYERS,
+  type MapLayerEntry,
+  type MapLayerId,
+  type MapOverlayState,
+} from "./layer-registry";

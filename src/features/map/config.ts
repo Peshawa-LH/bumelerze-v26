@@ -68,7 +68,7 @@ export const MAP_STYLE_URLS = {
  * imported by the worker itself, is not stamped — it only changes on a
  * MapLibre upgrade and the CDN's max-age heals that within minutes.
  */
-const MAP_ASSET_REVISION = process.env.EXPO_PUBLIC_BUILD_ID ?? "dev";
+export const MAP_ASSET_REVISION = process.env.EXPO_PUBLIC_BUILD_ID ?? "dev";
 
 export const MAP_WORKER_URL = `${process.env.EXPO_BASE_URL ?? ""}/maplibre-gl-worker.mjs?v=${MAP_ASSET_REVISION}`;
 
