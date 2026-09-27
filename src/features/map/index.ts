@@ -98,7 +98,6 @@ export {
   sheetTotalHeightPx,
   sheetTranslateYForDetent,
   sheetVisibleHeightPx,
-  SHEET_EXPANDED_HEIGHT_FRACTION,
   SHEET_FLICK_VELOCITY_PX_PER_SEC,
   SHEET_OPEN_FULL_HEIGHT_FRACTION,
   SHEET_PEEK_HEIGHT_FRACTION,

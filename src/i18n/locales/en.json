@@ -242,8 +242,6 @@
       "maptilerLogoA11yLabel": "MapTiler"
     },
     "eventSheet": {
-      "expandButtonLabel": "Show more detail",
-      "collapseButtonLabel": "Hide detail",
       "closeButtonLabel": "Close",
       "openFullButtonLabel": "Open full event"
     }

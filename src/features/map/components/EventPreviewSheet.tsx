@@ -121,7 +121,6 @@ function EventPreviewSheetImpl(
   const startTranslateY = useSharedValue(0);
   const dialogRef = useRef<View>(null);
 
-  const isExpanded = detent === "expanded";
   const currentEvent = content;
 
   // Single-event corroboration lookup (still the same batched transport as
@@ -411,27 +410,10 @@ function EventPreviewSheetImpl(
               </View>
 
               <View style={[styles.topControlsRow, { paddingHorizontal: spacing[3] }]}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    isExpanded
-                      ? t("map.eventSheet.collapseButtonLabel")
-                      : t("map.eventSheet.expandButtonLabel")
-                  }
-                  onPress={() => {
-                    const nextDetent: SheetDetent = isExpanded ? "peek" : "expanded";
-                    onDetentChange(nextDetent);
-                    animateToDetent(nextDetent);
-                  }}
-                  hitSlop={12}
-                  style={styles.iconButton}
-                >
-                  <Ionicons
-                    name={isExpanded ? "chevron-down" : "chevron-up"}
-                    size={20}
-                    color={colors.text.secondary}
-                  />
-                </Pressable>
+                {/* No expand control: the sheet shows every basic fact at
+                    once (owner, 2026-09-27). The row keeps its two-slot
+                    layout so the close button stays at the trailing edge. */}
+                <View style={styles.iconButton} />
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t("map.eventSheet.closeButtonLabel")}
@@ -513,8 +495,7 @@ function EventPreviewSheetImpl(
               ) : null}
             </View>
 
-            {isExpanded ? (
-              <View style={{ gap: spacing[1] }}>
+            <View style={{ gap: spacing[1] }}>
                 <Text
                   allowFontScaling
                   style={{
@@ -539,7 +520,6 @@ function EventPreviewSheetImpl(
                   )}
                 </Text>
               </View>
-            ) : null}
 
             <View style={[styles.actionsRow, { gap: spacing[3], marginTop: spacing[2] }]}>
               <Pressable

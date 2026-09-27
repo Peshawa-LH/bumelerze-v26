@@ -143,7 +143,7 @@ afterEach(async () => {
 });
 
 describe("EventPreviewSheet: preview content", () => {
-  it("shows magnitude, place, provenance and relative time at the peek detent, with no distance line when there's no location fix", async () => {
+  it("shows magnitude, place, provenance, times and depth at rest, with no distance line when there's no location fix", async () => {
     const event = makeEvent();
     await renderSheet(
       <EventPreviewSheet
@@ -174,9 +174,11 @@ describe("EventPreviewSheet: preview content", () => {
     expect(screen.queryByText(/from you/)).toBeNull();
 
     // Expanded-only content (local time, depth) is absent at peek.
+    // Depth is part of the at-a-glance content now, never behind a tap
+    // (owner, 2026-09-27: "no expanding at all").
     expect(
-      screen.queryByText(new RegExp(i18n.t("eventDetail.depthSectionTitle"))),
-    ).toBeNull();
+      screen.getByText(new RegExp(i18n.t("eventDetail.depthSectionTitle"))),
+    ).toBeTruthy();
   });
 
   it("shows a distance-from-you line once a location fix is available", async () => {
@@ -193,11 +195,11 @@ describe("EventPreviewSheet: preview content", () => {
     expect(screen.getByText(/from you/)).toBeTruthy();
   });
 
-  it("shows local time and depth ADDITIONALLY once expanded", async () => {
+  it("shows local time and depth without any expanding (owner, 2026-09-27)", async () => {
     await renderSheet(
       <EventPreviewSheet
         content={makeEvent()}
-        detent="expanded"
+        detent="peek"
         onDetentChange={jest.fn()}
         onDismiss={jest.fn()}
       />,
@@ -208,45 +210,6 @@ describe("EventPreviewSheet: preview content", () => {
     ).toBeTruthy();
     expect(
       screen.getByText(new RegExp(i18n.t("eventDetail.localTimeLabel"))),
-    ).toBeTruthy();
-  });
-});
-
-describe("EventPreviewSheet: expand/collapse control", () => {
-  it("the expand button requests the 'expanded' detent and animates via a spring; its own label flips once expanded", async () => {
-    const onDetentChange = jest.fn();
-    const { rerender } = await renderSheet(
-      <EventPreviewSheet
-        content={makeEvent()}
-        detent="peek"
-        onDetentChange={onDetentChange}
-        onDismiss={jest.fn()}
-      />,
-    );
-
-    const expandButton = screen.getByRole("button", {
-      name: i18n.t("map.eventSheet.expandButtonLabel"),
-    });
-    await act(async () => {
-      fireEvent.press(expandButton);
-    });
-    expect(onDetentChange).toHaveBeenCalledWith("expanded");
-    expect(mockWithSpring).toHaveBeenCalled();
-
-    await rerender(
-      <QueryClientProvider client={testQueryClient}>
-        <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>
-          <EventPreviewSheet
-            content={makeEvent()}
-            detent="expanded"
-            onDetentChange={onDetentChange}
-            onDismiss={jest.fn()}
-          />
-        </SafeAreaProvider>
-      </QueryClientProvider>,
-    );
-    expect(
-      screen.getByRole("button", { name: i18n.t("map.eventSheet.collapseButtonLabel") }),
     ).toBeTruthy();
   });
 });
@@ -311,14 +274,6 @@ describe("EventPreviewSheet: reduced motion", () => {
 
     await act(async () => {
       fireEvent.press(
-        screen.getByRole("button", { name: i18n.t("map.eventSheet.expandButtonLabel") }),
-      );
-    });
-    expect(mockWithSpring).not.toHaveBeenCalled();
-    expect(onDetentChange).toHaveBeenCalledWith("expanded");
-
-    await act(async () => {
-      fireEvent.press(
         screen.getByRole("button", { name: i18n.t("map.eventSheet.closeButtonLabel") }),
       );
     });
@@ -357,7 +312,7 @@ describe("EventPreviewSheet: navigation", () => {
     await renderSheet(
       <EventPreviewSheet
         content={event}
-        detent="expanded"
+        detent="peek"
         onDetentChange={onDetentChange}
         onDismiss={jest.fn()}
       />,
@@ -480,7 +435,6 @@ describe("EventPreviewSheet: accessibility", () => {
     );
 
     for (const name of [
-      i18n.t("map.eventSheet.expandButtonLabel"),
       i18n.t("map.eventSheet.closeButtonLabel"),
       i18n.t("felt.pill.label"),
       i18n.t("map.eventSheet.openFullButtonLabel"),

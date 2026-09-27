@@ -242,8 +242,6 @@
       "maptilerLogoA11yLabel": "MapTiler"
     },
     "eventSheet": {
-      "expandButtonLabel": "Hûrgiliyên zêdetir nîşan bide",
-      "collapseButtonLabel": "Hûrgiliyan veşêre",
       "closeButtonLabel": "Bigire",
       "openFullButtonLabel": "Bûyera tevahî veke"
     }

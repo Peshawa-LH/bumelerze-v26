@@ -242,8 +242,6 @@
       "maptilerLogoA11yLabel": "MapTiler"
     },
     "eventSheet": {
-      "expandButtonLabel": "پیشاندانی وردەکاری زیاتر",
-      "collapseButtonLabel": "شاردنەوەی وردەکاری",
       "closeButtonLabel": "داخستن",
       "openFullButtonLabel": "کردنەوەی ڕووداوی تەواو"
     }

@@ -20,29 +20,29 @@ import type { Event } from "@/features/events";
  * thread instead.
  */
 
-/** Two detents the sheet itself can rest at — "dismissed" is represented by
- * `content === null` at the call site (there is no content to detent once
- * the sheet has nothing to show), not a third value here. A THIRD, larger
- * detent ("full") is deliberately NOT a resting state of this component at
- * all: reaching it means "leave the sheet and open the real `/event/[id]`
- * route" (`SheetSnapOutcome`'s own doc comment) — the wave brief's explicit
- * instruction not to fork a second implementation of the event-detail
- * screen inside the sheet. */
-export type SheetDetent = "peek" | "expanded";
+/** The ONE height the sheet rests at. Until 2026-09-27 there were two
+ * ("peek" and "expanded"), and the local time and depth only appeared at
+ * the second — a tap the owner rightly refused to pay for the basic facts
+ * of an event ("it should be expanded by default, in fact no expanding at
+ * all"). The sheet is now sized to show everything at once. "Dismissed" is
+ * `content === null` at the call site, and a THIRD, larger height ("full")
+ * is deliberately NOT a resting state: reaching it means "leave the sheet
+ * and open the real `/event/[id]` route" (`SheetSnapOutcome`), never a
+ * second implementation of the event screen inside the sheet. */
+export type SheetDetent = "peek";
 
-/** What a released drag (or a button tap) resolves to. `"dismiss"` and
- * `"openFull"` are both exits from the sheet's own detent state machine —
- * the CALLER (`EventPreviewSheet`/the Map screen) decides what that means
- * (clear the selection; push the full event route), this module only ever
- * decides WHICH of the four outcomes a given drag lands on. */
+/** What a released drag resolves to. `"dismiss"` and `"openFull"` are both
+ * exits from the sheet's own state machine — the CALLER
+ * (`EventPreviewSheet`/the Map screen) decides what that means (clear the
+ * selection; push the full event route), this module only ever decides
+ * WHICH of the three outcomes a given drag lands on. */
 export type SheetSnapOutcome = "dismiss" | SheetDetent | "openFull";
 
-/** Fraction of the map area's height each detent shows. Peek: enough for
- * magnitude/place/time/actions at a glance without hiding most of the map.
- * Expanded: room for the fuller preview (provenance, distance, absolute
- * time) while still leaving the top of the map visible above it. */
-export const SHEET_PEEK_HEIGHT_FRACTION = 0.32;
-export const SHEET_EXPANDED_HEIGHT_FRACTION = 0.62;
+/** Fraction of the map area's height the sheet shows: magnitude, tags,
+ * place, relative time, local time, depth, distance and the two actions —
+ * all at once (owner, 2026-09-27) — while leaving the top of the map
+ * visible above it. */
+export const SHEET_PEEK_HEIGHT_FRACTION = 0.46;
 /** The sheet's own physical rendered height budget, AND the visible-height
  * point a drag has to cross to hand off to full-event navigation
  * (`resolveSheetSnapOutcome`'s `"openFull"` branch) — one number serves both
@@ -59,24 +59,17 @@ export const SHEET_OPEN_FULL_HEIGHT_FRACTION = 0.9;
  * generous, "clearly intentional swipe" threshold. */
 export const SHEET_FLICK_VELOCITY_PX_PER_SEC = 800;
 
-/** Detent ordering, dismiss..openFull — `resolveSheetSnapOutcome`'s flick
+/** Outcome ordering, dismiss..openFull — `resolveSheetSnapOutcome`'s flick
  * branch steps exactly one position along this list. */
-const SNAP_OUTCOME_ORDER: readonly SheetSnapOutcome[] = [
-  "dismiss",
-  "peek",
-  "expanded",
-  "openFull",
-];
+const SNAP_OUTCOME_ORDER: readonly SheetSnapOutcome[] = ["dismiss", "peek", "openFull"];
 
 /** The sheet's visible height, in px, for a given detent and container
  * (map-area) height. */
 export function sheetVisibleHeightPx(
-  detent: SheetDetent,
+  _detent: SheetDetent,
   containerHeightPx: number,
 ): number {
-  const fraction =
-    detent === "expanded" ? SHEET_EXPANDED_HEIGHT_FRACTION : SHEET_PEEK_HEIGHT_FRACTION;
-  return containerHeightPx * fraction;
+  return containerHeightPx * SHEET_PEEK_HEIGHT_FRACTION;
 }
 
 /** The sheet's own total rendered height, in px — see
@@ -111,7 +104,7 @@ export interface ResolveSheetSnapInput {
   currentHeightPx: number;
   /** Net vertical velocity in px/s at release, RNGH's own `velocityY`
    * convention: POSITIVE = moving DOWN (toward dismissing), NEGATIVE = UP
-   * (toward expanding/opening). */
+   * (toward opening the full event). */
   velocityY: number;
   /** The map area's current height in px (the sheet's sizing reference —
    * `sheetVisibleHeightPx`'s own `containerHeightPx`). */
@@ -120,17 +113,16 @@ export interface ResolveSheetSnapInput {
 
 /**
  * Pure decision function: given the sheet's height and velocity at release,
- * which of the four `SheetSnapOutcome`s should it land on? Two regimes:
+ * which of the three `SheetSnapOutcome`s should it land on? Two regimes:
  *
- * 1. Slow release: nearest detent by position, using the MIDPOINT between
+ * 1. Slow release: nearest outcome by position, using the MIDPOINT between
  *    each pair of adjacent heights as the decision boundary (past halfway
- *    toward the next detent snaps forward, short of halfway snaps back) —
- *    the same rubber-band-free snapping every native sheet implementation
- *    uses.
+ *    toward the next one snaps forward, short of halfway snaps back) — the
+ *    same rubber-band-free snapping every native sheet implementation uses.
  * 2. Fast release (`|velocityY| >= SHEET_FLICK_VELOCITY_PX_PER_SEC`): moves
  *    exactly one step, in the flicked direction, from that same
- *    nearest-by-position detent — a quick upward flick started near "peek"
- *    reaches "expanded" even if the finger only travelled a little.
+ *    nearest-by-position outcome — a quick upward flick from the resting
+ *    height hands off to the full event even if the finger travelled little.
  */
 export function resolveSheetSnapOutcome({
   currentHeightPx,
@@ -138,20 +130,16 @@ export function resolveSheetSnapOutcome({
   containerHeightPx,
 }: ResolveSheetSnapInput): SheetSnapOutcome {
   const peekPx = containerHeightPx * SHEET_PEEK_HEIGHT_FRACTION;
-  const expandedPx = containerHeightPx * SHEET_EXPANDED_HEIGHT_FRACTION;
   const openFullPx = containerHeightPx * SHEET_OPEN_FULL_HEIGHT_FRACTION;
 
   const dismissBoundaryPx = peekPx / 2;
-  const peekExpandedMidpointPx = (peekPx + expandedPx) / 2;
-  const expandedOpenFullMidpointPx = (expandedPx + openFullPx) / 2;
+  const peekOpenFullMidpointPx = (peekPx + openFullPx) / 2;
 
   let nearest: SheetSnapOutcome;
   if (currentHeightPx < dismissBoundaryPx) {
     nearest = "dismiss";
-  } else if (currentHeightPx < peekExpandedMidpointPx) {
+  } else if (currentHeightPx < peekOpenFullMidpointPx) {
     nearest = "peek";
-  } else if (currentHeightPx < expandedOpenFullMidpointPx) {
-    nearest = "expanded";
   } else {
     nearest = "openFull";
   }
@@ -172,11 +160,8 @@ export interface EventSheetController {
    * boolean to drift out of sync with it). */
   content: Event | null;
   detent: SheetDetent;
-  /** Opens the sheet for `nextEvent` at the "peek" detent — also the
-   * correct call for re-tapping a DIFFERENT marker while the sheet is
-   * already open (expanded or not): a newly selected event always starts
-   * from the smaller preview, never inherits whatever the previous
-   * content's detent was. */
+  /** Opens the sheet for `nextEvent` — also the correct call for
+   * re-tapping a DIFFERENT marker while the sheet is already open. */
   select: (nextEvent: Event) => void;
   setDetent: (detent: SheetDetent) => void;
   /** Clears the selection (`content` back to `null`) AND resets `detent`

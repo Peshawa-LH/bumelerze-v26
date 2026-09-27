@@ -7,7 +7,6 @@ import {
   sheetTotalHeightPx,
   sheetTranslateYForDetent,
   sheetVisibleHeightPx,
-  SHEET_EXPANDED_HEIGHT_FRACTION,
   SHEET_FLICK_VELOCITY_PX_PER_SEC,
   SHEET_OPEN_FULL_HEIGHT_FRACTION,
   SHEET_PEEK_HEIGHT_FRACTION,
@@ -39,14 +38,23 @@ function makeEvent(overrides: Partial<Event> = {}): Event {
   };
 }
 
+/** One resting height since 2026-09-27: the sheet shows every basic fact
+ * of an event at once, so there is nothing to expand to. The only ways out
+ * are dismiss (down) and the full event route (up). */
 describe("event-sheet: sizing helpers", () => {
-  it("computes each detent's visible height as its fraction of the container", () => {
+  it("computes the resting visible height as its fraction of the container", () => {
     expect(sheetVisibleHeightPx("peek", CONTAINER_HEIGHT_PX)).toBeCloseTo(
       CONTAINER_HEIGHT_PX * SHEET_PEEK_HEIGHT_FRACTION,
     );
-    expect(sheetVisibleHeightPx("expanded", CONTAINER_HEIGHT_PX)).toBeCloseTo(
-      CONTAINER_HEIGHT_PX * SHEET_EXPANDED_HEIGHT_FRACTION,
-    );
+  });
+
+  it("rests tall enough for the whole preview without covering most of the map", () => {
+    // Magnitude, tags, place, relative time, local time, depth, distance
+    // and two actions need roughly 300 px on a phone; the map must stay
+    // visible above. Guards against a future "tidy" shrink that would
+    // clip the details again.
+    expect(SHEET_PEEK_HEIGHT_FRACTION).toBeGreaterThanOrEqual(0.42);
+    expect(SHEET_PEEK_HEIGHT_FRACTION).toBeLessThan(SHEET_OPEN_FULL_HEIGHT_FRACTION);
   });
 
   it("computes the sheet's total rendered height as the open-full fraction", () => {
@@ -55,90 +63,65 @@ describe("event-sheet: sizing helpers", () => {
     );
   });
 
-  it("derives translateY so exactly the detent's visible height shows above the bottom edge", () => {
+  it("derives translateY so exactly the resting height shows above the bottom edge", () => {
     const totalHeight = sheetTotalHeightPx(CONTAINER_HEIGHT_PX);
     const peekTranslateY = sheetTranslateYForDetent("peek", CONTAINER_HEIGHT_PX);
-    const expandedTranslateY = sheetTranslateYForDetent("expanded", CONTAINER_HEIGHT_PX);
-
     expect(totalHeight - peekTranslateY).toBeCloseTo(
       sheetVisibleHeightPx("peek", CONTAINER_HEIGHT_PX),
     );
-    expect(totalHeight - expandedTranslateY).toBeCloseTo(
-      sheetVisibleHeightPx("expanded", CONTAINER_HEIGHT_PX),
-    );
-    // A taller detent shows more, so it needs LESS downward translation.
-    expect(expandedTranslateY).toBeLessThan(peekTranslateY);
+    expect(peekTranslateY).toBeGreaterThan(0);
   });
 });
 
 describe("event-sheet: resolveSheetSnapOutcome (slow release — nearest by position)", () => {
   const SLOW_VELOCITY = 10;
+  const peekPx = CONTAINER_HEIGHT_PX * SHEET_PEEK_HEIGHT_FRACTION;
+  const openFullPx = CONTAINER_HEIGHT_PX * SHEET_OPEN_FULL_HEIGHT_FRACTION;
 
-  it("snaps to dismiss when released below half of peek's height", () => {
-    const halfPeek = (CONTAINER_HEIGHT_PX * SHEET_PEEK_HEIGHT_FRACTION) / 2;
+  it("snaps to dismiss when released below half of the resting height", () => {
     expect(
       resolveSheetSnapOutcome({
-        currentHeightPx: halfPeek - 1,
+        currentHeightPx: peekPx / 2 - 1,
         velocityY: SLOW_VELOCITY,
         containerHeightPx: CONTAINER_HEIGHT_PX,
       }),
     ).toBe("dismiss");
   });
 
-  it("snaps to peek just above the dismiss boundary", () => {
-    const halfPeek = (CONTAINER_HEIGHT_PX * SHEET_PEEK_HEIGHT_FRACTION) / 2;
+  it("snaps back to rest just above the dismiss boundary", () => {
     expect(
       resolveSheetSnapOutcome({
-        currentHeightPx: halfPeek + 1,
+        currentHeightPx: peekPx / 2 + 1,
         velocityY: SLOW_VELOCITY,
         containerHeightPx: CONTAINER_HEIGHT_PX,
       }),
     ).toBe("peek");
   });
 
-  it("snaps to peek exactly at its own resting height", () => {
+  it("snaps to rest exactly at the resting height", () => {
     expect(
       resolveSheetSnapOutcome({
-        currentHeightPx: sheetVisibleHeightPx("peek", CONTAINER_HEIGHT_PX),
+        currentHeightPx: peekPx,
         velocityY: SLOW_VELOCITY,
         containerHeightPx: CONTAINER_HEIGHT_PX,
       }),
     ).toBe("peek");
   });
 
-  it("snaps to expanded once past the peek/expanded midpoint", () => {
-    const peekPx = sheetVisibleHeightPx("peek", CONTAINER_HEIGHT_PX);
-    const expandedPx = sheetVisibleHeightPx("expanded", CONTAINER_HEIGHT_PX);
-    const midpoint = (peekPx + expandedPx) / 2;
+  it("stays at rest just short of the rest/openFull midpoint", () => {
     expect(
       resolveSheetSnapOutcome({
-        currentHeightPx: midpoint + 1,
-        velocityY: SLOW_VELOCITY,
-        containerHeightPx: CONTAINER_HEIGHT_PX,
-      }),
-    ).toBe("expanded");
-  });
-
-  it("stays at expanded just short of the peek/expanded midpoint", () => {
-    const peekPx = sheetVisibleHeightPx("peek", CONTAINER_HEIGHT_PX);
-    const expandedPx = sheetVisibleHeightPx("expanded", CONTAINER_HEIGHT_PX);
-    const midpoint = (peekPx + expandedPx) / 2;
-    expect(
-      resolveSheetSnapOutcome({
-        currentHeightPx: midpoint - 1,
+        currentHeightPx: (peekPx + openFullPx) / 2 - 1,
         velocityY: SLOW_VELOCITY,
         containerHeightPx: CONTAINER_HEIGHT_PX,
       }),
     ).toBe("peek");
   });
 
-  it("hands off to openFull once dragged past the expanded/openFull midpoint", () => {
-    const expandedPx = sheetVisibleHeightPx("expanded", CONTAINER_HEIGHT_PX);
-    const openFullPx = CONTAINER_HEIGHT_PX * SHEET_OPEN_FULL_HEIGHT_FRACTION;
-    const midpoint = (expandedPx + openFullPx) / 2;
+  it("hands off to openFull once dragged past the rest/openFull midpoint", () => {
     expect(
       resolveSheetSnapOutcome({
-        currentHeightPx: midpoint + 1,
+        currentHeightPx: (peekPx + openFullPx) / 2 + 1,
         velocityY: SLOW_VELOCITY,
         containerHeightPx: CONTAINER_HEIGHT_PX,
       }),
@@ -147,47 +130,29 @@ describe("event-sheet: resolveSheetSnapOutcome (slow release — nearest by posi
 });
 
 describe("event-sheet: resolveSheetSnapOutcome (fast release — flick one step)", () => {
-  it("a fast downward flick from near peek dismisses, even with little travel", () => {
+  const peekPx = CONTAINER_HEIGHT_PX * SHEET_PEEK_HEIGHT_FRACTION;
+
+  it("a fast downward flick from near rest dismisses, even with little travel", () => {
     expect(
       resolveSheetSnapOutcome({
-        currentHeightPx: sheetVisibleHeightPx("peek", CONTAINER_HEIGHT_PX) - 5,
+        currentHeightPx: peekPx - 5,
         velocityY: SHEET_FLICK_VELOCITY_PX_PER_SEC + 100,
         containerHeightPx: CONTAINER_HEIGHT_PX,
       }),
     ).toBe("dismiss");
   });
 
-  it("a fast downward flick from near expanded collapses to peek, not dismiss", () => {
+  it("a fast upward flick from near rest hands off to openFull, even with little travel", () => {
     expect(
       resolveSheetSnapOutcome({
-        currentHeightPx: sheetVisibleHeightPx("expanded", CONTAINER_HEIGHT_PX) - 5,
-        velocityY: SHEET_FLICK_VELOCITY_PX_PER_SEC + 100,
-        containerHeightPx: CONTAINER_HEIGHT_PX,
-      }),
-    ).toBe("peek");
-  });
-
-  it("a fast upward flick from near peek expands, even with little travel", () => {
-    expect(
-      resolveSheetSnapOutcome({
-        currentHeightPx: sheetVisibleHeightPx("peek", CONTAINER_HEIGHT_PX) + 5,
-        velocityY: -(SHEET_FLICK_VELOCITY_PX_PER_SEC + 100),
-        containerHeightPx: CONTAINER_HEIGHT_PX,
-      }),
-    ).toBe("expanded");
-  });
-
-  it("a fast upward flick from near expanded hands off to openFull", () => {
-    expect(
-      resolveSheetSnapOutcome({
-        currentHeightPx: sheetVisibleHeightPx("expanded", CONTAINER_HEIGHT_PX) + 5,
+        currentHeightPx: peekPx + 5,
         velocityY: -(SHEET_FLICK_VELOCITY_PX_PER_SEC + 100),
         containerHeightPx: CONTAINER_HEIGHT_PX,
       }),
     ).toBe("openFull");
   });
 
-  it("a flick that would overshoot past openFull clamps at openFull, never past the end of the scale", () => {
+  it("a flick that would overshoot past openFull clamps at openFull", () => {
     expect(
       resolveSheetSnapOutcome({
         currentHeightPx: CONTAINER_HEIGHT_PX * SHEET_OPEN_FULL_HEIGHT_FRACTION,
@@ -197,7 +162,7 @@ describe("event-sheet: resolveSheetSnapOutcome (fast release — flick one step)
     ).toBe("openFull");
   });
 
-  it("a flick that would undershoot past dismiss clamps at dismiss, never negative", () => {
+  it("a flick that would undershoot past dismiss clamps at dismiss", () => {
     expect(
       resolveSheetSnapOutcome({
         currentHeightPx: 0,
@@ -207,19 +172,14 @@ describe("event-sheet: resolveSheetSnapOutcome (fast release — flick one step)
     ).toBe("dismiss");
   });
 
-  it("velocity right at the threshold is NOT treated as a flick (strict >=  boundary is inclusive, just under it is not)", () => {
-    const justBelowThreshold = SHEET_FLICK_VELOCITY_PX_PER_SEC - 1;
-    const peekPx = sheetVisibleHeightPx("peek", CONTAINER_HEIGHT_PX);
-    const expandedPx = sheetVisibleHeightPx("expanded", CONTAINER_HEIGHT_PX);
-    const midpoint = (peekPx + expandedPx) / 2;
-    // Positioned just short of the peek/expanded midpoint: a slow release
-    // here settles back to peek. A flick this fast, even from the same
-    // position, would normally jump to expanded — confirming the
-    // just-under-threshold case still uses the slow (position-only) path.
+  it("velocity just under the threshold is NOT a flick: position alone decides", () => {
+    const openFullPx = CONTAINER_HEIGHT_PX * SHEET_OPEN_FULL_HEIGHT_FRACTION;
+    // Just short of the rest/openFull midpoint, moving up fast but under
+    // the flick threshold: a flick would hand off, a slow release rests.
     expect(
       resolveSheetSnapOutcome({
-        currentHeightPx: midpoint - 1,
-        velocityY: -justBelowThreshold,
+        currentHeightPx: (peekPx + openFullPx) / 2 - 1,
+        velocityY: -(SHEET_FLICK_VELOCITY_PX_PER_SEC - 1),
         containerHeightPx: CONTAINER_HEIGHT_PX,
       }),
     ).toBe("peek");
@@ -227,13 +187,13 @@ describe("event-sheet: resolveSheetSnapOutcome (fast release — flick one step)
 });
 
 describe("useEventSheetController", () => {
-  it("starts closed (no content, peek detent)", async () => {
+  it("starts closed (no content)", async () => {
     const { result } = await renderHook(() => useEventSheetController());
     expect(result.current.content).toBeNull();
     expect(result.current.detent).toBe("peek");
   });
 
-  it("select() opens the sheet at the peek detent with the given event as content", async () => {
+  it("select() opens the sheet with the given event as content", async () => {
     const { result } = await renderHook(() => useEventSheetController());
     const event = makeEvent();
 
@@ -245,22 +205,7 @@ describe("useEventSheetController", () => {
     expect(result.current.detent).toBe("peek");
   });
 
-  it("setDetent() moves between detents without touching the selected content", async () => {
-    const { result } = await renderHook(() => useEventSheetController());
-    const event = makeEvent();
-
-    await act(() => {
-      result.current.select(event);
-    });
-    await act(() => {
-      result.current.setDetent("expanded");
-    });
-
-    expect(result.current.detent).toBe("expanded");
-    expect(result.current.content).toEqual(event);
-  });
-
-  it("selecting a DIFFERENT event while expanded resets back to peek", async () => {
+  it("selecting a DIFFERENT event replaces the content", async () => {
     const { result } = await renderHook(() => useEventSheetController());
     const first = makeEvent({ id: "first" });
     const second = makeEvent({ id: "second" });
@@ -269,25 +214,17 @@ describe("useEventSheetController", () => {
       result.current.select(first);
     });
     await act(() => {
-      result.current.setDetent("expanded");
-    });
-    await act(() => {
       result.current.select(second);
     });
 
     expect(result.current.content).toEqual(second);
-    expect(result.current.detent).toBe("peek");
   });
 
-  it("dismiss() clears the content and resets the detent to peek", async () => {
+  it("dismiss() clears the content", async () => {
     const { result } = await renderHook(() => useEventSheetController());
-    const event = makeEvent();
 
     await act(() => {
-      result.current.select(event);
-    });
-    await act(() => {
-      result.current.setDetent("expanded");
+      result.current.select(makeEvent());
     });
     await act(() => {
       result.current.dismiss();
