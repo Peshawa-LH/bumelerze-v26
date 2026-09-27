@@ -4,6 +4,7 @@ import "@/lib/web-chunk-reload";
 
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Stack } from "expo-router";
+import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -32,6 +33,16 @@ const eventsPersister = createEventsPersister();
 
 export default function RootLayout() {
   const { colors, scheme } = useTheme();
+  // Vazirmatn for Arabic-script locales (`src/theme/typography.ts`'s
+  // `ARABIC_SCRIPT_FONT`). Not awaited: text renders in the fallback face
+  // until the file is in, then re-renders — better than a blank first
+  // paint on a weak connection.
+  useFonts({
+    "Vazirmatn-Regular": require("../assets/fonts/Vazirmatn-Regular.ttf"),
+    "Vazirmatn-Medium": require("../assets/fonts/Vazirmatn-Medium.ttf"),
+    "Vazirmatn-SemiBold": require("../assets/fonts/Vazirmatn-SemiBold.ttf"),
+    "Vazirmatn-Bold": require("../assets/fonts/Vazirmatn-Bold.ttf"),
+  });
   const [isRestarting, setIsRestarting] = useState(false);
   const hasHydrated = usePrefsStore((state) => state.hasHydrated);
   const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);

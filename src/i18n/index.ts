@@ -115,9 +115,29 @@ function applyDocumentDirWeb(isRTL: boolean): void {
       return;
     }
     document.documentElement.setAttribute("dir", isRTL ? "rtl" : "ltr");
+    applyDocumentFontWeb();
   } catch {
     // Best-effort only — never let this crash boot or a language switch.
   }
+}
+
+const WEB_FONT_STYLE_ID = "bml-arabic-script-font";
+
+/** Web-only: every text node under an RTL document renders in Vazirmatn
+ * (see `ARABIC_SCRIPT_FONT` in `src/theme/typography.ts` for why). One
+ * stylesheet, injected once; `expo-font` registers the same faces as
+ * `@font-face`, and react-native-web sets no font-family of its own, so a
+ * document rule reaches every `Text`. */
+function applyDocumentFontWeb(): void {
+  if (typeof document === "undefined" || document.getElementById(WEB_FONT_STYLE_ID)) {
+    return;
+  }
+  const style = document.createElement("style");
+  style.id = WEB_FONT_STYLE_ID;
+  style.textContent =
+    'html[dir="rtl"] body, html[dir="rtl"] body * { ' +
+    'font-family: "Vazirmatn-Regular", "Vazirmatn", "Noto Naskh Arabic", system-ui, sans-serif; }';
+  document.head.appendChild(style);
 }
 
 // Always allowed; forceRTL (below) is what actually flips layout direction.

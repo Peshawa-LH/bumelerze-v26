@@ -12,6 +12,9 @@
 export interface TypeToken {
   fontSize: number;
   lineHeight: number;
+  /** Set for Arabic-script locales (Vazirmatn, see `ARABIC_SCRIPT_FONT`);
+   * undefined otherwise so Latin text keeps the platform font. */
+  fontFamily?: string;
   fontWeight:
     | "400"
     | "500"
@@ -20,11 +23,35 @@ export interface TypeToken {
     | "800";
 }
 
+/**
+ * The face every Arabic-script string renders in, on every platform.
+ *
+ * The app bundled no font at all until 2026-09-27 (`expo-font` installed,
+ * never used), so Sorani fell to the OS fallback — and macOS/iOS fallbacks
+ * lack the Kurdish-specific letter forms (ە ڵ ێ ۆ ڕ), substituting them
+ * mid-word from another face. That is the owner's "the writing doesn't
+ * align": the data was right, the glyphs were not (feedback 72ee4273).
+ * Vazirmatn (SIL OFL, `assets/fonts/`) covers Sorani, Arabic and Persian
+ * in one family. Loaded by `app/_layout.tsx`; on web the same family is
+ * also applied document-wide for RTL locales by `src/i18n/index.ts`.
+ */
+export const ARABIC_SCRIPT_FONT = "Vazirmatn";
+
+/** Weight -> the registered Vazirmatn face name (`useFonts` keys). RN
+ * needs a distinct family per weight on Android; iOS/web resolve either. */
+export function arabicScriptFontFor(fontWeight: TypeToken["fontWeight"]): string {
+  if (fontWeight === "700" || fontWeight === "800") return `${ARABIC_SCRIPT_FONT}-Bold`;
+  if (fontWeight === "600") return `${ARABIC_SCRIPT_FONT}-SemiBold`;
+  if (fontWeight === "500") return `${ARABIC_SCRIPT_FONT}-Medium`;
+  return `${ARABIC_SCRIPT_FONT}-Regular`;
+}
+
 function scale(fontSize: number, latinMultiplier: number, arabicMultiplier: number, fontWeight: TypeToken["fontWeight"], isArabicScript: boolean): TypeToken {
   return {
     fontSize,
     lineHeight: Math.round(fontSize * (isArabicScript ? arabicMultiplier : latinMultiplier)),
     fontWeight,
+    ...(isArabicScript ? { fontFamily: arabicScriptFontFor(fontWeight) } : {}),
   };
 }
 
