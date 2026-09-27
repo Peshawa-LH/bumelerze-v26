@@ -21,6 +21,39 @@ const mockSetUpdateInterval = jest.fn();
 const mockRemove = jest.fn();
 const mockAddListener = jest.fn<{ remove: () => void }, unknown[]>();
 
+/**
+ * Since 2026-09-27 the web hook streams from the browser's own
+ * `devicemotion` event, not `expo-sensors`' web shim (which reads
+ * `deviceorientation` — tilt, not acceleration). `mockAddListener` above
+ * therefore stays uncalled on web; these capture the real listener.
+ */
+const motionListeners: ((e: unknown) => void)[] = [];
+const realAddEventListener = globalThis.addEventListener;
+const realRemoveEventListener = globalThis.removeEventListener;
+function installMotionListenerSpies() {
+  motionListeners.length = 0;
+  globalThis.addEventListener = ((type: string, cb: (e: unknown) => void) => {
+    if (type === "devicemotion") motionListeners.push(cb);
+    else realAddEventListener?.call(globalThis, type, cb as EventListener);
+  }) as typeof globalThis.addEventListener;
+  globalThis.removeEventListener = ((type: string, cb: (e: unknown) => void) => {
+    if (type === "devicemotion") {
+      const i = motionListeners.indexOf(cb);
+      if (i >= 0) motionListeners.splice(i, 1);
+    } else realRemoveEventListener?.call(globalThis, type, cb as EventListener);
+  }) as typeof globalThis.removeEventListener;
+}
+function restoreMotionListenerSpies() {
+  globalThis.addEventListener = realAddEventListener;
+  globalThis.removeEventListener = realRemoveEventListener;
+}
+/** One `devicemotion` sample, m/s² — 1 g straight down on z. */
+function deliverMotionSample() {
+  for (const cb of [...motionListeners]) {
+    cb({ accelerationIncludingGravity: { x: 0, y: 0, z: 9.80665 } });
+  }
+}
+
 jest.mock("expo-sensors", () => ({
   Accelerometer: {
     isAvailableAsync: () => mockIsAvailableAsync(),
@@ -114,12 +147,15 @@ describe("Sensor screen on web", () => {
     (globalThis as { DeviceMotionEvent?: { requestPermission?: unknown } }).DeviceMotionEvent = {
       requestPermission: jest.fn(),
     };
+    installMotionListenerSpies();
   });
 
   afterEach(() => {
     cleanup();
     jest.useRealTimers();
+    restoreMotionListenerSpies();
     delete (globalThis as { DeviceMotionEvent?: unknown }).DeviceMotionEvent;
+    delete (globalThis.navigator as { maxTouchPoints?: number }).maxTouchPoints;
   });
 
   it("shows the enable-sensor button while permission is undetermined (iOS Safari, pre-ask)", async () => {
@@ -143,7 +179,9 @@ describe("Sensor screen on web", () => {
     await pressAndFlush(screen.getByText(i18n.t("sensor.web.enableButton")));
 
     expect(mockRequestPermissionsAsync).toHaveBeenCalledTimes(1);
-    expect(mockAddListener).toHaveBeenCalledTimes(1);
+    // A real `devicemotion` listener, never the shim's `addListener`.
+    expect(motionListeners).toHaveLength(1);
+    expect(mockAddListener).not.toHaveBeenCalled();
     expect(screen.getByText(i18n.t("sensor.axisX"))).toBeTruthy();
   });
 
@@ -172,35 +210,57 @@ describe("Sensor screen on web", () => {
     expect(mockAddListener).not.toHaveBeenCalled();
   });
 
-  it("shows the web explanation when permission is already granted but the device reports no sensor (isAvailableAsync)", async () => {
+  it("keeps streaming once a devicemotion sample arrives (the watchdog stands down)", async () => {
+    // The shim's `isAvailableAsync` probe is gone: whether a sensor exists
+    // is decided by whether `devicemotion` ever delivers, and nothing else.
     mockGetPermissionsAsync.mockResolvedValue(grantedResponse());
-    mockIsAvailableAsync.mockResolvedValue(false);
+
+    await renderWithProviders(<SensorScreen />);
+    await flush();
+    expect(motionListeners).toHaveLength(1);
+
+    await act(async () => {
+      deliverMotionSample();
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByText(i18n.t("sensor.axisX"))).toBeTruthy();
+    expect(screen.queryByText(i18n.t("sensor.web.explanation"))).toBeNull();
+    expect(mockIsAvailableAsync).not.toHaveBeenCalled();
+  });
+
+  it("tells a desktop browser to open the app on a phone instead of offering a button", async () => {
+    // Safari on a Mac still exposes `DeviceMotionEvent.requestPermission`,
+    // so without this the screen invited a tap that could never succeed.
+    (globalThis.navigator as { maxTouchPoints?: number }).maxTouchPoints = 0;
+    mockGetPermissionsAsync.mockResolvedValue(undeterminedResponse());
 
     await renderWithProviders(<SensorScreen />);
     await flush();
 
-    expect(screen.getByText(i18n.t("sensor.web.explanation"))).toBeTruthy();
-    expect(mockAddListener).not.toHaveBeenCalled();
+    expect(screen.getByText(i18n.t("sensor.web.desktop"))).toBeTruthy();
+    expect(screen.queryByText(i18n.t("sensor.web.enableButton"))).toBeNull();
+    expect(motionListeners).toHaveLength(0);
   });
 
   it("falls back to the web explanation when a subscription is granted but never actually delivers a sample (silent listening timeout)", async () => {
     mockGetPermissionsAsync.mockResolvedValue(grantedResponse());
-    mockIsAvailableAsync.mockResolvedValue(true);
 
     await renderWithProviders(<SensorScreen />);
     await flush();
 
     // Optimistically streaming immediately after subscribing...
-    expect(mockAddListener).toHaveBeenCalledTimes(1);
+    expect(motionListeners).toHaveLength(1);
     expect(screen.getByText(i18n.t("sensor.axisX"))).toBeTruthy();
 
-    // ...but no sample ever arrives, so the watchdog demotes it back down.
+    // ...but no sample ever arrives, so the watchdog demotes it back down
+    // and the listener is torn down.
     await act(async () => {
       jest.advanceTimersByTime(2000);
     });
 
     expect(screen.getByText(i18n.t("sensor.web.explanation"))).toBeTruthy();
-    expect(mockRemove).toHaveBeenCalledTimes(1);
+    expect(motionListeners).toHaveLength(0);
   });
 
   describe("browsers with no permission-request API at all", () => {
@@ -225,11 +285,16 @@ describe("Sensor screen on web", () => {
       expect(screen.queryByText(i18n.t("sensor.web.enableButton"))).toBeNull();
     });
 
-    it("shows the web explanation, without crashing, when there's no data to stream", async () => {
-      mockIsAvailableAsync.mockResolvedValue(false);
-
+    it("shows the web explanation, without crashing, when no devicemotion sample ever arrives", async () => {
       await renderWithProviders(<SensorScreen />);
       await flush();
+      // Subscribed straight away — no permission concept here — and the
+      // silent watchdog is the availability probe.
+      expect(motionListeners).toHaveLength(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
 
       expect(screen.getByText(i18n.t("sensor.web.explanation"))).toBeTruthy();
       expect(mockAddListener).not.toHaveBeenCalled();

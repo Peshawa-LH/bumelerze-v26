@@ -44,7 +44,17 @@ import type { AxisKey, AxisVisibility, SensorSample } from "./types";
  *   live samples.
  */
 export type SensorStreamStatus =
-  "checking" | "unavailable" | "permission-denied" | "permission-required" | "streaming";
+  | "checking"
+  | "unavailable"
+  | "permission-denied"
+  | "permission-required"
+  | "streaming"
+  /** Web only: a browser with no touch points at all — a desktop. Nothing
+   * here can ever stream, and on Safari the permission API still EXISTS,
+   * so without this the screen offered an "Enable motion sensor" button
+   * whose tap could never succeed (owner, 2026-09-27: "the only tab I have
+   * not been able to see work"). The screen says: open this on a phone. */
+  | "desktop";
 
 export interface UseAccelerometerStreamResult {
   status: SensorStreamStatus;
@@ -63,6 +73,52 @@ export interface UseAccelerometerStreamResult {
 }
 
 const ALL_AXES_VISIBLE: AxisVisibility = { x: true, y: true, z: true };
+
+/** Standard gravity, m/s² per g. `SensorSample` is in g (native
+ * `expo-sensors` reports g); `devicemotion` reports m/s². */
+const G_MS2 = 9.80665;
+
+/**
+ * True when this browser reports no touch points — a desktop, where no
+ * motion hardware exists. Checked only on web; `navigator.maxTouchPoints`
+ * is the one signal that is a capability rather than a UA guess.
+ */
+function isDesktopBrowser(): boolean {
+  if (Platform.OS !== "web") return false;
+  const nav = (globalThis as { navigator?: { maxTouchPoints?: number } }).navigator;
+  return typeof nav?.maxTouchPoints === "number" && nav.maxTouchPoints === 0;
+}
+
+/**
+ * Web accelerometer source: the browser's own `devicemotion` event,
+ * `accelerationIncludingGravity` in m/s², converted to g.
+ *
+ * NOT `expo-sensors`' web Accelerometer. That shim listens to
+ * `deviceorientation` and returns the tilt angles alpha/beta/gamma scaled
+ * by pi/180 (read from the installed package's own
+ * `ExponentAccelerometer.web.js`, 2026-09-27) — an orientation, not an
+ * acceleration. A phone lying flat on a shaking table barely changes tilt
+ * while its acceleration swings hard; for a "your phone is a seismometer"
+ * screen that is the wrong physical quantity. `accelerationIncludingGravity`
+ * matches native semantics, where the gravity toggle's low-pass filter
+ * then does its job the same way on both platforms.
+ */
+function addWebMotionListener(
+  onSample: (sample: { x: number; y: number; z: number }) => void,
+): { remove: () => void } {
+  const target = globalThis as unknown as {
+    addEventListener?: (type: string, cb: (e: unknown) => void) => void;
+    removeEventListener?: (type: string, cb: (e: unknown) => void) => void;
+  };
+  const handler = (e: unknown) => {
+    const acc = (e as { accelerationIncludingGravity?: { x: number | null; y: number | null; z: number | null } | null })
+      .accelerationIncludingGravity;
+    if (!acc || acc.x == null || acc.y == null || acc.z == null) return;
+    onSample({ x: acc.x / G_MS2, y: acc.y / G_MS2, z: acc.z / G_MS2 });
+  };
+  target.addEventListener?.("devicemotion", handler);
+  return { remove: () => target.removeEventListener?.("devicemotion", handler) };
+}
 
 /**
  * Direct feature-detection for the web permission-request API, independent
@@ -177,15 +233,22 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     setSamples([]);
 
     try {
-      Accelerometer.setUpdateInterval(ACCELEROMETER_UPDATE_INTERVAL_MS);
-      subscriptionRef.current = Accelerometer.addListener((reading) => {
-        buffer.push({
-          x: reading.x,
-          y: reading.y,
-          z: reading.z,
-          t: Date.now(),
+      if (Platform.OS === "web") {
+        // See `addWebMotionListener`: real acceleration, not the shim's tilt.
+        subscriptionRef.current = addWebMotionListener((reading) => {
+          buffer.push({ x: reading.x, y: reading.y, z: reading.z, t: Date.now() });
         });
-      });
+      } else {
+        Accelerometer.setUpdateInterval(ACCELEROMETER_UPDATE_INTERVAL_MS);
+        subscriptionRef.current = Accelerometer.addListener((reading) => {
+          buffer.push({
+            x: reading.x,
+            y: reading.y,
+            z: reading.z,
+            t: Date.now(),
+          });
+        });
+      }
     } catch {
       return false;
     }
@@ -317,21 +380,20 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
        * `startWeb` below that reach "there is no button to show".
        */
       async function probeAvailabilityThenStream() {
-        try {
-          const available = await Accelerometer.isAvailableAsync();
-          if (cancelled) return;
-          if (!available) {
-            setStatus("unavailable");
-            return;
-          }
-        } catch {
-          if (!cancelled) setStatus("unavailable");
-          return;
-        }
+        // The shim's `isAvailableAsync` waits for a `deviceorientation`
+        // event, the very sensor this hook no longer reads. The
+        // `WEB_SILENT_TIMEOUT_MS` watchdog in `beginStreamingWeb` is the
+        // real availability probe now: subscribe, and demote to
+        // "unavailable" only if no `devicemotion` sample ever arrives.
+        if (cancelled) return;
         beginStreamingWeb();
       }
 
       async function startWeb() {
+        if (isDesktopBrowser()) {
+          setStatus("desktop");
+          return;
+        }
         // Feature-detect the permission-request API ourselves rather than
         // trusting `expo-sensors`' derived status for this decision alone —
         // its heuristic leans on UA sniffing internally, and the one thing

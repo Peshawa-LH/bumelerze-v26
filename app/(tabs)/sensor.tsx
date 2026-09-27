@@ -109,6 +109,19 @@ export default function SensorScreen() {
         </View>
       ) : null}
 
+      {status === "desktop" ? (
+        <Text
+          accessibilityRole="alert"
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyDefault.fontSize,
+            lineHeight: typography.bodyDefault.lineHeight,
+          }}
+        >
+          {t("sensor.web.desktop")}
+        </Text>
+      ) : null}
+
       {status === "unavailable" || status === "permission-denied" ? (
         <Text
           accessibilityRole="alert"
