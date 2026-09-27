@@ -2,7 +2,15 @@ import Constants from "expo-constants";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -10,7 +18,12 @@ import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
 import { usePrefsStore } from "@/features/onboarding";
 import { useDevicePermissions } from "@/features/permissions";
-import { useTheme } from "@/theme";
+import {
+  THEME_PREFERENCES,
+  useTheme,
+  useThemePreferencesStore,
+  type ThemePreference,
+} from "@/theme";
 
 const PRIVACY_POLICY_URL = "https://bumelerze.com/privacy.html";
 
@@ -20,6 +33,8 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
 
   const { isRestarting, selectLocale, currentLocale } = useLocaleSwitcher();
+  const themePreference = useThemePreferencesStore((state) => state.preference);
+  const setThemePreference = useThemePreferencesStore((state) => state.setPreference);
 
   async function handleSelectLocale(locale: SupportedLocale) {
     const { restartFailed } = await selectLocale(locale);
@@ -67,6 +82,10 @@ export default function SettingsScreen() {
         isRestarting={isRestarting}
         onSelectLocale={(locale) => void handleSelectLocale(locale)}
       />
+      <AppearanceSection
+        preference={themePreference}
+        onSelectPreference={setThemePreference}
+      />
       <FeedbackSection />
       <OnboardingSection />
       <FooterSection />
@@ -82,11 +101,15 @@ interface LanguageSectionProps {
 
 /** The language picker, once inline at the top of the screen — now a
  * section like the others so the owner's order can put it fifth. */
-function LanguageSection({ currentLocale, isRestarting, onSelectLocale }: LanguageSectionProps) {
+function LanguageSection({
+  currentLocale,
+  isRestarting,
+  onSelectLocale,
+}: LanguageSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   return (
-      <View style={{ gap: spacing[2] }}>
+    <View style={{ gap: spacing[2] }}>
       <Text
         style={{
           color: colors.text.primary,
@@ -135,6 +158,80 @@ function LanguageSection({ currentLocale, isRestarting, onSelectLocale }: Langua
                 }}
               >
                 {t(`settings.languages.${locale}`)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+interface AppearanceSectionProps {
+  preference: ThemePreference;
+  onSelectPreference: (preference: ThemePreference) => void;
+}
+
+/** Owner directive (2026-09-27): "in Settings, where appropriate, 3
+ * buttons: Automatic (the default, follows the system) or manually Light /
+ * Dark." A segmented row rather than `LanguageSection`'s stacked rows —
+ * three short, mutually-exclusive labels read better side by side, and
+ * `accessibilityRole="radio"` matches that "exactly one of these" shape
+ * (unlike the language list, which is a plain list of buttons). The active
+ * choice takes effect immediately: `useTheme()` reads straight from the
+ * same store, no reload needed (no RTL/script flip is involved, unlike the
+ * language switcher above). */
+function AppearanceSection({ preference, onSelectPreference }: AppearanceSectionProps) {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+
+  return (
+    <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.h3.fontSize,
+          lineHeight: typography.h3.lineHeight,
+          fontWeight: typography.h3.fontWeight,
+        }}
+      >
+        {t("settings.appearanceSectionTitle")}
+      </Text>
+      <Text
+        style={{
+          color: colors.text.secondary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+        }}
+      >
+        {t("settings.appearanceSectionDescription")}
+      </Text>
+
+      <View style={[styles.segmentedRow, { gap: spacing[2] }]}>
+        {THEME_PREFERENCES.map((option) => {
+          const isActive = preference === option;
+          return (
+            <Pressable
+              key={option}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isActive }}
+              onPress={() => onSelectPreference(option)}
+              style={[
+                styles.segmentedButton,
+                {
+                  borderColor: colors.border.default,
+                  backgroundColor: isActive ? colors.brand.primary : "transparent",
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color: isActive ? colors.brand.onPrimary : colors.text.primary,
+                  fontSize: typography.bodyDefault.fontSize,
+                  fontWeight: isActive ? "700" : "400",
+                }}
+              >
+                {t(`settings.appearance.${option}`)}
               </Text>
             </Pressable>
           );
@@ -279,7 +376,8 @@ function permissionStatusText(
 function DevicePermissionsSection() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const { locationStatus, motionStatus, isRequesting, requestAll } = useDevicePermissions();
+  const { locationStatus, motionStatus, isRequesting, requestAll } =
+    useDevicePermissions();
 
   const hasDenied = locationStatus === "denied" || motionStatus === "denied";
   const allGranted = locationStatus === "granted" && motionStatus === "granted";
@@ -662,6 +760,21 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingStart: 16,
     paddingEnd: 16,
+  },
+  // `flexDirection: "row"` alone flips correctly under RTL (RN mirrors row
+  // direction with `I18nManager.isRTL`) — no logical-property gymnastics
+  // needed beyond that, unlike absolute left/right offsets elsewhere.
+  segmentedRow: {
+    flexDirection: "row",
+  },
+  segmentedButton: {
+    flex: 1,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 8,
   },
   spaceBetweenRow: {
     flexDirection: "row",

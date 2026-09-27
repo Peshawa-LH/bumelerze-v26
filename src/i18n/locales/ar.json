@@ -437,6 +437,13 @@
       "kmr": "الكردية الكرمانجية",
       "ar": "العربية"
     },
+    "appearanceSectionTitle": "المظهر",
+    "appearanceSectionDescription": "يتبع الوضع التلقائي إعدادات هاتفك.",
+    "appearance": {
+      "auto": "تلقائي",
+      "light": "فاتح",
+      "dark": "داكن"
+    },
     "cancel": "إلغاء",
     "homeBaseSectionTitle": "الموطن",
     "homeBaseChange": "تغيير",

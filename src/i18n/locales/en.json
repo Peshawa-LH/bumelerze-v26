@@ -437,6 +437,13 @@
       "kmr": "Kurmanji Kurdish (Kurmancî)",
       "ar": "Arabic (العربية)"
     },
+    "appearanceSectionTitle": "Appearance",
+    "appearanceSectionDescription": "Automatic follows your phone's setting.",
+    "appearance": {
+      "auto": "Automatic",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "cancel": "Cancel",
     "homeBaseSectionTitle": "HomeBase",
     "homeBaseChange": "Change",

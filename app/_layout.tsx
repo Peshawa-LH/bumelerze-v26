@@ -22,7 +22,7 @@ import { sendColdStartTelemetryPing } from "@/features/telemetry";
 // the named import below.
 import { applyPersistedLocaleOnLaunch } from "@/i18n";
 import { restartApp } from "@/i18n/restart-app";
-import { useTheme } from "@/theme";
+import { applyDocumentColorSchemeWeb, useTheme } from "@/theme";
 
 // Created once per app instance (module scope, not per render) so the
 // persisted cache round-trips through the SAME client across re-renders —
@@ -86,6 +86,13 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    // Web-only DOM mirror of the resolved scheme (Settings > Appearance) —
+    // one effect here, at the root, rather than one per `useTheme()` call
+    // site (`applyDocumentColorSchemeWeb`'s own doc comment).
+    applyDocumentColorSchemeWeb(scheme);
+  }, [scheme]);
+
+  useEffect(() => {
     // Anonymous, coarse-location cold-start ping (spec-v1.md §5.5, D11/D13;
     // disclosed in Settings). No-ops entirely when no Supabase project is
     // configured yet or when location permission/last-known fix isn't
@@ -129,7 +136,9 @@ export default function RootLayout() {
               // native as well as web (`ARABIC_SCRIPT_FONT`).
               headerTitleStyle: {
                 color: colors.text.primary,
-                ...(typography.h3.fontFamily ? { fontFamily: typography.h3.fontFamily } : {}),
+                ...(typography.h3.fontFamily
+                  ? { fontFamily: typography.h3.fontFamily }
+                  : {}),
               },
               headerShadowVisible: false,
             }}

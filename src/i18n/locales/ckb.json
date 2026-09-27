@@ -437,6 +437,13 @@
       "kmr": "کوردیی کورمانجی (Kurmancî)",
       "ar": "عەرەبی"
     },
+    "appearanceSectionTitle": "ڕووکار",
+    "appearanceSectionDescription": "دۆخی خۆکار پەیڕەوی ڕێکخستنی مۆبایلەکەت دەکات.",
+    "appearance": {
+      "auto": "خۆکار",
+      "light": "ڕووناک",
+      "dark": "تاریک"
+    },
     "cancel": "هەڵوەشاندنەوە",
     "homeBaseSectionTitle": "بنکەی ماڵەوە",
     "homeBaseChange": "گۆڕین",

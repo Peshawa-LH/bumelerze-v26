@@ -437,6 +437,13 @@
       "kmr": "Kurmancî",
       "ar": "Erebî"
     },
+    "appearanceSectionTitle": "Xuyang",
+    "appearanceSectionDescription": "Moda otomatîk li gorî sazkariya mobîla te ye.",
+    "appearance": {
+      "auto": "Otomatîk",
+      "light": "Ronî",
+      "dark": "Tarî"
+    },
     "cancel": "Betal ke",
     "homeBaseSectionTitle": "Cihê Malê",
     "homeBaseChange": "Biguherîne",
