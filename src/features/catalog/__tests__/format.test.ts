@@ -1,6 +1,6 @@
 import i18n from "@/i18n";
 
-import { describeCatalogMagnitude, formatCatalogMagnitude, formatCatalogPlace } from "../format";
+import { formatCatalogMagnitude, formatCatalogPlace } from "../format";
 import type { CatalogRow } from "../types";
 
 /**
@@ -76,34 +76,23 @@ describe("formatCatalogPlace", () => {
   });
 });
 
-/** Feedback 038081da: "the final used magnitude is Mw". Mw leads wherever
- * the catalog has one; a raw magnitude is never dressed up as Mw. */
-describe("formatCatalogMagnitude / describeCatalogMagnitude (Mw first)", () => {
+/** Feedback 038081da: the number is the homogenised Mw wherever the catalog
+ * has one; the reader only ever sees "M" (owner, 2026-09-27: the Mw
+ * distinction is internal and does not affect the end app). */
+describe("formatCatalogMagnitude", () => {
   const t = i18n.t;
 
-  it("leads with the homogenised Mw when one exists", () => {
-    expect(formatCatalogMagnitude({ mag: 5.0, magType: "mb", mwDerived: 5.03 }, "en", t)).toBe("M 5.0");
+  it("uses the homogenised Mw for the number when one exists", () => {
+    expect(formatCatalogMagnitude({ mag: 5.0, mwDerived: 5.43 }, "en", t)).toBe("M 5.4");
   });
 
-  it("shows the raw magnitude WITH its type when there is no Mw", () => {
-    expect(formatCatalogMagnitude({ mag: 4.1, magType: "ML", mwDerived: null }, "en", t)).toBe("ML 4.1");
+  it("falls back to the agency's magnitude when there is no Mw", () => {
+    expect(formatCatalogMagnitude({ mag: 4.1, mwDerived: null }, "en", t)).toBe("M 4.1");
   });
 
-  it("describes a measured Mw as reported, not converted", () => {
-    expect(
-      describeCatalogMagnitude({ mag: 6.8, magType: "Mw", mwDerived: 6.8, mwMethod: "native_mw" }, "en", t),
-    ).toBe("Mw 6.8 (moment magnitude, as reported)");
-  });
-
-  it("names the relation a converted Mw came from, and the raw value it started as", () => {
-    expect(
-      describeCatalogMagnitude({ mag: 5.0, magType: "mb", mwDerived: 5.03, mwMethod: "onur2017_mb" }, "en", t),
-    ).toBe("Mw 5.0, converted from mb 5.0 (Onur et al. 2017)");
-  });
-
-  it("says plainly when no Mw conversion is available", () => {
-    expect(
-      describeCatalogMagnitude({ mag: 4.1, magType: "ML", mwDerived: null, mwMethod: null }, "en", t),
-    ).toBe("ML 4.1 (no Mw conversion available)");
+  it("never prefixes a scale name — the reader sees M either way", () => {
+    for (const row of [{ mag: 4.1, mwDerived: null }, { mag: 4.1, mwDerived: 4.4 }]) {
+      expect(formatCatalogMagnitude(row, "en", t)).toMatch(/^M \d/);
+    }
   });
 });

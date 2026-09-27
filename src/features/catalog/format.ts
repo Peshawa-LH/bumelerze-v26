@@ -18,44 +18,20 @@ export function formatCatalogYear(year: number, locale: string): string {
 }
 
 /**
- * The magnitude a row LEADS with. Mw wherever the catalog has one (native
- * or homogenised, feedback 038081da); otherwise the agency's own value with
- * its type spelled out ("ML 4.1"), so a local magnitude is never read as
- * a moment magnitude. `events.magnitudeDisplay` ("M 5.2") is reserved for
- * Mw here, matching how the live feed's USGS Mw numbers already read.
+ * "M {{value}}" for every row. The value is the homogenised Mw wherever the
+ * catalog has one (native or Onur et al. 2017 from ML/mb/MD) and the
+ * agency's own magnitude otherwise. The distinction stays INTERNAL: the
+ * owner (2026-09-27, on feedback 038081da) — "we keep M; this Mw is just an
+ * internal thing, it doesn't really affect the end app". So no "ML"/"mb"
+ * prefixes and no conversion wording on screen; `mwMethod` remains in the
+ * row for anything that needs to know.
  */
 export function formatCatalogMagnitude(
-  row: Pick<CatalogRow, "mag" | "magType" | "mwDerived">,
+  row: Pick<CatalogRow, "mag" | "mwDerived">,
   locale: string,
   t: TranslateFn,
 ): string {
-  if (row.mwDerived !== null) {
-    return t("events.magnitudeDisplay", { value: formatMagnitudeValue(row.mwDerived, locale) });
-  }
-  return t("events.magnitudeTypedDisplay", {
-    type: row.magType,
-    value: formatMagnitudeValue(row.mag, locale),
-  });
-}
-
-/**
- * The detail sheet's full magnitude line: what the number is, and where it
- * came from. A converted Mw is never presented as a measured one.
- */
-export function describeCatalogMagnitude(
-  row: Pick<CatalogRow, "mag" | "magType" | "mwDerived" | "mwMethod">,
-  locale: string,
-  t: TranslateFn,
-): string {
-  const raw = formatMagnitudeValue(row.mag, locale);
-  if (row.mwDerived === null || row.mwMethod === null) {
-    return t("catalog.magnitude.noMw", { type: row.magType, raw });
-  }
-  const mw = formatMagnitudeValue(row.mwDerived, locale);
-  if (row.mwMethod === "native_mw") {
-    return t("catalog.magnitude.mwMeasured", { mw });
-  }
-  return t("catalog.magnitude.mwDerived", { mw, type: row.magType, raw });
+  return t("events.magnitudeDisplay", { value: formatMagnitudeValue(row.mwDerived ?? row.mag, locale) });
 }
 
 /** Localized place line built from the gazetteer, same primitive

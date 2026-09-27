@@ -119,8 +119,7 @@
       "moreSourcesTag": "+{{count}}",
       "sourcesA11yLabel": "Ji aliyê {{agencies}} ve hatiye tomarkirin",
       "sourcesWithMoreA11yLabel": "Ji aliyê {{agencies}} û {{count}} din ve hatiye tomarkirin"
-    },
-    "magnitudeTypedDisplay": "{{type}} {{value}}"
+    }
   },
   "world": {
     "title": "Katalog a Cîhanê",
@@ -199,11 +198,6 @@
       "bumelerzeIdLabel": "Nasnameya Bumelerze",
       "unknown": "Nenas",
       "viewShakeMap": "Nexşeya hejandinê bibîne"
-    },
-    "magnitude": {
-      "mwMeasured": "Mw {{mw}} (mezinahiya momentê, wekî hatiye ragihandin)",
-      "mwDerived": "Mw {{mw}}, ji {{type}} {{raw}} hatiye veguhertin (Onur et al. 2017)",
-      "noMw": "{{type}} {{raw}} (veguhertina Mw tune)"
     }
   },
   "map": {

@@ -10,7 +10,6 @@ export {
   formatCatalogCoordinates,
   formatCatalogDateTimeUtc,
   formatCatalogDepth,
-  describeCatalogMagnitude,
   formatCatalogMagnitude,
   formatCatalogPlace,
   formatCatalogYear,
