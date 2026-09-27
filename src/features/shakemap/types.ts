@@ -130,6 +130,21 @@ export interface IntensityContourLevel {
  * intensities paint last, on top of lower ones) for free. */
 export interface IntensityContourSet {
   levels: IntensityContourLevel[];
+  /** The hypocentre these contours were computed from, when the product
+   * carries it (`export.py`'s `epicenter`).
+   *
+   * The epicentre star belongs HERE and not on the event record: agencies
+   * disagree about where an earthquake was, and the record publishes a
+   * preferred solution per field, so an event resolved from a live feed
+   * or from the registry can name a position the map was not computed
+   * from. Drawing the star from the product makes it mark the origin of
+   * the field it sits on, by construction. It drifted up to 21 km before
+   * this (2026-09-27).
+   *
+   * `null` for a product published before `export.py` wrote it and never
+   * backfilled — the caller falls back to the event record rather than
+   * dropping the star. */
+  epicenter: { lat: number; lon: number } | null;
   /** Count of contour features present in the source payload that failed
    * schema validation and were skipped — tolerant-parsing bookkeeping,
    * same convention as `events/usgs.ts`'s `skippedCount`. */

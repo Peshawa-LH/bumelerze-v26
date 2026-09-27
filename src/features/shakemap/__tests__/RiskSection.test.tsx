@@ -68,7 +68,7 @@ function mockReady(riskOverrides: Partial<RiskProduct> = {}, productOverrides: P
   mockedUseResolvedShakeMap.mockReturnValue({
     status: "ready",
     product: fakeProduct(productOverrides),
-    contours: { levels: [], skippedCount: 0 },
+    contours: { levels: [], skippedCount: 0, epicenter: null },
     risk: realRisk(riskOverrides),
   });
 }
@@ -89,7 +89,7 @@ describe("RiskSection", () => {
     mockedUseResolvedShakeMap.mockReturnValue({
       status: "ready",
       product: fakeProduct(),
-      contours: { levels: [], skippedCount: 0 },
+      contours: { levels: [], skippedCount: 0, epicenter: null },
       risk: null,
     });
 
@@ -294,7 +294,7 @@ function mockSchema2() {
   mockedUseResolvedShakeMap.mockReturnValue({
     status: "ready",
     product: fakeProduct(),
-    contours: { levels: [], skippedCount: 0 },
+    contours: { levels: [], skippedCount: 0, epicenter: null },
     risk,
   });
 }

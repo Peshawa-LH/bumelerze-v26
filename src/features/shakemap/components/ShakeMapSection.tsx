@@ -101,13 +101,22 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   // line the rest of the screen already uses, not just the max-intensity
   // numeral (see `ShakeMapView`'s `mapA11yLabel` doc comment).
   const placeText = placeLine(event, i18n.language, t);
+  // The star marks the origin of THESE contours, so it comes from the
+  // product, not from the event record. Agencies disagree about where an
+  // earthquake was and the record publishes a preferred solution per
+  // field, so an event resolved from a live feed or from the registry can
+  // name a position this map was never computed from — the star sat up to
+  // 21 km off the shaking it marks before this (2026-09-27). The event
+  // record is still the fallback for a product published before the
+  // engine carried the field, where it remains the best guess available.
+  const epicenter = contours.epicenter ?? { lat: event.lat, lon: event.lon };
 
   return (
     <View style={{ gap: spacing[2] }}>
       <Text style={titleStyle}>{t("eventDetail.shakemap.sectionTitle")}</Text>
       <ShakeMapView
         contours={contours}
-        epicenter={{ lat: event.lat, lon: event.lon }}
+        epicenter={epicenter}
         locale={i18n.language}
         t={t}
         placeText={placeText}

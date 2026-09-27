@@ -30,7 +30,7 @@ function fakeRiskProduct(buildingsHeavy: number): RiskProduct {
   };
 }
 
-const CONTOURS: IntensityContourSet = { levels: [], skippedCount: 0 };
+const CONTOURS: IntensityContourSet = { levels: [], skippedCount: 0, epicenter: null };
 
 function liveCandidate(
   overrides: Partial<LiveShakeMapProduct> = {},
@@ -101,7 +101,7 @@ describe("resolveShakeMapProduct", () => {
   });
 
   it("uses the live candidate's own contours, not the bundled one's, when live wins", () => {
-    const liveContours: IntensityContourSet = { levels: [{ value: 6, level: 6, rings: [] }], skippedCount: 0 };
+    const liveContours: IntensityContourSet = { levels: [{ value: 6, level: 6, rings: [] }], skippedCount: 0, epicenter: null };
     const resolved = resolveShakeMapProduct(
       { ...liveCandidate(), contours: liveContours },
       bundledCandidate(),

@@ -12,6 +12,16 @@ jest.mock("../live-queries", () => ({
   useResolvedShakeMap: jest.fn(),
 }));
 
+// The star's position is a prop on the (real) map view, so capture it
+// rather than trying to read a marker out of the rendered tree.
+const mockEpicenters: { lat: number; lon: number }[] = [];
+jest.mock("../components/ShakeMapView", () => ({
+  ShakeMapView: (props: { epicenter: { lat: number; lon: number } }) => {
+    mockEpicenters.push(props.epicenter);
+    return null;
+  },
+}));
+
 const mockedUseResolvedShakeMap = useResolvedShakeMap as jest.MockedFunction<
   typeof useResolvedShakeMap
 >;
@@ -197,5 +207,47 @@ describe("ShakeMapSection", () => {
 
     const { toJSON } = await render(<ShakeMapSection event={HALABJA_EVENT} />);
     expect(toJSON()).toBeNull();
+  });
+});
+
+
+/** The star marks the origin of the contours it sits on. It used to come
+ * from the event record, which is not always the same agency's solution —
+ * it sat up to 21 km off the shaking (2026-09-27). */
+describe("ShakeMapSection epicenter", () => {
+  beforeEach(() => {
+    mockEpicenters.length = 0;
+  });
+
+  it("draws the star where the product was computed, not where the record says", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    mockedUseResolvedShakeMap.mockReturnValue({
+      status: "ready",
+      product: fakeProduct(),
+      // 21 km from HALABJA_EVENT's own coordinates, the real bml2026025x gap.
+      contours: { ...contours, epicenter: { lat: 35.3917, lon: 44.737 } },
+      risk: null,
+    });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    expect(mockEpicenters.at(-1)).toEqual({ lat: 35.3917, lon: 44.737 });
+  });
+
+  it("falls back to the event record for a product that predates the field", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    mockedUseResolvedShakeMap.mockReturnValue({
+      status: "ready",
+      product: fakeProduct(),
+      contours: { ...contours, epicenter: null },
+      risk: null,
+    });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    expect(mockEpicenters.at(-1)).toEqual({
+      lat: HALABJA_EVENT.lat,
+      lon: HALABJA_EVENT.lon,
+    });
   });
 });

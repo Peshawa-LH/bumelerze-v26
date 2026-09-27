@@ -125,7 +125,7 @@ describe("ShakeMapView", () => {
   it("handles an empty contour set without crashing (defensive — callers should never pass this)", async () => {
     await render(
       <ShakeMapView
-        contours={{ levels: [], skippedCount: 0 }}
+        contours={{ levels: [], skippedCount: 0, epicenter: null }}
         epicenter={HALABJA_EPICENTER}
         locale="en"
         t={i18n.t}

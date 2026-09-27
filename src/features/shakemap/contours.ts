@@ -203,6 +203,28 @@ export function extractContourLevels(payload: unknown): ExtractedContourLevels {
  * producer-agnostic `IntensityContourSet` (D9) — `extractContourLevels`
  * above plus the MMI/EMS-98 ramp-index assignment (`mmiValueToLevel`).
  */
+/** The product's own `epicenter`, when it carries one and both numbers
+ * are finite. Tolerant like every other read in this module: a malformed
+ * block yields `null` and the caller falls back, rather than throwing away
+ * a map that is otherwise fine. */
+export function parseEpicenter(payload: unknown): { lat: number; lon: number } | null {
+  const raw = (payload as { epicenter?: unknown } | null)?.epicenter;
+  if (typeof raw !== "object" || raw === null) {
+    return null;
+  }
+  const { lat, lon } = raw as { lat?: unknown; lon?: unknown };
+  if (typeof lat !== "number" || typeof lon !== "number") {
+    return null;
+  }
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return null;
+  }
+  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    return null;
+  }
+  return { lat, lon };
+}
+
 export function parseIntensityContours(payload: unknown): IntensityContourSet {
   const { levels, skippedCount } = extractContourLevels(payload);
   return {
@@ -212,5 +234,6 @@ export function parseIntensityContours(payload: unknown): IntensityContourSet {
       rings,
     })),
     skippedCount,
+    epicenter: parseEpicenter(payload),
   };
 }

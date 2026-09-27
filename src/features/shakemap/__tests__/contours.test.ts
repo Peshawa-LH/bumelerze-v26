@@ -1,5 +1,5 @@
 import halabjaContours from "../__fixtures__/us2000bmcg/cont_mi.trimmed.json";
-import { parseIntensityContours } from "../contours";
+import { parseEpicenter, parseIntensityContours } from "../contours";
 import { mmiValueToLevel, INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
 
 describe("parseIntensityContours", () => {
@@ -254,5 +254,46 @@ describe("INTENSITY_ROMAN_NUMERALS", () => {
     expect(INTENSITY_ROMAN_NUMERALS[10]).toBe("X");
     expect(INTENSITY_ROMAN_NUMERALS[12]).toBe("XII");
     expect(INTENSITY_ROMAN_NUMERALS).toHaveLength(13);
+  });
+});
+
+/** The epicentre star is drawn from the product, not the event record
+ * (2026-09-27): agencies disagree about where an earthquake was, and the
+ * record publishes a preferred solution per field, so the star drifted up
+ * to 21 km off the shaking it marks. */
+describe("parseEpicenter", () => {
+  it("reads the epicentre the product was computed from", () => {
+    expect(parseEpicenter({ epicenter: { lat: 35.3917, lon: 44.737 } })).toEqual({
+      lat: 35.3917,
+      lon: 44.737,
+    });
+  });
+
+  it("returns null for a product published before the engine carried it", () => {
+    // The caller falls back to the event record, which is what every map
+    // did before this, rather than losing its star.
+    expect(parseEpicenter({ type: "FeatureCollection", features: [] })).toBeNull();
+  });
+
+  it.each([
+    ["a null block", { epicenter: null }],
+    ["a non-object", { epicenter: "35,44" }],
+    ["a missing coordinate", { epicenter: { lat: 35.4 } }],
+    ["a non-numeric coordinate", { epicenter: { lat: "35.4", lon: 44.7 } }],
+    ["NaN", { epicenter: { lat: Number.NaN, lon: 44.7 } }],
+    ["an out-of-range latitude", { epicenter: { lat: 135, lon: 44.7 } }],
+    ["an out-of-range longitude", { epicenter: { lat: 35.4, lon: 244.7 } }],
+    ["no payload at all", null],
+  ])("falls back rather than drawing a star from %s", (_label, payload) => {
+    expect(parseEpicenter(payload)).toBeNull();
+  });
+
+  it("is carried through by parseIntensityContours", () => {
+    const set = parseIntensityContours({
+      type: "FeatureCollection",
+      features: [],
+      epicenter: { lat: 34.9109, lon: 45.9592 },
+    });
+    expect(set.epicenter).toEqual({ lat: 34.9109, lon: 45.9592 });
   });
 });
