@@ -11,6 +11,7 @@ import i18n, { isRTLLocale } from "@/i18n";
 // lazily inside the factory — jest.mock() factories can't close over
 // module-scope imports.
 jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: jest.fn() }),
   useFocusEffect: (effect: () => void | (() => void)) => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require required inside a jest.mock factory
     const { useEffect } = require("react");

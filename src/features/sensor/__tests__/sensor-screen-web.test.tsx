@@ -7,6 +7,7 @@ import i18n from "@/i18n";
 
 // Same focus-effect shim as sensor-screen.test.tsx.
 jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: jest.fn() }),
   useFocusEffect: (effect: () => void | (() => void)) => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require required inside a jest.mock factory
     const { useEffect } = require("react");

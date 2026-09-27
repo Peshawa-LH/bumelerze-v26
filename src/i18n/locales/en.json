@@ -278,7 +278,8 @@
       "space": "3D"
     },
     "motionNote": "Gravity is removed, so a phone lying still reads flat. Each channel is centred on zero at a fixed ±0.5 g scale.",
-    "spaceA11yLabel": "Live 3D view of your phone's motion: a dot moves along the X, Y and Z axes and leaves a short trail"
+    "spaceA11yLabel": "Live 3D view of your phone's motion: a dot moves along the X, Y and Z axes and leaves a short trail",
+    "stationsButton": "Live seismic stations"
   },
   "safety": {
     "title": "Safety",
@@ -1259,5 +1260,26 @@
       "close": "Close"
     },
     "submitFailed": "Sending failed on this device. Your text is still here — please try again."
+  },
+  "stations": {
+    "title": "Live seismic stations",
+    "intro": "Open seismic stations around Kurdistan. Tap one to watch its last ten minutes. Data arrive minutes behind real time — this is a window on the ground, not an alert.",
+    "tier": {
+      "live": "Live",
+      "recent": "Recent",
+      "silent": "No recent data",
+      "unknown": "Checking…"
+    },
+    "lastSample": "Last sample {{minutes}} min ago",
+    "noData": "No data from this station in the last day.",
+    "loading": "Loading the last ten minutes…",
+    "error": "Could not load this station right now.",
+    "distanceFromReference": "{{km}} km from Hewlêr (Erbil)",
+    "credit": "Data: {{credit}}",
+    "channel": "{{channel}} · {{sps}} samples/s",
+    "mapA11yLabel": "Map of seismic stations around Kurdistan",
+    "chartA11yLabel": "Last ten minutes of ground motion at {{name}}",
+    "listTitle": "{{count}} stations",
+    "webOnlyMap": "The station map needs the web app for now; the list below works everywhere."
   }
 }

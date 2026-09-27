@@ -278,7 +278,8 @@
       "space": "3D"
     },
     "motionNote": "Rakêşana erdê hatiye rakirin, ji ber vê telefonek bêliv xêzeke rast nîşan dide. Her kanal li ser sifirê hatiye navendkirin bi pîvaneke sabit a ±0,5 g.",
-    "spaceA11yLabel": "Dîmena 3D ya zindî ya livîna telefona te: xalek li ser tewereyên X, Y û Z dilive û şopeke kurt li dû xwe dihêle"
+    "spaceA11yLabel": "Dîmena 3D ya zindî ya livîna telefona te: xalek li ser tewereyên X, Y û Z dilive û şopeke kurt li dû xwe dihêle",
+    "stationsButton": "Stasyonên erdhejê yên zindî"
   },
   "safety": {
     "title": "Ewlehî",
@@ -1259,5 +1260,26 @@
       "close": "Bigire"
     },
     "submitFailed": "Şandin li ser vê cîhazê bi ser neket. Nivîsa te hîn li vir e — ji kerema xwe dîsa biceribîne."
+  },
+  "stations": {
+    "title": "Stasyonên erdhejê yên zindî",
+    "intro": "Stasyonên erdhejê yên vekirî li dora Kurdistanê. Yekê bitikîne da ku deh deqîqeyên dawî bibînî. Dane çend deqîqe piştî dema rastî tên — ev pencereyek li ser erdê ye, ne hişyarî.",
+    "tier": {
+      "live": "Zindî",
+      "recent": "Nû",
+      "silent": "Daneyên nû tune",
+      "unknown": "Tê kontrolkirin…"
+    },
+    "lastSample": "Nimûneya dawî berî {{minutes}} deqîqeyan",
+    "noData": "Di roja borî de ti dane ji vê stasyonê nehat.",
+    "loading": "Deh deqîqeyên dawî tên barkirin…",
+    "error": "Niha ev stasyon nayê barkirin.",
+    "distanceFromReference": "{{km}} km ji Hewlêrê",
+    "credit": "Dane: {{credit}}",
+    "channel": "{{channel}} · {{sps}} nimûne/çirke",
+    "mapA11yLabel": "Nexşeya stasyonên erdhejê li dora Kurdistanê",
+    "chartA11yLabel": "Deh deqîqeyên dawî yên livîna erdê li {{name}}",
+    "listTitle": "{{count}} stasyon",
+    "webOnlyMap": "Nexşeya stasyonan niha pêdivî bi sepana webê heye; lîsteya jêrîn li her derê dixebite."
   }
 }

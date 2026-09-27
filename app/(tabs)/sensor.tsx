@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -31,6 +32,7 @@ export default function SensorScreen() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const { status, samples, frameAt, requestWebPermission } = useAccelerometerStream();
   const [view, setView] = useState<SensorView>("traces");
@@ -88,6 +90,32 @@ export default function SensorScreen() {
           {t("sensor.explainer.sentence3")}
         </Text>
       </View>
+
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push("/stations")}
+        style={({ pressed }) => [
+          styles.enableButton,
+          {
+            borderWidth: 1.5,
+            borderColor: colors.brand.primary,
+            backgroundColor: "transparent",
+            opacity: pressed ? 0.85 : 1,
+            paddingVertical: spacing[3],
+          },
+        ]}
+      >
+        <Text
+          style={{
+            color: colors.brand.primary,
+            fontSize: typography.h3.fontSize,
+            lineHeight: typography.h3.lineHeight,
+            fontWeight: typography.labelButton.fontWeight,
+          }}
+        >
+          {t("sensor.stationsButton")}
+        </Text>
+      </Pressable>
 
       {status === "checking" ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing[3] }}>
