@@ -119,7 +119,8 @@
       "moreSourcesTag": "+{{count}}",
       "sourcesA11yLabel": "مسجَّل من قبل {{agencies}}",
       "sourcesWithMoreA11yLabel": "مسجَّل من قبل {{agencies}} و{{count}} أخرى"
-    }
+    },
+    "magnitudeTypedDisplay": "{{type}} {{value}}"
   },
   "world": {
     "title": "الكتالوج العالمي",
@@ -198,6 +199,11 @@
       "bumelerzeIdLabel": "رقم بوملێرزە",
       "unknown": "غير معروف",
       "viewShakeMap": "عرض خريطة الاهتزاز"
+    },
+    "magnitude": {
+      "mwMeasured": "Mw {{mw}} (قدر العزم، كما ورد)",
+      "mwDerived": "Mw {{mw}}، محوّل من {{type}} {{raw}} (Onur et al. 2017)",
+      "noMw": "{{type}} {{raw}} (لا يتوفر تحويل إلى Mw)"
     }
   },
   "map": {

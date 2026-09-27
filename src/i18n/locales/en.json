@@ -119,7 +119,8 @@
       "moreSourcesTag": "+{{count}}",
       "sourcesA11yLabel": "Located by {{agencies}}",
       "sourcesWithMoreA11yLabel": "Located by {{agencies}} and {{count}} more"
-    }
+    },
+    "magnitudeTypedDisplay": "{{type}} {{value}}"
   },
   "world": {
     "title": "World Catalog",
@@ -198,6 +199,11 @@
       "bumelerzeIdLabel": "Bumelerze ID",
       "unknown": "Unknown",
       "viewShakeMap": "View shaking map"
+    },
+    "magnitude": {
+      "mwMeasured": "Mw {{mw}} (moment magnitude, as reported)",
+      "mwDerived": "Mw {{mw}}, converted from {{type}} {{raw}} (Onur et al. 2017)",
+      "noMw": "{{type}} {{raw}} (no Mw conversion available)"
     }
   },
   "map": {

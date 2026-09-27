@@ -119,7 +119,8 @@
       "moreSourcesTag": "+{{count}}",
       "sourcesA11yLabel": "تۆمارکراوە لەلایەن {{agencies}}ەوە",
       "sourcesWithMoreA11yLabel": "تۆمارکراوە لەلایەن {{agencies}}ەوە و {{count}} زیاتر"
-    }
+    },
+    "magnitudeTypedDisplay": "{{type}} {{value}}"
   },
   "world": {
     "title": "کاتالۆگی جیهانی",
@@ -198,6 +199,11 @@
       "bumelerzeIdLabel": "ژمارەی بوومەلەرزە",
       "unknown": "نەزانراو",
       "viewShakeMap": "بینینی نەخشەی لەرزین"
+    },
+    "magnitude": {
+      "mwMeasured": "Mw {{mw}} (پلەی مۆمێنت، وەک ڕاپۆرتکراو)",
+      "mwDerived": "Mw {{mw}}، گۆڕدراو لە {{type}} {{raw}} (Onur et al. 2017)",
+      "noMw": "{{type}} {{raw}} (گۆڕینی Mw بەردەست نییە)"
     }
   },
   "map": {

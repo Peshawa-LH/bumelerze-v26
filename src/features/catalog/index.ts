@@ -10,6 +10,7 @@ export {
   formatCatalogCoordinates,
   formatCatalogDateTimeUtc,
   formatCatalogDepth,
+  describeCatalogMagnitude,
   formatCatalogMagnitude,
   formatCatalogPlace,
   formatCatalogYear,
@@ -25,6 +26,8 @@ export {
   type CatalogBounds,
   type CatalogFilters,
   type CatalogRow,
+  MW_METHODS,
+  type MwMethod,
   type CatalogSource,
 } from "./types";
 export { useCatalogBounds, useCatalogList } from "./use-catalog";

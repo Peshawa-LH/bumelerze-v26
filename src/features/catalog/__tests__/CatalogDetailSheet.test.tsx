@@ -21,6 +21,8 @@ const ROW: CatalogRow = {
   depthKm: 19,
   mag: 7.3,
   magType: "mww",
+  mwDerived: null,
+  mwMethod: null,
   sourceCatalog: "USGS",
   sourceId: "us2000bmcg",
   contributingSources: "ONUR2017,USGS",

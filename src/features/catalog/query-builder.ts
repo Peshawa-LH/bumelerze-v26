@@ -15,6 +15,10 @@ export interface BuiltQuery {
 
 const EVENTS_COLUMNS =
   "bumelerze_id AS bumelerzeId, t AS time, year, lat, lon, depth_km AS depthKm, mag, mag_type AS magType, " +
+  // Homogenised Mw and its provenance (feedback 038081da). Filters and
+  // ORDER BY stay on the indexed raw `mag`: a COALESCE over 150k rows would
+  // drop the index for a distinction the filter UI does not draw.
+  "mw_derived AS mwDerived, mw_method AS mwMethod, " +
   "source_catalog AS sourceCatalog, source_id AS sourceId, " +
   "contributing_sources AS contributingSources, merged_count AS mergedCount, " +
   "author_agency AS authorAgency, region";

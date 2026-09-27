@@ -40,6 +40,10 @@ export const CATALOG_UNION_CHIP = "BUMELERZE" as const;
  * `formatCatalogDateTimeUtc` for the conversion. Negative values are
  * expected and correct — the catalog runs back to the year 872, long
  * before the Unix epoch — and must never be treated as invalid. */
+/** How a row's `mwDerived` was obtained (`export_app_catalog.py`). */
+export const MW_METHODS = ["native_mw", "onur2017_ml", "onur2017_mb", "onur2017_md"] as const;
+export type MwMethod = (typeof MW_METHODS)[number];
+
 export interface CatalogRow {
   /** Canonical Bumelerze event id (`bml` + 4-digit year + base-36 per-year
    * counter, e.g. `bml2017000s` = the 2017 Halabja mainshock), assigned
@@ -57,8 +61,20 @@ export interface CatalogRow {
   lat: number;
   lon: number;
   depthKm: number | null;
+  /** The agency's own magnitude, in its own scale (`magType`). Shown only
+   * where no homogenised Mw exists; the filter and sort still run on this
+   * column (indexed), see `query-builder.ts`. */
   mag: number;
+  /** Canonical magnitude type ("ML", "mb", "MD", "Mw", ...) — the engine's
+   * export folds the source catalogs' casing (`export_app_catalog.py`). */
   magType: string;
+  /** Homogenised moment magnitude, or `null` where no published relation
+   * applies (91% of rows). The magnitude Bumelerze DISPLAYS wherever it
+   * exists (owner, feedback 038081da: "the final used magnitude is Mw").
+   * `mwMethod` says how it was obtained: `native_mw` where the agency
+   * reported Mw, else the Onur et al. (2017) relation from ML/mb/MD. */
+  mwDerived: number | null;
+  mwMethod: MwMethod | null;
   sourceCatalog: CatalogSource;
   sourceId: string | null;
   /** Comma-joined list of every source that contributed a merged record

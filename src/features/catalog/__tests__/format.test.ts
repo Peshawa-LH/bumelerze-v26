@@ -1,6 +1,6 @@
 import i18n from "@/i18n";
 
-import { formatCatalogPlace } from "../format";
+import { describeCatalogMagnitude, formatCatalogMagnitude, formatCatalogPlace } from "../format";
 import type { CatalogRow } from "../types";
 
 /**
@@ -25,6 +25,8 @@ function makeRow(overrides: Partial<CatalogRow> = {}): CatalogRow {
     depthKm: 10,
     mag: 4.2,
     magType: "mb",
+    mwDerived: null,
+    mwMethod: null,
     sourceCatalog: "ISC",
     sourceId: "600873714",
     contributingSources: "ISC",
@@ -71,5 +73,37 @@ describe("formatCatalogPlace", () => {
       t,
     );
     expect(line).toMatch(/km/);
+  });
+});
+
+/** Feedback 038081da: "the final used magnitude is Mw". Mw leads wherever
+ * the catalog has one; a raw magnitude is never dressed up as Mw. */
+describe("formatCatalogMagnitude / describeCatalogMagnitude (Mw first)", () => {
+  const t = i18n.t;
+
+  it("leads with the homogenised Mw when one exists", () => {
+    expect(formatCatalogMagnitude({ mag: 5.0, magType: "mb", mwDerived: 5.03 }, "en", t)).toBe("M 5.0");
+  });
+
+  it("shows the raw magnitude WITH its type when there is no Mw", () => {
+    expect(formatCatalogMagnitude({ mag: 4.1, magType: "ML", mwDerived: null }, "en", t)).toBe("ML 4.1");
+  });
+
+  it("describes a measured Mw as reported, not converted", () => {
+    expect(
+      describeCatalogMagnitude({ mag: 6.8, magType: "Mw", mwDerived: 6.8, mwMethod: "native_mw" }, "en", t),
+    ).toBe("Mw 6.8 (moment magnitude, as reported)");
+  });
+
+  it("names the relation a converted Mw came from, and the raw value it started as", () => {
+    expect(
+      describeCatalogMagnitude({ mag: 5.0, magType: "mb", mwDerived: 5.03, mwMethod: "onur2017_mb" }, "en", t),
+    ).toBe("Mw 5.0, converted from mb 5.0 (Onur et al. 2017)");
+  });
+
+  it("says plainly when no Mw conversion is available", () => {
+    expect(
+      describeCatalogMagnitude({ mag: 4.1, magType: "ML", mwDerived: null, mwMethod: null }, "en", t),
+    ).toBe("ML 4.1 (no Mw conversion available)");
   });
 });

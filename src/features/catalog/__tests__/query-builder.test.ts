@@ -79,6 +79,8 @@ describe("buildCatalogPageQuery", () => {
     expect(sql).toContain("t AS time");
     expect(sql).toContain("depth_km AS depthKm");
     expect(sql).toContain("mag_type AS magType");
+    expect(sql).toContain("mw_derived AS mwDerived");
+    expect(sql).toContain("mw_method AS mwMethod");
     expect(sql).toContain("source_catalog AS sourceCatalog");
     expect(sql).toContain("source_id AS sourceId");
     expect(sql).toContain("bumelerze_id AS bumelerzeId");

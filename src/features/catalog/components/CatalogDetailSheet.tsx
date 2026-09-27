@@ -9,7 +9,7 @@ import {
   formatCatalogCoordinates,
   formatCatalogDateTimeUtc,
   formatCatalogDepth,
-  formatCatalogMagnitude,
+  describeCatalogMagnitude,
 } from "../format";
 import type { CatalogRow } from "../types";
 
@@ -114,7 +114,7 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                 />
                 <DetailField
                   label={t("catalog.detail.magnitudeLabel")}
-                  value={`${formatCatalogMagnitude(row, locale, t)} (${row.magType})`}
+                  value={describeCatalogMagnitude(row, locale, t)}
                   colors={colors}
                   typography={typography}
                 />
