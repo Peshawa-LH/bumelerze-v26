@@ -14,6 +14,7 @@
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
 <script src="../slider.js" defer></script>
+<script src="../lang-menu.js" defer></script>
 </head>
 <body>
 
@@ -33,12 +34,14 @@
         <a href="handbook.html">Pirtûka endezyar</a>
         <a href="support.html">Piştgirî</a>
       </nav>
-      <nav class="lang-switcher-inline" aria-label="Ziman">
-        <a href="../index.html" lang="en">English</a>
-        <a href="../ckb/index.html" lang="ckb" dir="rtl">کوردیی ناوەندی</a>
-        <a href="index.html" aria-current="true" lang="kmr">Kurmancî</a>
-        <a href="../ar/index.html" lang="ar" dir="rtl">العربية</a>
-      </nav>
+      <details class="lang-menu">
+        <summary lang="kmr" title="Ziman">Kurmancî</summary>
+        <nav class="lang-switcher-inline" aria-label="Ziman">
+          <a href="../index.html" lang="en">English</a>
+          <a href="../ckb/index.html" lang="ckb" dir="rtl">کوردیی ناوەندی</a>
+          <a href="../ar/index.html" lang="ar" dir="rtl">العربية</a>
+        </nav>
+      </details>
     </div>
   </div>
 </header>

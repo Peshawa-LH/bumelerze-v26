@@ -13,6 +13,7 @@
 <link rel="apple-touch-icon" href="brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="style.css">
 <script src="slider.js" defer></script>
+<script src="lang-menu.js" defer></script>
 </head>
 <body>
 
@@ -32,12 +33,14 @@
         <a href="handbook.html">Handbook</a>
         <a href="support.html">Support</a>
       </nav>
-      <nav class="lang-switcher-inline" aria-label="Language">
-        <a href="index.html" aria-current="true" lang="en">English</a>
-        <a href="ckb/index.html" lang="ckb" dir="rtl">کوردیی ناوەندی</a>
-        <a href="kmr/index.html" lang="kmr">Kurmancî</a>
-        <a href="ar/index.html" lang="ar" dir="rtl">العربية</a>
-      </nav>
+      <details class="lang-menu">
+        <summary lang="en" title="Language">English</summary>
+        <nav class="lang-switcher-inline" aria-label="Language">
+          <a href="ckb/index.html" lang="ckb" dir="rtl">کوردیی ناوەندی</a>
+          <a href="kmr/index.html" lang="kmr">Kurmancî</a>
+          <a href="ar/index.html" lang="ar" dir="rtl">العربية</a>
+        </nav>
+      </details>
     </div>
   </div>
 </header>

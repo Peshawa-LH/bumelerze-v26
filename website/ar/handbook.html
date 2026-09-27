@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="../brand/bumelerze-favicon-16.png">
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="stylesheet" href="../style.css">
+<script src="../lang-menu.js" defer></script>
 </head>
 <body>
 
@@ -32,12 +33,14 @@
         <a href="handbook.html" aria-current="page">دليل المهندس</a>
         <a href="support.html">الدعم</a>
       </nav>
-      <nav class="lang-switcher-inline" aria-label="اللغة">
-        <a href="../handbook.html" lang="en" dir="ltr">English</a>
-        <a href="../ckb/handbook.html" lang="ckb">کوردیی ناوەندی</a>
-        <a href="../kmr/handbook.html" lang="kmr" dir="ltr">Kurmancî</a>
-        <a href="handbook.html" aria-current="true" lang="ar">العربية</a>
-      </nav>
+      <details class="lang-menu">
+        <summary lang="ar" title="اللغة">العربية</summary>
+        <nav class="lang-switcher-inline" aria-label="اللغة">
+          <a href="../handbook.html" lang="en" dir="ltr">English</a>
+          <a href="../ckb/handbook.html" lang="ckb">کوردیی ناوەندی</a>
+          <a href="../kmr/handbook.html" lang="kmr" dir="ltr">Kurmancî</a>
+        </nav>
+      </details>
     </div>
   </div>
 </header>

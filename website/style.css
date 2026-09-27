@@ -1115,3 +1115,83 @@ html[dir="rtl"] .site-footer .footer-col h2 {
   width: 100%;
   height: auto;
 }
+
+/* ---------- language menu (header) ----------
+ * The switcher is a native <details>: the summary shows the page's own
+ * language and the other three open in a small panel beneath it, so the
+ * header no longer lists four languages side by side. `lang-menu.js` only
+ * closes it on outside click / Escape. */
+
+.lang-menu {
+  position: relative;
+  font-size: 0.8rem;
+}
+
+.lang-menu summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 700;
+  padding-block: 0.3rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.lang-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.lang-menu summary::after {
+  content: "";
+  width: 0.45em;
+  height: 0.45em;
+  border-inline-end: 2px solid currentColor;
+  border-block-end: 2px solid currentColor;
+  transform: translateY(-30%) rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.lang-menu[open] summary::after {
+  transform: translateY(20%) rotate(225deg);
+}
+
+.lang-menu summary:hover,
+.lang-menu[open] summary {
+  color: var(--brand-red-on-deep);
+}
+
+.lang-menu .lang-switcher-inline {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 0.35rem);
+  min-width: 11rem;
+  flex-direction: column;
+  gap: 0;
+  padding: 0.35rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(11, 18, 25, 0.18);
+  z-index: 20;
+}
+
+.lang-menu .lang-switcher-inline a {
+  display: block;
+  padding: 0.45rem 0.7rem;
+}
+
+.lang-menu .lang-switcher-inline a:hover {
+  background: var(--surface-alt);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+@media (max-width: 45.99rem) {
+  /* Stacked header: the panel hangs under the trigger's start edge. */
+  .lang-menu .lang-switcher-inline {
+    inset-inline-end: auto;
+    inset-inline-start: 0;
+  }
+}
