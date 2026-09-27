@@ -137,3 +137,16 @@ export function findHillshadeBeforeLayerId(
   const target = layers.find((layer) => layer.type === "line" || layer.type === "symbol");
   return target?.id;
 }
+
+/**
+ * The id of the style's first `symbol` layer — the insertion point for
+ * anything that must render BELOW every label (place names, road names)
+ * while still covering roads, water and terrain. `undefined` when a style
+ * has no symbol layers at all, which MapLibre's `addLayer` treats as
+ * "append on top", the pre-2026-09-27 behaviour.
+ */
+export function findFirstSymbolLayerId(
+  layers: readonly StyleLayerTypeInfo[],
+): string | undefined {
+  return layers.find((layer) => layer.type === "symbol")?.id;
+}

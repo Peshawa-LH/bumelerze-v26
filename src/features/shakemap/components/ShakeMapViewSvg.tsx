@@ -9,6 +9,7 @@ import { useTheme } from "@/theme";
 import { BASEMAP_BORDERS, BASEMAP_COASTLINE, type BasemapLine } from "../basemap/basemap";
 import { pickMapCities } from "../cities";
 import {
+  SHAKEMAP_BAND_FILL_OPACITY,
   SHAKEMAP_BASEMAP_BORDER_WIDTH,
   SHAKEMAP_BASEMAP_COASTLINE_WIDTH,
   SHAKEMAP_BASEMAP_LINE_OPACITY,
@@ -290,7 +291,7 @@ export function ShakeMapView({
                         d={ringPathData(ring, projector)}
                         fillRule="evenodd"
                         fill={rampColor(colors, level.level)}
-                        fillOpacity={0.6}
+                        fillOpacity={SHAKEMAP_BAND_FILL_OPACITY}
                         stroke="none"
                       />
                     ),
@@ -305,7 +306,7 @@ export function ShakeMapView({
                         d={ringPathData(ring, projector)}
                         fillRule="evenodd"
                         fill={colors.damageGrade[level.level] ?? colors.damageGrade[1] ?? colors.status.warning}
-                        fillOpacity={0.6}
+                        fillOpacity={SHAKEMAP_BAND_FILL_OPACITY}
                         stroke="none"
                       />
                     ),

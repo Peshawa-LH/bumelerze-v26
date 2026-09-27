@@ -72,6 +72,22 @@ export const SHAKEMAP_CITY_DOT_RADIUS = 1.75;
  * the 60%-opacity contour fills painted on top still read clearly over it
  * (wave brief: "contours keep their opacity so boundaries read through").
  */
+/**
+ * Fill opacity of the intensity and damage bands, on both renderers.
+ *
+ * 0.4, down from 0.55 (web) / 0.6 (native) — owner, 2026-09-27: "lower the
+ * transparency of the shakemap so the map itself is also visible, the
+ * locations". On web the bigger half of that fix is ORDER, not alpha: the
+ * band layers used to be added on top of every basemap layer, so place
+ * names were painted UNDER the fill; `ShakeMapView.web.tsx` now inserts
+ * them beneath the style's first symbol layer (`findFirstSymbolLayerId`)
+ * so labels always draw above the shaking. The lower alpha then lets
+ * terrain and roads read through while the EMS ramp's steps stay
+ * distinguishable (VI yellow vs VII gold still separate at 0.4 on both
+ * themes' surfaces). One constant so the two renderers cannot drift.
+ */
+export const SHAKEMAP_BAND_FILL_OPACITY = 0.4;
+
 export const SHAKEMAP_BASEMAP_BORDER_WIDTH = 1.0;
 export const SHAKEMAP_BASEMAP_COASTLINE_WIDTH = 1.0;
 // 0.9, not the original 0.6 — owner: "I don't see a basemap... the static

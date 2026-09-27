@@ -1,6 +1,7 @@
 import {
   buildTerrainDemSource,
   buildTerrainHillshadeLayer,
+  findFirstSymbolLayerId,
   findHillshadeBeforeLayerId,
   styleHasRasterDemSource,
   TERRAIN_ATTRIBUTION,
@@ -109,5 +110,22 @@ describe("findHillshadeBeforeLayerId", () => {
 
   it("returns undefined for an empty layer list", () => {
     expect(findHillshadeBeforeLayerId([])).toBeUndefined();
+  });
+});
+
+describe("findFirstSymbolLayerId", () => {
+  it("returns the first symbol layer, skipping fills and lines", () => {
+    const layers: StyleLayerTypeInfo[] = [
+      { id: "land", type: "fill" },
+      { id: "roads", type: "line" },
+      { id: "place-labels", type: "symbol" },
+      { id: "poi-labels", type: "symbol" },
+    ];
+    expect(findFirstSymbolLayerId(layers)).toBe("place-labels");
+  });
+
+  it("is undefined for a style with no symbol layers, so addLayer appends on top", () => {
+    expect(findFirstSymbolLayerId([{ id: "land", type: "fill" }])).toBeUndefined();
+    expect(findFirstSymbolLayerId([])).toBeUndefined();
   });
 });

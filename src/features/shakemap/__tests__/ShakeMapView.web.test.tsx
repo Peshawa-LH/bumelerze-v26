@@ -18,15 +18,22 @@ import damageContoursFixture from "../__fixtures__/us6000jllz/cont_damage.trimme
 import halabjaContours from "../__fixtures__/us2000bmcg/cont_mi.trimmed.json";
 import { parseIntensityContours } from "../contours";
 import { parseDamageContours } from "../risk";
+import { SHAKEMAP_BAND_FILL_OPACITY } from "../config";
 import {
   SHAKEMAP_WEB_DAMAGE_FILL_LAYER_ID,
+  SHAKEMAP_WEB_DAMAGE_LINE_LAYER_ID,
   SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID,
+  SHAKEMAP_WEB_INTENSITY_LINE_LAYER_ID,
 } from "../web-map";
 
 const mockMapAddControl = jest.fn();
 const mockMapRemove = jest.fn();
 const mockMapAddSource = jest.fn();
 const mockMapAddLayer = jest.fn();
+/** The active style's layers, as `map.getStyle().layers` reports them —
+ * empty by default (the pre-existing fixture); a test that cares about
+ * insertion ORDER pushes fill/line/symbol entries here. */
+const mockStyleLayers: { id: string; type: string }[] = [];
 const mockMapSetLayoutProperty = jest.fn();
 const mockMapFitBounds = jest.fn();
 const mockMarkerSetLngLat = jest.fn();
@@ -76,7 +83,7 @@ class MockMap {
   }
 
   getStyle() {
-    return { layers: [], sources: {} };
+    return { layers: mockStyleLayers, sources: {} };
   }
 
   addSource(id: string, source: unknown) {
@@ -171,6 +178,7 @@ function resetMocks() {
   mockMapRemove.mockClear();
   mockMapAddSource.mockClear();
   mockMapAddLayer.mockClear();
+  mockStyleLayers.length = 0;
   mockMapSetLayoutProperty.mockClear();
   mockMapFitBounds.mockClear();
   mockMarkerSetLngLat.mockClear();
@@ -370,5 +378,56 @@ describe("ShakeMapView.web", () => {
     });
 
     expect(screen.queryAllByTestId(/^shakemap-contour-/).length).toBeGreaterThan(0);
+  });
+});
+
+/** Owner, 2026-09-27: "lower the transparency of the shakemap so the map
+ * itself is also visible, the locations". The bigger half of that is
+ * ORDER: bands used to be appended on top of the basemap's label layers,
+ * so place names were painted under the fill. */
+describe("ShakeMapView (web): bands sit beneath the basemap's labels", () => {
+  beforeEach(() => {
+    resetMocks();
+  });
+
+  it("inserts every band layer before the style's first symbol layer", async () => {
+    mockStyleLayers.push(
+      { id: "land", type: "fill" },
+      { id: "roads", type: "line" },
+      { id: "place-labels", type: "symbol" },
+      { id: "poi-labels", type: "symbol" },
+    );
+    const damageContours = parseDamageContours(damageContoursFixture);
+    await renderMap({ damageContours });
+
+    for (const id of [
+      SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID,
+      SHAKEMAP_WEB_INTENSITY_LINE_LAYER_ID,
+      SHAKEMAP_WEB_DAMAGE_FILL_LAYER_ID,
+      SHAKEMAP_WEB_DAMAGE_LINE_LAYER_ID,
+    ]) {
+      const call = mockMapAddLayer.mock.calls.find(([layer]: [{ id: string }]) => layer.id === id);
+      expect(call).toBeTruthy();
+      expect((call as [unknown, string | undefined])[1]).toBe("place-labels");
+    }
+  });
+
+  it("appends on top when the style has no symbol layers at all", async () => {
+    mockStyleLayers.push({ id: "land", type: "fill" });
+    await renderMap();
+    const call = mockMapAddLayer.mock.calls.find(
+      ([layer]: [{ id: string }]) => layer.id === SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID,
+    );
+    expect((call as [unknown, string | undefined])[1]).toBeUndefined();
+  });
+
+  it("fills the bands at the shared opacity, the same value the native renderer uses", async () => {
+    await renderMap();
+    const call = mockMapAddLayer.mock.calls.find(
+      ([layer]: [{ id: string }]) => layer.id === SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID,
+    );
+    const [layer] = call as [{ paint: { "fill-opacity": number } }];
+    expect(layer.paint["fill-opacity"]).toBe(SHAKEMAP_BAND_FILL_OPACITY);
+    expect(SHAKEMAP_BAND_FILL_OPACITY).toBeLessThan(0.55);
   });
 });

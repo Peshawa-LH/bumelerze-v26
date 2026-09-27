@@ -714,6 +714,13 @@ interface DetailRowProps {
   typography: ReturnType<typeof useTheme>["typography"];
 }
 
+/**
+ * Label over value, start-aligned — the same shape every other section on
+ * this page uses. Until 2026-09-27 this was a `space-between` row, which
+ * pushed the value to the far edge on any wide layout and, under RTL,
+ * parked the (necessarily LTR) timestamp on the LEFT of its label: "the
+ * time parts go to the left side of the other text" (feedback e1221625).
+ */
 function DetailRow({ label, value, colors, typography }: DetailRowProps) {
   return (
     <View style={styles.row}>
@@ -732,7 +739,11 @@ function DetailRow({ label, value, colors, typography }: DetailRowProps) {
           fontSize: typography.bodyDefault.fontSize,
           lineHeight: typography.bodyDefault.lineHeight,
           fontVariant: ["tabular-nums"],
+          // A timestamp reads left-to-right in every locale; `alignSelf`
+          // keeps it at the reading START under RTL rather than letting the
+          // LTR run float to the opposite edge.
           writingDirection: "ltr",
+          alignSelf: "flex-start",
         }}
       >
         {value}
@@ -746,8 +757,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    gap: 2,
   },
   myReportRow: {
     borderWidth: 1,

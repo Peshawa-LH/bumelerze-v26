@@ -18,6 +18,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import {
   buildTerrainDemSource,
   buildTerrainHillshadeLayer,
+  findFirstSymbolLayerId,
   findHillshadeBeforeLayerId,
   styleHasRasterDemSource,
   TERRAIN_DEM_SOURCE_ID,
@@ -31,6 +32,7 @@ import {
   type MapStyleProviderId,
 } from "@/features/map/style-provider";
 import { useTheme } from "@/theme";
+import { SHAKEMAP_BAND_FILL_OPACITY } from "../config";
 import { DAMAGE_GRADE_LABELS } from "../damage-ramp";
 import { INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
 import { computeContourBoundingBox } from "../projection";
@@ -194,6 +196,9 @@ export function ShakeMapView(props: ShakeMapViewProps) {
             map.addLayer(buildTerrainHillshadeLayer(scheme), beforeId);
           }
 
+          // Bands go BENEATH the basemap's labels (owner, 2026-09-27: "the
+          // locations" must stay visible) — see `SHAKEMAP_BAND_FILL_OPACITY`.
+          const bandsBeforeId = findFirstSymbolLayerId(map.getStyle()?.layers ?? []);
           const intensityCollection = buildContourFeatureCollection(contours.levels);
           map.addSource(SHAKEMAP_WEB_INTENSITY_SOURCE_ID, {
             type: "geojson",
@@ -205,9 +210,9 @@ export function ShakeMapView(props: ShakeMapViewProps) {
             source: SHAKEMAP_WEB_INTENSITY_SOURCE_ID,
             paint: {
               "fill-color": buildLevelColorMatchExpression(colors.intensity, 12) as never,
-              "fill-opacity": 0.55,
+              "fill-opacity": SHAKEMAP_BAND_FILL_OPACITY,
             },
-          });
+          }, bandsBeforeId);
           map.addLayer({
             id: SHAKEMAP_WEB_INTENSITY_LINE_LAYER_ID,
             type: "line",
@@ -217,7 +222,7 @@ export function ShakeMapView(props: ShakeMapViewProps) {
               "line-width": 0.75,
               "line-opacity": 0.8,
             },
-          });
+          }, bandsBeforeId);
 
           if (hasDamageLayer && damageContours) {
             const damageCollection = buildContourFeatureCollection(damageContours.levels);
@@ -232,9 +237,9 @@ export function ShakeMapView(props: ShakeMapViewProps) {
               layout: { visibility: "none" },
               paint: {
                 "fill-color": buildLevelColorMatchExpression(colors.damageGrade, 5) as never,
-                "fill-opacity": 0.55,
+                "fill-opacity": SHAKEMAP_BAND_FILL_OPACITY,
               },
-            });
+            }, bandsBeforeId);
             map.addLayer({
               id: SHAKEMAP_WEB_DAMAGE_LINE_LAYER_ID,
               type: "line",
@@ -245,7 +250,7 @@ export function ShakeMapView(props: ShakeMapViewProps) {
                 "line-width": 0.75,
                 "line-opacity": 0.8,
               },
-            });
+            }, bandsBeforeId);
           }
 
           const markerEl = document.createElement("div");
