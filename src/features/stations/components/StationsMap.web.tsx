@@ -19,10 +19,39 @@ const LAYER_ID = "bumelerze-stations-dots";
 const HALO_ID = "bumelerze-stations-halo";
 const HEIGHT = 320;
 
+const TIERS: readonly StationFreshness[] = ["live", "recent", "silent", "unknown"];
+const ICON_PX = 36;
+
+/**
+ * A filled triangle with a white outline — the seismologist's station
+ * symbol (owner, 2026-09-27) — as an image MapLibre can place; one per
+ * tier colour, drawn on a canvas at load. No SDF: exact colours, no
+ * distance-field softness at small sizes.
+ */
+function drawTriangle(color: string): ImageData | null {
+  const canvas = document.createElement("canvas");
+  canvas.width = ICON_PX;
+  canvas.height = ICON_PX;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  const inset = 4;
+  ctx.beginPath();
+  ctx.moveTo(ICON_PX / 2, inset);
+  ctx.lineTo(ICON_PX - inset, ICON_PX - inset);
+  ctx.lineTo(inset, ICON_PX - inset);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "#FFFFFF";
+  ctx.stroke();
+  return ctx.getImageData(0, 0, ICON_PX, ICON_PX);
+}
+
 function toFeatureCollection(
   stations: LiveStation[],
   selectedId: string | null,
-  colorOf: (tier: StationFreshness) => string,
   now: number,
 ) {
   return {
@@ -32,7 +61,7 @@ function toFeatureCollection(
       id: station.id,
       properties: {
         id: station.id,
-        color: colorOf(freshnessFromCatalog(station.lastSeenAt, now)),
+        tier: freshnessFromCatalog(station.lastSeenAt, now),
         selected: station.id === selectedId,
       },
       geometry: { type: "Point" as const, coordinates: [station.lon, station.lat] },
@@ -67,15 +96,13 @@ export function StationsMap({
   // render impure without changing a colour.
   const [now] = useState(() => Date.now());
   const data = useMemo(
-    () =>
-      toFeatureCollection(
-        stations,
-        selectedId,
-        (tier) => freshnessColor(colors, tier),
-        now,
-      ),
-    [stations, selectedId, colors, now],
+    () => toFeatureCollection(stations, selectedId, now),
+    [stations, selectedId, now],
   );
+  const colorsRef = useRef(colors);
+  useEffect(() => {
+    colorsRef.current = colors;
+  }, [colors]);
   const dataRef = useRef(data);
   useEffect(() => {
     dataRef.current = data;
@@ -104,26 +131,35 @@ export function StationsMap({
       mapRef.current = map;
       map.addControl(new maplibre.AttributionControl({ compact: true }));
       map.on("load", () => {
+        for (const tier of TIERS) {
+          const image = drawTriangle(freshnessColor(colorsRef.current, tier));
+          if (image && !map.hasImage(`station-${tier}`)) {
+            map.addImage(`station-${tier}`, image, { pixelRatio: 2 });
+          }
+        }
         map.addSource(SOURCE_ID, { type: "geojson", data: dataRef.current });
         map.addLayer({
           id: HALO_ID,
-          type: "circle",
+          type: "symbol",
           source: SOURCE_ID,
-          paint: {
-            "circle-radius": ["case", ["get", "selected"], 16, 10],
-            "circle-color": ["get", "color"],
-            "circle-opacity": 0.25,
+          filter: ["==", ["get", "selected"], true],
+          layout: {
+            "icon-image": ["concat", "station-", ["get", "tier"]],
+            "icon-size": 2.2,
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
           },
+          paint: { "icon-opacity": 0.25 },
         });
         map.addLayer({
           id: LAYER_ID,
-          type: "circle",
+          type: "symbol",
           source: SOURCE_ID,
-          paint: {
-            "circle-radius": ["case", ["get", "selected"], 8, 5],
-            "circle-color": ["get", "color"],
-            "circle-stroke-color": "#FFFFFF",
-            "circle-stroke-width": 1.5,
+          layout: {
+            "icon-image": ["concat", "station-", ["get", "tier"]],
+            "icon-size": ["case", ["get", "selected"], 1.35, 1],
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
           },
         });
         map.on("click", LAYER_ID, (event) => {

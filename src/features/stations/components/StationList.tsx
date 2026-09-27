@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -43,9 +44,7 @@ export function StationList({ stations, selectedId, onSelect }: StationListProps
               },
             ]}
           >
-            <View
-              style={[styles.dot, { backgroundColor: freshnessColor(colors, tier) }]}
-            />
+            <Ionicons name="triangle" size={14} color={freshnessColor(colors, tier)} />
             <View style={{ flex: 1 }}>
               <Text
                 style={{
@@ -82,5 +81,4 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     minHeight: 48,
   },
-  dot: { width: 12, height: 12, borderRadius: 6 },
 });
