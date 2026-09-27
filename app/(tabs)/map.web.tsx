@@ -650,6 +650,17 @@ export default function MapScreenWeb() {
         // accept on small screens, and the credit text is never removed.
         // MapTiler's logo requirement is separate (`MapTilerAttributionLogo`).
         map.addControl(new maplibre.AttributionControl({ compact: true }));
+        // MapLibre's compact control OPENS itself on first load and only
+        // collapses on a press (its own `<details open>`); the owner wants
+        // it collapsed by default and opened on demand (2026-09-27). The
+        // credit is one press away, which OpenStreetMap's guidelines
+        // accept on small screens.
+        map.once("load", () => {
+          const details = map
+            .getContainer?.()
+            ?.querySelector?.("details.maplibregl-ctrl-attrib");
+          details?.removeAttribute?.("open");
+        });
         // "clicking the map background should dismiss it" (event-preview
         // sheet wave) — a map-WIDE "click" listener, registered once per map
         // INSTANCE (not re-registered on a later `setStyle`, unlike the
