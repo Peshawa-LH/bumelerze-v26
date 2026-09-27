@@ -6,10 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Event } from "@/features/events";
 import { useTheme } from "@/theme";
 
-import {
-  encodeEventRegistrationParam,
-  toEventRegistration,
-} from "../event-registration";
+import { encodeEventRegistrationParam, toEventRegistration } from "../event-registration";
 
 interface FeltReportPillProps {
   /** Null/omitted = Home usage (association resolved at tap time by the
@@ -30,6 +27,16 @@ interface FeltReportPillProps {
    */
   event?: Event | null;
 }
+
+/**
+ * Extra bottom padding a scrolling host must add so its LAST item can be
+ * scrolled clear of the floating pill: the pill's bottom offset
+ * (spacing[4]) + its height (minHeight 48, ~56 once the label's line
+ * height and font scaling are in) + a breathing gap. Grow this when the
+ * pill grows. Overlap while scrolling is expected for a floating CTA; the
+ * end of the list being permanently hidden is not.
+ */
+export const FELT_PILL_CLEARANCE = 16 + 56 + 12;
 
 /**
  * The persistent one-tap felt-report entry point (D8: "persistent one-tap

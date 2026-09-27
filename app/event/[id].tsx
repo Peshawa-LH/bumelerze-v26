@@ -23,7 +23,11 @@ import {
   useRegionEvents,
   useWorldEvents,
 } from "@/features/events";
-import { FeltReportPill, useOwnQueueItemForEvent } from "@/features/felt";
+import {
+  FELT_PILL_CLEARANCE,
+  FeltReportPill,
+  useOwnQueueItemForEvent,
+} from "@/features/felt";
 import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import {
@@ -139,7 +143,10 @@ export default function EventDetailScreen() {
   const byId = useEventById(routeIsBumelerzeId ? undefined : id, shouldFetchById);
 
   const shouldFetchByBumelerzeId =
-    !cachedEvent && routeIsBumelerzeId && !region.isInitialLoading && !world.isInitialLoading;
+    !cachedEvent &&
+    routeIsBumelerzeId &&
+    !region.isInitialLoading &&
+    !world.isInitialLoading;
   const byBumelerzeId = useEventByBumelerzeId(
     routeIsBumelerzeId ? id : undefined,
     shouldFetchByBumelerzeId,
@@ -159,7 +166,8 @@ export default function EventDetailScreen() {
   // false, so this never issues a network request those two cases don't
   // need. `event` may still be `null` momentarily (loading) — `useBumelerzeId`
   // handles that too (its own `enabled` gate requires a non-null event).
-  const shouldResolveBumelerzeId = !routeIsBumelerzeId && !staticBumelerzeIdAlias && Boolean(event);
+  const shouldResolveBumelerzeId =
+    !routeIsBumelerzeId && !staticBumelerzeIdAlias && Boolean(event);
   const resolvedBumelerzeId = useBumelerzeId(
     shouldResolveBumelerzeId ? event : null,
     shouldResolveBumelerzeId,
@@ -204,7 +212,7 @@ export default function EventDetailScreen() {
           style={{ backgroundColor: colors.surface.base }}
           contentContainerStyle={{
             padding: spacing[5],
-            paddingBottom: insets.bottom + spacing[8],
+            paddingBottom: insets.bottom + spacing[8] + FELT_PILL_CLEARANCE,
             gap: spacing[5],
           }}
         >

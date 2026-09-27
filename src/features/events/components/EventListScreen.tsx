@@ -42,6 +42,9 @@ interface EventListScreenProps {
    * card. Home is the only caller that ever passes this; World/Significant
    * default to an empty set. */
   notableEventIds?: ReadonlySet<string>;
+  /** Extra bottom padding so the last card can scroll clear of a floating
+   * control the host renders over the list (Home's felt pill). */
+  bottomClearance?: number;
 }
 
 const SKELETON_ROW_COUNT = 5;
@@ -67,6 +70,7 @@ export function EventListScreen({
   headerContent,
   applyTopInset = false,
   notableEventIds,
+  bottomClearance = 0,
 }: EventListScreenProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -206,7 +210,7 @@ export function EventListScreen({
           {
             padding: spacing[4],
             gap: spacing[3],
-            paddingBottom: insets.bottom + spacing[6],
+            paddingBottom: insets.bottom + spacing[6] + bottomClearance,
             flexGrow: 1,
           },
         ]}

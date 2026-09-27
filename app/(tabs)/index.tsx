@@ -11,7 +11,11 @@ import {
   useRegionEvents,
   usePossibleEvents,
 } from "@/features/events";
-import { FeltReportPill, resolveHomeFeltAssociation } from "@/features/felt";
+import {
+  FELT_PILL_CLEARANCE,
+  FeltReportPill,
+  resolveHomeFeltAssociation,
+} from "@/features/felt";
 import { useTheme } from "@/theme";
 
 /**
@@ -92,6 +96,7 @@ export default function HomeScreen() {
         onRefetch={() => void refetch()}
         applyTopInset
         notableEventIds={notableIds}
+        bottomClearance={FELT_PILL_CLEARANCE}
         headerContent={
           <>
             <View
