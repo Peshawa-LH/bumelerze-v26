@@ -57,7 +57,9 @@ function throwingTransport(error: unknown): FeltMapTransport {
 }
 
 async function renderFeltMap(eventId: string, transport: FeltMapTransport) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
   function wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
   }

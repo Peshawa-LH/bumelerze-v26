@@ -1,7 +1,9 @@
 import { selectFeltMapCells } from "../cell-selection";
 import type { FeltCellRow } from "../types";
 
-function row(overrides: Partial<FeltCellRow> & Pick<FeltCellRow, "geohash" | "precision">): FeltCellRow {
+function row(
+  overrides: Partial<FeltCellRow> & Pick<FeltCellRow, "geohash" | "precision">,
+): FeltCellRow {
   return {
     event_id: "us2000bmcg",
     n_reports: 10,

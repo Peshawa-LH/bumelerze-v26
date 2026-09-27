@@ -14,11 +14,7 @@ import {
 } from "@/features/shakemap";
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
-import {
-  FELTMAP_MAX_CITIES,
-  FELTMAP_VIEW_HEIGHT,
-  FELTMAP_VIEW_WIDTH,
-} from "../config";
+import { FELTMAP_MAX_CITIES, FELTMAP_VIEW_HEIGHT, FELTMAP_VIEW_WIDTH } from "../config";
 import { decodeGeohashBounds } from "../geohash-bounds";
 import type { FeltCellRow } from "../types";
 
@@ -73,7 +69,13 @@ export interface FeltMapViewProps {
   placeText: string;
 }
 
-export function FeltMapView({ cells, epicenter, locale, t, placeText }: FeltMapViewProps) {
+export function FeltMapView({
+  cells,
+  epicenter,
+  locale,
+  t,
+  placeText,
+}: FeltMapViewProps) {
   const { colors, typography, spacing } = useTheme();
   const [measuredWidth, setMeasuredWidth] = useState(0);
 
@@ -241,10 +243,7 @@ export function FeltMapView({ cells, epicenter, locale, t, placeText }: FeltMapV
         {CDI_LEGEND_LEVELS.map((level) => (
           <View key={level} style={styles.legendItem}>
             <View
-              style={[
-                styles.legendSwatch,
-                { backgroundColor: rampColor(colors, level) },
-              ]}
+              style={[styles.legendSwatch, { backgroundColor: rampColor(colors, level) }]}
             />
             <Text
               style={{

@@ -15,10 +15,7 @@ export {
   FELTMAP_VIEW_HEIGHT,
   FELTMAP_VIEW_WIDTH,
 } from "./config";
-export {
-  SupabaseFeltMapTransport,
-  type FeltMapTransport,
-} from "./transport";
+export { SupabaseFeltMapTransport, type FeltMapTransport } from "./transport";
 export {
   feltMapQueryKeys,
   useFeltMap,

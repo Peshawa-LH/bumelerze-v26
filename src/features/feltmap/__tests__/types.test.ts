@@ -66,7 +66,10 @@ function validRow(overrides: Record<string, unknown> = {}) {
 
 describe("parseFeltCellRows", () => {
   it("parses a well-formed row list with zero skips", () => {
-    const { rows, skippedCount } = parseFeltCellRows([validRow(), validRow({ geohash: "tn264" })]);
+    const { rows, skippedCount } = parseFeltCellRows([
+      validRow(),
+      validRow({ geohash: "tn264" }),
+    ]);
     expect(rows).toHaveLength(2);
     expect(skippedCount).toBe(0);
   });

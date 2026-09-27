@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -111,6 +117,12 @@ jest.mock("@/features/events", () => {
 // runs; only the actual network call at the transport seam is swapped for
 // the fixture, exactly the "tests inject fixtures" contract `FeltMapTransport`
 // exists for.
+// The section resolves the registry uuid before asking for cells; that
+// resolver is a real RPC, so it is pinned here the way the transport is.
+jest.mock("@/features/feltmap/use-event-uuid", () => ({
+  useEventUuid: jest.fn(() => "11111111-2222-4333-8444-555555555555"),
+}));
+
 jest.mock("@/features/feltmap/transport", () => {
   const actual = jest.requireActual("@/features/feltmap/transport");
   // `jest.requireActual` (not the top-level import) — factories can't
@@ -141,7 +153,9 @@ function renderWithProviders(ui: ReactElement) {
   // `features/feltmap/__tests__/queries.test.tsx`'s own harness (this repo's
   // real `app/_layout.tsx` normally supplies one; this test stands in for
   // it since the layout itself isn't rendered here).
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
   return render(
     <QueryClientProvider client={client}>
       <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>
@@ -194,9 +208,9 @@ describe("Event Detail: felt-map section (real screen, fixture transport)", () =
       nativeEvent: { layout: { x: 0, y: 0, width: 320, height: 240 } },
     });
 
-    expect(
-      screen.getAllByTestId(/^feltmap-cell-/).length,
-    ).toBe(CHAMCHAMAL_FELT_MAP_FIXTURE.length);
+    expect(screen.getAllByTestId(/^feltmap-cell-/).length).toBe(
+      CHAMCHAMAL_FELT_MAP_FIXTURE.length,
+    );
   });
 
   it("mounts below the ShakeMap section title (never above it) in document order", async () => {

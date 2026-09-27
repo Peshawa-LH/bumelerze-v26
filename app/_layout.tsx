@@ -15,6 +15,10 @@ import {
   createEventsQueryClient,
   PERSISTED_CACHE_MAX_AGE_MS,
 } from "@/features/events/queries";
+import {
+  ensureFeedbackQueueForegroundSync,
+  processFeedbackQueue,
+} from "@/features/feedback";
 import { ensureFeltQueueForegroundSync, processQueue } from "@/features/felt";
 import { usePrefsStore } from "@/features/onboarding";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
@@ -83,6 +87,12 @@ export default function RootLayout() {
     // connectivity-regain without a NetInfo dependency).
     ensureFeltQueueForegroundSync();
     void processQueue();
+    // The feedback queue had the same two triggers defined but never wired
+    // (2026-09-27): a submission whose first attempt failed stayed on the
+    // phone until the next feedback was sent. Same cold-start drain plus
+    // foreground retry as the felt-report queue above.
+    ensureFeedbackQueueForegroundSync();
+    void processFeedbackQueue();
   }, []);
 
   useEffect(() => {

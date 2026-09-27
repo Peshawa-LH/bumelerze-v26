@@ -75,7 +75,10 @@ function eventCacheKey(event: Event): string {
  * contract applies for the same reason: a background provenance lookup
  * must never be allowed to surface as a user-visible error.
  */
-async function resolveEventUuid(client: SupabaseClient, event: Event): Promise<string | null> {
+async function resolveEventUuid(
+  client: SupabaseClient,
+  event: Event,
+): Promise<string | null> {
   const cacheKey = eventCacheKey(event);
   const cached = eventUuidCache.get(cacheKey);
   if (cached) {
@@ -197,7 +200,10 @@ async function fetchRiskBundle(
         continue;
       }
       const record = row as Record<string, unknown>;
-      if (typeof record.product_type === "string" && typeof record.storage_path === "string") {
+      if (
+        typeof record.product_type === "string" &&
+        typeof record.storage_path === "string"
+      ) {
         storagePathByType.set(record.product_type, record.storage_path);
       }
     }
@@ -213,14 +219,17 @@ async function fetchRiskBundle(
     // Bands first: `risk_contours` is the line product, kept only as the
     // fallback for versions published before migration 0031.
     const damageContoursPath =
-      storagePathByType.get("risk_contour_bands") ?? storagePathByType.get("risk_contours");
+      storagePathByType.get("risk_contour_bands") ??
+      storagePathByType.get("risk_contours");
     const areasPath = storagePathByType.get("risk_areas");
     const reportPath = storagePathByType.get("report");
 
     const [summary, districts, damageContours, areas] = await Promise.all([
       fetchArtifactJson(resolveArtifactUrl(summaryPath)),
       fetchArtifactJson(resolveArtifactUrl(districtsPath)),
-      damageContoursPath ? fetchArtifactJson(resolveArtifactUrl(damageContoursPath)) : null,
+      damageContoursPath
+        ? fetchArtifactJson(resolveArtifactUrl(damageContoursPath))
+        : null,
       areasPath ? fetchArtifactJson(resolveArtifactUrl(areasPath)) : null,
     ]);
     // Not fetched — see `RISK_PRODUCT_TYPES`'s own doc comment above.
@@ -245,6 +254,20 @@ async function fetchRiskBundle(
  * `upsert_event_from_client`'s idempotent event registration, identical to
  * what `features/felt`'s own resolver already does for the same event.
  */
+/**
+ * The registry's `events.event_id` for `event`, through the same idempotent
+ * registration and session cache the live shakemap lookup uses — for any
+ * reader keyed by that uuid (the felt map: `felt_cells_public.event_id`).
+ * Null without a configured client or when the registry cannot answer.
+ */
+export async function resolveEventUuidForEvent(event: Event): Promise<string | null> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return null;
+  }
+  return resolveEventUuid(client, event);
+}
+
 export const SupabaseLiveShakeMapTransport: LiveShakeMapTransport = {
   async fetchLiveProduct(event: Event): Promise<LiveShakeMapProduct | null> {
     const client = getSupabaseClient();

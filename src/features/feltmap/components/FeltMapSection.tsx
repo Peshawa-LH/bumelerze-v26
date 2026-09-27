@@ -6,6 +6,7 @@ import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/event
 import { placeLine } from "@/features/geo";
 import { useTheme } from "@/theme";
 import { useFeltMap } from "../queries";
+import { useEventUuid } from "../use-event-uuid";
 import { FeltMapView } from "./FeltMapView";
 
 export interface FeltMapSectionProps {
@@ -31,7 +32,8 @@ export interface FeltMapSectionProps {
 export function FeltMapSection({ event }: FeltMapSectionProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const feltMap = useFeltMap(event.id);
+  const eventUuid = useEventUuid(event);
+  const feltMap = useFeltMap(eventUuid ?? "");
 
   if (feltMap.status === "hidden") {
     return null;
@@ -74,11 +76,7 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
               {t("eventDetail.feltMap.unavailableOffline")}
             </Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            onPress={feltMap.refetch}
-            hitSlop={12}
-          >
+          <Pressable accessibilityRole="button" onPress={feltMap.refetch} hitSlop={12}>
             <Text
               style={{
                 color: colors.text.link,

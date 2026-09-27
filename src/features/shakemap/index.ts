@@ -40,9 +40,18 @@ export {
   type TextAnchor,
 } from "./label-layout";
 export { useShakeMap, type UseShakeMapResult, type UseShakeMapStatus } from "./queries";
-export { BASEMAP_BBOX, BASEMAP_BORDERS, BASEMAP_COASTLINE, type BasemapLine } from "./basemap/basemap";
+export {
+  BASEMAP_BBOX,
+  BASEMAP_BORDERS,
+  BASEMAP_COASTLINE,
+  type BasemapLine,
+} from "./basemap/basemap";
 export { clipLineToBbox } from "./projection";
-export { ShakeMapView, type ShakeMapLayer, type ShakeMapViewProps } from "./components/ShakeMapView";
+export {
+  ShakeMapView,
+  type ShakeMapLayer,
+  type ShakeMapViewProps,
+} from "./components/ShakeMapView";
 export { ShakeMapSection, type ShakeMapSectionProps } from "./components/ShakeMapSection";
 export { RiskSection, type RiskSectionProps } from "./components/RiskSection";
 
@@ -58,7 +67,10 @@ export {
   type LiveShakeMapProductRow,
   type ParsedLiveShakeMapProductRows,
 } from "./live-types";
-export { SupabaseLiveShakeMapTransport, type LiveShakeMapTransport } from "./live-transport";
+export {
+  SupabaseLiveShakeMapTransport,
+  type LiveShakeMapTransport,
+} from "./live-transport";
 export {
   liveShakeMapQueryKeys,
   useLiveShakeMap,
@@ -72,3 +84,4 @@ export {
   type ShakeMapCandidate,
   type ShakeMapProductSource,
 } from "./resolver";
+export { resolveEventUuidForEvent } from "./live-transport";

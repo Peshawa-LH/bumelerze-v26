@@ -122,7 +122,9 @@ describe("FeltMapView (golden: Chamchamal fixture)", () => {
     );
 
     for (const level of [2, 3, 4, 5, 6, 7, 8, 9]) {
-      expect(screen.getByText(String(level), { includeHiddenElements: true })).toBeTruthy();
+      expect(
+        screen.getByText(String(level), { includeHiddenElements: true }),
+      ).toBeTruthy();
     }
   });
 

@@ -14,6 +14,9 @@ import type { UseFeltMapResult } from "../queries";
 jest.mock("../queries", () => ({
   useFeltMap: jest.fn(),
 }));
+jest.mock("../use-event-uuid", () => ({
+  useEventUuid: jest.fn(() => "11111111-2222-4333-8444-555555555555"),
+}));
 
 const mockedUseFeltMap = useFeltMap as jest.MockedFunction<typeof useFeltMap>;
 
@@ -90,7 +93,9 @@ describe("FeltMapSection", () => {
     await render(<FeltMapSection event={CHAMCHAMAL_EVENT} />);
 
     expect(screen.getByText(i18n.t("eventDetail.feltMap.sectionTitle"))).toBeTruthy();
-    expect(screen.getByText(i18n.t("eventDetail.feltMap.unavailableOffline"))).toBeTruthy();
+    expect(
+      screen.getByText(i18n.t("eventDetail.feltMap.unavailableOffline")),
+    ).toBeTruthy();
 
     const retryButton = screen.getByText(i18n.t("eventDetail.feltMap.retry"));
     fireEvent.press(retryButton);
@@ -109,5 +114,20 @@ describe("FeltMapSection", () => {
     await render(<FeltMapSection event={CHAMCHAMAL_EVENT} />);
 
     expect(screen.queryByTestId("feltmap-map-container")).toBeNull();
+  });
+});
+
+describe("FeltMapSection event identity", () => {
+  it("asks for cells by the registry uuid, never by the route's provider id", async () => {
+    mockedUseFeltMap.mockReturnValue({
+      status: "hidden",
+      cells: [],
+      totalReports: 0,
+    } as never);
+    await render(<FeltMapSection event={CHAMCHAMAL_EVENT} />);
+    expect(mockedUseFeltMap).toHaveBeenCalledWith("11111111-2222-4333-8444-555555555555");
+    expect(mockedUseFeltMap).not.toHaveBeenCalledWith(
+      expect.stringMatching(/^(us|gfz|20)/),
+    );
   });
 });
