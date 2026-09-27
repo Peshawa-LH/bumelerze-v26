@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import {
   ContributionRow,
+  HomeBaseSection,
   IdentityHeader,
   buildContributionRow,
 } from "@/features/mydata";
@@ -67,6 +68,7 @@ export default function MyDataScreen() {
         ListHeaderComponent={
           <View style={{ gap: spacing[3] }}>
             <IdentityHeader />
+            <HomeBaseSection />
             <Text
               accessibilityRole="header"
               style={{

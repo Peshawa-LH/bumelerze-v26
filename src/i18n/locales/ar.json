@@ -449,9 +449,9 @@
     "handbookSectionTitle": "دليل المهندس",
     "handbookSectionDescription": "قيم تصميمية موثّقة المصدر (PGA، Vs30، فئة الموقع) لموقع في كوردستان/العراق، للمهندسين والباحثين.",
     "handbookOpen": "فتح دليل المهندس",
-    "myDataSectionTitle": "بياناتي",
-    "myDataSectionDescription": "اطّلع على تقارير الزلازل التي أرسلتها من هذا الجهاز.",
-    "myDataOpen": "فتح بياناتي",
+    "myDataSectionTitle": "حسابي",
+    "myDataSectionDescription": "هويتك كمساهم، وبلدتك، وتقارير الزلازل التي أرسلتها من هذا الجهاز.",
+    "myDataOpen": "فتح حسابي",
     "feedbackSectionTitle": "الملاحظات",
     "feedbackSectionDescription": "أخبرنا عن خطأ، أو فكرة، أو أي شيء آخر يخطر ببالك.",
     "feedbackOpen": "أرسل ملاحظاتك",
@@ -1198,7 +1198,7 @@
     }
   },
   "myData": {
-    "title": "بياناتي",
+    "title": "حسابي",
     "headerLabel": "معرّف المساهمة المجهول الخاص بك",
     "headerIdLoading": "…",
     "headerIdA11yLabel": "معرّف مساهمتك: {{id}}",

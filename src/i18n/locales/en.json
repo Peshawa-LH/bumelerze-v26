@@ -449,9 +449,9 @@
     "handbookSectionTitle": "Engineer's handbook",
     "handbookSectionDescription": "Cited design values (PGA, Vs30, site class) for a site in Kurdistan/Iraq, for engineers and researchers.",
     "handbookOpen": "Open handbook",
-    "myDataSectionTitle": "My data",
-    "myDataSectionDescription": "See the earthquake reports you've submitted from this device.",
-    "myDataOpen": "Open My Data",
+    "myDataSectionTitle": "My account",
+    "myDataSectionDescription": "Your contributor identity, your home town, and the earthquake reports you've sent from this device.",
+    "myDataOpen": "Open My account",
     "feedbackSectionTitle": "Feedback",
     "feedbackSectionDescription": "Tell us about a bug, an idea, or anything else on your mind.",
     "feedbackOpen": "Give feedback",
@@ -1198,7 +1198,7 @@
     }
   },
   "myData": {
-    "title": "My Data",
+    "title": "My account",
     "headerLabel": "Your anonymous contributor ID",
     "headerIdLoading": "…",
     "headerIdA11yLabel": "Your contributor ID: {{id}}",

@@ -112,8 +112,13 @@ describe("Settings screen — My Data + Device permissions", () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    expect(screen.getByText("My data")).toBeTruthy();
-    fireEvent.press(screen.getByRole("button", { name: "Open My Data" }));
+    // "My account" since the owner's Settings rearrangement (feedback
+    // 2adfbbf7, 2026-09-27): the place the tagged building will live.
+    expect(screen.getByText("My account")).toBeTruthy();
+    // HomeBase moved to the My account screen; it is no longer a Settings
+    // section of its own.
+    expect(screen.queryByText("HomeBase")).toBeNull();
+    fireEvent.press(screen.getByRole("button", { name: "Open My account" }));
 
     expect(mockPush).toHaveBeenCalledWith("/my-data");
   });

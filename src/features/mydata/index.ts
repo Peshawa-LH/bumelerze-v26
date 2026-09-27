@@ -9,3 +9,4 @@ export {
 export { useContributorId } from "./use-contributor-id";
 export { ContributionRow } from "./components/ContributionRow";
 export { IdentityHeader } from "./components/IdentityHeader";
+export { HomeBaseSection } from "./components/HomeBaseSection";

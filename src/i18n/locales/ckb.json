@@ -449,9 +449,9 @@
     "handbookSectionTitle": "پەڕتووکی ئەندازیار",
     "handbookSectionDescription": "بەهای دیزاین (PGA، Vs30، پۆلی زەوی) بۆ شوێنێک لە کوردستان/عێراق، بە سەرچاوە، بۆ ئەندازیار و توێژەران.",
     "handbookOpen": "کردنەوەی پەڕتووکی ئەندازیار",
-    "myDataSectionTitle": "داتاکانم",
-    "myDataSectionDescription": "ڕاپۆرتەکانی بوومەلەرزە کە لەم ئامێرەوە ناردووتە ببینە.",
-    "myDataOpen": "کردنەوەی داتاکانم",
+    "myDataSectionTitle": "هەژمارەکەم",
+    "myDataSectionDescription": "ناسنامەی بەشداریکەرت، شارەکەت، و ڕاپۆرتەکانی بوومەلەرزە کە لەم ئامێرەوە ناردووتە.",
+    "myDataOpen": "کردنەوەی هەژمارەکەم",
     "feedbackSectionTitle": "بۆچوون",
     "feedbackSectionDescription": "هەواڵمان بدەرێ لەبارەی هەڵەیەک، بیرۆکەیەک، یان هەر شتێکی تر کە لە مێشکتدایە.",
     "feedbackOpen": "بۆچوون بنێرە",
@@ -1198,7 +1198,7 @@
     }
   },
   "myData": {
-    "title": "داتاکانم",
+    "title": "هەژمارەکەم",
     "headerLabel": "ژمارەی نەناسراوی بەشدارییکەرەوەت",
     "headerIdLoading": "…",
     "headerIdA11yLabel": "ژمارەی بەشدارییکەرەوەت: {{id}}",

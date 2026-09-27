@@ -89,7 +89,7 @@ describe("My Data screen", () => {
     await renderWithProviders(<MyDataScreen />);
 
     expect(mockScreenOptions).toHaveBeenCalledWith(
-      expect.objectContaining({ title: "My Data" }),
+      expect.objectContaining({ title: "My account" }),
     );
     expect(screen.getByText("Your anonymous contributor ID")).toBeTruthy();
 
@@ -152,5 +152,16 @@ describe("My Data screen", () => {
         "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it. It takes one tap.",
       ),
     ).toBeNull();
+  });
+});
+
+/** Feedback 2adfbbf7: HomeBase "belongs in my data". Its store and its
+ * consumers (notification region, felt-report location fallback) are
+ * untouched; only the surface moved here from Settings. */
+describe("My account screen: HomeBase", () => {
+  it("renders the HomeBase section with its change control", async () => {
+    await renderWithProviders(<MyDataScreen />);
+    expect(screen.getByText("HomeBase")).toBeTruthy();
+    expect(screen.getByText("Change")).toBeTruthy();
   });
 });

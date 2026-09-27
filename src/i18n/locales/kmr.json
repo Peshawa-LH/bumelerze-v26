@@ -449,9 +449,9 @@
     "handbookSectionTitle": "Pirtûka endezyar",
     "handbookSectionDescription": "Nirxên sêwiranê yên jêder (PGA, Vs30, çîna axê) ji bo cihekî li Kurdistan/Iraq, ji bo endezyar û lêkolîneran.",
     "handbookOpen": "Pirtûka endezyar veke",
-    "myDataSectionTitle": "Daneyên min",
-    "myDataSectionDescription": "Rapora erdhejan ku te ji vê cîhazê şandiye bibîne.",
-    "myDataOpen": "Daneyên min veke",
+    "myDataSectionTitle": "Hesabê min",
+    "myDataSectionDescription": "Nasnameya te ya beşdariyê, bajarê te, û raporên erdhejan ku te ji vê cîhazê şandine.",
+    "myDataOpen": "Hesabê min veke",
     "feedbackSectionTitle": "Nêrîn",
     "feedbackSectionDescription": "Ji me re li ser çewtiyekê, ramanekê, an her tiştê din ê li ser hişê te bibêje.",
     "feedbackOpen": "Nêrînê bişîne",
@@ -1198,7 +1198,7 @@
     }
   },
   "myData": {
-    "title": "Daneyên min",
+    "title": "Hesabê min",
     "headerLabel": "Nasnameya te ya beşdarbûnê ya nenas",
     "headerIdLoading": "…",
     "headerIdA11yLabel": "Nasnameya te ya beşdarbûnê: {{id}}",
