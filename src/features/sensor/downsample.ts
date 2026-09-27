@@ -17,35 +17,49 @@ export function selectWindow(
 }
 
 /**
- * Reduces a chronological sample array to at most `maxPoints` points by
- * picking evenly-spaced indices, always keeping the first and last sample so
- * the plotted trace still spans the full visible time window. This caps the
- * number of SVG polyline points redrawn on every throttled render tick — the
- * ring buffer already bounds memory, this bounds render cost.
+ * Averages samples into fixed bins of `binMs` on ABSOLUTE time (bin k covers
+ * `[k*binMs, (k+1)*binMs)`), one plotted point per bin at the bin's centre.
+ * This is what keeps the trace still: the earlier version picked every
+ * Nth sample by index, so each new sample shifted which samples were drawn
+ * and, with shaking at a few hertz, every frame showed a different subset
+ * of the same wave — the line's shape flickered while the data did not.
+ * Bins anchored to the clock draw the same points frame after frame; only
+ * the newest bin changes. The mean of the two or three samples a bin holds
+ * at phone rates barely touches a shake at a few hertz.
  */
-export function downsampleForPlot(
+export function binForPlot(
   samples: readonly SensorSample[],
-  maxPoints: number,
+  binMs: number,
 ): SensorSample[] {
-  if (maxPoints <= 0) {
-    throw new Error("maxPoints must be greater than 0");
+  if (binMs <= 0) {
+    throw new Error("binMs must be greater than 0");
   }
-  if (samples.length <= maxPoints) {
-    return [...samples];
-  }
-  if (maxPoints === 1) {
-    const last = samples[samples.length - 1];
-    return last ? [last] : [];
-  }
-
   const result: SensorSample[] = [];
-  const step = (samples.length - 1) / (maxPoints - 1);
-  for (let i = 0; i < maxPoints; i++) {
-    const index = Math.round(i * step);
-    const sample = samples[index];
-    if (sample) {
-      result.push(sample);
+  let bin = Number.NaN;
+  let n = 0;
+  let sx = 0;
+  let sy = 0;
+  let sz = 0;
+  const flush = () => {
+    if (n > 0) {
+      result.push({ t: (bin + 0.5) * binMs, x: sx / n, y: sy / n, z: sz / n });
     }
+  };
+  for (const sample of samples) {
+    const k = Math.floor(sample.t / binMs);
+    if (k !== bin) {
+      flush();
+      bin = k;
+      n = 0;
+      sx = 0;
+      sy = 0;
+      sz = 0;
+    }
+    n += 1;
+    sx += sample.x;
+    sy += sample.y;
+    sz += sample.z;
   }
+  flush();
   return result;
 }

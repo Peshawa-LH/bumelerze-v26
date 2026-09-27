@@ -32,7 +32,7 @@ export default function SensorScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const { status, samples, requestWebPermission } = useAccelerometerStream();
+  const { status, samples, frameAt, requestWebPermission } = useAccelerometerStream();
   const [view, setView] = useState<SensorView>("traces");
   const isWeb = Platform.OS === "web";
 
@@ -182,11 +182,13 @@ export default function SensorScreen() {
           {view === "traces" ? (
             <TraceStack
               samples={samples}
+              frameAt={frameAt}
               accessibilityLabel={t("sensor.chartA11yLabel")}
             />
           ) : (
             <SpaceView
               samples={samples}
+              frameAt={frameAt}
               accessibilityLabel={t("sensor.spaceA11yLabel")}
             />
           )}

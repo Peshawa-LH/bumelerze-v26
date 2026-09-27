@@ -39,11 +39,14 @@ export const PLOT_RENDER_INTERVAL_MS = 33; // ~30 fps
  */
 export const RING_BUFFER_CAPACITY = 1000;
 
-/** Caps polyline points redrawn per axis per render tick — the ring buffer
- * bounds memory, this bounds render/layout cost (design-language.md §8:
- * "throttle the sensor chart's redraw rate ... rather than dropping frames
- * silently"). */
-export const MAX_PLOT_POINTS = 150;
+/**
+ * Width of the absolute-time bins the plot is drawn from (`binForPlot`):
+ * 40 ms → at most 250 points per channel over the 10 s window, a 25 Hz
+ * plot rate that still resolves shaking up to ~12 Hz. Bounds render cost
+ * the way the old point cap did, without the frame-to-frame flicker index
+ * decimation caused.
+ */
+export const PLOT_BIN_MS = 40;
 
 /**
  * Web only: how long we let a freshly-subscribed listener stay silent

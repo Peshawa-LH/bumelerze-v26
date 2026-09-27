@@ -11,6 +11,8 @@ import type { AccelerometerVector, AxisKey, SensorSample } from "../types";
 
 interface SpaceViewProps {
   samples: SensorSample[];
+  /** Wall-clock time of the frame; trail age is measured from it. */
+  frameAt: number;
   accessibilityLabel: string;
 }
 
@@ -37,7 +39,7 @@ function toUnits(sample: AccelerometerVector): AccelerometerVector {
  * the axes. Orthographic projection from `projection.ts`; the camera never
  * moves.
  */
-export function SpaceView({ samples, accessibilityLabel }: SpaceViewProps) {
+export function SpaceView({ samples, frameAt, accessibilityLabel }: SpaceViewProps) {
   const { colors, typography } = useTheme();
   const [width, setWidth] = useState(0);
 
@@ -51,12 +53,10 @@ export function SpaceView({ samples, accessibilityLabel }: SpaceViewProps) {
   const scale = Math.min(width, HEIGHT) / 2 / (AXIS_LABEL + 0.15);
 
   const latest = samples.length > 0 ? samples[samples.length - 1] : undefined;
-  const trail = latest
-    ? samples.filter((sample) => latest.t - sample.t <= SPACE_TRAIL_MS)
-    : [];
+  const trail = samples.filter((sample) => frameAt - sample.t <= SPACE_TRAIL_MS);
   const trailPoints = trail.map((sample) => ({
     ...projectPoint(toUnits(sample), scale, cx, cy),
-    age: latest ? (latest.t - sample.t) / SPACE_TRAIL_MS : 1,
+    age: Math.min(1, Math.max(0, (frameAt - sample.t) / SPACE_TRAIL_MS)),
   }));
   const dot = latest ? projectPoint(toUnits(latest), scale, cx, cy) : null;
   const corners = phoneCorners().map((corner) => projectPoint(corner, scale, cx, cy));

@@ -11,6 +11,8 @@ import type { AxisKey, SensorSample } from "../types";
 
 interface TraceStackProps {
   samples: SensorSample[];
+  /** Wall-clock time of the frame; the right edge of every strip. */
+  frameAt: number;
   accessibilityLabel: string;
 }
 
@@ -29,7 +31,7 @@ const HEIGHT = STRIP_HEIGHT * AXES.length;
  * Plain `react-native-svg` polylines; time always flows left→right (the
  * container pins `direction: "ltr"` under RTL locales).
  */
-export function TraceStack({ samples, accessibilityLabel }: TraceStackProps) {
+export function TraceStack({ samples, frameAt, accessibilityLabel }: TraceStackProps) {
   const { colors } = useTheme();
   const [width, setWidth] = useState(0);
 
@@ -37,12 +39,7 @@ export function TraceStack({ samples, accessibilityLabel }: TraceStackProps) {
     setWidth(event.nativeEvent.layout.width);
   }
 
-  const lastSample = samples.length > 0 ? samples[samples.length - 1] : undefined;
-  // "Now" only stands in while the buffer is still empty (first frame after
-  // focus); once samples exist the newest sample is the right edge.
-  // eslint-disable-next-line react-hooks/purity -- see comment above
-  const latestT = lastSample ? lastSample.t : Date.now();
-  const xMin = latestT - PLOT_WINDOW_MS;
+  const xMin = frameAt - PLOT_WINDOW_MS;
 
   function toPoints(axis: AxisKey, top: number): string {
     const mid = top + STRIP_HEIGHT / 2;

@@ -5,13 +5,13 @@ import { Platform } from "react-native";
 
 import {
   ACCELEROMETER_UPDATE_INTERVAL_MS,
-  MAX_PLOT_POINTS,
+  PLOT_BIN_MS,
   PLOT_RENDER_INTERVAL_MS,
   PLOT_WINDOW_MS,
   RING_BUFFER_CAPACITY,
   WEB_SILENT_TIMEOUT_MS,
 } from "./constants";
-import { downsampleForPlot, selectWindow } from "./downsample";
+import { binForPlot, selectWindow } from "./downsample";
 import { GravityFilter } from "./low-pass-filter";
 import { RingBuffer } from "./ring-buffer";
 import type { SensorSample } from "./types";
@@ -63,6 +63,10 @@ export interface UseAccelerometerStreamResult {
    * channel centred on zero, amplitudes only), by one filter that runs
    * per sample at ingestion, so the trace never shows a warm-up ramp. */
   samples: SensorSample[];
+  /** Wall-clock time (ms) of the render tick that produced `samples` — the
+   * figures scroll against this, not against the newest sample's own
+   * timestamp, which arrives unevenly and made the whole trace lurch. */
+  frameAt: number;
   /** Web-only action for the "permission-required" state — must be invoked
    * directly from a `Pressable`'s `onPress` so the browser still sees it as
    * a user gesture by the time the permission prompt fires. A no-op on
@@ -161,7 +165,7 @@ function hasWebMotionPermissionApi(): boolean {
  *  2. A separate interval, throttled to `PLOT_RENDER_INTERVAL_MS`
  *     (~30 fps), reads the buffer, applies the current time window +
  *     gravity toggle + point-count downsampling, and commits exactly one
- *     `setSamples` per tick. This is the "throttled state update" half of
+ *     `setFrame` per tick. This is the "throttled state update" half of
  *     the wave brief's "do NOT setState at 50 Hz" requirement.
  *
  * Web needs an extra branch: iOS Safari gates `DeviceMotionEvent` behind a
@@ -171,7 +175,10 @@ function hasWebMotionPermissionApi(): boolean {
  */
 export function useAccelerometerStream(): UseAccelerometerStreamResult {
   const [status, setStatus] = useState<SensorStreamStatus>("checking");
-  const [samples, setSamples] = useState<SensorSample[]>([]);
+  const [frame, setFrame] = useState<{ samples: SensorSample[]; at: number }>({
+    samples: [],
+    at: 0,
+  });
   // Lazy one-time init via useState (not a ref mutated during render, which
   // the same rule above forbids even for the common "if (!ref.current)"
   // idiom) — the buffer instance itself is intentionally mutable, we only
@@ -226,7 +233,7 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
   const beginStreaming = useCallback((): boolean => {
     buffer.clear();
     gravity.reset();
-    setSamples([]);
+    setFrame({ samples: [], at: 0 });
     const push = (reading: { x: number; y: number; z: number }) => {
       buffer.push({ ...gravity.apply(reading), t: Date.now() });
     };
@@ -246,9 +253,9 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     setStatus("streaming");
 
     renderIntervalRef.current = setInterval(() => {
-      const raw = buffer.toArray();
-      const windowed = selectWindow(raw, Date.now(), PLOT_WINDOW_MS);
-      setSamples(downsampleForPlot(windowed, MAX_PLOT_POINTS));
+      const now = Date.now();
+      const windowed = selectWindow(buffer.toArray(), now, PLOT_WINDOW_MS);
+      setFrame({ samples: binForPlot(windowed, PLOT_BIN_MS), at: now });
     }, PLOT_RENDER_INTERVAL_MS);
 
     return true;
@@ -451,13 +458,13 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
           activeRef.current = false;
           stopStreaming();
           buffer.clear();
-          setSamples([]);
+          setFrame({ samples: [], at: 0 });
         };
       }
 
       setStatus("checking");
       buffer.clear();
-      setSamples([]);
+      setFrame({ samples: [], at: 0 });
 
       void (Platform.OS === "web" ? startWeb() : startNative());
 
@@ -466,7 +473,7 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
         activeRef.current = false;
         stopStreaming();
         buffer.clear();
-        setSamples([]);
+        setFrame({ samples: [], at: 0 });
       };
       // `buffer`/`beginStreaming`/`beginStreamingWeb`/`stopStreaming` are all
       // stable identities for the component's lifetime, included only to
@@ -478,5 +485,5 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     }, [buffer, beginStreaming, beginStreamingWeb, stopStreaming, restartTick]),
   );
 
-  return { status, samples, requestWebPermission };
+  return { status, samples: frame.samples, frameAt: frame.at, requestWebPermission };
 }

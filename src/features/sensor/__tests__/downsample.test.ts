@@ -1,4 +1,4 @@
-import { downsampleForPlot, selectWindow } from "../downsample";
+import { binForPlot, selectWindow } from "../downsample";
 import type { SensorSample } from "../types";
 
 function sample(t: number): SensorSample {
@@ -24,43 +24,43 @@ describe("selectWindow", () => {
   });
 });
 
-describe("downsampleForPlot", () => {
-  it("returns the input unchanged when it's already at or under maxPoints", () => {
-    const samples = [sample(0), sample(1), sample(2)];
-    expect(downsampleForPlot(samples, 5)).toEqual(samples);
-    expect(downsampleForPlot(samples, 3)).toEqual(samples);
+describe("binForPlot", () => {
+  it("rejects a non-positive bin", () => {
+    expect(() => binForPlot([sample(0)], 0)).toThrow();
   });
 
-  it("throws for a non-positive maxPoints", () => {
-    expect(() => downsampleForPlot([sample(0)], 0)).toThrow();
+  it("returns nothing for nothing", () => {
+    expect(binForPlot([], 40)).toEqual([]);
   });
 
-  it("always keeps the first and last sample", () => {
-    const samples = Array.from({ length: 500 }, (_, i) => sample(i));
-    const result = downsampleForPlot(samples, 10);
-
-    expect(result[0]).toEqual(sample(0));
-    expect(result[result.length - 1]).toEqual(sample(499));
+  it("averages every sample of a bin and places the point at the bin centre", () => {
+    const samples = [
+      { t: 1000, x: 1, y: 2, z: 3 },
+      { t: 1010, x: 3, y: 4, z: 5 },
+      { t: 1039, x: 2, y: 0, z: 1 },
+      { t: 1040, x: 10, y: 10, z: 10 },
+    ];
+    expect(binForPlot(samples, 40)).toEqual([
+      { t: 1020, x: 2, y: 2, z: 3 },
+      { t: 1060, x: 10, y: 10, z: 10 },
+    ]);
   });
 
-  it("reduces the series to exactly maxPoints when there are more points than that", () => {
-    const samples = Array.from({ length: 500 }, (_, i) => sample(i));
-    const result = downsampleForPlot(samples, 50);
-
-    expect(result.length).toBe(50);
+  it("draws the same points for the same bins whatever else the window holds (no flicker as it slides)", () => {
+    const wave = (t: number) => ({ t, x: Math.sin(t / 30), y: 0, z: 0 });
+    const a = Array.from({ length: 200 }, (_, i) => wave(5000 + i * 17));
+    const b = Array.from({ length: 200 }, (_, i) => wave(5000 + 17 * 3 + i * 17));
+    const fromA = binForPlot(a, 40).filter((point) => point.t > 5200 && point.t < 8000);
+    const fromB = binForPlot(b, 40).filter((point) => point.t > 5200 && point.t < 8000);
+    expect(fromB).toEqual(fromA);
   });
 
-  it("preserves chronological order", () => {
-    const samples = Array.from({ length: 200 }, (_, i) => sample(i));
-    const result = downsampleForPlot(samples, 20);
-
-    for (let i = 1; i < result.length; i++) {
+  it("keeps chronological order and one point per occupied bin", () => {
+    const samples = Array.from({ length: 300 }, (_, i) => sample(i * 16));
+    const result = binForPlot(samples, 40);
+    expect(result.length).toBe(Math.floor((299 * 16) / 40) + 1);
+    for (let i = 1; i < result.length; i += 1) {
       expect(result[i]!.t).toBeGreaterThan(result[i - 1]!.t);
     }
-  });
-
-  it("handles maxPoints === 1 by returning only the last sample", () => {
-    const samples = [sample(0), sample(1), sample(2)];
-    expect(downsampleForPlot(samples, 1)).toEqual([sample(2)]);
   });
 });
