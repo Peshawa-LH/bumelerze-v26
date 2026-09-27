@@ -48,7 +48,13 @@
 const fs = require("fs");
 const path = require("path");
 
-const MAPLIBRE_SRC_DIR = path.join(__dirname, "..", "node_modules", "maplibre-gl", "dist");
+const MAPLIBRE_SRC_DIR = path.join(
+  __dirname,
+  "..",
+  "node_modules",
+  "maplibre-gl",
+  "dist",
+);
 const RTL_PLUGIN_SRC_DIR = path.join(
   __dirname,
   "..",
@@ -61,6 +67,16 @@ const OUT_DIR = path.join(__dirname, "..", "public");
 
 const MAPLIBRE_FILES = ["maplibre-gl-worker.mjs", "maplibre-gl-shared.mjs"];
 const RTL_PLUGIN_FILES = ["mapbox-gl-rtl-text.js"];
+/** Kurdish-aware Arabic shaper, transpiled and prepended to the RTL plugin
+ * (see `buildKurdishShapingPrelude`). */
+const KURDISH_SHAPER_SRC = path.join(
+  __dirname,
+  "..",
+  "src",
+  "features",
+  "map",
+  "arabic-presentation.ts",
+);
 
 /** Copies `file` from `srcDir` to `OUT_DIR`, stripping the trailing
  * `//# sourceMappingURL=...` comment: we don't ship the matching .map files
@@ -73,6 +89,53 @@ function copyStripped(srcDir, file) {
     .readFileSync(srcPath, "utf8")
     .replace(/\n\/\/# sourceMappingURL=.*$/, "\n");
   fs.writeFileSync(outPath, code);
+}
+
+/**
+ * The plugin's shaper (ICU, in wasm) predates Sorani: it treats ە as
+ * non-joining and leaves ێ and ڵ unshaped, so هەولێر renders with an
+ * isolated ه (`src/features/map/arabic-presentation.ts` has the measured
+ * detail). It also de-shapes and re-shapes whatever it is handed, so the
+ * fix cannot be applied to the label text beforehand — it has to run
+ * AFTER ICU, inside the worker. This prelude, prepended to the vendor file,
+ * intercepts `registerRTLTextPlugin` and hands MapLibre a plugin whose
+ * `applyArabicShaping` is ICU's followed by `reshapeForKurdish`. The
+ * shaper's one source of truth is the TypeScript module (unit-tested);
+ * it is transpiled here with the `typescript` package so nothing is
+ * duplicated by hand. The vendor plugin attaches its methods only once
+ * its wasm has loaded, hence the lazy getters.
+ */
+function buildKurdishShapingPrelude() {
+  const ts = require("typescript");
+  const source = fs.readFileSync(KURDISH_SHAPER_SRC, "utf8");
+  const { outputText } = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2017,
+      removeComments: true,
+    },
+  });
+  return `/* Bumelerze: Kurdish-aware shaping applied after ICU (scripts/sync-maplibre-worker.js). */
+(function () {
+  if (typeof self === "undefined" || typeof self.registerRTLTextPlugin !== "function") return;
+  var shaper = (function () { var exports = {}; ${outputText}
+    return exports; })();
+  var original = self.registerRTLTextPlugin;
+  self.registerRTLTextPlugin = function (plugin) {
+    var wrapped = {
+      get applyArabicShaping() {
+        var icu = plugin.applyArabicShaping;
+        return typeof icu === "function"
+          ? function (text) { return shaper.reshapeForKurdish(icu(text)); }
+          : icu;
+      },
+      get processBidirectionalText() { return plugin.processBidirectionalText; },
+      get processStyledBidirectionalText() { return plugin.processStyledBidirectionalText; },
+    };
+    return original(wrapped);
+  };
+})();
+`;
 }
 
 function main() {
@@ -88,10 +151,15 @@ function main() {
   }
 
   if (fs.existsSync(RTL_PLUGIN_SRC_DIR)) {
+    const prelude = buildKurdishShapingPrelude();
     for (const file of RTL_PLUGIN_FILES) {
       copyStripped(RTL_PLUGIN_SRC_DIR, file);
+      const outPath = path.join(OUT_DIR, file);
+      fs.writeFileSync(outPath, prelude + fs.readFileSync(outPath, "utf8"));
     }
-    console.log(`[sync-maplibre-worker] copied ${RTL_PLUGIN_FILES.join(", ")} to public/`);
+    console.log(
+      `[sync-maplibre-worker] copied ${RTL_PLUGIN_FILES.join(", ")} to public/ with the Kurdish shaping prelude`,
+    );
   } else {
     console.warn(
       "[sync-maplibre-worker] @mapbox/mapbox-gl-rtl-text not installed, skipping",
