@@ -34,6 +34,7 @@ import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
+import { useMapPreferencesStore } from "@/features/map";
 import {
   makeEvent,
   MockAttributionControl,
@@ -103,6 +104,9 @@ const ORIGINAL_MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY;
 
 beforeEach(() => {
   resetMapWebMocks();
+  // The overlay choice persists in the map preferences store, which is
+  // module-level: a toggle in one test must not reach the next.
+  useMapPreferencesStore.setState({ overlays: {} });
   mockUseRegionEvents.mockReturnValue({
     events: [makeEvent({ id: "region-1" })],
     dataUpdatedAt: MOCK_DATA_UPDATED_AT,
@@ -147,6 +151,32 @@ describe("MapScreenWeb basemap style picker — no MapTiler key configured", () 
     for (const id of ["outdoor", "topo", "hybrid", "dataviz", "openfreemap"] as const) {
       expect(screen.getByRole("radio", { name: i18n.t(`map.style.${id}`) })).toBeTruthy();
     }
+  });
+
+  it("lists the fault-line overlay in the Layers section, off by default, and adds it to the map under the labels when switched on", async () => {
+    delete process.env.EXPO_PUBLIC_MAPTILER_KEY;
+
+    await renderWithProviders(<MapScreenWeb />);
+    await waitFor(() => expect(mockMarkerConstructorOptions).toHaveLength(1));
+    expect(
+      mockMapAddLayer.mock.calls.some(([layer]) => layer.id === "bumelerze-faults-lines"),
+    ).toBe(false);
+
+    await expandStylePicker();
+    expect(screen.getByText(i18n.t("map.layers.faultsAttribution"))).toBeTruthy();
+    const toggle = screen.getByRole("switch", { name: i18n.t("map.layers.faults") });
+    await act(async () => {
+      fireEvent(toggle, "valueChange", true);
+    });
+
+    const call = mockMapAddLayer.mock.calls.find(
+      ([layer]) => layer.id === "bumelerze-faults-lines",
+    );
+    expect(call).toBeTruthy();
+    expect(call?.[0].type).toBe("line");
+    // Under the first symbol (label) layer of the loaded style — the same
+    // anchor the own-labels layer is placed against.
+    expect(typeof call?.[1]).toBe("string");
   });
 });
 

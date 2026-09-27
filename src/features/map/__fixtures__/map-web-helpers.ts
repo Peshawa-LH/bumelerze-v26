@@ -304,6 +304,25 @@ export class MockMap {
     }
   }
 
+  // Enough of the layer/source lifecycle for `applyFaultsOverlay`
+  // (layer-registry.ts): presence checks, removal, and "is a style loaded".
+  getLayer(id: string) {
+    return this.styleLayers.find((layer) => layer.id === id);
+  }
+
+  removeLayer(id: string) {
+    this.styleLayers = this.styleLayers.filter((layer) => layer.id !== id);
+  }
+
+  removeSource(id: string) {
+    delete this.styleSources[id];
+    delete this.geoJsonSources[id];
+  }
+
+  isStyleLoaded() {
+    return true;
+  }
+
   getLayoutProperty(layerId: string, name: string) {
     mockMapGetLayoutProperty(layerId, name);
     return this.styleLayers.find((layer) => layer.id === layerId)?.layout?.[name];
