@@ -496,30 +496,30 @@ function EventPreviewSheetImpl(
             </View>
 
             <View style={{ gap: spacing[1] }}>
-                <Text
-                  allowFontScaling
-                  style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.bodyMeta.fontSize,
-                    lineHeight: typography.bodyMeta.lineHeight,
-                  }}
-                >
-                  {t("eventDetail.localTimeLabel")}: {isolateNumeric(localTimeText)}
-                </Text>
-                <Text
-                  allowFontScaling
-                  style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.bodyMeta.fontSize,
-                    lineHeight: typography.bodyMeta.lineHeight,
-                  }}
-                >
-                  {t("eventDetail.depthSectionTitle")}:{" "}
-                  {isolateNumeric(
-                    `${formatDepthKm(currentEvent.depthKm, locale)} ${t("units.km")}`,
-                  )}
-                </Text>
-              </View>
+              <Text
+                allowFontScaling
+                style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.bodyMeta.fontSize,
+                  lineHeight: typography.bodyMeta.lineHeight,
+                }}
+              >
+                {t("eventDetail.localTimeLabel")}: {isolateNumeric(localTimeText)}
+              </Text>
+              <Text
+                allowFontScaling
+                style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.bodyMeta.fontSize,
+                  lineHeight: typography.bodyMeta.lineHeight,
+                }}
+              >
+                {t("eventDetail.depthSectionTitle")}:{" "}
+                {isolateNumeric(
+                  `${formatDepthKm(currentEvent.depthKm, locale)} ${t("units.km")}`,
+                )}
+              </Text>
+            </View>
 
             <View style={[styles.actionsRow, { gap: spacing[3], marginTop: spacing[2] }]}>
               <Pressable

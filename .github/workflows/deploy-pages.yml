@@ -66,6 +66,12 @@ jobs:
       - name: Assemble site (website at root, app under /app, SPA 404 fallback)
         run: |
           cp -r website/. pages-dist/
+          # The site has no build step, so stamp its stylesheet and scripts
+          # with the commit here: browsers cache both and a changed
+          # style.css otherwise reaches phones only when their cache expires.
+          sha="${GITHUB_SHA::7}"
+          find pages-dist -maxdepth 2 -name '*.html' -not -path 'pages-dist/app/*' \
+            -exec sed -i -E "s#(href=\"(\.\./)?style\.css)\"#\1?v=$sha\"#g; s#(src=\"(\.\./)?(lang-menu|slider)\.js)\"#\1?v=$sha\"#g" {} +
           cp pages-dist/app/index.html pages-dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:

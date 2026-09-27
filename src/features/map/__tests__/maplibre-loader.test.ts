@@ -62,7 +62,9 @@ describe("ensureRTLTextPluginLoaded", () => {
     // rejected promise via `mockReturnValue`, which gives Node's
     // unhandledRejection detector a real window to fire in).
     const maplibre = await loadMapLibre();
-    mockSetRTLTextPlugin.mockImplementation(() => Promise.reject(new Error("network down")));
+    mockSetRTLTextPlugin.mockImplementation(() =>
+      Promise.reject(new Error("network down")),
+    );
     mockGetRTLTextPluginStatus.mockReturnValue("unavailable");
 
     expect(() => ensureRTLTextPluginLoaded(maplibre)).not.toThrow();

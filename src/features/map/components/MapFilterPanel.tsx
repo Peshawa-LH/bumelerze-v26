@@ -2,11 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import {
-  formatDateOnly,
-  formatMagnitudeValue,
-  isolateNumeric,
-} from "@/features/events";
+import { formatDateOnly, formatMagnitudeValue, isolateNumeric } from "@/features/events";
 import { isRTLLocale } from "@/i18n";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";

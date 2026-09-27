@@ -9,7 +9,10 @@ import {
 
 const NOW = Date.UTC(2026, 7, 17, 12, 0, 0);
 
-function makeEvent(id: string, overrides: { mag?: number; originTime?: number } = {}): Event {
+function makeEvent(
+  id: string,
+  overrides: { mag?: number; originTime?: number } = {},
+): Event {
   return {
     id,
     bumelerzeId: null,

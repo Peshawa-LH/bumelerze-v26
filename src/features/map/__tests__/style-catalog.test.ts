@@ -7,7 +7,13 @@ import {
 
 describe("MAP_STYLE_CATALOG_IDS", () => {
   it("lists exactly the five curated candidates, outdoor first", () => {
-    expect(MAP_STYLE_CATALOG_IDS).toEqual(["outdoor", "topo", "hybrid", "dataviz", "openfreemap"]);
+    expect(MAP_STYLE_CATALOG_IDS).toEqual([
+      "outdoor",
+      "topo",
+      "hybrid",
+      "dataviz",
+      "openfreemap",
+    ]);
   });
 
   it("defaults to outdoor — today's shipped default basemap", () => {
@@ -55,8 +61,12 @@ describe("resolveCatalogMapStyle", () => {
   });
 
   it("resolves openfreemap to the OpenFreeMap urls regardless of whether a MapTiler key is configured", () => {
-    expect(resolveCatalogMapStyle("openfreemap", "light", KEY).provider).toBe("openfreemap");
-    expect(resolveCatalogMapStyle("openfreemap", "dark", null).provider).toBe("openfreemap");
+    expect(resolveCatalogMapStyle("openfreemap", "light", KEY).provider).toBe(
+      "openfreemap",
+    );
+    expect(resolveCatalogMapStyle("openfreemap", "dark", null).provider).toBe(
+      "openfreemap",
+    );
   });
 
   it("degrades a MapTiler-family entry to OpenFreeMap when no key is configured", () => {
