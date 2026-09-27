@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { isolateNumeric } from "@/features/events";
 import { useTheme } from "@/theme";
 import { useStationTrace } from "../queries";
 import type { LiveStation } from "../types";
@@ -63,8 +64,10 @@ export function StationDetails({ station }: StationDetailsProps) {
         }}
       >
         {[
-          station.id,
-          t("stations.channel", { channel: station.channel, sps: station.sps }),
+          isolateNumeric(station.id),
+          isolateNumeric(
+            t("stations.channel", { channel: station.channel, sps: station.sps }),
+          ),
           t("stations.distanceFromReference", { km: station.distanceKmFromErbil }),
         ].join(" · ")}
       </Text>

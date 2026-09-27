@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { isolateNumeric } from "@/features/events";
 import { useTheme } from "@/theme";
 import { freshnessFromCatalog } from "../freshness";
 import type { LiveStation } from "../types";
@@ -63,7 +64,7 @@ export function StationList({ stations, selectedId, onSelect }: StationListProps
                   lineHeight: typography.labelCaption.lineHeight,
                 }}
               >
-                {`${station.id} · ${t("stations.distanceFromReference", { km: station.distanceKmFromErbil })} · ${t(`stations.tier.${tier}`)}`}
+                {`${isolateNumeric(station.id)} · ${t("stations.distanceFromReference", { km: station.distanceKmFromErbil })} · ${t(`stations.tier.${tier}`)}`}
               </Text>
             </View>
           </Pressable>
