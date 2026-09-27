@@ -1,4 +1,11 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -111,8 +118,9 @@ function mockPickerAssets(uris: string[]) {
  * attached) — the cap-reached state hides both, so callers should not use
  * this once at the limit. */
 async function addScreenshots() {
-  const button = screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") })
-    ?? screen.getByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") });
+  const button =
+    screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") }) ??
+    screen.getByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") });
   await pressAndFlush(button);
 }
 
@@ -154,8 +162,8 @@ describe("Feedback screen", () => {
     await renderWithProviders(<FeedbackScreen />);
 
     expect(
-      screen.getByRole("button", { name: i18n.t("feedback.submit") }).props.accessibilityState
-        ?.disabled,
+      screen.getByRole("button", { name: i18n.t("feedback.submit") }).props
+        .accessibilityState?.disabled,
     ).toBe(true);
 
     await act(async () => {
@@ -166,8 +174,8 @@ describe("Feedback screen", () => {
     });
 
     expect(
-      screen.getByRole("button", { name: i18n.t("feedback.submit") }).props.accessibilityState
-        ?.disabled,
+      screen.getByRole("button", { name: i18n.t("feedback.submit") }).props
+        .accessibilityState?.disabled,
     ).toBe(false);
   });
 
@@ -183,26 +191,43 @@ describe("Feedback screen", () => {
       fireEvent.press(removeThumbnailButton(1));
     });
 
-    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 1 }) })).toBeNull();
+    expect(
+      screen.queryByRole("button", {
+        name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 1 }),
+      }),
+    ).toBeNull();
     // Back to "Add screenshots" (not "Add more") once the set is empty again.
-    expect(screen.getByRole("button", { name: i18n.t("feedback.photo.addLabel") })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: i18n.t("feedback.photo.addLabel") }),
+    ).toBeTruthy();
   });
 
   it("multi-select: picking several screenshots at once gives each one its own thumbnail and remove control", async () => {
-    mockPickerAssets(["file:///tmp/one.jpg", "file:///tmp/two.jpg", "file:///tmp/three.jpg"]);
+    mockPickerAssets([
+      "file:///tmp/one.jpg",
+      "file:///tmp/two.jpg",
+      "file:///tmp/three.jpg",
+    ]);
 
     await renderWithProviders(<FeedbackScreen />);
     await addScreenshots();
 
     expect(mockLaunchImageLibraryAsync).toHaveBeenCalledWith(
-      expect.objectContaining({ allowsMultipleSelection: true, selectionLimit: FEEDBACK_PHOTO_MAX_COUNT }),
+      expect.objectContaining({
+        allowsMultipleSelection: true,
+        selectionLimit: FEEDBACK_PHOTO_MAX_COUNT,
+      }),
     );
     expect(removeThumbnailButton(1)).toBeTruthy();
     expect(removeThumbnailButton(2)).toBeTruthy();
     expect(removeThumbnailButton(3)).toBeTruthy();
     // The trigger switches to "Add more" once at least one photo is attached.
-    expect(screen.getByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") }),
+    ).toBeNull();
   });
 
   it("adding more in a second pass appends to (never replaces) the existing set", async () => {
@@ -233,7 +258,11 @@ describe("Feedback screen", () => {
 
     // Exactly one remove control survives — the (renumbered) survivor.
     expect(removeThumbnailButton(1)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 2 }) })).toBeNull();
+    expect(
+      screen.queryByRole("button", {
+        name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 2 }),
+      }),
+    ).toBeNull();
   });
 
   it("a canceled picker leaves the existing set untouched", async () => {
@@ -245,7 +274,11 @@ describe("Feedback screen", () => {
     await addScreenshots();
 
     expect(removeThumbnailButton(1)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 2 }) })).toBeNull();
+    expect(
+      screen.queryByRole("button", {
+        name: i18n.t("feedback.photo.removeThumbnailLabel", { index: 2 }),
+      }),
+    ).toBeNull();
   });
 
   it("enforces the photo cap: hides the add trigger and shows a calm limit message once reached", async () => {
@@ -255,22 +288,35 @@ describe("Feedback screen", () => {
     await renderWithProviders(<FeedbackScreen />);
     await addScreenshots();
 
-    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") })).toBeNull();
-    expect(screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") })).toBeNull();
     expect(
-      screen.getByText(i18n.t("feedback.photo.limitReached", { count: FEEDBACK_PHOTO_MAX_COUNT })),
+      screen.queryByRole("button", { name: i18n.t("feedback.photo.addMoreLabel") }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: i18n.t("feedback.photo.addLabel") }),
+    ).toBeNull();
+    expect(
+      screen.getByText(
+        i18n.t("feedback.photo.limitReached", { count: FEEDBACK_PHOTO_MAX_COUNT }),
+      ),
     ).toBeTruthy();
   });
 
   it("truncates to the remaining slots even if the platform picker ignores selectionLimit and returns more", async () => {
-    mockPickerAssets(Array.from({ length: FEEDBACK_PHOTO_MAX_COUNT + 2 }, (_, i) => `file:///tmp/${i}.jpg`));
+    mockPickerAssets(
+      Array.from(
+        { length: FEEDBACK_PHOTO_MAX_COUNT + 2 },
+        (_, i) => `file:///tmp/${i}.jpg`,
+      ),
+    );
     await renderWithProviders(<FeedbackScreen />);
     await addScreenshots();
 
     expect(removeThumbnailButton(FEEDBACK_PHOTO_MAX_COUNT)).toBeTruthy();
     expect(
       screen.queryByRole("button", {
-        name: i18n.t("feedback.photo.removeThumbnailLabel", { index: FEEDBACK_PHOTO_MAX_COUNT + 1 }),
+        name: i18n.t("feedback.photo.removeThumbnailLabel", {
+          index: FEEDBACK_PHOTO_MAX_COUNT + 1,
+        }),
       }),
     ).toBeNull();
   });
@@ -350,7 +396,9 @@ describe("Feedback screen", () => {
     await submit();
 
     await waitFor(() =>
-      expect(screen.getByText(i18n.t("feedback.confirmation.queuedMessage"))).toBeTruthy(),
+      expect(
+        screen.getByText(i18n.t("feedback.confirmation.queuedMessage")),
+      ).toBeTruthy(),
     );
     expect(screen.queryByText(i18n.t("feedback.confirmation.sentMessage"))).toBeNull();
   });

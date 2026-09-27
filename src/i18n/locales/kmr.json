@@ -1247,7 +1247,9 @@
       "thumbnailLabel": "Dîmen {{index}} ji {{count}}",
       "removeThumbnailLabel": "Dîmenê {{index}} rake",
       "removeSymbol": "✕",
-      "limitReached": "Tu gihîştî sînorê {{count}} wêneyan. Yekê rake da ku tu yekî din zêde bikî."
+      "limitReached": "Tu gihîştî sînorê {{count}} wêneyan. Yekê rake da ku tu yekî din zêde bikî.",
+      "unreadable_one": "Wêneyek ekranê nehat xwendin û hate derxistin.",
+      "unreadable_other": "{{count}} wêneyên ekranê nehatin xwendin û hatin derxistin."
     },
     "submit": "Nêrînê bişîne",
     "confirmation": {
@@ -1255,6 +1257,7 @@
       "sentMessage": "Nêrîna te hate şandin. Spas.",
       "queuedMessage": "Nêrîna te li ser cîhaza te hate tomarkirin. Ew ê were şandin gava Bumelerze bigihîje pêşkêşkerê.",
       "close": "Bigire"
-    }
+    },
+    "submitFailed": "Şandin li ser vê cîhazê bi ser neket. Nivîsa te hîn li vir e — ji kerema xwe dîsa biceribîne."
   }
 }

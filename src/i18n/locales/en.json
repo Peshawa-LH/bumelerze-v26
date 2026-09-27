@@ -1247,7 +1247,9 @@
       "thumbnailLabel": "Screenshot {{index}} of {{count}}",
       "removeThumbnailLabel": "Remove screenshot {{index}}",
       "removeSymbol": "✕",
-      "limitReached": "You've reached the limit of {{count}} photos. Remove one to add a different one."
+      "limitReached": "You've reached the limit of {{count}} photos. Remove one to add a different one.",
+      "unreadable_one": "One screenshot couldn't be read and was left out.",
+      "unreadable_other": "{{count}} screenshots couldn't be read and were left out."
     },
     "submit": "Send feedback",
     "confirmation": {
@@ -1255,6 +1257,7 @@
       "sentMessage": "Your feedback has been sent. Thank you.",
       "queuedMessage": "Your feedback is saved on your device. It will be sent once Bumelerze can reach the server.",
       "close": "Close"
-    }
+    },
+    "submitFailed": "Sending failed on this device. Your text is still here — please try again."
   }
 }

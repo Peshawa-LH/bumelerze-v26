@@ -4,12 +4,24 @@ import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
 
 import { toDurablePhotoUri } from "@/lib/durable-photo-uri";
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { FEEDBACK_PHOTO_MAX_COUNT, enqueueFeedback, useFeedbackQueueItemState } from "@/features/feedback";
+import {
+  FEEDBACK_PHOTO_MAX_COUNT,
+  enqueueFeedback,
+  useFeedbackQueueItemState,
+} from "@/features/feedback";
 import { useTheme } from "@/theme";
 
 const MESSAGE_MAX_LENGTH = 4000; // matches feedback.message's CHECK constraint, migration 0020
@@ -49,6 +61,8 @@ export default function FeedbackScreen() {
   const [contact, setContact] = useState("");
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const [submitFailed, setSubmitFailed] = useState(false);
+  const [unreadablePhotoCount, setUnreadablePhotoCount] = useState(0);
 
   // Reflects the live queue state of the just-submitted item so the
   // confirmation copy stays honest about whether it actually reached the
@@ -87,11 +101,22 @@ export default function FeedbackScreen() {
     // Bytes are read NOW, while the picked file is live — a web `blob:`
     // uri persisted for a later upload is dead by then (see
     // `toDurablePhotoUri`). Native passes the `file://` uri straight through.
-    const picked: PickedPhoto[] = await Promise.all(
-      result.assets
-        .slice(0, remainingSlots)
-        .map(async (asset) => ({ id: Crypto.randomUUID(), uri: await toDurablePhotoUri(asset) })),
+    // One unreadable screenshot (Safari can refuse to decode an image it
+    // just picked) must not take the whole set — or the message — with it:
+    // it is skipped and said so, the others attach as normal.
+    const converted = await Promise.all(
+      result.assets.slice(0, remainingSlots).map(async (asset) => {
+        try {
+          return { id: Crypto.randomUUID(), uri: await toDurablePhotoUri(asset) };
+        } catch {
+          return null;
+        }
+      }),
     );
+    const picked: PickedPhoto[] = converted.filter(
+      (photo): photo is PickedPhoto => photo !== null,
+    );
+    setUnreadablePhotoCount(converted.length - picked.length);
     setPhotos((current) => [...current, ...picked]);
   }
 
@@ -105,12 +130,20 @@ export default function FeedbackScreen() {
       return;
     }
     const trimmedContact = contact.trim();
-    const submission = await enqueueFeedback({
-      message: trimmedMessage,
-      contact: trimmedContact.length > 0 ? trimmedContact : null,
-      photoUris: photos.map((photo) => photo.uri),
-    });
-    setSubmittedId(submission.feedbackId);
+    setSubmitFailed(false);
+    try {
+      const submission = await enqueueFeedback({
+        message: trimmedMessage,
+        contact: trimmedContact.length > 0 ? trimmedContact : null,
+        photoUris: photos.map((photo) => photo.uri),
+      });
+      setSubmittedId(submission.feedbackId);
+    } catch {
+      // The durable write itself failed (storage, identity): keep the form
+      // and its text so the person can try again, and say what happened —
+      // a silent failure here is a lost report (owner, 2026-09-27).
+      setSubmitFailed(true);
+    }
   }
 
   function handleClose() {
@@ -329,11 +362,17 @@ export default function FeedbackScreen() {
                     hitSlop={8}
                     style={[
                       styles.removeBadge,
-                      { backgroundColor: colors.surface.base, borderColor: colors.border.default },
+                      {
+                        backgroundColor: colors.surface.base,
+                        borderColor: colors.border.default,
+                      },
                     ]}
                   >
                     <Text
-                      style={{ color: colors.text.primary, fontSize: typography.labelCaption.fontSize }}
+                      style={{
+                        color: colors.text.primary,
+                        fontSize: typography.labelCaption.fontSize,
+                      }}
                       accessibilityElementsHidden
                       importantForAccessibility="no-hide-descendants"
                     >
@@ -343,6 +382,19 @@ export default function FeedbackScreen() {
                 </View>
               ))}
             </View>
+          ) : null}
+
+          {unreadablePhotoCount > 0 ? (
+            <Text
+              accessibilityRole="alert"
+              style={{
+                color: colors.text.secondary,
+                fontSize: typography.bodyMeta.fontSize,
+                lineHeight: typography.bodyMeta.lineHeight,
+              }}
+            >
+              {t("feedback.photo.unreadable", { count: unreadablePhotoCount })}
+            </Text>
           ) : null}
 
           {atPhotoLimit ? (
@@ -359,7 +411,9 @@ export default function FeedbackScreen() {
           ) : (
             <Pressable
               accessibilityRole="button"
-              accessibilityHint={t("feedback.photo.hint", { max: FEEDBACK_PHOTO_MAX_COUNT })}
+              accessibilityHint={t("feedback.photo.hint", {
+                max: FEEDBACK_PHOTO_MAX_COUNT,
+              })}
               onPress={() => void handleAddPhoto()}
               style={[styles.photoButton, { borderColor: colors.border.default }]}
             >
@@ -370,12 +424,27 @@ export default function FeedbackScreen() {
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
-                {photos.length > 0 ? t("feedback.photo.addMoreLabel") : t("feedback.photo.addLabel")}
+                {photos.length > 0
+                  ? t("feedback.photo.addMoreLabel")
+                  : t("feedback.photo.addLabel")}
               </Text>
             </Pressable>
           )}
         </View>
       </ScrollView>
+
+      {submitFailed ? (
+        <Text
+          accessibilityRole="alert"
+          style={{
+            color: colors.status.danger,
+            fontSize: typography.bodyDefault.fontSize,
+            lineHeight: typography.bodyDefault.lineHeight,
+          }}
+        >
+          {t("feedback.submitFailed")}
+        </Text>
+      ) : null}
 
       <Pressable
         accessibilityRole="button"
