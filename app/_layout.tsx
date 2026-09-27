@@ -32,7 +32,7 @@ const eventsQueryClient = createEventsQueryClient();
 const eventsPersister = createEventsPersister();
 
 export default function RootLayout() {
-  const { colors, scheme } = useTheme();
+  const { colors, scheme, typography } = useTheme();
   // Vazirmatn for Arabic-script locales (`src/theme/typography.ts`'s
   // `ARABIC_SCRIPT_FONT`). Not awaited: text renders in the fallback face
   // until the file is in, then re-renders — better than a blank first
@@ -124,7 +124,13 @@ export default function RootLayout() {
               contentStyle: { backgroundColor: colors.surface.base },
               headerStyle: { backgroundColor: colors.surface.base },
               headerTintColor: colors.text.primary,
-              headerTitleStyle: { color: colors.text.primary },
+              // The header sets its own inline system font; hand in the
+              // theme face so Sorani/Arabic titles render in Vazirmatn on
+              // native as well as web (`ARABIC_SCRIPT_FONT`).
+              headerTitleStyle: {
+                color: colors.text.primary,
+                ...(typography.h3.fontFamily ? { fontFamily: typography.h3.fontFamily } : {}),
+              },
               headerShadowVisible: false,
             }}
           >

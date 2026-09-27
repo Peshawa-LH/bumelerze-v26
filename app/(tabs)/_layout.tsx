@@ -17,7 +17,7 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
  */
 export default function TabLayout() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
 
   function icon(name: IoniconName) {
     return function renderIcon({
@@ -42,6 +42,22 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface.raised,
           borderTopColor: colors.border.default,
+        },
+        // Always below the icon. React Navigation's default switches to
+        // beside-icon in a landscape-shaped viewport and gives the label a
+        // fixed sliver next to the icon — English "Home" survives, Sorani
+        // "ڕێکخستنەکان" was clipped to its first letter (seen live,
+        // 2026-09-27). Five short labels belong under their icons anyway.
+        tabBarLabelPosition: "below-icon",
+        // The label carries the theme's face explicitly: the tab bar sets
+        // its own inline system font, which no document-level rule can
+        // reach, so Vazirmatn (Arabic-script locales) has to be handed in.
+        tabBarLabelStyle: {
+          fontSize: typography.labelCaption.fontSize,
+          fontWeight: typography.labelCaption.fontWeight,
+          ...(typography.labelCaption.fontFamily
+            ? { fontFamily: typography.labelCaption.fontFamily }
+            : {}),
         },
       }}
     >

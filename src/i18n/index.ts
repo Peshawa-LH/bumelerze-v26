@@ -136,7 +136,9 @@ function applyDocumentFontWeb(): void {
   style.id = WEB_FONT_STYLE_ID;
   style.textContent =
     'html[dir="rtl"] body, html[dir="rtl"] body * { ' +
-    'font-family: "Vazirmatn-Regular", "Vazirmatn", "Noto Naskh Arabic", system-ui, sans-serif; }';
+    // `!important`: React Navigation's tab bar and headers set an inline
+    // system font-family, which a plain stylesheet rule cannot override.
+    'font-family: "Vazirmatn-Regular", "Vazirmatn", "Noto Naskh Arabic", system-ui, sans-serif !important; }';
   document.head.appendChild(style);
 }
 
