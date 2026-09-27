@@ -127,5 +127,5 @@ export const PUBLISHED_ID_BY_CATALOG_ID: ReadonlyMap<string, string> = new Map([
   ["bml2026025s", "bml202602b1"],
   ["bml2026025t", "bml202600s0"],
   ["bml2026025u", "bml202600s5"],
-  ["bml2026025v", "bml20260006"],
+  ["bml2026025v", "bml202600sh"],
 ]);
