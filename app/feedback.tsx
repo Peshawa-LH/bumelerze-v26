@@ -2,6 +2,8 @@ import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
+
+import { toDurablePhotoUri } from "@/lib/durable-photo-uri";
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -82,9 +84,14 @@ export default function FeedbackScreen() {
     if (result.canceled) {
       return;
     }
-    const picked: PickedPhoto[] = result.assets
-      .slice(0, remainingSlots)
-      .map((asset) => ({ id: Crypto.randomUUID(), uri: asset.uri }));
+    // Bytes are read NOW, while the picked file is live — a web `blob:`
+    // uri persisted for a later upload is dead by then (see
+    // `toDurablePhotoUri`). Native passes the `file://` uri straight through.
+    const picked: PickedPhoto[] = await Promise.all(
+      result.assets
+        .slice(0, remainingSlots)
+        .map(async (asset) => ({ id: Crypto.randomUUID(), uri: await toDurablePhotoUri(asset) })),
+    );
     setPhotos((current) => [...current, ...picked]);
   }
 

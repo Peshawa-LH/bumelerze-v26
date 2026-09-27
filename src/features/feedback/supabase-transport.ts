@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { File } from "expo-file-system";
 import { Platform } from "react-native";
 
+import { dataUriMimeType } from "@/lib/durable-photo-uri";
+
 import { getSupabaseClient, signInAnonymously } from "@/lib/supabase";
 
 import type {
@@ -122,6 +124,12 @@ async function ensureAnonymousUserId(client: SupabaseClient): Promise<string | n
  * `inferPhotoContentType`, narrowed to the three mime types migration
  * 0020's bucket allows. */
 function inferPhotoContentType(uri: string): string {
+  // A `data:` uri (web, since 2026-09-27) says what it holds; trust that
+  // over an extension it does not have.
+  const declared = dataUriMimeType(uri);
+  if (declared === "image/png" || declared === "image/webp" || declared === "image/jpeg") {
+    return declared;
+  }
   const lower = uri.toLowerCase();
   if (lower.endsWith(".png")) {
     return "image/png";

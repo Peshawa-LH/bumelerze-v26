@@ -1,6 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+
+import { toDurablePhotoUri } from "@/lib/durable-photo-uri";
 import {
   Image,
   Pressable,
@@ -75,7 +77,9 @@ export default function DetailsReportScreen() {
       allowsMultipleSelection: false,
     });
     if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
+      // Read at pick time: a web `blob:` uri does not survive to the queued
+      // upload (see `toDurablePhotoUri`).
+      setPhotoUri(await toDurablePhotoUri(result.assets[0]));
     }
   }
 
