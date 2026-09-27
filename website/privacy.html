@@ -1,11 +1,4 @@
 <!doctype html>
-<!-- DRAFT: pending owner (Peshawa) review before publication. -->
-<!-- Revised 2026-08-18 to match the live Supabase backend (verified against
-     supabase/migrations/0003, 0004, 0005, 0016, and src/lib/supabase.ts,
-     src/features/telemetry/ping.ts): felt reports, photos, and comments are
-     transmitted and stored, not device-only. The previous version of this
-     page understated data collection; do not restore the old "device only"
-     wording. -->
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
@@ -51,90 +44,29 @@
 
 <main id="main" class="wrap">
   <h1>Privacy policy</h1>
-  <p class="meta">Effective date: 18 August 2026</p>
+  <p class="meta">Effective date: 27 September 2026</p>
 
-  <h2>The short version</h2>
+  <p>Bumelerze is an independent earthquake monitoring system for Kurdistan and Iraq. This page explains what the app collects and why.</p>
+
+  <h2>What we collect</h2>
   <ul>
-    <li>Bumelerze has <strong>no accounts and no sign-up</strong>: we never ask
-    for your name, email address, or phone number.</li>
-    <li><strong>No ads, no ad SDKs, no third-party analytics or trackers.</strong></li>
-    <li><strong>We never sell or share your data</strong> for advertising or any
-    commercial purpose.</li>
-    <li>When you send a felt report, it is transmitted to and stored in
-    Bumelerze's own database so we can build community shaking maps. Your
-    individual report is never shown to the public: only combined, aggregated
-    data is published, once enough reports exist for an area.</li>
+    <li><strong>No account.</strong> The app never asks for your name, email address or phone number. Each install gets an anonymous identifier that is not linked to you.</li>
+    <li><strong>Felt reports</strong>, only when you choose to send one: the shaking level you pick, any optional details, an optional photo or comment, your location if you allow it, and the time.</li>
+    <li><strong>Feedback</strong>, only when you choose to send it: your message, an optional contact address, optional screenshots, and the app version, language and platform.</li>
+    <li><strong>An anonymous launch count</strong>: when the app opens it records a coarse region (city scale) and the platform, with no identifier.</li>
   </ul>
 
-  <h2>What the app collects</h2>
+  <h2>How we use it</h2>
+  <p>Felt reports are combined into community shaking maps. Your individual report and your exact location are never published. Feedback is used to improve the app. We do not sell or share your data, and the app contains no advertising and no third-party trackers.</p>
 
-  <h3>Anonymous identity</h3>
-  <p>The first time you open the app, it creates an anonymous identity for
-  your install (using Supabase's anonymous authentication) and generates a
-  random device identifier on your phone. Neither is <strong>linked to your
-  name, email address, or phone number</strong>: there is no sign-up or
-  account to create, and a fresh install always gets a fresh identity.</p>
+  <h2>Location</h2>
+  <p>Location is requested only while you use the app and only with your permission. If you decline, the app still works and you can pick your town from a list instead.</p>
 
-  <h3>Felt reports</h3>
-  <p>When you choose to send a “I felt it!” report, it can include: the
-  shaking level you picked, an optional damage grade and building type, your
-  answers to the optional follow-up questions, an optional comment, an
-  optional photo, your location at the time of the report (see below), and a
-  timestamp. Sending a report, and every optional field inside it, is always
-  your choice.</p>
+  <h2>Your data</h2>
+  <p>To ask about or delete the reports tied to your install, write to <a href="mailto:hello@bumelerze.com">hello@bumelerze.com</a> and quote the device ID shown inside the app.</p>
 
-  <h3>Location</h3>
-  <p>The app asks for location permission <strong>only while you are using
-  it</strong>: it never requests background or “always on” location. Location
-  is used for two things: showing the distance from you to each earthquake, and
-  attaching a position to your felt report so it is valid scientific testimony.
-  Location is <strong>optional</strong>: if you deny the permission, felt
-  reports still work; you pick your town from a list instead.</p>
-
-  <h2>Where your data goes</h2>
-  <p>Felt reports you send are transmitted to and stored in Bumelerze's own
-  database (hosted on Supabase, in the EU, Frankfurt). That data belongs to
-  Bumelerze and is never sold, shared, or used for advertising.</p>
-  <ul>
-    <li>An optional photo you attach goes into private storage that only the
-    Bumelerze project can read. It is held for moderation and is
-    <strong>not public</strong>.</li>
-    <li>An optional comment is checked by moderation before it can appear
-    publicly.</li>
-    <li>Your individual felt report, including its exact location, is
-    <strong>never shown to the public</strong>. Aggregated shaking data for an
-    area is published only once enough reports exist there (currently at
-    least three), so no single report can be identified on the public map.</li>
-    <li>Bumelerze's computed SHAKEmap products, published openly in the
-    Bumelerze Atlas, are built from this aggregated, scientific data and
-    contain no personal information.</li>
-    <li>The only other network requests the app makes are read-only requests
-    to public earthquake data services (USGS, EMSC, GEOFON); those contain
-    nothing about you.</li>
-  </ul>
-
-  <h2>Telemetry</h2>
-  <p>The app sends a small, anonymous ping when it launches, at most once per
-  app session, so we can get a rough count of active installs. It records
-  only a coarse location (city/region scale, not your exact position) and
-  your device's platform (iOS, Android, or web). It carries
-  <strong>no device identifier of any kind</strong>, not even the anonymous
-  one described above, and cannot be linked back to you or to your felt
-  reports. This is disclosed in the app's Settings screen.</p>
-
-  <h2>Deleting your data</h2>
-  <p>Write to <a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a>
-  and mention your in-app device ID (shown inside the app, so you can share
-  it without revealing anything personal) to ask about the reports tied to
-  your device. Bumelerze does not yet have a fully automated self-service
-  deletion tool; email is the way to reach us today.</p>
-
-  <h2>Changes to this policy</h2>
-  <p>If our data practices change, this page will be updated and the
-  effective date above revised before the change applies.</p>
-
-  <h2>Contact</h2>
-  <p><a href="mailto:hello@bumelerze.com"><bdi>hello@bumelerze.com</bdi></a></p>
+  <h2>Changes</h2>
+  <p>If this policy changes, this page and the date above will be updated first.</p>
 </main>
 
 <footer class="site-footer">
