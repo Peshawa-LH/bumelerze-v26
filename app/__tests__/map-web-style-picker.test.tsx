@@ -164,9 +164,9 @@ describe("MapScreenWeb basemap style picker — no MapTiler key configured", () 
 
     await expandStylePicker();
     expect(screen.getByText(i18n.t("map.layers.faultsAttribution"))).toBeTruthy();
-    const toggle = screen.getByRole("switch", { name: i18n.t("map.layers.faults") });
+    const toggle = screen.getByRole("checkbox", { name: i18n.t("map.layers.faults") });
     await act(async () => {
-      fireEvent(toggle, "valueChange", true);
+      fireEvent.press(toggle);
     });
 
     const call = mockMapAddLayer.mock.calls.find(

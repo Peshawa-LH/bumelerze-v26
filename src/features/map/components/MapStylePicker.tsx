@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { isRTLLocale } from "@/i18n";
@@ -189,7 +189,19 @@ export function MapStylePicker({
             const on = isOverlayOn(overlays, layer.id);
             return (
               <View key={layer.id} style={{ gap: 2 }}>
-                <View style={[styles.layerRow, { gap: spacing[2] }]}>
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: on }}
+                  accessibilityLabel={t(layer.titleKey)}
+                  onPress={() => onToggleOverlay(layer.id, !on)}
+                  hitSlop={6}
+                  style={[styles.layerRow, { gap: spacing[2] }]}
+                >
+                  <Ionicons
+                    name={on ? "checkbox" : "square-outline"}
+                    size={22}
+                    color={on ? colors.brand.primary : colors.text.secondary}
+                  />
                   <Text
                     allowFontScaling
                     style={{
@@ -197,18 +209,12 @@ export function MapStylePicker({
                       color: colors.text.primary,
                       fontSize: typography.bodyMeta.fontSize,
                       lineHeight: typography.bodyMeta.lineHeight,
+                      fontWeight: on ? "600" : "400",
                     }}
                   >
                     {t(layer.titleKey)}
                   </Text>
-                  <Switch
-                    value={on}
-                    onValueChange={(next) => onToggleOverlay(layer.id, next)}
-                    accessibilityRole="switch"
-                    accessibilityLabel={t(layer.titleKey)}
-                    trackColor={{ true: colors.brand.primary }}
-                  />
-                </View>
+                </Pressable>
                 <Text
                   allowFontScaling
                   style={{
@@ -250,8 +256,7 @@ const styles = StyleSheet.create({
   layerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    minHeight: 36,
+    minHeight: 40,
   },
   chip: {
     borderWidth: 1.5,
