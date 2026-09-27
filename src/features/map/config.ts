@@ -60,7 +60,17 @@ export const MAP_STYLE_URLS = {
  * `experiments.baseUrl` / `BUMELERZE_WEB_BASE_URL`), so this always matches
  * wherever the app itself is actually served from.
  */
-export const MAP_WORKER_URL = `${process.env.EXPO_BASE_URL ?? ""}/maplibre-gl-worker.mjs`;
+/**
+ * Build stamp on the URLs of the files MapLibre fetches from `public/`.
+ * The Pages workflow sets `EXPO_PUBLIC_BUILD_ID` to the commit; without
+ * it (2026-09-27) the RTL plugin's URL never changed, so phones kept the
+ * old plugin long after a deploy fixed it. `maplibre-gl-shared.mjs`,
+ * imported by the worker itself, is not stamped — it only changes on a
+ * MapLibre upgrade and the CDN's max-age heals that within minutes.
+ */
+const MAP_ASSET_REVISION = process.env.EXPO_PUBLIC_BUILD_ID ?? "dev";
+
+export const MAP_WORKER_URL = `${process.env.EXPO_BASE_URL ?? ""}/maplibre-gl-worker.mjs?v=${MAP_ASSET_REVISION}`;
 
 /**
  * The RTL text-shaping plugin (`@mapbox/mapbox-gl-rtl-text`) — required for
@@ -80,7 +90,7 @@ export const MAP_WORKER_URL = `${process.env.EXPO_BASE_URL ?? ""}/maplibre-gl-wo
  * derivation so this always resolves wherever the app itself is served
  * from.
  */
-export const MAP_RTL_TEXT_PLUGIN_URL = `${process.env.EXPO_BASE_URL ?? ""}/mapbox-gl-rtl-text.js`;
+export const MAP_RTL_TEXT_PLUGIN_URL = `${process.env.EXPO_BASE_URL ?? ""}/mapbox-gl-rtl-text.js?v=${MAP_ASSET_REVISION}`;
 
 /** Marker visual size range, magnitude-scaled (marker-helpers.ts). Kept
  * modest — a full-screen map showing dozens of the 30-day region window's

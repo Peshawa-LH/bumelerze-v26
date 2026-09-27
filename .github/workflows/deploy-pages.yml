@@ -50,6 +50,9 @@ jobs:
           # domain (same mechanism as the Netlify /app base — see
           # app.config.ts webBaseUrl).
           BUMELERZE_WEB_BASE_URL: /app
+          # Stamps the map worker and RTL plugin URLs so a deploy is never
+          # served with a browser's stale copy of either (map/config.ts).
+          EXPO_PUBLIC_BUILD_ID: ${{ github.sha }}
           # Publishable client values — same reasoning as netlify.toml:
           # EXPO_PUBLIC_* vars ship inside every client bundle by design;
           # the anon key is Supabase's public key, protected by RLS.
