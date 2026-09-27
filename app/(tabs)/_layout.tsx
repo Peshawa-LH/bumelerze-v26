@@ -52,8 +52,15 @@ export default function TabLayout() {
         // The label carries the theme's face explicitly: the tab bar sets
         // its own inline system font, which no document-level rule can
         // reach, so Vazirmatn (Arabic-script locales) has to be handed in.
+        // Five tabs on a 320 px CSS viewport (the iPhone SE class) leave
+        // 64 px per item. React Navigation pads each item 5 px a side; the
+        // longest Sorani label, ڕێکخستنەکان, is 64 px at 12 px and was
+        // still clipping there after the below-icon fix (measured live).
+        // 2 px padding and 11 px for Arabic-script labels make it fit;
+        // phone widths from 375 px never needed either.
+        tabBarItemStyle: { paddingHorizontal: 2 },
         tabBarLabelStyle: {
-          fontSize: typography.labelCaption.fontSize,
+          fontSize: typography.labelCaption.fontFamily ? 11 : typography.labelCaption.fontSize,
           fontWeight: typography.labelCaption.fontWeight,
           ...(typography.labelCaption.fontFamily
             ? { fontFamily: typography.labelCaption.fontFamily }
