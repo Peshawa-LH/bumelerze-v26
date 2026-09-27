@@ -76,6 +76,9 @@ export function MapFilterPanel({
   const { t, i18n } = useTranslation();
   const { colors, spacing, typography } = useTheme();
   const locale = i18n.language;
+  // See MapStylePicker's identically-named value: a logical end offset is
+  // the right edge on web whatever the locale.
+  const popoverSide = isRTLLocale(locale) ? { left: 0 } : { right: 0 };
   const dir = isRTLLocale(locale) ? "rtl" : "ltr";
 
   const magnitudeNarrowed = isMagnitudeRangeNarrowed(magnitudeRange, magnitudeBounds);
@@ -147,7 +150,7 @@ export function MapFilterPanel({
         // instead of pushing the OTHER icon button out of the way — see
         // this component's own header Pressable (unchanged) for the
         // collapse affordance once open.
-        compact && [styles.popover, { marginTop: spacing[2] }],
+        compact && [styles.popover, popoverSide, { marginTop: spacing[2] }],
       ]}
     >
       <Pressable
@@ -356,13 +359,13 @@ const styles = StyleSheet.create({
   // positioned ancestor (`map.web.tsx`'s `controlsColumn`, an ordinary View
   // and therefore already a valid `position: relative` context by RN's own
   // default), so opening this panel never reflows the sibling style-picker
-  // icon button next to it. `end: 0` (logical, RTL-safe) keeps it hugging
+  // icon button next to it. the locale-chosen side keeps it hugging
   // the same edge the collapsed icon row is anchored to, so it stays
   // within a narrow viewport instead of overflowing past the screen edge.
   popover: {
     position: "absolute",
     top: "100%",
-    end: 0,
+    minWidth: 240,
     zIndex: 30,
     shadowColor: "#000",
     shadowOpacity: 0.25,

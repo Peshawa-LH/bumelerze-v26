@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { isRTLLocale } from "@/i18n";
 import { useTheme } from "@/theme";
 import {
   DEFAULT_MAP_STYLE_CATALOG_ID,
@@ -51,8 +52,15 @@ export function MapStylePicker({
   overlays,
   onToggleOverlay,
 }: MapStylePickerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, spacing, typography } = useTheme();
+  // The popover hugs the control column, which sits at the screen's
+  // inline-end (right in LTR, left in RTL), and must open towards the
+  // centre. A logical end offset cannot say that on web: react-native-web's
+  // I18nManager is a stub (always LTR), so it resolved to the right and the
+  // Sorani panel ran off the left edge (2026-09-28). Pick the side from
+  // the locale instead, as MapFilterPanel does for its slider.
+  const popoverSide = isRTLLocale(i18n.language) ? { left: 0 } : { right: 0 };
 
   const anyOverlayOn =
     overlays !== undefined &&
@@ -80,7 +88,7 @@ export function MapStylePicker({
       style={[
         styles.container,
         { borderColor: colors.border.default, backgroundColor: colors.surface.raised },
-        compact && [styles.popover, { marginTop: spacing[2] }],
+        compact && [styles.popover, popoverSide, { marginTop: spacing[2] }],
       ]}
     >
       <Pressable
@@ -255,7 +263,7 @@ const styles = StyleSheet.create({
   popover: {
     position: "absolute",
     top: "100%",
-    end: 0,
+    minWidth: 240,
     zIndex: 30,
     shadowColor: "#000",
     shadowOpacity: 0.25,
