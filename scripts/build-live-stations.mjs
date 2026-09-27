@@ -8,7 +8,7 @@
  * Curation (owner, 2026-09-27: ~40 stations, every Iraqi one even when
  * silent): all of the Iraqi Seismic Observatory (MP); KOERI's KO stations
  * within KO_MAX_KM of Erbil; GE.ARPR and IU.GNI; the nearest few Caucasus
- * stations. Each station is probed for data in the last 24 h so the map
+ * stations. Each station is probed for data in the last hour so the map
  * can grey the silent ones at first paint; the app re-checks on tap.
  *
  *   node scripts/build-live-stations.mjs
@@ -74,7 +74,7 @@ async function names(service, net) {
 
 async function lastSeen(st) {
   const end = new Date();
-  const start = new Date(end.getTime() - 24 * 3600 * 1000);
+  const start = new Date(end.getTime() - 60 * 60 * 1000);
   const url = `${SERVICES[st.service]}/dataselect/1/query?net=${st.net}&sta=${st.sta}&cha=${st.channel}&start=${start.toISOString().slice(0, 19)}&end=${end.toISOString().slice(0, 19)}`;
   try {
     const r = await fetch(url, { method: "GET", redirect: "follow" });

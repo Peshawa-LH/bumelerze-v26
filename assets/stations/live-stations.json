@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-27T19:18:51.398Z",
+  "builtAt": "2026-09-27T20:41:00.506Z",
   "reference": {
     "lat": 36.19,
     "lon": 44.01
@@ -20,7 +20,7 @@
       "country": "IQ",
       "operator": "Iraqi Seismic Observatory",
       "credit": "Iraqi Seismic Observatory via EarthScope",
-      "lastSeenAt": "2026-09-27T19:07:41.111Z"
+      "lastSeenAt": "2026-09-27T20:39:05.188Z"
     },
     {
       "id": "KO.CUKT",
@@ -37,7 +37,7 @@
       "country": "TR",
       "operator": "KOERI",
       "credit": "Kandilli Observatory (KOERI) via EIDA",
-      "lastSeenAt": null
+      "lastSeenAt": "2026-09-27T20:39:25.571Z"
     },
     {
       "id": "MP.DHK1",
@@ -122,7 +122,7 @@
       "country": "TR",
       "operator": "KOERI",
       "credit": "Kandilli Observatory (KOERI) via EIDA",
-      "lastSeenAt": "2026-09-27T19:07:50.630Z"
+      "lastSeenAt": "2026-09-27T20:39:11.778Z"
     },
     {
       "id": "KO.VANB",
@@ -173,7 +173,7 @@
       "country": "TR",
       "operator": "KOERI",
       "credit": "Kandilli Observatory (KOERI) via EIDA",
-      "lastSeenAt": null
+      "lastSeenAt": "2026-09-27T20:39:49.920Z"
     },
     {
       "id": "MP.ANB1",
@@ -193,6 +193,74 @@
       "lastSeenAt": null
     },
     {
+      "id": "KO.CLDR",
+      "net": "KO",
+      "sta": "CLDR",
+      "channel": "HHZ",
+      "lat": 39.144,
+      "lon": 43.9172,
+      "elevM": 2094,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Caldiran, Van, Turkiye",
+      "distanceKmFromErbil": 329,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:39:21.884Z"
+    },
+    {
+      "id": "KO.SVAN",
+      "net": "KO",
+      "sta": "SVAN",
+      "channel": "HHZ",
+      "lat": 38.1511,
+      "lon": 41.1984,
+      "elevM": 650,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Silvan, Diyarbakir, Turkiye",
+      "distanceKmFromErbil": 331,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:40:43.896Z"
+    },
+    {
+      "id": "KO.MAZI",
+      "net": "KO",
+      "sta": "MAZI",
+      "channel": "HHZ",
+      "lat": 37.4593,
+      "lon": 40.4465,
+      "elevM": 1204,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Mazidagi, Mardin, Turkiye",
+      "distanceKmFromErbil": 347,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:40:26.425Z"
+    },
+    {
+      "id": "KO.MLAZ",
+      "net": "KO",
+      "sta": "MLAZ",
+      "channel": "HHZ",
+      "lat": 39.141,
+      "lon": 42.5496,
+      "elevM": 1581,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Malazgirt, Mus, Turkiye",
+      "distanceKmFromErbil": 352,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:40:37.236Z"
+    },
+    {
       "id": "A0.ALV3",
       "net": "A0",
       "sta": "ALV3",
@@ -207,7 +275,41 @@
       "country": "AM",
       "operator": "NSSP Armenia",
       "credit": "via EarthScope",
-      "lastSeenAt": null
+      "lastSeenAt": "2026-09-27T20:40:57.686Z"
+    },
+    {
+      "id": "KO.AGRB",
+      "net": "KO",
+      "sta": "AGRB",
+      "channel": "HHZ",
+      "lat": 39.5755,
+      "lon": 42.992,
+      "elevM": 1820,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Hamur, Agri, Turkiye",
+      "distanceKmFromErbil": 387,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:39:06.431Z"
+    },
+    {
+      "id": "KO.LICE",
+      "net": "KO",
+      "sta": "LICE",
+      "channel": "HHZ",
+      "lat": 38.4532,
+      "lon": 40.6446,
+      "elevM": 963,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Lice, Diyarbakir, Turkiye",
+      "distanceKmFromErbil": 390,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:40:18.889Z"
     },
     {
       "id": "A2.KCHK",
@@ -227,6 +329,40 @@
       "lastSeenAt": null
     },
     {
+      "id": "KO.DYBB",
+      "net": "KO",
+      "sta": "DYBB",
+      "channel": "HHZ",
+      "lat": 37.9532,
+      "lon": 40.1393,
+      "elevM": 657,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Kayapinar, Diyarbakir, Turkiye",
+      "distanceKmFromErbil": 395,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:39:36.523Z"
+    },
+    {
+      "id": "KO.VRTB",
+      "net": "KO",
+      "sta": "VRTB",
+      "channel": "HHZ",
+      "lat": 39.1603,
+      "lon": 41.4558,
+      "elevM": 1498,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Varto, Mus, Turkiye",
+      "distanceKmFromErbil": 399,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:40:52.967Z"
+    },
+    {
       "id": "A0.EGV3",
       "net": "A0",
       "sta": "EGV3",
@@ -241,7 +377,7 @@
       "country": "AM",
       "operator": "NSSP Armenia",
       "credit": "via EarthScope",
-      "lastSeenAt": null
+      "lastSeenAt": "2026-09-27T20:40:58.428Z"
     },
     {
       "id": "MP.KAR2",
@@ -272,6 +408,74 @@
       "service": "earthscope",
       "name": "Aghvani",
       "distanceKmFromErbil": 407,
+      "country": "AM",
+      "operator": "NSSP Armenia",
+      "credit": "via EarthScope",
+      "lastSeenAt": "2026-09-27T20:40:58.820Z"
+    },
+    {
+      "id": "KO.TASB",
+      "net": "KO",
+      "sta": "TASB",
+      "channel": "HHZ",
+      "lat": 39.9838,
+      "lon": 44.2384,
+      "elevM": 849,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Tasburun, Karakoyunlu, Igdir, Turkiye",
+      "distanceKmFromErbil": 422,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:40:47.807Z"
+    },
+    {
+      "id": "KO.BNGB",
+      "net": "KO",
+      "sta": "BNGB",
+      "channel": "HHZ",
+      "lat": 38.9913,
+      "lon": 40.6792,
+      "elevM": 1180,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Ilicalar, Bingol, Turkiye",
+      "distanceKmFromErbil": 428,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:39:17.545Z"
+    },
+    {
+      "id": "KO.KARO",
+      "net": "KO",
+      "sta": "KARO",
+      "channel": "HHZ",
+      "lat": 39.3089,
+      "lon": 41.0493,
+      "elevM": 1820,
+      "sps": 100,
+      "service": "koeri",
+      "name": "Karliova, Bingol, Turkiye",
+      "distanceKmFromErbil": 434,
+      "country": "TR",
+      "operator": "KOERI",
+      "credit": "Kandilli Observatory (KOERI) via EIDA",
+      "lastSeenAt": "2026-09-27T20:40:04.348Z"
+    },
+    {
+      "id": "A2.SVZR",
+      "net": "A2",
+      "sta": "SVZR",
+      "channel": "HHZ",
+      "lat": 39.920301,
+      "lon": 45.471962,
+      "elevM": 2236,
+      "sps": 100,
+      "service": "earthscope",
+      "name": "Sevadzayr",
+      "distanceKmFromErbil": 434,
       "country": "AM",
       "operator": "NSSP Armenia",
       "credit": "via EarthScope",
@@ -310,6 +514,23 @@
       "operator": "IRIS/USGS GSN",
       "credit": "GSN via EarthScope",
       "lastSeenAt": null
+    },
+    {
+      "id": "A2.LRNG",
+      "net": "A2",
+      "sta": "LRNG",
+      "channel": "HHZ",
+      "lat": 40.258703,
+      "lon": 43.873974,
+      "elevM": 1077,
+      "sps": 100,
+      "service": "earthscope",
+      "name": "LERNAGOG",
+      "distanceKmFromErbil": 453,
+      "country": "AM",
+      "operator": "NSSP Armenia",
+      "credit": "via EarthScope",
+      "lastSeenAt": "2026-09-27T20:40:59.793Z"
     },
     {
       "id": "MP.ANB2",
@@ -363,6 +584,23 @@
       "lastSeenAt": null
     },
     {
+      "id": "GE.ARPR",
+      "net": "GE",
+      "sta": "ARPR",
+      "channel": "BHZ",
+      "lat": 39.09289,
+      "lon": 38.33557,
+      "elevM": 1537,
+      "sps": 20,
+      "service": "geofon",
+      "name": "GEOFON/KOERI/MedNet Station Arapgir, Turkey",
+      "distanceKmFromErbil": 595,
+      "country": "TR",
+      "operator": "GEOFON",
+      "credit": "GEOFON (GFZ)",
+      "lastSeenAt": "2026-09-27T20:40:57.382Z"
+    },
+    {
       "id": "MP.SAM2",
       "net": "MP",
       "sta": "SAM2",
@@ -394,7 +632,7 @@
       "country": "IQ",
       "operator": "Iraqi Seismic Observatory",
       "credit": "Iraqi Seismic Observatory via EarthScope",
-      "lastSeenAt": "2026-09-27T19:07:20.523Z"
+      "lastSeenAt": "2026-09-27T20:39:03.035Z"
     }
   ]
 }
