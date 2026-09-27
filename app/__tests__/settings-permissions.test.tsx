@@ -193,13 +193,16 @@ describe("Settings screen — My Data + Device permissions", () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
+    // The owner's shortened footer (feedback 59b3eaa9, 2026-09-27): one
+    // sentence, the licence line, the trademark line, and the logo above.
     expect(
-      screen.getByText(/independent earthquake monitoring project/),
+      screen.getByText("Bumelerze is an independent earthquake monitoring system for Kurdistan and Iraq."),
     ).toBeTruthy();
     expect(screen.getByText(/licensed under CC BY 4.0/)).toBeTruthy();
     expect(
-      screen.getByText('"Bumelerze" and its logo are trademarks of the project.'),
+      screen.getByText("Bumelerze™ and its logo are trademarks of the project."),
     ).toBeTruthy();
+    expect(screen.getByLabelText("Bumelerze")).toBeTruthy();
 
     fireEvent.press(screen.getByRole("link", { name: "Privacy policy" }));
     expect(mockOpenURL).toHaveBeenCalledWith("https://bumelerze.com/privacy.html");

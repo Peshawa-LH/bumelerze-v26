@@ -48,7 +48,11 @@ const approvedNavy = logoColorHex("approved-navy");
 const config: ExpoConfig = {
   name: "Bumelerze",
   slug: "bumelerze",
-  version: "0.1.0",
+  // The app's own version, in the same 26.x generation as the engine
+  // (v26.1.2) but on its own cadence: this is the first state reviewed
+  // screen by screen with the owner (2026-09-27). Shown in the Settings
+  // footer and stamped on every feedback row.
+  version: "26.1.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "bumelerze",

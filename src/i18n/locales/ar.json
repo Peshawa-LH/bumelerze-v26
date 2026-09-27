@@ -466,11 +466,12 @@
     "permissionsStatusUndetermined": "لم يُطلب بعد",
     "devicePermissionsSomeDeniedHint": "بعض الأذونات متوقفة. افتح إعدادات جهازك لتفعيلها.",
     "devicePermissionsSomeDeniedHintWeb": "بعض الأذونات متوقفة. تحقق من أذونات هذا الموقع في إعدادات متصفحك لتفعيلها.",
-    "footerAbout": "بوملێرزە مشروع مستقل لرصد الزلازل في إقليم كوردستان العراق، يديره مهندسون في هندسة الزلازل. تأتي بيانات الأحداث من USGS وEMSC وGEOFON. تُحسب الشدة والأضرار ومنتجات SHAKEmap بواسطة محرك بوملێرزە الخاص.",
+    "footerAbout": "بوملێرزە نظام مستقل لرصد الزلازل في كوردستان والعراق.",
     "footerPrivacyLink": "سياسة الخصوصية",
     "footerAttribution": "بيانات الزلازل من USGS وEMSC (seismicportal.eu) وGEOFON (مركز GFZ هلمهولتز لعلوم الأرض، geofon.gfz.de) مرخّصة بموجب CC BY 4.0.",
-    "footerTrademark": "\"بوملێرزە\" وشعاره علامتان تجاريتان للمشروع.",
-    "footerVersion": "الإصدار {{version}}"
+    "footerTrademark": "بوملێرزە™ وشعاره علامتان تجاريتان للمشروع.",
+    "footerVersion": "إصدار تطبيق بوملێرزە {{version}}",
+    "footerLogoA11yLabel": "بوملێرزە"
   },
   "onboarding": {
     "back": "رجوع",

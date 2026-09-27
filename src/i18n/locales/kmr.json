@@ -466,11 +466,12 @@
     "permissionsStatusUndetermined": "Hê nehatiye pirsîn",
     "devicePermissionsSomeDeniedHint": "Hin destûr girtî ne. Sazkariyên cîhaza xwe veke da ku wan vekî.",
     "devicePermissionsSomeDeniedHintWeb": "Hin destûr girtî ne. Destûrên vê malperê di sazkariyên geroka xwe de kontrol bike da ku wan vekî.",
-    "footerAbout": "Bumelerze projeyeke serbixwe ya çavdêriya erdhejê ye ji bo Herêma Kurdistana Iraqê, ji aliyê endezyarên erdhejê ve tê meşandin. Daneyên bûyeran ji USGS, EMSC, û GEOFON tên. Tundî, zirar, û berhemên SHAKEmap ji aliyê motora Bumelerze ya xwe ve tên hesibandin.",
+    "footerAbout": "Bumelerze sîstemeke serbixwe ya çavdêriya erdhejê ye ji bo Kurdistan û Iraqê.",
     "footerPrivacyLink": "Polîtîkaya nihêniyê",
     "footerAttribution": "Daneyên erdhejê yên USGS, EMSC (seismicportal.eu), û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) di bin lîsansa CC BY 4.0 de ne.",
-    "footerTrademark": "\"Bumelerze\" û logoya wê nîşanên bazirganî yên projeyê ne.",
-    "footerVersion": "Guhertoya {{version}}"
+    "footerTrademark": "Bumelerze™ û logoya wê nîşanên bazirganî yên projeyê ne.",
+    "footerVersion": "Guhertoya sepana Bumelerze {{version}}",
+    "footerLogoA11yLabel": "Bumelerze"
   },
   "onboarding": {
     "back": "Vegere",

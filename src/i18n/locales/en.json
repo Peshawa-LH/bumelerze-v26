@@ -466,11 +466,12 @@
     "permissionsStatusUndetermined": "Not asked yet",
     "devicePermissionsSomeDeniedHint": "Some permissions are off. Open your device settings to turn them on.",
     "devicePermissionsSomeDeniedHintWeb": "Some permissions are off. Check this site's permissions in your browser settings to turn them on.",
-    "footerAbout": "Bumelerze is an independent earthquake monitoring project for the Kurdistan Region of Iraq, maintained by earthquake engineers. Event data comes from USGS, EMSC, and GEOFON. Intensity, damage, and SHAKEmap products are computed by Bumelerze's own engine.",
+    "footerAbout": "Bumelerze is an independent earthquake monitoring system for Kurdistan and Iraq.",
     "footerPrivacyLink": "Privacy policy",
     "footerAttribution": "Earthquake data from USGS, EMSC (seismicportal.eu), and GEOFON (GFZ Helmholtz Centre for Geosciences, geofon.gfz.de) is licensed under CC BY 4.0.",
-    "footerTrademark": "\"Bumelerze\" and its logo are trademarks of the project.",
-    "footerVersion": "Version {{version}}"
+    "footerTrademark": "Bumelerze™ and its logo are trademarks of the project.",
+    "footerVersion": "Bumelerze app version {{version}}",
+    "footerLogoA11yLabel": "Bumelerze"
   },
   "onboarding": {
     "back": "Back",

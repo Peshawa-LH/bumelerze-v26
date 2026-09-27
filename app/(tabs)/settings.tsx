@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { Image } from "expo-image";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -559,13 +560,33 @@ function OnboardingSection() {
  * [REVIEW copy]: `footerAbout` wording is the owner's own draft from the
  * wave brief, used verbatim — flagging per his "mark it so he can veto"
  * instruction. */
+/**
+ * The app's one branded surface (owner, feedback 59b3eaa9, kept simple on
+ * 2026-09-27: "the logo of the app and a trademark for Bumelerze" in the
+ * Settings footer). The primary horizontal mark on light, the reversed
+ * mark on dark — the owner's own logo package (`assets/brand/README.md`),
+ * rendered by `expo-image` the same way the MapTiler mark is; there is no
+ * SVG-as-component transformer in this app and none is needed for a
+ * static image. The copy is the owner's shortened footer: one sentence,
+ * the privacy link, the data licence, the app version, the trademark.
+ */
 function FooterSection() {
   const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
+  const { colors, typography, spacing, scheme } = useTheme();
   const appVersion = Constants.expoConfig?.version ?? "";
+  const logoSource =
+    scheme === "dark"
+      ? require("../../assets/brand/logo/bumelerze-primary-horizontal-reversed.svg")
+      : require("../../assets/brand/logo/bumelerze-primary-horizontal.svg");
 
   return (
-    <View style={{ gap: spacing[2] }}>
+    <View style={{ gap: spacing[3], paddingTop: spacing[4] }}>
+      <Image
+        source={logoSource}
+        contentFit="contain"
+        accessibilityLabel={t("settings.footerLogoA11yLabel")}
+        style={styles.footerLogo}
+      />
       <Text
         style={{
           color: colors.text.secondary,
@@ -599,6 +620,17 @@ function FooterSection() {
       >
         {t("settings.footerAttribution")}
       </Text>
+      {appVersion ? (
+        <Text
+          style={{
+            color: colors.text.tertiary,
+            fontSize: typography.bodyMeta.fontSize,
+            lineHeight: typography.bodyMeta.lineHeight,
+          }}
+        >
+          {t("settings.footerVersion", { version: appVersion })}
+        </Text>
+      ) : null}
       <Text
         style={{
           color: colors.text.tertiary,
@@ -608,16 +640,6 @@ function FooterSection() {
       >
         {t("settings.footerTrademark")}
       </Text>
-      {appVersion ? (
-        <Text
-          style={{
-            color: colors.text.tertiary,
-            fontSize: typography.bodyMeta.fontSize,
-          }}
-        >
-          {t("settings.footerVersion", { version: appVersion })}
-        </Text>
-      ) : null}
     </View>
   );
 }
@@ -625,6 +647,14 @@ function FooterSection() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+  },
+  // The horizontal mark's own 5:1 box (`viewBox="0 0 1800 360"`), at a
+  // width that reads as a signature rather than a banner. `alignSelf`
+  // keeps it at the reading start under RTL.
+  footerLogo: {
+    width: 180,
+    height: 36,
+    alignSelf: "flex-start",
   },
   row: {
     borderWidth: 1,
