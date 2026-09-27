@@ -136,9 +136,14 @@ function applyDocumentFontWeb(): void {
   style.id = WEB_FONT_STYLE_ID;
   style.textContent =
     'html[dir="rtl"] body, html[dir="rtl"] body * { ' +
-    // `!important`: React Navigation's tab bar and headers set an inline
-    // system font-family, which a plain stylesheet rule cannot override.
-    'font-family: "Vazirmatn-Regular", "Vazirmatn", "Noto Naskh Arabic", system-ui, sans-serif !important; }';
+    // NO `!important`. It was added as a net for React Navigation's inline
+    // system font, and it also overrode `@expo/vector-icons`' inline
+    // `font-family: ionicons` on every glyph span — under Sorani and Arabic
+    // every icon, the header back chevron and every icon-only button
+    // rendered blank (owner, 2026-09-27). Inline styles must win: icons keep
+    // their font, and navigation text gets Vazirmatn through explicit
+    // `tabBarLabelStyle`/`headerTitleStyle` props instead.
+    'font-family: "Vazirmatn-Regular", "Vazirmatn", "Noto Naskh Arabic", system-ui, sans-serif; }';
   document.head.appendChild(style);
 }
 
