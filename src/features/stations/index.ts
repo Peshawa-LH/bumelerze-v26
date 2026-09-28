@@ -37,3 +37,10 @@ export { StationList } from "./components/StationList";
 export { StationsMap } from "./components/StationsMap";
 export { StationTraceChart } from "./components/StationTraceChart";
 export { freshnessColor } from "./components/colors";
+export {
+  appendSegment,
+  canStream,
+  DATALINK_URL,
+  openStationStream,
+  streamPattern,
+} from "./datalink";

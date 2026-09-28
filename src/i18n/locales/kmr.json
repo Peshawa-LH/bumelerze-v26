@@ -1289,6 +1289,7 @@
     "chartA11yLabel": "Deh deqîqeyên dawî yên livîna erdê li {{name}}",
     "listTitle": "{{count}} stasyon",
     "webOnlyMap": "Nexşeya stasyonan niha pêdivî bi sepana webê heye; lîsteya jêrîn li her derê dixebite.",
-    "lastSampleSeconds": "Nimûneya dawî berî {{seconds}} çirkeyan · her 30 çirkeyan nû dibe"
+    "lastSampleSeconds": "Nimûneya dawî berî {{seconds}} çirkeyan · her 30 çirkeyan nû dibe",
+    "streaming": "Weşana zindî · nimûneya dawî berî {{seconds}} çirkeyan"
   }
 }

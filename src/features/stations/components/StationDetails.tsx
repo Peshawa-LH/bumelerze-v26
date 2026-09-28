@@ -17,7 +17,7 @@ interface StationDetailsProps {
 export function StationDetails({ station }: StationDetailsProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const { status, trace, freshness, lagMs } = useStationTrace(station);
+  const { status, trace, freshness, lagMs, streaming } = useStationTrace(station);
 
   const badgeColor = freshnessColor(colors, freshness);
   const tierLabel =
@@ -91,9 +91,17 @@ export function StationDetails({ station }: StationDetailsProps) {
             ? t("stations.error")
             : status === "empty"
               ? t("stations.noData")
-              : t("stations.lastSample", {
-                  minutes: Math.max(0, Math.round((lagMs ?? 0) / 60000)),
-                })}
+              : streaming
+                ? t("stations.streaming", {
+                    seconds: Math.max(0, Math.round((lagMs ?? 0) / 1000)),
+                  })
+                : (lagMs ?? 0) < 60_000
+                  ? t("stations.lastSampleSeconds", {
+                      seconds: Math.max(0, Math.round((lagMs ?? 0) / 1000)),
+                    })
+                  : t("stations.lastSample", {
+                      minutes: Math.round((lagMs ?? 0) / 60000),
+                    })}
       </Text>
       <Text
         style={{

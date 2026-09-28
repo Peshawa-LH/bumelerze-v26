@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+
+import { appendSegment, canStream, openStationStream } from "./datalink";
 
 import { classifyFreshness, freshnessFromCatalog } from "./freshness";
-import { FdsnStationTraceTransport, type StationTraceTransport } from "./trace-transport";
+import {
+  FdsnStationTraceTransport,
+  TRACE_WINDOW_MS,
+  type StationTraceTransport,
+} from "./trace-transport";
 import type { LiveStation, StationFreshness, StationTrace } from "./types";
 
 /** Refresh cadence for the one station on screen: half a minute for a
@@ -18,6 +25,9 @@ export interface UseStationTraceResult {
   freshness: StationFreshness;
   /** Milliseconds between now and the last sample, when known. */
   lagMs: number | null;
+  /** True while a DataLink stream is feeding the trace (EarthScope ring
+   * on web); polling stays underneath as the fallback. */
+  streaming: boolean;
 }
 
 export function useStationTrace(
@@ -39,21 +49,82 @@ export function useStationTrace(
     staleTime: STATION_TRACE_REFETCH_LIVE_MS,
     retry: 1,
   });
-  if (!station) return { status: "idle", trace: null, freshness: "unknown", lagMs: null };
+  // Live stream on top of the poll (datalink.ts): packets append to the
+  // polled trace; the poll's next answer replaces the whole thing, which
+  // is fine — both describe the same seconds. `polledRef` carries the
+  // poll's latest answer without restarting the stream on every refetch.
+  const polled = query.data ?? null;
+  const polledRef = useRef<StationTrace | null>(null);
+  useEffect(() => {
+    polledRef.current = polled;
+  }, [polled]);
+  const [live, setLive] = useState<{ trace: StationTrace; at: number } | null>(null);
+  const streamable = station !== null && canStream(station);
+  const stationId = station?.id ?? null;
+  useEffect(() => {
+    if (!station || !streamable) return undefined;
+    let current: StationTrace | null = null;
+    const close = openStationStream(
+      station,
+      (segment) => {
+        const base = current ?? polledRef.current;
+        if (!base) return;
+        current = appendSegment(base, segment, TRACE_WINDOW_MS);
+        setLive({ trace: current, at: Date.now() });
+      },
+      () => setLive(null),
+    );
+    return () => {
+      close();
+      // The next station starts from its own poll, never from this one.
+      setLive(null);
+    };
+    // The station object is re-created by every catalogue render; its id
+    // is its identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stationId, streamable]);
+
+  if (!station)
+    return {
+      status: "idle",
+      trace: null,
+      freshness: "unknown",
+      lagMs: null,
+      streaming: false,
+    };
   if (query.isPending)
-    return { status: "loading", trace: null, freshness: "unknown", lagMs: null };
-  if (query.isError)
-    return { status: "error", trace: null, freshness: "unknown", lagMs: null };
-  const trace = query.data ?? null;
-  if (!trace) return { status: "empty", trace: null, freshness: "silent", lagMs: null };
-  // Lag as of the fetch (react-query's own timestamp), not of this render:
-  // pure, and the 30 s refetch keeps it current enough for a badge.
-  const fetchedAt = query.dataUpdatedAt;
+    return {
+      status: "loading",
+      trace: null,
+      freshness: "unknown",
+      lagMs: null,
+      streaming: false,
+    };
+  if (query.isError && !live)
+    return {
+      status: "error",
+      trace: null,
+      freshness: "unknown",
+      lagMs: null,
+      streaming: false,
+    };
+  const useLive = live !== null && (!polled || live.trace.endMs >= polled.endMs);
+  const trace = useLive ? live.trace : polled;
+  if (!trace)
+    return {
+      status: "empty",
+      trace: null,
+      freshness: "silent",
+      lagMs: null,
+      streaming: false,
+    };
+  const fetchedAt = useLive ? live.at : query.dataUpdatedAt;
   return {
     status: "ready",
     trace,
     freshness: classifyFreshness(trace.endMs, fetchedAt),
     lagMs: fetchedAt - trace.endMs,
+    streaming: useLive,
   };
 }
 

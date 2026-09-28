@@ -1289,6 +1289,7 @@
     "chartA11yLabel": "Last ten minutes of ground motion at {{name}}",
     "listTitle": "{{count}} stations",
     "webOnlyMap": "The station map needs the web app for now; the list below works everywhere.",
-    "lastSampleSeconds": "Last sample {{seconds}} s ago · refreshes every 30 s"
+    "lastSampleSeconds": "Last sample {{seconds}} s ago · refreshes every 30 s",
+    "streaming": "Streaming live · last sample {{seconds}} s ago"
   }
 }
