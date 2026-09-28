@@ -288,6 +288,19 @@
       "saAxis": "Sa (g)",
       "a11yLabel": "Spektruma bersivê ya deh çirkeyên dawî yên livînê, ji bo her tewereyê",
       "note": "Spektruma bersivê ya deh çirkeyên dawî: avahiyek bi her demeke xwezayî dê çiqas bihata hejandin, dampînga 5 %. Li gorî tewereya herî bihêz hatiye pîvan."
+    },
+    "recording": {
+      "title": "Tomarkirin",
+      "hint": "Pencereyeke akselerometreya xav wek pelê nivîsê tomar bike ji bo pêvajoya xwe.",
+      "duration": "{{seconds}} çirke",
+      "start": "Tomar bike",
+      "stop": "Rawestîne",
+      "countdown": "Tê tomarkirin… {{seconds}} çirke",
+      "summary": "{{seconds}} çirke · {{count}} nimûne · {{hz}} Hz pîvandî · lûtke {{peak}} g",
+      "save": "Tomar bike .txt",
+      "saved": "Hat tomarkirin",
+      "discard": "Bavêje",
+      "saveFailed": "Tomarkirin li ser vê cîhazê bi ser neket."
     }
   },
   "safety": {

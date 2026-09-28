@@ -288,6 +288,19 @@
       "saAxis": "Sa (g)",
       "a11yLabel": "Response spectrum of the last ten seconds of motion, per axis",
       "note": "Response spectrum of the last ten seconds: how hard a building of each natural period would have been shaken, 5 % damping. Scaled to the strongest axis."
+    },
+    "recording": {
+      "title": "Record",
+      "hint": "Save a window of the raw accelerometer as a text file for your own processing.",
+      "duration": "{{seconds}} s",
+      "start": "Record",
+      "stop": "Stop",
+      "countdown": "Recording… {{seconds}} s",
+      "summary": "{{seconds}} s · {{count}} samples · {{hz}} Hz measured · peak {{peak}} g",
+      "save": "Save .txt",
+      "saved": "Saved",
+      "discard": "Discard",
+      "saveFailed": "Saving failed on this device."
     }
   },
   "safety": {

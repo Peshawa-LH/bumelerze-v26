@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   ChannelLegend,
+  RecordingPanel,
   type SensorView,
   SpaceView,
   SpectrumChart,
@@ -37,8 +38,18 @@ export default function SensorScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const { status, samples, frameAt, spectrum, requestWebPermission } =
-    useAccelerometerStream();
+  const {
+    status,
+    samples,
+    frameAt,
+    spectrum,
+    recording,
+    lastRecording,
+    startRecording,
+    stopRecording,
+    discardRecording,
+    requestWebPermission,
+  } = useAccelerometerStream();
   const [view, setView] = useState<SensorView>("traces");
   const [mode, setMode] = useState<SensorMode>("phone");
   const isWeb = Platform.OS === "web";
@@ -242,6 +253,14 @@ export default function SensorScreen() {
           >
             {view === "spectrum" ? t("sensor.spectrum.note") : t("sensor.motionNote")}
           </Text>
+
+          <RecordingPanel
+            recording={recording}
+            lastRecording={lastRecording}
+            onStart={startRecording}
+            onStop={stopRecording}
+            onDiscard={discardRecording}
+          />
         </View>
       ) : null}
     </ScrollView>

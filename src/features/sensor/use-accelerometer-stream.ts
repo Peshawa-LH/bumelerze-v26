@@ -13,6 +13,7 @@ import {
 } from "./constants";
 import { binForPlot, selectWindow } from "./downsample";
 import { GravityFilter } from "./low-pass-filter";
+import type { RecordedSample, SensorRecording } from "./recording";
 import {
   computeResponseSpectrum,
   SPECTRUM_INTERVAL_MS,
@@ -75,6 +76,13 @@ export interface UseAccelerometerStreamResult {
   /** Response spectrum of the window, recomputed every
    * `SPECTRUM_INTERVAL_MS`; null until the first computation. */
   spectrum: ResponseSpectrum | null;
+  /** Recording (recording.ts): the window in progress, if any. */
+  recording: { startedAt: number; endsAt: number } | null;
+  /** The last finished recording, until saved or discarded. */
+  lastRecording: SensorRecording | null;
+  startRecording: (durationMs: number) => void;
+  stopRecording: () => void;
+  discardRecording: () => void;
   /** Web-only action for the "permission-required" state — must be invoked
    * directly from a `Pressable`'s `onPress` so the browser still sees it as
    * a user gesture by the time the permission prompt fires. A no-op on
@@ -189,6 +197,20 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
   });
   const [spectrum, setSpectrum] = useState<ResponseSpectrum | null>(null);
   const lastSpectrumAtRef = useRef(0);
+  // Recorder: filled by the same ingestion callback as the ring buffer,
+  // for exactly the requested window, raw and gravity-removed alike.
+  const recorderRef = useRef<{
+    startedAt: number;
+    endsAt: number;
+    requestedMs: number;
+    samples: RecordedSample[];
+  } | null>(null);
+  const recorderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [recording, setRecording] = useState<{
+    startedAt: number;
+    endsAt: number;
+  } | null>(null);
+  const [lastRecording, setLastRecording] = useState<SensorRecording | null>(null);
   // Lazy one-time init via useState (not a ref mutated during render, which
   // the same rule above forbids even for the common "if (!ref.current)"
   // idiom) — the buffer instance itself is intentionally mutable, we only
@@ -247,7 +269,21 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     setSpectrum(null);
     lastSpectrumAtRef.current = 0;
     const push = (reading: { x: number; y: number; z: number }) => {
-      buffer.push({ ...gravity.apply(reading), t: Date.now() });
+      const t = Date.now();
+      const linear = gravity.apply(reading);
+      buffer.push({ ...linear, t });
+      const rec = recorderRef.current;
+      if (rec && t <= rec.endsAt) {
+        rec.samples.push({
+          t,
+          rawX: reading.x,
+          rawY: reading.y,
+          rawZ: reading.z,
+          linX: linear.x,
+          linY: linear.y,
+          linZ: linear.z,
+        });
+      }
     };
 
     try {
@@ -506,11 +542,49 @@ export function useAccelerometerStream(): UseAccelerometerStreamResult {
     }, [buffer, beginStreaming, beginStreamingWeb, stopStreaming, restartTick]),
   );
 
+  const stopRecording = useCallback(() => {
+    const rec = recorderRef.current;
+    recorderRef.current = null;
+    if (recorderTimerRef.current) {
+      clearTimeout(recorderTimerRef.current);
+      recorderTimerRef.current = null;
+    }
+    setRecording(null);
+    if (rec) {
+      setLastRecording({
+        startedAt: rec.startedAt,
+        endedAt: Date.now(),
+        requestedMs: rec.requestedMs,
+        samples: rec.samples,
+      });
+    }
+  }, []);
+
+  const startRecording = useCallback(
+    (durationMs: number) => {
+      const startedAt = Date.now();
+      const endsAt = startedAt + durationMs;
+      recorderRef.current = { startedAt, endsAt, requestedMs: durationMs, samples: [] };
+      setLastRecording(null);
+      setRecording({ startedAt, endsAt });
+      if (recorderTimerRef.current) clearTimeout(recorderTimerRef.current);
+      recorderTimerRef.current = setTimeout(stopRecording, durationMs);
+    },
+    [stopRecording],
+  );
+
+  const discardRecording = useCallback(() => setLastRecording(null), []);
+
   return {
     status,
     samples: frame.samples,
     frameAt: frame.at,
     spectrum,
+    recording,
+    lastRecording,
+    startRecording,
+    stopRecording,
+    discardRecording,
     requestWebPermission,
   };
 }
