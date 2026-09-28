@@ -277,7 +277,7 @@
     "spaceA11yLabel": "Dîmena 3D ya zindî ya livîna telefona te: xalek li ser tewereyên X, Y û Z dilive û şopeke kurt li dû xwe dihêle",
     "phone": {
       "title": "Telefona te wek seysmometre",
-      "lead": "Akselerometreya wê heman fizîka seysmometreyeke pîşeyî bi kar tîne. Li vir tiştek nayê tomarkirin an şandin."
+      "lead": "Akselerometreya wê heman fizîka seysmometreyeke pîşeyî bi kar tîne. Tiştek nayê şandin; tomarkirin li ser telefona te dimîne."
     },
     "mode": {
       "phone": "Sensora telefonê",
@@ -1292,7 +1292,7 @@
       "unknown": "Tê kontrolkirin…"
     },
     "lastSample": "Nimûneya dawî berî {{minutes}} deqîqeyan · her 30 çirkeyan nû dibe",
-    "noData": "Di roja borî de ti dane ji vê stasyonê nehat.",
+    "noData": "Di 10 deqeyên borî de ti dane ji vê stasyonê nehat.",
     "loading": "Deh deqîqeyên dawî tên barkirin…",
     "error": "Niha ev stasyon nayê barkirin.",
     "distanceFromReference": "{{km}} km ji Hewlêrê",

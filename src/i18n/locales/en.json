@@ -277,7 +277,7 @@
     "spaceA11yLabel": "Live 3D view of your phone's motion: a dot moves along the X, Y and Z axes and leaves a short trail",
     "phone": {
       "title": "Your phone as a seismometer",
-      "lead": "Its accelerometer uses the same physics as a professional seismometer. Nothing here is recorded or sent."
+      "lead": "Its accelerometer uses the same physics as a professional seismometer. Nothing is sent anywhere; a recording stays on your phone."
     },
     "mode": {
       "phone": "Phone sensor",
@@ -1292,7 +1292,7 @@
       "unknown": "Checking…"
     },
     "lastSample": "Last sample {{minutes}} min ago · refreshes every 30 s",
-    "noData": "No data from this station in the last day.",
+    "noData": "No data from this station in the last 10 minutes.",
     "loading": "Loading the last ten minutes…",
     "error": "Could not load this station right now.",
     "distanceFromReference": "{{km}} km from Hewlêr (Erbil)",
