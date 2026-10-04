@@ -185,6 +185,9 @@ export default function RootLayout() {
                 <Stack.Screen name="notification-settings" />
                 <Stack.Screen name="my-data" />
                 <Stack.Screen name="feedback" />
+                <Stack.Screen name="account/sign-in" />
+                <Stack.Screen name="account/profile" />
+                <Stack.Screen name="account/callback" />
                 <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
               </>
             ) : (

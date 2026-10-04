@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { Platform } from "react-native";
 
 /**
  * Supabase client wiring — env-gated, ready before any Supabase project
@@ -79,7 +80,10 @@ export function getSupabaseClient(): SupabaseClient | null {
         storage: AsyncStorage,
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: false,
+        // Web only: the email sign-in link lands on /account/callback with
+        // the session tokens in the URL, and the client must read them.
+        // Native has no URL to read (deep links are handled separately).
+        detectSessionInUrl: Platform.OS === "web",
       },
     });
   }
@@ -126,6 +130,17 @@ export function signInAnonymously(): Promise<void> {
     });
   }
   return anonymousSignInPromise;
+}
+
+/**
+ * Forgets the memoized anonymous sign-in so `signInAnonymously()` can run
+ * again. Account sign-out and account deletion call this right after
+ * `auth.signOut()`: the memoized promise is already resolved, so without a
+ * reset the next call would return instantly and the app would keep running
+ * with no session at all.
+ */
+export function resetAnonymousSignIn(): void {
+  anonymousSignInPromise = null;
 }
 
 /** Test-only escape hatch — clears the client + sign-in caches so each test

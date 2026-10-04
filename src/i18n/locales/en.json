@@ -1329,7 +1329,21 @@
       "on-device": "On this device"
     },
     "emptyStateMessage": "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it. It takes one tap.",
-    "emptyStateCta": "Report an earthquake"
+    "emptyStateCta": "Report an earthquake",
+    "account": {
+      "create": "Create an account",
+      "createWhy": "Show your name on reports and comments. Tag your building later.",
+      "haveAccount": "I already have an account",
+      "noName": "Your account",
+      "finishProfile": "Finish your profile",
+      "editProfile": "Edit profile",
+      "signOut": "Sign out",
+      "signOutNote": "This device gets a new anonymous ID.",
+      "delete": "Delete account",
+      "deleteWarning": "This permanently deletes your profile and photo. Your reports stay, without your name.",
+      "deleteConfirm": "Delete permanently",
+      "deleteCancel": "Cancel"
+    }
   },
   "feedback": {
     "title": "Feedback",
@@ -1380,5 +1394,79 @@
     "webOnlyMap": "The station map needs the web app for now; the list below works everywhere.",
     "lastSampleSeconds": "Last sample {{seconds}} s ago · refreshes every 30 s",
     "streaming": "Streaming live · last sample {{seconds}} s ago"
+  },
+  "account": {
+    "signIn": {
+      "title": "Create an account",
+      "intro": "Enter your email. We send you a link. No password.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name@example.com",
+      "sendCode": "Send code",
+      "or": "or",
+      "google": "Continue with Google",
+      "apple": "Continue with Apple",
+      "codeLabel": "6-digit code",
+      "confirm": "Confirm",
+      "resend": "Send a new code",
+      "resendIn": "New code in {{seconds}} s",
+      "changeEmail": "Use a different email",
+      "welcomeBack": "Welcome back",
+      "claimed": "Items from this device added to your account: {{count}}",
+      "done": "Done",
+      "checkEmailTitle": "Check your email",
+      "sentTo": "We sent an email to {{email}}.",
+      "checkEmail": "Open the link on this device.",
+      "haveCode": "Have a code instead? Enter it"
+    },
+    "profile": {
+      "title": "Your profile",
+      "nameLabel": "Name",
+      "nameHint": "2–40 characters. Shown on your reports and comments.",
+      "photoLabel": "Photo (optional)",
+      "photoChoose": "Choose photo",
+      "photoChange": "Change photo",
+      "photoRemove": "Remove photo",
+      "professionLabel": "Profession (optional)",
+      "professionHint": "Private. Never shown to others.",
+      "preferNot": "Prefer not to say",
+      "terms": "I agree to the Terms and Privacy Policy.",
+      "privacyLink": "Read the privacy policy",
+      "research": "Use my reports and building information, without my name and with the location coarsened, for earthquake research and to improve Bumelerze's damage estimates. (Optional)",
+      "save": "Save",
+      "saving": "Saving…",
+      "loading": "Loading…",
+      "needsAccount": "Sign in to create a profile."
+    },
+    "professions": {
+      "engineer": "Engineer",
+      "architect": "Architect",
+      "construction": "Construction worker",
+      "teacher": "Teacher",
+      "health": "Health worker",
+      "student": "Student",
+      "public_service": "Public service",
+      "business": "Business",
+      "agriculture": "Agriculture",
+      "other": "Other"
+    },
+    "errors": {
+      "unconfigured": "Accounts are not available right now.",
+      "invalid_email": "Check the email address.",
+      "invalid_code": "That code is wrong or expired.",
+      "rate_limited": "Too many tries. Wait a minute and try again.",
+      "network": "No connection. Try again.",
+      "no_session": "Please sign in first.",
+      "name_length": "Name must be 2–40 characters.",
+      "terms_required": "Please accept the terms to continue.",
+      "avatar_too_large": "That photo is too large. Choose a smaller one.",
+      "oauth_unavailable": "This sign-in is not available on this device yet.",
+      "unknown": "Something went wrong. Try again."
+    },
+    "callback": {
+      "title": "Signing in",
+      "working": "Signing you in…",
+      "expired": "This link has expired or was already used.",
+      "backToSignIn": "Back to sign in"
+    }
   }
 }

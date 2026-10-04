@@ -5,12 +5,8 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import {
-  ContributionRow,
-  HomeBaseSection,
-  IdentityHeader,
-  buildContributionRow,
-} from "@/features/mydata";
+import { AccountCard } from "@/features/account";
+import { ContributionRow, HomeBaseSection, buildContributionRow } from "@/features/mydata";
 import {
   sortQueueItemsNewestFirst,
   useFeltQueueHasHydrated,
@@ -67,7 +63,7 @@ export default function MyDataScreen() {
         renderItem={({ item }) => <ContributionRow row={item} />}
         ListHeaderComponent={
           <View style={{ gap: spacing[3] }}>
-            <IdentityHeader />
+            <AccountCard />
             <HomeBaseSection />
             <Text
               accessibilityRole="header"

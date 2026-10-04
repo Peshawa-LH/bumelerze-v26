@@ -1329,7 +1329,21 @@
       "on-device": "Li ser vê cîhazê"
     },
     "emptyStateMessage": "Te hê tu raporek hestkirinê neşandiye. Heke tu erdhejekê hîs bikî, ji me re bibêje. Bi tenê yek lêdanê.",
-    "emptyStateCta": "Erdhejê rapor bike"
+    "emptyStateCta": "Erdhejê rapor bike",
+    "account": {
+      "create": "Hesabekî çêke",
+      "createWhy": "Navê xwe li ser raport û şîroveyan nîşan bide. Paşê avahiya xwe tomar bike.",
+      "haveAccount": "Hesabê min heye",
+      "noName": "Hesabê te",
+      "finishProfile": "Profîla xwe temam bike",
+      "editProfile": "Profîlê biguherîne",
+      "signOut": "Derkeve",
+      "signOutNote": "Ev cîhaz nasnameyeke nenas a nû digire.",
+      "delete": "Hesabê jê bibe",
+      "deleteWarning": "Ev profîl û wêneya te bi temamî jê dibe. Raporên te dimînin, bêyî navê te.",
+      "deleteConfirm": "Bi temamî jê bibe",
+      "deleteCancel": "Betal bike"
+    }
   },
   "feedback": {
     "title": "Nêrîn",
@@ -1380,5 +1394,79 @@
     "webOnlyMap": "Nexşeya stasyonan niha pêdivî bi sepana webê heye; lîsteya jêrîn li her derê dixebite.",
     "lastSampleSeconds": "Nimûneya dawî berî {{seconds}} çirkeyan · her 30 çirkeyan nû dibe",
     "streaming": "Weşana zindî · nimûneya dawî berî {{seconds}} çirkeyan"
+  },
+  "account": {
+    "signIn": {
+      "title": "Hesabekî çêke",
+      "intro": "E-nameya xwe binivîse. Em lînkekê dişînin. Bêyî şîfre.",
+      "emailLabel": "E-name",
+      "emailPlaceholder": "name@example.com",
+      "sendCode": "Kodê bişîne",
+      "or": "an",
+      "google": "Bi Google bidomîne",
+      "apple": "Bi Apple bidomîne",
+      "codeLabel": "Koda 6 hejmarî",
+      "confirm": "Piştrast bike",
+      "resend": "Kodeke nû bişîne",
+      "resendIn": "Koda nû piştî {{seconds}} çirkeyan",
+      "changeEmail": "E-nameyeke din bi kar bîne",
+      "welcomeBack": "Careke din bi xêr hatî",
+      "claimed": "Tiştên ji vê cîhazê yên li hesabê te hatin zêdekirin: {{count}}",
+      "done": "Qediya",
+      "checkEmailTitle": "E-nameya xwe kontrol bike",
+      "sentTo": "Me e-nameyek şand bo {{email}}.",
+      "checkEmail": "Lînkê li ser vê cîhazê veke.",
+      "haveCode": "Kodeke te heye? Binivîse"
+    },
+    "profile": {
+      "title": "Profîla te",
+      "nameLabel": "Nav",
+      "nameHint": "2–40 tîp. Li ser raport û şîroveyên te tê nîşandan.",
+      "photoLabel": "Wêne (bi dilê te)",
+      "photoChoose": "Wêne hilbijêre",
+      "photoChange": "Wêne biguherîne",
+      "photoRemove": "Wêne rake",
+      "professionLabel": "Pîşe (bi dilê te)",
+      "professionHint": "Taybet. Qet ji kesî re nayê nîşandan.",
+      "preferNot": "Nexwazim bibêjim",
+      "terms": "Ez bi Mercan û Siyaseta Nepenîtiyê razî me.",
+      "privacyLink": "Siyaseta nepenîtiyê bixwîne",
+      "research": "Raport û agahiyên avahiya min, bêyî navê min û bi cihê hûrkirî, ji bo lêkolîna erdhejê û baştirkirina texmînên zirarê yên Bumelerze bi kar bîne. (Bi dilê te)",
+      "save": "Tomar bike",
+      "saving": "Tê tomarkirin…",
+      "loading": "Tê barkirin…",
+      "needsAccount": "Ji bo çêkirina profîlê têkeve hesabê xwe."
+    },
+    "professions": {
+      "engineer": "Endezyar",
+      "architect": "Mîmar",
+      "construction": "Karkerê avahîsaziyê",
+      "teacher": "Mamoste",
+      "health": "Karmendê tenduristiyê",
+      "student": "Xwendekar",
+      "public_service": "Karmendê dewletê",
+      "business": "Bazirganî",
+      "agriculture": "Çandinî",
+      "other": "Yên din"
+    },
+    "errors": {
+      "unconfigured": "Hesab niha ne berdest in.",
+      "invalid_email": "E-nameyê kontrol bike.",
+      "invalid_code": "Kod şaş e an jî dema wê qediyaye.",
+      "rate_limited": "Pir hewl hatin dayîn. Hinekî bisekine û dîsa biceribîne.",
+      "network": "Girêdan tune. Dîsa biceribîne.",
+      "no_session": "Ji kerema xwe pêşî têkeve.",
+      "name_length": "Nav divê 2–40 tîp be.",
+      "terms_required": "Ji bo berdewamiyê mercan qebûl bike.",
+      "avatar_too_large": "Ev wêne pir mezin e. Yekî biçûktir hilbijêre.",
+      "oauth_unavailable": "Ev awayê têketinê hê li ser vê cîhazê ne berdest e.",
+      "unknown": "Tiştek şaş çû. Dîsa biceribîne."
+    },
+    "callback": {
+      "title": "Têketin",
+      "working": "Tê têketin…",
+      "expired": "Ev lînk qediyaye an jî berê hatiye bikaranîn.",
+      "backToSignIn": "Vegere têketinê"
+    }
   }
 }
