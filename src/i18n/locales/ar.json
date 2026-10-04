@@ -250,13 +250,13 @@
       "events": "الزلازل",
       "eventsAttribution": "مصادر USGS وEMSC وGEOFON",
       "faults": "الصدوع النشطة (GEM)",
-      "faultsAttribution": "قاعدة بيانات الصدوع النشطة العالمية GEM (CC BY-SA 4.0)",
+      "faultsAttribution": "مؤسسة GEM",
       "faultsAfead": "الصدوع النشطة (AFEAD)",
-      "faultsAfeadAttribution": "قاعدة بيانات الصدوع النشطة في أوراسيا، GIN RAS ‏(CC BY 4.0)",
+      "faultsAfeadAttribution": "GIN RAS",
       "historical": "الزلازل السابقة (5 درجات فأكثر)",
-      "historicalAttribution": "فهرس بوملێرزە، من عام 872 حتى اليوم",
+      "historicalAttribution": "فهرس بوملێرزە",
       "siteVs30": "طبيعة الأرض (Vs30)",
-      "siteVs30Attribution": "نموذج Vs30 العالمي من USGS (ملكية عامة)"
+      "siteVs30Attribution": "USGS"
     },
     "legend": {
       "title": "دليل الألوان",
@@ -265,9 +265,9 @@
       "normal": "عادي / تمدد",
       "strikeSlip": "انزلاق أفقي",
       "other": "أخرى أو غير معروفة",
-      "afeadConfidence": "خطوط AFEAD الأفتح: النشاط أقل يقيناً",
+      "afeadConfidence": "خط أفتح: أقل يقيناً",
       "quakes": "الزلازل السابقة",
-      "eraHistorical": "قبل 1900 (روايات تاريخية)",
+      "eraHistorical": "قبل 1900",
       "eraEarly": "1900–1963",
       "eraModern": "من 1964 فصاعداً",
       "quakeSize": "دائرة أكبر، قدر أكبر",
@@ -277,7 +277,7 @@
       "siteClassC": "C · تربة كثيفة، صخر لين",
       "siteClassD": "D · تربة متماسكة",
       "siteClassE": "E · تربة لينة",
-      "siteNote": "مقدّر من الانحدار، لا يصلح لتصميم موقع"
+      "siteNote": "تقدير من الانحدار، ليس للتصميم"
     },
     "overlayInfo": {
       "close": "إغلاق",
@@ -305,25 +305,24 @@
       "senseWithSecondary": "{{primary}}، مع مركّبة {{secondary}}",
       "zone": "نطاق الصدع: {{zone}}",
       "slipRate": "معدل الانزلاق: {{preferred}} مم/سنة",
-      "slipRateRange": "معدل الانزلاق: {{preferred}} مم/سنة (المدى {{min}}–{{max}})",
-      "rateRank1": "فئة معدل الانزلاق: أسرع من 5 مم/سنة",
-      "rateRank2": "فئة معدل الانزلاق: من 1 إلى 5 مم/سنة",
-      "rateRank3": "فئة معدل الانزلاق: أبطأ من 1 مم/سنة",
-      "confidenceA": "النشاط: مثبت بأدلة تاريخية أو آلية أو زلزالية قديمة",
-      "confidenceB": "النشاط: تشوه سطحي واضح، دون وصف لانزلاق حديث",
+      "slipRateRange": "معدل الانزلاق: {{preferred}} مم/سنة ({{min}}–{{max}})",
+      "rateRank1": "فئة المعدل: أكثر من 5 مم/سنة",
+      "rateRank2": "فئة المعدل: 1–5 مم/سنة",
+      "rateRank3": "فئة المعدل: أقل من 1 مم/سنة",
+      "confidenceA": "النشاط: مثبت",
+      "confidenceB": "النشاط: أدلة سطحية واضحة",
       "confidenceC": "النشاط: أدلة قليلة",
-      "confidenceD": "النشاط: أُعلن نشطاً سابقاً، والأدلة غير كافية",
+      "confidenceD": "النشاط: أدلة ضعيفة",
       "references": "المراجع: {{refs}}",
-      "sourceAfead": "المصدر: AFEAD v2021، GIN RAS ‏(CC BY 4.0)",
-      "sourceGem": "المصدر: نموذج صدوع {{catalog}} عبر GEM Global Active Faults ‏(CC BY-SA 4.0)",
+      "sourceAfead": "المصدر: AFEAD",
+      "sourceGem": "المصدر: {{catalog}} عبر GEM",
       "quakeTitle": "{{magnitude}} · {{when}}",
-      "magType": "نوع القدر: {{type}}",
-      "depth": "العمق: {{depth}}",
       "era": {
-        "historical": "قبل 1900: الموقع والقدر مأخوذان من روايات تاريخية وقد يختلفان بعشرات الكيلومترات.",
-        "early": "تسجيل آلي مبكر: قد يختلف الموقع بعشرات الكيلومترات."
+        "historical": "رواية تاريخية: الموقع غير مؤكد بعشرات الكيلومترات.",
+        "early": "تسجيل آلي مبكر: الموقع غير مؤكد بعشرات الكيلومترات."
       },
-      "catalogue": "الفهرس: {{source}} · {{id}}"
+      "catalogue": "{{source}} · {{id}}",
+      "magDepth": "{{type}} · العمق {{depth}}"
     }
   },
   "sensor": {

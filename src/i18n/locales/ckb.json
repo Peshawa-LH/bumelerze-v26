@@ -250,13 +250,13 @@
       "events": "بوومەلەرزەکان",
       "eventsAttribution": "سەرچاوەکانی USGS و EMSC و GEOFON",
       "faults": "فۆڵتە چالاکەکان (GEM)",
-      "faultsAttribution": "بنکەدراوی فۆڵتە چالاکەکانی جیهانی GEM (CC BY-SA 4.0)",
+      "faultsAttribution": "دامەزراوەی GEM",
       "faultsAfead": "فۆڵتە چالاکەکان (AFEAD)",
-      "faultsAfeadAttribution": "بنکەدراوی فۆڵتە چالاکەکانی ئۆراسیا، GIN RAS ‏(CC BY 4.0)",
+      "faultsAfeadAttribution": "GIN RAS",
       "historical": "بوومەلەرزە ڕابردووەکان (٥ پلە و زیاتر)",
-      "historicalAttribution": "کاتالۆگی بوومەلەرزە، لە ساڵی ٨٧٢ەوە تا ئەمڕۆ",
+      "historicalAttribution": "کاتالۆگی بوومەلەرزە",
       "siteVs30": "بارودۆخی زەوی (Vs30)",
-      "siteVs30Attribution": "مۆدێلی جیهانیی Vs30ی USGS (موڵکی گشتی)"
+      "siteVs30Attribution": "USGS"
     },
     "legend": {
       "title": "ڕێنما",
@@ -265,9 +265,9 @@
       "normal": "ئاسایی / کشانەوە",
       "strikeSlip": "خلیسکانی ئاسۆیی",
       "other": "جۆری تر یان نەزانراو",
-      "afeadConfidence": "هێڵی کاڵتری AFEAD: چالاکییەکەی کەمتر دڵنیایە",
+      "afeadConfidence": "هێڵی کاڵتر: کەمتر دڵنیا",
       "quakes": "بوومەلەرزە ڕابردووەکان",
-      "eraHistorical": "پێش ١٩٠٠ (گێڕانەوە مێژووییەکان)",
+      "eraHistorical": "پێش ١٩٠٠",
       "eraEarly": "١٩٠٠–١٩٦٣",
       "eraModern": "١٩٦٤ بەدواوە",
       "quakeSize": "بازنەی گەورەتر، پلەی گەورەتر",
@@ -277,7 +277,7 @@
       "siteClassC": "C · خاکی چڕ، بەردی نەرم",
       "siteClassD": "D · خاکی ڕەق",
       "siteClassE": "E · خاکی نەرم",
-      "siteNote": "لە لێژییەوە خەمڵێنراوە، بۆ دیزاینی شوێن نییە"
+      "siteNote": "خەمڵاندن لە لێژییەوە، بۆ دیزاین نییە"
     },
     "overlayInfo": {
       "close": "داخستن",
@@ -305,25 +305,24 @@
       "senseWithSecondary": "{{primary}}، لەگەڵ بەشێکی {{secondary}}",
       "zone": "ناوچەی فۆڵت: {{zone}}",
       "slipRate": "خێرایی خلیسکان: {{preferred}} ملم/ساڵ",
-      "slipRateRange": "خێرایی خلیسکان: {{preferred}} ملم/ساڵ (مەودا {{min}}–{{max}})",
-      "rateRank1": "پۆلی خێرایی خلیسکان: زیاتر لە ٥ ملم/ساڵ",
-      "rateRank2": "پۆلی خێرایی خلیسکان: ١ تا ٥ ملم/ساڵ",
-      "rateRank3": "پۆلی خێرایی خلیسکان: کەمتر لە ١ ملم/ساڵ",
-      "confidenceA": "چالاکی: بە بەڵگەی مێژوویی، ئامێری یان پاڵیۆسایزمی سەلمێنراوە",
-      "confidenceB": "چالاکی: شێوانی ڕووی زەوی ڕوونە، خلیسکانی نوێ وەسف نەکراوە",
+      "slipRateRange": "خێرایی خلیسکان: {{preferred}} ملم/ساڵ ({{min}}–{{max}})",
+      "rateRank1": "پۆلی خێرایی: زیاتر لە ٥ ملم/ساڵ",
+      "rateRank2": "پۆلی خێرایی: ١–٥ ملم/ساڵ",
+      "rateRank3": "پۆلی خێرایی: کەمتر لە ١ ملم/ساڵ",
+      "confidenceA": "چالاکی: سەلمێنراو",
+      "confidenceB": "چالاکی: بەڵگەی ڕوونی ڕووی زەوی",
       "confidenceC": "چالاکی: بەڵگەی کەم",
-      "confidenceD": "چالاکی: جارێک بە چالاک ناسێنراوە، بەڵگە بەس نییە",
+      "confidenceD": "چالاکی: بەڵگەی لاواز",
       "references": "سەرچاوەکان: {{refs}}",
-      "sourceAfead": "سەرچاوە: AFEAD v2021، GIN RAS ‏(CC BY 4.0)",
-      "sourceGem": "سەرچاوە: مۆدێلی فۆڵتی {{catalog}} لە ڕێگەی GEM Global Active Faults ‏(CC BY-SA 4.0)",
+      "sourceAfead": "سەرچاوە: AFEAD",
+      "sourceGem": "سەرچاوە: {{catalog}} لە ڕێگەی GEM",
       "quakeTitle": "{{magnitude}} · {{when}}",
-      "magType": "جۆری پلە: {{type}}",
-      "depth": "قووڵی: {{depth}}",
       "era": {
-        "historical": "پێش ١٩٠٠: شوێن و قەبارە لە گێڕانەوە مێژووییەکانەوە هاتوون و لەوانەیە چەند دەیان کیلۆمەتر جیاواز بن.",
-        "early": "تۆماری ئامێریی سەرەتایی: لەوانەیە شوێنەکە چەند دەیان کیلۆمەتر جیاواز بێت."
+        "historical": "گێڕانەوەی مێژوویی: شوێنەکە بە چەند دەیان کم نادڵنیایە.",
+        "early": "تۆماری ئامێریی سەرەتایی: شوێنەکە بە چەند دەیان کم نادڵنیایە."
       },
-      "catalogue": "کاتالۆگ: {{source}} · {{id}}"
+      "catalogue": "{{source}} · {{id}}",
+      "magDepth": "{{type}} · قووڵی {{depth}}"
     }
   },
   "sensor": {

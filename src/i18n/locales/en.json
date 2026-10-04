@@ -250,13 +250,13 @@
       "events": "Earthquakes",
       "eventsAttribution": "USGS, EMSC and GEOFON feeds",
       "faults": "Active faults (GEM)",
-      "faultsAttribution": "GEM Global Active Faults Database (CC BY-SA 4.0)",
+      "faultsAttribution": "GEM Foundation",
       "faultsAfead": "Active faults (AFEAD)",
-      "faultsAfeadAttribution": "Active Faults of Eurasia Database, GIN RAS (CC BY 4.0)",
+      "faultsAfeadAttribution": "GIN RAS",
       "historical": "Past earthquakes (M5+)",
-      "historicalAttribution": "Bumelerze catalogue, from 872 to today",
+      "historicalAttribution": "Bumelerze catalogue",
       "siteVs30": "Ground conditions (Vs30)",
-      "siteVs30Attribution": "USGS global Vs30 model (public domain)"
+      "siteVs30Attribution": "USGS"
     },
     "legend": {
       "title": "Legend",
@@ -265,9 +265,9 @@
       "normal": "Normal / extension",
       "strikeSlip": "Strike-slip",
       "other": "Other or unknown",
-      "afeadConfidence": "Fainter AFEAD lines: activity less certain",
+      "afeadConfidence": "Fainter line: less certain",
       "quakes": "Past earthquakes",
-      "eraHistorical": "Before 1900 (historical accounts)",
+      "eraHistorical": "Before 1900",
       "eraEarly": "1900–1963",
       "eraModern": "1964 onward",
       "quakeSize": "Bigger circle, bigger magnitude",
@@ -277,7 +277,7 @@
       "siteClassC": "C · dense soil, soft rock",
       "siteClassD": "D · stiff soil",
       "siteClassE": "E · soft soil",
-      "siteNote": "Estimated from slope, not for site design"
+      "siteNote": "Slope estimate, not for design"
     },
     "overlayInfo": {
       "close": "Close",
@@ -305,25 +305,24 @@
       "senseWithSecondary": "{{primary}}, with a {{secondary}} component",
       "zone": "Fault zone: {{zone}}",
       "slipRate": "Slip rate: {{preferred}} mm/yr",
-      "slipRateRange": "Slip rate: {{preferred}} mm/yr (range {{min}}–{{max}})",
-      "rateRank1": "Slip-rate class: faster than 5 mm/yr",
-      "rateRank2": "Slip-rate class: 1 to 5 mm/yr",
-      "rateRank3": "Slip-rate class: slower than 1 mm/yr",
-      "confidenceA": "Activity: proven by historical, instrumental or paleoseismic evidence",
-      "confidenceB": "Activity: clear surface deformation, recent slip not described",
+      "slipRateRange": "Slip rate: {{preferred}} mm/yr ({{min}}–{{max}})",
+      "rateRank1": "Rate class: over 5 mm/yr",
+      "rateRank2": "Rate class: 1–5 mm/yr",
+      "rateRank3": "Rate class: under 1 mm/yr",
+      "confidenceA": "Activity: proven",
+      "confidenceB": "Activity: clear surface evidence",
       "confidenceC": "Activity: little evidence",
-      "confidenceD": "Activity: once declared active, evidence insufficient",
-      "references": "References: {{refs}}",
-      "sourceAfead": "Source: AFEAD v2021, GIN RAS (CC BY 4.0)",
-      "sourceGem": "Source: {{catalog}} fault model via GEM Global Active Faults (CC BY-SA 4.0)",
+      "confidenceD": "Activity: weak evidence",
+      "references": "Refs: {{refs}}",
+      "sourceAfead": "Source: AFEAD",
+      "sourceGem": "Source: {{catalog}} via GEM",
       "quakeTitle": "{{magnitude}} · {{when}}",
-      "magType": "Magnitude type: {{type}}",
-      "depth": "Depth: {{depth}}",
       "era": {
-        "historical": "Before 1900: the location and size come from historical accounts and may be off by tens of kilometres.",
-        "early": "Early instrumental record: the location may be off by tens of kilometres."
+        "historical": "Historical account: location uncertain by tens of km.",
+        "early": "Early instrument record: location uncertain by tens of km."
       },
-      "catalogue": "Catalogue: {{source}} · {{id}}"
+      "catalogue": "{{source}} · {{id}}",
+      "magDepth": "{{type}} · {{depth}} deep"
     }
   },
   "sensor": {

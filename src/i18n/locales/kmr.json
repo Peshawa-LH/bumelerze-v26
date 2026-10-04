@@ -250,13 +250,13 @@
       "events": "Erdhej",
       "eventsAttribution": "Çavkaniyên USGS, EMSC û GEOFON",
       "faults": "Faultên çalak (GEM)",
-      "faultsAttribution": "Databasa Faultên Çalak ên Cîhanî ya GEM (CC BY-SA 4.0)",
+      "faultsAttribution": "Weqfa GEM",
       "faultsAfead": "Faultên çalak (AFEAD)",
-      "faultsAfeadAttribution": "Databasa Faultên Çalak ên Avrasyayê, GIN RAS (CC BY 4.0)",
+      "faultsAfeadAttribution": "GIN RAS",
       "historical": "Erdhejên berê (5+ pîle)",
-      "historicalAttribution": "Kataloga Bumelerze, ji sala 872an heta îro",
+      "historicalAttribution": "Kataloga Bumelerze",
       "siteVs30": "Rewşa erdê (Vs30)",
-      "siteVs30Attribution": "Modela cîhanî ya Vs30 ya USGS (milkê giştî)"
+      "siteVs30Attribution": "USGS"
     },
     "legend": {
       "title": "Rêber",
@@ -265,9 +265,9 @@
       "normal": "Normal / vekişîn",
       "strikeSlip": "Şemitîna asoyî",
       "other": "Yên din an nenas",
-      "afeadConfidence": "Xetên AFEAD ên kaltir: çalakî kêmtir piştrast e",
+      "afeadConfidence": "Xeta kaltir: kêmtir piştrast",
       "quakes": "Erdhejên berê",
-      "eraHistorical": "Berî 1900 (vegotinên dîrokî)",
+      "eraHistorical": "Berî 1900",
       "eraEarly": "1900–1963",
       "eraModern": "Ji 1964an û pê ve",
       "quakeSize": "Xeleka mezintir, pîleya mezintir",
@@ -277,7 +277,7 @@
       "siteClassC": "C · axa tîr, kevirê nerm",
       "siteClassD": "D · axa hişk",
       "siteClassE": "E · axa nerm",
-      "siteNote": "Ji meylê hatiye texmînkirin, ne ji bo sêwirana cih e"
+      "siteNote": "Texmîn ji meylê, ne ji bo sêwiranê"
     },
     "overlayInfo": {
       "close": "Bigire",
@@ -305,25 +305,24 @@
       "senseWithSecondary": "{{primary}}, bi beşeke {{secondary}}",
       "zone": "Herêma faultê: {{zone}}",
       "slipRate": "Leza şemitînê: {{preferred}} mm/sal",
-      "slipRateRange": "Leza şemitînê: {{preferred}} mm/sal (navbera {{min}}–{{max}})",
-      "rateRank1": "Pola leza şemitînê: zêdetir ji 5 mm/sal",
-      "rateRank2": "Pola leza şemitînê: 1 heta 5 mm/sal",
-      "rateRank3": "Pola leza şemitînê: kêmtir ji 1 mm/sal",
-      "confidenceA": "Çalakî: bi delîlên dîrokî, amûrî an paleosîsmîk hatiye îsbatkirin",
-      "confidenceB": "Çalakî: guherîna rûyê erdê zelal e, şemitîna nû nehatiye vegotin",
-      "confidenceC": "Çalakî: delîl kêm in",
-      "confidenceD": "Çalakî: carekê çalak hatiye ragihandin, delîl ne bes in",
-      "references": "Çavkanî: {{refs}}",
-      "sourceAfead": "Çavkanî: AFEAD v2021, GIN RAS (CC BY 4.0)",
-      "sourceGem": "Çavkanî: modela faultê ya {{catalog}} bi rêya GEM Global Active Faults (CC BY-SA 4.0)",
+      "slipRateRange": "Leza şemitînê: {{preferred}} mm/sal ({{min}}–{{max}})",
+      "rateRank1": "Pola lezê: zêdetir ji 5 mm/sal",
+      "rateRank2": "Pola lezê: 1–5 mm/sal",
+      "rateRank3": "Pola lezê: kêmtir ji 1 mm/sal",
+      "confidenceA": "Çalakî: îsbatkirî",
+      "confidenceB": "Çalakî: delîlên zelal ên rûyê erdê",
+      "confidenceC": "Çalakî: delîl kêm",
+      "confidenceD": "Çalakî: delîl qels",
+      "references": "Referans: {{refs}}",
+      "sourceAfead": "Çavkanî: AFEAD",
+      "sourceGem": "Çavkanî: {{catalog}} bi rêya GEM",
       "quakeTitle": "{{magnitude}} · {{when}}",
-      "magType": "Celebê pîleyê: {{type}}",
-      "depth": "Kûrahî: {{depth}}",
       "era": {
-        "historical": "Berî 1900: cih û mezinahî ji vegotinên dîrokî tên û dibe ku bi dehan kîlometreyan cuda bin.",
-        "early": "Tomara amûrî ya destpêkê: dibe ku cih bi dehan kîlometreyan cuda be."
+        "historical": "Vegotina dîrokî: cih bi dehan km ne diyar e.",
+        "early": "Tomara amûrî ya destpêkê: cih bi dehan km ne diyar e."
       },
-      "catalogue": "Katalog: {{source}} · {{id}}"
+      "catalogue": "{{source}} · {{id}}",
+      "magDepth": "{{type}} · kûrahî {{depth}}"
     }
   },
   "sensor": {

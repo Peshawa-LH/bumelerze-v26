@@ -122,14 +122,16 @@ function quakeLines(
     info.timeMs !== null && info.year >= 1900
       ? new Date(info.timeMs).toISOString().slice(0, 10)
       : String(info.year);
-  const rows: string[] = [t("map.overlayInfo.magType", { type: info.magType })];
-  if (info.depthKm !== null) {
-    rows.push(
-      t("map.overlayInfo.depth", {
-        depth: isolateNumeric(`${formatDepthKm(info.depthKm, locale)} ${t("units.km")}`),
-      }),
-    );
-  }
+  const rows: string[] = [
+    info.depthKm !== null
+      ? t("map.overlayInfo.magDepth", {
+          type: info.magType,
+          depth: isolateNumeric(
+            `${formatDepthKm(info.depthKm, locale)} ${t("units.km")}`,
+          ),
+        })
+      : info.magType,
+  ];
   if (info.era !== "modern") rows.push(t(`map.overlayInfo.era.${info.era}`));
   rows.push(t("map.overlayInfo.catalogue", { source: info.source, id: info.id }));
   return {

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { isRTLLocale } from "@/i18n";
 import { useTheme } from "@/theme";
@@ -104,7 +104,7 @@ export function MapOverlayLegend({ active, compact }: MapOverlayLegendProps) {
         />
       </Pressable>
       {expanded ? (
-        <>
+        <ScrollView style={styles.body} contentContainerStyle={{ gap: spacing[2] }}>
           {showFaults ? (
             <View style={{ gap: spacing[1] }}>
               <Text style={heading}>{t("map.legend.faults")}</Text>
@@ -135,7 +135,7 @@ export function MapOverlayLegend({ active, compact }: MapOverlayLegendProps) {
               <Text style={note}>{t("map.legend.siteNote")}</Text>
             </View>
           ) : null}
-        </>
+        </ScrollView>
       ) : null}
     </View>
   );
@@ -146,11 +146,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 28,
     maxWidth: 240,
+    // Never taller than most of the map: three sections overflow a phone.
+    maxHeight: "62%",
     borderWidth: 1,
     borderRadius: 10,
   },
   left: { left: 8 },
   right: { right: 8 },
+  body: { flexShrink: 1 },
   row: { flexDirection: "row", alignItems: "center" },
   lineSwatch: { width: 18, height: 3, borderRadius: 2 },
   dotBox: { width: 18, alignItems: "center", justifyContent: "center" },

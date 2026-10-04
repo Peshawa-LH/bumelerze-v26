@@ -1272,10 +1272,10 @@ export default function MapScreenWeb() {
           </View>
         ) : null}
 
-        {loadState === "ready" && overlayInfo ? (
+        {loadState === "ready" && !openControl && overlayInfo ? (
           <MapOverlayInfoCard info={overlayInfo} onClose={() => setOverlayInfo(null)} />
         ) : null}
-        {loadState === "ready" && !overlayInfo ? (
+        {loadState === "ready" && !openControl && !overlayInfo ? (
           <MapOverlayLegend
             active={activeOverlayIds(overlays)}
             compact={isCompactControls}
