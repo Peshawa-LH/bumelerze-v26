@@ -139,7 +139,9 @@ export function CommentItem({
           <Text style={meta}>{timeText}</Text>
         </View>
 
-        {city ? <Text style={meta}>{t("eventHub.thread.feltNear", { city })}</Text> : null}
+        {city ? (
+          <Text style={meta}>{t("eventHub.thread.feltNear", { city })}</Text>
+        ) : null}
 
         <Text
           style={{
@@ -153,7 +155,9 @@ export function CommentItem({
         </Text>
 
         {isPending ? (
-          <Text style={[meta, { fontStyle: "italic" }]}>{t("eventHub.thread.pending")}</Text>
+          <Text style={[meta, { fontStyle: "italic" }]}>
+            {t("eventHub.thread.pending")}
+          </Text>
         ) : null}
 
         {mode === "reporting" ? (
@@ -223,7 +227,9 @@ export function CommentItem({
               />
             ) : null}
             {reported ? (
-              <Text style={[meta, styles.staticAction]}>{t("eventHub.thread.reported")}</Text>
+              <Text style={[meta, styles.staticAction]}>
+                {t("eventHub.thread.reported")}
+              </Text>
             ) : null}
             {isOwn && comment.status !== "hidden" ? (
               <ActionButton

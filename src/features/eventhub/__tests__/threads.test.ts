@@ -28,7 +28,9 @@ describe("isCommentShown", () => {
   it("shows a pending comment to its author and to moderators only", () => {
     const pending = comment({ id: "p", status: "pending", userId: "me" });
     expect(isCommentShown(pending, anon)).toBe(false);
-    expect(isCommentShown(pending, { userId: "someone", isModerator: false })).toBe(false);
+    expect(isCommentShown(pending, { userId: "someone", isModerator: false })).toBe(
+      false,
+    );
     expect(isCommentShown(pending, { userId: "me", isModerator: false })).toBe(true);
     expect(isCommentShown(pending, { userId: "mod", isModerator: true })).toBe(true);
   });

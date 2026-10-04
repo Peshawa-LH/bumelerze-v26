@@ -10,12 +10,7 @@ import { useEventUuid } from "@/features/feltmap/use-event-uuid";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { hasModeratorRole, loadHubThread } from "./service";
 import { SupabaseEventHubTransport, type EventHubTransport } from "./transport";
-import type {
-  FlagReason,
-  HubSummary,
-  HubThreadData,
-  ModerationAction,
-} from "./types";
+import type { FlagReason, HubSummary, HubThreadData, ModerationAction } from "./types";
 
 /** The hub re-reads this often while its screen is in front. Not a
  * background poll: it stops when the screen loses focus or the app leaves the

@@ -67,7 +67,13 @@ export function useRouteEvent(id: string | undefined): RouteEvent {
       world.events.find((event) => event.id === cacheProviderIdCandidate) ??
       null
     );
-  }, [region.events, world.events, routeId, routeIsBumelerzeId, cacheProviderIdCandidate]);
+  }, [
+    region.events,
+    world.events,
+    routeId,
+    routeIsBumelerzeId,
+    cacheProviderIdCandidate,
+  ]);
 
   // A provider-id route only ever fetches via the USGS `byId` fdsnws lookup;
   // a bml-id route (no cache hit, and no static curated alias to have

@@ -129,13 +129,27 @@ describe("parsers", () => {
       levels: { 3: 4, 5: 8 },
       firstReportAt: Date.parse("2026-10-04T10:00:00Z"),
       comments: 3,
+      featured: false,
     });
   });
 
   it("parses an empty event summary", () => {
     expect(
-      parseSummary({ reports: 0, people: 0, levels: {}, first_report_at: null, comments: 0 }),
-    ).toEqual({ reports: 0, people: 0, levels: {}, firstReportAt: null, comments: 0 });
+      parseSummary({
+        reports: 0,
+        people: 0,
+        levels: {},
+        first_report_at: null,
+        comments: 0,
+      }),
+    ).toEqual({
+      reports: 0,
+      people: 0,
+      levels: {},
+      firstReportAt: null,
+      comments: 0,
+      featured: false,
+    });
   });
 
   it("rejects a summary that is not that shape", () => {
@@ -145,7 +159,9 @@ describe("parsers", () => {
 
 describe("toHubError", () => {
   it("maps the rate-limit trigger (54000) to rate_limited", () => {
-    expect(toHubError({ code: "54000", message: "too many comments" }).code).toBe("rate_limited");
+    expect(toHubError({ code: "54000", message: "too many comments" }).code).toBe(
+      "rate_limited",
+    );
   });
   it("maps fetch failures to network", () => {
     expect(toHubError(new Error("Failed to fetch")).code).toBe("network");
@@ -160,17 +176,27 @@ describe("toHubError", () => {
 describe("reads", () => {
   it("calls event_hub_summary with the event uuid", async () => {
     mockRpc.mockResolvedValue({
-      data: { reports: 3, people: 3, levels: { "4": 3 }, first_report_at: null, comments: 0 },
+      data: {
+        reports: 3,
+        people: 3,
+        levels: { "4": 3 },
+        first_report_at: null,
+        comments: 0,
+      },
       error: null,
     });
     const summary = await SupabaseEventHubTransport.fetchSummary("event-uuid");
-    expect(mockRpc).toHaveBeenCalledWith("event_hub_summary", { p_event_id: "event-uuid" });
+    expect(mockRpc).toHaveBeenCalledWith("event_hub_summary", {
+      p_event_id: "event-uuid",
+    });
     expect(summary?.levels).toEqual({ 4: 3 });
   });
 
   it("throws a HubError when the summary rpc fails", async () => {
     mockRpc.mockResolvedValue({ data: null, error: { message: "boom" } });
-    await expect(SupabaseEventHubTransport.fetchSummary("e")).rejects.toBeInstanceOf(HubError);
+    await expect(SupabaseEventHubTransport.fetchSummary("e")).rejects.toBeInstanceOf(
+      HubError,
+    );
   });
 
   it("reads the event's comments newest first", async () => {
@@ -189,7 +215,11 @@ describe("reads", () => {
     };
     const ids = Array.from({ length: 130 }, (_, i) => `u${i}`);
     const authors = await SupabaseEventHubTransport.fetchAuthors(ids);
-    expect(authors.u1).toEqual({ userId: "u1", displayName: "Awat", avatarPath: "u1/a.jpg" });
+    expect(authors.u1).toEqual({
+      userId: "u1",
+      displayName: "Awat",
+      avatarPath: "u1/a.jpg",
+    });
     // 130 ids at 60 per request = 3 requests.
     expect(recorded.filter((r) => r.table === "profiles")).toHaveLength(3);
   });
@@ -210,7 +240,9 @@ describe("reads", () => {
 
   it("reads the caller's helpful marks", async () => {
     tableResults.comment_reactions = { data: [{ comment_id: "c1" }], error: null };
-    await expect(SupabaseEventHubTransport.fetchMyHelpful(["c1", "c2"])).resolves.toEqual(["c1"]);
+    await expect(SupabaseEventHubTransport.fetchMyHelpful(["c1", "c2"])).resolves.toEqual(
+      ["c1"],
+    );
   });
 });
 
@@ -233,14 +265,22 @@ describe("writes", () => {
       error: { code: "54000", message: "too many comments, try again in a few minutes" },
     };
     await expect(
-      SupabaseEventHubTransport.postComment({ eventUuid: "e", parentId: null, body: "x" }),
+      SupabaseEventHubTransport.postComment({
+        eventUuid: "e",
+        parentId: null,
+        body: "x",
+      }),
     ).rejects.toMatchObject({ code: "rate_limited" });
   });
 
   it("fails with not_signed_in when there is no session even after the anonymous sign-in", async () => {
     mockGetSession.mockResolvedValue({ data: { session: null } });
     await expect(
-      SupabaseEventHubTransport.postComment({ eventUuid: "e", parentId: null, body: "x" }),
+      SupabaseEventHubTransport.postComment({
+        eventUuid: "e",
+        parentId: null,
+        body: "x",
+      }),
     ).rejects.toMatchObject({ code: "not_signed_in" });
   });
 
@@ -260,7 +300,9 @@ describe("writes", () => {
 
   it("treats a duplicate helpful mark as success", async () => {
     tableResults.comment_reactions = { error: { code: "23505" } };
-    await expect(SupabaseEventHubTransport.setHelpful("c1", true)).resolves.toBeUndefined();
+    await expect(
+      SupabaseEventHubTransport.setHelpful("c1", true),
+    ).resolves.toBeUndefined();
   });
 
   it("flags a comment with a reason", async () => {
@@ -290,9 +332,12 @@ describe("writes", () => {
   });
 
   it("raises when a moderation call is refused", async () => {
-    mockRpc.mockResolvedValue({ data: null, error: { code: "42501", message: "moderators only" } });
-    await expect(SupabaseEventHubTransport.moderateComment("c", "hide")).rejects.toBeInstanceOf(
-      HubError,
-    );
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { code: "42501", message: "moderators only" },
+    });
+    await expect(
+      SupabaseEventHubTransport.moderateComment("c", "hide"),
+    ).rejects.toBeInstanceOf(HubError);
   });
 });

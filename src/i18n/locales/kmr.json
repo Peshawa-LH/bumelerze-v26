@@ -831,7 +831,8 @@
       "people": "Kesên ragihandin: {{number}}",
       "none": "Hê ragihandin tune",
       "firstReport": "Ragihandina yekem: {{time}}",
-      "levelA11y": "{{label}}: {{number}}"
+      "levelA11y": "{{label}}: {{number}}",
+      "memories": "Tu li wir bûyî? Bêje tu li ku bûyî û te çi hîs kir."
     },
     "unavailable": "Niha peyda nabe.",
     "loadError": "Nehat barkirin. Girêdana xwe kontrol bike.",
@@ -849,7 +850,8 @@
         "rateLimited": "Gelek şîrove hatin nivîsandin. Çend xulekan bisekine.",
         "network": "Girêdan tune. Dîsa biceribîne.",
         "unknown": "Nehat şandin. Dîsa biceribîne."
-      }
+      },
+      "memoryPlaceholder": "Tu li ku bûyî û te çi hîs kir?"
     },
     "thread": {
       "empty": "Hê şîrove tune. Yekem be ku tiştê te hîs kir parve bike.",

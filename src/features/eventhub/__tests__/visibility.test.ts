@@ -22,7 +22,9 @@ describe("shouldShowHubPill", () => {
   });
 
   it("shows for a recent regional event with no activity or no summary yet", () => {
-    expect(shouldShowHubPill({ ...base, originTime: NOW - 2 * HOUR, summary: null })).toBe(true);
+    expect(
+      shouldShowHubPill({ ...base, originTime: NOW - 2 * HOUR, summary: null }),
+    ).toBe(true);
     expect(
       shouldShowHubPill({
         ...base,
@@ -34,7 +36,9 @@ describe("shouldShowHubPill", () => {
 
   it("shows at exactly 72 hours and hides just after, when there is no activity", () => {
     const quiet = { reports: 0, comments: 0 };
-    expect(shouldShowHubPill({ ...base, originTime: NOW - 72 * HOUR, summary: quiet })).toBe(true);
+    expect(
+      shouldShowHubPill({ ...base, originTime: NOW - 72 * HOUR, summary: quiet }),
+    ).toBe(true);
     expect(
       shouldShowHubPill({ ...base, originTime: NOW - 72 * HOUR - 1, summary: quiet }),
     ).toBe(false);
@@ -42,9 +46,41 @@ describe("shouldShowHubPill", () => {
 
   it("shows an old regional event once it has reports or comments", () => {
     const old = NOW - 30 * 24 * HOUR;
-    expect(shouldShowHubPill({ ...base, originTime: old, summary: { reports: 1, comments: 0 } })).toBe(true);
-    expect(shouldShowHubPill({ ...base, originTime: old, summary: { reports: 0, comments: 2 } })).toBe(true);
-    expect(shouldShowHubPill({ ...base, originTime: old, summary: { reports: 0, comments: 0 } })).toBe(false);
+    expect(
+      shouldShowHubPill({
+        ...base,
+        originTime: old,
+        summary: { reports: 1, comments: 0 },
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowHubPill({
+        ...base,
+        originTime: old,
+        summary: { reports: 0, comments: 2 },
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowHubPill({
+        ...base,
+        originTime: old,
+        summary: { reports: 0, comments: 0 },
+      }),
+    ).toBe(false);
     expect(shouldShowHubPill({ ...base, originTime: old, summary: null })).toBe(false);
+  });
+});
+
+describe("featured hubs", () => {
+  it("are always open for a regional event, however old and quiet", () => {
+    const old = Date.parse("2017-11-12T18:18:17Z");
+    expect(
+      shouldShowHubPill({
+        isRegional: true,
+        originTime: old,
+        nowMs: Date.parse("2026-10-04T12:00:00Z"),
+        summary: { reports: 0, comments: 0, featured: true },
+      }),
+    ).toBe(true);
   });
 });

@@ -47,7 +47,9 @@ describe("EventHubPill", () => {
   afterEach(cleanup);
 
   it("shows for a recent regional event even with no activity", async () => {
-    await renderWithProviders(<EventHubPill event={buildEvent()} routeId="bml20260042" />);
+    await renderWithProviders(
+      <EventHubPill event={buildEvent()} routeId="bml20260042" />,
+    );
     expect(screen.getByRole("button", { name: PILL_LABEL })).toBeTruthy();
   });
 
@@ -87,18 +89,24 @@ describe("EventHubPill", () => {
 
   it("is hidden when no Supabase project is configured", async () => {
     mockConfigured = false;
-    await renderWithProviders(<EventHubPill event={buildEvent()} routeId="bml20260042" />);
+    await renderWithProviders(
+      <EventHubPill event={buildEvent()} routeId="bml20260042" />,
+    );
     expect(screen.queryByRole("button", { name: PILL_LABEL })).toBeNull();
   });
 
   it("opens the hub for the given route id", async () => {
-    await renderWithProviders(<EventHubPill event={buildEvent()} routeId="bml20260042" />);
+    await renderWithProviders(
+      <EventHubPill event={buildEvent()} routeId="bml20260042" />,
+    );
     fireEvent.press(screen.getByRole("button", { name: PILL_LABEL }));
     expect(mockPush).toHaveBeenCalledWith("/event-hub/bml20260042");
   });
 
   it("floats at the bottom-START corner in the brand colour, not the felt red", async () => {
-    await renderWithProviders(<EventHubPill event={buildEvent()} routeId="bml20260042" />);
+    await renderWithProviders(
+      <EventHubPill event={buildEvent()} routeId="bml20260042" />,
+    );
     const style = StyleSheet.flatten(screen.getByTestId("event-hub-pill").props.style);
     expect(style.start).toBe(16);
     expect(style.end).toBeUndefined();
@@ -114,7 +122,9 @@ describe("EventHubPill", () => {
     ["ar", "من شعر به؟"],
   ])("is labelled in %s", async (locale, label) => {
     await i18n.changeLanguage(locale);
-    await renderWithProviders(<EventHubPill event={buildEvent()} routeId="bml20260042" />);
+    await renderWithProviders(
+      <EventHubPill event={buildEvent()} routeId="bml20260042" />,
+    );
     expect(screen.getByRole("button", { name: label })).toBeTruthy();
   });
 });

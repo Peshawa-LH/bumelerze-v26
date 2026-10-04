@@ -110,8 +110,10 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
     value: formatMagnitudeValue(event.magnitude.value, locale),
   })} · ${placeLine(event, locale, t)}`;
 
-  const unavailable = !isSupabaseConfigured() || (eventUuid === null && !uuidState.isPending);
-  const waiting = !unavailable && (eventUuid === null || (thread.isLoading && !thread.data));
+  const unavailable =
+    !isSupabaseConfigured() || (eventUuid === null && !uuidState.isPending);
+  const waiting =
+    !unavailable && (eventUuid === null || (thread.isLoading && !thread.data));
   const loadFailed = thread.isError && !thread.data;
 
   const header = (
@@ -135,7 +137,11 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
           <HubSummaryCard summary={summary.summary} />
           <CommentComposer
             isAccount={isAccount}
-            placeholder={t("eventHub.composer.placeholder")}
+            placeholder={
+              summary.summary?.featured && summary.summary.reports === 0
+                ? t("eventHub.composer.memoryPlaceholder")
+                : t("eventHub.composer.placeholder")
+            }
             onSubmit={(body) => actions.post({ parentId: null, body })}
           />
         </>

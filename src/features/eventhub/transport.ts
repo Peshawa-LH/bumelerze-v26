@@ -111,6 +111,7 @@ const summarySchema = z.object({
   levels: z.record(z.coerce.number()).nullable().optional(),
   first_report_at: z.string().nullable().optional(),
   comments: z.coerce.number(),
+  featured: z.boolean().optional(),
 });
 
 /** `event_hub_summary` jsonb -> `HubSummary`; null when it is not that shape. */
@@ -126,13 +127,16 @@ export function parseSummary(data: unknown): HubSummary | null {
       levels[level] = count;
     }
   }
-  const first = parsed.data.first_report_at ? Date.parse(parsed.data.first_report_at) : NaN;
+  const first = parsed.data.first_report_at
+    ? Date.parse(parsed.data.first_report_at)
+    : NaN;
   return {
     reports: parsed.data.reports,
     people: parsed.data.people,
     levels,
     firstReportAt: Number.isNaN(first) ? null : first,
     comments: parsed.data.comments,
+    featured: parsed.data.featured ?? false,
   };
 }
 
@@ -148,7 +152,8 @@ export function toHubError(error: unknown): HubError {
   if (error instanceof HubError) {
     return error;
   }
-  const e: ErrorLike = typeof error === "object" && error !== null ? (error as ErrorLike) : {};
+  const e: ErrorLike =
+    typeof error === "object" && error !== null ? (error as ErrorLike) : {};
   const message = e.message ?? "";
   // 54000 is the trigger's "too many comments" (10 per 10 minutes).
   if (e.code === "54000" || e.status === 429) {

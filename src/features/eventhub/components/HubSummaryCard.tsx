@@ -60,7 +60,7 @@ export function HubSummaryCard({ summary }: HubSummaryCardProps) {
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
-          {t("eventHub.summary.none")}
+          {summary.featured ? t("eventHub.summary.memories") : t("eventHub.summary.none")}
         </Text>
       ) : (
         <>
@@ -112,7 +112,8 @@ export function HubSummaryCard({ summary }: HubSummaryCardProps) {
                         styles.barFill,
                         {
                           width: `${Math.max(6, Math.round((count / maxCount) * 100))}%`,
-                          backgroundColor: colors.intensity[level] ?? colors.brand.primary,
+                          backgroundColor:
+                            colors.intensity[level] ?? colors.brand.primary,
                           borderColor: colors.border.default,
                         },
                       ]}
@@ -127,7 +128,9 @@ export function HubSummaryCard({ summary }: HubSummaryCardProps) {
           {summary.firstReportAt !== null ? (
             <Text style={body}>
               {t("eventHub.summary.firstReport", {
-                time: isolateNumeric(formatAbsoluteDual(summary.firstReportAt, locale, t).local),
+                time: isolateNumeric(
+                  formatAbsoluteDual(summary.firstReportAt, locale, t).local,
+                ),
               })}
             </Text>
           ) : null}

@@ -6,7 +6,12 @@ import { useTheme } from "@/theme";
 
 import type { HubRole, HubRoleKind } from "../types";
 
-const ROLE_PRIORITY: readonly HubRoleKind[] = ["official", "moderator", "engineer", "partner"];
+const ROLE_PRIORITY: readonly HubRoleKind[] = [
+  "official",
+  "moderator",
+  "engineer",
+  "partner",
+];
 
 const ROLE_ICON: Record<HubRoleKind, keyof typeof Ionicons.glyphMap> = {
   official: "checkmark-circle",
@@ -41,7 +46,9 @@ export function RoleMark({ roles }: { roles: readonly HubRole[] | undefined }) {
     return null;
   }
   const label =
-    role.role === "partner" && role.orgName ? role.orgName : t(`eventHub.roles.${role.role}`);
+    role.role === "partner" && role.orgName
+      ? role.orgName
+      : t(`eventHub.roles.${role.role}`);
   const tint = role.role === "official" ? colors.text.link : colors.text.secondary;
 
   return (

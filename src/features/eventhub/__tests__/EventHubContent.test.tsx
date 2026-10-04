@@ -48,7 +48,9 @@ jest.mock("@/features/account", () => ({
 const SLEMANI_AREA = encodeGeohash(35.57, 45.44, 5);
 
 async function renderHub(transport: ReturnType<typeof makeTransport>) {
-  await renderWithProviders(<EventHubContent event={buildEvent()} transport={transport} />);
+  await renderWithProviders(
+    <EventHubContent event={buildEvent()} transport={transport} />,
+  );
 }
 
 describe("EventHubContent", () => {
@@ -109,9 +111,13 @@ describe("EventHubContent", () => {
         { fetchComments: jest.fn(async () => Promise.reject(new HubError("network"))) },
       );
       await renderHub(transport);
-      expect(await screen.findByText("Couldn't load. Check your connection.")).toBeTruthy();
+      expect(
+        await screen.findByText("Couldn't load. Check your connection."),
+      ).toBeTruthy();
       await fireEvent.press(screen.getByRole("button", { name: "Retry" }));
-      await waitFor(() => expect(transport.fetchComments.mock.calls.length).toBeGreaterThan(1));
+      await waitFor(() =>
+        expect(transport.fetchComments.mock.calls.length).toBeGreaterThan(1),
+      );
     });
   });
 
@@ -160,7 +166,9 @@ describe("EventHubContent", () => {
       expect(await screen.findByText("Strong shaking in Slemani")).toBeTruthy();
 
       const bodies = screen
-        .getAllByText(/Strong shaking in Slemani|Official update|First reply|Second reply/)
+        .getAllByText(
+          /Strong shaking in Slemani|Official update|First reply|Second reply/,
+        )
         .map((node) => String(node.props.children));
       expect(bodies).toEqual([
         "Strong shaking in Slemani",
@@ -229,7 +237,11 @@ describe("EventHubContent", () => {
               body: "My pending note",
             }),
             buildComment({ id: "theirs", body: "Their note" }),
-            buildComment({ id: "hidden-pending", status: "pending", body: "Someone else pending" }),
+            buildComment({
+              id: "hidden-pending",
+              status: "pending",
+              body: "Someone else pending",
+            }),
           ],
         }),
       );
@@ -245,7 +257,10 @@ describe("EventHubContent", () => {
     it("posts through the transport and tells them it awaits review", async () => {
       const transport = makeTransport();
       await renderHub(transport);
-      await fireEvent.changeText(await screen.findByTestId("hub-composer-input"), "I felt it");
+      await fireEvent.changeText(
+        await screen.findByTestId("hub-composer-input"),
+        "I felt it",
+      );
       await fireEvent.press(screen.getByTestId("hub-composer-post"));
       await waitFor(() =>
         expect(transport.postComment).toHaveBeenCalledWith({
@@ -281,7 +296,9 @@ describe("EventHubContent", () => {
           body: "Shaking for 10 seconds",
         }),
       );
-      await waitFor(() => expect(screen.getByTestId("hub-composer-input").props.value).toBe(""));
+      await waitFor(() =>
+        expect(screen.getByTestId("hub-composer-input").props.value).toBe(""),
+      );
     });
 
     it("keeps Post disabled for an empty comment", async () => {
@@ -296,10 +313,15 @@ describe("EventHubContent", () => {
         .mockRejectedValueOnce(new HubError("rate_limited"))
         .mockRejectedValueOnce(new Error("boom"));
       await renderHub(makeTransport({}, { postComment }));
-      await fireEvent.changeText(await screen.findByTestId("hub-composer-input"), "hello");
+      await fireEvent.changeText(
+        await screen.findByTestId("hub-composer-input"),
+        "hello",
+      );
 
       await fireEvent.press(screen.getByTestId("hub-composer-post"));
-      expect(await screen.findByText("Too many comments. Wait a few minutes.")).toBeTruthy();
+      expect(
+        await screen.findByText("Too many comments. Wait a few minutes."),
+      ).toBeTruthy();
       // The text is kept so nothing typed is lost.
       expect(screen.getByTestId("hub-composer-input").props.value).toBe("hello");
 
@@ -322,7 +344,9 @@ describe("EventHubContent", () => {
       expect(screen.queryAllByRole("button", { name: /^Helpful/ })).toHaveLength(1);
 
       await fireEvent.press(helpful);
-      await waitFor(() => expect(transport.setHelpful).toHaveBeenCalledWith("theirs", false));
+      await waitFor(() =>
+        expect(transport.setHelpful).toHaveBeenCalledWith("theirs", false),
+      );
     });
 
     it("replies into the thread, under the thread's root", async () => {
@@ -343,7 +367,9 @@ describe("EventHubContent", () => {
         }),
       );
       // The reply box closes once posted.
-      await waitFor(() => expect(screen.queryByTestId("reply-composer-root-1")).toBeNull());
+      await waitFor(() =>
+        expect(screen.queryByTestId("reply-composer-root-1")).toBeNull(),
+      );
     });
 
     it("reports a comment with a reason", async () => {
@@ -354,7 +380,9 @@ describe("EventHubContent", () => {
       await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
       expect(screen.getByText("Why are you reporting this?")).toBeTruthy();
       await fireEvent.press(screen.getByRole("button", { name: "Spam" }));
-      await waitFor(() => expect(transport.flagComment).toHaveBeenCalledWith("c-bad", "spam"));
+      await waitFor(() =>
+        expect(transport.flagComment).toHaveBeenCalledWith("c-bad", "spam"),
+      );
       expect(await screen.findByText("Thanks. We will review it.")).toBeTruthy();
     });
 
@@ -400,10 +428,14 @@ describe("EventHubContent", () => {
       expect(screen.getByText("Waiting for review")).toBeTruthy();
 
       await fireEvent.press(screen.getByRole("button", { name: "Approve" }));
-      await waitFor(() => expect(transport.moderateComment).toHaveBeenCalledWith("p1", "approve"));
+      await waitFor(() =>
+        expect(transport.moderateComment).toHaveBeenCalledWith("p1", "approve"),
+      );
 
       await fireEvent.press(screen.getByRole("button", { name: "Hide" }));
-      await waitFor(() => expect(transport.moderateComment).toHaveBeenCalledWith("p1", "hide"));
+      await waitFor(() =>
+        expect(transport.moderateComment).toHaveBeenCalledWith("p1", "hide"),
+      );
     });
 
     it("treats an official the same way", async () => {

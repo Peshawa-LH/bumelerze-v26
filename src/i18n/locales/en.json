@@ -831,7 +831,8 @@
       "people": "People reported: {{number}}",
       "none": "No reports yet",
       "firstReport": "First report: {{time}}",
-      "levelA11y": "{{label}}: {{number}}"
+      "levelA11y": "{{label}}: {{number}}",
+      "memories": "Were you there? Share where you were and what you felt."
     },
     "unavailable": "Not available right now.",
     "loadError": "Couldn't load. Check your connection.",
@@ -849,7 +850,8 @@
         "rateLimited": "Too many comments. Wait a few minutes.",
         "network": "No connection. Try again.",
         "unknown": "Couldn't post. Try again."
-      }
+      },
+      "memoryPlaceholder": "Where were you, and what did you feel?"
     },
     "thread": {
       "empty": "No comments yet. Be the first to share what you felt.",

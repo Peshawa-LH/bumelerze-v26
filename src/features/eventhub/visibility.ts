@@ -7,7 +7,7 @@ export interface HubPillInput {
   originTime: number;
   nowMs: number;
   /** Null while the summary is unknown (loading, offline, or no registry). */
-  summary: { reports: number; comments: number } | null;
+  summary: { reports: number; comments: number; featured?: boolean } | null;
 }
 
 /**
@@ -23,6 +23,9 @@ export function shouldShowHubPill({
 }: HubPillInput): boolean {
   if (!isRegional) {
     return false;
+  }
+  if (summary?.featured) {
+    return true;
   }
   if (summary !== null && summary.reports + summary.comments > 0) {
     return true;

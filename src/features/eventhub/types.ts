@@ -61,6 +61,9 @@ export interface HubSummary {
   firstReportAt: number | null;
   /** Visible comments only. */
   comments: number;
+  /** A featured hub (migration 0038) is always open — e.g. the 2017
+   * Halabja–Sarpol-e Zahab earthquake, where people share memories. */
+  featured?: boolean;
 }
 
 /** Everything one thread read returns, ready for `buildThreads`. */

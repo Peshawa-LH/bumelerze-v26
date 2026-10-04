@@ -16,7 +16,9 @@ export function isCommentShown(
     return true;
   }
   if (comment.status === "pending") {
-    return viewer.isModerator || (viewer.userId !== null && comment.userId === viewer.userId);
+    return (
+      viewer.isModerator || (viewer.userId !== null && comment.userId === viewer.userId)
+    );
   }
   return false;
 }
@@ -49,6 +51,8 @@ export function buildThreads(
 
   return roots.map((root) => ({
     root,
-    replies: (repliesByParent.get(root.id) ?? []).sort((a, b) => a.createdAt - b.createdAt),
+    replies: (repliesByParent.get(root.id) ?? []).sort(
+      (a, b) => a.createdAt - b.createdAt,
+    ),
   }));
 }

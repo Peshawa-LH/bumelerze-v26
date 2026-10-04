@@ -128,7 +128,10 @@ export function CommentComposer({
       ) : null}
 
       {error ? (
-        <Text style={[meta, { color: colors.status.danger }]} accessibilityLiveRegion="polite">
+        <Text
+          style={[meta, { color: colors.status.danger }]}
+          accessibilityLiveRegion="polite"
+        >
           {error}
         </Text>
       ) : null}
