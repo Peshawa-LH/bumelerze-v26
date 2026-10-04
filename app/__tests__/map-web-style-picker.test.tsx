@@ -163,7 +163,8 @@ describe("MapScreenWeb basemap style picker — no MapTiler key configured", () 
     ).toBe(false);
 
     await expandStylePicker();
-    expect(screen.getByText(i18n.t("map.layers.faultsAttribution"))).toBeTruthy();
+    // Owner, 2026-10-04: the panel shows only the toggle and its name, no source line.
+    expect(screen.queryByText(i18n.t("map.layers.faultsAttribution"))).toBeNull();
     const toggle = screen.getByRole("checkbox", { name: i18n.t("map.layers.faults") });
     await act(async () => {
       fireEvent.press(toggle);

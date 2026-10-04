@@ -188,7 +188,7 @@ export function MapStylePicker({
           {TOGGLEABLE_MAP_LAYERS.map((layer) => {
             const on = isOverlayOn(overlays, layer.id);
             return (
-              <View key={layer.id} style={{ gap: 2 }}>
+              <View key={layer.id}>
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: on }}
@@ -215,16 +215,6 @@ export function MapStylePicker({
                     {t(layer.titleKey)}
                   </Text>
                 </Pressable>
-                <Text
-                  allowFontScaling
-                  style={{
-                    color: colors.text.tertiary,
-                    fontSize: typography.labelCaption.fontSize,
-                    lineHeight: typography.labelCaption.lineHeight,
-                  }}
-                >
-                  {t(layer.attributionKey)}
-                </Text>
               </View>
             );
           })}
