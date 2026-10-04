@@ -135,7 +135,7 @@ export function CommentItem({
           >
             {name}
           </Text>
-          <RoleMark roles={roles} authorName={name} />
+          <RoleMark roles={roles} />
           <Text style={meta}>{timeText}</Text>
         </View>
 

@@ -206,9 +206,8 @@ describe("EventHubContent", () => {
       // Name from profiles; no profile -> Anonymous.
       expect(screen.getAllByText("Awat").length).toBe(2);
       expect(screen.getByText("Anonymous")).toBeTruthy();
-      // Official mark.
-      expect(screen.getByTestId("role-mark-official")).toBeTruthy();
-      expect(screen.getByText("Bumelerze")).toBeTruthy();
+      // Official mark: the Bumelerze icon, no text beside it.
+      expect(screen.getByTestId("role-mark-official-icon")).toBeTruthy();
       // Area from the geohash, as a city, never coordinates.
       expect(screen.getByText("felt it near Slemani")).toBeTruthy();
       // Relative times.

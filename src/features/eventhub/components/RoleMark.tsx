@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
@@ -17,7 +18,7 @@ const ROLE_ICON: Record<HubRoleKind, keyof typeof Ionicons.glyphMap> = {
   official: "checkmark-circle",
   moderator: "shield-checkmark",
   engineer: "construct",
-  partner: "checkmark-circle",
+  partner: "ribbon",
 };
 
 /** The role that earns the mark when someone holds several. */
@@ -35,21 +36,14 @@ export function pickDisplayRole(roles: readonly HubRole[] | undefined): HubRole 
 }
 
 /**
- * Public role mark next to a name: official = check + "Bumelerze", moderator
- * = shield, engineer = hard-hat style tool, partner = check + organisation.
+ * Public role mark next to a name: an icon only, no text (owner, 2026-10-04).
+ * The official account wears the Bumelerze round icon as its tick; the other
+ * roles each get their own icon and colour, a first step toward collectable
+ * badges. The role's name stays for screen readers.
  */
-export function RoleMark({
-  roles,
-  authorName,
-}: {
-  roles: readonly HubRole[] | undefined;
-  /** When the label would repeat the author's own name (the official
-   * "Bumelerze" account), only the mark is shown; the label stays for
-   * screen readers. */
-  authorName?: string;
-}) {
+export function RoleMark({ roles }: { roles: readonly HubRole[] | undefined }) {
   const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
+  const { colors } = useTheme();
   const role = pickDisplayRole(roles);
   if (!role) {
     return null;
@@ -58,35 +52,43 @@ export function RoleMark({
     role.role === "partner" && role.orgName
       ? role.orgName
       : t(`eventHub.roles.${role.role}`);
-  const tint = role.role === "official" ? colors.text.link : colors.text.secondary;
+  const tint: Record<HubRoleKind, string> = {
+    official: colors.text.link,
+    moderator: colors.text.link,
+    engineer: colors.status.warning,
+    partner: colors.status.success,
+  };
 
   return (
     <View
       testID={`role-mark-${role.role}`}
       accessible
+      accessibilityRole="image"
       accessibilityLabel={label}
-      style={[styles.row, { gap: spacing[1] }]}
+      style={styles.mark}
     >
-      <Ionicons name={ROLE_ICON[role.role]} size={16} color={tint} />
-      {authorName !== undefined && authorName.trim() === label.trim() ? null : (
-        <Text
-          style={{
-            color: tint,
-            fontSize: typography.labelCaption.fontSize,
-            lineHeight: typography.labelCaption.lineHeight,
-            fontWeight: typography.labelCaption.fontWeight,
-          }}
-        >
-          {label}
-        </Text>
+      {role.role === "official" ? (
+        <Image
+          source={OFFICIAL_ICON}
+          contentFit="contain"
+          style={styles.mark}
+          testID="role-mark-official-icon"
+        />
+      ) : (
+        <Ionicons name={ROLE_ICON[role.role]} size={MARK_SIZE} color={tint[role.role]} />
       )}
     </View>
   );
 }
 
+const MARK_SIZE = 18;
+const OFFICIAL_ICON = require("../../../../assets/brand/logo/bumelerze-app-icon-round.svg");
+
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
+  mark: {
+    width: MARK_SIZE,
+    height: MARK_SIZE,
     alignItems: "center",
+    justifyContent: "center",
   },
 });
