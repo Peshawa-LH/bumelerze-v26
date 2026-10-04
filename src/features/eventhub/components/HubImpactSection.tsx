@@ -53,7 +53,8 @@ export function HubImpactSection({ event, summary }: HubImpactSectionProps) {
     label: t(`felt.tier1.levels.${level}.label`),
   }));
 
-  const riskSummary = shakeMap.status === "ready" && shakeMap.risk ? shakeMap.risk.summary : null;
+  const riskSummary =
+    shakeMap.status === "ready" && shakeMap.risk ? shakeMap.risk.summary : null;
 
   // Building damage: only when the product carries the DG0..DG5 split.
   const grades =

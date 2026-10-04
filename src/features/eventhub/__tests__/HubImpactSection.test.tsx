@@ -84,7 +84,9 @@ describe("HubImpactSection", () => {
 
   it("renders nothing when no chart has data", async () => {
     mockRisk(null);
-    const { toJSON } = await render(<HubImpactSection event={EVENT} summary={EMPTY_SUMMARY} />);
+    const { toJSON } = await render(
+      <HubImpactSection event={EVENT} summary={EMPTY_SUMMARY} />,
+    );
     expect(toJSON()).toBeNull();
   });
 

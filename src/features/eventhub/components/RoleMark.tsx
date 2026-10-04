@@ -38,7 +38,16 @@ export function pickDisplayRole(roles: readonly HubRole[] | undefined): HubRole 
  * Public role mark next to a name: official = check + "Bumelerze", moderator
  * = shield, engineer = hard-hat style tool, partner = check + organisation.
  */
-export function RoleMark({ roles }: { roles: readonly HubRole[] | undefined }) {
+export function RoleMark({
+  roles,
+  authorName,
+}: {
+  roles: readonly HubRole[] | undefined;
+  /** When the label would repeat the author's own name (the official
+   * "Bumelerze" account), only the mark is shown; the label stays for
+   * screen readers. */
+  authorName?: string;
+}) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const role = pickDisplayRole(roles);
@@ -59,16 +68,18 @@ export function RoleMark({ roles }: { roles: readonly HubRole[] | undefined }) {
       style={[styles.row, { gap: spacing[1] }]}
     >
       <Ionicons name={ROLE_ICON[role.role]} size={16} color={tint} />
-      <Text
-        style={{
-          color: tint,
-          fontSize: typography.labelCaption.fontSize,
-          lineHeight: typography.labelCaption.lineHeight,
-          fontWeight: typography.labelCaption.fontWeight,
-        }}
-      >
-        {label}
-      </Text>
+      {authorName !== undefined && authorName.trim() === label.trim() ? null : (
+        <Text
+          style={{
+            color: tint,
+            fontSize: typography.labelCaption.fontSize,
+            lineHeight: typography.labelCaption.lineHeight,
+            fontWeight: typography.labelCaption.fontWeight,
+          }}
+        >
+          {label}
+        </Text>
+      )}
     </View>
   );
 }
