@@ -172,43 +172,46 @@ export default function RootLayout() {
              * Navigation resolves the new default screen itself the
              * instant `onboardingCompleted` flips (the same
              * conditional-screens pattern React Navigation's own
-             * "Authentication flows" guide recommends for auth gating). */}
-            {onboardingCompleted ? (
-              <>
-                <Stack.Screen name="(tabs)" />
-                {/* Each of these pushed screens owns `headerShown`/`title`/
-                 * `headerLeft` itself via its own inline `<Stack.Screen
-                 * options={{...}}>` (rendered from within the route
-                 * component) — a static `options={{headerShown: true}}`
-                 * declared HERE, at this level, was tried first and found
-                 * to be silently ineffective (verified against a built web
-                 * export: the header never rendered at all, not even its
-                 * title, only once the screen's OWN inline declaration set
-                 * `headerShown` did it appear) — matching how `catalog`,
-                 * never declared here at all, already worked correctly.
-                 * Bare declarations below just register the route names;
-                 * they carry no options. */}
-                <Stack.Screen name="event/[id]" />
-                <Stack.Screen name="event-hub/[id]" />
-                <Stack.Screen name="world" />
-                <Stack.Screen name="significant" />
-                <Stack.Screen name="historical" />
-                <Stack.Screen name="handbook" />
-                <Stack.Screen name="notification-settings" />
-                <Stack.Screen name="my-data" />
-                <Stack.Screen name="feedback" />
-                <Stack.Screen name="account/sign-in" />
-                <Stack.Screen name="account/profile" />
-                <Stack.Screen name="account/callback" />
-                <Stack.Screen name="home/new" />
-                <Stack.Screen name="home/join" />
-                <Stack.Screen name="home/[tagId]/report" />
-                <Stack.Screen name="home/[tagId]/family" />
-                <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
-              </>
-            ) : (
+             * "Authentication flows" guide recommends for auth gating).
+             * Expressed with `Stack.Protected`: a bare Fragment child of
+             * `<Stack>` makes expo-router 57 throw "Cannot convert a Symbol
+             * value to a string" and the app renders blank for every
+             * returning user (found 2026-10-04). */}
+            <Stack.Protected guard={onboardingCompleted}>
+              <Stack.Screen name="(tabs)" />
+              {/* Each of these pushed screens owns `headerShown`/`title`/
+               * `headerLeft` itself via its own inline `<Stack.Screen
+               * options={{...}}>` (rendered from within the route
+               * component) — a static `options={{headerShown: true}}`
+               * declared HERE, at this level, was tried first and found
+               * to be silently ineffective (verified against a built web
+               * export: the header never rendered at all, not even its
+               * title, only once the screen's OWN inline declaration set
+               * `headerShown` did it appear) — matching how `catalog`,
+               * never declared here at all, already worked correctly.
+               * Bare declarations below just register the route names;
+               * they carry no options. */}
+              <Stack.Screen name="event/[id]" />
+              <Stack.Screen name="event-hub/[id]" />
+              <Stack.Screen name="world" />
+              <Stack.Screen name="significant" />
+              <Stack.Screen name="historical" />
+              <Stack.Screen name="handbook" />
+              <Stack.Screen name="notification-settings" />
+              <Stack.Screen name="my-data" />
+              <Stack.Screen name="feedback" />
+              <Stack.Screen name="account/sign-in" />
+              <Stack.Screen name="account/profile" />
+              <Stack.Screen name="account/callback" />
+              <Stack.Screen name="home/new" />
+              <Stack.Screen name="home/join" />
+              <Stack.Screen name="home/[tagId]/report" />
+              <Stack.Screen name="home/[tagId]/family" />
+              <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
+            </Stack.Protected>
+            <Stack.Protected guard={!onboardingCompleted}>
               <Stack.Screen name="onboarding" />
-            )}
+            </Stack.Protected>
           </Stack>
         </PersistQueryClientProvider>
       </SafeAreaProvider>
