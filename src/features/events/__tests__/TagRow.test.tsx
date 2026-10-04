@@ -59,9 +59,7 @@ describe("TagRow", () => {
   it("shows only the leading agency on a banner, never a '+N' (owner directive)", async () => {
     // A list banner carries exactly three tag kinds: source, notable,
     // shakemap. Three agencies agreeing must still render as ONE source tag.
-    await render(
-      <TagRow provider="usgs" agencies={["US", "CSEM", "GFZ"]} isNotable />,
-    );
+    await render(<TagRow provider="usgs" agencies={["US", "CSEM", "GFZ"]} isNotable />);
     expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
     expect(screen.queryByText("EMSC", HIDDEN)).toBeNull();
     expect(screen.queryByText("GEOFON", HIDDEN)).toBeNull();
@@ -70,13 +68,25 @@ describe("TagRow", () => {
   });
 
   it("renders one named tag per agency for two sources", async () => {
-    await render(<TagRow provider="usgs" agencies={["USGS", "EMSC"]} maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />);
+    await render(
+      <TagRow
+        provider="usgs"
+        agencies={["USGS", "EMSC"]}
+        maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL}
+      />,
+    );
     expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
     expect(screen.getByText("EMSC", HIDDEN)).toBeTruthy();
   });
 
   it("renders one named tag per agency for three sources, with no combined tag", async () => {
-    await render(<TagRow provider="usgs" agencies={["USGS", "EMSC", "ISN"]} maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />);
+    await render(
+      <TagRow
+        provider="usgs"
+        agencies={["USGS", "EMSC", "ISN"]}
+        maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL}
+      />,
+    );
     expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
     expect(screen.getByText("EMSC", HIDDEN)).toBeTruthy();
     expect(screen.getByText("ISN", HIDDEN)).toBeTruthy();
@@ -129,26 +139,20 @@ describe("TagRow", () => {
     // parent traversal; simplest robust check here is DOM-order via
     // `toJSON()` string positions, since both render as plain <Text>.
     const tree = JSON.stringify(screen.toJSON());
-    expect(tree.indexOf("USGS")).toBeLessThan(
-      tree.indexOf(i18n.t("events.notableTag")),
-    );
+    expect(tree.indexOf("USGS")).toBeLessThan(tree.indexOf(i18n.t("events.notableTag")));
   });
 
   it("orders tags as sources, then shakemap", async () => {
     await render(<TagRow provider="usgs" agencies={["USGS"]} hasShakemap />);
     const tree = JSON.stringify(screen.toJSON());
-    expect(tree.indexOf("USGS")).toBeLessThan(
-      tree.indexOf(i18n.t("events.shakemapTag")),
-    );
+    expect(tree.indexOf("USGS")).toBeLessThan(tree.indexOf(i18n.t("events.shakemapTag")));
   });
 
   it("drops the notable tag when the event has a shakemap", async () => {
     // Owner directive 2026-09-23: three chips crowd a phone card, and the
     // pair is largely redundant — a notable event is normally one we
     // computed a map for, and the map is the more useful thing to say.
-    await render(
-      <TagRow provider="usgs" agencies={["USGS"]} isNotable hasShakemap />,
-    );
+    await render(<TagRow provider="usgs" agencies={["USGS"]} isNotable hasShakemap />);
     expect(screen.getByText(i18n.t("events.shakemapTag"), HIDDEN)).toBeTruthy();
     expect(screen.queryByText(i18n.t("events.notableTag"), HIDDEN)).toBeNull();
   });
@@ -156,9 +160,7 @@ describe("TagRow", () => {
   it("does not announce the suppressed notable tag to a screen reader", async () => {
     // The spoken label follows the visual (this row's own rule): a chip a
     // sighted user cannot see must not be read out either.
-    await render(
-      <TagRow provider="usgs" agencies={["USGS"]} isNotable hasShakemap />,
-    );
+    await render(<TagRow provider="usgs" agencies={["USGS"]} isNotable hasShakemap />);
     const combined = screen.getByLabelText(
       `${i18n.t("events.tagRow.sourcesA11yLabel", { agencies: "USGS" })}. ${i18n.t("events.shakemapTagA11yLabel")}`,
     );
@@ -168,7 +170,12 @@ describe("TagRow", () => {
   describe("standalone accessibility", () => {
     it("exposes one combined accessible element by default (standalone)", async () => {
       await render(
-        <TagRow provider="usgs" agencies={["USGS", "EMSC"]} isNotable maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />,
+        <TagRow
+          provider="usgs"
+          agencies={["USGS", "EMSC"]}
+          isNotable
+          maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL}
+        />,
       );
       const combined = screen.getByLabelText(
         `${i18n.t("events.tagRow.sourcesA11yLabel", { agencies: "USGS, EMSC" })}. ${i18n.t("events.notableTag")}`,
@@ -178,7 +185,11 @@ describe("TagRow", () => {
 
     it("mentions the '+N more' phrasing in the combined label once the list is long", async () => {
       await render(
-        <TagRow provider="usgs" agencies={["USGS", "EMSC", "ISN", "AFAD"]} maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL} />,
+        <TagRow
+          provider="usgs"
+          agencies={["USGS", "EMSC", "ISN", "AFAD"]}
+          maxSourceTags={MAX_NAMED_SOURCE_TAGS_FULL}
+        />,
       );
       const expected = i18n.t("events.tagRow.sourcesWithMoreA11yLabel", {
         agencies: "USGS, EMSC, ISN",
@@ -188,9 +199,7 @@ describe("TagRow", () => {
     });
 
     it("renders no standalone accessible wrapper when standalone=false, matching EventCard's own combined label pattern", async () => {
-      await render(
-        <TagRow provider="usgs" agencies={["USGS"]} standalone={false} />,
-      );
+      await render(<TagRow provider="usgs" agencies={["USGS"]} standalone={false} />);
       // The individual pill text is still present in the tree...
       expect(screen.getByText("USGS", HIDDEN)).toBeTruthy();
       // ...but nothing in this subtree carries the combined sentence as an
@@ -240,8 +249,6 @@ describe("buildTagRowAccessibilityLabel", () => {
       { provider: "geofon" },
       i18n.t.bind(i18n),
     );
-    expect(label).toBe(
-      i18n.t("events.tagRow.sourcesA11yLabel", { agencies: "GEOFON" }),
-    );
+    expect(label).toBe(i18n.t("events.tagRow.sourcesA11yLabel", { agencies: "GEOFON" }));
   });
 });

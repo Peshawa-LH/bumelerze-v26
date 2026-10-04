@@ -74,8 +74,8 @@ describe("parseGeofonText", () => {
   it("skips malformed rows (counted, never thrown) while keeping the good ones", () => {
     const tooFewFields = "gfz2026bad1|2026-08-02T00:00:00|35.0|45.0";
     const emptyMagnitude =
-      "gfz2026bad2|2026-08-02T01:00:00|35.0|45.0|10.0|||GFZ|gfz2026bad2|||"
-      + "|Iraq|earthquake"; // Magnitude column empty — GEOFON's not-yet-reviewed placeholder
+      "gfz2026bad2|2026-08-02T01:00:00|35.0|45.0|10.0|||GFZ|gfz2026bad2|||" +
+      "|Iraq|earthquake"; // Magnitude column empty — GEOFON's not-yet-reviewed placeholder
     const unparseableLatitude =
       "gfz2026bad3|2026-08-02T02:00:00|not-a-number|45.0|10.0|||GFZ|gfz2026bad3|mb|4.1||Iraq|earthquake";
     const unparseableTime =
@@ -117,7 +117,7 @@ describe("parseGeofonText", () => {
     expect(result.events[0]?.magnitude).toEqual({ value: 3.9, type: "ml" });
   });
 
-  it("maps an empty MagType column to \"unknown\", mirroring the other providers' null handling", () => {
+  it('maps an empty MagType column to "unknown", mirroring the other providers\' null handling', () => {
     const untypedMag =
       "gfz2026untp|2026-08-02T06:00:00|35.0|45.0|10.0|||GFZ|gfz2026untp||4.2||Iraq|earthquake";
     const result = parseGeofonText(`${HEADER_LINE}\n${untypedMag}`, FETCHED_AT);

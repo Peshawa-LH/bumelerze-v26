@@ -7,9 +7,7 @@ import type { EmscFeature } from "../emsc-schema";
  * normalize.test.ts — `normalizeEmscFeature` consumes the already-schema-
  * validated `EmscFeature` type, not raw JSON.
  */
-function buildEmscFeature(
-  overrides: Partial<EmscFeature["properties"]>,
-): EmscFeature {
+function buildEmscFeature(overrides: Partial<EmscFeature["properties"]>): EmscFeature {
   return {
     type: "Feature",
     id: "20230206_0000008",

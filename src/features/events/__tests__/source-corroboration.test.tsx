@@ -451,7 +451,10 @@ describe("useEventSourceAgencies", () => {
     const { result } = await renderSourceAgencies([event], transport);
 
     await waitFor(() => {
-      expect(result.current.get(event.id)).toEqual({ agencies: ["NEIC", "AFAD"], hasShakemap: false });
+      expect(result.current.get(event.id)).toEqual({
+        agencies: ["NEIC", "AFAD"],
+        hasShakemap: false,
+      });
     });
   });
 });

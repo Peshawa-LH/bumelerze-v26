@@ -287,7 +287,11 @@ function formatAbsoluteOne(
  * `formatAbsoluteDual`'s dual UTC+local shape would be actively wrong for a
  * plain calendar-date bound.
  */
-export function formatDateOnly(originTimeMs: number, locale: string, t: TranslateFn): string {
+export function formatDateOnly(
+  originTimeMs: number,
+  locale: string,
+  t: TranslateFn,
+): string {
   const { day, month, year } = dateComponents(new Date(originTimeMs), undefined, locale);
 
   return t("events.dateOnlyTemplate", {

@@ -14,9 +14,13 @@
     "title": "Home",
     "emptyState": "No earthquakes reported in your region recently.",
     "possibleEvent": {
-      "message": "Possible earthquake, reported by people near {{city}}. More information will follow.",
-      "messageUnknownArea": "Possible earthquake, reported by people nearby. More information will follow.",
-      "a11yLabel": "Possible earthquake alert: reported by people near {{city}}. More information will follow."
+      "freshTitle": "Shaking reported near {{city}}",
+      "freshTitleUnknownArea": "Shaking reported nearby",
+      "staleTitle": "Unconfirmed shaking near {{city}}",
+      "staleTitleUnknownArea": "Unconfirmed shaking nearby",
+      "notConfirmed": "Not yet confirmed by seismic networks",
+      "people": "{{number}} people",
+      "a11yAlert": "Alert"
     }
   },
   "units": {

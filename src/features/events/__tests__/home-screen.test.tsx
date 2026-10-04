@@ -101,6 +101,8 @@ const samplePossibleEvent: PossibleEvent = {
   lat: 35.56,
   lon: 45.43,
   createdAt: Date.now() - 90_000,
+  firstReportAt: Date.now() - 3 * 60_000,
+  userCount: 9,
 };
 
 describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
@@ -259,7 +261,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     // a11y label) — matched as the exact templated string (not a bare
     // substring regex) since the M4.6 event card's own place line ALSO
     // contains "سلێمانی" in this same render tree.
-    const expectedMessage = i18n.t("home.possibleEvent.message", { city: "سلێمانی" });
+    const expectedMessage = i18n.t("home.possibleEvent.freshTitle", { city: "سلێمانی" });
     expect(screen.getByText(expectedMessage)).toBeTruthy();
   });
 
@@ -272,7 +274,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     await renderWithProviders(<HomeScreen />);
 
     expect(
-      screen.getByText(i18n.t("home.possibleEvent.messageUnknownArea", { lng: "en" })),
+      screen.getByText(i18n.t("home.possibleEvent.freshTitleUnknownArea", { lng: "en" })),
     ).toBeTruthy();
   });
 

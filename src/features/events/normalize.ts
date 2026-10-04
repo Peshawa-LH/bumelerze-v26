@@ -1,8 +1,4 @@
-import {
-  ALERT_BONUS,
-  REGION_BBOX,
-  SIGNIFICANCE_THRESHOLDS,
-} from "./config";
+import { ALERT_BONUS, REGION_BBOX, SIGNIFICANCE_THRESHOLDS } from "./config";
 import type { EmscFeature } from "./emsc-schema";
 import type { GeofonRow } from "./geofon-schema";
 import type { EventsWithSourcesRow, PrimarySourceRow } from "./supabase-event-schema";
@@ -75,7 +71,7 @@ export function normalizeUsgsFeature(
   }
 
   const providerId = properties.ids
-    ? properties.ids.split(",").find((entry) => entry.length > 0) ?? id
+    ? (properties.ids.split(",").find((entry) => entry.length > 0) ?? id)
     : id;
 
   const event: Event = {

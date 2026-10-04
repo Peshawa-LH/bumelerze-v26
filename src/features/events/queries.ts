@@ -318,7 +318,10 @@ export interface UseEventByIdResult {
  * in-app navigation never issues an extra network request for data it
  * already has.
  */
-export function useEventById(id: string | undefined, enabled: boolean): UseEventByIdResult {
+export function useEventById(
+  id: string | undefined,
+  enabled: boolean,
+): UseEventByIdResult {
   const query = useQuery({
     queryKey: ["events", "byId", id ?? ""],
     // `enabled` guarantees `id` is defined whenever this actually runs.

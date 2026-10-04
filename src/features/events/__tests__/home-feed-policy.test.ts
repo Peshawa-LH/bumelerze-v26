@@ -167,7 +167,9 @@ describe("selectHomeFeedEvents", () => {
 
   it("NOTABLE CARVE-OUT: an M6+ event just under 12 months old survives even though it's well past the 180-day window cap", () => {
     const elevenMonthsAgoMs = 335 * DAY_MS;
-    const pool = [makeEvent("year-old-big", { originTime: NOW - elevenMonthsAgoMs, mag: 6.2 })];
+    const pool = [
+      makeEvent("year-old-big", { originTime: NOW - elevenMonthsAgoMs, mag: 6.2 }),
+    ];
 
     const result = selectHomeFeedEvents(pool, NOW);
 
@@ -177,7 +179,9 @@ describe("selectHomeFeedEvents", () => {
 
   it("NOTABLE CARVE-OUT: an M5.9 event past its 6-month tier (but not the M6+ 12-month tier) is correctly excluded", () => {
     const sevenMonthsAgoMs = 213 * DAY_MS;
-    const pool = [makeEvent("too-old-for-its-tier", { originTime: NOW - sevenMonthsAgoMs, mag: 5.9 })];
+    const pool = [
+      makeEvent("too-old-for-its-tier", { originTime: NOW - sevenMonthsAgoMs, mag: 5.9 }),
+    ];
 
     const result = selectHomeFeedEvents(pool, NOW);
 

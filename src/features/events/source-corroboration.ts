@@ -103,9 +103,7 @@ function dedupeAgencies(
  * query-builder chain.
  */
 export interface SourceCorroborationTransport {
-  fetchCorroboration(
-    events: readonly Event[],
-  ): Promise<SourceCorroborationByEventId>;
+  fetchCorroboration(events: readonly Event[]): Promise<SourceCorroborationByEventId>;
 }
 
 /**
@@ -113,155 +111,149 @@ export interface SourceCorroborationTransport {
  * (0023 grants `select` on both surfaces to `anon`) — no auth session
  * needed, matching every other Supabase read in this app.
  */
-export const SupabaseSourceCorroborationTransport: SourceCorroborationTransport =
-  {
-    async fetchCorroboration(
-      events: readonly Event[],
-    ): Promise<SourceCorroborationByEventId> {
-      const client = getSupabaseClient();
-      if (!client || events.length === 0) {
-        // Defensive only — `useEventSourceAgencies` gates the query itself
-        // on `isSupabaseConfigured()` and an empty event list.
-        return {};
-      }
+export const SupabaseSourceCorroborationTransport: SourceCorroborationTransport = {
+  async fetchCorroboration(
+    events: readonly Event[],
+  ): Promise<SourceCorroborationByEventId> {
+    const client = getSupabaseClient();
+    if (!client || events.length === 0) {
+      // Defensive only — `useEventSourceAgencies` gates the query itself
+      // on `isSupabaseConfigured()` and an empty event list.
+      return {};
+    }
 
-      // Step 1: (provider, providerId) -> internal event_id, one .in()
-      // batch per provider (usually 1-3 requests total, never one per
-      // card) — the provider allow-list is small and fixed
-      // (EventProvider), so grouping by it keeps every request a plain
-      // single-column `.in()` rather than needing an `.or()` of ANDed
-      // tuples.
-      const byProvider = new Map<string, Event[]>();
-      for (const event of events) {
-        const list = byProvider.get(event.provenance.provider) ?? [];
-        list.push(event);
-        byProvider.set(event.provenance.provider, list);
-      }
+    // Step 1: (provider, providerId) -> internal event_id, one .in()
+    // batch per provider (usually 1-3 requests total, never one per
+    // card) — the provider allow-list is small and fixed
+    // (EventProvider), so grouping by it keeps every request a plain
+    // single-column `.in()` rather than needing an `.or()` of ANDed
+    // tuples.
+    const byProvider = new Map<string, Event[]>();
+    for (const event of events) {
+      const list = byProvider.get(event.provenance.provider) ?? [];
+      list.push(event);
+      byProvider.set(event.provenance.provider, list);
+    }
 
-      const lookupRequests: Promise<{ event: Event; internalId: string }[]>[] =
-        [];
-      for (const [provider, providerEvents] of byProvider) {
-        for (const batch of chunk(providerEvents, CORROBORATION_BATCH_SIZE)) {
-          lookupRequests.push(
-            (async () => {
-              const { data, error } = await client
-                .from("event_source_records")
-                .select("event_id, provider, provider_event_id")
-                .eq("provider", provider)
-                .in(
-                  "provider_event_id",
-                  batch.map((event) => event.provenance.providerId),
-                );
-
-              if (error) {
-                // No silent catches (repo rule) — rethrown so React
-                // Query's `isError` path is reachable; the HOOK is what
-                // decides to degrade quietly (matches
-                // `possible.ts`/`usePossibleEvents`'s own documented
-                // precedent for a supplementary, non-critical surface).
-                throw error;
-              }
-
-              const rows = (data ?? [])
-                .map((row) => sourceRecordLookupRowSchema.safeParse(row))
-                .filter((result) => result.success)
-                .map((result) => result.data);
-
-              const byProviderEventId = new Map(
-                rows.map((row) => [row.provider_event_id, row.event_id]),
+    const lookupRequests: Promise<{ event: Event; internalId: string }[]>[] = [];
+    for (const [provider, providerEvents] of byProvider) {
+      for (const batch of chunk(providerEvents, CORROBORATION_BATCH_SIZE)) {
+        lookupRequests.push(
+          (async () => {
+            const { data, error } = await client
+              .from("event_source_records")
+              .select("event_id, provider, provider_event_id")
+              .eq("provider", provider)
+              .in(
+                "provider_event_id",
+                batch.map((event) => event.provenance.providerId),
               );
 
-              return batch.flatMap((event) => {
-                const internalId = byProviderEventId.get(
-                  event.provenance.providerId,
-                );
-                return internalId ? [{ event, internalId }] : [];
-              });
-            })(),
-          );
-        }
-      }
-
-      const resolved = (await Promise.all(lookupRequests)).flat();
-      if (resolved.length === 0) {
-        return {};
-      }
-
-      // Step 2: internal event_id -> corroborating sources, again chunked.
-      const internalIds = Array.from(
-        new Set(resolved.map(({ internalId }) => internalId)),
-      );
-
-      const sourcesByInternalId = new Map<string, SourceCorroboration>();
-      await Promise.all(
-        chunk(internalIds, CORROBORATION_BATCH_SIZE).map(async (batch) => {
-          const { data, error } = await client
-            .from("events_with_sources")
-            .select("event_id, sources")
-            .in("event_id", batch);
-
-          if (error) {
-            throw error;
-          }
-
-          for (const row of data ?? []) {
-            const result = eventWithSourcesRowSchema.safeParse(row);
-            if (!result.success) {
-              continue;
+            if (error) {
+              // No silent catches (repo rule) — rethrown so React
+              // Query's `isError` path is reachable; the HOOK is what
+              // decides to degrade quietly (matches
+              // `possible.ts`/`usePossibleEvents`'s own documented
+              // precedent for a supplementary, non-critical surface).
+              throw error;
             }
-            sourcesByInternalId.set(result.data.event_id, {
-              agencies: dedupeAgencies(result.data.sources),
-              hasShakemap: false,
+
+            const rows = (data ?? [])
+              .map((row) => sourceRecordLookupRowSchema.safeParse(row))
+              .filter((result) => result.success)
+              .map((result) => result.data);
+
+            const byProviderEventId = new Map(
+              rows.map((row) => [row.provider_event_id, row.event_id]),
+            );
+
+            return batch.flatMap((event) => {
+              const internalId = byProviderEventId.get(event.provenance.providerId);
+              return internalId ? [{ event, internalId }] : [];
             });
-          }
-        }),
-      );
-
-      // Step 3: which of those events have a published shaking map. One
-      // `.in()` per chunk against `shakemap_products`, the same read-only,
-      // anon-selectable shape as the two above — deliberately NOT the
-      // per-event `useLiveShakeMap` path, which resolves through
-      // `upsert_event_from_client` and CREATES a row when none matches. A
-      // list must never write.
-      const withShakemap = new Set<string>();
-      await Promise.all(
-        chunk(internalIds, CORROBORATION_BATCH_SIZE).map(async (batch) => {
-          const { data, error } = await client
-            .from("shakemap_products")
-            .select("event_id")
-            .in("event_id", batch);
-
-          if (error) {
-            throw error;
-          }
-
-          for (const row of data ?? []) {
-            const eventId = (row as { event_id?: unknown }).event_id;
-            if (typeof eventId === "string" && eventId.length > 0) {
-              withShakemap.add(eventId);
-            }
-          }
-        }),
-      );
-
-      const byAppEventId: Record<string, SourceCorroboration> = {};
-      for (const { event, internalId } of resolved) {
-        const corroboration = sourcesByInternalId.get(internalId);
-        const hasShakemap = withShakemap.has(internalId);
-        // An event can have a published map and no `events_with_sources`
-        // row, so the entry is emitted when EITHER holds — keying it off
-        // corroboration alone would drop the tag for exactly the events
-        // the registry knows least about.
-        if (corroboration || hasShakemap) {
-          byAppEventId[event.id] = {
-            agencies: corroboration?.agencies ?? [],
-            hasShakemap,
-          };
-        }
+          })(),
+        );
       }
-      return byAppEventId;
-    },
-  };
+    }
+
+    const resolved = (await Promise.all(lookupRequests)).flat();
+    if (resolved.length === 0) {
+      return {};
+    }
+
+    // Step 2: internal event_id -> corroborating sources, again chunked.
+    const internalIds = Array.from(new Set(resolved.map(({ internalId }) => internalId)));
+
+    const sourcesByInternalId = new Map<string, SourceCorroboration>();
+    await Promise.all(
+      chunk(internalIds, CORROBORATION_BATCH_SIZE).map(async (batch) => {
+        const { data, error } = await client
+          .from("events_with_sources")
+          .select("event_id, sources")
+          .in("event_id", batch);
+
+        if (error) {
+          throw error;
+        }
+
+        for (const row of data ?? []) {
+          const result = eventWithSourcesRowSchema.safeParse(row);
+          if (!result.success) {
+            continue;
+          }
+          sourcesByInternalId.set(result.data.event_id, {
+            agencies: dedupeAgencies(result.data.sources),
+            hasShakemap: false,
+          });
+        }
+      }),
+    );
+
+    // Step 3: which of those events have a published shaking map. One
+    // `.in()` per chunk against `shakemap_products`, the same read-only,
+    // anon-selectable shape as the two above — deliberately NOT the
+    // per-event `useLiveShakeMap` path, which resolves through
+    // `upsert_event_from_client` and CREATES a row when none matches. A
+    // list must never write.
+    const withShakemap = new Set<string>();
+    await Promise.all(
+      chunk(internalIds, CORROBORATION_BATCH_SIZE).map(async (batch) => {
+        const { data, error } = await client
+          .from("shakemap_products")
+          .select("event_id")
+          .in("event_id", batch);
+
+        if (error) {
+          throw error;
+        }
+
+        for (const row of data ?? []) {
+          const eventId = (row as { event_id?: unknown }).event_id;
+          if (typeof eventId === "string" && eventId.length > 0) {
+            withShakemap.add(eventId);
+          }
+        }
+      }),
+    );
+
+    const byAppEventId: Record<string, SourceCorroboration> = {};
+    for (const { event, internalId } of resolved) {
+      const corroboration = sourcesByInternalId.get(internalId);
+      const hasShakemap = withShakemap.has(internalId);
+      // An event can have a published map and no `events_with_sources`
+      // row, so the entry is emitted when EITHER holds — keying it off
+      // corroboration alone would drop the tag for exactly the events
+      // the registry knows least about.
+      if (corroboration || hasShakemap) {
+        byAppEventId[event.id] = {
+          agencies: corroboration?.agencies ?? [],
+          hasShakemap,
+        };
+      }
+    }
+    return byAppEventId;
+  },
+};
 
 /**
  * The query's cached shape MUST be plain JSON. `app/_layout.tsx` wraps the
@@ -275,8 +267,7 @@ export const SupabaseSourceCorroborationTransport: SourceCorroborationTransport 
  */
 export type SourceCorroborationByEventId = Record<string, SourceCorroboration>;
 
-const EMPTY_CORROBORATION_MAP: ReadonlyMap<string, SourceCorroboration> =
-  new Map();
+const EMPTY_CORROBORATION_MAP: ReadonlyMap<string, SourceCorroboration> = new Map();
 
 /**
  * Batched hook for a screen's worth of on-screen events — call it once per

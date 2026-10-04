@@ -1,9 +1,6 @@
 import { EMSC_FEEDS, REGION_BBOX, REGION_FEED_WINDOW_DAYS } from "./config";
 import { normalizeEmscFeature } from "./normalize";
-import {
-  emscFeatureCollectionSchema,
-  emscFeatureSchema,
-} from "./emsc-schema";
+import { emscFeatureCollectionSchema, emscFeatureSchema } from "./emsc-schema";
 import type { Event } from "./types";
 
 export interface EmscFetchResult {
@@ -20,10 +17,7 @@ export interface EmscFetchResult {
  * malformed top-level payload still throws (nothing tolerant to do with a
  * response that isn't GeoJSON at all); the caller turns that into a failed
  * fetch, which is exactly the failure queries.ts already handles. */
-function parseFeatureCollection(
-  payload: unknown,
-  fetchedAt: number,
-): EmscFetchResult {
+function parseFeatureCollection(payload: unknown, fetchedAt: number): EmscFetchResult {
   const collection = emscFeatureCollectionSchema.parse(payload);
 
   const events: Event[] = [];

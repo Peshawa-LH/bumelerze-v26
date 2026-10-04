@@ -142,7 +142,9 @@ export function selectHomeFeedEvents(
     selected.set(event.id, event);
   }
 
-  const events = Array.from(selected.values()).sort((a, b) => b.originTime - a.originTime);
+  const events = Array.from(selected.values()).sort(
+    (a, b) => b.originTime - a.originTime,
+  );
 
   return { events, windowDays, magnitudeFloor, notableIds };
 }

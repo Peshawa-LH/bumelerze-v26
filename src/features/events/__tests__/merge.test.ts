@@ -1,7 +1,4 @@
-import {
-  DEDUP_MAX_MAG_DELTA,
-  DEDUP_MAX_TIME_DELTA_MS,
-} from "../config";
+import { DEDUP_MAX_MAG_DELTA, DEDUP_MAX_TIME_DELTA_MS } from "../config";
 import { isSameEarthquake, mergeProviderEvents } from "../merge";
 import type { Event, EventProvider } from "../types";
 
@@ -55,7 +52,9 @@ describe("isSameEarthquake (§2 dedup thresholds)", () => {
   });
 
   it("time boundary: |Δt| of exactly 16 s still matches (inclusive)", () => {
-    const emsc = makeEvent("emsc", "e", { originTime: BASE_TIME + DEDUP_MAX_TIME_DELTA_MS });
+    const emsc = makeEvent("emsc", "e", {
+      originTime: BASE_TIME + DEDUP_MAX_TIME_DELTA_MS,
+    });
     expect(isSameEarthquake(usgs, emsc)).toBe(true);
   });
 
@@ -123,7 +122,9 @@ describe("mergeProviderEvents", () => {
     expect(merged).toHaveLength(2);
     expect(merged).toContain(usgsEvent);
     expect(merged).toContain(emscOnly);
-    expect(merged.find((e) => e.id === "20260813_0000099")?.provenance.provider).toBe("emsc");
+    expect(merged.find((e) => e.id === "20260813_0000099")?.provenance.provider).toBe(
+      "emsc",
+    );
   });
 
   it("close-in-time but far-away events are NOT deduplicated (distance guard)", () => {
@@ -241,7 +242,12 @@ describe("mergeProviderEvents", () => {
 describe("mergeProviderEvents — three-way (USGS, EMSC, GEOFON)", () => {
   const GFZ_TIME = Date.UTC(2026, 7, 1, 20, 27, 43, 70);
 
-  function gfzTwin(provider: EventProvider, id: string, dtMs: number, mag: number): Event {
+  function gfzTwin(
+    provider: EventProvider,
+    id: string,
+    dtMs: number,
+    mag: number,
+  ): Event {
     return makeEvent(provider, id, {
       originTime: GFZ_TIME + dtMs,
       lat: 35.406,
@@ -279,7 +285,9 @@ describe("mergeProviderEvents — three-way (USGS, EMSC, GEOFON)", () => {
     const merged = mergeProviderEvents([[usgs], [], [geofonOnly]]);
 
     expect(merged).toHaveLength(2);
-    expect(merged.find((e) => e.id === "gfz2026oyxe")?.provenance.provider).toBe("geofon");
+    expect(merged.find((e) => e.id === "gfz2026oyxe")?.provenance.provider).toBe(
+      "geofon",
+    );
   });
 
   it("a GEOFON event matching a USGS record (but no EMSC record) still dedups away", () => {

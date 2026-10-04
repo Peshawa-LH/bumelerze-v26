@@ -34,6 +34,13 @@ export interface PossibleEvent {
    * "how long has this been unconfirmed" bookkeeping, not shown as a
    * headline number this wave. */
   createdAt: number;
+  /** Earliest report in the triggering cluster, UTC ms (migration 0034);
+   * falls back to `originTime` for rows detected before it. The card's
+   * age — and so its stage — counts from here. */
+  firstReportAt: number;
+  /** Distinct people (signed-in identities) behind the detection; null
+   * for rows detected before migration 0034. */
+  userCount: number | null;
 }
 
 /** Column list, in the query's own select order — mirrors
@@ -46,6 +53,8 @@ export const POSSIBLE_EVENT_ROW_COLUMNS = [
   "lat",
   "lon",
   "created_at",
+  "crowd_first_report_at",
+  "crowd_user_count",
 ] as const;
 
 const possibleEventRowSchema = z.object({
@@ -54,6 +63,8 @@ const possibleEventRowSchema = z.object({
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
   created_at: z.string(),
+  crowd_first_report_at: z.string().nullish(),
+  crowd_user_count: z.number().int().nonnegative().nullish(),
 });
 
 export interface ParsedPossibleEventRows {
@@ -89,6 +100,10 @@ export function parsePossibleEventRows(data: unknown): ParsedPossibleEventRows {
       lat: row.lat,
       lon: row.lon,
       createdAt: Date.parse(row.created_at),
+      firstReportAt: row.crowd_first_report_at
+        ? Date.parse(row.crowd_first_report_at)
+        : Date.parse(row.origin_time),
+      userCount: row.crowd_user_count ?? null,
     });
   }
 

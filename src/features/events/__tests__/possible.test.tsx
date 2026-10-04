@@ -39,6 +39,8 @@ describe("parsePossibleEventRows", () => {
         lat: 35.56,
         lon: 45.43,
         createdAt: Date.parse("2026-08-16T10:02:00.000Z"),
+        firstReportAt: Date.parse("2026-08-16T10:00:00.000Z"),
+        userCount: null,
       },
     ]);
   });
@@ -152,6 +154,8 @@ const sampleEvent: PossibleEvent = {
   lat: 35.56,
   lon: 45.43,
   createdAt: Date.now() - 30_000,
+  firstReportAt: Date.now() - 90_000,
+  userCount: 8,
 };
 
 async function renderPossibleEvents(transport: PossibleEventsTransport) {
@@ -191,5 +195,23 @@ describe("usePossibleEvents", () => {
     await waitFor(() => expect(result.current.isReady).toBe(true));
     await waitFor(() => expect(result.current.events).toEqual([sampleEvent]));
     expect(transport.fetchPossibleEvents).toHaveBeenCalled();
+  });
+});
+
+describe("parsePossibleEventRows (crowd detection v2 fields)", () => {
+  it("reads the first report time and the number of people when present", () => {
+    const { events } = parsePossibleEventRows([
+      {
+        event_id: "e1",
+        origin_time: "2026-10-04T10:00:00.000Z",
+        lat: 36.2,
+        lon: 44.0,
+        created_at: "2026-10-04T10:04:00.000Z",
+        crowd_first_report_at: "2026-10-04T09:58:30.000Z",
+        crowd_user_count: 11,
+      },
+    ]);
+    expect(events[0]?.firstReportAt).toBe(Date.parse("2026-10-04T09:58:30.000Z"));
+    expect(events[0]?.userCount).toBe(11);
   });
 });

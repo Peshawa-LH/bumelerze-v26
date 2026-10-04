@@ -6,10 +6,7 @@ import {
   USGS_FEEDS,
 } from "./config";
 import { normalizeUsgsFeature } from "./normalize";
-import {
-  usgsFeatureCollectionSchema,
-  usgsFeatureSchema,
-} from "./usgs-schema";
+import { usgsFeatureCollectionSchema, usgsFeatureSchema } from "./usgs-schema";
 import type { Event } from "./types";
 
 export interface UsgsFetchResult {
@@ -28,10 +25,7 @@ export interface UsgsFetchResult {
  * FeatureCollection shape) still throws — there's nothing tolerant to do
  * with a response that isn't GeoJSON at all; the caller (React Query) turns
  * that into the query's error state. */
-function parseFeatureCollection(
-  payload: unknown,
-  fetchedAt: number,
-): UsgsFetchResult {
+function parseFeatureCollection(payload: unknown, fetchedAt: number): UsgsFetchResult {
   const collection = usgsFeatureCollectionSchema.parse(payload);
 
   const events: Event[] = [];
@@ -105,7 +99,9 @@ function buildRegionQueryUrl({ windowDays, minMagnitude }: RegionQueryOptions): 
  * (config.USGS_REGION_TIMEOUT_MS) to abort a slow USGS request without
  * blocking the other legs — optional so every existing direct caller (and
  * every existing test) is unaffected. */
-export async function fetchUsgsRegionEvents(signal?: AbortSignal): Promise<UsgsFetchResult> {
+export async function fetchUsgsRegionEvents(
+  signal?: AbortSignal,
+): Promise<UsgsFetchResult> {
   const payload = await fetchJson(
     buildRegionQueryUrl({ windowDays: REGION_FEED_WINDOW_DAYS }),
     signal,

@@ -14,10 +14,12 @@ import type { Event } from "../types";
  * depth]) — not a live network fixture, since `normalizeUsgsFeature`
  * consumes the already-schema-validated `UsgsFeature` type, not raw JSON.
  */
-function buildFeature(overrides: Partial<UsgsFeature["properties"]> & {
-  id?: string;
-  coordinates?: [number, number, number];
-}): UsgsFeature {
+function buildFeature(
+  overrides: Partial<UsgsFeature["properties"]> & {
+    id?: string;
+    coordinates?: [number, number, number];
+  },
+): UsgsFeature {
   const { id, coordinates, ...propertyOverrides } = overrides;
   return {
     type: "Feature",

@@ -5,12 +5,8 @@ import { PossibleEventCard } from "../components/PossibleEventCard";
 import type { PossibleEvent } from "../possible";
 
 /**
- * Dedicated render coverage for `PossibleEventCard` (D26 item 3) — the
- * message/a11y-label content and locale/RTL behavior are exercised
- * end-to-end via `home-screen.test.tsx`'s own possible-event tests; this
- * file focuses specifically on the relative-time line's digit
- * localization (`formatRelativeTimeValue` -> `localizeDigits`, same path
- * `EventCard` uses), which needs its own render, not Home's.
+ * PossibleEventCard (crowd detection v2): two stages, the number of people,
+ * "not yet confirmed" wording, and digit localization.
  */
 describe("PossibleEventCard", () => {
   const originalLanguage = i18n.language;
@@ -20,43 +16,51 @@ describe("PossibleEventCard", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  const slemani: PossibleEvent = {
+  const fresh = (): PossibleEvent => ({
     id: "possible-1",
-    originTime: Date.now() - 5 * 60_000, // 5 minutes ago
+    originTime: Date.now() - 4 * 60_000,
     lat: 35.56,
     lon: 45.43,
-    createdAt: Date.now() - 4 * 60_000,
-  };
+    createdAt: Date.now() - 3 * 60_000,
+    firstReportAt: Date.now() - 5 * 60_000,
+    userCount: 12,
+  });
 
-  it("renders the relative-time line with Latin digits in English", async () => {
+  it("shows a fresh detection as an alert that says shaking, not yet confirmed, with the count", async () => {
     await i18n.changeLanguage("en");
-    await render(<PossibleEventCard event={slemani} />);
+    await render(<PossibleEventCard event={fresh()} />);
+    expect(screen.getByTestId("possible-event-fresh")).toBeTruthy();
+    expect(screen.getByText(i18n.t("home.possibleEvent.notConfirmed"))).toBeTruthy();
+    expect(screen.getByText(/12\S* people · /)).toBeTruthy();
+    expect(screen.getByRole("alert").props.accessibilityLabel).toContain(
+      i18n.t("events.relativeTime.minutes", { value: "5" }),
+    );
+  });
 
+  it("mutes a detection older than 30 minutes and drops the alert role", async () => {
+    await i18n.changeLanguage("en");
+    await render(
+      <PossibleEventCard
+        event={{ ...fresh(), firstReportAt: Date.now() - 45 * 60_000 }}
+      />,
+    );
+    expect(screen.getByTestId("possible-event-stale")).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByText(i18n.t("home.possibleEvent.notConfirmed"))).toBeNull();
+  });
+
+  it("uses Eastern Arabic-Indic digits and the Sorani city name", async () => {
+    await i18n.changeLanguage("ckb");
+    await render(<PossibleEventCard event={fresh()} />);
+    expect(screen.getByText(/١٢/)).toBeTruthy();
+    expect(screen.getByRole("alert").props.accessibilityLabel).toMatch(/سلێمانی/);
+  });
+
+  it("omits the count for detections made before people were counted", async () => {
+    await i18n.changeLanguage("en");
+    await render(<PossibleEventCard event={{ ...fresh(), userCount: null }} />);
     expect(
       screen.getByText(i18n.t("events.relativeTime.minutes", { value: "5" })),
     ).toBeTruthy();
-  });
-
-  it("renders the relative-time line with Eastern Arabic-Indic digits in Sorani", async () => {
-    await i18n.changeLanguage("ckb");
-    await render(<PossibleEventCard event={slemani} />);
-
-    // "٥" is the Eastern Arabic-Indic glyph for 5 — same digit-localization
-    // convention as EventCard's magnitude/relative-time strings
-    // (ui-backlog.md wave 5 item 1).
-    expect(
-      screen.getByText(i18n.t("events.relativeTime.minutes", { value: "٥" })),
-    ).toBeTruthy();
-  });
-
-  it("includes both the message and the relative time in the alert's accessibility label", async () => {
-    await i18n.changeLanguage("ckb");
-    await render(<PossibleEventCard event={slemani} />);
-
-    const alert = screen.getByRole("alert");
-    expect(alert.props.accessibilityLabel).toMatch(/سلێمانی/);
-    expect(alert.props.accessibilityLabel).toContain(
-      i18n.t("events.relativeTime.minutes", { value: "٥" }),
-    );
   });
 });

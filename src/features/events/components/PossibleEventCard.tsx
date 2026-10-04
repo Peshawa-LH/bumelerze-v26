@@ -6,8 +6,11 @@ import {
   nearestCities,
   pickLocalizedName,
 } from "@/features/geo";
+import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
-import { formatRelativeTimeValue, getRelativeTime } from "../format";
+
+import { POSSIBLE_EVENT_FRESH_MINUTES } from "../config";
+import { formatRelativeTimeValue, getRelativeTime, isolateNumeric } from "../format";
 import type { PossibleEvent } from "../possible";
 
 interface PossibleEventCardProps {
@@ -15,72 +18,75 @@ interface PossibleEventCardProps {
 }
 
 /**
- * The crowd-detected "possible event" alert card (D26 item 3,
- * felt-detection-design.md §3), rendered above the event list on Home
- * whenever `usePossibleEvents` has at least one active row. Deliberately
- * NOT pressable this wave (no detail page for crowd events yet — design
- * doc §6 records this as future work) and deliberately NOT gated by
- * `HOME_FEED_MIN_MAGNITUDE`: a possible event has no magnitude to compare
- * against that floor in the first place (design doc §3: "NOT subject to
- * the M>=3 floor").
- *
- * Visual treatment uses `colors.status.warning` (an "attention" tone) —
- * explicitly NOT the intensity ramp (`colors.intensity[n]`), since this
- * card has no intensity/CDI value behind it, only "people nearby reported
- * something".
+ * A crowd-detected possible event on Home (D26 item 3, crowd detection v2:
+ * migration 0034 and the EMSC study, research/emsc-crowd-detection-
+ * 2026-10-04.md). It names SHAKING, not an earthquake — explosions and
+ * strikes can raise reports too — and says plainly that seismic networks
+ * have not confirmed it. Two stages: for its first 30 minutes it is an
+ * alert-styled card; after that it stays visible but muted as
+ * "unconfirmed" until it leaves Home at 3 hours (EMSC: an unconfirmed
+ * detection that silently vanishes feeds rumours). Once a provider event
+ * matches it, the server merges it and the card disappears.
  */
 export function PossibleEventCard({ event }: PossibleEventCardProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
+  const locale = i18n.language;
 
-  // Same "close enough to name" contract as `placeLine` (geo/place-line.ts):
-  // `nearestCities` always returns a result for n>=1 no matter how far away
-  // (it's the geometrically closest of a fixed, non-empty gazetteer), so
-  // the real "is this actually nearby" test is the distance threshold, not
-  // nullishness.
   const [nearest] = nearestCities(event.lat, event.lon, 1);
   const city =
     nearest && nearest.distanceKm <= NEAREST_CITY_FALLBACK_THRESHOLD_KM
-      ? pickLocalizedName(nearest.city.names, i18n.language)
+      ? pickLocalizedName(nearest.city.names, locale)
       : null;
 
-  const message = city
-    ? t("home.possibleEvent.message", { city })
-    : t("home.possibleEvent.messageUnknownArea");
-
-  // Reuses EventCard's own relative-time phrase machinery/i18n keys
-  // (events/format.ts, "events.relativeTime.*") — same digit-localization
-  // path (`formatRelativeTimeValue` -> `localizeDigits`) every other
-  // relative-time display in the app already goes through, not a separate
-  // one-off implementation. No live ticking clock (boring choice, same
-  // `Date.now()`-at-render pattern as `EventListScreen.tsx`'s own `now`).
   // eslint-disable-next-line react-hooks/purity -- see EventListScreen.tsx's comment on this exact pattern
   const now = Date.now();
-  const relativeTime = getRelativeTime(event.originTime, now);
+  const fresh = now - event.firstReportAt < POSSIBLE_EVENT_FRESH_MINUTES * 60_000;
+
+  const title = fresh
+    ? city
+      ? t("home.possibleEvent.freshTitle", { city })
+      : t("home.possibleEvent.freshTitleUnknownArea")
+    : city
+      ? t("home.possibleEvent.staleTitle", { city })
+      : t("home.possibleEvent.staleTitleUnknownArea");
+
+  const relativeTime = getRelativeTime(event.firstReportAt, now);
   const relativeTimeText =
     relativeTime.unit === "justNow"
       ? t("events.relativeTime.justNow")
       : t(`events.relativeTime.${relativeTime.unit}`, {
-          value: formatRelativeTimeValue(relativeTime.value, i18n.language),
+          value: formatRelativeTimeValue(relativeTime.value, locale),
         });
+  const people =
+    event.userCount !== null
+      ? t("home.possibleEvent.people", {
+          count: event.userCount,
+          number: isolateNumeric(localizeDigits(String(event.userCount), locale)),
+        })
+      : null;
+  const meta = [people, relativeTimeText].filter(Boolean).join(" · ");
 
   const a11yLabel = [
-    city
-      ? t("home.possibleEvent.a11yLabel", { city })
-      : t("home.possibleEvent.messageUnknownArea"),
-    relativeTimeText,
-  ].join(". ");
+    fresh ? t("home.possibleEvent.a11yAlert") : null,
+    title,
+    fresh ? t("home.possibleEvent.notConfirmed") : null,
+    meta,
+  ]
+    .filter(Boolean)
+    .join(". ");
 
   return (
     <View
       accessible
-      accessibilityRole="alert"
+      accessibilityRole={fresh ? "alert" : "summary"}
       accessibilityLabel={a11yLabel}
+      testID={fresh ? "possible-event-fresh" : "possible-event-stale"}
       style={[
         styles.card,
         {
           backgroundColor: colors.surface.raised,
-          borderColor: colors.status.warning,
+          borderColor: fresh ? colors.status.warning : colors.border.default,
           padding: spacing[4],
           gap: spacing[1],
         },
@@ -91,11 +97,22 @@ export function PossibleEventCard({ event }: PossibleEventCardProps) {
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           lineHeight: typography.bodyDefault.lineHeight,
-          fontWeight: "600",
+          fontWeight: fresh ? "600" : "400",
         }}
       >
-        {message}
+        {title}
       </Text>
+      {fresh ? (
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyMeta.fontSize,
+            lineHeight: typography.bodyMeta.lineHeight,
+          }}
+        >
+          {t("home.possibleEvent.notConfirmed")}
+        </Text>
+      ) : null}
       <Text
         style={{
           color: colors.text.secondary,
@@ -103,7 +120,7 @@ export function PossibleEventCard({ event }: PossibleEventCardProps) {
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >
-        {relativeTimeText}
+        {meta}
       </Text>
     </View>
   );

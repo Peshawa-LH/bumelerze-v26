@@ -249,12 +249,18 @@ describe("fetchRegionEventsMerged", () => {
 
   it("dedups a three-way duplicate down to the single USGS record (priority = leg order)", async () => {
     const baseTime = Date.UTC(2026, 7, 1, 20, 27, 43);
-    const usgsRecord = makeEvent("usgs", "us7000gfz1", { originTime: baseTime + 2_000, mag: 4.5 });
+    const usgsRecord = makeEvent("usgs", "us7000gfz1", {
+      originTime: baseTime + 2_000,
+      mag: 4.5,
+    });
     const emscRecord = makeEvent("emsc", "20260801_0000077", {
       originTime: baseTime + 1_000,
       mag: 4.4,
     });
-    const geofonRecord = makeEvent("geofon", "gfz2026oyxe", { originTime: baseTime, mag: 4.48 });
+    const geofonRecord = makeEvent("geofon", "gfz2026oyxe", {
+      originTime: baseTime,
+      mag: 4.48,
+    });
     mockFetchUsgsRegionEvents.mockResolvedValue(okResult([usgsRecord]));
     mockFetchEmscRegionEvents.mockResolvedValue(okResult([emscRecord]));
     mockFetchGeofonRegionEvents.mockResolvedValue(okResult([geofonRecord]));
@@ -276,9 +282,21 @@ describe("fetchRegionEventsMerged", () => {
   });
 
   it("sums all three providers' skippedCounts", async () => {
-    mockFetchUsgsRegionEvents.mockResolvedValue({ events: [], skippedCount: 2, fetchedAt: 1 });
-    mockFetchEmscRegionEvents.mockResolvedValue({ events: [], skippedCount: 3, fetchedAt: 2 });
-    mockFetchGeofonRegionEvents.mockResolvedValue({ events: [], skippedCount: 4, fetchedAt: 3 });
+    mockFetchUsgsRegionEvents.mockResolvedValue({
+      events: [],
+      skippedCount: 2,
+      fetchedAt: 1,
+    });
+    mockFetchEmscRegionEvents.mockResolvedValue({
+      events: [],
+      skippedCount: 3,
+      fetchedAt: 2,
+    });
+    mockFetchGeofonRegionEvents.mockResolvedValue({
+      events: [],
+      skippedCount: 4,
+      fetchedAt: 3,
+    });
 
     const result = await fetchRegionEventsMerged();
 

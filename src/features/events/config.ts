@@ -249,5 +249,10 @@ export const DEDUP_MAX_MAG_DELTA = 1.5;
  * so the two can be tuned independently later (this is a much smaller,
  * cheaper query).
  */
-export const POSSIBLE_EVENTS_WINDOW_HOURS = 24;
+// Crowd detection v2 (migration 0034, EMSC routine): a possible event is a
+// headline for 3 hours on Home — alert-styled for its first 30 minutes,
+// then shown muted as unconfirmed — never 24 hours of "more to follow".
+// The server still expires it to `unconfirmed` after 24 h.
+export const POSSIBLE_EVENTS_WINDOW_HOURS = 3;
+export const POSSIBLE_EVENT_FRESH_MINUTES = 30;
 export const POSSIBLE_EVENTS_REFETCH_INTERVAL_MS = 60_000;

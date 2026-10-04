@@ -3,7 +3,11 @@ import {
   NOTABLE_TAIL_WINDOW_DAYS,
   REGION_FEED_WINDOW_DAYS,
 } from "../config";
-import { fetchUsgsEventById, fetchUsgsNotableTailEvents, fetchUsgsRegionEvents } from "../usgs";
+import {
+  fetchUsgsEventById,
+  fetchUsgsNotableTailEvents,
+  fetchUsgsRegionEvents,
+} from "../usgs";
 
 /**
  * Regression coverage for the event-deeplink-hang bug

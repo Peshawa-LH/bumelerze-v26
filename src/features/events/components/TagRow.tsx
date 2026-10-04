@@ -72,9 +72,7 @@ function computeTagRowContent(
   }: TagRowContentProps,
   t: TFunction,
 ): TagRowContent {
-  const namedAgencies = (agencies ?? [])
-    .slice(0, maxSourceTags)
-    .map(agencyDisplayLabel);
+  const namedAgencies = (agencies ?? []).slice(0, maxSourceTags).map(agencyDisplayLabel);
   // The compact surface (list banners) shows at most two tags: source, then
   // whichever of notable/shakemap applies (shakemap wins; see below). Owner directive 2026-08-28, tightened
   // after a first pass rendered "US +2": "one source tagged the main one
@@ -234,7 +232,14 @@ interface TagProps {
  * whichever ancestor owns the combined label (this row itself in
  * `standalone` mode, or `EventCard`'s outer `Pressable` otherwise) is what
  * every screen reader actually hears. */
-function Tag({ label, textColor, borderColor, backgroundColor, typography, spacing }: TagProps) {
+function Tag({
+  label,
+  textColor,
+  borderColor,
+  backgroundColor,
+  typography,
+  spacing,
+}: TagProps) {
   return (
     <View
       accessibilityElementsHidden

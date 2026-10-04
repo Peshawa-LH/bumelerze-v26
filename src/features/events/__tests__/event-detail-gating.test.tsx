@@ -25,8 +25,12 @@ jest.mock("../usgs", () => ({
   fetchUsgsEventById: jest.fn(),
 }));
 
-const mockedRegion = fetchUsgsRegionEvents as jest.MockedFunction<typeof fetchUsgsRegionEvents>;
-const mockedWorld = fetchUsgsWorldEvents as jest.MockedFunction<typeof fetchUsgsWorldEvents>;
+const mockedRegion = fetchUsgsRegionEvents as jest.MockedFunction<
+  typeof fetchUsgsRegionEvents
+>;
+const mockedWorld = fetchUsgsWorldEvents as jest.MockedFunction<
+  typeof fetchUsgsWorldEvents
+>;
 const mockedById = fetchUsgsEventById as jest.MockedFunction<typeof fetchUsgsEventById>;
 
 const DEEP_LINK_ID = "us2000bmcg";
@@ -35,7 +39,9 @@ function useEventDetailGating(id: string) {
   const region = useRegionEvents();
   const world = useWorldEvents();
   const cachedEvent =
-    region.events.find((e) => e.id === id) ?? world.events.find((e) => e.id === id) ?? null;
+    region.events.find((e) => e.id === id) ??
+    world.events.find((e) => e.id === id) ??
+    null;
   const shouldFetchById =
     !cachedEvent && Boolean(id) && !region.isInitialLoading && !world.isInitialLoading;
   const byId = useEventById(id, shouldFetchById);
@@ -50,21 +56,30 @@ describe("event detail cold-start deep-link gating", () => {
     mockedRegion.mockReset();
     mockedWorld.mockReset();
     mockedById.mockReset();
-    mockedRegion.mockResolvedValue({ events: [], skippedCount: 0, fetchedAt: Date.now() });
+    mockedRegion.mockResolvedValue({
+      events: [],
+      skippedCount: 0,
+      fetchedAt: Date.now(),
+    });
     mockedWorld.mockResolvedValue({ events: [], skippedCount: 0, fetchedAt: Date.now() });
   });
 
   it("fires the byId fetch and clears loading once region/world settle empty (plain QueryClient)", async () => {
     mockedById.mockResolvedValue(null);
 
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
     function wrapper({ children }: { children: ReactNode }) {
       return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
     }
 
-    const { result, unmount } = await renderHook(() => useEventDetailGating(DEEP_LINK_ID), {
-      wrapper,
-    });
+    const { result, unmount } = await renderHook(
+      () => useEventDetailGating(DEEP_LINK_ID),
+      {
+        wrapper,
+      },
+    );
 
     await waitFor(() => expect(result.current.shouldFetchById).toBe(true));
     expect(mockedById).toHaveBeenCalledWith(DEEP_LINK_ID);
@@ -78,7 +93,9 @@ describe("event detail cold-start deep-link gating", () => {
     await AsyncStorage.clear();
     mockedById.mockResolvedValue(null);
 
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
     const persister = createAsyncStoragePersister({
       storage: AsyncStorage,
       key: "test-cache-cold",
@@ -91,9 +108,12 @@ describe("event detail cold-start deep-link gating", () => {
       );
     }
 
-    const { result, unmount } = await renderHook(() => useEventDetailGating(DEEP_LINK_ID), {
-      wrapper,
-    });
+    const { result, unmount } = await renderHook(
+      () => useEventDetailGating(DEEP_LINK_ID),
+      {
+        wrapper,
+      },
+    );
 
     await waitFor(() => expect(result.current.shouldFetchById).toBe(true));
     expect(mockedById).toHaveBeenCalledWith(DEEP_LINK_ID);
@@ -133,7 +153,9 @@ describe("event detail cold-start deep-link gating", () => {
 
     mockedById.mockResolvedValue(null);
 
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
     const persister = createAsyncStoragePersister({
       storage: AsyncStorage,
       key: "test-cache-warm",
@@ -146,9 +168,12 @@ describe("event detail cold-start deep-link gating", () => {
       );
     }
 
-    const { result, unmount } = await renderHook(() => useEventDetailGating(DEEP_LINK_ID), {
-      wrapper,
-    });
+    const { result, unmount } = await renderHook(
+      () => useEventDetailGating(DEEP_LINK_ID),
+      {
+        wrapper,
+      },
+    );
 
     await waitFor(() => expect(result.current.shouldFetchById).toBe(true));
     expect(mockedById).toHaveBeenCalledWith(DEEP_LINK_ID);
