@@ -11,7 +11,11 @@ import { createJSONStorage, persist } from "zustand/middleware";
 export type OnboardingStepId =
   "mission" | "language" | "location" | "notifications" | "homeBase" | "done";
 
-/** Screen order per spec-v1.md §4.11 — also drives the progress dots and the
+/** "homeBase" stays in the id type only so a step saved by an older version
+ * still resumes (it routes to "done"): HomeBase is automatic from location
+ * since 2026-10-04, so the town-picker step left the flow (owner).
+ *
+ * Screen order per spec-v1.md §4.11 — also drives the progress dots and the
  * resume-after-restart lookup (routes.ts), so it's the one place that order
  * is written down. */
 export const ONBOARDING_STEPS: readonly OnboardingStepId[] = [
@@ -19,7 +23,6 @@ export const ONBOARDING_STEPS: readonly OnboardingStepId[] = [
   "language",
   "location",
   "notifications",
-  "homeBase",
   "done",
 ];
 

@@ -619,10 +619,7 @@
       "description": "Soon, Bumelerze will notify you the moment an earthquake happens near you or near a place you care about (your HomeBase). We'll ask for notification permission when that feature launches."
     },
     "homeBase": {
-      "title": "Set your HomeBase",
-      "description": "If you live away from Kurdistan, pick a HomeBase town (like where your family lives) so future alerts can watch it for you too. Optional; you can set or change this later in Settings.",
       "elsewhere": "Elsewhere / skip",
-      "skip": "Skip for now",
       "notSet": "Not set"
     },
     "done": {

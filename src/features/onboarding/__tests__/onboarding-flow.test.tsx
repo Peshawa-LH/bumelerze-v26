@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -28,10 +34,22 @@ jest.mock("expo-router", () => ({
   },
 }));
 
+const mockRequestPermission = jest.fn();
+jest.mock("expo-location", () => ({
+  requestForegroundPermissionsAsync: () => mockRequestPermission(),
+}));
+
+const mockRefreshAutoHomeBase = jest.fn();
+jest.mock("@/features/location", () => ({
+  refreshAutoHomeBase: () => mockRefreshAutoHomeBase(),
+}));
+
 // Imported after the mock above so the mocked module graph is in place.
 /* eslint-disable import/first -- see comment above */
 import OnboardingMissionScreen from "../../../../app/onboarding/index";
 import OnboardingDoneScreen from "../../../../app/onboarding/done";
+import OnboardingLocationScreen from "../../../../app/onboarding/location";
+import OnboardingNotificationsScreen from "../../../../app/onboarding/notifications";
 /* eslint-enable import/first */
 
 const testSafeAreaMetrics = {
@@ -97,4 +115,54 @@ describe("onboarding navigation flow", () => {
     expect(usePrefsStore.getState().onboardingCompleted).toBe(true);
     expect(usePrefsStore.getState().onboardingStep).toBe("done");
   });
+
+  it("a step saved by an older version at the retired HomeBase screen resumes at the end", async () => {
+    usePrefsStore.setState({ onboardingStep: "homeBase" });
+
+    await renderWithProviders(<OnboardingMissionScreen />);
+
+    expect(screen.getByText("redirect:/onboarding/done")).toBeTruthy();
+  });
+
+  it("notifications screen goes straight to the end: no town picker (HomeBase is automatic)", async () => {
+    await renderWithProviders(<OnboardingNotificationsScreen />);
+
+    fireEvent.press(screen.getByRole("button", { name: "Continue" }));
+
+    expect(usePrefsStore.getState().onboardingStep).toBe("done");
+    expect(mockPush).toHaveBeenCalledWith("/onboarding/done");
+  });
+
+  it("location screen: allowing location sets the HomeBase automatically", async () => {
+    mockRefreshAutoHomeBase.mockClear();
+    mockRequestPermission.mockResolvedValue({ granted: true });
+    await renderWithProviders(<OnboardingLocationScreen />);
+
+    fireEvent.press(screen.getByRole("button", { name: i18nAllow() }));
+
+    await waitFor(() =>
+      expect(mockPush).toHaveBeenCalledWith("/onboarding/notifications"),
+    );
+    expect(mockRefreshAutoHomeBase).toHaveBeenCalledTimes(1);
+  });
+
+  it("location screen: declining location never tries to set the HomeBase", async () => {
+    mockRefreshAutoHomeBase.mockClear();
+    mockRequestPermission.mockResolvedValue({ granted: false });
+    await renderWithProviders(<OnboardingLocationScreen />);
+
+    fireEvent.press(screen.getByRole("button", { name: i18nAllow() }));
+
+    await waitFor(() =>
+      expect(mockPush).toHaveBeenCalledWith("/onboarding/notifications"),
+    );
+    expect(mockRefreshAutoHomeBase).not.toHaveBeenCalled();
+  });
 });
+
+function i18nAllow(): string {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- the app's i18n instance, loaded lazily like the mocks above
+  return (require("@/i18n").default as { t: (key: string) => string }).t(
+    "onboarding.location.allow",
+  );
+}

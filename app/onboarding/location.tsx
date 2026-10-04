@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { refreshAutoHomeBase } from "@/features/location";
 import { OnboardingScreenShell, usePrefsStore } from "@/features/onboarding";
 
 /**
@@ -29,7 +30,12 @@ export default function OnboardingLocationScreen() {
     try {
       // Foreground-only (wave brief) — no background/"always" location is
       // ever requested anywhere in this app.
-      await Location.requestForegroundPermissionsAsync();
+      const { granted } = await Location.requestForegroundPermissionsAsync();
+      // HomeBase is automatic: the nearest town from this first fix. The
+      // root-level check ran before permission existed, so ask again now.
+      if (granted) {
+        void refreshAutoHomeBase();
+      }
     } catch {
       // Hardware/platform failure — never blocks the flow (spec-v1.md
       // §4.11 states).

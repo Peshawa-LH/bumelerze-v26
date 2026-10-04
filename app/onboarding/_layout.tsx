@@ -13,7 +13,6 @@ export default function OnboardingLayout() {
       <Stack.Screen name="language" />
       <Stack.Screen name="location" />
       <Stack.Screen name="notifications" />
-      <Stack.Screen name="home-base" />
       <Stack.Screen name="done" />
     </Stack>
   );

@@ -17,8 +17,8 @@ export default function OnboardingNotificationsScreen() {
   const setOnboardingStep = usePrefsStore((state) => state.setOnboardingStep);
 
   function handleContinue() {
-    setOnboardingStep("homeBase");
-    router.push("/onboarding/home-base");
+    setOnboardingStep("done");
+    router.push("/onboarding/done");
   }
 
   return (
