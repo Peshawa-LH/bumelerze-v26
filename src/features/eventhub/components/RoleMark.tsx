@@ -3,23 +3,11 @@ import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { ROLE_BADGES, ROLE_PRIORITY } from "@/features/badges/catalog";
+import { toneColor } from "@/features/badges/tones";
 import { useTheme } from "@/theme";
 
-import type { HubRole, HubRoleKind } from "../types";
-
-const ROLE_PRIORITY: readonly HubRoleKind[] = [
-  "official",
-  "moderator",
-  "engineer",
-  "partner",
-];
-
-const ROLE_ICON: Record<HubRoleKind, keyof typeof Ionicons.glyphMap> = {
-  official: "checkmark-circle",
-  moderator: "shield-checkmark",
-  engineer: "construct",
-  partner: "ribbon",
-};
+import type { HubRole } from "../types";
 
 /** The role that earns the mark when someone holds several. */
 export function pickDisplayRole(roles: readonly HubRole[] | undefined): HubRole | null {
@@ -37,11 +25,18 @@ export function pickDisplayRole(roles: readonly HubRole[] | undefined): HubRole 
 
 /**
  * Public role mark next to a name: an icon only, no text (owner, 2026-10-04).
- * The official account wears the Bumelerze round icon as its tick; the other
- * roles each get their own icon and colour, a first step toward collectable
- * badges. The role's name stays for screen readers.
+ * It is the top role badge of the shared catalogue (`features/badges`), drawn
+ * without the ring: the official account wears the Bumelerze round icon, the
+ * other roles each have their own icon and colour. The role's name stays for
+ * screen readers. `size` is 18 in comments and 20 beside the account name.
  */
-export function RoleMark({ roles }: { roles: readonly HubRole[] | undefined }) {
+export function RoleMark({
+  roles,
+  size = 18,
+}: {
+  roles: readonly HubRole[] | undefined;
+  size?: 18 | 20;
+}) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const role = pickDisplayRole(roles);
@@ -52,12 +47,8 @@ export function RoleMark({ roles }: { roles: readonly HubRole[] | undefined }) {
     role.role === "partner" && role.orgName
       ? role.orgName
       : t(`eventHub.roles.${role.role}`);
-  const tint: Record<HubRoleKind, string> = {
-    official: colors.text.link,
-    moderator: colors.text.link,
-    engineer: colors.status.warning,
-    partner: colors.status.success,
-  };
+  const badge = ROLE_BADGES[role.role];
+  const box = { width: size, height: size };
 
   return (
     <View
@@ -65,30 +56,22 @@ export function RoleMark({ roles }: { roles: readonly HubRole[] | undefined }) {
       accessible
       accessibilityRole="image"
       accessibilityLabel={label}
-      style={styles.mark}
+      style={[styles.mark, box]}
     >
-      {role.role === "official" ? (
+      {badge.image !== null ? (
         <Image
-          source={OFFICIAL_ICON}
+          source={badge.image}
           contentFit="contain"
-          style={styles.mark}
+          style={box}
           testID="role-mark-official-icon"
         />
       ) : (
-        <Ionicons name={ROLE_ICON[role.role]} size={MARK_SIZE} color={tint[role.role]} />
+        <Ionicons name={badge.icon} size={size} color={toneColor(badge.tone, colors)} />
       )}
     </View>
   );
 }
 
-const MARK_SIZE = 18;
-const OFFICIAL_ICON = require("../../../../assets/brand/logo/bumelerze-app-icon-round.svg");
-
 const styles = StyleSheet.create({
-  mark: {
-    width: MARK_SIZE,
-    height: MARK_SIZE,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  mark: { alignItems: "center", justifyContent: "center" },
 });

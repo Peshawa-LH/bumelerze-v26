@@ -1407,11 +1407,82 @@
   },
   "myData": {
     "title": "Hesabê min",
-    "headerLabel": "Nasnameya te ya beşdarbûnê ya nenas",
-    "headerIdLoading": "…",
-    "headerIdA11yLabel": "Nasnameya te ya beşdarbûnê: {{id}}",
-    "headerExplanation": "Bi awayekî otomatîk li ser vê cîhazê hatiye afirandin: bêyî hesab an tomarkirin. Ev awayê kombûna raporên te ye, û tenê li ser vê sazkirinê dimîne.",
-    "summaryTitle": "{{count}} rapor hatine şandin",
+    "guest": "Mêvan",
+    "memberSince": "Endam ji {{date}} ve",
+    "invite": {
+      "line": "Nav, nîşan û tomarkirina avahiya xwe bistîne."
+    },
+    "stats": {
+      "reports": "Rapor",
+      "comments": "Şîrove",
+      "helpful": "Bikêr",
+      "badges": "Nîşan",
+      "a11y": "{{label}}: {{count}}"
+    },
+    "badges": {
+      "title": "Nîşan",
+      "earned": "Hatiye stendin",
+      "locked": "Girtî",
+      "close": "Bigire",
+      "roleRule": "Ji aliyê tîma Bumelerze ve hatiye dayîn.",
+      "a11yEarned": "{{name}}, hatiye stendin",
+      "a11yLocked": "{{name}}, girtî, {{current}} ji {{target}}",
+      "first_report": {
+        "name": "Raporta yekem",
+        "rule": "Raporta xwe ya yekem a hîskirinê bişîne."
+      },
+      "reports_10": {
+        "name": "{{count}} rapor",
+        "rule": "{{count}} raporên hîskirinê bişîne."
+      },
+      "detailed": {
+        "name": "Raporkarê bi hûrgilî",
+        "rule": "Bersiva pirsên hûrgilî bide."
+      },
+      "photo": {
+        "name": "Wênegir",
+        "rule": "Wêneyek li raporekê zêde bike."
+      },
+      "home_tagged": {
+        "name": "Mal hate tomarkirin",
+        "rule": "Avahiya xwe tomar bike."
+      },
+      "family_linked": {
+        "name": "Malbat hate girêdan",
+        "rule": "Malbata xwe girê bide."
+      },
+      "first_comment": {
+        "name": "Şîroveya yekem",
+        "rule": "Li ser erdhejekê şîroveyek binivîse."
+      },
+      "helpful_5": {
+        "name": "Bikêr"
+      },
+      "helpful_25": {
+        "name": "Pir bikêr"
+      },
+      "helpfulRule": "{{count}} nîşanên bikêr bistîne."
+    },
+    "home": {
+      "needsAccount": "Hesab hewce ye",
+      "members": "Endam: {{count}}"
+    },
+    "reports": {
+      "title": "Raporên min",
+      "seeAll": "Hemûyan bibîne",
+      "empty": "Hê rapor tune."
+    },
+    "rows": {
+      "auto": "Bixweber"
+    },
+    "privacy": {
+      "title": "Nepenîtî û dane",
+      "id": "Nasnameya beşdarvan",
+      "idNote": "Li ser vê cîhazê hate çêkirin. Ne navê te ye.",
+      "email": "E-name",
+      "copy": "Kopî bike",
+      "copied": "Hat kopîkirin"
+    },
     "unassignedEvent": "Bi erdhejeke taybet ve girêdayî nîne",
     "damageLine": "{{typology}}: {{grade}}",
     "photoAttachedLabel": "Wêne hate zêdekirin",
@@ -1419,17 +1490,14 @@
       "submitted": "Hate şandin",
       "on-device": "Li ser vê cîhazê"
     },
-    "emptyStateMessage": "Te hê tu raporek hestkirinê neşandiye. Heke tu erdhejekê hîs bikî, ji me re bibêje. Bi tenê yek lêdanê.",
     "emptyStateCta": "Erdhejê rapor bike",
     "account": {
       "create": "Hesabekî çêke",
-      "createWhy": "Navê xwe li ser raport û şîroveyan nîşan bide. Paşê avahiya xwe tomar bike.",
       "haveAccount": "Hesabê min heye",
       "noName": "Hesabê te",
       "finishProfile": "Profîla xwe temam bike",
       "editProfile": "Profîlê biguherîne",
       "signOut": "Derkeve",
-      "signOutNote": "Ev cîhaz nasnameyeke nenas a nû digire.",
       "delete": "Hesabê jê bibe",
       "deleteWarning": "Ev profîl û wêneya te bi temamî jê dibe. Raporên te dimînin, bêyî navê te.",
       "deleteConfirm": "Bi temamî jê bibe",
@@ -1573,10 +1641,8 @@
     },
     "section": {
       "title": "Mala min",
-      "empty": "Mala xwe tomar bike û raporeke ewlehiyê ya belaş bistîne.",
       "tagAnother": "Malekî din tomar bike",
       "join": "Tevlî malekê bibe",
-      "viewReport": "Raporê bibîne",
       "pending": "Daxwazeke tevlîbûnê li benda erêkirinê ye.",
       "loadError": "Mala te nehat barkirin.",
       "retry": "Dîsa biceribîne"

@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, screen } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
-import { HomeSection } from "../components/HomeSection";
+import { MyHomeCard } from "../components/MyHomeCard";
 import {
   TAG,
   clearQueryClients,
@@ -37,7 +37,7 @@ async function press(testID: string) {
   });
 }
 
-describe("My home section", () => {
+describe("My home card", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     resetMockTransport();
@@ -51,10 +51,17 @@ describe("My home section", () => {
     await clearQueryClients();
   });
 
-  it("anonymous: a card that leads to account sign-in", async () => {
+  it("anonymous: one muted locked row (a preview, not a second sign-up button)", async () => {
     mockAccount = { status: "anonymous", userId: "a1" };
-    await renderWithProviders(<HomeSection />);
-    expect(screen.getByText("Create an account to tag your home.")).toBeTruthy();
+    await renderWithProviders(<MyHomeCard />);
+    expect(screen.getByText("My home")).toBeTruthy();
+    expect(screen.getByText("Tag my building")).toBeTruthy();
+    expect(screen.getByTestId("home-locked")).toBeTruthy();
+    const row = screen.getByTestId("home-section-sign-in");
+    expect(row.props.accessibilityHint).toBe("Needs an account");
+    expect(screen.queryByText("Create an account")).toBeNull();
+    expect(screen.queryByTestId("account-create")).toBeNull();
+    expect(screen.queryByTestId("home-join")).toBeNull();
     await press("home-section-sign-in");
     expect(mockPush).toHaveBeenCalledWith("/account/sign-in");
     expect(mockTransport.fetchMemberships).not.toHaveBeenCalled();
@@ -62,16 +69,14 @@ describe("My home section", () => {
 
   it("unconfigured: nothing at all", async () => {
     mockAccount = { status: "unconfigured", userId: null };
-    await renderWithProviders(<HomeSection />);
+    await renderWithProviders(<MyHomeCard />);
     expect(screen.queryByTestId("home-section")).toBeNull();
     expect(screen.queryByText("My home")).toBeNull();
   });
 
-  it("no home yet: 'Tag my building' and 'Join a home'", async () => {
-    await renderWithProviders(<HomeSection />);
-    expect(
-      await screen.findByText("Tag your home to get a free safety report."),
-    ).toBeTruthy();
+  it("no home yet: a 'Tag my building' card and a 'Join a home' link", async () => {
+    await renderWithProviders(<MyHomeCard />);
+    expect(await screen.findByTestId("home-tag")).toBeTruthy();
     await press("home-tag");
     expect(mockPush).toHaveBeenCalledWith("/home/new");
     await press("home-join");
@@ -79,7 +84,7 @@ describe("My home section", () => {
     expect(screen.getByText("Tag my building")).toBeTruthy();
   });
 
-  it("tagged: a home card with label, code, class badge and the two actions", async () => {
+  it("tagged: a home card with label, code, class badge, members and the two actions", async () => {
     mockTransport.fetchMemberships.mockResolvedValue([
       member("u-owner", { role: "owner" }),
     ]);
@@ -87,14 +92,22 @@ describe("My home section", () => {
     mockTransport.fetchLatestAssessments.mockResolvedValue({
       "tag-1": storedAssessment(),
     });
-    await renderWithProviders(<HomeSection />);
+    mockTransport.fetchMembers.mockResolvedValue([
+      member("u-owner", { role: "owner" }),
+      member("u-two"),
+      member("u-three"),
+    ]);
+    await renderWithProviders(<MyHomeCard />);
     expect(await screen.findByTestId("home-card-tag-1")).toBeTruthy();
+    expect((await screen.findByTestId("home-members-tag-1")).props.accessibilityLabel).toBe(
+      "Members: 3",
+    );
     expect(screen.getByText("Our house")).toBeTruthy();
     expect(screen.getByText(/BMH-7K3Q9P/)).toBeTruthy();
     expect(screen.getByTestId("home-vc-tag-1").props.accessibilityLabel).toMatch(
       /^Vulnerability class [A-F]$/,
     );
-    expect(screen.queryByText("Tag your home to get a free safety report.")).toBeNull();
+    expect(screen.queryByTestId("home-skeleton")).toBeNull();
     await press("home-report-tag-1");
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/home/[tagId]/report",
@@ -113,9 +126,21 @@ describe("My home section", () => {
       member("u-owner", { role: "owner" }),
     ]);
     mockTransport.fetchTags.mockResolvedValue([{ ...TAG, label: null }]);
-    await renderWithProviders(<HomeSection />);
+    await renderWithProviders(<MyHomeCard />);
     expect(await screen.findByText("No report yet.")).toBeTruthy();
     expect(screen.getByText("House")).toBeTruthy();
+    await press("home-report-tag-1");
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/home/[tagId]/report",
+      params: { tagId: "tag-1" },
+    });
+  });
+
+  it("shows one skeleton card while the homes load", async () => {
+    mockTransport.fetchMemberships.mockReturnValue(new Promise(() => undefined));
+    await renderWithProviders(<MyHomeCard />);
+    expect(screen.getByTestId("home-skeleton")).toBeTruthy();
+    expect(screen.queryByTestId("home-tag")).toBeNull();
   });
 
   it("archived homes are not listed", async () => {
@@ -123,17 +148,16 @@ describe("My home section", () => {
       member("u-owner", { role: "owner" }),
     ]);
     mockTransport.fetchTags.mockResolvedValue([{ ...TAG, status: "archived" }]);
-    await renderWithProviders(<HomeSection />);
-    expect(
-      await screen.findByText("Tag your home to get a free safety report."),
-    ).toBeTruthy();
+    await renderWithProviders(<MyHomeCard />);
+    expect(await screen.findByTestId("home-tag")).toBeTruthy();
+    expect(screen.queryByTestId("home-card-tag-1")).toBeNull();
   });
 
   it("shows a waiting note for a join request nobody approved yet", async () => {
     mockTransport.fetchMemberships.mockResolvedValue([
       member("u-owner", { status: "pending", tagId: "other" }),
     ]);
-    await renderWithProviders(<HomeSection />);
+    await renderWithProviders(<MyHomeCard />);
     expect(await screen.findByTestId("home-pending")).toBeTruthy();
   });
 
@@ -147,7 +171,7 @@ describe("My home section", () => {
       tags.map((tag) => member("u-owner", { tagId: tag.tagId, role: "owner" })),
     );
     mockTransport.fetchTags.mockResolvedValue(tags);
-    await renderWithProviders(<HomeSection />);
+    await renderWithProviders(<MyHomeCard />);
     expect(await screen.findByTestId("home-card-t5")).toBeTruthy();
     expect(screen.queryByTestId("home-tag")).toBeNull();
     expect(screen.getByTestId("home-join")).toBeTruthy();
@@ -155,8 +179,9 @@ describe("My home section", () => {
 
   it("offers a retry when the homes cannot be loaded", async () => {
     mockTransport.fetchMemberships.mockRejectedValueOnce(new Error("offline"));
-    await renderWithProviders(<HomeSection />);
+    await renderWithProviders(<MyHomeCard />);
     expect(await screen.findByText("Could not load your home.")).toBeTruthy();
     expect(screen.getByText("Try again")).toBeTruthy();
+    expect(screen.queryByTestId("home-skeleton")).toBeNull();
   });
 });

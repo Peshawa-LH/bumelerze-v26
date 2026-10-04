@@ -1,7 +1,12 @@
 import type { TFunction } from "i18next";
 
 import { formatAbsoluteDual } from "@/features/events";
-import type { BuildingDamageGrade, CartoonLevel, DamageTypology, QueueItem } from "@/features/felt";
+import type {
+  BuildingDamageGrade,
+  CartoonLevel,
+  DamageTypology,
+  QueueItem,
+} from "@/features/felt";
 import { localizeDigits } from "@/lib/format-numbers";
 
 type TranslateFn = TFunction;
@@ -98,7 +103,10 @@ export function buildContributionRow(
 
   const levelNumeralText = localizeDigits(String(item.tier1.cartoonLevel), locale);
   const levelName = t(`felt.tier1.levels.${item.tier1.cartoonLevel}.label`);
-  const levelLabel = t("felt.numberedLabel", { number: levelNumeralText, label: levelName });
+  const levelLabel = t("felt.numberedLabel", {
+    number: levelNumeralText,
+    label: levelName,
+  });
 
   const damageTypology = item.tier2?.answers.damageTypology ?? null;
   const damageGrade = item.tier2?.answers.buildingDamageLevel ?? null;
@@ -125,4 +133,15 @@ export function buildContributionRow(
     syncStatusText: t(`myData.syncStatus.${syncStatus}`),
     hasPhoto: item.tier2?.photoUri != null,
   };
+}
+
+/**
+ * "Oct 2026": month name from the app's own `months.short.<n>` table (never
+ * ICU, which has no Sorani/Kurmanji month names) plus the localized year.
+ * Used for "Member since". The reader's own time zone decides the month.
+ */
+export function formatMonthYear(timeMs: number, locale: string, t: TranslateFn): string {
+  const date = new Date(timeMs);
+  const month = t(`months.short.${date.getMonth() + 1}`);
+  return `${month} ${localizeDigits(String(date.getFullYear()), locale)}`;
 }

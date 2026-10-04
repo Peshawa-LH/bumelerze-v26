@@ -1,4 +1,3 @@
-export { AccountCard } from "./components/AccountCard";
 export { Avatar } from "./components/Avatar";
 export { useAccount } from "./use-account";
 export { ensureAccountSync, refreshProfile, useAccountStore } from "./store";

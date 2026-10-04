@@ -1407,11 +1407,82 @@
   },
   "myData": {
     "title": "My account",
-    "headerLabel": "Your anonymous contributor ID",
-    "headerIdLoading": "…",
-    "headerIdA11yLabel": "Your contributor ID: {{id}}",
-    "headerExplanation": "Created automatically on this device: no account or sign-up. It's how your reports are grouped together, and it stays only on this install.",
-    "summaryTitle": "{{count}} reports submitted",
+    "guest": "Guest",
+    "memberSince": "Member since {{date}}",
+    "invite": {
+      "line": "Get a name, badges and your building tag."
+    },
+    "stats": {
+      "reports": "Reports",
+      "comments": "Comments",
+      "helpful": "Helpful",
+      "badges": "Badges",
+      "a11y": "{{label}}: {{count}}"
+    },
+    "badges": {
+      "title": "Badges",
+      "earned": "Earned",
+      "locked": "Locked",
+      "close": "Close",
+      "roleRule": "Given by the Bumelerze team.",
+      "a11yEarned": "{{name}}, earned",
+      "a11yLocked": "{{name}}, locked, {{current}} of {{target}}",
+      "first_report": {
+        "name": "First report",
+        "rule": "Send your first felt report."
+      },
+      "reports_10": {
+        "name": "{{count}} reports",
+        "rule": "Send {{count}} felt reports."
+      },
+      "detailed": {
+        "name": "Detailed reporter",
+        "rule": "Answer the detailed questions."
+      },
+      "photo": {
+        "name": "Photographer",
+        "rule": "Add a photo to a report."
+      },
+      "home_tagged": {
+        "name": "Home tagged",
+        "rule": "Tag your building."
+      },
+      "family_linked": {
+        "name": "Family linked",
+        "rule": "Link your household."
+      },
+      "first_comment": {
+        "name": "First comment",
+        "rule": "Write a comment on an event."
+      },
+      "helpful_5": {
+        "name": "Helpful"
+      },
+      "helpful_25": {
+        "name": "Very helpful"
+      },
+      "helpfulRule": "Get {{count}} helpful marks."
+    },
+    "home": {
+      "needsAccount": "Needs an account",
+      "members": "Members: {{count}}"
+    },
+    "reports": {
+      "title": "My reports",
+      "seeAll": "See all",
+      "empty": "No reports yet."
+    },
+    "rows": {
+      "auto": "Set automatically"
+    },
+    "privacy": {
+      "title": "Privacy & data",
+      "id": "Contributor ID",
+      "idNote": "Made on this device. Not your name.",
+      "email": "Email",
+      "copy": "Copy",
+      "copied": "Copied"
+    },
     "unassignedEvent": "Not linked to a specific event",
     "damageLine": "{{typology}}: {{grade}}",
     "photoAttachedLabel": "Photo attached",
@@ -1419,17 +1490,14 @@
       "submitted": "Submitted",
       "on-device": "On this device"
     },
-    "emptyStateMessage": "You haven't submitted a felt report yet. If you feel an earthquake, tell us about it. It takes one tap.",
     "emptyStateCta": "Report an earthquake",
     "account": {
       "create": "Create an account",
-      "createWhy": "Show your name on reports and comments. Tag your building later.",
       "haveAccount": "I already have an account",
       "noName": "Your account",
       "finishProfile": "Finish your profile",
       "editProfile": "Edit profile",
       "signOut": "Sign out",
-      "signOutNote": "This device gets a new anonymous ID.",
       "delete": "Delete account",
       "deleteWarning": "This permanently deletes your profile and photo. Your reports stay, without your name.",
       "deleteConfirm": "Delete permanently",
@@ -1573,10 +1641,8 @@
     },
     "section": {
       "title": "My home",
-      "empty": "Tag your home to get a free safety report.",
       "tagAnother": "Tag another home",
       "join": "Join a home",
-      "viewReport": "View report",
       "pending": "A request to join a home is waiting for approval.",
       "loadError": "Could not load your home.",
       "retry": "Try again"

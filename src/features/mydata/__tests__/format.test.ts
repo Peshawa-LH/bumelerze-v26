@@ -1,7 +1,17 @@
 import i18n from "@/i18n";
-import type { EventRegistration, QueueItem, Tier1Report, Tier2Report } from "@/features/felt";
+import type {
+  EventRegistration,
+  QueueItem,
+  Tier1Report,
+  Tier2Report,
+} from "@/features/felt";
 
-import { buildContributionRow, formatContributorId, resolveSyncStatus } from "../format";
+import {
+  buildContributionRow,
+  formatContributorId,
+  formatMonthYear,
+  resolveSyncStatus,
+} from "../format";
 
 /**
  * Pure view-model logic for the My Data screen (D26 item 7). No rendering
@@ -114,7 +124,11 @@ describe("buildContributionRow", () => {
 
   it("surfaces the event's place name when the report carries an eventRegistration snapshot", () => {
     const item = makeQueueItem({
-      tier1: { ...SAMPLE_TIER1, eventId: "us1000abcd", eventRegistration: SAMPLE_EVENT_REGISTRATION },
+      tier1: {
+        ...SAMPLE_TIER1,
+        eventId: "us1000abcd",
+        eventRegistration: SAMPLE_EVENT_REGISTRATION,
+      },
     });
     const row = buildContributionRow(item, "en", i18n.t.bind(i18n));
 
@@ -139,7 +153,11 @@ describe("buildContributionRow", () => {
     const item = makeQueueItem({
       tier2: {
         ...SAMPLE_TIER2,
-        answers: { ...SAMPLE_TIER2.answers, buildingDamageLevel: 1, damageTypology: null },
+        answers: {
+          ...SAMPLE_TIER2.answers,
+          buildingDamageLevel: 1,
+          damageTypology: null,
+        },
       },
     });
     const row = buildContributionRow(item, "en", i18n.t.bind(i18n));
@@ -152,5 +170,27 @@ describe("buildContributionRow", () => {
     const row = buildContributionRow(makeQueueItem(), "ckb", i18n.t.bind(i18n));
 
     expect(row.levelLabel.startsWith("٤")).toBe(true);
+  });
+});
+
+describe("formatMonthYear (Member since)", () => {
+  const OCT_2026 = new Date(2026, 9, 15).getTime();
+
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+
+  it("uses the app's own month table and Latin digits in English and Kurmanji", async () => {
+    await i18n.changeLanguage("en");
+    expect(formatMonthYear(OCT_2026, "en", i18n.t)).toBe("Oct 2026");
+    await i18n.changeLanguage("kmr");
+    expect(formatMonthYear(OCT_2026, "kmr", i18n.t)).toMatch(/ 2026$/);
+  });
+
+  it("localizes the year digits in Sorani and Arabic", async () => {
+    await i18n.changeLanguage("ckb");
+    expect(formatMonthYear(OCT_2026, "ckb", i18n.t)).toMatch(/٢٠٢٦$/);
+    await i18n.changeLanguage("ar");
+    expect(formatMonthYear(OCT_2026, "ar", i18n.t)).toMatch(/٢٠٢٦$/);
   });
 });

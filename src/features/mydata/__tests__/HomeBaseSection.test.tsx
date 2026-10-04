@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 import { usePrefsStore } from "@/features/onboarding";
@@ -7,7 +13,11 @@ import { HomeBaseSection } from "../components/HomeBaseSection";
 
 const mockGetPermission = jest.fn();
 jest.mock("expo-location", () => ({
-  PermissionStatus: { GRANTED: "granted", DENIED: "denied", UNDETERMINED: "undetermined" },
+  PermissionStatus: {
+    GRANTED: "granted",
+    DENIED: "denied",
+    UNDETERMINED: "undetermined",
+  },
   Accuracy: { Balanced: 3 },
   getForegroundPermissionsAsync: () => mockGetPermission(),
   getLastKnownPositionAsync: jest.fn(),
@@ -31,28 +41,53 @@ describe("HomeBaseSection (automatic HomeBase)", () => {
   });
   afterEach(cleanup);
 
-  it("shows the city and that it was set automatically, with a Change link", async () => {
+  it("shows one row: the city at the end, a mark and a spoken note that it was set automatically", async () => {
     await render(<HomeBaseSection />);
-    expect(screen.getByText("Erbil · set automatically from your location")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Change" })).toBeTruthy();
+    expect(screen.getByText("HomeBase")).toBeTruthy();
+    expect(screen.getByText("Erbil")).toBeTruthy();
+    expect(
+      screen.getByTestId("homebase-auto-mark", { includeHiddenElements: true }),
+    ).toBeTruthy();
+    expect(screen.getByTestId("homebase-row").props.accessibilityLabel).toBe(
+      "HomeBase, Erbil, Set automatically",
+    );
     expect(screen.queryByRole("button", { name: "Use my location again" })).toBeNull();
+    expect(screen.queryByText("Change")).toBeNull();
   });
 
   it("shows the city in the reader's language", async () => {
     await i18n.changeLanguage("ckb");
     await render(<HomeBaseSection />);
-    expect(screen.getByText("هەولێر · خۆکارانە لە شوێنەکەتەوە دیاری کراوە")).toBeTruthy();
+    expect(screen.getByText("هەولێر")).toBeTruthy();
+    expect(screen.getByTestId("homebase-row").props.accessibilityLabel).toBe(
+      "بنکەی ماڵەوە, هەولێر, خۆکار",
+    );
+  });
+
+  it("the town list opens on a tap of the row (and the row says it is expanded)", async () => {
+    await render(<HomeBaseSection />);
+    expect(screen.getByTestId("homebase-row").props.accessibilityState.expanded).toBe(
+      false,
+    );
+    expect(screen.queryByText("Slemani")).toBeNull();
+    await fireEvent.press(screen.getByTestId("homebase-row"));
+    expect(screen.getByTestId("homebase-row").props.accessibilityState.expanded).toBe(
+      true,
+    );
+    expect(await screen.findByText("Slemani")).toBeTruthy();
   });
 
   it("choosing a town by hand makes it manual and stops the 'set automatically' label", async () => {
     await render(<HomeBaseSection />);
-    await fireEvent.press(screen.getByRole("button", { name: "Change" }));
+    await fireEvent.press(screen.getByTestId("homebase-row"));
     await fireEvent.press(await screen.findByText("Slemani"));
 
     const state = usePrefsStore.getState();
     expect(state.homeBase?.townId).toBe("slemani");
     expect(state.homeBaseSource).toBe("manual");
-    expect(screen.queryByText(/set automatically/)).toBeNull();
+    expect(
+      screen.queryByTestId("homebase-auto-mark", { includeHiddenElements: true }),
+    ).toBeNull();
     expect(screen.getByText("Slemani")).toBeTruthy();
   });
 
@@ -66,7 +101,9 @@ describe("HomeBaseSection (automatic HomeBase)", () => {
     expect(state.homeBaseSource).toBe("auto");
     expect(state.homeBaseAutoCheckedAt).toBeNull();
     await waitFor(() =>
-      expect(screen.getByText("Erbil · set automatically from your location")).toBeTruthy(),
+      expect(
+        screen.getByTestId("homebase-auto-mark", { includeHiddenElements: true }),
+      ).toBeTruthy(),
     );
   });
 
