@@ -54,6 +54,12 @@ export {
 } from "./components/ShakeMapView";
 export { ShakeMapSection, type ShakeMapSectionProps } from "./components/ShakeMapSection";
 export { RiskSection, type RiskSectionProps } from "./components/RiskSection";
+export {
+  buildDamageSegments,
+  damagePercentText,
+  type DamageSegment,
+} from "./components/RiskDamageGradeBar";
+export { LOWEST_DEGREE_SHOWN } from "./components/RiskShakingLevels";
 
 // "Closing the last gap" wave — live shakemap_products path.
 export {

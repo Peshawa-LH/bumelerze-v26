@@ -98,11 +98,37 @@ describe("EventHubContent", () => {
       expect(await screen.findByText(/^People reported: .*12/)).toBeTruthy();
       expect(screen.getByTestId("hub-level-3")).toBeTruthy();
       expect(screen.getByTestId("hub-level-5")).toBeTruthy();
-      expect(screen.getByText("Weak shaking")).toBeTruthy();
-      expect(screen.getByText("Strong shaking")).toBeTruthy();
+      // Once in the summary rows, once in the impact donut's legend.
+      expect(screen.getAllByText("Weak shaking")).toHaveLength(2);
+      expect(screen.getAllByText("Strong shaking")).toHaveLength(2);
       expect(screen.getByText(/^.{0,2}10.{0,2}$/)).toBeTruthy();
       expect(screen.getByText(/^First report: /)).toBeTruthy();
       expect(screen.queryByText("No reports yet")).toBeNull();
+    });
+
+    it("shows the impact donuts under the summary when there are reports", async () => {
+      await renderHub(
+        makeTransport({
+          summary: {
+            reports: 14,
+            people: 12,
+            levels: { 3: 4, 5: 10 },
+            firstReportAt: Date.UTC(2026, 9, 4, 10, 30),
+            comments: 0,
+          },
+        }),
+      );
+      expect(await screen.findByTestId("hub-impact")).toBeTruthy();
+      expect(screen.getByTestId("hub-impact-felt")).toBeTruthy();
+      // No SHAKEmap/damage product for this event, so no model charts.
+      expect(screen.queryByTestId("hub-impact-damage")).toBeNull();
+      expect(screen.queryByTestId("hub-impact-people")).toBeNull();
+    });
+
+    it("shows no impact section when there is nothing to chart", async () => {
+      await renderHub(makeTransport());
+      expect(await screen.findByTestId("hub-subtitle")).toBeTruthy();
+      expect(screen.queryByTestId("hub-impact")).toBeNull();
     });
 
     it("says it could not load, with a retry, when the comments cannot be read", async () => {

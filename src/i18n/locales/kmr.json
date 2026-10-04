@@ -26,6 +26,12 @@
   "units": {
     "km": "km"
   },
+  "donut": {
+    "other": "Yên din",
+    "percent": "%{{value}}",
+    "underOne": "<1",
+    "a11ySlice": "{{label}}: {{value}}."
+  },
   "time": {
     "am": "berbang",
     "pm": "êvar"
@@ -884,6 +890,24 @@
       "moderator": "Rêveber",
       "engineer": "Endezyar",
       "partner": "Hevkar"
+    },
+    "impact": {
+      "title": "Bandor bi kurtî",
+      "felt": {
+        "title": "Mirovan çi hîs kir",
+        "caption": "Rêjeya ragihandinan li gorî asta hejînê"
+      },
+      "damage": {
+        "title": "Zirara avahiyan a texmînkirî",
+        "caption": "Rêjeya avahiyan li herêma hejandî"
+      },
+      "people": {
+        "title": "Mirov li gorî asta hejînê",
+        "caption": "Rêjeya mirovan di asta IV û jortir de"
+      },
+      "level": "Asta {{level}}",
+      "note": "Ji SHAKEmap û texmîna zirarê ya Bumelerze — otomatîk, nehatiye kontrolkirin",
+      "noteReviewed": "Ji SHAKEmap û texmîna zirarê ya Bumelerze"
     }
   },
   "felt": {

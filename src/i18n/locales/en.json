@@ -26,6 +26,12 @@
   "units": {
     "km": "km"
   },
+  "donut": {
+    "other": "Other",
+    "percent": "{{value}}%",
+    "underOne": "<1",
+    "a11ySlice": "{{label}}: {{value}}."
+  },
   "time": {
     "am": "AM",
     "pm": "PM"
@@ -884,6 +890,24 @@
       "moderator": "Moderator",
       "engineer": "Engineer",
       "partner": "Partner"
+    },
+    "impact": {
+      "title": "Impact at a glance",
+      "felt": {
+        "title": "What people felt",
+        "caption": "Share of reports by shaking level"
+      },
+      "damage": {
+        "title": "Estimated building damage",
+        "caption": "Share of buildings in the shaken area"
+      },
+      "people": {
+        "title": "People by shaking level",
+        "caption": "Share of people at level IV and above"
+      },
+      "level": "Level {{level}}",
+      "note": "From the Bumelerze SHAKEmap and damage estimate — automatic, not reviewed",
+      "noteReviewed": "From the Bumelerze SHAKEmap and damage estimate"
     }
   },
   "felt": {

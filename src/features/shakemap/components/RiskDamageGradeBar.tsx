@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import type { TranslateFn } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
+import { roundToWhole100 } from "@/lib/percent";
 import type { Theme } from "@/theme";
 
 export interface RiskDamageGradeBarProps {
@@ -21,7 +22,7 @@ export interface RiskDamageGradeBarProps {
   spacing: Theme["spacing"];
 }
 
-interface Segment {
+export interface DamageSegment {
   key: "little" | "moderate" | "heavy" | "severe";
   percent: number;
   /** True when this band has buildings in it but rounds to zero percent.
@@ -34,43 +35,24 @@ interface Segment {
   color: string;
 }
 
-/** Rounds each raw fraction to a whole percent, then nudges the LARGEST
- * segment so they sum to exactly 100 — independently-rounded
- * percentages can land on 99 or 101 (e.g. 33/33/34 raw -> 33/33/33
- * rounds to 99), and a stacked bar whose segments don't sum to 100 either
- * leaves a visible gap or overflows its own container. */
-function roundToWhole100(rawPercents: readonly number[]): number[] {
-  const rounded = rawPercents.map((value) => Math.round(value));
-  const total = rounded.reduce((sum, value) => sum + value, 0);
-  const diff = 100 - total;
-  if (diff === 0 || rounded.length === 0) {
-    return rounded;
-  }
-  const largestIndex = rounded.indexOf(Math.max(...rounded));
-  rounded[largestIndex] = (rounded[largestIndex] ?? 0) + diff;
-  return rounded;
+export interface DamageSegmentsInput {
+  buildingsInGrid: number;
+  buildingsHeavy: number;
+  buildingsDg4Plus: number;
+  buildingsByGrade?: readonly number[] | null | undefined;
+  colors: Theme["colors"];
 }
 
-/**
- * A single rounded bar split into damage bands over 100% of the
- * buildings in the exposure grid, with a legend below: "little or no
- * damage" / "moderate damage" (DG2, schema 2 only) / "heavy damage"
- * (DG3) / "very heavy damage or collapse" (DG4/DG5).
- * Percentages only, rounded to whole numbers; no raw building counts here
- * at all (owner: "no raw numbers" for this bar specifically — the
- * exposure tiles above already cover the approximate absolute figures).
- */
-export function RiskDamageGradeBar({
+/** The damage bands the bar draws, with whole-number percents that sum to
+ * 100. Shared with the Event hub's damage donut so the two never group or
+ * round differently. `null` when there are no buildings in the grid. */
+export function buildDamageSegments({
   buildingsInGrid,
   buildingsHeavy,
   buildingsDg4Plus,
   buildingsByGrade,
-  locale,
-  t,
   colors,
-  typography,
-  spacing,
-}: RiskDamageGradeBarProps) {
+}: DamageSegmentsInput): DamageSegment[] | null {
   if (buildingsInGrid <= 0) {
     return null;
   }
@@ -95,19 +77,52 @@ export function RiskDamageGradeBar({
 
   const under = (rounded: number | undefined, raw: number | undefined) =>
     (rounded ?? 0) === 0 && (raw ?? 0) > 0;
-  const allSegments: Segment[] = [
+  const allSegments: DamageSegment[] = [
     { key: "little", percent: littlePercent ?? 0, underOnePercent: under(littlePercent, rawPercents[0]), color: colors.damageGrade[1] ?? colors.status.success },
     { key: "moderate", percent: moderatePercent ?? 0, underOnePercent: under(moderatePercent, rawPercents[1]), color: colors.damageGrade[2] ?? colors.status.warning },
     { key: "heavy", percent: heavyPercent ?? 0, underOnePercent: under(heavyPercent, rawPercents[2]), color: colors.damageGrade[3] ?? colors.status.warning },
     { key: "severe", percent: severePercent ?? 0, underOnePercent: under(severePercent, rawPercents[3]), color: colors.damageGrade[5] ?? colors.status.danger },
   ];
   const segments = grades ? allSegments : allSegments.filter((seg) => seg.key !== "moderate");
+  return segments;
+}
+
+/**
+ * A single rounded bar split into damage bands over 100% of the
+ * buildings in the exposure grid, with a legend below: "little or no
+ * damage" / "moderate damage" (DG2, schema 2 only) / "heavy damage"
+ * (DG3) / "very heavy damage or collapse" (DG4/DG5).
+ * Percentages only, rounded to whole numbers; no raw building counts here
+ * at all (owner: "no raw numbers" for this bar specifically — the
+ * exposure tiles above already cover the approximate absolute figures).
+ */
+export function RiskDamageGradeBar({
+  buildingsInGrid,
+  buildingsHeavy,
+  buildingsDg4Plus,
+  buildingsByGrade,
+  locale,
+  t,
+  colors,
+  typography,
+  spacing,
+}: RiskDamageGradeBarProps) {
+  const segments = buildDamageSegments({
+    buildingsInGrid,
+    buildingsHeavy,
+    buildingsDg4Plus,
+    buildingsByGrade,
+    colors,
+  });
+  if (!segments) {
+    return null;
+  }
 
   const a11yLabel = segments
     .map((segment) =>
       t("eventDetail.risk.stackedBar.a11ySegment", {
         label: t(`eventDetail.risk.stackedBar.${segment.key}`),
-        percent: percentText(segment, locale, t),
+        percent: damagePercentText(segment, locale, t),
       }),
     )
     .join(" ");
@@ -156,7 +171,7 @@ export function RiskDamageGradeBar({
             >
               {t("eventDetail.risk.stackedBar.legendItem", {
                 label: t(`eventDetail.risk.stackedBar.${segment.key}`),
-                percent: percentText(segment, locale, t),
+                percent: damagePercentText(segment, locale, t),
               })}
             </Text>
           </View>
@@ -168,7 +183,7 @@ export function RiskDamageGradeBar({
 
 /** The number that goes inside the locale's own percent string. A band
  * that has buildings in it never reads as zero. */
-function percentText(segment: Segment, locale: string, t: TranslateFn): string {
+export function damagePercentText(segment: DamageSegment, locale: string, t: TranslateFn): string {
   if (segment.underOnePercent) {
     return t("eventDetail.risk.stackedBar.underOnePercent");
   }

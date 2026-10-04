@@ -32,6 +32,7 @@ import type { HubActions } from "../queries";
 import type { HubThread, HubThreadData } from "../types";
 import { CommentComposer } from "./CommentComposer";
 import { CommentItem, type CommentViewer } from "./CommentItem";
+import { HubImpactSection } from "./HubImpactSection";
 import { HubSummaryCard } from "./HubSummaryCard";
 
 interface EventHubContentProps {
@@ -41,8 +42,8 @@ interface EventHubContentProps {
 }
 
 /**
- * The Event hub body: magnitude + place subtitle, the felt summary, a
- * composer, and the threaded comments. Reads refresh every 30 s while the
+ * The Event hub body: magnitude + place subtitle, the felt summary, the
+ * impact-at-a-glance donuts, a composer, and the threaded comments. Reads refresh every 30 s while the
  * screen is focused, and on pull-to-refresh.
  */
 export function EventHubContent({ event, transport }: EventHubContentProps) {
@@ -135,6 +136,7 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
       ) : (
         <>
           <HubSummaryCard summary={summary.summary} />
+          <HubImpactSection event={event} summary={summary.summary} />
           <CommentComposer
             isAccount={isAccount}
             placeholder={

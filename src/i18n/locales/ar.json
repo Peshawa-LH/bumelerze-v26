@@ -26,6 +26,12 @@
   "units": {
     "km": "كم"
   },
+  "donut": {
+    "other": "أخرى",
+    "percent": "{{value}}%",
+    "underOne": "<١",
+    "a11ySlice": "{{label}}: {{value}}."
+  },
   "time": {
     "am": "ص",
     "pm": "م"
@@ -884,6 +890,24 @@
       "moderator": "مشرف",
       "engineer": "مهندس",
       "partner": "شريك"
+    },
+    "impact": {
+      "title": "الأثر في لمحة",
+      "felt": {
+        "title": "ما شعر به الناس",
+        "caption": "نسبة البلاغات حسب مستوى الاهتزاز"
+      },
+      "damage": {
+        "title": "ضرر المباني المقدَّر",
+        "caption": "نسبة المباني في المنطقة المهتزة"
+      },
+      "people": {
+        "title": "السكان حسب مستوى الاهتزاز",
+        "caption": "نسبة السكان عند المستوى IV وما فوق"
+      },
+      "level": "المستوى {{level}}",
+      "note": "من SHAKEmap وتقدير الضرر في Bumelerze — تلقائي، دون مراجعة",
+      "noteReviewed": "من SHAKEmap وتقدير الضرر في Bumelerze"
     }
   },
   "felt": {

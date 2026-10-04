@@ -19,7 +19,7 @@ export interface RiskShakingLevelsProps {
 /** Degrees below this are "felt, no damage expected" and are not worth a
  * row of their own on a panic-time screen; they stay in the product and
  * in the total. */
-const LOWEST_DEGREE_SHOWN = 4;
+export const LOWEST_DEGREE_SHOWN = 4;
 
 /**
  * People by how hard the ground actually moved where they live.
