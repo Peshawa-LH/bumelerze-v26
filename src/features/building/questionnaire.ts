@@ -6,13 +6,21 @@
  * Every question ends with "dk" ("I don't know"). A question the user has not
  * reached is simply absent from the answers; the assessment treats absent and
  * "dk" the same.
+ *
+ * q-v1 added five research-only questions (use, basement, adjacency, size,
+ * people day/night). They are not `structural` and the assessment does not
+ * read them: they are stored with the survey for the research database. Size
+ * and the two occupancy questions are `optional` (Next works without an
+ * answer).
  */
 
-export const QUESTIONNAIRE_VERSION = "q-v0";
+export const QUESTIONNAIRE_VERSION = "q-v1";
 export const DONT_KNOW = "dk";
 
 export type QuestionId =
+  | "use"
   | "floors"
+  | "basement"
   | "age"
   | "builder"
   | "structure"
@@ -22,9 +30,13 @@ export type QuestionId =
   | "added"
   | "openGround"
   | "shape"
+  | "adjacency"
   | "strengthened"
   | "cracks"
-  | "pastDamage";
+  | "pastDamage"
+  | "size"
+  | "peopleDay"
+  | "peopleNight";
 
 export type Answers = Partial<Record<QuestionId, string>>;
 
@@ -33,11 +45,16 @@ export interface Question {
   options: readonly string[];
   /** Counts toward the confidence score (what the building IS made of). */
   structural: boolean;
+  /** The screen can be passed without choosing (not even "I don't know"). */
+  optional?: boolean;
   /** Only asked when this returns true for the answers so far. */
   appliesTo?: (answers: Answers) => boolean;
 }
 
 const WALLS = ["block", "brick"] as const;
+
+/** People normally inside, by day or by night (research only). */
+const PEOPLE_OPTIONS = ["p1_2", "p3_5", "p6_10", "p11_20", "p21p", DONT_KNOW] as const;
 
 export function isWallStructure(answers: Answers): boolean {
   return answers.structure === "block" || answers.structure === "brick";
@@ -45,9 +62,19 @@ export function isWallStructure(answers: Answers): boolean {
 
 export const QUESTIONS: readonly Question[] = [
   {
+    id: "use",
+    options: ["house", "apartments", "shop_below", "other", DONT_KNOW],
+    structural: false,
+  },
+  {
     id: "floors",
     options: ["f1", "f2", "f3", "f4_5", "f6_10", "f11p", DONT_KNOW],
     structural: true,
+  },
+  {
+    id: "basement",
+    options: ["none", "part", "full", DONT_KNOW],
+    structural: false,
   },
   {
     id: "age",
@@ -90,6 +117,11 @@ export const QUESTIONS: readonly Question[] = [
     structural: false,
   },
   {
+    id: "adjacency",
+    options: ["alone", "one_side", "both_sides", DONT_KNOW],
+    structural: false,
+  },
+  {
     id: "strengthened",
     options: ["no", "repairs", "strengthening", DONT_KNOW],
     structural: false,
@@ -99,6 +131,24 @@ export const QUESTIONS: readonly Question[] = [
     id: "pastDamage",
     options: ["none", "cracks", "heavy", DONT_KNOW],
     structural: false,
+  },
+  {
+    id: "size",
+    options: ["u100", "s100_200", "s200_400", "o400", DONT_KNOW],
+    structural: false,
+    optional: true,
+  },
+  {
+    id: "peopleDay",
+    options: PEOPLE_OPTIONS,
+    structural: false,
+    optional: true,
+  },
+  {
+    id: "peopleNight",
+    options: PEOPLE_OPTIONS,
+    structural: false,
+    optional: true,
   },
 ];
 

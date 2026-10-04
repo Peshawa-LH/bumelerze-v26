@@ -1,12 +1,12 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { InlineTownPicker } from "@/features/felt/components/InlineTownPicker";
-import { HOME_BASE_TOWNS } from "@/features/onboarding";
+import { HOME_BASE_TOWNS, usePrefsStore } from "@/features/onboarding";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { LABEL_MAX, UNIT_LABEL_MAX } from "../constants";
@@ -17,6 +17,7 @@ import {
   goBack,
   goNext,
   initialFlowState,
+  isOptionalQuestion,
   photoList,
   progress,
   setAnswer,
@@ -26,6 +27,13 @@ import {
   type FlowState,
   type StepRef,
 } from "../flow-state";
+import {
+  canConfirmPin,
+  pinLocation,
+  pinStart,
+  type PinPoint,
+  type PinStart,
+} from "../pin";
 import { PHOTO_SLOTS, pickHomePhoto, type PhotoSlot, type PhotoSource } from "../photos";
 import {
   QUESTIONS,
@@ -37,6 +45,7 @@ import { useHomeActions } from "../queries";
 import { createHomeFromDraft } from "../service";
 import type { HomeKind, HomeTag } from "../types";
 import { useGpsFix } from "../use-gps-fix";
+import { PIN_MAP_AVAILABLE, PinMap } from "./PinMap";
 import {
   Body,
   ErrorText,
@@ -156,7 +165,10 @@ export function TagFlow({ retake }: TagFlowProps) {
             <AccountButton
               tone="primary"
               label={
-                state.step === "photos" && photoList(state).length === 0
+                (state.step === "photos" && photoList(state).length === 0) ||
+                (state.step === "question" &&
+                  isOptionalQuestion(state.questionId) &&
+                  state.answers[state.questionId] === undefined)
                   ? t("building.flow.skip")
                   : t("building.flow.next")
               }
@@ -245,8 +257,17 @@ function LocationStep({ state, onChange }: StepProps) {
   const { t } = useTranslation();
   const { spacing } = useTheme();
   const gps = useGpsFix();
+  const homeBase = usePrefsStore((prefs) => prefs.homeBase);
   const [townId, setTownId] = useState(state.location?.townId ?? DEFAULT_TOWN_ID);
+  const [pinning, setPinning] = useState<{ start: PinStart; point: PinPoint } | null>(
+    null,
+  );
   const hasGps = state.location?.quality === "gps";
+  const hasPin = state.location?.quality === "pin";
+  const fallback = useMemo(() => {
+    const town = HOME_BASE_TOWNS.find((candidate) => candidate.id === DEFAULT_TOWN_ID);
+    return { lat: town?.lat ?? 36.19, lon: town?.lon ?? 44.01 };
+  }, []);
 
   async function locateMe() {
     const fix = await gps.request();
@@ -269,6 +290,46 @@ function LocationStep({ state, onChange }: StepProps) {
     }
   }
 
+  function startPinning() {
+    const start = pinStart(state.location, homeBase, fallback);
+    setPinning({ start, point: { lat: start.lat, lon: start.lon } });
+  }
+
+  if (pinning) {
+    return (
+      <View style={{ gap: spacing[3] }}>
+        <Heading>{t("building.flow.location.pinTitle")}</Heading>
+        <Meta>{t("building.flow.location.pinHint")}</Meta>
+        <PinMap
+          start={pinning.start}
+          onPoint={(point) => setPinning({ ...pinning, point })}
+          accessibilityLabel={t("building.flow.location.pinMapLabel")}
+        />
+        <View style={styles.footerRow}>
+          <View style={styles.footerCell}>
+            <AccountButton
+              label={t("building.flow.location.pinCancel")}
+              onPress={() => setPinning(null)}
+              testID="location-pin-cancel"
+            />
+          </View>
+          <View style={styles.footerCell}>
+            <AccountButton
+              tone="primary"
+              label={t("building.flow.location.pinConfirm")}
+              onPress={() => {
+                onChange({ ...state, location: pinLocation(pinning.point) });
+                setPinning(null);
+              }}
+              disabled={!canConfirmPin(pinning.start, pinning.point)}
+              testID="location-pin-confirm"
+            />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={{ gap: spacing[3] }}>
       <Heading>{t("building.flow.location.title")}</Heading>
@@ -289,6 +350,19 @@ function LocationStep({ state, onChange }: StepProps) {
       ) : null}
       {gps.status === "failed" ? (
         <ErrorText>{t("building.flow.location.gpsFailed")}</ErrorText>
+      ) : null}
+      {PIN_MAP_AVAILABLE ? (
+        <>
+          <AccountButton
+            tone={hasPin ? "secondary" : "primary"}
+            label={t("building.flow.location.pin")}
+            onPress={startPinning}
+            testID="location-pin"
+          />
+          {hasPin ? (
+            <Body tone="secondary">{t("building.flow.location.pinDone")}</Body>
+          ) : null}
+        </>
       ) : null}
       <Body tone="secondary">{t("building.flow.location.or")}</Body>
       <InlineTownPicker
@@ -471,7 +545,9 @@ function ReviewStep({ state, onChange }: StepProps) {
             value={
               state.location?.quality === "gps"
                 ? t("building.flow.review.locationGps")
-                : t("building.flow.review.locationTown")
+                : state.location?.quality === "pin"
+                  ? t("building.flow.review.locationPin")
+                  : t("building.flow.review.locationTown")
             }
             onPress={() => edit({ step: "location" })}
             testID="review-location"

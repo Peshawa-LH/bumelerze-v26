@@ -4,6 +4,7 @@ import {
   goBack,
   goNext,
   initialFlowState,
+  isOptionalQuestion,
   photoList,
   progress,
   sequence,
@@ -14,17 +15,22 @@ import {
 
 /** Every question answered, for a frame building. */
 const COMPLETE = {
+  use: "house",
   floors: "f2",
+  basement: "none",
   age: "dk",
   builder: "dk",
   structure: "frame",
   added: "no",
   openGround: "no",
   shape: "box",
+  adjacency: "alone",
   strengthened: "no",
   cracks: "none",
   pastDamage: "none",
 };
+
+const LAST_QUESTION = "peopleNight";
 
 function atQuestions(answers = {}): FlowState {
   return {
@@ -40,7 +46,7 @@ describe("flow sequence", () => {
     const steps = sequence(initialFlowState("new"));
     expect(steps[0]?.step).toBe("kind");
     expect(steps[1]?.step).toBe("location");
-    expect(steps[2]).toEqual({ step: "question", questionId: "floors" });
+    expect(steps[2]).toEqual({ step: "question", questionId: "use" });
     expect(steps.at(-2)?.step).toBe("photos");
     expect(steps.at(-1)?.step).toBe("review");
   });
@@ -95,19 +101,44 @@ describe("next and back", () => {
     };
     expect(canAdvance(state)).toBe(false);
     const placed = { ...state, location: { lat: 1, lon: 2, quality: "gps" as const } };
-    expect(goNext(placed)).toMatchObject({ step: "question", questionId: "floors" });
+    expect(goNext(placed)).toMatchObject({ step: "question", questionId: "use" });
   });
 
   it("a question needs an answer, and 'I don't know' counts as one", () => {
     const state = atQuestions();
     expect(canAdvance(state)).toBe(false);
-    const answered = setAnswer(state, "floors", "dk");
+    const answered = setAnswer(state, "use", "dk");
     expect(canAdvance(answered)).toBe(true);
-    expect(goNext(answered)).toMatchObject({ step: "question", questionId: "age" });
+    expect(goNext(answered)).toMatchObject({ step: "question", questionId: "floors" });
+  });
+
+  it("an optional question can be passed without an answer", () => {
+    const state = { ...atQuestions({ structure: "wood" }), questionId: "size" as const };
+    expect(isOptionalQuestion("size")).toBe(true);
+    expect(isOptionalQuestion("floors")).toBe(false);
+    expect(canAdvance(state)).toBe(true);
+    expect(goNext(state)).toMatchObject({ step: "question", questionId: "peopleDay" });
+    expect(goNext(state).answers.size).toBeUndefined();
+  });
+
+  it("editing from review does not force the optional questions", () => {
+    const done = {
+      ...atQuestions({ ...COMPLETE, size: "dk" }),
+      step: "review" as const,
+    };
+    let state = editStep(done, { step: "question", questionId: "floors" });
+    state = goNext(setAnswer(state, "floors", "f3"));
+    expect(state).toMatchObject({ step: "review", editing: false });
   });
 
   it("changing the structure re-routes the questions that follow", () => {
-    let state = atQuestions({ floors: "f2", age: "dk", builder: "dk" });
+    let state = atQuestions({
+      use: "house",
+      floors: "f2",
+      basement: "none",
+      age: "dk",
+      builder: "dk",
+    });
     state = { ...state, questionId: "structure" };
     state = goNext(setAnswer(state, "structure", "block"));
     expect(state.questionId).toBe("belts");
@@ -119,16 +150,16 @@ describe("next and back", () => {
 
   it("the last question leads to photos, then review", () => {
     let state = atQuestions({ structure: "wood" });
-    state = { ...state, questionId: "pastDamage" };
-    state = goNext(setAnswer(state, "pastDamage", "none"));
+    state = { ...state, questionId: LAST_QUESTION };
+    state = goNext(state);
     expect(state.step).toBe("photos");
     expect(goNext(state).step).toBe("review");
   });
 
   it("a retake's last question leads straight to review", () => {
     let state = initialFlowState("retake", { structure: "wood" });
-    state = { ...state, questionId: "pastDamage" };
-    expect(goNext(setAnswer(state, "pastDamage", "none")).step).toBe("review");
+    state = { ...state, questionId: LAST_QUESTION };
+    expect(goNext(state).step).toBe("review");
   });
 
   it("Back walks the sequence and leaves the flow at the start", () => {

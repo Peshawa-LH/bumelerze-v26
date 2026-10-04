@@ -7,7 +7,7 @@ import {
 } from "./questionnaire";
 import { photoContentType, readHomePhoto } from "./photos";
 import { SupabaseHomeTransport, type HomeTransport } from "./transport";
-import type { HomeKind } from "./types";
+import type { HomeKind, LocationQuality } from "./types";
 
 /** What the tag flow collects before anything is sent. */
 export interface TagDraft {
@@ -18,8 +18,8 @@ export interface TagDraft {
   unitLabel: string;
   lat: number;
   lon: number;
-  /** "gps" for the device fix, "town" when a town centre stood in for it. */
-  locationQuality: "gps" | "town";
+  /** "gps" device fix, "pin" placed on the map, "town" centre standing in. */
+  locationQuality: LocationQuality;
   answers: Answers;
   /** Picked photo uris (front, side, inside; any may be absent). */
   photos: string[];
@@ -34,7 +34,7 @@ export interface SaveOutcome {
 /** The survey row's `answers` jsonb: the answers plus how exact the point was. */
 export function surveyPayload(
   answers: Answers,
-  locationQuality?: "gps" | "town",
+  locationQuality?: LocationQuality,
 ): Record<string, unknown> {
   return {
     ...pruneAnswers(answers),
@@ -56,7 +56,7 @@ export async function saveSurveyAndAssessment(
   tagId: string,
   point: { lat: number; lon: number },
   answers: Answers,
-  options: { transport?: HomeTransport; locationQuality?: "gps" | "town" } = {},
+  options: { transport?: HomeTransport; locationQuality?: LocationQuality } = {},
 ): Promise<Assessment> {
   const transport = options.transport ?? SupabaseHomeTransport;
   const clean = pruneAnswers(answers);

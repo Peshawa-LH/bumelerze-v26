@@ -2,7 +2,12 @@ import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react
 
 import i18n from "@/i18n";
 import { NewHomeScreen } from "../components/NewHomeScreen";
-import { QUESTIONS, visibleQuestions, type Answers } from "../questionnaire";
+import {
+  QUESTIONNAIRE_VERSION,
+  QUESTIONS,
+  visibleQuestions,
+  type Answers,
+} from "../questionnaire";
 import { HomeError } from "../types";
 import {
   TAG,
@@ -54,6 +59,22 @@ jest.mock("expo-location", () => ({
   Accuracy: { Balanced: 3 },
 }));
 
+jest.mock("../components/PinMap", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require inside a jest.mock factory
+  const { createElement } = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require inside a jest.mock factory
+  const { Pressable } = require("react-native");
+  return {
+    PIN_MAP_AVAILABLE: true,
+    // Stands in for the web map: one press drops the pin at a fixed point.
+    PinMap: ({ onPoint }: { onPoint: (point: { lat: number; lon: number }) => void }) =>
+      createElement(Pressable, {
+        testID: "pin-stub",
+        onPress: () => onPoint({ lat: 36.2512341, lon: 44.0123456 }),
+      }),
+  };
+});
+
 const mockPickPhoto = jest.fn();
 jest.mock("../photos", () => ({
   ...jest.requireActual("../photos"),
@@ -95,6 +116,13 @@ async function reachQuestions() {
   await press("kind-house");
   await press("flow-next");
   await pressText("Erbil");
+  await press("flow-next");
+}
+
+/** Past the location and the first question ("use"), on the floors screen. */
+async function reachFloors() {
+  await reachQuestions();
+  await press("option-use-house");
   await press("flow-next");
 }
 
@@ -169,18 +197,18 @@ describe("Tag my building flow", () => {
 
   it("shows one question per screen with a progress bar and an 'I don't know' option", async () => {
     await renderWithProviders(<NewHomeScreen />);
-    await reachQuestions();
+    await reachFloors();
     expect(screen.getByText("How many floors above the ground?")).toBeTruthy();
     expect(screen.getByTestId("option-floors-dk")).toBeTruthy();
     expect(screen.getByText("I don't know")).toBeTruthy();
     const bar = screen.getByRole("progressbar");
-    expect(bar.props.accessibilityValue).toMatchObject({ min: 0, now: 3 });
+    expect(bar.props.accessibilityValue).toMatchObject({ min: 0, now: 4 });
     expect(nextDisabled()).toBe(true);
     await press("option-floors-f2");
     expect(nextDisabled()).toBe(false);
     await press("flow-next");
-    expect(screen.getByText("How old is the building?")).toBeTruthy();
-    expect(screen.getByRole("progressbar").props.accessibilityValue.now).toBe(4);
+    expect(screen.getByText("Is there a basement?")).toBeTruthy();
+    expect(screen.getByRole("progressbar").props.accessibilityValue.now).toBe(5);
   });
 
   it("every question offers 'I don't know' and large option buttons", async () => {
@@ -188,7 +216,7 @@ describe("Tag my building flow", () => {
       expect(question.options).toContain("dk");
     }
     await renderWithProviders(<NewHomeScreen />);
-    await reachQuestions();
+    await reachFloors();
     const option = screen.getByTestId("option-floors-f2");
     const flat = Array.isArray(option.props.style)
       ? Object.assign({}, ...option.props.style.flat())
@@ -198,7 +226,7 @@ describe("Tag my building flow", () => {
 
   it("Back returns to the previous question with its answer kept", async () => {
     await renderWithProviders(<NewHomeScreen />);
-    await reachQuestions();
+    await reachFloors();
     await press("option-floors-f3");
     await press("flow-next");
     await press("flow-back");
@@ -216,8 +244,10 @@ describe("Tag my building flow", () => {
 
   it("branches: block walls ask about belts and the roof, a frame does not", async () => {
     await renderWithProviders(<NewHomeScreen />);
-    await reachQuestions();
+    await reachFloors();
     await press("option-floors-f2");
+    await press("flow-next");
+    await press("option-basement-none");
     await press("flow-next");
     await press("option-age-a10_25");
     await press("flow-next");
@@ -250,7 +280,8 @@ describe("Tag my building flow", () => {
     );
     const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
     expect(survey.tagId).toBe("tag-1");
-    expect(survey.version).toBe("q-v0");
+    expect(survey.version).toBe("q-v1");
+    expect(QUESTIONNAIRE_VERSION).toBe("q-v1");
     expect(survey.answers).toMatchObject({
       structure: "frame",
       floors: "f2",
@@ -335,6 +366,110 @@ describe("Tag my building flow", () => {
     expect(mockTransport.createTag).toHaveBeenCalledTimes(1);
   });
 
+  it("the research questions are saved with the survey; the optional ones can be skipped", async () => {
+    await renderWithProviders(<NewHomeScreen />);
+    await reachQuestions();
+    const picks: Record<string, string> = {
+      use: "shop_below",
+      basement: "part",
+      adjacency: "one_side",
+      size: "s100_200",
+      peopleDay: "p6_10",
+      structure: "frame",
+      floors: "f3",
+    };
+    // Everything but the people questions; those are skipped without an answer.
+    await answerAll((id) => (id === "peopleNight" ? "skip" : (picks[id] ?? "dk")));
+    expect(screen.getByText(/How many people are usually inside at night/)).toBeTruthy();
+    expect(nextDisabled()).toBe(false);
+    expect(screen.getByText("Skip")).toBeTruthy();
+    await press("flow-next");
+    await press("flow-next");
+    await press("flow-submit");
+    await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+    const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
+    expect(survey.version).toBe("q-v1");
+    expect(survey.answers).toMatchObject({
+      use: "shop_below",
+      basement: "part",
+      adjacency: "one_side",
+      size: "s100_200",
+      peopleDay: "p6_10",
+    });
+    expect(survey.answers.peopleNight).toBeUndefined();
+  });
+
+  it("review lists the research answers", async () => {
+    await renderWithProviders(<NewHomeScreen />);
+    await reachQuestions();
+    await answerAll((id) => (id === "adjacency" ? "both_sides" : "dk"));
+    await press("flow-next");
+    expect(
+      screen.getByLabelText(
+        /Is it joined to a neighbouring building\?: Yes, on both sides/,
+      ),
+    ).toBeTruthy();
+    expect(screen.getByTestId("review-size")).toBeTruthy();
+  });
+
+  describe("place on map", () => {
+    async function openPinMap() {
+      await renderWithProviders(<NewHomeScreen />);
+      await press("kind-house");
+      await press("flow-next");
+      await press("location-pin");
+    }
+
+    it("offers the map as a third choice next to GPS and towns", async () => {
+      await renderWithProviders(<NewHomeScreen />);
+      await press("kind-house");
+      await press("flow-next");
+      expect(screen.getByTestId("location-gps")).toBeTruthy();
+      expect(screen.getByTestId("location-pin")).toBeTruthy();
+      expect(screen.getByText("Erbil")).toBeTruthy();
+    });
+
+    it("the pin cannot be confirmed until it is moved, then sets the location", async () => {
+      await openPinMap();
+      expect(screen.getByText("Place the pin")).toBeTruthy();
+      expect(
+        screen.getByTestId("location-pin-confirm").props.accessibilityState?.disabled,
+      ).toBe(true);
+      await press("pin-stub");
+      expect(
+        screen.getByTestId("location-pin-confirm").props.accessibilityState?.disabled,
+      ).toBeFalsy();
+      await press("location-pin-confirm");
+      expect(screen.getByText("Pin placed.")).toBeTruthy();
+      expect(nextDisabled()).toBe(false);
+    });
+
+    it("cancel leaves the location unset", async () => {
+      await openPinMap();
+      await press("location-pin-cancel");
+      expect(screen.getByText("Your exact location stays private.")).toBeTruthy();
+      expect(nextDisabled()).toBe(true);
+    });
+
+    it("the pinned point is what the home is created with", async () => {
+      await openPinMap();
+      await press("pin-stub");
+      await press("location-pin-confirm");
+      await press("flow-next");
+      await answerAll(() => "dk");
+      await press("flow-next");
+      expect(screen.getByText("Pin on map")).toBeTruthy();
+      await press("flow-submit");
+      await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+      expect(mockTransport.createTag).toHaveBeenCalledWith(
+        expect.objectContaining({ lat: 36.251234, lon: 44.012346 }),
+      );
+      expect(mockTransport.saveSurvey.mock.calls[0]?.[0].answers).toMatchObject({
+        location_quality: "pin",
+      });
+    });
+  });
+
   describe("retake", () => {
     const stored: Answers = { floors: "f3", structure: "stone", stone: "dressed" };
 
@@ -354,7 +489,10 @@ describe("Tag my building flow", () => {
 
     it("starts at the questions with the last answers selected, without kind or location", async () => {
       await renderWithProviders(<NewHomeScreen tagId="tag-1" />);
-      expect(await screen.findByText("How many floors above the ground?")).toBeTruthy();
+      expect(await screen.findByText("What is the building used for?")).toBeTruthy();
+      await press("option-use-dk");
+      await press("flow-next");
+      expect(screen.getByText("How many floors above the ground?")).toBeTruthy();
       expect(
         screen.getByTestId("option-floors-f3").props.accessibilityState.selected,
       ).toBe(true);
@@ -363,7 +501,7 @@ describe("Tag my building flow", () => {
 
     it("saves a new survey and assessment for the same tag", async () => {
       await renderWithProviders(<NewHomeScreen tagId="tag-1" />);
-      await screen.findByText("How many floors above the ground?");
+      await screen.findByText("What is the building used for?");
       expect(visibleQuestions({ ...stored }).length).toBeGreaterThan(3);
       const picks: Record<string, string> = {
         floors: "f4_5",
@@ -393,6 +531,9 @@ describe("Tag my building flow", () => {
     await press("kind-house");
     await press("flow-next");
     await pressText("هەولێر");
+    await press("flow-next");
+    expect(screen.getByText("بینایەکە بۆ چی بەکاردێت؟")).toBeTruthy();
+    await press("option-use-house");
     await press("flow-next");
     expect(screen.getByText("چەند نهۆم لەسەر زەوییە؟")).toBeTruthy();
     expect(screen.getByText("نازانم")).toBeTruthy();

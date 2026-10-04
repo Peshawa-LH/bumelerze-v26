@@ -2,6 +2,9 @@ import type { Hazard } from "./assessment";
 import type { ImsTypeProbs, VcProbs, VulnerabilityClass } from "./ims25";
 
 export type HomeKind = "house" | "apartment";
+/** How exact the tag's point is: the device fix, a pin the user placed on the
+ * map, or a town centre standing in for it. */
+export type LocationQuality = "gps" | "pin" | "town";
 export type MemberRole = "owner" | "member";
 export type MemberStatus = "pending" | "approved";
 

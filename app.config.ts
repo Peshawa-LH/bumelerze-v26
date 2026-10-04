@@ -30,15 +30,14 @@ interface LogoColorToken {
 interface LogoColorTokens {
   colors: Record<string, LogoColorToken>;
 }
-const logoColorsPath = path.join(
-  __dirname,
-  "assets/brand/tokens/bumelerze-colors.json",
-);
+const logoColorsPath = path.join(__dirname, "assets/brand/tokens/bumelerze-colors.json");
 const logoColors: LogoColorTokens = JSON.parse(fs.readFileSync(logoColorsPath, "utf8"));
 function logoColorHex(key: string): string {
   const token = logoColors.colors[key];
   if (!token) {
-    throw new Error(`${logoColorsPath}: missing colors["${key}"] — logo package tokens changed shape.`);
+    throw new Error(
+      `${logoColorsPath}: missing colors["${key}"] — logo package tokens changed shape.`,
+    );
   }
   return token.hex;
 }
@@ -162,17 +161,17 @@ const config: ExpoConfig = {
     // module the same way expo-sqlite's entry above does.
     "expo-image",
     [
-      // Felt-report flow redesign (2026-08-15 owner directive), window 3:
-      // an optional photo attachment on the baseline report. Both the
+      // Photos on felt reports (damage) and on a tagged building. Both the
       // camera and photo-library permission strings are needed since the
-      // picker offers both entry points; the photo is queued locally only
-      // this wave (no storage upload yet — see supabase-transport.ts).
+      // picker offers both entry points. These strings are the iOS
+      // NSCameraUsageDescription / NSPhotoLibraryUsageDescription; the OS
+      // shows them in English only, so they cover both uses in one sentence.
       "expo-image-picker",
       {
         photosPermission:
-          "Bumelerze uses your photos to let you attach a picture of damage to your earthquake report.",
+          "Bumelerze uses your photos so you can add pictures of earthquake damage or of your building to a report.",
         cameraPermission:
-          "Bumelerze uses your camera to let you take a picture of damage for your earthquake report.",
+          "Bumelerze uses the camera so you can add photos of earthquake damage or of your building to a report.",
       },
     ],
   ],

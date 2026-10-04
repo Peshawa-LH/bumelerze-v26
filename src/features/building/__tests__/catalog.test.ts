@@ -25,6 +25,18 @@ function requiredKeys(): string[] {
       keys.push(`building.q.${question.id}.options.${option}`);
     }
   }
+  for (const key of [
+    "pin",
+    "pinTitle",
+    "pinHint",
+    "pinConfirm",
+    "pinCancel",
+    "pinDone",
+    "pinMapLabel",
+  ]) {
+    keys.push(`building.flow.location.${key}`);
+  }
+  keys.push("building.flow.review.locationPin");
   for (const vc of VULNERABILITY_CLASSES) {
     keys.push(
       `building.vc.name.${vc}`,

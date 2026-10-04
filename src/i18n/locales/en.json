@@ -1605,6 +1605,13 @@
         "gpsBusy": "Finding your location…",
         "gpsDone": "Location set.",
         "gpsFailed": "Could not get your location. Choose a town.",
+        "pin": "Place on map",
+        "pinTitle": "Place the pin",
+        "pinHint": "Tap the map or drag the pin onto your building.",
+        "pinConfirm": "Confirm location",
+        "pinCancel": "Cancel",
+        "pinDone": "Pin placed.",
+        "pinMapLabel": "Map for placing the pin",
         "or": "Or choose the nearest town",
         "townNote": "A town centre is less exact. Your location gives a better report."
       },
@@ -1624,12 +1631,23 @@
         "kind": "Type",
         "location": "Location",
         "locationGps": "Your location",
+        "locationPin": "Pin on map",
         "locationTown": "Town centre",
         "unanswered": "Not answered",
         "photos": "Photos: {{count}}"
       }
     },
     "q": {
+      "use": {
+        "title": "What is the building used for?",
+        "options": {
+          "house": "One family house",
+          "apartments": "Apartment building",
+          "shop_below": "Shop or office below, homes above",
+          "other": "Something else",
+          "dk": "I don't know"
+        }
+      },
       "floors": {
         "title": "How many floors above the ground?",
         "options": {
@@ -1639,6 +1657,15 @@
           "f4_5": "4 or 5",
           "f6_10": "6 to 10",
           "f11p": "More than 10",
+          "dk": "I don't know"
+        }
+      },
+      "basement": {
+        "title": "Is there a basement?",
+        "options": {
+          "none": "No",
+          "part": "Under part of the building",
+          "full": "Yes, under all of it",
           "dk": "I don't know"
         }
       },
@@ -1726,6 +1753,15 @@
           "dk": "I don't know"
         }
       },
+      "adjacency": {
+        "title": "Is it joined to a neighbouring building?",
+        "options": {
+          "alone": "No, it stands alone",
+          "one_side": "Yes, on one side",
+          "both_sides": "Yes, on both sides",
+          "dk": "I don't know"
+        }
+      },
       "strengthened": {
         "title": "Was it repaired or strengthened?",
         "options": {
@@ -1750,6 +1786,38 @@
           "none": "None",
           "cracks": "Cracks",
           "heavy": "Heavy damage",
+          "dk": "I don't know"
+        }
+      },
+      "size": {
+        "title": "Roughly how big is one floor? (optional)",
+        "options": {
+          "u100": "Under 100 m²",
+          "s100_200": "100 to 200 m²",
+          "s200_400": "200 to 400 m²",
+          "o400": "Over 400 m²",
+          "dk": "I don't know"
+        }
+      },
+      "peopleDay": {
+        "title": "How many people are usually inside during the day? (optional)",
+        "options": {
+          "p1_2": "1 or 2",
+          "p3_5": "3 to 5",
+          "p6_10": "6 to 10",
+          "p11_20": "11 to 20",
+          "p21p": "More than 20",
+          "dk": "I don't know"
+        }
+      },
+      "peopleNight": {
+        "title": "How many people are usually inside at night? (optional)",
+        "options": {
+          "p1_2": "1 or 2",
+          "p3_5": "3 to 5",
+          "p6_10": "6 to 10",
+          "p11_20": "11 to 20",
+          "p21p": "More than 20",
           "dk": "I don't know"
         }
       }

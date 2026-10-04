@@ -1605,6 +1605,13 @@
         "gpsBusy": "Cihê te tê dîtin…",
         "gpsDone": "Cih hate danîn.",
         "gpsFailed": "Cihê te nehat girtin. Bajarokekî hilbijêre.",
+        "pin": "Li ser nexşeyê bi cih bike",
+        "pinTitle": "Nîşanê deyne",
+        "pinHint": "Li nexşeyê bitikîne an nîşanê bikişîne ser avahiya xwe.",
+        "pinConfirm": "Cih piştrast bike",
+        "pinCancel": "Betal bike",
+        "pinDone": "Nîşan hate danîn.",
+        "pinMapLabel": "Nexşe ji bo danîna nîşanê",
         "or": "An jî nêzîktirîn bajarok hilbijêre",
         "townNote": "Navenda bajarok kêmtir rast e. Cihê te raporeke çêtir dide."
       },
@@ -1624,12 +1631,23 @@
         "kind": "Cure",
         "location": "Cih",
         "locationGps": "Cihê te",
+        "locationPin": "Nîşan li ser nexşeyê",
         "locationTown": "Navenda bajarok",
         "unanswered": "Nehatiye bersivandin",
         "photos": "Wêne: {{count}}"
       }
     },
     "q": {
+      "use": {
+        "title": "Avahî ji bo çi tê bikaranîn?",
+        "options": {
+          "house": "Mala yek malbatê",
+          "apartments": "Avahiya apartmanan",
+          "shop_below": "Dikan an ofîs li jêr, mal li jor",
+          "other": "Tiştekî din",
+          "dk": "Nizanim"
+        }
+      },
       "floors": {
         "title": "Çend qat li ser erdê hene?",
         "options": {
@@ -1639,6 +1657,15 @@
           "f4_5": "4 an 5",
           "f6_10": "6 heta 10",
           "f11p": "Ji 10 zêdetir",
+          "dk": "Nizanim"
+        }
+      },
+      "basement": {
+        "title": "Bodrum heye?",
+        "options": {
+          "none": "Na",
+          "part": "Li jêr beşekî avahiyê",
+          "full": "Erê, li jêr hemûyê",
           "dk": "Nizanim"
         }
       },
@@ -1726,6 +1753,15 @@
           "dk": "Nizanim"
         }
       },
+      "adjacency": {
+        "title": "Bi avahiyek cîran ve zeliqî ye?",
+        "options": {
+          "alone": "Na, serbixwe ye",
+          "one_side": "Erê, ji aliyekî ve",
+          "both_sides": "Erê, ji her du aliyan ve",
+          "dk": "Nizanim"
+        }
+      },
       "strengthened": {
         "title": "Hatiye tamîrkirin an xurtkirin?",
         "options": {
@@ -1750,6 +1786,38 @@
           "none": "Na",
           "cracks": "Çirik",
           "heavy": "Zirareke giran",
+          "dk": "Nizanim"
+        }
+      },
+      "size": {
+        "title": "Her qat bi qasî çiqas mezin e? (bijarte)",
+        "options": {
+          "u100": "Ji 100 m² kêmtir",
+          "s100_200": "100 heta 200 m²",
+          "s200_400": "200 heta 400 m²",
+          "o400": "Ji 400 m² zêdetir",
+          "dk": "Nizanim"
+        }
+      },
+      "peopleDay": {
+        "title": "Rojan bi gelemperî çend kes di hundir de ne? (bijarte)",
+        "options": {
+          "p1_2": "1 an 2",
+          "p3_5": "3 heta 5",
+          "p6_10": "6 heta 10",
+          "p11_20": "11 heta 20",
+          "p21p": "Ji 20 zêdetir",
+          "dk": "Nizanim"
+        }
+      },
+      "peopleNight": {
+        "title": "Şevan bi gelemperî çend kes di hundir de ne? (bijarte)",
+        "options": {
+          "p1_2": "1 an 2",
+          "p3_5": "3 heta 5",
+          "p6_10": "6 heta 10",
+          "p11_20": "11 heta 20",
+          "p21p": "Ji 20 zêdetir",
           "dk": "Nizanim"
         }
       }

@@ -6,7 +6,7 @@ import {
   type Answers,
   type QuestionId,
 } from "./questionnaire";
-import type { HomeKind } from "./types";
+import type { HomeKind, LocationQuality } from "./types";
 
 /**
  * Pure state machine of the "Tag my building" flow: which screen comes next
@@ -22,7 +22,7 @@ export type FlowStep = "kind" | "location" | "question" | "photos" | "review";
 export interface FlowLocation {
   lat: number;
   lon: number;
-  quality: "gps" | "town";
+  quality: LocationQuality;
   townId?: string;
 }
 
@@ -103,6 +103,10 @@ function moveTo(state: FlowState, ref: StepRef, editing: boolean): FlowState {
   };
 }
 
+export function isOptionalQuestion(id: QuestionId): boolean {
+  return QUESTIONS.find((question) => question.id === id)?.optional === true;
+}
+
 /** Whether the current screen has what it needs for "Next". */
 export function canAdvance(state: FlowState): boolean {
   switch (state.step) {
@@ -111,7 +115,10 @@ export function canAdvance(state: FlowState): boolean {
     case "location":
       return state.location !== null;
     case "question":
-      return state.answers[state.questionId] !== undefined;
+      return (
+        isOptionalQuestion(state.questionId) ||
+        state.answers[state.questionId] !== undefined
+      );
     default:
       return true;
   }
@@ -128,6 +135,7 @@ export function goNext(state: FlowState): FlowState {
     const unanswered = steps.find(
       (ref) =>
         ref.step === "question" &&
+        !isOptionalQuestion(ref.questionId as QuestionId) &&
         state.answers[ref.questionId as QuestionId] === undefined,
     );
     return unanswered
