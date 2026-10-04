@@ -160,12 +160,12 @@ describe("Sign-in screen", () => {
     await press("account-send-code");
 
     expect(disabled("account-resend")).toBe(true);
-    expect(screen.getByText("New code in 60 s")).toBeTruthy();
+    expect(screen.getByText("Send again in 60 s")).toBeTruthy();
 
     await act(async () => {
       jest.advanceTimersByTime(30_000);
     });
-    expect(screen.getByText("New code in 30 s")).toBeTruthy();
+    expect(screen.getByText("Send again in 30 s")).toBeTruthy();
 
     await act(async () => {
       jest.advanceTimersByTime(31_000);
