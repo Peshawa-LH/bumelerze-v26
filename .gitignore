@@ -1,5 +1,5 @@
 # Node / Expo (ready for Phase 1 scaffold)
-node_modules/
+node_modules
 .expo/
 .expo-shared/
 dist/
