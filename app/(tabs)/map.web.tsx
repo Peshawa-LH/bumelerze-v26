@@ -46,10 +46,17 @@ import {
   MapFilterPanel,
   MARKER_HIT_PADDING_PX,
   MapStylePicker,
-  applyFaultsOverlay,
-  isOverlayOn,
+  activeOverlayIds,
+  applyMapOverlay,
+  applyMapOverlays,
+  describeOverlayFeature,
+  MapOverlayInfoCard,
+  MapOverlayLegend,
+  OVERLAY_TAP_LAYER_IDS,
   type MapLayerId,
   type MapOverlayState,
+  type OverlayInfo,
+  type OverlayLayerId,
   MapTilerAttributionLogo,
   OWN_LABELS_DEFAULT_FONT,
   OWN_LABELS_SOURCE_ID,
@@ -210,7 +217,7 @@ function primeTerrainAndLabelCache(
   }
   // Layers panel overlays (layer-registry.ts) are wiped by a style swap
   // like everything else we add, so they are re-applied here with the rest.
-  applyFaultsOverlay(map, isOverlayOn(overlays, "faults-gem"), scheme);
+  applyMapOverlays(map, overlays, scheme);
 
   if (!styleHasRasterDemSource(style.sources)) {
     map.addSource(TERRAIN_DEM_SOURCE_ID, buildTerrainDemSource());
@@ -439,6 +446,8 @@ export default function MapScreenWeb() {
   // width, not just the compact one.
   type MapControlId = "filters" | "style";
   const [openControl, setOpenControl] = useState<MapControlId | null>(null);
+  // A tapped fault or past earthquake (Layers panel context layers).
+  const [overlayInfo, setOverlayInfo] = useState<OverlayInfo | null>(null);
   const closeOpenControl = useCallback(() => setOpenControl(null), []);
   const toggleControl = useCallback((id: MapControlId) => {
     setOpenControl((current) => (current === id ? null : id));
@@ -706,8 +715,26 @@ export default function MapScreenWeb() {
         // `EventPreviewSheetHandle`'s doc comment for why this goes through
         // the animated `requestClose()` path rather than clearing the
         // selection directly.
-        map.on("click", () => {
+        map.on("click", (event?: { point?: { x: number; y: number } }) => {
           sheetRef.current?.requestClose();
+          // A tap on a context layer (fault, past earthquake) opens its
+          // card; a tap anywhere else closes it. Marker taps never get here.
+          const point = event?.point;
+          if (!point || typeof map.queryRenderedFeatures !== "function") {
+            setOverlayInfo(null);
+            return;
+          }
+          const layers = OVERLAY_TAP_LAYER_IDS.filter(
+            (id) => map.getLayer(id) !== undefined,
+          );
+          const hit =
+            layers.length > 0
+              ? map.queryRenderedFeatures([point.x, point.y], { layers })
+              : [];
+          const first = hit[0];
+          setOverlayInfo(
+            first ? describeOverlayFeature(first.layer.id, first.properties) : null,
+          );
         });
         map.on("load", () => {
           if (cancelled) {
@@ -928,9 +955,10 @@ export default function MapScreenWeb() {
   const handleToggleOverlay = useCallback(
     (id: MapLayerId, on: boolean) => {
       setOverlay(id, on);
+      if (!on) setOverlayInfo(null);
       const map = mapRef.current;
-      if (map && id === "faults-gem" && map.isStyleLoaded()) {
-        applyFaultsOverlay(map, on, scheme);
+      if (map && id !== "events" && map.isStyleLoaded()) {
+        applyMapOverlay(map, id as OverlayLayerId, on, scheme);
       }
     },
     [scheme, setOverlay],
@@ -1230,6 +1258,16 @@ export default function MapScreenWeb() {
           <View style={styles.attributionLogo} pointerEvents="box-none">
             <MapTilerAttributionLogo />
           </View>
+        ) : null}
+
+        {loadState === "ready" && overlayInfo ? (
+          <MapOverlayInfoCard info={overlayInfo} onClose={() => setOverlayInfo(null)} />
+        ) : null}
+        {loadState === "ready" && !overlayInfo ? (
+          <MapOverlayLegend
+            active={activeOverlayIds(overlays)}
+            compact={isCompactControls}
+          />
         ) : null}
 
         {loadState === "error" ? (

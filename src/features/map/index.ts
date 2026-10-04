@@ -122,7 +122,10 @@ export {
   type MapLibreModule,
 } from "./maplibre-loader";
 export {
+  activeOverlayIds,
   applyFaultsOverlay,
+  applyMapOverlay,
+  applyMapOverlays,
   buildFaultsLayer,
   buildFaultsSource,
   FAULTS_GEOJSON_URL,
@@ -130,8 +133,21 @@ export {
   FAULTS_SOURCE_ID,
   isOverlayOn,
   MAP_LAYERS,
+  OVERLAY_STACK,
+  OVERLAY_TAP_LAYER_IDS,
   TOGGLEABLE_MAP_LAYERS,
   type MapLayerEntry,
   type MapLayerId,
   type MapOverlayState,
+  type OverlayLayerId,
 } from "./layer-registry";
+export {
+  describeOverlayFeature,
+  parseGemSlipRate,
+  parseGemSlipType,
+  type FaultInfo,
+  type OverlayInfo,
+  type QuakeInfo,
+} from "./overlay-info";
+export { MapOverlayLegend } from "./components/MapOverlayLegend";
+export { MapOverlayInfoCard } from "./components/MapOverlayInfoCard";
