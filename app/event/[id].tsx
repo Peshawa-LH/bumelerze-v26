@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, type ReactNode } from "react";
+import { useCallback, useEffect, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,28 +12,21 @@ import {
   formatDepthKm,
   formatIsolatedDistance,
   formatMagnitudeValue,
-  isBumelerzeId,
   isolateNumeric,
   MAX_NAMED_SOURCE_TAGS_FULL,
   TagRow,
   useBumelerzeId,
   useEventById,
-  useEventByBumelerzeId,
   useEventSourceAgencies,
-  useRegionEvents,
-  useWorldEvents,
 } from "@/features/events";
 import {
   FELT_PILL_CLEARANCE,
   FeltReportPill,
   useOwnQueueItemForEvent,
 } from "@/features/felt";
+import { EventHubPill, useRouteEvent } from "@/features/eventhub";
 import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
-import {
-  NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID,
-  NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID,
-} from "@/features/historical";
 import { useUserDistanceAnchor } from "@/features/location";
 import { RiskSection, ShakeMapSection } from "@/features/shakemap";
 import { localizeDigits } from "@/lib/format-numbers";
@@ -72,15 +65,15 @@ export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const routeIsBumelerzeId = Boolean(id) && isBumelerzeId(id);
-  // Static, offline, zero-cost: only ever non-null for the 11 curated
-  // Historical events, in whichever direction the route param needs.
-  const staticProviderIdAlias = routeIsBumelerzeId
-    ? (NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID.get(id) ?? null)
-    : null;
-  const staticBumelerzeIdAlias = !routeIsBumelerzeId
-    ? (NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID.get(id) ?? null)
-    : null;
+  // Event lookup (feed caches, then a direct fetch) is shared with the Event
+  // hub screen — see `useRouteEvent`.
+  const {
+    event,
+    isLoading,
+    isNotFound,
+    routeIsBumelerzeId,
+    staticBumelerzeIdAlias,
+  } = useRouteEvent(id);
 
   // Map-event-sheet wave (owner: "an option to go back to the map"):
   // `origin === "map"` is set ONLY by the Map screen's preview sheet
@@ -101,64 +94,6 @@ export default function EventDetailScreen() {
       router.replace("/map");
     }
   }, [router]);
-
-  const region = useRegionEvents();
-  const world = useWorldEvents();
-
-  // The provider id a cached feed event would carry for THIS route param —
-  // either the param itself (a provider-id route) or its curated alias (a
-  // bml-id route for one of the 11 Historical events).
-  const cacheProviderIdCandidate = routeIsBumelerzeId ? staticProviderIdAlias : id;
-
-  const cachedEvent = useMemo(() => {
-    if (routeIsBumelerzeId) {
-      const byBumelerzeId =
-        region.events.find((event) => event.bumelerzeId === id) ??
-        world.events.find((event) => event.bumelerzeId === id) ??
-        null;
-      if (byBumelerzeId) {
-        return byBumelerzeId;
-      }
-    }
-    if (!cacheProviderIdCandidate) {
-      return null;
-    }
-    return (
-      region.events.find((event) => event.id === cacheProviderIdCandidate) ??
-      world.events.find((event) => event.id === cacheProviderIdCandidate) ??
-      null
-    );
-  }, [region.events, world.events, id, routeIsBumelerzeId, cacheProviderIdCandidate]);
-
-  // A provider-id route only ever fetches via the USGS `byId` fdsnws
-  // lookup, unchanged; a bml-id route (no cache hit, and no static curated
-  // alias to have already matched above) falls back to Supabase directly —
-  // see this file's own header doc comment.
-  const shouldFetchById =
-    !cachedEvent &&
-    !routeIsBumelerzeId &&
-    Boolean(id) &&
-    !region.isInitialLoading &&
-    !world.isInitialLoading;
-  const byId = useEventById(routeIsBumelerzeId ? undefined : id, shouldFetchById);
-
-  const shouldFetchByBumelerzeId =
-    !cachedEvent &&
-    routeIsBumelerzeId &&
-    !region.isInitialLoading &&
-    !world.isInitialLoading;
-  const byBumelerzeId = useEventByBumelerzeId(
-    routeIsBumelerzeId ? id : undefined,
-    shouldFetchByBumelerzeId,
-  );
-
-  const event = cachedEvent ?? (routeIsBumelerzeId ? byBumelerzeId.event : byId.event);
-  const isLoading =
-    !event &&
-    (region.isInitialLoading ||
-      world.isInitialLoading ||
-      (routeIsBumelerzeId ? byBumelerzeId.isLoading : byId.isLoading));
-  const isNotFound = !event && !isLoading;
 
   // Resolve this event's bml id from Supabase ONLY when we don't already
   // know one another way (a bml-id route, or the static curated alias) —
@@ -371,6 +306,11 @@ export default function EventDetailScreen() {
          * event by `resolveHomeFeltAssociation` in the first place). */}
         {event && event.isRegional ? (
           <FeltReportPill eventId={event.id} event={event} />
+        ) : null}
+        {/* "Who felt it?" (Event hub), the mirror pill at the opposite
+         * corner; applies its own regional + activity/recency rule. */}
+        {event ? (
+          <EventHubPill event={event} routeId={displayBumelerzeId ?? id} />
         ) : null}
       </View>
     </>

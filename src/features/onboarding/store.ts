@@ -32,6 +32,14 @@ export interface HomeBasePreference {
 }
 
 /**
+ * Where the current HomeBase came from. "manual": the user picked a town (or
+ * "elsewhere") themselves — never overwritten. "auto": derived from the
+ * device location (`features/location/auto-home-base.ts`), refreshed at most
+ * once a day while location permission is granted.
+ */
+export type HomeBaseSource = "auto" | "manual";
+
+/**
  * Preset alert tiers (Phase 4, spec-v1.md §4.10/D11) — matches
  * `supabase/migrations/0005_notifications_and_telemetry.sql`'s
  * `near_me_tier`/`homebase_tier` check-constraint values exactly
@@ -61,6 +69,13 @@ export interface PrefsState {
    * survive the restart and RESUME onboarding, not restart it"). */
   onboardingStep: OnboardingStepId;
   homeBase: HomeBasePreference | null;
+  /** See `HomeBaseSource`. Installs that persisted a HomeBase before this
+   * field existed keep it as "manual" (they chose it); installs with no
+   * HomeBase start as "auto". */
+  homeBaseSource: HomeBaseSource;
+  /** UTC ms of the last automatic HomeBase check; null = never. Throttles
+   * the location lookup to once a day. */
+  homeBaseAutoCheckedAt: number | null;
   /**
    * Alert preset tier for events near the user's current/last-known
    * location (spec-v1.md §4.10). Default 'm3' — matches D16's
@@ -95,7 +110,16 @@ export interface PrefsState {
   hasHydrated: boolean;
   setOnboardingStep: (step: OnboardingStepId) => void;
   completeOnboarding: () => void;
+  /** A deliberate choice by the user: stores the town and pins the source
+   * to "manual" so automatic updates stop. */
   setHomeBase: (homeBase: HomeBasePreference | null) => void;
+  /** Automatic update: stores the town with source "auto". Leaves the
+   * HomeBase alert tier alone (no silent alert changes). */
+  setAutoHomeBase: (homeBase: HomeBasePreference, checkedAt: number) => void;
+  /** Records an automatic check that found nothing to change. */
+  markHomeBaseAutoChecked: (checkedAt: number) => void;
+  /** "Use my location again": back to automatic and due for a refresh now. */
+  resumeAutoHomeBase: () => void;
   setNearMeTier: (tier: NotificationTier) => void;
   setHomeBaseTier: (tier: NotificationTier) => void;
   /** Settings' "replay onboarding" row — per spec-v1.md §4.11 ("not
@@ -111,6 +135,8 @@ export const usePrefsStore = create<PrefsState>()(
       onboardingCompleted: false,
       onboardingStep: "mission",
       homeBase: null,
+      homeBaseSource: "auto",
+      homeBaseAutoCheckedAt: null,
       nearMeTier: DEFAULT_NEAR_ME_TIER,
       homeBaseTier: DEFAULT_HOME_BASE_TIER_WITHOUT_TOWN,
       hasHydrated: false,
@@ -120,6 +146,7 @@ export const usePrefsStore = create<PrefsState>()(
       setHomeBase: (homeBase) =>
         set((state) => ({
           homeBase,
+          homeBaseSource: "manual",
           // Derived-default rule (see homeBaseTier's doc comment above):
           // only auto-set the tier when a HomeBase is being established for
           // the first time (previous value was null) or cleared entirely —
@@ -132,6 +159,11 @@ export const usePrefsStore = create<PrefsState>()(
                 ? DEFAULT_HOME_BASE_TIER_WITH_TOWN
                 : state.homeBaseTier,
         })),
+      setAutoHomeBase: (homeBase, checkedAt) =>
+        set({ homeBase, homeBaseSource: "auto", homeBaseAutoCheckedAt: checkedAt }),
+      markHomeBaseAutoChecked: (checkedAt) => set({ homeBaseAutoCheckedAt: checkedAt }),
+      resumeAutoHomeBase: () =>
+        set({ homeBaseSource: "auto", homeBaseAutoCheckedAt: null }),
       setNearMeTier: (tier) => set({ nearMeTier: tier }),
       setHomeBaseTier: (tier) => set({ homeBaseTier: tier }),
       resetOnboarding: () =>
@@ -147,6 +179,8 @@ export const usePrefsStore = create<PrefsState>()(
         onboardingCompleted: state.onboardingCompleted,
         onboardingStep: state.onboardingStep,
         homeBase: state.homeBase,
+        homeBaseSource: state.homeBaseSource,
+        homeBaseAutoCheckedAt: state.homeBaseAutoCheckedAt,
         nearMeTier: state.nearMeTier,
         homeBaseTier: state.homeBaseTier,
       }),
@@ -171,6 +205,15 @@ export const usePrefsStore = create<PrefsState>()(
         }
         if (persisted.nearMeTier === undefined) {
           merged.nearMeTier = DEFAULT_NEAR_ME_TIER;
+        }
+        // Installs from before automatic HomeBase: a town they already have
+        // was their own choice, so it is "manual" and is never replaced. No
+        // town yet (skipped, or a pre-onboarding install) = "auto".
+        if (persisted.homeBaseSource === undefined) {
+          merged.homeBaseSource = merged.homeBase ? "manual" : "auto";
+        }
+        if (persisted.homeBaseAutoCheckedAt === undefined) {
+          merged.homeBaseAutoCheckedAt = null;
         }
         return merged;
       },

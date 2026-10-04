@@ -587,7 +587,9 @@
     "footerAttribution": "Daneyên erdhejê yên USGS, EMSC (seismicportal.eu), û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) di bin lîsansa CC BY 4.0 de ne.",
     "footerTrademark": "Bumelerze™ û logoya wê nîşanên bazirganî yên projeyê ne.",
     "footerVersion": "Guhertoya sepana Bumelerze {{version}}",
-    "footerLogoA11yLabel": "Bumelerze"
+    "footerLogoA11yLabel": "Bumelerze",
+    "homeBaseAuto": "{{city}} · ji cihê te bi xwe hate danîn",
+    "homeBaseUseLocation": "Cihê min dîsa bi kar bîne"
   },
   "onboarding": {
     "back": "Vegere",
@@ -817,6 +819,69 @@
       "reported": "Te asta {{level}} rapor kir",
       "addDetail": "Hûrgiliyên zêdetir zêde bike",
       "detailAdded": "Hûrgilî hate zêdekirin, spas"
+    }
+  },
+  "eventHub": {
+    "title": "Navenda bûyerê",
+    "pill": {
+      "label": "Kî hîs kir?",
+      "hint": "Navenda bûyerê vedike"
+    },
+    "summary": {
+      "people": "Kesên ragihandin: {{number}}",
+      "none": "Hê ragihandin tune",
+      "firstReport": "Ragihandina yekem: {{time}}",
+      "levelA11y": "{{label}}: {{number}}"
+    },
+    "unavailable": "Niha peyda nabe.",
+    "loadError": "Nehat barkirin. Girêdana xwe kontrol bike.",
+    "composer": {
+      "label": "Şîrove",
+      "placeholder": "Binivîse te çi hîs kir",
+      "replyPlaceholder": "Bersivekê binivîse",
+      "post": "Bişîne",
+      "posting": "Tê şandin…",
+      "anonymousNote": "Şîroveya te piştî nirxandinê xuya dibe. Hesabek biafirîne da ku tavilê biweşe.",
+      "createAccount": "Hesab biafirîne",
+      "posted": "Hate şandin.",
+      "postedPending": "Spas. Şîroveya te li benda nirxandinê ye.",
+      "errors": {
+        "rateLimited": "Gelek şîrove hatin nivîsandin. Çend xulekan bisekine.",
+        "network": "Girêdan tune. Dîsa biceribîne.",
+        "unknown": "Nehat şandin. Dîsa biceribîne."
+      }
+    },
+    "thread": {
+      "empty": "Hê şîrove tune. Yekem be ku tiştê te hîs kir parve bike.",
+      "anonymous": "Nenas",
+      "feltNear": "li nêzî {{city}} hîs kir",
+      "pending": "Li benda nirxandinê ye",
+      "reply": "Bersiv",
+      "cancel": "Betal",
+      "helpful": "Bikêr",
+      "helpfulCount": "Bikêr: {{number}}",
+      "report": "Gilî bike",
+      "reported": "Spas. Em ê binirxînin.",
+      "reportTitle": "Çima gilî dikî?",
+      "delete": "Jê bibe",
+      "deleteConfirm": "Ev şîrove jê bibe?",
+      "approve": "Bipejirîne",
+      "hide": "Veşêre",
+      "actionError": "Neçû serî. Dîsa biceribîne.",
+      "replies": "Bersiv"
+    },
+    "reasons": {
+      "spam": "Spam",
+      "abuse": "Heqaret",
+      "false": "Agahiya şaş",
+      "private": "Agahiya taybet",
+      "other": "Yên din"
+    },
+    "roles": {
+      "official": "Bumelerze",
+      "moderator": "Rêveber",
+      "engineer": "Endezyar",
+      "partner": "Hevkar"
     }
   },
   "felt": {

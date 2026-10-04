@@ -3,6 +3,7 @@ export {
   ONBOARDING_STEPS,
   usePrefsStore,
   type HomeBasePreference,
+  type HomeBaseSource,
   type NotificationTier,
   type OnboardingStepId,
   type PrefsState,

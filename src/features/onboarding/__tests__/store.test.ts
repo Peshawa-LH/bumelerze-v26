@@ -211,3 +211,125 @@ describe("usePrefsStore actions", () => {
     expect(usePrefsStore.getState().onboardingStep).toBe("mission");
   });
 });
+
+describe("usePrefsStore automatic HomeBase", () => {
+  it("starts automatic, with no check recorded, on a fresh install", async () => {
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    const state = usePrefsStore.getState();
+    expect(state.homeBaseSource).toBe("auto");
+    expect(state.homeBaseAutoCheckedAt).toBeNull();
+  });
+
+  it("migrates an existing install that already chose a town to 'manual' (never overwritten)", async () => {
+    const AsyncStorage = loadAsyncStorage();
+    await AsyncStorage.setItem(
+      "bumelerze.prefs",
+      JSON.stringify({
+        state: {
+          onboardingCompleted: true,
+          onboardingStep: "done",
+          homeBase: { townId: "duhok", lat: 36.87, lon: 42.99 },
+          nearMeTier: "m3",
+          homeBaseTier: "all",
+        },
+        version: 0,
+      }),
+    );
+
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    const state = usePrefsStore.getState();
+    expect(state.homeBase).toEqual({ townId: "duhok", lat: 36.87, lon: 42.99 });
+    expect(state.homeBaseSource).toBe("manual");
+    expect(state.homeBaseAutoCheckedAt).toBeNull();
+    expect(state.homeBaseTier).toBe("all");
+  });
+
+  it("migrates an existing install with no town to 'auto'", async () => {
+    const AsyncStorage = loadAsyncStorage();
+    await AsyncStorage.setItem(
+      "bumelerze.prefs",
+      JSON.stringify({
+        state: {
+          onboardingCompleted: true,
+          onboardingStep: "done",
+          homeBase: null,
+          nearMeTier: "m3",
+          homeBaseTier: "off",
+        },
+        version: 0,
+      }),
+    );
+
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    expect(usePrefsStore.getState().homeBaseSource).toBe("auto");
+  });
+
+  it("keeps a persisted source and check time as they are", async () => {
+    const AsyncStorage = loadAsyncStorage();
+    await AsyncStorage.setItem(
+      "bumelerze.prefs",
+      JSON.stringify({
+        state: {
+          onboardingCompleted: true,
+          onboardingStep: "done",
+          homeBase: { townId: "erbil", lat: 36.19, lon: 44.01 },
+          homeBaseSource: "auto",
+          homeBaseAutoCheckedAt: 1_700_000_000_000,
+          nearMeTier: "m3",
+          homeBaseTier: "all",
+        },
+        version: 0,
+      }),
+    );
+
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    const state = usePrefsStore.getState();
+    expect(state.homeBaseSource).toBe("auto");
+    expect(state.homeBaseAutoCheckedAt).toBe(1_700_000_000_000);
+  });
+
+  it("a manual choice (a town or 'elsewhere') pins the source to 'manual'", async () => {
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    usePrefsStore.getState().setHomeBase({ townId: "erbil", lat: 36.19, lon: 44.01 });
+    expect(usePrefsStore.getState().homeBaseSource).toBe("manual");
+
+    usePrefsStore.getState().resumeAutoHomeBase();
+    expect(usePrefsStore.getState().homeBaseSource).toBe("auto");
+
+    usePrefsStore.getState().setHomeBase(null);
+    expect(usePrefsStore.getState().homeBaseSource).toBe("manual");
+  });
+
+  it("an automatic update keeps the alert tier and the 'auto' source, and persists both", async () => {
+    const AsyncStorage = loadAsyncStorage();
+    const { usePrefsStore } = loadStore();
+    await waitForHydration(() => usePrefsStore.getState().hasHydrated);
+
+    usePrefsStore
+      .getState()
+      .setAutoHomeBase({ townId: "slemani", lat: 35.56, lon: 45.43 }, 1_700_000_000_000);
+    const state = usePrefsStore.getState();
+    expect(state.homeBase?.townId).toBe("slemani");
+    expect(state.homeBaseSource).toBe("auto");
+    expect(state.homeBaseAutoCheckedAt).toBe(1_700_000_000_000);
+    expect(state.homeBaseTier).toBe("off");
+
+    let raw: string | null = null;
+    for (let attempt = 0; attempt < 50 && !raw?.includes('"homeBaseSource":"auto"'); attempt += 1) {
+      raw = await AsyncStorage.getItem("bumelerze.prefs");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    expect(raw).toContain('"homeBaseSource":"auto"');
+    expect(raw).toContain('"homeBaseAutoCheckedAt":1700000000000');
+  });
+});

@@ -587,7 +587,9 @@
     "footerAttribution": "بيانات الزلازل من USGS وEMSC (seismicportal.eu) وGEOFON (مركز GFZ هلمهولتز لعلوم الأرض، geofon.gfz.de) مرخّصة بموجب CC BY 4.0.",
     "footerTrademark": "بوملێرزە™ وشعاره علامتان تجاريتان للمشروع.",
     "footerVersion": "إصدار تطبيق بوملێرزە {{version}}",
-    "footerLogoA11yLabel": "بوملێرزە"
+    "footerLogoA11yLabel": "بوملێرزە",
+    "homeBaseAuto": "{{city}} · تم تحديده تلقائيًا من موقعك",
+    "homeBaseUseLocation": "استخدم موقعي مرة أخرى"
   },
   "onboarding": {
     "back": "رجوع",
@@ -817,6 +819,69 @@
       "reported": "أبلغت عن المستوى {{level}}",
       "addDetail": "إضافة تفاصيل إضافية",
       "detailAdded": "تمت إضافة التفاصيل، شكراً لك"
+    }
+  },
+  "eventHub": {
+    "title": "مركز الحدث",
+    "pill": {
+      "label": "من شعر به؟",
+      "hint": "يفتح مركز الحدث"
+    },
+    "summary": {
+      "people": "عدد المبلّغين: {{number}}",
+      "none": "لا توجد بلاغات بعد",
+      "firstReport": "أول بلاغ: {{time}}",
+      "levelA11y": "{{label}}: {{number}}"
+    },
+    "unavailable": "غير متاح الآن.",
+    "loadError": "تعذّر التحميل. تحقق من اتصالك.",
+    "composer": {
+      "label": "تعليق",
+      "placeholder": "اكتب ما شعرتَ به",
+      "replyPlaceholder": "اكتب ردًا",
+      "post": "نشر",
+      "posting": "جارٍ النشر…",
+      "anonymousNote": "سيظهر تعليقك بعد المراجعة. أنشئ حسابًا للنشر فورًا.",
+      "createAccount": "إنشاء حساب",
+      "posted": "تم النشر.",
+      "postedPending": "شكرًا. تعليقك بانتظار المراجعة.",
+      "errors": {
+        "rateLimited": "تعليقات كثيرة. انتظر بضع دقائق.",
+        "network": "لا يوجد اتصال. حاول مرة أخرى.",
+        "unknown": "تعذّر النشر. حاول مرة أخرى."
+      }
+    },
+    "thread": {
+      "empty": "لا توجد تعليقات بعد. كن أول من يشارك ما شعر به.",
+      "anonymous": "مجهول",
+      "feltNear": "شعر به قرب {{city}}",
+      "pending": "بانتظار المراجعة",
+      "reply": "رد",
+      "cancel": "إلغاء",
+      "helpful": "مفيد",
+      "helpfulCount": "مفيد: {{number}}",
+      "report": "إبلاغ",
+      "reported": "شكرًا. سنراجعه.",
+      "reportTitle": "لماذا تبلّغ عن هذا؟",
+      "delete": "حذف",
+      "deleteConfirm": "حذف هذا التعليق؟",
+      "approve": "قبول",
+      "hide": "إخفاء",
+      "actionError": "تعذّر التنفيذ. حاول مرة أخرى.",
+      "replies": "الردود"
+    },
+    "reasons": {
+      "spam": "بريد مزعج",
+      "abuse": "إساءة",
+      "false": "معلومات خاطئة",
+      "private": "معلومات خاصة",
+      "other": "أخرى"
+    },
+    "roles": {
+      "official": "Bumelerze",
+      "moderator": "مشرف",
+      "engineer": "مهندس",
+      "partner": "شريك"
     }
   },
   "felt": {

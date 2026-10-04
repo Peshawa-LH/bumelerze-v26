@@ -587,7 +587,9 @@
     "footerAttribution": "Earthquake data from USGS, EMSC (seismicportal.eu), and GEOFON (GFZ Helmholtz Centre for Geosciences, geofon.gfz.de) is licensed under CC BY 4.0.",
     "footerTrademark": "Bumelerze™ and its logo are trademarks of the project.",
     "footerVersion": "Bumelerze app version {{version}}",
-    "footerLogoA11yLabel": "Bumelerze"
+    "footerLogoA11yLabel": "Bumelerze",
+    "homeBaseAuto": "{{city}} · set automatically from your location",
+    "homeBaseUseLocation": "Use my location again"
   },
   "onboarding": {
     "back": "Back",
@@ -817,6 +819,69 @@
       "reported": "You reported level {{level}}",
       "addDetail": "Add more detail",
       "detailAdded": "Detail added, thank you"
+    }
+  },
+  "eventHub": {
+    "title": "Event hub",
+    "pill": {
+      "label": "Who felt it?",
+      "hint": "Opens the Event hub"
+    },
+    "summary": {
+      "people": "People reported: {{number}}",
+      "none": "No reports yet",
+      "firstReport": "First report: {{time}}",
+      "levelA11y": "{{label}}: {{number}}"
+    },
+    "unavailable": "Not available right now.",
+    "loadError": "Couldn't load. Check your connection.",
+    "composer": {
+      "label": "Comment",
+      "placeholder": "Share what you felt",
+      "replyPlaceholder": "Write a reply",
+      "post": "Post",
+      "posting": "Posting…",
+      "anonymousNote": "Your comment will appear after review. Create an account to post right away.",
+      "createAccount": "Create an account",
+      "posted": "Posted.",
+      "postedPending": "Thanks. Your comment is waiting for review.",
+      "errors": {
+        "rateLimited": "Too many comments. Wait a few minutes.",
+        "network": "No connection. Try again.",
+        "unknown": "Couldn't post. Try again."
+      }
+    },
+    "thread": {
+      "empty": "No comments yet. Be the first to share what you felt.",
+      "anonymous": "Anonymous",
+      "feltNear": "felt it near {{city}}",
+      "pending": "Waiting for review",
+      "reply": "Reply",
+      "cancel": "Cancel",
+      "helpful": "Helpful",
+      "helpfulCount": "Helpful: {{number}}",
+      "report": "Report",
+      "reported": "Thanks. We will review it.",
+      "reportTitle": "Why are you reporting this?",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this comment?",
+      "approve": "Approve",
+      "hide": "Hide",
+      "actionError": "Couldn't do that. Try again.",
+      "replies": "Replies"
+    },
+    "reasons": {
+      "spam": "Spam",
+      "abuse": "Abusive",
+      "false": "False information",
+      "private": "Private information",
+      "other": "Other"
+    },
+    "roles": {
+      "official": "Bumelerze",
+      "moderator": "Moderator",
+      "engineer": "Engineer",
+      "partner": "Partner"
     }
   },
   "felt": {

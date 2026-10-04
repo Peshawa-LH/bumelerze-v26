@@ -20,6 +20,7 @@ import {
   processFeedbackQueue,
 } from "@/features/feedback";
 import { ensureFeltQueueForegroundSync, processQueue } from "@/features/felt";
+import { useAutoHomeBase } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
 // Side effect: initializes i18next before the first render, in addition to
@@ -50,6 +51,8 @@ export default function RootLayout() {
   const [isRestarting, setIsRestarting] = useState(false);
   const hasHydrated = usePrefsStore((state) => state.hasHydrated);
   const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);
+  // HomeBase follows the device's nearest town unless the user chose one.
+  useAutoHomeBase();
 
   useEffect(() => {
     let cancelled = false;
@@ -178,6 +181,7 @@ export default function RootLayout() {
                  * Bare declarations below just register the route names;
                  * they carry no options. */}
                 <Stack.Screen name="event/[id]" />
+                <Stack.Screen name="event-hub/[id]" />
                 <Stack.Screen name="world" />
                 <Stack.Screen name="significant" />
                 <Stack.Screen name="historical" />
