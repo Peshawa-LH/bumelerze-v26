@@ -43,6 +43,7 @@ export {
   ensureFeltQueueForegroundSync,
   getDefaultFeltTransport,
   processQueue,
+  reconcileSubmittedReports,
   sortQueueItemsNewestFirst,
   useFeltQueueHasHydrated,
   useFeltQueueItems,

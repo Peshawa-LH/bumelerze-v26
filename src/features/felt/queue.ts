@@ -86,6 +86,15 @@ export interface FeltTransport {
    * calling it, so omitting it is "not attempted yet", never a crash.
    */
   uploadPhoto?(report: Tier2Report): Promise<PhotoUploadResult>;
+  /**
+   * Optional — which of these sent reports still exist on the server, for
+   * one device id. `null` when it can't tell (offline, no backend), which
+   * must never be read as "all gone". See `reconcileSubmittedReports`.
+   */
+  existingReportIds?(
+    reportIds: readonly string[],
+    deviceId: string,
+  ): Promise<Set<string> | null>;
 }
 
 /**
@@ -167,6 +176,7 @@ interface FeltQueueState {
   _addItem: (item: QueueItem) => void;
   _patchItem: (reportId: string, patch: Partial<QueueItem>) => void;
   _attachTier2: (reportId: string, tier2: Tier2Report) => void;
+  _removeItems: (reportIds: ReadonlySet<string>) => void;
 }
 
 /** Internal — screens/hooks should go through the exported functions below,
@@ -185,6 +195,10 @@ export const useFeltQueueStore = create<FeltQueueState>()(
           items: state.items.map((entry) =>
             entry.tier1.reportId === reportId ? { ...entry, ...patch } : entry,
           ),
+        })),
+      _removeItems: (reportIds) =>
+        set((state) => ({
+          items: state.items.filter((entry) => !reportIds.has(entry.tier1.reportId)),
         })),
       _attachTier2: (reportId, tier2) =>
         set((state) => ({
@@ -466,6 +480,49 @@ export async function processQueue(
     isProcessing = false;
   }
 }
+
+/**
+ * Forgets sent reports the server no longer has (owner, 2026-10-04: test
+ * reports deleted on the server still showed in My Data). Only "submitted"
+ * items are checked — anything still queued is by definition not there
+ * yet — and an unanswered check removes nothing.
+ */
+export async function reconcileSubmittedReports(
+  transport: FeltTransport = getDefaultFeltTransport(),
+): Promise<void> {
+  if (typeof transport.existingReportIds !== "function") {
+    return;
+  }
+  const byDevice = new Map<string, string[]>();
+  for (const item of useFeltQueueStore.getState().items) {
+    if (item.state !== "submitted") {
+      continue;
+    }
+    const ids = byDevice.get(item.tier1.deviceId) ?? [];
+    ids.push(item.tier1.reportId);
+    byDevice.set(item.tier1.deviceId, ids);
+  }
+  const gone = new Set<string>();
+  for (const [deviceId, ids] of byDevice) {
+    for (let start = 0; start < ids.length; start += RECONCILE_BATCH) {
+      const batch = ids.slice(start, start + RECONCILE_BATCH);
+      const existing = await transport.existingReportIds(batch, deviceId);
+      if (!existing) {
+        return;
+      }
+      for (const id of batch) {
+        if (!existing.has(id)) {
+          gone.add(id);
+        }
+      }
+    }
+  }
+  if (gone.size > 0) {
+    useFeltQueueStore.getState()._removeItems(gone);
+  }
+}
+
+const RECONCILE_BATCH = 500;
 
 let appStateListenerAttached = false;
 

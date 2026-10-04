@@ -98,7 +98,13 @@ describe("LevelTile", () => {
   it("renders at the exact measured width and drops flexGrow/flexBasis when the grid has measured itself, compact or not", async () => {
     await render(
       <>
-        <LevelTile level={3} label="Weak shaking" locale="en" onPress={jest.fn()} width={112} />
+        <LevelTile
+          level={3}
+          label="Weak shaking"
+          locale="en"
+          onPress={jest.fn()}
+          width={112}
+        />
         <LevelTile
           level={11}
           label="Total collapse"

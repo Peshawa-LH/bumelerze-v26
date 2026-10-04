@@ -59,7 +59,10 @@ export const LEVEL_ARTWORK: Record<CartoonLevel, ImageSource> = {
  * themselves are unchanged (verbatim archive, checksummed in
  * `SHA256SUMS.txt`). Regression-locked by `__tests__/artwork.test.ts`.
  */
-export const DAMAGE_ARTWORK: Record<DamageTypology, Record<BuildingDamageGrade, ImageSource>> = {
+export const DAMAGE_ARTWORK: Record<
+  DamageTypology,
+  Record<BuildingDamageGrade, ImageSource>
+> = {
   highrise: {
     1: require("../../../assets/artwork/felt/damage-highrise-01.webp"),
     2: require("../../../assets/artwork/felt/damage-highrise-02.webp"),

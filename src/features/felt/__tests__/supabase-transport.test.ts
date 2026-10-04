@@ -303,7 +303,10 @@ describe("SupabaseTransport.submitTier1", () => {
   ) {
     const insert = jest.fn(async () => ({ error }));
     const from = jest.fn(() => ({ insert }));
-    const rpc = jest.fn(async () => ({ data: rpcResult.data ?? null, error: rpcResult.error ?? null }));
+    const rpc = jest.fn(async () => ({
+      data: rpcResult.data ?? null,
+      error: rpcResult.error ?? null,
+    }));
     return { auth: mockAuth(), from, insert, rpc };
   }
 
@@ -491,8 +494,13 @@ describe("SupabaseTransport.submitTier1", () => {
 
       const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
 
-      expect(client.insert).toHaveBeenCalledWith(buildFeltReportInsert(SAMPLE_TIER1, null, null));
-      expect(result).toEqual({ outcome: "submitted", serverReportId: SAMPLE_TIER1.reportId });
+      expect(client.insert).toHaveBeenCalledWith(
+        buildFeltReportInsert(SAMPLE_TIER1, null, null),
+      );
+      expect(result).toEqual({
+        outcome: "submitted",
+        serverReportId: SAMPLE_TIER1.reportId,
+      });
     });
 
     it("still submits the report, with user_id null, when a session exists but carries no session object", async () => {
@@ -507,7 +515,9 @@ describe("SupabaseTransport.submitTier1", () => {
 
       const result = await SupabaseTransport.submitTier1(SAMPLE_TIER1);
 
-      expect(client.insert).toHaveBeenCalledWith(buildFeltReportInsert(SAMPLE_TIER1, null, null));
+      expect(client.insert).toHaveBeenCalledWith(
+        buildFeltReportInsert(SAMPLE_TIER1, null, null),
+      );
       expect(result.outcome).toBe("submitted");
     });
   });
@@ -531,7 +541,8 @@ describe("buildFeltCommentInsert (pure mapping)", () => {
 
     expect(buildFeltCommentInsert(SAMPLE_TIER2)?.user_id).toBeNull();
     expect(
-      buildFeltCommentInsert(SAMPLE_TIER2, "77777777-7777-4777-8777-777777777777")?.user_id,
+      buildFeltCommentInsert(SAMPLE_TIER2, "77777777-7777-4777-8777-777777777777")
+        ?.user_id,
     ).toBe("77777777-7777-4777-8777-777777777777");
   });
 
@@ -710,10 +721,22 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
     const upsert = jest.fn(async () => ({ error: options.upsertError ?? null }));
     const from = jest.fn(() => ({ upsert }));
     const getSession = jest.fn(async () => ({
-      data: { session: options.session === undefined ? { user: { id: "anon-uid-1" } } : options.session },
+      data: {
+        session:
+          options.session === undefined
+            ? { user: { id: "anon-uid-1" } }
+            : options.session,
+      },
       error: null,
     }));
-    return { auth: { getSession }, storage: { from: storageFrom }, from, upload, storageFrom, upsert };
+    return {
+      auth: { getSession },
+      storage: { from: storageFrom },
+      from,
+      upload,
+      storageFrom,
+      upsert,
+    };
   }
 
   it("returns 'uploaded' immediately (no-op) when the report has no photo", async () => {
@@ -780,7 +803,9 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
   it("returns 'failed' when the storage upload succeeds but the felt_photos upsert errors", async () => {
     const { SupabaseTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
-    const client = mockStorageClient({ upsertError: { message: "constraint violation" } });
+    const client = mockStorageClient({
+      upsertError: { message: "constraint violation" },
+    });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
     const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
@@ -806,7 +831,9 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
     Platform.OS = "web";
     const originalFetch = global.fetch;
     const mockBlob = { size: 8, type: "image/jpeg" };
-    global.fetch = jest.fn(async () => ({ blob: async () => mockBlob })) as unknown as typeof fetch;
+    global.fetch = jest.fn(async () => ({
+      blob: async () => mockBlob,
+    })) as unknown as typeof fetch;
 
     try {
       const { SupabaseTransport } = loadTransport();

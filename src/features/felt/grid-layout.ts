@@ -23,7 +23,11 @@ import type { LayoutChangeEvent } from "react-native";
  * identical, container-width-derived size regardless of which row (full or
  * trailing) it lands in.
  */
-export function computeTileWidth(containerWidth: number, columns: number, gap: number): number {
+export function computeTileWidth(
+  containerWidth: number,
+  columns: number,
+  gap: number,
+): number {
   if (columns <= 0) {
     return containerWidth;
   }
@@ -62,7 +66,8 @@ export function useTileGridLayout(columns: number, gap: number): TileGridLayout 
   }, []);
 
   return {
-    tileWidth: containerWidth != null ? computeTileWidth(containerWidth, columns, gap) : undefined,
+    tileWidth:
+      containerWidth != null ? computeTileWidth(containerWidth, columns, gap) : undefined,
     onLayout,
   };
 }

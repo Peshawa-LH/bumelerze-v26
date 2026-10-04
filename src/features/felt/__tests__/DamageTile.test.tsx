@@ -24,9 +24,7 @@ describe("DamageTile", () => {
       />,
     );
 
-    expect(
-      screen.getByLabelText("Single/low-rise. Large wall cracks"),
-    ).toBeTruthy();
+    expect(screen.getByLabelText("Single/low-rise. Large wall cracks")).toBeTruthy();
     expect(screen.getByText("3")).toBeTruthy();
     expect(screen.getByText("3 - Large wall cracks")).toBeTruthy();
     expect(screen.queryByTestId("damage-tile-artwork")).toBeNull();
@@ -45,9 +43,7 @@ describe("DamageTile", () => {
       />,
     );
 
-    expect(
-      screen.getByLabelText("Single/low-rise. Large wall cracks"),
-    ).toBeTruthy();
+    expect(screen.getByLabelText("Single/low-rise. Large wall cracks")).toBeTruthy();
     // No bare "3" text node floating over the artwork anymore...
     expect(screen.queryByText("3")).toBeNull();
     // ...the grade now lives in the label line instead.

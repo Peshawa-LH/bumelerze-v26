@@ -471,9 +471,15 @@ describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
       { cartoonLevel: 6, location: SAMPLE_LOCATION, eventId },
       transport,
     );
-    await waitFor(() => itemState(loadQueue().useFeltQueueStore, tier1.reportId) === "submitted");
+    await waitFor(
+      () => itemState(loadQueue().useFeltQueueStore, tier1.reportId) === "submitted",
+    );
     return enqueueTier2Report(
-      { feltReportId: tier1.reportId, answers: EMPTY_ANSWERS, photoUri: "file:///tmp/damage.jpg" },
+      {
+        feltReportId: tier1.reportId,
+        answers: EMPTY_ANSWERS,
+        photoUri: "file:///tmp/damage.jpg",
+      },
       transport,
     );
   }
@@ -483,8 +489,8 @@ describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
     reportId: string,
   ) {
     return (
-      store.getState().items.find((item) => item.tier1.reportId === reportId)?.photoState ??
-      null
+      store.getState().items.find((item) => item.tier1.reportId === reportId)
+        ?.photoState ?? null
     );
   }
 
@@ -515,7 +521,11 @@ describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
     expect(uploadPhoto).not.toHaveBeenCalled();
 
     await enqueueTier2Report(
-      { feltReportId: tier1.reportId, answers: EMPTY_ANSWERS, photoUri: "file:///tmp/damage.jpg" },
+      {
+        feltReportId: tier1.reportId,
+        answers: EMPTY_ANSWERS,
+        photoUri: "file:///tmp/damage.jpg",
+      },
       transport,
     );
     await waitFor(() => photoState(useFeltQueueStore, tier1.reportId) === "uploaded");
@@ -529,9 +539,7 @@ describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
 
     const tier2 = await enqueuePhotoReport(transport, "evt-photo-1");
 
-    await waitFor(
-      () => photoState(useFeltQueueStore, tier2.feltReportId) === "uploaded",
-    );
+    await waitFor(() => photoState(useFeltQueueStore, tier2.feltReportId) === "uploaded");
     expect(uploadPhoto).toHaveBeenCalledWith(tier2);
   });
 
@@ -542,9 +550,7 @@ describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
 
     const tier2 = await enqueuePhotoReport(transport, "evt-photo-2");
 
-    await waitFor(
-      () => photoState(useFeltQueueStore, tier2.feltReportId) === "failed",
-    );
+    await waitFor(() => photoState(useFeltQueueStore, tier2.feltReportId) === "failed");
     expect(itemState(useFeltQueueStore, tier2.feltReportId)).toBe("submitted");
   });
 
@@ -553,7 +559,9 @@ describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
     let attempt = 0;
     const uploadPhoto = jest.fn(async () => {
       attempt += 1;
-      return attempt === 1 ? { outcome: "failed" as const } : { outcome: "uploaded" as const };
+      return attempt === 1
+        ? { outcome: "failed" as const }
+        : { outcome: "uploaded" as const };
     });
     const transport = makeTransport(uploadPhoto);
 
@@ -574,9 +582,7 @@ describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
     const tier2 = await enqueuePhotoReport(transport, "evt-photo-4");
 
     const { useFeltQueueStore } = loadQueue();
-    await waitFor(
-      () => itemState(useFeltQueueStore, tier2.feltReportId) === "submitted",
-    );
+    await waitFor(() => itemState(useFeltQueueStore, tier2.feltReportId) === "submitted");
     // photoState stays "pending-upload" forever without a transport that
     // implements uploadPhoto — this is the PendingTransport/test-double
     // case (see FeltTransport.uploadPhoto's own "optional" doc), not a bug.
@@ -601,5 +607,80 @@ describe("processQueue photo-upload pass (2026-08-16 storage wave)", () => {
 
     expect(uploadPhoto).not.toHaveBeenCalled();
     expect(photoState(useFeltQueueStore, tier1.reportId)).toBeNull();
+  });
+});
+
+describe("reconcileSubmittedReports (reports removed on the server)", () => {
+  function submittingTransport(existing: (ids: readonly string[]) => Set<string> | null) {
+    return {
+      submitTier1: jest.fn(async (report: { reportId: string }) => ({
+        outcome: "submitted" as const,
+        serverReportId: report.reportId,
+      })),
+      submitTier2: jest.fn(async () => ({ outcome: "awaiting-backend" as const })),
+      existingReportIds: jest.fn(async (ids: readonly string[]) => existing(ids)),
+    };
+  }
+
+  it("forgets sent reports the server no longer has and keeps the rest", async () => {
+    const queue = loadQueue();
+    let kept = "";
+    const transport = submittingTransport(() => new Set([kept]));
+    const a = await queue.enqueueTier1Report(
+      { cartoonLevel: 3, location: SAMPLE_LOCATION, eventId: null },
+      transport,
+    );
+    const b = await queue.enqueueTier1Report(
+      { cartoonLevel: 4, location: SAMPLE_LOCATION, eventId: null },
+      transport,
+    );
+    await waitFor(
+      () =>
+        itemState(queue.useFeltQueueStore, a.reportId) === "submitted" &&
+        itemState(queue.useFeltQueueStore, b.reportId) === "submitted",
+    );
+    kept = b.reportId;
+
+    await queue.reconcileSubmittedReports(transport);
+
+    const ids = queue.useFeltQueueStore
+      .getState()
+      .items.map((item) => item.tier1.reportId);
+    expect(ids).toEqual([b.reportId]);
+  });
+
+  it("removes nothing when the server can't answer", async () => {
+    const queue = loadQueue();
+    const transport = submittingTransport(() => null);
+    const a = await queue.enqueueTier1Report(
+      { cartoonLevel: 3, location: SAMPLE_LOCATION, eventId: null },
+      transport,
+    );
+    await waitFor(() => itemState(queue.useFeltQueueStore, a.reportId) === "submitted");
+
+    await queue.reconcileSubmittedReports(transport);
+
+    expect(queue.useFeltQueueStore.getState().items).toHaveLength(1);
+  });
+
+  it("never checks or removes reports still waiting to be sent", async () => {
+    const queue = loadQueue();
+    const transport = {
+      submitTier1: jest.fn(async () => ({ outcome: "awaiting-backend" as const })),
+      submitTier2: jest.fn(async () => ({ outcome: "awaiting-backend" as const })),
+      existingReportIds: jest.fn(async () => new Set<string>()),
+    };
+    const a = await queue.enqueueTier1Report(
+      { cartoonLevel: 3, location: SAMPLE_LOCATION, eventId: null },
+      transport,
+    );
+    await waitFor(
+      () => itemState(queue.useFeltQueueStore, a.reportId) === "awaiting-backend",
+    );
+
+    await queue.reconcileSubmittedReports(transport);
+
+    expect(transport.existingReportIds).not.toHaveBeenCalled();
+    expect(queue.useFeltQueueStore.getState().items).toHaveLength(1);
   });
 });

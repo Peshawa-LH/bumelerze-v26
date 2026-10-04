@@ -323,7 +323,11 @@ function inferPhotoContentType(uri: string): string {
   // A `data:` uri (web, since 2026-09-27) says what it holds; trust that
   // over an extension it does not have.
   const declared = dataUriMimeType(uri);
-  if (declared === "image/png" || declared === "image/webp" || declared === "image/jpeg") {
+  if (
+    declared === "image/png" ||
+    declared === "image/webp" ||
+    declared === "image/jpeg"
+  ) {
     return declared;
   }
   const lower = uri.toLowerCase();
@@ -383,7 +387,10 @@ export interface FeltPhotoInsert {
  *                          UPDATE happens via service_role, not this client
  *  - `created_at`         — `default now()`
  */
-export function buildFeltPhotoInsert(reportId: string, storagePath: string): FeltPhotoInsert {
+export function buildFeltPhotoInsert(
+  reportId: string,
+  storagePath: string,
+): FeltPhotoInsert {
   return { report_id: reportId, storage_path: storagePath };
 }
 
@@ -586,7 +593,10 @@ export const SupabaseTransport: FeltTransport = {
     // raw_answers jsonb blob above. A queue retry re-runs this whole
     // function, so both inserts must independently tolerate hitting an
     // already-succeeded unique key (see each build function's own doc).
-    const commentInsert = buildFeltCommentInsert(report, await ensureAnonymousUserId(client));
+    const commentInsert = buildFeltCommentInsert(
+      report,
+      await ensureAnonymousUserId(client),
+    );
     if (commentInsert) {
       const { error: commentError } = await client
         .from("felt_comments")
@@ -619,5 +629,26 @@ export const SupabaseTransport: FeltTransport = {
       return { outcome: "failed" };
     }
     return uploadFeltPhoto(client, report);
+  },
+
+  /** Which of these reports are still on the server (migration 0039's
+   * `existing_report_ids`); `null` on any failure so nothing is forgotten
+   * on a bad connection. */
+  async existingReportIds(
+    reportIds: readonly string[],
+    deviceId: string,
+  ): Promise<Set<string> | null> {
+    const client = getSupabaseClient();
+    if (!client) {
+      return null;
+    }
+    const { data, error } = await client.rpc("existing_report_ids", {
+      p_report_ids: [...reportIds],
+      p_device_id: deviceId,
+    });
+    if (error || !Array.isArray(data)) {
+      return null;
+    }
+    return new Set(data.map((row: unknown) => String(row)));
   },
 };

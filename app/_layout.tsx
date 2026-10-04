@@ -19,7 +19,11 @@ import {
   ensureFeedbackQueueForegroundSync,
   processFeedbackQueue,
 } from "@/features/feedback";
-import { ensureFeltQueueForegroundSync, processQueue } from "@/features/felt";
+import {
+  ensureFeltQueueForegroundSync,
+  processQueue,
+  reconcileSubmittedReports,
+} from "@/features/felt";
 import { useAutoHomeBase } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
@@ -90,7 +94,7 @@ export default function RootLayout() {
     // (features/felt/queue.ts's own doc comment explains why this covers
     // connectivity-regain without a NetInfo dependency).
     ensureFeltQueueForegroundSync();
-    void processQueue();
+    void processQueue().then(() => reconcileSubmittedReports());
     // The feedback queue had the same two triggers defined but never wired
     // (2026-09-27): a submission whose first attempt failed stayed on the
     // phone until the next feedback was sent. Same cold-start drain plus

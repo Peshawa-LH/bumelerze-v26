@@ -1,5 +1,5 @@
 import { Stack, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,8 +7,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { AccountCard } from "@/features/account";
 import { HomeSection } from "@/features/building";
-import { ContributionRow, HomeBaseSection, buildContributionRow } from "@/features/mydata";
 import {
+  ContributionRow,
+  HomeBaseSection,
+  buildContributionRow,
+} from "@/features/mydata";
+import {
+  reconcileSubmittedReports,
   sortQueueItemsNewestFirst,
   useFeltQueueHasHydrated,
   useFeltQueueItems,
@@ -28,7 +33,9 @@ import { useTheme } from "@/theme";
  * kind to be complete and correct, and works fully offline like every other
  * screen in the app. See `supabase/migrations/0015_felt_reports_select_own.sql`
  * for the (now-correct, not-yet-exercised) server-side RLS predicate a
- * future multi-device sync wave would read through instead.
+ * future multi-device sync wave would read through instead. The one server
+ * call is a check that sent reports still exist (`reconcileSubmittedReports`);
+ * offline it changes nothing.
  */
 export default function MyDataScreen() {
   const { t, i18n } = useTranslation();
@@ -39,12 +46,21 @@ export default function MyDataScreen() {
 
   const hasHydrated = useFeltQueueHasHydrated();
   const items = useFeltQueueItems();
+  // Forget sent reports the server no longer has (a cleanup, moderation).
+  useEffect(() => {
+    if (hasHydrated) {
+      void reconcileSubmittedReports();
+    }
+  }, [hasHydrated]);
   // Sorting/mapping happen here (the calling component), not inside the
   // zustand selector — see `useFeltQueueItems`'s own doc comment for the
   // infinite-render-loop this avoids. `useMemo` keeps both derivations from
   // re-running on every unrelated render (locale switches, theme, etc.).
   const rows = useMemo(
-    () => sortQueueItemsNewestFirst(items).map((item) => buildContributionRow(item, locale, t)),
+    () =>
+      sortQueueItemsNewestFirst(items).map((item) =>
+        buildContributionRow(item, locale, t),
+      ),
     [items, locale, t],
   );
   const countText = localizeDigits(String(rows.length), locale);
