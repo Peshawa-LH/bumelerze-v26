@@ -1559,5 +1559,344 @@
       "expired": "This link has expired or was already used.",
       "backToSignIn": "Back to sign in"
     }
+  },
+  "building": {
+    "title": "Tag my building",
+    "loading": "Loading…",
+    "kinds": {
+      "house": "House",
+      "apartment": "Apartment"
+    },
+    "gate": {
+      "title": "Create an account to tag your home.",
+      "cta": "Create an account"
+    },
+    "section": {
+      "title": "My home",
+      "empty": "Tag your home to get a free safety report.",
+      "tagAnother": "Tag another home",
+      "join": "Join a home",
+      "viewReport": "View report",
+      "pending": "A request to join a home is waiting for approval.",
+      "loadError": "Could not load your home.",
+      "retry": "Try again"
+    },
+    "flow": {
+      "back": "Back",
+      "next": "Next",
+      "skip": "Skip",
+      "create": "Create report",
+      "save": "Save",
+      "saving": "Saving…",
+      "progress": "Step {{current}} of {{total}}",
+      "kind": {
+        "title": "What are you tagging?",
+        "house": "A house (one family)",
+        "apartment": "An apartment (a flat in a larger building)",
+        "labelLabel": "Name (optional)",
+        "labelPlaceholder": "e.g. My house",
+        "unitLabel": "Which apartment? (optional)",
+        "unitPlaceholder": "e.g. floor 3, flat 7"
+      },
+      "location": {
+        "title": "Where is it?",
+        "private": "Your exact location stays private.",
+        "gps": "Use my location",
+        "gpsBusy": "Finding your location…",
+        "gpsDone": "Location set.",
+        "gpsFailed": "Could not get your location. Choose a town.",
+        "or": "Or choose the nearest town",
+        "townNote": "A town centre is less exact. Your location gives a better report."
+      },
+      "photos": {
+        "title": "Photos (optional)",
+        "intro": "Only your family can see them. They help an engineer later.",
+        "front": "Front of the building",
+        "side": "One side",
+        "inside": "A ceiling or column inside",
+        "take": "Take photo",
+        "choose": "Choose",
+        "remove": "Remove"
+      },
+      "review": {
+        "title": "Check your answers",
+        "hint": "Tap a row to change it.",
+        "kind": "Type",
+        "location": "Location",
+        "locationGps": "Your location",
+        "locationTown": "Town centre",
+        "unanswered": "Not answered",
+        "photos": "Photos: {{count}}"
+      }
+    },
+    "q": {
+      "floors": {
+        "title": "How many floors above the ground?",
+        "options": {
+          "f1": "1",
+          "f2": "2",
+          "f3": "3",
+          "f4_5": "4 or 5",
+          "f6_10": "6 to 10",
+          "f11p": "More than 10",
+          "dk": "I don't know"
+        }
+      },
+      "age": {
+        "title": "How old is the building?",
+        "options": {
+          "under10": "Under 10 years",
+          "a10_25": "10 to 25 years",
+          "a25_50": "25 to 50 years",
+          "over50": "Over 50 years",
+          "dk": "I don't know"
+        }
+      },
+      "builder": {
+        "title": "Who designed and built it?",
+        "options": {
+          "eng_full": "An engineer designed and supervised it",
+          "eng_plans": "An engineer drew the plans only",
+          "builder": "A builder, no engineer",
+          "self": "We built it ourselves",
+          "dk": "I don't know"
+        }
+      },
+      "structure": {
+        "title": "What holds the building up?",
+        "options": {
+          "frame": "Concrete columns and beams, walls filled in between",
+          "block": "Walls of concrete blocks",
+          "brick": "Walls of fired brick",
+          "stone": "Stone walls",
+          "mud": "Mud-brick walls",
+          "steel": "Steel frame",
+          "wood": "Wood",
+          "dk": "I don't know"
+        }
+      },
+      "stone": {
+        "title": "What kind of stone?",
+        "options": {
+          "dressed": "Cut and shaped stone blocks",
+          "rough": "Rough or field stone",
+          "dk": "I don't know"
+        }
+      },
+      "belts": {
+        "title": "Are there concrete belts or columns built into the walls and corners?",
+        "options": {
+          "yes": "Yes",
+          "no": "No",
+          "dk": "I don't know"
+        }
+      },
+      "roof": {
+        "title": "What are the roof and floors made of?",
+        "options": {
+          "slab": "Flat concrete slab",
+          "jack_arch": "Steel beams with brick arches",
+          "wood": "Wood",
+          "metal": "Metal sheets",
+          "dk": "I don't know"
+        }
+      },
+      "added": {
+        "title": "Were floors added later on top?",
+        "options": {
+          "yes": "Yes",
+          "no": "No",
+          "dk": "I don't know"
+        }
+      },
+      "openGround": {
+        "title": "Is the ground floor mostly open? (shop fronts, parking, few walls)",
+        "options": {
+          "yes": "Yes",
+          "no": "No",
+          "dk": "I don't know"
+        }
+      },
+      "shape": {
+        "title": "What is the shape?",
+        "options": {
+          "box": "Simple box",
+          "irregular": "L, T or irregular",
+          "overhang": "Upper floors stick out",
+          "dk": "I don't know"
+        }
+      },
+      "strengthened": {
+        "title": "Was it repaired or strengthened?",
+        "options": {
+          "no": "No",
+          "repairs": "Repairs only",
+          "strengthening": "Strengthened by an engineer",
+          "dk": "I don't know"
+        }
+      },
+      "cracks": {
+        "title": "Cracks in the walls today?",
+        "options": {
+          "none": "None",
+          "hairline": "Small hairline cracks",
+          "large": "Large or many cracks",
+          "dk": "I don't know"
+        }
+      },
+      "pastDamage": {
+        "title": "Damage in a past earthquake?",
+        "options": {
+          "none": "None",
+          "cracks": "Cracks",
+          "heavy": "Heavy damage",
+          "dk": "I don't know"
+        }
+      }
+    },
+    "vc": {
+      "name": {
+        "A": "Most vulnerable",
+        "B": "Very vulnerable",
+        "C": "Somewhat vulnerable",
+        "D": "Strong",
+        "E": "Very strong",
+        "F": "Strongest"
+      },
+      "meaning": {
+        "A": "Class A, the most vulnerable. Heavy damage is likely in a strong earthquake.",
+        "B": "Class B. Damage is likely in a strong earthquake.",
+        "C": "Class C. Moderate damage is possible in a strong earthquake.",
+        "D": "Class D. Better than most buildings here.",
+        "E": "Class E. Good resistance.",
+        "F": "Class F, the least vulnerable. Little damage expected."
+      }
+    },
+    "report": {
+      "title": "Building report",
+      "codeLabel": "Home code",
+      "vcLabel": "Vulnerability class {{vc}}",
+      "range": "Likely range: {{range}}",
+      "confidence": "Confidence: {{value}}",
+      "typeTitle": "Your building",
+      "alsoPossible": "Could also be: {{type}}",
+      "imsType": "IMS-25 type: {{type}}",
+      "groundTitle": "Ground and shaking",
+      "ground": "Ground: class {{siteClass}}, Vs30 about {{vs30}} m/s",
+      "groundUnknown": "No ground data for this place.",
+      "pga": "Design PGA: {{pga}} g (zone {{zone}})",
+      "pgaUnknown": "This place is outside the design map.",
+      "hazardSource": "Source: {{source}}",
+      "damageTitle": "Expected damage",
+      "tipsTitle": "Three things that help",
+      "safety": "Safety guides",
+      "photo": "Photo of your building",
+      "automatic": "Automatically generated. Engineer review is coming soon.",
+      "reviewed": "Reviewed by an engineer.",
+      "family": "Family",
+      "retake": "Retake the questions",
+      "start": "Answer the questions",
+      "noReport": "No report yet.",
+      "notAvailable": "This home is not available."
+    },
+    "types": {
+      "M1": "Rubble or field-stone walls",
+      "M2": "Mud-brick walls",
+      "M3": "Stone walls",
+      "M4": "Thick walls of cut stone",
+      "M5": "Brick or block walls with light floors (arches, wood or metal)",
+      "M6": "Brick or block walls with concrete floors",
+      "M7": "Brick or block walls held by concrete belts and columns",
+      "RCframe": "Concrete frame",
+      "RC4": "Concrete walls",
+      "RCprecast": "Precast concrete",
+      "steel": "Steel frame",
+      "timber": "Wood frame",
+      "other": "Other"
+    },
+    "damage": {
+      "intensity": {
+        "VI": "Intensity VI (strong shaking)",
+        "VII": "Intensity VII (very strong shaking)",
+        "VIII": "Intensity VIII (severe shaking)"
+      },
+      "none": "Little or no damage expected.",
+      "few": "A few buildings like yours: {{what}}",
+      "many": "Many buildings like yours: {{what}}",
+      "most": "Most buildings like yours: {{what}}",
+      "note": "A general estimate for buildings of your class, not a prediction for your home.",
+      "grade": {
+        "1": "slight damage",
+        "2": "moderate damage",
+        "3": "heavy damage",
+        "4": "very heavy damage",
+        "5": "collapse"
+      }
+    },
+    "tips": {
+      "masonry": {
+        "1": "Ask an engineer about concrete tie beams at floor and roof level.",
+        "2": "Never add floors or remove walls without an engineer.",
+        "3": "Have large cracks checked and repaired."
+      },
+      "rc": {
+        "1": "Ask an engineer to check the ground-floor columns and walls.",
+        "2": "Never remove columns or walls, or add floors, without an engineer.",
+        "3": "Fix large cracks and fasten heavy furniture to the wall."
+      },
+      "other": {
+        "1": "Fasten heavy furniture, shelves and water heaters to the wall.",
+        "2": "Have cracks and loose connections checked and repaired.",
+        "3": "Never add floors or remove walls without an engineer."
+      }
+    },
+    "family": {
+      "title": "Family",
+      "shareTitle": "Share this home",
+      "shareHint": "Give the code and key to family only. They ask to join and you approve.",
+      "keyLabel": "Secret key",
+      "share": "Share",
+      "copy": "Copy",
+      "copied": "Copied.",
+      "newKey": "New key",
+      "newKeyDone": "New key created. The old key no longer works.",
+      "newKeyHint": "A new key stops the old one working.",
+      "shareMessage": "Join my home on Bumelerze. Code: {{code}} Key: {{key}}",
+      "pendingTitle": "Waiting for approval",
+      "approve": "Approve",
+      "decline": "Decline",
+      "membersTitle": "Members",
+      "unnamed": "Member",
+      "you": "{{name}} (you)",
+      "owner": "Owner",
+      "leave": "Leave this home",
+      "leaveWarning": "You will no longer see this home or its report.",
+      "leaveConfirm": "Leave",
+      "close": "Close this home",
+      "closeWarning": "This closes the home for everyone. Its report is no longer shown.",
+      "closeConfirm": "Close home",
+      "cancel": "Cancel"
+    },
+    "join": {
+      "title": "Join a home",
+      "intro": "Ask the owner for the code and secret key and enter them here.",
+      "codeLabel": "Home code",
+      "keyLabel": "Secret key",
+      "request": "Ask to join",
+      "sending": "Sending…",
+      "waitingTitle": "Request sent",
+      "waiting": "Waiting for the owner to approve.",
+      "done": "Done"
+    },
+    "errors": {
+      "unconfigured": "Not available right now.",
+      "need_account": "Please create an account first.",
+      "homes_limit": "Limit reached: 5 homes per account.",
+      "join_limit": "Too many tries. Try again in an hour.",
+      "wrong_code": "The code or key is wrong.",
+      "network": "No connection. Try again.",
+      "photo_too_large": "A photo is too large.",
+      "unknown": "Something went wrong. Try again."
+    }
   }
 }

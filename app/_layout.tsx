@@ -23,6 +23,7 @@ import { ensureFeltQueueForegroundSync, processQueue } from "@/features/felt";
 import { useAutoHomeBase } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
+import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
 import { applyPersistedLocaleOnLaunch } from "@/i18n";
@@ -131,6 +132,9 @@ export default function RootLayout() {
           persistOptions={{
             persister: eventsPersister,
             maxAge: PERSISTED_CACHE_MAX_AGE_MS,
+            // Private data (home tags: exact locations, join keys) is marked
+            // `meta: { persist: false }` and never written to the device cache.
+            dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
             // Bump this if the cached `Event` shape ever changes in a way
             // older persisted data can't satisfy — invalidates old caches
             // on upgrade instead of feeding stale-shaped data to new code.
@@ -192,6 +196,10 @@ export default function RootLayout() {
                 <Stack.Screen name="account/sign-in" />
                 <Stack.Screen name="account/profile" />
                 <Stack.Screen name="account/callback" />
+                <Stack.Screen name="home/new" />
+                <Stack.Screen name="home/join" />
+                <Stack.Screen name="home/[tagId]/report" />
+                <Stack.Screen name="home/[tagId]/family" />
                 <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
               </>
             ) : (

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { AccountCard } from "@/features/account";
+import { HomeSection } from "@/features/building";
 import { ContributionRow, HomeBaseSection, buildContributionRow } from "@/features/mydata";
 import {
   sortQueueItemsNewestFirst,
@@ -64,6 +65,7 @@ export default function MyDataScreen() {
         ListHeaderComponent={
           <View style={{ gap: spacing[3] }}>
             <AccountCard />
+            <HomeSection />
             <HomeBaseSection />
             <Text
               accessibilityRole="header"

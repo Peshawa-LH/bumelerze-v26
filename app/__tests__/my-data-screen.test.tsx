@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -38,8 +39,14 @@ const testSafeAreaMetrics = {
 };
 
 function renderWithProviders(ui: ReactElement) {
+  // The "My home" section reads through React Query, as in the real app.
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
   return render(
-    <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>,
+    <QueryClientProvider client={client}>
+      <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>
+    </QueryClientProvider>,
   );
 }
 

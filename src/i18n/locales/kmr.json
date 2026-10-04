@@ -1559,5 +1559,344 @@
       "expired": "Ev lînk qediyaye an jî berê hatiye bikaranîn.",
       "backToSignIn": "Vegere têketinê"
     }
+  },
+  "building": {
+    "title": "Avahiya min tomar bike",
+    "loading": "Bisekine…",
+    "kinds": {
+      "house": "Xanî",
+      "apartment": "Apartman"
+    },
+    "gate": {
+      "title": "Ji bo tomarkirina mala xwe hesabekî çêke.",
+      "cta": "Hesabekî çêke"
+    },
+    "section": {
+      "title": "Mala min",
+      "empty": "Mala xwe tomar bike û raporeke ewlehiyê ya belaş bistîne.",
+      "tagAnother": "Malekî din tomar bike",
+      "join": "Tevlî malekê bibe",
+      "viewReport": "Raporê bibîne",
+      "pending": "Daxwazeke tevlîbûnê li benda erêkirinê ye.",
+      "loadError": "Mala te nehat barkirin.",
+      "retry": "Dîsa biceribîne"
+    },
+    "flow": {
+      "back": "Vegere",
+      "next": "Pêşve",
+      "skip": "Derbas bike",
+      "create": "Raporê çêke",
+      "save": "Tomar bike",
+      "saving": "Tê tomarkirin…",
+      "progress": "Gav {{current}} ji {{total}}",
+      "kind": {
+        "title": "Tu çi tomar dikî?",
+        "house": "Xanî (yek malbat)",
+        "apartment": "Apartman (qatek di avahiyeke mezintir de)",
+        "labelLabel": "Nav (bi dilxwazî)",
+        "labelPlaceholder": "mînak: Mala min",
+        "unitLabel": "Kîjan apartman? (bi dilxwazî)",
+        "unitPlaceholder": "mînak: qata 3, hejmar 7"
+      },
+      "location": {
+        "title": "Li ku ye?",
+        "private": "Cihê te yê rast veşartî dimîne.",
+        "gps": "Cihê min bi kar bîne",
+        "gpsBusy": "Cihê te tê dîtin…",
+        "gpsDone": "Cih hate danîn.",
+        "gpsFailed": "Cihê te nehat girtin. Bajarokekî hilbijêre.",
+        "or": "An jî nêzîktirîn bajarok hilbijêre",
+        "townNote": "Navenda bajarok kêmtir rast e. Cihê te raporeke çêtir dide."
+      },
+      "photos": {
+        "title": "Wêne (bi dilxwazî)",
+        "intro": "Tenê malbata te dikare wan bibîne. Paşê alîkariya endazyar dikin.",
+        "front": "Rûyê pêş yê avahiyê",
+        "side": "Yek alî",
+        "inside": "Banê an stûnekî li hundir",
+        "take": "Wêne bikişîne",
+        "choose": "Hilbijêre",
+        "remove": "Rake"
+      },
+      "review": {
+        "title": "Bersivên xwe kontrol bike",
+        "hint": "Ji bo guhertinê li rêzekê bitikîne.",
+        "kind": "Cure",
+        "location": "Cih",
+        "locationGps": "Cihê te",
+        "locationTown": "Navenda bajarok",
+        "unanswered": "Nehatiye bersivandin",
+        "photos": "Wêne: {{count}}"
+      }
+    },
+    "q": {
+      "floors": {
+        "title": "Çend qat li ser erdê hene?",
+        "options": {
+          "f1": "1",
+          "f2": "2",
+          "f3": "3",
+          "f4_5": "4 an 5",
+          "f6_10": "6 heta 10",
+          "f11p": "Ji 10 zêdetir",
+          "dk": "Nizanim"
+        }
+      },
+      "age": {
+        "title": "Avahî çend salî ye?",
+        "options": {
+          "under10": "Kêmtir ji 10 salan",
+          "a10_25": "10 heta 25 sal",
+          "a25_50": "25 heta 50 sal",
+          "over50": "Zêdetir ji 50 salan",
+          "dk": "Nizanim"
+        }
+      },
+      "builder": {
+        "title": "Kê sêwirand û çêkir?",
+        "options": {
+          "eng_full": "Endazyarek sêwirand û çavdêrî kir",
+          "eng_plans": "Endazyarek tenê plan xêz kir",
+          "builder": "Ustayek, bê endazyar",
+          "self": "Me xwe çêkir",
+          "dk": "Nizanim"
+        }
+      },
+      "structure": {
+        "title": "Avahî li ser çi sekiniye?",
+        "options": {
+          "frame": "Stûn û tîrêjên betonê, dîwar di navbera wan de",
+          "block": "Dîwarên blokên betonê",
+          "brick": "Dîwarên kerpîça şewitî",
+          "stone": "Dîwarên kevir",
+          "mud": "Dîwarên kerpîça gilî",
+          "steel": "Çarçoveya pola",
+          "wood": "Daran",
+          "dk": "Nizanim"
+        }
+      },
+      "stone": {
+        "title": "Çi cure kevir e?",
+        "options": {
+          "dressed": "Kevirên birrî û şekilkirî",
+          "rough": "Kevirên xav an yên çolê",
+          "dk": "Nizanim"
+        }
+      },
+      "belts": {
+        "title": "Di dîwar û quncikan de kember an stûnên betonê hene?",
+        "options": {
+          "yes": "Erê",
+          "no": "Na",
+          "dk": "Nizanim"
+        }
+      },
+      "roof": {
+        "title": "Ban û qat ji çi hatine çêkirin?",
+        "options": {
+          "slab": "Tabelaya betonê ya rast",
+          "jack_arch": "Tîrêjên pola bi qemerên kerpîçê",
+          "wood": "Daran",
+          "metal": "Teneke",
+          "dk": "Nizanim"
+        }
+      },
+      "added": {
+        "title": "Qat paşê li jorê hatine zêdekirin?",
+        "options": {
+          "yes": "Erê",
+          "no": "Na",
+          "dk": "Nizanim"
+        }
+      },
+      "openGround": {
+        "title": "Qata erdê piranî vekirî ye? (dikan, parkîn, dîwarên kêm)",
+        "options": {
+          "yes": "Erê",
+          "no": "Na",
+          "dk": "Nizanim"
+        }
+      },
+      "shape": {
+        "title": "Şeklê avahiyê çawa ye?",
+        "options": {
+          "box": "Sade, wekî qutî",
+          "irregular": "L, T an nerêkûpêk",
+          "overhang": "Qatên jorîn derdikevin",
+          "dk": "Nizanim"
+        }
+      },
+      "strengthened": {
+        "title": "Hatiye tamîrkirin an xurtkirin?",
+        "options": {
+          "no": "Na",
+          "repairs": "Tenê tamîr",
+          "strengthening": "Endazyar xurt kiriye",
+          "dk": "Nizanim"
+        }
+      },
+      "cracks": {
+        "title": "Niha di dîwaran de çirik hene?",
+        "options": {
+          "none": "Tune",
+          "hairline": "Çiriyên biçûk ên zirav",
+          "large": "Çiriyên mezin an pir",
+          "dk": "Nizanim"
+        }
+      },
+      "pastDamage": {
+        "title": "Di erdhejeke berê de zirar dît?",
+        "options": {
+          "none": "Na",
+          "cracks": "Çirik",
+          "heavy": "Zirareke giran",
+          "dk": "Nizanim"
+        }
+      }
+    },
+    "vc": {
+      "name": {
+        "A": "Ya herî lawaz",
+        "B": "Pir lawaz",
+        "C": "Hinekî lawaz",
+        "D": "Xurt",
+        "E": "Pir xurt",
+        "F": "Ya herî xurt"
+      },
+      "meaning": {
+        "A": "Çîna A, ya herî lawaz. Di erdhejeke xurt de zirara giran tê çaverêkirin.",
+        "B": "Çîna B. Di erdhejeke xurt de zirar tê çaverêkirin.",
+        "C": "Çîna C. Di erdhejeke xurt de zirara navîn dibe.",
+        "D": "Çîna D. Ji piraniya avahiyên vir çêtir e.",
+        "E": "Çîna E. Berxwedaneke baş.",
+        "F": "Çîna F, ya herî kêm lawaz. Zirareke kêm tê çaverêkirin."
+      }
+    },
+    "report": {
+      "title": "Raporta avahiyê",
+      "codeLabel": "Koda malê",
+      "vcLabel": "Çîna lawaziyê {{vc}}",
+      "range": "Navbera gengaz: {{range}}",
+      "confidence": "Pêbawerî: {{value}}",
+      "typeTitle": "Avahiya te",
+      "alsoPossible": "Dibe ku ev jî be: {{type}}",
+      "imsType": "Cureyê IMS-25: {{type}}",
+      "groundTitle": "Erd û lerizîn",
+      "ground": "Erd: çîna {{siteClass}}, Vs30 nêzî {{vs30}} m/s",
+      "groundUnknown": "Ji bo vî cihî daneya erdê tune.",
+      "pga": "PGAya sêwiranê: {{pga}} g (herêma {{zone}})",
+      "pgaUnknown": "Ev cih li derveyî nexşeya sêwiranê ye.",
+      "hazardSource": "Çavkanî: {{source}}",
+      "damageTitle": "Zirara çaverêkirî",
+      "tipsTitle": "Sê tişt ku alîkar in",
+      "safety": "Rêbernameyên ewlehiyê",
+      "photo": "Wêneya avahiya te",
+      "automatic": "Bi awayekî xweber hatiye çêkirin. Nirxandina endazyar nêzîk e.",
+      "reviewed": "Ji aliyê endazyarekî ve hate nirxandin.",
+      "family": "Malbat",
+      "retake": "Pirsan dîsa bibersivîne",
+      "start": "Pirsan bibersivîne",
+      "noReport": "Hê rapor tune.",
+      "notAvailable": "Ev mal ne berdest e."
+    },
+    "types": {
+      "M1": "Dîwarên keviran ên nerêkûpêk",
+      "M2": "Dîwarên kerpîça gilî",
+      "M3": "Dîwarên kevir",
+      "M4": "Dîwarên stûr ên kevirê birrî",
+      "M5": "Dîwarên kerpîç an blok bi qatên sivik (qemer, daran an teneke)",
+      "M6": "Dîwarên kerpîç an blok bi qatên betonê",
+      "M7": "Dîwarên kerpîç an blok bi kember û stûnên betonê girêdayî",
+      "RCframe": "Çarçoveya betonê",
+      "RC4": "Dîwarên betonê",
+      "RCprecast": "Betona pêşdahatî",
+      "steel": "Çarçoveya pola",
+      "timber": "Çarçoveya daran",
+      "other": "Cureyekî din"
+    },
+    "damage": {
+      "intensity": {
+        "VI": "Asta lerizînê VI (xurt)",
+        "VII": "Asta lerizînê VII (pir xurt)",
+        "VIII": "Asta lerizînê VIII (dijwar)"
+      },
+      "none": "Zirareke kêm an tune tê çaverêkirin.",
+      "few": "Çend avahiyên mîna yê te: {{what}}",
+      "many": "Gelek avahiyên mîna yê te: {{what}}",
+      "most": "Piraniya avahiyên mîna yê te: {{what}}",
+      "note": "Texmîneke giştî ye ji bo avahiyên çîna te, ne pêşbîniyek ji bo mala te.",
+      "grade": {
+        "1": "zirara sivik",
+        "2": "zirara navîn",
+        "3": "zirara giran",
+        "4": "zirara pir giran",
+        "5": "hilweşîn"
+      }
+    },
+    "tips": {
+      "masonry": {
+        "1": "Ji endazyarekî bipirse derbarê kemberên girêdanê yên betonê li asta qat û banê.",
+        "2": "Bê endazyar tu carî qat zêde neke û dîwaran rake.",
+        "3": "Bila endazyar çiriyên mezin kontrol bike û tamîr bike."
+      },
+      "rc": {
+        "1": "Ji endazyarekî bixwaze stûn û dîwarên qata erdê kontrol bike.",
+        "2": "Bê endazyar tu carî stûn an dîwaran rake û qat zêde neke.",
+        "3": "Çiriyên mezin tamîr bike û tiştên giran bi dîwêr ve girê bide."
+      },
+      "other": {
+        "1": "Tiştên giran, refan û germkerên avê bi dîwêr ve girê bide.",
+        "2": "Çirik û girêdanên şil kontrol bike û tamîr bike.",
+        "3": "Bê endazyar tu carî qat zêde neke û dîwaran rake."
+      }
+    },
+    "family": {
+      "title": "Malbat",
+      "shareTitle": "Vê malê parve bike",
+      "shareHint": "Kod û mifteyê tenê bide malbata xwe. Ew daxwaza tevlîbûnê dikin û tu erê dikî.",
+      "keyLabel": "Mifteya nepenî",
+      "share": "Parve bike",
+      "copy": "Kopî bike",
+      "copied": "Hate kopîkirin.",
+      "newKey": "Mifteya nû",
+      "newKeyDone": "Mifteya nû hate çêkirin. Mifteya kevn êdî nexebite.",
+      "newKeyHint": "Mifteya nû mifteya kevn betal dike.",
+      "shareMessage": "Li Bumelerzeyê tevlî mala min bibe. Kod: {{code}} Mifte: {{key}}",
+      "pendingTitle": "Li benda erêkirinê",
+      "approve": "Erê bike",
+      "decline": "Red bike",
+      "membersTitle": "Endam",
+      "unnamed": "Endam",
+      "you": "{{name}} (tu)",
+      "owner": "Xwedî",
+      "leave": "Ji vê malê derkeve",
+      "leaveWarning": "Êdî tu yê vê malê û raporê wê nebînî.",
+      "leaveConfirm": "Derkeve",
+      "close": "Vê malê bigire",
+      "closeWarning": "Ev mal ji bo hemûyan tê girtin. Rapor êdî nayê nîşandan.",
+      "closeConfirm": "Malê bigire",
+      "cancel": "Betal bike"
+    },
+    "join": {
+      "title": "Tevlî malekê bibe",
+      "intro": "Kod û mifteya nepenî ji xwediyê malê bistîne û li vir binivîse.",
+      "codeLabel": "Koda malê",
+      "keyLabel": "Mifteya nepenî",
+      "request": "Daxwaza tevlîbûnê bike",
+      "sending": "Tê şandin…",
+      "waitingTitle": "Daxwaz hate şandin",
+      "waiting": "Li benda erêkirina xwediyê malê ye.",
+      "done": "Temam"
+    },
+    "errors": {
+      "unconfigured": "Niha ne berdest e.",
+      "need_account": "Ji kerema xwe pêşî hesabekî çêke.",
+      "homes_limit": "Sînor gihîşt: 5 mal ji bo her hesabekî.",
+      "join_limit": "Pir hewl hatin dayîn. Piştî saetekê dîsa biceribîne.",
+      "wrong_code": "Kod an mifte şaş e.",
+      "network": "Girêdan tune. Dîsa biceribîne.",
+      "photo_too_large": "Wêneyek pir mezin e.",
+      "unknown": "Tiştek şaş çû. Dîsa biceribîne."
+    }
   }
 }

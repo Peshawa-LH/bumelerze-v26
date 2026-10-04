@@ -1,0 +1,240 @@
+import { act, cleanup, fireEvent, screen, within } from "@testing-library/react-native";
+import * as Clipboard from "expo-clipboard";
+import { Share } from "react-native";
+
+import i18n from "@/i18n";
+import { FamilyScreen } from "../components/FamilyScreen";
+import { HomeError } from "../types";
+import {
+  TAG,
+  clearQueryClients,
+  member,
+  mockTransport,
+  renderWithProviders,
+  resetMockTransport,
+} from "../__fixtures__/testing";
+
+const mockReplace = jest.fn();
+jest.mock("expo-router", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: mockReplace,
+    back: jest.fn(),
+    canGoBack: () => true,
+  }),
+  Stack: Object.assign(() => null, { Screen: () => null }),
+}));
+jest.mock("expo-clipboard", () => ({
+  setStringAsync: jest.fn().mockResolvedValue(true),
+}));
+jest.mock("@/lib/supabase", () => ({
+  isSupabaseConfigured: () => true,
+  getSupabaseClient: () => null,
+}));
+let mockAccount: { status: string; userId: string | null } = {
+  status: "account",
+  userId: "u-owner",
+};
+jest.mock("@/features/account/use-account", () => ({ useAccount: () => mockAccount }));
+jest.mock("../transport", () => ({
+  ...jest.requireActual("../transport"),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require inside a jest.mock factory
+  SupabaseHomeTransport: require("../__fixtures__/testing").mockTransport,
+}));
+
+async function press(testID: string) {
+  await act(async () => {
+    fireEvent.press(screen.getByTestId(testID));
+  });
+}
+
+function loadAs(userId: string, role: "owner" | "member") {
+  mockAccount = { status: "account", userId };
+  mockTransport.fetchTags.mockResolvedValue([TAG]);
+  mockTransport.fetchMemberships.mockResolvedValue([member(userId, { role })]);
+  mockTransport.fetchMembers.mockResolvedValue([
+    member("u-owner", { role: "owner" }),
+    member("u-2", { requestedAt: "2026-10-04T11:00:00Z" }),
+    member("u-3", { status: "pending", requestedAt: "2026-10-04T12:00:00Z" }),
+  ]);
+  mockTransport.fetchDisplayNames.mockResolvedValue({
+    "u-owner": "Shilan",
+    "u-2": "Karwan",
+    "u-3": "Dilan",
+  });
+  mockTransport.fetchJoinKey.mockResolvedValue("ABCD2345");
+}
+
+describe("Family screen", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    resetMockTransport();
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(async () => {
+    cleanup();
+    await clearQueryClients();
+  });
+
+  describe("owner", () => {
+    beforeEach(() => loadAs("u-owner", "owner"));
+
+    it("shows the code and the secret key", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      expect(await screen.findByText(/ABCD2345/)).toBeTruthy();
+      expect(screen.getByText(/BMH-7K3Q9P/)).toBeTruthy();
+      expect(screen.getByText("Secret key")).toBeTruthy();
+      expect(mockTransport.fetchJoinKey).toHaveBeenCalledWith("tag-1");
+    });
+
+    it("lists approved members with display names, marking the owner and you", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      expect(await screen.findByText("Shilan (you)")).toBeTruthy();
+      expect(screen.getByText("Karwan")).toBeTruthy();
+      expect(screen.getByText("Owner")).toBeTruthy();
+      // the pending person is under approval, not in the member list
+      expect(
+        within(screen.getByTestId("family-members")).queryByText("Dilan"),
+      ).toBeNull();
+    });
+
+    it("approves a pending request", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      expect(await screen.findByText("Waiting for approval")).toBeTruthy();
+      expect(screen.getByText("Dilan")).toBeTruthy();
+      await press("family-approve-u-3");
+      expect(mockTransport.decideJoin).toHaveBeenCalledWith("tag-1", "u-3", true);
+    });
+
+    it("declines a pending request", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText("Dilan");
+      await press("family-decline-u-3");
+      expect(mockTransport.decideJoin).toHaveBeenCalledWith("tag-1", "u-3", false);
+    });
+
+    it("shares the code and key with the system share sheet", async () => {
+      const share = jest
+        .spyOn(Share, "share")
+        .mockResolvedValue({ action: "sharedAction" });
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      await press("family-share-button");
+      expect(share).toHaveBeenCalledWith({
+        message: "Join my home on Bumelerze. Code: BMH-7K3Q9P Key: ABCD2345",
+      });
+    });
+
+    it("copies instead when there is no share sheet", async () => {
+      jest.spyOn(Share, "share").mockRejectedValue(new Error("unsupported"));
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      await press("family-share-button");
+      expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
+        "Join my home on Bumelerze. Code: BMH-7K3Q9P Key: ABCD2345",
+      );
+      expect(await screen.findByText("Copied.")).toBeTruthy();
+    });
+
+    it("copy puts the same message on the clipboard", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      await press("family-copy");
+      expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
+        "Join my home on Bumelerze. Code: BMH-7K3Q9P Key: ABCD2345",
+      );
+    });
+
+    it("creates a new key and shows it", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      await press("family-new-key");
+      expect(mockTransport.rotateKey).toHaveBeenCalledWith("tag-1");
+      expect(await screen.findByText(/NEWKEY99/)).toBeTruthy();
+      expect(screen.queryByText(/ABCD2345/)).toBeNull();
+      expect(
+        screen.getByText("New key created. The old key no longer works."),
+      ).toBeTruthy();
+    });
+
+    it("closing the home asks first, then archives it and returns to My account", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      expect(screen.getByText("Close this home")).toBeTruthy();
+      await press("family-leave");
+      expect(screen.getByText(/closes the home for everyone/)).toBeTruthy();
+      expect(mockTransport.leave).not.toHaveBeenCalled();
+      await press("family-leave-yes");
+      expect(mockTransport.leave).toHaveBeenCalledWith("tag-1");
+      expect(mockReplace).toHaveBeenCalledWith("/my-data");
+    });
+
+    it("cancelling the confirmation keeps the home", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      await press("family-leave");
+      await press("family-leave-no");
+      expect(mockTransport.leave).not.toHaveBeenCalled();
+      expect(screen.getByTestId("family-leave")).toBeTruthy();
+    });
+
+    it("shows a short message when a decision fails", async () => {
+      mockTransport.decideJoin.mockRejectedValueOnce(new HomeError("network"));
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText("Dilan");
+      await press("family-approve-u-3");
+      expect(await screen.findByText("No connection. Try again.")).toBeTruthy();
+    });
+  });
+
+  describe("member", () => {
+    beforeEach(() => loadAs("u-2", "member"));
+
+    it("sees the members and can leave, but not the key or the requests", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      expect(await screen.findByText("Karwan (you)")).toBeTruthy();
+      expect(screen.getByText("Shilan")).toBeTruthy();
+      expect(screen.queryByTestId("family-share")).toBeNull();
+      expect(screen.queryByTestId("family-pending")).toBeNull();
+      expect(screen.queryByText(/ABCD2345/)).toBeNull();
+      expect(mockTransport.fetchJoinKey).not.toHaveBeenCalled();
+      expect(screen.getByText("Leave this home")).toBeTruthy();
+    });
+
+    it("leaving asks first, then leaves", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText("Karwan (you)");
+      await press("family-leave");
+      expect(
+        screen.getByText("You will no longer see this home or its report."),
+      ).toBeTruthy();
+      await press("family-leave-yes");
+      expect(mockTransport.leave).toHaveBeenCalledWith("tag-1");
+      expect(mockReplace).toHaveBeenCalledWith("/my-data");
+    });
+  });
+
+  it("an anonymous user sees the account card", async () => {
+    mockAccount = { status: "anonymous", userId: "a1" };
+    await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+    expect(screen.getByText("Create an account to tag your home.")).toBeTruthy();
+  });
+
+  it("someone who is not a member gets 'not available'", async () => {
+    mockAccount = { status: "account", userId: "u-9" };
+    mockTransport.fetchTags.mockResolvedValue([]);
+    await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+    expect(await screen.findByText("This home is not available.")).toBeTruthy();
+  });
+
+  it("renders in Arabic without raw keys", async () => {
+    loadAs("u-owner", "owner");
+    await i18n.changeLanguage("ar");
+    await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+    expect(await screen.findByText("المفتاح السري")).toBeTruthy();
+    expect(screen.getByText("بانتظار الموافقة")).toBeTruthy();
+    expect(screen.queryByText(/building\.[a-z]/i)).toBeNull();
+  });
+});
