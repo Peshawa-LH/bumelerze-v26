@@ -50,6 +50,7 @@ import {
   applyMapOverlay,
   applyMapOverlays,
   describeOverlayFeature,
+  isOverlayOn,
   MapOverlayInfoCard,
   MapOverlayLegend,
   OVERLAY_TAP_LAYER_IDS,
@@ -957,9 +958,20 @@ export default function MapScreenWeb() {
       setOverlay(id, on);
       if (!on) setOverlayInfo(null);
       const map = mapRef.current;
-      if (map && id !== "events" && map.isStyleLoaded()) {
-        applyMapOverlay(map, id as OverlayLayerId, on, scheme);
-      }
+      if (!map || id === "events") return;
+      // MapLibre reports the style "not loaded" while ANY source is still
+      // downloading — e.g. the layer switched on a moment ago — so a toggle
+      // made then is applied once the map goes idle, from the store's
+      // latest state (several quick toggles settle to the final choice).
+      const apply = () =>
+        applyMapOverlay(
+          map,
+          id as OverlayLayerId,
+          isOverlayOn(useMapPreferencesStore.getState().overlays, id),
+          scheme,
+        );
+      if (map.isStyleLoaded()) apply();
+      else map.once("idle", apply);
     },
     [scheme, setOverlay],
   );
