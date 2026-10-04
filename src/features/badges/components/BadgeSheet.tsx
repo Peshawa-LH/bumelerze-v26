@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,6 +25,7 @@ import { entryVisual } from "../visual";
 import { BadgeIcon } from "./BadgeIcon";
 
 const SHEET_BADGE_SIZE = 88;
+const WIDE_WEB_MIN_WIDTH = 600;
 
 /** True when the system asks for less motion (the sheet then appears at once). */
 function useReduceMotion(): boolean {
@@ -59,7 +61,10 @@ export function BadgeSheet({
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
-  const isWeb = Platform.OS === "web";
+  // A centred dialog only on a wide web window; on a phone (native, or the
+  // web app on a phone) the panel sits at the bottom like any sheet.
+  const { width } = useWindowDimensions();
+  const centered = Platform.OS === "web" && width >= WIDE_WEB_MIN_WIDTH;
 
   if (!entry) {
     return null;
@@ -85,7 +90,7 @@ export function BadgeSheet({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View style={[styles.root, isWeb ? styles.rootWeb : styles.rootNative]}>
+      <View style={[styles.root, centered ? styles.rootWeb : styles.rootNative]}>
         <Pressable
           testID="badge-sheet-scrim"
           accessibilityRole="button"
@@ -97,12 +102,12 @@ export function BadgeSheet({
           testID="badge-sheet"
           style={[
             styles.panel,
-            isWeb ? styles.panelWeb : styles.panelNative,
+            centered ? styles.panelWeb : styles.panelNative,
             {
               backgroundColor: colors.surface.raised,
               borderColor: colors.border.default,
               padding: spacing[6],
-              paddingBottom: spacing[6] + (isWeb ? 0 : insets.bottom),
+              paddingBottom: spacing[6] + (centered ? 0 : insets.bottom),
               gap: spacing[3],
             },
           ]}
