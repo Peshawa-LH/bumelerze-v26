@@ -610,7 +610,7 @@
     },
     "location": {
       "title": "Cîhê te zanistê baştir dike",
-      "description": "Parvekirina cîhê te dihêle Bumelerze dûrahiyên rast nîşan bide û raporên te yên \"te hîs kir?\" dike şahidiyeke zanistî ya derbasdar ku dibe alîkar ji bo nexşekirina lerizîna rastîn. Tu dikarî vê her dem ji Sazkariyan biguherînî.",
+      "description": "Parvekirina cîhê te dihêle Bumelerze dûrahiyên rast nîşan bide û raporên te yên \"te hîs kir?\" dike şahidiyeke zanistî ya derbasdar ku dibe alîkar ji bo nexşekirina lerizîna rastîn. Herwiha Cihê Malê te bixweber destnîşan dike. Tu dikarî vê her dem ji Sazkariyan biguherînî.",
       "allow": "Destûra gihîştina cîhê bide",
       "notNow": "Niha na"
     },
@@ -625,7 +625,8 @@
     "done": {
       "title": "Her tişt amade ye",
       "description": "Bumelerze amade ye. Her carê tu sepanê vekî tu yê li ser lîsteya rasterast a erdhejên herêma xwe be.",
-      "cta": "Dest pê bike"
+      "cta": "Dest pê bike",
+      "homeBase": "Cihê Malê te wek {{town}} hat danîn. Tu dikarî paşê di Hesabê min de biguherînî."
     }
   },
   "notificationSettings": {

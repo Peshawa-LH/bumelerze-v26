@@ -610,7 +610,7 @@
     },
     "location": {
       "title": "Your location makes science better",
-      "description": "Sharing your location lets Bumelerze show accurate distances and turns your \"did you feel it?\" reports into valid scientific testimony that helps map real shaking. You can change this anytime in Settings.",
+      "description": "Sharing your location lets Bumelerze show accurate distances and turns your \"did you feel it?\" reports into valid scientific testimony that helps map real shaking. It also sets your HomeBase automatically. You can change this anytime in Settings.",
       "allow": "Allow location access",
       "notNow": "Not now"
     },
@@ -625,7 +625,8 @@
     "done": {
       "title": "You're all set",
       "description": "Bumelerze is ready. You'll land on the live earthquake feed for your region every time you open the app.",
-      "cta": "Get started"
+      "cta": "Get started",
+      "homeBase": "Your HomeBase is set to {{town}}. You can change it later in My account."
     }
   },
   "notificationSettings": {

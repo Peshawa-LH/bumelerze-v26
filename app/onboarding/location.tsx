@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { refreshAutoHomeBase } from "@/features/location";
-import { OnboardingScreenShell, usePrefsStore } from "@/features/onboarding";
+import {
+  applyDefaultHomeBase,
+  OnboardingScreenShell,
+  usePrefsStore,
+} from "@/features/onboarding";
 
 /**
  * Screen 3 — location permission (spec-v1.md §4.11 step 3). Scientific-
@@ -21,6 +25,9 @@ export default function OnboardingLocationScreen() {
   const [isRequesting, setIsRequesting] = useState(false);
 
   function goNext() {
+    // Without location the HomeBase is Erbil (owner); with location the
+    // nearest town replaces it as soon as the first fix arrives.
+    applyDefaultHomeBase();
     setOnboardingStep("notifications");
     router.push("/onboarding/notifications");
   }

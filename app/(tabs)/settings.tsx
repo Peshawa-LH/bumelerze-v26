@@ -2,20 +2,13 @@ import Constants from "expo-constants";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import {
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
+import { confirmDialog, messageDialog } from "@/lib/dialogs";
 import { usePrefsStore } from "@/features/onboarding";
 import { useDevicePermissions } from "@/features/permissions";
 import {
@@ -39,7 +32,7 @@ export default function SettingsScreen() {
   async function handleSelectLocale(locale: SupportedLocale) {
     const { restartFailed } = await selectLocale(locale);
     if (restartFailed) {
-      Alert.alert(t("settings.title"), t("settings.languageRestartFailedMessage"));
+      messageDialog(t("settings.title"), t("settings.languageRestartFailedMessage"));
     }
   }
 
@@ -600,14 +593,13 @@ function OnboardingSection() {
   const resetOnboarding = usePrefsStore((state) => state.resetOnboarding);
 
   function handleReplay() {
-    Alert.alert(
-      t("settings.replayOnboardingConfirmTitle"),
-      t("settings.replayOnboardingConfirmMessage"),
-      [
-        { text: t("settings.cancel"), style: "cancel" },
-        { text: t("settings.replayOnboarding"), onPress: resetOnboarding },
-      ],
-    );
+    confirmDialog({
+      title: t("settings.replayOnboardingConfirmTitle"),
+      message: t("settings.replayOnboardingConfirmMessage"),
+      confirmLabel: t("settings.replayOnboarding"),
+      cancelLabel: t("settings.cancel"),
+      onConfirm: resetOnboarding,
+    });
   }
 
   return (

@@ -75,6 +75,8 @@ describe("onboarding navigation flow", () => {
       onboardingCompleted: false,
       onboardingStep: "mission",
       homeBase: null,
+      homeBaseSource: "auto",
+      homeBaseAutoCheckedAt: null,
       hasHydrated: true,
     });
   });
@@ -158,11 +160,67 @@ describe("onboarding navigation flow", () => {
     );
     expect(mockRefreshAutoHomeBase).not.toHaveBeenCalled();
   });
+
+  it("location screen: 'Not now' sets the HomeBase to Erbil", async () => {
+    await renderWithProviders(<OnboardingLocationScreen />);
+
+    fireEvent.press(
+      screen.getByRole("button", { name: i18nText("onboarding.location.notNow") }),
+    );
+
+    expect(usePrefsStore.getState().homeBase?.townId).toBe("erbil");
+    expect(usePrefsStore.getState().homeBaseSource).toBe("auto");
+  });
+
+  it("location screen: never replaces a HomeBase that is already set or chosen by hand", async () => {
+    usePrefsStore.setState({
+      homeBase: { townId: "duhok", lat: 36.87, lon: 42.99 },
+      homeBaseSource: "manual",
+    });
+    await renderWithProviders(<OnboardingLocationScreen />);
+    fireEvent.press(
+      screen.getByRole("button", { name: i18nText("onboarding.location.notNow") }),
+    );
+    expect(usePrefsStore.getState().homeBase?.townId).toBe("duhok");
+
+    // "Somewhere else" is a deliberate manual null — kept too.
+    usePrefsStore.setState({ homeBase: null, homeBaseSource: "manual" });
+    fireEvent.press(
+      screen.getByRole("button", { name: i18nText("onboarding.location.notNow") }),
+    );
+    expect(usePrefsStore.getState().homeBase).toBeNull();
+  });
+
+  it("done screen: says which HomeBase was set and that it can be changed", async () => {
+    usePrefsStore.setState({
+      onboardingStep: "done",
+      homeBase: { townId: "erbil", lat: 36.19, lon: 44.01 },
+    });
+
+    await renderWithProviders(<OnboardingDoneScreen />);
+
+    expect(await screen.findByTestId("onboarding-done-home-base")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Your HomeBase is set to Erbil. You can change it later in My account.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("done screen: no HomeBase line when none is set", async () => {
+    usePrefsStore.setState({ onboardingStep: "done", homeBase: null });
+
+    await renderWithProviders(<OnboardingDoneScreen />);
+
+    expect(screen.queryByTestId("onboarding-done-home-base")).toBeNull();
+  });
 });
 
-function i18nAllow(): string {
+function i18nText(key: string): string {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- the app's i18n instance, loaded lazily like the mocks above
-  return (require("@/i18n").default as { t: (key: string) => string }).t(
-    "onboarding.location.allow",
-  );
+  return (require("@/i18n").default as { t: (key: string) => string }).t(key);
+}
+
+function i18nAllow(): string {
+  return i18nText("onboarding.location.allow");
 }

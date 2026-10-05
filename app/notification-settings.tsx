@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -23,6 +23,7 @@ import {
   usePrefsStore,
   type NotificationTier,
 } from "@/features/onboarding";
+import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 
 /** Fixed example event for the rehearsal buttons (spec-v1.md §4.10/B8) —
@@ -106,18 +107,14 @@ export default function NotificationSettingsScreen() {
       // visible once `permissionStatus` flips — nothing further to do here.
       return;
     }
-    Alert.alert(
-      t("notificationSettings.rehearsal.playSoundHintTitle"),
-      t("notificationSettings.rehearsal.playSoundHintMessage"),
-      [
-        {
-          text: t("notificationSettings.rehearsal.playSoundHintConfirm"),
-          onPress: () => {
-            void fireRehearsalNotification(exampleTitle, exampleBody);
-          },
-        },
-      ],
-    );
+    confirmDialog({
+      title: t("notificationSettings.rehearsal.playSoundHintTitle"),
+      message: t("notificationSettings.rehearsal.playSoundHintMessage"),
+      confirmLabel: t("notificationSettings.rehearsal.playSoundHintConfirm"),
+      onConfirm: () => {
+        void fireRehearsalNotification(exampleTitle, exampleBody);
+      },
+    });
   }
 
   const currentTown = homeBase
