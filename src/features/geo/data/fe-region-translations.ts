@@ -936,7 +936,7 @@ export const FE_REGION_TRANSLATIONS: Readonly<Record<number, FeRegionTranslation
     kmr: "Rojhilatê Nîvgirava Erebî",
     ar: "شرق شبه الجزيرة العربية",
   },
-  352: { ckb: "کەنداوی فارس", kmr: "Kendava Farisan", ar: "الخليج الفارسي" },
+  352: { ckb: "کەنداوی فارس", kmr: "Kendava Farisan", ar: "الخليج العربي" },
   353: { ckb: "باشووری ئێران", kmr: "Başûrê Îranê", ar: "جنوب إيران" },
   354: {
     ckb: "باشووری ڕۆژئاوای پاکستان",

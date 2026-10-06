@@ -114,4 +114,8 @@ describe("FE_REGION_TRANSLATIONS", () => {
       expect(tr.kmr.length).toBeGreaterThan(1);
     }
   });
+
+  it("names the Gulf in Arabic as الخليج العربي (owner, 2026-10-06)", () => {
+    expect(FE_REGION_TRANSLATIONS[352]?.ar).toBe("الخليج العربي");
+  });
 });
