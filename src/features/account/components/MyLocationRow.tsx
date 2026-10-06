@@ -28,6 +28,7 @@ export function MyLocationRow() {
   const index = usePlaceIndex();
   const referencePlace = usePrefsStore((state) => state.referencePlace);
   const source = usePrefsStore((state) => state.referenceSource);
+  const outOfRange = usePrefsStore((state) => state.referenceOutOfRange);
   const chooseReferencePlace = usePrefsStore((state) => state.chooseReferencePlace);
   const permissionGranted = useLocationPermissionGranted();
   const [grantedNow, setGrantedNow] = useState<boolean | null>(null);
@@ -35,7 +36,9 @@ export function MyLocationRow() {
   const [requesting, setRequesting] = useState(false);
   const [denied, setDenied] = useState(false);
 
-  const granted = grantedNow ?? permissionGranted === true;
+  // null while the permission is still being read: no status wording yet.
+  const knownGranted = grantedNow ?? permissionGranted;
+  const granted = knownGranted === true;
   const placeId = referencePlace?.placeId ?? DEFAULT_PLACE_ID;
   const place: Place | null =
     index?.byId.get(placeId) ?? gazetteerPlaceById(placeId) ?? null;
@@ -44,9 +47,13 @@ export function MyLocationRow() {
   const value =
     source === "manual"
       ? t("myData.location.valueManual", { place: name })
-      : granted
-        ? t("myData.location.valueNear", { place: name })
-        : t("myData.location.valueOff", { place: name });
+      : knownGranted === null
+        ? name
+        : granted
+          ? outOfRange
+            ? t("myData.location.valueOutside")
+            : t("myData.location.valueNear", { place: name })
+          : t("myData.location.valueOff", { place: name });
 
   const showUseLocation = !(source === "auto" && granted);
 

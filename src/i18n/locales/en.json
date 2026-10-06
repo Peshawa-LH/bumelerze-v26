@@ -1487,6 +1487,7 @@
       "title": "My location",
       "valueNear": "Near {{place}}",
       "valueOff": "{{place}} · Location off",
+      "valueOutside": "Location on · outside the region",
       "valueManual": "{{place}} · Chosen by you",
       "use": "Use my location",
       "denied": "Location is off. Allow it in Settings."

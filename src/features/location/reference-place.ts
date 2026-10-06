@@ -103,6 +103,9 @@ export async function refreshReferencePlace(
     return "skipped";
   }
   const nearest = nearestMainTown(fix.lat, fix.lon);
+  // A valid fix with no town in range is "outside the region"; the reference
+  // place itself is left as the silent fallback.
+  store.setReferenceOutOfRange(nearest === null);
   if (!nearest || store.referencePlace?.placeId === nearest.town.id) {
     store.markReferenceChecked(now);
     return "unchanged";

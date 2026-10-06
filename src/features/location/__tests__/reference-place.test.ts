@@ -50,6 +50,7 @@ function resetStore(overrides: Partial<ReturnType<typeof usePrefsStore.getState>
     hasHydrated: true,
     referencePlace: null,
     referenceSource: "auto",
+    referenceOutOfRange: false,
     referenceCheckedAt: null,
     anotherPlace: null,
     anotherPlaceTier: "off",
@@ -137,6 +138,34 @@ describe("refreshReferencePlace", () => {
     expect(usePrefsStore.getState().referenceCheckedAt).toBe(NOW);
   });
 
+  it("flags a valid fix outside every town's range, keeps the fallback place, and clears the flag back in range", async () => {
+    resetStore({ referencePlace: { placeId: "erbil", lat: 36.19, lon: 44.01 } });
+    mockGetLastKnown.mockResolvedValue(fixAt(52.52, 13.4)); // Berlin
+    await refreshReferencePlace(NOW);
+    expect(usePrefsStore.getState().referenceOutOfRange).toBe(true);
+    expect(usePrefsStore.getState().referencePlace?.placeId).toBe("erbil");
+
+    mockGetLastKnown.mockResolvedValue(fixAt(35.57, 45.44)); // Slemani
+    await expect(refreshReferencePlace(NOW + DAY)).resolves.toBe("updated");
+    expect(usePrefsStore.getState().referenceOutOfRange).toBe(false);
+  });
+
+  it("clears the flag when back at the same town too", async () => {
+    resetStore({
+      referencePlace: { placeId: "erbil", lat: 36.19, lon: 44.01 },
+      referenceOutOfRange: true,
+    });
+    await expect(refreshReferencePlace(NOW)).resolves.toBe("unchanged");
+    expect(usePrefsStore.getState().referenceOutOfRange).toBe(false);
+  });
+
+  it("leaves the flag alone when no fix could be read", async () => {
+    resetStore({ referenceOutOfRange: true });
+    mockGetPermission.mockResolvedValue({ status: "denied" });
+    await refreshReferencePlace(NOW);
+    expect(usePrefsStore.getState().referenceOutOfRange).toBe(true);
+  });
+
   it("is a no-op change when already at the nearest town", async () => {
     resetStore({
       referencePlace: { placeId: "erbil", lat: 36.19, lon: 44.01 },
@@ -212,6 +241,14 @@ describe("a manual choice", () => {
     });
     release(fixAt(36.2, 44.0));
     await expect(pending).resolves.toBe("skipped");
+    expect(usePrefsStore.getState().referencePlace).toEqual(DUHOK);
+  });
+
+  it("ignores the out-of-range flag: the check is skipped and the flag untouched", async () => {
+    resetStore({ referencePlace: DUHOK, referenceSource: "manual" });
+    mockGetLastKnown.mockResolvedValue(fixAt(52.52, 13.4)); // Berlin
+    await refreshReferencePlace(NOW);
+    expect(usePrefsStore.getState().referenceOutOfRange).toBe(false);
     expect(usePrefsStore.getState().referencePlace).toEqual(DUHOK);
   });
 

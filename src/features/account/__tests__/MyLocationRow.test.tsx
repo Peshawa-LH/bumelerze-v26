@@ -59,6 +59,7 @@ function setPrefs(overrides: Partial<ReturnType<typeof usePrefsStore.getState>>)
     hasHydrated: true,
     referencePlace: ERBIL,
     referenceSource: "auto",
+    referenceOutOfRange: false,
     referenceCheckedAt: null,
     ...overrides,
   });
@@ -104,6 +105,56 @@ describe("MyLocationRow", () => {
       setPrefs({ referencePlace: null });
       await renderRow();
       expect(screen.getByText(`${isolated("Hawler")} · Location off`)).toBeTruthy();
+    });
+
+    it("auto with location but outside the region: 'Location on · outside the region', no place", async () => {
+      setPrefs({ referenceOutOfRange: true });
+      await renderRow();
+      expect(screen.getByText("Location on · outside the region")).toBeTruthy();
+      expect(screen.queryByText(/Hawler/)).toBeNull();
+    });
+
+    it("outside the region, without permission: the flag is stale, so 'Location off'", async () => {
+      mockGetPermission.mockResolvedValue({ status: "denied" });
+      setPrefs({ referenceOutOfRange: true });
+      await renderRow();
+      expect(screen.getByText(`${isolated("Hawler")} · Location off`)).toBeTruthy();
+    });
+
+    it("manual ignores the outside-the-region flag", async () => {
+      setPrefs({
+        referencePlace: DUHOK,
+        referenceSource: "manual",
+        referenceOutOfRange: true,
+      });
+      await renderRow();
+      expect(screen.getByText(`${isolated("Duhok")} · Chosen by you`)).toBeTruthy();
+      expect(screen.queryByText(/outside the region/)).toBeNull();
+    });
+
+    it("while the permission is unknown: just the place, no status wording, then the real state", async () => {
+      let resolvePermission: (value: unknown) => void = () => undefined;
+      mockGetPermission.mockReturnValue(
+        new Promise((resolve) => (resolvePermission = resolve)),
+      );
+      setPrefs({ referencePlace: DUHOK });
+      await renderRow();
+      expect(screen.getByText(isolated("Duhok"))).toBeTruthy();
+      expect(screen.queryByText(/Location off/)).toBeNull();
+      expect(screen.queryByText(/Near/)).toBeNull();
+
+      await act(async () => {
+        resolvePermission({ status: "granted" });
+      });
+      await flush();
+      expect(screen.getByText(`Near ${isolated("Duhok")}`)).toBeTruthy();
+    });
+
+    it("also shows the Sorani outside-the-region value", async () => {
+      await i18n.changeLanguage("ckb");
+      setPrefs({ referenceOutOfRange: true });
+      await renderRow();
+      expect(screen.getByText("شوێن چالاکە · لە دەرەوەی هەرێم")).toBeTruthy();
     });
 
     it("manual: '{place} · Chosen by you'", async () => {

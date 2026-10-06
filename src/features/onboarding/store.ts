@@ -79,6 +79,12 @@ export interface PrefsState {
   /** "auto" follows the device location; "manual" is the reader's own choice
    * and is never overwritten by the location check. */
   referenceSource: ReferenceSource;
+  /** True when the last location check had a valid fix but no main town was
+   * within range (a reader abroad); false when a town was in range. Only the
+   * wording on My account uses it: `referencePlace` stays as the silent
+   * fallback for pre-fills. Missing in an older saved blob reads as false (the
+   * store's defaults fill it), so no persist version bump was needed. */
+  referenceOutOfRange: boolean;
   /** UTC ms of the last reference-place check; null = never. Throttles the
    * location lookup to once a day. */
   referenceCheckedAt: number | null;
@@ -121,6 +127,8 @@ export interface PrefsState {
    * the next refresh runs immediately. (Not named `use…`: it is a plain
    * action, not a React hook.) */
   resumeAutoReference: () => void;
+  /** Records whether the last valid fix was outside every town's range. */
+  setReferenceOutOfRange: (outOfRange: boolean) => void;
   /** Records a check that found nothing to change. */
   markReferenceChecked: (checkedAt: number) => void;
   /** Sets or clears the optional extra alert place. */
@@ -238,6 +246,7 @@ export const usePrefsStore = create<PrefsState>()(
       onboardingStep: "mission",
       referencePlace: null,
       referenceSource: "auto",
+      referenceOutOfRange: false,
       referenceCheckedAt: null,
       nearMeTier: DEFAULT_NEAR_ME_TIER,
       anotherPlace: null,
@@ -256,6 +265,7 @@ export const usePrefsStore = create<PrefsState>()(
         set({ referencePlace: place, referenceSource: "manual" }),
       resumeAutoReference: () =>
         set({ referenceSource: "auto", referenceCheckedAt: null }),
+      setReferenceOutOfRange: (referenceOutOfRange) => set({ referenceOutOfRange }),
       markReferenceChecked: (checkedAt) => set({ referenceCheckedAt: checkedAt }),
       setAnotherPlace: (anotherPlace) =>
         set((state) => ({
@@ -287,6 +297,7 @@ export const usePrefsStore = create<PrefsState>()(
         onboardingStep: state.onboardingStep,
         referencePlace: state.referencePlace,
         referenceSource: state.referenceSource,
+        referenceOutOfRange: state.referenceOutOfRange,
         referenceCheckedAt: state.referenceCheckedAt,
         nearMeTier: state.nearMeTier,
         anotherPlace: state.anotherPlace,

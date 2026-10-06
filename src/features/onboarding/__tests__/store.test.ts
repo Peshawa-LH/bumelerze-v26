@@ -342,6 +342,11 @@ describe("prefs migration from persist version 1 to 2 (reference source)", () =>
     expect(state.referencePlace).toEqual(DUHOK);
   });
 
+  it("reads a saved blob without the out-of-range flag as false", async () => {
+    await seed({ referencePlace: DUHOK, referenceSource: "auto" }, 2);
+    expect((await loadHydrated()).getState().referenceOutOfRange).toBe(false);
+  });
+
   it("migratePrefs adds the source without touching other fields, and PREFS_VERSION is 2", () => {
     const { migratePrefs, PREFS_VERSION } = loadStore();
     expect(PREFS_VERSION).toBe(2);

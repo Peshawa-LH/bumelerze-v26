@@ -1487,6 +1487,7 @@
       "title": "Cihê min",
       "valueNear": "Nêzîkî {{place}}",
       "valueOff": "{{place}} · Cih girtî ye",
+      "valueOutside": "Cih vekirî ye · li derveyî herêmê",
       "valueManual": "{{place}} · Te hilbijart",
       "use": "Cihê min bikar bîne",
       "denied": "Cih girtî ye. Di Sazkariyan de destûr bide."
