@@ -7,6 +7,7 @@ import {
   SAFETY_SECTIONS,
   SafetyCard,
   SafetyTabs,
+  UsingAppSection,
   type SafetySectionId,
 } from "@/features/safety";
 import { useTheme } from "@/theme";
@@ -61,6 +62,9 @@ export default function SafetyScreen() {
         // historical.tsx, so nothing pops in on scroll.
         initialNumToRender={cards.length}
         renderItem={({ item }) => <SafetyCard card={item} />}
+        // "Using Bumelerze" is a quiet secondary section under the Prepare
+        // guides; the Survive and Recover tabs stay purely panic-time content.
+        ListFooterComponent={activeSection === "prepare" ? <UsingAppSection /> : null}
         contentContainerStyle={{
           paddingHorizontal: spacing[4],
           paddingBottom: insets.bottom + spacing[6],

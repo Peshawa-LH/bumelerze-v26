@@ -397,6 +397,36 @@
     "doLabel": "Do",
     "dontLabel": "Don't",
     "accessibilityToggleLabel": "If this is hard for you to do",
+    "usingApp": {
+      "title": "Using Bumelerze",
+      "reportFelt": {
+        "title": "Report what you felt",
+        "step1": "Tap \"{{label}}\" on Home or on any earthquake.",
+        "step2": "Tap the level that matches what you felt. It is sent at once.",
+        "step3": "Add damage and more details if you like. All optional."
+      },
+      "eventHub": {
+        "title": "See who felt it",
+        "step1": "Open a recent earthquake from the list.",
+        "step2": "Tap \"{{label}}\" to open the {{hub}}.",
+        "step3": "See what people felt and the impact. Comment, reply and mark comments \"{{helpful}}\".",
+        "step4": "Updates from the official {{official}} account appear here.",
+        "example": "See an example"
+      },
+      "tagBuilding": {
+        "step1": "Create an account. It is optional.",
+        "step2": "Open \"{{account}}\", then \"{{home}}\", then \"{{tag}}\".",
+        "step3": "Choose house or apartment, set the location (GPS, town or map pin) and answer a few questions.",
+        "step4": "Get your building type and vulnerability class. Invite family with the home code and secret key."
+      },
+      "account": {
+        "title": "Your account (optional)",
+        "step1": "Alerts and felt reports work without an account.",
+        "step2": "An account adds your name on comments, badges and your building tag.",
+        "step3": "Create one in \"{{account}}\".",
+        "open": "Open {{account}}"
+      }
+    },
     "cards": {
       "familyPlan": {
         "title": "Make a family plan",

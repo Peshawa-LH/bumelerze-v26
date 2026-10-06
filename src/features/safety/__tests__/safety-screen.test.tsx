@@ -13,6 +13,15 @@ import i18n, { isRTLLocale } from "@/i18n";
 
 import SafetyScreen from "../../../../app/(tabs)/safety";
 
+// The "Using Bumelerze" footer routes and reads the account state; neither is
+// under test here (see using-app.test.tsx), so stand both in.
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
+}));
+jest.mock("@/features/account/use-account", () => ({
+  useAccount: () => ({ status: "unconfigured", userId: null }),
+}));
+
 const testSafeAreaMetrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
@@ -197,9 +206,7 @@ describe("Safety screen", () => {
     await renderWithProviders(<SafetyScreen />);
 
     await press(screen.getByRole("tab", { name: "Survive" }));
-    await press(
-      screen.getByRole("button", { name: "If this is hard for you to do" }),
-    );
+    await press(screen.getByRole("button", { name: "If this is hard for you to do" }));
 
     expect(screen.getByText("If you use a wheelchair")).toBeTruthy();
     expect(screen.getByText("If you use a cane or walker")).toBeTruthy();

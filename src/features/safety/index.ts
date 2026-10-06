@@ -20,3 +20,15 @@ export { DoDontPairRow } from "./components/DoDontPairRow";
 export { SafetyCard } from "./components/SafetyCard";
 export { SafetyImageRow } from "./components/SafetyImageRow";
 export { SafetyTabs } from "./components/SafetyTabs";
+export { UsingAppSection } from "./components/UsingAppSection";
+export {
+  USING_APP_GUIDES,
+  USING_APP_TITLE_KEY,
+  allUsingAppKeys,
+  usingAppGuideTitleKey,
+  usingAppLabelParamKeys,
+  usingAppStepKeys,
+  type UsingAppActionId,
+  type UsingAppGuide,
+  type UsingAppGuideId,
+} from "./using-app";

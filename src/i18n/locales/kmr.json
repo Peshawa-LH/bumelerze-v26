@@ -397,6 +397,36 @@
     "doLabel": "Bike",
     "dontLabel": "Neke",
     "accessibilityToggleLabel": "Heke ev ji te re dijwar be",
+    "usingApp": {
+      "title": "Bikaranîna Bumelerze",
+      "reportFelt": {
+        "title": "Tiştê te hîs kir rapor bike",
+        "step1": "“{{label}}” bitikîne, li Destpêkê an li ser her erdhejekê.",
+        "step2": "Asta ku bi tiştê te hîs kir re dikeve hilbijêre. Yekser tê şandin.",
+        "step3": "Heke bixwazî zirar û hûrgiliyên zêdetir lê zêde bike. Hemû bi dilê xwe ne."
+      },
+      "eventHub": {
+        "title": "Bibîne kî hîs kir",
+        "step1": "Erdhejeke nû ji lîsteyê veke.",
+        "step2": "“{{label}}” bitikîne da ku “{{hub}}” veke.",
+        "step3": "Bibîne mirov çi hîs kirin û bandora wê. Şîrove bike, bersiv bide û şîroveyan wekî “{{helpful}}” nîşan bike.",
+        "step4": "Nûvekirinên hesabê fermî yê {{official}} li vir xuya dibin.",
+        "example": "Nimûneyekê bibîne"
+      },
+      "tagBuilding": {
+        "step1": "Hesabekî çêke. Bi dilê xwe ye.",
+        "step2": "“{{account}}” veke, paşê “{{home}}”, paşê “{{tag}}”.",
+        "step3": "Xanî an apartman hilbijêre, cih destnîşan bike (GPS, bajarok an nîşana li ser nexşeyê) û bersiva çend pirsan bide.",
+        "step4": "Tu cureyê avahiyê û çîna lawaziyê distînî. Malbata xwe bi koda malê û mifteya nepenî vexwîne."
+      },
+      "account": {
+        "title": "Hesabê te (bi dilê xwe)",
+        "step1": "Hişyarî û raporên hîskirinê bêyî hesab dixebitin.",
+        "step2": "Hesab navê te li ser şîroveyan, nîşan û tomara avahiya te zêde dike.",
+        "step3": "Yekî di “{{account}}” de çêke.",
+        "open": "{{account}} veke"
+      }
+    },
     "cards": {
       "familyPlan": {
         "title": "Ji malbata xwe re plansaziyê çêke",
