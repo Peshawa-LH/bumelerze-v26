@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { DeleteAccountRow } from "@/features/account/components/DeleteAccountRow";
+import { MyLocationRow } from "@/features/account/components/MyLocationRow";
 import { PrivacyRow } from "@/features/account/components/PrivacyRow";
 import { ProfileHeader } from "@/features/account/components/ProfileHeader";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
@@ -74,6 +75,7 @@ export default function MyDataScreen() {
         <MyHomeCard />
         <MyReportsSection />
         <SettingsGroup>
+          <MyLocationRow />
           <SettingsRow
             icon="notifications-outline"
             label={t("settings.notificationsSectionTitle")}

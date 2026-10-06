@@ -25,6 +25,7 @@ const NEW_FILES = [
   "src/features/account/components/SettingsGroup.tsx",
   "src/features/account/components/SettingsRow.tsx",
   "src/features/account/components/PrivacyRow.tsx",
+  "src/features/account/components/MyLocationRow.tsx",
   "src/features/account/components/SignOutRow.tsx",
   "src/features/account/components/DeleteAccountRow.tsx",
   "src/features/building/components/MyHomeCard.tsx",

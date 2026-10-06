@@ -1483,6 +1483,14 @@
       "seeAll": "See all",
       "empty": "No reports yet."
     },
+    "location": {
+      "title": "My location",
+      "valueNear": "Near {{place}}",
+      "valueOff": "{{place}} · Location off",
+      "valueManual": "{{place}} · Chosen by you",
+      "use": "Use my location",
+      "denied": "Location is off. Allow it in Settings."
+    },
     "privacy": {
       "title": "Privacy & data",
       "id": "Contributor ID",

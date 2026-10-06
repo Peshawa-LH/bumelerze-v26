@@ -7,14 +7,15 @@ import { MAIN_TOWNS, type MainTown } from "@/features/geo/main-towns";
 import { applyDefaultReferencePlace, usePrefsStore } from "@/features/onboarding";
 
 /**
- * The background reference place. It is never shown to the reader: it is the
- * nearest main town to the last location fix (Hawler when there is none), and
- * only serves as the default where a place must be pre-selected (the felt
- * report without GPS, the starting point of the Tag my building pin).
+ * The reference place, shown on My account as "My location": the nearest main
+ * town to the last location fix (Hawler when there is none), unless the reader
+ * chose a place by hand, which this check never overwrites. It is also the
+ * default where a place must be pre-selected (the felt report without GPS, the
+ * starting point of the Tag my building pin).
  *
- * It never prompts for permission (onboarding and Settings own that), reads
- * only the cached last-known fix when there is one, and runs at most once a
- * day, so it costs no battery to speak of.
+ * The daily check never prompts for permission (onboarding and My account own
+ * that), reads only the cached last-known fix when there is one, and runs at
+ * most once a day, so it costs no battery to speak of.
  */
 
 /** One check per day. */
@@ -63,8 +64,8 @@ async function readDeviceFix(): Promise<{ lat: number; lon: number } | null> {
 
 /**
  * One reference-place check.
- * - "skipped": nothing was done (checked within a day, no permission, no fix,
- *   or the prefs have not loaded yet). A check that could not run is not
+ * - "skipped": nothing was done (the reader chose a place by hand, checked
+ *   within a day, no permission, no fix, or the prefs have not loaded yet). A check that could not run is not
  *   recorded, so the next launch tries again.
  * - "unchanged": the device is outside every town's range, or already at the
  *   stored town; the check is recorded.
@@ -74,7 +75,7 @@ export async function refreshReferencePlace(
   now: number = Date.now(),
 ): Promise<ReferencePlaceResult> {
   const before = usePrefsStore.getState();
-  if (!before.hasHydrated) {
+  if (!before.hasHydrated || before.referenceSource === "manual") {
     return "skipped";
   }
   if (
@@ -97,6 +98,10 @@ export async function refreshReferencePlace(
   }
 
   const store = usePrefsStore.getState();
+  if (store.referenceSource === "manual") {
+    // The reader chose a place while the fix was being read.
+    return "skipped";
+  }
   const nearest = nearestMainTown(fix.lat, fix.lon);
   if (!nearest || store.referencePlace?.placeId === nearest.town.id) {
     store.markReferenceChecked(now);
@@ -107,6 +112,27 @@ export async function refreshReferencePlace(
     now,
   );
   return "updated";
+}
+
+/**
+ * My account's "Use my location": asks for foreground permission (the browser
+ * prompt on web), and on a grant switches the reference place back to the
+ * device location and runs the check now. On a refusal nothing changes.
+ * Must be called from a tap handler so the system prompt follows a user action.
+ */
+export async function switchToDeviceLocation(): Promise<"granted" | "denied"> {
+  let granted = false;
+  try {
+    granted = (await Location.requestForegroundPermissionsAsync()).granted;
+  } catch {
+    granted = false;
+  }
+  if (!granted) {
+    return "denied";
+  }
+  usePrefsStore.getState().resumeAutoReference();
+  await refreshReferencePlace();
+  return "granted";
 }
 
 /**

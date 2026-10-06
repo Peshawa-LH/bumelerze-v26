@@ -292,8 +292,15 @@ describe("My account screen", () => {
       expect(screen.queryByTestId("my-reports-see-all")).toBeNull();
     });
 
-    it("has the settings group: Notifications, Privacy & data, and no HomeBase row", async () => {
+    it("has the settings group: My location first, then Notifications, Privacy & data, and no HomeBase row", async () => {
       await renderWithProviders(<MyDataScreen />);
+      const location = screen.getByTestId("account-location-row");
+      const notifications = screen.getByTestId("account-notifications-row");
+      const rows = screen
+        .getAllByRole("button")
+        .filter((node) => node === location || node === notifications);
+      expect(rows[0]).toBe(location);
+      expect(screen.getByText("My location")).toBeTruthy();
       expect(screen.queryByText("HomeBase")).toBeNull();
       expect(screen.queryByTestId("homebase-row")).toBeNull();
       expect(screen.getByText("Notifications")).toBeTruthy();

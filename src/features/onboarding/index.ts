@@ -4,6 +4,7 @@ export {
   migratePrefs,
   PREFS_VERSION,
   usePrefsStore,
+  type ReferenceSource,
   type StoredPlace,
   type NotificationTier,
   type OnboardingStepId,

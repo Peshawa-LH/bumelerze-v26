@@ -1483,6 +1483,14 @@
       "seeAll": "Hemûyan bibîne",
       "empty": "Hê rapor tune."
     },
+    "location": {
+      "title": "Cihê min",
+      "valueNear": "Nêzîkî {{place}}",
+      "valueOff": "{{place}} · Cih girtî ye",
+      "valueManual": "{{place}} · Te hilbijart",
+      "use": "Cihê min bikar bîne",
+      "denied": "Cih girtî ye. Di Sazkariyan de destûr bide."
+    },
     "privacy": {
       "title": "Nepenîtî û dane",
       "id": "Nasnameya beşdarvan",

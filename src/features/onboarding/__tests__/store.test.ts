@@ -102,7 +102,7 @@ describe("usePrefsStore actions", () => {
       }
     }
     expect(raw).toContain('"onboardingStep":"location"');
-    expect(raw).toContain('"version":1');
+    expect(raw).toContain('"version":2');
   });
 
   it("completeOnboarding sets both onboardingCompleted and onboardingStep", async () => {
@@ -282,13 +282,109 @@ describe("prefs migration from the HomeBase model (persist version 0 to 1)", () 
     usePrefsStore.getState().setNearMeTier("m5");
 
     let raw: string | null = null;
-    for (let attempt = 0; attempt < 50 && !raw?.includes('"version":1'); attempt += 1) {
+    for (let attempt = 0; attempt < 50 && !raw?.includes('"version":2'); attempt += 1) {
       raw = await AsyncStorage.getItem("bumelerze.prefs");
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
-    expect(raw).toContain('"version":1');
+    expect(raw).toContain('"version":2');
     expect(raw).not.toContain("homeBase");
     expect(raw).toContain('"anotherPlace":{"placeId":"duhok"');
+  });
+});
+
+describe("prefs migration from persist version 1 to 2 (reference source)", () => {
+  it("marks an existing reference place as automatic and keeps everything else", async () => {
+    await seed(
+      {
+        onboardingCompleted: true,
+        onboardingStep: "done",
+        referencePlace: DUHOK,
+        referenceCheckedAt: 1_700_000_000_000,
+        nearMeTier: "m5",
+        anotherPlace: ERBIL,
+        anotherPlaceTier: "all",
+      },
+      1,
+    );
+    const state = (await loadHydrated()).getState();
+
+    expect(state.referenceSource).toBe("auto");
+    expect(state.referencePlace).toEqual(DUHOK);
+    expect(state.referenceCheckedAt).toBe(1_700_000_000_000);
+    expect(state.nearMeTier).toBe("m5");
+    expect(state.anotherPlace).toEqual(ERBIL);
+    expect(state.anotherPlaceTier).toBe("all");
+  });
+
+  it("chains from version 0: a HomeBase install ends up at version 2 with an automatic source", async () => {
+    await seed({
+      onboardingCompleted: true,
+      onboardingStep: "done",
+      homeBase: { townId: "duhok", lat: 36.87, lon: 42.99 },
+      homeBaseSource: "manual",
+      homeBaseTier: "m4",
+    });
+    const state = (await loadHydrated()).getState();
+
+    expect(state.referenceSource).toBe("auto");
+    expect(state.referencePlace).toEqual(DUHOK);
+    expect(state.anotherPlace).toEqual(DUHOK);
+    expect(state.anotherPlaceTier).toBe("m4");
+  });
+
+  it("keeps a version 2 manual choice across a restart", async () => {
+    await seed(
+      { referencePlace: DUHOK, referenceSource: "manual", referenceCheckedAt: null },
+      2,
+    );
+    const state = (await loadHydrated()).getState();
+    expect(state.referenceSource).toBe("manual");
+    expect(state.referencePlace).toEqual(DUHOK);
+  });
+
+  it("migratePrefs adds the source without touching other fields, and PREFS_VERSION is 2", () => {
+    const { migratePrefs, PREFS_VERSION } = loadStore();
+    expect(PREFS_VERSION).toBe(2);
+    const out = migratePrefs({ referencePlace: ERBIL, nearMeTier: "off" }, 1);
+    expect(out).toEqual({
+      referencePlace: ERBIL,
+      nearMeTier: "off",
+      referenceSource: "auto",
+    });
+  });
+});
+
+describe("reference place actions", () => {
+  it("starts automatic", async () => {
+    const state = (await loadHydrated()).getState();
+    expect(state.referenceSource).toBe("auto");
+  });
+
+  it("chooseReferencePlace stores the place as the reader's own choice", async () => {
+    const usePrefsStore = await loadHydrated();
+    usePrefsStore.getState().chooseReferencePlace(DUHOK);
+    expect(usePrefsStore.getState().referencePlace).toEqual(DUHOK);
+    expect(usePrefsStore.getState().referenceSource).toBe("manual");
+  });
+
+  it("setReferencePlace (the location check's write) leaves a manual choice alone", async () => {
+    const usePrefsStore = await loadHydrated();
+    usePrefsStore.getState().chooseReferencePlace(DUHOK);
+    usePrefsStore.getState().setReferencePlace(ERBIL, 123);
+    expect(usePrefsStore.getState().referencePlace).toEqual(DUHOK);
+    expect(usePrefsStore.getState().referenceCheckedAt).toBeNull();
+  });
+
+  it("resumeAutoReference goes back to automatic and clears the last-check time", async () => {
+    const usePrefsStore = await loadHydrated();
+    usePrefsStore.getState().setReferencePlace(ERBIL, 123);
+    usePrefsStore.getState().chooseReferencePlace(DUHOK);
+    usePrefsStore.getState().resumeAutoReference();
+    const state = usePrefsStore.getState();
+    expect(state.referenceSource).toBe("auto");
+    expect(state.referenceCheckedAt).toBeNull();
+    // The place itself stays until the next refresh replaces it.
+    expect(state.referencePlace).toEqual(DUHOK);
   });
 });
 

@@ -4,11 +4,12 @@ import { usePrefsStore } from "./store";
 /**
  * Gives an install without a location a silent reference place: Hawler (owner,
  * 2026-10-05). The nearest town replaces it as soon as location is allowed.
- * Never touches a reference place that is already set.
+ * Never touches a reference place that is already set, and only applies while
+ * the source is automatic.
  */
 export function applyDefaultReferencePlace(): void {
   const state = usePrefsStore.getState();
-  if (state.referencePlace !== null) {
+  if (state.referencePlace !== null || state.referenceSource !== "auto") {
     return;
   }
   const town = MAIN_TOWNS.find((candidate) => candidate.id === DEFAULT_PLACE_ID);

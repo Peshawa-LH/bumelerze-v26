@@ -7,6 +7,7 @@ export {
   REFERENCE_PLACE_MAX_KM,
   REFERENCE_PLACE_REFRESH_MS,
   refreshReferencePlace,
+  switchToDeviceLocation,
   useReferencePlace,
   type NearestMainTown,
   type ReferencePlaceResult,

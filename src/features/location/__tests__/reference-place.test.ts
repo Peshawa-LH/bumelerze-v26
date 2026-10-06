@@ -1,17 +1,19 @@
 import { act, renderHook } from "@testing-library/react-native";
 
 import { MAIN_TOWNS } from "@/features/geo";
-import { usePrefsStore } from "@/features/onboarding";
+import { applyDefaultReferencePlace, usePrefsStore } from "@/features/onboarding";
 
 import {
   REFERENCE_PLACE_MAX_KM,
   REFERENCE_PLACE_REFRESH_MS,
   nearestMainTown,
   refreshReferencePlace,
+  switchToDeviceLocation,
   useReferencePlace,
 } from "../reference-place";
 
 const mockGetPermission = jest.fn();
+const mockRequestPermission = jest.fn();
 const mockGetLastKnown = jest.fn();
 const mockGetCurrent = jest.fn();
 
@@ -23,6 +25,7 @@ jest.mock("expo-location", () => ({
   },
   Accuracy: { Balanced: 3 },
   getForegroundPermissionsAsync: () => mockGetPermission(),
+  requestForegroundPermissionsAsync: () => mockRequestPermission(),
   getLastKnownPositionAsync: () => mockGetLastKnown(),
   getCurrentPositionAsync: (options: unknown) => mockGetCurrent(options),
 }));
@@ -46,6 +49,7 @@ function resetStore(overrides: Partial<ReturnType<typeof usePrefsStore.getState>
   usePrefsStore.setState({
     hasHydrated: true,
     referencePlace: null,
+    referenceSource: "auto",
     referenceCheckedAt: null,
     anotherPlace: null,
     anotherPlaceTier: "off",
@@ -183,5 +187,71 @@ describe("useReferencePlace", () => {
     await flush();
     expect(mockGetPermission).not.toHaveBeenCalled();
     expect(usePrefsStore.getState().referencePlace).toBeNull();
+  });
+});
+
+describe("a manual choice", () => {
+  const DUHOK = { placeId: "duhok", lat: 36.87, lon: 42.99 };
+
+  it("is never overwritten by the location check", async () => {
+    resetStore({ referencePlace: DUHOK, referenceSource: "manual" });
+    // The device is in Erbil, a different town.
+    await expect(refreshReferencePlace(NOW)).resolves.toBe("skipped");
+    expect(mockGetLastKnown).not.toHaveBeenCalled();
+    expect(usePrefsStore.getState().referencePlace).toEqual(DUHOK);
+    expect(usePrefsStore.getState().referenceSource).toBe("manual");
+  });
+
+  it("wins when it is made while the fix is still being read", async () => {
+    resetStore();
+    let release: (value: unknown) => void = () => undefined;
+    mockGetLastKnown.mockReturnValue(new Promise((resolve) => (release = resolve)));
+    const pending = refreshReferencePlace(NOW);
+    await act(async () => {
+      usePrefsStore.getState().chooseReferencePlace(DUHOK);
+    });
+    release(fixAt(36.2, 44.0));
+    await expect(pending).resolves.toBe("skipped");
+    expect(usePrefsStore.getState().referencePlace).toEqual(DUHOK);
+  });
+
+  it("does not get the Hawler fallback", () => {
+    resetStore({ referenceSource: "manual", referencePlace: null });
+    applyDefaultReferencePlace();
+    expect(usePrefsStore.getState().referencePlace).toBeNull();
+  });
+});
+
+describe("switchToDeviceLocation", () => {
+  const DUHOK = { placeId: "duhok", lat: 36.87, lon: 42.99 };
+
+  it("on a grant goes back to automatic and checks the location right away", async () => {
+    mockRequestPermission.mockResolvedValue({ status: "granted", granted: true });
+    resetStore({
+      referencePlace: DUHOK,
+      referenceSource: "manual",
+      referenceCheckedAt: Date.now(), // checked just now: a normal refresh would skip
+    });
+    await expect(switchToDeviceLocation()).resolves.toBe("granted");
+    const state = usePrefsStore.getState();
+    expect(state.referenceSource).toBe("auto");
+    expect(state.referencePlace?.placeId).toBe("erbil"); // the device is in Erbil
+    expect(state.referenceCheckedAt).not.toBeNull();
+  });
+
+  it("on a refusal changes nothing", async () => {
+    mockRequestPermission.mockResolvedValue({ status: "denied", granted: false });
+    resetStore({ referencePlace: DUHOK, referenceSource: "manual" });
+    await expect(switchToDeviceLocation()).resolves.toBe("denied");
+    const state = usePrefsStore.getState();
+    expect(state.referenceSource).toBe("manual");
+    expect(state.referencePlace).toEqual(DUHOK);
+  });
+
+  it("treats a failing prompt as a refusal", async () => {
+    mockRequestPermission.mockRejectedValue(new Error("no hardware"));
+    resetStore({ referencePlace: DUHOK, referenceSource: "manual" });
+    await expect(switchToDeviceLocation()).resolves.toBe("denied");
+    expect(usePrefsStore.getState().referenceSource).toBe("manual");
   });
 });

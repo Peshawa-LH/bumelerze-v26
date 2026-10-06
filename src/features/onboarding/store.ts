@@ -34,6 +34,11 @@ export interface StoredPlace {
   lon: number;
 }
 
+/** Where the reference place came from: the device location ("auto", the
+ * default, refreshed daily) or a place the reader chose by hand ("manual",
+ * never overwritten by the location check). */
+export type ReferenceSource = "auto" | "manual";
+
 /**
  * Preset alert tiers (Phase 4, spec-v1.md §4.10/D11) — matches
  * `supabase/migrations/0005_notifications_and_telemetry.sql`'s
@@ -65,12 +70,15 @@ export interface PrefsState {
    * survive the restart and RESUME onboarding, not restart it"). */
   onboardingStep: OnboardingStepId;
   /**
-   * Background reference place, never announced in the UI: the nearest main
-   * town to the last location fix, else Hawler. Only a default for places
-   * that must be pre-selected (the felt report without GPS, the Tag my
-   * building pin's starting point).
+   * The reader's place, shown on My account as "My location": the nearest
+   * main town to the last location fix, else Hawler, unless the reader chose
+   * one by hand. Also the default for places that must be pre-selected (the
+   * felt report without GPS, the Tag my building pin's starting point).
    */
   referencePlace: StoredPlace | null;
+  /** "auto" follows the device location; "manual" is the reader's own choice
+   * and is never overwritten by the location check. */
+  referenceSource: ReferenceSource;
   /** UTC ms of the last reference-place check; null = never. Throttles the
    * location lookup to once a day. */
   referenceCheckedAt: number | null;
@@ -103,8 +111,16 @@ export interface PrefsState {
   hasHydrated: boolean;
   setOnboardingStep: (step: OnboardingStepId) => void;
   completeOnboarding: () => void;
-  /** Stores the background reference place and when it was checked. */
+  /** Stores the location-derived reference place and when it was checked.
+   * A no-op while the reader's own choice (manual) is in place. */
   setReferencePlace: (place: StoredPlace, checkedAt: number) => void;
+  /** The reader picks a place by hand: it becomes the reference place and
+   * the location check stops replacing it. */
+  chooseReferencePlace: (place: StoredPlace) => void;
+  /** Back to following the device location. Clears the last-check time so
+   * the next refresh runs immediately. (Not named `use…`: it is a plain
+   * action, not a React hook.) */
+  resumeAutoReference: () => void;
   /** Records a check that found nothing to change. */
   markReferenceChecked: (checkedAt: number) => void;
   /** Sets or clears the optional extra alert place. */
@@ -119,8 +135,9 @@ export interface PrefsState {
 }
 
 /** Persist schema version. 0 = the HomeBase model (`homeBase`, `homeBaseSource`,
- * `homeBaseAutoCheckedAt`, `homeBaseTier`); 1 = reference place + another place. */
-export const PREFS_VERSION = 1;
+ * `homeBaseAutoCheckedAt`, `homeBaseTier`); 1 = reference place + another
+ * place; 2 = adds `referenceSource` (auto | manual). */
+export const PREFS_VERSION = 2;
 
 function isNotificationTier(value: unknown): value is NotificationTier {
   return NOTIFICATION_TIERS.includes(value as NotificationTier);
@@ -149,7 +166,12 @@ function readStoredPlace(value: unknown): StoredPlace | null {
 }
 
 /**
- * Persist migration from the HomeBase model (version 0) to the current one:
+ * Persist migration, run as a chain (0 to 1, then 1 to 2).
+ *
+ * Version 1 to 2: every existing reference place was filled by the location
+ * check (or the Hawler fallback), so it is "auto".
+ *
+ * Version 0 to 1, from the HomeBase model:
  * - a HomeBase the user picked by hand (source "manual", a real town) becomes
  *   their "another place", keeping the alert tier they had; it also stays as
  *   the background reference until the next location check replaces it;
@@ -171,7 +193,19 @@ export function migratePrefs(
   ) {
     return (persisted ?? {}) as Partial<PrefsState>;
   }
-  const old = persisted as Record<string, unknown>;
+  let migrated = persisted as Record<string, unknown>;
+  if (fromVersion < 1) {
+    migrated = migrateHomeBaseToReference(migrated);
+  }
+  if (fromVersion < 2) {
+    migrated = { ...migrated, referenceSource: migrated.referenceSource ?? "auto" };
+  }
+  return migrated as Partial<PrefsState>;
+}
+
+function migrateHomeBaseToReference(
+  old: Record<string, unknown>,
+): Record<string, unknown> {
   const { homeBase, homeBaseSource, homeBaseAutoCheckedAt, homeBaseTier, ...rest } = old;
 
   const town = readStoredPlace(homeBase);
@@ -194,7 +228,7 @@ export function migratePrefs(
         typeof homeBaseAutoCheckedAt === "number" ? homeBaseAutoCheckedAt : null;
     }
   }
-  return migrated as Partial<PrefsState>;
+  return migrated;
 }
 
 export const usePrefsStore = create<PrefsState>()(
@@ -203,6 +237,7 @@ export const usePrefsStore = create<PrefsState>()(
       onboardingCompleted: false,
       onboardingStep: "mission",
       referencePlace: null,
+      referenceSource: "auto",
       referenceCheckedAt: null,
       nearMeTier: DEFAULT_NEAR_ME_TIER,
       anotherPlace: null,
@@ -212,7 +247,15 @@ export const usePrefsStore = create<PrefsState>()(
       completeOnboarding: () =>
         set({ onboardingCompleted: true, onboardingStep: "done" }),
       setReferencePlace: (place, checkedAt) =>
-        set({ referencePlace: place, referenceCheckedAt: checkedAt }),
+        set((state) =>
+          state.referenceSource === "manual"
+            ? {}
+            : { referencePlace: place, referenceCheckedAt: checkedAt },
+        ),
+      chooseReferencePlace: (place) =>
+        set({ referencePlace: place, referenceSource: "manual" }),
+      resumeAutoReference: () =>
+        set({ referenceSource: "auto", referenceCheckedAt: null }),
       markReferenceChecked: (checkedAt) => set({ referenceCheckedAt: checkedAt }),
       setAnotherPlace: (anotherPlace) =>
         set((state) => ({
@@ -243,6 +286,7 @@ export const usePrefsStore = create<PrefsState>()(
         onboardingCompleted: state.onboardingCompleted,
         onboardingStep: state.onboardingStep,
         referencePlace: state.referencePlace,
+        referenceSource: state.referenceSource,
         referenceCheckedAt: state.referenceCheckedAt,
         nearMeTier: state.nearMeTier,
         anotherPlace: state.anotherPlace,
