@@ -115,7 +115,7 @@ async function answerAll(pick: (id: string) => string) {
 async function reachQuestions() {
   await press("kind-house");
   await press("flow-next");
-  await pressText("Erbil");
+  await pressText("Hawler");
   await press("flow-next");
 }
 
@@ -168,7 +168,7 @@ describe("Tag my building flow", () => {
     await press("flow-next");
     expect(screen.getByText("Your exact location stays private.")).toBeTruthy();
     expect(nextDisabled()).toBe(true);
-    await pressText("Erbil");
+    await pressText("Hawler");
     expect(nextDisabled()).toBe(false);
     expect(screen.getByText(/A town centre is less exact/)).toBeTruthy();
   });
@@ -426,7 +426,7 @@ describe("Tag my building flow", () => {
       await press("flow-next");
       expect(screen.getByTestId("location-gps")).toBeTruthy();
       expect(screen.getByTestId("location-pin")).toBeTruthy();
-      expect(screen.getByText("Erbil")).toBeTruthy();
+      expect(screen.getByText("Hawler")).toBeTruthy();
     });
 
     it("the pin cannot be confirmed until it is moved, then sets the location", async () => {

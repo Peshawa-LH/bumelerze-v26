@@ -19,7 +19,7 @@ export const AUTO_HOME_BASE_REFRESH_MS = 24 * 60 * 60 * 1000;
 /**
  * A device farther than this from every HomeBase town (a reader in Europe or
  * North America) is not "at home" anywhere on the list, so nothing is set:
- * assigning Erbil to someone in Berlin would be wrong, not helpful.
+ * assigning Hawler to someone in Berlin would be wrong, not helpful.
  */
 export const AUTO_HOME_BASE_MAX_KM = 150;
 

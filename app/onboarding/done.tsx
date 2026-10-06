@@ -16,7 +16,7 @@ import { useTheme } from "@/theme";
  * navigation call needed, React Navigation resolves the new default screen
  * (Home) itself once "(tabs)" becomes a valid route again.
  *
- * Says which HomeBase was set — the nearest town from location, or Erbil
+ * Says which HomeBase was set — the nearest town from location, or Hawler
  * when location wasn't allowed — and that it can be changed later (owner,
  * 2026-10-05).
  */

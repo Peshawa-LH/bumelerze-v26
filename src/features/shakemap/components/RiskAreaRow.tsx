@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import type { TranslateFn } from "@/features/geo";
+import { displayPlaceName, type TranslateFn } from "@/features/geo";
 import { formatApproximate } from "@/lib/format-numbers";
 import type { Theme } from "@/theme";
 import { classifyDamageBand } from "../risk-alert";
@@ -69,7 +69,7 @@ export function RiskAreaRow({
   // The producer corrects the boundary file's Arabic transliterations and
   // ships the Kurdish forms with them, so a Sorani reader sees سلێمانی
   // rather than "Slemani", and neither sees "Al-Sulaymaniyah".
-  const displayName = area.names?.[locale] ?? area.name;
+  const displayName = displayPlaceName(area.names?.[locale] ?? area.name, locale);
   const captionValue = formatApproximate(area.buildingsHeavy, locale, t);
   const a11yLabel = t("eventDetail.risk.areaRowA11y", {
     area: displayName,

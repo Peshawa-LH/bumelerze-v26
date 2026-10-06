@@ -79,7 +79,7 @@ describe("RiskAreaList", () => {
     await fireEvent.press(screen.getByTestId("risk-area-level-governorate"));
 
     expect(screen.getByText("Al-Sulaymaniyah")).toBeTruthy();
-    expect(screen.getByText("Erbil")).toBeTruthy();
+    expect(screen.getByText("Hawler")).toBeTruthy();
     expect(screen.queryByText("Chamchamal")).toBeNull();
     expect(screen.getByTestId("risk-area-level-governorate").props.accessibilityState).toEqual({
       selected: true,

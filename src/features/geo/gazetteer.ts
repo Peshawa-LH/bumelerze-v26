@@ -13,7 +13,7 @@
  * `src/i18n/locales/*.json`) — do not treat these names as final until
  * that review closes (PROJECT.md D14 checkpoint).
  *
- * `inKurdistanRegion` marks KRG-administered governorates (Erbil,
+ * `inKurdistanRegion` marks KRG-administered governorates (Hawler,
  * Sulaymaniyah incl. Halabja/Garmian, Duhok) as `true`. Contested/disputed
  * territories that are Kurdish-populated but federally administered
  * (Kirkuk, Khanaqin, Kifri, Sinjar, Mosul) are marked `false` — a
@@ -45,7 +45,7 @@ export const GAZETTEER_CITIES: readonly GazetteerCity[] = [
   // --- Iraq / Kurdistan Region (KRG-administered) ---
   {
     id: "erbil",
-    names: { en: "Erbil", ckb: "هەولێر", kmr: "Hewlêr", ar: "أربيل" },
+    names: { en: "Hawler", ckb: "هەولێر", kmr: "Hewlêr", ar: "أربيل" },
     lat: 36.19,
     lon: 44.01,
     country: "IQ",

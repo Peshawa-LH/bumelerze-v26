@@ -167,7 +167,7 @@ describe("Notification Settings screen", () => {
     await fireEvent.press(screen.getByRole("button", { name: "See the alert" }));
 
     expect(screen.getByText("M 4.8 earthquake")).toBeTruthy();
-    expect(screen.getByText("14 km southeast of Erbil, Kurdistan Region")).toBeTruthy();
+    expect(screen.getByText("14 km southeast of Hawler, Kurdistan Region")).toBeTruthy();
     // Pure UI preview — never touches the notification permission APIs.
     expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
   });
@@ -192,7 +192,7 @@ describe("Notification Settings screen", () => {
       expect.objectContaining({
         content: expect.objectContaining({
           title: "M 4.8 earthquake",
-          body: "14 km southeast of Erbil, Kurdistan Region",
+          body: "14 km southeast of Hawler, Kurdistan Region",
         }),
       }),
     );

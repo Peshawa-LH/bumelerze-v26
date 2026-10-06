@@ -5,7 +5,7 @@
  * §4) and is deliberately generous; this bbox is the "is this point inside
  * the Kurdistan Region" check for place-line region labeling
  * (ui-backlog.md wave 5 item 4), so it's drawn tighter, roughly tracing the
- * KRG-administered governorates (Duhok, Erbil, Sulaymaniyah incl. Halabja/
+ * KRG-administered governorates (Duhok, Hawler, Sulaymaniyah incl. Halabja/
  * Garmian) rather than the whole greater-Kurdistan/Zagros catchment.
  *
  * A bbox is an explicit simplification of the real (non-rectangular) KRG

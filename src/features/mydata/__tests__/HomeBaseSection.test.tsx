@@ -44,12 +44,12 @@ describe("HomeBaseSection (automatic HomeBase)", () => {
   it("shows one row: the city at the end, a mark and a spoken note that it was set automatically", async () => {
     await render(<HomeBaseSection />);
     expect(screen.getByText("HomeBase")).toBeTruthy();
-    expect(screen.getByText("Erbil")).toBeTruthy();
+    expect(screen.getByText("Hawler")).toBeTruthy();
     expect(
       screen.getByTestId("homebase-auto-mark", { includeHiddenElements: true }),
     ).toBeTruthy();
     expect(screen.getByTestId("homebase-row").props.accessibilityLabel).toBe(
-      "HomeBase, Erbil, Set automatically",
+      "HomeBase, Hawler, Set automatically",
     );
     expect(screen.queryByRole("button", { name: "Use my location again" })).toBeNull();
     expect(screen.queryByText("Change")).toBeNull();
@@ -111,7 +111,7 @@ describe("HomeBaseSection (automatic HomeBase)", () => {
     mockGetPermission.mockResolvedValue({ status: "denied" });
     usePrefsStore.setState({ homeBaseSource: "manual" });
     await render(<HomeBaseSection />);
-    expect(screen.getByText("Erbil")).toBeTruthy();
+    expect(screen.getByText("Hawler")).toBeTruthy();
     await waitFor(() => expect(mockGetPermission).toHaveBeenCalled());
     expect(screen.queryByRole("button", { name: "Use my location again" })).toBeNull();
   });

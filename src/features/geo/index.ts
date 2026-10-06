@@ -10,6 +10,7 @@ export {
   KURDISTAN_REGION_BBOX,
   NEAREST_CITY_FALLBACK_THRESHOLD_KM,
 } from "./config";
+export { displayPlaceName } from "./display-name";
 export {
   GAZETTEER_CITIES,
   pickLocalizedName,

@@ -161,7 +161,7 @@ describe("onboarding navigation flow", () => {
     expect(mockRefreshAutoHomeBase).not.toHaveBeenCalled();
   });
 
-  it("location screen: 'Not now' sets the HomeBase to Erbil", async () => {
+  it("location screen: 'Not now' sets the HomeBase to Hawler", async () => {
     await renderWithProviders(<OnboardingLocationScreen />);
 
     fireEvent.press(
@@ -202,7 +202,7 @@ describe("onboarding navigation flow", () => {
     expect(await screen.findByTestId("onboarding-done-home-base")).toBeTruthy();
     expect(
       screen.getByText(
-        "Your HomeBase is set to Erbil. You can change it later in My account.",
+        "Your HomeBase is set to Hawler. You can change it later in My account.",
       ),
     ).toBeTruthy();
   });

@@ -147,7 +147,7 @@
       "baynjiwayn1946": "A moderate earthquake near Penjwen, on the Iraq–Iran border.",
       "jamjamal1958": "A moderate earthquake near Chamchamal, between Kirkuk and Slemani.",
       "mandali1967": "A moderate earthquake in the Zagros foothills near Mandali, eastern Iraq.",
-      "koysinceq1980": "A moderate earthquake near Koya, in the Erbil governorate.",
+      "koysinceq1980": "A moderate earthquake near Koya, in the Hawler governorate.",
       "aqrah1991": "A moderate earthquake near Aqrah, in the Duhok governorate.",
       "halabja2017": "The largest instrumentally recorded earthquake on the Iraq–Iran border in modern records, felt across Kurdistan.",
       "javanrud2018": "A moderate earthquake in the Kermanshah region, felt across the Kurdistan Region.",
@@ -665,7 +665,7 @@
       "playSoundHintConfirm": "OK",
       "appName": "Bumelerze",
       "exampleTitle": "{{magnitude}} earthquake",
-      "exampleBody": "14 km southeast of Erbil, Kurdistan Region",
+      "exampleBody": "14 km southeast of Hawler, Kurdistan Region",
       "close": "Close"
     }
   },
@@ -1544,7 +1544,7 @@
     "noData": "No data from this station in the last 10 minutes.",
     "loading": "Loading the last ten minutes…",
     "error": "Could not load this station right now.",
-    "distanceFromReference": "{{km}} km from Hewlêr (Erbil)",
+    "distanceFromReference": "{{km}} km from Hawler",
     "credit": "Data: {{credit}}",
     "channel": "{{channel}} · {{sps}} samples/s",
     "mapA11yLabel": "Map of seismic stations around Kurdistan",

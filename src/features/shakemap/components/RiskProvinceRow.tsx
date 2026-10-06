@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import type { TranslateFn } from "@/features/geo";
+import { displayPlaceName, type TranslateFn } from "@/features/geo";
 import { formatApproximate } from "@/lib/format-numbers";
 import type { Theme } from "@/theme";
 import { classifyDamageBand } from "../risk-alert";
@@ -64,8 +64,9 @@ export function RiskProvinceRow({
   const isPartlyInsideMap = district.coverage < LOW_COVERAGE_THRESHOLD;
 
   const captionValue = formatApproximate(district.buildingsHeavy, locale, t);
+  const provinceName = displayPlaceName(district.adm1Name, locale);
   const a11yLabel = t("eventDetail.risk.provinceRowA11y", {
-    province: district.adm1Name,
+    province: provinceName,
     band: t(`eventDetail.risk.band.${band}.title`),
     value: captionValue,
   });
@@ -90,7 +91,7 @@ export function RiskProvinceRow({
           }}
           numberOfLines={1}
         >
-          {district.adm1Name}
+          {provinceName}
         </Text>
         <View style={[styles.tagsRow, { gap: spacing[1] }]}>
           {isPartlyInsideMap ? (

@@ -7,7 +7,7 @@
  *
  * Curation (owner, 2026-09-27: ~40 stations, every Iraqi one even when
  * silent): all of the Iraqi Seismic Observatory (MP); KOERI's KO stations
- * within KO_MAX_KM of Erbil; GE.ARPR and IU.GNI; the nearest few Caucasus
+ * within KO_MAX_KM of Hawler; GE.ARPR and IU.GNI; the nearest few Caucasus
  * stations. Each station is probed for data in the last hour so the map
  * can grey the silent ones at first paint; the app re-checks on tap.
  *

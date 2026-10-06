@@ -101,7 +101,7 @@ describe("CoordinateInputForm", () => {
     await render(<CoordinateInputForm onSubmit={onSubmit} />);
 
     await fireEvent.press(screen.getByText("Pick a town instead"));
-    await fireEvent.press(screen.getByText("Erbil"));
+    await fireEvent.press(screen.getByText("Hawler"));
     await fireEvent.press(screen.getByText("Look up"));
 
     expect(onSubmit).toHaveBeenCalledWith(36.19, 44.01);

@@ -5,7 +5,7 @@ import { HOME_BASE_TOWNS } from "./towns";
 export const DEFAULT_HOME_BASE_TOWN_ID = "erbil";
 
 /**
- * Gives an install without location a HomeBase: Erbil. Kept "auto", so the
+ * Gives an install without location a HomeBase: Hawler. Kept "auto", so the
  * nearest town replaces it as soon as location is allowed; never touches a
  * HomeBase that is already set, or a person's own choice (including
  * "somewhere else", which is a manual null).

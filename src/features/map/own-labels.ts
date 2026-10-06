@@ -132,7 +132,7 @@ export const KURDISH_PLACE_MIN_ZOOM: Record<KurdishPlaceTier, number> = {
  * (`gazetteer.ts`'s own doc comment: "approximate town centroids, not
  * surveyed points") and OSM's more precise point placements for the SAME
  * city — verified against the live dataset: every gazetteer city that also
- * has an OSM tier-1/2 counterpart (Erbil, Duhok, Kirkuk, Mosul, Baghdad,
+ * has an OSM tier-1/2 counterpart (Hawler, Duhok, Kirkuk, Mosul, Baghdad,
  * Halabja, Kelar, ...) lands well under 2km apart — while still being far
  * short of the ~10km+ gap to the next real, DISTINCT town, so a genuinely
  * different nearby place is never wrongly suppressed. */

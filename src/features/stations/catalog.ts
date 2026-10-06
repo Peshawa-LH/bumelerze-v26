@@ -3,7 +3,7 @@ import type { LiveStation, LiveStationCatalog } from "./types";
 
 const catalog = catalogJson as LiveStationCatalog;
 
-/** The curated station list, nearest to Erbil first (as built). */
+/** The curated station list, nearest to Hawler first (as built). */
 export function listLiveStations(): LiveStation[] {
   return catalog.stations;
 }

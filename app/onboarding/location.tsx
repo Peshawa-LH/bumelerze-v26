@@ -25,7 +25,7 @@ export default function OnboardingLocationScreen() {
   const [isRequesting, setIsRequesting] = useState(false);
 
   function goNext() {
-    // Without location the HomeBase is Erbil (owner); with location the
+    // Without location the HomeBase is Hawler (owner); with location the
     // nearest town replaces it as soon as the first fix arrives.
     applyDefaultHomeBase();
     setOnboardingStep("notifications");
