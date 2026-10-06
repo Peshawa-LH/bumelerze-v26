@@ -112,7 +112,7 @@ the merged result is. Their individual terms:
 - **Citation:** Onur, T., Gok, R., Abdulnaby, W., Mahdi, H., Numan, N.M.S.,
   Al-Shukri, H., Shakir, A.M., Chlaib, H.K., Ameen, T.H., and Abd, N.A. (2017),
   "A Comprehensive Earthquake Catalog for Iraq in Terms of Moment Magnitude",
-  *Seismological Research Letters*, 88(3), 798 to 811,
+  _Seismological Research Letters_, 88(3), 798 to 811,
   <https://doi.org/10.1785/0220160078>.
 - **Terms:** **no explicit open licence found.** The catalogue is distributed as
   an SRL Electronic Supplement, and the Seismological Society of America states
@@ -127,7 +127,7 @@ the merged result is. Their individual terms:
 ### EMME (Earthquake Model of the Middle East) catalogue
 
 - **Citation:** Zare, M., Amini, H., Yazdi, P., et al. (2014), "Recent
-  developments of the Middle East catalog", *Journal of Seismology*, 18,
+  developments of the Middle East catalog", _Journal of Seismology_, 18,
   749 to 772, <https://doi.org/10.1007/s10950-014-9444-1>.
 - **Terms:** governed by GEM Foundation data licensing policy rather than by the
   journal. GEM's published policy is an initial release under CC BY-NC-SA 4.0,
@@ -175,7 +175,7 @@ permission from each rights holder; or offer the compiled catalog under
 **CC BY-SA 4.0** instead, which would satisfy ISC-GEM and (if the re-release has
 taken effect) EMME; or rebuild the catalog from the unrestricted sources only
 and publish that subset under CC BY 4.0. Until one of those is done, the catalog
-in this repository should be treated as bundled for use *in the app*, not as an
+in this repository should be treated as bundled for use _in the app_, not as an
 open dataset ready for redistribution.
 
 This is flagged rather than quietly resolved because a wrong licence statement
@@ -217,7 +217,7 @@ on a dataset is worse than none.
 
 - **Terms:** © OpenStreetMap contributors, data under the **Open Database
   License (ODbL) 1.0** (<https://www.openstreetmap.org/copyright>). ODbL applies
-  to the *data*; map tiles rendered from it are subject to the tile provider's
+  to the _data_; map tiles rendered from it are subject to the tile provider's
   own terms above.
 
 ### Kurdish place names dataset (own-labels, derived extract of OpenStreetMap)
@@ -294,7 +294,7 @@ on a dataset is worse than none.
   attribution is legally required.
 - **Requested citation:** Heath, D.C., Wald, D.J., Worden, C.B., Thompson, E.M.,
   and Smoczyk, G.M. (2020), "A global hybrid VS30 map with a topographic
-  slope-based default and regional map insets", *Earthquake Spectra*, 36(3),
+  slope-based default and regional map insets", _Earthquake Spectra_, 36(3),
   1570 to 1584, <https://doi.org/10.1177/8755293020911137>. Underlying method:
   Wald and Allen (2007).
 - **[VERIFY]** The file in use is the older ShakeMap-era build
@@ -322,6 +322,29 @@ al. (2015, Iran). These are published equations from the scientific literature,
 implemented in OpenQuake. Cite the papers; the implementations come under
 OpenQuake's licence. The selection and weighting are documented in
 `shake_service/config.py` in the `bumelerze-engine` repository.
+
+### Flinn-Engdahl regionalisation (event naming)
+
+- **Use:** the far-field name of an event is the Flinn-Engdahl region that
+  contains its epicentre, looked up on-device from the coordinates
+  (`src/features/geo/fe-region.ts`), then translated
+  (`src/features/geo/data/fe-region-translations.ts`). This is why the World
+  and Significant views no longer show USGS's bearing-format sentences.
+- **Data:** the F-E 1995 revision, 757 regions: Flinn, Engdahl and Hill (1974,
+  BSSA 64) and Young, Presgrave, Aichele, Wiens and Flinn (1996, PEPI 96,
+  223-297). The names and the 1-degree grid come from the tables distributed
+  by USGS/NEIC (`names.asc`, `quadsidx.asc`, `{ne,nw,se,sw}sect.asc`), built into
+  `fe-regions.generated.ts` by `scripts/build-fe-regions.mjs`. The generated
+  lookup agrees with the ObsPy reference implementation on 73,000 USGS M4.5+
+  epicentres and a 40,000-point global sweep.
+- **Terms:** the region numbers and names are a scientific standard also
+  published by EMSC, ISC and GEOFON; the tables are USGS-distributed and
+  USGS-authored data is in the U.S. Public Domain. **[VERIFY]** no licence
+  text accompanies the table files themselves (the copies used here came from
+  ObsPy's data directory); confirm with USGS/NEIC before the next store
+  submission.
+- **Translations:** Bumelerze's own, machine-drafted, pending native-speaker
+  review.
 
 ### Intensity conversion and conditioning
 

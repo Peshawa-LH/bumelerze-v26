@@ -3,6 +3,9 @@ import { NOTABLE_HISTORICAL_EVENTS } from "@/features/historical";
 import { nearestCities } from "../nearest";
 import { nearestCityDistanceLine, nearestCityLine, placeLine } from "../place-line";
 
+/** Drops the invisible bidi isolates around numerals, to match on plain text. */
+const stripIsolates = (text: string) => text.replace(/[\u2066\u2069]/gu, "");
+
 describe("placeLine", () => {
   const originalLanguage = i18n.language;
 
@@ -13,7 +16,7 @@ describe("placeLine", () => {
   it("builds a localized line + Kurdistan (Iraq) region label for a KRG event (English)", async () => {
     await i18n.changeLanguage("en");
     // A few km from Halabja.
-    const event = { lat: 35.2, lon: 46.0, placeName: "32 km SE of Halabja, Iraq" };
+    const event = { lat: 35.2, lon: 46.0 };
 
     const result = placeLine(event, "en", i18n.t.bind(i18n));
 
@@ -24,7 +27,7 @@ describe("placeLine", () => {
 
   it("builds a Sorani line with localized digits, unit, direction, and region", async () => {
     await i18n.changeLanguage("ckb");
-    const event = { lat: 35.2, lon: 46.0, placeName: "32 km SE of Halabja, Iraq" };
+    const event = { lat: 35.2, lon: 46.0 };
 
     const result = placeLine(event, "ckb", i18n.t.bind(i18n));
 
@@ -38,7 +41,7 @@ describe("placeLine", () => {
   it("labels an Iran-side event with the localized country name, not Kurdistan (Iraq)", async () => {
     await i18n.changeLanguage("en");
     // A few km from Javanrud, well outside the KRG bbox.
-    const event = { lat: 34.85, lon: 46.55, placeName: "10 km NE of Javanrud, Iran" };
+    const event = { lat: 34.85, lon: 46.55 };
 
     const result = placeLine(event, "en", i18n.t.bind(i18n));
 
@@ -47,61 +50,122 @@ describe("placeLine", () => {
     expect(result).not.toContain("Kurdistan");
   });
 
-  it("falls back to the raw provider place string for a far-world event", async () => {
+  it("names a far-world event by its translated F-E region, never the provider sentence (World view)", async () => {
     await i18n.changeLanguage("ckb");
-    // Tokyo — nowhere near any gazetteer city.
-    const event = { lat: 35.68, lon: 139.65, placeName: "10 km E of Tokyo, Japan" };
+    // Tokyo — nowhere near any gazetteer city. USGS would say "10 km E of
+    // Tokyo, Japan"; the F-E region of the epicentre is ours, in Sorani.
+    const event = { lat: 35.68, lon: 139.65 };
 
     const result = placeLine(event, "ckb", i18n.t.bind(i18n));
 
-    expect(result).toBe("10 km E of Tokyo, Japan");
+    expect(result).toBe("نزیک کەناراوی باشووری هۆنشۆ، ژاپۆن");
+    expect(result).not.toMatch(/[A-Za-z0-9]/u);
+  });
+
+  it("renders the same far-field event in every locale from one rule", async () => {
+    const event = { lat: -4.35, lon: 152.27 }; // "55 km ESE of Kokopo" in USGS prose
+    const expected = {
+      en: "New Britain region, Papua New Guinea",
+      ckb: "ناوچەی بریتانیای نوێ، پاپوا گینیای نوێ",
+      kmr: "Herêma Brîtanyaya Nû, Papua Gîneya Nû",
+      ar: "منطقة بريطانيا الجديدة، بابوا غينيا الجديدة",
+    } as const;
+    for (const locale of ["en", "ckb", "kmr", "ar"] as const) {
+      await i18n.changeLanguage(locale);
+      expect(placeLine(event, locale, i18n.t.bind(i18n))).toBe(expected[locale]);
+    }
   });
 
   it("keeps the near-field Kurdish place line unchanged for a Sulaimani event (D28: never regress to a region name)", async () => {
     await i18n.changeLanguage("ckb");
     // A few km from Sulaimani, well inside NEAREST_CITY_FALLBACK_THRESHOLD_KM.
-    const event = { lat: 35.56, lon: 45.43, placeName: "Iran-Iraq border region" };
+    // F-E calls this spot "Iran-Iraq border region"; the near field ignores it.
+    const event = { lat: 35.56, lon: 45.43 };
 
     const result = placeLine(event, "ckb", i18n.t.bind(i18n));
 
     expect(result).toContain("سلێمانی");
     expect(result).toContain("کوردستان (عێراق)");
-    // The provider's far-field region string must never leak into a
-    // near-field line, even though it happens to be a known F-E region.
-    expect(result).not.toContain("Iran-Iraq");
+    expect(result).not.toBe("عێراق");
+    expect(result).not.toContain("ناوچەی سنووری");
   });
 
-  it("renders a translated Flinn-Engdahl region for a far-field event instead of provider prose (D28 decision 1)", async () => {
+  it("never turns an event in or around Sulaimani into a bare country name, in any locale", async () => {
+    const bareCountries = ["Iraq", "عێراق", "العراق", "Iran", "ئێران", "إيران"];
+    // Sulaimani itself, 40 km out in every direction (Iran side included).
+    const offsets: readonly (readonly [number, number])[] = [
+      [0, 0],
+      [0.35, 0],
+      [-0.35, 0],
+      [0, 0.45],
+      [0, -0.45],
+    ];
+    for (const locale of ["en", "ckb", "kmr", "ar"] as const) {
+      await i18n.changeLanguage(locale);
+      for (const [dLat, dLon] of offsets) {
+        const result = placeLine(
+          { lat: 35.56 + dLat, lon: 45.43 + dLon },
+          locale,
+          i18n.t.bind(i18n),
+        );
+        expect(bareCountries).not.toContain(result);
+        expect(result.length).toBeGreaterThan(8);
+      }
+    }
+  });
+
+  it("labels the same city the same way wherever the epicentre falls (Khanaqin, Iraq in every position)", async () => {
     await i18n.changeLanguage("en");
-    // EMSC's flynn_region for a Turkey event, well beyond the fallback
-    // threshold from any gazetteer city — see normalize.ts's
-    // normalizeEmscFeature, which already passes flynn_region through as
-    // placeName.
-    const event = { lat: 39.0, lon: 35.0, placeName: "Turkey" };
+    const t = i18n.t.bind(i18n);
+    // Khanaqin sits at 34.36 N, 45.39 E. One event is a little north of it
+    // (inside the simplified KRG bbox), one a little south (outside it).
+    const north = stripIsolates(placeLine({ lat: 34.42, lon: 45.39 }, "en", t));
+    const south = stripIsolates(placeLine({ lat: 34.28, lon: 45.39 }, "en", t));
 
-    const result = placeLine(event, "en", i18n.t.bind(i18n));
-
-    expect(result).toBe("Turkey");
+    expect(north).toMatch(/of Khanaqin, Iraq$/);
+    expect(south).toMatch(/of Khanaqin, Iraq$/);
+    expect(north).not.toContain("Kurdistan");
   });
 
-  it("renders a translated Flinn-Engdahl region in Sorani for the same far-field event", async () => {
+  it("renders the translated F-E region for a far-field event in English and Sorani", async () => {
+    // Central Turkey, far beyond the near-field radius of any gazetteer city.
+    const event = { lat: 39.0, lon: 35.0 };
+    await i18n.changeLanguage("en");
+    expect(placeLine(event, "en", i18n.t.bind(i18n))).toBe("Turkey");
     await i18n.changeLanguage("ckb");
-    const event = { lat: 39.0, lon: 35.0, placeName: "Iran-Armenia-Azerbaijan border region" };
+    expect(placeLine(event, "ckb", i18n.t.bind(i18n))).toBe("تورکیا");
+  });
+
+  it("falls back to the English F-E name (not coordinates, not empty) for an untranslated far-field region", async () => {
+    await i18n.changeLanguage("ckb");
+    const event = { lat: 10.0, lon: 100.0 }; // Gulf of Thailand, F-E 708
 
     const result = placeLine(event, "ckb", i18n.t.bind(i18n));
 
-    expect(result).toBe("ناوچەی سنووری ئێران-ئەرمینیا-ئازەربایجان");
-  });
-
-  it("falls back to the English F-E name (not coordinates, not empty) for an unmapped far-field region", async () => {
-    await i18n.changeLanguage("ckb");
-    const event = { lat: 10.0, lon: 100.0, placeName: "Sumatra region" };
-
-    const result = placeLine(event, "ckb", i18n.t.bind(i18n));
-
-    expect(result).toBe("Sumatra region");
-    expect(result.length).toBeGreaterThan(0);
+    expect(result).toContain("Gulf of Thailand");
     expect(/^-?\d+(\.\d+)?, -?\d+(\.\d+)?$/.test(result)).toBe(false);
+    await i18n.changeLanguage("en");
+    expect(placeLine(event, "en", i18n.t.bind(i18n))).toBe("Gulf of Thailand");
+  });
+
+  it("drops the bearing and distance in the far field", async () => {
+    await i18n.changeLanguage("en");
+    // Izu Islands: USGS says "Izu Islands, Japan region".
+    const result = placeLine({ lat: 33.0, lon: 139.5 }, "en", i18n.t.bind(i18n));
+    expect(result).toBe("Southeast of Honshu, Japan");
+    expect(result).not.toMatch(/\d/);
+  });
+
+  it("uses one distance precision: whole km from 10 km up, one decimal below", async () => {
+    await i18n.changeLanguage("en");
+    const t = i18n.t.bind(i18n);
+    // Directly north of Halabja (35.18 N, 45.98 E): ~5.6 km, then ~13 km.
+    expect(stripIsolates(placeLine({ lat: 35.23, lon: 45.98 }, "en", t))).toMatch(
+      /^5\.6 km N of Halabja/,
+    );
+    expect(stripIsolates(placeLine({ lat: 35.3, lon: 45.98 }, "en", t))).toMatch(
+      /^13 km N of Halabja/,
+    );
   });
 
   it("uses a translated placeNameKey override instead of the raw English placeName, for a far-world event (update-plan-2026-08.md §1.4)", async () => {
@@ -110,7 +174,6 @@ describe("placeLine", () => {
     const event = {
       lat: 37.2256,
       lon: 37.0143,
-      placeName: "Pazarcık, Kahramanmaraş, Türkiye",
       placeNameKey: "historical.places.pazarcik2023",
     };
 
@@ -166,15 +229,10 @@ describe("nearestCityLine / nearestCityDistanceLine", () => {
   });
 });
 
-
 describe("placeLine never echoes a provider title (owner directive 2026-09-02)", () => {
-  it("uses our nearest-city line beyond the gazetteer radius when no region is recognised", () => {
-    const line = placeLine(
-      { lat: 38.02, lon: 37.2, placeName: "Elbistan earthquake, Kahramanmaras earthquake sequence" },
-      "en",
-      i18n.t,
-    );
-    expect(line).not.toContain("Elbistan earthquake");
-    expect(line).toMatch(/km/);
+  it("ignores any provider text: the type has no input for it and the output is ours", () => {
+    const line = placeLine({ lat: 38.02, lon: 37.2 }, "en", i18n.t);
+    expect(line).not.toContain("earthquake");
+    expect(line).toBe("Turkey");
   });
 });

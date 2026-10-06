@@ -5,10 +5,11 @@ import type { TFunction } from "i18next";
 // `EventCard`, itself importing from `@/features/geo`).
 import { formatIsolatedDistance } from "@/features/events/format";
 import { DIRECTION_I18N_KEYS } from "./bearing";
-import { NEAREST_CITY_FALLBACK_THRESHOLD_KM, REGIONAL_NAMING_MAX_KM } from "./config";
+import { NEAREST_CITY_FALLBACK_THRESHOLD_KM } from "./config";
+import { flinnEngdahlRegionName } from "./fe-region-name";
 import { pickLocalizedName } from "./gazetteer";
 import { nearestCities, type NearestCityResult } from "./nearest";
-import { resolveFarFieldRegionKey, resolveRegionLabelKey } from "./region";
+import { resolveRegionLabelKey } from "./region";
 
 /** react-i18next's own `t` type, aliased here so every call site (screens
  * passing their `useTranslation()` `t` in) can pass it straight through
@@ -20,22 +21,14 @@ export type TranslateFn = TFunction;
 export interface PlaceLineEvent {
   lat: number;
   lon: number;
-  /** Provider place string (USGS `properties.place`) — the fallback when
-   * nothing in the gazetteer is close enough (see
-   * `NEAREST_CITY_FALLBACK_THRESHOLD_KM`). Deliberately never translated:
-   * far-world events are outside this app's core Kurdish-language mission,
-   * and translating arbitrary place names for the rest of the world isn't
-   * in scope — English stays acceptable there (ui-backlog.md wave 5 item
-   * 4). */
-  placeName: string;
   /** Optional i18n key resolving to a translated place string, used
-   * INSTEAD of the raw `placeName` above when this event falls beyond the
-   * gazetteer's fallback radius. Live provider feeds never set this (their
-   * place strings are out-of-scope provider data, per `placeName`'s own
-   * comment) — this exists for small, APP-OWNED curated datasets (e.g. the
-   * Historical View's 11 events, `features/historical/notable-events.ts`)
-   * that need a real Kurdish/Arabic name for a far-world place instead of
-   * always falling back to English (update-plan-2026-08.md §1.4). */
+   * INSTEAD of the Flinn-Engdahl region name when this event falls beyond the
+   * gazetteer's near-field radius. Live provider feeds never set this — this
+   * exists for small, APP-OWNED curated datasets (e.g. the Historical View's
+   * 11 events, `features/historical/notable-events.ts`) that need a real
+   * Kurdish/Arabic name for a far-world place (update-plan-2026-08.md §1.4).
+   * The provider's own place string is deliberately NOT an input: a place
+   * line is always ours (owner directive 2026-09-02, D28). */
   placeNameKey?: string;
 }
 
@@ -69,22 +62,24 @@ export function nearestCityDistanceLine(
 }
 
 /**
- * Localized place line for an event (ui-backlog.md wave 5 item 3):
- * "{distance} {direction} of {city}, {region}" built entirely from the
- * bundled gazetteer, replacing USGS's English `place` string for any event
- * within `NEAREST_CITY_FALLBACK_THRESHOLD_KM` of a bundled city. This near
- * field is unchanged by D28 — it never regresses to a country/region name.
+ * The single naming rule for an event, used by every surface (Home, World,
+ * Significant, Catalog, map sheet, event detail title) so one epicentre has
+ * one name everywhere (D28 decision 1 and 2, `feedback-waves.md` "F6
+ * resolved"):
  *
- * Farther events (D28 decision 1, `feedback-waves.md` "F6 resolved") render
- * a translated Flinn-Engdahl region name when the provider's place string is
- * one of the known F-E labels (`resolveFarFieldRegionKey`), and only fall
- * back to the raw provider string — USGS's untranslated bearing-format
- * prose, or an F-E region not yet in the table — otherwise. A curated
- * `placeNameKey` (app-owned datasets, e.g. Historical View) always wins over
- * both, as before. A world-catalog earthquake that's nowhere near Kurdistan
- * still gets no gazetteer/near-field treatment, by design — but it no
- * longer sits next to a Kurdish-language line in raw English when we do
- * have its region name.
+ * - **Near field** (a gazetteer town within
+ *   `NEAREST_CITY_FALLBACK_THRESHOLD_KM`): "{distance} {direction} of {city},
+ *   {region}" built from the bundled gazetteer. It never regresses to a
+ *   country: a Sulaimani event is "... Slemani, Kurdistan (Iraq)", not "Iraq".
+ * - **Far field**: the translated Flinn-Engdahl region name of the epicentre
+ *   (`flinnEngdahlRegionName`), with no bearing or distance (a "500 km NNE of
+ *   somewhere nobody knows" line is noise at that range). The region is
+ *   derived from the coordinates, so USGS, EMSC, GEOFON, the catalog and the
+ *   Historical View all agree; a region without a translation shows its
+ *   English F-E name, never the provider's prose. A curated `placeNameKey`
+ *   (app-owned datasets) wins over the F-E name.
+ * - Last resort, only for a coordinate that is not on the globe: the
+ *   coordinate pair.
  */
 export function placeLine(event: PlaceLineEvent, locale: string, t: TranslateFn): string {
   const [nearest] = nearestCities(event.lat, event.lon, 1);
@@ -93,23 +88,9 @@ export function placeLine(event: PlaceLineEvent, locale: string, t: TranslateFn)
     if (event.placeNameKey) {
       return t(event.placeNameKey);
     }
-    // Owner directive 2026-09-02: a provider's own event title (USGS
-    // `place`, EMSC `flynn_region`) is never our headline for an event in
-    // or around the region. Beyond the gazetteer radius but still within
-    // `REGIONAL_NAMING_MAX_KM` of a known city, the line is our own
-    // distance-and-direction line; only far-world events fall through to
-    // a far-field region name or, last, the provider's English text.
-    const farFieldRegionKey = resolveFarFieldRegionKey(event.placeName);
-    if (farFieldRegionKey) {
-      // A translated Flinn-Engdahl region name is ours (D28), and reads
-      // better than a 600 km distance line.
-      return t(`geo.regions.farField.${farFieldRegionKey}`);
-    }
-    if (nearest && nearest.distanceKm <= REGIONAL_NAMING_MAX_KM) {
-      return nearestCityLine(nearest, locale, t);
-    }
-    if (event.placeName) {
-      return event.placeName;
+    const regionName = flinnEngdahlRegionName(event.lat, event.lon, locale);
+    if (regionName) {
+      return regionName;
     }
     return t("geo.placeLine.coordinates", {
       lat: event.lat.toFixed(2),
@@ -118,7 +99,6 @@ export function placeLine(event: PlaceLineEvent, locale: string, t: TranslateFn)
   }
 
   const line = nearestCityLine(nearest, locale, t);
-  const regionKey = resolveRegionLabelKey(nearest.city, event.lat, event.lon);
-  const region = t(`geo.regions.${regionKey}`);
+  const region = t(`geo.regions.${resolveRegionLabelKey(nearest.city)}`);
   return t("geo.placeLine.withRegion", { line, region });
 }

@@ -1,9 +1,5 @@
 import { GAZETTEER_CITIES } from "../gazetteer";
-import {
-  isPointInKurdistanRegion,
-  resolveFarFieldRegionKey,
-  resolveRegionLabelKey,
-} from "../region";
+import { isPointInKurdistanRegion, resolveRegionLabelKey } from "../region";
 
 describe("isPointInKurdistanRegion", () => {
   it("is true for Erbil, Slemani, and Duhok's own coordinates", () => {
@@ -18,49 +14,29 @@ describe("isPointInKurdistanRegion", () => {
 });
 
 describe("resolveRegionLabelKey", () => {
-  const erbil = GAZETTEER_CITIES.find((city) => city.id === "erbil")!;
-  const javanrud = GAZETTEER_CITIES.find((city) => city.id === "javanrud")!;
-  const baghdad = GAZETTEER_CITIES.find((city) => city.id === "baghdad")!;
+  const city = (id: string) => GAZETTEER_CITIES.find((candidate) => candidate.id === id)!;
 
   it("labels a KRG-flagged nearest city as Kurdistan (Iraq)", () => {
-    expect(resolveRegionLabelKey(erbil, erbil.lat, erbil.lon)).toBe("kurdistanIraq");
+    expect(resolveRegionLabelKey(city("erbil"))).toBe("kurdistanIraq");
+    expect(resolveRegionLabelKey(city("slemani"))).toBe("kurdistanIraq");
   });
 
-  it("labels an Iranian nearest city (outside the KRG bbox) with its own country", () => {
-    expect(resolveRegionLabelKey(javanrud, javanrud.lat, javanrud.lon)).toBe("iran");
+  it("labels an Iranian nearest city with its own country", () => {
+    expect(resolveRegionLabelKey(city("javanrud"))).toBe("iran");
   });
 
-  it("labels a non-KRG Iraqi nearest city (e.g. Baghdad, outside the bbox) as Iraq", () => {
-    expect(resolveRegionLabelKey(baghdad, baghdad.lat, baghdad.lon)).toBe("iraq");
+  it("labels a non-KRG Iraqi nearest city as Iraq", () => {
+    expect(resolveRegionLabelKey(city("baghdad"))).toBe("iraq");
   });
 
-  it("overrides an unflagged nearest city with Kurdistan (Iraq) when the point itself is inside the bbox", () => {
-    // Kirkuk is flagged inKurdistanRegion: false, but its coordinates are
-    // inside the (deliberately simplified) KRG bbox.
-    const kirkuk = GAZETTEER_CITIES.find((city) => city.id === "kirkuk")!;
-    expect(kirkuk.inKurdistanRegion).toBe(false);
-    expect(resolveRegionLabelKey(kirkuk, kirkuk.lat, kirkuk.lon)).toBe("kurdistanIraq");
-  });
-});
-
-describe("resolveFarFieldRegionKey", () => {
-  it("resolves the highest-frequency catalog region labels (D28 decision 1)", () => {
-    expect(resolveFarFieldRegionKey("Turkey")).toBe("turkey");
-    expect(resolveFarFieldRegionKey("Iran-Armenia-Azerbaijan border region")).toBe(
-      "iranArmeniaAzerbaijanBorder",
-    );
-    expect(resolveFarFieldRegionKey("Iran-Iraq border region")).toBe("iranIraqBorder");
-    expect(resolveFarFieldRegionKey("Persian Gulf")).toBe("persianGulf");
-  });
-
-  it("resolves case-drift variants seen in the catalog data to the same key", () => {
-    expect(resolveFarFieldRegionKey("western Iran")).toBe("westernIran");
-    expect(resolveFarFieldRegionKey("Western Iran")).toBe("westernIran");
-    expect(resolveFarFieldRegionKey("eastern Turkey")).toBe("easternTurkey");
-  });
-
-  it("returns null for an unmapped region or bearing-format provider prose", () => {
-    expect(resolveFarFieldRegionKey("142 km SSE of Hasaki, Syria")).toBeNull();
-    expect(resolveFarFieldRegionKey("Sumatra region")).toBeNull();
+  it("describes where the CITY is, never where the epicentre falls (one city, one label)", () => {
+    // Kirkuk and Khanaqin are flagged outside the KRG, yet their coordinates
+    // sit inside the simplified KRG bbox. The old rule let any epicentre inside
+    // the bbox turn them into "Kurdistan (Iraq)", so Khanaqin read "Iraq" for
+    // one event and "Kurdistan (Iraq)" for the next.
+    for (const id of ["kirkuk", "khanaqin"]) {
+      expect(city(id).inKurdistanRegion).toBe(false);
+      expect(resolveRegionLabelKey(city(id))).toBe("iraq");
+    }
   });
 });

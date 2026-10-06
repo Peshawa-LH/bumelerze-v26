@@ -67,8 +67,9 @@ function EventCardImpl({
   // Single place/distance line (ui-backlog.md wave 5 items 3 & 5): replaces
   // both the raw USGS place string AND the old separate anchor-distance
   // line with one localized "{distance} {direction} of {city}, {region}"
-  // built from the gazetteer — falling back to the raw USGS string only
-  // for far-world events (see `placeLine`'s own doc comment).
+  // built from the gazetteer, and for far-field events the translated
+  // Flinn-Engdahl region of the epicentre — never the provider's sentence
+  // (see `placeLine`'s own doc comment, D28).
   const placeText = placeLine(event, locale, t);
   const magnitudeText = t("events.magnitudeDisplay", {
     value: formatMagnitudeValue(event.magnitude.value, locale),

@@ -75,7 +75,21 @@ export function formatIsolatedDistance(
   locale: string,
   unitLabel: string,
 ): string {
-  return isolateNumeric(`${formatDistanceKm(distanceKm, locale)} ${unitLabel}`);
+  return isolateNumeric(`${formatEventDistanceKm(distanceKm, locale)} ${unitLabel}`);
+}
+
+/**
+ * Distance numeral for EVENT surfaces (place lines, nearest-city list, "from
+ * you"): one rule everywhere (F6) — whole kilometres from 10 km up, one
+ * decimal below it. A decimal on "142.3 km" claims a precision the location
+ * does not have, and the same event used to read "30.7 km" in one list and
+ * "55 km" in another. The threshold is tested on the ROUNDED value, so 9.96
+ * reads "10", never "10.0". Engineering/handbook distances keep the plain
+ * one-decimal `formatDistanceKm`.
+ */
+export function formatEventDistanceKm(distanceKm: number, locale: string): string {
+  const rounded = Math.round(distanceKm * 10) / 10;
+  return formatFixedLocalized(distanceKm, rounded >= 10 ? 0 : 1, locale);
 }
 
 /** Depth numeral only, one decimal, digit-localized km — same

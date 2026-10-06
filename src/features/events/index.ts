@@ -51,6 +51,7 @@ export {
   formatDateOnly,
   formatDepthKm,
   formatDistanceKm,
+  formatEventDistanceKm,
   formatIsolatedDistance,
   formatMagnitudeValue,
   formatRelativeTimeValue,

@@ -53,26 +53,24 @@ describe("formatCatalogPlace", () => {
     expect(line.length).toBeGreaterThan("Iraq".length);
   });
 
-  it("never uses the agency's place text as the headline beyond the gazetteer radius (owner directive 2026-09-02)", () => {
-    // Far western Turkey, well outside the gazetteer.
-    const line = formatCatalogPlace(
-      makeRow({ lat: 38.163, lon: 38.459, region: "13 km NNE of Sincik, Turkey" }),
-      "en",
-      t,
-    );
-    expect(line).not.toContain("Sincik");
-    expect(line).toMatch(/km/);
+  it("names a far-field row by its translated F-E region and ignores the agency's text (D28)", () => {
+    // Far eastern Turkey, well outside the gazetteer. The agency string is
+    // provider prose in its own spelling and must not become the headline.
+    const row = makeRow({
+      lat: 38.163,
+      lon: 38.459,
+      region: "13 km NNE of Sincik, Turkey",
+    });
+    expect(formatCatalogPlace(row, "en", t)).toBe("Turkey");
+    expect(formatCatalogPlace(row, "ckb", t)).toBe("تورکیا");
   });
 
-  it("gives our own distance line, not coordinates, when there is no region either", () => {
-    // The ~13% of rows no FDSN response covered: pre-instrumental and
-    // regional-catalog records.
-    const line = formatCatalogPlace(
-      makeRow({ lat: 38.163, lon: 38.459, region: null }),
-      "en",
-      t,
+  it("gives the same name whether or not the agency supplied a region", () => {
+    const withRegion = makeRow({ lat: 38.163, lon: 38.459, region: "Turkey" });
+    const without = makeRow({ lat: 38.163, lon: 38.459, region: null });
+    expect(formatCatalogPlace(withRegion, "en", t)).toBe(
+      formatCatalogPlace(without, "en", t),
     );
-    expect(line).toMatch(/km/);
   });
 });
 
@@ -91,7 +89,10 @@ describe("formatCatalogMagnitude", () => {
   });
 
   it("never prefixes a scale name — the reader sees M either way", () => {
-    for (const row of [{ mag: 4.1, mwDerived: null }, { mag: 4.1, mwDerived: 4.4 }]) {
+    for (const row of [
+      { mag: 4.1, mwDerived: null },
+      { mag: 4.1, mwDerived: 4.4 },
+    ]) {
       expect(formatCatalogMagnitude(row, "en", t)).toMatch(/^M \d/);
     }
   });

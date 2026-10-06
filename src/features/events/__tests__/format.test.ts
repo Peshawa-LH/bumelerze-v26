@@ -5,6 +5,7 @@ import {
   formatDateOnly,
   formatDepthKm,
   formatDistanceKm,
+  formatEventDistanceKm,
   formatIsolatedDistance,
   formatMagnitudeValue,
   formatRelativeTimeValue,
@@ -100,13 +101,39 @@ describe("formatDistanceKm / formatDepthKm / formatCoordinates", () => {
 describe("formatIsolatedDistance", () => {
   it("composes the numeral, a localized unit label, and a bidi isolate", () => {
     const result = formatIsolatedDistance(38.24, "en", "km");
-    expect(result).toBe(isolateNumeric("38.2 km"));
-    expect(result).toContain("38.2 km");
+    expect(result).toBe(isolateNumeric("38 km"));
+    expect(result).toContain("38 km");
   });
 
   it("uses the passed-in localized unit label (e.g. Sorani 'کم') and digit-localizes the numeral", () => {
     const result = formatIsolatedDistance(38.24, "ckb", "کم");
-    expect(result).toContain("٣٨.٢ کم");
+    expect(result).toContain("٣٨ کم");
+    expect(formatIsolatedDistance(4.26, "ckb", "کم")).toContain("٤.٣ کم");
+  });
+});
+
+describe("formatEventDistanceKm (one precision rule for every event surface)", () => {
+  it("shows one decimal below 10 km and whole kilometres from 10 km up", () => {
+    expect(formatEventDistanceKm(0.04, "en")).toBe("0.0");
+    expect(formatEventDistanceKm(4.26, "en")).toBe("4.3");
+    expect(formatEventDistanceKm(9.94, "en")).toBe("9.9");
+    expect(formatEventDistanceKm(10, "en")).toBe("10");
+    expect(formatEventDistanceKm(30.7, "en")).toBe("31");
+    expect(formatEventDistanceKm(142.4, "en")).toBe("142");
+    expect(formatEventDistanceKm(1234.6, "en")).toBe("1235");
+  });
+
+  it("tests the threshold on the rounded value, so 9.96 reads 10 and never 10.0", () => {
+    expect(formatEventDistanceKm(9.96, "en")).toBe("10");
+    expect(formatEventDistanceKm(9.949, "en")).toBe("9.9");
+  });
+
+  it("localizes the digits and leaves the engineering formatter at one decimal", () => {
+    expect(formatEventDistanceKm(30.7, "ckb")).toBe("٣١");
+    expect(formatEventDistanceKm(30.7, "ar")).toBe("٣١");
+    expect(formatEventDistanceKm(30.7, "kmr")).toBe("31");
+    // The handbook keeps its precise, one-decimal form.
+    expect(formatDistanceKm(30.7, "en")).toBe("30.7");
   });
 });
 

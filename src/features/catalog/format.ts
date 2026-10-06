@@ -1,6 +1,11 @@
 import type { TFunction } from "i18next";
 
-import { formatCoordinates, formatDepthKm, formatMagnitudeValue, isolateNumeric } from "@/features/events";
+import {
+  formatCoordinates,
+  formatDepthKm,
+  formatMagnitudeValue,
+  isolateNumeric,
+} from "@/features/events";
 import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
 import type { CatalogRow } from "./types";
@@ -31,37 +36,23 @@ export function formatCatalogMagnitude(
   locale: string,
   t: TranslateFn,
 ): string {
-  return t("events.magnitudeDisplay", { value: formatMagnitudeValue(row.mwDerived ?? row.mag, locale) });
+  return t("events.magnitudeDisplay", {
+    value: formatMagnitudeValue(row.mwDerived ?? row.mag, locale),
+  });
 }
 
-/** Localized place line built from the gazetteer, same primitive
- * `HistoricalEventRow` uses.
- *
- * The far-field fallback is the locating agency's own `region` string,
- * backfilled into the catalog from the cached feed responses. Before that
- * existed the fallback was a bare coordinate pair, and since the catalog
- * reaches well past the Kurdish gazetteer's range, 85% of rows rendered as
- * "38.163, 38.459". Coordinates remain the last resort for the ~13% of
- * rows no FDSN response covered (pre-instrumental and regional-catalog
- * records).
- *
- * Deliberately not translated, same reasoning as `PlaceLineEvent.placeName`:
- * these are far-world places outside the app's Kurdish-language mission,
- * and inventing translations for them is not in scope. */
+/** Localized place line, the same `placeLine` rule every other surface uses
+ * (D28): a gazetteer near-field line close to Kurdistan, otherwise the
+ * translated Flinn-Engdahl region of the epicentre. The catalog's stored
+ * per-agency `region` strings are deliberately NOT used here: they are
+ * provider text in mixed spellings, and the same epicentre must carry the
+ * same name in the catalog, the live feed and the event detail. */
 export function formatCatalogPlace(
-  row: Pick<CatalogRow, "lat" | "lon" | "region">,
+  row: Pick<CatalogRow, "lat" | "lon">,
   locale: string,
   t: TranslateFn,
 ): string {
-  return placeLine(
-    {
-      lat: row.lat,
-      lon: row.lon,
-      placeName: row.region ?? formatCoordinates(row.lat, row.lon, locale),
-    },
-    locale,
-    t,
-  );
+  return placeLine({ lat: row.lat, lon: row.lon }, locale, t);
 }
 
 /** Depth numeral + localized unit, isolated for safe embedding in an RTL
@@ -108,6 +99,9 @@ export function formatCatalogDateTimeUtc(epochSeconds: number, locale: string): 
   return `${localizeDigits(datePart, locale)} ${localizeDigits(timePart, locale)} UTC`;
 }
 
-export function formatCatalogCoordinates(row: Pick<CatalogRow, "lat" | "lon">, locale: string): string {
+export function formatCatalogCoordinates(
+  row: Pick<CatalogRow, "lat" | "lon">,
+  locale: string,
+): string {
   return formatCoordinates(row.lat, row.lon, locale);
 }

@@ -122,7 +122,7 @@ describe("buildContributionRow", () => {
     expect(row.dateText.length).toBeGreaterThan(0);
   });
 
-  it("surfaces the event's place name when the report carries an eventRegistration snapshot", () => {
+  it("surfaces OUR place line for the registered epicentre, not the provider sentence", () => {
     const item = makeQueueItem({
       tier1: {
         ...SAMPLE_TIER1,
@@ -132,7 +132,29 @@ describe("buildContributionRow", () => {
     });
     const row = buildContributionRow(item, "en", i18n.t.bind(i18n));
 
-    expect(row.eventLabel).toBe("32 km SE of Halabja, Iraq");
+    // 35.56 N 45.43 E is Sulaimani itself; the snapshot's USGS-style
+    // `placeName` ("32 km SE of Halabja, Iraq") must not be shown.
+    expect(row.eventLabel).toContain("Slemani");
+    expect(row.eventLabel).toContain("Kurdistan (Iraq)");
+    expect(row.eventLabel).not.toContain("Halabja");
+  });
+
+  it("names a far-field registered event by its F-E region", () => {
+    const item = makeQueueItem({
+      tier1: {
+        ...SAMPLE_TIER1,
+        eventId: "us1000zzzz",
+        eventRegistration: {
+          ...SAMPLE_EVENT_REGISTRATION,
+          lat: -4.35,
+          lon: 152.27,
+          placeName: "55 km ESE of Kokopo, Papua New Guinea",
+        },
+      },
+    });
+    const row = buildContributionRow(item, "en", i18n.t.bind(i18n));
+
+    expect(row.eventLabel).toBe("New Britain region, Papua New Guinea");
   });
 
   it("surfaces the damage grade/typology once tier-2 has been attached", () => {

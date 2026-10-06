@@ -7,6 +7,7 @@ import type {
   DamageTypology,
   QueueItem,
 } from "@/features/felt";
+import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
 
 type TranslateFn = TFunction;
@@ -125,7 +126,12 @@ export function buildContributionRow(
   return {
     reportId: item.tier1.reportId,
     dateText,
-    eventLabel: item.tier1.eventRegistration?.placeName ?? null,
+    // Our own place line from the registered epicentre, never the provider
+    // sentence snapshotted at registration time (D28): the same event reads
+    // the same here as in the feed and on the event detail.
+    eventLabel: item.tier1.eventRegistration
+      ? placeLine(item.tier1.eventRegistration, locale, t)
+      : null,
     level: item.tier1.cartoonLevel,
     levelLabel,
     damage,

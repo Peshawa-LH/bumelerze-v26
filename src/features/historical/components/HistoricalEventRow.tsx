@@ -41,7 +41,6 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
     {
       lat: event.lat,
       lon: event.lon,
-      placeName: event.placeName,
       // `exactOptionalPropertyTypes`: only include the key when actually
       // set, rather than assigning `undefined` explicitly.
       ...(event.placeNameKey ? { placeNameKey: event.placeNameKey } : {}),
@@ -51,9 +50,13 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
   );
   const noteText = t(`historical.notes.${event.noteKey}`);
 
-  const accessibilityLabel = [yearText, magnitudeText, nameText, placeText, noteText].join(
-    ". ",
-  );
+  const accessibilityLabel = [
+    yearText,
+    magnitudeText,
+    nameText,
+    placeText,
+    noteText,
+  ].join(". ");
 
   return (
     <Pressable

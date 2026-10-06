@@ -34,10 +34,10 @@ export {
   type PlaceLineEvent,
   type TranslateFn,
 } from "./place-line";
+export { flinnEngdahlNameEn, flinnEngdahlNumber, FE_REGION_COUNT } from "./fe-region";
+export { flinnEngdahlRegionName } from "./fe-region-name";
 export {
   isPointInKurdistanRegion,
-  resolveFarFieldRegionKey,
   resolveRegionLabelKey,
-  type FarFieldRegionKey,
   type RegionLabelKey,
 } from "./region";
