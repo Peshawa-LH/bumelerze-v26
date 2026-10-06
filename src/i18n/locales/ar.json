@@ -76,6 +76,15 @@
       "coordinates": "قرب {{lat}}، {{lon}}"
     }
   },
+  "placeSearch": {
+    "label": "ابحث عن مكان",
+    "clear": "مسح",
+    "nearby": "قريب",
+    "mainTowns": "المدن الرئيسية",
+    "noResults": "لم يُعثر على مكان",
+    "nearCity": "قرب {{city}}",
+    "resultLabel": "{{name}}، {{detail}}"
+  },
   "events": {
     "provenance": {
       "usgs": "USGS",

@@ -60,3 +60,5 @@ export {
   resolveRegionLabelKey,
   type RegionLabelKey,
 } from "./region";
+export { isolateName, placeDetailLine } from "./place-detail";
+export { usePlaceIndex } from "./use-place-index";

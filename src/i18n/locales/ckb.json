@@ -76,6 +76,15 @@
       "coordinates": "نزیک {{lat}}، {{lon}}"
     }
   },
+  "placeSearch": {
+    "label": "گەڕان بۆ شوێنێک",
+    "clear": "پاککردنەوە",
+    "nearby": "نزیک",
+    "mainTowns": "شارە سەرەکییەکان",
+    "noResults": "هیچ شوێنێک نەدۆزرایەوە",
+    "nearCity": "نزیک {{city}}",
+    "resultLabel": "{{name}}، {{detail}}"
+  },
   "events": {
     "provenance": {
       "usgs": "USGS",

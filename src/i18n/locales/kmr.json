@@ -76,6 +76,15 @@
       "coordinates": "Nêzîkî {{lat}}, {{lon}}"
     }
   },
+  "placeSearch": {
+    "label": "Li cihekî bigere",
+    "clear": "Paqij bike",
+    "nearby": "Nêzîk",
+    "mainTowns": "Bajarên sereke",
+    "noResults": "Ti cih nehat dîtin",
+    "nearCity": "Nêzîkî {{city}}",
+    "resultLabel": "{{name}}, {{detail}}"
+  },
   "events": {
     "provenance": {
       "usgs": "USGS",

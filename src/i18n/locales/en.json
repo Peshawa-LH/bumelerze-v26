@@ -76,6 +76,15 @@
       "coordinates": "Near {{lat}}, {{lon}}"
     }
   },
+  "placeSearch": {
+    "label": "Search for a place",
+    "clear": "Clear",
+    "nearby": "Nearby",
+    "mainTowns": "Main towns",
+    "noResults": "No place found",
+    "nearCity": "Near {{city}}",
+    "resultLabel": "{{name}}, {{detail}}"
+  },
   "events": {
     "provenance": {
       "usgs": "USGS",
