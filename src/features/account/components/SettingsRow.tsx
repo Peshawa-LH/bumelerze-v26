@@ -14,6 +14,9 @@ interface SettingsRowProps {
   value?: string | null;
   /** Small extra node between value and chevron (e.g. a small status mark). */
   valueAccessory?: ReactNode;
+  /** "stacked" puts the value on its own line under the label, for a value
+   * too long to share a phone-width row (e.g. "Duhok · Location off"). */
+  valueLayout?: "inline" | "stacked";
   onPress?: () => void;
   trailing?: SettingsRowTrailing;
   /** For `trailing="expand"`: whether the row is open. */
@@ -33,6 +36,7 @@ export function SettingsRow({
   label,
   value,
   valueAccessory,
+  valueLayout = "inline",
   onPress,
   trailing = "chevron",
   expanded = false,
@@ -78,12 +82,32 @@ export function SettingsRow({
       ]}
     >
       <Ionicons name={icon} size={24} color={colors.text.secondary} />
-      <Text
-        style={[typography.bodyDefault, styles.label, { color: colors.text.primary }]}
-      >
-        {label}
-      </Text>
-      {value ? (
+      {valueLayout === "stacked" ? (
+        <View style={styles.label}>
+          <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>
+            {label}
+          </Text>
+          {value ? (
+            <Text
+              style={[
+                typography.bodyMeta,
+                styles.value,
+                { color: colors.text.secondary },
+              ]}
+              numberOfLines={2}
+            >
+              {value}
+            </Text>
+          ) : null}
+        </View>
+      ) : (
+        <Text
+          style={[typography.bodyDefault, styles.label, { color: colors.text.primary }]}
+        >
+          {label}
+        </Text>
+      )}
+      {value && valueLayout === "inline" ? (
         <Text
           style={[typography.bodyDefault, styles.value, { color: colors.text.secondary }]}
           numberOfLines={2}

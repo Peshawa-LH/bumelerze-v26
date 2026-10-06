@@ -86,6 +86,7 @@ export function MyLocationRow() {
         icon="location-outline"
         label={t("myData.location.title")}
         value={value}
+        valueLayout="stacked"
         trailing="expand"
         expanded={expanded}
         onPress={() => setExpanded((open) => !open)}
