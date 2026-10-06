@@ -343,6 +343,8 @@
     "axisX": "X",
     "axisY": "Y",
     "axisZ": "Z",
+    "flipPhone": "Telefonê bizivirîne",
+    "pose": { "standing": "Rawestayî", "flat": "Raketî" },
     "chartA11yLabel": "Xêza rasterast a lerizanpîvê ku deh saniyeyên dawî yên tevgerê nîşan dide",
     "web": {
       "enableButton": "Sensora tevgerê veke",

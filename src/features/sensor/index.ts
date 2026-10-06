@@ -27,7 +27,15 @@ export { ChannelLegend } from "./components/ChannelLegend";
 export { SpaceView } from "./components/SpaceView";
 export { TraceStack } from "./components/TraceStack";
 export { ViewSwitch } from "./components/ViewSwitch";
-export { clamp, PHONE_EDGES, PHONE_HALF, phoneCorners, projectPoint } from "./projection";
+export {
+  clamp,
+  orient,
+  PHONE_EDGES,
+  PHONE_HALF,
+  phoneCorners,
+  projectPoint,
+  type PhonePose,
+} from "./projection";
 export { SpectrumChart } from "./components/SpectrumChart";
 export {
   computeResponseSpectrum,

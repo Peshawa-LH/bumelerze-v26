@@ -1,4 +1,4 @@
-import { clamp, PHONE_EDGES, phoneCorners, projectPoint } from "../projection";
+import { clamp, orient, PHONE_EDGES, phoneCorners, projectPoint } from "../projection";
 
 describe("projection", () => {
   it("maps the origin to the drawing centre", () => {
@@ -36,5 +36,22 @@ describe("projection", () => {
     expect(clamp(0.2, 0.5)).toBe(0.2);
     expect(clamp(3, 0.5)).toBe(0.5);
     expect(clamp(-3, 0.5)).toBe(-0.5);
+  });
+
+  it("lying flat, the screen's normal (z) points up the drawing and the long side recedes", () => {
+    const zUp = projectPoint({ x: 0, y: 0, z: 1 }, 100, 0, 0, "flat");
+    expect(zUp.v).toBeLessThan(0);
+    expect(Math.abs(zUp.u)).toBeLessThan(1e-9);
+    // The long side is no longer the vertical: it now runs mostly sideways/into the scene.
+    const yFlat = projectPoint({ x: 0, y: 1, z: 0 }, 100, 0, 0, "flat");
+    const yStanding = projectPoint({ x: 0, y: 1, z: 0 }, 100, 0, 0);
+    expect(Math.abs(yFlat.v)).toBeLessThan(Math.abs(yStanding.v));
+  });
+
+  it("flipping is a rotation: lengths kept, standing is unchanged", () => {
+    const p = { x: 0.3, y: -0.5, z: 0.2 };
+    const flat = orient(p, "flat");
+    expect(Math.hypot(flat.x, flat.y, flat.z)).toBeCloseTo(Math.hypot(p.x, p.y, p.z));
+    expect(orient(p, "standing")).toEqual(p);
   });
 });

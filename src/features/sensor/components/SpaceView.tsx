@@ -6,7 +6,13 @@ import Svg, { Circle, G, Line, Text as SvgText } from "react-native-svg";
 import { useTheme } from "@/theme";
 import { axisColor } from "../colors";
 import { SPACE_HALF_SPAN_G, SPACE_TRAIL_MS } from "../constants";
-import { clamp, PHONE_EDGES, phoneCorners, projectPoint } from "../projection";
+import {
+  clamp,
+  PHONE_EDGES,
+  phoneCorners,
+  projectPoint,
+  type PhonePose,
+} from "../projection";
 import type { AccelerometerVector, AxisKey, SensorSample } from "../types";
 
 interface SpaceViewProps {
@@ -14,6 +20,8 @@ interface SpaceViewProps {
   /** Wall-clock time of the frame; trail age is measured from it. */
   frameAt: number;
   accessibilityLabel: string;
+  /** Standing (default) or lying flat — the legend's flip button. */
+  pose?: PhonePose;
 }
 
 const HEIGHT = 288;
@@ -39,7 +47,12 @@ function toUnits(sample: AccelerometerVector): AccelerometerVector {
  * the axes. Orthographic projection from `projection.ts`; the camera never
  * moves.
  */
-export function SpaceView({ samples, frameAt, accessibilityLabel }: SpaceViewProps) {
+export function SpaceView({
+  samples,
+  frameAt,
+  accessibilityLabel,
+  pose = "standing",
+}: SpaceViewProps) {
   const { colors, typography } = useTheme();
   const [width, setWidth] = useState(0);
 
@@ -55,12 +68,14 @@ export function SpaceView({ samples, frameAt, accessibilityLabel }: SpaceViewPro
   const latest = samples.length > 0 ? samples[samples.length - 1] : undefined;
   const trail = samples.filter((sample) => frameAt - sample.t <= SPACE_TRAIL_MS);
   const trailPoints = trail.map((sample) => ({
-    ...projectPoint(toUnits(sample), scale, cx, cy),
+    ...projectPoint(toUnits(sample), scale, cx, cy, pose),
     age: Math.min(1, Math.max(0, (frameAt - sample.t) / SPACE_TRAIL_MS)),
   }));
-  const dot = latest ? projectPoint(toUnits(latest), scale, cx, cy) : null;
-  const corners = phoneCorners().map((corner) => projectPoint(corner, scale, cx, cy));
-  const origin = projectPoint({ x: 0, y: 0, z: 0 }, scale, cx, cy);
+  const dot = latest ? projectPoint(toUnits(latest), scale, cx, cy, pose) : null;
+  const corners = phoneCorners().map((corner) =>
+    projectPoint(corner, scale, cx, cy, pose),
+  );
+  const origin = projectPoint({ x: 0, y: 0, z: 0 }, scale, cx, cy, pose);
 
   function unitVector(axis: AxisKey, length: number): AccelerometerVector {
     return {
@@ -85,9 +100,9 @@ export function SpaceView({ samples, frameAt, accessibilityLabel }: SpaceViewPro
       {width > 0 ? (
         <Svg width={width} height={HEIGHT}>
           {AXES.map((axis) => {
-            const end = projectPoint(unitVector(axis, AXIS_ARM), scale, cx, cy);
-            const back = projectPoint(unitVector(axis, -AXIS_ARM), scale, cx, cy);
-            const label = projectPoint(unitVector(axis, AXIS_LABEL), scale, cx, cy);
+            const end = projectPoint(unitVector(axis, AXIS_ARM), scale, cx, cy, pose);
+            const back = projectPoint(unitVector(axis, -AXIS_ARM), scale, cx, cy, pose);
+            const label = projectPoint(unitVector(axis, AXIS_LABEL), scale, cx, cy, pose);
             const color = axisColor(colors, axis);
             return (
               <G key={axis}>

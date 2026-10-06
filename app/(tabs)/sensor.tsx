@@ -20,6 +20,7 @@ import {
   TraceStack,
   useAccelerometerStream,
   ViewSwitch,
+  type PhonePose,
 } from "@/features/sensor";
 import { StationsPanel } from "@/features/stations";
 import { useTheme } from "@/theme";
@@ -51,6 +52,7 @@ export default function SensorScreen() {
     requestWebPermission,
   } = useAccelerometerStream();
   const [view, setView] = useState<SensorView>("traces");
+  const [pose, setPose] = useState<PhonePose>("standing");
   const [mode, setMode] = useState<SensorMode>("phone");
   const isWeb = Platform.OS === "web";
 
@@ -221,7 +223,15 @@ export default function SensorScreen() {
       {mode === "phone" && status === "streaming" ? (
         <View style={{ gap: spacing[3] }}>
           <ViewSwitch value={view} onChange={setView} />
-          <ChannelLegend />
+          <ChannelLegend
+            {...(view === "space"
+              ? {
+                  pose,
+                  onTogglePose: () =>
+                    setPose((current) => (current === "flat" ? "standing" : "flat")),
+                }
+              : {})}
+          />
 
           {view === "traces" ? (
             <TraceStack
@@ -234,6 +244,7 @@ export default function SensorScreen() {
               samples={samples}
               frameAt={frameAt}
               accessibilityLabel={t("sensor.spaceA11yLabel")}
+              pose={pose}
             />
           ) : (
             <SpectrumChart

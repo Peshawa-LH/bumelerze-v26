@@ -343,6 +343,8 @@
     "axisX": "X",
     "axisY": "Y",
     "axisZ": "Z",
+    "flipPhone": "Flip phone",
+    "pose": { "standing": "Standing", "flat": "Lying flat" },
     "chartA11yLabel": "Live accelerometer chart showing the last ten seconds of motion",
     "web": {
       "enableButton": "Enable motion sensor",
@@ -1531,7 +1533,7 @@
     "submitFailed": "Sending failed on this device. Your text is still here — please try again."
   },
   "stations": {
-    "intro": "Open data seismic stations around Kurdistan region and Iraq. Tab a station to watch available data streams.",
+    "intro": "Open data seismic stations around Kurdistan region and Iraq. Tap a station to watch available data streams.",
     "tier": {
       "live": "Live",
       "recent": "Delayed",

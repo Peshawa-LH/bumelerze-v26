@@ -10,6 +10,21 @@ import type { AccelerometerVector } from "./types";
 export const VIEW_AZIMUTH_RAD = (-35 * Math.PI) / 180;
 export const VIEW_ELEVATION_RAD = (24 * Math.PI) / 180;
 
+/**
+ * How the phone is drawn (owner, 2026-09-27): "standing" (the default — y up
+ * the screen) or "flat", lying screen-up as on a table, which is how a phone
+ * usually records shaking. Only the drawing turns; the X/Y/Z labels stay the
+ * phone's own axes.
+ */
+export type PhonePose = "standing" | "flat";
+
+/** Turns a phone-frame point into the drawing frame for the pose: lying
+ * flat, the screen's normal (z) points up and the long side (y) runs away
+ * from the viewer. A proper rotation, so nothing is mirrored. */
+export function orient(p: AccelerometerVector, pose: PhonePose): AccelerometerVector {
+  return pose === "flat" ? { x: p.x, y: p.z, z: -p.y } : p;
+}
+
 export interface ScreenPoint {
   u: number;
   v: number;
@@ -20,11 +35,13 @@ export interface ScreenPoint {
  * is pixels per unit; `cx`/`cy` is where the phone's centre lands.
  */
 export function projectPoint(
-  p: AccelerometerVector,
+  point: AccelerometerVector,
   scale: number,
   cx: number,
   cy: number,
+  pose: PhonePose = "standing",
 ): ScreenPoint {
+  const p = orient(point, pose);
   const cosA = Math.cos(VIEW_AZIMUTH_RAD);
   const sinA = Math.sin(VIEW_AZIMUTH_RAD);
   const cosE = Math.cos(VIEW_ELEVATION_RAD);
