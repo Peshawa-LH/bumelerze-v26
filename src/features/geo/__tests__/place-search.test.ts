@@ -118,6 +118,18 @@ describe("searchPlaces", () => {
     expect(ids("شەهبییاخ")).toContain("n9852690211");
   });
 
+  it("finds Ankawa by the English spelling though only 'Enkawe is in the data", () => {
+    // OSM has ckb عەنکاوە, kmr 'Enkawe, ar عنكاوة — no English name.
+    expect(ids("ankawa")).toContain("n2479376280");
+    expect(ids("Ankawa")[0]).toBe("n2479376280");
+    expect(ids("enkawe")[0]).toBe("n2479376280");
+  });
+
+  it("ranks a loose Latin match after every strict match", () => {
+    // "hawler" matches Hawler strictly; the loose fold must not push anything above it.
+    expect(ids("hawler")[0]).toBe("erbil");
+  });
+
   it("ranks exact, then prefix, then word prefix, then substring", () => {
     const tiny = buildPlaceIndex({
       cities: [],
@@ -255,6 +267,12 @@ describe("placeDisplayName", () => {
     expect(placeDisplayName(place, "en")).toBe("Kanî");
     expect(placeDisplayName(place, "ckb")).toBe("كاني");
     expect(placeDisplayName({ ...place, names: { ckb: "کانی" } }, "kmr")).toBe("کانی");
+  });
+
+  it("drops a leading apostrophe from an OSM spelling", () => {
+    expect(placeDisplayName({ ...place, names: { kmr: "'Enkawe" } }, "en")).toBe(
+      "Enkawe",
+    );
   });
 
   it("shows Hawler in English for the gazetteer's Erbil", () => {

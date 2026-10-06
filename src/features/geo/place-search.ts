@@ -174,6 +174,18 @@ interface IndexEntry {
   keys: string[];
 }
 
+/**
+ * A looser Latin key: e folded into a. Kurmanji spellings use e where an
+ * English reader types a ("Enkawe" for Ankawa, "Hewlêr" for Hawler), and
+ * most places have no English name. Used only after every exact, prefix and
+ * substring match has failed, and only for queries of three letters or more.
+ */
+function looseLatin(key: string): string {
+  return key.replace(/e/g, "a");
+}
+
+const LOOSE_MIN_LENGTH = 3;
+
 export interface PlaceIndex {
   entries: readonly IndexEntry[];
   byId: ReadonlyMap<string, Place>;
@@ -282,7 +294,7 @@ export interface SearchOptions {
 }
 
 /** 0 exact, 1 prefix, 2 word prefix, 3 substring; -1 no match. */
-function matchTier(keys: readonly string[], query: string): number {
+function strictTier(keys: readonly string[], query: string): number {
   let best = -1;
   for (const key of keys) {
     let tier = -1;
@@ -303,6 +315,17 @@ function matchTier(keys: readonly string[], query: string): number {
     }
   }
   return best;
+}
+
+/** The strict tiers first; failing those, the same tiers on the loose Latin
+ * keys, ranked after every strict match (4 to 7). */
+function matchTier(keys: readonly string[], query: string): number {
+  const strict = strictTier(keys, query);
+  if (strict !== -1 || query.length < LOOSE_MIN_LENGTH || !/[a-z]/.test(query)) {
+    return strict;
+  }
+  const loose = strictTier(keys.map(looseLatin), looseLatin(query));
+  return loose === -1 ? -1 : loose + 4;
 }
 
 /**
@@ -376,6 +399,8 @@ export function nearbyPlaces(
 /** Which name to show for each UI locale, in order. English readers see the
  * Latin Kurmanji spelling before Arabic script; Sorani readers see Arabic
  * before Kurmanji, as the map labels do. */
+const LEADING_MARKS = /^['’ʼʻ‘`´]+/;
+
 const NAME_CHAINS: Record<string, readonly (keyof PlaceNames)[]> = {
   en: ["en", "kmr", "ckb", "ar"],
   kmr: ["kmr", "en", "ckb", "ar"],
@@ -390,7 +415,9 @@ export function placeDisplayName(place: Place, locale: string): string {
   for (const key of chain) {
     const value = place.names[key];
     if (value) {
-      return value;
+      // OSM's Kurmanji spellings sometimes open with an apostrophe for the
+      // ayn ("'Enkawe"); it reads as a stray mark, so it isn't shown.
+      return value.replace(LEADING_MARKS, "") || value;
     }
   }
   return place.id;
