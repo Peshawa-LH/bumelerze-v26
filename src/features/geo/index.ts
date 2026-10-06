@@ -26,6 +26,25 @@ export {
   type KurdishPlaceNames,
   type KurdishPlaceTier,
 } from "./kurdish-places";
+export { DEFAULT_PLACE_ID, MAIN_TOWNS, type MainTown } from "./main-towns";
+export {
+  buildPlaceIndex,
+  MAX_PLACE_RESULTS,
+  NEARBY_QUICK_PICKS,
+  nearbyPlaces,
+  normalizeForSearch,
+  placeDisplayName,
+  searchPlaces,
+  type LatLonPoint,
+  type Place,
+  type PlaceIndex,
+  type PlaceKind,
+  type PlaceNames,
+  type PlaceResult,
+  type PlaceSources,
+  type SearchOptions,
+} from "./place-search";
+export { getLoadedPlaceIndex, loadPlaceIndex } from "./place-index";
 export { nearestCities, type NearestCityResult } from "./nearest";
 export {
   nearestCityDistanceLine,
