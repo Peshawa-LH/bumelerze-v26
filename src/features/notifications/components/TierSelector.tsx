@@ -8,8 +8,8 @@ import { useTheme } from "@/theme";
 interface TierSelectorProps {
   value: NotificationTier;
   onChange: (tier: NotificationTier) => void;
-  /** HomeBase section passes this true when no HomeBase town is set —
-   * spec-v1.md §4.10: "disables tiers when no HomeBase". Rows still render
+  /** The "another place" section passes this true when no place is chosen —
+   * spec-v1.md §4.10: "disables tiers when no place". Rows still render
    * (so the tier the user last set stays visible) but cannot be pressed. */
   disabled?: boolean;
 }

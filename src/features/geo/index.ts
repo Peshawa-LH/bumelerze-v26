@@ -29,6 +29,7 @@ export {
 export { DEFAULT_PLACE_ID, MAIN_TOWNS, type MainTown } from "./main-towns";
 export {
   buildPlaceIndex,
+  gazetteerPlaceById,
   MAX_PLACE_RESULTS,
   NEARBY_QUICK_PICKS,
   nearbyPlaces,

@@ -10,9 +10,9 @@ export type SettingsRowTrailing = "chevron" | "expand" | "none";
 interface SettingsRowProps {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
-  /** Plain value at the end, e.g. the HomeBase town. */
+  /** Plain value at the end, e.g. the language. */
   value?: string | null;
-  /** Small extra node between value and chevron (e.g. the "set automatically" mark). */
+  /** Small extra node between value and chevron (e.g. a small status mark). */
   valueAccessory?: ReactNode;
   onPress?: () => void;
   trailing?: SettingsRowTrailing;

@@ -12,8 +12,8 @@ export type OnboardingStepId =
   "mission" | "language" | "location" | "notifications" | "homeBase" | "done";
 
 /** "homeBase" stays in the id type only so a step saved by an older version
- * still resumes (it routes to "done"): HomeBase is automatic from location
- * since 2026-10-04, so the town-picker step left the flow (owner).
+ * still resumes (it routes to "done"): the town-picker step left the flow
+ * (owner, 2026-10-04) and the whole concept left the UI (2026-10-06).
  *
  * Screen order per spec-v1.md §4.11 — also drives the progress dots and the
  * resume-after-restart lookup (routes.ts), so it's the one place that order
@@ -26,21 +26,13 @@ export const ONBOARDING_STEPS: readonly OnboardingStepId[] = [
   "done",
 ];
 
-export interface HomeBasePreference {
-  townId: string;
-  /** Null only for the "elsewhere" sentinel town — every real town in
-   * towns.ts always carries coordinates. */
-  lat: number | null;
-  lon: number | null;
+/** A place the app remembers: its search id and where it is. The id is a
+ * gazetteer id ("erbil") or an OSM-derived id from the place search. */
+export interface StoredPlace {
+  placeId: string;
+  lat: number;
+  lon: number;
 }
-
-/**
- * Where the current HomeBase came from. "manual": the user picked a town (or
- * "elsewhere") themselves — never overwritten. "auto": derived from the
- * device location (`features/location/auto-home-base.ts`), refreshed at most
- * once a day while location permission is granted.
- */
-export type HomeBaseSource = "auto" | "manual";
 
 /**
  * Preset alert tiers (Phase 4, spec-v1.md §4.10/D11) — matches
@@ -60,8 +52,9 @@ export const NOTIFICATION_TIERS: readonly NotificationTier[] = [
 ];
 
 const DEFAULT_NEAR_ME_TIER: NotificationTier = "m3";
-const DEFAULT_HOME_BASE_TIER_WITH_TOWN: NotificationTier = "all";
-const DEFAULT_HOME_BASE_TIER_WITHOUT_TOWN: NotificationTier = "off";
+/** Tier a freshly chosen "another place" starts with: someone who bothers to
+ * add a place for family elsewhere almost always wants to hear about it. */
+const DEFAULT_ANOTHER_PLACE_TIER: NotificationTier = "all";
 
 export interface PrefsState {
   onboardingCompleted: boolean;
@@ -71,41 +64,38 @@ export interface PrefsState {
    * left off instead of restarting the whole flow (wave brief: "must
    * survive the restart and RESUME onboarding, not restart it"). */
   onboardingStep: OnboardingStepId;
-  homeBase: HomeBasePreference | null;
-  /** See `HomeBaseSource`. Installs that persisted a HomeBase before this
-   * field existed keep it as "manual" (they chose it); installs with no
-   * HomeBase start as "auto". */
-  homeBaseSource: HomeBaseSource;
-  /** UTC ms of the last automatic HomeBase check; null = never. Throttles
-   * the location lookup to once a day. */
-  homeBaseAutoCheckedAt: number | null;
+  /**
+   * Background reference place, never announced in the UI: the nearest main
+   * town to the last location fix, else Hawler. Only a default for places
+   * that must be pre-selected (the felt report without GPS, the Tag my
+   * building pin's starting point).
+   */
+  referencePlace: StoredPlace | null;
+  /** UTC ms of the last reference-place check; null = never. Throttles the
+   * location lookup to once a day. */
+  referenceCheckedAt: number | null;
   /**
    * Alert preset tier for events near the user's current/last-known
    * location (spec-v1.md §4.10). Default 'm3' — matches D16's
    * fatigue-aware stance of not paging everyone for M<3 background
    * seismicity while still catching everything locally felt-worthy.
    *
-   * CLIENT preference only this wave (Phase 4) — no push token, no
-   * server call. Server subscription sync attaches HERE: once anonymous
-   * auth is wired (see supabase/README.md's Anonymous Auth note), a
-   * future effect reads `nearMeTier`/`homeBaseTier` and upserts them into
-   * `notification_subscriptions.near_me_tier`/`homebase_tier`
-   * (migration 0005) alongside the Expo push token and the near-me/
-   * HomeBase lat/lon columns that table already has room for.
+   * CLIENT preference only (no push token, no server call yet). Server
+   * subscription sync attaches HERE: once anonymous auth is wired, a future
+   * effect reads `nearMeTier` / `anotherPlace` / `anotherPlaceTier` and
+   * upserts them into `notification_subscriptions.near_me_tier` and
+   * `homebase_tier` / `homebase_lat` / `homebase_lon` (migration 0005). The
+   * server columns keep their old names; the client model is the same: one
+   * optional extra place with a tier.
    */
   nearMeTier: NotificationTier;
-  /**
-   * Alert preset tier for the HomeBase pin, evaluated independently of
-   * the user's own location (spec-v1.md §4.10/D11, J3). Default logic
-   * (documented here since it's a derived default, not a flat constant):
-   * 'all' once a HomeBase town is set (a diaspora user who bothers to set
-   * a HomeBase almost always wants to hear about it), else 'off' (a tier
-   * with no location to evaluate against is meaningless). Applied once,
-   * at first-set time, via `setHomeBase`'s migration path below and the
-   * v1 store default — changing HomeBase afterward does NOT silently
-   * overwrite a tier the user has since customized.
-   */
-  homeBaseTier: NotificationTier;
+  /** The optional "Also alert me about another place" (for family elsewhere).
+   * Null = off. Chosen with the place search. */
+  anotherPlace: StoredPlace | null;
+  /** Alert tier for `anotherPlace`, evaluated independently of where the
+   * user is. 'off' whenever there is no place; 'all' when one is first
+   * chosen, and a later change of place keeps whatever tier was picked. */
+  anotherPlaceTier: NotificationTier;
   /** True once the persisted values have finished loading from
    * AsyncStorage. The root layout renders nothing until this flips, so it
    * never flashes Home before onboarding, or onboarding before Home
@@ -113,18 +103,14 @@ export interface PrefsState {
   hasHydrated: boolean;
   setOnboardingStep: (step: OnboardingStepId) => void;
   completeOnboarding: () => void;
-  /** A deliberate choice by the user: stores the town and pins the source
-   * to "manual" so automatic updates stop. */
-  setHomeBase: (homeBase: HomeBasePreference | null) => void;
-  /** Automatic update: stores the town with source "auto". Leaves the
-   * HomeBase alert tier alone (no silent alert changes). */
-  setAutoHomeBase: (homeBase: HomeBasePreference, checkedAt: number) => void;
-  /** Records an automatic check that found nothing to change. */
-  markHomeBaseAutoChecked: (checkedAt: number) => void;
-  /** "Use my location again": back to automatic and due for a refresh now. */
-  resumeAutoHomeBase: () => void;
+  /** Stores the background reference place and when it was checked. */
+  setReferencePlace: (place: StoredPlace, checkedAt: number) => void;
+  /** Records a check that found nothing to change. */
+  markReferenceChecked: (checkedAt: number) => void;
+  /** Sets or clears the optional extra alert place. */
+  setAnotherPlace: (place: StoredPlace | null) => void;
   setNearMeTier: (tier: NotificationTier) => void;
-  setHomeBaseTier: (tier: NotificationTier) => void;
+  setAnotherPlaceTier: (tier: NotificationTier) => void;
   /** Settings' "replay onboarding" row — per spec-v1.md §4.11 ("not
    * reachable after") this is the *only* path back into onboarding once
    * it's been completed once. */
@@ -132,93 +118,141 @@ export interface PrefsState {
   setHasHydrated: (value: boolean) => void;
 }
 
+/** Persist schema version. 0 = the HomeBase model (`homeBase`, `homeBaseSource`,
+ * `homeBaseAutoCheckedAt`, `homeBaseTier`); 1 = reference place + another place. */
+export const PREFS_VERSION = 1;
+
+function isNotificationTier(value: unknown): value is NotificationTier {
+  return NOTIFICATION_TIERS.includes(value as NotificationTier);
+}
+
+function readStoredPlace(value: unknown): StoredPlace | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const candidate = value as {
+    townId?: unknown;
+    placeId?: unknown;
+    lat?: unknown;
+    lon?: unknown;
+  };
+  const id = candidate.placeId ?? candidate.townId;
+  if (
+    typeof id !== "string" ||
+    typeof candidate.lat !== "number" ||
+    typeof candidate.lon !== "number"
+  ) {
+    // The old "elsewhere" sentinel had null coordinates: no place.
+    return null;
+  }
+  return { placeId: id, lat: candidate.lat, lon: candidate.lon };
+}
+
+/**
+ * Persist migration from the HomeBase model (version 0) to the current one:
+ * - a HomeBase the user picked by hand (source "manual", a real town) becomes
+ *   their "another place", keeping the alert tier they had; it also stays as
+ *   the background reference until the next location check replaces it;
+ * - an automatic HomeBase becomes just the background reference, with no
+ *   extra place;
+ * - "elsewhere" (a manual HomeBase of null) means no extra place;
+ * - installs older than the tier/source fields are read with the rules those
+ *   fields used to derive (a saved town was a manual choice, tier "all").
+ * Fields that are not about places pass through untouched.
+ */
+export function migratePrefs(
+  persisted: unknown,
+  fromVersion: number,
+): Partial<PrefsState> {
+  if (
+    fromVersion >= PREFS_VERSION ||
+    typeof persisted !== "object" ||
+    persisted === null
+  ) {
+    return (persisted ?? {}) as Partial<PrefsState>;
+  }
+  const old = persisted as Record<string, unknown>;
+  const { homeBase, homeBaseSource, homeBaseAutoCheckedAt, homeBaseTier, ...rest } = old;
+
+  const town = readStoredPlace(homeBase);
+  const source = homeBaseSource ?? (homeBase ? "manual" : "auto");
+  const oldTier = isNotificationTier(homeBaseTier)
+    ? homeBaseTier
+    : DEFAULT_ANOTHER_PLACE_TIER;
+
+  const migrated: Record<string, unknown> = { ...rest };
+  migrated.referencePlace = town;
+  migrated.referenceCheckedAt = null;
+  if (source === "manual" && town) {
+    migrated.anotherPlace = town;
+    migrated.anotherPlaceTier = oldTier;
+  } else {
+    migrated.anotherPlace = null;
+    migrated.anotherPlaceTier = "off";
+    if (source === "auto") {
+      migrated.referenceCheckedAt =
+        typeof homeBaseAutoCheckedAt === "number" ? homeBaseAutoCheckedAt : null;
+    }
+  }
+  return migrated as Partial<PrefsState>;
+}
+
 export const usePrefsStore = create<PrefsState>()(
   persist(
     (set) => ({
       onboardingCompleted: false,
       onboardingStep: "mission",
-      homeBase: null,
-      homeBaseSource: "auto",
-      homeBaseAutoCheckedAt: null,
+      referencePlace: null,
+      referenceCheckedAt: null,
       nearMeTier: DEFAULT_NEAR_ME_TIER,
-      homeBaseTier: DEFAULT_HOME_BASE_TIER_WITHOUT_TOWN,
+      anotherPlace: null,
+      anotherPlaceTier: "off",
       hasHydrated: false,
       setOnboardingStep: (step) => set({ onboardingStep: step }),
       completeOnboarding: () =>
         set({ onboardingCompleted: true, onboardingStep: "done" }),
-      setHomeBase: (homeBase) =>
+      setReferencePlace: (place, checkedAt) =>
+        set({ referencePlace: place, referenceCheckedAt: checkedAt }),
+      markReferenceChecked: (checkedAt) => set({ referenceCheckedAt: checkedAt }),
+      setAnotherPlace: (anotherPlace) =>
         set((state) => ({
-          homeBase,
-          homeBaseSource: "manual",
-          // Derived-default rule (see homeBaseTier's doc comment above):
-          // only auto-set the tier when a HomeBase is being established for
-          // the first time (previous value was null) or cleared entirely —
-          // switching from one town to another keeps whatever tier the user
-          // already chose.
-          homeBaseTier:
-            homeBase === null
-              ? DEFAULT_HOME_BASE_TIER_WITHOUT_TOWN
-              : state.homeBase === null
-                ? DEFAULT_HOME_BASE_TIER_WITH_TOWN
-                : state.homeBaseTier,
+          anotherPlace,
+          // Only a first choice (or a removal) touches the tier; swapping one
+          // place for another keeps the tier the user picked.
+          anotherPlaceTier:
+            anotherPlace === null
+              ? "off"
+              : state.anotherPlace === null
+                ? DEFAULT_ANOTHER_PLACE_TIER
+                : state.anotherPlaceTier,
         })),
-      setAutoHomeBase: (homeBase, checkedAt) =>
-        set({ homeBase, homeBaseSource: "auto", homeBaseAutoCheckedAt: checkedAt }),
-      markHomeBaseAutoChecked: (checkedAt) => set({ homeBaseAutoCheckedAt: checkedAt }),
-      resumeAutoHomeBase: () =>
-        set({ homeBaseSource: "auto", homeBaseAutoCheckedAt: null }),
       setNearMeTier: (tier) => set({ nearMeTier: tier }),
-      setHomeBaseTier: (tier) => set({ homeBaseTier: tier }),
+      setAnotherPlaceTier: (tier) => set({ anotherPlaceTier: tier }),
       resetOnboarding: () =>
         set({ onboardingCompleted: false, onboardingStep: "mission" }),
       setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
       name: "bumelerze.prefs",
+      version: PREFS_VERSION,
+      migrate: (persisted, version) => migratePrefs(persisted, version) as PrefsState,
       storage: createJSONStorage(() => AsyncStorage),
       // Only these fields are meaningful across launches; hydration flag and
       // actions are runtime-only and would be pointless (or wrong) to persist.
       partialize: (state) => ({
         onboardingCompleted: state.onboardingCompleted,
         onboardingStep: state.onboardingStep,
-        homeBase: state.homeBase,
-        homeBaseSource: state.homeBaseSource,
-        homeBaseAutoCheckedAt: state.homeBaseAutoCheckedAt,
+        referencePlace: state.referencePlace,
+        referenceCheckedAt: state.referenceCheckedAt,
         nearMeTier: state.nearMeTier,
-        homeBaseTier: state.homeBaseTier,
+        anotherPlace: state.anotherPlace,
+        anotherPlaceTier: state.anotherPlaceTier,
       }),
-      // Custom merge (rather than the default shallow-spread) so installs
-      // that already had `homeBase` persisted BEFORE Phase 4 added the tier
-      // fields land on the correct derived default instead of the flat
-      // "off" initial-state value — an existing diaspora user with a
-      // HomeBase already set should not silently start with alerts off.
-      // Fresh installs are unaffected: `persistedState` is `{}` for them, so
-      // both branches below are no-ops and the create()-time defaults stand.
+      // `persistedState` is `undefined` on a first-ever launch; the migration
+      // has already run for older blobs, so this only fills what is missing.
       merge: (persistedState, currentState) => {
-        // `persistedState` is `undefined` on a first-ever launch (nothing in
-        // AsyncStorage yet) — zustand's persist middleware calls `merge`
-        // unconditionally either way, so this must tolerate that case
-        // rather than assume a real object.
         const persisted = (persistedState ?? {}) as Partial<PrefsState>;
-        const merged: PrefsState = { ...currentState, ...persisted };
-        if (persisted.homeBaseTier === undefined) {
-          merged.homeBaseTier = merged.homeBase
-            ? DEFAULT_HOME_BASE_TIER_WITH_TOWN
-            : DEFAULT_HOME_BASE_TIER_WITHOUT_TOWN;
-        }
-        if (persisted.nearMeTier === undefined) {
-          merged.nearMeTier = DEFAULT_NEAR_ME_TIER;
-        }
-        // Installs from before automatic HomeBase: a town they already have
-        // was their own choice, so it is "manual" and is never replaced. No
-        // town yet (skipped, or a pre-onboarding install) = "auto".
-        if (persisted.homeBaseSource === undefined) {
-          merged.homeBaseSource = merged.homeBase ? "manual" : "auto";
-        }
-        if (persisted.homeBaseAutoCheckedAt === undefined) {
-          merged.homeBaseAutoCheckedAt = null;
-        }
-        return merged;
+        return { ...currentState, ...persisted };
       },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

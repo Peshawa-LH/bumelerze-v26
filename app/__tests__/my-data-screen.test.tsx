@@ -292,9 +292,10 @@ describe("My account screen", () => {
       expect(screen.queryByTestId("my-reports-see-all")).toBeNull();
     });
 
-    it("has the settings group: HomeBase, Notifications, Privacy & data", async () => {
+    it("has the settings group: Notifications, Privacy & data, and no HomeBase row", async () => {
       await renderWithProviders(<MyDataScreen />);
-      expect(screen.getByText("HomeBase")).toBeTruthy();
+      expect(screen.queryByText("HomeBase")).toBeNull();
+      expect(screen.queryByTestId("homebase-row")).toBeNull();
       expect(screen.getByText("Notifications")).toBeTruthy();
       expect(screen.getByText("Privacy & data")).toBeTruthy();
       await press("account-notifications-row");

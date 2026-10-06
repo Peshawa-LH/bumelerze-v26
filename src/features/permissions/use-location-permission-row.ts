@@ -20,7 +20,7 @@ function toStatus(result: Location.PermissionStatus): PermissionRowStatus {
 /**
  * Settings "Permissions & data" location row (D26 item 6). Distinct from
  * `features/location/use-location-permission-status.ts` (the existing
- * read-only HomeBase-adjacent status display, left untouched per this
+ * read-only status display, left untouched per this
  * wave's "move nothing existing" scope) — this hook additionally exposes a
  * tap-triggered `request()`, which that read-only hook deliberately does
  * not.

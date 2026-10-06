@@ -30,8 +30,6 @@ const NEW_FILES = [
   "src/features/building/components/MyHomeCard.tsx",
   "src/features/building/components/HomeCard.tsx",
   "src/features/mydata/components/MyReportsSection.tsx",
-  "src/features/mydata/components/HomeBaseRow.tsx",
-  "src/features/mydata/components/HomeBaseSection.tsx",
   "src/features/mydata/use-my-reports.ts",
   "src/features/eventhub/components/RoleMark.tsx",
 ];

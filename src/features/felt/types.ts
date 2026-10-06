@@ -57,12 +57,13 @@ export interface FeltLocation {
   quality: LocationQuality;
   /**
    * Local-only bookkeeping — NOT a migration column. When `quality` is
-   * "manual" via the inline town picker (spec-v1.md §4.6 "never block the
-   * one-tap promise on a permission grant"), this records which gazetteer
-   * town produced the lat/lon so the UI can show/re-open the right
-   * selection; the server only ever sees lat/lon + quality.
+   * "manual" via the inline place search (spec-v1.md §4.6 "never block the
+   * one-tap promise on a permission grant"), this records which place
+   * (gazetteer city or OSM-derived town/village) produced the lat/lon; the
+   * server only ever sees lat/lon + quality. Reports queued by older
+   * versions carry `townId` instead; nothing reads either.
    */
-  townId?: string;
+  placeId?: string;
 }
 
 /**

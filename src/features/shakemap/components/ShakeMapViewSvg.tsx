@@ -183,7 +183,7 @@ export function ShakeMapView({
   // the text labels go through a deterministic greedy layout pass that
   // skips/offsets anything that would collide with the epicenter marker or
   // an already-placed label — see `label-layout.ts`. `cities` is already
-  // priority-ordered (HomeBase-subset first, then nearest), which is
+  // priority-ordered (main towns first, then nearest), which is
   // exactly the greedy pass's priority order too.
   const cityNames = new Map(
     cities.map((city) => [city.id, pickLocalizedName(city.names, locale)]),

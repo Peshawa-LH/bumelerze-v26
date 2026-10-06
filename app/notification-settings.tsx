@@ -5,7 +5,14 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { pickLocalizedName } from "@/features/geo";
+import {
+  gazetteerPlaceById,
+  placeDetailLine,
+  placeDisplayName,
+  usePlaceIndex,
+  type Place,
+} from "@/features/geo";
+import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { formatMagnitudeValue } from "@/features/events";
 import {
   ensureNotificationPermission,
@@ -16,13 +23,7 @@ import {
   useNotificationPermissionStatus,
   type NotificationPermissionStatus,
 } from "@/features/notifications";
-import {
-  HOME_BASE_ELSEWHERE_ID,
-  HOME_BASE_TOWNS,
-  TownPicker,
-  usePrefsStore,
-  type NotificationTier,
-} from "@/features/onboarding";
+import { usePrefsStore, type NotificationTier } from "@/features/onboarding";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 
@@ -38,11 +39,12 @@ export default function NotificationSettingsScreen() {
 
   const nearMeTier = usePrefsStore((state) => state.nearMeTier);
   const setNearMeTier = usePrefsStore((state) => state.setNearMeTier);
-  const homeBaseTier = usePrefsStore((state) => state.homeBaseTier);
-  const setHomeBaseTier = usePrefsStore((state) => state.setHomeBaseTier);
-  const homeBase = usePrefsStore((state) => state.homeBase);
-  const setHomeBase = usePrefsStore((state) => state.setHomeBase);
-  const [isPickingTown, setIsPickingTown] = useState(false);
+  const anotherPlaceTier = usePrefsStore((state) => state.anotherPlaceTier);
+  const setAnotherPlaceTier = usePrefsStore((state) => state.setAnotherPlaceTier);
+  const anotherPlace = usePrefsStore((state) => state.anotherPlace);
+  const setAnotherPlace = usePrefsStore((state) => state.setAnotherPlace);
+  const placeIndex = usePlaceIndex();
+  const [isPickingPlace, setIsPickingPlace] = useState(false);
 
   // `focusPermissionStatus` re-checks on every screen focus (e.g. coming
   // back from the OS Settings app); `override` reflects the immediate
@@ -79,25 +81,23 @@ export default function NotificationSettingsScreen() {
     }
   }
 
-  async function handleHomeBaseTierChange(tier: NotificationTier) {
-    setHomeBaseTier(tier);
+  async function handleAnotherPlaceTierChange(tier: NotificationTier) {
+    setAnotherPlaceTier(tier);
     if (tier !== "off") {
       await requestPermissionIfNeeded();
     }
   }
 
-  function handleSelectTown(townId: string) {
-    const town = HOME_BASE_TOWNS.find((candidate) => candidate.id === townId);
-    if (!town) {
-      return;
-    }
-    setHomeBase({ townId: town.id, lat: town.lat, lon: town.lon });
-    setIsPickingTown(false);
+  async function handleSelectPlace(place: Place) {
+    setAnotherPlace({ placeId: place.id, lat: place.lat, lon: place.lon });
+    setIsPickingPlace(false);
+    // A new place starts at "all": the value moment for the permission ask.
+    await requestPermissionIfNeeded();
   }
 
-  function handleSelectElsewhere() {
-    setHomeBase(null);
-    setIsPickingTown(false);
+  function handleRemovePlace() {
+    setAnotherPlace(null);
+    setIsPickingPlace(false);
   }
 
   async function handlePlaySound() {
@@ -117,12 +117,16 @@ export default function NotificationSettingsScreen() {
     });
   }
 
-  const currentTown = homeBase
-    ? HOME_BASE_TOWNS.find((town) => town.id === homeBase.townId)
+  const currentPlace: Place | null = anotherPlace
+    ? (placeIndex?.byId.get(anotherPlace.placeId) ??
+      gazetteerPlaceById(anotherPlace.placeId) ?? {
+        id: anotherPlace.placeId,
+        kind: "town",
+        lat: anotherPlace.lat,
+        lon: anotherPlace.lon,
+        names: {},
+      })
     : null;
-  const currentTownLabel = currentTown
-    ? pickLocalizedName(currentTown.names, i18n.language)
-    : t("onboarding.homeBase.notSet");
 
   return (
     <>
@@ -176,7 +180,7 @@ export default function NotificationSettingsScreen() {
           />
         </View>
 
-        {/* HomeBase section */}
+        {/* Another place: optional, off until a place is chosen */}
         <View style={{ gap: spacing[2] }}>
           <Text
             accessibilityRole="header"
@@ -187,7 +191,7 @@ export default function NotificationSettingsScreen() {
               fontWeight: typography.h2.fontWeight,
             }}
           >
-            {t("notificationSettings.homeBase.title")}
+            {t("notificationSettings.anotherPlace.title")}
           </Text>
           <Text
             style={{
@@ -196,60 +200,107 @@ export default function NotificationSettingsScreen() {
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >
-            {t("notificationSettings.homeBase.explainer")}
+            {t("notificationSettings.anotherPlace.explainer")}
           </Text>
 
-          <View style={styles.spaceBetweenRow}>
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.bodyDefault.fontSize,
-                fontWeight: "600",
-              }}
-            >
-              {currentTownLabel}
-            </Text>
+          {currentPlace ? (
+            <>
+              <View style={styles.spaceBetweenRow}>
+                <View style={styles.placeText}>
+                  <Text
+                    testID="another-place-name"
+                    style={{
+                      color: colors.text.primary,
+                      fontSize: typography.bodyDefault.fontSize,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {placeDisplayName(currentPlace, i18n.language)}
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.text.tertiary,
+                      fontSize: typography.labelCaption.fontSize,
+                    }}
+                  >
+                    {placeDetailLine(currentPlace, i18n.language, t)}
+                  </Text>
+                </View>
+                <View style={styles.linkRow}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setIsPickingPlace((value) => !value)}
+                    hitSlop={12}
+                    style={styles.linkTarget}
+                    testID="another-place-change"
+                  >
+                    <Text
+                      style={{
+                        color: colors.text.link,
+                        fontSize: typography.labelButton.fontSize,
+                        fontWeight: typography.labelButton.fontWeight,
+                      }}
+                    >
+                      {t("notificationSettings.anotherPlace.change")}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={handleRemovePlace}
+                    hitSlop={12}
+                    style={styles.linkTarget}
+                    testID="another-place-remove"
+                  >
+                    <Text
+                      style={{
+                        color: colors.text.link,
+                        fontSize: typography.labelButton.fontSize,
+                        fontWeight: typography.labelButton.fontWeight,
+                      }}
+                    >
+                      {t("notificationSettings.anotherPlace.remove")}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+              {isPickingPlace ? (
+                <PlaceSearch
+                  selectedPlaceId={anotherPlace?.placeId ?? null}
+                  onSelect={(place) => void handleSelectPlace(place)}
+                  testID="another-place-search"
+                />
+              ) : null}
+              <TierSelector
+                value={anotherPlaceTier}
+                onChange={(tier) => void handleAnotherPlaceTierChange(tier)}
+              />
+            </>
+          ) : isPickingPlace ? (
+            <PlaceSearch
+              onSelect={(place) => void handleSelectPlace(place)}
+              testID="another-place-search"
+            />
+          ) : (
             <Pressable
               accessibilityRole="button"
-              onPress={() => setIsPickingTown((value) => !value)}
-              hitSlop={12}
+              onPress={() => setIsPickingPlace(true)}
+              style={[
+                styles.row,
+                { borderColor: colors.border.default, paddingVertical: spacing[3] },
+              ]}
+              testID="another-place-choose"
             >
               <Text
                 style={{
-                  color: colors.text.link,
-                  fontSize: typography.labelButton.fontSize,
-                  fontWeight: typography.labelButton.fontWeight,
+                  color: colors.text.primary,
+                  fontSize: typography.bodyDefault.fontSize,
+                  fontWeight: "600",
                 }}
               >
-                {t("notificationSettings.homeBase.change")}
+                {t("notificationSettings.anotherPlace.choose")}
               </Text>
             </Pressable>
-          </View>
-          {isPickingTown ? (
-            <TownPicker
-              selectedTownId={homeBase?.townId ?? HOME_BASE_ELSEWHERE_ID}
-              onSelectTown={handleSelectTown}
-              onSelectElsewhere={handleSelectElsewhere}
-            />
-          ) : null}
-
-          {homeBase === null ? (
-            <Text
-              style={{
-                color: colors.text.tertiary,
-                fontSize: typography.bodyMeta.fontSize,
-                lineHeight: typography.bodyMeta.lineHeight,
-              }}
-            >
-              {t("notificationSettings.homeBase.notSetHint")}
-            </Text>
-          ) : null}
-
-          <TierSelector
-            value={homeBaseTier}
-            onChange={(tier) => void handleHomeBaseTierChange(tier)}
-            disabled={homeBase === null}
-          />
+          )}
         </View>
 
         {/* Rehearsal */}
@@ -350,5 +401,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 12,
   },
+  placeText: { flex: 1 },
+  linkRow: { flexDirection: "row", alignItems: "center", gap: 16 },
+  linkTarget: { minHeight: 44, justifyContent: "center" },
 });

@@ -16,7 +16,7 @@ import { useMySummary } from "@/features/account/use-my-summary";
 import { useAccount } from "@/features/account/use-account";
 import { BadgesSection } from "@/features/badges";
 import { MyHomeCard } from "@/features/building";
-import { HomeBaseSection, MyReportsSection } from "@/features/mydata";
+import { MyReportsSection } from "@/features/mydata";
 import { useTheme } from "@/theme";
 
 /**
@@ -74,7 +74,6 @@ export default function MyDataScreen() {
         <MyHomeCard />
         <MyReportsSection />
         <SettingsGroup>
-          <HomeBaseSection />
           <SettingsRow
             icon="notifications-outline"
             label={t("settings.notificationsSectionTitle")}

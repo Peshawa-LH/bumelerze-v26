@@ -25,7 +25,7 @@ export interface MapCoordinatePickerProps {
   initialLat: number | null;
   initialLon: number | null;
   /** Fires once the engineer confirms a point picked on the map — same
-   * contract as `InlineTownPicker`'s `onSelectTown`: hands back a
+   * contract as the place search's `onSelect`: hands back a
    * coordinate, does not itself submit/look anything up. */
   onSelect: (lat: number, lon: number) => void;
 }
@@ -43,7 +43,7 @@ const INITIAL_POINT_ZOOM = 10;
  * coordinate tool, not the Map tab. Tapping the map, or dragging the pin
  * it drops, updates a numeric coordinate read-out; "Use this location"
  * hands that coordinate back to `CoordinateInputForm` exactly like
- * `InlineTownPicker.onSelectTown` does — fills the text fields, does not
+ * the place search's `onSelect` does — fills the text fields, does not
  * submit — so the SAME `handleSubmit` → `lookupHandbookData` path every
  * other entry method already uses runs unchanged, including its honest
  * `handbook.outOfCoverage` empty-state for a point outside the bundled

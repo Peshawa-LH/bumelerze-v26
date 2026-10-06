@@ -3,9 +3,9 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { refreshAutoHomeBase } from "@/features/location";
+import { refreshReferencePlace } from "@/features/location";
 import {
-  applyDefaultHomeBase,
+  applyDefaultReferencePlace,
   OnboardingScreenShell,
   usePrefsStore,
 } from "@/features/onboarding";
@@ -25,9 +25,9 @@ export default function OnboardingLocationScreen() {
   const [isRequesting, setIsRequesting] = useState(false);
 
   function goNext() {
-    // Without location the HomeBase is Hawler (owner); with location the
-    // nearest town replaces it as soon as the first fix arrives.
-    applyDefaultHomeBase();
+    // Without location the silent reference place is Hawler (owner); with
+    // location the nearest town replaces it as soon as the first fix arrives.
+    applyDefaultReferencePlace();
     setOnboardingStep("notifications");
     router.push("/onboarding/notifications");
   }
@@ -38,10 +38,10 @@ export default function OnboardingLocationScreen() {
       // Foreground-only (wave brief) — no background/"always" location is
       // ever requested anywhere in this app.
       const { granted } = await Location.requestForegroundPermissionsAsync();
-      // HomeBase is automatic: the nearest town from this first fix. The
+      // Fill the background reference place from this first fix. The
       // root-level check ran before permission existed, so ask again now.
       if (granted) {
-        void refreshAutoHomeBase();
+        void refreshReferencePlace();
       }
     } catch {
       // Hardware/platform failure — never blocks the flow (spec-v1.md

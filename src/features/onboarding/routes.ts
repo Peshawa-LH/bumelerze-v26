@@ -10,7 +10,7 @@ const ONBOARDING_ROUTES = {
   language: "/onboarding/language",
   location: "/onboarding/location",
   notifications: "/onboarding/notifications",
-  // Retired step (HomeBase is automatic); a saved step resumes at the end.
+  // Retired step; a saved step resumes at the end.
   homeBase: "/onboarding/done",
   done: "/onboarding/done",
 } as const satisfies Record<OnboardingStepId, Href>;

@@ -5,8 +5,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
-import { InlineTownPicker } from "@/features/felt/components/InlineTownPicker";
-import { HOME_BASE_TOWNS, usePrefsStore } from "@/features/onboarding";
+import { DEFAULT_PLACE_ID, gazetteerPlaceById, type Place } from "@/features/geo";
+import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
+import { usePrefsStore } from "@/features/onboarding";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { LABEL_MAX, UNIT_LABEL_MAX } from "../constants";
@@ -61,8 +62,6 @@ interface TagFlowProps {
   /** Set to redo the questions of an existing home. */
   retake?: { tag: HomeTag; answers: Answers };
 }
-
-const DEFAULT_TOWN_ID = "erbil";
 
 /**
  * "Tag my building": one family's home, one question per screen. New homes
@@ -257,15 +256,14 @@ function LocationStep({ state, onChange }: StepProps) {
   const { t } = useTranslation();
   const { spacing } = useTheme();
   const gps = useGpsFix();
-  const homeBase = usePrefsStore((prefs) => prefs.homeBase);
-  const [townId, setTownId] = useState(state.location?.townId ?? DEFAULT_TOWN_ID);
+  const referencePlace = usePrefsStore((prefs) => prefs.referencePlace);
   const [pinning, setPinning] = useState<{ start: PinStart; point: PinPoint } | null>(
     null,
   );
   const hasGps = state.location?.quality === "gps";
   const hasPin = state.location?.quality === "pin";
   const fallback = useMemo(() => {
-    const town = HOME_BASE_TOWNS.find((candidate) => candidate.id === DEFAULT_TOWN_ID);
+    const town = gazetteerPlaceById(DEFAULT_PLACE_ID);
     return { lat: town?.lat ?? 36.19, lon: town?.lon ?? 44.01 };
   }, []);
 
@@ -276,22 +274,18 @@ function LocationStep({ state, onChange }: StepProps) {
     }
   }
 
-  function chooseTown(id: string) {
-    setTownId(id);
-    const town = HOME_BASE_TOWNS.find((candidate) => candidate.id === id);
-    if (town) {
-      const location: FlowLocation = {
-        lat: town.lat,
-        lon: town.lon,
-        quality: "town",
-        townId: id,
-      };
-      onChange({ ...state, location });
-    }
+  function choosePlace(place: Place) {
+    const location: FlowLocation = {
+      lat: place.lat,
+      lon: place.lon,
+      quality: "town",
+      placeId: place.id,
+    };
+    onChange({ ...state, location });
   }
 
   function startPinning() {
-    const start = pinStart(state.location, homeBase, fallback);
+    const start = pinStart(state.location, referencePlace, fallback);
     setPinning({ start, point: { lat: start.lat, lon: start.lon } });
   }
 
@@ -365,9 +359,12 @@ function LocationStep({ state, onChange }: StepProps) {
         </>
       ) : null}
       <Body tone="secondary">{t("building.flow.location.or")}</Body>
-      <InlineTownPicker
-        selectedTownId={state.location?.quality === "town" ? townId : ""}
-        onSelectTown={chooseTown}
+      <PlaceSearch
+        selectedPlaceId={
+          state.location?.quality === "town" ? (state.location.placeId ?? null) : null
+        }
+        onSelect={choosePlace}
+        testID="location-place-search"
       />
       {state.location?.quality === "town" ? (
         <Meta>{t("building.flow.location.townNote")}</Meta>

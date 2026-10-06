@@ -75,7 +75,6 @@ export { LevelTile } from "./components/LevelTile";
 export { DamageTile } from "./components/DamageTile";
 export { DAMAGE_ARTWORK, LEVEL_ARTWORK } from "./artwork";
 export { FeltReportPill, FELT_PILL_CLEARANCE } from "./components/FeltReportPill";
-export { InlineTownPicker } from "./components/InlineTownPicker";
 export { Tier2ScreenShell } from "./components/Tier2ScreenShell";
 export { Tier2OptionButton } from "./components/Tier2OptionButton";
 export { useTier2DraftStore } from "./tier2-draft-store";

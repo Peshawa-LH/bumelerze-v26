@@ -578,22 +578,20 @@
       "dark": "Tarî"
     },
     "cancel": "Betal ke",
-    "homeBaseSectionTitle": "Cihê Malê",
-    "homeBaseChange": "Biguherîne",
     "openSystemSettings": "Sazkariyan Veke",
     "onboardingSectionTitle": "Danasîn",
-    "onboardingSectionDescription": "Dîmenên bi xêr hatinê yên ku te cara yekem Bumelerze vekir dîsa nîşan dide. Hilbijartina zimên û Cihê Malê tê parastin.",
+    "onboardingSectionDescription": "Dîmenên bi xêr hatinê yên ku te cara yekem Bumelerze vekir dîsa nîşan dide. Hilbijartina zimên tê parastin.",
     "replayOnboarding": "Danasînê dîsa bibîne",
     "replayOnboardingConfirmTitle": "Danasîn dîsa were nîşandan?",
-    "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên û Cihê Malê tê parastin.",
+    "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên tê parastin.",
     "notificationsSectionTitle": "Agahdarî",
-    "notificationsSectionDescription": "Hilbijêre ka Bumelerze te çawa ji bo erdhejên nêzî te û nêzî Cihê Malê te agahdar dike.",
+    "notificationsSectionDescription": "Hilbijêre ka Bumelerze te ji kîjan erdhejan agahdar dike.",
     "notificationsManage": "Agahdariyan bi rê ve bibe",
     "handbookSectionTitle": "Pirtûka endezyar",
     "handbookSectionDescription": "Nirxên sêwiranê yên jêder (PGA, Vs30, çîna axê) ji bo cihekî li Kurdistan/Iraq, ji bo endezyar û lêkolîneran.",
     "handbookOpen": "Pirtûka endezyar veke",
     "myDataSectionTitle": "Hesabê min",
-    "myDataSectionDescription": "Nasnameya te ya beşdariyê, bajarê te, û raporên erdhejan ku te ji vê cîhazê şandine.",
+    "myDataSectionDescription": "Nasnameya te ya beşdariyê û raporên erdhejan ku te ji vê cîhazê şandine.",
     "myDataOpen": "Hesabê min veke",
     "feedbackSectionTitle": "Nêrîn",
     "feedbackSectionDescription": "Ji me re li ser çewtiyekê, ramanekê, an her tiştê din ê li ser hişê te bibêje.",
@@ -614,9 +612,7 @@
     "footerAttribution": "Daneyên erdhejê yên USGS, EMSC (seismicportal.eu), û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) di bin lîsansa CC BY 4.0 de ne.",
     "footerTrademark": "Bumelerze™ û logoya wê nîşanên bazirganî yên projeyê ne.",
     "footerVersion": "Guhertoya sepana Bumelerze {{version}}",
-    "footerLogoA11yLabel": "Bumelerze",
-    "homeBaseAuto": "{{city}} · ji cihê te bi xwe hate danîn",
-    "homeBaseUseLocation": "Cihê min dîsa bi kar bîne"
+    "footerLogoA11yLabel": "Bumelerze"
   },
   "onboarding": {
     "back": "Vegere",
@@ -631,23 +627,18 @@
     },
     "location": {
       "title": "Cîhê te zanistê baştir dike",
-      "description": "Parvekirina cîhê te dihêle Bumelerze dûrahiyên rast nîşan bide û raporên te yên \"te hîs kir?\" dike şahidiyeke zanistî ya derbasdar ku dibe alîkar ji bo nexşekirina lerizîna rastîn. Herwiha Cihê Malê te bixweber destnîşan dike. Tu dikarî vê her dem ji Sazkariyan biguherînî.",
+      "description": "Parvekirina cîhê te dihêle Bumelerze dûrahiyên rast nîşan bide û raporên te yên \"te hîs kir?\" dike şahidiyeke zanistî ya derbasdar ku dibe alîkar ji bo nexşekirina lerizîna rastîn. Tu dikarî vê her dem ji Sazkariyan biguherînî.",
       "allow": "Destûra gihîştina cîhê bide",
       "notNow": "Niha na"
     },
     "notifications": {
       "title": "Hişyarî tên",
-      "description": "Di demeke nêz de, Bumelerze dê karibe te agahdar bike gava erdhejek li nêzî te an li cihek ji bo te girîng (Cihê Malê) çêbibe. Dema ev taybetmendî derkeve holê emê destûra hişyariyê bixwazin."
-    },
-    "homeBase": {
-      "elsewhere": "Cihekî din / derbas bike",
-      "notSet": "Nehatiye danîn"
+      "description": "Di demeke nêz de, Bumelerze dê karibe te agahdar bike gava erdhejek li nêzî te an li cihek ji bo te girîng çêbibe. Dema ev taybetmendî derkeve holê emê destûra hişyariyê bixwazin."
     },
     "done": {
       "title": "Her tişt amade ye",
       "description": "Bumelerze amade ye. Her carê tu sepanê vekî tu yê li ser lîsteya rasterast a erdhejên herêma xwe be.",
-      "cta": "Dest pê bike",
-      "homeBase": "Cihê Malê te wek {{town}} hat danîn. Tu dikarî paşê di Hesabê min de biguherînî."
+      "cta": "Dest pê bike"
     }
   },
   "notificationSettings": {
@@ -656,11 +647,12 @@
       "title": "Li Nêzîkê Min",
       "explainer": "Agahdarî ji bo erdhejên nêzî cihê te yê niha."
     },
-    "homeBase": {
-      "title": "Cihê Malê",
-      "explainer": "Agahdarî ji bo erdhejên nêzî Cihê Malê te, li kû derê be jî.",
+    "anotherPlace": {
+      "title": "Herwiha li ser cihekî din jî agahdar bike",
+      "explainer": "Ji bo malbata li derekî din.",
+      "choose": "Cihekî hilbijêre",
       "change": "Biguherîne",
-      "notSetHint": "Ji bo vekirina van agahdariyan li jor Cihek Malê hilbijêre."
+      "remove": "Rake"
     },
     "tiers": {
       "off": "Girtî",
@@ -1491,9 +1483,6 @@
       "seeAll": "Hemûyan bibîne",
       "empty": "Hê rapor tune."
     },
-    "rows": {
-      "auto": "Bixweber"
-    },
     "privacy": {
       "title": "Nepenîtî û dane",
       "id": "Nasnameya beşdarvan",
@@ -1689,7 +1678,7 @@
         "gps": "Cihê min bi kar bîne",
         "gpsBusy": "Cihê te tê dîtin…",
         "gpsDone": "Cih hate danîn.",
-        "gpsFailed": "Cihê te nehat girtin. Bajarokekî hilbijêre.",
+        "gpsFailed": "Cihê te nehat girtin. Cihekî hilbijêre.",
         "pin": "Li ser nexşeyê bi cih bike",
         "pinTitle": "Nîşanê deyne",
         "pinHint": "Li nexşeyê bitikîne an nîşanê bikişîne ser avahiya xwe.",
@@ -1697,8 +1686,8 @@
         "pinCancel": "Betal bike",
         "pinDone": "Nîşan hate danîn.",
         "pinMapLabel": "Nexşe ji bo danîna nîşanê",
-        "or": "An jî nêzîktirîn bajarok hilbijêre",
-        "townNote": "Navenda bajarok kêmtir rast e. Cihê te raporeke çêtir dide."
+        "or": "An jî li cihekî bigere",
+        "townNote": "Navenda cih kêmtir rast e. Cihê te raporeke çêtir dide."
       },
       "photos": {
         "title": "Wêne (bi dilxwazî)",

@@ -1,5 +1,9 @@
 import { haversineDistanceKm } from "@/features/events/distance";
-import type { GazetteerCity, GazetteerCityNames } from "./gazetteer";
+import {
+  GAZETTEER_CITIES,
+  type GazetteerCity,
+  type GazetteerCityNames,
+} from "./gazetteer";
 import type { KurdishPlace } from "./kurdish-places";
 
 /**
@@ -196,6 +200,12 @@ function osmPlace(source: KurdishPlace, kind: PlaceKind): Place {
   if (source.names.kmr) names.kmr = source.names.kmr;
   if (source.names.ar) names.ar = source.names.ar;
   return { id: source.id, kind, lat: source.lat, lon: source.lon, names };
+}
+
+/** A gazetteer city as a searchable place; null for an id that is not one. */
+export function gazetteerPlaceById(id: string): Place | null {
+  const city = GAZETTEER_CITIES.find((candidate) => candidate.id === id);
+  return city ? cityPlace(city) : null;
 }
 
 function cityPlace(city: GazetteerCity): Place {

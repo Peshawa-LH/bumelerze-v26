@@ -11,14 +11,13 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { pickLocalizedName } from "@/features/geo";
-import { HOME_BASE_TOWNS } from "@/features/onboarding";
+import { placeDisplayName } from "@/features/geo";
+import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { useTheme } from "@/theme";
 import {
   CARTOON_LEVELS,
   decodeEventRegistrationParam,
   enqueueTier1Report,
-  InlineTownPicker,
   LEVEL_ARTWORK,
   LevelTile,
   SEVERE_DESTRUCTION_THRESHOLD,
@@ -56,7 +55,7 @@ export default function Tier1FeltReportScreen() {
   const router = useRouter();
 
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
-  const { location, isGps, manualTownId, setManualTownId } = useFeltLocation();
+  const { location, isGps, manualPlace, setManualPlace } = useFeltLocation();
   // Both the 1-9 and 10-12 (severe, `compact`) groups are 3-column grids at
   // the same gap (`styles.grid` below) and the same horizontal padding —
   // see `grid-layout.ts`'s doc comment on sharing one measurement.
@@ -98,10 +97,7 @@ export default function Tier1FeltReportScreen() {
     }
   }
 
-  const manualTownName = (() => {
-    const town = HOME_BASE_TOWNS.find((candidate) => candidate.id === manualTownId);
-    return town ? pickLocalizedName(town.names, i18n.language) : "";
-  })();
+  const manualPlaceName = placeDisplayName(manualPlace, i18n.language);
 
   return (
     <View
@@ -177,7 +173,7 @@ export default function Tier1FeltReportScreen() {
             >
               {isGps
                 ? t("felt.tier1.locationGps")
-                : t("felt.tier1.locationManual", { place: manualTownName })}
+                : t("felt.tier1.locationManual", { place: manualPlaceName })}
             </Text>
             {!isGps ? (
               <Text
@@ -192,9 +188,13 @@ export default function Tier1FeltReportScreen() {
             ) : null}
           </Pressable>
           {!isGps && isLocationExpanded ? (
-            <InlineTownPicker
-              selectedTownId={manualTownId}
-              onSelectTown={setManualTownId}
+            <PlaceSearch
+              selectedPlaceId={manualPlace.id}
+              onSelect={(place) => {
+                setManualPlace(place);
+                setIsLocationExpanded(false);
+              }}
+              testID="felt-place-search"
             />
           ) : null}
         </View>

@@ -23,7 +23,7 @@ describe("pinStart", () => {
 
   it("starts at a chosen town, wider", () => {
     const start = pinStart(
-      { lat: 35.56, lon: 45.43, quality: "town", townId: "sulaymaniyah" },
+      { lat: 35.56, lon: 45.43, quality: "town", placeId: "sulaymaniyah" },
       { lat: 36.19, lon: 44.01 },
       ERBIL,
     );
@@ -31,11 +31,11 @@ describe("pinStart", () => {
     expect(start.zoom).toBe(PIN_ZOOM_TOWN);
   });
 
-  it("falls back to the HomeBase town, then to the default town", () => {
+  it("falls back to the reference place, then to the default town", () => {
     expect(pinStart(null, { lat: 35.56, lon: 45.43 }, ERBIL)).toMatchObject({
       lat: 35.56,
       lon: 45.43,
-      source: "homeBase",
+      source: "reference",
     });
     expect(pinStart(null, { lat: null, lon: null }, ERBIL)).toMatchObject({
       ...ERBIL,
@@ -53,7 +53,7 @@ describe("pinStart", () => {
 
 describe("canConfirmPin", () => {
   const townStart = pinStart(
-    { lat: 36.19, lon: 44.01, quality: "town", townId: "erbil" },
+    { lat: 36.19, lon: 44.01, quality: "town", placeId: "erbil" },
     null,
     ERBIL,
   );

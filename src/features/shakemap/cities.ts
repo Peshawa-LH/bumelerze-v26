@@ -1,18 +1,13 @@
 import { haversineDistanceKm } from "@/features/events/distance";
-import { GAZETTEER_CITIES, type GazetteerCity } from "@/features/geo";
-import { HOME_BASE_TOWNS } from "@/features/onboarding/towns";
+import { GAZETTEER_CITIES, MAIN_TOWNS, type GazetteerCity } from "@/features/geo";
 import { SHAKEMAP_MAX_CITIES } from "./config";
 import type { LonLatBoundingBox } from "./projection";
 
-/** Reuses the onboarding HomeBase picker's curated ~18-town subset as a
- * cheap "this is a place people actually orient by" priority signal (wave
- * brief point 2: "use the onboarding-subset flag" — we don't carry real
- * population figures, and this list is already hand-curated for exactly
- * that "known bigger town" judgment call). Read-only reference into
- * `features/onboarding` (its own internal id list isn't exported, so this
- * derives ids from the exported `HOME_BASE_TOWNS` objects instead — not a
- * modification of that module). */
-const PRIORITY_TOWN_IDS = new Set<string>(HOME_BASE_TOWNS.map((town) => town.id));
+/** The curated ~18 main towns as a cheap "this is a place people actually
+ * orient by" priority signal (we don't carry real population figures, and
+ * this list is already hand-curated for exactly that "known bigger town"
+ * judgment call). */
+const PRIORITY_TOWN_IDS = new Set<string>(MAIN_TOWNS.map((town) => town.id));
 
 function isInBbox(city: GazetteerCity, bbox: LonLatBoundingBox): boolean {
   return (
@@ -25,7 +20,7 @@ function isInBbox(city: GazetteerCity, bbox: LonLatBoundingBox): boolean {
 
 /**
  * Up to `SHAKEMAP_MAX_CITIES` gazetteer cities to label on the map:
- * restricted to the map's own bounding box, HomeBase-subset ("known
+ * restricted to the map's own bounding box, main-town ("known
  * bigger town") cities ranked first, remaining slots filled nearest-to-
  * center first (wave brief point 2's fallback ordering).
  */

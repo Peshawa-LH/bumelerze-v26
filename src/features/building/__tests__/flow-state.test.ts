@@ -37,7 +37,7 @@ function atQuestions(answers = {}): FlowState {
     ...initialFlowState("new", answers),
     step: "question",
     kind: "house",
-    location: { lat: 36.19, lon: 44.01, quality: "town", townId: "erbil" },
+    location: { lat: 36.19, lon: 44.01, quality: "town", placeId: "erbil" },
   };
 }
 

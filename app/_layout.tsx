@@ -24,7 +24,7 @@ import {
   processQueue,
   reconcileSubmittedReports,
 } from "@/features/felt";
-import { useAutoHomeBase } from "@/features/location";
+import { useReferencePlace } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
 import { shouldPersistQuery } from "@/lib/persist-filter";
@@ -56,8 +56,8 @@ export default function RootLayout() {
   const [isRestarting, setIsRestarting] = useState(false);
   const hasHydrated = usePrefsStore((state) => state.hasHydrated);
   const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);
-  // HomeBase follows the device's nearest town unless the user chose one.
-  useAutoHomeBase();
+  // Background reference place: the nearest main town to the device, else Hawler.
+  useReferencePlace();
 
   useEffect(() => {
     let cancelled = false;

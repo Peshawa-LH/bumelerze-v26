@@ -65,7 +65,7 @@ export default function SettingsScreen() {
       {/* Order is the owner's (feedback 2adfbbf7, 2026-09-27): the account
           first — the place the tagged building will live — then the
           engineer's handbook, then the two device concerns, then language,
-          feedback and onboarding. HomeBase moved to the My account screen. */}
+          feedback and onboarding. */}
       <MyDataSection />
       <HandbookSection />
       <DevicePermissionsSection />

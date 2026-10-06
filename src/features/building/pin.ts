@@ -11,7 +11,7 @@ export interface PinPoint {
   lon: number;
 }
 
-export type PinStartSource = "gps" | "pin" | "town" | "homeBase" | "default";
+export type PinStartSource = "gps" | "pin" | "town" | "reference" | "default";
 
 export interface PinStart extends PinPoint {
   source: PinStartSource;
@@ -39,12 +39,12 @@ export function isValidPoint(point: PinPoint): boolean {
 
 /**
  * Where the pin starts: the point already chosen in the flow (GPS fix, an
- * earlier pin or a town), else the saved HomeBase town, else the fallback
- * town. Always a valid point.
+ * earlier pin or a place), else the background reference place (nearest main
+ * town to the last fix), else the fallback town. Always a valid point.
  */
 export function pinStart(
   current: FlowLocation | null,
-  homeBase: { lat: number | null; lon: number | null } | null,
+  reference: { lat: number | null; lon: number | null } | null,
   fallback: PinPoint,
 ): PinStart {
   if (current && isValidPoint(current)) {
@@ -56,15 +56,15 @@ export function pinStart(
     };
   }
   if (
-    homeBase &&
-    homeBase.lat !== null &&
-    homeBase.lon !== null &&
-    isValidPoint({ lat: homeBase.lat, lon: homeBase.lon })
+    reference &&
+    reference.lat !== null &&
+    reference.lon !== null &&
+    isValidPoint({ lat: reference.lat, lon: reference.lon })
   ) {
     return {
-      lat: homeBase.lat,
-      lon: homeBase.lon,
-      source: "homeBase",
+      lat: reference.lat,
+      lon: reference.lon,
+      source: "reference",
       zoom: PIN_ZOOM_TOWN,
     };
   }

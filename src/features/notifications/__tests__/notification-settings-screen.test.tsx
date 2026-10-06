@@ -28,18 +28,32 @@ jest.mock("expo-router", () => {
   };
 });
 
+// The place search reads an already-granted location fix for "Nearby"; none here.
+jest.mock("expo-location", () => ({
+  PermissionStatus: { GRANTED: "granted", DENIED: "denied" },
+  Accuracy: { Balanced: 3 },
+  getForegroundPermissionsAsync: () => Promise.resolve({ status: "denied" }),
+  getLastKnownPositionAsync: () => Promise.resolve(null),
+  getCurrentPositionAsync: () => Promise.resolve(null),
+}));
+
 const mockGetPermissionsAsync = jest.fn();
 const mockRequestPermissionsAsync = jest.fn();
 const mockScheduleNotificationAsync = jest.fn();
 const mockSetNotificationChannelAsync = jest.fn();
 
 jest.mock("expo-notifications", () => ({
-  PermissionStatus: { GRANTED: "granted", DENIED: "denied", UNDETERMINED: "undetermined" },
+  PermissionStatus: {
+    GRANTED: "granted",
+    DENIED: "denied",
+    UNDETERMINED: "undetermined",
+  },
   SchedulableTriggerInputTypes: { TIME_INTERVAL: "timeInterval" },
   AndroidImportance: { HIGH: 4 },
   getPermissionsAsync: () => mockGetPermissionsAsync(),
   requestPermissionsAsync: () => mockRequestPermissionsAsync(),
-  scheduleNotificationAsync: (...args: unknown[]) => mockScheduleNotificationAsync(...args),
+  scheduleNotificationAsync: (...args: unknown[]) =>
+    mockScheduleNotificationAsync(...args),
   setNotificationChannelAsync: (...args: unknown[]) =>
     mockSetNotificationChannelAsync(...args),
 }));
@@ -77,9 +91,10 @@ describe("Notification Settings screen", () => {
     usePrefsStore.setState({
       onboardingCompleted: true,
       onboardingStep: "done",
-      homeBase: null,
+      referencePlace: null,
+      anotherPlace: null,
       nearMeTier: "m3",
-      homeBaseTier: "off",
+      anotherPlaceTier: "off",
       hasHydrated: true,
     });
   });
@@ -94,7 +109,7 @@ describe("Notification Settings screen", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("renders both the Near Me and HomeBase sections under the Sorani (RTL) locale", async () => {
+  it("renders the Near Me and Another place sections under the Sorani (RTL) locale", async () => {
     expect(isRTLLocale("ckb")).toBe(true);
     await i18n.changeLanguage("ckb");
 
@@ -105,7 +120,9 @@ describe("Notification Settings screen", () => {
       expect.objectContaining({ title: "ڕێکخستنی ئاگادارکردنەوە" }),
     );
     expect(screen.getByText("نزیک من")).toBeTruthy();
-    expect(screen.getByText("بنکەی ماڵەوە")).toBeTruthy();
+    expect(screen.getByText("هەروەها ئاگادارم بکەرەوە دەربارەی شوێنێکی تر")).toBeTruthy();
+    expect(screen.getByText("بۆ خێزان لە شوێنێکی تر.")).toBeTruthy();
+    expect(screen.getByText("شوێنێک هەڵبژێرە")).toBeTruthy();
     expect(screen.getByText("تاقیبکەرەوە")).toBeTruthy();
   });
 
@@ -115,44 +132,106 @@ describe("Notification Settings screen", () => {
 
     expect(usePrefsStore.getState().nearMeTier).toBe("m3");
 
-    fireEvent.press(
-      screen.getAllByRole("radio", { name: "M5.0 and above" })[0]!,
-    );
+    fireEvent.press(screen.getAllByRole("radio", { name: "M5.0 and above" })[0]!);
 
     expect(usePrefsStore.getState().nearMeTier).toBe("m5");
   });
 
-  it("disables the HomeBase tier selector when no HomeBase is set", async () => {
+  it("'Another place' is off by default: a title, one short line, a button, and no tier selector", async () => {
     await renderWithProviders(<NotificationSettingsScreen />);
     await flush();
 
-    const [nearMeAllRow, homeBaseAllRow] = screen.getAllByRole("radio", {
-      name: "All earthquakes",
-    });
-    expect(nearMeAllRow?.props.accessibilityState.disabled).toBeFalsy();
-    expect(homeBaseAllRow?.props.accessibilityState.disabled).toBe(true);
-
-    // Pressing a disabled row is a no-op — homeBaseTier stays 'off'.
-    fireEvent.press(homeBaseAllRow!);
-    expect(usePrefsStore.getState().homeBaseTier).toBe("off");
-
-    expect(screen.getByText("Set a HomeBase above to turn on these alerts.")).toBeTruthy();
+    expect(screen.getByText("Also alert me about another place")).toBeTruthy();
+    expect(screen.getByText("For family elsewhere.")).toBeTruthy();
+    expect(screen.getByTestId("another-place-choose")).toBeTruthy();
+    // Only the Near Me tiers are on screen until a place is chosen.
+    expect(screen.getAllByRole("radio", { name: "All earthquakes" })).toHaveLength(1);
+    expect(screen.queryByText(/HomeBase/)).toBeNull();
   });
 
-  it("enables the HomeBase tier selector once a HomeBase town is set", async () => {
-    usePrefsStore.setState({
-      homeBase: { townId: "erbil", lat: 36.19, lon: 44.01 },
-      homeBaseTier: "all",
-    });
-
+  it("choosing a place with the place search turns it on at 'All earthquakes' and shows its name", async () => {
     await renderWithProviders(<NotificationSettingsScreen />);
     await flush();
 
-    const homeBaseAllRow = screen.getAllByRole("radio", { name: "All earthquakes" })[1];
-    expect(homeBaseAllRow?.props.accessibilityState.disabled).toBeFalsy();
-    expect(
-      screen.queryByText("Set a HomeBase above to turn on these alerts."),
-    ).toBeNull();
+    await fireEvent.press(screen.getByTestId("another-place-choose"));
+    await flush();
+    await fireEvent.changeText(screen.getByLabelText("Search for a place"), "هەولێر");
+    await fireEvent.press(screen.getByTestId("another-place-search-result-erbil"));
+    await flush();
+
+    const state = usePrefsStore.getState();
+    expect(state.anotherPlace).toEqual({ placeId: "erbil", lat: 36.19, lon: 44.01 });
+    expect(state.anotherPlaceTier).toBe("all");
+    expect(screen.getByTestId("another-place-name").props.children).toBe("Hawler");
+    // Search closes, the tier selector appears (Near Me + another place).
+    expect(screen.queryByLabelText("Search for a place")).toBeNull();
+    expect(screen.getAllByRole("radio", { name: "All earthquakes" })).toHaveLength(2);
+  });
+
+  it("finds a village by its Kurmanji name and stores its coordinates", async () => {
+    await renderWithProviders(<NotificationSettingsScreen />);
+    await flush();
+
+    await fireEvent.press(screen.getByTestId("another-place-choose"));
+    await flush();
+    await fireEvent.changeText(screen.getByLabelText("Search for a place"), "Sehbiyax");
+    await fireEvent.press(screen.getByTestId("another-place-search-result-n9852690211"));
+    await flush();
+
+    expect(usePrefsStore.getState().anotherPlace).toEqual({
+      placeId: "n9852690211",
+      lat: 33.7502,
+      lon: 46.9757,
+    });
+  });
+
+  it("the tier of the other place is its own: changing it leaves Near Me alone", async () => {
+    usePrefsStore.setState({
+      anotherPlace: { placeId: "erbil", lat: 36.19, lon: 44.01 },
+      anotherPlaceTier: "all",
+    });
+    await renderWithProviders(<NotificationSettingsScreen />);
+    await flush();
+
+    const rows = screen.getAllByRole("radio", { name: "M5.0 and above" });
+    expect(rows).toHaveLength(2);
+    await fireEvent.press(rows[1]!);
+    await flush();
+
+    expect(usePrefsStore.getState().anotherPlaceTier).toBe("m5");
+    expect(usePrefsStore.getState().nearMeTier).toBe("m3");
+  });
+
+  it("'Remove' turns the other place off and clears its tier", async () => {
+    usePrefsStore.setState({
+      anotherPlace: { placeId: "erbil", lat: 36.19, lon: 44.01 },
+      anotherPlaceTier: "m4",
+    });
+    await renderWithProviders(<NotificationSettingsScreen />);
+    await flush();
+
+    await fireEvent.press(screen.getByTestId("another-place-remove"));
+
+    expect(usePrefsStore.getState().anotherPlace).toBeNull();
+    expect(usePrefsStore.getState().anotherPlaceTier).toBe("off");
+    expect(screen.getByTestId("another-place-choose")).toBeTruthy();
+  });
+
+  it("'Change' swaps the place but keeps the tier the user picked", async () => {
+    usePrefsStore.setState({
+      anotherPlace: { placeId: "erbil", lat: 36.19, lon: 44.01 },
+      anotherPlaceTier: "m4",
+    });
+    await renderWithProviders(<NotificationSettingsScreen />);
+    await flush();
+
+    await fireEvent.press(screen.getByTestId("another-place-change"));
+    await flush();
+    await fireEvent.press(screen.getByTestId("another-place-search-result-duhok"));
+    await flush();
+
+    expect(usePrefsStore.getState().anotherPlace?.placeId).toBe("duhok");
+    expect(usePrefsStore.getState().anotherPlaceTier).toBe("m4");
   });
 
   it("'See the alert' opens a pure-UI rehearsal modal with no permission call", async () => {
@@ -173,9 +252,11 @@ describe("Notification Settings screen", () => {
   });
 
   it("'Play the alert sound' requests permission if needed, then schedules a real local notification after the hint alert", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation((_title, _msg, buttons) => {
-      buttons?.[0]?.onPress?.();
-    });
+    const alertSpy = jest
+      .spyOn(Alert, "alert")
+      .mockImplementation((_title, _msg, buttons) => {
+        buttons?.[0]?.onPress?.();
+      });
 
     await renderWithProviders(<NotificationSettingsScreen />);
     await flush();

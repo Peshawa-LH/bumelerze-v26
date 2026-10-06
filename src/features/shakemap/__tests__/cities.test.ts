@@ -2,13 +2,13 @@ import { pickMapCities } from "../cities";
 
 describe("pickMapCities", () => {
   // Real bundled gazetteer data around the Halabja/Slemani border region —
-  // deliberately chosen because it contains both HomeBase-subset ("known
+  // deliberately chosen because it contains both main-town ("known
   // bigger town") cities and non-subset cities inside the same bbox, so
   // the priority-before-distance ordering rule is actually exercised.
   const bbox = { minLon: 45.0, maxLon: 46.5, minLat: 34.0, maxLat: 36.0 };
 
-  it("ranks HomeBase-subset ('priority') cities ahead of non-subset cities regardless of distance", () => {
-    // Centered on Penjwen (NOT in the HomeBase subset) — despite being at
+  it("ranks main-town ('priority') cities ahead of non-subset cities regardless of distance", () => {
+    // Centered on Penjwen (NOT in the main-town subset) — despite being at
     // distance 0 from the center point, Penjwen must still rank behind
     // every in-bbox priority city.
     const center = { lat: 35.62, lon: 46.2 };

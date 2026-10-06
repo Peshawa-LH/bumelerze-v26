@@ -3,12 +3,12 @@ export {
   type UserDistanceAnchor,
 } from "./use-user-distance-anchor";
 export {
-  AUTO_HOME_BASE_MAX_KM,
-  AUTO_HOME_BASE_REFRESH_MS,
-  nearestHomeBaseTown,
-  refreshAutoHomeBase,
-  useAutoHomeBase,
-  type AutoHomeBaseResult,
-  type NearestHomeBaseTown,
-} from "./auto-home-base";
+  nearestMainTown,
+  REFERENCE_PLACE_MAX_KM,
+  REFERENCE_PLACE_REFRESH_MS,
+  refreshReferencePlace,
+  useReferencePlace,
+  type NearestMainTown,
+  type ReferencePlaceResult,
+} from "./reference-place";
 export { useLocationPermissionGranted } from "./use-location-permission";

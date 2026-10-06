@@ -91,9 +91,9 @@ describe("Settings screen — My Data + Device permissions", () => {
     usePrefsStore.setState({
       onboardingCompleted: true,
       onboardingStep: "done",
-      homeBase: null,
+      referencePlace: null,
       nearMeTier: "m3",
-      homeBaseTier: "off",
+      anotherPlaceTier: "off",
       hasHydrated: true,
     });
 
@@ -115,8 +115,7 @@ describe("Settings screen — My Data + Device permissions", () => {
     // "My account" since the owner's Settings rearrangement (feedback
     // 2adfbbf7, 2026-09-27): the place the tagged building will live.
     expect(screen.getByText("My account")).toBeTruthy();
-    // HomeBase moved to the My account screen; it is no longer a Settings
-    // section of its own.
+    // No HomeBase anywhere, and not a Settings section of its own.
     expect(screen.queryByText("HomeBase")).toBeNull();
     fireEvent.press(screen.getByRole("button", { name: "Open My account" }));
 
@@ -214,7 +213,7 @@ describe("Settings screen — My Data + Device permissions", () => {
 
     expect(
       screen.getByText(
-        "Replays the welcome screens you saw the first time you opened Bumelerze. Your language and HomeBase choices are kept.",
+        "Replays the welcome screens you saw the first time you opened Bumelerze. Your language choice is kept.",
       ),
     ).toBeTruthy();
   });

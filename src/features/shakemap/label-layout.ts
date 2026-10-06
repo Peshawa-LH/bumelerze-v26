@@ -2,7 +2,7 @@
  * Deterministic city-label decluttering for `ShakeMapView` (ui-backlog.md
  * item 7 — "city labels collide near the epicenter"). No physics engine,
  * no iterative relaxation: a single greedy pass over the already-priority-
- * ordered city list (`pickMapCities`'s HomeBase-subset-then-distance
+ * ordered city list (`pickMapCities`'s main-towns-then-distance
  * order), in SVG pixel space, that either places a label or skips it.
  * Every input here is a plain number/string so this module has zero
  * dependency on `react-native-svg`, the gazetteer, or i18n — `ShakeMapView`
@@ -139,7 +139,7 @@ function boxIntersectsCircle(
 
 /**
  * Greedy label placement, one pass over `candidates` in the order given
- * (the caller's existing priority order — `pickMapCities`'s HomeBase-
+ * (the caller's existing priority order — `pickMapCities`'s main-town-
  * subset-then-nearest ordering is what `ShakeMapView` passes in, so this
  * function never re-sorts, it only accepts or skips in that order):
  *

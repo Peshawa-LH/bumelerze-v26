@@ -1,59 +1,62 @@
 import { useMemo, useState } from "react";
 
+import { DEFAULT_PLACE_ID, gazetteerPlaceById, type Place } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
-import { HOME_BASE_TOWNS, usePrefsStore } from "@/features/onboarding";
+import { usePrefsStore } from "@/features/onboarding";
 import type { FeltLocation } from "./types";
-
-/** Region-capital fallback when neither a GPS fix nor a HomeBase town exists
- * — spec-v1.md §4.6: the manual picker "never blocks submission", so a real
- * town is always preselected even before the user touches anything. */
-const DEFAULT_MANUAL_TOWN_ID = "erbil";
 
 export interface UseFeltLocationResult {
   location: FeltLocation;
   /** True when the GPS fix supplied the location (no manual picker shown). */
   isGps: boolean;
-  /** Meaningful only when `!isGps` — current inline-picker selection and
-   * setter. Always a real town id, never a state that would block
-   * submission. */
-  manualTownId: string;
-  setManualTownId: (townId: string) => void;
+  /** Meaningful only when `!isGps` — the place picked (or pre-selected) in
+   * the inline place search. Always a real place, never a state that would
+   * block submission. */
+  manualPlace: Place;
+  setManualPlace: (place: Place) => void;
 }
 
 /**
  * Resolves the location to attach to a felt report (spec-v1.md §4.6): a GPS
  * fix if permission is already granted (read-only check, reused from
  * `features/location` — never itself prompts, matching that hook's own
- * no-surprise-prompt contract), else the user's HomeBase town, else a
- * sensible default town — always inline, always resolved synchronously
- * enough that tier 1's one-tap submission is never blocked waiting on it.
+ * no-surprise-prompt contract), else a place the reader picks with the place
+ * search. That place starts as the silent background reference place (the
+ * nearest main town to the last fix, else Hawler), so tier 1's one-tap
+ * submission is never blocked waiting on a choice. Only lat/lon and the
+ * "manual" quality are uploaded; the place id is local bookkeeping.
  */
 export function useFeltLocation(): UseFeltLocationResult {
   const userFix = useUserDistanceAnchor();
-  const homeBase = usePrefsStore((state) => state.homeBase);
-  // `homeBase.lat` is null only for the "elsewhere" sentinel (see
-  // features/onboarding/store.ts) — that case falls through to the default
-  // town below rather than a non-geocoded id the picker can't resolve.
-  const defaultManualTownId =
-    homeBase && homeBase.lat !== null ? homeBase.townId : DEFAULT_MANUAL_TOWN_ID;
-  const [manualTownId, setManualTownId] = useState(defaultManualTownId);
+  const referencePlace = usePrefsStore((state) => state.referencePlace);
+  const [manualPlace, setManualPlace] = useState<Place>(
+    () =>
+      (referencePlace ? gazetteerPlaceById(referencePlace.placeId) : null) ??
+      gazetteerPlaceById(DEFAULT_PLACE_ID) ??
+      FALLBACK_PLACE,
+  );
 
   const location = useMemo<FeltLocation>(() => {
     if (userFix.hasFix) {
       return { quality: "gps", lat: userFix.lat, lon: userFix.lon };
     }
+    return {
+      quality: "manual",
+      lat: manualPlace.lat,
+      lon: manualPlace.lon,
+      placeId: manualPlace.id,
+    };
+  }, [userFix, manualPlace]);
 
-    const town =
-      HOME_BASE_TOWNS.find((candidate) => candidate.id === manualTownId) ??
-      HOME_BASE_TOWNS[0];
-    if (!town) {
-      // Unreachable in practice (HOME_BASE_TOWNS is a fixed non-empty
-      // bundled list) — satisfies noUncheckedIndexedAccess without ever
-      // silently producing a report with no location.
-      throw new Error("useFeltLocation: HOME_BASE_TOWNS is unexpectedly empty");
-    }
-    return { quality: "manual", lat: town.lat, lon: town.lon, townId: town.id };
-  }, [userFix, manualTownId]);
-
-  return { location, isGps: userFix.hasFix, manualTownId, setManualTownId };
+  return { location, isGps: userFix.hasFix, manualPlace, setManualPlace };
 }
+
+/** Unreachable in practice (Hawler is in the bundled gazetteer); keeps the
+ * state non-null so a report is never created without a location. */
+const FALLBACK_PLACE: Place = {
+  id: DEFAULT_PLACE_ID,
+  kind: "city",
+  lat: 36.19,
+  lon: 44.01,
+  names: { en: "Hawler" },
+};

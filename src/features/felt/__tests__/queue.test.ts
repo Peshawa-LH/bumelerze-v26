@@ -278,7 +278,7 @@ describe("survives an app restart", () => {
     const session1 = loadQueue();
     const report = await session1.enqueueTier1Report({
       cartoonLevel: 9,
-      location: { quality: "manual", lat: 35.56, lon: 45.43, townId: "halabja" },
+      location: { quality: "manual", lat: 35.56, lon: 45.43, placeId: "halabja" },
       eventId: "evt-restart",
     });
     await session1.processQueue();
@@ -315,7 +315,7 @@ describe("survives an app restart", () => {
       quality: "manual",
       lat: 35.56,
       lon: 45.43,
-      townId: "halabja",
+      placeId: "halabja",
     });
     // The record survived intact even though it was never actually sent
     // anywhere (PendingTransport) — this IS the "no report is ever lost"

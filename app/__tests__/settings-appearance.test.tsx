@@ -95,9 +95,9 @@ describe("Settings screen — Appearance", () => {
     usePrefsStore.setState({
       onboardingCompleted: true,
       onboardingStep: "done",
-      homeBase: null,
+      referencePlace: null,
       nearMeTier: "m3",
-      homeBaseTier: "off",
+      anotherPlaceTier: "off",
       hasHydrated: true,
     });
     useThemePreferencesStore.setState({ preference: "auto", hasHydrated: true });

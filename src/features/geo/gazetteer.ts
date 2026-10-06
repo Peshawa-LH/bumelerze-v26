@@ -1,8 +1,8 @@
 /**
  * Bundled place gazetteer (ui-backlog.md wave 5, item 3). Supersedes both
  * the old `events/config.ts` `REGION_ANCHORS` (3 cities, removed wave 5)
- * and is now the single source of truth `features/onboarding/towns.ts`
- * draws its HomeBase picker subset from — PROJECT.md gotcha: normalize once,
+ * and is now the single source of truth `main-towns.ts` and the place
+ * search draw from — PROJECT.md gotcha: normalize once,
  * never scatter a second town/city dataset through the app.
  *
  * DRAFT-MACHINE DATA: coordinates are approximate town centroids (good

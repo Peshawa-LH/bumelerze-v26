@@ -231,7 +231,7 @@ describe("damage-grade palette — own 5-color set, decoupled from the intensity
 
 describe("text.tertiary — WCAG-AA contrast against surface.base (accessibility-tester Phase 5)", () => {
   // Real screen content uses this token at normal (not "large") text sizes
-  // — notificationSettings.homeBase.notSetHint, .fatigueFooter,
+  // — notificationSettings.fatigueFooter,
   // sensor.gravityNote — plus the always-visible bottom-tab-bar inactive
   // icon/label color, so it needs the full 4.5:1 normal-text floor, not
   // just the 3:1 large-text/graphical-object floor.

@@ -43,7 +43,7 @@ export const neutral = {
    * block): `text.tertiary` (light theme) previously pointed at
    * `neutral[500]`, which reads at only ~2.43:1 against white — a clear
    * fail of the 4.5:1 normal-text floor, on real screen content
-   * (`notificationSettings.homeBase.notSetHint`, `.fatigueFooter`,
+   * (`notificationSettings.fatigueFooter`,
    * `sensor.gravityNote`) as well as the always-visible tab-bar inactive
    * icon/label color. `neutral[600]` alone only reaches ~3.67:1 — still
    * short — and jumping straight to `neutral[700]` (6.77:1) would erase the

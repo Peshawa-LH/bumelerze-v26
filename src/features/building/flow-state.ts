@@ -23,7 +23,8 @@ export interface FlowLocation {
   lat: number;
   lon: number;
   quality: LocationQuality;
-  townId?: string;
+  /** The place picked in the place search (quality "town"); local only. */
+  placeId?: string;
 }
 
 export interface FlowState {

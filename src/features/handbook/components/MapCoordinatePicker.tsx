@@ -16,7 +16,7 @@ export interface MapCoordinatePickerProps {
  * than show a "pick on the map" button that opens a broken/placeholder
  * screen, or fake a map with no real basemap, this entry point is simply
  * absent on native — `CoordinateInputForm` still has manual entry, "use my
- * location", and "pick a town instead" (`InlineTownPicker`), which already
+ * location", and "pick a town instead" (the place search), which already
  * work everywhere and fully cover the native case. `.web.tsx` is the real,
  * MapLibre-backed picker, following this repo's existing platform-split
  * convention (`map.tsx` / `map.web.tsx`) instead of a runtime `Platform.OS`

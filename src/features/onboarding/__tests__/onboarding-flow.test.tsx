@@ -39,9 +39,9 @@ jest.mock("expo-location", () => ({
   requestForegroundPermissionsAsync: () => mockRequestPermission(),
 }));
 
-const mockRefreshAutoHomeBase = jest.fn();
+const mockRefreshReferencePlace = jest.fn();
 jest.mock("@/features/location", () => ({
-  refreshAutoHomeBase: () => mockRefreshAutoHomeBase(),
+  refreshReferencePlace: () => mockRefreshReferencePlace(),
 }));
 
 // Imported after the mock above so the mocked module graph is in place.
@@ -74,9 +74,8 @@ describe("onboarding navigation flow", () => {
     usePrefsStore.setState({
       onboardingCompleted: false,
       onboardingStep: "mission",
-      homeBase: null,
-      homeBaseSource: "auto",
-      homeBaseAutoCheckedAt: null,
+      referencePlace: null,
+      referenceCheckedAt: null,
       hasHydrated: true,
     });
   });
@@ -126,7 +125,7 @@ describe("onboarding navigation flow", () => {
     expect(screen.getByText("redirect:/onboarding/done")).toBeTruthy();
   });
 
-  it("notifications screen goes straight to the end: no town picker (HomeBase is automatic)", async () => {
+  it("notifications screen goes straight to the end: no town picker", async () => {
     await renderWithProviders(<OnboardingNotificationsScreen />);
 
     fireEvent.press(screen.getByRole("button", { name: "Continue" }));
@@ -135,8 +134,8 @@ describe("onboarding navigation flow", () => {
     expect(mockPush).toHaveBeenCalledWith("/onboarding/done");
   });
 
-  it("location screen: allowing location sets the HomeBase automatically", async () => {
-    mockRefreshAutoHomeBase.mockClear();
+  it("location screen: allowing location fills the background reference place", async () => {
+    mockRefreshReferencePlace.mockClear();
     mockRequestPermission.mockResolvedValue({ granted: true });
     await renderWithProviders(<OnboardingLocationScreen />);
 
@@ -145,11 +144,11 @@ describe("onboarding navigation flow", () => {
     await waitFor(() =>
       expect(mockPush).toHaveBeenCalledWith("/onboarding/notifications"),
     );
-    expect(mockRefreshAutoHomeBase).toHaveBeenCalledTimes(1);
+    expect(mockRefreshReferencePlace).toHaveBeenCalledTimes(1);
   });
 
-  it("location screen: declining location never tries to set the HomeBase", async () => {
-    mockRefreshAutoHomeBase.mockClear();
+  it("location screen: declining location never tries to read a fix", async () => {
+    mockRefreshReferencePlace.mockClear();
     mockRequestPermission.mockResolvedValue({ granted: false });
     await renderWithProviders(<OnboardingLocationScreen />);
 
@@ -158,61 +157,48 @@ describe("onboarding navigation flow", () => {
     await waitFor(() =>
       expect(mockPush).toHaveBeenCalledWith("/onboarding/notifications"),
     );
-    expect(mockRefreshAutoHomeBase).not.toHaveBeenCalled();
+    expect(mockRefreshReferencePlace).not.toHaveBeenCalled();
   });
 
-  it("location screen: 'Not now' sets the HomeBase to Hawler", async () => {
+  it("location screen: 'Not now' silently sets the reference place to Hawler", async () => {
     await renderWithProviders(<OnboardingLocationScreen />);
 
     fireEvent.press(
       screen.getByRole("button", { name: i18nText("onboarding.location.notNow") }),
     );
 
-    expect(usePrefsStore.getState().homeBase?.townId).toBe("erbil");
-    expect(usePrefsStore.getState().homeBaseSource).toBe("auto");
+    expect(usePrefsStore.getState().referencePlace?.placeId).toBe("erbil");
   });
 
-  it("location screen: never replaces a HomeBase that is already set or chosen by hand", async () => {
+  it("location screen: never replaces a reference place that is already set", async () => {
     usePrefsStore.setState({
-      homeBase: { townId: "duhok", lat: 36.87, lon: 42.99 },
-      homeBaseSource: "manual",
+      referencePlace: { placeId: "duhok", lat: 36.87, lon: 42.99 },
     });
     await renderWithProviders(<OnboardingLocationScreen />);
     fireEvent.press(
       screen.getByRole("button", { name: i18nText("onboarding.location.notNow") }),
     );
-    expect(usePrefsStore.getState().homeBase?.townId).toBe("duhok");
-
-    // "Somewhere else" is a deliberate manual null — kept too.
-    usePrefsStore.setState({ homeBase: null, homeBaseSource: "manual" });
-    fireEvent.press(
-      screen.getByRole("button", { name: i18nText("onboarding.location.notNow") }),
-    );
-    expect(usePrefsStore.getState().homeBase).toBeNull();
+    expect(usePrefsStore.getState().referencePlace?.placeId).toBe("duhok");
   });
 
-  it("done screen: says which HomeBase was set and that it can be changed", async () => {
+  it("done screen: says nothing about a place, whatever the reference is", async () => {
     usePrefsStore.setState({
       onboardingStep: "done",
-      homeBase: { townId: "erbil", lat: 36.19, lon: 44.01 },
+      referencePlace: { placeId: "erbil", lat: 36.19, lon: 44.01 },
     });
-
-    await renderWithProviders(<OnboardingDoneScreen />);
-
-    expect(await screen.findByTestId("onboarding-done-home-base")).toBeTruthy();
-    expect(
-      screen.getByText(
-        "Your HomeBase is set to Hawler. You can change it later in My account.",
-      ),
-    ).toBeTruthy();
-  });
-
-  it("done screen: no HomeBase line when none is set", async () => {
-    usePrefsStore.setState({ onboardingStep: "done", homeBase: null });
 
     await renderWithProviders(<OnboardingDoneScreen />);
 
     expect(screen.queryByTestId("onboarding-done-home-base")).toBeNull();
+    expect(screen.queryByText(/HomeBase/)).toBeNull();
+    expect(screen.queryByText(/Hawler/)).toBeNull();
+  });
+
+  it("location screen: the explanation no longer mentions a HomeBase", async () => {
+    await renderWithProviders(<OnboardingLocationScreen />);
+
+    expect(screen.queryByText(/HomeBase/)).toBeNull();
+    expect(screen.getByText(/Sharing your location/)).toBeTruthy();
   });
 });
 

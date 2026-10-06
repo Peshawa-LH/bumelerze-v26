@@ -9,8 +9,6 @@ export {
 } from "./format";
 export { useContributorId } from "./use-contributor-id";
 export { ContributionRow } from "./components/ContributionRow";
-export { HomeBaseSection } from "./components/HomeBaseSection";
-export { HomeBaseRow } from "./components/HomeBaseRow";
 export {
   MyReportsSection,
   ReportsEmpty,

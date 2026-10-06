@@ -578,22 +578,20 @@
       "dark": "Dark"
     },
     "cancel": "Cancel",
-    "homeBaseSectionTitle": "HomeBase",
-    "homeBaseChange": "Change",
     "openSystemSettings": "Open Settings",
     "onboardingSectionTitle": "Onboarding",
-    "onboardingSectionDescription": "Replays the welcome screens you saw the first time you opened Bumelerze. Your language and HomeBase choices are kept.",
+    "onboardingSectionDescription": "Replays the welcome screens you saw the first time you opened Bumelerze. Your language choice is kept.",
     "replayOnboarding": "Replay onboarding",
     "replayOnboardingConfirmTitle": "Replay onboarding?",
-    "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language and HomeBase choices are kept.",
+    "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language choice is kept.",
     "notificationsSectionTitle": "Notifications",
-    "notificationsSectionDescription": "Choose how Bumelerze alerts you about earthquakes near you and near your HomeBase.",
+    "notificationsSectionDescription": "Choose which earthquakes Bumelerze alerts you about.",
     "notificationsManage": "Manage notifications",
     "handbookSectionTitle": "Engineer's handbook",
     "handbookSectionDescription": "Cited design values (PGA, Vs30, site class) for a site in Kurdistan/Iraq, for engineers and researchers.",
     "handbookOpen": "Open handbook",
     "myDataSectionTitle": "My account",
-    "myDataSectionDescription": "Your contributor identity, your home town, and the earthquake reports you've sent from this device.",
+    "myDataSectionDescription": "Your contributor identity and the earthquake reports you've sent from this device.",
     "myDataOpen": "Open My account",
     "feedbackSectionTitle": "Feedback",
     "feedbackSectionDescription": "Tell us about a bug, an idea, or anything else on your mind.",
@@ -614,9 +612,7 @@
     "footerAttribution": "Earthquake data from USGS, EMSC (seismicportal.eu), and GEOFON (GFZ Helmholtz Centre for Geosciences, geofon.gfz.de) is licensed under CC BY 4.0.",
     "footerTrademark": "Bumelerze™ and its logo are trademarks of the project.",
     "footerVersion": "Bumelerze app version {{version}}",
-    "footerLogoA11yLabel": "Bumelerze",
-    "homeBaseAuto": "{{city}} · set automatically from your location",
-    "homeBaseUseLocation": "Use my location again"
+    "footerLogoA11yLabel": "Bumelerze"
   },
   "onboarding": {
     "back": "Back",
@@ -631,23 +627,18 @@
     },
     "location": {
       "title": "Your location makes science better",
-      "description": "Sharing your location lets Bumelerze show accurate distances and turns your \"did you feel it?\" reports into valid scientific testimony that helps map real shaking. It also sets your HomeBase automatically. You can change this anytime in Settings.",
+      "description": "Sharing your location lets Bumelerze show accurate distances and turns your \"did you feel it?\" reports into valid scientific testimony that helps map real shaking. You can change this anytime in Settings.",
       "allow": "Allow location access",
       "notNow": "Not now"
     },
     "notifications": {
       "title": "Alerts are coming",
-      "description": "Soon, Bumelerze will notify you the moment an earthquake happens near you or near a place you care about (your HomeBase). We'll ask for notification permission when that feature launches."
-    },
-    "homeBase": {
-      "elsewhere": "Elsewhere / skip",
-      "notSet": "Not set"
+      "description": "Soon, Bumelerze will notify you the moment an earthquake happens near you or near a place you care about. We'll ask for notification permission when that feature launches."
     },
     "done": {
       "title": "You're all set",
       "description": "Bumelerze is ready. You'll land on the live earthquake feed for your region every time you open the app.",
-      "cta": "Get started",
-      "homeBase": "Your HomeBase is set to {{town}}. You can change it later in My account."
+      "cta": "Get started"
     }
   },
   "notificationSettings": {
@@ -656,11 +647,12 @@
       "title": "Near Me",
       "explainer": "Alerts for earthquakes near your current location."
     },
-    "homeBase": {
-      "title": "HomeBase",
-      "explainer": "Alerts for earthquakes near your HomeBase, wherever you are right now.",
+    "anotherPlace": {
+      "title": "Also alert me about another place",
+      "explainer": "For family elsewhere.",
+      "choose": "Choose a place",
       "change": "Change",
-      "notSetHint": "Set a HomeBase above to turn on these alerts."
+      "remove": "Remove"
     },
     "tiers": {
       "off": "Off",
@@ -1491,9 +1483,6 @@
       "seeAll": "See all",
       "empty": "No reports yet."
     },
-    "rows": {
-      "auto": "Set automatically"
-    },
     "privacy": {
       "title": "Privacy & data",
       "id": "Contributor ID",
@@ -1689,7 +1678,7 @@
         "gps": "Use my location",
         "gpsBusy": "Finding your location…",
         "gpsDone": "Location set.",
-        "gpsFailed": "Could not get your location. Choose a town.",
+        "gpsFailed": "Could not get your location. Choose a place.",
         "pin": "Place on map",
         "pinTitle": "Place the pin",
         "pinHint": "Tap the map or drag the pin onto your building.",
@@ -1697,8 +1686,8 @@
         "pinCancel": "Cancel",
         "pinDone": "Pin placed.",
         "pinMapLabel": "Map for placing the pin",
-        "or": "Or choose the nearest town",
-        "townNote": "A town centre is less exact. Your location gives a better report."
+        "or": "Or search for a place",
+        "townNote": "A place centre is less exact. Your location gives a better report."
       },
       "photos": {
         "title": "Photos (optional)",

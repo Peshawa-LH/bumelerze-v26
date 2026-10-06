@@ -1,16 +1,15 @@
 export {
   NOTIFICATION_TIERS,
   ONBOARDING_STEPS,
+  migratePrefs,
+  PREFS_VERSION,
   usePrefsStore,
-  type HomeBasePreference,
-  type HomeBaseSource,
+  type StoredPlace,
   type NotificationTier,
   type OnboardingStepId,
   type PrefsState,
 } from "./store";
-export { applyDefaultHomeBase, DEFAULT_HOME_BASE_TOWN_ID } from "./default-home-base";
+export { applyDefaultReferencePlace } from "./default-reference-place";
 export { onboardingRouteForStep } from "./routes";
-export { HOME_BASE_ELSEWHERE_ID, HOME_BASE_TOWNS, type HomeBaseTown } from "./towns";
 export { OnboardingScreenShell } from "./components/OnboardingScreenShell";
 export { ProgressDots } from "./components/ProgressDots";
-export { TownPicker } from "./components/TownPicker";

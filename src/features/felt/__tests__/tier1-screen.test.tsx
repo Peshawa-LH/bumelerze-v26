@@ -65,6 +65,8 @@ jest.mock("expo-crypto", () => ({
 // eslint-disable-next-line import/first -- see comment above
 import Tier1FeltReportScreen from "../../../../app/felt-report/index";
 // eslint-disable-next-line import/first -- see comment above
+import { usePrefsStore } from "@/features/onboarding";
+// eslint-disable-next-line import/first -- see comment above
 import { useFeltQueueStore } from "../queue";
 
 const testSafeAreaMetrics = {
@@ -160,6 +162,70 @@ describe("Window 1 — tier-1 felt-report screen", () => {
         params: expect.objectContaining({ feltReportId: createdReportId, eventId: "" }),
       }),
     );
+  });
+
+  it("without GPS the location starts at the silent reference place (Hawler) and is 'manual' quality", async () => {
+    await renderWithProviders(<Tier1FeltReportScreen />);
+    await flush();
+
+    expect(screen.getByText("Location: Hawler")).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(`5. ${i18n.t("felt.tier1.levels.5.label")}`));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await flush();
+    expect(useFeltQueueStore.getState().items[0]?.tier1.location).toEqual({
+      quality: "manual",
+      lat: 36.19,
+      lon: 44.01,
+      placeId: "erbil",
+    });
+  });
+
+  it("starts at the reference place when there is one (nearest town to the last fix)", async () => {
+    usePrefsStore.setState({
+      referencePlace: { placeId: "slemani", lat: 35.56, lon: 45.43 },
+    });
+    await renderWithProviders(<Tier1FeltReportScreen />);
+    await flush();
+    expect(screen.getByText("Location: Slemani")).toBeTruthy();
+    usePrefsStore.setState({ referencePlace: null });
+  });
+
+  it("'Change' opens the place search; a picked village becomes the manual location and is recorded", async () => {
+    await renderWithProviders(<Tier1FeltReportScreen />);
+    await flush();
+
+    await act(async () => {
+      fireEvent.press(screen.getByText("Change"));
+    });
+    await flush();
+    await act(async () => {
+      fireEvent.changeText(screen.getByLabelText("Search for a place"), "Sehbiyax");
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("felt-place-search-result-n9852690211"));
+    });
+    await flush();
+
+    // The search closes and the line shows the picked place.
+    expect(screen.queryByLabelText("Search for a place")).toBeNull();
+    expect(screen.getByText("Location: Şehbîyax")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(`5. ${i18n.t("felt.tier1.levels.5.label")}`));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await flush();
+    const location = useFeltQueueStore.getState().items[0]?.tier1.location;
+    expect(location).toEqual({
+      quality: "manual",
+      lat: 33.7502,
+      lon: 46.9757,
+      placeId: "n9852690211",
+    });
   });
 
   it("announces the queued report to screen readers before navigating on", async () => {

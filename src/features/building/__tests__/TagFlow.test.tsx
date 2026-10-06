@@ -162,7 +162,7 @@ describe("Tag my building flow", () => {
     expect(nextDisabled()).toBe(false);
   });
 
-  it("asks for the location privately, by GPS or by town", async () => {
+  it("asks for the location privately, by GPS or by place", async () => {
     await renderWithProviders(<NewHomeScreen />);
     await press("kind-house");
     await press("flow-next");
@@ -170,7 +170,21 @@ describe("Tag my building flow", () => {
     expect(nextDisabled()).toBe(true);
     await pressText("Hawler");
     expect(nextDisabled()).toBe(false);
-    expect(screen.getByText(/A town centre is less exact/)).toBeTruthy();
+    expect(screen.getByText(/A place centre is less exact/)).toBeTruthy();
+  });
+
+  it("finds a village with the place search, by any spelling, and uses its centre", async () => {
+    await renderWithProviders(<NewHomeScreen />);
+    await press("kind-house");
+    await press("flow-next");
+    await fireEvent.changeText(screen.getByLabelText("Search for a place"), "Sehbiyax");
+    await press("location-place-search-result-n9852690211");
+    expect(nextDisabled()).toBe(false);
+    expect(screen.getByText(/A place centre is less exact/)).toBeTruthy();
+    expect(
+      screen.getByTestId("location-place-search-result-n9852690211").props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: true }));
   });
 
   it("uses one GPS fix when asked and says so", async () => {
@@ -183,14 +197,14 @@ describe("Tag my building flow", () => {
     expect(nextDisabled()).toBe(false);
   });
 
-  it("falls back to the town list when location is refused", async () => {
+  it("falls back to the place search when location is refused", async () => {
     mockRequestPermission.mockResolvedValue({ status: "denied" });
     await renderWithProviders(<NewHomeScreen />);
     await press("kind-house");
     await press("flow-next");
     await press("location-gps");
     expect(
-      await screen.findByText("Could not get your location. Choose a town."),
+      await screen.findByText("Could not get your location. Choose a place."),
     ).toBeTruthy();
     expect(nextDisabled()).toBe(true);
   });
