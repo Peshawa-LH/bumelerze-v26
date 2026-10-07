@@ -92,6 +92,8 @@ function makeAdminTransport(
     grantRole: jest.fn(async () => undefined),
     revokeRole: jest.fn(async () => undefined),
     resolveProfileReports: jest.fn(async () => undefined),
+    fetchReportedPosts: jest.fn(async () => []),
+    dismissPostReports: jest.fn(async () => undefined),
     ...overrides,
   } as jest.Mocked<AdminTransport>;
 }

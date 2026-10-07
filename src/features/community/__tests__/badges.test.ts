@@ -22,6 +22,7 @@ function profile(
       following: 0,
       comments: 0,
       helpfulReceived: 0,
+      postsCount: 0,
       badgesHidden: false,
       milestones: { reports: 0, detailedReports: 0, photoReports: 0 },
       recentComments: [],

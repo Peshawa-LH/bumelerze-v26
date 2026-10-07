@@ -45,3 +45,14 @@ export interface ReportedProfile {
   reportCount: number;
   lastReason: string | null;
 }
+
+/** A visible profile post with open reports (`post_queue()`, migration 0050). */
+export interface ReportedPost {
+  postId: string;
+  authorId: string;
+  username: string | null;
+  displayName: string | null;
+  body: string;
+  reportCount: number;
+  lastReason: string | null;
+}

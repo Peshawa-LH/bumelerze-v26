@@ -4,10 +4,16 @@ import { toCommunityError } from "@/features/community/transport";
 import { CommunityError } from "@/features/community/types";
 import { HUB_ROLE_KINDS } from "@/features/eventhub/types";
 import { getSupabaseClient } from "@/lib/supabase";
-import type { GrantableRank, QueueComment, ReportedProfile, RoleHolder } from "./types";
+import type {
+  GrantableRank,
+  QueueComment,
+  ReportedPost,
+  ReportedProfile,
+  RoleHolder,
+} from "./types";
 
 /**
- * Admin data access (migrations 0044 and 0046-0047). Every function checks
+ * Admin data access (migrations 0044, 0046-0047 and 0050). Every function checks
  * the caller's permission on the server; the app only decides what to show.
  */
 export interface AdminTransport {
@@ -22,6 +28,10 @@ export interface AdminTransport {
   }): Promise<void>;
   revokeRole(username: string, role: GrantableRank): Promise<void>;
   resolveProfileReports(userId: string): Promise<void>;
+  /** Reported profile posts (`post_queue()`, 0050). Throws `unavailable`
+   * before the migration is applied. */
+  fetchReportedPosts(): Promise<ReportedPost[]>;
+  dismissPostReports(postId: string): Promise<void>;
 }
 
 const queueSchema = z.object({
@@ -130,6 +140,38 @@ export function parseReportedProfiles(data: unknown): ReportedProfile[] {
   return rows;
 }
 
+const postSchema = z.object({
+  post_id: z.string(),
+  author_id: z.string(),
+  username: z.string().nullable().optional(),
+  display_name: z.string().nullable().optional(),
+  body: z.string(),
+  report_count: z.coerce.number().catch(0),
+  last_reason: z.string().nullable().optional(),
+});
+
+export function parseReportedPosts(data: unknown): ReportedPost[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  const rows: ReportedPost[] = [];
+  for (const row of data) {
+    const parsed = postSchema.safeParse(row);
+    if (parsed.success) {
+      rows.push({
+        postId: parsed.data.post_id,
+        authorId: parsed.data.author_id,
+        username: parsed.data.username ?? null,
+        displayName: parsed.data.display_name ?? null,
+        body: parsed.data.body,
+        reportCount: parsed.data.report_count,
+        lastReason: parsed.data.last_reason ?? null,
+      });
+    }
+  }
+  return rows;
+}
+
 async function call(name: string, args?: Record<string, unknown>): Promise<unknown> {
   const client = getSupabaseClient();
   if (!client) {
@@ -165,5 +207,11 @@ export const SupabaseAdminTransport: AdminTransport = {
   },
   async resolveProfileReports(userId) {
     await call("resolve_profile_reports", { p_user: userId });
+  },
+  async fetchReportedPosts() {
+    return parseReportedPosts(await call("post_queue", { p_limit: 50 }));
+  },
+  async dismissPostReports(postId) {
+    await call("dismiss_post_reports", { p_post_id: postId });
   },
 };

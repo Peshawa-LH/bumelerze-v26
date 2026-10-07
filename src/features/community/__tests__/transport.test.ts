@@ -174,6 +174,18 @@ describe("person lists", () => {
   });
 });
 
+describe("posts_count (migration 0050)", () => {
+  it("reads the count of visible posts for a viewer who may see the full profile", () => {
+    expect(parsePublicProfile({ ...FULL, posts_count: 7 })?.details?.postsCount).toBe(7);
+  });
+
+  it("is 0 before the migration is applied, and never present for a viewer without full access", () => {
+    expect(parsePublicProfile(FULL)?.details?.postsCount).toBe(0);
+    const hidden = parsePublicProfile({ ...FULL, can_view_full: false, posts_count: 7 });
+    expect(hidden?.details).toBeNull();
+  });
+});
+
 describe("toCommunityError", () => {
   it("maps the server's tokens and codes", () => {
     expect(toCommunityError({ message: "follow_user: not_account" }).code).toBe(
@@ -185,6 +197,9 @@ describe("toCommunityError", () => {
     expect(toCommunityError({ message: "follow_user: blocked" }).code).toBe("blocked");
     expect(toCommunityError({ code: "54000", message: "x" }).code).toBe("rate_limited");
     expect(toCommunityError({ code: "PGRST202", message: "x" }).code).toBe("unavailable");
+    // a missing table (profile posts before migration 0050) is "unavailable" too
+    expect(toCommunityError({ code: "PGRST205", message: "x" }).code).toBe("unavailable");
+    expect(toCommunityError({ code: "42P01", message: "x" }).code).toBe("unavailable");
     expect(toCommunityError({ status: 0, message: "Failed to fetch" }).code).toBe(
       "network",
     );

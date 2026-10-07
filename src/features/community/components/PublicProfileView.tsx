@@ -10,6 +10,8 @@ import { BadgeGrid } from "@/features/badges";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { formatMagnitudeValue } from "@/features/events";
 import { formatMonthYear } from "@/features/mydata/format";
+import { PostsSection } from "@/features/posts/components/PostsSection";
+import type { PostsTransport } from "@/features/posts/transport";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { profileBadgeEntries } from "../badges";
@@ -26,6 +28,8 @@ import { ProfileCounts } from "./ProfileCounts";
 interface PublicProfileViewProps {
   profile: PublicProfile;
   actions: CommunityActions;
+  /** Tests inject a fake; the app uses the Supabase one. */
+  postsTransport?: PostsTransport;
 }
 
 /**
@@ -35,7 +39,11 @@ interface PublicProfileViewProps {
  * shown. A private account the viewer may not follow-see shows the basics
  * (photo, name, @username, rank) and a Request button.
  */
-export function PublicProfileView({ profile, actions }: PublicProfileViewProps) {
+export function PublicProfileView({
+  profile,
+  actions,
+  postsTransport,
+}: PublicProfileViewProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { colors, typography, spacing } = useTheme();
@@ -159,6 +167,11 @@ export function PublicProfileView({ profile, actions }: PublicProfileViewProps) 
         </Text>
       ) : null}
 
+      {!details ? (
+        // a private account the viewer cannot see into: "visible to followers"
+        <PostsSection profile={profile} />
+      ) : null}
+
       {details ? (
         <>
           <ProfileCounts
@@ -181,6 +194,11 @@ export function PublicProfileView({ profile, actions }: PublicProfileViewProps) 
               <BadgeGrid entries={badges} />
             </View>
           ) : null}
+
+          <PostsSection
+            profile={profile}
+            {...(postsTransport ? { transport: postsTransport } : {})}
+          />
 
           <View style={{ gap: spacing[2] }}>
             <Text

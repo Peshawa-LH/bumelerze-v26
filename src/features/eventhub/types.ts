@@ -26,6 +26,7 @@ export const PERMISSIONS = [
   "comments.delete",
   "badges.grant",
   "hubs.feature",
+  "posts.delete",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 

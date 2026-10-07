@@ -87,6 +87,7 @@ const profileSchema = z.object({
   following: count.optional(),
   comments: count.optional(),
   helpful_received: count.optional(),
+  posts_count: count.optional(),
   badges_hidden: z.boolean().optional(),
   milestones: z
     .object({
@@ -147,6 +148,7 @@ export function parsePublicProfile(data: unknown): PublicProfile | null {
           following: p.following ?? 0,
           comments: p.comments ?? 0,
           helpfulReceived: p.helpful_received ?? 0,
+          postsCount: p.posts_count ?? 0,
           badgesHidden: p.badges_hidden ?? false,
           milestones:
             p.badges_hidden || !p.milestones
@@ -229,8 +231,15 @@ export function toCommunityError(error: unknown): CommunityError {
   const e: ErrorLike =
     typeof error === "object" && error !== null ? (error as ErrorLike) : {};
   const message = e.message ?? "";
-  // PGRST202 / 42883: the function does not exist yet (migration not applied).
-  if (e.code === "PGRST202" || e.code === "42883" || e.status === 404) {
+  // PGRST202 / 42883: the function does not exist yet (migration not applied);
+  // PGRST205 / 42P01: the same for a table (profile posts, migration 0050).
+  if (
+    e.code === "PGRST202" ||
+    e.code === "42883" ||
+    e.code === "PGRST205" ||
+    e.code === "42P01" ||
+    e.status === 404
+  ) {
     return new CommunityError("unavailable", message);
   }
   for (const token of [

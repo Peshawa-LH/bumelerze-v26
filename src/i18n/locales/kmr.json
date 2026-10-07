@@ -333,7 +333,10 @@
     "axisY": "Y",
     "axisZ": "Z",
     "flipPhone": "Telefonê bizivirîne",
-    "pose": { "standing": "Rawestayî", "flat": "Raketî" },
+    "pose": {
+      "standing": "Rawestayî",
+      "flat": "Raketî"
+    },
     "chartA11yLabel": "Xêza rasterast a lerizanpîvê ku deh saniyeyên dawî yên tevgerê nîşan dide",
     "web": {
       "enableButton": "Sensora tevgerê veke",
@@ -2293,6 +2296,34 @@
       "count": "Gilî: {{number}}",
       "dismiss": "Paşguh bike",
       "open": "Profîlê veke"
+    },
+    "posts": {
+      "title": "Nivîsên gilîkirî"
     }
+  },
+  "posts": {
+    "title": "Nivîs",
+    "gate": "Nivîs tenê ji şopîneran re xuya ne.",
+    "empty": "Hê nivîs tune.",
+    "loadMore": "Bêtir nîşan bide",
+    "loadError": "Nivîs nehatin barkirin.",
+    "composer": {
+      "placeholder": "Nivîsekê binivîse",
+      "label": "Nivîsa te",
+      "post": "Bişîne",
+      "posting": "Tê şandin…",
+      "counterA11y": "{{used}} ji {{max}} tîpan",
+      "tooLong": "Pir dirêj e. Sînor {{max}} tîp e."
+    },
+    "delete": "Jê bibe",
+    "deleteConfirmTitle": "Ev nivîs were jêbirin?",
+    "deleteConfirmMessage": "Ji bo hemûyan tê rakirin.",
+    "report": "Gilî bike",
+    "reportTitle": "Çima tu vê nivîsê gilî dikî?",
+    "reported": "Spas. Em ê binirxînin.",
+    "remove": "Rake",
+    "removeConfirmTitle": "Ev nivîs were rakirin?",
+    "removeConfirmMessage": "Nivîsa wê ji bo hemûyan tê jêbirin.",
+    "removedByModerators": "Ji aliyê rêveberan ve hate rakirin"
   }
 }

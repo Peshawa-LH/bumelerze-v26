@@ -43,6 +43,8 @@ export interface ProfileDetails {
   following: number;
   comments: number;
   helpfulReceived: number;
+  /** Visible text posts (migration 0050); 0 before it is applied. */
+  postsCount: number;
   /** The owner hides their milestone badges; `milestones` is then null. */
   badgesHidden: boolean;
   milestones: ProfileMilestones | null;

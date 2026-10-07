@@ -3,11 +3,13 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { EventHubTransport } from "@/features/eventhub/transport";
+import type { PostsTransport } from "@/features/posts/transport";
 import { useTheme } from "@/theme";
 import { useAdminAccess } from "../queries";
 import type { AdminTransport } from "../transport";
 import { ModerationQueueSection } from "./ModerationQueueSection";
 import { RankBadgesSection } from "./RankBadgesSection";
+import { ReportedPostsSection } from "./ReportedPostsSection";
 import { ReportedProfilesSection } from "./ReportedProfilesSection";
 
 /** The hidden admin screen. Each section appears only for the permission it
@@ -17,9 +19,11 @@ import { ReportedProfilesSection } from "./ReportedProfilesSection";
 export function AdminContent({
   transport,
   hubTransport,
+  postsTransport,
 }: {
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
+  postsTransport?: PostsTransport;
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -58,6 +62,11 @@ export function AdminContent({
         <>
           <ModerationQueueSection canDelete={access.canDelete} {...shared} />
           <ReportedProfilesSection {...shared} />
+          <ReportedPostsSection
+            canRemove={access.canRemovePosts}
+            {...shared}
+            {...(postsTransport ? { postsTransport } : {})}
+          />
         </>
       ) : null}
       {access.canGrant ? <RankBadgesSection {...shared} /> : null}

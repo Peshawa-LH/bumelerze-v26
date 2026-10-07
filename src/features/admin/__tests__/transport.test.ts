@@ -1,4 +1,9 @@
-import { parseQueue, parseReportedProfiles, parseRoleHolders } from "../transport";
+import {
+  parseQueue,
+  parseReportedPosts,
+  parseReportedProfiles,
+  parseRoleHolders,
+} from "../transport";
 import { GRANTABLE_RANKS } from "../types";
 
 describe("admin parsers", () => {
@@ -72,5 +77,40 @@ describe("admin parsers", () => {
       "engineer",
       "partner",
     ]);
+  });
+});
+
+describe("parseReportedPosts", () => {
+  it("reads the reported-post queue and drops malformed rows", () => {
+    const rows = parseReportedPosts([
+      {
+        post_id: "p1",
+        author_id: "u1",
+        username: "dilan",
+        display_name: "Dilan",
+        body: "buy now",
+        report_count: "3",
+        last_reason: "spam",
+        last_reported_at: "2026-10-08T10:00:00Z",
+        created_at: "2026-10-08T09:00:00Z",
+      },
+      { post_id: "p2" },
+      null,
+    ]);
+    expect(rows).toEqual([
+      {
+        postId: "p1",
+        authorId: "u1",
+        username: "dilan",
+        displayName: "Dilan",
+        body: "buy now",
+        reportCount: 3,
+        lastReason: "spam",
+      },
+    ]);
+  });
+
+  it("is empty for an answer that is not a list", () => {
+    expect(parseReportedPosts(undefined)).toEqual([]);
   });
 });

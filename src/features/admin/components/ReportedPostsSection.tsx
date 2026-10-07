@@ -1,0 +1,188 @@
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+
+import { communityErrorText } from "@/features/community/error-text";
+import { profileHref } from "@/features/community/routes";
+import { formatUsername } from "@/features/community/username";
+import { ActionButton } from "@/features/eventhub/components/ActionButton";
+import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
+import type { EventHubTransport } from "@/features/eventhub/transport";
+import type { PostsTransport } from "@/features/posts/transport";
+import { confirmDialog } from "@/lib/dialogs";
+import { localizeDigits } from "@/lib/format-numbers";
+import { useTheme } from "@/theme";
+import { useAdminActions, useReportedPosts } from "../queries";
+import type { AdminTransport } from "../transport";
+import type { ReportedPost } from "../types";
+
+/** Profile posts readers reported: Open the author's profile, Remove (admins
+ * with `posts.delete`) or Dismiss the reports. Hidden when there are none, or
+ * before migration 0050 is applied. */
+export function ReportedPostsSection({
+  canRemove,
+  transport,
+  hubTransport,
+  postsTransport,
+}: {
+  canRemove: boolean;
+  transport?: AdminTransport;
+  hubTransport?: EventHubTransport;
+  postsTransport?: PostsTransport;
+}) {
+  const { t } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const reports = useReportedPosts(true, transport);
+  const actions = useAdminActions(transport, hubTransport, postsTransport);
+
+  const rows = reports.data ?? [];
+  if (rows.length === 0) {
+    return null;
+  }
+  return (
+    <View style={{ gap: spacing[2] }} testID="admin-posts">
+      <Text
+        accessibilityRole="header"
+        style={[typography.h3, { color: colors.text.primary }]}
+      >
+        {t("admin.posts.title")}
+      </Text>
+      {rows.map((row) => (
+        <ReportedPostItem
+          key={row.postId}
+          row={row}
+          canRemove={canRemove}
+          actions={actions}
+        />
+      ))}
+    </View>
+  );
+}
+
+function ReportedPostItem({
+  row,
+  canRemove,
+  actions,
+}: {
+  row: ReportedPost;
+  canRemove: boolean;
+  actions: ReturnType<typeof useAdminActions>;
+}) {
+  const { t, i18n } = useTranslation();
+  const router = useRouter();
+  const { colors, typography, spacing } = useTheme();
+  const [removing, setRemoving] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const meta = {
+    color: colors.text.secondary,
+    fontSize: typography.bodyMeta.fontSize,
+    lineHeight: typography.bodyMeta.lineHeight,
+  } as const;
+
+  async function run(action: () => Promise<void>) {
+    setBusy(true);
+    setErrorText(null);
+    try {
+      await action();
+    } catch (error) {
+      setErrorText(communityErrorText(t, error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <View
+      testID={`reported-post-${row.postId}`}
+      style={[
+        styles.item,
+        {
+          backgroundColor: colors.surface.raised,
+          borderColor: colors.border.default,
+          padding: spacing[3],
+          gap: spacing[1],
+        },
+      ]}
+    >
+      <Text style={meta}>
+        {[
+          row.displayName ?? t("eventHub.thread.anonymous"),
+          t("admin.reports.count", {
+            number: localizeDigits(String(row.reportCount), i18n.language),
+          }),
+          row.lastReason ? t(`eventHub.reasons.${row.lastReason}`) : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </Text>
+      {row.username ? (
+        <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+          {formatUsername(row.username)}
+        </Text>
+      ) : null}
+      <Text
+        style={{
+          color: colors.text.primary,
+          fontSize: typography.bodyDefault.fontSize,
+          lineHeight: typography.bodyDefault.lineHeight,
+          textAlign: "auto",
+        }}
+      >
+        {row.body}
+      </Text>
+      {removing ? (
+        <RemoveReasons
+          disabled={busy}
+          onCancel={() => setRemoving(false)}
+          onSelect={(reason) =>
+            confirmDialog({
+              title: t("posts.removeConfirmTitle"),
+              message: t("posts.removeConfirmMessage"),
+              confirmLabel: t("posts.remove"),
+              cancelLabel: t("eventHub.thread.cancel"),
+              destructive: true,
+              onConfirm: () => void run(() => actions.removePost(row.postId, reason)),
+            })
+          }
+        />
+      ) : (
+        <View style={styles.actions}>
+          {row.username ? (
+            <ActionButton
+              label={t("admin.reports.open")}
+              onPress={() => router.push(profileHref(row.username as string))}
+              testID={`reported-post-open-${row.postId}`}
+            />
+          ) : null}
+          {canRemove ? (
+            <ActionButton
+              label={t("posts.remove")}
+              danger
+              disabled={busy}
+              onPress={() => setRemoving(true)}
+              testID={`reported-post-remove-${row.postId}`}
+            />
+          ) : null}
+          <ActionButton
+            label={t("admin.reports.dismiss")}
+            disabled={busy}
+            onPress={() => void run(() => actions.dismissPostReports(row.postId))}
+            testID={`reported-post-dismiss-${row.postId}`}
+          />
+        </View>
+      )}
+      {errorText ? (
+        <Text accessibilityRole="alert" style={[meta, { color: colors.status.danger }]}>
+          {errorText}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  item: { borderWidth: 1, borderRadius: 12 },
+  actions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
+});

@@ -333,7 +333,10 @@
     "axisY": "Y",
     "axisZ": "Z",
     "flipPhone": "Flip phone",
-    "pose": { "standing": "Standing", "flat": "Lying flat" },
+    "pose": {
+      "standing": "Standing",
+      "flat": "Lying flat"
+    },
     "chartA11yLabel": "Live accelerometer chart showing the last ten seconds of motion",
     "web": {
       "enableButton": "Enable motion sensor",
@@ -2293,6 +2296,34 @@
       "count": "Reports: {{number}}",
       "dismiss": "Dismiss",
       "open": "Open profile"
+    },
+    "posts": {
+      "title": "Reported posts"
     }
+  },
+  "posts": {
+    "title": "Posts",
+    "gate": "Posts are visible to followers.",
+    "empty": "No posts yet.",
+    "loadMore": "Show more",
+    "loadError": "Couldn't load posts.",
+    "composer": {
+      "placeholder": "Write a post",
+      "label": "Post text",
+      "post": "Post",
+      "posting": "Posting…",
+      "counterA11y": "{{used}} of {{max}} characters",
+      "tooLong": "Too long. The limit is {{max}} characters."
+    },
+    "delete": "Delete",
+    "deleteConfirmTitle": "Delete this post?",
+    "deleteConfirmMessage": "It is removed for everyone.",
+    "report": "Report",
+    "reportTitle": "Why are you reporting this post?",
+    "reported": "Thanks. We will review it.",
+    "remove": "Remove",
+    "removeConfirmTitle": "Remove this post?",
+    "removeConfirmMessage": "Its text is deleted for everyone.",
+    "removedByModerators": "Removed by moderators"
   }
 }

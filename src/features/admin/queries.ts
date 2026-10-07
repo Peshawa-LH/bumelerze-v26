@@ -8,6 +8,7 @@ import {
   type EventHubTransport,
 } from "@/features/eventhub/transport";
 import type { ModerationAction, Permission } from "@/features/eventhub/types";
+import { SupabasePostsTransport, type PostsTransport } from "@/features/posts/transport";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SupabaseAdminTransport, type AdminTransport } from "./transport";
 import type { GrantableRank } from "./types";
@@ -19,6 +20,7 @@ export const adminKeys = {
   queue: ["admin", "queue"] as const,
   holders: ["admin", "holders"] as const,
   reports: ["admin", "reports"] as const,
+  posts: ["admin", "posts"] as const,
 };
 
 export interface AdminAccess {
@@ -27,6 +29,8 @@ export interface AdminAccess {
   canModerate: boolean;
   canDelete: boolean;
   canGrant: boolean;
+  /** May remove anyone's profile post (`posts.delete`). */
+  canRemovePosts: boolean;
   /** Any admin tool at all: the entry in My account shows when true. */
   any: boolean;
   /** Permissions still loading: show nothing yet rather than "not allowed". */
@@ -44,9 +48,11 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
   const canModerate = server && perms.has("comments.moderate");
   const canDelete = server && perms.has("comments.delete");
   const canGrant = server && perms.has("badges.grant");
+  const canRemovePosts = server && perms.has("posts.delete");
   return {
     canModerate,
     canDelete,
+    canRemovePosts,
     canGrant,
     any: canModerate || canGrant,
     isLoading: perms.isLoading,
@@ -96,6 +102,20 @@ export function useReportedProfiles(
   });
 }
 
+export function useReportedPosts(
+  enabled: boolean,
+  transport: AdminTransport = SupabaseAdminTransport,
+) {
+  return useQuery({
+    queryKey: adminKeys.posts,
+    queryFn: () => transport.fetchReportedPosts(),
+    enabled: enabled && isSupabaseConfigured(),
+    staleTime: 15_000,
+    retry: 0,
+    meta: NOT_PERSISTED,
+  });
+}
+
 export interface AdminActions {
   moderate: (commentId: string, action: ModerationAction) => Promise<void>;
   remove: (commentId: string, reason: string) => Promise<void>;
@@ -107,11 +127,15 @@ export interface AdminActions {
   }) => Promise<void>;
   revoke: (username: string, role: GrantableRank) => Promise<void>;
   resolveReports: (userId: string) => Promise<void>;
+  dismissPostReports: (postId: string) => Promise<void>;
+  /** Soft remove a reported profile post (`posts.delete`). */
+  removePost: (postId: string, reason: string) => Promise<void>;
 }
 
 export function useAdminActions(
   transport: AdminTransport = SupabaseAdminTransport,
   hubTransport?: EventHubTransport,
+  postsTransport: PostsTransport = SupabasePostsTransport,
 ): AdminActions {
   const queryClient = useQueryClient();
   const hub = hubTransport ?? SupabaseEventHubTransport;
@@ -147,11 +171,23 @@ export function useAdminActions(
     onSuccess: refresh,
   });
 
+  const dismissPostReports = useMutation({
+    mutationFn: (postId: string) => transport.dismissPostReports(postId),
+    onSuccess: refresh,
+  });
+  const removePost = useMutation({
+    mutationFn: (input: { postId: string; reason: string }) =>
+      postsTransport.adminRemovePost(input.postId, input.reason),
+    onSuccess: refresh,
+  });
+
   return {
     moderate: (commentId, action) => moderate.mutateAsync({ commentId, action }),
     remove: (commentId, reason) => remove.mutateAsync({ commentId, reason }),
     grant: (input) => grant.mutateAsync(input),
     revoke: (username, role) => revoke.mutateAsync({ username, role }),
     resolveReports: (userId) => resolveReports.mutateAsync(userId),
+    dismissPostReports: (postId) => dismissPostReports.mutateAsync(postId),
+    removePost: (postId, reason) => removePost.mutateAsync({ postId, reason }),
   };
 }

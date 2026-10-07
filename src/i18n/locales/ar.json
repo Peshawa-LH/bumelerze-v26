@@ -333,7 +333,10 @@
     "axisY": "Y",
     "axisZ": "Z",
     "flipPhone": "اقلب الهاتف",
-    "pose": { "standing": "واقف", "flat": "مستلقٍ" },
+    "pose": {
+      "standing": "واقف",
+      "flat": "مستلقٍ"
+    },
     "chartA11yLabel": "رسم بياني مباشر لمقياس التسارع يعرض آخر عشر ثوانٍ من الحركة",
     "web": {
       "enableButton": "تفعيل مستشعر الحركة",
@@ -2293,6 +2296,34 @@
       "count": "البلاغات: {{number}}",
       "dismiss": "تجاهل",
       "open": "فتح الملف"
+    },
+    "posts": {
+      "title": "منشورات تم الإبلاغ عنها"
     }
+  },
+  "posts": {
+    "title": "المنشورات",
+    "gate": "المنشورات مرئية للمتابعين فقط.",
+    "empty": "لا منشورات بعد.",
+    "loadMore": "عرض المزيد",
+    "loadError": "تعذّر تحميل المنشورات.",
+    "composer": {
+      "placeholder": "اكتب منشورًا",
+      "label": "نص المنشور",
+      "post": "نشر",
+      "posting": "جارٍ النشر…",
+      "counterA11y": "{{used}} من {{max}} حرفًا",
+      "tooLong": "طويل جدًا. الحد {{max}} حرف."
+    },
+    "delete": "حذف",
+    "deleteConfirmTitle": "حذف هذا المنشور؟",
+    "deleteConfirmMessage": "يُحذف للجميع.",
+    "report": "إبلاغ",
+    "reportTitle": "لماذا تبلّغ عن هذا المنشور؟",
+    "reported": "شكرًا. سنراجعه.",
+    "remove": "إزالة",
+    "removeConfirmTitle": "إزالة هذا المنشور؟",
+    "removeConfirmMessage": "يُحذف نصه للجميع.",
+    "removedByModerators": "أزاله المشرفون"
   }
 }
