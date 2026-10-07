@@ -28,6 +28,7 @@ import { EventHubPill, useRouteEvent } from "@/features/eventhub";
 import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
+import { ShareButton, shareIdFor } from "@/features/share";
 import { RiskSection, ShakeMapSection } from "@/features/shakemap";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -140,6 +141,10 @@ export default function EventDetailScreen() {
           title: t("eventDetail.title"),
           headerShown: true,
           headerLeft: () => <HeaderBackButton />,
+          headerRight: () =>
+            event ? (
+              <ShareButton event={event} shareId={shareIdFor(event, displayBumelerzeId)} />
+            ) : null,
         }}
       />
       <View style={styles.flex}>

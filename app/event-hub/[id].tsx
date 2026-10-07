@@ -3,7 +3,9 @@ import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
+import { isBumelerzeId } from "@/features/events";
 import { EventHubContent, useRouteEvent } from "@/features/eventhub";
+import { ShareButton, shareIdFor } from "@/features/share";
 import { useTheme } from "@/theme";
 
 /**
@@ -31,6 +33,13 @@ export default function EventHubScreen() {
           title: t("eventHub.title"),
           headerShown: true,
           headerLeft: () => <HeaderBackButton />,
+          headerRight: () =>
+            event ? (
+              <ShareButton
+                event={event}
+                shareId={shareIdFor(event, id && isBumelerzeId(id) ? id : null)}
+              />
+            ) : null,
         }}
       />
       <View style={{ flex: 1, backgroundColor: colors.surface.base }}>
