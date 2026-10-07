@@ -156,6 +156,8 @@ begin
   update public.event_comments
   set status = case when p_action = 'approve' then 'visible' else 'hidden' end,
       hidden_reason = case when p_action = 'hide' then coalesce(p_reason, 'moderator') else null end,
+      -- approving settles the readers' flags: the comment leaves the review queue
+      flag_count = case when p_action = 'approve' then 0 else flag_count end,
       updated_at = now()
   where comment_id = p_comment_id
     and status <> 'removed'

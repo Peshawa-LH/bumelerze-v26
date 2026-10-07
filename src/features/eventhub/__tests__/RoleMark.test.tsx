@@ -58,6 +58,30 @@ describe("RoleMark", () => {
     expect(screen.queryByTestId("role-mark-partner")).toBeNull();
   });
 
+  it("marks the top rank in the order seismologist > professor > researcher > engineer", async () => {
+    const view = await render(
+      <RoleMark
+        roles={[
+          { role: "engineer", orgName: null },
+          { role: "researcher", orgName: null },
+          { role: "professor", orgName: null },
+        ]}
+      />,
+    );
+    expect(screen.getByTestId("role-mark-professor")).toBeTruthy();
+    await view.rerender(
+      <RoleMark
+        roles={[
+          { role: "researcher", orgName: null },
+          { role: "seismologist", orgName: null },
+        ]}
+      />,
+    );
+    expect(screen.getByTestId("role-mark-seismologist")).toBeTruthy();
+    await view.rerender(<RoleMark roles={[{ role: "researcher", orgName: null }]} />);
+    expect(screen.getByLabelText(i18n.t("eventHub.roles.researcher"))).toBeTruthy();
+  });
+
   it("shows nothing for a plain account", async () => {
     await render(<RoleMark roles={[]} />);
     expect(screen.queryByTestId(/role-mark/)).toBeNull();

@@ -5,6 +5,8 @@ import type { HubComment, HubThread } from "./types";
  * repeats the rule for the client's own view so a moderator (who is allowed
  * to read hidden rows too) never sees a hidden comment in the thread:
  *  - visible: everyone
+ *  - removed: everyone, as an empty "Comment removed" placeholder (an admin
+ *    took the text down; the replies under it stay readable)
  *  - pending: its author, and moderators (to approve or hide it)
  *  - hidden: nobody
  */
@@ -12,7 +14,7 @@ export function isCommentShown(
   comment: HubComment,
   viewer: { userId: string | null; isModerator: boolean },
 ): boolean {
-  if (comment.status === "visible") {
+  if (comment.status === "visible" || comment.status === "removed") {
     return true;
   }
   if (comment.status === "pending") {
@@ -23,8 +25,17 @@ export function isCommentShown(
   return false;
 }
 
+export interface ThreadViewer {
+  userId: string | null;
+  isModerator: boolean;
+  /** People the viewer follows: their threads come first. */
+  followingIds?: ReadonlySet<string> | undefined;
+}
+
 /**
- * Flat rows -> threads. Top-level comments newest first; each one's replies
+ * Flat rows -> threads. Top-level comments newest first, except that threads
+ * started by people the viewer follows come before the rest (each group still
+ * newest first); each one's replies
  * oldest first (a conversation reads top to bottom). Replies are one level
  * deep by construction (the server re-parents deeper ones), and a reply whose
  * parent is not shown (hidden, or not yet loaded) is dropped rather than
@@ -32,12 +43,17 @@ export function isCommentShown(
  */
 export function buildThreads(
   comments: readonly HubComment[],
-  viewer: { userId: string | null; isModerator: boolean },
+  viewer: ThreadViewer,
 ): HubThread[] {
+  const following = viewer.followingIds;
+  const followed = (comment: HubComment) =>
+    following !== undefined && comment.userId !== null && following.has(comment.userId)
+      ? 1
+      : 0;
   const shown = comments.filter((comment) => isCommentShown(comment, viewer));
   const roots = shown
     .filter((comment) => comment.parentId === null)
-    .sort((a, b) => b.createdAt - a.createdAt);
+    .sort((a, b) => followed(b) - followed(a) || b.createdAt - a.createdAt);
 
   const repliesByParent = new Map<string, HubComment[]>();
   for (const comment of shown) {

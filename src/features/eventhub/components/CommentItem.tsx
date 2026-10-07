@@ -1,13 +1,16 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Avatar, getAvatarUrl } from "@/features/account";
+import { profileHref } from "@/features/community/routes";
 import {
   formatRelativeTimeValue,
   getRelativeTime,
   isolateNumeric,
 } from "@/features/events";
+import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
@@ -20,6 +23,8 @@ import {
   type HubComment,
   type HubRole,
 } from "../types";
+import { ActionButton } from "./ActionButton";
+import { RemoveReasons } from "./RemoveReasons";
 import { RoleMark } from "./RoleMark";
 
 export interface CommentViewer {
@@ -27,6 +32,8 @@ export interface CommentViewer {
   /** Signed in with an account (not an anonymous session). */
   isAccount: boolean;
   isModerator: boolean;
+  /** May remove any comment (`comments.delete`, admins). */
+  canDelete?: boolean;
 }
 
 interface CommentItemProps {
@@ -41,9 +48,11 @@ interface CommentItemProps {
   /** Reply button handler; omitted for replies (the thread takes the reply). */
   onReply?: () => void;
   isReply?: boolean;
+  /** The viewer follows the author: a small "Following" mark. */
+  isFollowing?: boolean;
 }
 
-type Mode = "idle" | "reporting" | "confirmDelete";
+type Mode = "idle" | "reporting" | "confirmDelete" | "adminRemove";
 
 /** One comment: author, role mark, time, area, text and its actions. */
 export function CommentItem({
@@ -56,8 +65,10 @@ export function CommentItem({
   actions,
   onReply,
   isReply = false,
+  isFollowing = false,
 }: CommentItemProps) {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
   const [mode, setMode] = useState<Mode>("idle");
@@ -108,6 +119,47 @@ export function CommentItem({
       ? t("eventHub.thread.helpfulCount", { number: helpfulCountText })
       : t("eventHub.thread.helpful");
 
+  if (comment.status === "removed") {
+    // An admin took the text down. Keep the slot so the replies under it
+    // still read in order; no author, no text, no actions.
+    return (
+      <View
+        testID={`comment-${comment.id}`}
+        style={isReply ? { marginStart: spacing[6] } : null}
+      >
+        <Text
+          style={[meta, { fontStyle: "italic" }]}
+          testID={`comment-removed-${comment.id}`}
+        >
+          {t("eventHub.thread.removed")}
+        </Text>
+      </View>
+    );
+  }
+
+  const username = author?.username ?? null;
+  const openProfile = username ? () => router.push(profileHref(username)) : null;
+  const avatar = (
+    <Avatar
+      uri={getAvatarUrl(author?.avatarPath)}
+      name={author?.displayName ?? null}
+      size={isReply ? 28 : 36}
+      testID={`comment-avatar-${comment.id}`}
+    />
+  );
+  const nameText = (
+    <Text
+      style={{
+        color: colors.text.primary,
+        fontSize: typography.bodyDefault.fontSize,
+        lineHeight: typography.bodyDefault.lineHeight,
+        fontWeight: "600",
+      }}
+    >
+      {name}
+    </Text>
+  );
+
   return (
     <View
       testID={`comment-${comment.id}`}
@@ -117,25 +169,40 @@ export function CommentItem({
         isReply ? { marginStart: spacing[6] } : null,
       ]}
     >
-      <Avatar
-        uri={getAvatarUrl(author?.avatarPath)}
-        name={author?.displayName ?? null}
-        size={isReply ? 28 : 36}
-        testID={`comment-avatar-${comment.id}`}
-      />
+      {openProfile ? (
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel={t("community.openProfile", { name })}
+          hitSlop={4}
+          onPress={openProfile}
+          testID={`comment-avatar-link-${comment.id}`}
+        >
+          {avatar}
+        </Pressable>
+      ) : (
+        avatar
+      )}
       <View style={[styles.content, { gap: spacing[1] }]}>
         <View style={[styles.headerRow, { gap: spacing[2] }]}>
-          <Text
-            style={{
-              color: colors.text.primary,
-              fontSize: typography.bodyDefault.fontSize,
-              lineHeight: typography.bodyDefault.lineHeight,
-              fontWeight: "600",
-            }}
-          >
-            {name}
-          </Text>
+          {openProfile ? (
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel={t("community.openProfile", { name })}
+              hitSlop={{ top: 10, bottom: 10 }}
+              onPress={openProfile}
+              testID={`comment-name-link-${comment.id}`}
+            >
+              {nameText}
+            </Pressable>
+          ) : (
+            nameText
+          )}
           <RoleMark roles={roles} />
+          {isFollowing ? (
+            <Text style={meta} testID={`comment-following-${comment.id}`}>
+              {t("eventHub.thread.following")}
+            </Text>
+          ) : null}
           <Text style={meta}>{timeText}</Text>
         </View>
 
@@ -184,6 +251,27 @@ export function CommentItem({
               />
             </View>
           </View>
+        ) : mode === "adminRemove" ? (
+          <RemoveReasons
+            testID={`remove-reasons-${comment.id}`}
+            disabled={busy}
+            onCancel={() => setMode("idle")}
+            onSelect={(reason) =>
+              confirmDialog({
+                title: t("eventHub.thread.removeConfirmTitle"),
+                message: t("eventHub.thread.removeConfirmMessage"),
+                confirmLabel: t("eventHub.thread.remove"),
+                cancelLabel: t("eventHub.thread.cancel"),
+                destructive: true,
+                onConfirm: () =>
+                  void run(() => actions.adminRemove(comment.id, reason)).then((ok) => {
+                    if (ok) {
+                      setMode("idle");
+                    }
+                  }),
+              })
+            }
+          />
         ) : mode === "confirmDelete" ? (
           <View style={{ gap: spacing[1] }}>
             <Text style={meta}>{t("eventHub.thread.deleteConfirm")}</Text>
@@ -237,6 +325,14 @@ export function CommentItem({
                 onPress={() => setMode("confirmDelete")}
               />
             ) : null}
+            {viewer.canDelete && !isOwn && comment.status !== "hidden" ? (
+              <ActionButton
+                label={t("eventHub.thread.remove")}
+                danger
+                onPress={() => setMode("adminRemove")}
+                testID={`remove-${comment.id}`}
+              />
+            ) : null}
             {viewer.isModerator && isPending ? (
               <>
                 <ActionButton
@@ -268,50 +364,6 @@ export function CommentItem({
   );
 }
 
-interface ActionButtonProps {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-  selected?: boolean;
-  danger?: boolean;
-}
-
-/** Text-link style action, at least 44 px tall. */
-function ActionButton({
-  label,
-  onPress,
-  disabled = false,
-  selected = false,
-  danger = false,
-}: ActionButtonProps) {
-  const { colors, typography, spacing } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled, selected }}
-      disabled={disabled}
-      onPress={onPress}
-      hitSlop={4}
-      style={[styles.action, { paddingHorizontal: spacing[2] }]}
-    >
-      <Text
-        style={{
-          color: danger
-            ? colors.status.danger
-            : disabled
-              ? colors.text.tertiary
-              : colors.text.link,
-          fontSize: typography.bodyMeta.fontSize,
-          fontWeight: selected ? "700" : typography.labelButton.fontWeight,
-          textDecorationLine: selected ? "underline" : "none",
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
@@ -329,12 +381,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
-  },
-  action: {
-    minHeight: 44,
-    minWidth: 44,
-    justifyContent: "center",
-    alignItems: "center",
   },
   staticAction: {
     paddingHorizontal: 8,

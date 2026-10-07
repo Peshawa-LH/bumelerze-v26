@@ -5,12 +5,14 @@ import { getSupabaseClient, signInAnonymously } from "@/lib/supabase";
 import {
   HUB_ROLE_KINDS,
   HubError,
+  PERMISSIONS,
   type FlagReason,
   type HubAuthor,
   type HubComment,
   type HubRole,
   type HubSummary,
   type ModerationAction,
+  type Permission,
 } from "./types";
 
 /**
@@ -38,6 +40,14 @@ export interface EventHubTransport {
     action: ModerationAction,
     reason?: string,
   ): Promise<void>;
+  /** The signed-in viewer's permissions (`my_permissions()`, migration 0043).
+   * Rejects when the function is missing, so callers can fall back. */
+  fetchMyPermissions(): Promise<Permission[]>;
+  /** Ids of the people the viewer follows (`my_following_ids()`, 0047);
+   * empty when the function is missing or the viewer is not an account. */
+  fetchFollowingIds(): Promise<string[]>;
+  /** Soft delete by an admin (`admin_delete_comment()`, 0044). */
+  adminDeleteComment(commentId: string, reason: string): Promise<void>;
 }
 
 /** Newest comments read per event. Replies to older threads beyond this are
@@ -67,7 +77,7 @@ const commentRowSchema = z.object({
   user_id: z.string().nullable(),
   body: z.string(),
   area_geohash: z.string().nullable(),
-  status: z.enum(["visible", "pending", "hidden"]),
+  status: z.enum(["visible", "pending", "hidden", "removed"]),
   helpful_count: z.number().int().nonnegative(),
   reply_count: z.number().int().nonnegative(),
   created_at: z.string(),
@@ -147,6 +157,15 @@ interface ErrorLike {
   name?: string;
 }
 
+/** `my_permissions()` result -> the permissions this app knows; anything
+ * else (a newer server) is ignored. */
+export function parsePermissions(data: unknown): Permission[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return PERMISSIONS.filter((permission) => data.includes(permission));
+}
+
 /** Maps a PostgREST / auth / fetch failure to a `HubError` the UI can word. */
 export function toHubError(error: unknown): HubError {
   if (error instanceof HubError) {
@@ -205,7 +224,25 @@ interface ProfileRow {
   user_id: string;
   display_name: string;
   avatar_path: string | null;
+  username?: string | null;
 }
+async function selectProfiles(
+  client: SupabaseClient,
+  ids: readonly string[],
+  withUsername: boolean,
+): Promise<{ data: unknown; error: ErrorLike | null }> {
+  if (withUsername) {
+    return client
+      .from("profiles")
+      .select("user_id, display_name, avatar_path, username")
+      .in("user_id", ids as string[]);
+  }
+  return client
+    .from("profiles")
+    .select("user_id, display_name, avatar_path")
+    .in("user_id", ids as string[]);
+}
+
 interface RoleRow {
   user_id: string;
   role: string;
@@ -253,19 +290,25 @@ export const SupabaseEventHubTransport: EventHubTransport = {
     if (!client || userIds.length === 0) {
       return authors;
     }
+    // `username` exists from migration 0045. Before it is applied the column
+    // is unknown and the whole read fails, so retry without it: names and
+    // photos must never disappear because of a missing migration.
+    let withUsername = true;
     for (const ids of chunk(userIds, ID_CHUNK)) {
-      const { data, error } = await client
-        .from("profiles")
-        .select("user_id, display_name, avatar_path")
-        .in("user_id", ids);
-      if (error) {
-        throw toHubError(error);
+      let result = await selectProfiles(client, ids, withUsername);
+      if (result.error && withUsername) {
+        withUsername = false;
+        result = await selectProfiles(client, ids, false);
       }
-      for (const row of (data ?? []) as unknown as ProfileRow[]) {
+      if (result.error) {
+        throw toHubError(result.error);
+      }
+      for (const row of (result.data ?? []) as unknown as ProfileRow[]) {
         authors[row.user_id] = {
           userId: row.user_id,
           displayName: row.display_name,
           avatarPath: row.avatar_path,
+          username: row.username ?? null,
         };
       }
     }
@@ -386,6 +429,40 @@ export const SupabaseEventHubTransport: EventHubTransport = {
       p_comment_id: commentId,
       p_action: action,
       p_reason: reason ?? null,
+    });
+    if (error) {
+      throw toHubError(error);
+    }
+  },
+
+  async fetchMyPermissions() {
+    const client = requireClient();
+    const { data, error } = await client.rpc("my_permissions");
+    if (error) {
+      throw toHubError(error);
+    }
+    return parsePermissions(data);
+  },
+
+  async fetchFollowingIds() {
+    const client = getSupabaseClient();
+    if (!client) {
+      return [];
+    }
+    const { data, error } = await client.rpc("my_following_ids");
+    if (error) {
+      throw toHubError(error);
+    }
+    return Array.isArray(data)
+      ? data.filter((id): id is string => typeof id === "string")
+      : [];
+  },
+
+  async adminDeleteComment(commentId, reason) {
+    const client = requireClient();
+    const { error } = await client.rpc("admin_delete_comment", {
+      p_comment_id: commentId,
+      p_reason: reason,
     });
     if (error) {
       throw toHubError(error);

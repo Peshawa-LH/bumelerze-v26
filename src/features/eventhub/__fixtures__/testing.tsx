@@ -6,7 +6,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import type { Event } from "@/features/events";
 
 import type { EventHubTransport } from "../transport";
-import type { HubComment, HubRole, HubSummary } from "../types";
+import type { HubComment, HubRole, HubSummary, Permission } from "../types";
 
 /** Shared fixtures for the Event hub component tests. */
 
@@ -61,9 +61,17 @@ export const EMPTY_SUMMARY: HubSummary = {
 export interface FakeTransportData {
   summary?: HubSummary | null;
   comments?: HubComment[];
-  authors?: Record<string, { displayName: string; avatarPath?: string | null }>;
+  authors?: Record<
+    string,
+    { displayName: string; avatarPath?: string | null; username?: string | null }
+  >;
   roles?: Record<string, HubRole[]>;
   helped?: string[];
+  /** The viewer's `my_permissions()`. Left out = the function is missing
+   * (a server without migration 0043), so the hub falls back to roles. */
+  permissions?: Permission[];
+  /** People the viewer follows. */
+  following?: string[];
 }
 
 export type FakeTransport = {
@@ -88,6 +96,7 @@ export function makeTransport(
               userId: id,
               displayName: data.authors?.[id]?.displayName ?? "",
               avatarPath: data.authors?.[id]?.avatarPath ?? null,
+              username: data.authors?.[id]?.username ?? null,
             },
           ]),
       ),
@@ -103,6 +112,14 @@ export function makeTransport(
     flagComment: jest.fn(async () => undefined),
     deleteComment: jest.fn(async () => undefined),
     moderateComment: jest.fn(async () => undefined),
+    fetchMyPermissions: jest.fn(async () => {
+      if (data.permissions === undefined) {
+        throw new Error("my_permissions is not available");
+      }
+      return data.permissions;
+    }),
+    fetchFollowingIds: jest.fn(async () => data.following ?? []),
+    adminDeleteComment: jest.fn(async () => undefined),
     ...overrides,
   };
   return transport as unknown as FakeTransport;

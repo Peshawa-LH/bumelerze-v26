@@ -1,5 +1,5 @@
 import type { EventHubTransport } from "./transport";
-import type { HubAuthor, HubRole, HubThreadData } from "./types";
+import type { HubAuthor, HubRole, HubThreadData, Permission } from "./types";
 
 /**
  * One thread read: the comments (required), then the people and marks around
@@ -22,18 +22,27 @@ export async function loadHubThread(
 
   const noAuthors: Record<string, HubAuthor> = {};
   const noRoles: Record<string, HubRole[]> = {};
-  const [authors, roles, helpedIds] = await Promise.all([
+  const [authors, roles, helpedIds, followingIds] = await Promise.all([
     transport.fetchAuthors(userIds).catch(() => noAuthors),
     transport.fetchRoles(userIds).catch(() => noRoles),
     options.isAccount
       ? transport.fetchMyHelpful(commentIds).catch((): string[] => [])
       : Promise.resolve<string[]>([]),
+    options.isAccount
+      ? transport.fetchFollowingIds().catch((): string[] => [])
+      : Promise.resolve<string[]>([]),
   ]);
 
-  return { comments, authors, roles, helpedIds };
+  return { comments, authors, roles, helpedIds, followingIds };
 }
 
 /** True for the roles that may approve or hide comments. */
 export function hasModeratorRole(roles: readonly HubRole[] | undefined): boolean {
   return (roles ?? []).some((r) => r.role === "official" || r.role === "moderator");
+}
+
+/** What the roles alone allow, for a server that predates `my_permissions()`
+ * (migration 0043): moderators approve and hide, nothing more. */
+export function legacyPermissions(roles: readonly HubRole[] | undefined): Permission[] {
+  return hasModeratorRole(roles) ? ["comments.moderate"] : [];
 }

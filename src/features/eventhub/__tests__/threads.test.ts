@@ -75,3 +75,39 @@ describe("buildThreads", () => {
     expect(forMod[0]?.replies.map((r) => r.id)).toEqual(["r"]);
   });
 });
+
+describe("removed comments and followed authors", () => {
+  it("shows a removed comment to everyone, so its replies keep their parent", () => {
+    const removed = comment({ id: "r", status: "removed", body: "" });
+    expect(isCommentShown(removed, anon)).toBe(true);
+    const threads = buildThreads(
+      [removed, comment({ id: "reply", parentId: "r", createdAt: 2_000 })],
+      anon,
+    );
+    expect(threads).toHaveLength(1);
+    expect(threads[0]?.replies.map((r) => r.id)).toEqual(["reply"]);
+  });
+
+  it("puts threads by followed people first, each group newest first", () => {
+    const comments = [
+      comment({ id: "a", userId: "stranger", createdAt: 5_000 }),
+      comment({ id: "b", userId: "friend", createdAt: 1_000 }),
+      comment({ id: "c", userId: "friend", createdAt: 3_000 }),
+      comment({ id: "d", userId: "stranger", createdAt: 4_000 }),
+    ];
+    const threads = buildThreads(comments, {
+      userId: null,
+      isModerator: false,
+      followingIds: new Set(["friend"]),
+    });
+    expect(threads.map((t) => t.root.id)).toEqual(["c", "b", "a", "d"]);
+  });
+
+  it("keeps the plain newest-first order without a following list", () => {
+    const comments = [
+      comment({ id: "a", createdAt: 1_000 }),
+      comment({ id: "b", createdAt: 2_000 }),
+    ];
+    expect(buildThreads(comments, anon).map((t) => t.root.id)).toEqual(["b", "a"]);
+  });
+});

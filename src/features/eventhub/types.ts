@@ -1,12 +1,33 @@
-/** Roles granted by the Bumelerze team (`public.user_roles`, migration 0036). */
-export type HubRoleKind = "official" | "moderator" | "engineer" | "partner";
+/** Ranks granted by the Bumelerze team (`public.user_roles`, migrations 0036
+ * and 0043). Highest first. Only official and moderator carry powers (see
+ * `role_permissions`); the rest are credential marks. */
+export type HubRoleKind =
+  | "official"
+  | "moderator"
+  | "seismologist"
+  | "professor"
+  | "researcher"
+  | "engineer"
+  | "partner";
 
 export const HUB_ROLE_KINDS: readonly HubRoleKind[] = [
   "official",
   "moderator",
+  "seismologist",
+  "professor",
+  "researcher",
   "engineer",
   "partner",
 ];
+
+/** Permissions a rank can hold (`public.role_permissions`, migration 0043). */
+export const PERMISSIONS = [
+  "comments.moderate",
+  "comments.delete",
+  "badges.grant",
+  "hubs.feature",
+] as const;
+export type Permission = (typeof PERMISSIONS)[number];
 
 export interface HubRole {
   role: HubRoleKind;
@@ -14,7 +35,9 @@ export interface HubRole {
   orgName: string | null;
 }
 
-export type CommentStatus = "visible" | "pending" | "hidden";
+/** `removed` (migration 0044): an admin took the text down; the thread keeps
+ * an empty "Comment removed" placeholder so replies stay readable. */
+export type CommentStatus = "visible" | "pending" | "hidden" | "removed";
 
 /** Reasons a reader can give when reporting a comment (`comment_flags.reason`). */
 export type FlagReason = "spam" | "abuse" | "false" | "private" | "other";
@@ -49,6 +72,9 @@ export interface HubAuthor {
   userId: string;
   displayName: string;
   avatarPath: string | null;
+  /** Public @handle (migration 0045), lowercase; null until they pick one or
+   * before that migration is applied. */
+  username: string | null;
 }
 
 /** `event_hub_summary` result: aggregates only, never a person or a place. */
@@ -73,6 +99,8 @@ export interface HubThreadData {
   roles: Record<string, HubRole[]>;
   /** Comment ids the signed-in account has marked helpful. */
   helpedIds: string[];
+  /** Ids of the people the signed-in account follows (accepted only). */
+  followingIds: string[];
 }
 
 export interface HubThread {

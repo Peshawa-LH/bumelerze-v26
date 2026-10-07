@@ -85,8 +85,21 @@ describe("badge catalogue", () => {
     }
   });
 
-  it("keeps the role priority official > moderator > engineer > partner", () => {
-    expect(ROLE_PRIORITY).toEqual(["official", "moderator", "engineer", "partner"]);
+  it("keeps the role priority official > moderator > seismologist > professor > researcher > engineer > partner", () => {
+    expect(ROLE_PRIORITY).toEqual([
+      "official",
+      "moderator",
+      "seismologist",
+      "professor",
+      "researcher",
+      "engineer",
+      "partner",
+    ]);
+  });
+
+  it("gives every rank its own glyph", () => {
+    const icons = ROLE_PRIORITY.map((kind) => ROLE_BADGES[kind].icon);
+    expect(new Set(icons).size).toBe(icons.length);
   });
 
   it("draws the official account with the Bumelerze mark, the others with a glyph", () => {
@@ -94,6 +107,7 @@ describe("badge catalogue", () => {
     expect(ROLE_BADGES.moderator.mark).toBe(false);
     expect(ROLE_BADGES.engineer.mark).toBe(false);
     expect(ROLE_BADGES.partner.mark).toBe(false);
+    expect(ROLE_BADGES.seismologist.mark).toBe(false);
   });
 
   it("never uses the reserved felt-action or intensity colours (tones are token names)", () => {

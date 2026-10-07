@@ -8,13 +8,16 @@ export {
   useHubActions,
   useHubThread,
   useIsModerator,
+  useMyPermissions,
+  type MyPermissions,
   type HubActions,
 } from "./queries";
-export { hasModeratorRole, loadHubThread } from "./service";
+export { hasModeratorRole, legacyPermissions, loadHubThread } from "./service";
 export { buildThreads, isCommentShown } from "./threads";
 export {
   SupabaseEventHubTransport,
   parseCommentRows,
+  parsePermissions,
   parseSummary,
   toHubError,
   type EventHubTransport,

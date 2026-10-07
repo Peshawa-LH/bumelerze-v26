@@ -100,6 +100,21 @@ describe("role badges", () => {
     expect(partner?.kind === "role" && partner.orgName).toBe("Acme");
   });
 
+  it("order the credential ranks seismologist > professor > researcher > engineer", () => {
+    const entries = evaluateBadges(EMPTY_BADGE_INPUTS, [
+      { role: "engineer", orgName: null },
+      { role: "researcher", orgName: null },
+      { role: "seismologist", orgName: null },
+      { role: "professor", orgName: null },
+    ]);
+    expect(entries.slice(0, 4).map((e) => e.key)).toEqual([
+      "role-seismologist",
+      "role-professor",
+      "role-researcher",
+      "role-engineer",
+    ]);
+  });
+
   it("are absent for a plain account (no locked placeholders)", () => {
     expect(evaluateBadges(EMPTY_BADGE_INPUTS, []).some((e) => e.kind === "role")).toBe(
       false,

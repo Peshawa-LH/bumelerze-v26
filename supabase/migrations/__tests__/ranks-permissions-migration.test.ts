@@ -95,6 +95,7 @@ describe("0043 ranks and permissions", () => {
     );
     expect(moderate).not.toMatch(/user_roles/);
     expect(moderate).toMatch(/status <> 'removed'/);
+    expect(moderate).toMatch(/flag_count = case when p_action = 'approve' then 0/);
     expect(moderate).toMatch(/insert into public\.moderation_log/i);
   });
 

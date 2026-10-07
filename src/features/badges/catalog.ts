@@ -4,8 +4,9 @@ import type { HubRoleKind } from "@/features/eventhub/types";
 
 /**
  * The single source of truth for badges (account page redesign, 2026-10-04).
- * Milestone badges are a private collection shown only to their owner on the
- * My account page; role badges are granted by the Bumelerze team and the top
+ * Milestone badges are achievements (no powers): public on the profile unless
+ * the owner hides them; role badges are ranks (what a rank may do is the
+ * server's `role_permissions`). Role badges are granted by the Bumelerze team and the top
  * one is the public mark next to a name (`RoleMark`, which reads from here so
  * the two cannot drift). Order is fixed so positions are learnable. No hex
  * colours here: a tone names a theme token, resolved in `tones.ts`.
@@ -165,11 +166,14 @@ export interface RoleBadge {
   mark: boolean;
 }
 
-/** Same order as the public mark's priority: official > moderator >
- * engineer > partner. */
+/** Same order as the public mark's priority (owner, 2026-10-07): official >
+ * moderator > seismologist > professor > researcher > engineer > partner. */
 export const ROLE_PRIORITY: readonly HubRoleKind[] = [
   "official",
   "moderator",
+  "seismologist",
+  "professor",
+  "researcher",
   "engineer",
   "partner",
 ];
@@ -183,6 +187,9 @@ export const ROLE_BADGES: Record<HubRoleKind, RoleBadge> = {
     mark: true,
   },
   moderator: { icon: "shield-checkmark", tone: "link", mark: false },
+  seismologist: { icon: "earth", tone: "info", mark: false },
+  professor: { icon: "school", tone: "success", mark: false },
+  researcher: { icon: "flask", tone: "link", mark: false },
   engineer: { icon: "construct", tone: "warning", mark: false },
   partner: { icon: "ribbon", tone: "success", mark: false },
 };

@@ -1,6 +1,7 @@
 import {
   SupabaseEventHubTransport,
   parseCommentRows,
+  parsePermissions,
   parseSummary,
   toHubError,
 } from "../transport";
@@ -210,7 +211,14 @@ describe("reads", () => {
 
   it("maps profiles by user id and chunks long id lists", async () => {
     tableResults.profiles = {
-      data: [{ user_id: "u1", display_name: "Awat", avatar_path: "u1/a.jpg" }],
+      data: [
+        {
+          user_id: "u1",
+          display_name: "Awat",
+          avatar_path: "u1/a.jpg",
+          username: "awat",
+        },
+      ],
       error: null,
     };
     const ids = Array.from({ length: 130 }, (_, i) => `u${i}`);
@@ -219,9 +227,41 @@ describe("reads", () => {
       userId: "u1",
       displayName: "Awat",
       avatarPath: "u1/a.jpg",
+      username: "awat",
     });
     // 130 ids at 60 per request = 3 requests.
     expect(recorded.filter((r) => r.table === "profiles")).toHaveLength(3);
+  });
+
+  it("falls back to the old profile columns when the username column does not exist yet", async () => {
+    let call = 0;
+    const results: Result[] = [
+      {
+        data: null,
+        error: { code: "42703", message: "column profiles.username does not exist" },
+      },
+      { data: [{ user_id: "u1", display_name: "Awat", avatar_path: null }], error: null },
+    ];
+    const original = mockClient.from;
+    mockClient.from = (table: string) => {
+      if (table === "profiles") {
+        call += 1;
+        tableResults.profiles = results[Math.min(call - 1, 1)] as Result;
+      }
+      return original(table);
+    };
+    try {
+      const authors = await SupabaseEventHubTransport.fetchAuthors(["u1"]);
+      expect(authors.u1).toEqual({
+        userId: "u1",
+        displayName: "Awat",
+        avatarPath: null,
+        username: null,
+      });
+      expect(recorded.filter((r) => r.table === "profiles")).toHaveLength(2);
+    } finally {
+      mockClient.from = original;
+    }
   });
 
   it("maps roles and ignores unknown ones", async () => {
@@ -243,6 +283,97 @@ describe("reads", () => {
     await expect(SupabaseEventHubTransport.fetchMyHelpful(["c1", "c2"])).resolves.toEqual(
       ["c1"],
     );
+  });
+});
+
+describe("permissions and ranks", () => {
+  it("keeps only the permissions this app knows", () => {
+    expect(
+      parsePermissions(["comments.moderate", "badges.grant", "something.new", 3]),
+    ).toEqual(["comments.moderate", "badges.grant"]);
+    expect(parsePermissions(null)).toEqual([]);
+  });
+
+  it("reads my_permissions through the RPC", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: ["comments.moderate", "comments.delete"],
+      error: null,
+    });
+    await expect(SupabaseEventHubTransport.fetchMyPermissions()).resolves.toEqual([
+      "comments.moderate",
+      "comments.delete",
+    ]);
+    expect(mockRpc).toHaveBeenCalledWith("my_permissions", undefined);
+  });
+
+  it("rejects when my_permissions is missing, so callers can fall back", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "PGRST202", message: "not found" },
+    });
+    await expect(SupabaseEventHubTransport.fetchMyPermissions()).rejects.toBeInstanceOf(
+      HubError,
+    );
+  });
+
+  it("maps the three new ranks", async () => {
+    tableResults.user_roles = {
+      data: [
+        { user_id: "u1", role: "seismologist", org_name: null },
+        { user_id: "u1", role: "professor", org_name: null },
+        { user_id: "u1", role: "researcher", org_name: null },
+      ],
+      error: null,
+    };
+    const roles = await SupabaseEventHubTransport.fetchRoles(["u1"]);
+    expect(roles.u1?.map((r) => r.role)).toEqual([
+      "seismologist",
+      "professor",
+      "researcher",
+    ]);
+  });
+
+  it("reads only the public role columns, never the granter or the note", async () => {
+    await SupabaseEventHubTransport.fetchRoles(["u1"]);
+    const call = recorded
+      .find((r) => r.table === "user_roles")
+      ?.calls.find(([m]) => m === "select");
+    expect(call?.[1]).toEqual(["user_id, role, org_name"]);
+  });
+
+  it("soft-deletes a comment through admin_delete_comment with a reason", async () => {
+    mockRpc.mockResolvedValueOnce({ data: null, error: null });
+    await SupabaseEventHubTransport.adminDeleteComment("c1", "spam");
+    expect(mockRpc).toHaveBeenCalledWith("admin_delete_comment", {
+      p_comment_id: "c1",
+      p_reason: "spam",
+    });
+  });
+
+  it("reads the accepted follows as ids", async () => {
+    mockRpc.mockResolvedValueOnce({ data: ["u1", "u2", 5], error: null });
+    await expect(SupabaseEventHubTransport.fetchFollowingIds()).resolves.toEqual([
+      "u1",
+      "u2",
+    ]);
+  });
+
+  it("accepts the removed status", () => {
+    const rows = parseCommentRows([
+      {
+        comment_id: "c1",
+        event_id: "e1",
+        parent_id: null,
+        user_id: "u1",
+        body: "",
+        area_geohash: null,
+        status: "removed",
+        helpful_count: 0,
+        reply_count: 2,
+        created_at: "2026-10-07T10:00:00Z",
+      },
+    ]);
+    expect(rows[0]?.status).toBe("removed");
   });
 });
 

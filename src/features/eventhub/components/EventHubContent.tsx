@@ -24,7 +24,7 @@ import {
   useEventHubSummary,
   useHubActions,
   useHubThread,
-  useIsModerator,
+  useMyPermissions,
 } from "../queries";
 import { buildThreads } from "../threads";
 import type { EventHubTransport } from "../transport";
@@ -63,7 +63,10 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
   const account = useAccount();
   const isAccount = account.status === "account";
   const viewerId = account.userId;
-  const isModerator = useIsModerator(viewerId, transport);
+  const permissions = useMyPermissions(viewerId, transport);
+  const isModerator = permissions.has("comments.moderate");
+  // Removing any comment needs the server's own answer, not the role fallback.
+  const canDelete = !permissions.legacy && permissions.has("comments.delete");
 
   const uuidState = useEventUuidResult(event);
   const summary = useEventHubSummary(event, {
@@ -83,13 +86,17 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
   const [refreshing, setRefreshing] = useState(false);
 
   const viewer: CommentViewer = useMemo(
-    () => ({ userId: viewerId, isAccount, isModerator }),
-    [viewerId, isAccount, isModerator],
+    () => ({ userId: viewerId, isAccount, isModerator, canDelete }),
+    [viewerId, isAccount, isModerator, canDelete],
   );
   const threads = useMemo(
     () =>
       thread.data
-        ? buildThreads(thread.data.comments, { userId: viewerId, isModerator })
+        ? buildThreads(thread.data.comments, {
+            userId: viewerId,
+            isModerator,
+            followingIds: new Set(thread.data.followingIds),
+          })
         : [],
     [thread.data, viewerId, isModerator],
   );
@@ -255,6 +262,7 @@ function ThreadView({
   const { t } = useTranslation();
   const { spacing } = useTheme();
   const helped = useMemo(() => new Set(data?.helpedIds ?? []), [data]);
+  const following = useMemo(() => new Set(data?.followingIds ?? []), [data]);
 
   const renderComment = (comment: HubThread["root"], isReply: boolean) => (
     <CommentItem
@@ -264,6 +272,7 @@ function ThreadView({
       roles={comment.userId ? data?.roles[comment.userId] : undefined}
       viewer={viewer}
       helped={helped.has(comment.id)}
+      isFollowing={comment.userId !== null && following.has(comment.userId)}
       nowMs={nowMs}
       actions={actions}
       isReply={isReply}
