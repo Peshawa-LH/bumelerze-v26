@@ -41,6 +41,7 @@ function requiredKeys(): string[] {
   }
   keys.push("building.photos.count", "building.photos.full", "building.photos.uploading");
   keys.push("building.flow.charCount");
+  keys.push("building.q.people.titleBuilding", "building.report.nonResidentialNote");
   for (const key of [
     "button",
     "hint",
@@ -130,7 +131,7 @@ describe("Tag my building strings", () => {
     }
   });
 
-  it("the home type and the remarks are the two questions without 'I don't know'", () => {
+  it("the building type and the remarks are the two questions without 'I don't know'", () => {
     const without = QUESTIONS.filter((q) => !q.options.includes(DONT_KNOW)).map(
       (q) => q.id,
     );
@@ -197,6 +198,7 @@ describe("Tag my building strings", () => {
         ...strings(b.photos),
         ...strings(b.flow.kind),
         ...strings(b.flow.photos),
+        b.report.nonResidentialNote,
       ];
       const offenders = scoped.filter((text) =>
         /[A-Za-z]/.test(text.replace(ISOLATE, "").replace(PLACEHOLDER, "")),

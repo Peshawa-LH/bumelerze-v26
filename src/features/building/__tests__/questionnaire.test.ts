@@ -5,7 +5,12 @@ import {
   QUESTIONS,
   REMARKS_MAX,
   effectiveStructure,
-  homeKindFromUse,
+  BUILDING_USES,
+  LEGACY_USE,
+  buildingKindFromUse,
+  isResidentialUse,
+  occupancyFromUse,
+  questionTitleKey,
   isAnswered,
   pruneAnswers,
   routeAnswers,
@@ -26,16 +31,16 @@ function question(id: string) {
 }
 
 describe("questionnaire version", () => {
-  it("is q-v2", () => {
-    expect(QUESTIONNAIRE_VERSION).toBe("q-v2");
+  it("is q-v3", () => {
+    expect(QUESTIONNAIRE_VERSION).toBe("q-v3");
   });
 
-  it("is stored with the survey as q-v2", async () => {
+  it("is stored with the survey as q-v3", async () => {
     const saveSurvey = jest.fn().mockResolvedValue("s1");
     await saveSurveyAndAssessment(
       "t1",
       { lat: 36.19, lon: 44.01 },
-      { use: "house" },
+      { use: "house_single" },
       {
         transport: {
           saveSurvey,
@@ -43,38 +48,93 @@ describe("questionnaire version", () => {
         } as never,
       },
     );
-    expect(saveSurvey.mock.calls[0]?.[0]).toMatchObject({ version: "q-v2" });
+    expect(saveSurvey.mock.calls[0]?.[0]).toMatchObject({ version: "q-v3" });
   });
 });
 
-describe("N7: the home type is the first question", () => {
-  it("has the five home types and no 'I don't know'", () => {
-    expect(question("use").options).toEqual([
-      "house",
-      "shared_house",
-      "apartments",
-      "shop_below",
-      "other",
-    ]);
+describe("q-v3: the first question is what kind of building it is", () => {
+  const TABLE: [string, "house" | "apartment", string][] = [
+    ["house_single", "house", "residential"],
+    ["house_multi", "apartment", "residential"],
+    ["apartment", "apartment", "residential"],
+    ["mixed", "apartment", "residential"],
+    ["commercial", "house", "commercial"],
+    ["industrial", "house", "industrial"],
+    ["public", "house", "public"],
+    ["other", "house", "other"],
+  ];
+
+  it("has the eight building types and no 'I don't know'", () => {
+    expect(question("use").options).toEqual(TABLE.map(([id]) => id));
+    expect([...BUILDING_USES]).toEqual(TABLE.map(([id]) => id));
     expect(QUESTIONS[0]?.id).toBe("use");
     expect(question("use").firstScreen).toBe(true);
+    expect(question("use").options).not.toContain(DONT_KNOW);
   });
 
-  it("derives the tag kind: single-family and 'something else' are houses, the rest apartments", () => {
-    expect(homeKindFromUse("house")).toBe("house");
-    expect(homeKindFromUse("other")).toBe("house");
-    expect(homeKindFromUse("shared_house")).toBe("apartment");
-    expect(homeKindFromUse("apartments")).toBe("apartment");
-    expect(homeKindFromUse("shop_below")).toBe("apartment");
-    expect(homeKindFromUse(undefined)).toBeNull();
-    expect(homeKindFromUse("dk")).toBeNull();
+  it.each(TABLE)("%s gives kind %s and occupancy %s", (use, kind, occupancy) => {
+    expect(buildingKindFromUse(use)).toBe(kind);
+    expect(occupancyFromUse(use)).toBe(occupancy);
+    expect(isResidentialUse(use)).toBe(occupancy === "residential");
+    // The survey payload carries the answer as `use` and the occupancy class.
+    expect(surveyPayload({ use })).toEqual({ use, occupancy });
   });
 
-  it("keeps every q-v1 option id, so old surveys read back unchanged", () => {
-    expect(sanitizeAnswers({ use: "apartments" })).toEqual({ use: "apartments" });
-    expect(sanitizeAnswers({ use: "shop_below" })).toEqual({ use: "shop_below" });
-    // q-v1 offered "I don't know" for the home type; it is simply unanswered now.
+  it("knows nothing about a missing or foreign answer", () => {
+    for (const value of [undefined, "dk", "house", "castle"]) {
+      expect(buildingKindFromUse(value)).toBeNull();
+      expect(occupancyFromUse(value)).toBeNull();
+    }
+    // Unknown counts as a home: the assessment's calibration, no extra note.
+    expect(isResidentialUse(undefined)).toBe(true);
+    expect(surveyPayload({ floors: "f2" })).toEqual({ floors: "f2" });
+  });
+
+  it("asks the people question about 'inside' for a non-residential building only", () => {
+    const home = "building.q.people.title";
+    const building = "building.q.people.titleBuilding";
+    for (const use of ["house_single", "house_multi", "apartment", "mixed"]) {
+      expect(questionTitleKey("people", { use })).toBe(home);
+    }
+    for (const use of ["commercial", "industrial", "public", "other"]) {
+      expect(questionTitleKey("people", { use })).toBe(building);
+    }
+    expect(questionTitleKey("people", {})).toBe(home);
+    expect(questionTitleKey("floors", { use: "commercial" })).toBe(
+      "building.q.floors.title",
+    );
+  });
+
+  it("reads q-v2 answers with the same meaning", () => {
+    const q2: [string, string][] = [
+      ["house", "house_single"],
+      ["shared_house", "house_multi"],
+      ["apartments", "apartment"],
+      ["shop_below", "mixed"],
+      ["other", "other"],
+    ];
+    for (const [old, now] of q2) {
+      expect(sanitizeAnswers({ use: old })).toEqual({ use: now });
+      // the tag kind each old answer produced is unchanged
+      expect(buildingKindFromUse(now)).toBe(
+        old === "house" || old === "other" ? "house" : "apartment",
+      );
+    }
+    expect(LEGACY_USE).toEqual(Object.fromEntries(q2));
+  });
+
+  it("reads q-v1 answers: house, apartments, shop_below, other; 'I don't know' is unanswered", () => {
+    expect(sanitizeAnswers({ use: "house" })).toEqual({ use: "house_single" });
+    expect(sanitizeAnswers({ use: "apartments" })).toEqual({ use: "apartment" });
+    expect(sanitizeAnswers({ use: "shop_below" })).toEqual({ use: "mixed" });
+    expect(sanitizeAnswers({ use: "other" })).toEqual({ use: "other" });
     expect(sanitizeAnswers({ use: "dk" })).toEqual({});
+  });
+
+  it("keeps q-v3 ids as they are", () => {
+    for (const use of BUILDING_USES) {
+      expect(sanitizeAnswers({ use })).toEqual({ use });
+    }
   });
 });
 
@@ -276,7 +336,7 @@ describe("research questions", () => {
 
   it("are kept by sanitizeAnswers and pruneAnswers; unknown options are dropped", () => {
     const stored = {
-      use: "apartments",
+      use: "apartment",
       basement: "full",
       adjacency: "both_sides",
       size: "o400",
@@ -289,9 +349,14 @@ describe("research questions", () => {
   });
 
   it("are stored in the survey payload next to the location quality", () => {
-    const answers: Answers = { use: "house", size: "s100_200", people: DONT_KNOW };
+    const answers: Answers = {
+      use: "house_single",
+      size: "s100_200",
+      people: DONT_KNOW,
+    };
     expect(surveyPayload(answers, "pin")).toEqual({
-      use: "house",
+      use: "house_single",
+      occupancy: "residential",
       size: "s100_200",
       people: "dk",
       location_quality: "pin",
@@ -320,7 +385,7 @@ describe("the assessment ignores the research answers", () => {
     pastDamage: "none",
   };
   const research: Answers = {
-    use: "shop_below",
+    use: "mixed",
     basement: "full",
     adjacency: "both_sides",
     size: "o400",
@@ -360,6 +425,33 @@ describe("q-v1 compatibility: the assessment is unchanged for equivalent answers
     for (const entry of cases) {
       const readBack = sanitizeAnswers(entry.answers);
       expect(assessBuilding(readBack, entry.lat, entry.lon)).toEqual(entry.result);
+    }
+  });
+});
+
+describe("q-v3: the assessment does not depend on the building type", () => {
+  const cases = golden as unknown as {
+    answers: Record<string, string>;
+    lat: number;
+    lon: number;
+    result: unknown;
+  }[];
+
+  it("every residential answer set gives the identical golden output for every residential type", () => {
+    for (const entry of cases) {
+      for (const use of ["house_single", "house_multi", "apartment", "mixed"]) {
+        const answers = { ...entry.answers, use } as Answers;
+        expect(assessBuilding(answers, entry.lat, entry.lon)).toEqual(entry.result);
+      }
+    }
+  });
+
+  it("uses the same calculation for non-residential types (same class, range, confidence)", () => {
+    for (const entry of cases) {
+      for (const use of ["commercial", "industrial", "public", "other"]) {
+        const answers = { ...entry.answers, use } as Answers;
+        expect(assessBuilding(answers, entry.lat, entry.lon)).toEqual(entry.result);
+      }
     }
   });
 });

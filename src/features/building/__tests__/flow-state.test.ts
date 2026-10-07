@@ -23,7 +23,7 @@ import {
 
 /** Every question answered, for a frame building. */
 const COMPLETE = {
-  use: "house",
+  use: "house_single",
   floors: "f2",
   basement: "none",
   age: "dk",
@@ -97,20 +97,23 @@ describe("next and back", () => {
     const state = initialFlowState("new");
     expect(canAdvance(state)).toBe(false);
     expect(goNext(state)).toBe(state);
-    const withKind = setAnswer(state, "use", "house");
+    const withKind = setAnswer(state, "use", "house_single");
     expect(canAdvance(withKind)).toBe(true);
     expect(goNext(withKind).step).toBe("location");
   });
 
-  it("the tag kind follows the home type", () => {
+  it("the tag kind follows the building type", () => {
     const kindOf = (use: string) =>
       flowKind(setAnswer(initialFlowState("new"), "use", use as never));
     expect(flowKind(initialFlowState("new"))).toBeNull();
-    expect(kindOf("house")).toBe("house");
+    expect(kindOf("house_single")).toBe("house");
+    expect(kindOf("house_multi")).toBe("apartment");
+    expect(kindOf("apartment")).toBe("apartment");
+    expect(kindOf("mixed")).toBe("apartment");
+    expect(kindOf("commercial")).toBe("house");
+    expect(kindOf("industrial")).toBe("house");
+    expect(kindOf("public")).toBe("house");
     expect(kindOf("other")).toBe("house");
-    expect(kindOf("shared_house")).toBe("apartment");
-    expect(kindOf("apartments")).toBe("apartment");
-    expect(kindOf("shop_below")).toBe("apartment");
   });
 
   it("location needs a point", () => {
@@ -152,7 +155,7 @@ describe("next and back", () => {
 
   it("changing the structure re-routes the questions that follow", () => {
     let state = atQuestions({
-      use: "house",
+      use: "house_single",
       floors: "f2",
       basement: "none",
       age: "dk",

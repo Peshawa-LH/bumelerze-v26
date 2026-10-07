@@ -99,6 +99,64 @@ describe("Building report", () => {
     expect(screen.getByText(/Confidence: .*67%/)).toBeTruthy();
   });
 
+  describe("non-residential buildings", () => {
+    const NOTE = "Estimate based on typical homes; this building's use may change it.";
+    const survey = (answers: Record<string, string>) =>
+      mockTransport.fetchLatestSurvey.mockResolvedValue({
+        surveyId: "survey-1",
+        tagId: "tag-1",
+        version: "q-v3",
+        answers,
+        createdAt: "2026-10-04T10:00:00Z",
+      });
+
+    it.each(["commercial", "industrial", "public", "other"])(
+      "a %s building gets the short note and the same confidence",
+      async (use) => {
+        survey({ ...ANSWERS, use, occupancy: use });
+        const assessment = storedAssessment(ANSWERS, { confidence: 0.67 });
+        load(assessment);
+        await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+        expect(await screen.findByText(NOTE)).toBeTruthy();
+        expect(screen.getByTestId("report-nonresidential-note")).toBeTruthy();
+        expect(screen.getByText(/Confidence: .*67%/)).toBeTruthy();
+      },
+    );
+
+    it.each(["house_single", "house_multi", "apartment", "mixed"])(
+      "a %s building gets no note",
+      async (use) => {
+        survey({ ...ANSWERS, use, occupancy: "residential" });
+        await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+        await screen.findByTestId("report-vc");
+        expect(screen.queryByText(NOTE)).toBeNull();
+      },
+    );
+
+    it("a q-v1 or q-v2 survey (shop_below, house) and a survey without a type get no note", async () => {
+      for (const answers of [
+        { ...ANSWERS, use: "shop_below" },
+        { ...ANSWERS, use: "house" },
+        { ...ANSWERS },
+      ]) {
+        survey(answers);
+        await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+        await screen.findByTestId("report-vc");
+        expect(screen.queryByText(NOTE)).toBeNull();
+        cleanup();
+        await clearQueryClients();
+      }
+    });
+
+    it("the note is translated", async () => {
+      await i18n.changeLanguage("ckb");
+      survey({ ...ANSWERS, use: "commercial" });
+      await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+      expect(await screen.findByTestId("report-nonresidential-note")).toBeTruthy();
+      expect(screen.queryByText(/building\.report/)).toBeNull();
+    });
+  });
+
   it("omits the range line when the class is certain", async () => {
     load(storedAssessment(ANSWERS, { vcRange: "A" }));
     await renderWithProviders(<HomeReportScreen tagId="tag-1" />);

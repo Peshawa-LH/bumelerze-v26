@@ -1726,7 +1726,7 @@
       "charCount": "{{count}} of {{max}} characters",
       "kind": {
         "labelLabel": "Name (optional)",
-        "labelPlaceholder": "e.g. My house",
+        "labelPlaceholder": "e.g. My building",
         "unitLabel": "Which apartment? (optional)",
         "unitPlaceholder": "e.g. floor 3, flat 7"
       },
@@ -1749,7 +1749,7 @@
       },
       "photos": {
         "title": "Photos (optional)",
-        "intro": "Only your family can see them. They help an engineer later.",
+        "intro": "Only people you approve can see them. They help an engineer later.",
         "take": "Take photo",
         "choose": "Choose",
         "remove": "Remove"
@@ -1791,12 +1791,15 @@
     },
     "q": {
       "use": {
-        "title": "What kind of home is it?",
+        "title": "What kind of building is it?",
         "options": {
-          "house": "A house for one family",
-          "shared_house": "A house shared by several families",
-          "apartments": "An apartment in an apartment building",
-          "shop_below": "A home above shops or offices",
+          "house_single": "A house for one family",
+          "house_multi": "A house for several families",
+          "apartment": "An apartment in a building or complex",
+          "mixed": "Homes above shops or offices",
+          "commercial": "A shop or office building",
+          "industrial": "A warehouse or workshop",
+          "public": "A school, mosque or other public building",
           "other": "Something else"
         }
       },
@@ -1963,6 +1966,7 @@
       },
       "people": {
         "title": "How many people live in this home? (optional)",
+        "titleBuilding": "How many people are usually inside? (optional)",
         "options": {
           "p1_2": "1 or 2",
           "p3_5": "3 to 5",
@@ -2001,6 +2005,7 @@
       "vcLabel": "Vulnerability class {{vc}}",
       "range": "Likely range: {{range}}",
       "confidence": "Confidence: {{value}}",
+      "nonResidentialNote": "Estimate based on typical homes; this building's use may change it.",
       "typeTitle": "Your building",
       "alsoPossible": "Could also be: {{type}}",
       "imsType": "IMS-25 type: {{type}}",
@@ -2047,7 +2052,7 @@
       "few": "A few buildings like yours: {{what}}",
       "many": "Many buildings like yours: {{what}}",
       "most": "Most buildings like yours: {{what}}",
-      "note": "A general estimate for buildings of your class, not a prediction for your home.",
+      "note": "A general estimate for buildings of your class, not a prediction for your building.",
       "grade": {
         "1": "slight damage",
         "2": "moderate damage",

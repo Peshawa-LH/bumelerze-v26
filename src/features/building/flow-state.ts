@@ -2,7 +2,7 @@ import { HOME_PHOTO_MAX_COUNT } from "./constants";
 import { PHOTO_SLOTS, type DraftPhoto, type PhotoSlot } from "./photos";
 import {
   QUESTIONS,
-  homeKindFromUse,
+  buildingKindFromUse,
   pruneAnswers,
   visibleQuestions,
   type Answers,
@@ -14,10 +14,10 @@ import type { HomeKind, LocationQuality } from "./types";
  * Pure state machine of the "Tag my building" flow: which screen comes next
  * and previous, and how far along the user is. No React in here.
  *
- *   new:    home type (+ name) -> location -> questions... -> photos -> review
+ *   new:    building type (+ name) -> location -> questions... -> photos -> review
  *   retake: questions... -> review
  *
- * The home type is the first question (`use`); the step is still called
+ * The building type is the first question (`use`); the step is still called
  * "kind" because its answer decides the tag's `kind` (house or apartment).
  */
 
@@ -56,13 +56,13 @@ export interface ExtraPhoto {
   caption: string;
 }
 
-/** The questions that get their own screen (the home type has the first). */
+/** The questions that get their own screen (the building type has the first). */
 const SCREEN_QUESTIONS = QUESTIONS.filter((question) => !question.firstScreen);
 const FIRST_QUESTION: QuestionId = (SCREEN_QUESTIONS[0] as { id: QuestionId }).id;
 
-/** The tag's kind from the home type answer, or null before it is chosen. */
+/** The tag's kind from the building type answer, or null before it is chosen. */
 export function flowKind(state: Pick<FlowState, "answers">): HomeKind | null {
-  return homeKindFromUse(state.answers.use);
+  return buildingKindFromUse(state.answers.use);
 }
 
 export function initialFlowState(

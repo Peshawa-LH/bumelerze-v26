@@ -1726,7 +1726,7 @@
       "charCount": "{{count}} ji {{max}} tîp",
       "kind": {
         "labelLabel": "Nav (bi dilxwazî)",
-        "labelPlaceholder": "mînak: Mala min",
+        "labelPlaceholder": "mînak: Avahiya min",
         "unitLabel": "Kîjan apartman? (bi dilxwazî)",
         "unitPlaceholder": "mînak: qata 3, hejmar 7"
       },
@@ -1749,7 +1749,7 @@
       },
       "photos": {
         "title": "Wêne (bi dilxwazî)",
-        "intro": "Tenê malbata te dikare wan bibîne. Paşê alîkariya endazyar dikin.",
+        "intro": "Tenê kesên ku tu erê dikî dikarin wan bibînin. Paşê alîkariya endazyar dikin.",
         "take": "Wêne bikişîne",
         "choose": "Hilbijêre",
         "remove": "Rake"
@@ -1791,12 +1791,15 @@
     },
     "q": {
       "use": {
-        "title": "Mala te ji kîjan cureyî ye?",
+        "title": "Avahî ji kîjan cureyî ye?",
         "options": {
-          "house": "Xaniyê yek malbatê",
-          "shared_house": "Xaniyê çend malbatan",
-          "apartments": "Apartman di avahiyeke apartmanan de",
-          "shop_below": "Mal li jor dikan an ofîsan",
+          "house_single": "Xaniyê yek malbatê",
+          "house_multi": "Xaniyê çend malbatan",
+          "apartment": "Apartman di avahiyek an kompleksekê de",
+          "mixed": "Mal li jor dikan an ofîsan",
+          "commercial": "Avahiya dikan an ofîsê",
+          "industrial": "Embar an atolye",
+          "public": "Dibistan, mizgeft an avahiyeke giştî ya din",
           "other": "Tiştekî din"
         }
       },
@@ -1963,6 +1966,7 @@
       },
       "people": {
         "title": "Çend kes di vê malê de dijîn? (bijarte)",
+        "titleBuilding": "Bi gelemperî çend kes di hundir de ne? (bijarte)",
         "options": {
           "p1_2": "1 an 2",
           "p3_5": "3 heta 5",
@@ -2001,6 +2005,7 @@
       "vcLabel": "Çîna lawaziyê {{vc}}",
       "range": "Navbera gengaz: {{range}}",
       "confidence": "Pêbawerî: {{value}}",
+      "nonResidentialNote": "Texmîn li ser malên asayî hatiye avakirin; bikaranîna vê avahiyê dikare wê biguhere.",
       "typeTitle": "Avahiya te",
       "alsoPossible": "Dibe ku ev jî be: {{type}}",
       "imsType": "Cureyê IMS-25: {{type}}",
@@ -2047,7 +2052,7 @@
       "few": "Çend avahiyên mîna yê te: {{what}}",
       "many": "Gelek avahiyên mîna yê te: {{what}}",
       "most": "Piraniya avahiyên mîna yê te: {{what}}",
-      "note": "Texmîneke giştî ye ji bo avahiyên çîna te, ne pêşbîniyek ji bo mala te.",
+      "note": "Texmîneke giştî ye ji bo avahiyên çîna te, ne pêşbîniyek ji bo avahiya te.",
       "grade": {
         "1": "zirara sivik",
         "2": "zirara navîn",

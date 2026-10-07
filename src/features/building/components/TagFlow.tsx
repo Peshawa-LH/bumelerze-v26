@@ -56,6 +56,7 @@ import {
 import {
   QUESTIONS,
   REMARKS_MAX,
+  questionTitleKey,
   visibleQuestions,
   type Answers,
   type QuestionId,
@@ -88,8 +89,8 @@ interface TagFlowProps {
 }
 
 /**
- * "Tag my building": one family's home, one question per screen. New homes
- * go home type (and name), location, questions, photos, review; a retake is
+ * "Tag my building": one building, one question per screen. New tags go
+ * building type (and name), location, questions, photos, review; a retake is
  * questions and review only. Nothing is sent until the last button.
  */
 export function TagFlow({ retake }: TagFlowProps) {
@@ -407,7 +408,7 @@ function QuestionStep({ state, onChange }: StepProps) {
   if (!question) {
     return null;
   }
-  const title = <Heading>{t(`building.q.${question.id}.title`)}</Heading>;
+  const title = <Heading>{t(questionTitleKey(question.id, state.answers))}</Heading>;
   const helper = question.helperPictogram ? (
     <View
       style={[styles.helperRow, { gap: spacing[3] }]}
@@ -759,7 +760,7 @@ function ReviewStep({ state, onChange }: StepProps) {
       {questions.map((question) => (
         <ReviewRow
           key={question.id}
-          title={t(`building.q.${question.id}.title`)}
+          title={t(questionTitleKey(question.id, state.answers))}
           value={answerText(question.id)}
           onPress={() => edit({ step: "question", questionId: question.id })}
           testID={`review-${question.id}`}

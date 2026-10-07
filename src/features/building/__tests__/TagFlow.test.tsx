@@ -133,9 +133,9 @@ async function answerAll(pick: (id: string) => string, remarks?: string) {
   }
 }
 
-/** Past the home type and the location, on the floors screen. */
-async function reachQuestions() {
-  await press("option-use-house");
+/** Past the building type and the location, on the floors screen. */
+async function reachQuestions(use = "house_single") {
+  await press(`option-use-${use}`);
   await press("flow-next");
   await pressText("Hawler");
   await press("flow-next");
@@ -172,14 +172,17 @@ describe("Tag my building flow", () => {
     expect(mockPush).toHaveBeenCalledWith("/account/sign-in");
   });
 
-  it("starts with one question about the kind of home and only enables Next after a choice (N7)", async () => {
+  it("starts with one question about the kind of building and only enables Next after a choice (N7)", async () => {
     await renderWithProviders(<NewHomeScreen />);
-    expect(screen.getByText("What kind of home is it?")).toBeTruthy();
+    expect(screen.getByText("What kind of building is it?")).toBeTruthy();
     for (const label of [
       "A house for one family",
-      "A house shared by several families",
-      "An apartment in an apartment building",
-      "A home above shops or offices",
+      "A house for several families",
+      "An apartment in a building or complex",
+      "Homes above shops or offices",
+      "A shop or office building",
+      "A warehouse or workshop",
+      "A school, mosque or other public building",
       "Something else",
     ]) {
       expect(screen.getByText(label)).toBeTruthy();
@@ -187,20 +190,23 @@ describe("Tag my building flow", () => {
     expect(screen.queryByText("I don't know")).toBeNull();
     expect(nextDisabled()).toBe(true);
     expect(screen.queryByTestId("flow-unit")).toBeNull();
-    await press("option-use-house");
+    await press("option-use-house_single");
     expect(nextDisabled()).toBe(false);
     expect(screen.queryByTestId("flow-unit")).toBeNull();
   });
 
   it.each([
-    ["house", "house", false],
-    ["other", "house", false],
-    ["shared_house", "apartment", true],
-    ["apartments", "apartment", true],
-    ["shop_below", "apartment", true],
+    ["house_single", "house", "residential", false],
+    ["house_multi", "apartment", "residential", true],
+    ["apartment", "apartment", "residential", true],
+    ["mixed", "apartment", "residential", true],
+    ["commercial", "house", "commercial", false],
+    ["industrial", "house", "industrial", false],
+    ["public", "house", "public", false],
+    ["other", "house", "other", false],
   ])(
-    "the home type %s creates a %s tag (unit name asked: %s)",
-    async (use, kind, asksUnit) => {
+    "the building type %s creates a %s tag with occupancy %s (unit name asked: %s)",
+    async (use, kind, occupancy, asksUnit) => {
       await renderWithProviders(<NewHomeScreen />);
       await press(`option-use-${use}`);
       expect(!!screen.queryByTestId("flow-unit")).toBe(asksUnit);
@@ -214,13 +220,16 @@ describe("Tag my building flow", () => {
       expect(mockTransport.createTag).toHaveBeenCalledWith(
         expect.objectContaining({ kind }),
       );
-      expect(mockTransport.saveSurvey.mock.calls[0]?.[0].answers.use).toBe(use);
+      expect(mockTransport.saveSurvey.mock.calls[0]?.[0].answers).toMatchObject({
+        use,
+        occupancy,
+      });
     },
   );
 
   it("asks for the location privately, by GPS or by place", async () => {
     await renderWithProviders(<NewHomeScreen />);
-    await press("option-use-house");
+    await press("option-use-house_single");
     await press("flow-next");
     expect(screen.getByText("Your exact location stays private.")).toBeTruthy();
     expect(nextDisabled()).toBe(true);
@@ -231,7 +240,7 @@ describe("Tag my building flow", () => {
 
   it("finds a village with the place search, by any spelling, and uses its centre", async () => {
     await renderWithProviders(<NewHomeScreen />);
-    await press("option-use-house");
+    await press("option-use-house_single");
     await press("flow-next");
     await fireEvent.changeText(screen.getByLabelText("Search for a place"), "Sehbiyax");
     await press("location-place-search-result-n9852690211");
@@ -245,7 +254,7 @@ describe("Tag my building flow", () => {
 
   it("uses one GPS fix when asked and says so", async () => {
     await renderWithProviders(<NewHomeScreen />);
-    await press("option-use-house");
+    await press("option-use-house_single");
     await press("flow-next");
     await press("location-gps");
     expect(await screen.findByText("Location set.")).toBeTruthy();
@@ -256,7 +265,7 @@ describe("Tag my building flow", () => {
   it("falls back to the place search when location is refused", async () => {
     mockRequestPermission.mockResolvedValue({ status: "denied" });
     await renderWithProviders(<NewHomeScreen />);
-    await press("option-use-house");
+    await press("option-use-house_single");
     await press("flow-next");
     await press("location-gps");
     expect(
@@ -353,10 +362,10 @@ describe("Tag my building flow", () => {
     );
     const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
     expect(survey.tagId).toBe("tag-1");
-    expect(survey.version).toBe("q-v2");
-    expect(QUESTIONNAIRE_VERSION).toBe("q-v2");
+    expect(survey.version).toBe("q-v3");
+    expect(QUESTIONNAIRE_VERSION).toBe("q-v3");
     expect(survey.answers).toMatchObject({
-      use: "house",
+      use: "house_single",
       structure: "frame",
       floors: "f2",
       location_quality: "town",
@@ -529,7 +538,7 @@ describe("Tag my building flow", () => {
 
   it("the research answers, including the remarks, are saved with the survey", async () => {
     await renderWithProviders(<NewHomeScreen />);
-    await press("option-use-shop_below");
+    await press("option-use-mixed");
     await press("flow-next");
     await pressText("Hawler");
     await press("flow-next");
@@ -551,9 +560,9 @@ describe("Tag my building flow", () => {
     await press("flow-submit");
     await waitFor(() => expect(mockReplace).toHaveBeenCalled());
     const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
-    expect(survey.version).toBe("q-v2");
+    expect(survey.version).toBe("q-v3");
     expect(survey.answers).toMatchObject({
-      use: "shop_below",
+      use: "mixed",
       basement: "part",
       adjacency: "one_side",
       size: "s100_200",
@@ -584,9 +593,9 @@ describe("Tag my building flow", () => {
     await press("flow-submit");
     await waitFor(() => expect(mockReplace).toHaveBeenCalled());
     const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
-    expect(survey.version).toBe("q-v2");
+    expect(survey.version).toBe("q-v3");
     expect(survey.answers).toMatchObject({
-      use: "house",
+      use: "house_single",
       people: "p3_5",
       structure: "frame",
     });
@@ -692,7 +701,7 @@ describe("Tag my building flow", () => {
     it("shows four picture choices with labels that contain no Latin letters in Sorani", async () => {
       await i18n.changeLanguage("ckb");
       await renderWithProviders(<NewHomeScreen />);
-      await press("option-use-house");
+      await press("option-use-house_single");
       await press("flow-next");
       await pressText("هەولێر");
       await press("flow-next");
@@ -716,6 +725,60 @@ describe("Tag my building flow", () => {
       ]) {
         expect(screen.getByLabelText(label)).toBeTruthy();
       }
+    });
+  });
+
+  describe("people wording follows the building type", () => {
+    it.each(["house_single", "house_multi", "apartment", "mixed"])(
+      "a %s asks how many people live in this home",
+      async (use) => {
+        await renderWithProviders(<NewHomeScreen />);
+        await reachQuestions(use);
+        await answerAll((id) => (id === "people" ? "__stop__" : "dk"));
+        expect(
+          screen.getByText("How many people live in this home? (optional)"),
+        ).toBeTruthy();
+      },
+    );
+
+    it.each(["commercial", "industrial", "public", "other"])(
+      "a %s asks how many people are usually inside, with the same bands, and the review says so",
+      async (use) => {
+        await renderWithProviders(<NewHomeScreen />);
+        await reachQuestions(use);
+        await answerAll((id) => (id === "people" ? "__stop__" : "dk"));
+        expect(
+          screen.getByText("How many people are usually inside? (optional)"),
+        ).toBeTruthy();
+        expect(screen.queryByText(/live in this home/)).toBeNull();
+        for (const label of ["1 or 2", "3 to 5", "6 to 10", "More than 10"]) {
+          expect(screen.getByText(label)).toBeTruthy();
+        }
+        await answerAll((id) => (id === "people" ? "p3_5" : "dk"));
+        await press("flow-next");
+        expect(screen.getByLabelText(/usually inside.*3 to 5/)).toBeTruthy();
+      },
+    );
+
+    it("the name field no longer says 'house'", async () => {
+      await renderWithProviders(<NewHomeScreen />);
+      expect(screen.getByPlaceholderText("e.g. My building")).toBeTruthy();
+    });
+
+    it("a warehouse saves the use, its occupancy and a house tag", async () => {
+      await renderWithProviders(<NewHomeScreen />);
+      await reachQuestions("industrial");
+      await answerAll(() => "dk");
+      await press("flow-next");
+      await press("flow-submit");
+      await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+      expect(mockTransport.createTag).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "house" }),
+      );
+      expect(mockTransport.saveSurvey.mock.calls[0]?.[0].answers).toMatchObject({
+        use: "industrial",
+        occupancy: "industrial",
+      });
     });
   });
 
@@ -780,14 +843,14 @@ describe("Tag my building flow", () => {
   describe("place on map", () => {
     async function openPinMap() {
       await renderWithProviders(<NewHomeScreen />);
-      await press("option-use-house");
+      await press("option-use-house_single");
       await press("flow-next");
       await press("location-pin");
     }
 
     it("offers the map as a third choice next to GPS and towns", async () => {
       await renderWithProviders(<NewHomeScreen />);
-      await press("option-use-house");
+      await press("option-use-house_single");
       await press("flow-next");
       expect(screen.getByTestId("location-gps")).toBeTruthy();
       expect(screen.getByTestId("location-pin")).toBeTruthy();
@@ -856,20 +919,20 @@ describe("Tag my building flow", () => {
       await renderWithProviders(<NewHomeScreen tagId="tag-1" />);
       // no home-type screen on a retake: straight to the floors question
       expect(await screen.findByText("How many floors above the ground?")).toBeTruthy();
-      expect(screen.queryByText("What kind of home is it?")).toBeNull();
+      expect(screen.queryByText("What kind of building is it?")).toBeNull();
       expect(
         screen.getByTestId("option-floors-f3").props.accessibilityState.selected,
       ).toBe(true);
       expect(screen.queryByTestId("kind-house")).toBeNull();
     });
 
-    it("a q-v1 survey loads: its answers are selected, 'night' becomes 'live here', and it saves as q-v2", async () => {
+    it("a q-v1 survey loads: its answers are selected, 'night' becomes 'live here', and it saves as q-v3", async () => {
       mockTransport.fetchLatestSurvey.mockResolvedValue({
         surveyId: "survey-8",
         tagId: "tag-1",
         version: "q-v1",
         answers: {
-          use: "shop_below",
+          use: "mixed",
           floors: "f2",
           basement: "none",
           age: "a25_50",
@@ -908,9 +971,9 @@ describe("Tag my building flow", () => {
       await press("flow-submit");
       await waitFor(() => expect(mockReplace).toHaveBeenCalled());
       const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
-      expect(survey.version).toBe("q-v2");
+      expect(survey.version).toBe("q-v3");
       expect(survey.answers).toMatchObject({
-        use: "shop_below",
+        use: "mixed",
         people: "p11p",
         shape: "irregular",
       });
@@ -945,9 +1008,9 @@ describe("Tag my building flow", () => {
   it("renders in Sorani without raw keys", async () => {
     await i18n.changeLanguage("ckb");
     await renderWithProviders(<NewHomeScreen />);
-    expect(screen.getByText("ماڵەکەت چ جۆرێکە؟")).toBeTruthy();
+    expect(screen.getByText("بیناکە چ جۆرێکە؟")).toBeTruthy();
     expect(screen.queryByText(/building\./)).toBeNull();
-    await press("option-use-house");
+    await press("option-use-house_single");
     await press("flow-next");
     await pressText("هەولێر");
     await press("flow-next");
@@ -962,7 +1025,7 @@ describe("Tag my building flow", () => {
       await renderWithProviders(<NewHomeScreen />);
       const noRawKeys = () => expect(screen.queryByText(/building\.[a-zA-Z]/)).toBeNull();
       noRawKeys();
-      await press("option-use-apartments");
+      await press("option-use-apartment");
       noRawKeys();
       await press("flow-next");
       noRawKeys();

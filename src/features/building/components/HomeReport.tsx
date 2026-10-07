@@ -17,7 +17,9 @@ import {
 import { displayVcRange, formatPercent, formatPga, formatVs30 } from "../format";
 import { INTENSITY_LEVEL_NUMBER } from "../ims25";
 import { useQueuedPhotoCount } from "../photo-queue";
-import { useHome, useHomePhotos } from "../queries";
+import { occupancyFromUse, type Occupancy } from "../questionnaire";
+import { useHome, useHomePhotos, useLatestSurvey } from "../queries";
+import { answersFromSurvey } from "../service";
 import type { HomePhoto, HomeTag, StoredAssessment } from "../types";
 import { AccountGate } from "./AccountGate";
 import { DeleteHomeButton } from "./DeleteHomeButton";
@@ -44,6 +46,10 @@ function ReportBody({ tagId }: { tagId: string | undefined }) {
   const { t } = useTranslation();
   const home = useHome(tagId);
   const photos = useHomePhotos(tagId);
+  const { survey } = useLatestSurvey(tagId);
+  const occupancy = survey
+    ? occupancyFromUse(answersFromSurvey(survey.answers).use)
+    : null;
 
   if (home.isLoading) {
     return <Body tone="secondary">{t("building.loading")}</Body>;
@@ -68,6 +74,7 @@ function ReportBody({ tagId }: { tagId: string | undefined }) {
       assessment={home.data.assessment}
       photos={photos}
       tagId={tagId}
+      occupancy={occupancy}
       isOwner={home.data.role === "owner"}
     />
   );
@@ -78,12 +85,15 @@ export function Report({
   assessment,
   photos,
   tagId,
+  occupancy = null,
   isOwner = false,
 }: {
   tag: HomeTag;
   assessment: StoredAssessment | null;
   photos: HomePhoto[];
   tagId: string;
+  /** What the building is used for, from its latest survey (null when unknown). */
+  occupancy?: Occupancy | null;
   /** Owners also get "Delete this home" at the foot of the page. */
   isOwner?: boolean;
 }) {
@@ -169,6 +179,11 @@ export function Report({
             {t("building.report.confidence", {
               value: formatPercent(assessment.confidence, locale),
             })}
+          </Meta>
+        ) : null}
+        {occupancy !== null && occupancy !== "residential" ? (
+          <Meta testID="report-nonresidential-note">
+            {t("building.report.nonResidentialNote")}
           </Meta>
         ) : null}
       </Card>

@@ -1,6 +1,7 @@
 import { assessBuilding, type Assessment } from "./assessment";
 import {
   QUESTIONNAIRE_VERSION,
+  occupancyFromUse,
   pruneAnswers,
   sanitizeAnswers,
   type Answers,
@@ -13,9 +14,9 @@ import type { HomeKind, LocationQuality } from "./types";
 /** What the tag flow collects before anything is sent. */
 export interface TagDraft {
   kind: HomeKind;
-  /** Optional name for the home ("Mum's house"). */
+  /** Optional name for the building ("Mum's house"). */
   label: string;
-  /** Apartments only: which flat. */
+  /** Units in a shared building only: which flat. */
   unitLabel: string;
   lat: number;
   lon: number;
@@ -33,13 +34,17 @@ export interface SaveOutcome {
   photosQueued: number;
 }
 
-/** The survey row's `answers` jsonb: the answers plus how exact the point was. */
+/** The survey row's `answers` jsonb: the answers, the occupancy class derived
+ * from the building type (for research) and how exact the point was. */
 export function surveyPayload(
   answers: Answers,
   locationQuality?: LocationQuality,
 ): Record<string, unknown> {
+  const clean = pruneAnswers(answers);
+  const occupancy = occupancyFromUse(clean.use);
   return {
-    ...pruneAnswers(answers),
+    ...clean,
+    ...(occupancy ? { occupancy } : {}),
     ...(locationQuality ? { location_quality: locationQuality } : {}),
   };
 }
