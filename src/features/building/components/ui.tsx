@@ -5,6 +5,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useTheme } from "@/theme";
+import type { PictogramName } from "../pictograms.generated";
+import { Pictogram } from "./Pictogram";
 
 /** Small presentational pieces shared by the Tag-my-building screens. Theme
  * tokens only; start/end (never left/right) so every layout mirrors in RTL. */
@@ -133,8 +135,77 @@ export function OptionButton({
   );
 }
 
-/** Labelled single-line text field. `latin` is for codes and keys: always
- * left-to-right, whatever the app language. */
+/** A big picture choice: a line drawing over a short label, two to a row.
+ * The drawing is decorative; the label is the accessible name. */
+export function PictureOption({
+  label,
+  pictogram,
+  selected,
+  onPress,
+  testID,
+}: {
+  label: string;
+  pictogram: PictogramName;
+  selected: boolean;
+  onPress: () => void;
+  testID?: string;
+}) {
+  const { colors, typography, spacing } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      onPress={onPress}
+      testID={testID}
+      style={({ pressed }) => [
+        styles.pictureOption,
+        {
+          borderColor: selected ? colors.brand.primary : colors.border.default,
+          backgroundColor: selected ? colors.surface.sunken : colors.surface.raised,
+          borderWidth: selected ? 2 : 1,
+          padding: spacing[3],
+          gap: spacing[2],
+          opacity: pressed ? 0.85 : 1,
+        },
+      ]}
+    >
+      <Pictogram
+        name={pictogram}
+        size={56}
+        color={selected ? colors.brand.primary : colors.text.primary}
+      />
+      <Text
+        style={[
+          typography.bodyMeta,
+          {
+            color: colors.text.primary,
+            fontWeight: selected ? "700" : "400",
+            textAlign: "center",
+          },
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/** Wraps `PictureOption`s into rows of two. */
+export function PictureGrid({ children }: { children: ReactNode }) {
+  const { spacing } = useTheme();
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      style={[styles.pictureGrid, { gap: spacing[3] }]}
+    >
+      {children}
+    </View>
+  );
+}
+
+/** Labelled text field. `latin` is for codes and keys: always left-to-right,
+ * whatever the app language. `multiline` makes a taller box for remarks. */
 export function TextField({
   label,
   value,
@@ -142,6 +213,7 @@ export function TextField({
   placeholder,
   maxLength,
   latin = false,
+  multiline = false,
   testID,
 }: {
   label: string;
@@ -150,6 +222,7 @@ export function TextField({
   placeholder?: string;
   maxLength?: number;
   latin?: boolean;
+  multiline?: boolean;
   testID?: string;
 }) {
   const { colors, typography, spacing } = useTheme();
@@ -165,9 +238,11 @@ export function TextField({
         accessibilityLabel={label}
         autoCapitalize={latin ? "characters" : "sentences"}
         autoCorrect={false}
+        multiline={multiline}
         testID={testID}
         style={[
           styles.input,
+          multiline ? styles.inputMultiline : null,
           {
             color: colors.text.primary,
             borderColor: colors.border.default,
@@ -270,6 +345,16 @@ const styles = StyleSheet.create({
   card: { borderWidth: 1, borderRadius: 14 },
   option: { minHeight: 56, borderRadius: 12, justifyContent: "center" },
   input: { minHeight: 48, borderWidth: 1, borderRadius: 10 },
+  inputMultiline: { minHeight: 140, paddingVertical: 12, textAlignVertical: "top" },
+  pictureGrid: { flexDirection: "row", flexWrap: "wrap" },
+  pictureOption: {
+    flexGrow: 1,
+    flexBasis: "45%",
+    minHeight: 112,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   track: { height: 8, borderRadius: 4, overflow: "hidden" },
   fill: { height: 8, borderRadius: 4 },
 });
