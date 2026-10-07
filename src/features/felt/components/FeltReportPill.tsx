@@ -89,6 +89,11 @@ export function FeltReportPill({ eventId = null, event = null }: FeltReportPillP
           // label's line height, before font-scaling even grows it).
           paddingVertical: spacing[4],
           minHeight: 48,
+          // The width the Sorani label gives it, for every language: a short
+          // English "I felt it!" made a noticeably smaller target (owner,
+          // 2026-10-08, from phone screenshots). Longer labels still grow.
+          minWidth: FELT_PILL_MIN_WIDTH,
+          alignItems: "center",
           justifyContent: "center",
           opacity: pressed ? 0.9 : 1,
         },
@@ -107,6 +112,8 @@ export function FeltReportPill({ eventId = null, event = null }: FeltReportPillP
     </Pressable>
   );
 }
+
+export const FELT_PILL_MIN_WIDTH = 128;
 
 const styles = StyleSheet.create({
   pill: {

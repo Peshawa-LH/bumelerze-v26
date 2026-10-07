@@ -67,6 +67,10 @@ export function EventHubPill({ event, routeId }: EventHubPillProps) {
           // Same vertical padding and minimum height as the felt pill.
           paddingVertical: spacing[4],
           minHeight: 48,
+          // Same rule as the felt pill: the Sorani label's width for every
+          // language (owner, 2026-10-08).
+          minWidth: HUB_PILL_MIN_WIDTH,
+          alignItems: "center",
           justifyContent: "center",
           opacity: pressed ? 0.9 : 1,
         },
@@ -85,6 +89,8 @@ export function EventHubPill({ event, routeId }: EventHubPillProps) {
     </Pressable>
   );
 }
+
+export const HUB_PILL_MIN_WIDTH = 152;
 
 const styles = StyleSheet.create({
   pill: {

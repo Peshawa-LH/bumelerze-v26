@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 import i18n from "@/i18n";
 import { lightColors } from "@/theme/semantic";
 
-import { EventHubPill } from "../components/EventHubPill";
+import { EventHubPill, HUB_PILL_MIN_WIDTH } from "../components/EventHubPill";
 import { buildEvent, EMPTY_SUMMARY, renderWithProviders } from "../__fixtures__/testing";
 
 const mockPush = jest.fn();
@@ -112,6 +112,9 @@ describe("EventHubPill", () => {
     expect(style.end).toBeUndefined();
     expect(style.position).toBe("absolute");
     expect(style.minHeight).toBe(48);
+    // Sorani-sized target in every language (owner, 2026-10-08).
+    expect(style.minWidth).toBe(HUB_PILL_MIN_WIDTH);
+    expect(style.alignItems).toBe("center");
     expect(style.backgroundColor).toBe(lightColors.brand.primary);
     expect(style.backgroundColor).not.toBe(lightColors.action.felt);
   });
