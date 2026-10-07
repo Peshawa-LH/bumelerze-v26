@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { ROLE_BADGES, ROLE_PRIORITY } from "@/features/badges/catalog";
-import { toneColor } from "@/features/badges/tones";
+import { BumelerzeMark } from "@/features/badges/components/BumelerzeMark";
+import { accessibleAccent, toneColor, withAlpha } from "@/features/badges/tones";
 import { useTheme } from "@/theme";
 
 import type { HubRole } from "../types";
@@ -26,8 +26,9 @@ export function pickDisplayRole(roles: readonly HubRole[] | undefined): HubRole 
 /**
  * Public role mark next to a name: an icon only, no text (owner, 2026-10-04).
  * It is the top role badge of the shared catalogue (`features/badges`), drawn
- * without the ring: the official account wears the Bumelerze round icon, the
- * other roles each have their own icon and colour. The role's name stays for
+ * without the ring: the official account wears the single-colour Bumelerze
+ * mark in a small tinted circle (no red, no full logo), the other roles each
+ * have their own icon and colour. The role's name stays for
  * screen readers. `size` is 18 in comments and 20 beside the account name.
  */
 export function RoleMark({
@@ -38,7 +39,7 @@ export function RoleMark({
   size?: 18 | 20;
 }) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const role = pickDisplayRole(roles);
   if (!role) {
     return null;
@@ -58,13 +59,23 @@ export function RoleMark({
       accessibilityLabel={label}
       style={[styles.mark, box]}
     >
-      {badge.image !== null ? (
-        <Image
-          source={badge.image}
-          contentFit="contain"
-          style={box}
+      {badge.mark ? (
+        <View
           testID="role-mark-official-icon"
-        />
+          style={[
+            styles.mark,
+            box,
+            {
+              borderRadius: size / 2,
+              backgroundColor: withAlpha(toneColor(badge.tone, colors), 0.16),
+            },
+          ]}
+        >
+          <BumelerzeMark
+            width={Math.round(size * 0.74)}
+            color={accessibleAccent(badge.tone, colors, scheme)}
+          />
+        </View>
       ) : (
         <Ionicons name={badge.icon} size={size} color={toneColor(badge.tone, colors)} />
       )}

@@ -97,7 +97,7 @@ describe("account blocks", () => {
       expect(screen.getByTestId("profile-member-since").props.children).toMatch(/٢٠٢٦/);
     });
 
-    it("an official account wears the round Bumelerze icon beside the name", async () => {
+    it("an official account wears the Bumelerze mark beside the name", async () => {
       mockAccount = ACCOUNT;
       await render(
         <ProfileHeader

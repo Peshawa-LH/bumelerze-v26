@@ -46,13 +46,13 @@ describe("BadgeGrid", () => {
     ).toHaveLength(8);
   });
 
-  it("puts a held role first and draws the official one with the app icon", async () => {
+  it("puts a held role first and draws the official one with the Bumelerze mark", async () => {
     await renderGrid({}, [{ role: "official", orgName: null }]);
     const buttons = screen.getAllByRole("button");
     expect(buttons[0]?.props.testID).toBe("badge-role-official");
     expect(screen.getByLabelText("Bumelerze, earned")).toBeTruthy();
     expect(
-      screen.getByTestId("badge-icon-image", { includeHiddenElements: true }),
+      screen.getByTestId("badge-icon-mark", { includeHiddenElements: true }),
     ).toBeTruthy();
   });
 

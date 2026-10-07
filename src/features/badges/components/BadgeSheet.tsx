@@ -125,7 +125,7 @@ export function BadgeSheet({
           <View style={styles.center}>
             <BadgeIcon
               glyph={visual.glyph}
-              image={entry.kind === "role" ? ROLE_BADGES[entry.role].image : null}
+              mark={entry.kind === "role" && ROLE_BADGES[entry.role].mark}
               tone={visual.tone}
               earned={entry.earned}
               size={SHEET_BADGE_SIZE}

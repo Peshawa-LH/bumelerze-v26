@@ -1,17 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
 import { useTheme } from "@/theme";
 
 import type { BadgeTone, IconName } from "../catalog";
 import { badgePalette } from "../tones";
+import { BumelerzeMark } from "./BumelerzeMark";
 
 interface BadgeIconProps {
   /** Glyph drawn when earned (solid) or locked (outline). */
   glyph: IconName;
-  /** Round image drawn instead of the glyph when earned (official). */
-  image?: number | null;
+  /** Draw the Bumelerze mark instead of the glyph when earned (official). */
+  mark?: boolean;
   tone: BadgeTone;
   earned: boolean;
   size: number;
@@ -26,7 +26,7 @@ interface BadgeIconProps {
  */
 export function BadgeIcon({
   glyph,
-  image = null,
+  mark = false,
   tone,
   earned,
   size,
@@ -35,7 +35,7 @@ export function BadgeIcon({
   const { colors, scheme } = useTheme();
   const palette = badgePalette(tone, earned, colors, scheme);
   const lockSize = Math.max(18, Math.round(size * 0.34));
-  const showImage = earned && image !== null;
+  const showMark = earned && mark;
 
   return (
     <View
@@ -57,12 +57,11 @@ export function BadgeIcon({
           },
         ]}
       >
-        {showImage ? (
-          <Image
-            source={image}
-            contentFit="contain"
-            style={{ width: size * 0.64, height: size * 0.64 }}
-            testID="badge-icon-image"
+        {showMark ? (
+          <BumelerzeMark
+            width={Math.round(size * 0.62)}
+            color={palette.glyph}
+            testID="badge-icon-mark"
           />
         ) : (
           <Ionicons name={glyph} size={Math.round(size * 0.5)} color={palette.glyph} />

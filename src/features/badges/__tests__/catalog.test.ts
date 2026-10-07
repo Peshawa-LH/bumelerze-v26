@@ -89,11 +89,11 @@ describe("badge catalogue", () => {
     expect(ROLE_PRIORITY).toEqual(["official", "moderator", "engineer", "partner"]);
   });
 
-  it("draws the official account with the round app icon, the others with a glyph", () => {
-    expect(ROLE_BADGES.official.image).not.toBeNull();
-    expect(ROLE_BADGES.moderator.image).toBeNull();
-    expect(ROLE_BADGES.engineer.image).toBeNull();
-    expect(ROLE_BADGES.partner.image).toBeNull();
+  it("draws the official account with the Bumelerze mark, the others with a glyph", () => {
+    expect(ROLE_BADGES.official.mark).toBe(true);
+    expect(ROLE_BADGES.moderator.mark).toBe(false);
+    expect(ROLE_BADGES.engineer.mark).toBe(false);
+    expect(ROLE_BADGES.partner.mark).toBe(false);
   });
 
   it("never uses the reserved felt-action or intensity colours (tones are token names)", () => {

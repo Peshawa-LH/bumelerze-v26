@@ -160,8 +160,9 @@ export const MILESTONE_BADGES: readonly MilestoneBadge[] = [
 export interface RoleBadge {
   icon: IconName;
   tone: BadgeTone;
-  /** Round app icon drawn instead of the glyph (the official account). */
-  image: number | null;
+  /** Draw the single-colour Bumelerze mark instead of the glyph (the
+   * official account). The glyph stays as the fallback and the type. */
+  mark: boolean;
 }
 
 /** Same order as the public mark's priority: official > moderator >
@@ -176,10 +177,12 @@ export const ROLE_PRIORITY: readonly HubRoleKind[] = [
 export const ROLE_BADGES: Record<HubRoleKind, RoleBadge> = {
   official: {
     icon: "checkmark-circle",
+    // The brand token is Zagros Blue, not the logo's red (owner, 2026-10-07:
+    // "not red"); the mark is drawn in this one tone, like every other badge.
     tone: "brand",
-    image: require("../../../assets/brand/logo/bumelerze-app-icon-round.svg"),
+    mark: true,
   },
-  moderator: { icon: "shield-checkmark", tone: "link", image: null },
-  engineer: { icon: "construct", tone: "warning", image: null },
-  partner: { icon: "ribbon", tone: "success", image: null },
+  moderator: { icon: "shield-checkmark", tone: "link", mark: false },
+  engineer: { icon: "construct", tone: "warning", mark: false },
+  partner: { icon: "ribbon", tone: "success", mark: false },
 };

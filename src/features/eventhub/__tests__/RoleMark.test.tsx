@@ -63,3 +63,31 @@ describe("RoleMark", () => {
     expect(screen.queryByTestId(/role-mark/)).toBeNull();
   });
 });
+
+describe("RoleMark: the official mark is single-colour, never the logo red", () => {
+  const LOGO_RED = /^#c8202f$/i;
+
+  it("draws the Bumelerze mark in one tone-derived fill inside a tinted circle", async () => {
+    await render(<RoleMark roles={[{ role: "official", orgName: null }]} />);
+    const circle = screen.getByTestId("role-mark-official-icon");
+    // The mark is vector, so it takes the tone on web as well as native.
+    const fills = JSON.stringify(circle.props.children.props);
+    expect(fills).not.toMatch(LOGO_RED);
+    expect(circle.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: 18, height: 18 })]),
+    );
+  });
+
+  it("keeps the 18 and 20 px boxes the other roles use", async () => {
+    const view = await render(<RoleMark roles={[{ role: "official", orgName: null }]} />);
+    expect(screen.getByTestId("role-mark-official").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: 18, height: 18 })]),
+    );
+    await view.rerender(
+      <RoleMark size={20} roles={[{ role: "official", orgName: null }]} />,
+    );
+    expect(screen.getByTestId("role-mark-official").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: 20, height: 20 })]),
+    );
+  });
+});
