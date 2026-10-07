@@ -561,7 +561,6 @@
   "settings": {
     "title": "الإعدادات",
     "languageSectionTitle": "اللغة",
-    "languageSectionDescription": "اختر اللغة التي يعرضها بوملێرزە. التبديل من لغة تُكتب من اليسار لليمين إلى لغة تُكتب من اليمين لليسار (أو العكس) يعيد تشغيل التطبيق.",
     "languageRestartNotice": "جارٍ إعادة التشغيل لتطبيق اللغة الجديدة…",
     "languageRestartFailedMessage": "يرجى إغلاق تطبيق بوملێرزە وإعادة فتحه لإتمام تغيير اللغة.",
     "languages": {
@@ -570,8 +569,13 @@
       "kmr": "الكردية الكرمانجية",
       "ar": "العربية"
     },
+    "languageNative": {
+      "en": "English",
+      "ckb": "کوردیی ناوەندی",
+      "kmr": "Kurmancî",
+      "ar": "العربية"
+    },
     "appearanceSectionTitle": "المظهر",
-    "appearanceSectionDescription": "يتبع الوضع التلقائي إعدادات هاتفك.",
     "appearance": {
       "auto": "تلقائي",
       "light": "فاتح",
@@ -579,25 +583,18 @@
     },
     "cancel": "إلغاء",
     "openSystemSettings": "فتح الإعدادات",
-    "onboardingSectionTitle": "التعريف بالتطبيق",
-    "onboardingSectionDescription": "يعيد عرض شاشات الترحيب التي شاهدتها أول مرة فتحت فيها بوملێرزە. سيتم الاحتفاظ باختيارك للغة.",
     "replayOnboarding": "إعادة عرض التعريف بالتطبيق",
     "replayOnboardingConfirmTitle": "إعادة عرض التعريف بالتطبيق؟",
     "replayOnboardingConfirmMessage": "ستمر بشاشات الترحيب مرة أخرى. سيتم الاحتفاظ باختيارك للغة.",
     "notificationsSectionTitle": "الإشعارات",
-    "notificationsSectionDescription": "اختر الزلازل التي يُنبّهك بوملێرزە بشأنها.",
-    "notificationsManage": "إدارة الإشعارات",
     "handbookSectionTitle": "دليل المهندس",
-    "handbookSectionDescription": "قيم تصميمية موثّقة المصدر (PGA، Vs30، فئة الموقع) لموقع في كوردستان/العراق، للمهندسين والباحثين.",
-    "handbookOpen": "فتح دليل المهندس",
+    "handbookSectionDescription": "قيم التصميم للمهندسين",
     "myDataSectionTitle": "حسابي",
-    "myDataSectionDescription": "هويتك كمساهم وتقارير الزلازل التي أرسلتها من هذا الجهاز.",
-    "myDataOpen": "فتح حسابي",
+    "myDataSectionDescription": "الملف الشخصي، الشارات، التقارير",
     "feedbackSectionTitle": "الملاحظات",
-    "feedbackSectionDescription": "أخبرنا عن خطأ، أو فكرة، أو أي شيء آخر يخطر ببالك.",
-    "feedbackOpen": "أرسل ملاحظاتك",
+    "feedbackSectionDescription": "الأخطاء والأفكار",
     "devicePermissionsSectionTitle": "أذونات الجهاز",
-    "devicePermissionsSectionDescription": "امنح إذن الموقع ومستشعر الحركة معاً بضغطة واحدة. يستخدم بوملێرزە موقعك لتحديد مكان تقارير الإحساس بالزلزال، ومستشعر الحركة لتشغيل العرض الحي في شاشة المستشعر.",
+    "devicePermissionsSectionDescription": "الموقع ومستشعر الحركة",
     "devicePermissionsAllowButton": "منح أذونات الجهاز",
     "devicePermissionsRequestingButton": "جارٍ الطلب…",
     "devicePermissionsLocationLabel": "الموقع",
@@ -605,8 +602,8 @@
     "permissionsStatusGranted": "مسموح",
     "permissionsStatusDenied": "غير مسموح",
     "permissionsStatusUndetermined": "لم يُطلب بعد",
-    "devicePermissionsSomeDeniedHint": "بعض الأذونات متوقفة. افتح إعدادات جهازك لتفعيلها.",
-    "devicePermissionsSomeDeniedHintWeb": "بعض الأذونات متوقفة. تحقق من أذونات هذا الموقع في إعدادات متصفحك لتفعيلها.",
+    "devicePermissionsSomeDeniedHint": "بعض الأذونات متوقفة.",
+    "devicePermissionsSomeDeniedHintWeb": "بعض الأذونات متوقفة. اسمح بها من إعدادات المتصفح.",
     "footerAbout": "بوملێرزە نظام مستقل لرصد الزلازل في كوردستان والعراق.",
     "footerPrivacyLink": "سياسة الخصوصية",
     "footerAttribution": "بيانات الزلازل من USGS وEMSC (seismicportal.eu) وGEOFON (مركز GFZ هلمهولتز لعلوم الأرض، geofon.gfz.de) مرخّصة بموجب CC BY 4.0.",
@@ -645,7 +642,7 @@
     "title": "إعدادات الإشعارات",
     "nearMe": {
       "title": "بالقرب مني",
-      "explainer": "تنبيهات للزلازل القريبة من موقعك الحالي."
+      "explainer": "الزلازل القريبة من موقعك."
     },
     "anotherPlace": {
       "title": "نبّهني أيضاً عن مكان آخر",
@@ -661,14 +658,14 @@
       "m4": "٤.٠ فأعلى",
       "m5": "٥.٠ فأعلى"
     },
-    "fatigueFooter": "أثناء سلاسل الهزات الارتدادية، يحدّ بوملێرزە من عدد التنبيهات حتى لا تُثقَل بها.",
+    "fatigueFooter": "تُحدَّد التنبيهات أثناء سلاسل الهزات الارتدادية.",
     "permission": {
       "deniedStatus": "إشعارات بوملێرزە موقوفة على هذا الجهاز.",
       "openSettings": "فتح الإعدادات"
     },
     "rehearsal": {
       "title": "جرّبها",
-      "description": "شاهد واسمع كيف سيبدو ويصدر صوت تنبيه حقيقي: دون الحاجة لزلزال فعلي.",
+      "description": "معاينة تنبيه. لا حاجة لزلزال.",
       "seeAlert": "شاهد التنبيه",
       "playSound": "تشغيل صوت التنبيه",
       "playSoundHintTitle": "تشغيل صوت التنبيه",

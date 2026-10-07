@@ -561,7 +561,6 @@
   "settings": {
     "title": "ڕێکخستنەکان",
     "languageSectionTitle": "زمان",
-    "languageSectionDescription": "ئەو زمانەی بوومەلەرزە پیشانی دەدات هەڵبژێرە. گۆڕین بۆ یان لە زمانێکی ڕاست بۆ چەپ، ئەپەکە دووبارە دەست پێدەکاتەوە.",
     "languageRestartNotice": "دووبارە دەستپێکردنەوە بۆ جێبەجێکردنی زمانی نوێ…",
     "languageRestartFailedMessage": "تکایە ئەپی بوومەلەرزە دابخە و دووبارە بیکەرەوە بۆ تەواوکردنی گۆڕینی زمان.",
     "languages": {
@@ -570,8 +569,13 @@
       "kmr": "کوردیی کورمانجی (Kurmancî)",
       "ar": "عەرەبی"
     },
+    "languageNative": {
+      "en": "English",
+      "ckb": "کوردیی ناوەندی",
+      "kmr": "Kurmancî",
+      "ar": "العربية"
+    },
     "appearanceSectionTitle": "ڕووکار",
-    "appearanceSectionDescription": "دۆخی خۆکار پەیڕەوی ڕێکخستنی مۆبایلەکەت دەکات.",
     "appearance": {
       "auto": "خۆکار",
       "light": "ڕووناک",
@@ -579,25 +583,18 @@
     },
     "cancel": "هەڵوەشاندنەوە",
     "openSystemSettings": "کردنەوەی ڕێکخستنەکان",
-    "onboardingSectionTitle": "ڕێنمایی سەرەتایی",
-    "onboardingSectionDescription": "دووبارە پیشاندانی پەڕەکانی بەخێرهاتن کە یەکەم جار کە بوومەلەرزەت کردەوە بینیت. هەڵبژاردنی زمانت پارێزراو دەمێنێتەوە.",
     "replayOnboarding": "دووبارەکردنەوەی ڕێنمایی سەرەتایی",
     "replayOnboardingConfirmTitle": "دووبارەکردنەوەی ڕێنمایی سەرەتایی؟",
     "replayOnboardingConfirmMessage": "جارێکی تر بەسەر پەردە بەخێرهاتنەکاندا تێدەپەڕیت. هەڵبژاردنی زمانت پارێزراو دەمێنێتەوە.",
     "notificationsSectionTitle": "ئاگادارکردنەوەکان",
-    "notificationsSectionDescription": "دیاریبکە بوومەلەرزە ئاگاداری کام بوومەلەرزەکانت بکاتەوە.",
-    "notificationsManage": "بەڕێوەبردنی ئاگادارکردنەوەکان",
     "handbookSectionTitle": "پەڕتووکی ئەندازیار",
-    "handbookSectionDescription": "بەهای دیزاین (PGA، Vs30، پۆلی زەوی) بۆ شوێنێک لە کوردستان/عێراق، بە سەرچاوە، بۆ ئەندازیار و توێژەران.",
-    "handbookOpen": "کردنەوەی پەڕتووکی ئەندازیار",
+    "handbookSectionDescription": "بەهای دیزاین بۆ ئەندازیاران",
     "myDataSectionTitle": "هەژمارەکەم",
-    "myDataSectionDescription": "ناسنامەی بەشداریکەرت و ڕاپۆرتەکانی بوومەلەرزە کە لەم ئامێرەوە ناردووتە.",
-    "myDataOpen": "کردنەوەی هەژمارەکەم",
+    "myDataSectionDescription": "پرۆفایل، نیشانەکان، ڕاپۆرتەکان",
     "feedbackSectionTitle": "بۆچوون",
-    "feedbackSectionDescription": "هەواڵمان بدەرێ لەبارەی هەڵەیەک، بیرۆکەیەک، یان هەر شتێکی تر کە لە مێشکتدایە.",
-    "feedbackOpen": "بۆچوون بنێرە",
+    "feedbackSectionDescription": "هەڵە و بیرۆکە",
     "devicePermissionsSectionTitle": "مۆڵەتەکانی ئامێر",
-    "devicePermissionsSectionDescription": "بە یەک دەستلێدان مۆڵەتی شوێن و سێنسۆری جولاندن پێکەوە بدە. بوومەلەرزە شوێنەکەت بەکاردەهێنێت بۆ نیشانکردنی ڕاپۆرتی هەستپێکردن، و سێنسۆری جولاندنیش پەڕەی زیندووی پەڕەی سێنسۆر پشتیوانی دەکات.",
+    "devicePermissionsSectionDescription": "شوێن و سێنسۆری جولاندن",
     "devicePermissionsAllowButton": "مۆڵەتەکانی ئامێر بدە",
     "devicePermissionsRequestingButton": "داواکردن…",
     "devicePermissionsLocationLabel": "شوێن",
@@ -605,8 +602,8 @@
     "permissionsStatusGranted": "ڕێگەپێدراوە",
     "permissionsStatusDenied": "ڕێگەپێنەدراوە",
     "permissionsStatusUndetermined": "هێشتا نەپرسراوە",
-    "devicePermissionsSomeDeniedHint": "هەندێک مۆڵەت داخراون. ڕێکخستنەکانی ئامێرەکەت بکەرەوە بۆ کردنەوەیان.",
-    "devicePermissionsSomeDeniedHintWeb": "هەندێک مۆڵەت داخراون. مۆڵەتەکانی ئەم ماڵپەڕە لە ڕێکخستنەکانی وێبگەڕەکەتدا بپشکنە بۆ کردنەوەیان.",
+    "devicePermissionsSomeDeniedHint": "هەندێک مۆڵەت داخراون.",
+    "devicePermissionsSomeDeniedHintWeb": "هەندێک مۆڵەت داخراون. لە ڕێکخستنەکانی وێبگەڕدا مۆڵەتیان بدە.",
     "footerAbout": "بوومەلەرزە سیستەمێکی سەربەخۆی چاودێری بوومەلەرزەیە بۆ کوردستان و عێراق.",
     "footerPrivacyLink": "سیاسەتی تایبەتمەندی",
     "footerAttribution": "زانیاری بوومەلەرزەکان لە USGS و EMSC (seismicportal.eu) و GEOFON (ناوەندی GFZ هێلمهۆڵتز بۆ زانستەکانی زەوی، geofon.gfz.de) بە مۆڵەتی CC BY 4.0 دابین کراوە.",
@@ -645,7 +642,7 @@
     "title": "ڕێکخستنی ئاگادارکردنەوە",
     "nearMe": {
       "title": "نزیک من",
-      "explainer": "ئاگادارکردنەوە بۆ بوومەلەرزەکانی نزیک شوێنی ئێستات."
+      "explainer": "بوومەلەرزەکانی نزیک شوێنی تۆ."
     },
     "anotherPlace": {
       "title": "هەروەها ئاگادارم بکەرەوە دەربارەی شوێنێکی تر",
@@ -661,14 +658,14 @@
       "m4": "پلە ٤.٠ و بەرزتر",
       "m5": "پلە ٥.٠ و بەرزتر"
     },
-    "fatigueFooter": "لە کاتی زنجیرەی لەرزەی دوایی، بوومەلەرزە ژمارەی ئاگادارکردنەوەکان سنووردار دەکات تاکو زۆرت لێ نەکات.",
+    "fatigueFooter": "لە زنجیرەی لەرزەی دوایی، ئاگادارکردنەوەکان سنووردار دەکرێن.",
     "permission": {
       "deniedStatus": "ئاگادارکردنەوەکانی بوومەلەرزە لەم ئامێرە داخراون.",
       "openSettings": "کردنەوەی ڕێکخستنەکان"
     },
     "rehearsal": {
       "title": "تاقیبکەرەوە",
-      "description": "ببینە و ببیستە ئاگادارکردنەوەیەکی ڕاستەقینە چۆن دەردەکەوێت و دەنگی دەبێت: پێویست بە بوومەلەرزە ناکات.",
+      "description": "ئاگادارکردنەوەیەک پێشبینی بکە. پێویست بە بوومەلەرزە ناکات.",
       "seeAlert": "ئاگادارکردنەوەکە ببینە",
       "playSound": "دەنگی ئاگادارکردنەوەکە لێبدە",
       "playSoundHintTitle": "دەنگی ئاگادارکردنەوەکە لێبدە",

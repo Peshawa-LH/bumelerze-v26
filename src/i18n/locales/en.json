@@ -561,7 +561,6 @@
   "settings": {
     "title": "Settings",
     "languageSectionTitle": "Language",
-    "languageSectionDescription": "Choose the language Bumelerze displays. Switching to or from a right-to-left language restarts the app.",
     "languageRestartNotice": "Restarting to apply the new language…",
     "languageRestartFailedMessage": "Please close and reopen Bumelerze to finish switching languages.",
     "languages": {
@@ -570,8 +569,13 @@
       "kmr": "Kurmanji Kurdish (Kurmancî)",
       "ar": "Arabic (العربية)"
     },
+    "languageNative": {
+      "en": "English",
+      "ckb": "کوردیی ناوەندی",
+      "kmr": "Kurmancî",
+      "ar": "العربية"
+    },
     "appearanceSectionTitle": "Appearance",
-    "appearanceSectionDescription": "Automatic follows your phone's setting.",
     "appearance": {
       "auto": "Automatic",
       "light": "Light",
@@ -579,25 +583,18 @@
     },
     "cancel": "Cancel",
     "openSystemSettings": "Open Settings",
-    "onboardingSectionTitle": "Onboarding",
-    "onboardingSectionDescription": "Replays the welcome screens you saw the first time you opened Bumelerze. Your language choice is kept.",
     "replayOnboarding": "Replay onboarding",
     "replayOnboardingConfirmTitle": "Replay onboarding?",
     "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language choice is kept.",
     "notificationsSectionTitle": "Notifications",
-    "notificationsSectionDescription": "Choose which earthquakes Bumelerze alerts you about.",
-    "notificationsManage": "Manage notifications",
     "handbookSectionTitle": "Engineer's handbook",
-    "handbookSectionDescription": "Cited design values (PGA, Vs30, site class) for a site in Kurdistan/Iraq, for engineers and researchers.",
-    "handbookOpen": "Open handbook",
+    "handbookSectionDescription": "Design values for engineers",
     "myDataSectionTitle": "My account",
-    "myDataSectionDescription": "Your contributor identity and the earthquake reports you've sent from this device.",
-    "myDataOpen": "Open My account",
+    "myDataSectionDescription": "Profile, badges, reports",
     "feedbackSectionTitle": "Feedback",
-    "feedbackSectionDescription": "Tell us about a bug, an idea, or anything else on your mind.",
-    "feedbackOpen": "Give feedback",
+    "feedbackSectionDescription": "Bugs and ideas",
     "devicePermissionsSectionTitle": "Device permissions",
-    "devicePermissionsSectionDescription": "Allow location and motion-sensor access together, in one tap. Bumelerze uses your location to tag felt reports and the motion sensor to power the live view on the Sensor screen.",
+    "devicePermissionsSectionDescription": "Location and motion sensor",
     "devicePermissionsAllowButton": "Allow device permissions",
     "devicePermissionsRequestingButton": "Requesting…",
     "devicePermissionsLocationLabel": "Location",
@@ -605,8 +602,8 @@
     "permissionsStatusGranted": "Allowed",
     "permissionsStatusDenied": "Not allowed",
     "permissionsStatusUndetermined": "Not asked yet",
-    "devicePermissionsSomeDeniedHint": "Some permissions are off. Open your device settings to turn them on.",
-    "devicePermissionsSomeDeniedHintWeb": "Some permissions are off. Check this site's permissions in your browser settings to turn them on.",
+    "devicePermissionsSomeDeniedHint": "Some permissions are off.",
+    "devicePermissionsSomeDeniedHintWeb": "Some permissions are off. Allow them in your browser settings.",
     "footerAbout": "Bumelerze is an independent earthquake monitoring system for Kurdistan and Iraq.",
     "footerPrivacyLink": "Privacy policy",
     "footerAttribution": "Earthquake data from USGS, EMSC (seismicportal.eu), and GEOFON (GFZ Helmholtz Centre for Geosciences, geofon.gfz.de) is licensed under CC BY 4.0.",
@@ -645,7 +642,7 @@
     "title": "Notification Settings",
     "nearMe": {
       "title": "Near Me",
-      "explainer": "Alerts for earthquakes near your current location."
+      "explainer": "Earthquakes near where you are."
     },
     "anotherPlace": {
       "title": "Also alert me about another place",
@@ -661,14 +658,14 @@
       "m4": "M4.0 and above",
       "m5": "M5.0 and above"
     },
-    "fatigueFooter": "During aftershock sequences, Bumelerze limits how many alerts you get so you're not overwhelmed.",
+    "fatigueFooter": "Alerts are limited during aftershock sequences.",
     "permission": {
       "deniedStatus": "Notifications are blocked for Bumelerze on this device.",
       "openSettings": "Open Settings"
     },
     "rehearsal": {
       "title": "Try it",
-      "description": "See and hear what a real alert will look and sound like: no earthquake required.",
+      "description": "Preview an alert. No earthquake needed.",
       "seeAlert": "See the alert",
       "playSound": "Play the alert sound",
       "playSoundHintTitle": "Play the alert sound",

@@ -2,10 +2,13 @@ import Constants from "expo-constants";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SettingsGroup } from "@/features/account/components/SettingsGroup";
+import { SettingsRow, SettingsRowBody } from "@/features/account/components/SettingsRow";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
 import { confirmDialog, messageDialog } from "@/lib/dialogs";
@@ -20,20 +23,40 @@ import {
 
 const PRIVACY_POLICY_URL = "https://bumelerze.com/privacy.html";
 
+/** The rows that open in place; only one is open at a time. */
+type OpenRow = "permissions" | "language" | "appearance";
+
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [openRow, setOpenRow] = useState<OpenRow | null>(null);
 
   const { isRestarting, selectLocale, currentLocale } = useLocaleSwitcher();
   const themePreference = useThemePreferencesStore((state) => state.preference);
   const setThemePreference = useThemePreferencesStore((state) => state.setPreference);
+  const resetOnboarding = usePrefsStore((state) => state.resetOnboarding);
 
   async function handleSelectLocale(locale: SupportedLocale) {
     const { restartFailed } = await selectLocale(locale);
     if (restartFailed) {
       messageDialog(t("settings.title"), t("settings.languageRestartFailedMessage"));
     }
+  }
+
+  function handleReplayOnboarding() {
+    confirmDialog({
+      title: t("settings.replayOnboardingConfirmTitle"),
+      message: t("settings.replayOnboardingConfirmMessage"),
+      confirmLabel: t("settings.replayOnboarding"),
+      cancelLabel: t("settings.cancel"),
+      onConfirm: resetOnboarding,
+    });
+  }
+
+  function toggle(row: OpenRow) {
+    setOpenRow((current) => (current === row ? null : row));
   }
 
   return (
@@ -62,69 +85,141 @@ export default function SettingsScreen() {
         {t("settings.title")}
       </Text>
 
-      {/* Order is the owner's (feedback 2adfbbf7, 2026-09-27): the account
-          first — the place the tagged building will live — then the
-          engineer's handbook, then the two device concerns, then language,
+      {/* Grouped rows like My account (owner note N1, 2026-10-07): one card per
+          concern, one short line or none under a title. Order is the owner's
+          (feedback 2adfbbf7, 2026-09-27, regrouped 2026-10-07): the account
+          first (the place the tagged building will live) with the engineer's
+          handbook; then the device concerns, language and look; then
           feedback and onboarding. */}
-      <MyDataSection />
-      <HandbookSection />
-      <DevicePermissionsSection />
-      <NotificationsSection />
-      <LanguageSection
-        currentLocale={currentLocale}
-        isRestarting={isRestarting}
-        onSelectLocale={(locale) => void handleSelectLocale(locale)}
-      />
-      <AppearanceSection
-        preference={themePreference}
-        onSelectPreference={setThemePreference}
-      />
-      <FeedbackSection />
-      <OnboardingSection />
+      <SettingsGroup testID="settings-group-account">
+        <SettingsRow
+          icon="person-circle-outline"
+          label={t("settings.myDataSectionTitle")}
+          value={t("settings.myDataSectionDescription")}
+          valueLayout="stacked"
+          onPress={() => router.push("/my-data")}
+          testID="settings-row-account"
+        />
+        <SettingsRow
+          icon="construct-outline"
+          label={t("settings.handbookSectionTitle")}
+          value={t("settings.handbookSectionDescription")}
+          valueLayout="stacked"
+          onPress={() => router.push("/handbook")}
+          testID="settings-row-handbook"
+        />
+      </SettingsGroup>
+
+      <SettingsGroup testID="settings-group-device">
+        <SettingsRow
+          icon="notifications-outline"
+          label={t("settings.notificationsSectionTitle")}
+          onPress={() => router.push("/notification-settings")}
+          testID="settings-row-notifications"
+        />
+        <View>
+          <SettingsRow
+            icon="location-outline"
+            label={t("settings.devicePermissionsSectionTitle")}
+            value={t("settings.devicePermissionsSectionDescription")}
+            valueLayout="stacked"
+            trailing="expand"
+            expanded={openRow === "permissions"}
+            onPress={() => toggle("permissions")}
+            testID="settings-row-permissions"
+          />
+          {openRow === "permissions" ? <DevicePermissionsBody /> : null}
+        </View>
+        <View>
+          <SettingsRow
+            icon="language-outline"
+            label={t("settings.languageSectionTitle")}
+            value={t(`settings.languageNative.${currentLocale}`)}
+            trailing="expand"
+            expanded={openRow === "language"}
+            onPress={() => toggle("language")}
+            testID="settings-row-language"
+          />
+          {openRow === "language" ? (
+            <LanguageBody
+              currentLocale={currentLocale}
+              isRestarting={isRestarting}
+              onSelectLocale={(locale) => void handleSelectLocale(locale)}
+            />
+          ) : null}
+        </View>
+        <View>
+          <SettingsRow
+            icon="contrast-outline"
+            label={t("settings.appearanceSectionTitle")}
+            value={t(`settings.appearance.${themePreference}`)}
+            trailing="expand"
+            expanded={openRow === "appearance"}
+            onPress={() => toggle("appearance")}
+            testID="settings-row-appearance"
+          />
+          {openRow === "appearance" ? (
+            <AppearanceBody
+              preference={themePreference}
+              onSelectPreference={setThemePreference}
+            />
+          ) : null}
+        </View>
+      </SettingsGroup>
+
+      <SettingsGroup testID="settings-group-help">
+        <SettingsRow
+          icon="chatbubble-ellipses-outline"
+          label={t("settings.feedbackSectionTitle")}
+          value={t("settings.feedbackSectionDescription")}
+          valueLayout="stacked"
+          onPress={() => router.push("/feedback")}
+          testID="settings-row-feedback"
+        />
+        <SettingsRow
+          icon="refresh-outline"
+          label={t("settings.replayOnboarding")}
+          trailing="none"
+          onPress={handleReplayOnboarding}
+          testID="settings-row-onboarding"
+        />
+      </SettingsGroup>
+
       <FooterSection />
     </ScrollView>
   );
 }
 
-interface LanguageSectionProps {
+interface LanguageBodyProps {
   currentLocale: SupportedLocale;
   isRestarting: boolean;
   onSelectLocale: (locale: SupportedLocale) => void;
 }
 
-/** The language picker, once inline at the top of the screen — now a
- * section like the others so the owner's order can put it fifth. */
-function LanguageSection({
+/** The language options under the Language row. Switching to or from a
+ * right-to-left language restarts the app; that is said when it happens
+ * (the restart notice below), not as a standing paragraph. */
+function LanguageBody({
   currentLocale,
   isRestarting,
   onSelectLocale,
-}: LanguageSectionProps) {
+}: LanguageBodyProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.languageSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {isRestarting
-          ? t("settings.languageRestartNotice")
-          : t("settings.languageSectionDescription")}
-      </Text>
-
+    <SettingsRowBody>
+      {isRestarting ? (
+        <Text
+          accessibilityRole="alert"
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.bodyMeta.fontSize,
+            lineHeight: typography.bodyMeta.lineHeight,
+          }}
+        >
+          {t("settings.languageRestartNotice")}
+        </Text>
+      ) : null}
       <View style={{ gap: spacing[2] }}>
         {SUPPORTED_LOCALES.map((locale) => {
           const isActive = currentLocale === locale;
@@ -136,10 +231,10 @@ function LanguageSection({
               disabled={isRestarting}
               onPress={() => onSelectLocale(locale)}
               style={[
-                styles.row,
+                styles.option,
                 {
                   borderColor: colors.border.default,
-                  backgroundColor: isActive ? colors.surface.raised : "transparent",
+                  backgroundColor: isActive ? colors.surface.sunken : "transparent",
                 },
               ]}
             >
@@ -156,50 +251,26 @@ function LanguageSection({
           );
         })}
       </View>
-    </View>
+    </SettingsRowBody>
   );
 }
 
-interface AppearanceSectionProps {
+interface AppearanceBodyProps {
   preference: ThemePreference;
   onSelectPreference: (preference: ThemePreference) => void;
 }
 
-/** Owner directive (2026-09-27): "in Settings, where appropriate, 3
- * buttons: Automatic (the default, follows the system) or manually Light /
- * Dark." A segmented row rather than `LanguageSection`'s stacked rows —
- * three short, mutually-exclusive labels read better side by side, and
- * `accessibilityRole="radio"` matches that "exactly one of these" shape
- * (unlike the language list, which is a plain list of buttons). The active
- * choice takes effect immediately: `useTheme()` reads straight from the
- * same store, no reload needed (no RTL/script flip is involved, unlike the
- * language switcher above). */
-function AppearanceSection({ preference, onSelectPreference }: AppearanceSectionProps) {
+/** Owner directive (2026-09-27): three buttons, Automatic (the default,
+ * follows the system) or manually Light / Dark. A segmented row, since
+ * three short, mutually exclusive labels read better side by side;
+ * `accessibilityRole="radio"` matches that "exactly one of these" shape. The
+ * choice takes effect immediately: `useTheme()` reads from the same store. */
+function AppearanceBody({ preference, onSelectPreference }: AppearanceBodyProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
 
   return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.appearanceSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.appearanceSectionDescription")}
-      </Text>
-
+    <SettingsRowBody>
       <View style={[styles.segmentedRow, { gap: spacing[2] }]}>
         {THEME_PREFERENCES.map((option) => {
           const isActive = preference === option;
@@ -230,111 +301,7 @@ function AppearanceSection({ preference, onSelectPreference }: AppearanceSection
           );
         })}
       </View>
-    </View>
-  );
-}
-
-/** D26 item 7: a single row linking to the new My Data screen — the section
- * itself carries no state, so unlike every other section here it's just a
- * navigation trigger, same shape as `HandbookSection`'s "Open handbook"
- * row. */
-function MyDataSection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-  const router = useRouter();
-
-  return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.myDataSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.myDataSectionDescription")}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.push("/my-data")}
-        style={[styles.row, { borderColor: colors.border.default }]}
-      >
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-          }}
-        >
-          {t("settings.myDataOpen")}
-        </Text>
-      </Pressable>
-    </View>
-  );
-}
-
-/**
- * Owner directive: "In the settings tab we can implement a feedback message
- * where you press feedback then write a message ... I can get the list of
- * feedback then share them with you for fixes." A single navigation row,
- * same shape as `MyDataSection`/`HandbookSection` above — the form itself
- * lives on its own screen (`app/feedback.tsx`). Used to also pass
- * `screen: "settings"` as a route param so the automatically-captured
- * context could record where a submission came from; migration 0022 drops
- * the matching `feedback.screen` column (owner: never wanted, never
- * populated with anything meaningful), so this is now a plain navigation
- * with no params.
- */
-function FeedbackSection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-  const router = useRouter();
-
-  return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.feedbackSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.feedbackSectionDescription")}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.push("/feedback")}
-        style={[styles.row, { borderColor: colors.border.default }]}
-      >
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-          }}
-        >
-          {t("settings.feedbackOpen")}
-        </Text>
-      </Pressable>
-    </View>
+    </SettingsRowBody>
   );
 }
 
@@ -354,19 +321,13 @@ function permissionStatusText(
 /**
  * Owner directive (wave brief Part 3): "ONE button ... location, sensor,
  * and other permissions. I don't want a separate option for Sensor,
- * Location." Replaces the previous three separate permission surfaces
- * (a standalone "Location permission" section, a "Permissions & data"
- * section with its own per-row Allow buttons, and the Sensor screen as the
- * only place motion could be granted from) with one button that chains
- * every non-notification permission from a single tap
- * (`useDevicePermissions`'s own doc comment covers why the two underlying
- * requests are fired back to back rather than awaited in sequence — that
- * ordering is what keeps the web motion-permission prompt inside the
- * original tap's gesture). Notifications keep their own separate flow
- * (`NotificationsSection` below) per the brief: "keep the Notification
- * permission the same."
+ * Location." One button chains every non-notification permission from a
+ * single tap (`useDevicePermissions`'s own doc comment covers why the two
+ * underlying requests are fired back to back rather than awaited in
+ * sequence: that ordering keeps the web motion-permission prompt inside the
+ * original tap's gesture). Notifications keep their own flow.
  */
-function DevicePermissionsSection() {
+function DevicePermissionsBody() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const { locationStatus, motionStatus, isRequesting, requestAll } =
@@ -376,48 +337,7 @@ function DevicePermissionsSection() {
   const allGranted = locationStatus === "granted" && motionStatus === "granted";
 
   return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.devicePermissionsSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.devicePermissionsSectionDescription")}
-      </Text>
-
-      {allGranted ? null : (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ disabled: isRequesting }}
-          disabled={isRequesting}
-          onPress={requestAll}
-          style={[styles.row, { borderColor: colors.border.default }]}
-        >
-          <Text
-            style={{
-              color: colors.text.primary,
-              fontSize: typography.bodyDefault.fontSize,
-            }}
-          >
-            {isRequesting
-              ? t("settings.devicePermissionsRequestingButton")
-              : t("settings.devicePermissionsAllowButton")}
-          </Text>
-        </Pressable>
-      )}
-
+    <SettingsRowBody>
       <View style={styles.spaceBetweenRow}>
         <Text
           style={{
@@ -455,6 +375,27 @@ function DevicePermissionsSection() {
         </Text>
       </View>
 
+      {allGranted ? null : (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: isRequesting }}
+          disabled={isRequesting}
+          onPress={requestAll}
+          style={[styles.option, { borderColor: colors.border.default }]}
+        >
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.bodyDefault.fontSize,
+            }}
+          >
+            {isRequesting
+              ? t("settings.devicePermissionsRequestingButton")
+              : t("settings.devicePermissionsAllowButton")}
+          </Text>
+        </Pressable>
+      )}
+
       {hasDenied ? (
         <View style={{ gap: spacing[1] }}>
           <Text
@@ -490,154 +431,7 @@ function DevicePermissionsSection() {
           )}
         </View>
       ) : null}
-    </View>
-  );
-}
-
-function HandbookSection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-  const router = useRouter();
-
-  return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.handbookSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.handbookSectionDescription")}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.push("/handbook")}
-        style={[styles.row, { borderColor: colors.border.default }]}
-      >
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-          }}
-        >
-          {t("settings.handbookOpen")}
-        </Text>
-      </Pressable>
-    </View>
-  );
-}
-
-function NotificationsSection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-  const router = useRouter();
-
-  return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.notificationsSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.notificationsSectionDescription")}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.push("/notification-settings")}
-        style={[styles.row, { borderColor: colors.border.default }]}
-      >
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-          }}
-        >
-          {t("settings.notificationsManage")}
-        </Text>
-      </Pressable>
-    </View>
-  );
-}
-
-/** Owner feedback (wave brief Part 3): "Replay onboarding" alone confused
- * him ("I am not sure what this is"). Adds the description line every
- * other section here already has, explaining what the row does before the
- * user taps it — the row's own label and the confirm-dialog copy are
- * otherwise unchanged. */
-function OnboardingSection() {
-  const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-  const resetOnboarding = usePrefsStore((state) => state.resetOnboarding);
-
-  function handleReplay() {
-    confirmDialog({
-      title: t("settings.replayOnboardingConfirmTitle"),
-      message: t("settings.replayOnboardingConfirmMessage"),
-      confirmLabel: t("settings.replayOnboarding"),
-      cancelLabel: t("settings.cancel"),
-      onConfirm: resetOnboarding,
-    });
-  }
-
-  return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h3.fontSize,
-          lineHeight: typography.h3.lineHeight,
-          fontWeight: typography.h3.fontWeight,
-        }}
-      >
-        {t("settings.onboardingSectionTitle")}
-      </Text>
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyDefault.fontSize,
-          lineHeight: typography.bodyDefault.lineHeight,
-        }}
-      >
-        {t("settings.onboardingSectionDescription")}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={handleReplay}
-        style={[styles.row, { borderColor: colors.border.default }]}
-      >
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-          }}
-        >
-          {t("settings.replayOnboarding")}
-        </Text>
-      </Pressable>
-    </View>
+    </SettingsRowBody>
   );
 }
 
@@ -746,10 +540,12 @@ const styles = StyleSheet.create({
     height: 36,
     alignSelf: "flex-start",
   },
-  row: {
+  option: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
     borderRadius: 10,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingStart: 16,
     paddingEnd: 16,
   },

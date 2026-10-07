@@ -561,7 +561,6 @@
   "settings": {
     "title": "Sazkarî",
     "languageSectionTitle": "Ziman",
-    "languageSectionDescription": "Zimanê ku Bumelerze pê nîşan dide hilbijêre. Guherîna ber bi an ji zimanekî rast-bo-çep ve, sepan ji nû ve dest pê dike.",
     "languageRestartNotice": "Ji bo sepandina zimanê nû ji nû ve tê destpêkirin…",
     "languageRestartFailedMessage": "Ji kerema xwe Bumelerze bigire û ji nû ve veke da ku guherîna ziman biqedîne.",
     "languages": {
@@ -570,8 +569,13 @@
       "kmr": "Kurmancî",
       "ar": "Erebî"
     },
+    "languageNative": {
+      "en": "English",
+      "ckb": "کوردیی ناوەندی",
+      "kmr": "Kurmancî",
+      "ar": "العربية"
+    },
     "appearanceSectionTitle": "Xuyang",
-    "appearanceSectionDescription": "Moda otomatîk li gorî sazkariya mobîla te ye.",
     "appearance": {
       "auto": "Otomatîk",
       "light": "Ronî",
@@ -579,25 +583,18 @@
     },
     "cancel": "Betal ke",
     "openSystemSettings": "Sazkariyan Veke",
-    "onboardingSectionTitle": "Danasîn",
-    "onboardingSectionDescription": "Dîmenên bi xêr hatinê yên ku te cara yekem Bumelerze vekir dîsa nîşan dide. Hilbijartina zimên tê parastin.",
     "replayOnboarding": "Danasînê dîsa bibîne",
     "replayOnboardingConfirmTitle": "Danasîn dîsa were nîşandan?",
     "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên tê parastin.",
     "notificationsSectionTitle": "Agahdarî",
-    "notificationsSectionDescription": "Hilbijêre ka Bumelerze te ji kîjan erdhejan agahdar dike.",
-    "notificationsManage": "Agahdariyan bi rê ve bibe",
     "handbookSectionTitle": "Pirtûka endezyar",
-    "handbookSectionDescription": "Nirxên sêwiranê yên jêder (PGA, Vs30, çîna axê) ji bo cihekî li Kurdistan/Iraq, ji bo endezyar û lêkolîneran.",
-    "handbookOpen": "Pirtûka endezyar veke",
+    "handbookSectionDescription": "Nirxên sêwiranê ji bo endezyaran",
     "myDataSectionTitle": "Hesabê min",
-    "myDataSectionDescription": "Nasnameya te ya beşdariyê û raporên erdhejan ku te ji vê cîhazê şandine.",
-    "myDataOpen": "Hesabê min veke",
+    "myDataSectionDescription": "Profîl, nîşan, raport",
     "feedbackSectionTitle": "Nêrîn",
-    "feedbackSectionDescription": "Ji me re li ser çewtiyekê, ramanekê, an her tiştê din ê li ser hişê te bibêje.",
-    "feedbackOpen": "Nêrînê bişîne",
+    "feedbackSectionDescription": "Çewtî û raman",
     "devicePermissionsSectionTitle": "Destûrên cîhazê",
-    "devicePermissionsSectionDescription": "Bi yek lêdanê destûra cîh û sensora tevgerê bide pêkve. Bumelerze cîhê te bikar tîne ji bo nîşankirina raporên hestkirinê, û sensora tevgerê jî dîmena zindî ya rûpela Sensor pê dixebite.",
+    "devicePermissionsSectionDescription": "Cîh û sensora tevgerê",
     "devicePermissionsAllowButton": "Destûrên cîhazê bide",
     "devicePermissionsRequestingButton": "Tê xwestin…",
     "devicePermissionsLocationLabel": "Cîh",
@@ -605,8 +602,8 @@
     "permissionsStatusGranted": "Destûr hate dayîn",
     "permissionsStatusDenied": "Destûr nehat dayîn",
     "permissionsStatusUndetermined": "Hê nehatiye pirsîn",
-    "devicePermissionsSomeDeniedHint": "Hin destûr girtî ne. Sazkariyên cîhaza xwe veke da ku wan vekî.",
-    "devicePermissionsSomeDeniedHintWeb": "Hin destûr girtî ne. Destûrên vê malperê di sazkariyên geroka xwe de kontrol bike da ku wan vekî.",
+    "devicePermissionsSomeDeniedHint": "Hin destûr girtî ne.",
+    "devicePermissionsSomeDeniedHintWeb": "Hin destûr girtî ne. Di sazkariyên geroka xwe de destûrê bide.",
     "footerAbout": "Bumelerze sîstemeke serbixwe ya çavdêriya erdhejê ye ji bo Kurdistan û Iraqê.",
     "footerPrivacyLink": "Polîtîkaya nihêniyê",
     "footerAttribution": "Daneyên erdhejê yên USGS, EMSC (seismicportal.eu), û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) di bin lîsansa CC BY 4.0 de ne.",
@@ -645,7 +642,7 @@
     "title": "Sazkariyên Agahdariyê",
     "nearMe": {
       "title": "Li Nêzîkê Min",
-      "explainer": "Agahdarî ji bo erdhejên nêzî cihê te yê niha."
+      "explainer": "Erdhejên nêzî cihê te."
     },
     "anotherPlace": {
       "title": "Herwiha li ser cihekî din jî agahdar bike",
@@ -661,14 +658,14 @@
       "m4": "M4.0 û bilindtir",
       "m5": "M5.0 û bilindtir"
     },
-    "fatigueFooter": "Di dema rêzeya piştejeran de, Bumelerze hejmara agahdariyan sînordar dike da ku tu neyê westandin.",
+    "fatigueFooter": "Di rêzeya piştejeran de agahdarî sînordar in.",
     "permission": {
       "deniedStatus": "Agahdariyên Bumelerze li ser vê amûrê hatine girtin.",
       "openSettings": "Sazkariyan Veke"
     },
     "rehearsal": {
       "title": "Biceribîne",
-      "description": "Bibîne û bibihîze ka agahdariyeke rastîn dê çawa xuya bike û deng bike: erdhej ne hewce ye.",
+      "description": "Agahdariyekê pêşdîtin bike. Erdhej ne hewce ye.",
       "seeAlert": "Agahdariyê bibîne",
       "playSound": "Dengê agahdariyê lêxe",
       "playSoundHintTitle": "Dengê agahdariyê lêxe",

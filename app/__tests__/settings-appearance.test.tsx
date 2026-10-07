@@ -118,6 +118,9 @@ describe("Settings screen — Appearance", () => {
     await flush();
 
     expect(screen.getByText("Appearance")).toBeTruthy();
+    // The row shows the current choice inline and opens in place.
+    expect(screen.queryByRole("radio", { name: "Dark" })).toBeNull();
+    await fireEvent.press(screen.getByTestId("settings-row-appearance"));
     const autoButton = screen.getByRole("radio", { name: "Automatic" });
     const lightButton = screen.getByRole("radio", { name: "Light" });
     const darkButton = screen.getByRole("radio", { name: "Dark" });
@@ -134,6 +137,7 @@ describe("Settings screen — Appearance", () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
+    await fireEvent.press(screen.getByTestId("settings-row-appearance"));
     await pressAndFlush(screen.getByRole("radio", { name: "Dark" }));
 
     expect(useThemePreferencesStore.getState().preference).toBe("dark");
@@ -149,6 +153,7 @@ describe("Settings screen — Appearance", () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
+    await fireEvent.press(screen.getByTestId("settings-row-appearance"));
     await pressAndFlush(screen.getByRole("radio", { name: "Light" }));
 
     expect(useThemePreferencesStore.getState().preference).toBe("light");

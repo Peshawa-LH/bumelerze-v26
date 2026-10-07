@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -40,7 +40,11 @@ jest.mock("expo-linking", () => ({
 const mockGetForegroundPermissionsAsync = jest.fn();
 const mockRequestForegroundPermissionsAsync = jest.fn();
 jest.mock("expo-location", () => ({
-  PermissionStatus: { GRANTED: "granted", DENIED: "denied", UNDETERMINED: "undetermined" },
+  PermissionStatus: {
+    GRANTED: "granted",
+    DENIED: "denied",
+    UNDETERMINED: "undetermined",
+  },
   getForegroundPermissionsAsync: () => mockGetForegroundPermissionsAsync(),
   requestForegroundPermissionsAsync: () => mockRequestForegroundPermissionsAsync(),
 }));
@@ -75,7 +79,12 @@ async function flush() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-describe("Settings screen — My Data + Device permissions", () => {
+/** Opens the Device permissions row (its body is collapsed by default). */
+async function openPermissions() {
+  await fireEvent.press(screen.getByTestId("settings-row-permissions"));
+}
+
+describe("Settings screen — grouped rows + Device permissions", () => {
   const originalLanguage = i18n.language;
   const originalPlatformOS = Platform.OS;
 
@@ -83,9 +92,15 @@ describe("Settings screen — My Data + Device permissions", () => {
     mockPush.mockClear();
     mockOpenSettings.mockClear();
     mockOpenURL.mockClear();
-    mockGetForegroundPermissionsAsync.mockReset().mockResolvedValue({ status: "undetermined" });
-    mockRequestForegroundPermissionsAsync.mockReset().mockResolvedValue({ status: "granted" });
-    mockAccelGetPermissionsAsync.mockReset().mockResolvedValue({ status: "undetermined" });
+    mockGetForegroundPermissionsAsync
+      .mockReset()
+      .mockResolvedValue({ status: "undetermined" });
+    mockRequestForegroundPermissionsAsync
+      .mockReset()
+      .mockResolvedValue({ status: "granted" });
+    mockAccelGetPermissionsAsync
+      .mockReset()
+      .mockResolvedValue({ status: "undetermined" });
     mockAccelRequestPermissionsAsync.mockReset().mockResolvedValue({ status: "granted" });
 
     usePrefsStore.setState({
@@ -117,7 +132,7 @@ describe("Settings screen — My Data + Device permissions", () => {
     expect(screen.getByText("My account")).toBeTruthy();
     // No HomeBase anywhere, and not a Settings section of its own.
     expect(screen.queryByText("HomeBase")).toBeNull();
-    fireEvent.press(screen.getByRole("button", { name: "Open My account" }));
+    await fireEvent.press(screen.getByTestId("settings-row-account"));
 
     expect(mockPush).toHaveBeenCalledWith("/my-data");
   });
@@ -127,7 +142,7 @@ describe("Settings screen — My Data + Device permissions", () => {
     await flush();
 
     expect(screen.getByText("Feedback")).toBeTruthy();
-    fireEvent.press(screen.getByRole("button", { name: "Give feedback" }));
+    await fireEvent.press(screen.getByTestId("settings-row-feedback"));
 
     expect(mockPush).toHaveBeenCalledWith("/feedback");
   });
@@ -135,32 +150,33 @@ describe("Settings screen — My Data + Device permissions", () => {
   it("shows one combined Allow button and 'Not asked yet' for both permissions when undetermined", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
+    await openPermissions();
 
     expect(screen.getAllByText("Not asked yet")).toHaveLength(2);
-    expect(
-      screen.getByRole("button", { name: "Allow device permissions" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Allow device permissions" })).toBeTruthy();
   });
 
   it("chains both requests from a single tap and reflects the granted result", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
+    await openPermissions();
 
-    await fireEvent.press(screen.getByRole("button", { name: "Allow device permissions" }));
+    await fireEvent.press(
+      screen.getByRole("button", { name: "Allow device permissions" }),
+    );
     await flush();
 
     expect(mockRequestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
     expect(mockAccelRequestPermissionsAsync).toHaveBeenCalledTimes(1);
     expect(screen.getAllByText("Allowed")).toHaveLength(2);
     // Once everything is granted the button disappears (nothing left to ask).
-    expect(
-      screen.queryByRole("button", { name: "Allow device permissions" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Allow device permissions" })).toBeNull();
   });
 
   it("invokes both underlying permission calls synchronously, before either resolves", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
+    await openPermissions();
 
     // Neither mock has been given a chance to resolve yet (no `await` since
     // the tap), but both must already have been *called* — this is the
@@ -169,7 +185,9 @@ describe("Settings screen — My Data + Device permissions", () => {
     // `request()` for location and then motion back to back, with no
     // `await` between them, keeps both underlying browser/native calls
     // inside the same synchronous tap.
-    fireEvent.press(screen.getByRole("button", { name: "Allow device permissions" }));
+    await fireEvent.press(
+      screen.getByRole("button", { name: "Allow device permissions" }),
+    );
 
     expect(mockRequestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
     expect(mockAccelRequestPermissionsAsync).toHaveBeenCalledTimes(1);
@@ -182,9 +200,10 @@ describe("Settings screen — My Data + Device permissions", () => {
 
     await renderWithProviders(<SettingsScreen />);
     await flush();
+    await openPermissions();
 
     expect(screen.getByRole("button", { name: "Open Settings" })).toBeTruthy();
-    fireEvent.press(screen.getByRole("button", { name: "Open Settings" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Open Settings" }));
     expect(mockOpenSettings).toHaveBeenCalledTimes(1);
   });
 
@@ -195,7 +214,9 @@ describe("Settings screen — My Data + Device permissions", () => {
     // The owner's shortened footer (feedback 59b3eaa9, 2026-09-27): one
     // sentence, the licence line, the trademark line, and the logo above.
     expect(
-      screen.getByText("Bumelerze is an independent earthquake monitoring system for Kurdistan and Iraq."),
+      screen.getByText(
+        "Bumelerze is an independent earthquake monitoring system for Kurdistan and Iraq.",
+      ),
     ).toBeTruthy();
     expect(screen.getByText(/licensed under CC BY 4.0/)).toBeTruthy();
     expect(
@@ -207,15 +228,66 @@ describe("Settings screen — My Data + Device permissions", () => {
     expect(mockOpenURL).toHaveBeenCalledWith("https://bumelerze.com/privacy.html");
   });
 
-  it("shows a clarifying subtitle under the onboarding replay row", async () => {
+  it("shows the owner's short subtitles and no long section paragraphs", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    expect(
-      screen.getByText(
-        "Replays the welcome screens you saw the first time you opened Bumelerze. Your language choice is kept.",
-      ),
-    ).toBeTruthy();
+    expect(screen.getByText("Profile, badges, reports")).toBeTruthy();
+    expect(screen.getByText("Design values for engineers")).toBeTruthy();
+    expect(screen.getByText("Location and motion sensor")).toBeTruthy();
+    expect(screen.getByText("Bugs and ideas")).toBeTruthy();
+    // Notifications, Language, Appearance and Replay onboarding carry no
+    // subtitle; the old paragraphs are gone.
+    expect(screen.queryByText(/Choose which earthquakes/)).toBeNull();
+    expect(screen.queryByText(/Replays the welcome screens/)).toBeNull();
+    expect(screen.queryByText(/restarts the app/)).toBeNull();
+  });
+
+  it("keeps the three groups in the owner's order", async () => {
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
+
+    for (const id of [
+      "settings-row-account",
+      "settings-row-handbook",
+      "settings-row-notifications",
+      "settings-row-permissions",
+      "settings-row-language",
+      "settings-row-appearance",
+      "settings-row-feedback",
+      "settings-row-onboarding",
+    ]) {
+      expect(screen.getByTestId(id)).toBeTruthy();
+    }
+    await fireEvent.press(screen.getByTestId("settings-row-handbook"));
+    expect(mockPush).toHaveBeenCalledWith("/handbook");
+    await fireEvent.press(screen.getByTestId("settings-row-notifications"));
+    expect(mockPush).toHaveBeenCalledWith("/notification-settings");
+  });
+
+  it("shows the current language as the row value and lists the options when opened", async () => {
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
+
+    expect(screen.getByLabelText("Language, English")).toBeTruthy();
+    expect(screen.queryByText("Sorani Kurdish (کوردیی ناوەندی)")).toBeNull();
+    await fireEvent.press(screen.getByTestId("settings-row-language"));
+    expect(screen.getByText("Sorani Kurdish (کوردیی ناوەندی)")).toBeTruthy();
+    expect(screen.getByText("Arabic (العربية)")).toBeTruthy();
+  });
+
+  it("asks before replaying onboarding", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
+
+    await fireEvent.press(screen.getByTestId("settings-row-onboarding"));
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Replay onboarding?",
+      expect.any(String),
+      expect.any(Array),
+    );
+    alertSpy.mockRestore();
   });
 
   describe("on web", () => {
@@ -228,10 +300,11 @@ describe("Settings screen — My Data + Device permissions", () => {
 
       await renderWithProviders(<SettingsScreen />);
       await flush();
+      await openPermissions();
 
       expect(
         screen.getByText(
-          "Some permissions are off. Check this site's permissions in your browser settings to turn them on.",
+          "Some permissions are off. Allow them in your browser settings.",
         ),
       ).toBeTruthy();
       expect(screen.queryByRole("button", { name: "Open Settings" })).toBeNull();
@@ -240,8 +313,11 @@ describe("Settings screen — My Data + Device permissions", () => {
     it("still chains both permission requests from the one combined button", async () => {
       await renderWithProviders(<SettingsScreen />);
       await flush();
+      await openPermissions();
 
-      await fireEvent.press(screen.getByRole("button", { name: "Allow device permissions" }));
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Allow device permissions" }),
+      );
       await flush();
 
       expect(mockRequestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
