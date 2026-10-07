@@ -28,7 +28,7 @@ export function JoinScreen() {
   const linkKey = paramText(params.key);
   return (
     <ScreenFrame title={t("building.join.title")}>
-      <AccountGate>
+      <AccountGate message={t("building.join.gate")}>
         {/* A new link opened while this screen shows starts the form afresh. */}
         <JoinForm
           key={`${linkCode}|${linkKey}`}

@@ -2098,6 +2098,7 @@
     },
     "join": {
       "title": "Tevlî malekê bibe",
+      "gate": "Ji bo tevlîbûna malekê hesabekî çêke.",
       "intro": "Koda QR ya xwediyê malê skan bike, an kod û mifteya nepenî binivîse.",
       "codeLabel": "Koda malê",
       "keyLabel": "Mifteya nepenî",

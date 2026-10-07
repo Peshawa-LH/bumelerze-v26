@@ -95,7 +95,8 @@ describe("Join a home", () => {
   it("an anonymous user sees the account card, not the form", async () => {
     mockAccount = { status: "anonymous", userId: "a1" };
     await renderWithProviders(<JoinScreen />);
-    expect(screen.getByText("Create an account to tag your home.")).toBeTruthy();
+    expect(screen.getByText("Create an account to join a home.")).toBeTruthy();
+    expect(screen.queryByText("Create an account to tag your home.")).toBeNull();
     expect(screen.queryByTestId("join-code")).toBeNull();
   });
 
@@ -197,7 +198,8 @@ describe("Join a home", () => {
       mockParams = { code: "BMH-7K3Q9P", key: "ABCD2345" };
       mockAccount = { status: "anonymous", userId: "a1" };
       await renderWithProviders(<JoinScreen />);
-      expect(screen.getByText("Create an account to tag your home.")).toBeTruthy();
+      expect(screen.getByText("Create an account to join a home.")).toBeTruthy();
+      expect(screen.queryByText("Create an account to tag your home.")).toBeNull();
       expect(screen.queryByTestId("join-code")).toBeNull();
       await act(async () => {
         fireEvent.press(screen.getByTestId("home-gate-sign-in"));

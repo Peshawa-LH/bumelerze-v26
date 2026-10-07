@@ -10,7 +10,14 @@ import { Body, Card } from "./ui";
  * Tag my building is for accounts only. Anonymous installs see a card that
  * leads to the account sign-in; accounts see the children.
  */
-export function AccountGate({ children }: { children: ReactNode }) {
+export function AccountGate({
+  children,
+  message,
+}: {
+  children: ReactNode;
+  /** Overrides the sign-in card's line (the Join screen says "join"). */
+  message?: string;
+}) {
   const { t } = useTranslation();
   const router = useRouter();
   const account = useAccount();
@@ -26,7 +33,7 @@ export function AccountGate({ children }: { children: ReactNode }) {
   }
   return (
     <Card testID="home-gate">
-      <Body>{t("building.gate.title")}</Body>
+      <Body>{message ?? t("building.gate.title")}</Body>
       <AccountButton
         tone="primary"
         label={t("building.gate.cta")}

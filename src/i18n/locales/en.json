@@ -2098,6 +2098,7 @@
     },
     "join": {
       "title": "Join a home",
+      "gate": "Create an account to join a home.",
       "intro": "Scan the owner's QR code, or type the code and secret key.",
       "codeLabel": "Home code",
       "keyLabel": "Secret key",
