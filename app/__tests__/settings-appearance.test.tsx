@@ -1,5 +1,13 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -131,6 +139,35 @@ describe("Settings screen — Appearance", () => {
     expect(autoButton.props.accessibilityState?.selected).toBe(true);
     expect(lightButton.props.accessibilityState?.selected).toBe(false);
     expect(darkButton.props.accessibilityState?.selected).toBe(false);
+  });
+
+  it("uses the same option list as Language (vertical rows, selected one highlighted and bold)", async () => {
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
+
+    // Only one row is open at a time, so read Appearance first, then Language.
+    await fireEvent.press(screen.getByTestId("settings-row-appearance"));
+    const selected = StyleSheet.flatten(
+      screen.getByTestId("settings-appearance-option-auto").props.style,
+    );
+    const unselected = StyleSheet.flatten(
+      screen.getByTestId("settings-appearance-option-dark").props.style,
+    );
+    const selectedLabel = StyleSheet.flatten(
+      within(screen.getByTestId("settings-appearance-option-auto")).getByText("Automatic")
+        .props.style,
+    );
+    await fireEvent.press(screen.getByTestId("settings-row-language"));
+    const languageSelected = StyleSheet.flatten(
+      screen.getByTestId("settings-language-option-en").props.style,
+    );
+
+    expect(selected.backgroundColor).toBe(languageSelected.backgroundColor);
+    expect(selected.backgroundColor).not.toBe("transparent");
+    expect(selected.minHeight).toBe(languageSelected.minHeight);
+    expect(selected.borderRadius).toBe(languageSelected.borderRadius);
+    expect(selectedLabel.fontWeight).toBe("700");
+    expect(unselected.backgroundColor).toBe("transparent");
   });
 
   it("selects Dark and updates the store when pressed", async () => {

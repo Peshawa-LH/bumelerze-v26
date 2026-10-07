@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
+import { SettingsOptionList } from "@/features/account/components/SettingsOptionList";
 import { SettingsRow, SettingsRowBody } from "@/features/account/components/SettingsRow";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
@@ -205,7 +206,7 @@ function LanguageBody({
   onSelectLocale,
 }: LanguageBodyProps) {
   const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
+  const { colors, typography } = useTheme();
   return (
     <SettingsRowBody>
       {isRestarting ? (
@@ -220,37 +221,16 @@ function LanguageBody({
           {t("settings.languageRestartNotice")}
         </Text>
       ) : null}
-      <View style={{ gap: spacing[2] }}>
-        {SUPPORTED_LOCALES.map((locale) => {
-          const isActive = currentLocale === locale;
-          return (
-            <Pressable
-              key={locale}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isActive, disabled: isRestarting }}
-              disabled={isRestarting}
-              onPress={() => onSelectLocale(locale)}
-              style={[
-                styles.option,
-                {
-                  borderColor: colors.border.default,
-                  backgroundColor: isActive ? colors.surface.sunken : "transparent",
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.bodyDefault.fontSize,
-                  fontWeight: isActive ? "700" : "400",
-                }}
-              >
-                {t(`settings.languages.${locale}`)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <SettingsOptionList
+        options={SUPPORTED_LOCALES.map((locale) => ({
+          value: locale,
+          label: t(`settings.languages.${locale}`),
+        }))}
+        selected={currentLocale}
+        onSelect={onSelectLocale}
+        disabled={isRestarting}
+        testIDPrefix="settings-language-option"
+      />
     </SettingsRowBody>
   );
 }
@@ -260,47 +240,24 @@ interface AppearanceBodyProps {
   onSelectPreference: (preference: ThemePreference) => void;
 }
 
-/** Owner directive (2026-09-27): three buttons, Automatic (the default,
- * follows the system) or manually Light / Dark. A segmented row, since
- * three short, mutually exclusive labels read better side by side;
- * `accessibilityRole="radio"` matches that "exactly one of these" shape. The
- * choice takes effect immediately: `useTheme()` reads from the same store. */
+/** Owner directive (2026-09-27): Automatic (the default, follows the system)
+ * or manually Light / Dark. Shown with the same option list as Language
+ * (owner, 2026-10-08). The choice takes effect immediately: `useTheme()`
+ * reads from the same store. */
 function AppearanceBody({ preference, onSelectPreference }: AppearanceBodyProps) {
   const { t } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
 
   return (
     <SettingsRowBody>
-      <View style={[styles.segmentedRow, { gap: spacing[2] }]}>
-        {THEME_PREFERENCES.map((option) => {
-          const isActive = preference === option;
-          return (
-            <Pressable
-              key={option}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: isActive }}
-              onPress={() => onSelectPreference(option)}
-              style={[
-                styles.segmentedButton,
-                {
-                  borderColor: colors.border.default,
-                  backgroundColor: isActive ? colors.brand.primary : "transparent",
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  color: isActive ? colors.brand.onPrimary : colors.text.primary,
-                  fontSize: typography.bodyDefault.fontSize,
-                  fontWeight: isActive ? "700" : "400",
-                }}
-              >
-                {t(`settings.appearance.${option}`)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <SettingsOptionList
+        options={THEME_PREFERENCES.map((option) => ({
+          value: option,
+          label: t(`settings.appearance.${option}`),
+        }))}
+        selected={preference}
+        onSelect={onSelectPreference}
+        testIDPrefix="settings-appearance-option"
+      />
     </SettingsRowBody>
   );
 }
@@ -338,41 +295,43 @@ function DevicePermissionsBody() {
 
   return (
     <SettingsRowBody>
-      <View style={styles.spaceBetweenRow}>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyMeta.fontSize,
-          }}
-        >
-          {t("settings.devicePermissionsLocationLabel")}
-        </Text>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyMeta.fontSize,
-          }}
-        >
-          {permissionStatusText(locationStatus, t)}
-        </Text>
-      </View>
-      <View style={styles.spaceBetweenRow}>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyMeta.fontSize,
-          }}
-        >
-          {t("settings.devicePermissionsMotionLabel")}
-        </Text>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyMeta.fontSize,
-          }}
-        >
-          {permissionStatusText(motionStatus, t)}
-        </Text>
+      <View style={{ gap: spacing[2] }}>
+        <View style={styles.spaceBetweenRow}>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+            }}
+          >
+            {t("settings.devicePermissionsLocationLabel")}
+          </Text>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+            }}
+          >
+            {permissionStatusText(locationStatus, t)}
+          </Text>
+        </View>
+        <View style={styles.spaceBetweenRow}>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+            }}
+          >
+            {t("settings.devicePermissionsMotionLabel")}
+          </Text>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+            }}
+          >
+            {permissionStatusText(motionStatus, t)}
+          </Text>
+        </View>
       </View>
 
       {allGranted ? null : (
@@ -381,7 +340,15 @@ function DevicePermissionsBody() {
           accessibilityState={{ disabled: isRequesting }}
           disabled={isRequesting}
           onPress={requestAll}
-          style={[styles.option, { borderColor: colors.border.default }]}
+          style={[
+            styles.option,
+            {
+              borderColor: colors.border.default,
+              paddingVertical: spacing[2],
+              paddingStart: spacing[4],
+              paddingEnd: spacing[4],
+            },
+          ]}
         >
           <Text
             style={{
@@ -545,24 +512,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderRadius: 10,
-    paddingVertical: 10,
-    paddingStart: 16,
-    paddingEnd: 16,
-  },
-  // `flexDirection: "row"` alone flips correctly under RTL (RN mirrors row
-  // direction with `I18nManager.isRTL`) — no logical-property gymnastics
-  // needed beyond that, unlike absolute left/right offsets elsewhere.
-  segmentedRow: {
-    flexDirection: "row",
-  },
-  segmentedButton: {
-    flex: 1,
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 8,
   },
   spaceBetweenRow: {
     flexDirection: "row",
