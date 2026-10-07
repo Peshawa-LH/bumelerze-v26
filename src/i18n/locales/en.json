@@ -584,6 +584,7 @@
     "cancel": "Cancel",
     "openSystemSettings": "Open Settings",
     "replayOnboarding": "Replay onboarding",
+    "appTour": "App tour",
     "replayOnboardingConfirmTitle": "Replay onboarding?",
     "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language choice is kept.",
     "notificationsSectionTitle": "Notifications",
@@ -635,7 +636,49 @@
     "done": {
       "title": "You're all set",
       "description": "Bumelerze is ready. You'll land on the live earthquake feed for your region every time you open the app.",
-      "cta": "Get started"
+      "cta": "Get started",
+      "tourCta": "Take a quick tour"
+    }
+  },
+  "tour": {
+    "skip": "Skip tour",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Start using Bumelerze",
+    "progress": "Step {{current}} of {{total}}",
+    "stops": {
+      "home": {
+        "title": "Earthquakes near you",
+        "body": "The latest earthquakes in and around Kurdistan. Tap one for the details."
+      },
+      "felt": {
+        "title": "Felt it? One tap.",
+        "body": "Tell us what you felt. Add details later if you like."
+      },
+      "hub": {
+        "title": "See who felt it",
+        "body": "What others felt, the impact and comments, for each earthquake."
+      },
+      "map": {
+        "title": "Maps and SHAKEmaps",
+        "body": "Earthquakes, shaking maps and fault lines on one map."
+      },
+      "sensor": {
+        "title": "Your phone as a seismometer",
+        "body": "Watch your phone's motion live, and nearby seismic stations."
+      },
+      "safety": {
+        "title": "Be ready",
+        "body": "What to do before, during and after an earthquake."
+      },
+      "account": {
+        "title": "Your account and building",
+        "body": "Optional: badges, your profile, and Tag my building for a safety estimate."
+      },
+      "share": {
+        "title": "Share an earthquake",
+        "body": "Send a link or an image with the map to family and friends."
+      }
     }
   },
   "notificationSettings": {

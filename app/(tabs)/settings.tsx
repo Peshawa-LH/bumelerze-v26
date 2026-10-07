@@ -178,6 +178,12 @@ export default function SettingsScreen() {
           testID="settings-row-feedback"
         />
         <SettingsRow
+          icon="compass-outline"
+          label={t("settings.appTour")}
+          onPress={() => router.push("/tour")}
+          testID="settings-row-tour"
+        />
+        <SettingsRow
           icon="refresh-outline"
           label={t("settings.replayOnboarding")}
           trailing="none"

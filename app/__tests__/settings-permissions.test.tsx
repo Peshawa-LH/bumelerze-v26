@@ -255,6 +255,7 @@ describe("Settings screen — grouped rows + Device permissions", () => {
       "settings-row-language",
       "settings-row-appearance",
       "settings-row-feedback",
+      "settings-row-tour",
       "settings-row-onboarding",
     ]) {
       expect(screen.getByTestId(id)).toBeTruthy();
@@ -263,6 +264,15 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     expect(mockPush).toHaveBeenCalledWith("/handbook");
     await fireEvent.press(screen.getByTestId("settings-row-notifications"));
     expect(mockPush).toHaveBeenCalledWith("/notification-settings");
+  });
+
+  it("opens the app tour from the App tour row, next to Replay onboarding", async () => {
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
+
+    expect(screen.getByText("App tour")).toBeTruthy();
+    await fireEvent.press(screen.getByTestId("settings-row-tour"));
+    expect(mockPush).toHaveBeenCalledWith("/tour");
   });
 
   it("shows the current language as the row value and lists the options when opened", async () => {

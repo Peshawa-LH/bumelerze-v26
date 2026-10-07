@@ -8,6 +8,8 @@ import {
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { useTourLaunchStore } from "@/features/tour";
+
 import { usePrefsStore } from "../store";
 
 const mockPush = jest.fn();
@@ -115,6 +117,37 @@ describe("onboarding navigation flow", () => {
 
     expect(usePrefsStore.getState().onboardingCompleted).toBe(true);
     expect(usePrefsStore.getState().onboardingStep).toBe("done");
+  });
+
+  it("done screen: Take a quick tour completes onboarding first, then leaves the tour to the layout", async () => {
+    usePrefsStore.setState({ onboardingStep: "done" });
+    useTourLaunchStore.setState({ pending: false });
+
+    await renderWithProviders(<OnboardingDoneScreen />);
+    // Offered above the primary button, which stays "Get started".
+    expect(screen.getByRole("button", { name: "Get started" })).toBeTruthy();
+
+    fireEvent.press(screen.getByRole("button", { name: "Take a quick tour" }));
+
+    // Onboarding is complete (the layout now registers the main stack) ...
+    expect(usePrefsStore.getState().onboardingCompleted).toBe(true);
+    // ... and nothing was pushed from the done screen itself: the route is not
+    // registered until the layout re-renders. The layout's launcher then opens
+    // the tour from the note below (see launch.test.tsx).
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(useTourLaunchStore.getState().pending).toBe(true);
+  });
+
+  it("done screen: Get started does not open the tour", async () => {
+    usePrefsStore.setState({ onboardingStep: "done" });
+    useTourLaunchStore.setState({ pending: false });
+
+    await renderWithProviders(<OnboardingDoneScreen />);
+    fireEvent.press(screen.getByRole("button", { name: "Get started" }));
+
+    expect(usePrefsStore.getState().onboardingCompleted).toBe(true);
+    expect(useTourLaunchStore.getState().pending).toBe(false);
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("a step saved by an older version at the retired HomeBase screen resumes at the end", async () => {

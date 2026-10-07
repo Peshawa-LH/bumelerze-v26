@@ -31,6 +31,7 @@ import {
 import { useReferencePlace } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
+import { useLaunchPendingTour } from "@/features/tour";
 import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
@@ -62,6 +63,9 @@ export default function RootLayout() {
   const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);
   // Background reference place: the nearest main town to the device, else Hawler.
   useReferencePlace();
+  // "Take a quick tour" on the last onboarding screen: open the tour once
+  // onboarding is complete and the main stack (which owns "tour") is active.
+  useLaunchPendingTour(onboardingCompleted);
 
   useEffect(() => {
     let cancelled = false;
@@ -221,6 +225,9 @@ export default function RootLayout() {
               <Stack.Screen name="home/[tagId]/report" />
               <Stack.Screen name="home/[tagId]/family" />
               <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
+              {/* The swipeable tour owns its horizontal swipes, so the iOS
+               * edge-swipe-back is off; Skip and the last button leave it. */}
+              <Stack.Screen name="tour" options={{ gestureEnabled: false }} />
             </Stack.Protected>
             <Stack.Protected guard={!onboardingCompleted}>
               <Stack.Screen name="onboarding" />

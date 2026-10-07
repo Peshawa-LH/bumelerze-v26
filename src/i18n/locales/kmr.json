@@ -584,6 +584,7 @@
     "cancel": "Betal ke",
     "openSystemSettings": "Sazkariyan Veke",
     "replayOnboarding": "Danasînê dîsa bibîne",
+    "appTour": "Gera sepanê",
     "replayOnboardingConfirmTitle": "Danasîn dîsa were nîşandan?",
     "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên tê parastin.",
     "notificationsSectionTitle": "Agahdarî",
@@ -635,7 +636,49 @@
     "done": {
       "title": "Her tişt amade ye",
       "description": "Bumelerze amade ye. Her carê tu sepanê vekî tu yê li ser lîsteya rasterast a erdhejên herêma xwe be.",
-      "cta": "Dest pê bike"
+      "cta": "Dest pê bike",
+      "tourCta": "Gera bilez a sepanê"
+    }
+  },
+  "tour": {
+    "skip": "Gerê derbas bike",
+    "back": "Vegere",
+    "next": "Pêşve",
+    "finish": "Dest bi bikaranîna Bumelerze bike",
+    "progress": "Gav {{current}} ji {{total}}",
+    "stops": {
+      "home": {
+        "title": "Erdhejên nêzîkî te",
+        "body": "Erdhejên herî nû yên Kurdistan û derdora wê. Li yekê bitikîne ji bo hûrgiliyan."
+      },
+      "felt": {
+        "title": "Te hîs kir? Yek tikandin.",
+        "body": "Ji me re bêje te çi hîs kir. Heke bixwazî, paşê hûrgilî lê zêde bike."
+      },
+      "hub": {
+        "title": "Bibîne kî hîs kir",
+        "body": "Ji bo her erdhejê: tiştê yên din hîs kirine, bandor û şîrove."
+      },
+      "map": {
+        "title": "Nexşe û SHAKEmap",
+        "body": "Erdhej, nexşeyên lerzînê û faylt li ser yek nexşeyê."
+      },
+      "sensor": {
+        "title": "Telefona te wekî sismometre",
+        "body": "Tevgera telefona xwe rasterast bibîne, û stasyonên sismolojîk ên nêzîk."
+      },
+      "safety": {
+        "title": "Amade be",
+        "body": "Beriya erdhejê, di dema wê de û piştî wê çi bikî."
+      },
+      "account": {
+        "title": "Hesab û avahiya te",
+        "body": "Bi dilê xwe: nîşan, profîl û «Avahiya min tomar bike» ji bo texmînek ewlehiyê."
+      },
+      "share": {
+        "title": "Erdhejekê parve bike",
+        "body": "Girêdan an wêneyek bi nexşeyê re ji malbat û hevalan re bişîne."
+      }
     }
   },
   "notificationSettings": {
