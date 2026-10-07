@@ -5,7 +5,8 @@ import {
   sanitizeAnswers,
   type Answers,
 } from "./questionnaire";
-import { photoContentType, readHomePhoto } from "./photos";
+import { enqueueHomePhotos, processHomePhotoQueue } from "./photo-queue";
+import type { DraftPhoto } from "./photos";
 import { SupabaseHomeTransport, type HomeTransport } from "./transport";
 import type { HomeKind, LocationQuality } from "./types";
 
@@ -21,14 +22,15 @@ export interface TagDraft {
   /** "gps" device fix, "pin" placed on the map, "town" centre standing in. */
   locationQuality: LocationQuality;
   answers: Answers;
-  /** Picked photo uris (front, side, inside; any may be absent). */
-  photos: string[];
+  /** Picked photos: suggested slots first, then extras with their captions. */
+  photos: DraftPhoto[];
 }
 
 export interface SaveOutcome {
   tagId: string;
   assessment: Assessment;
-  photosFailed: number;
+  /** Photos handed to the upload queue (they upload in the background). */
+  photosQueued: number;
 }
 
 /** The survey row's `answers` jsonb: the answers plus how exact the point was. */
@@ -70,33 +72,10 @@ export async function saveSurveyAndAssessment(
   return assessment;
 }
 
-/** Uploads the picked photos; one failing photo never fails the home. */
-export async function uploadPhotos(
-  tagId: string,
-  uris: readonly string[],
-  transport: HomeTransport = SupabaseHomeTransport,
-): Promise<number> {
-  const stamp = Date.now();
-  let failed = 0;
-  for (const [index, uri] of uris.entries()) {
-    try {
-      const body = await readHomePhoto(uri);
-      await transport.uploadPhoto({
-        tagId,
-        fileName: `${stamp + index}.jpg`,
-        body,
-        contentType: photoContentType(uri),
-      });
-    } catch {
-      failed += 1;
-    }
-  }
-  return failed;
-}
-
 /**
  * The whole "Tag my building" save: create the tag (unless a previous
- * attempt already did), then survey, assessment and photos. `onTagCreated`
+ * attempt already did), then survey and assessment, then queues the photos
+ * (they upload afterwards, so a weak network never fails the home). `onTagCreated`
  * fires as soon as the tag exists so a retry after a later failure resumes
  * with `existingTagId` instead of creating a second home.
  */
@@ -130,6 +109,9 @@ export async function createHomeFromDraft(
     draft.answers,
     { transport, locationQuality: draft.locationQuality },
   );
-  const photosFailed = await uploadPhotos(tagId, draft.photos, transport);
-  return { tagId, assessment, photosFailed };
+  const photosQueued = enqueueHomePhotos(tagId, draft.photos);
+  if (photosQueued > 0) {
+    void processHomePhotoQueue({ transport, ignoreBackoff: true });
+  }
+  return { tagId, assessment, photosQueued };
 }

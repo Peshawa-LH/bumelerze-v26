@@ -1669,10 +1669,8 @@
       "save": "Tomar bike",
       "saving": "Tê tomarkirin…",
       "progress": "Gav {{current}} ji {{total}}",
+      "charCount": "{{count}} ji {{max}} tîp",
       "kind": {
-        "title": "Tu çi tomar dikî?",
-        "house": "Xanî (yek malbat)",
-        "apartment": "Apartman (qatek di avahiyeke mezintir de)",
         "labelLabel": "Nav (bi dilxwazî)",
         "labelPlaceholder": "mînak: Mala min",
         "unitLabel": "Kîjan apartman? (bi dilxwazî)",
@@ -1698,9 +1696,6 @@
       "photos": {
         "title": "Wêne (bi dilxwazî)",
         "intro": "Tenê malbata te dikare wan bibîne. Paşê alîkariya endazyar dikin.",
-        "front": "Rûyê pêş yê avahiyê",
-        "side": "Yek alî",
-        "inside": "Banê an stûnekî li hundir",
         "take": "Wêne bikişîne",
         "choose": "Hilbijêre",
         "remove": "Rake"
@@ -1717,15 +1712,38 @@
         "photos": "Wêne: {{count}}"
       }
     },
+    "photos": {
+      "slot": {
+        "front": "Pêş",
+        "back": "Paş",
+        "left": "Aliyê çepê",
+        "right": "Aliyê rastê",
+        "ground": "Qata erdê an dikan",
+        "roof": "Ban",
+        "column": "Stûnek an dîwarekî li hundir",
+        "ceiling": "Tavanek li hundir",
+        "cracks": "Şikestin an zirar",
+        "basement": "Jêrzemîn"
+      },
+      "more": {
+        "title": "Wêneyên zêdetir lê zêde bike",
+        "hint": "Çend tu bixwazî, her yek bi têbiniyeke kurt (bijarte).",
+        "caption": "Têbiniyeke kurt (bijarte)",
+        "captionPlaceholder": "mînak: şikestin di dîwarê paş de"
+      },
+      "count": "Wêne: {{count}} ji {{max}}",
+      "full": "Gihîştî sînor: {{max}} wêne.",
+      "uploading": "Wêne tên barkirin…"
+    },
     "q": {
       "use": {
-        "title": "Avahî ji bo çi tê bikaranîn?",
+        "title": "Mala te ji kîjan cureyî ye?",
         "options": {
-          "house": "Mala yek malbatê",
-          "apartments": "Avahiya apartmanan",
-          "shop_below": "Dikan an ofîs li jêr, mal li jor",
-          "other": "Tiştekî din",
-          "dk": "Nizanim"
+          "house": "Xaniyê yek malbatê",
+          "shared_house": "Xaniyê çend malbatan",
+          "apartments": "Apartman di avahiyeke apartmanan de",
+          "shop_below": "Mal li jor dikan an ofîsan",
+          "other": "Tiştekî din"
         }
       },
       "floors": {
@@ -1771,14 +1789,24 @@
       },
       "structure": {
         "title": "Avahî li ser çi sekiniye?",
+        "helper": "Li quncikekê binêre: stûnek betonê heye?",
         "options": {
-          "frame": "Stûn û tîrêjên betonê, dîwar di navbera wan de",
-          "block": "Dîwarên blokên betonê",
-          "brick": "Dîwarên kerpîça şewitî",
+          "frame": "Çarçoveya betonê",
+          "block": "Dîwarên blokê",
+          "brick": "Dîwarên kerpîçê",
           "stone": "Dîwarên kevir",
-          "mud": "Dîwarên kerpîça gilî",
+          "mud": "Dîwarên gilî",
           "steel": "Çarçoveya pola",
           "wood": "Daran",
+          "dk": "Nizanim"
+        }
+      },
+      "cornerColumns": {
+        "title": "Tu dikarî li quncikan stûnên betonê bibînî?",
+        "helper": "Li quncikekê avahiyê binêre.",
+        "options": {
+          "yes": "Erê",
+          "no": "Na",
           "dk": "Nizanim"
         }
       },
@@ -1827,8 +1855,8 @@
       "shape": {
         "title": "Şeklê avahiyê çawa ye?",
         "options": {
-          "box": "Sade, wekî qutî",
-          "irregular": "L, T an nerêkûpêk",
+          "box": "Çargoşeyeke sade",
+          "irregular": "Quncik an baskek derdikeve",
           "overhang": "Qatên jorîn derdikevin",
           "dk": "Nizanim"
         }
@@ -1879,27 +1907,20 @@
           "dk": "Nizanim"
         }
       },
-      "peopleDay": {
-        "title": "Rojan bi gelemperî çend kes di hundir de ne? (bijarte)",
+      "people": {
+        "title": "Çend kes di vê malê de dijîn? (bijarte)",
         "options": {
           "p1_2": "1 an 2",
           "p3_5": "3 heta 5",
           "p6_10": "6 heta 10",
-          "p11_20": "11 heta 20",
-          "p21p": "Ji 20 zêdetir",
+          "p11p": "Ji 10 zêdetir",
           "dk": "Nizanim"
         }
       },
-      "peopleNight": {
-        "title": "Şevan bi gelemperî çend kes di hundir de ne? (bijarte)",
-        "options": {
-          "p1_2": "1 an 2",
-          "p3_5": "3 heta 5",
-          "p6_10": "6 heta 10",
-          "p11_20": "11 heta 20",
-          "p21p": "Ji 20 zêdetir",
-          "dk": "Nizanim"
-        }
+      "remarks": {
+        "title": "Tiştekî din heye ku tu dixwazî der barê vê avahiyê de ji me re bibêjî?",
+        "hint": "Bijarte. Ji kerema xwe hejmarên telefonê nenivîse.",
+        "label": "Têbiniyên te"
       }
     },
     "vc": {

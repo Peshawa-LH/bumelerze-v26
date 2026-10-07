@@ -1,5 +1,6 @@
 import type { Hazard } from "./assessment";
 import type { ImsTypeProbs, VcProbs, VulnerabilityClass } from "./ims25";
+import type { StoredPhotoSlot } from "./photos";
 
 export type HomeKind = "house" | "apartment";
 /** How exact the tag's point is: the device fix, a pin the user placed on the
@@ -30,6 +31,15 @@ export interface HomeMember {
   role: MemberRole;
   status: MemberStatus;
   requestedAt: string;
+}
+
+/** One stored photo of a home, with a short-lived signed link. */
+export interface HomePhoto {
+  url: string;
+  /** Which suggested photo it is, or "more" for an extra. */
+  slot: StoredPhotoSlot;
+  caption: string | null;
+  fileName: string;
 }
 
 export interface StoredSurvey {

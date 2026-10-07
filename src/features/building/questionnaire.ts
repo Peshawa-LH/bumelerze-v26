@@ -1,21 +1,31 @@
+import type { PictogramName } from "./pictograms.generated";
+
 /**
- * "Tag my building" questionnaire v0. Layperson wording lives in the
+ * "Tag my building" questionnaire q-v2. Layperson wording lives in the
  * locale catalogs (`building.q.<id>.title` / `building.q.<id>.options.<option>`);
  * this module owns ids, options and branching only.
  *
- * Every question ends with "dk" ("I don't know"). A question the user has not
- * reached is simply absent from the answers; the assessment treats absent and
- * "dk" the same.
+ * Every structural question ends with "dk" ("I don't know"). A question the
+ * user has not reached is simply absent from the answers; the assessment
+ * treats absent and "dk" the same.
  *
- * q-v1 added five research-only questions (use, basement, adjacency, size,
- * people day/night). They are not `structural` and the assessment does not
- * read them: they are stored with the survey for the research database. Size
- * and the two occupancy questions are `optional` (Next works without an
- * answer).
+ * Versions:
+ *  - q-v1 added five research-only questions (use, basement, adjacency, size,
+ *    people day/night). They are not `structural` and the assessment does not
+ *    read them: they are stored with the survey for the research database.
+ *  - q-v2 (this file) merges "what are you tagging" and "use" into one first
+ *    question (`use`, five home types, no "I don't know"), shows structure and
+ *    shape as picture choices, adds the corner-column follow-up for "I don't
+ *    know" structures, replaces people day/night by one `people` question and
+ *    ends with an optional free-text `remarks`. q-v1 answers still load:
+ *    `sanitizeAnswers` maps `peopleNight` to `people` and every other q-v1
+ *    answer id and option id is unchanged.
  */
 
-export const QUESTIONNAIRE_VERSION = "q-v1";
+export const QUESTIONNAIRE_VERSION = "q-v2";
 export const DONT_KNOW = "dk";
+/** Characters allowed in the free-text remarks. */
+export const REMARKS_MAX = 1000;
 
 export type QuestionId =
   | "use"
@@ -24,6 +34,7 @@ export type QuestionId =
   | "age"
   | "builder"
   | "structure"
+  | "cornerColumns"
   | "stone"
   | "belts"
   | "roof"
@@ -35,36 +46,113 @@ export type QuestionId =
   | "cracks"
   | "pastDamage"
   | "size"
-  | "peopleDay"
-  | "peopleNight";
+  | "people"
+  | "remarks";
 
 export type Answers = Partial<Record<QuestionId, string>>;
 
 export interface Question {
   id: QuestionId;
   options: readonly string[];
+  /** "text" questions take free text (up to `maxLength`) instead of an option. */
+  input?: "text";
+  maxLength?: number;
   /** Counts toward the confidence score (what the building IS made of). */
   structural: boolean;
   /** The screen can be passed without choosing (not even "I don't know"). */
   optional?: boolean;
+  /** Asked on the first screen together with the home's name, not on its own. */
+  firstScreen?: boolean;
   /** Only asked when this returns true for the answers so far. */
   appliesTo?: (answers: Answers) => boolean;
+  /** A drawing for each option (the options are then shown as pictures). */
+  pictograms?: Readonly<Record<string, PictogramName>>;
+  /** A drawing under the title, with the text `building.q.<id>.helper`. */
+  helperPictogram?: PictogramName;
 }
 
 const WALLS = ["block", "brick"] as const;
 
-/** People normally inside, by day or by night (research only). */
-const PEOPLE_OPTIONS = ["p1_2", "p3_5", "p6_10", "p11_20", "p21p", DONT_KNOW] as const;
+/** People who live in this home (one family's home). */
+const PEOPLE_OPTIONS = ["p1_2", "p3_5", "p6_10", "p11p", DONT_KNOW] as const;
+
+/** q-v1 asked the same question twice with 5 bands; the night one means "live
+ * here". The two top bands collapse into "more than 10". */
+const LEGACY_PEOPLE: Readonly<Record<string, string>> = {
+  p1_2: "p1_2",
+  p3_5: "p3_5",
+  p6_10: "p6_10",
+  p11_20: "p11p",
+  p21p: "p11p",
+  [DONT_KNOW]: DONT_KNOW,
+};
+
+/** What kind of home: the answer also decides the tag's `kind`. */
+export type HomeUse = "house" | "shared_house" | "apartments" | "shop_below" | "other";
+
+/**
+ * The server's `kind` for a home type. Single-family and "something else" are
+ * a house; the three shared-building types are "apartment" tags, which the
+ * server links into one building complex when they are within about 30 m.
+ */
+export function homeKindFromUse(use: string | undefined): "house" | "apartment" | null {
+  switch (use) {
+    case "house":
+    case "other":
+      return "house";
+    case "shared_house":
+    case "apartments":
+    case "shop_below":
+      return "apartment";
+    default:
+      return null;
+  }
+}
+
+/**
+ * The structure the assessment should use. "I don't know" plus a visible
+ * concrete column at the corners means a frame; no visible columns means
+ * walls (unconfined concrete block, the commonest wall here). Any other
+ * structure answer is used as given.
+ */
+export function effectiveStructure(answers: Answers): string | undefined {
+  if (answers.structure === DONT_KNOW) {
+    if (answers.cornerColumns === "yes") return "frame";
+    if (answers.cornerColumns === "no") return "block";
+  }
+  return answers.structure;
+}
+
+/** The answers as the assessment reads them: the structure routed through
+ * `effectiveStructure`, and "no columns at the corners" standing in for "no
+ * belts" because the belts question is not asked on that path. Identical to
+ * the input for every answer set without the corner-column follow-up. */
+export function routeAnswers(answers: Answers): Answers {
+  const structure = effectiveStructure(answers);
+  if (structure === answers.structure) {
+    return answers;
+  }
+  const routed: Answers = { ...answers };
+  if (structure !== undefined) {
+    routed.structure = structure;
+  }
+  if (structure === "block" && routed.belts === undefined) {
+    routed.belts = "no";
+  }
+  return routed;
+}
 
 export function isWallStructure(answers: Answers): boolean {
-  return answers.structure === "block" || answers.structure === "brick";
+  const structure = effectiveStructure(answers);
+  return structure === "block" || structure === "brick";
 }
 
 export const QUESTIONS: readonly Question[] = [
   {
     id: "use",
-    options: ["house", "apartments", "shop_below", "other", DONT_KNOW],
+    options: ["house", "shared_house", "apartments", "shop_below", "other"],
     structural: false,
+    firstScreen: true,
   },
   {
     id: "floors",
@@ -90,6 +178,26 @@ export const QUESTIONS: readonly Question[] = [
     id: "structure",
     options: ["frame", ...WALLS, "stone", "mud", "steel", "wood", DONT_KNOW],
     structural: true,
+    helperPictogram: "structure-corner-column",
+    pictograms: {
+      frame: "structure-frame",
+      block: "structure-block-walls",
+      brick: "structure-brick-walls",
+      stone: "structure-stone-walls",
+      mud: "structure-mud-walls",
+      steel: "structure-steel-frame",
+      wood: "structure-wood",
+      [DONT_KNOW]: "structure-dont-know",
+    },
+  },
+  {
+    id: "cornerColumns",
+    options: ["yes", "no", DONT_KNOW],
+    // Not counted: the assessment's confidence must not change for an answer
+    // set that never saw this follow-up.
+    structural: false,
+    helperPictogram: "structure-corner-column",
+    appliesTo: (answers) => answers.structure === DONT_KNOW,
   },
   {
     id: "stone",
@@ -101,7 +209,8 @@ export const QUESTIONS: readonly Question[] = [
     id: "belts",
     options: ["yes", "no", DONT_KNOW],
     structural: true,
-    appliesTo: isWallStructure,
+    appliesTo: (answers) =>
+      answers.structure === "block" || answers.structure === "brick",
   },
   {
     id: "roof",
@@ -115,6 +224,12 @@ export const QUESTIONS: readonly Question[] = [
     id: "shape",
     options: ["box", "irregular", "overhang", DONT_KNOW],
     structural: false,
+    pictograms: {
+      box: "shape-rectangle",
+      irregular: "shape-wing",
+      overhang: "shape-overhang",
+      [DONT_KNOW]: "shape-dont-know",
+    },
   },
   {
     id: "adjacency",
@@ -139,20 +254,23 @@ export const QUESTIONS: readonly Question[] = [
     optional: true,
   },
   {
-    id: "peopleDay",
+    id: "people",
     options: PEOPLE_OPTIONS,
     structural: false,
     optional: true,
   },
   {
-    id: "peopleNight",
-    options: PEOPLE_OPTIONS,
+    id: "remarks",
+    options: [],
+    input: "text",
+    maxLength: REMARKS_MAX,
     structural: false,
     optional: true,
   },
 ];
 
-/** The questions to ask given the answers so far, in order. */
+/** Questions of the one-per-screen part of the flow (everything except the
+ * first-screen home type) for the answers so far, in order. */
 export function visibleQuestions(answers: Answers): Question[] {
   return QUESTIONS.filter(
     (question) => !question.appliesTo || question.appliesTo(answers),
@@ -179,7 +297,8 @@ export function pruneAnswers(answers: Answers): Answers {
 }
 
 /** Accepts only known question ids and option ids (a stored survey may come
- * from a newer or older app version). */
+ * from a newer or older app version) and reads q-v1 answers: `peopleNight`
+ * becomes `people`, `peopleDay` and the q-v1 "use: I don't know" are dropped. */
 export function sanitizeAnswers(raw: unknown): Answers {
   const answers: Answers = {};
   if (typeof raw !== "object" || raw === null) {
@@ -188,8 +307,23 @@ export function sanitizeAnswers(raw: unknown): Answers {
   const record = raw as Record<string, unknown>;
   for (const question of QUESTIONS) {
     const value = record[question.id];
-    if (typeof value === "string" && question.options.includes(value)) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    if (question.input === "text") {
+      const text = value.trim().slice(0, question.maxLength ?? REMARKS_MAX);
+      if (text) {
+        answers[question.id] = text;
+      }
+    } else if (question.options.includes(value)) {
       answers[question.id] = value;
+    }
+  }
+  const legacyNight = record.peopleNight;
+  if (answers.people === undefined && typeof legacyNight === "string") {
+    const mapped = LEGACY_PEOPLE[legacyNight];
+    if (mapped) {
+      answers.people = mapped;
     }
   }
   return pruneAnswers(answers);

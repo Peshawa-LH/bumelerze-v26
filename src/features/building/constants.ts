@@ -3,6 +3,11 @@
 export const HOME_PHOTOS_BUCKET = "home-photos";
 /** Bucket limit: 3 MB. */
 export const HOME_PHOTO_MAX_BYTES = 3_145_728;
+/** Photos per home, suggested slots and extras together (a protective cap;
+ * `home_photo_count` in migration 0042 enforces it on the server). */
+export const HOME_PHOTO_MAX_COUNT = 30;
+/** A short caption on an extra photo (`home_photos.caption`, migration 0042). */
+export const PHOTO_CAPTION_MAX = 80;
 /** `home_tags.label` check: at most 60 characters. */
 export const LABEL_MAX = 60;
 /** `home_tags.unit_label` check: at most 40 characters. */

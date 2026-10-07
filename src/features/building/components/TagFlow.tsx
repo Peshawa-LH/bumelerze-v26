@@ -10,18 +10,29 @@ import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { usePrefsStore } from "@/features/onboarding";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
-import { LABEL_MAX, UNIT_LABEL_MAX } from "../constants";
+import {
+  HOME_PHOTO_MAX_COUNT,
+  LABEL_MAX,
+  PHOTO_CAPTION_MAX,
+  UNIT_LABEL_MAX,
+} from "../constants";
 import { homeErrorText } from "../error-text";
 import {
+  addExtraPhoto,
+  canAddPhoto,
   canAdvance,
   editStep,
+  flowKind,
   goBack,
   goNext,
   initialFlowState,
   isOptionalQuestion,
+  photoCount,
   photoList,
   progress,
+  removeExtraPhoto,
   setAnswer,
+  setExtraCaption,
   setPhoto,
   type FlowLocation,
   type FlowMode,
@@ -35,28 +46,41 @@ import {
   type PinPoint,
   type PinStart,
 } from "../pin";
-import { PHOTO_SLOTS, pickHomePhoto, type PhotoSlot, type PhotoSource } from "../photos";
+import {
+  PHOTO_SLOTS,
+  PHOTO_SLOT_PICTOGRAM,
+  pickHomePhoto,
+  type PhotoSlot,
+  type PhotoSource,
+} from "../photos";
 import {
   QUESTIONS,
+  REMARKS_MAX,
   visibleQuestions,
   type Answers,
   type QuestionId,
 } from "../questionnaire";
 import { useHomeActions } from "../queries";
 import { createHomeFromDraft } from "../service";
-import type { HomeKind, HomeTag } from "../types";
+import type { HomeTag } from "../types";
 import { useGpsFix } from "../use-gps-fix";
 import { PIN_MAP_AVAILABLE, PinMap } from "./PinMap";
+import { Pictogram } from "./Pictogram";
 import {
   Body,
   ErrorText,
   Heading,
   Meta,
   OptionButton,
+  PictureGrid,
+  PictureOption,
   ProgressBar,
   ScreenFrame,
   TextField,
 } from "./ui";
+
+/** Longest remark shown in a review row (the full text is kept). */
+const REVIEW_TEXT_MAX = 80;
 
 interface TagFlowProps {
   /** Set to redo the questions of an existing home. */
@@ -65,8 +89,8 @@ interface TagFlowProps {
 
 /**
  * "Tag my building": one family's home, one question per screen. New homes
- * go kind, location, questions, photos, review; a retake is questions and
- * review only. Nothing is sent until the last button.
+ * go home type (and name), location, questions, photos, review; a retake is
+ * questions and review only. Nothing is sent until the last button.
  */
 export function TagFlow({ retake }: TagFlowProps) {
   const { t, i18n } = useTranslation();
@@ -83,6 +107,7 @@ export function TagFlow({ retake }: TagFlowProps) {
 
   const { current, total } = progress(state);
   const last = state.step === "review";
+  const kind = flowKind(state);
 
   function back() {
     const previous = goBack(state);
@@ -101,10 +126,10 @@ export function TagFlow({ retake }: TagFlowProps) {
       if (retake) {
         await actions.retake(retake.tag, state.answers);
         tagId = retake.tag.tagId;
-      } else if (state.kind && state.location) {
+      } else if (kind && state.location) {
         const outcome = await createHomeFromDraft(
           {
-            kind: state.kind,
+            kind,
             label: state.label,
             unitLabel: state.unitLabel,
             lat: state.location.lat,
@@ -217,19 +242,21 @@ interface StepProps {
 function KindStep({ state, onChange }: StepProps) {
   const { t } = useTranslation();
   const { spacing } = useTheme();
-  const kinds: HomeKind[] = ["house", "apartment"];
+  const question = QUESTIONS.find((candidate) => candidate.id === "use");
   return (
     <View style={{ gap: spacing[3] }}>
-      <Heading>{t("building.flow.kind.title")}</Heading>
-      {kinds.map((kind) => (
-        <OptionButton
-          key={kind}
-          label={t(`building.flow.kind.${kind}`)}
-          selected={state.kind === kind}
-          onPress={() => onChange({ ...state, kind })}
-          testID={`kind-${kind}`}
-        />
-      ))}
+      <Heading>{t("building.q.use.title")}</Heading>
+      <View style={{ gap: spacing[3] }} accessibilityRole="radiogroup">
+        {(question?.options ?? []).map((option) => (
+          <OptionButton
+            key={option}
+            label={t(`building.q.use.options.${option}`)}
+            selected={state.answers.use === option}
+            onPress={() => onChange(setAnswer(state, "use", option))}
+            testID={`option-use-${option}`}
+          />
+        ))}
+      </View>
       <TextField
         label={t("building.flow.kind.labelLabel")}
         placeholder={t("building.flow.kind.labelPlaceholder")}
@@ -238,7 +265,7 @@ function KindStep({ state, onChange }: StepProps) {
         onChangeText={(label) => onChange({ ...state, label })}
         testID="flow-label"
       />
-      {state.kind === "apartment" ? (
+      {flowKind(state) === "apartment" ? (
         <TextField
           label={t("building.flow.kind.unitLabel")}
           placeholder={t("building.flow.kind.unitPlaceholder")}
@@ -374,35 +401,102 @@ function LocationStep({ state, onChange }: StepProps) {
 }
 
 function QuestionStep({ state, onChange }: StepProps) {
-  const { t } = useTranslation();
-  const { spacing } = useTheme();
+  const { t, i18n } = useTranslation();
+  const { colors, spacing } = useTheme();
   const question = QUESTIONS.find((candidate) => candidate.id === state.questionId);
   if (!question) {
     return null;
   }
-  return (
-    <View style={{ gap: spacing[3] }} accessibilityRole="radiogroup">
-      <Heading>{t(`building.q.${question.id}.title`)}</Heading>
-      {question.options.map((option) => (
-        <OptionButton
-          key={option}
-          label={t(`building.q.${question.id}.options.${option}`)}
-          selected={state.answers[question.id] === option}
-          onPress={() => onChange(setAnswer(state, question.id, option))}
-          testID={`option-${question.id}-${option}`}
+  const title = <Heading>{t(`building.q.${question.id}.title`)}</Heading>;
+  const helper = question.helperPictogram ? (
+    <View
+      style={[styles.helperRow, { gap: spacing[3] }]}
+      testID={`helper-${question.id}`}
+    >
+      <Pictogram
+        name={question.helperPictogram}
+        size={64}
+        color={colors.text.secondary}
+      />
+      <View style={styles.helperText}>
+        <Meta>{t(`building.q.${question.id}.helper`)}</Meta>
+      </View>
+    </View>
+  ) : null;
+
+  if (question.input === "text") {
+    return (
+      <View style={{ gap: spacing[3] }}>
+        {title}
+        <Meta>{t(`building.q.${question.id}.hint`)}</Meta>
+        <TextField
+          label={t(`building.q.${question.id}.label`)}
+          value={state.answers[question.id] ?? ""}
+          maxLength={question.maxLength ?? REMARKS_MAX}
+          multiline
+          onChangeText={(text) => onChange(setAnswer(state, question.id, text))}
+          testID={`input-${question.id}`}
         />
-      ))}
+        <Meta>
+          {t("building.flow.charCount", {
+            count: localizeDigits(
+              String((state.answers[question.id] ?? "").length),
+              i18n.language,
+            ),
+            max: localizeDigits(String(question.maxLength ?? 0), i18n.language),
+          })}
+        </Meta>
+      </View>
+    );
+  }
+
+  const pictograms = question.pictograms;
+  return (
+    <View style={{ gap: spacing[3] }}>
+      {title}
+      {helper}
+      {pictograms ? (
+        <PictureGrid>
+          {question.options.map((option) => {
+            const pictogram = pictograms[option];
+            return pictogram ? (
+              <PictureOption
+                key={option}
+                pictogram={pictogram}
+                label={t(`building.q.${question.id}.options.${option}`)}
+                selected={state.answers[question.id] === option}
+                onPress={() => onChange(setAnswer(state, question.id, option))}
+                testID={`option-${question.id}-${option}`}
+              />
+            ) : null;
+          })}
+        </PictureGrid>
+      ) : (
+        <View style={{ gap: spacing[3] }} accessibilityRole="radiogroup">
+          {question.options.map((option) => (
+            <OptionButton
+              key={option}
+              label={t(`building.q.${question.id}.options.${option}`)}
+              selected={state.answers[question.id] === option}
+              onPress={() => onChange(setAnswer(state, question.id, option))}
+              testID={`option-${question.id}-${option}`}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
 function PhotosStep({ state, onChange }: StepProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, spacing } = useTheme();
-  const [busySlot, setBusySlot] = useState<PhotoSlot | null>(null);
+  const [busy, setBusy] = useState(false);
+  const nextExtraId = useRef(0);
+  const full = !canAddPhoto(state);
 
-  async function pick(slot: PhotoSlot, source: PhotoSource) {
-    setBusySlot(slot);
+  async function pickSlot(slot: PhotoSlot, source: PhotoSource) {
+    setBusy(true);
     try {
       const uri = await pickHomePhoto(source);
       if (uri) {
@@ -411,7 +505,22 @@ function PhotosStep({ state, onChange }: StepProps) {
     } catch {
       // A failed pick leaves the slot as it was; photos are optional.
     } finally {
-      setBusySlot(null);
+      setBusy(false);
+    }
+  }
+
+  async function pickExtra(source: PhotoSource) {
+    setBusy(true);
+    try {
+      const uri = await pickHomePhoto(source);
+      if (uri) {
+        nextExtraId.current += 1;
+        onChange(addExtraPhoto(state, `extra-${nextExtraId.current}`, uri));
+      }
+    } catch {
+      // Same as above.
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -421,9 +530,11 @@ function PhotosStep({ state, onChange }: StepProps) {
       <Meta>{t("building.flow.photos.intro")}</Meta>
       {PHOTO_SLOTS.map((slot) => {
         const uri = state.photos[slot];
+        const label = t(`building.photos.slot.${slot}`);
         return (
           <View
             key={slot}
+            testID={`photo-slot-${slot}`}
             style={[
               styles.photoCard,
               {
@@ -433,12 +544,21 @@ function PhotosStep({ state, onChange }: StepProps) {
               },
             ]}
           >
-            <Body>{t(`building.flow.photos.${slot}`)}</Body>
+            <View style={[styles.helperRow, { gap: spacing[3] }]}>
+              <Pictogram
+                name={PHOTO_SLOT_PICTOGRAM[slot]}
+                size={44}
+                color={uri ? colors.brand.primary : colors.text.secondary}
+              />
+              <View style={styles.helperText}>
+                <Body>{label}</Body>
+              </View>
+            </View>
             {uri ? (
               <Image
                 source={{ uri }}
                 contentFit="cover"
-                accessibilityLabel={t(`building.flow.photos.${slot}`)}
+                accessibilityLabel={label}
                 style={styles.thumb}
               />
             ) : null}
@@ -446,16 +566,16 @@ function PhotosStep({ state, onChange }: StepProps) {
               <View style={styles.footerCell}>
                 <AccountButton
                   label={t("building.flow.photos.take")}
-                  onPress={() => void pick(slot, "camera")}
-                  disabled={busySlot !== null}
+                  onPress={() => void pickSlot(slot, "camera")}
+                  disabled={busy || (full && !uri)}
                   testID={`photo-${slot}-camera`}
                 />
               </View>
               <View style={styles.footerCell}>
                 <AccountButton
                   label={t("building.flow.photos.choose")}
-                  onPress={() => void pick(slot, "library")}
-                  disabled={busySlot !== null}
+                  onPress={() => void pickSlot(slot, "library")}
+                  disabled={busy || (full && !uri)}
                   testID={`photo-${slot}-library`}
                 />
               </View>
@@ -471,6 +591,80 @@ function PhotosStep({ state, onChange }: StepProps) {
           </View>
         );
       })}
+
+      <View
+        testID="photo-more"
+        style={[
+          styles.photoCard,
+          { borderColor: colors.border.default, padding: spacing[3], gap: spacing[2] },
+        ]}
+      >
+        <View style={[styles.helperRow, { gap: spacing[3] }]}>
+          <Pictogram name="photo-add-more" size={44} color={colors.text.secondary} />
+          <View style={styles.helperText}>
+            <Body>{t("building.photos.more.title")}</Body>
+            <Meta>{t("building.photos.more.hint")}</Meta>
+          </View>
+        </View>
+        {state.extraPhotos.map((photo, index) => (
+          <View
+            key={photo.id}
+            testID={`photo-extra-${index}`}
+            style={{ gap: spacing[2] }}
+          >
+            <Image
+              source={{ uri: photo.uri }}
+              contentFit="cover"
+              accessibilityLabel={photo.caption || t("building.photos.more.title")}
+              style={styles.thumb}
+            />
+            <TextField
+              label={t("building.photos.more.caption")}
+              placeholder={t("building.photos.more.captionPlaceholder")}
+              value={photo.caption}
+              maxLength={PHOTO_CAPTION_MAX}
+              onChangeText={(caption) =>
+                onChange(setExtraCaption(state, photo.id, caption))
+              }
+              testID={`photo-extra-${index}-caption`}
+            />
+            <AccountButton
+              tone="destructive"
+              label={t("building.flow.photos.remove")}
+              onPress={() => onChange(removeExtraPhoto(state, photo.id))}
+              testID={`photo-extra-${index}-remove`}
+            />
+          </View>
+        ))}
+        <View style={styles.footerRow}>
+          <View style={styles.footerCell}>
+            <AccountButton
+              label={t("building.flow.photos.take")}
+              onPress={() => void pickExtra("camera")}
+              disabled={busy || full}
+              testID="photo-more-camera"
+            />
+          </View>
+          <View style={styles.footerCell}>
+            <AccountButton
+              label={t("building.flow.photos.choose")}
+              onPress={() => void pickExtra("library")}
+              disabled={busy || full}
+              testID="photo-more-library"
+            />
+          </View>
+        </View>
+      </View>
+      <Meta testID="photo-count">
+        {full
+          ? t("building.photos.full", {
+              max: localizeDigits(String(HOME_PHOTO_MAX_COUNT), i18n.language),
+            })
+          : t("building.photos.count", {
+              count: localizeDigits(String(photoCount(state)), i18n.language),
+              max: localizeDigits(String(HOME_PHOTO_MAX_COUNT), i18n.language),
+            })}
+      </Meta>
     </View>
   );
 }
@@ -514,13 +708,22 @@ function ReviewRow({
 function ReviewStep({ state, onChange }: StepProps) {
   const { t, i18n } = useTranslation();
   const { spacing } = useTheme();
-  const questions = visibleQuestions(state.answers);
+  const questions = visibleQuestions(state.answers).filter(
+    (question) => !question.firstScreen,
+  );
 
   function answerText(id: QuestionId): string {
     const value = state.answers[id];
-    return value === undefined
-      ? t("building.flow.review.unanswered")
-      : t(`building.q.${id}.options.${value}`);
+    if (value === undefined) {
+      return t("building.flow.review.unanswered");
+    }
+    const question = QUESTIONS.find((candidate) => candidate.id === id);
+    if (question?.input === "text") {
+      return value.length > REVIEW_TEXT_MAX
+        ? `${value.slice(0, REVIEW_TEXT_MAX)}…`
+        : value;
+    }
+    return t(`building.q.${id}.options.${value}`);
   }
 
   const edit = (ref: StepRef) => onChange(editStep(state, ref));
@@ -533,7 +736,9 @@ function ReviewStep({ state, onChange }: StepProps) {
         <>
           <ReviewRow
             title={t("building.flow.review.kind")}
-            value={state.kind ? t(`building.flow.kind.${state.kind}`) : "-"}
+            value={
+              state.answers.use ? t(`building.q.use.options.${state.answers.use}`) : "-"
+            }
             onPress={() => edit({ step: "kind" })}
             testID="review-kind"
           />
@@ -563,7 +768,7 @@ function ReviewStep({ state, onChange }: StepProps) {
       {state.mode === "new" ? (
         <Meta>
           {t("building.flow.review.photos", {
-            count: localizeDigits(String(photoList(state).length), i18n.language),
+            count: localizeDigits(String(photoCount(state)), i18n.language),
           })}
         </Meta>
       ) : null}
@@ -575,6 +780,8 @@ const styles = StyleSheet.create({
   footerRow: { flexDirection: "row", gap: 12 },
   footerCell: { flex: 1 },
   photoCard: { borderWidth: 1, borderRadius: 12 },
+  helperRow: { flexDirection: "row", alignItems: "center" },
+  helperText: { flex: 1, gap: 2 },
   thumb: { width: "100%", height: 160, borderRadius: 8 },
   reviewRow: { borderWidth: 1, borderRadius: 10, minHeight: 56 },
 });

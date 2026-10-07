@@ -21,7 +21,12 @@ import {
   type VcProbs,
   type VulnerabilityClass,
 } from "./ims25";
-import { isAnswered, visibleQuestions, type Answers } from "./questionnaire";
+import {
+  isAnswered,
+  routeAnswers,
+  visibleQuestions,
+  type Answers,
+} from "./questionnaire";
 
 /**
  * "auto-v0": the automatic, layperson-questionnaire assessment of one home.
@@ -40,7 +45,9 @@ import { isAnswered, visibleQuestions, type Answers } from "./questionnaire";
  *  - Steel -> S-L; S-M/H only when engineered AND under about 25 years.
  *  - Wood -> T1.
  *  - Structure unknown -> the regional stock prior (region x settlement x
- *    storey band).
+ *    storey band). q-v2 follow-up for "I don't know": a visible concrete
+ *    column at the corners routes to the frame, none to unconfined block
+ *    walls; "I don't know" again stays on the regional prior.
  */
 
 export const METHOD = "auto-v0";
@@ -448,9 +455,12 @@ function roundProbs<T extends Record<string, number>>(probs: T, keepZeros: boole
 /** Everything except the hazard: the part that depends only on the answers
  * and on region/settlement. */
 export function assessAnswers(
-  answers: Answers,
+  rawAnswers: Answers,
   context: AssessmentContext,
 ): Omit<Assessment, "hazard"> {
+  // "I don't know" plus the corner-column follow-up is routed to frame or
+  // walls here; answers without the follow-up pass through unchanged.
+  const answers = routeAnswers(rawAnswers);
   const types = typeDistribution(answers, context);
   const shift = netShift(answers);
   const vc = normalizeVc(shiftVc(vcDistribution(types), shift));

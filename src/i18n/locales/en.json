@@ -1669,10 +1669,8 @@
       "save": "Save",
       "saving": "Saving…",
       "progress": "Step {{current}} of {{total}}",
+      "charCount": "{{count}} of {{max}} characters",
       "kind": {
-        "title": "What are you tagging?",
-        "house": "A house (one family)",
-        "apartment": "An apartment (a flat in a larger building)",
         "labelLabel": "Name (optional)",
         "labelPlaceholder": "e.g. My house",
         "unitLabel": "Which apartment? (optional)",
@@ -1698,9 +1696,6 @@
       "photos": {
         "title": "Photos (optional)",
         "intro": "Only your family can see them. They help an engineer later.",
-        "front": "Front of the building",
-        "side": "One side",
-        "inside": "A ceiling or column inside",
         "take": "Take photo",
         "choose": "Choose",
         "remove": "Remove"
@@ -1717,15 +1712,38 @@
         "photos": "Photos: {{count}}"
       }
     },
+    "photos": {
+      "slot": {
+        "front": "Front",
+        "back": "Back",
+        "left": "Left side",
+        "right": "Right side",
+        "ground": "Ground floor or shops",
+        "roof": "Roof",
+        "column": "A column or wall inside",
+        "ceiling": "A ceiling inside",
+        "cracks": "Cracks or damage",
+        "basement": "Basement"
+      },
+      "more": {
+        "title": "Add more photos",
+        "hint": "As many as you like, each with a short note (optional).",
+        "caption": "Short note (optional)",
+        "captionPlaceholder": "e.g. crack in the back wall"
+      },
+      "count": "Photos: {{count}} of {{max}}",
+      "full": "Limit reached: {{max}} photos.",
+      "uploading": "Uploading photos…"
+    },
     "q": {
       "use": {
-        "title": "What is the building used for?",
+        "title": "What kind of home is it?",
         "options": {
-          "house": "One family house",
-          "apartments": "Apartment building",
-          "shop_below": "Shop or office below, homes above",
-          "other": "Something else",
-          "dk": "I don't know"
+          "house": "A house for one family",
+          "shared_house": "A house shared by several families",
+          "apartments": "An apartment in an apartment building",
+          "shop_below": "A home above shops or offices",
+          "other": "Something else"
         }
       },
       "floors": {
@@ -1771,14 +1789,24 @@
       },
       "structure": {
         "title": "What holds the building up?",
+        "helper": "Look at a corner: is there a concrete column?",
         "options": {
-          "frame": "Concrete columns and beams, walls filled in between",
-          "block": "Walls of concrete blocks",
-          "brick": "Walls of fired brick",
+          "frame": "Concrete frame",
+          "block": "Block walls",
+          "brick": "Brick walls",
           "stone": "Stone walls",
-          "mud": "Mud-brick walls",
+          "mud": "Mud walls",
           "steel": "Steel frame",
           "wood": "Wood",
+          "dk": "I don't know"
+        }
+      },
+      "cornerColumns": {
+        "title": "Can you see concrete columns at the corners?",
+        "helper": "Look at one corner of the building.",
+        "options": {
+          "yes": "Yes",
+          "no": "No",
           "dk": "I don't know"
         }
       },
@@ -1827,8 +1855,8 @@
       "shape": {
         "title": "What is the shape?",
         "options": {
-          "box": "Simple box",
-          "irregular": "L, T or irregular",
+          "box": "Simple rectangle",
+          "irregular": "A corner or wing sticks out",
           "overhang": "Upper floors stick out",
           "dk": "I don't know"
         }
@@ -1879,27 +1907,20 @@
           "dk": "I don't know"
         }
       },
-      "peopleDay": {
-        "title": "How many people are usually inside during the day? (optional)",
+      "people": {
+        "title": "How many people live in this home? (optional)",
         "options": {
           "p1_2": "1 or 2",
           "p3_5": "3 to 5",
           "p6_10": "6 to 10",
-          "p11_20": "11 to 20",
-          "p21p": "More than 20",
+          "p11p": "More than 10",
           "dk": "I don't know"
         }
       },
-      "peopleNight": {
-        "title": "How many people are usually inside at night? (optional)",
-        "options": {
-          "p1_2": "1 or 2",
-          "p3_5": "3 to 5",
-          "p6_10": "6 to 10",
-          "p11_20": "11 to 20",
-          "p21p": "More than 20",
-          "dk": "I don't know"
-        }
+      "remarks": {
+        "title": "Anything else you want to tell us about this building?",
+        "hint": "Optional. Please do not write phone numbers.",
+        "label": "Your remarks"
       }
     },
     "vc": {

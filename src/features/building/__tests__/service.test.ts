@@ -2,7 +2,6 @@ import {
   createHomeFromDraft,
   saveSurveyAndAssessment,
   surveyPayload,
-  uploadPhotos,
   answersFromSurvey,
   type TagDraft,
 } from "../service";
@@ -10,10 +9,15 @@ import { QUESTIONNAIRE_VERSION } from "../questionnaire";
 import { HomeError } from "../types";
 import { ANSWERS, mockTransport, resetMockTransport } from "../__fixtures__/testing";
 import type { HomeTransport } from "../transport";
+import { useHomePhotoQueueStore } from "../photo-queue";
 
 jest.mock("@/lib/supabase", () => ({
   getSupabaseClient: () => null,
   isSupabaseConfigured: () => true,
+}));
+
+jest.mock("expo-crypto", () => ({
+  randomUUID: () => `uuid-${Math.random().toString(16).slice(2)}-0000`,
 }));
 
 const mockReadPhoto = jest.fn();
@@ -35,7 +39,14 @@ const DRAFT: TagDraft = {
   photos: [],
 };
 
+async function waitFor(predicate: () => boolean, attempts = 100): Promise<void> {
+  for (let attempt = 0; attempt < attempts && !predicate(); attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}
+
 beforeEach(() => {
+  useHomePhotoQueueStore.getState()._clear();
   resetMockTransport();
   mockReadPhoto.mockReset();
   mockReadPhoto.mockResolvedValue(new ArrayBuffer(4));
@@ -117,7 +128,7 @@ describe("createHomeFromDraft", () => {
     });
     expect(created).toEqual(["tag-1"]);
     expect(outcome.tagId).toBe("tag-1");
-    expect(outcome.photosFailed).toBe(0);
+    expect(outcome.photosQueued).toBe(0);
     expect(mockTransport.saveAssessment).toHaveBeenCalledTimes(1);
   });
 
@@ -144,43 +155,45 @@ describe("createHomeFromDraft", () => {
     expect(mockTransport.saveAssessment).toHaveBeenCalledTimes(1);
   });
 
-  it("uploads photos after the report is saved", async () => {
-    await createHomeFromDraft(
-      { ...DRAFT, photos: ["file://a.jpg", "file://b.png"] },
+  it("queues the photos after the report is saved and uploads them in the background", async () => {
+    const outcome = await createHomeFromDraft(
+      {
+        ...DRAFT,
+        photos: [
+          { uri: "file://a.jpg", slot: "front", caption: "" },
+          { uri: "file://b.png", slot: "more", caption: "crack by the door" },
+        ],
+      },
       { transport },
     );
+    expect(outcome.photosQueued).toBe(2);
+    await waitFor(() => mockTransport.savePhotoMeta.mock.calls.length === 2);
     expect(mockTransport.uploadPhoto).toHaveBeenCalledTimes(2);
     expect(mockTransport.saveAssessment.mock.invocationCallOrder[0]).toBeLessThan(
       mockTransport.uploadPhoto.mock.invocationCallOrder[0] as number,
     );
-  });
-});
-
-describe("uploadPhotos", () => {
-  it("names files <timestamp>.jpg with distinct names and the right content type", async () => {
-    const failed = await uploadPhotos(
-      "tag-1",
-      ["file://a.jpg", "file://b.png"],
-      transport,
-    );
-    expect(failed).toBe(0);
     const [first, second] = mockTransport.uploadPhoto.mock.calls.map((call) => call[0]);
     expect(first.tagId).toBe("tag-1");
-    expect(first.fileName).toMatch(/^\d+\.jpg$/);
-    expect(first.fileName).not.toBe(second.fileName);
+    expect(first.fileName).toMatch(/^front-\d+[0-9a-z-]+\.jpg$/);
+    expect(second.fileName).toMatch(/^more-/);
     expect(first.contentType).toBe("image/jpeg");
     expect(second.contentType).toBe("image/png");
+    expect(mockTransport.savePhotoMeta).toHaveBeenCalledWith(
+      expect.objectContaining({ slot: "more", caption: "crack by the door" }),
+    );
+    expect(useHomePhotoQueueStore.getState().items).toHaveLength(0);
   });
 
-  it("counts failed photos without throwing", async () => {
-    mockReadPhoto.mockRejectedValueOnce(new HomeError("photo_too_large"));
-    mockTransport.uploadPhoto.mockRejectedValueOnce(new Error("offline"));
-    const failed = await uploadPhotos(
-      "tag-1",
-      ["file://a.jpg", "file://b.jpg", "file://c.jpg"],
-      transport,
+  it("a photo that cannot upload never fails the home; it stays queued for later", async () => {
+    mockTransport.uploadPhoto.mockRejectedValue(new HomeError("network"));
+    const outcome = await createHomeFromDraft(
+      { ...DRAFT, photos: [{ uri: "file://a.jpg", slot: "front", caption: "" }] },
+      { transport },
     );
-    expect(failed).toBe(2);
-    expect(mockTransport.uploadPhoto).toHaveBeenCalledTimes(2);
+    expect(outcome.tagId).toBe("tag-1");
+    expect(outcome.photosQueued).toBe(1);
+    await waitFor(() => mockTransport.uploadPhoto.mock.calls.length === 1);
+    await waitFor(() => useHomePhotoQueueStore.getState().items[0]?.attempts === 1);
+    expect(useHomePhotoQueueStore.getState().items).toHaveLength(1);
   });
 });

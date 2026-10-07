@@ -10,6 +10,11 @@ export { VcBadge } from "./components/VcBadge";
 export * from "./constants";
 export { homeErrorText } from "./error-text";
 export {
+  ensureHomePhotoQueueForegroundSync,
+  processHomePhotoQueue,
+  useQueuedPhotoCount,
+} from "./photo-queue";
+export {
   QUESTIONNAIRE_VERSION,
   QUESTIONS,
   visibleQuestions,

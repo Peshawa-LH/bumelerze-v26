@@ -16,6 +16,10 @@ import {
   PERSISTED_CACHE_MAX_AGE_MS,
 } from "@/features/events/queries";
 import {
+  ensureHomePhotoQueueForegroundSync,
+  processHomePhotoQueue,
+} from "@/features/building/photo-queue";
+import {
   ensureFeedbackQueueForegroundSync,
   processFeedbackQueue,
 } from "@/features/feedback";
@@ -101,6 +105,10 @@ export default function RootLayout() {
     // foreground retry as the felt-report queue above.
     ensureFeedbackQueueForegroundSync();
     void processFeedbackQueue();
+    // Photos of a tagged home upload from their own on-device queue, with the
+    // same two triggers (cold start, foreground).
+    ensureHomePhotoQueueForegroundSync();
+    void processHomePhotoQueue();
   }, []);
 
   useEffect(() => {

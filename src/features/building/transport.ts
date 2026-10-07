@@ -3,13 +3,20 @@ import { z } from "zod";
 
 import { getSupabaseClient } from "@/lib/supabase";
 import type { Assessment, Hazard } from "./assessment";
-import { HOME_PHOTOS_BUCKET } from "./constants";
+import { HOME_PHOTOS_BUCKET, PHOTO_CAPTION_MAX } from "./constants";
+import {
+  PHOTO_SLOTS,
+  isStoredSlot,
+  slotFromFileName,
+  type StoredPhotoSlot,
+} from "./photos";
 import { VULNERABILITY_CLASSES } from "./ims25";
 import {
   HomeError,
   type CreatedHome,
   type HomeKind,
   type HomeMember,
+  type HomePhoto,
   type HomeTag,
   type JoinResult,
   type StoredAssessment,
@@ -62,8 +69,16 @@ export interface HomeTransport {
     body: Blob | ArrayBuffer;
     contentType: string;
   }): Promise<void>;
-  /** Short-lived signed links to the home's photos. */
-  fetchPhotoUrls(tagId: string): Promise<string[]>;
+  /** Records a photo's slot and caption (migration 0042); the file is
+   * already in storage. */
+  savePhotoMeta(input: {
+    tagId: string;
+    fileName: string;
+    slot: StoredPhotoSlot;
+    caption: string;
+  }): Promise<void>;
+  /** The home's photos with short-lived signed links, suggested slots first. */
+  fetchPhotos(tagId: string): Promise<HomePhoto[]>;
 }
 
 export type HomeErrorContext = "create" | "join" | "other";
@@ -552,32 +567,113 @@ export const SupabaseHomeTransport: HomeTransport = {
     const { error } = await client.storage
       .from(HOME_PHOTOS_BUCKET)
       .upload(`${tagId}/${fileName}`, body, { contentType, upsert: false });
+    // A retry after a lost response finds its own file already there.
+    if (error && !/already exists|duplicate/i.test(error.message ?? "")) {
+      throw toHomeError(error);
+    }
+  },
+
+  async savePhotoMeta({ tagId, fileName, slot, caption }) {
+    const client = requireClient();
+    const userId = await requireUserId(client);
+    const { error } = await client.from("home_photos").upsert(
+      {
+        tag_id: tagId,
+        path: `${tagId}/${fileName}`,
+        slot,
+        caption: caption.trim() ? caption.trim().slice(0, PHOTO_CAPTION_MAX) : null,
+        user_id: userId,
+      },
+      { onConflict: "path", ignoreDuplicates: true },
+    );
     if (error) {
       throw toHomeError(error);
     }
   },
 
-  async fetchPhotoUrls(tagId) {
+  async fetchPhotos(tagId) {
     const client = requireClient();
     const { data: files, error } = await client.storage
       .from(HOME_PHOTOS_BUCKET)
-      .list(tagId);
+      .list(tagId, { limit: 100 });
     if (error) {
       throw toHomeError(error);
     }
     // Skips the folder placeholder object storage may keep next to the photos.
-    const paths = (files ?? [])
-      .filter((file) => /\.(jpe?g|png|webp)$/i.test(file.name))
-      .map((file) => `${tagId}/${file.name}`);
-    if (paths.length === 0) {
+    const names = (files ?? [])
+      .map((file) => file.name)
+      .filter((name) => /\.(jpe?g|png|webp)$/i.test(name));
+    if (names.length === 0) {
       return [];
     }
     const { data: signed, error: signError } = await client.storage
       .from(HOME_PHOTOS_BUCKET)
-      .createSignedUrls(paths, 3600);
+      .createSignedUrls(
+        names.map((name) => `${tagId}/${name}`),
+        3600,
+      );
     if (signError) {
       throw toHomeError(signError);
     }
-    return (signed ?? []).flatMap((entry) => (entry.signedUrl ? [entry.signedUrl] : []));
+    // Captions live in `home_photos`. Before migration 0042 (or on any read
+    // error) the photos still show, slotted by their file name.
+    const meta = await fetchPhotoMeta(client, tagId);
+    const photos: HomePhoto[] = [];
+    for (const entry of signed ?? []) {
+      if (!entry.signedUrl || !entry.path) {
+        continue;
+      }
+      const fileName = entry.path.slice(entry.path.lastIndexOf("/") + 1);
+      const stored = meta.get(entry.path);
+      photos.push({
+        url: entry.signedUrl,
+        slot: stored?.slot ?? slotFromFileName(fileName),
+        caption: stored?.caption ?? null,
+        fileName,
+      });
+    }
+    return sortPhotos(photos);
   },
 };
+
+const SLOT_ORDER: readonly string[] = PHOTO_SLOTS;
+
+const photoMetaSchema = z.object({
+  path: z.string(),
+  slot: z.string(),
+  caption: z.string().nullable(),
+});
+
+async function fetchPhotoMeta(
+  client: SupabaseClient,
+  tagId: string,
+): Promise<Map<string, { slot: StoredPhotoSlot; caption: string | null }>> {
+  const meta = new Map<string, { slot: StoredPhotoSlot; caption: string | null }>();
+  const { data, error } = await client
+    .from("home_photos")
+    .select("path, slot, caption")
+    .eq("tag_id", tagId);
+  if (error || !Array.isArray(data)) {
+    return meta;
+  }
+  for (const row of data) {
+    const parsed = photoMetaSchema.safeParse(row);
+    if (parsed.success && isStoredSlot(parsed.data.slot)) {
+      meta.set(parsed.data.path, {
+        slot: parsed.data.slot,
+        caption: parsed.data.caption,
+      });
+    }
+  }
+  return meta;
+}
+
+/** Suggested slots in their offered order, then extras by upload time (the
+ * file name starts with the slot, then the time). */
+export function sortPhotos(photos: HomePhoto[]): HomePhoto[] {
+  const order = (photo: HomePhoto) =>
+    photo.slot === "more" ? 99 : SLOT_ORDER.indexOf(photo.slot);
+  return [...photos].sort(
+    (a, b) => order(a) - order(b) || a.fileName.localeCompare(b.fileName),
+  );
+}

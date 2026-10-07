@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
@@ -16,8 +16,9 @@ import {
 } from "../assessment";
 import { displayVcRange, formatPercent, formatPga, formatVs30 } from "../format";
 import { INTENSITY_LEVEL_NUMBER } from "../ims25";
+import { useQueuedPhotoCount } from "../photo-queue";
 import { useHome, useHomePhotos } from "../queries";
-import type { HomeTag, StoredAssessment } from "../types";
+import type { HomePhoto, HomeTag, StoredAssessment } from "../types";
 import { AccountGate } from "./AccountGate";
 import { Body, Card, Heading, Meta, ScreenFrame } from "./ui";
 import { VcBadge } from "./VcBadge";
@@ -78,11 +79,12 @@ export function Report({
 }: {
   tag: HomeTag;
   assessment: StoredAssessment | null;
-  photos: string[];
+  photos: HomePhoto[];
   tagId: string;
 }) {
   const { t, i18n } = useTranslation();
-  const { colors, spacing } = useTheme();
+  const { colors, typography, spacing } = useTheme();
+  const uploading = useQueuedPhotoCount(tagId);
   const router = useRouter();
   const locale = i18n.language;
 
@@ -255,17 +257,34 @@ export function Report({
           testID="report-photos"
         >
           <View style={{ flexDirection: "row", gap: spacing[2] }}>
-            {photos.map((uri) => (
-              <Image
-                key={uri}
-                source={{ uri }}
-                contentFit="cover"
-                accessibilityLabel={t("building.report.photo")}
-                style={[styles.photo, { backgroundColor: colors.surface.sunken }]}
-              />
-            ))}
+            {photos.map((photo) => {
+              const caption =
+                photo.caption ??
+                (photo.slot === "more" ? null : t(`building.photos.slot.${photo.slot}`));
+              return (
+                <View key={photo.url} style={styles.photoCell}>
+                  <Image
+                    source={{ uri: photo.url }}
+                    contentFit="cover"
+                    accessibilityLabel={caption ?? t("building.report.photo")}
+                    style={[styles.photo, { backgroundColor: colors.surface.sunken }]}
+                  />
+                  {caption ? (
+                    <Text
+                      numberOfLines={2}
+                      style={[typography.bodyMeta, { color: colors.text.secondary }]}
+                    >
+                      {caption}
+                    </Text>
+                  ) : null}
+                </View>
+              );
+            })}
           </View>
         </ScrollView>
+      ) : null}
+      {uploading > 0 ? (
+        <Meta testID="report-photos-uploading">{t("building.photos.uploading")}</Meta>
       ) : null}
 
       <Meta testID="report-disclaimer">
@@ -281,5 +300,6 @@ export function Report({
 const styles = StyleSheet.create({
   vcRow: { flexDirection: "row", alignItems: "center" },
   vcText: { flex: 1, gap: 4 },
+  photoCell: { width: 140, gap: 4 },
   photo: { width: 140, height: 140, borderRadius: 10 },
 });

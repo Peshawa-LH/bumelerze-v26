@@ -28,7 +28,8 @@ export const mockTransport: MockTransport = {
   saveSurvey: jest.fn(),
   saveAssessment: jest.fn(),
   uploadPhoto: jest.fn(),
-  fetchPhotoUrls: jest.fn(),
+  savePhotoMeta: jest.fn(),
+  fetchPhotos: jest.fn(),
 };
 
 export function resetMockTransport(): void {
@@ -41,7 +42,8 @@ export function resetMockTransport(): void {
   mockTransport.fetchMembers.mockResolvedValue([]);
   mockTransport.fetchDisplayNames.mockResolvedValue({});
   mockTransport.fetchJoinKey.mockResolvedValue(null);
-  mockTransport.fetchPhotoUrls.mockResolvedValue([]);
+  mockTransport.fetchPhotos.mockResolvedValue([]);
+  mockTransport.savePhotoMeta.mockResolvedValue(undefined);
   mockTransport.fetchLatestSurvey.mockResolvedValue(null);
   mockTransport.createTag.mockResolvedValue({
     tagId: "tag-1",

@@ -7,11 +7,13 @@ import {
 
 import { useAccount } from "@/features/account/use-account";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { useQueuedPhotoCount } from "./photo-queue";
 import { saveSurveyAndAssessment } from "./service";
 import type { Answers } from "./questionnaire";
 import { SupabaseHomeTransport, type HomeTransport } from "./transport";
 import type {
   HomeMember,
+  HomePhoto,
   HomeTag,
   JoinResult,
   MemberRole,
@@ -34,7 +36,8 @@ export const homeKeys = {
   mine: (userId: string) => ["home", "mine", userId] as const,
   detail: (userId: string, tagId: string) => ["home", "detail", userId, tagId] as const,
   survey: (userId: string, tagId: string) => ["home", "survey", userId, tagId] as const,
-  photos: (userId: string, tagId: string) => ["home", "photos", userId, tagId] as const,
+  photos: (userId: string, tagId: string, queued = 0) =>
+    ["home", "photos", userId, tagId, queued] as const,
   family: (userId: string, tagId: string) => ["home", "family", userId, tagId] as const,
 };
 
@@ -184,15 +187,18 @@ export function useLatestSurvey(
   return { survey: query.data ?? null, isLoading: on && query.isLoading };
 }
 
-/** Signed links to the home's photos; empty while loading or on any error. */
+/** The home's photos with signed links; empty while loading or on any error.
+ * The count of photos still waiting in the upload queue is part of the key,
+ * so the list reloads each time one finishes uploading. */
 export function useHomePhotos(
   tagId: string | undefined,
   transport: HomeTransport = SupabaseHomeTransport,
-): string[] {
+): HomePhoto[] {
   const { userId, enabled } = useIdentity();
+  const queued = useQueuedPhotoCount(tagId);
   const query = useQuery({
-    queryKey: homeKeys.photos(userId ?? "", tagId ?? ""),
-    queryFn: () => transport.fetchPhotoUrls(tagId as string),
+    queryKey: homeKeys.photos(userId ?? "", tagId ?? "", queued),
+    queryFn: () => transport.fetchPhotos(tagId as string),
     enabled: enabled && !!tagId,
     // Signed links last an hour; refetch well before they would expire.
     staleTime: 30 * 60_000,

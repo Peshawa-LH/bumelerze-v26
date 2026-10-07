@@ -441,25 +441,111 @@ describe("photos", () => {
     });
   });
 
-  it("returns signed urls for the photo files only", async () => {
+  it("a retry whose first upload already landed is not an error", async () => {
+    mockUpload.mockResolvedValue({ error: { message: "The resource already exists" } });
+    await expect(
+      SupabaseHomeTransport.uploadPhoto({
+        tagId: "t1",
+        fileName: "front-1.jpg",
+        body: new ArrayBuffer(1),
+        contentType: "image/jpeg",
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("records the slot and caption in home_photos, one row per file", async () => {
+    await SupabaseHomeTransport.savePhotoMeta({
+      tagId: "t1",
+      fileName: "more-17.jpg",
+      slot: "more",
+      caption: "  crack by the door ",
+    });
+    const calls = callsOf("home_photos");
+    expect(calls[0]?.[0]).toBe("upsert");
+    expect(calls[0]?.[1][0]).toEqual({
+      tag_id: "t1",
+      path: "t1/more-17.jpg",
+      slot: "more",
+      caption: "crack by the door",
+      user_id: "u1",
+    });
+    expect(calls[0]?.[1][1]).toEqual({ onConflict: "path", ignoreDuplicates: true });
+  });
+
+  it("stores an empty caption as null", async () => {
+    await SupabaseHomeTransport.savePhotoMeta({
+      tagId: "t1",
+      fileName: "front-1.jpg",
+      slot: "front",
+      caption: " ",
+    });
+    expect(
+      (callsOf("home_photos")[0]?.[1][0] as { caption: unknown }).caption,
+    ).toBeNull();
+  });
+
+  it("lists photos with signed urls, slots and captions; suggested slots first", async () => {
     mockList.mockResolvedValue({
-      data: [{ name: "1.jpg" }, { name: ".emptyFolderPlaceholder" }, { name: "2.png" }],
+      data: [
+        { name: "more-2.jpg" },
+        { name: ".emptyFolderPlaceholder" },
+        { name: "roof-3.jpg" },
+        { name: "front-1.jpg" },
+      ],
       error: null,
     });
     mockSign.mockResolvedValue({
-      data: [{ signedUrl: "https://signed/1" }, { signedUrl: "https://signed/2" }],
+      data: [
+        { path: "t1/more-2.jpg", signedUrl: "https://signed/more" },
+        { path: "t1/roof-3.jpg", signedUrl: "https://signed/roof" },
+        { path: "t1/front-1.jpg", signedUrl: "https://signed/front" },
+      ],
       error: null,
     });
-    await expect(SupabaseHomeTransport.fetchPhotoUrls("t1")).resolves.toEqual([
-      "https://signed/1",
-      "https://signed/2",
+    tableResults.home_photos = {
+      data: [{ path: "t1/more-2.jpg", slot: "more", caption: "cracks" }],
+      error: null,
+    };
+    const photos = await SupabaseHomeTransport.fetchPhotos("t1");
+    expect(photos.map((photo) => [photo.slot, photo.caption, photo.url])).toEqual([
+      ["front", null, "https://signed/front"],
+      ["roof", null, "https://signed/roof"],
+      ["more", "cracks", "https://signed/more"],
     ]);
-    expect(mockSign).toHaveBeenCalledWith("home-photos", ["t1/1.jpg", "t1/2.png"], 3600);
+    expect(mockSign).toHaveBeenCalledWith(
+      "home-photos",
+      ["t1/more-2.jpg", "t1/roof-3.jpg", "t1/front-1.jpg"],
+      3600,
+    );
+  });
+
+  it("still lists the photos when the caption table does not exist yet", async () => {
+    mockList.mockResolvedValue({
+      data: [{ name: "back-1.jpg" }, { name: "7.jpg" }],
+      error: null,
+    });
+    mockSign.mockResolvedValue({
+      data: [
+        { path: "t1/back-1.jpg", signedUrl: "https://signed/back" },
+        { path: "t1/7.jpg", signedUrl: "https://signed/old" },
+      ],
+      error: null,
+    });
+    tableResults.home_photos = {
+      data: null,
+      error: { code: "42P01", message: "no table" },
+    };
+    const photos = await SupabaseHomeTransport.fetchPhotos("t1");
+    // slot from the file name; a q-v1 file (<time>.jpg) is an extra without a caption
+    expect(photos.map((photo) => [photo.slot, photo.caption])).toEqual([
+      ["back", null],
+      ["more", null],
+    ]);
   });
 
   it("returns nothing for a home without photos", async () => {
     mockList.mockResolvedValue({ data: [], error: null });
-    await expect(SupabaseHomeTransport.fetchPhotoUrls("t1")).resolves.toEqual([]);
+    await expect(SupabaseHomeTransport.fetchPhotos("t1")).resolves.toEqual([]);
     expect(mockSign).not.toHaveBeenCalled();
   });
 });

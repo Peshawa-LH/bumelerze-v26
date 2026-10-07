@@ -1,14 +1,22 @@
+import { HOME_PHOTO_MAX_COUNT } from "../constants";
+import { PHOTO_SLOTS } from "../photos";
 import {
+  addExtraPhoto,
+  canAddPhoto,
   canAdvance,
   editStep,
+  flowKind,
   goBack,
   goNext,
   initialFlowState,
   isOptionalQuestion,
+  photoCount,
   photoList,
   progress,
+  removeExtraPhoto,
   sequence,
   setAnswer,
+  setExtraCaption,
   setPhoto,
   type FlowState,
 } from "../flow-state";
@@ -30,23 +38,24 @@ const COMPLETE = {
   pastDamage: "none",
 };
 
-const LAST_QUESTION = "peopleNight";
+const LAST_QUESTION = "remarks";
 
 function atQuestions(answers = {}): FlowState {
   return {
     ...initialFlowState("new", answers),
     step: "question",
-    kind: "house",
     location: { lat: 36.19, lon: 44.01, quality: "town", placeId: "erbil" },
   };
 }
 
 describe("flow sequence", () => {
-  it("a new home goes kind, location, questions, photos, review", () => {
+  it("a new home goes home type, location, questions, photos, review", () => {
     const steps = sequence(initialFlowState("new"));
     expect(steps[0]?.step).toBe("kind");
     expect(steps[1]?.step).toBe("location");
-    expect(steps[2]).toEqual({ step: "question", questionId: "use" });
+    // The home type is answered on the first screen, not asked again as a question.
+    expect(steps[2]).toEqual({ step: "question", questionId: "floors" });
+    expect(steps.some((ref) => ref.questionId === "use")).toBe(false);
     expect(steps.at(-2)?.step).toBe("photos");
     expect(steps.at(-1)?.step).toBe("review");
   });
@@ -88,28 +97,38 @@ describe("next and back", () => {
     const state = initialFlowState("new");
     expect(canAdvance(state)).toBe(false);
     expect(goNext(state)).toBe(state);
-    const withKind = { ...state, kind: "house" as const };
+    const withKind = setAnswer(state, "use", "house");
     expect(canAdvance(withKind)).toBe(true);
     expect(goNext(withKind).step).toBe("location");
+  });
+
+  it("the tag kind follows the home type", () => {
+    const kindOf = (use: string) =>
+      flowKind(setAnswer(initialFlowState("new"), "use", use as never));
+    expect(flowKind(initialFlowState("new"))).toBeNull();
+    expect(kindOf("house")).toBe("house");
+    expect(kindOf("other")).toBe("house");
+    expect(kindOf("shared_house")).toBe("apartment");
+    expect(kindOf("apartments")).toBe("apartment");
+    expect(kindOf("shop_below")).toBe("apartment");
   });
 
   it("location needs a point", () => {
     const state = {
       ...initialFlowState("new"),
       step: "location" as const,
-      kind: "house" as const,
     };
     expect(canAdvance(state)).toBe(false);
     const placed = { ...state, location: { lat: 1, lon: 2, quality: "gps" as const } };
-    expect(goNext(placed)).toMatchObject({ step: "question", questionId: "use" });
+    expect(goNext(placed)).toMatchObject({ step: "question", questionId: "floors" });
   });
 
   it("a question needs an answer, and 'I don't know' counts as one", () => {
     const state = atQuestions();
     expect(canAdvance(state)).toBe(false);
-    const answered = setAnswer(state, "use", "dk");
+    const answered = setAnswer(state, "floors", "dk");
     expect(canAdvance(answered)).toBe(true);
-    expect(goNext(answered)).toMatchObject({ step: "question", questionId: "floors" });
+    expect(goNext(answered)).toMatchObject({ step: "question", questionId: "basement" });
   });
 
   it("an optional question can be passed without an answer", () => {
@@ -117,7 +136,7 @@ describe("next and back", () => {
     expect(isOptionalQuestion("size")).toBe(true);
     expect(isOptionalQuestion("floors")).toBe(false);
     expect(canAdvance(state)).toBe(true);
-    expect(goNext(state)).toMatchObject({ step: "question", questionId: "peopleDay" });
+    expect(goNext(state)).toMatchObject({ step: "question", questionId: "people" });
     expect(goNext(state).answers.size).toBeUndefined();
   });
 
@@ -219,12 +238,80 @@ describe("editing from review", () => {
 });
 
 describe("photos", () => {
-  it("keeps picked uris in slot order and removes one", () => {
+  it("keeps picked photos in slot order and removes one", () => {
     let state = initialFlowState("new");
-    state = setPhoto(state, "inside", "file://c.jpg");
+    state = setPhoto(state, "ceiling", "file://c.jpg");
     state = setPhoto(state, "front", "file://a.jpg");
-    expect(photoList(state)).toEqual(["file://a.jpg", "file://c.jpg"]);
+    expect(photoList(state)).toEqual([
+      { uri: "file://a.jpg", slot: "front", caption: "" },
+      { uri: "file://c.jpg", slot: "ceiling", caption: "" },
+    ]);
     state = setPhoto(state, "front", null);
-    expect(photoList(state)).toEqual(["file://c.jpg"]);
+    expect(photoList(state).map((photo) => photo.uri)).toEqual(["file://c.jpg"]);
+  });
+
+  it("offers the ten suggested slots", () => {
+    expect(PHOTO_SLOTS).toEqual([
+      "front",
+      "back",
+      "left",
+      "right",
+      "ground",
+      "roof",
+      "column",
+      "ceiling",
+      "cracks",
+      "basement",
+    ]);
+  });
+
+  it("extra photos come after the slots, each with an optional trimmed caption", () => {
+    let state = initialFlowState("new");
+    state = addExtraPhoto(state, "x1", "file://x1.jpg");
+    state = addExtraPhoto(state, "x2", "file://x2.jpg");
+    state = setPhoto(state, "roof", "file://roof.jpg");
+    state = setExtraCaption(state, "x1", "  crack by the door ");
+    expect(photoList(state)).toEqual([
+      { uri: "file://roof.jpg", slot: "roof", caption: "" },
+      { uri: "file://x1.jpg", slot: "more", caption: "crack by the door" },
+      { uri: "file://x2.jpg", slot: "more", caption: "" },
+    ]);
+    state = removeExtraPhoto(state, "x1");
+    expect(photoList(state).map((photo) => photo.uri)).toEqual([
+      "file://roof.jpg",
+      "file://x2.jpg",
+    ]);
+  });
+
+  it("stops at 30 photos per home, slots and extras together", () => {
+    let state = initialFlowState("new");
+    for (const slot of PHOTO_SLOTS) {
+      state = setPhoto(state, slot, `file://${slot}.jpg`);
+    }
+    for (let i = 0; i < 25; i += 1) {
+      state = addExtraPhoto(state, `x${i}`, `file://x${i}.jpg`);
+    }
+    expect(photoCount(state)).toBe(HOME_PHOTO_MAX_COUNT);
+    expect(canAddPhoto(state)).toBe(false);
+    const same = addExtraPhoto(state, "one-too-many", "file://nope.jpg");
+    expect(photoCount(same)).toBe(HOME_PHOTO_MAX_COUNT);
+    // a full set can still replace the photo of a slot it already has
+    expect(photoCount(setPhoto(state, "front", "file://new-front.jpg"))).toBe(30);
+    expect(photoList(state)).toHaveLength(30);
+  });
+
+  it("photos are optional: the photos step always allows Next", () => {
+    expect(canAdvance({ ...initialFlowState("new"), step: "photos" })).toBe(true);
+  });
+});
+
+describe("remarks", () => {
+  it("an empty remark clears the answer; a typed one is kept", () => {
+    let state = atQuestions();
+    state = setAnswer(state, "remarks", "Cracks by the stairs");
+    expect(state.answers.remarks).toBe("Cracks by the stairs");
+    state = setAnswer(state, "remarks", "");
+    expect(state.answers.remarks).toBeUndefined();
+    expect(isOptionalQuestion("remarks")).toBe(true);
   });
 });

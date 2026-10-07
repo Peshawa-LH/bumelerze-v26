@@ -5,6 +5,7 @@ import {
   collectText,
   ROMAN_NUMERAL,
 } from "@/features/shakemap/__fixtures__/roman-numerals";
+import { useHomePhotoQueueStore } from "../photo-queue";
 import { expectedDamageTable } from "../assessment";
 import { HomeReportScreen } from "../components/HomeReport";
 import {
@@ -234,12 +235,37 @@ describe("Building report", () => {
   });
 
   it("shows the home's photos when there are any", async () => {
-    mockTransport.fetchPhotoUrls.mockResolvedValue([
-      "https://signed/1",
-      "https://signed/2",
+    mockTransport.fetchPhotos.mockResolvedValue([
+      { url: "https://signed/1", slot: "front", caption: null, fileName: "front-1.jpg" },
+      { url: "https://signed/2", slot: "more", caption: "Crack", fileName: "more-2.jpg" },
     ]);
     await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
     expect(await screen.findByTestId("report-photos")).toBeTruthy();
+    // a suggested slot is named by its slot, an extra by its caption
+    expect(screen.getByText("Front")).toBeTruthy();
+    expect(screen.getByText("Crack")).toBeTruthy();
+  });
+
+  it("says photos are still uploading while any wait in the queue", async () => {
+    useHomePhotoQueueStore.getState()._clear();
+    useHomePhotoQueueStore.getState()._add([
+      {
+        id: "p1",
+        tagId: "tag-1",
+        uri: "file://a.jpg",
+        slot: "front",
+        caption: "",
+        fileName: "front-1.jpg",
+        createdAt: 1,
+        failures: 0,
+        attempts: 0,
+        nextRetryAt: null,
+      },
+    ]);
+    await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+    expect(await screen.findByTestId("report-photos-uploading")).toBeTruthy();
+    expect(screen.getByText("Uploading photos…")).toBeTruthy();
+    useHomePhotoQueueStore.getState()._clear();
   });
 
   it("invites the questions when there is no assessment yet", async () => {
