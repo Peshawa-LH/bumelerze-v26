@@ -4,9 +4,19 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
 
-import { EMPTY_BADGE_INPUTS, evaluateBadges, type BadgeInputs } from "../evaluate";
+import {
+  EMPTY_BADGE_INPUTS,
+  countMilestones,
+  evaluateBadges,
+  type BadgeInputs,
+} from "../evaluate";
 import { BadgeGrid } from "../components/BadgeGrid";
 import { BadgesSection } from "../components/BadgesSection";
+
+const mockPush = jest.fn();
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 const metrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },
@@ -16,8 +26,11 @@ const metrics = {
 function renderGrid(
   inputs: Partial<BadgeInputs>,
   roles: Parameters<typeof evaluateBadges>[1] = [],
+  includeRequestableRanks = false,
 ) {
-  const entries = evaluateBadges({ ...EMPTY_BADGE_INPUTS, ...inputs }, roles);
+  const entries = evaluateBadges({ ...EMPTY_BADGE_INPUTS, ...inputs }, roles, {
+    includeRequestableRanks,
+  });
   return render(
     <SafeAreaProvider initialMetrics={metrics}>
       <BadgeGrid entries={entries} />
@@ -136,6 +149,85 @@ describe("BadgeGrid", () => {
   });
 });
 
+describe("BadgeGrid: requestable ranks (own account page)", () => {
+  beforeEach(async () => {
+    mockPush.mockClear();
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(cleanup);
+
+  it("shows the four requestable ranks locked, in a Ranks group, for a user with no roles", async () => {
+    await renderGrid({}, [], true);
+    expect(screen.getByText("Ranks")).toBeTruthy();
+    for (const role of ["seismologist", "professor", "researcher", "engineer"]) {
+      expect(screen.getByTestId(`badge-role-${role}`)).toBeTruthy();
+    }
+    expect(screen.getByLabelText("Seismologist, locked")).toBeTruthy();
+    // 9 milestones (all locked) + 4 ranks, each with a lock dot.
+    expect(
+      screen.getAllByTestId("badge-lock", { includeHiddenElements: true }),
+    ).toHaveLength(13);
+  });
+
+  it("hides official, moderator and partner unless held", async () => {
+    await renderGrid({}, [], true);
+    for (const role of ["official", "moderator", "partner"]) {
+      expect(screen.queryByTestId(`badge-role-${role}`)).toBeNull();
+    }
+    await cleanup();
+    await renderGrid({}, [{ role: "moderator", orgName: null }], true);
+    expect(screen.getByLabelText("Moderator, earned")).toBeTruthy();
+  });
+
+  it("shows a held rank earned and first, with the other three still locked", async () => {
+    await renderGrid({}, [{ role: "seismologist", orgName: null }], true);
+    expect(screen.getAllByRole("button")[0]?.props.testID).toBe(
+      "badge-role-seismologist",
+    );
+    expect(screen.getByLabelText("Seismologist, earned")).toBeTruthy();
+    expect(screen.getByLabelText("Professor, locked")).toBeTruthy();
+    expect(screen.queryByLabelText("Seismologist, locked")).toBeNull();
+    await fireEvent.press(screen.getByTestId("badge-role-seismologist"));
+    expect(screen.getByTestId("badge-sheet-earned")).toBeTruthy();
+    expect(screen.getByText("Given by the Bumelerze team.")).toBeTruthy();
+    expect(screen.queryByTestId("badge-sheet-request")).toBeNull();
+  });
+
+  it("the sheet of a locked rank explains it and offers 'Request this badge'", async () => {
+    await renderGrid({}, [], true);
+    await fireEvent.press(screen.getByTestId("badge-role-seismologist"));
+    expect(screen.getByTestId("badge-sheet-locked")).toBeTruthy();
+    expect(screen.getByText("Given by Bumelerze to verified experts.")).toBeTruthy();
+    expect(screen.queryByTestId("badge-sheet-progress")).toBeNull();
+    expect(screen.getByRole("button", { name: "Request this badge" })).toBeTruthy();
+  });
+
+  it("the request button closes the sheet and opens Feedback with the badge request and the rank", async () => {
+    await renderGrid({}, [], true);
+    await fireEvent.press(screen.getByTestId("badge-role-professor"));
+    await fireEvent.press(screen.getByTestId("badge-sheet-request"));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/feedback",
+      params: { badgeRequest: "1", rank: "professor" },
+    });
+    expect(screen.queryByTestId("badge-sheet")).toBeNull();
+  });
+
+  it("a locked milestone has no request button", async () => {
+    await renderGrid({}, [], true);
+    await fireEvent.press(screen.getByTestId("badge-photo"));
+    expect(screen.queryByTestId("badge-sheet-request")).toBeNull();
+  });
+
+  it("renders no Ranks group without placeholders (public profile shape)", async () => {
+    await renderGrid({}, [{ role: "engineer", orgName: null }]);
+    expect(screen.queryByText("Ranks")).toBeNull();
+    expect(screen.queryByLabelText("Seismologist, locked")).toBeNull();
+  });
+});
+
 describe("BadgesSection", () => {
   beforeEach(async () => {
     if (i18n.language !== "en") {
@@ -152,6 +244,19 @@ describe("BadgesSection", () => {
       </SafeAreaProvider>,
     );
     expect(screen.getByText("Badges")).toBeTruthy();
+    expect(screen.getByTestId("badges-counter").props.children).toBe("1/9");
+  });
+
+  it("the counter stays n/9 with locked ranks on the page", async () => {
+    const entries = evaluateBadges({ ...EMPTY_BADGE_INPUTS, reports: 1 }, [], {
+      includeRequestableRanks: true,
+    });
+    const { earned, total } = countMilestones(entries);
+    await render(
+      <SafeAreaProvider initialMetrics={metrics}>
+        <BadgesSection entries={entries} earned={earned} total={total} />
+      </SafeAreaProvider>,
+    );
     expect(screen.getByTestId("badges-counter").props.children).toBe("1/9");
   });
 });

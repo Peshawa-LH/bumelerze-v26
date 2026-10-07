@@ -2,6 +2,7 @@ import type { HubRole, HubRoleKind } from "@/features/eventhub/types";
 
 import {
   MILESTONE_BADGES,
+  REQUESTABLE_RANKS,
   ROLE_PRIORITY,
   type BadgeMetric,
   type MilestoneBadge,
@@ -37,7 +38,9 @@ export interface RoleBadgeEntry {
   role: HubRoleKind;
   /** Organisation name; only partners carry one. */
   orgName: string | null;
-  earned: true;
+  /** False only for a requestable rank the person does not hold yet (the
+   * account page's "Ranks" group); never set on a public profile. */
+  earned: boolean;
 }
 
 export interface MilestoneBadgeEntry {
@@ -52,11 +55,20 @@ export interface MilestoneBadgeEntry {
 
 export type BadgeEntry = RoleBadgeEntry | MilestoneBadgeEntry;
 
-/** Role entries first (official > moderator > engineer > partner), then the
- * milestones in catalogue order. Roles never show as locked placeholders. */
+export interface EvaluateOptions {
+  /** Append the requestable ranks (seismologist, professor, researcher,
+   * engineer) the person does NOT hold as locked entries, after the
+   * milestones. Only the person's own account page asks for this. */
+  includeRequestableRanks?: boolean;
+}
+
+/** Held roles first (priority order), then the milestones in catalogue
+ * order, then (only on request) locked placeholders for the requestable
+ * ranks not held. Official, moderator and partner are never placeholders. */
 export function evaluateBadges(
   inputs: BadgeInputs,
   roles: readonly HubRole[] | undefined,
+  options: EvaluateOptions = {},
 ): BadgeEntry[] {
   const roleEntries: RoleBadgeEntry[] = [];
   for (const kind of ROLE_PRIORITY) {
@@ -82,7 +94,21 @@ export function evaluateBadges(
       target: badge.target,
     };
   });
-  return [...roleEntries, ...milestoneEntries];
+  const lockedRankEntries: RoleBadgeEntry[] = [];
+  if (options.includeRequestableRanks) {
+    for (const kind of REQUESTABLE_RANKS) {
+      if (!roleEntries.some((entry) => entry.role === kind)) {
+        lockedRankEntries.push({
+          kind: "role",
+          key: `role-${kind}`,
+          role: kind,
+          orgName: null,
+          earned: false,
+        });
+      }
+    }
+  }
+  return [...roleEntries, ...milestoneEntries, ...lockedRankEntries];
 }
 
 /** Earned and total milestone badges (roles are extra, never counted). */

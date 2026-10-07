@@ -22,7 +22,8 @@ export function profileBadgeEntries(profile: PublicProfile): BadgeEntry[] {
   const privateIds: readonly string[] = PRIVATE_MILESTONE_IDS;
   return evaluateBadges(inputs, profile.roles).filter((entry) => {
     if (entry.kind === "role") {
-      return true;
+      // Never a locked placeholder on someone else's page.
+      return entry.earned;
     }
     return milestones !== null && entry.earned && !privateIds.includes(entry.badge.id);
   });

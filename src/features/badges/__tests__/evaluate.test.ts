@@ -122,3 +122,57 @@ describe("role badges", () => {
     expect(evaluateBadges(EMPTY_BADGE_INPUTS, undefined)).toHaveLength(9);
   });
 });
+
+describe("evaluateBadges: requestable ranks", () => {
+  const withRanks = (roles: Parameters<typeof evaluateBadges>[1]) =>
+    evaluateBadges(EMPTY_BADGE_INPUTS, roles, { includeRequestableRanks: true });
+  const roleEntries = (entries: ReturnType<typeof evaluateBadges>) =>
+    entries.filter((entry) => entry.kind === "role");
+
+  it("adds the four requestable ranks as locked entries for someone with no roles", () => {
+    const ranks = roleEntries(withRanks([]));
+    expect(ranks.map((entry) => [entry.key, entry.earned])).toEqual([
+      ["role-seismologist", false],
+      ["role-professor", false],
+      ["role-researcher", false],
+      ["role-engineer", false],
+    ]);
+  });
+
+  it("puts a held rank first and earned, and does not duplicate it as locked", () => {
+    const entries = withRanks([{ role: "seismologist", orgName: null }]);
+    expect(entries[0]).toMatchObject({ key: "role-seismologist", earned: true });
+    expect(entries.filter((entry) => entry.key === "role-seismologist")).toHaveLength(1);
+    expect(roleEntries(entries).map((entry) => entry.earned)).toEqual([
+      true,
+      false,
+      false,
+      false,
+    ]);
+  });
+
+  it("never advertises official, moderator or partner, but shows them when held", () => {
+    const locked = withRanks([]).map((entry) => entry.key);
+    for (const key of ["role-official", "role-moderator", "role-partner"]) {
+      expect(locked).not.toContain(key);
+    }
+    const held = withRanks([
+      { role: "official", orgName: null },
+      { role: "moderator", orgName: null },
+      { role: "partner", orgName: "Org" },
+    ]).map((entry) => entry.key);
+    expect(held.slice(0, 3)).toEqual(["role-official", "role-moderator", "role-partner"]);
+  });
+
+  it("keeps the milestone counter at 0/9 whatever the ranks", () => {
+    expect(countMilestones(withRanks([]))).toEqual({ earned: 0, total: 9 });
+    expect(countMilestones(withRanks([{ role: "engineer", orgName: null }]))).toEqual({
+      earned: 0,
+      total: 9,
+    });
+  });
+
+  it("adds no placeholders unless asked", () => {
+    expect(roleEntries(evaluateBadges(EMPTY_BADGE_INPUTS, []))).toEqual([]);
+  });
+});

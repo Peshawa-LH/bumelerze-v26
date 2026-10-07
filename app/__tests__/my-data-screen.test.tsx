@@ -216,6 +216,21 @@ describe("My account screen", () => {
       expect(screen.queryByTestId("account-edit-profile")).toBeNull();
     });
 
+    it("lists the four requestable ranks as locked, and asks for them via Feedback", async () => {
+      await renderWithProviders(<MyDataScreen />);
+      expect(screen.getByText("Ranks")).toBeTruthy();
+      expect(screen.getByLabelText("Engineer, locked")).toBeTruthy();
+      expect(screen.queryByTestId("badge-role-official")).toBeNull();
+      expect(screen.queryByTestId("badge-role-moderator")).toBeNull();
+      expect(screen.queryByTestId("badge-role-partner")).toBeNull();
+      await press("badge-role-engineer");
+      await press("badge-sheet-request");
+      expect(mockPush).toHaveBeenLastCalledWith({
+        pathname: "/feedback",
+        params: { badgeRequest: "1", rank: "engineer" },
+      });
+    });
+
     it("hides the contributor ID until Privacy & data is opened, then shows it with a copy button", async () => {
       await renderWithProviders(<MyDataScreen />);
       await flush();

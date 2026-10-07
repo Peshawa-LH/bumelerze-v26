@@ -54,7 +54,7 @@ export function useMySummary(): MySummary {
       homeTagged: homes && homes.length > 0 ? 1 : 0,
       familyLinked: familyLinked ? 1 : 0,
     });
-    const badges = evaluateBadges(inputs, roles);
+    const badges = evaluateBadges(inputs, roles, { includeRequestableRanks: true });
     const { earned, total } = countMilestones(badges);
     return {
       counts: { ...counts, familyLinked },

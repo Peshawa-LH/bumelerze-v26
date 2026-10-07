@@ -73,4 +73,12 @@ describe("profileBadgeEntries", () => {
   it("shows no locked placeholders for someone else's page", () => {
     expect(keys(profile())).toEqual([]);
   });
+
+  it("never includes a locked rank placeholder", () => {
+    const p = profile({ roles: [{ role: "engineer", orgName: null }] });
+    const ranks = profileBadgeEntries(p).filter((entry) => entry.kind === "role");
+    expect(ranks.map((entry) => entry.key)).toEqual(["role-engineer"]);
+    expect(ranks.every((entry) => entry.earned)).toBe(true);
+    expect(keys(profile())).not.toContain("role-seismologist");
+  });
 });

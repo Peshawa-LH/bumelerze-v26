@@ -1,4 +1,4 @@
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
@@ -22,6 +22,7 @@ import {
   enqueueFeedback,
   useFeedbackQueueItemState,
 } from "@/features/feedback";
+import { isRequestableRank } from "@/features/badges";
 import { useTheme } from "@/theme";
 
 const MESSAGE_MAX_LENGTH = 4000; // matches feedback.message's CHECK constraint, migration 0020
@@ -57,9 +58,19 @@ export default function FeedbackScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const [message, setMessage] = useState("");
+  // "Request this badge" on My account opens this screen with the badge
+  // request ticked and the rank named in the message (route params).
+  const params = useLocalSearchParams<{ badgeRequest?: string; rank?: string }>();
+  const requestedRank = isRequestableRank(params?.rank) ? params.rank : null;
+  const [message, setMessage] = useState(() =>
+    requestedRank
+      ? t("feedback.badgeRequest.prefill", { rank: t(`eventHub.roles.${requestedRank}`) })
+      : "",
+  );
   const [contact, setContact] = useState("");
-  const [badgeRequest, setBadgeRequest] = useState(false);
+  const [badgeRequest, setBadgeRequest] = useState(
+    params?.badgeRequest === "1" || requestedRank !== null,
+  );
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [submitFailed, setSubmitFailed] = useState(false);

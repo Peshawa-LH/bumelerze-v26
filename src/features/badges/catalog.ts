@@ -178,6 +178,20 @@ export const ROLE_PRIORITY: readonly HubRoleKind[] = [
   "partner",
 ];
 
+/** Ranks anyone can ask for (Feedback, "badge request"); an admin grants them.
+ * The account page always shows these, locked until held. Official, moderator
+ * and partner are never advertised: they appear only on whoever holds them. */
+export const REQUESTABLE_RANKS: readonly HubRoleKind[] = [
+  "seismologist",
+  "professor",
+  "researcher",
+  "engineer",
+];
+
+export function isRequestableRank(value: unknown): value is HubRoleKind {
+  return REQUESTABLE_RANKS.some((rank) => rank === value);
+}
+
 export const ROLE_BADGES: Record<HubRoleKind, RoleBadge> = {
   official: {
     icon: "checkmark-circle",

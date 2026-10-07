@@ -16,7 +16,10 @@ export function badgeLabels(
       entry.role === "partner" && entry.orgName
         ? entry.orgName
         : t(`eventHub.roles.${entry.role}`);
-    return { name, rule: t("myData.badges.roleRule") };
+    return {
+      name,
+      rule: entry.earned ? t("myData.badges.roleRule") : t("myData.badges.requestRule"),
+    };
   }
   const { badge } = entry;
   const count = localizeDigits(String(badge.target), locale);

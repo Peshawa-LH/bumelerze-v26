@@ -13,6 +13,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { HubRoleKind } from "@/features/eventhub/types";
 import { isolateNumeric } from "@/features/events/format";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -53,9 +54,12 @@ function useReduceMotion(): boolean {
 export function BadgeSheet({
   entry,
   onClose,
+  onRequestRank,
 }: {
   entry: BadgeEntry | null;
   onClose: () => void;
+  /** Called by "Request this badge" on a locked, requestable rank. */
+  onRequestRank?: (role: HubRoleKind) => void;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -165,6 +169,24 @@ export function BadgeSheet({
                   {t("myData.badges.locked")}
                 </Text>
               </View>
+              {entry.kind === "role" && onRequestRank ? (
+                <Pressable
+                  testID="badge-sheet-request"
+                  accessibilityRole="button"
+                  accessibilityLabel={t("myData.badges.request")}
+                  onPress={() => onRequestRank(entry.role)}
+                  style={[
+                    styles.requestButton,
+                    { backgroundColor: colors.brand.primary, marginTop: spacing[2] },
+                  ]}
+                >
+                  <Text
+                    style={[typography.labelButton, { color: colors.brand.onPrimary }]}
+                  >
+                    {t("myData.badges.request")}
+                  </Text>
+                </Pressable>
+              ) : null}
               {countable ? (
                 <>
                   <View
@@ -224,6 +246,13 @@ const styles = StyleSheet.create({
   center: { alignItems: "center" },
   centerText: { textAlign: "center" },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  requestButton: {
+    minHeight: 48,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   track: { height: 8, borderRadius: 4, overflow: "hidden" },
   fillBar: { height: 8, borderRadius: 4 },
 });

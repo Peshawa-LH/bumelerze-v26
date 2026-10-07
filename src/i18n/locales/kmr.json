@@ -1467,6 +1467,10 @@
       "locked": "Girtî",
       "close": "Bigire",
       "roleRule": "Ji aliyê tîma Bumelerze ve hatiye dayîn.",
+      "ranksTitle": "Pile",
+      "requestRule": "Bumelerze ji pisporên erêkirî re dide.",
+      "request": "Vê nîşanê bixwaze",
+      "a11yLockedRank": "{{name}}, girtî",
       "a11yEarned": "{{name}}, hatiye stendin",
       "a11yLocked": "{{name}}, girtî, {{current}} ji {{target}}",
       "first_report": {
@@ -1581,7 +1585,8 @@
     "submitFailed": "Şandin li ser vê cîhazê bi ser neket. Nivîsa te hîn li vir e — ji kerema xwe dîsa biceribîne.",
     "badgeRequest": {
       "label": "Ev daxwazeke nîşanê ye",
-      "hint": "Bibêje kîjan nîşan û em çawa dikarin bipejirînin, wek e-peyama kar an lînka profîlê."
+      "hint": "Bibêje kîjan nîşan û em çawa dikarin bipejirînin, wek e-peyama kar an lînka profîlê.",
+      "prefill": "Daxwaza nîşanê: {{rank}}"
     }
   },
   "stations": {

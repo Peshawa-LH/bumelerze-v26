@@ -1467,6 +1467,10 @@
       "locked": "Locked",
       "close": "Close",
       "roleRule": "Given by the Bumelerze team.",
+      "ranksTitle": "Ranks",
+      "requestRule": "Given by Bumelerze to verified experts.",
+      "request": "Request this badge",
+      "a11yLockedRank": "{{name}}, locked",
       "a11yEarned": "{{name}}, earned",
       "a11yLocked": "{{name}}, locked, {{current}} of {{target}}",
       "first_report": {
@@ -1581,7 +1585,8 @@
     "submitFailed": "Sending failed on this device. Your text is still here — please try again.",
     "badgeRequest": {
       "label": "This is a badge request",
-      "hint": "Say which badge and how we can check it, such as a work email or a profile link."
+      "hint": "Say which badge and how we can check it, such as a work email or a profile link.",
+      "prefill": "Badge request: {{rank}}"
     }
   },
   "stations": {

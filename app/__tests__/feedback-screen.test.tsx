@@ -43,8 +43,10 @@ const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockCanDismiss = jest.fn(() => false);
 const mockDismiss = jest.fn();
+let mockSearchParams: Record<string, string> = {};
 
 jest.mock("expo-router", () => ({
+  useLocalSearchParams: () => mockSearchParams,
   useRouter: () => ({
     push: mockPush,
     back: mockBack,
@@ -139,6 +141,7 @@ describe("Feedback screen", () => {
 
   beforeEach(async () => {
     mockPush.mockClear();
+    mockSearchParams = {};
     mockBack.mockClear();
     mockDismiss.mockClear();
     mockCanDismiss.mockReset().mockReturnValue(false);
@@ -389,6 +392,33 @@ describe("Feedback screen", () => {
 
     expect(useFeedbackQueueStore.getState().items[0]?.submission.category).toBe(
       "badge_request",
+    );
+  });
+
+  it("opens with the badge request ticked and the rank named when the route says so", async () => {
+    mockSearchParams = { badgeRequest: "1", rank: "seismologist" };
+    await renderWithProviders(<FeedbackScreen />);
+    expect(screen.getByTestId("feedback-badge-request").props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: true }),
+    );
+    expect(screen.getByLabelText(i18n.t("feedback.messageLabel")).props.value).toBe(
+      "Badge request: Seismologist",
+    );
+    await submit();
+    expect(useFeedbackQueueStore.getState().items[0]?.submission).toEqual(
+      expect.objectContaining({
+        category: "badge_request",
+        message: "Badge request: Seismologist",
+      }),
+    );
+  });
+
+  it("ignores a rank param that is not a requestable rank", async () => {
+    mockSearchParams = { rank: "official" };
+    await renderWithProviders(<FeedbackScreen />);
+    expect(screen.getByLabelText(i18n.t("feedback.messageLabel")).props.value).toBe("");
+    expect(screen.getByTestId("feedback-badge-request").props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: false }),
     );
   });
 

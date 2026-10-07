@@ -1,5 +1,6 @@
 export {
   MILESTONE_BADGES,
+  REQUESTABLE_RANKS,
   ROLE_BADGES,
   ROLE_PRIORITY,
   type BadgeMetric,
@@ -8,6 +9,7 @@ export {
   type MilestoneBadge,
   type MilestoneId,
   type RoleBadge,
+  isRequestableRank,
 } from "./catalog";
 export {
   EMPTY_BADGE_INPUTS,
@@ -16,6 +18,7 @@ export {
   mergeBadgeInputs,
   type BadgeEntry,
   type BadgeInputs,
+  type EvaluateOptions,
   type MilestoneBadgeEntry,
   type RoleBadgeEntry,
 } from "./evaluate";
