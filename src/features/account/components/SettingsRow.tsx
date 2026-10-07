@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { DirectionalChevron } from "@/components/DirectionalChevron";
 import { useTheme } from "@/theme";
+
+import { useFocusVisible } from "./use-focus-visible";
 
 export type SettingsRowTrailing = "chevron" | "expand" | "none";
 
@@ -30,7 +32,8 @@ interface SettingsRowProps {
 
 /** A 56 dp settings row: start icon, label, optional value, then a chevron
  * (mirrored in RTL) or an expand caret (never mirrored). Pressed and web
- * hover = `surface.sunken`; keyboard focus on web = 2 px brand outline. */
+ * hover = `surface.sunken`; keyboard focus on web = 2 px brand outline
+ * (`:focus-visible` semantics: not after a tap or click). */
 export function SettingsRow({
   icon,
   label,
@@ -46,7 +49,7 @@ export function SettingsRow({
   testID,
 }: SettingsRowProps) {
   const { colors, typography, spacing } = useTheme();
-  const [focused, setFocused] = useState(false);
+  const { focusVisible, onFocus, onBlur } = useFocusVisible();
   const isWeb = Platform.OS === "web";
 
   return (
@@ -58,8 +61,8 @@ export function SettingsRow({
       accessibilityState={trailing === "expand" ? { expanded, disabled } : { disabled }}
       disabled={disabled}
       onPress={onPress}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onFocus={onFocus}
+      onBlur={onBlur}
       style={(state) => [
         styles.row,
         {
@@ -71,7 +74,7 @@ export function SettingsRow({
               : "transparent",
           opacity: disabled ? 0.6 : 1,
         },
-        isWeb && focused
+        isWeb && focusVisible
           ? {
               outlineWidth: 2,
               outlineStyle: "solid",
@@ -135,6 +138,7 @@ export function SettingsRowBody({ children }: { children: ReactNode }) {
     <View
       style={{
         paddingHorizontal: spacing[4],
+        paddingTop: spacing[2],
         paddingBottom: spacing[4],
         gap: spacing[3],
       }}
