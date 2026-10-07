@@ -1413,6 +1413,31 @@
       }
     }
   },
+  "share": {
+    "title": "Share this earthquake",
+    "captionLabel": "Caption",
+    "link": "Share link",
+    "imageSquare": "Share image (square)",
+    "imageStory": "Share image (story)",
+    "copyCaption": "Copy caption",
+    "captionCopied": "Caption copied",
+    "linkCopied": "Link copied",
+    "preparing": "Preparing image…",
+    "imageSaved": "Image saved. Caption copied.",
+    "imageFailed": "Could not make the image. Please try again.",
+    "close": "Close",
+    "caption": {
+      "line": "M{{magnitude}} earthquake · {{place}} · {{time}}",
+      "hashtag": "#Bumelerze"
+    },
+    "card": {
+      "legend": "Intensity (IMS-25)",
+      "automatic": "Automatic estimate",
+      "prompt": "Did you feel it? Report in Bumelerze",
+      "credit": "Event data: {{sources}} · SHAKEmap: Bumelerze",
+      "creditNoMap": "Event data: {{sources}}"
+    }
+  },
   "myData": {
     "title": "My account",
     "guest": "Guest",

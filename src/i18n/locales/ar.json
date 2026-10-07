@@ -1413,6 +1413,31 @@
       }
     }
   },
+  "share": {
+    "title": "شارك هذا الزلزال",
+    "captionLabel": "النص المرافق",
+    "link": "مشاركة الرابط",
+    "imageSquare": "مشاركة صورة (مربعة)",
+    "imageStory": "مشاركة صورة (ستوري)",
+    "copyCaption": "نسخ النص",
+    "captionCopied": "تم نسخ النص",
+    "linkCopied": "تم نسخ الرابط",
+    "preparing": "جارٍ تجهيز الصورة…",
+    "imageSaved": "تم حفظ الصورة ونسخ النص.",
+    "imageFailed": "تعذر إنشاء الصورة. حاول مرة أخرى.",
+    "close": "إغلاق",
+    "caption": {
+      "line": "زلزال بقوة {{magnitude}} درجة · {{place}} · {{time}}",
+      "hashtag": "#Bumelerze"
+    },
+    "card": {
+      "legend": "الشدة (IMS-25)",
+      "automatic": "تقدير تلقائي",
+      "prompt": "هل شعرت به؟ أبلغ عبر بوملێرزە",
+      "credit": "بيانات الحدث: {{sources}} · خريطة الاهتزاز: بوملێرزە",
+      "creditNoMap": "بيانات الحدث: {{sources}}"
+    }
+  },
   "myData": {
     "title": "حسابي",
     "guest": "ضيف",

@@ -1413,6 +1413,31 @@
       }
     }
   },
+  "share": {
+    "title": "Vê erdhejê parve bike",
+    "captionLabel": "Binnivîs",
+    "link": "Girêdanê parve bike",
+    "imageSquare": "Wêneyê parve bike (çargoşe)",
+    "imageStory": "Wêneyê parve bike (story)",
+    "copyCaption": "Binnivîsê kopî bike",
+    "captionCopied": "Binnivîs hate kopîkirin",
+    "linkCopied": "Girêdan hate kopîkirin",
+    "preparing": "Wêne tê amadekirin…",
+    "imageSaved": "Wêne hate tomarkirin. Binnivîs hate kopîkirin.",
+    "imageFailed": "Wêne nehat çêkirin. Ji kerema xwe dîsa biceribîne.",
+    "close": "Bigire",
+    "caption": {
+      "line": "Erdhejek bi {{magnitude}} pîle · {{place}} · {{time}}",
+      "hashtag": "#Bumelerze"
+    },
+    "card": {
+      "legend": "Tundî (IMS-25)",
+      "automatic": "Texmîna otomatîk",
+      "prompt": "Te hîs kir? Di Bumelerze de rapor bike",
+      "credit": "Daneyên bûyerê: {{sources}} · SHAKEmap: Bumelerze",
+      "creditNoMap": "Daneyên bûyerê: {{sources}}"
+    }
+  },
   "myData": {
     "title": "Hesabê min",
     "guest": "Mêvan",
