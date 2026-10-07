@@ -14,6 +14,7 @@ import {
 const usernames = readCode("0045_usernames.sql");
 const community = readCode("0047_follows_blocks_profiles.sql");
 const feedback = readCode("0048_feedback_badge_request.sql");
+const posts = readCode("0050_profile_posts.sql");
 const all = [usernames, community, feedback];
 
 /** Every key the public profile may return, nested objects included. */
@@ -50,96 +51,115 @@ const PUBLIC_PROFILE_KEYS = [
   "magnitude",
 ].sort();
 
-describe("public_profile never exposes private fields", () => {
-  const fn = functionSource(community, "public_profile");
+/** 0050 redefines public_profile with one more public key (posts_count). */
+const PROFILE_VERSIONS = [
+  { label: "0047", sql: community, keys: PUBLIC_PROFILE_KEYS },
+  { label: "0050", sql: posts, keys: [...PUBLIC_PROFILE_KEYS, "posts_count"].sort() },
+] as const;
 
-  it("is security definer with a pinned search path and executable by anon and signed-in users", () => {
-    expect(fn).toMatch(/security definer/i);
-    expect(fn).toMatch(/set search_path = public, pg_temp/i);
-    expect(community).toMatch(
-      /grant execute on function public\.public_profile\(text\) to anon, authenticated;/i,
-    );
-  });
+describe.each(PROFILE_VERSIONS)(
+  "public_profile ($label) never exposes private fields",
+  ({ sql, keys: expectedKeys, label }) => {
+    const fn = functionSource(sql, "public_profile");
 
-  it("builds its answer from exactly the allowed keys", () => {
-    const keys = [...fn.matchAll(/'(\w+)',/g)].map((m) => m[1] as string);
-    expect([...new Set(keys)].sort()).toEqual(PUBLIC_PROFILE_KEYS);
-  });
+    it("is security definer with a pinned search path and executable by anon and signed-in users", () => {
+      expect(fn).toMatch(/security definer/i);
+      expect(fn).toMatch(/set search_path = public, pg_temp/i);
+      expect(sql).toMatch(
+        /grant execute on function public\.public_profile\(text\) to anon, authenticated;/i,
+      );
+    });
 
-  it("never mentions a private column or table", () => {
-    const forbidden = [
-      "profession",
-      "email",
-      "geohash",
-      "latitude",
-      "longitude",
-      /\blat\b/,
-      /\blon\b/,
-      "home_tag",
-      "home_member",
-      "auth.users",
-      "research_consent",
-      "terms_",
-      "device_id",
-      "locale",
-      "area_",
-      "felt_comments",
-      "feedback",
-      "notification",
-    ];
-    for (const token of forbidden) {
-      if (typeof token === "string") {
-        expect(fn.toLowerCase()).not.toContain(token);
-      } else {
-        expect(fn).not.toMatch(token);
+    it("builds its answer from exactly the allowed keys", () => {
+      const keys = [...fn.matchAll(/'(\w+)',/g)].map((m) => m[1] as string);
+      expect([...new Set(keys)].sort()).toEqual(expectedKeys);
+    });
+
+    it("never mentions a private column or table", () => {
+      const forbidden = [
+        "profession",
+        "email",
+        "geohash",
+        "latitude",
+        "longitude",
+        /\blat\b/,
+        /\blon\b/,
+        "home_tag",
+        "home_member",
+        "auth.users",
+        "research_consent",
+        "terms_",
+        "device_id",
+        "locale",
+        "area_",
+        "felt_comments",
+        "feedback",
+        "notification",
+      ];
+      for (const token of forbidden) {
+        if (typeof token === "string") {
+          expect(fn.toLowerCase()).not.toContain(token);
+        } else {
+          expect(fn).not.toMatch(token);
+        }
       }
-    }
-  });
+    });
 
-  it("reads profile_private only for the hide_badges switch", () => {
-    const uses = [...fn.matchAll(/\bpp\.(\w+)/g)].map((m) => m[1]);
-    expect(uses.length).toBeGreaterThan(0);
-    expect(new Set(uses)).toEqual(new Set(["hide_badges", "user_id"]));
-  });
+    it("reads profile_private only for the hide_badges switch", () => {
+      const uses = [...fn.matchAll(/\bpp\.(\w+)/g)].map((m) => m[1]);
+      expect(uses.length).toBeGreaterThan(0);
+      expect(new Set(uses)).toEqual(new Set(["hide_badges", "user_id"]));
+    });
 
-  it("reads felt reports only to count them, never their place", () => {
-    const reportRefs = [...fn.matchAll(/\br\.(\w+)/g)].map((m) => m[1]);
-    expect(new Set(reportRefs)).toEqual(new Set(["user_id", "report_id"]));
-    expect(fn).not.toMatch(/select\s+r\.\*/i);
-    expect(fn).not.toMatch(/select \*/i);
-  });
+    it("reads felt reports only to count them, never their place", () => {
+      const reportRefs = [...fn.matchAll(/\br\.(\w+)/g)].map((m) => m[1]);
+      expect(new Set(reportRefs)).toEqual(new Set(["user_id", "report_id"]));
+      expect(fn).not.toMatch(/select\s+r\.\*/i);
+      expect(fn).not.toMatch(/select \*/i);
+    });
 
-  it("limits a private account to the basic fields for people who may not see more", () => {
-    expect(fn).toMatch(
-      /v_full := not v_blocked and \(not v_private or v_self or v_status = 'accepted'\)/,
-    );
-    // the early return that stops before counts, badges and comments
-    expect(fn).toMatch(/if not v_full then\s+return v_base;/);
-    const beforeEarlyReturn = fn.slice(0, fn.indexOf("if not v_full then"));
-    for (const key of [
-      "followers",
-      "member_since",
-      "recent_comments",
-      "milestones",
-      "helpful_received",
-    ]) {
-      expect(beforeEarlyReturn).not.toContain(`'${key}'`);
-    }
-  });
+    it("limits a private account to the basic fields for people who may not see more", () => {
+      if (label === "0047") {
+        // The original line. It has a hole (a viewer with no follow row has a
+        // null status, so the whole expression is null and the early return
+        // below is skipped); 0050 closes it.
+        expect(fn).toMatch(
+          /v_full := not v_blocked and \(not v_private or v_self or v_status = 'accepted'\)/,
+        );
+      } else {
+        expect(fn).toMatch(
+          /v_full := not v_blocked\s+and \(not v_private or v_self or coalesce\(v_status, ''\) = 'accepted'\)/,
+        );
+      }
+      // the early return that stops before counts, badges and comments
+      expect(fn).toMatch(/if not v_full then\s+return v_base;/);
+      const beforeEarlyReturn = fn.slice(0, fn.indexOf("if not v_full then"));
+      for (const key of [
+        "followers",
+        "member_since",
+        "recent_comments",
+        "milestones",
+        "helpful_received",
+        "posts_count",
+      ]) {
+        expect(beforeEarlyReturn).not.toContain(`'${key}'`);
+      }
+    });
 
-  it("answers null for a person who blocked the viewer, and hides milestones when asked", () => {
-    expect(fn).toMatch(
-      /b\.blocker_id = v_id and b\.blocked_id = v_viewer[\s\S]*return null/,
-    );
-    expect(fn).toMatch(/'milestones', case when v_hide then null/);
-  });
+    it("answers null for a person who blocked the viewer, and hides milestones when asked", () => {
+      expect(fn).toMatch(
+        /b\.blocker_id = v_id and b\.blocked_id = v_viewer[\s\S]*return null/,
+      );
+      expect(fn).toMatch(/'milestones', case when v_hide then null/);
+    });
 
-  it("shows only visible comments, newest ten, with a short body", () => {
-    expect(fn).toMatch(/cc\.status = 'visible'/);
-    expect(fn).toMatch(/limit 10/);
-    expect(fn).toMatch(/left\(rc\.body, 280\)/);
-  });
-});
+    it("shows only visible comments, newest ten, with a short body", () => {
+      expect(fn).toMatch(/cc\.status = 'visible'/);
+      expect(fn).toMatch(/limit 10/);
+      expect(fn).toMatch(/left\(rc\.body, 280\)/);
+    });
+  },
+);
 
 describe("0045 usernames", () => {
   it("stores lowercase names of 3 to 24 letters, digits, dots and underscores, unique case-insensitively", () => {
