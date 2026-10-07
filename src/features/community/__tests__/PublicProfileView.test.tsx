@@ -361,4 +361,20 @@ describe("PublicProfileView", () => {
       expect(await screen.findByText("Thanks. We will review it.")).toBeTruthy();
     });
   });
+
+  describe.each(["ckb", "kmr", "ar"])("in %s", (locale) => {
+    afterEach(async () => {
+      await i18n.changeLanguage("en");
+    });
+
+    it("renders without raw keys and keeps the @username isolated", async () => {
+      await i18n.changeLanguage(locale);
+      await renderView(<PublicProfileView profile={build()} actions={makeActions()} />);
+      expect(allText()).not.toMatch(/community\.|myData\.|eventHub\./);
+      expect(screen.getByTestId("public-profile-username").props.children).toBe(
+        "\u2066@dilan.k\u2069",
+      );
+      expect(screen.getByTestId("follow-button")).toBeTruthy();
+    });
+  });
 });
