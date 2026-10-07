@@ -1,7 +1,11 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import type { FeedbackContext, FeedbackPhotoAttachment, FeedbackSubmission } from "../types";
+import type {
+  FeedbackContext,
+  FeedbackPhotoAttachment,
+  FeedbackSubmission,
+} from "../types";
 
 /**
  * `SupabaseFeedbackTransport` — no real network call anywhere in this file,
@@ -76,7 +80,10 @@ function readMigration(fileName: string): string {
  * migration file directly. */
 function loadMigrationColumns(tableName: string): string[] {
   const created = extractTableColumns(readMigration("0020_feedback.sql"), tableName);
-  const dropped = extractDroppedColumns(readMigration("0022_feedback_triage.sql"), tableName);
+  const dropped = extractDroppedColumns(
+    readMigration("0022_feedback_triage.sql"),
+    tableName,
+  );
   return created.filter((column) => !dropped.includes(column));
 }
 
@@ -168,7 +175,8 @@ describe("buildFeedbackInsert (pure mapping)", () => {
 
     expect(buildFeedbackInsert(SAMPLE_SUBMISSION).user_id).toBeNull();
     expect(
-      buildFeedbackInsert(SAMPLE_SUBMISSION, "77777777-7777-4777-8777-777777777777").user_id,
+      buildFeedbackInsert(SAMPLE_SUBMISSION, "77777777-7777-4777-8777-777777777777")
+        .user_id,
     ).toBe("77777777-7777-4777-8777-777777777777");
   });
 
@@ -192,6 +200,17 @@ describe("buildFeedbackInsert (pure mapping)", () => {
     const { buildFeedbackInsert } = loadTransport();
 
     expect(buildFeedbackInsert(SAMPLE_SUBMISSION)).not.toHaveProperty("screen");
+  });
+
+  it("sends category only for a badge request (migration 0048)", () => {
+    const { buildFeedbackInsert } = loadTransport();
+
+    expect(
+      buildFeedbackInsert({ ...SAMPLE_SUBMISSION, category: "badge_request" }),
+    ).toMatchObject({
+      category: "badge_request",
+    });
+    expect(buildFeedbackInsert(SAMPLE_SUBMISSION)).not.toHaveProperty("category");
   });
 
   it("never sends a triage field — status/category/triage_note/updated_at are owner-assigned only, server-side (migration 0022)", () => {
@@ -218,7 +237,9 @@ describe("buildFeedbackPhotoInsert (pure mapping)", () => {
   it("maps a photo id + resolved storage path to a feedback_photos row (migration 0021: keyed by photo_id, not feedback_id)", () => {
     const { buildFeedbackPhotoInsert } = loadTransport();
 
-    expect(buildFeedbackPhotoInsert("photo-1", "feedback-1", "uid/feedback-1/photo-1.jpg")).toEqual({
+    expect(
+      buildFeedbackPhotoInsert("photo-1", "feedback-1", "uid/feedback-1/photo-1.jpg"),
+    ).toEqual({
       photo_id: "photo-1",
       feedback_id: "feedback-1",
       storage_path: "uid/feedback-1/photo-1.jpg",
@@ -280,12 +301,41 @@ describe("SupabaseFeedbackTransport.submit", () => {
   it("returns a retryable failure for any other insert error", async () => {
     const { SupabaseFeedbackTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
-    const client = mockClientWithInsertResult({ code: "23514", message: "check violation" });
+    const client = mockClientWithInsertResult({
+      code: "23514",
+      message: "check violation",
+    });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
     const result = await SupabaseFeedbackTransport.submit(SAMPLE_SUBMISSION);
 
     expect(result).toEqual({ outcome: "failed", retryable: true });
+  });
+
+  it("retries a badge request without its tag when the old category list rejects it (migration 0048 not applied)", async () => {
+    const { SupabaseFeedbackTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const insert = jest
+      .fn()
+      .mockResolvedValueOnce({ error: { code: "23514", message: "check violation" } })
+      .mockResolvedValueOnce({ error: null });
+    supabaseLib.getSupabaseClient.mockReturnValue({
+      auth: mockAuth(),
+      from: jest.fn(() => ({ insert })),
+    });
+
+    const result = await SupabaseFeedbackTransport.submit({
+      ...SAMPLE_SUBMISSION,
+      category: "badge_request",
+    });
+
+    expect(insert).toHaveBeenCalledTimes(2);
+    expect(insert.mock.calls[0]?.[0]).toMatchObject({ category: "badge_request" });
+    expect(insert.mock.calls[1]?.[0]).not.toHaveProperty("category");
+    expect(result).toEqual({
+      outcome: "submitted",
+      serverFeedbackId: SAMPLE_SUBMISSION.feedbackId,
+    });
   });
 
   it("returns 'awaiting-backend' rather than throwing if the client is unexpectedly null", async () => {
@@ -325,7 +375,9 @@ describe("SupabaseFeedbackTransport.submit", () => {
 
     const result = await SupabaseFeedbackTransport.submit(SAMPLE_SUBMISSION);
 
-    expect(client.insert).toHaveBeenCalledWith(buildFeedbackInsert(SAMPLE_SUBMISSION, null));
+    expect(client.insert).toHaveBeenCalledWith(
+      buildFeedbackInsert(SAMPLE_SUBMISSION, null),
+    );
     expect(result).toEqual({
       outcome: "submitted",
       serverFeedbackId: SAMPLE_SUBMISSION.feedbackId,
@@ -352,11 +404,21 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     const from = jest.fn(() => ({ upsert }));
     const getSession = jest.fn(async () => ({
       data: {
-        session: options.session === undefined ? { user: { id: "anon-uid-1" } } : options.session,
+        session:
+          options.session === undefined
+            ? { user: { id: "anon-uid-1" } }
+            : options.session,
       },
       error: null,
     }));
-    return { auth: { getSession }, storage: { from: storageFrom }, from, upload, storageFrom, upsert };
+    return {
+      auth: { getSession },
+      storage: { from: storageFrom },
+      from,
+      upload,
+      storageFrom,
+      upsert,
+    };
   }
 
   // The pre-0021 "no-op when there is no photo" case no longer applies at
@@ -405,8 +467,14 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
       uri: "file:///tmp/second.jpg",
     };
 
-    await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO, SAMPLE_PHOTO);
-    await SupabaseFeedbackTransport.uploadPhoto?.(SAMPLE_SUBMISSION_WITH_PHOTO, secondPhoto);
+    await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
+    await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      secondPhoto,
+    );
 
     const uploadedPaths = client.upload.mock.calls.map((call) => call[0]);
     expect(new Set(uploadedPaths).size).toBe(2);
@@ -449,7 +517,9 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
   it("returns 'failed' when the storage upload succeeds but the feedback_photos upsert errors", async () => {
     const { SupabaseFeedbackTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
-    const client = mockStorageClient({ upsertError: { message: "constraint violation" } });
+    const client = mockStorageClient({
+      upsertError: { message: "constraint violation" },
+    });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
     const result = await SupabaseFeedbackTransport.uploadPhoto?.(

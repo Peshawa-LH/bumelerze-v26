@@ -25,6 +25,8 @@ const FEEDBACK_PHOTOS_BUCKET = "feedback-photos";
  * client-generated PK, so a retry of an already-landed insert hits this
  * code and is treated as success, never a user-visible failure. */
 const POSTGRES_UNIQUE_VIOLATION = "23505";
+/** Postgres check-constraint violation (an older `feedback.category` list). */
+const POSTGRES_CHECK_VIOLATION = "23514";
 
 export interface FeedbackInsert {
   feedback_id: string;
@@ -36,6 +38,8 @@ export interface FeedbackInsert {
   locale: string | null;
   platform: string | null;
   created_at: string;
+  /** Only ever "badge_request" (migration 0048); absent otherwise. */
+  category?: "badge_request";
 }
 
 /**
@@ -47,9 +51,10 @@ export interface FeedbackInsert {
  * `created_at`, "captured on-device"), since a feedback message may sit in
  * the offline queue for a while before this insert is attempted and the
  * on-device moment is the truthful one. Also never sent, by design: the
- * triage fields migration 0022 adds (`status`/`category`/`triage_note`/
- * `updated_at`) — those are owner-assigned only, server-side, and this
- * payload must never carry them (there is no client UI for them at all).
+ * triage fields migration 0022 adds (`status`/`triage_note`/`updated_at`) —
+ * owner-assigned only, server-side. `category` is the one exception, and only
+ * for "badge_request" (migration 0048, the form's "This is a badge request"
+ * choice); the database drops any other client-sent category.
  */
 export function buildFeedbackInsert(
   submission: FeedbackSubmission,
@@ -65,6 +70,9 @@ export function buildFeedbackInsert(
     locale: submission.context.locale,
     platform: submission.context.platform,
     created_at: new Date(submission.createdAt).toISOString(),
+    ...(submission.category === "badge_request"
+      ? { category: "badge_request" as const }
+      : {}),
   };
 }
 
@@ -127,7 +135,11 @@ function inferPhotoContentType(uri: string): string {
   // A `data:` uri (web, since 2026-09-27) says what it holds; trust that
   // over an extension it does not have.
   const declared = dataUriMimeType(uri);
-  if (declared === "image/png" || declared === "image/webp" || declared === "image/jpeg") {
+  if (
+    declared === "image/png" ||
+    declared === "image/webp" ||
+    declared === "image/jpeg"
+  ) {
     return declared;
   }
   const lower = uri.toLowerCase();
@@ -200,9 +212,12 @@ export async function uploadFeedbackPhoto(
 
     const { error: rowError } = await client
       .from("feedback_photos")
-      .upsert(buildFeedbackPhotoInsert(photo.photoId, submission.feedbackId, storagePath), {
-        onConflict: "photo_id",
-      });
+      .upsert(
+        buildFeedbackPhotoInsert(photo.photoId, submission.feedbackId, storagePath),
+        {
+          onConflict: "photo_id",
+        },
+      );
     if (rowError) {
       return { outcome: "failed" };
     }
@@ -225,9 +240,15 @@ export const SupabaseFeedbackTransport: FeedbackTransport = {
 
     const userId = await ensureAnonymousUserId(client);
 
-    const { error } = await client
-      .from("feedback")
-      .insert(buildFeedbackInsert(submission, userId));
+    const row = buildFeedbackInsert(submission, userId);
+    let { error } = await client.from("feedback").insert(row);
+    if (error && row.category && error.code === POSTGRES_CHECK_VIOLATION) {
+      // Migration 0048 is not applied yet: the old category list rejects
+      // "badge_request". Send the message without the tag rather than lose
+      // it; the form already asked the person to say which badge they want.
+      const { category: _tag, ...untagged } = row;
+      ({ error } = await client.from("feedback").insert(untagged));
+    }
 
     if (!error) {
       return { outcome: "submitted", serverFeedbackId: submission.feedbackId };

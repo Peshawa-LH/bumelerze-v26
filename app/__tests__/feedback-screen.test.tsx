@@ -368,6 +368,44 @@ describe("Feedback screen", () => {
     expect(items[0]?.submission.photos).toEqual([]);
   });
 
+  it("the 'This is a badge request' choice tags the submission; unticked feedback carries no category", async () => {
+    await renderWithProviders(<FeedbackScreen />);
+    const toggle = screen.getByTestId("feedback-badge-request");
+    expect(toggle.props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: false }),
+    );
+
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(i18n.t("feedback.messageLabel")),
+        "Engineer badge please.",
+      );
+      fireEvent.press(toggle);
+    });
+    expect(screen.getByTestId("feedback-badge-request").props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: true }),
+    );
+    await submit();
+
+    expect(useFeedbackQueueStore.getState().items[0]?.submission.category).toBe(
+      "badge_request",
+    );
+  });
+
+  it("ordinary feedback has no category", async () => {
+    await renderWithProviders(<FeedbackScreen />);
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(i18n.t("feedback.messageLabel")),
+        "Plain note.",
+      );
+    });
+    await submit();
+    expect(useFeedbackQueueStore.getState().items[0]?.submission).not.toHaveProperty(
+      "category",
+    );
+  });
+
   it("submitting with no contact stores contact as null, not an empty string", async () => {
     await renderWithProviders(<FeedbackScreen />);
 

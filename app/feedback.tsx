@@ -59,6 +59,7 @@ export default function FeedbackScreen() {
 
   const [message, setMessage] = useState("");
   const [contact, setContact] = useState("");
+  const [badgeRequest, setBadgeRequest] = useState(false);
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [submitFailed, setSubmitFailed] = useState(false);
@@ -136,6 +137,7 @@ export default function FeedbackScreen() {
         message: trimmedMessage,
         contact: trimmedContact.length > 0 ? trimmedContact : null,
         photoUris: photos.map((photo) => photo.uri),
+        ...(badgeRequest ? { category: "badge_request" as const } : {}),
       });
       setSubmittedId(submission.feedbackId);
     } catch {
@@ -266,6 +268,51 @@ export default function FeedbackScreen() {
       </Text>
 
       <ScrollView contentContainerStyle={{ gap: spacing[3], paddingTop: spacing[4] }}>
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: badgeRequest }}
+          accessibilityLabel={t("feedback.badgeRequest.label")}
+          onPress={() => setBadgeRequest((value) => !value)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing[3],
+            minHeight: 44,
+          }}
+          testID="feedback-badge-request"
+        >
+          <View
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 6,
+              borderWidth: 2,
+              alignItems: "center",
+              justifyContent: "center",
+              borderColor: badgeRequest ? colors.brand.primary : colors.border.default,
+              backgroundColor: badgeRequest
+                ? colors.brand.primary
+                : colors.surface.raised,
+            }}
+          >
+            {badgeRequest ? (
+              <Text
+                style={{ color: colors.brand.onPrimary, fontSize: 16, fontWeight: "700" }}
+              >
+                {"✓"}
+              </Text>
+            ) : null}
+          </View>
+          <Text
+            style={{
+              flex: 1,
+              color: colors.text.primary,
+              fontSize: typography.bodyDefault.fontSize,
+            }}
+          >
+            {t("feedback.badgeRequest.label")}
+          </Text>
+        </Pressable>
         <View style={{ gap: spacing[2] }}>
           <Text
             style={{
@@ -279,7 +326,11 @@ export default function FeedbackScreen() {
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder={t("feedback.messagePlaceholder")}
+            placeholder={
+              badgeRequest
+                ? t("feedback.badgeRequest.hint")
+                : t("feedback.messagePlaceholder")
+            }
             placeholderTextColor={colors.text.tertiary}
             multiline
             maxLength={MESSAGE_MAX_LENGTH}

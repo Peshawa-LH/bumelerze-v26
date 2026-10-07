@@ -73,4 +73,7 @@ export interface FeedbackSubmission {
    * `FEEDBACK_PHOTO_MAX_COUNT`). */
   photos: FeedbackPhotoAttachment[];
   createdAt: number;
+  /** Set only by the "Badge request" choice (migration 0048). Every other
+   * category is assigned during triage, never by the client. */
+  category?: "badge_request";
 }

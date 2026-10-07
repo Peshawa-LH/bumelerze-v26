@@ -214,6 +214,8 @@ export interface EnqueueFeedbackInput {
    * enforced in `app/feedback.tsx`'s own UI before this is ever called
    * with more. */
   photoUris?: string[];
+  /** "Badge request" tag (migration 0048). Omit for ordinary feedback. */
+  category?: "badge_request";
 }
 
 /**
@@ -239,6 +241,7 @@ export async function enqueueFeedback(
     context: buildFeedbackContext(),
     photos,
     createdAt: Date.now(),
+    ...(input.category ? { category: input.category } : {}),
   };
 
   const photoStates: Record<string, FeedbackPhotoUploadState> = {};
@@ -346,9 +349,12 @@ export async function processFeedbackQueue(
       // must never block or retry-starve its siblings.
       if (typeof transport.uploadPhoto === "function") {
         const uploadPhoto = transport.uploadPhoto;
-        const { items: itemsAfterSubmit, _patchPhotoState } = useFeedbackQueueStore.getState();
-        const photoEligible: { submission: FeedbackSubmission; photo: FeedbackPhotoAttachment }[] =
-          [];
+        const { items: itemsAfterSubmit, _patchPhotoState } =
+          useFeedbackQueueStore.getState();
+        const photoEligible: {
+          submission: FeedbackSubmission;
+          photo: FeedbackPhotoAttachment;
+        }[] = [];
         for (const item of itemsAfterSubmit) {
           if (item.state !== "submitted") {
             continue;
@@ -419,7 +425,8 @@ export function useFeedbackQueueItemState(
 ): FeedbackQueueItemState | null {
   return useFeedbackQueueStore((state) =>
     feedbackId
-      ? (state.items.find((item) => item.submission.feedbackId === feedbackId)?.state ?? null)
+      ? (state.items.find((item) => item.submission.feedbackId === feedbackId)?.state ??
+        null)
       : null,
   );
 }
