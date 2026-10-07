@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
+import { CommunityRows } from "@/features/account/components/CommunityRows";
 import { DeleteAccountRow } from "@/features/account/components/DeleteAccountRow";
 import { MyLocationRow } from "@/features/account/components/MyLocationRow";
 import { PrivacyRow } from "@/features/account/components/PrivacyRow";
@@ -72,6 +73,7 @@ export default function MyDataScreen() {
           earned={summary.badgesEarned}
           total={summary.badgesTotal}
         />
+        <CommunityRows />
         <MyHomeCard />
         <MyReportsSection />
         <SettingsGroup>

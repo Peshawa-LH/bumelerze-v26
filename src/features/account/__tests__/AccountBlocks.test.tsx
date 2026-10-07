@@ -45,7 +45,14 @@ function account(overrides: Partial<UseAccountResult>): UseAccountResult {
 const ACCOUNT = account({
   status: "account",
   email: "shilan@example.com",
-  profile: { userId: "u1", displayName: "Shilan", avatarPath: null },
+  profile: {
+    userId: "u1",
+    displayName: "Shilan",
+    avatarPath: null,
+    username: null,
+    isPrivate: false,
+    communityReady: true,
+  },
   profileLoaded: true,
 });
 

@@ -4,6 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Platform } from "react-native";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+import { isValidUsername, normalizeUsername } from "@/features/community/username";
 import { getDeviceId } from "@/features/felt/device-id";
 import { SUPPORTED_LOCALES } from "@/i18n";
 import { dataUriMimeType, toDurablePhotoUri } from "@/lib/durable-photo-uri";
@@ -72,7 +73,10 @@ export function isEmailTakenError(error: unknown): boolean {
   return /already (been )?registered|already exists|email_exists/i.test(e.message ?? "");
 }
 
-export function toAccountError(error: unknown, fallback: AccountErrorCode = "unknown"): AccountError {
+export function toAccountError(
+  error: unknown,
+  fallback: AccountErrorCode = "unknown",
+): AccountError {
   if (error instanceof AccountError) {
     return error;
   }
@@ -86,10 +90,17 @@ export function toAccountError(error: unknown, fallback: AccountErrorCode = "unk
   ) {
     return new AccountError("rate_limited", message);
   }
-  if (e.code === "otp_expired" || /token has expired|otp.*(expired|invalid)|invalid.*(token|otp)/i.test(message)) {
+  if (
+    e.code === "otp_expired" ||
+    /token has expired|otp.*(expired|invalid)|invalid.*(token|otp)/i.test(message)
+  ) {
     return new AccountError("invalid_code", message);
   }
-  if (e.code === "email_address_invalid" || e.code === "validation_failed" || /invalid.*email|email.*invalid/i.test(message)) {
+  if (
+    e.code === "email_address_invalid" ||
+    e.code === "validation_failed" ||
+    /invalid.*email|email.*invalid/i.test(message)
+  ) {
     return new AccountError("invalid_email", message);
   }
   if (
@@ -100,6 +111,23 @@ export function toAccountError(error: unknown, fallback: AccountErrorCode = "unk
     return new AccountError("network", message);
   }
   return new AccountError(fallback, message);
+}
+
+/** The profile write can fail on the username rules: unique index (taken),
+ * the reserved-name guard, or the format check. */
+export function toUsernameAwareError(error: unknown): AccountError {
+  const e = asAuthLike(error);
+  const message = e.message ?? "";
+  if (e.code === "23505" && /username/i.test(message)) {
+    return new AccountError("username_taken", message);
+  }
+  if (/username_reserved/.test(message)) {
+    return new AccountError("username_reserved", message);
+  }
+  if (/profiles_username_format/.test(message)) {
+    return new AccountError("username_invalid", message);
+  }
+  return toAccountError(error);
 }
 
 // ---------------------------------------------------------------------------
@@ -154,7 +182,9 @@ export function isPlausibleEmail(value: string): boolean {
  * account, falls back to a plain sign-in code (`shouldCreateUser: false`)
  * and tells the caller so it verifies with the matching OTP type.
  */
-export async function requestEmailCode(rawEmail: string): Promise<{ mode: EmailAuthMode }> {
+export async function requestEmailCode(
+  rawEmail: string,
+): Promise<{ mode: EmailAuthMode }> {
   const client = requireClient();
   const email = rawEmail.trim();
   if (!isPlausibleEmail(email)) {
@@ -185,7 +215,10 @@ export async function requestEmailCode(rawEmail: string): Promise<{ mode: EmailA
   const redirectTo = getEmailRedirectUrl();
   const { error } = await client.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: false, ...(redirectTo ? { emailRedirectTo: redirectTo } : {}) },
+    options: {
+      shouldCreateUser: false,
+      ...(redirectTo ? { emailRedirectTo: redirectTo } : {}),
+    },
   });
   if (error) {
     throw toAccountError(error);
@@ -258,7 +291,9 @@ const LINK_POLL_MS = 400;
  * (a no-op for an upgraded user: those rows are already theirs) and tells
  * the caller whether a profile row exists yet.
  */
-export async function completeEmailLink(waitMs: number = LINK_WAIT_MS): Promise<EmailLinkResult> {
+export async function completeEmailLink(
+  waitMs: number = LINK_WAIT_MS,
+): Promise<EmailLinkResult> {
   const client = requireClient();
   if (readAuthUrlError()) {
     return { status: "expired" };
@@ -313,7 +348,9 @@ export type OAuthProvider = "google" | "apple";
 /** Where the provider sends the browser back to: the current origin plus
  * the app's base path (e.g. https://bumelerze.com/app). */
 export function getWebRedirectUrl(): string {
-  const baseUrl = (Constants.expoConfig?.experiments as { baseUrl?: string } | undefined)?.baseUrl ?? "";
+  const baseUrl =
+    (Constants.expoConfig?.experiments as { baseUrl?: string } | undefined)?.baseUrl ??
+    "";
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return `${origin}${baseUrl}`;
 }
@@ -350,6 +387,8 @@ interface ProfileRow {
   user_id: string;
   display_name: string;
   avatar_path: string | null;
+  username?: string | null;
+  is_private?: boolean | null;
 }
 
 interface PrivateRow {
@@ -359,7 +398,11 @@ interface PrivateRow {
   terms_accepted_at: string | null;
   research_consent_version: string | null;
   research_consent_at: string | null;
+  hide_badges?: boolean | null;
 }
+
+const PRIVATE_COLUMNS =
+  "profession, locale, terms_version, terms_accepted_at, research_consent_version, research_consent_at";
 
 export async function loadProfile(
   userId: string,
@@ -368,28 +411,58 @@ export async function loadProfile(
   const [profileRes, privateRes] = await Promise.all([
     client
       .from("profiles")
-      .select("user_id, display_name, avatar_path")
+      .select("user_id, display_name, avatar_path, username, is_private")
       .eq("user_id", userId)
       .maybeSingle(),
     client
       .from("profile_private")
-      .select(
-        "profession, locale, terms_version, terms_accepted_at, research_consent_version, research_consent_at",
-      )
+      .select(`${PRIVATE_COLUMNS}, hide_badges`)
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
-  if (profileRes.error) {
-    throw toAccountError(profileRes.error);
+
+  // Before migration 0045 the username / private / hide_badges columns do not
+  // exist and those reads fail; read the old columns instead so a missing
+  // migration never costs someone their profile.
+  let communityReady = true;
+  let profileData = profileRes.data as ProfileRow | null;
+  let profileError = profileRes.error;
+  if (profileError) {
+    communityReady = false;
+    const legacy = await client
+      .from("profiles")
+      .select("user_id, display_name, avatar_path")
+      .eq("user_id", userId)
+      .maybeSingle();
+    profileData = legacy.data as ProfileRow | null;
+    profileError = legacy.error;
   }
-  const profileRow = profileRes.data as ProfileRow | null;
-  const privateRow = privateRes.error ? null : (privateRes.data as PrivateRow | null);
+  if (profileError) {
+    throw toAccountError(profileError);
+  }
+
+  let privateData = privateRes.data as PrivateRow | null;
+  let privateError = privateRes.error;
+  if (privateError) {
+    const legacy = await client
+      .from("profile_private")
+      .select(PRIVATE_COLUMNS)
+      .eq("user_id", userId)
+      .maybeSingle();
+    privateData = legacy.data as PrivateRow | null;
+    privateError = legacy.error;
+  }
+  const privateRow = privateError ? null : privateData;
+
   return {
-    profile: profileRow
+    profile: profileData
       ? {
-          userId: profileRow.user_id,
-          displayName: profileRow.display_name,
-          avatarPath: profileRow.avatar_path,
+          userId: profileData.user_id,
+          displayName: profileData.display_name,
+          avatarPath: profileData.avatar_path,
+          username: profileData.username ?? null,
+          isPrivate: profileData.is_private === true,
+          communityReady,
         }
       : null,
     privateProfile: privateRow
@@ -400,6 +473,7 @@ export async function loadProfile(
           termsAcceptedAt: privateRow.terms_accepted_at,
           researchConsentVersion: privateRow.research_consent_version,
           researchConsentAt: privateRow.research_consent_at,
+          hideBadges: privateRow.hide_badges === true,
         }
       : null,
   };
@@ -419,6 +493,12 @@ export interface SaveProfileInput {
   /** Optional research-use consent. */
   researchConsent: boolean;
   avatar: AvatarChange;
+  /** Public @handle. Sent only when it differs from the stored one. */
+  username?: string | null;
+  /** Private account switch. Sent only when it differs from the stored one. */
+  isPrivate?: boolean;
+  /** Hide milestone badges on the public profile. Sent only when changed. */
+  hideBadges?: boolean;
   /** Current UI language (stored as the user's locale). */
   locale: string;
   /** What is stored now, so unchanged consents keep their original time. */
@@ -452,22 +532,48 @@ export async function saveProfile(input: SaveProfileInput): Promise<void> {
   if (avatarPath !== undefined) {
     profileRow.avatar_path = avatarPath;
   }
+  // The community fields are sent only when they changed, so saving a profile
+  // never touches columns the server may not have yet (before migration 0045).
+  const wantedUsername = normalizeUsername(input.username ?? "");
+  if (
+    wantedUsername !== "" &&
+    wantedUsername !== (input.previous?.profile?.username ?? "")
+  ) {
+    if (!isValidUsername(wantedUsername)) {
+      throw new AccountError("username_invalid");
+    }
+    profileRow.username = wantedUsername;
+  }
+  if (
+    input.isPrivate !== undefined &&
+    input.isPrivate !== (input.previous?.profile?.isPrivate ?? false)
+  ) {
+    profileRow.is_private = input.isPrivate;
+  }
   const { error: profileError } = await client
     .from("profiles")
     .upsert(profileRow, { onConflict: "user_id" });
   if (profileError) {
-    throw toAccountError(profileError);
+    throw toUsernameAwareError(profileError);
   }
 
   const nowIso = new Date().toISOString();
   const privateRow: Record<string, unknown> = {
     user_id: user.id,
     profession: input.profession,
-    locale: (SUPPORTED_LOCALES as readonly string[]).includes(input.locale) ? input.locale : null,
+    locale: (SUPPORTED_LOCALES as readonly string[]).includes(input.locale)
+      ? input.locale
+      : null,
   };
   if (previousPrivate?.termsVersion !== TERMS_VERSION) {
     privateRow.terms_version = TERMS_VERSION;
     privateRow.terms_accepted_at = nowIso;
+  }
+  if (
+    input.hideBadges !== undefined &&
+    input.hideBadges !== (previousPrivate?.hideBadges ?? false)
+  ) {
+    privateRow.hide_badges = input.hideBadges;
   }
   if (!input.researchConsent) {
     privateRow.research_consent_version = null;
@@ -485,7 +591,10 @@ export async function saveProfile(input: SaveProfileInput): Promise<void> {
 
   // The new row is saved; the old file is garbage now (best effort).
   if (avatarPath !== undefined && previousAvatar && previousAvatar !== avatarPath) {
-    await client.storage.from(AVATARS_BUCKET).remove([previousAvatar]).catch(() => undefined);
+    await client.storage
+      .from(AVATARS_BUCKET)
+      .remove([previousAvatar])
+      .catch(() => undefined);
   }
 }
 
@@ -531,7 +640,11 @@ function bodySize(body: Blob | ArrayBuffer): number {
 
 function avatarContentType(uri: string): string {
   const fromData = dataUriMimeType(uri);
-  if (fromData === "image/png" || fromData === "image/webp" || fromData === "image/jpeg") {
+  if (
+    fromData === "image/png" ||
+    fromData === "image/webp" ||
+    fromData === "image/jpeg"
+  ) {
     return fromData;
   }
   const lower = uri.toLowerCase();
@@ -540,7 +653,11 @@ function avatarContentType(uri: string): string {
   return "image/jpeg";
 }
 
-async function uploadAvatar(client: SupabaseClient, userId: string, uri: string): Promise<string> {
+async function uploadAvatar(
+  client: SupabaseClient,
+  userId: string,
+  uri: string,
+): Promise<string> {
   const body = await readImageBody(uri);
   if (bodySize(body) > AVATAR_MAX_BYTES) {
     throw new AccountError("avatar_too_large");

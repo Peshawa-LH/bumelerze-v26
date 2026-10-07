@@ -92,7 +92,14 @@ const ACCOUNT = account({
   status: "account",
   userId: "u-owner",
   email: "shilan@example.com",
-  profile: { userId: "u-owner", displayName: "Shilan", avatarPath: null },
+  profile: {
+    userId: "u-owner",
+    displayName: "Shilan",
+    avatarPath: null,
+    username: null,
+    isPrivate: false,
+    communityReady: true,
+  },
   profileLoaded: true,
 });
 

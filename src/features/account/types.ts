@@ -6,6 +6,13 @@ export interface Profile {
   displayName: string;
   /** Path inside the public `avatars` bucket, or null. */
   avatarPath: string | null;
+  /** Public @handle, lowercase; null until chosen (migration 0045). */
+  username: string | null;
+  /** Private account: people must ask to follow (migration 0045). */
+  isPrivate: boolean;
+  /** False when the server has no username / private columns yet, so the
+   * profile form hides those fields instead of failing to save. */
+  communityReady: boolean;
 }
 
 /** Row of `public.profile_private` (owner only). Never shown publicly. */
@@ -16,6 +23,8 @@ export interface PrivateProfile {
   termsAcceptedAt: string | null;
   researchConsentVersion: string | null;
   researchConsentAt: string | null;
+  /** Hide my milestone badges on my public profile (migration 0045). */
+  hideBadges: boolean;
 }
 
 export type AccountStatus = "unconfigured" | "loading" | "anonymous" | "account";
@@ -41,6 +50,9 @@ export type AccountErrorCode =
   | "name_length"
   | "terms_required"
   | "avatar_too_large"
+  | "username_invalid"
+  | "username_taken"
+  | "username_reserved"
   | "oauth_unavailable"
   | "unknown";
 
@@ -59,6 +71,4 @@ export class AccountError extends Error {
 export type EmailAuthMode = "upgrade" | "signin";
 
 export type AvatarChange =
-  | { kind: "keep" }
-  | { kind: "remove" }
-  | { kind: "new"; uri: string };
+  { kind: "keep" } | { kind: "remove" } | { kind: "new"; uri: string };

@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { formatUsername } from "@/features/community/username";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import type { HubRole } from "@/features/eventhub/types";
 import { formatMonthYear } from "@/features/mydata/format";
@@ -54,6 +55,21 @@ export function ProfileHeader({
             </Text>
             {isAccount ? <RoleMark roles={roles} size={20} /> : null}
           </View>
+          {isAccount && account.profile?.username ? (
+            <Text
+              testID="profile-username"
+              style={[
+                typography.bodyMeta,
+                {
+                  color: colors.text.secondary,
+                  writingDirection: "ltr",
+                  textAlign: "left",
+                },
+              ]}
+            >
+              {formatUsername(account.profile.username)}
+            </Text>
+          ) : null}
           {isAccount && memberSince !== null ? (
             <Text
               testID="profile-member-since"

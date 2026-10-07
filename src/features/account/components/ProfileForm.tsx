@@ -1,8 +1,16 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { SupabaseCommunityTransport } from "@/features/community/transport";
+import {
+  formatUsername,
+  isValidUsername,
+  normalizeUsername,
+  suggestUsername,
+} from "@/features/community/username";
+import { USERNAME_MAX } from "@/features/community/constants";
 import { useTheme } from "@/theme";
 import {
   DISPLAY_NAME_MAX,
@@ -35,17 +43,62 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
   const router = useRouter();
 
   const [name, setName] = useState(profile?.displayName ?? "");
-  const [profession, setProfession] = useState<Profession | null>(privateProfile?.profession ?? null);
-  const [termsAccepted, setTermsAccepted] = useState(privateProfile?.termsVersion === TERMS_VERSION);
+  const [profession, setProfession] = useState<Profession | null>(
+    privateProfile?.profession ?? null,
+  );
+  const [termsAccepted, setTermsAccepted] = useState(
+    privateProfile?.termsVersion === TERMS_VERSION,
+  );
   const [researchConsent, setResearchConsent] = useState(
     privateProfile?.researchConsentVersion === RESEARCH_CONSENT_VERSION,
   );
+  const communityReady = profile?.communityReady !== false;
+  const [username, setUsername] = useState(profile?.username ?? "");
+  const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
+  const [showBadges, setShowBadges] = useState(!(privateProfile?.hideBadges ?? false));
+  const [checked, setChecked] = useState<{ name: string; free: boolean } | null>(null);
   const [avatar, setAvatar] = useState<AvatarChange>({ kind: "keep" });
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
 
-  const validation = validateProfileForm({ displayName: name, termsAccepted });
+  const validation = validateProfileForm({ displayName: name, termsAccepted, username });
   const nameTouchedInvalid = name.length > 0 && !validation.nameValid;
+  const typedUsername = normalizeUsername(username);
+  const usernameChanged =
+    typedUsername !== "" && typedUsername !== (profile?.username ?? "");
+  const usernameTouchedInvalid = username.trim().length > 0 && !validation.usernameValid;
+  const suggestion = useMemo(
+    () => (validation.nameValid ? suggestUsername(name) : null),
+    [name, validation.nameValid],
+  );
+
+  // Ask the server whether the name is free, a moment after typing stops.
+  // A failed check just shows nothing: saving still enforces uniqueness.
+  const shouldCheck = communityReady && usernameChanged && isValidUsername(typedUsername);
+  useEffect(() => {
+    if (!shouldCheck) {
+      return undefined;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      SupabaseCommunityTransport.isUsernameAvailable(typedUsername)
+        .then((free) => {
+          if (!cancelled) setChecked({ name: typedUsername, free });
+        })
+        .catch(() => undefined);
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [shouldCheck, typedUsername]);
+  const usernameState: "idle" | "checking" | "available" | "taken" = !shouldCheck
+    ? "idle"
+    : checked?.name === typedUsername
+      ? checked.free
+        ? "available"
+        : "taken"
+      : "checking";
 
   const avatarUri =
     avatar.kind === "new"
@@ -80,6 +133,9 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
         termsAccepted,
         researchConsent,
         avatar,
+        ...(communityReady
+          ? { username: typedUsername, isPrivate, hideBadges: !showBadges }
+          : {}),
         locale: i18n.language,
         previous: { profile, privateProfile },
       });
@@ -119,7 +175,9 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
             styles.input,
             {
               color: colors.text.primary,
-              borderColor: nameTouchedInvalid ? colors.status.danger : colors.border.default,
+              borderColor: nameTouchedInvalid
+                ? colors.status.danger
+                : colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
               paddingHorizontal: spacing[3],
@@ -137,13 +195,82 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
         </Text>
       </View>
 
+      {communityReady ? (
+        <View style={{ gap: spacing[2] }}>
+          <Text style={label}>{t("account.profile.usernameLabel")}</Text>
+          <TextInput
+            value={username}
+            onChangeText={setUsername}
+            maxLength={USERNAME_MAX + 1}
+            accessibilityLabel={t("account.profile.usernameLabel")}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="username"
+            textContentType="username"
+            placeholder="username"
+            placeholderTextColor={colors.text.tertiary}
+            style={[
+              styles.input,
+              {
+                color: colors.text.primary,
+                borderColor:
+                  usernameTouchedInvalid || usernameState === "taken"
+                    ? colors.status.danger
+                    : colors.border.default,
+                backgroundColor: colors.surface.raised,
+                fontSize: typography.bodyDefault.fontSize,
+                paddingHorizontal: spacing[3],
+                // Handles are always Latin: left to right in every language.
+                writingDirection: "ltr",
+                textAlign: "left",
+              },
+            ]}
+            testID="profile-username-input"
+          />
+          <Text
+            style={[
+              meta,
+              usernameTouchedInvalid || usernameState === "taken"
+                ? { color: colors.status.danger }
+                : null,
+            ]}
+            accessibilityLiveRegion="polite"
+            testID="profile-username-status"
+          >
+            {usernameTouchedInvalid
+              ? t("account.errors.username_invalid")
+              : usernameState === "taken"
+                ? t("account.errors.username_taken")
+                : usernameState === "checking"
+                  ? t("account.profile.usernameChecking")
+                  : usernameState === "available"
+                    ? t("account.profile.usernameAvailable")
+                    : t("account.profile.usernameHint")}
+          </Text>
+          {username.trim() === "" && suggestion ? (
+            <Chip
+              text={t("account.profile.usernameSuggest", {
+                name: formatUsername(suggestion),
+              })}
+              selected={false}
+              onPress={() => setUsername(suggestion)}
+              testID="profile-username-suggest"
+            />
+          ) : null}
+        </View>
+      ) : null}
+
       <View style={{ gap: spacing[2] }}>
         <Text style={label}>{t("account.profile.photoLabel")}</Text>
         <View style={[styles.photoRow, { gap: spacing[3] }]}>
           <Avatar uri={avatarUri} name={name} size={72} />
           <View style={{ flex: 1, gap: spacing[2] }}>
             <AccountButton
-              label={hasPhoto ? t("account.profile.photoChange") : t("account.profile.photoChoose")}
+              label={
+                hasPhoto
+                  ? t("account.profile.photoChange")
+                  : t("account.profile.photoChoose")
+              }
               onPress={() => void handlePickPhoto()}
               testID="profile-photo-choose"
             />
@@ -181,6 +308,24 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
         </View>
       </View>
 
+      {communityReady ? (
+        <View style={{ gap: spacing[2] }}>
+          <Checkbox
+            checked={isPrivate}
+            onToggle={() => setIsPrivate((value) => !value)}
+            text={t("account.profile.privateLabel")}
+            testID="profile-private"
+          />
+          <Text style={meta}>{t("account.profile.privateHint")}</Text>
+          <Checkbox
+            checked={showBadges}
+            onToggle={() => setShowBadges((value) => !value)}
+            text={t("account.profile.showBadgesLabel")}
+            testID="profile-show-badges"
+          />
+        </View>
+      ) : null}
+
       <View style={{ gap: spacing[3] }}>
         <Checkbox
           checked={termsAccepted}
@@ -194,7 +339,9 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
           style={styles.linkRow}
           testID="profile-privacy-link"
         >
-          <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+          <Text
+            style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}
+          >
             {t("account.profile.privacyLink")}
           </Text>
         </Pressable>
@@ -222,7 +369,7 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
       <AccountButton
         tone="primary"
         label={saving ? t("account.profile.saving") : t("account.profile.save")}
-        disabled={!validation.valid || saving}
+        disabled={!validation.valid || saving || usernameState === "taken"}
         onPress={() => void handleSave()}
         testID="profile-save"
       />
@@ -301,7 +448,11 @@ function Checkbox({
         ]}
       >
         {checked ? (
-          <Text style={{ color: colors.brand.onPrimary, fontSize: 16, fontWeight: "700" }}>{"✓"}</Text>
+          <Text
+            style={{ color: colors.brand.onPrimary, fontSize: 16, fontWeight: "700" }}
+          >
+            {"✓"}
+          </Text>
         ) : null}
       </View>
       <Text

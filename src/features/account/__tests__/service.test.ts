@@ -31,20 +31,28 @@ const ok = async (..._args: unknown[]): Promise<Res> => ({ data: {}, error: null
 function makeClient(user: { id: string; is_anonymous: boolean } | null) {
   const upsert: Anyfn = jest.fn(async () => ({ error: null }));
   const remove: Anyfn = jest.fn(async () => ({ data: [], error: null }));
-  const list: Anyfn = jest.fn(async () => ({ data: [{ name: "avatar-1.jpg" }], error: null }));
+  const list: Anyfn = jest.fn(async () => ({
+    data: [{ name: "avatar-1.jpg" }],
+    error: null,
+  }));
   const from: Anyfn = jest.fn(() => ({ upsert }));
   return {
     auth: {
       getSession: jest.fn(async () => ({ data: { session: user ? { user } : null } })),
       updateUser: jest.fn(ok),
-      verifyOtp: jest.fn(async (..._a: unknown[]): Promise<Res> => ({ data: { user: { id: "uid-1" } }, error: null })),
+      verifyOtp: jest.fn(async (..._a: unknown[]): Promise<Res> => ({
+        data: { user: { id: "uid-1" } },
+        error: null,
+      })),
       signInWithOtp: jest.fn(ok),
       signOut: jest.fn(async () => ({ error: null })),
     },
     rpc: jest.fn(async (..._a: unknown[]): Promise<Res> => ({ data: 3, error: null })),
     from,
     upsert,
-    storage: { from: jest.fn(() => ({ remove, list, upload: jest.fn(), getPublicUrl: jest.fn() })) },
+    storage: {
+      from: jest.fn(() => ({ remove, list, upload: jest.fn(), getPublicUrl: jest.fn() })),
+    },
     remove,
     list,
   };
@@ -67,7 +75,11 @@ describe("requestEmailCode", () => {
   it("falls back to a sign-in code when the email already has an account", async () => {
     mockClient?.auth.updateUser.mockResolvedValueOnce({
       data: {},
-      error: { code: "email_exists", status: 422, message: "A user with this email address has already been registered" },
+      error: {
+        code: "email_exists",
+        status: 422,
+        message: "A user with this email address has already been registered",
+      },
     });
     const result = await requestEmailCode("a@b.co");
     expect(result).toEqual({ mode: "signin" });
@@ -78,21 +90,31 @@ describe("requestEmailCode", () => {
   });
 
   it("rejects an implausible email without calling Supabase", async () => {
-    await expect(requestEmailCode("not-an-email")).rejects.toMatchObject({ code: "invalid_email" });
+    await expect(requestEmailCode("not-an-email")).rejects.toMatchObject({
+      code: "invalid_email",
+    });
     expect(mockClient?.auth.updateUser).not.toHaveBeenCalled();
   });
 
   it("maps rate limiting", async () => {
     mockClient?.auth.updateUser.mockResolvedValueOnce({
       data: {},
-      error: { code: "over_email_send_rate_limit", status: 429, message: "email rate limit exceeded" },
+      error: {
+        code: "over_email_send_rate_limit",
+        status: 429,
+        message: "email rate limit exceeded",
+      },
     });
-    await expect(requestEmailCode("a@b.co")).rejects.toMatchObject({ code: "rate_limited" });
+    await expect(requestEmailCode("a@b.co")).rejects.toMatchObject({
+      code: "rate_limited",
+    });
   });
 
   it("is unavailable when Supabase is not configured", async () => {
     mockClient = null;
-    await expect(requestEmailCode("a@b.co")).rejects.toMatchObject({ code: "unconfigured" });
+    await expect(requestEmailCode("a@b.co")).rejects.toMatchObject({
+      code: "unconfigured",
+    });
   });
 });
 
@@ -130,7 +152,11 @@ describe("verifyEmailCode", () => {
   it("maps a wrong or expired code", async () => {
     mockClient?.auth.verifyOtp.mockResolvedValueOnce({
       data: {},
-      error: { code: "otp_expired", status: 403, message: "Token has expired or is invalid" },
+      error: {
+        code: "otp_expired",
+        status: 403,
+        message: "Token has expired or is invalid",
+      },
     });
     await expect(verifyEmailCode("a@b.co", "000000", "upgrade")).rejects.toMatchObject({
       code: "invalid_code",
@@ -152,7 +178,9 @@ describe("signOutAccount", () => {
     expect(mockResetAnonymousSignIn).toHaveBeenCalledTimes(1);
     expect(mockSignInAnonymously).toHaveBeenCalledTimes(1);
     const signOutOrder = mockClient?.auth.signOut.mock.invocationCallOrder[0] ?? 0;
-    expect(mockResetAnonymousSignIn.mock.invocationCallOrder[0]).toBeGreaterThan(signOutOrder);
+    expect(mockResetAnonymousSignIn.mock.invocationCallOrder[0]).toBeGreaterThan(
+      signOutOrder,
+    );
     expect(mockSignInAnonymously.mock.invocationCallOrder[0]).toBeGreaterThan(
       mockResetAnonymousSignIn.mock.invocationCallOrder[0] ?? 0,
     );
@@ -226,7 +254,14 @@ describe("saveProfile", () => {
       researchConsent: false,
       profession: null,
       previous: {
-        profile: { userId: "uid-1", displayName: "Old", avatarPath: null },
+        profile: {
+          userId: "uid-1",
+          displayName: "Old",
+          avatarPath: null,
+          username: null,
+          isPrivate: false,
+          communityReady: true,
+        },
         privateProfile: {
           profession: "teacher",
           locale: "en",
@@ -234,6 +269,7 @@ describe("saveProfile", () => {
           termsAcceptedAt: "2026-10-04T00:00:00Z",
           researchConsentVersion: RESEARCH_CONSENT_VERSION,
           researchConsentAt: "2026-10-04T00:00:00Z",
+          hideBadges: false,
         },
       },
     });
@@ -244,8 +280,12 @@ describe("saveProfile", () => {
   });
 
   it("validates name length and required terms before any write", async () => {
-    await expect(saveProfile({ ...base, displayName: "A" })).rejects.toMatchObject({ code: "name_length" });
-    await expect(saveProfile({ ...base, displayName: "x".repeat(41) })).rejects.toMatchObject({
+    await expect(saveProfile({ ...base, displayName: "A" })).rejects.toMatchObject({
+      code: "name_length",
+    });
+    await expect(
+      saveProfile({ ...base, displayName: "x".repeat(41) }),
+    ).rejects.toMatchObject({
       code: "name_length",
     });
     await expect(saveProfile({ ...base, termsAccepted: false })).rejects.toMatchObject({
@@ -258,7 +298,17 @@ describe("saveProfile", () => {
     await saveProfile({
       ...base,
       avatar: { kind: "remove" },
-      previous: { profile: { userId: "uid-1", displayName: "Old", avatarPath: "uid-1/avatar-1.jpg" }, privateProfile: null },
+      previous: {
+        profile: {
+          userId: "uid-1",
+          displayName: "Old",
+          avatarPath: "uid-1/avatar-1.jpg",
+          username: null,
+          isPrivate: false,
+          communityReady: true,
+        },
+        privateProfile: null,
+      },
     });
     const [publicRow] = mockClient?.upsert.mock.calls[0] ?? [];
     expect(publicRow.avatar_path).toBeNull();
@@ -271,6 +321,8 @@ describe("toAccountError", () => {
     const original = new AccountError("network");
     expect(toAccountError(original)).toBe(original);
     expect(toAccountError("weird").code).toBe("unknown");
-    expect(toAccountError({ name: "AuthRetryableFetchError", message: "x" }).code).toBe("network");
+    expect(toAccountError({ name: "AuthRetryableFetchError", message: "x" }).code).toBe(
+      "network",
+    );
   });
 });
