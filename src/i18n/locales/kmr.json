@@ -1508,6 +1508,8 @@
       "a11y": "{{label}}: {{count}}"
     },
     "badges": {
+      "showAll": "Hemûyan nîşan bide ({{count}})",
+      "showLess": "Kêmtir nîşan bide",
       "title": "Nîşan",
       "earned": "Hatiye stendin",
       "locked": "Girtî",

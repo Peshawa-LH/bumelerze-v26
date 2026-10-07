@@ -218,6 +218,7 @@ describe("My account screen", () => {
 
     it("lists the four requestable ranks as locked, and asks for them via Feedback", async () => {
       await renderWithProviders(<MyDataScreen />);
+      await press("badges-toggle");
       expect(screen.queryByText("Ranks")).toBeNull();
       expect(screen.getByLabelText("Engineer, locked")).toBeTruthy();
       expect(screen.queryByTestId("badge-role-official")).toBeNull();

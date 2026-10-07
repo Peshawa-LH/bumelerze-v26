@@ -23,6 +23,11 @@ const metrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
+/** Opens the rest of the collection (only two rows show until then). */
+async function showAll() {
+  await fireEvent.press(screen.getByTestId("badges-toggle"));
+}
+
 function renderGrid(
   inputs: Partial<BadgeInputs>,
   roles: Parameters<typeof evaluateBadges>[1] = [],
@@ -160,6 +165,7 @@ describe("BadgeGrid: requestable ranks (own account page)", () => {
 
   it("shows the four requestable ranks locked in the same grid, with no separate Ranks heading", async () => {
     await renderGrid({}, [], true);
+    await showAll();
     expect(screen.queryByText("Ranks")).toBeNull();
     for (const role of ["seismologist", "professor", "researcher", "engineer"]) {
       expect(screen.getByTestId(`badge-role-${role}`)).toBeTruthy();
@@ -183,6 +189,7 @@ describe("BadgeGrid: requestable ranks (own account page)", () => {
 
   it("shows a held rank earned and first, with the other three still locked", async () => {
     await renderGrid({}, [{ role: "seismologist", orgName: null }], true);
+    await showAll();
     expect(screen.getAllByRole("button")[0]?.props.testID).toBe(
       "badge-role-seismologist",
     );
@@ -206,6 +213,7 @@ describe("BadgeGrid: requestable ranks (own account page)", () => {
 
   it("the request button closes the sheet and opens Feedback with the badge request and the rank", async () => {
     await renderGrid({}, [], true);
+    await showAll();
     await fireEvent.press(screen.getByTestId("badge-role-professor"));
     await fireEvent.press(screen.getByTestId("badge-sheet-request"));
     expect(mockPush).toHaveBeenCalledWith({
@@ -258,5 +266,50 @@ describe("BadgesSection", () => {
       </SafeAreaProvider>,
     );
     expect(screen.getByTestId("badges-counter").props.children).toBe("1/13");
+  });
+});
+
+describe("BadgeGrid: two rows until Show all", () => {
+  afterEach(cleanup);
+
+  it("shows two rows (10 badges) and a 'Show all (13)' button, then everything, then fewer again", async () => {
+    await renderGrid({}, [], true);
+    expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet)/)).toHaveLength(10);
+    expect(screen.getByText("Show all (13)")).toBeTruthy();
+    expect(screen.queryByTestId("badge-role-engineer")).toBeNull();
+    await showAll();
+    expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet)/)).toHaveLength(13);
+    expect(screen.getByTestId("badge-role-engineer")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Show less"));
+    expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet)/)).toHaveLength(10);
+  });
+
+  it("puts earned badges first so the visible rows show what you have", async () => {
+    await renderGrid({ reports: 1, helpfulReceived: 30 }, [], true);
+    const order = screen
+      .getAllByRole("button")
+      .map((button) => button.props.testID as string)
+      .filter((id) => id.startsWith("badge-") && id !== "badges-toggle");
+    expect(order.slice(0, 3)).toEqual([
+      "badge-first_report",
+      "badge-helpful_5",
+      "badge-helpful_25",
+    ]);
+  });
+
+  it("has no button when everything fits in two rows (e.g. a public profile)", async () => {
+    await renderGrid({ reports: 1 }, [{ role: "engineer", orgName: null }]);
+    expect(screen.queryByTestId("badges-toggle")).toBeNull();
+  });
+
+  it("shows the count in Sorani digits", async () => {
+    await act(async () => {
+      await i18n.changeLanguage("ckb");
+    });
+    await renderGrid({}, [], true);
+    expect(screen.getByText("هەمووی پیشان بدە (١٣)")).toBeTruthy();
+    await act(async () => {
+      await i18n.changeLanguage("en");
+    });
   });
 });

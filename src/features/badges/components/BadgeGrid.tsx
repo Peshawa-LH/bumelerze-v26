@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { localizeDigits } from "@/lib/format-numbers";
@@ -18,17 +18,30 @@ import { BadgeSheet } from "./BadgeSheet";
 /** Badge circle size on the page. */
 export const BADGE_SIZE = 52;
 const COLUMNS = 5;
+/** Rows shown before "Show all" (owner, 2026-10-08: "only show two rows"). */
+export const COLLAPSED_ROWS = 2;
 
-/** The collection: five columns of badges — held ranks first, then the
- * milestones, then the locked ranks the person can ask for — one grid with no
- * separate "Ranks" group (owner, 2026-10-08). Each opens the detail sheet.
+/** The collection: five columns of badges in one grid, earned first (held
+ * ranks, then earned milestones), then the locked ones (milestones, then the
+ * ranks the person can ask for). Only two rows show until "Show all" opens
+ * the rest in place (owner, 2026-10-08). Each badge opens the detail sheet.
  * Cells mirror in RTL with the row direction. */
 export function BadgeGrid({ entries }: { entries: readonly BadgeEntry[] }) {
   const { t, i18n } = useTranslation();
-  const { colors, spacing } = useTheme();
+  const { colors, typography, spacing } = useTheme();
   const router = useRouter();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const selected = entries.find((entry) => entry.key === selectedKey) ?? null;
+  // Earned first, keeping the catalogue order inside each half (a stable
+  // partition, so held ranks stay at the very front).
+  const ordered = [
+    ...entries.filter((entry) => entry.earned),
+    ...entries.filter((entry) => !entry.earned),
+  ];
+  const limit = COLUMNS * COLLAPSED_ROWS;
+  const collapsible = ordered.length > limit;
+  const visible = collapsible && !expanded ? ordered.slice(0, limit) : ordered;
 
   function requestRank(role: HubRoleKind) {
     setSelectedKey(null);
@@ -91,7 +104,25 @@ export function BadgeGrid({ entries }: { entries: readonly BadgeEntry[] }) {
         },
       ]}
     >
-      {entries.map(renderCell)}
+      {visible.map(renderCell)}
+      {collapsible ? (
+        <Pressable
+          testID="badges-toggle"
+          accessibilityRole="button"
+          accessibilityState={{ expanded }}
+          onPress={() => setExpanded((open) => !open)}
+          hitSlop={8}
+          style={[styles.toggle, { paddingTop: spacing[2] }]}
+        >
+          <Text style={[typography.labelButton, { color: colors.text.link }]}>
+            {expanded
+              ? t("myData.badges.showLess")
+              : t("myData.badges.showAll", {
+                  count: localizeDigits(String(ordered.length), i18n.language),
+                })}
+          </Text>
+        </Pressable>
+      ) : null}
       <BadgeSheet
         entry={selected}
         onClose={() => setSelectedKey(null)}
@@ -112,6 +143,12 @@ const styles = StyleSheet.create({
     width: `${100 / COLUMNS}%`,
     alignItems: "center",
     paddingVertical: 6,
+  },
+  toggle: {
+    width: "100%",
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
   press: {
     minWidth: 44,
