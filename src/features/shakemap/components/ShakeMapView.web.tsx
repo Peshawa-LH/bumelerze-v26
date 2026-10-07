@@ -34,7 +34,7 @@ import {
 import { useTheme } from "@/theme";
 import { SHAKEMAP_BAND_FILL_OPACITY } from "../config";
 import { DAMAGE_GRADE_LABELS } from "../damage-ramp";
-import { INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
+import { formatIntensity } from "../intensity-format";
 import { computeContourBoundingBox } from "../projection";
 import { buildStarMarkerSvgMarkup } from "../star-marker";
 import {
@@ -50,7 +50,10 @@ import {
 } from "../web-map";
 import { ShakeMapLayerToggle } from "./ShakeMapLayerToggle";
 import { ShakeMapLegend, type ShakeMapLayer } from "./ShakeMapLegend";
-import { ShakeMapView as ShakeMapViewSvg, type ShakeMapViewProps } from "./ShakeMapViewSvg";
+import {
+  ShakeMapView as ShakeMapViewSvg,
+  type ShakeMapViewProps,
+} from "./ShakeMapViewSvg";
 
 /** Below this measured width the map renders at the shorter (phone)
  * height; at/above it, the taller (wider-layout) height — same threshold
@@ -110,7 +113,7 @@ function heightForWidth(measuredWidth: number): number {
  * real on screen.
  */
 export function ShakeMapView(props: ShakeMapViewProps) {
-  const { contours, epicenter, t, placeText, damageContours } = props;
+  const { contours, epicenter, locale, t, placeText, damageContours } = props;
   const { scheme, colors, typography, spacing } = useTheme();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -177,7 +180,10 @@ export function ShakeMapView(props: ShakeMapViewProps) {
         });
         mapRef.current = map;
 
-        map.addControl(new maplibre.NavigationControl({ showCompass: false }), "top-right");
+        map.addControl(
+          new maplibre.NavigationControl({ showCompass: false }),
+          "top-right",
+        );
         // `compact: true` (unlike the Map tab's `compact: false`): this is
         // a small embedded widget, not a full-screen map — an always-
         // expanded credit line would dominate a 320px-tall box.
@@ -204,25 +210,37 @@ export function ShakeMapView(props: ShakeMapViewProps) {
             type: "geojson",
             data: intensityCollection,
           });
-          map.addLayer({
-            id: SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID,
-            type: "fill",
-            source: SHAKEMAP_WEB_INTENSITY_SOURCE_ID,
-            paint: {
-              "fill-color": buildLevelColorMatchExpression(colors.intensity, 12) as never,
-              "fill-opacity": SHAKEMAP_BAND_FILL_OPACITY,
+          map.addLayer(
+            {
+              id: SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID,
+              type: "fill",
+              source: SHAKEMAP_WEB_INTENSITY_SOURCE_ID,
+              paint: {
+                "fill-color": buildLevelColorMatchExpression(
+                  colors.intensity,
+                  12,
+                ) as never,
+                "fill-opacity": SHAKEMAP_BAND_FILL_OPACITY,
+              },
             },
-          }, bandsBeforeId);
-          map.addLayer({
-            id: SHAKEMAP_WEB_INTENSITY_LINE_LAYER_ID,
-            type: "line",
-            source: SHAKEMAP_WEB_INTENSITY_SOURCE_ID,
-            paint: {
-              "line-color": buildLevelColorMatchExpression(colors.intensity, 12) as never,
-              "line-width": 0.75,
-              "line-opacity": 0.8,
+            bandsBeforeId,
+          );
+          map.addLayer(
+            {
+              id: SHAKEMAP_WEB_INTENSITY_LINE_LAYER_ID,
+              type: "line",
+              source: SHAKEMAP_WEB_INTENSITY_SOURCE_ID,
+              paint: {
+                "line-color": buildLevelColorMatchExpression(
+                  colors.intensity,
+                  12,
+                ) as never,
+                "line-width": 0.75,
+                "line-opacity": 0.8,
+              },
             },
-          }, bandsBeforeId);
+            bandsBeforeId,
+          );
 
           if (hasDamageLayer && damageContours) {
             const damageCollection = buildContourFeatureCollection(damageContours.levels);
@@ -230,27 +248,39 @@ export function ShakeMapView(props: ShakeMapViewProps) {
               type: "geojson",
               data: damageCollection,
             });
-            map.addLayer({
-              id: SHAKEMAP_WEB_DAMAGE_FILL_LAYER_ID,
-              type: "fill",
-              source: SHAKEMAP_WEB_DAMAGE_SOURCE_ID,
-              layout: { visibility: "none" },
-              paint: {
-                "fill-color": buildLevelColorMatchExpression(colors.damageGrade, 5) as never,
-                "fill-opacity": SHAKEMAP_BAND_FILL_OPACITY,
+            map.addLayer(
+              {
+                id: SHAKEMAP_WEB_DAMAGE_FILL_LAYER_ID,
+                type: "fill",
+                source: SHAKEMAP_WEB_DAMAGE_SOURCE_ID,
+                layout: { visibility: "none" },
+                paint: {
+                  "fill-color": buildLevelColorMatchExpression(
+                    colors.damageGrade,
+                    5,
+                  ) as never,
+                  "fill-opacity": SHAKEMAP_BAND_FILL_OPACITY,
+                },
               },
-            }, bandsBeforeId);
-            map.addLayer({
-              id: SHAKEMAP_WEB_DAMAGE_LINE_LAYER_ID,
-              type: "line",
-              source: SHAKEMAP_WEB_DAMAGE_SOURCE_ID,
-              layout: { visibility: "none" },
-              paint: {
-                "line-color": buildLevelColorMatchExpression(colors.damageGrade, 5) as never,
-                "line-width": 0.75,
-                "line-opacity": 0.8,
+              bandsBeforeId,
+            );
+            map.addLayer(
+              {
+                id: SHAKEMAP_WEB_DAMAGE_LINE_LAYER_ID,
+                type: "line",
+                source: SHAKEMAP_WEB_DAMAGE_SOURCE_ID,
+                layout: { visibility: "none" },
+                paint: {
+                  "line-color": buildLevelColorMatchExpression(
+                    colors.damageGrade,
+                    5,
+                  ) as never,
+                  "line-width": 0.75,
+                  "line-opacity": 0.8,
+                },
               },
-            }, bandsBeforeId);
+              bandsBeforeId,
+            );
           }
 
           const markerEl = document.createElement("div");
@@ -332,10 +362,26 @@ export function ShakeMapView(props: ShakeMapViewProps) {
     }
     const intensityVisibility = activeLayer === "intensity" ? "visible" : "none";
     const damageVisibility = activeLayer === "damage" ? "visible" : "none";
-    map.setLayoutProperty(SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID, "visibility", intensityVisibility);
-    map.setLayoutProperty(SHAKEMAP_WEB_INTENSITY_LINE_LAYER_ID, "visibility", intensityVisibility);
-    map.setLayoutProperty(SHAKEMAP_WEB_DAMAGE_FILL_LAYER_ID, "visibility", damageVisibility);
-    map.setLayoutProperty(SHAKEMAP_WEB_DAMAGE_LINE_LAYER_ID, "visibility", damageVisibility);
+    map.setLayoutProperty(
+      SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID,
+      "visibility",
+      intensityVisibility,
+    );
+    map.setLayoutProperty(
+      SHAKEMAP_WEB_INTENSITY_LINE_LAYER_ID,
+      "visibility",
+      intensityVisibility,
+    );
+    map.setLayoutProperty(
+      SHAKEMAP_WEB_DAMAGE_FILL_LAYER_ID,
+      "visibility",
+      damageVisibility,
+    );
+    map.setLayoutProperty(
+      SHAKEMAP_WEB_DAMAGE_LINE_LAYER_ID,
+      "visibility",
+      damageVisibility,
+    );
   }, [activeLayer, hasDamageLayer, loadState]);
 
   // Teardown on unmount.
@@ -359,7 +405,7 @@ export function ShakeMapView(props: ShakeMapViewProps) {
           place: placeText,
         })
       : t("eventDetail.shakemap.mapA11yLabel", {
-          level: highestLevel ? INTENSITY_ROMAN_NUMERALS[highestLevel.level] : "",
+          level: highestLevel ? formatIntensity(highestLevel.level, locale) : "",
           place: placeText,
         });
 
@@ -404,6 +450,7 @@ export function ShakeMapView(props: ShakeMapViewProps) {
 
       <ShakeMapLegend
         layer={activeLayer}
+        locale={locale}
         t={t}
         colors={colors}
         typography={typography}

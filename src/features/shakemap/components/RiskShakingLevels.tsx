@@ -4,7 +4,7 @@ import type { TranslateFn } from "@/features/geo";
 import { formatApproximate } from "@/lib/format-numbers";
 import type { Theme } from "@/theme";
 
-import { INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
+import { formatIntensity } from "../intensity-format";
 import type { RiskPopulationByIntensity } from "../types";
 
 export interface RiskShakingLevelsProps {
@@ -68,7 +68,7 @@ export function RiskShakingLevels({
       </Text>
 
       {rows.map((row) => {
-        const numeral = INTENSITY_ROMAN_NUMERALS[row.degree] ?? String(row.degree);
+        const numeral = formatIntensity(row.degree, locale);
         const value = formatApproximate(row.people, locale, t);
         return (
           <View

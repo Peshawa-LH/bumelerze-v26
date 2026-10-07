@@ -12,6 +12,11 @@ import type { RiskProduct } from "@/features/shakemap/types";
 import { HubImpactSection } from "../components/HubImpactSection";
 import type { HubSummary } from "../types";
 import { buildEvent, EMPTY_SUMMARY } from "../__fixtures__/testing";
+import {
+  collectLabels,
+  collectText,
+  ROMAN_NUMERAL,
+} from "@/features/shakemap/__fixtures__/roman-numerals";
 
 jest.mock("@/features/shakemap/live-queries", () => ({
   ...jest.requireActual("@/features/shakemap/live-queries"),
@@ -172,5 +177,32 @@ describe("HubImpactSection", () => {
     mockRisk(risk());
     await render(<HubImpactSection event={EVENT} summary={FELT_SUMMARY} />);
     expect(screen.queryByText(/casualt|death|killed|injur/i)).toBeNull();
+  });
+
+  describe("intensity numerals follow the language (owner note N15)", () => {
+    afterEach(async () => {
+      cleanup();
+      await i18n.changeLanguage("en");
+    });
+
+    it.each(["ckb", "ar"])("%s: levels are digits, never Roman", async (code) => {
+      await i18n.changeLanguage(code);
+      mockRisk(risk());
+      await render(<HubImpactSection event={EVENT} summary={EMPTY_SUMMARY} />);
+      const tree = screen.toJSON();
+      const texts = [...collectText(tree), ...collectLabels(tree)];
+      expect(texts.filter((text) => ROMAN_NUMERAL.test(text))).toEqual([]);
+      // The chart is still there, so the check above is not vacuous.
+      expect(screen.getByTestId("hub-impact-people")).toBeTruthy();
+    });
+
+    it.each(["en", "kmr"])("%s: levels stay Roman", async (code) => {
+      await i18n.changeLanguage(code);
+      mockRisk(risk());
+      await render(<HubImpactSection event={EVENT} summary={EMPTY_SUMMARY} />);
+      const tree = screen.toJSON();
+      const texts = [...collectText(tree), ...collectLabels(tree)];
+      expect(texts.some((text) => ROMAN_NUMERAL.test(text))).toBe(true);
+    });
   });
 });

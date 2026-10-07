@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { isolateNumeric } from "@/features/events/format";
+import { formatIntensity } from "@/features/shakemap";
 import { useTheme } from "@/theme";
 import {
   expectedDamageTable,
@@ -14,6 +15,7 @@ import {
   rankedTypes,
 } from "../assessment";
 import { displayVcRange, formatPercent, formatPga, formatVs30 } from "../format";
+import { INTENSITY_LEVEL_NUMBER } from "../ims25";
 import { useHome, useHomePhotos } from "../queries";
 import type { HomeTag, StoredAssessment } from "../types";
 import { AccountGate } from "./AccountGate";
@@ -213,7 +215,11 @@ export function Report({
             style={{ gap: spacing[1] }}
             testID={`damage-${intensity}`}
           >
-            <Body>{t(`building.damage.intensity.${intensity}`)}</Body>
+            <Body>
+              {t(`building.damage.intensity.${intensity}`, {
+                level: formatIntensity(INTENSITY_LEVEL_NUMBER[intensity], locale),
+              })}
+            </Body>
             {damage.length === 0 ? (
               <Meta>{t("building.damage.none")}</Meta>
             ) : (

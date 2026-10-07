@@ -20,7 +20,7 @@ import {
   SHAKEMAP_VIEW_WIDTH,
 } from "../config";
 import { DAMAGE_GRADE_LABELS } from "../damage-ramp";
-import { INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
+import { formatIntensity } from "../intensity-format";
 import { layoutCityLabels, type LabelCandidate } from "../label-layout";
 import {
   clipLineToBbox,
@@ -210,7 +210,7 @@ export function ShakeMapView({
           place: placeText,
         })
       : t("eventDetail.shakemap.mapA11yLabel", {
-          level: highestLevel ? INTENSITY_ROMAN_NUMERALS[highestLevel.level] : "",
+          level: highestLevel ? formatIntensity(highestLevel.level, locale) : "",
           place: placeText,
         });
 
@@ -305,7 +305,11 @@ export function ShakeMapView({
                         testID={`shakemap-damage-contour-${level.value}-${ringIndex}`}
                         d={ringPathData(ring, projector)}
                         fillRule="evenodd"
-                        fill={colors.damageGrade[level.level] ?? colors.damageGrade[1] ?? colors.status.warning}
+                        fill={
+                          colors.damageGrade[level.level] ??
+                          colors.damageGrade[1] ??
+                          colors.status.warning
+                        }
                         fillOpacity={SHAKEMAP_BAND_FILL_OPACITY}
                         stroke="none"
                       />
@@ -396,6 +400,7 @@ export function ShakeMapView({
 
       <ShakeMapLegend
         layer={activeLayer}
+        locale={locale}
         t={t}
         colors={colors}
         typography={typography}

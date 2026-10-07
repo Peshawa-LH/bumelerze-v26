@@ -16,6 +16,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import i18n from "@/i18n";
 import damageContoursFixture from "../__fixtures__/us6000jllz/cont_damage.trimmed.json";
 import halabjaContours from "../__fixtures__/us2000bmcg/cont_mi.trimmed.json";
+import { ROMAN_NUMERAL } from "../__fixtures__/roman-numerals";
 import { parseIntensityContours } from "../contours";
 import { parseDamageContours } from "../risk";
 import { SHAKEMAP_BAND_FILL_OPACITY } from "../config";
@@ -57,7 +58,9 @@ class MockMap {
   options: Record<string, unknown>;
   handlers: Record<string, () => void> = {};
   private shouldError: boolean =
-    mockMapErrorQueue.length > 0 ? (mockMapErrorQueue.shift() as boolean) : mockNextMapShouldError;
+    mockMapErrorQueue.length > 0
+      ? (mockMapErrorQueue.shift() as boolean)
+      : mockNextMapShouldError;
 
   constructor(options: Record<string, unknown>) {
     this.options = options;
@@ -145,8 +148,8 @@ class MockAttributionControl {
 // first call inside that `.then()` throw.
 const mockSetWorkerUrl = jest.fn((_url: string) => {});
 const mockGetRTLTextPluginStatus = jest.fn((): string => "unavailable");
-const mockSetRTLTextPlugin = jest.fn(
-  (_url: string, _lazy?: boolean): Promise<void> => Promise.resolve(),
+const mockSetRTLTextPlugin = jest.fn((_url: string, _lazy?: boolean): Promise<void> =>
+  Promise.resolve(),
 );
 
 jest.mock(
@@ -228,13 +231,18 @@ describe("ShakeMapView.web", () => {
   it("adds a compact attribution control and a top-right navigation control", async () => {
     await renderMap();
 
-    expect(mockAttributionControlOptions[0]).toEqual(expect.objectContaining({ compact: true }));
+    expect(mockAttributionControlOptions[0]).toEqual(
+      expect.objectContaining({ compact: true }),
+    );
     expect(mockMapAddControl).toHaveBeenCalledTimes(2);
   });
 
   it("adds one GeoJSON source with one feature per intensity contour ring", async () => {
     const contours = parseIntensityContours(halabjaContours);
-    const totalRings = contours.levels.reduce((sum, level) => sum + level.rings.length, 0);
+    const totalRings = contours.levels.reduce(
+      (sum, level) => sum + level.rings.length,
+      0,
+    );
     await renderMap();
 
     const intensitySourceCall = mockMapAddSource.mock.calls.find(
@@ -251,7 +259,9 @@ describe("ShakeMapView.web", () => {
       ([layer]: [{ id: string }]) => layer.id === SHAKEMAP_WEB_INTENSITY_FILL_LAYER_ID,
     );
     expect(fillLayerCall).toBeTruthy();
-    const [layer] = fillLayerCall as [{ type: string; paint: { "fill-color": unknown[] } }];
+    const [layer] = fillLayerCall as [
+      { type: string; paint: { "fill-color": unknown[] } },
+    ];
     expect(layer.type).toBe("fill");
     expect(layer.paint["fill-color"][0]).toBe("match");
   });
@@ -297,7 +307,10 @@ describe("ShakeMapView.web", () => {
   it("places a star marker at the event's epicenter", async () => {
     await renderMap();
 
-    expect(mockMarkerSetLngLat).toHaveBeenCalledWith([HALABJA_EPICENTER.lon, HALABJA_EPICENTER.lat]);
+    expect(mockMarkerSetLngLat).toHaveBeenCalledWith([
+      HALABJA_EPICENTER.lon,
+      HALABJA_EPICENTER.lat,
+    ]);
     expect(mockMarkerAddTo).toHaveBeenCalledTimes(1);
     const first = mockMarkerConstructorOptions[0];
     expect(first?.element.innerHTML).toContain("<polygon");
@@ -322,6 +335,29 @@ describe("ShakeMapView.web", () => {
     expect(container.props.accessibilityLabel).toContain(
       "12 km SE of Halabja, Kurdistan Region",
     );
+  });
+
+  it.each(["ckb", "ar"])(
+    "describes the top intensity with digits, not Roman numerals, in %s",
+    async (code) => {
+      await i18n.changeLanguage(code);
+      try {
+        await renderMap({ locale: code });
+        const label = screen.getByTestId("shakemap-map-container").props
+          .accessibilityLabel as string;
+        expect(label).toBeTruthy();
+        expect(ROMAN_NUMERAL.test(label)).toBe(false);
+      } finally {
+        await i18n.changeLanguage("en");
+      }
+    },
+  );
+
+  it("keeps Roman numerals in the map description in English", async () => {
+    await renderMap();
+    const label = screen.getByTestId("shakemap-map-container").props
+      .accessibilityLabel as string;
+    expect(ROMAN_NUMERAL.test(label)).toBe(true);
   });
 
   it("falls back to the SVG renderer when loading maplibre-gl itself fails (never a blank box)", async () => {
@@ -406,7 +442,9 @@ describe("ShakeMapView (web): bands sit beneath the basemap's labels", () => {
       SHAKEMAP_WEB_DAMAGE_FILL_LAYER_ID,
       SHAKEMAP_WEB_DAMAGE_LINE_LAYER_ID,
     ]) {
-      const call = mockMapAddLayer.mock.calls.find(([layer]: [{ id: string }]) => layer.id === id);
+      const call = mockMapAddLayer.mock.calls.find(
+        ([layer]: [{ id: string }]) => layer.id === id,
+      );
       expect(call).toBeTruthy();
       expect((call as [unknown, string | undefined])[1]).toBe("place-labels");
     }

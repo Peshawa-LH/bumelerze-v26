@@ -12,10 +12,13 @@ export function mmiValueToLevel(value: number): number {
 }
 
 /** Roman numerals for ramp indices 1..12 (index 0 unused, mirroring the
- * theme ramp's own "index 0 unused" convention) — the legend's display
- * convention for MMI/EMS-98 intensity (USGS ShakeMap legends, EMS-98
- * publications), distinct from the felt-report tier-1 cartoons which show
- * plain localized digits (`LevelTile`) rather than Roman numerals. */
+ * theme ramp's own "index 0 unused" convention) — the English and Kurmanji
+ * display convention for MMI/EMS-98 intensity (USGS ShakeMap legends, EMS-98
+ * publications). DATA for `formatIntensity` (./intensity-format) only: no
+ * screen reads this table directly, because Sorani and Arabic show digits
+ * (owner note N15) and a direct read would print a Roman numeral there. A
+ * test enforces it. Distinct from the felt-report tier-1 cartoons, which
+ * show plain localized digits (`LevelTile`). */
 export const INTENSITY_ROMAN_NUMERALS: readonly string[] = [
   "",
   "I",

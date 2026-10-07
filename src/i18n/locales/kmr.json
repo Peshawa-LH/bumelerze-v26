@@ -911,7 +911,7 @@
       },
       "people": {
         "title": "Mirov li gorî asta hejînê",
-        "caption": "Rêjeya mirovan di asta IV û jortir de"
+        "caption": "Rêjeya mirovan di asta {{level}} û jortir de"
       },
       "level": "Asta {{level}}",
       "note": "Ji SHAKEmap û texmîna zirarê ya Bumelerze — otomatîk, nehatiye kontrolkirin",
@@ -1964,9 +1964,9 @@
     },
     "damage": {
       "intensity": {
-        "VI": "Asta lerizînê VI (xurt)",
-        "VII": "Asta lerizînê VII (pir xurt)",
-        "VIII": "Asta lerizînê VIII (dijwar)"
+        "VI": "Asta lerizînê {{level}} (xurt)",
+        "VII": "Asta lerizînê {{level}} (pir xurt)",
+        "VIII": "Asta lerizînê {{level}} (dijwar)"
       },
       "none": "Zirareke kêm an tune tê çaverêkirin.",
       "few": "Çend avahiyên mîna yê te: {{what}}",

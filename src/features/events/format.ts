@@ -43,7 +43,8 @@ export function formatMagnitudeValue(value: number, locale: string): string {
 // composed by callers with `formatMagnitudeValue`, exactly like the km
 // unit (ui-backlog wave 5 item 2). "پلە" chosen over "ڕێختەر" for
 // scientific correctness (modern magnitudes are Mw, not Richter); when
-// intensity ships it gets a visually distinct label + Roman numerals so
+// intensity ships it gets a visually distinct label + its own numerals
+// (`formatIntensity`: Roman in en/kmr, digits in ckb/ar) so
 // the two "پلە"-like scales can't be confused (D7 education goal).
 // The old `formatMagnitude` (hardcoded "M" prefix) was removed with it.
 

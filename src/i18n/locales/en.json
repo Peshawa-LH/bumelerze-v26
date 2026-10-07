@@ -911,7 +911,7 @@
       },
       "people": {
         "title": "People by shaking level",
-        "caption": "Share of people at level IV and above"
+        "caption": "Share of people at level {{level}} and above"
       },
       "level": "Level {{level}}",
       "note": "From the Bumelerze SHAKEmap and damage estimate — automatic, not reviewed",
@@ -1964,9 +1964,9 @@
     },
     "damage": {
       "intensity": {
-        "VI": "Intensity VI (strong shaking)",
-        "VII": "Intensity VII (very strong shaking)",
-        "VIII": "Intensity VIII (severe shaking)"
+        "VI": "Intensity {{level}} (strong shaking)",
+        "VII": "Intensity {{level}} (very strong shaking)",
+        "VIII": "Intensity {{level}} (severe shaking)"
       },
       "none": "Little or no damage expected.",
       "few": "A few buildings like yours: {{what}}",

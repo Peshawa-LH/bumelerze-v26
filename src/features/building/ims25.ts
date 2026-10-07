@@ -19,6 +19,16 @@ export type DamageQuantity = "few" | "many" | "most";
 export type IntensityLevel = "VI" | "VII" | "VIII";
 export const DAMAGE_INTENSITIES: readonly IntensityLevel[] = ["VI", "VII", "VIII"];
 
+/** The numeric level behind each data key above. The keys stay Roman (they
+ * are the published table's own labels); what the reader sees is printed
+ * from this number by `formatIntensity`, which picks Roman or digits by
+ * language. */
+export const INTENSITY_LEVEL_NUMBER: Record<IntensityLevel, number> = {
+  VI: 6,
+  VII: 7,
+  VIII: 8,
+};
+
 export type StockRegion = "kurdistan" | "iraq";
 export type StockSettlement = "urban" | "rural";
 export type StoreyBand = "1" | "2" | "3" | "4-5" | "6+" | "unknown";

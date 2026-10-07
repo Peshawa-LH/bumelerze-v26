@@ -24,7 +24,12 @@ export {
   type RawRiskProductPayload,
 } from "./risk";
 export { ATLAS_INDEX, ATLAS_EVENT_IDS } from "./atlas";
-export { mmiValueToLevel, INTENSITY_ROMAN_NUMERALS } from "./intensity-ramp";
+export { mmiValueToLevel } from "./intensity-ramp";
+export {
+  formatIntensity,
+  formatIntensityRange,
+  intensityLegendLabels,
+} from "./intensity-format";
 export {
   computeContourBoundingBox,
   createEquirectangularProjector,

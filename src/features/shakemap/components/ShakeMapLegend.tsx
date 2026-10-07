@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import type { TranslateFn } from "@/features/geo";
 import type { Theme } from "@/theme";
 import { DAMAGE_GRADE_LABELS } from "../damage-ramp";
-import { INTENSITY_ROMAN_NUMERALS } from "../intensity-ramp";
+import { intensityLegendLabels } from "../intensity-format";
 
 /** Which contour layer the map is currently painting — a small toggle
  * above the map switches between the two when a damage product exists
@@ -23,6 +23,8 @@ function damageColor(colors: Theme["colors"], level: number): string {
 
 export interface ShakeMapLegendProps {
   layer: ShakeMapLayer;
+  /** Picks Roman numerals (en, kmr) or digits (ckb, ar) for intensity. */
+  locale: string;
   t: TranslateFn;
   colors: Theme["colors"];
   typography: Theme["typography"];
@@ -38,11 +40,19 @@ export interface ShakeMapLegendProps {
  * one shared component, never two copies that could drift.
  *
  * Same "non-mirroring" rule as the map itself (`direction: "ltr"` here is
- * deliberate, not a bug): Roman numerals (intensity) or DG codes (damage)
+ * deliberate, not a bug): intensity numerals (Roman in en and kmr, digits in
+ * ckb and ar) or DG codes (damage)
  * always read left to right regardless of locale, matching how the maps
  * underneath never mirror either.
  */
-export function ShakeMapLegend({ layer, t, colors, typography, spacing }: ShakeMapLegendProps) {
+export function ShakeMapLegend({
+  layer,
+  locale,
+  t,
+  colors,
+  typography,
+  spacing,
+}: ShakeMapLegendProps) {
   return (
     <View style={{ gap: spacing[2] }}>
       <Text
@@ -63,14 +73,22 @@ export function ShakeMapLegend({ layer, t, colors, typography, spacing }: ShakeM
         importantForAccessibility="no-hide-descendants"
       >
         {layer === "intensity"
-          ? INTENSITY_ROMAN_NUMERALS.slice(1).map((numeral, index) => {
-              const level = index + 1;
+          ? intensityLegendLabels(locale).map(({ level, label: numeral }) => {
               return (
                 <View key={level} style={styles.legendItem}>
                   <View
-                    style={[styles.legendSwatch, { backgroundColor: rampColor(colors, level) }]}
+                    style={[
+                      styles.legendSwatch,
+                      { backgroundColor: rampColor(colors, level) },
+                    ]}
                   />
-                  <Text style={{ color: colors.text.secondary, fontSize: 9, fontWeight: "600" }}>
+                  <Text
+                    style={{
+                      color: colors.text.secondary,
+                      fontSize: 9,
+                      fontWeight: "600",
+                    }}
+                  >
                     {numeral}
                   </Text>
                 </View>
@@ -81,9 +99,18 @@ export function ShakeMapLegend({ layer, t, colors, typography, spacing }: ShakeM
               return (
                 <View key={level} style={styles.legendItem}>
                   <View
-                    style={[styles.legendSwatch, { backgroundColor: damageColor(colors, level) }]}
+                    style={[
+                      styles.legendSwatch,
+                      { backgroundColor: damageColor(colors, level) },
+                    ]}
                   />
-                  <Text style={{ color: colors.text.secondary, fontSize: 9, fontWeight: "600" }}>
+                  <Text
+                    style={{
+                      color: colors.text.secondary,
+                      fontSize: 9,
+                      fontWeight: "600",
+                    }}
+                  >
                     {label}
                   </Text>
                 </View>

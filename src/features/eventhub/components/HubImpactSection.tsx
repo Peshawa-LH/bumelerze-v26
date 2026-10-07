@@ -7,7 +7,7 @@ import { isolateNumeric } from "@/features/events";
 import {
   buildDamageSegments,
   damagePercentText,
-  INTENSITY_ROMAN_NUMERALS,
+  formatIntensity,
   LOWEST_DEGREE_SHOWN,
   useResolvedShakeMap,
 } from "@/features/shakemap";
@@ -91,7 +91,7 @@ export function HubImpactSection({ event, summary }: HubImpactSectionProps) {
     value: people,
     color: colors.intensity[degree] ?? colors.status.warning,
     label: t("eventHub.impact.level", {
-      level: INTENSITY_ROMAN_NUMERALS[degree] ?? String(degree),
+      level: formatIntensity(degree, locale),
     }),
   }));
 
@@ -178,7 +178,11 @@ export function HubImpactSection({ event, summary }: HubImpactSectionProps) {
               title={t("eventHub.impact.people.title")}
               centerText={isolateNumeric(formatApproximate(peopleTotal, locale, t))}
             />
-            <Text style={captionStyle}>{t("eventHub.impact.people.caption")}</Text>
+            <Text style={captionStyle}>
+              {t("eventHub.impact.people.caption", {
+                level: formatIntensity(LOWEST_DEGREE_SHOWN, locale),
+              })}
+            </Text>
           </View>
         ) : null}
       </View>

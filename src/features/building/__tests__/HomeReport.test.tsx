@@ -1,6 +1,10 @@
 import { act, cleanup, fireEvent, screen } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
+import {
+  collectText,
+  ROMAN_NUMERAL,
+} from "@/features/shakemap/__fixtures__/roman-numerals";
 import { expectedDamageTable } from "../assessment";
 import { HomeReportScreen } from "../components/HomeReport";
 import {
@@ -151,6 +155,19 @@ describe("Building report", () => {
       screen.getByText("A few buildings like yours: very heavy damage"),
     ).toBeTruthy();
     expect(screen.getByText("Many buildings like yours: slight damage")).toBeTruthy();
+  });
+
+  it.each([
+    ["ckb", "٧"],
+    ["ar", "٧"],
+    ["kmr", "VII"],
+  ])("prints the intensity in %s as %s", async (code, level) => {
+    await i18n.changeLanguage(code);
+    await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+    await screen.findByTestId("report-damage");
+    const texts = collectText(screen.getByTestId("damage-VII").parent);
+    expect(texts.some((text) => text.includes(level))).toBe(true);
+    expect(texts.some((text) => ROMAN_NUMERAL.test(text))).toBe(code === "kmr");
   });
 
   it("says 'little or no damage' for a strong class", async () => {
