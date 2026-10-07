@@ -164,7 +164,7 @@ describe("formatAbsoluteDual", () => {
     expect(utc).toContain("ئاب"); // month 8, Sorani
     expect(utc).toContain("١٥"); // day 15, Eastern Arabic-Indic digits
     expect(utc).toContain("٢٠٢٦"); // year
-    expect(utc).toContain("شەوانە"); // D22: 12:00 UTC is PM → شەوانە, never "PM"
+    expect(utc).toContain("دوای نیوەڕۆ"); // 12:00 UTC is PM → after noon, never "PM" (owner 2026-10-08)
     expect(/[0-9]/.test(utc)).toBe(false); // no stray Latin digits
     // "UTC" itself is a deliberate, un-translated suffix (see format.ts) —
     // strip it before checking the date/time portion is free of stray
@@ -192,7 +192,7 @@ describe("formatAbsoluteDual", () => {
     // (never Intl's dayPeriod — Hermes/ICU has no kmr/ckb data), so kmr
     // pins its own period word too (draft-machine, flagged for review).
     expect(utc).toContain("15 Tebax 2026");
-    expect(utc).toContain("12:00 êvar");
+    expect(utc).toContain("12:00 piştî nîvro");
     expect(utc.endsWith("UTC")).toBe(true);
   });
 

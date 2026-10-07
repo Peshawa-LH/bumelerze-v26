@@ -240,7 +240,8 @@ function hour24AndMinute(
 }
 
 /** Hour:minute + a translated AM/PM-equivalent token (D22 "Kurdish
- * AM/PM": ckb MUST read ڕۆژانە/شەوانە, never Latin "AM"/"PM"). Deliberately
+ * AM/PM": ckb MUST read پێش نیوەڕۆ/دوای نیوەڕۆ — before/after noon, owner
+ * 2026-10-08, replacing ڕۆژانە/شەوانە "by day/at night" — never Latin "AM"/"PM"). Deliberately
  * does NOT read `Intl`'s own `dayPeriod` formatToParts value — same
  * "Hermes/ICU has no real Sorani/Kurmanji data" gap `dateComponents`'s doc
  * comment already documents for month names (confirmed for dayPeriod too:
