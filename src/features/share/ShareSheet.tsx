@@ -303,7 +303,6 @@ export function ShareSheet({ event, shareId, onClose }: ShareSheetProps) {
                 value={caption}
                 onChangeText={setCaption}
                 multiline
-                scrollEnabled={false}
                 style={[
                   typography.bodyDefault,
                   styles.input,
@@ -442,7 +441,7 @@ const styles = StyleSheet.create({
   },
   title: { flex: 1 },
   close: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
-  input: { borderWidth: 1, borderRadius: 12, minHeight: 96, textAlignVertical: "top" },
+  input: { borderWidth: 1, borderRadius: 12, minHeight: 132, textAlignVertical: "top" },
   button: {
     flexDirection: "row",
     alignItems: "center",
