@@ -127,6 +127,14 @@ export function enqueueHomePhotos(tagId: string, photos: readonly DraftPhoto[]):
   return items.length;
 }
 
+/** Forgets the photos still waiting for a home (it was deleted). */
+export function dropQueuedHomePhotos(tagId: string): void {
+  const store = useHomePhotoQueueStore.getState();
+  for (const item of store.items.filter((entry) => entry.tagId === tagId)) {
+    store._remove(item.id);
+  }
+}
+
 let isProcessing = false;
 
 export interface ProcessOptions {

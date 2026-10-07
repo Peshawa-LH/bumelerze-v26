@@ -29,6 +29,10 @@ jest.mock("expo-router", () => ({
   }),
   Stack: Object.assign(() => null, { Screen: () => null }),
 }));
+jest.mock("@/lib/dialogs", () => ({
+  confirmDialog: jest.fn(),
+  messageDialog: jest.fn(),
+}));
 jest.mock("@/lib/supabase", () => ({
   isSupabaseConfigured: () => true,
   getSupabaseClient: () => null,
@@ -266,6 +270,31 @@ describe("Building report", () => {
     expect(await screen.findByTestId("report-photos-uploading")).toBeTruthy();
     expect(screen.getByText("Uploading photos…")).toBeTruthy();
     useHomePhotoQueueStore.getState()._clear();
+  });
+
+  it("the owner finds 'Delete this home' at the foot of the report", async () => {
+    load();
+    await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+    await screen.findByTestId("report-vc");
+    expect(screen.getByTestId("home-delete")).toBeTruthy();
+    expect(screen.getByText("Delete this home")).toBeTruthy();
+  });
+
+  it("the owner also finds it before the questions are answered", async () => {
+    load(null as never);
+    await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+    await screen.findByText("No report yet.");
+    expect(screen.getByTestId("home-delete")).toBeTruthy();
+  });
+
+  it("a family member does not see Delete", async () => {
+    load();
+    mockAccount = { status: "account", userId: "u-2" };
+    mockTransport.fetchMemberships.mockResolvedValue([member("u-2")]);
+    await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+    await screen.findByTestId("report-vc");
+    expect(screen.queryByTestId("home-delete")).toBeNull();
+    expect(screen.queryByText("Delete this home")).toBeNull();
   });
 
   it("invites the questions when there is no assessment yet", async () => {

@@ -14,6 +14,7 @@ import { VULNERABILITY_CLASSES } from "./ims25";
 import {
   HomeError,
   type CreatedHome,
+  type DeleteHomeResult,
   type HomeKind,
   type HomeMember,
   type HomePhoto,
@@ -42,6 +43,10 @@ export interface HomeTransport {
   requestJoin(code: string, key: string): Promise<JoinResult>;
   decideJoin(tagId: string, userId: string, approve: boolean): Promise<void>;
   leave(tagId: string): Promise<void>;
+  /** Owner only (migration 0049). Removes the home's photo files from storage
+   * first (retrying once, and carrying on if some survive), then deletes the
+   * home; answers, report and family links go with it. */
+  deleteHome(tagId: string): Promise<DeleteHomeResult>;
   rotateKey(tagId: string): Promise<string>;
   fetchMemberships(userId: string): Promise<HomeMember[]>;
   fetchTags(tagIds: readonly string[]): Promise<HomeTag[]>;
@@ -384,6 +389,18 @@ export const SupabaseHomeTransport: HomeTransport = {
     }
   },
 
+  async deleteHome(tagId) {
+    const client = requireClient();
+    // Files first: Supabase does not let SQL delete storage objects, and once
+    // the home is gone nobody is a member any more, so nobody could.
+    const photosLeftBehind = await removeHomePhotoFiles(client, tagId);
+    const { error } = await client.rpc("delete_home_tag", { p_tag: tagId });
+    if (error) {
+      throw toHomeError(error);
+    }
+    return { photosLeftBehind };
+  },
+
   async rotateKey(tagId) {
     const client = requireClient();
     const { data, error } = await client.rpc("rotate_join_key", { p_tag: tagId });
@@ -637,6 +654,62 @@ export const SupabaseHomeTransport: HomeTransport = {
 };
 
 const SLOT_ORDER: readonly string[] = PHOTO_SLOTS;
+
+const FILE_LIST_PAGE = 100;
+/** Pages of 100 files; a home holds at most 30 photos, so this is a guard. */
+const FILE_LIST_MAX_PAGES = 5;
+const FILE_REMOVE_BATCH = 50;
+
+/** Runs a storage call, and once more when it came back with an error. */
+async function twice<T extends { error: unknown }>(
+  run: () => PromiseLike<T>,
+): Promise<T> {
+  const first = await run();
+  return first.error ? run() : first;
+}
+
+/**
+ * Removes every file under `<tagId>/` in the private photo bucket, in batches,
+ * retrying each storage call once. Returns true when some files may be left.
+ *
+ * Partial failure does not block the delete: the home must be deletable even
+ * if storage misbehaves. A leftover file is an orphan in a folder no policy
+ * lets anyone read (membership ends with the home); it costs space, not
+ * privacy. A plain network failure while listing does throw instead, since
+ * nothing has changed yet and the owner can simply try again.
+ */
+async function removeHomePhotoFiles(
+  client: SupabaseClient,
+  tagId: string,
+): Promise<boolean> {
+  const bucket = client.storage.from(HOME_PHOTOS_BUCKET);
+  const paths: string[] = [];
+  for (let page = 0; page < FILE_LIST_MAX_PAGES; page += 1) {
+    const { data, error } = await twice(() =>
+      bucket.list(tagId, { limit: FILE_LIST_PAGE, offset: page * FILE_LIST_PAGE }),
+    );
+    if (error) {
+      if (toHomeError(error).code === "network") {
+        throw toHomeError(error);
+      }
+      return true;
+    }
+    const names = (data ?? []).map((file) => file.name);
+    paths.push(...names.map((name) => `${tagId}/${name}`));
+    if (names.length < FILE_LIST_PAGE) {
+      break;
+    }
+  }
+  let leftBehind = false;
+  for (let start = 0; start < paths.length; start += FILE_REMOVE_BATCH) {
+    const batch = paths.slice(start, start + FILE_REMOVE_BATCH);
+    const { data, error } = await twice(() => bucket.remove(batch));
+    if (error || (data && data.length < batch.length)) {
+      leftBehind = true;
+    }
+  }
+  return leftBehind;
+}
 
 const photoMetaSchema = z.object({
   path: z.string(),

@@ -23,6 +23,7 @@ const mockRpc = jest.fn<Promise<Result>, [string, Record<string, unknown>]>();
 const mockGetSession = jest.fn();
 const mockUpload = jest.fn();
 const mockList = jest.fn();
+const mockRemove = jest.fn();
 const mockSign = jest.fn();
 let mockConfigured = true;
 
@@ -56,7 +57,8 @@ const mockClient = {
     from: (bucket: string) => ({
       upload: (path: string, body: unknown, options: unknown) =>
         mockUpload(bucket, path, body, options),
-      list: (folder: string) => mockList(bucket, folder),
+      list: (folder: string, options?: unknown) => mockList(bucket, folder, options),
+      remove: (paths: string[]) => mockRemove(bucket, paths),
       createSignedUrls: (paths: string[], ttl: number) => mockSign(bucket, paths, ttl),
     }),
   },
@@ -83,6 +85,7 @@ beforeEach(() => {
   mockUpload.mockReset();
   mockUpload.mockResolvedValue({ error: null });
   mockList.mockReset();
+  mockRemove.mockReset();
   mockSign.mockReset();
 });
 
@@ -547,6 +550,123 @@ describe("photos", () => {
     mockList.mockResolvedValue({ data: [], error: null });
     await expect(SupabaseHomeTransport.fetchPhotos("t1")).resolves.toEqual([]);
     expect(mockSign).not.toHaveBeenCalled();
+  });
+});
+
+describe("deleteHome", () => {
+  const files = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ name: `f${i}.jpg` }));
+
+  it("removes the photo files, then calls delete_home_tag (migration 0049)", async () => {
+    const order: string[] = [];
+    mockList.mockImplementation(async () => ({ data: files(2), error: null }));
+    mockRemove.mockImplementation(async (_bucket: string, paths: string[]) => {
+      order.push("remove");
+      return { data: paths.map((name) => ({ name })), error: null };
+    });
+    mockRpc.mockImplementation(async () => {
+      order.push("rpc");
+      return { data: null, error: null };
+    });
+    await expect(SupabaseHomeTransport.deleteHome("t1")).resolves.toEqual({
+      photosLeftBehind: false,
+    });
+    expect(order).toEqual(["remove", "rpc"]);
+    expect(mockList).toHaveBeenCalledWith("home-photos", "t1", {
+      limit: 100,
+      offset: 0,
+    });
+    expect(mockRemove).toHaveBeenCalledWith("home-photos", ["t1/f0.jpg", "t1/f1.jpg"]);
+    expect(mockRpc).toHaveBeenCalledWith("delete_home_tag", { p_tag: "t1" });
+  });
+
+  it("removes in batches of 50", async () => {
+    mockList
+      .mockResolvedValueOnce({ data: files(100), error: null })
+      .mockResolvedValueOnce({ data: files(20), error: null });
+    mockRemove.mockImplementation(async (_bucket: string, paths: string[]) => ({
+      data: paths.map((name) => ({ name })),
+      error: null,
+    }));
+    await SupabaseHomeTransport.deleteHome("t1");
+    expect(mockList).toHaveBeenCalledTimes(2);
+    expect(mockRemove.mock.calls.map((call) => (call[1] as string[]).length)).toEqual([
+      50, 50, 20,
+    ]);
+  });
+
+  it("skips storage calls for a home with no files", async () => {
+    mockList.mockResolvedValue({ data: [], error: null });
+    await SupabaseHomeTransport.deleteHome("t1");
+    expect(mockRemove).not.toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalledWith("delete_home_tag", { p_tag: "t1" });
+  });
+
+  it("retries a failed removal once and succeeds", async () => {
+    mockList.mockResolvedValue({ data: files(1), error: null });
+    mockRemove
+      .mockResolvedValueOnce({ data: null, error: { message: "boom" } })
+      .mockResolvedValueOnce({ data: [{ name: "t1/f0.jpg" }], error: null });
+    await expect(SupabaseHomeTransport.deleteHome("t1")).resolves.toEqual({
+      photosLeftBehind: false,
+    });
+    expect(mockRemove).toHaveBeenCalledTimes(2);
+  });
+
+  it("still deletes the home when removal keeps failing, and says files are left", async () => {
+    mockList.mockResolvedValue({ data: files(2), error: null });
+    mockRemove.mockResolvedValue({ data: null, error: { message: "boom" } });
+    await expect(SupabaseHomeTransport.deleteHome("t1")).resolves.toEqual({
+      photosLeftBehind: true,
+    });
+    expect(mockRemove).toHaveBeenCalledTimes(2);
+    expect(mockRpc).toHaveBeenCalledWith("delete_home_tag", { p_tag: "t1" });
+  });
+
+  it("reports files left when storage removes only some of a batch", async () => {
+    mockList.mockResolvedValue({ data: files(3), error: null });
+    mockRemove.mockResolvedValue({ data: [{ name: "t1/f0.jpg" }], error: null });
+    await expect(SupabaseHomeTransport.deleteHome("t1")).resolves.toEqual({
+      photosLeftBehind: true,
+    });
+  });
+
+  it("a listing failure that is not the network does not block the delete", async () => {
+    mockList.mockResolvedValue({ data: null, error: { message: "denied" } });
+    await expect(SupabaseHomeTransport.deleteHome("t1")).resolves.toEqual({
+      photosLeftBehind: true,
+    });
+    expect(mockRpc).toHaveBeenCalledWith("delete_home_tag", { p_tag: "t1" });
+  });
+
+  it("a network failure while listing throws and deletes nothing", async () => {
+    mockList.mockResolvedValue({
+      data: null,
+      error: { message: "Failed to fetch", name: "StorageUnknownError" },
+    });
+    await expect(SupabaseHomeTransport.deleteHome("t1")).rejects.toMatchObject({
+      code: "network",
+    });
+    expect(mockRemove).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
+
+  it("maps a refused delete (not the owner) to a HomeError", async () => {
+    mockList.mockResolvedValue({ data: [], error: null });
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { code: "42501", message: "delete_home_tag: owners only" },
+    });
+    await expect(SupabaseHomeTransport.deleteHome("t1")).rejects.toMatchObject({
+      code: "need_account",
+    });
+  });
+
+  it("needs a configured project", async () => {
+    mockConfigured = false;
+    await expect(SupabaseHomeTransport.deleteHome("t1")).rejects.toMatchObject({
+      code: "unconfigured",
+    });
   });
 });
 

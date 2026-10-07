@@ -7,11 +7,12 @@ import {
 
 import { useAccount } from "@/features/account/use-account";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { useQueuedPhotoCount } from "./photo-queue";
+import { dropQueuedHomePhotos, useQueuedPhotoCount } from "./photo-queue";
 import { saveSurveyAndAssessment } from "./service";
 import type { Answers } from "./questionnaire";
 import { SupabaseHomeTransport, type HomeTransport } from "./transport";
 import type {
+  DeleteHomeResult,
   HomeMember,
   HomePhoto,
   HomeTag,
@@ -260,6 +261,8 @@ export interface HomeActions {
   join: (code: string, key: string) => Promise<JoinResult>;
   decide: (tagId: string, userId: string, approve: boolean) => Promise<void>;
   leave: (tagId: string) => Promise<void>;
+  /** Owner only: deletes the home for everyone (photos, report, family). */
+  deleteHome: (tagId: string) => Promise<DeleteHomeResult>;
   rotateKey: (tagId: string) => Promise<string>;
   retake: (tag: HomeTag, answers: Answers) => Promise<void>;
   /** Re-read everything (after a create). */
@@ -287,6 +290,23 @@ export function useHomeActions(
     mutationFn: (tagId: string) => transport.leave(tagId),
     onSuccess: () => refreshHomes(queryClient),
   });
+  const deleteHome = useMutation({
+    mutationFn: (tagId: string) => transport.deleteHome(tagId),
+    onSuccess: (_result, tagId) => {
+      dropQueuedHomePhotos(tagId);
+      // The home's own queries would only fail now: drop them rather than
+      // refetch, then re-read the rest (the My home card goes empty).
+      queryClient.removeQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "home" &&
+          query.queryKey.length > 3 &&
+          query.queryKey[3] === tagId,
+      });
+      // The server-side "family linked" count can change with it.
+      void queryClient.invalidateQueries({ queryKey: ["account", "stats"] });
+      return refreshHomes(queryClient);
+    },
+  });
   const rotate = useMutation({
     mutationFn: (tagId: string) => transport.rotateKey(tagId),
     onSuccess: () => refreshHomes(queryClient),
@@ -304,6 +324,7 @@ export function useHomeActions(
     join: (code, key) => join.mutateAsync({ code, key }),
     decide: (tagId, userId, approve) => decide.mutateAsync({ tagId, userId, approve }),
     leave: (tagId) => leave.mutateAsync(tagId),
+    deleteHome: (tagId) => deleteHome.mutateAsync(tagId),
     rotateKey: (tagId) => rotate.mutateAsync(tagId),
     retake: (tag, answers) => retake.mutateAsync({ tag, answers }),
     refresh: () => refreshHomes(queryClient),

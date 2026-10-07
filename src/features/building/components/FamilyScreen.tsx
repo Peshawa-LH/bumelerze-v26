@@ -13,6 +13,7 @@ import { homeErrorText } from "../error-text";
 import { useFamily, useHome, useHomeActions } from "../queries";
 import type { HomeMember } from "../types";
 import { AccountGate } from "./AccountGate";
+import { DeleteHomeButton } from "./DeleteHomeButton";
 import { JoinQr } from "./JoinQr";
 import { Body, Card, ErrorText, Heading, Meta, ScreenFrame } from "./ui";
 
@@ -205,20 +206,14 @@ export function Family({
       {note ? <Meta>{note}</Meta> : null}
       {error ? <ErrorText>{error}</ErrorText> : null}
 
-      {confirmingLeave ? (
+      {isOwner ? (
+        <DeleteHomeButton tagId={tagId} />
+      ) : confirmingLeave ? (
         <Card testID="family-leave-confirm">
-          <Body>
-            {isOwner
-              ? t("building.family.closeWarning")
-              : t("building.family.leaveWarning")}
-          </Body>
+          <Body>{t("building.family.leaveWarning")}</Body>
           <AccountButton
             tone="destructiveSolid"
-            label={
-              isOwner
-                ? t("building.family.closeConfirm")
-                : t("building.family.leaveConfirm")
-            }
+            label={t("building.family.leaveConfirm")}
             onPress={() =>
               void run(async () => {
                 await actions.leave(tagId);
@@ -238,7 +233,7 @@ export function Family({
       ) : (
         <AccountButton
           tone="destructive"
-          label={isOwner ? t("building.family.close") : t("building.family.leave")}
+          label={t("building.family.leave")}
           onPress={() => setConfirmingLeave(true)}
           testID="family-leave"
         />

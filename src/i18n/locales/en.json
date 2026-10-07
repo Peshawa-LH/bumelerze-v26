@@ -2068,6 +2068,14 @@
         "3": "Never add floors or remove walls without an engineer."
       }
     },
+    "delete": {
+      "action": "Delete this home",
+      "title": "Delete this home?",
+      "warning": "The answers, report, photos and family links are removed for everyone. This can't be undone.",
+      "confirm": "Delete",
+      "doneTitle": "Home deleted",
+      "photosLeft": "Some photos could not be removed from our servers. No one can see them."
+    },
     "family": {
       "title": "Family",
       "shareTitle": "Share this home",
@@ -2090,9 +2098,6 @@
       "leave": "Leave this home",
       "leaveWarning": "You will no longer see this home or its report.",
       "leaveConfirm": "Leave",
-      "close": "Close this home",
-      "closeWarning": "This closes the home for everyone. Its report is no longer shown.",
-      "closeConfirm": "Close home",
       "cancel": "Cancel",
       "qrLabel": "QR code to join this home"
     },

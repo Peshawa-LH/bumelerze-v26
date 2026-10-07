@@ -2068,6 +2068,14 @@
         "3": "Bê endazyar tu carî qat zêde neke û dîwaran rake."
       }
     },
+    "delete": {
+      "action": "Vê malê jê bibe",
+      "title": "Ev mal bê jêbirin?",
+      "warning": "Bersiv, rapor, wêne û girêdanên malbatê ji bo hemûyan têne jêbirin. Ev nayê paşvegerandin.",
+      "confirm": "Jê bibe",
+      "doneTitle": "Mal hate jêbirin",
+      "photosLeft": "Hin wêne ji pêşkêşkerên me nehatin jêbirin. Kes nikare wan bibîne."
+    },
     "family": {
       "title": "Malbat",
       "shareTitle": "Vê malê parve bike",
@@ -2090,9 +2098,6 @@
       "leave": "Ji vê malê derkeve",
       "leaveWarning": "Êdî tu yê vê malê û raporê wê nebînî.",
       "leaveConfirm": "Derkeve",
-      "close": "Vê malê bigire",
-      "closeWarning": "Ev mal ji bo hemûyan tê girtin. Rapor êdî nayê nîşandan.",
-      "closeConfirm": "Malê bigire",
       "cancel": "Betal bike",
       "qrLabel": "Koda QR ji bo tevlîbûna vê malê"
     },

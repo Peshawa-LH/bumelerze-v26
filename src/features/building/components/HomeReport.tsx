@@ -20,6 +20,7 @@ import { useQueuedPhotoCount } from "../photo-queue";
 import { useHome, useHomePhotos } from "../queries";
 import type { HomePhoto, HomeTag, StoredAssessment } from "../types";
 import { AccountGate } from "./AccountGate";
+import { DeleteHomeButton } from "./DeleteHomeButton";
 import { Body, Card, Heading, Meta, ScreenFrame } from "./ui";
 import { VcBadge } from "./VcBadge";
 
@@ -67,6 +68,7 @@ function ReportBody({ tagId }: { tagId: string | undefined }) {
       assessment={home.data.assessment}
       photos={photos}
       tagId={tagId}
+      isOwner={home.data.role === "owner"}
     />
   );
 }
@@ -76,11 +78,14 @@ export function Report({
   assessment,
   photos,
   tagId,
+  isOwner = false,
 }: {
   tag: HomeTag;
   assessment: StoredAssessment | null;
   photos: HomePhoto[];
   tagId: string;
+  /** Owners also get "Delete this home" at the foot of the page. */
+  isOwner?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -121,6 +126,7 @@ export function Report({
         {header}
         <Body tone="secondary">{t("building.report.noReport")}</Body>
         {actions}
+        {isOwner ? <DeleteHomeButton tagId={tagId} /> : null}
       </View>
     );
   }
@@ -293,6 +299,7 @@ export function Report({
           : t("building.report.automatic")}
       </Meta>
       {actions}
+      {isOwner ? <DeleteHomeButton tagId={tagId} /> : null}
     </View>
   );
 }

@@ -72,6 +72,13 @@ export interface CreatedHome {
   joinKey: string;
 }
 
+/** What `deleteHome` reports once the home is gone. */
+export interface DeleteHomeResult {
+  /** True when some photo files could not be removed from storage. They sit
+   * in a folder nobody can read any more (membership is gone with the home). */
+  photosLeftBehind: boolean;
+}
+
 export interface JoinResult {
   tagId: string;
   status: MemberStatus;

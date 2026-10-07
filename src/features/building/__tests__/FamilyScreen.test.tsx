@@ -33,6 +33,12 @@ jest.mock("react-native-qrcode-svg", () => ({
     return <View testID="qr-code" {...{ value }} />;
   },
 }));
+const mockConfirm = jest.fn();
+const mockMessage = jest.fn();
+jest.mock("@/lib/dialogs", () => ({
+  confirmDialog: (options: unknown) => mockConfirm(options),
+  messageDialog: (title: string, message: string) => mockMessage(title, message),
+}));
 jest.mock("expo-clipboard", () => ({
   setStringAsync: jest.fn().mockResolvedValue(true),
 }));
@@ -188,25 +194,58 @@ describe("Family screen", () => {
       ).toBeTruthy();
     });
 
-    it("closing the home asks first, then archives it and returns to My account", async () => {
+    it("owners get 'Delete this home', not 'Leave' or 'Close'", async () => {
       await renderWithProviders(<FamilyScreen tagId="tag-1" />);
       await screen.findByText(/ABCD2345/);
-      expect(screen.getByText("Close this home")).toBeTruthy();
-      await press("family-leave");
-      expect(screen.getByText(/closes the home for everyone/)).toBeTruthy();
-      expect(mockTransport.leave).not.toHaveBeenCalled();
-      await press("family-leave-yes");
-      expect(mockTransport.leave).toHaveBeenCalledWith("tag-1");
-      expect(mockReplace).toHaveBeenCalledWith("/my-data");
+      expect(screen.getByText("Delete this home")).toBeTruthy();
+      expect(screen.getByTestId("home-delete")).toBeTruthy();
+      expect(screen.queryByTestId("family-leave")).toBeNull();
+      expect(screen.queryByText("Close this home")).toBeNull();
     });
 
-    it("cancelling the confirmation keeps the home", async () => {
+    it("deleting asks first (destructive), then deletes and returns to My account", async () => {
       await renderWithProviders(<FamilyScreen tagId="tag-1" />);
       await screen.findByText(/ABCD2345/);
-      await press("family-leave");
-      await press("family-leave-no");
+      await press("home-delete");
+      expect(mockConfirm).toHaveBeenCalledTimes(1);
+      const options = mockConfirm.mock.calls[0]?.[0] as {
+        destructive: boolean;
+        message: string;
+        onConfirm: () => void;
+      };
+      expect(options.destructive).toBe(true);
+      expect(options.message).toMatch(/answers, report, photos and family links/);
+      expect(options.message).toMatch(/for everyone/);
+      expect(options.message).toMatch(/can't be undone/);
+      expect(mockTransport.deleteHome).not.toHaveBeenCalled();
+      await act(async () => {
+        options.onConfirm();
+      });
+      expect(mockTransport.deleteHome).toHaveBeenCalledWith("tag-1");
+      expect(mockReplace).toHaveBeenCalledWith("/my-data");
       expect(mockTransport.leave).not.toHaveBeenCalled();
-      expect(screen.getByTestId("family-leave")).toBeTruthy();
+    });
+
+    it("pressing Delete only asks; nothing is deleted until the dialog is confirmed", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      await press("home-delete");
+      // the dialog was dismissed: onConfirm is never called
+      expect(mockTransport.deleteHome).not.toHaveBeenCalled();
+      expect(mockReplace).not.toHaveBeenCalled();
+      expect(screen.getByTestId("home-delete")).toBeTruthy();
+    });
+
+    it("a failed delete shows the short error and stays on the screen", async () => {
+      mockTransport.deleteHome.mockRejectedValueOnce(new HomeError("network"));
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      await press("home-delete");
+      await act(async () => {
+        (mockConfirm.mock.calls[0]?.[0] as { onConfirm: () => void }).onConfirm();
+      });
+      expect(await screen.findByText("No connection. Try again.")).toBeTruthy();
+      expect(mockReplace).not.toHaveBeenCalled();
     });
 
     it("shows a short message when a decision fails", async () => {
@@ -231,6 +270,8 @@ describe("Family screen", () => {
       expect(screen.queryByText(/ABCD2345/)).toBeNull();
       expect(mockTransport.fetchJoinKey).not.toHaveBeenCalled();
       expect(screen.getByText("Leave this home")).toBeTruthy();
+      expect(screen.queryByTestId("home-delete")).toBeNull();
+      expect(screen.queryByText("Delete this home")).toBeNull();
     });
 
     it("leaving asks first, then leaves", async () => {
