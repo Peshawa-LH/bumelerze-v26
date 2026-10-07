@@ -44,6 +44,11 @@ function logoColorHex(key: string): string {
 const signalRed = logoColorHex("signal-red");
 const approvedNavy = logoColorHex("approved-navy");
 
+// One sentence for the camera permission, shared by expo-image-picker (photos)
+// and expo-camera (QR scan): the OS shows it in English only.
+const cameraPermissionText =
+  "Bumelerze uses the camera so you can add photos of earthquake damage or of your building to a report, and scan a family invite QR code.";
+
 const config: ExpoConfig = {
   name: "Bumelerze",
   slug: "bumelerze",
@@ -165,13 +170,24 @@ const config: ExpoConfig = {
       // camera and photo-library permission strings are needed since the
       // picker offers both entry points. These strings are the iOS
       // NSCameraUsageDescription / NSPhotoLibraryUsageDescription; the OS
-      // shows them in English only, so they cover both uses in one sentence.
+      // shows them in English only, so they cover every use in one sentence.
       "expo-image-picker",
       {
         photosPermission:
           "Bumelerze uses your photos so you can add pictures of earthquake damage or of your building to a report.",
-        cameraPermission:
-          "Bumelerze uses the camera so you can add photos of earthquake damage or of your building to a report.",
+        cameraPermission: cameraPermissionText,
+      },
+    ],
+    [
+      // Scanning the family QR code on "Join a home" (Tag my building).
+      // Same NSCameraUsageDescription as the picker above, so both plugins
+      // carry one shared sentence. No microphone: the camera is used only to
+      // read a QR code.
+      "expo-camera",
+      {
+        cameraPermission: cameraPermissionText,
+        microphonePermission: false,
+        recordAudioAndroid: false,
       },
     ],
   ],

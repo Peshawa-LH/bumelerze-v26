@@ -1,38 +1,85 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { useTheme } from "@/theme";
-import { CODE_PATTERN, KEY_PATTERN, normalizeCode, normalizeKey } from "../constants";
+import {
+  CODE_PATTERN,
+  KEY_PATTERN,
+  normalizeCode,
+  normalizeKey,
+  parseJoinLink,
+} from "../constants";
 import { homeErrorText } from "../error-text";
 import { useHomeActions } from "../queries";
 import { AccountGate } from "./AccountGate";
+import { QrScanner, canScanQr } from "./QrScanner";
 import { Body, Card, ErrorText, Heading, ScreenFrame, TextField } from "./ui";
 
 export function JoinScreen() {
   const { t } = useTranslation();
+  const params = useLocalSearchParams<{
+    code?: string | string[];
+    key?: string | string[];
+  }>();
+  const linkCode = paramText(params.code);
+  const linkKey = paramText(params.key);
   return (
     <ScreenFrame title={t("building.join.title")}>
       <AccountGate>
-        <JoinForm />
+        {/* A new link opened while this screen shows starts the form afresh. */}
+        <JoinForm
+          key={`${linkCode}|${linkKey}`}
+          initialCode={linkCode}
+          initialKey={linkKey}
+        />
       </AccountGate>
     </ScreenFrame>
   );
 }
 
-/** Code + key of someone else's home. The request waits for the owner. */
-export function JoinForm() {
+/** The first value of a route param (a repeated param arrives as an array). */
+function paramText(value: string | string[] | undefined): string {
+  return (Array.isArray(value) ? value[0] : value) ?? "";
+}
+
+/**
+ * Code + key of someone else's home. The request waits for the owner. The
+ * fields can be filled by typing, by scanning the family's QR code, or by
+ * opening the invite link (`/home/join?code=...&key=...`), which pre-fills them
+ * but never sends the request: the person taps "Ask to join".
+ */
+export function JoinForm({
+  initialCode = "",
+  initialKey = "",
+}: {
+  initialCode?: string;
+  initialKey?: string;
+}) {
   const { t } = useTranslation();
   const { spacing } = useTheme();
   const router = useRouter();
   const actions = useHomeActions();
-  const [code, setCode] = useState("");
-  const [key, setKey] = useState("");
+  const [code, setCode] = useState(initialCode);
+  const [key, setKey] = useState(initialKey);
+  const [scanning, setScanning] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
+
+  function onScanned(text: string) {
+    setScanning(false);
+    const parsed = parseJoinLink(text);
+    if (parsed) {
+      setError(null);
+      setCode(parsed.code);
+      setKey(parsed.key);
+    } else {
+      setError(t("building.join.scan.notInvite"));
+    }
+  }
 
   const valid =
     CODE_PATTERN.test(normalizeCode(code)) && KEY_PATTERN.test(normalizeKey(key));
@@ -71,9 +118,23 @@ export function JoinForm() {
     );
   }
 
+  if (scanning) {
+    return <QrScanner onScan={onScanned} onCancel={() => setScanning(false)} />;
+  }
+
   return (
     <View style={{ gap: spacing[4] }}>
       <Body tone="secondary">{t("building.join.intro")}</Body>
+      {canScanQr() ? (
+        <AccountButton
+          label={t("building.join.scan.button")}
+          onPress={() => {
+            setError(null);
+            setScanning(true);
+          }}
+          testID="join-scan"
+        />
+      ) : null}
       <TextField
         label={t("building.join.codeLabel")}
         placeholder="BMH-XXXXXX"

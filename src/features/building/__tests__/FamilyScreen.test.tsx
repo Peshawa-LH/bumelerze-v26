@@ -14,6 +14,7 @@ import {
   resetMockTransport,
 } from "../__fixtures__/testing";
 
+const LINK = "https://bumelerze.com/app/home/join?code=BMH-7K3Q9P&key=ABCD2345";
 const mockReplace = jest.fn();
 jest.mock("expo-router", () => ({
   useRouter: () => ({
@@ -23,6 +24,14 @@ jest.mock("expo-router", () => ({
     canGoBack: () => true,
   }),
   Stack: Object.assign(() => null, { Screen: () => null }),
+}));
+jest.mock("react-native-qrcode-svg", () => ({
+  __esModule: true,
+  default: ({ value }: { value: string }) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require inside a jest.mock factory
+    const { View } = require("react-native");
+    return <View testID="qr-code" {...{ value }} />;
+  },
 }));
 jest.mock("expo-clipboard", () => ({
   setStringAsync: jest.fn().mockResolvedValue(true),
@@ -115,7 +124,27 @@ describe("Family screen", () => {
       expect(mockTransport.decideJoin).toHaveBeenCalledWith("tag-1", "u-3", false);
     });
 
-    it("shares the code and key with the system share sheet", async () => {
+    it("shows a QR code of the join link: code and key, never the location", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      const qr = screen.getByTestId("qr-code");
+      expect(qr.props.value).toBe(LINK);
+      expect(qr.props.value).not.toMatch(/36\.19|44\.01|lat|lon/i);
+      expect(screen.getByLabelText("QR code to join this home")).toBeTruthy();
+      expect(screen.getByText("Share invite")).toBeTruthy();
+    });
+
+    it("a new key changes the QR code, so old QR codes stop working", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText(/ABCD2345/);
+      await press("family-new-key");
+      await screen.findByText(/NEWKEY99/);
+      expect(screen.getByTestId("qr-code").props.value).toBe(
+        "https://bumelerze.com/app/home/join?code=BMH-7K3Q9P&key=NEWKEY99",
+      );
+    });
+
+    it("shares the invite link with the system share sheet", async () => {
       const share = jest
         .spyOn(Share, "share")
         .mockResolvedValue({ action: "sharedAction" });
@@ -123,7 +152,7 @@ describe("Family screen", () => {
       await screen.findByText(/ABCD2345/);
       await press("family-share-button");
       expect(share).toHaveBeenCalledWith({
-        message: "Join my home on Bumelerze. Code: BMH-7K3Q9P Key: ABCD2345",
+        message: `Join my home on Bumelerze:\n${LINK}`,
       });
     });
 
@@ -133,7 +162,7 @@ describe("Family screen", () => {
       await screen.findByText(/ABCD2345/);
       await press("family-share-button");
       expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
-        "Join my home on Bumelerze. Code: BMH-7K3Q9P Key: ABCD2345",
+        `Join my home on Bumelerze:\n${LINK}`,
       );
       expect(await screen.findByText("Copied.")).toBeTruthy();
     });
@@ -143,7 +172,7 @@ describe("Family screen", () => {
       await screen.findByText(/ABCD2345/);
       await press("family-copy");
       expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
-        "Join my home on Bumelerze. Code: BMH-7K3Q9P Key: ABCD2345",
+        `Join my home on Bumelerze:\n${LINK}`,
       );
     });
 
@@ -197,6 +226,7 @@ describe("Family screen", () => {
       expect(await screen.findByText("Karwan (you)")).toBeTruthy();
       expect(screen.getByText("Shilan")).toBeTruthy();
       expect(screen.queryByTestId("family-share")).toBeNull();
+      expect(screen.queryByTestId("qr-code")).toBeNull();
       expect(screen.queryByTestId("family-pending")).toBeNull();
       expect(screen.queryByText(/ABCD2345/)).toBeNull();
       expect(mockTransport.fetchJoinKey).not.toHaveBeenCalled();

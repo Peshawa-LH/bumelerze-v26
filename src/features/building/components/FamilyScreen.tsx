@@ -8,10 +8,12 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { useAccount } from "@/features/account/use-account";
 import { isolateNumeric } from "@/features/events/format";
 import { useTheme } from "@/theme";
+import { buildJoinLink } from "../constants";
 import { homeErrorText } from "../error-text";
 import { useFamily, useHome, useHomeActions } from "../queries";
 import type { HomeMember } from "../types";
 import { AccountGate } from "./AccountGate";
+import { JoinQr } from "./JoinQr";
 import { Body, Card, ErrorText, Heading, Meta, ScreenFrame } from "./ui";
 
 export function FamilyScreen({ tagId }: { tagId: string | undefined }) {
@@ -86,9 +88,9 @@ export function Family({
     }
   }
 
-  const shareText = joinKey
-    ? t("building.family.shareMessage", { code, key: joinKey })
-    : "";
+  // The QR and the shared message carry the same link: code and key only.
+  const joinLink = joinKey ? buildJoinLink(code, joinKey) : null;
+  const shareText = joinLink ? t("building.family.shareMessage", { link: joinLink }) : "";
 
   async function share() {
     await run(async () => {
@@ -122,6 +124,7 @@ export function Family({
         <Card testID="family-share">
           <Heading level={3}>{t("building.family.shareTitle")}</Heading>
           <Meta>{t("building.family.shareHint")}</Meta>
+          {joinLink ? <JoinQr value={joinLink} /> : null}
           <Meta>{t("building.report.codeLabel")}</Meta>
           <Heading level={2}>{isolateNumeric(code)}</Heading>
           <Meta>{t("building.family.keyLabel")}</Meta>

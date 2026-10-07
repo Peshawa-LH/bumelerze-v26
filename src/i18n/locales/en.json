@@ -2001,15 +2001,15 @@
     "family": {
       "title": "Family",
       "shareTitle": "Share this home",
-      "shareHint": "Give the code and key to family only. They ask to join and you approve.",
+      "shareHint": "Show the QR code or send the invite to family only. They ask to join and you approve.",
       "keyLabel": "Secret key",
-      "share": "Share",
-      "copy": "Copy",
+      "share": "Share invite",
+      "copy": "Copy link",
       "copied": "Copied.",
       "newKey": "New key",
       "newKeyDone": "New key created. The old key no longer works.",
       "newKeyHint": "A new key stops the old one working.",
-      "shareMessage": "Join my home on Bumelerze. Code: {{code}} Key: {{key}}",
+      "shareMessage": "Join my home on Bumelerze:\n{{link}}",
       "pendingTitle": "Waiting for approval",
       "approve": "Approve",
       "decline": "Decline",
@@ -2023,18 +2023,29 @@
       "close": "Close this home",
       "closeWarning": "This closes the home for everyone. Its report is no longer shown.",
       "closeConfirm": "Close home",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "qrLabel": "QR code to join this home"
     },
     "join": {
       "title": "Join a home",
-      "intro": "Ask the owner for the code and secret key and enter them here.",
+      "intro": "Scan the owner's QR code, or type the code and secret key.",
       "codeLabel": "Home code",
       "keyLabel": "Secret key",
       "request": "Ask to join",
       "sending": "Sending…",
       "waitingTitle": "Request sent",
       "waiting": "Waiting for the owner to approve.",
-      "done": "Done"
+      "done": "Done",
+      "scan": {
+        "button": "Scan a code",
+        "hint": "Point the camera at the QR code.",
+        "cancel": "Cancel",
+        "permission": "Allow the camera to scan the QR code.",
+        "allow": "Allow camera",
+        "failed": "The camera could not be opened. Type the code instead.",
+        "notInvite": "This is not a Bumelerze home invite.",
+        "cameraLabel": "Camera for scanning the code"
+      }
     },
     "errors": {
       "unconfigured": "Not available right now.",

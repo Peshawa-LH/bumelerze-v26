@@ -7,6 +7,8 @@ export const HOME_PHOTO_MAX_BYTES = 3_145_728;
 export const LABEL_MAX = 60;
 /** `home_tags.unit_label` check: at most 40 characters. */
 export const UNIT_LABEL_MAX = 40;
+/** The join link carries the code and the key and nothing else (never the location). */
+export const JOIN_LINK_BASE = "https://bumelerze.com/app/home/join";
 /** `create_home_tag` refuses a sixth active home per account. */
 export const MAX_HOMES_PER_ACCOUNT = 5;
 /** `request_join_home` allows this many tries per hour. */
@@ -43,4 +45,25 @@ export function isValidCode(value: string): boolean {
 
 export function isValidKey(value: string): boolean {
   return KEY_PATTERN.test(normalizeKey(value));
+}
+
+/** The link the family QR code carries: the home code and the join key, which
+ * is what a person would otherwise type. Never the location. */
+export function buildJoinLink(code: string, key: string): string {
+  return `${JOIN_LINK_BASE}?code=${encodeURIComponent(code)}&key=${encodeURIComponent(key)}`;
+}
+
+/** Reads a scanned QR text (or a pasted link) back into a code and key.
+ * Accepts the web link and the app-scheme link; null for anything else or
+ * when the code or key has the wrong shape. */
+export function parseJoinLink(text: string): { code: string; key: string } | null {
+  const trimmed = text.trim();
+  const query = trimmed.includes("?") ? trimmed.slice(trimmed.indexOf("?") + 1) : "";
+  if (!/\/home\/join\/?\?/.test(trimmed) || !query) {
+    return null;
+  }
+  const params = new URLSearchParams(query.split("#")[0]);
+  const code = normalizeCode(params.get("code") ?? "");
+  const key = normalizeKey(params.get("key") ?? "");
+  return CODE_PATTERN.test(code) && KEY_PATTERN.test(key) ? { code, key } : null;
 }

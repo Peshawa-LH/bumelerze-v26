@@ -2001,15 +2001,15 @@
     "family": {
       "title": "Malbat",
       "shareTitle": "Vê malê parve bike",
-      "shareHint": "Kod û mifteyê tenê bide malbata xwe. Ew daxwaza tevlîbûnê dikin û tu erê dikî.",
+      "shareHint": "Koda QR nîşan bide an vexwendinê tenê ji malbata xwe re bişîne. Ew daxwaza tevlîbûnê dikin û tu erê dikî.",
       "keyLabel": "Mifteya nepenî",
-      "share": "Parve bike",
-      "copy": "Kopî bike",
+      "share": "Vexwendinê parve bike",
+      "copy": "Lînkê kopî bike",
       "copied": "Hate kopîkirin.",
       "newKey": "Mifteya nû",
       "newKeyDone": "Mifteya nû hate çêkirin. Mifteya kevn êdî nexebite.",
       "newKeyHint": "Mifteya nû mifteya kevn betal dike.",
-      "shareMessage": "Li Bumelerzeyê tevlî mala min bibe. Kod: {{code}} Mifte: {{key}}",
+      "shareMessage": "Li Bumelerzeyê tevlî mala min bibe:\n{{link}}",
       "pendingTitle": "Li benda erêkirinê",
       "approve": "Erê bike",
       "decline": "Red bike",
@@ -2023,18 +2023,29 @@
       "close": "Vê malê bigire",
       "closeWarning": "Ev mal ji bo hemûyan tê girtin. Rapor êdî nayê nîşandan.",
       "closeConfirm": "Malê bigire",
-      "cancel": "Betal bike"
+      "cancel": "Betal bike",
+      "qrLabel": "Koda QR ji bo tevlîbûna vê malê"
     },
     "join": {
       "title": "Tevlî malekê bibe",
-      "intro": "Kod û mifteya nepenî ji xwediyê malê bistîne û li vir binivîse.",
+      "intro": "Koda QR ya xwediyê malê skan bike, an kod û mifteya nepenî binivîse.",
       "codeLabel": "Koda malê",
       "keyLabel": "Mifteya nepenî",
       "request": "Daxwaza tevlîbûnê bike",
       "sending": "Tê şandin…",
       "waitingTitle": "Daxwaz hate şandin",
       "waiting": "Li benda erêkirina xwediyê malê ye.",
-      "done": "Temam"
+      "done": "Temam",
+      "scan": {
+        "button": "Kodekê skan bike",
+        "hint": "Kamerayê li koda QR bigire.",
+        "cancel": "Betal bike",
+        "permission": "Ji bo skankirina koda QR destûrê bide kamerayê.",
+        "allow": "Destûrê bide kamerayê",
+        "failed": "Kamera nehat vekirin. Li şûna wê kodê binivîse.",
+        "notInvite": "Ev vexwendina malekê ya Bumelerzeyê nîne.",
+        "cameraLabel": "Kamera ji bo skankirina kodê"
+      }
     },
     "errors": {
       "unconfigured": "Niha ne berdest e.",
