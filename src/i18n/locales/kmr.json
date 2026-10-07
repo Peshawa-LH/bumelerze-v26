@@ -884,7 +884,13 @@
       "approve": "Bipejirîne",
       "hide": "Veşêre",
       "actionError": "Neçû serî. Dîsa biceribîne.",
-      "replies": "Bersiv"
+      "replies": "Bersiv",
+      "removed": "Şîrove hate rakirin",
+      "remove": "Rake",
+      "removeReasonTitle": "Çima tê rakirin?",
+      "removeConfirmTitle": "Ev şîrove were rakirin?",
+      "removeConfirmMessage": "Nivîsa wê ji bo hemûyan tê jêbirin. Bersiv dimînin.",
+      "following": "Dişopînî"
     },
     "reasons": {
       "spam": "Spam",
@@ -897,7 +903,10 @@
       "official": "Bumelerze",
       "moderator": "Rêveber",
       "engineer": "Endezyar",
-      "partner": "Hevkar"
+      "partner": "Hevkar",
+      "seismologist": "Erdhejnas",
+      "professor": "Profesor",
+      "researcher": "Lêkolîner"
     },
     "impact": {
       "title": "Bandor bi kurtî",
@@ -1569,7 +1578,11 @@
       "queuedMessage": "Nêrîna te li ser cîhaza te hate tomarkirin. Ew ê were şandin gava Bumelerze bigihîje pêşkêşkerê.",
       "close": "Bigire"
     },
-    "submitFailed": "Şandin li ser vê cîhazê bi ser neket. Nivîsa te hîn li vir e — ji kerema xwe dîsa biceribîne."
+    "submitFailed": "Şandin li ser vê cîhazê bi ser neket. Nivîsa te hîn li vir e — ji kerema xwe dîsa biceribîne.",
+    "badgeRequest": {
+      "label": "Ev daxwazeke nîşanê ye",
+      "hint": "Bibêje kîjan nîşan û em çawa dikarin bipejirînin, wek e-peyama kar an lînka profîlê."
+    }
   },
   "stations": {
     "intro": "Stasyonên daneyên vekirî yên erdhejê li dora herêma Kurdistanê û Iraqê. Stasyonekê bitikîne da ku daneyên berdest bibînî.",
@@ -1633,7 +1646,15 @@
       "save": "Tomar bike",
       "saving": "Tê tomarkirin…",
       "loading": "Tê barkirin…",
-      "needsAccount": "Ji bo çêkirina profîlê têkeve hesabê xwe."
+      "needsAccount": "Ji bo çêkirina profîlê têkeve hesabê xwe.",
+      "usernameLabel": "Navê bikarhêner",
+      "usernameHint": "3–24 tîp, jimar, xal an xeta jêrîn. Wekî @username tê nîşandan.",
+      "usernameAvailable": "Heye",
+      "usernameChecking": "Tê kontrolkirin…",
+      "usernameSuggest": "Bi kar bîne {{name}}",
+      "privateLabel": "Hesabê taybet",
+      "privateHint": "Divê mirov daxwaza şopandina te bikin.",
+      "showBadgesLabel": "Nîşanên min li profîla min nîşan bide"
     },
     "professions": {
       "engineer": "Endezyar",
@@ -1658,7 +1679,10 @@
       "terms_required": "Ji bo berdewamiyê mercan qebûl bike.",
       "avatar_too_large": "Ev wêne pir mezin e. Yekî biçûktir hilbijêre.",
       "oauth_unavailable": "Ev awayê têketinê hê li ser vê cîhazê ne berdest e.",
-      "unknown": "Tiştek şaş çû. Dîsa biceribîne."
+      "unknown": "Tiştek şaş çû. Dîsa biceribîne.",
+      "username_invalid": "3–24 tîp, jimar, xal an xeta jêrîn bi kar bîne.",
+      "username_taken": "Ev nav hatiye girtin.",
+      "username_reserved": "Ev nav ne berdest e."
     },
     "callback": {
       "title": "Têketin",
@@ -2102,6 +2126,114 @@
       "network": "Girêdan tune. Dîsa biceribîne.",
       "photo_too_large": "Wêneyek pir mezin e.",
       "unknown": "Tiştek şaş çû. Dîsa biceribîne."
+    }
+  },
+  "community": {
+    "openProfile": "Profîla {{name}} veke",
+    "myAccount": {
+      "profile": "Profîla min a gelemperî",
+      "people": "Mirov",
+      "admin": "Amûrên rêveberiyê"
+    },
+    "profile": {
+      "title": "Profîl",
+      "unavailable": "Niha ne berdest e.",
+      "notFound": "Bi vî navî hesab tune.",
+      "private": "Hesabê taybet",
+      "privateNote": "Ev hesab taybet e. Bişopîne da ku bêtir bibînî.",
+      "requestSent": "Daxwaz hat şandin. Piştî pejirandinê tu ê bêtir bibînî.",
+      "followers": "Şopîner",
+      "following": "Dişopîne",
+      "comments": "Şîrove",
+      "helpful": "Bikêr",
+      "recent": "Şîroveyên dawî",
+      "noComments": "Hê şîrove tune.",
+      "openHub": "{{place}} veke"
+    },
+    "follow": {
+      "follow": "Bişopîne",
+      "request": "Daxwaz bike",
+      "requested": "Hat xwestin",
+      "following": "Dişopînî",
+      "a11y": "{{action}}: {{name}}"
+    },
+    "block": {
+      "block": "Asteng bike",
+      "unblock": "Astengê rake",
+      "blocked": "Te ev hesab asteng kiriye.",
+      "confirmTitle": "{{name}} were astengkirin?",
+      "confirmMessage": "Şîroveyên wan ji te re têne veşartin û hûn hevûdu naşopînin."
+    },
+    "report": {
+      "action": "Profîlê gilî bike",
+      "title": "Çima tu vê profîlê gilî dikî?",
+      "sent": "Spas. Em ê binirxînin.",
+      "reasons": {
+        "spam": "Spam",
+        "abuse": "Heqaret",
+        "impersonation": "Xwe wekî kesekî din dike",
+        "private": "Agahiya taybet",
+        "other": "Yên din"
+      }
+    },
+    "requests": {
+      "title": "Daxwazên şopandinê",
+      "accept": "Bipejirîne",
+      "decline": "Red bike",
+      "acceptA11y": "{{name}} bipejirîne",
+      "declineA11y": "{{name}} red bike"
+    },
+    "blocked": {
+      "title": "Hesabên astengkirî",
+      "unblockA11y": "Astengiya {{name}} rake"
+    },
+    "people": {
+      "title": "Mirov",
+      "empty": "Hê kes tune.",
+      "nothing": "Daxwaz û hesabê astengkirî tune.",
+      "needsAccount": "Ji bo dîtina vê têkeve."
+    },
+    "errors": {
+      "not_account": "Pêşî hesabek çêke.",
+      "profile_required": "Pêşî profîla xwe temam bike.",
+      "blocked": "Nabe.",
+      "not_found": "Nehat dîtin.",
+      "forbidden": "Destûr tune.",
+      "rate_limited": "Gelek hewl hat dayîn. Piçekî bisekine.",
+      "unavailable": "Hê ne berdest e.",
+      "network": "Girêdan tune. Dîsa biceribîne.",
+      "unknown": "Neçû serî. Dîsa biceribîne."
+    }
+  },
+  "admin": {
+    "title": "Rêvebir",
+    "queue": {
+      "title": "Li benda nirxandinê",
+      "empty": "Tiştek li bendê tune.",
+      "flagged": "Hatiye gilîkirin: {{number}}",
+      "new": "Li bendê",
+      "open": "Bûyerê veke"
+    },
+    "ranks": {
+      "title": "Nîşanên rêzê",
+      "usernameLabel": "Navê bikarhêner",
+      "rankLabel": "Nîşan",
+      "orgLabel": "Rêxistin",
+      "noteLabel": "Nîşeya taybet",
+      "grant": "Nîşan bide",
+      "revoke": "Nîşanê rake",
+      "granted": "Nîşan hat dayîn.",
+      "revoked": "Nîşan hat rakirin.",
+      "holders": "Kê nîşan heye",
+      "noHolders": "Hê nîşan nehatiye dayîn.",
+      "givenBy": "Ji aliyê {{name}} ve hat dayîn"
+    },
+    "reports": {
+      "title": "Profîlên gilîkirî",
+      "empty": "Gilî tune.",
+      "count": "Gilî: {{number}}",
+      "dismiss": "Paşguh bike",
+      "open": "Profîlê veke"
     }
   }
 }

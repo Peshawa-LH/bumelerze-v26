@@ -884,7 +884,13 @@
       "approve": "Approve",
       "hide": "Hide",
       "actionError": "Couldn't do that. Try again.",
-      "replies": "Replies"
+      "replies": "Replies",
+      "removed": "Comment removed",
+      "remove": "Remove",
+      "removeReasonTitle": "Why remove it?",
+      "removeConfirmTitle": "Remove this comment?",
+      "removeConfirmMessage": "Its text is deleted for everyone. Replies stay.",
+      "following": "Following"
     },
     "reasons": {
       "spam": "Spam",
@@ -897,7 +903,10 @@
       "official": "Bumelerze",
       "moderator": "Moderator",
       "engineer": "Engineer",
-      "partner": "Partner"
+      "partner": "Partner",
+      "seismologist": "Seismologist",
+      "professor": "Professor",
+      "researcher": "Researcher"
     },
     "impact": {
       "title": "Impact at a glance",
@@ -1569,7 +1578,11 @@
       "queuedMessage": "Your feedback is saved on your device. It will be sent once Bumelerze can reach the server.",
       "close": "Close"
     },
-    "submitFailed": "Sending failed on this device. Your text is still here — please try again."
+    "submitFailed": "Sending failed on this device. Your text is still here — please try again.",
+    "badgeRequest": {
+      "label": "This is a badge request",
+      "hint": "Say which badge and how we can check it, such as a work email or a profile link."
+    }
   },
   "stations": {
     "intro": "Open data seismic stations around Kurdistan region and Iraq. Tap a station to watch available data streams.",
@@ -1633,7 +1646,15 @@
       "save": "Save",
       "saving": "Saving…",
       "loading": "Loading…",
-      "needsAccount": "Sign in to create a profile."
+      "needsAccount": "Sign in to create a profile.",
+      "usernameLabel": "Username",
+      "usernameHint": "3–24 letters, digits, dots or underscores. Shown as @username.",
+      "usernameAvailable": "Available",
+      "usernameChecking": "Checking…",
+      "usernameSuggest": "Use {{name}}",
+      "privateLabel": "Private account",
+      "privateHint": "People must ask to follow you.",
+      "showBadgesLabel": "Show my badges on my profile"
     },
     "professions": {
       "engineer": "Engineer",
@@ -1658,7 +1679,10 @@
       "terms_required": "Please accept the terms to continue.",
       "avatar_too_large": "That photo is too large. Choose a smaller one.",
       "oauth_unavailable": "This sign-in is not available on this device yet.",
-      "unknown": "Something went wrong. Try again."
+      "unknown": "Something went wrong. Try again.",
+      "username_invalid": "Use 3–24 letters, digits, dots or underscores.",
+      "username_taken": "That username is taken.",
+      "username_reserved": "That name isn't available."
     },
     "callback": {
       "title": "Signing in",
@@ -2102,6 +2126,114 @@
       "network": "No connection. Try again.",
       "photo_too_large": "A photo is too large.",
       "unknown": "Something went wrong. Try again."
+    }
+  },
+  "community": {
+    "openProfile": "Open profile of {{name}}",
+    "myAccount": {
+      "profile": "My public profile",
+      "people": "People",
+      "admin": "Admin tools"
+    },
+    "profile": {
+      "title": "Profile",
+      "unavailable": "Not available right now.",
+      "notFound": "No account with this name.",
+      "private": "Private account",
+      "privateNote": "This account is private. Follow to see more.",
+      "requestSent": "Request sent. You will see more once it is accepted.",
+      "followers": "Followers",
+      "following": "Following",
+      "comments": "Comments",
+      "helpful": "Helpful",
+      "recent": "Recent comments",
+      "noComments": "No comments yet.",
+      "openHub": "Open {{place}}"
+    },
+    "follow": {
+      "follow": "Follow",
+      "request": "Request",
+      "requested": "Requested",
+      "following": "Following",
+      "a11y": "{{action}}: {{name}}"
+    },
+    "block": {
+      "block": "Block",
+      "unblock": "Unblock",
+      "blocked": "You blocked this account.",
+      "confirmTitle": "Block {{name}}?",
+      "confirmMessage": "Their comments are hidden from you and you stop following each other."
+    },
+    "report": {
+      "action": "Report profile",
+      "title": "Why are you reporting this profile?",
+      "sent": "Thanks. We will review it.",
+      "reasons": {
+        "spam": "Spam",
+        "abuse": "Abusive",
+        "impersonation": "Pretending to be someone",
+        "private": "Private information",
+        "other": "Other"
+      }
+    },
+    "requests": {
+      "title": "Follow requests",
+      "accept": "Accept",
+      "decline": "Decline",
+      "acceptA11y": "Accept {{name}}",
+      "declineA11y": "Decline {{name}}"
+    },
+    "blocked": {
+      "title": "Blocked accounts",
+      "unblockA11y": "Unblock {{name}}"
+    },
+    "people": {
+      "title": "People",
+      "empty": "No one yet.",
+      "nothing": "No requests and no blocked accounts.",
+      "needsAccount": "Sign in to see this."
+    },
+    "errors": {
+      "not_account": "Create an account first.",
+      "profile_required": "Finish your profile first.",
+      "blocked": "Not possible.",
+      "not_found": "Not found.",
+      "forbidden": "Not allowed.",
+      "rate_limited": "Too many tries. Wait a bit.",
+      "unavailable": "Not available yet.",
+      "network": "No connection. Try again.",
+      "unknown": "Couldn't do that. Try again."
+    }
+  },
+  "admin": {
+    "title": "Admin",
+    "queue": {
+      "title": "Waiting for review",
+      "empty": "Nothing waiting.",
+      "flagged": "Reported: {{number}}",
+      "new": "Waiting",
+      "open": "Open event"
+    },
+    "ranks": {
+      "title": "Rank badges",
+      "usernameLabel": "Username",
+      "rankLabel": "Badge",
+      "orgLabel": "Organisation",
+      "noteLabel": "Private note",
+      "grant": "Give badge",
+      "revoke": "Take away",
+      "granted": "Badge given.",
+      "revoked": "Badge taken away.",
+      "holders": "Who has badges",
+      "noHolders": "No badges given yet.",
+      "givenBy": "Given by {{name}}"
+    },
+    "reports": {
+      "title": "Reported profiles",
+      "empty": "No reports.",
+      "count": "Reports: {{number}}",
+      "dismiss": "Dismiss",
+      "open": "Open profile"
     }
   }
 }

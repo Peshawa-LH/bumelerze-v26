@@ -884,7 +884,13 @@
       "approve": "قبول",
       "hide": "إخفاء",
       "actionError": "تعذّر التنفيذ. حاول مرة أخرى.",
-      "replies": "الردود"
+      "replies": "الردود",
+      "removed": "تمت إزالة التعليق",
+      "remove": "إزالة",
+      "removeReasonTitle": "لماذا تُزال؟",
+      "removeConfirmTitle": "إزالة هذا التعليق؟",
+      "removeConfirmMessage": "يُحذف نصه للجميع. تبقى الردود.",
+      "following": "تتابعه"
     },
     "reasons": {
       "spam": "بريد مزعج",
@@ -897,7 +903,10 @@
       "official": "Bumelerze",
       "moderator": "مشرف",
       "engineer": "مهندس",
-      "partner": "شريك"
+      "partner": "شريك",
+      "seismologist": "عالم زلازل",
+      "professor": "أستاذ",
+      "researcher": "باحث"
     },
     "impact": {
       "title": "الأثر في لمحة",
@@ -1569,7 +1578,11 @@
       "queuedMessage": "تم حفظ ملاحظاتك على جهازك. ستُرسل بمجرد أن يتمكن بوملێرزە من الوصول إلى الخادم.",
       "close": "إغلاق"
     },
-    "submitFailed": "فشل الإرسال على هذا الجهاز. نصّك ما زال هنا — يرجى المحاولة مرة أخرى."
+    "submitFailed": "فشل الإرسال على هذا الجهاز. نصّك ما زال هنا — يرجى المحاولة مرة أخرى.",
+    "badgeRequest": {
+      "label": "هذا طلب شارة",
+      "hint": "اذكر أي شارة وكيف نتحقق منها، مثل بريد العمل أو رابط الملف."
+    }
   },
   "stations": {
     "intro": "محطات بيانات مفتوحة لرصد الزلازل حول إقليم كردستان والعراق. اضغط على محطة لمشاهدة البيانات المتاحة.",
@@ -1633,7 +1646,15 @@
       "save": "حفظ",
       "saving": "جارٍ الحفظ…",
       "loading": "جارٍ التحميل…",
-      "needsAccount": "سجّل الدخول لإنشاء ملف شخصي."
+      "needsAccount": "سجّل الدخول لإنشاء ملف شخصي.",
+      "usernameLabel": "اسم المستخدم",
+      "usernameHint": "٣–٢٤ حرفًا أو رقمًا أو نقطة أو شرطة سفلية. يظهر بالشكل @username.",
+      "usernameAvailable": "متاح",
+      "usernameChecking": "جارٍ التحقق…",
+      "usernameSuggest": "استخدم {{name}}",
+      "privateLabel": "حساب خاص",
+      "privateHint": "على الناس طلب متابعتك.",
+      "showBadgesLabel": "اعرض شاراتي في ملفي"
     },
     "professions": {
       "engineer": "مهندس",
@@ -1658,7 +1679,10 @@
       "terms_required": "وافق على الشروط للمتابعة.",
       "avatar_too_large": "هذه الصورة كبيرة جداً. اختر أصغر.",
       "oauth_unavailable": "طريقة الدخول هذه غير متاحة على هذا الجهاز بعد.",
-      "unknown": "حدث خطأ. أعد المحاولة."
+      "unknown": "حدث خطأ. أعد المحاولة.",
+      "username_invalid": "استخدم ٣–٢٤ حرفًا أو رقمًا أو نقطة أو شرطة سفلية.",
+      "username_taken": "اسم المستخدم هذا مأخوذ.",
+      "username_reserved": "هذا الاسم غير متاح."
     },
     "callback": {
       "title": "تسجيل الدخول",
@@ -2102,6 +2126,114 @@
       "network": "لا يوجد اتصال. أعد المحاولة.",
       "photo_too_large": "إحدى الصور كبيرة جداً.",
       "unknown": "حدث خطأ. أعد المحاولة."
+    }
+  },
+  "community": {
+    "openProfile": "فتح ملف {{name}}",
+    "myAccount": {
+      "profile": "ملفي العام",
+      "people": "الأشخاص",
+      "admin": "أدوات الإدارة"
+    },
+    "profile": {
+      "title": "الملف الشخصي",
+      "unavailable": "غير متاح الآن.",
+      "notFound": "لا يوجد حساب بهذا الاسم.",
+      "private": "حساب خاص",
+      "privateNote": "هذا الحساب خاص. تابعه لرؤية المزيد.",
+      "requestSent": "أُرسل الطلب. سترى المزيد بعد القبول.",
+      "followers": "المتابِعون",
+      "following": "المتابَعون",
+      "comments": "تعليقات",
+      "helpful": "مفيد",
+      "recent": "أحدث التعليقات",
+      "noComments": "لا توجد تعليقات بعد.",
+      "openHub": "فتح {{place}}"
+    },
+    "follow": {
+      "follow": "متابعة",
+      "request": "طلب متابعة",
+      "requested": "تم الطلب",
+      "following": "تتابعه",
+      "a11y": "{{action}}: {{name}}"
+    },
+    "block": {
+      "block": "حظر",
+      "unblock": "إلغاء الحظر",
+      "blocked": "لقد حظرت هذا الحساب.",
+      "confirmTitle": "حظر {{name}}؟",
+      "confirmMessage": "تُخفى تعليقاته عنك ويتوقف كلاكما عن متابعة الآخر."
+    },
+    "report": {
+      "action": "الإبلاغ عن الملف",
+      "title": "لماذا تبلّغ عن هذا الملف؟",
+      "sent": "شكرًا. سنراجعه.",
+      "reasons": {
+        "spam": "بريد مزعج",
+        "abuse": "إساءة",
+        "impersonation": "انتحال شخصية",
+        "private": "معلومات خاصة",
+        "other": "أخرى"
+      }
+    },
+    "requests": {
+      "title": "طلبات المتابعة",
+      "accept": "قبول",
+      "decline": "رفض",
+      "acceptA11y": "قبول {{name}}",
+      "declineA11y": "رفض {{name}}"
+    },
+    "blocked": {
+      "title": "الحسابات المحظورة",
+      "unblockA11y": "إلغاء حظر {{name}}"
+    },
+    "people": {
+      "title": "الأشخاص",
+      "empty": "لا أحد بعد.",
+      "nothing": "لا طلبات ولا حسابات محظورة.",
+      "needsAccount": "سجّل الدخول لرؤية هذا."
+    },
+    "errors": {
+      "not_account": "أنشئ حسابًا أولًا.",
+      "profile_required": "أكمل ملفك الشخصي أولًا.",
+      "blocked": "غير ممكن.",
+      "not_found": "غير موجود.",
+      "forbidden": "غير مسموح.",
+      "rate_limited": "محاولات كثيرة. انتظر قليلًا.",
+      "unavailable": "غير متاح بعد.",
+      "network": "لا يوجد اتصال. حاول مرة أخرى.",
+      "unknown": "تعذّر التنفيذ. حاول مرة أخرى."
+    }
+  },
+  "admin": {
+    "title": "الإدارة",
+    "queue": {
+      "title": "بانتظار المراجعة",
+      "empty": "لا شيء بانتظار المراجعة.",
+      "flagged": "بلاغات: {{number}}",
+      "new": "بانتظار",
+      "open": "فتح الحدث"
+    },
+    "ranks": {
+      "title": "شارات الرتب",
+      "usernameLabel": "اسم المستخدم",
+      "rankLabel": "الشارة",
+      "orgLabel": "الجهة",
+      "noteLabel": "ملاحظة خاصة",
+      "grant": "منح الشارة",
+      "revoke": "سحب الشارة",
+      "granted": "تم منح الشارة.",
+      "revoked": "تم سحب الشارة.",
+      "holders": "من لديه شارات",
+      "noHolders": "لم تُمنح شارات بعد.",
+      "givenBy": "منحها {{name}}"
+    },
+    "reports": {
+      "title": "ملفات تم الإبلاغ عنها",
+      "empty": "لا بلاغات.",
+      "count": "البلاغات: {{number}}",
+      "dismiss": "تجاهل",
+      "open": "فتح الملف"
     }
   }
 }
