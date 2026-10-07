@@ -87,7 +87,7 @@ describe("onboarding navigation flow", () => {
   it("mission screen: pressing Continue advances the step and pushes the language screen", async () => {
     await renderWithProviders(<OnboardingMissionScreen />);
 
-    expect(screen.getByText("Always know, in your language")).toBeTruthy();
+    expect(screen.getByText("Welcome to Bumelerze")).toBeTruthy();
 
     fireEvent.press(screen.getByRole("button", { name: "Continue" }));
 
@@ -101,7 +101,7 @@ describe("onboarding navigation flow", () => {
     await renderWithProviders(<OnboardingMissionScreen />);
 
     expect(screen.getByText("redirect:/onboarding/location")).toBeTruthy();
-    expect(screen.queryByText("Always know, in your language")).toBeNull();
+    expect(screen.queryByText("Welcome to Bumelerze")).toBeNull();
   });
 
   it("done screen: pressing the CTA completes onboarding in the shared store", async () => {
