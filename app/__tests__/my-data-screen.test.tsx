@@ -218,7 +218,7 @@ describe("My account screen", () => {
 
     it("lists the four requestable ranks as locked, and asks for them via Feedback", async () => {
       await renderWithProviders(<MyDataScreen />);
-      expect(screen.getByText("Ranks")).toBeTruthy();
+      expect(screen.queryByText("Ranks")).toBeNull();
       expect(screen.getByLabelText("Engineer, locked")).toBeTruthy();
       expect(screen.queryByTestId("badge-role-official")).toBeNull();
       expect(screen.queryByTestId("badge-role-moderator")).toBeNull();
@@ -364,7 +364,7 @@ describe("My account screen", () => {
       expect(screen.getByLabelText("Reports: 12")).toBeTruthy();
       expect(screen.getByLabelText("Comments: 9")).toBeTruthy();
       expect(screen.getByLabelText("Helpful: 31")).toBeTruthy();
-      expect(screen.getByLabelText(/^Badges: \d\/9$/)).toBeTruthy();
+      expect(screen.getByLabelText(/^Badges: \d+\/1[34]$/)).toBeTruthy();
       expect(screen.getByText("Member since Oct 2026")).toBeTruthy();
     });
 
@@ -496,7 +496,7 @@ describe("My account screen", () => {
       const first = screen.getAllByTestId(/^badge-(role-official|first_report)$/)[0];
       expect(first?.props.testID).toBe("badge-role-official");
       // The strip's Badges figure counts milestones only.
-      expect(screen.getByLabelText(/^Badges: \d\/9$/)).toBeTruthy();
+      expect(screen.getByLabelText(/^Badges: \d+\/1[34]$/)).toBeTruthy();
     });
   });
 

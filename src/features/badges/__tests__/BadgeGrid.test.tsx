@@ -6,7 +6,7 @@ import i18n from "@/i18n";
 
 import {
   EMPTY_BADGE_INPUTS,
-  countMilestones,
+  countBadges,
   evaluateBadges,
   type BadgeInputs,
 } from "../evaluate";
@@ -158,9 +158,9 @@ describe("BadgeGrid: requestable ranks (own account page)", () => {
   });
   afterEach(cleanup);
 
-  it("shows the four requestable ranks locked, in a Ranks group, for a user with no roles", async () => {
+  it("shows the four requestable ranks locked in the same grid, with no separate Ranks heading", async () => {
     await renderGrid({}, [], true);
-    expect(screen.getByText("Ranks")).toBeTruthy();
+    expect(screen.queryByText("Ranks")).toBeNull();
     for (const role of ["seismologist", "professor", "researcher", "engineer"]) {
       expect(screen.getByTestId(`badge-role-${role}`)).toBeTruthy();
     }
@@ -247,16 +247,16 @@ describe("BadgesSection", () => {
     expect(screen.getByTestId("badges-counter").props.children).toBe("1/9");
   });
 
-  it("the counter stays n/9 with locked ranks on the page", async () => {
+  it("one counter over every badge shown: milestones plus requestable ranks", async () => {
     const entries = evaluateBadges({ ...EMPTY_BADGE_INPUTS, reports: 1 }, [], {
       includeRequestableRanks: true,
     });
-    const { earned, total } = countMilestones(entries);
+    const { earned, total } = countBadges(entries);
     await render(
       <SafeAreaProvider initialMetrics={metrics}>
         <BadgesSection entries={entries} earned={earned} total={total} />
       </SafeAreaProvider>,
     );
-    expect(screen.getByTestId("badges-counter").props.children).toBe("1/9");
+    expect(screen.getByTestId("badges-counter").props.children).toBe("1/13");
   });
 });

@@ -1,5 +1,6 @@
 import {
   EMPTY_BADGE_INPUTS,
+  countBadges,
   countMilestones,
   evaluateBadges,
   mergeBadgeInputs,
@@ -174,5 +175,21 @@ describe("evaluateBadges: requestable ranks", () => {
 
   it("adds no placeholders unless asked", () => {
     expect(roleEntries(evaluateBadges(EMPTY_BADGE_INPUTS, []))).toEqual([]);
+  });
+});
+
+describe("countBadges", () => {
+  it("counts every badge on the page: held ranks, milestones and requestable ranks", () => {
+    const none = evaluateBadges({ ...EMPTY_BADGE_INPUTS, reports: 1 }, [], {
+      includeRequestableRanks: true,
+    });
+    expect(countBadges(none)).toEqual({ earned: 1, total: 13 });
+    const engineer = evaluateBadges(
+      { ...EMPTY_BADGE_INPUTS, reports: 1 },
+      [{ role: "engineer", orgName: null }],
+      { includeRequestableRanks: true },
+    );
+    // The held engineer badge is earned and not repeated as a locked one.
+    expect(countBadges(engineer)).toEqual({ earned: 2, total: 13 });
   });
 });

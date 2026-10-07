@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import type { HubRole } from "@/features/eventhub/types";
 import {
   EMPTY_BADGE_INPUTS,
-  countMilestones,
+  countBadges,
   evaluateBadges,
   mergeBadgeInputs,
   type BadgeEntry,
@@ -55,7 +55,7 @@ export function useMySummary(): MySummary {
       familyLinked: familyLinked ? 1 : 0,
     });
     const badges = evaluateBadges(inputs, roles, { includeRequestableRanks: true });
-    const { earned, total } = countMilestones(badges);
+    const { earned, total } = countBadges(badges);
     return {
       counts: { ...counts, familyLinked },
       roles,

@@ -13,6 +13,7 @@ export {
 } from "./catalog";
 export {
   EMPTY_BADGE_INPUTS,
+  countBadges,
   countMilestones,
   evaluateBadges,
   mergeBadgeInputs,

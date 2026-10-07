@@ -124,3 +124,16 @@ export function countMilestones(entries: readonly BadgeEntry[]): {
     total: milestones.length,
   };
 }
+
+/** Earned and total over every badge the page shows (owner, 2026-10-08:
+ * "keep it all under badges"): held ranks, the milestones and the locked
+ * ranks the person can request — one collection, one counter. */
+export function countBadges(entries: readonly BadgeEntry[]): {
+  earned: number;
+  total: number;
+} {
+  return {
+    earned: entries.filter((entry) => entry.earned).length,
+    total: entries.length,
+  };
+}

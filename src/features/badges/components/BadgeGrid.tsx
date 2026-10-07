@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { localizeDigits } from "@/lib/format-numbers";
@@ -19,19 +19,16 @@ import { BadgeSheet } from "./BadgeSheet";
 export const BADGE_SIZE = 52;
 const COLUMNS = 5;
 
-/** The collection: five columns of badges (held ranks first, then the
- * milestones), each opening the detail sheet. Locked ranks the person can ask
- * for sit in their own "Ranks" group at the end. Cells mirror in RTL with the
- * row direction. */
+/** The collection: five columns of badges — held ranks first, then the
+ * milestones, then the locked ranks the person can ask for — one grid with no
+ * separate "Ranks" group (owner, 2026-10-08). Each opens the detail sheet.
+ * Cells mirror in RTL with the row direction. */
 export function BadgeGrid({ entries }: { entries: readonly BadgeEntry[] }) {
   const { t, i18n } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
+  const { colors, spacing } = useTheme();
   const router = useRouter();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const selected = entries.find((entry) => entry.key === selectedKey) ?? null;
-  const isLockedRank = (entry: BadgeEntry) => entry.kind === "role" && !entry.earned;
-  const mainEntries = entries.filter((entry) => !isLockedRank(entry));
-  const rankEntries = entries.filter(isLockedRank);
 
   function requestRank(role: HubRoleKind) {
     setSelectedKey(null);
@@ -94,24 +91,7 @@ export function BadgeGrid({ entries }: { entries: readonly BadgeEntry[] }) {
         },
       ]}
     >
-      {mainEntries.map(renderCell)}
-      {rankEntries.length > 0 ? (
-        <View
-          testID="ranks-group"
-          style={[
-            styles.groupHeader,
-            { borderTopColor: colors.border.default, paddingTop: spacing[2] },
-          ]}
-        >
-          <Text
-            accessibilityRole="header"
-            style={[typography.bodyMeta, { color: colors.text.secondary }]}
-          >
-            {t("myData.badges.ranksTitle")}
-          </Text>
-        </View>
-      ) : null}
-      {rankEntries.map(renderCell)}
+      {entries.map(renderCell)}
       <BadgeSheet
         entry={selected}
         onClose={() => setSelectedKey(null)}
@@ -127,11 +107,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     borderWidth: 1,
     borderRadius: 14,
-  },
-  groupHeader: {
-    width: "100%",
-    marginTop: 6,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   cell: {
     width: `${100 / COLUMNS}%`,
