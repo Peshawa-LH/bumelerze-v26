@@ -1,3 +1,9 @@
+-- STATUS: NOT APPLIED. Parked 2026-10-07 by the owner: the GitHub token
+-- could not be created, and the scheduled-worker + Supabase setup is to be
+-- replaced by a more stable, frequent pipeline in a later infrastructure
+-- migration. Kept as the design reference for "start the worker when the
+-- registry changes". Do not apply without a github_dispatch_token in Vault.
+--
 -- 0041: start the SHAKEmap worker when the registry changes (owner,
 -- 2026-10-07, after the Urmia test event bml202602ia). The worker is a
 -- GitHub Actions workflow scheduled every 5 minutes, but GitHub starts it
