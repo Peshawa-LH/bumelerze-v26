@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, screen } from "@testing-library/react-native";
+import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import { View } from "react-native";
 
 import i18n from "@/i18n";
@@ -89,9 +89,16 @@ describe("Delete this home", () => {
     });
     await confirmDelete();
     expect(mockTransport.deleteHome).toHaveBeenCalledWith("tag-1");
-    expect(await screen.findByTestId("home-tag")).toBeTruthy();
-    expect(screen.queryByTestId("home-card-tag-1")).toBeNull();
-    expect(mockReplace).toHaveBeenCalledWith("/my-data");
+    // "home-tag" is also the "Tag another home" link while homes exist, so
+    // wait for the deleted home's card to leave, then check the empty state.
+    await waitFor(() => expect(screen.queryByTestId("home-card-tag-1")).toBeNull(), {
+      timeout: 5000,
+    });
+    expect(screen.getByTestId("home-tag").props.accessibilityLabel).toBe(
+      i18n.t("building.title"),
+    );
+    expect(screen.queryByText(i18n.t("building.section.tagAnother"))).toBeNull();
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/my-data"));
     expect(mockMessage).not.toHaveBeenCalled();
   });
 
@@ -112,9 +119,11 @@ describe("Delete this home", () => {
     await renderWithProviders(<Screen />);
     await screen.findByTestId("home-card-tag-1");
     await confirmDelete();
-    expect(useHomePhotoQueueStore.getState().items.map((i) => i.tagId)).toEqual([
-      "tag-2",
-    ]);
+    await waitFor(() =>
+      expect(useHomePhotoQueueStore.getState().items.map((i) => i.tagId)).toEqual([
+        "tag-2",
+      ]),
+    );
   });
 
   it("tells the owner when some photo files could not be removed", async () => {
@@ -122,7 +131,8 @@ describe("Delete this home", () => {
     await renderWithProviders(<Screen />);
     await screen.findByTestId("home-card-tag-1");
     await confirmDelete();
-    expect(mockReplace).toHaveBeenCalledWith("/my-data");
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/my-data"));
+    await waitFor(() => expect(mockMessage).toHaveBeenCalled());
     expect(mockMessage).toHaveBeenCalledWith(
       "Home deleted",
       "Some photos could not be removed from our servers. No one can see them.",
