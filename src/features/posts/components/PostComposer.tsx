@@ -11,6 +11,8 @@ import { validatePostBody } from "../validation";
 
 interface PostComposerProps {
   onSubmit: (body: string) => Promise<void>;
+  /** The account is limited (migration 0054): box and Post button are off. */
+  disabled?: boolean;
   testID?: string;
 }
 
@@ -19,7 +21,11 @@ interface PostComposerProps {
  * 500) and a Post button that stays off while the text is empty or too long.
  * The server trims and re-checks everything; this only spares a round trip.
  */
-export function PostComposer({ onSubmit, testID = "post-composer" }: PostComposerProps) {
+export function PostComposer({
+  onSubmit,
+  disabled = false,
+  testID = "post-composer",
+}: PostComposerProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const [text, setText] = useState("");
@@ -27,7 +33,7 @@ export function PostComposer({ onSubmit, testID = "post-composer" }: PostCompose
   const [error, setError] = useState<string | null>(null);
 
   const problem = validatePostBody(text);
-  const canPost = problem === null && !busy;
+  const canPost = problem === null && !busy && !disabled;
   const over = text.trim().length > POST_MAX_LENGTH;
   const used = localizeDigits(String(text.trim().length), i18n.language);
   const max = localizeDigits(String(POST_MAX_LENGTH), i18n.language);
@@ -63,7 +69,7 @@ export function PostComposer({ onSubmit, testID = "post-composer" }: PostCompose
         placeholderTextColor={colors.text.tertiary}
         accessibilityLabel={t("posts.composer.label")}
         multiline
-        editable={!busy}
+        editable={!busy && !disabled}
         textAlignVertical="top"
         style={[
           styles.input,
@@ -79,6 +85,11 @@ export function PostComposer({ onSubmit, testID = "post-composer" }: PostCompose
         ]}
         testID={`${testID}-input`}
       />
+      {disabled ? (
+        <Text style={meta} testID={`${testID}-disabled`}>
+          {t("restrictions.composerDisabled")}
+        </Text>
+      ) : null}
       <View style={[styles.footer, { gap: spacing[2] }]}>
         <Text
           accessibilityLabel={t("posts.composer.counterA11y", { used, max })}

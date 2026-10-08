@@ -67,15 +67,21 @@ export function AdminContent({
       {access.canModerate ? (
         <>
           <ModerationQueueSection canDelete={access.canDelete} {...shared} />
-          <ReportedProfilesSection {...shared} />
+          <ReportedProfilesSection
+            canRestrict={access.canRestrict}
+            canSuspend={access.canSuspend}
+            {...shared}
+          />
           <ReportedPostsSection
             canRemove={access.canRemovePosts}
+            canRestrict={access.canRestrict}
+            canSuspend={access.canSuspend}
             {...shared}
             {...(postsTransport ? { postsTransport } : {})}
           />
         </>
       ) : null}
-      {access.canModerate || access.canAudit ? (
+      {access.canModerate || access.canAudit || access.canRestrict ? (
         <SettingsGroup testID="admin-activity-group">
           {access.canModerate ? (
             <SettingsRow
@@ -83,6 +89,14 @@ export function AdminContent({
               label={t("admin.hidden.title")}
               onPress={() => router.push("/admin/hidden")}
               testID="admin-hidden-row"
+            />
+          ) : null}
+          {access.canRestrict ? (
+            <SettingsRow
+              icon="hand-left-outline"
+              label={t("restrictions.list.title")}
+              onPress={() => router.push("/admin/limited")}
+              testID="admin-limited-row"
             />
           ) : null}
           {access.canAudit ? (

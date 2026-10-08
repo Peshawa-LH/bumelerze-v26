@@ -915,7 +915,8 @@
       "errors": {
         "rateLimited": "Gelek şîrove hatin nivîsandin. Çend xulekan bisekine.",
         "network": "Girêdan tune. Dîsa biceribîne.",
-        "unknown": "Nehat şandin. Dîsa biceribîne."
+        "unknown": "Nehat şandin. Dîsa biceribîne.",
+        "restricted": "Hesabê te niha sînordar e. Nikarî binivîsî."
       },
       "memoryPlaceholder": "Tu li ku bûyî û te çi hîs kir?"
     },
@@ -944,7 +945,8 @@
       "withdrawReport": "Gilîkirinê paşve bikişîne",
       "reportWithdrawn": "Gilî hate paşvekişandin.",
       "flagLimit": "Te gihîşt sînorê gilîkirinên îro. Sibê dîsa biceribîne.",
-      "following": "Dişopînî"
+      "following": "Dişopînî",
+      "restricted": "Hesabê te niha sînordar e."
     },
     "reasons": {
       "spam": "Spam",
@@ -2238,7 +2240,8 @@
       "noComments": "Hê şîrove tune.",
       "openHub": "{{place}} veke",
       "share": "Profîlê parve bike",
-      "shareFailed": "Parvekirin nebû. Ji kerema xwe dîsa biceribîne."
+      "shareFailed": "Parvekirin nebû. Ji kerema xwe dîsa biceribîne.",
+      "suspended": "Ev hesab hatiye rawestandin"
     },
     "follow": {
       "follow": "Bişopîne",
@@ -2294,7 +2297,11 @@
       "network": "Girêdan tune. Dîsa biceribîne.",
       "unknown": "Neçû serî. Dîsa biceribîne.",
       "expired": "Ji bo vegerandinê dereng e.",
-      "not_restorable": "Êdî nayê vegerandin."
+      "not_restorable": "Êdî nayê vegerandin.",
+      "restricted": "Hesabê te niha sînordar e.",
+      "protected_account": "Ev hesab nayê sînordarkirin.",
+      "bad_end_date": "Dîroka dawîyê kontrol bike.",
+      "reason_required": "Sedemekê lê zêde bike."
     }
   },
   "admin": {
@@ -2351,7 +2358,11 @@
         "removed_by_admin": "Ji aliyê rêvebir ve hate rakirin",
         "moderator": "Biryara moderatorê",
         "flagged": "Xwendevanan gilî kir",
-        "author_deleted_text": "Nivîsa jêbirî ya kevn hate paqijkirin"
+        "author_deleted_text": "Nivîsa jêbirî ya kevn hate paqijkirin",
+        "rumour": "Pêşbîniya erdhejê ya derewîn an gotegot",
+        "harassment": "Tacîz",
+        "impersonation": "Xwe wekî kesekî din dike",
+        "explicit": "Naveroka zayendî an tund"
       },
       "actions": {
         "comment_approve": "Şîroveyek pejirand",
@@ -2405,6 +2416,81 @@
       "cannotRestore": "Nayê vegerandin."
     }
   },
+  "restrictions": {
+    "levels": {
+      "warning": "Hişyarî",
+      "restrict": "Sînordarkirin",
+      "suspend": "Rawestandin"
+    },
+    "reasons": {
+      "rumour": "Pêşbîniya erdhejê ya derewîn an gotegot",
+      "harassment": "Tacîz",
+      "spam": "Spam",
+      "impersonation": "Xwe wekî kesekî din dike",
+      "explicit": "Naveroka zayendî an tund"
+    },
+    "banner": {
+      "warning": "Hişyariyek ji te re hatiye: {{reason}}",
+      "limited": "Hesabê te heta {{date}} sînordar e: {{reason}}",
+      "limitedOpen": "Hesabê te sînordar e: {{reason}}",
+      "suspended": "Hesabê te heta {{date}} hatiye rawestandin: {{reason}}",
+      "suspendedOpen": "Hesabê te hatiye rawestandin: {{reason}}",
+      "detailLimited": "Tu hê jî dikarî her tiştî bixwînî, raporên hîskirinê bişînî û hişyariyan bistînî. Niha nikarî şîrove binivîsî, nivîs bişînî, kesekî bişopînî, gilî bikî an profîla xwe biguherînî.",
+      "detailSuspended": "Tu hê jî dikarî raporên hîskirinê bişînî û hişyariyan bistînî. Niha kesên din profîl, şîrove û nivîsên te nabînin.",
+      "ask": "Nirxandinê bixwaze",
+      "requested": "Daxwaza nirxandinê hat şandin"
+    },
+    "review": {
+      "title": "Nirxandinê bixwaze",
+      "hint": "Heke tu difikirî ku ev şaşî ye, ji me re bêje. Kesek ê lê binêre. Nivîsandina peyamê ne mecbûrî ye.",
+      "label": "Peyama te",
+      "placeholder": "Peyama te (ne mecbûrî)",
+      "send": "Bişîne",
+      "sending": "Tê şandin…"
+    },
+    "composerDisabled": "Hesabê te sînordar e, ji ber vê niha nikarî binivîsî.",
+    "admin": {
+      "action": "Hesabê sînordar bike",
+      "title": "Hesabê sînordar bike",
+      "levelLabel": "Çi bê kirin",
+      "levelHints": {
+        "warning": "Hişyariyek bi sedemê re. Tiştekî din nayê guhertin.",
+        "restrict": "Nikare şîrove binivîse, nivîs bişîne, kesekî bişopîne, gilî bike an profîlê biguherîne. Raporên hîskirinê û hişyarî dixebitin.",
+        "suspend": "Wekî sînordarkirinê, û profîl, şîrove û nivîsên wî/wê ji kesên din têne veşartin."
+      },
+      "durationLabel": "Ji bo çiqas dem",
+      "durations": {
+        "h24": "24 saet",
+        "d7": "7 roj",
+        "d30": "30 roj",
+        "custom": "Rojekê hilbijêre",
+        "open": "Heta were rakirin"
+      },
+      "dateLabel": "Dîroka dawîyê",
+      "datePlaceholder": "YYYY-MM-DD",
+      "dateInvalid": "Dîrokeke pêşerojê wekî YYYY-MM-DD binivîse.",
+      "reasonLabel": "Sedem (kes wê bixwîne)",
+      "reasonOwn": "An bi gotinên xwe binivîse",
+      "noteLabel": "Nîşeya taybet (tenê rêveber dibînin)",
+      "notePlaceholder": "Ne mecbûrî",
+      "submit": "Hesabê sînordar bike"
+    },
+    "list": {
+      "title": "Hesabên sînordar",
+      "hint": "Sînorên çalak û yên di 30 rojên dawî de hatine çêkirin.",
+      "empty": "Niha sînor tune.",
+      "guest": "Mêvan {{id}}",
+      "account": "Hesab {{id}}",
+      "until": "Heta {{date}}",
+      "untilLifted": "Heta were rakirin",
+      "lifted": "Ji aliyê {{name}} ve hat rakirin",
+      "liftedPlain": "Hat rakirin",
+      "ended": "Qediya",
+      "note": "Nîşe: {{note}}",
+      "appeal": "Nirxandin xwestiye",
+      "lift": "Rake"
+    }
+  },
   "posts": {
     "title": "Nivîs",
     "gate": "Nivîs tenê ji şopîneran re xuya ne.",
@@ -2451,6 +2537,12 @@
     "commentHidden": "Şîrove hate veşartin",
     "commentRemoved": "Şîrove hate rakirin",
     "postRemoved": "Nivîs hate rakirin",
-    "restored": "Hate vegerandin"
+    "restored": "Hate vegerandin",
+    "limited": {
+      "warning": "Hişyarî hat şandin",
+      "restrict": "Hesab hat sînordarkirin",
+      "suspend": "Hesab hat rawestandin"
+    },
+    "limitLifted": "Sînor hat rakirin"
   }
 }

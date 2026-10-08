@@ -8,6 +8,7 @@ import { ProfileLink } from "@/features/community/components/ProfileLink";
 import { profileHref } from "@/features/community/routes";
 import { formatUsername } from "@/features/community/username";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
+import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { useAdminActions, useReportedProfiles } from "../queries";
@@ -16,9 +17,15 @@ import type { AdminTransport } from "../transport";
 
 /** Profiles readers reported, grouped by person. Hidden when there are none. */
 export function ReportedProfilesSection({
+  canRestrict = false,
+  canSuspend = false,
   transport,
   hubTransport,
 }: {
+  /** `accounts.restrict`: show "Limit account" on each row. */
+  canRestrict?: boolean;
+  /** `accounts.suspend`: the sheet also offers Suspend. */
+  canSuspend?: boolean;
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
 }) {
@@ -91,6 +98,16 @@ export function ReportedProfilesSection({
                 label={t("admin.reports.open")}
                 onPress={() => router.push(profileHref(row.username as string))}
                 testID={`reported-open-${row.userId}`}
+              />
+            ) : null}
+            {canRestrict ? (
+              <LimitAccountButton
+                target={{
+                  userId: row.userId,
+                  name: row.displayName ?? row.username ?? t("eventHub.thread.anonymous"),
+                }}
+                canSuspend={canSuspend}
+                testID={`reported-limit-${row.userId}`}
               />
             ) : null}
             <ActionButton

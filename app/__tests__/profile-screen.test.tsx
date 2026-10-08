@@ -185,6 +185,51 @@ describe("Profile tab", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
+  describe("a limited account", () => {
+    const LIMIT_ROW = {
+      restriction_id: "r1",
+      level: "restrict",
+      reason: "spam",
+      starts_at: "2026-10-08T10:00:00Z",
+      ends_at: "2099-01-01T10:00:00Z",
+      appeal_requested_at: null,
+    };
+
+    function limited() {
+      mockRpc.mockImplementation(async (name: string) =>
+        name === "my_restriction"
+          ? { data: [LIMIT_ROW], error: null }
+          : { data: [STATS_ROW], error: null },
+      );
+    }
+
+    it("shows a calm banner with the reason and Ask for review on a guest's Profile", async () => {
+      limited();
+      await renderWithProviders(<ProfileScreen />);
+      expect(await screen.findByTestId("restriction-banner")).toBeTruthy();
+      expect(screen.getByTestId("restriction-banner-message")).toHaveTextContent(
+        /^Your account is limited until .+: Spam$/,
+      );
+      expect(screen.getByTestId("restriction-ask")).toBeTruthy();
+      // the rest of the page is still there: felt reports and sign-up are untouched
+      expect(screen.getByTestId("guest-profile")).toBeTruthy();
+    });
+
+    it("shows it above the owner's own page too", async () => {
+      limited();
+      mockAccount = ACCOUNT;
+      await renderWithProviders(<ProfileScreen />);
+      expect(await screen.findByTestId("restriction-banner")).toBeTruthy();
+      expect(screen.getByTestId("own-profile")).toBeTruthy();
+    });
+
+    it("shows no banner for everyone else", async () => {
+      await renderWithProviders(<ProfileScreen />);
+      expect(await screen.findByTestId("guest-profile")).toBeTruthy();
+      expect(screen.queryByTestId("restriction-banner")).toBeNull();
+    });
+  });
+
   describe("anonymous", () => {
     it("shows the Profile title, Guest and the single sign-up invitation", async () => {
       await renderWithProviders(<ProfileScreen />);

@@ -915,7 +915,8 @@
       "errors": {
         "rateLimited": "Too many comments. Wait a few minutes.",
         "network": "No connection. Try again.",
-        "unknown": "Couldn't post. Try again."
+        "unknown": "Couldn't post. Try again.",
+        "restricted": "Your account is limited right now. You can't write."
       },
       "memoryPlaceholder": "Where were you, and what did you feel?"
     },
@@ -944,7 +945,8 @@
       "withdrawReport": "Withdraw report",
       "reportWithdrawn": "Report withdrawn.",
       "flagLimit": "You've reached today's limit for reports. Try again tomorrow.",
-      "following": "Following"
+      "following": "Following",
+      "restricted": "Your account is limited right now."
     },
     "reasons": {
       "spam": "Spam",
@@ -2238,7 +2240,8 @@
       "noComments": "No comments yet.",
       "openHub": "Open {{place}}",
       "share": "Share profile",
-      "shareFailed": "Could not share. Please try again."
+      "shareFailed": "Could not share. Please try again.",
+      "suspended": "This account is suspended"
     },
     "follow": {
       "follow": "Follow",
@@ -2294,7 +2297,11 @@
       "network": "No connection. Try again.",
       "unknown": "Couldn't do that. Try again.",
       "expired": "Too late to undo this.",
-      "not_restorable": "This can't be restored any more."
+      "not_restorable": "This can't be restored any more.",
+      "restricted": "Your account is limited right now.",
+      "protected_account": "This account can't be limited.",
+      "bad_end_date": "Check the end date.",
+      "reason_required": "Add a reason."
     }
   },
   "admin": {
@@ -2351,7 +2358,11 @@
         "removed_by_admin": "Removed by an admin",
         "moderator": "Moderator decision",
         "flagged": "Reported by readers",
-        "author_deleted_text": "Old deleted text cleaned up"
+        "author_deleted_text": "Old deleted text cleaned up",
+        "rumour": "Fake earthquake prediction or rumour",
+        "harassment": "Harassment",
+        "impersonation": "Impersonation",
+        "explicit": "Sexual or violent content"
       },
       "actions": {
         "comment_approve": "Approved a comment",
@@ -2405,6 +2416,81 @@
       "cannotRestore": "Can't be restored."
     }
   },
+  "restrictions": {
+    "levels": {
+      "warning": "Warning",
+      "restrict": "Restrict",
+      "suspend": "Suspend"
+    },
+    "reasons": {
+      "rumour": "Fake earthquake prediction or rumour",
+      "harassment": "Harassment",
+      "spam": "Spam",
+      "impersonation": "Impersonation",
+      "explicit": "Sexual or violent content"
+    },
+    "banner": {
+      "warning": "You have a warning: {{reason}}",
+      "limited": "Your account is limited until {{date}}: {{reason}}",
+      "limitedOpen": "Your account is limited: {{reason}}",
+      "suspended": "Your account is suspended until {{date}}: {{reason}}",
+      "suspendedOpen": "Your account is suspended: {{reason}}",
+      "detailLimited": "You can still read everything, send felt reports and get alerts. For now you can't comment, post, follow, report or change your profile.",
+      "detailSuspended": "You can still send felt reports and get alerts. For now others can't see your profile, comments or posts.",
+      "ask": "Ask for review",
+      "requested": "Review requested"
+    },
+    "review": {
+      "title": "Ask for review",
+      "hint": "If you think this is a mistake, tell us. A person will look at it. A message is optional.",
+      "label": "Your message",
+      "placeholder": "Your message (optional)",
+      "send": "Send",
+      "sending": "Sending…"
+    },
+    "composerDisabled": "Your account is limited, so you can't write right now.",
+    "admin": {
+      "action": "Limit account",
+      "title": "Limit account",
+      "levelLabel": "What to do",
+      "levelHints": {
+        "warning": "A notice with the reason. Nothing else changes.",
+        "restrict": "Can't comment, post, follow, report or edit the profile. Felt reports and alerts keep working.",
+        "suspend": "As restrict, and the profile, comments and posts are hidden from others."
+      },
+      "durationLabel": "For how long",
+      "durations": {
+        "h24": "24 hours",
+        "d7": "7 days",
+        "d30": "30 days",
+        "custom": "Pick a date",
+        "open": "Until lifted"
+      },
+      "dateLabel": "End date",
+      "datePlaceholder": "YYYY-MM-DD",
+      "dateInvalid": "Enter a future date as YYYY-MM-DD.",
+      "reasonLabel": "Reason (the person reads it)",
+      "reasonOwn": "Or write your own words",
+      "noteLabel": "Private note (only admins see it)",
+      "notePlaceholder": "Optional",
+      "submit": "Limit account"
+    },
+    "list": {
+      "title": "Limited accounts",
+      "hint": "Limits in force, and those made in the last 30 days.",
+      "empty": "No limits right now.",
+      "guest": "Guest {{id}}",
+      "account": "Account {{id}}",
+      "until": "Until {{date}}",
+      "untilLifted": "Until lifted",
+      "lifted": "Lifted by {{name}}",
+      "liftedPlain": "Lifted",
+      "ended": "Ended",
+      "note": "Note: {{note}}",
+      "appeal": "Asked for review",
+      "lift": "Lift"
+    }
+  },
   "posts": {
     "title": "Posts",
     "gate": "Posts are visible to followers.",
@@ -2451,6 +2537,12 @@
     "commentHidden": "Comment hidden",
     "commentRemoved": "Comment removed",
     "postRemoved": "Post removed",
-    "restored": "Restored"
+    "restored": "Restored",
+    "limited": {
+      "warning": "Warning sent",
+      "restrict": "Account limited",
+      "suspend": "Account suspended"
+    },
+    "limitLifted": "Limit lifted"
   }
 }

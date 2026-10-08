@@ -19,6 +19,9 @@ interface CommentComposerProps {
   /** Replies get a Cancel button. */
   onCancel?: () => void;
   autoFocus?: boolean;
+  /** The account is limited (migration 0054): the box and the Post button are
+   * off and a short line says why. The banner above explains the details. */
+  disabled?: boolean;
   testID?: string;
 }
 
@@ -29,6 +32,7 @@ const ERROR_KEY: Record<HubErrorCode, string> = {
   not_signed_in: "eventHub.composer.errors.unknown",
   expired: "eventHub.composer.errors.unknown",
   not_restorable: "eventHub.composer.errors.unknown",
+  restricted: "eventHub.composer.errors.restricted",
   unknown: "eventHub.composer.errors.unknown",
 };
 
@@ -43,6 +47,7 @@ export function CommentComposer({
   onSubmit,
   onCancel,
   autoFocus = false,
+  disabled = false,
   testID = "hub-composer",
 }: CommentComposerProps) {
   const { t } = useTranslation();
@@ -53,7 +58,7 @@ export function CommentComposer({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const canPost = text.trim().length > 0 && !busy;
+  const canPost = text.trim().length > 0 && !busy && !disabled;
 
   async function handlePost() {
     if (!canPost) {
@@ -91,7 +96,7 @@ export function CommentComposer({
         multiline
         maxLength={COMMENT_MAX_LENGTH}
         autoFocus={autoFocus}
-        editable={!busy}
+        editable={!busy && !disabled}
         textAlignVertical="top"
         style={[
           styles.input,
@@ -107,6 +112,12 @@ export function CommentComposer({
         ]}
         testID={`${testID}-input`}
       />
+
+      {disabled ? (
+        <Text style={meta} testID={`${testID}-disabled`}>
+          {t("restrictions.composerDisabled")}
+        </Text>
+      ) : null}
 
       {!isAccount ? (
         <View style={{ gap: spacing[1] }}>

@@ -199,6 +199,9 @@ export function toHubError(error: unknown): HubError {
   if (/not_restorable/.test(message)) {
     return new HubError("not_restorable", message);
   }
+  if (/account_restricted/.test(message)) {
+    return new HubError("restricted", message);
+  }
   if (e.code === "54000" || e.status === 429) {
     return new HubError("rate_limited", message);
   }

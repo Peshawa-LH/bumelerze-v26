@@ -80,7 +80,8 @@ const commentSchema = z.object({
 const profileSchema = z.object({
   user_id: z.string(),
   username: z.string(),
-  display_name: z.string(),
+  // null for a suspended account seen by somebody else (migration 0054)
+  display_name: z.string().nullable().optional(),
   avatar_path: z.string().nullable().optional(),
   is_private: z.boolean().catch(false),
   roles: z.unknown().optional(),
@@ -88,6 +89,7 @@ const profileSchema = z.object({
   follow_status: z.enum(["none", "pending", "accepted"]).catch("none"),
   is_blocked: z.boolean().catch(false),
   can_view_full: z.boolean().catch(false),
+  suspended: z.boolean().catch(false),
   member_since: z.string().nullable().optional(),
   followers: count.optional(),
   following: count.optional(),
@@ -170,7 +172,7 @@ export function parsePublicProfile(data: unknown): PublicProfile | null {
   return {
     userId: p.user_id,
     username: p.username,
-    displayName: p.display_name,
+    displayName: p.display_name ?? p.username,
     avatarPath: p.avatar_path ?? null,
     isPrivate: p.is_private,
     roles: parseRoles(p.roles),
@@ -178,6 +180,7 @@ export function parsePublicProfile(data: unknown): PublicProfile | null {
     followStatus: p.follow_status,
     isBlocked: p.is_blocked,
     canViewFull: p.can_view_full && !p.is_blocked,
+    suspended: p.suspended,
     details,
   };
 }
@@ -251,6 +254,21 @@ export function toCommunityError(error: unknown): CommunityError {
   // The SQL says "restore_my_comment: expired"; a bare "JWT expired" is not it.
   if (/:\s*expired\b/.test(message)) {
     return new CommunityError("expired", message);
+  }
+  // Migration 0054 tokens: the SQL says "event_comments: account_restricted"
+  // and the like. Checked before the generic list so "blocked" cannot swallow
+  // them, and before the 42501 fallback they share.
+  if (message.includes("account_restricted")) {
+    return new CommunityError("restricted", message);
+  }
+  if (/protected_account|self_restriction/.test(message)) {
+    return new CommunityError("protected_account", message);
+  }
+  if (/ends_required|ends_invalid|ends_too_long/.test(message)) {
+    return new CommunityError("bad_end_date", message);
+  }
+  if (message.includes("reason_required")) {
+    return new CommunityError("reason_required", message);
   }
   for (const token of [
     "not_account",

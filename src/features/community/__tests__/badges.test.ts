@@ -16,6 +16,7 @@ function profile(
     followStatus: "none",
     isBlocked: false,
     canViewFull: true,
+    suspended: false,
     details: {
       memberSince: null,
       followers: 0,

@@ -10,6 +10,7 @@ import {
   getRelativeTime,
   isolateNumeric,
 } from "@/features/events";
+import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
@@ -36,6 +37,10 @@ export interface CommentViewer {
   isModerator: boolean;
   /** May remove any comment (`comments.delete`, admins). */
   canDelete?: boolean;
+  /** May limit the author's account (`accounts.restrict`, migration 0054). */
+  canRestrict?: boolean;
+  /** May also suspend it (`accounts.suspend`). */
+  canSuspend?: boolean;
 }
 
 interface CommentItemProps {
@@ -79,12 +84,18 @@ export function CommentItem({
   const locale = i18n.language;
   const [mode, setMode] = useState<Mode>("idle");
   const [busy, setBusy] = useState(false);
-  const [errorKey, setErrorKey] = useState<"actionError" | "flagLimit" | null>(null);
+  const [errorKey, setErrorKey] = useState<
+    "actionError" | "flagLimit" | "restricted" | null
+  >(null);
   const [reported, setReported] = useState(false);
   const [withdrawn, setWithdrawn] = useState(false);
   const showUndo = useUndoToast();
 
   const isOwn = viewer.userId !== null && comment.userId === viewer.userId;
+  // The server refuses to limit an admin; do not even offer it.
+  const authorIsAdmin = (roles ?? []).some(
+    (r) => r.role === "official" || r.role === "moderator",
+  );
   const isPending = comment.status === "pending";
   const isVisible = comment.status === "visible";
   const name = author?.displayName ?? t("eventHub.thread.anonymous");
@@ -108,7 +119,9 @@ export function CommentItem({
       setErrorKey(
         error instanceof HubError && error.code === "flag_limit"
           ? "flagLimit"
-          : "actionError",
+          : error instanceof HubError && error.code === "restricted"
+            ? "restricted"
+            : "actionError",
       );
       return false;
     } finally {
@@ -378,6 +391,13 @@ export function CommentItem({
                 danger
                 onPress={() => setMode("adminRemove")}
                 testID={`remove-${comment.id}`}
+              />
+            ) : null}
+            {viewer.canRestrict && !isOwn && comment.userId !== null && !authorIsAdmin ? (
+              <LimitAccountButton
+                target={{ userId: comment.userId, name }}
+                canSuspend={viewer.canSuspend === true}
+                testID={`limit-${comment.id}`}
               />
             ) : null}
             {viewer.isModerator && isPending ? (

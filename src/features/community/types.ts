@@ -64,6 +64,9 @@ export interface PublicProfile {
   /** The viewer blocked this person. */
   isBlocked: boolean;
   canViewFull: boolean;
+  /** The account is suspended (migration 0054). Everybody but the person
+   * themself then receives only the @username: no name, photo or content. */
+  suspended: boolean;
   details: ProfileDetails | null;
 }
 
@@ -78,6 +81,14 @@ export type CommunityErrorCode =
   | "expired"
   /** Nothing to bring back any more (migration 0053). */
   | "not_restorable"
+  /** The account is restricted or suspended (migration 0054). */
+  | "restricted"
+  /** An account that holds admin permissions, or the admin themself, cannot be limited. */
+  | "protected_account"
+  /** The end date is missing, in the past or too far away (admin). */
+  | "bad_end_date"
+  /** The reason is missing (admin). */
+  | "reason_required"
   | "unavailable"
   | "network"
   | "unknown";

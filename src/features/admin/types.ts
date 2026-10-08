@@ -83,9 +83,11 @@ export const ACTIVITY_ACTIONS = [
   { action: "role_revoke", content: false },
   { action: "password_reset", content: false },
   { action: "profile_reset", content: false },
-  { action: "restrict", content: false },
-  { action: "suspend", content: false },
-  { action: "lift", content: false },
+  // Migration 0054: a moderator may restrict, so these rows are readable with
+  // `audit.read` too.
+  { action: "restrict", content: true },
+  { action: "suspend", content: true },
+  { action: "lift", content: true },
   { action: "person_view", content: false },
   { action: "email_reveal", content: false },
   { action: "purge", content: false },
@@ -102,6 +104,9 @@ export const ACTIVITY_FILTER_ACTIONS: readonly ActivityAction[] = [
   "profile_reports_resolve",
   "role_grant",
   "role_revoke",
+  "restrict",
+  "suspend",
+  "lift",
   "password_reset",
   "purge",
 ];
@@ -144,6 +149,9 @@ export const UNDOABLE_ACTIONS = {
   profile_reports_resolve: "comments.moderate",
   post_reports_dismiss: "comments.moderate",
   role_revoke: "badges.grant",
+  // Migration 0054: the Undo of a restriction lifts it.
+  restrict: "accounts.restrict",
+  suspend: "accounts.suspend",
 } as const;
 export type UndoableAction = keyof typeof UNDOABLE_ACTIONS;
 

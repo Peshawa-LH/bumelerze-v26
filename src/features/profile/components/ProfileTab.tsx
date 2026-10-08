@@ -1,8 +1,9 @@
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useAccount } from "@/features/account/use-account";
 import { useCommunityActions, usePublicProfile } from "@/features/community/queries";
+import { RestrictionBanner } from "@/features/restrictions/components/RestrictionBanner";
 import { useTheme } from "@/theme";
 import { GuestProfile } from "./GuestProfile";
 import { OwnProfile } from "./OwnProfile";
@@ -13,6 +14,16 @@ import { OwnProfile } from "./OwnProfile";
  * install with no server, gets the Guest page.
  */
 export function ProfileTab() {
+  return (
+    <View style={styles.tab}>
+      {/* A limited account (guests included) sees why and can ask for a review. */}
+      <RestrictionBanner />
+      <ProfileTabBody />
+    </View>
+  );
+}
+
+function ProfileTabBody() {
   const { t } = useTranslation();
   const { colors, typography } = useTheme();
   const account = useAccount();
@@ -49,3 +60,7 @@ function AccountProfile() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  tab: { gap: 16 },
+});

@@ -54,6 +54,7 @@ function profile(followStatus: FollowStatus, isPrivate = false): PublicProfile {
     followStatus,
     isBlocked: false,
     canViewFull: true,
+    suspended: false,
     details: null,
   };
 }

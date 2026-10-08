@@ -48,6 +48,10 @@ export interface AdminAccess {
   canAuditAll: boolean;
   /** May bring back what an admin removed (`content.restore`, migration 0053). */
   canRestore: boolean;
+  /** May warn, restrict and lift (`accounts.restrict`, migration 0054). */
+  canRestrict: boolean;
+  /** May suspend (`accounts.suspend`, official). */
+  canSuspend: boolean;
   /** Any admin tool at all: the entry in My account shows when true. */
   any: boolean;
   /** Permissions still loading: show nothing yet rather than "not allowed". */
@@ -70,8 +74,12 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
   const canAuditAll = server && perms.has("audit.read_all");
   const canAudit = canAuditAll || (server && perms.has("audit.read"));
   const canRestore = server && perms.has("content.restore");
+  const canRestrict = server && perms.has("accounts.restrict");
+  const canSuspend = server && perms.has("accounts.suspend");
   return {
     canRestore,
+    canRestrict,
+    canSuspend,
     canModerate,
     canDelete,
     canRemovePosts,
@@ -79,7 +87,7 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
     canResetPasswords,
     canAudit,
     canAuditAll,
-    any: canModerate || canGrant || canResetPasswords || canAudit,
+    any: canModerate || canGrant || canResetPasswords || canAudit || canRestrict,
     isLoading: perms.isLoading,
     has: (permission) => server && perms.has(permission),
   };

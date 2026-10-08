@@ -17,6 +17,8 @@ import { useAccount } from "@/features/account";
 import { formatMagnitudeValue, type Event } from "@/features/events";
 import { useEventUuidResult } from "@/features/feltmap/use-event-uuid";
 import { placeLine } from "@/features/geo";
+import { RestrictionBanner } from "@/features/restrictions/components/RestrictionBanner";
+import { useMyRestriction } from "@/features/restrictions/queries";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useTheme } from "@/theme";
 
@@ -29,7 +31,7 @@ import {
 import { buildThreads } from "../threads";
 import type { EventHubTransport } from "../transport";
 import type { HubActions } from "../queries";
-import type { HubThread, HubThreadData } from "../types";
+import { HubError, type HubThread, type HubThreadData } from "../types";
 import { CommentComposer } from "./CommentComposer";
 import { CommentItem, type CommentViewer } from "./CommentItem";
 import { HubImpactSection } from "./HubImpactSection";
@@ -68,6 +70,11 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
   const isModerator = permissions.has("comments.moderate");
   // Removing any comment needs the server's own answer, not the role fallback.
   const canDelete = !permissions.legacy && permissions.has("comments.delete");
+  const canRestrict = !permissions.legacy && permissions.has("accounts.restrict");
+  const canSuspend = !permissions.legacy && permissions.has("accounts.suspend");
+  // A restricted or suspended account reads but does not write (migration 0054).
+  const mine = useMyRestriction();
+  const limited = mine.isLimited;
 
   const uuidState = useEventUuidResult(event);
   const summary = useEventHubSummary(event, {
@@ -86,9 +93,29 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  // The server refused because the account is limited, which this screen did
+  // not know yet (a limit made a moment ago): re-read it so the banner appears.
+  const postComment = async (input: { parentId: string | null; body: string }) => {
+    try {
+      await actions.post(input);
+    } catch (error) {
+      if (error instanceof HubError && error.code === "restricted") {
+        void mine.refresh();
+      }
+      throw error;
+    }
+  };
+
   const viewer: CommentViewer = useMemo(
-    () => ({ userId: viewerId, isAccount, isModerator, canDelete }),
-    [viewerId, isAccount, isModerator, canDelete],
+    () => ({
+      userId: viewerId,
+      isAccount,
+      isModerator,
+      canDelete,
+      canRestrict,
+      canSuspend,
+    }),
+    [viewerId, isAccount, isModerator, canDelete, canRestrict, canSuspend],
   );
   const threads = useMemo(
     () =>
@@ -146,14 +173,16 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
         <>
           <HubSummaryCard summary={summary.summary} />
           <HubImpactSection event={event} summary={summary.summary} />
+          <RestrictionBanner />
           <CommentComposer
             isAccount={isAccount}
+            disabled={limited}
             placeholder={
               summary.summary?.featured && summary.summary.reports === 0
                 ? t("eventHub.composer.memoryPlaceholder")
                 : t("eventHub.composer.placeholder")
             }
-            onSubmit={(body) => actions.post({ parentId: null, body })}
+            onSubmit={(body) => postComment({ parentId: null, body })}
           />
         </>
       )}
@@ -210,6 +239,8 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
             viewer={viewer}
             nowMs={thread.dataUpdatedAt}
             actions={actions}
+            limited={limited}
+            onSubmitReply={postComment}
             isReplying={replyTo === item.root.id}
             onReply={() => setReplyTo(item.root.id)}
             onCloseReply={() => setReplyTo(null)}
@@ -246,6 +277,9 @@ interface ThreadViewProps {
   viewer: CommentViewer;
   nowMs: number;
   actions: HubActions;
+  /** The viewer's account is limited: reply boxes stay off. */
+  limited: boolean;
+  onSubmitReply: (input: { parentId: string | null; body: string }) => Promise<void>;
   isReplying: boolean;
   onReply: () => void;
   onCloseReply: () => void;
@@ -257,6 +291,8 @@ function ThreadView({
   viewer,
   nowMs,
   actions,
+  limited,
+  onSubmitReply,
   isReplying,
   onReply,
   onCloseReply,
@@ -293,7 +329,8 @@ function ThreadView({
           <CommentComposer
             isAccount={viewer.isAccount}
             placeholder={t("eventHub.composer.replyPlaceholder")}
-            onSubmit={(body) => actions.post({ parentId: thread.root.id, body })}
+            disabled={limited}
+            onSubmit={(body) => onSubmitReply({ parentId: thread.root.id, body })}
             onCancel={onCloseReply}
             autoFocus
             testID={`reply-composer-${thread.root.id}`}

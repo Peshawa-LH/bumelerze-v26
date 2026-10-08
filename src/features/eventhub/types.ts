@@ -34,6 +34,10 @@ export const PERMISSIONS = [
   "audit.read_all",
   // Migration 0053: bring back what an admin removed (official only).
   "content.restore",
+  // Migration 0054: limit an account. `accounts.restrict` (moderator,
+  // official) warns or restricts; `accounts.suspend` (official) suspends.
+  "accounts.restrict",
+  "accounts.suspend",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -128,6 +132,8 @@ export type HubErrorCode =
   | "expired"
   /** Nothing to bring back any more (migration 0053). */
   | "not_restorable"
+  /** The account is restricted or suspended (migration 0054). */
+  | "restricted"
   | "network"
   | "not_signed_in"
   | "unknown";

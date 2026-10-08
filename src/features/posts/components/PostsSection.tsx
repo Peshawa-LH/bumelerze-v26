@@ -4,9 +4,10 @@ import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { useAccount } from "@/features/account/use-account";
-import type { PublicProfile } from "@/features/community/types";
+import { CommunityError, type PublicProfile } from "@/features/community/types";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
+import { useMyRestriction } from "@/features/restrictions/queries";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useTheme } from "@/theme";
 import { useCanRemovePosts, usePostActions, usePosts } from "../queries";
@@ -81,6 +82,7 @@ function PostsList({
   const list = usePosts(profile.userId, { includeRemoved: profile.isSelf }, transport);
   const actions = usePostActions(transport);
   const canAdminRemove = useCanRemovePosts(hubTransport);
+  const mine = useMyRestriction();
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
@@ -95,7 +97,20 @@ function PostsList({
   const viewerId = account.userId;
   const composer =
     profile.isSelf && viewerId !== null ? (
-      <PostComposer onSubmit={(body) => actions.create(viewerId, body)} />
+      <PostComposer
+        disabled={mine.isLimited}
+        onSubmit={async (body) => {
+          try {
+            await actions.create(viewerId, body);
+          } catch (error) {
+            // refused because of a limit this screen did not know yet
+            if (error instanceof CommunityError && error.code === "restricted") {
+              void mine.refresh();
+            }
+            throw error;
+          }
+        }}
+      />
     ) : null;
 
   let body: ReactNode;

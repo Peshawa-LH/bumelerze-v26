@@ -126,6 +126,47 @@ export function PublicProfileView({
     }
   }
 
+  // A suspended account (migration 0054) shows only its @username to everybody
+  // but the person themself: no name, photo, counts, posts or comments.
+  if (profile.suspended && !profile.isSelf) {
+    return (
+      <View style={{ gap: spacing[4] }} testID="public-profile-suspended">
+        <View style={[styles.header, { gap: spacing[4] }]}>
+          <Avatar
+            uri={null}
+            name={profile.username}
+            size={88}
+            placeholder="person"
+            testID="public-profile-avatar"
+          />
+          <View style={styles.headerText}>
+            <Text
+              accessibilityRole="header"
+              testID="public-profile-username"
+              style={[
+                typography.h2,
+                {
+                  color: colors.text.primary,
+                  writingDirection: "ltr",
+                  textAlign: "left",
+                },
+              ]}
+            >
+              {formatUsername(profile.username)}
+            </Text>
+          </View>
+        </View>
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[typography.bodyDefault, { color: colors.text.secondary }]}
+          testID="public-profile-suspended-note"
+        >
+          {t("community.profile.suspended")}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{ gap: spacing[4] }} testID="public-profile">
       <View style={[styles.header, { gap: spacing[4] }]}>

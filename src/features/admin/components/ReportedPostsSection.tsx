@@ -9,6 +9,7 @@ import { profileHref } from "@/features/community/routes";
 import { formatUsername } from "@/features/community/username";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
+import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { PostsTransport } from "@/features/posts/transport";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
@@ -24,11 +25,17 @@ import type { ReportedPost } from "../types";
  * before migration 0050 is applied. */
 export function ReportedPostsSection({
   canRemove,
+  canRestrict = false,
+  canSuspend = false,
   transport,
   hubTransport,
   postsTransport,
 }: {
   canRemove: boolean;
+  /** `accounts.restrict`: show "Limit account" on each row. */
+  canRestrict?: boolean;
+  /** `accounts.suspend`: the sheet also offers Suspend. */
+  canSuspend?: boolean;
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
   postsTransport?: PostsTransport;
@@ -55,6 +62,8 @@ export function ReportedPostsSection({
           key={row.postId}
           row={row}
           canRemove={canRemove}
+          canRestrict={canRestrict}
+          canSuspend={canSuspend}
           actions={actions}
         />
       ))}
@@ -65,10 +74,14 @@ export function ReportedPostsSection({
 function ReportedPostItem({
   row,
   canRemove,
+  canRestrict,
+  canSuspend,
   actions,
 }: {
   row: ReportedPost;
   canRemove: boolean;
+  canRestrict: boolean;
+  canSuspend: boolean;
   actions: ReturnType<typeof useAdminActions>;
 }) {
   const { t, i18n } = useTranslation();
@@ -187,6 +200,16 @@ function ReportedPostItem({
               disabled={busy}
               onPress={() => setRemoving(true)}
               testID={`reported-post-remove-${row.postId}`}
+            />
+          ) : null}
+          {canRestrict ? (
+            <LimitAccountButton
+              target={{
+                userId: row.authorId,
+                name: row.displayName ?? row.username ?? t("eventHub.thread.anonymous"),
+              }}
+              canSuspend={canSuspend}
+              testID={`reported-post-limit-${row.postId}`}
             />
           ) : null}
           <ActionButton
