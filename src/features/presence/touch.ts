@@ -9,7 +9,7 @@ import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
  * "Last seen" for the admin People directory (migration 0055, `app_presence`).
  * Once a day at most, the app tells the server the time, the platform, the app
  * version and the language, against the identity it already has (account or
- * anonymous). Disclosed in Settings (`settings.footerPresence`).
+ * anonymous). To be described in the website privacy policy (owner removed the Settings line, 2026-10-08).
  *
  * Rules:
  *  - at most one call per 24 hours (a stamp in AsyncStorage) and one per app
