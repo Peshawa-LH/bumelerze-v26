@@ -14,6 +14,7 @@ import { SupabaseHomeTransport, type HomeTransport } from "./transport";
 import type {
   DeleteHomeResult,
   HomeMember,
+  MemberProfile,
   HomePhoto,
   HomeTag,
   JoinResult,
@@ -211,7 +212,8 @@ export function useHomePhotos(
 
 export interface FamilyData {
   members: HomeMember[];
-  names: Record<string, string>;
+  /** Name, photo and @username per member, by user id. */
+  profiles: Record<string, MemberProfile>;
   /** The secret join key; owners only. */
   joinKey: string | null;
 }
@@ -225,8 +227,10 @@ export async function loadFamily(
     transport.fetchMembers(tagId),
     isOwner ? transport.fetchJoinKey(tagId) : Promise.resolve(null),
   ]);
-  const names = await transport.fetchDisplayNames(members.map((member) => member.userId));
-  return { members, names, joinKey };
+  const profiles = await transport.fetchMemberProfiles(
+    members.map((member) => member.userId),
+  );
+  return { members, profiles, joinKey };
 }
 
 export function useFamily(

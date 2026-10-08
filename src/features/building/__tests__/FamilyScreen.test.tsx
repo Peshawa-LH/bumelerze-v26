@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, screen, within } from "@testing-library/react-
 import * as Clipboard from "expo-clipboard";
 import { Share } from "react-native";
 
+import { formatUsername } from "@/features/community/username";
 import i18n from "@/i18n";
 import { FamilyScreen } from "../components/FamilyScreen";
 import { HomeError } from "../types";
@@ -16,9 +17,10 @@ import {
 
 const LINK = "https://bumelerze.com/app/home/join?code=BMH-7K3Q9P&key=ABCD2345";
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
   useRouter: () => ({
-    push: jest.fn(),
+    push: mockPush,
     replace: mockReplace,
     back: jest.fn(),
     canGoBack: () => true,
@@ -72,10 +74,11 @@ function loadAs(userId: string, role: "owner" | "member") {
     member("u-2", { requestedAt: "2026-10-04T11:00:00Z" }),
     member("u-3", { status: "pending", requestedAt: "2026-10-04T12:00:00Z" }),
   ]);
-  mockTransport.fetchDisplayNames.mockResolvedValue({
-    "u-owner": "Shilan",
-    "u-2": "Karwan",
-    "u-3": "Dilan",
+  mockTransport.fetchMemberProfiles.mockResolvedValue({
+    "u-owner": { displayName: "Shilan", username: "shilan", avatarPath: null },
+    // No username yet (never picked one): shown, but not a link.
+    "u-2": { displayName: "Karwan", username: null, avatarPath: null },
+    "u-3": { displayName: "Dilan", username: "dilan_k", avatarPath: null },
   });
   mockTransport.fetchJoinKey.mockResolvedValue("ABCD2345");
 }
@@ -95,6 +98,13 @@ describe("Family screen", () => {
 
   describe("owner", () => {
     beforeEach(() => loadAs("u-owner", "owner"));
+
+    it("lets the owner open a pending requester's profile", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText("Dilan");
+      await press("family-pending-open-u-3");
+      expect(mockPush).toHaveBeenCalledWith("/u/dilan_k");
+    });
 
     it("shows the code and the secret key", async () => {
       await renderWithProviders(<FamilyScreen tagId="tag-1" />);
@@ -259,6 +269,23 @@ describe("Family screen", () => {
 
   describe("member", () => {
     beforeEach(() => loadAs("u-2", "member"));
+
+    it("opens a family member's profile from their row", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      await screen.findByText("Karwan (you)");
+      const link = screen.getByTestId("family-member-open-u-owner");
+      expect(link.props.accessibilityRole).toBe("link");
+      expect(link.props.accessibilityLabel).toBe("Open profile of Shilan");
+      expect(screen.getByText(formatUsername("shilan"))).toBeTruthy();
+      await press("family-member-open-u-owner");
+      expect(mockPush).toHaveBeenCalledWith("/u/shilan");
+    });
+
+    it("keeps a member without a username as plain text", async () => {
+      await renderWithProviders(<FamilyScreen tagId="tag-1" />);
+      expect(await screen.findByText("Karwan (you)")).toBeTruthy();
+      expect(screen.queryByTestId("family-member-open-u-2")).toBeNull();
+    });
 
     it("sees the members and can leave, but not the key or the requests", async () => {
       await renderWithProviders(<FamilyScreen tagId="tag-1" />);

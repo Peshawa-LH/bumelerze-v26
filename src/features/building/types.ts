@@ -33,6 +33,14 @@ export interface HomeMember {
   requestedAt: string;
 }
 
+/** What the family screen shows of a member: name, photo and the @username
+ * that opens their public profile (null when they have not picked one). */
+export interface MemberProfile {
+  displayName: string;
+  username: string | null;
+  avatarPath: string | null;
+}
+
 /** One stored photo of a home, with a short-lived signed link. */
 export interface HomePhoto {
   url: string;

@@ -23,7 +23,7 @@ export const mockTransport: MockTransport = {
   fetchTags: jest.fn(),
   fetchJoinKey: jest.fn(),
   fetchMembers: jest.fn(),
-  fetchDisplayNames: jest.fn(),
+  fetchMemberProfiles: jest.fn(),
   fetchLatestAssessments: jest.fn(),
   fetchLatestSurvey: jest.fn(),
   saveSurvey: jest.fn(),
@@ -41,7 +41,7 @@ export function resetMockTransport(): void {
   mockTransport.fetchTags.mockResolvedValue([]);
   mockTransport.fetchLatestAssessments.mockResolvedValue({});
   mockTransport.fetchMembers.mockResolvedValue([]);
-  mockTransport.fetchDisplayNames.mockResolvedValue({});
+  mockTransport.fetchMemberProfiles.mockResolvedValue({});
   mockTransport.fetchJoinKey.mockResolvedValue(null);
   mockTransport.fetchPhotos.mockResolvedValue([]);
   mockTransport.savePhotoMeta.mockResolvedValue(undefined);

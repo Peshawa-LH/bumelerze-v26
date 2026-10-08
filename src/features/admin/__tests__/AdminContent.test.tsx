@@ -297,6 +297,18 @@ describe("AdminContent", () => {
     );
   });
 
+  it("opens a reported person's and a badge holder's profile from their name", async () => {
+    givePermissions(ADMIN);
+    await renderWithProviders(
+      <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+    );
+    await fireEvent.press(await screen.findByTestId("reported-name-u7"));
+    await fireEvent.press(await screen.findByTestId("holder-open-u9-professor"));
+    expect(mockPush).toHaveBeenCalledTimes(2);
+    expect(mockPush.mock.calls[0]?.[0]).toBe("/u/spammer");
+    expect(mockPush.mock.calls[1]?.[0]).toBe("/u/nasrin");
+  });
+
   it("dismisses reports on a profile", async () => {
     givePermissions(ADMIN);
     const transport = makeAdminTransport();

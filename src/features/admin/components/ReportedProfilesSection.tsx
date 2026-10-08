@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { communityErrorText } from "@/features/community/error-text";
+import { ProfileLink } from "@/features/community/components/ProfileLink";
 import { profileHref } from "@/features/community/routes";
 import { formatUsername } from "@/features/community/username";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
@@ -60,14 +61,20 @@ export function ReportedProfilesSection({
             },
           ]}
         >
-          <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>
-            {row.displayName ?? t("eventHub.thread.anonymous")}
-          </Text>
-          {row.username ? (
-            <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
-              {formatUsername(row.username)}
+          <ProfileLink
+            username={row.username}
+            name={row.displayName ?? t("eventHub.thread.anonymous")}
+            testID={`reported-name-${row.userId}`}
+          >
+            <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>
+              {row.displayName ?? t("eventHub.thread.anonymous")}
             </Text>
-          ) : null}
+            {row.username ? (
+              <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+                {formatUsername(row.username)}
+              </Text>
+            ) : null}
+          </ProfileLink>
           <Text style={meta}>
             {[
               t("admin.reports.count", {

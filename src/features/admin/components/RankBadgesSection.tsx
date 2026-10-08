@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { communityErrorText } from "@/features/community/error-text";
+import { ProfileLink } from "@/features/community/components/ProfileLink";
 import {
   formatUsername,
   isValidUsername,
@@ -216,21 +217,27 @@ export function RankBadgesSection({
               size={20}
             />
             <View style={styles.holderText}>
-              <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>
-                {holder.displayName ?? t("eventHub.thread.anonymous")}
-                {" · "}
-                {t(`eventHub.roles.${holder.role}`)}
-              </Text>
-              <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
-                {[
-                  holder.username ? formatUsername(holder.username) : null,
-                  holder.grantedByName
-                    ? `⁨${t("admin.ranks.givenBy", { name: holder.grantedByName })}⁩`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </Text>
+              <ProfileLink
+                username={holder.username}
+                name={holder.displayName ?? t("eventHub.thread.anonymous")}
+                testID={`holder-open-${holder.userId}-${holder.role}`}
+              >
+                <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>
+                  {holder.displayName ?? t("eventHub.thread.anonymous")}
+                  {" · "}
+                  {t(`eventHub.roles.${holder.role}`)}
+                </Text>
+                <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+                  {[
+                    holder.username ? formatUsername(holder.username) : null,
+                    holder.grantedByName
+                      ? `⁨${t("admin.ranks.givenBy", { name: holder.grantedByName })}⁩`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </Text>
+              </ProfileLink>
             </View>
             {holder.role !== "official" && holder.username ? (
               <ActionButton

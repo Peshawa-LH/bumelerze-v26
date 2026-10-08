@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { communityErrorText } from "@/features/community/error-text";
+import { ProfileLink } from "@/features/community/components/ProfileLink";
 import { profileHref } from "@/features/community/routes";
 import { formatUsername } from "@/features/community/username";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
@@ -106,9 +107,22 @@ function ReportedPostItem({
         },
       ]}
     >
+      <ProfileLink
+        username={row.username}
+        name={row.displayName ?? t("eventHub.thread.anonymous")}
+        testID={`reported-post-name-${row.postId}`}
+      >
+        <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>
+          {row.displayName ?? t("eventHub.thread.anonymous")}
+        </Text>
+        {row.username ? (
+          <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+            {formatUsername(row.username)}
+          </Text>
+        ) : null}
+      </ProfileLink>
       <Text style={meta}>
         {[
-          row.displayName ?? t("eventHub.thread.anonymous"),
           t("admin.reports.count", {
             number: localizeDigits(String(row.reportCount), i18n.language),
           }),
@@ -117,11 +131,6 @@ function ReportedPostItem({
           .filter(Boolean)
           .join(" · ")}
       </Text>
-      {row.username ? (
-        <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
-          {formatUsername(row.username)}
-        </Text>
-      ) : null}
       <Text
         style={{
           color: colors.text.primary,

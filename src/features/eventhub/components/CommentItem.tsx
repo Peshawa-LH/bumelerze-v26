@@ -173,7 +173,7 @@ export function CommentItem({
         <Pressable
           accessibilityRole="link"
           accessibilityLabel={t("community.openProfile", { name })}
-          hitSlop={4}
+          hitSlop={isReply ? 8 : 4}
           onPress={openProfile}
           testID={`comment-avatar-link-${comment.id}`}
         >

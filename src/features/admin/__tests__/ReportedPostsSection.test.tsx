@@ -96,8 +96,18 @@ describe("reported posts in the admin screen", () => {
     await renderAdmin(["comments.moderate", "posts.delete"], adminTransport([REPORTED]));
     expect(await screen.findByTestId("admin-posts")).toBeTruthy();
     expect(screen.getByText("buy cheap stuff now")).toBeTruthy();
-    expect(screen.getByText("Dilan · Reports: 3 · Spam")).toBeTruthy();
+    expect(screen.getByText("Dilan")).toBeTruthy();
+    expect(screen.getByText("Reports: 3 · Spam")).toBeTruthy();
     expect(screen.getByText("Reported posts")).toBeTruthy();
+  });
+
+  it("tapping the author's name opens their profile", async () => {
+    await renderAdmin(["comments.moderate"], adminTransport([REPORTED]));
+    const link = await screen.findByTestId("reported-post-name-p1");
+    expect(link.props.accessibilityRole).toBe("link");
+    expect(link.props.accessibilityLabel).toBe("Open profile of Dilan");
+    await fireEvent.press(link);
+    expect(mockPush).toHaveBeenCalledWith("/u/dilan.k");
   });
 
   it("Open goes to the author's profile", async () => {

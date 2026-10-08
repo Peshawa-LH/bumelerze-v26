@@ -1,11 +1,14 @@
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Share, StyleSheet, View } from "react-native";
+import { Share, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { Avatar, getAvatarUrl } from "@/features/account";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { useAccount } from "@/features/account/use-account";
+import { ProfileLink } from "@/features/community/components/ProfileLink";
+import { formatUsername } from "@/features/community/username";
 import { isolateNumeric } from "@/features/events/format";
 import { useTheme } from "@/theme";
 import { buildJoinLink } from "../constants";
@@ -72,7 +75,7 @@ export function Family({
 
   const joinKey = newKey ?? family.data?.joinKey ?? null;
   const members = family.data?.members ?? [];
-  const names = family.data?.names ?? {};
+  const profiles = family.data?.profiles ?? {};
   const approved = members.filter((member) => member.status === "approved");
   const pending = members.filter((member) => member.status === "pending");
 
@@ -113,10 +116,42 @@ export function Family({
   }
 
   function memberName(member: HomeMember): string {
-    const base = names[member.userId] ?? t("building.family.unnamed");
+    const base = profiles[member.userId]?.displayName ?? t("building.family.unnamed");
     return member.userId === account.userId
       ? t("building.family.you", { name: base })
       : base;
+  }
+
+  /** Photo, name and @username of one member; opens their profile when they
+   * have a username. Members who never picked one stay plain text. */
+  function identity(member: HomeMember, testIDPrefix: string) {
+    const profile = profiles[member.userId];
+    const plain = profile?.displayName ?? t("building.family.unnamed");
+    const username = profile?.username ?? null;
+    return (
+      <ProfileLink
+        username={username}
+        name={plain}
+        style={styles.identityLink}
+        testID={`${testIDPrefix}-${member.userId}`}
+      >
+        <View style={styles.identity}>
+          <Avatar
+            uri={getAvatarUrl(profile?.avatarPath)}
+            name={profile?.displayName ?? null}
+            size={36}
+          />
+          <View style={styles.identityText}>
+            <Body>{memberName(member)}</Body>
+            {username ? (
+              <Meta>
+                <Text style={styles.username}>{formatUsername(username)}</Text>
+              </Meta>
+            ) : null}
+          </View>
+        </View>
+      </ProfileLink>
+    );
   }
 
   return (
@@ -163,7 +198,7 @@ export function Family({
           <Heading level={3}>{t("building.family.pendingTitle")}</Heading>
           {pending.map((member) => (
             <View key={member.userId} style={{ gap: spacing[2] }}>
-              <Body>{names[member.userId] ?? t("building.family.unnamed")}</Body>
+              {identity(member, "family-pending-open")}
               <View style={styles.row}>
                 <View style={styles.cell}>
                   <AccountButton
@@ -197,7 +232,7 @@ export function Family({
         {family.isLoading ? <Meta>{t("building.loading")}</Meta> : null}
         {approved.map((member) => (
           <View key={member.userId} style={styles.memberRow}>
-            <Body>{memberName(member)}</Body>
+            {identity(member, "family-member-open")}
             {member.role === "owner" ? <Meta>{t("building.family.owner")}</Meta> : null}
           </View>
         ))}
@@ -245,6 +280,10 @@ export function Family({
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 12 },
   cell: { flex: 1 },
+  identityLink: { flex: 1 },
+  identity: { flexDirection: "row", alignItems: "center", gap: 12 },
+  identityText: { flex: 1 },
+  username: { writingDirection: "ltr", textAlign: "left" },
   memberRow: {
     flexDirection: "row",
     justifyContent: "space-between",

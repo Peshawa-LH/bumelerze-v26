@@ -304,9 +304,15 @@ describe("table reads", () => {
     };
     await SupabaseHomeTransport.fetchMembers("t1");
     expect(callsOf("home_members")).toContainEqual(["eq", ["tag_id", "t1"]]);
-    tableResults.profiles = { data: [{ user_id: "u1", display_name: "Shilan" }] };
-    await expect(SupabaseHomeTransport.fetchDisplayNames(["u1"])).resolves.toEqual({
-      u1: "Shilan",
+    tableResults.profiles = {
+      data: [
+        { user_id: "u1", display_name: "Shilan", avatar_path: "a/b.jpg", username: "shilan" },
+        { user_id: "u2", display_name: "Guest" },
+      ],
+    };
+    await expect(SupabaseHomeTransport.fetchMemberProfiles(["u1", "u2"])).resolves.toEqual({
+      u1: { displayName: "Shilan", username: "shilan", avatarPath: "a/b.jpg" },
+      u2: { displayName: "Guest", username: null, avatarPath: null },
     });
   });
 

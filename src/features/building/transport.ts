@@ -17,6 +17,7 @@ import {
   type DeleteHomeResult,
   type HomeKind,
   type HomeMember,
+  type MemberProfile,
   type HomePhoto,
   type HomeTag,
   type JoinResult,
@@ -53,7 +54,7 @@ export interface HomeTransport {
   /** Owner only; null for anyone else. */
   fetchJoinKey(tagId: string): Promise<string | null>;
   fetchMembers(tagId: string): Promise<HomeMember[]>;
-  fetchDisplayNames(userIds: readonly string[]): Promise<Record<string, string>>;
+  fetchMemberProfiles(userIds: readonly string[]): Promise<Record<string, MemberProfile>>;
   fetchLatestAssessments(
     tagIds: readonly string[],
   ): Promise<Record<string, StoredAssessment>>;
@@ -327,6 +328,8 @@ const joinSchema = z.object({
 interface ProfileRow {
   user_id: string;
   display_name: string;
+  avatar_path?: string | null;
+  username?: string | null;
 }
 
 export const SupabaseHomeTransport: HomeTransport = {
@@ -471,25 +474,29 @@ export const SupabaseHomeTransport: HomeTransport = {
     return parseMemberRows(data);
   },
 
-  async fetchDisplayNames(userIds) {
-    const names: Record<string, string> = {};
+  async fetchMemberProfiles(userIds) {
+    const profiles: Record<string, MemberProfile> = {};
     if (userIds.length === 0) {
-      return names;
+      return profiles;
     }
     const client = requireClient();
     for (const ids of chunk(userIds, ID_CHUNK)) {
       const { data, error } = await client
         .from("profiles")
-        .select("user_id, display_name")
+        .select("user_id, display_name, avatar_path, username")
         .in("user_id", ids);
       if (error) {
         throw toHomeError(error);
       }
       for (const row of (data ?? []) as unknown as ProfileRow[]) {
-        names[row.user_id] = row.display_name;
+        profiles[row.user_id] = {
+          displayName: row.display_name,
+          username: row.username || null,
+          avatarPath: row.avatar_path ?? null,
+        };
       }
     }
-    return names;
+    return profiles;
   },
 
   async fetchLatestAssessments(tagIds) {
