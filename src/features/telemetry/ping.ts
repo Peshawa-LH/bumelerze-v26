@@ -8,8 +8,9 @@ import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
  * Anonymous app-launch telemetry ping (spec-v1.md §5.5, D11/D13; migration
  * `0005_notifications_and_telemetry.sql`'s `telemetry_pings` table). Fires
  * at most once per app process — this is a best-effort background signal
- * with no UI surface, disclosed in Settings (`settings.telemetrySectionTitle`
- * / `telemetrySectionDescription`, ×4 locales) per the trust principle, not
+ * with no UI surface, disclosed in the website privacy policy
+ * (`website/privacy.html` and its ckb/kmr/ar versions, "An anonymous launch
+ * count") per the trust principle, not
  * a durable queued action like a felt report: a failed or skipped ping is
  * simply gone, never retried, and never shown to the user.
  */
