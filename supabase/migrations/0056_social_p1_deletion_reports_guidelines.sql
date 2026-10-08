@@ -28,6 +28,8 @@
 --          and are no longer linked to anybody
 --        * audit rows (moderation_log) stay, unlinked; the before-image of a
 --          name or photo reset is dropped from them
+--        * the Event hub's comment count (event_hub_summary) does not count
+--          blanked comments
 --        * everything else cascades or is removed explicitly (the list is
 --          pinned by supabase/migrations/__tests__ so a new table cannot be
 --          forgotten)
@@ -700,7 +702,33 @@ begin
 end
 $$;
 
--- 4. Who may call what ------------------------------------------------------------------------
+-- 4. The felt summary does not count blanked comments (0054's function plus one condition).
+create or replace function public.event_hub_summary(p_event_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select jsonb_build_object(
+    'reports', (select count(*) from public.felt_reports where event_id = p_event_id),
+    'people', (select count(distinct coalesce(user_id::text, device_id)) from public.felt_reports where event_id = p_event_id),
+    'levels', coalesce((
+      select jsonb_object_agg(cartoon_level::text, n) from (
+        select cartoon_level, count(*) as n from public.felt_reports
+        where event_id = p_event_id group by cartoon_level
+      ) l
+    ), '{}'::jsonb),
+    'first_report_at', (select min(created_at) from public.felt_reports where event_id = p_event_id),
+    'comments', (select count(*) from public.event_comments c
+                  where c.event_id = p_event_id and c.status = 'visible'
+                    and c.account_deleted_at is null
+                    and not public.is_suspended(c.user_id)),
+    'featured', coalesce((select hub_featured from public.events where event_id = p_event_id), false)
+  )
+$$;
+
+-- 5. Who may call what ------------------------------------------------------------------------
 revoke all on function public.normalize_report_reason(text) from public, anon, authenticated;
 revoke all on function public.normalize_report_note(text) from public, anon, authenticated;
 revoke all on function public.guidelines_accepted(uuid) from public, anon, authenticated;
@@ -716,6 +744,8 @@ revoke all on function public.moderation_queue(integer) from public, anon;
 revoke all on function public.post_queue(integer) from public, anon;
 revoke all on function public.moderation_profile_reports() from public, anon;
 revoke all on function public.delete_my_account() from public, anon;
+revoke all on function public.event_hub_summary(uuid) from public;
+grant execute on function public.event_hub_summary(uuid) to anon, authenticated;
 grant execute on function public.current_guidelines_version() to anon, authenticated;
 grant execute on function public.accept_guidelines(text, boolean, text) to authenticated;
 grant execute on function public.report_profile(uuid, text, text) to authenticated;

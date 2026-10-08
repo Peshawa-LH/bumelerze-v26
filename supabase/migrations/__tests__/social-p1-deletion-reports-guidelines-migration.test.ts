@@ -244,6 +244,12 @@ describe("delete my account", () => {
     expect(del).toMatch(/update public\.comment_flags f\s+set settled = true/);
   });
 
+  it("keeps blanked comments out of the hub's comment count", () => {
+    expect(fn("event_hub_summary")).toMatch(/c\.status = 'visible'\s+and c\.account_deleted_at is null/);
+    expect(fn("event_hub_summary")).toMatch(/not public\.is_suspended\(c\.user_id\)/);
+    expect(sql).toContain("grant execute on function public.event_hub_summary(uuid) to anon, authenticated;");
+  });
+
   it("lets the body check accept the blank", () => {
     expect(sql).toMatch(/or account_deleted_at is not null/);
     expect(fn("event_comments_before_insert")).toMatch(/new\.account_deleted_at := null/);
@@ -284,6 +290,7 @@ describe("what this migration defines", () => {
         "current_guidelines_version",
         "delete_my_account",
         "event_comments_before_insert",
+        "event_hub_summary",
         "guidelines_accepted",
         "moderation_profile_reports",
         "moderation_queue",
