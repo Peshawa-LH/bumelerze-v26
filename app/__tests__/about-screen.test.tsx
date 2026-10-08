@@ -140,7 +140,7 @@ describe("About screen", () => {
   it("renders in Sorani Kurdish with a native-script brand name", async () => {
     await i18n.changeLanguage("ckb");
     await renderScreen(<AboutRoute />);
-    expect(screen.getByText("بوومەلەرزە سەرچاوە کراوەیە (Apache-2.0)")).toBeTruthy();
+    expect(screen.getByText("بوومەلەرزە سەرچاوە کراوەیە \u2066(Apache-2.0)\u2069")).toBeTruthy();
     expect(screen.getByText("USGS")).toBeTruthy();
     expect(mockStackScreen.mock.calls[0][0].options.title).toBe("دەربارەی بوومەلەرزە");
   });

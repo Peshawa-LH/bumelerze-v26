@@ -622,21 +622,21 @@
     "sectionMaps": "نەخشەکان",
     "sectionSoftware": "فۆنت و سەرچاوەی کراوە",
     "sectionLegal": "یاسایی",
-    "fontValue": "فۆنتی ڕووکار بۆ کوردی و عەرەبی · SIL Open Font License 1.1",
-    "openSource": "بوومەلەرزە سەرچاوە کراوەیە (Apache-2.0)",
+    "fontValue": "فۆنتی ڕووکار بۆ کوردی و عەرەبی · ⁦SIL Open Font License 1.1⁩",
+    "openSource": "بوومەلەرزە سەرچاوە کراوەیە ⁦(Apache-2.0)⁩",
     "fullSources": "هەموو سەرچاوەکانی زانیاری و مۆڵەتەکان",
     "sources": {
       "usgs": { "value": "دامەزراوەی جیۆلۆجیی ئەمریکا · موڵکی گشتی، ناوهێنانی سەرچاوە داواکراوە" },
-      "emsc": { "value": "ناوەندی بوومەلەرزەزانیی ئەوروپا و دەریای ناوەڕاست · CC BY 4.0" },
-      "geofon": { "value": "ناوەندی GFZ هێلمهۆڵتز بۆ زانستەکانی زەوی · CC BY 4.0" },
-      "isc": { "value": "ناوەندی نێودەوڵەتیی بوومەلەرزەزانی · ISC-GEM بە مۆڵەتی CC BY-SA 3.0" },
-      "catalogue": { "label": "کاتالۆگی ناوچەیی", "value": "ISC و ISC-GEM و EMME و Onur et al. (2017) و KISC و USGS. هەر ڕووداوێک سەرچاوەکەی دیاری دەکات." },
+      "emsc": { "value": "ناوەندی بوومەلەرزەزانیی ئەوروپا و دەریای ناوەڕاست · ⁦CC BY 4.0⁩" },
+      "geofon": { "value": "ناوەندی GFZ هێلمهۆڵتز بۆ زانستەکانی زەوی · ⁦CC BY 4.0⁩" },
+      "isc": { "value": "ناوەندی نێودەوڵەتیی بوومەلەرزەزانی · ⁦ISC‑GEM⁩ بە مۆڵەتی ⁦CC BY-SA 3.0⁩" },
+      "catalogue": { "label": "کاتالۆگی ناوچەیی", "value": "ISC و ⁦ISC‑GEM⁩ و EMME و ⁦Onur et al. (2017)⁩ و KISC و USGS. هەر ڕووداوێک سەرچاوەکەی دیاری دەکات." },
       "osm": { "value": "© بەشداربووانی OpenStreetMap · ODbL" },
-      "openfreemap": { "value": "نەخشەی بنچینە · © OpenMapTiles · داتا لە OpenStreetMap" },
-      "maptiler": { "value": "نەخشەی بنچینە کاتێک بەردەست بێت · © MapTiler" },
-      "terrain": { "label": "ڕووی زەوی", "value": "Mapzen / AWS Open Data" },
-      "placeNames": { "label": "ناوی شوێنە کوردییەکان", "value": "© بەشداربووانی OpenStreetMap (ODbL)" },
-      "layers": { "label": "چینەکانی نەخشە", "value": "فۆڵتەکان: دامەزراوەی GEM و GIN RAS (AFEAD) · بارودۆخی زەوی (Vs30): USGS" }
+      "openfreemap": { "value": "نەخشەی بنچینە · ⁦© OpenMapTiles⁩ · داتا لە OpenStreetMap" },
+      "maptiler": { "value": "نەخشەی بنچینە کاتێک بەردەست بێت · ⁦© MapTiler⁩" },
+      "terrain": { "label": "ڕووی زەوی", "value": "⁦Mapzen / AWS Open Data⁩" },
+      "placeNames": { "label": "ناوی شوێنە کوردییەکان", "value": "© بەشداربووانی ⁦OpenStreetMap (ODbL)⁩" },
+      "layers": { "label": "چینەکانی نەخشە", "value": "فۆڵتەکان: دامەزراوەی GEM و ⁦GIN RAS (AFEAD)⁩ · بارودۆخی زەوی ⁦(Vs30)⁩: USGS" }
     }
   },
   "onboarding": {

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { DirectionalChevron } from "@/components/DirectionalChevron";
 import { useTheme } from "@/theme";
@@ -55,6 +56,11 @@ export function SettingsRow({
   testID,
 }: SettingsRowProps) {
   const { colors, typography, spacing } = useTheme();
+  const { i18n } = useTranslation();
+  // The row's text follows the app language, not its own first letter: a
+  // Latin name such as "USGS" in a Sorani row starts at the right edge like
+  // the Sorani line under it.
+  const direction = { writingDirection: i18n.dir() } as const;
   const { focusVisible, onFocus, onBlur } = useFocusVisible();
   const isWeb = Platform.OS === "web";
 
@@ -93,7 +99,9 @@ export function SettingsRow({
       <Ionicons name={icon} size={24} color={colors.text.secondary} />
       {valueLayout === "stacked" ? (
         <View style={styles.label}>
-          <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>
+          <Text
+            style={[typography.bodyDefault, direction, { color: colors.text.primary }]}
+          >
             {label}
           </Text>
           {value ? (
@@ -101,6 +109,7 @@ export function SettingsRow({
               style={[
                 typography.bodyMeta,
                 styles.value,
+                direction,
                 { color: colors.text.secondary },
               ]}
               numberOfLines={valueLines}
