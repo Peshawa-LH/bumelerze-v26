@@ -618,8 +618,7 @@
     "footerData": "Earthquake data: USGS, EMSC and GEOFON.",
     "footerTrademark": "Bumelerze™ and its logo are trademarks of the project.",
     "footerVersion": "Version {{version}}",
-    "footerLogoA11yLabel": "Bumelerze",
-    "footerPresence": "Once a day, when you open Bumelerze, the app records the time, your device type (iOS, Android or web), the app version and your language against your random install ID or account. It is used to count active users and to help with problems. It contains no location."
+    "footerLogoA11yLabel": "Bumelerze"
   },
   "onboarding": {
     "back": "Back",

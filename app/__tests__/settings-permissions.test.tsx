@@ -223,10 +223,9 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     expect(screen.getByText("Earthquake data: USGS, EMSC and GEOFON.")).toBeTruthy();
     expect(screen.getByText("Version 26.1.0")).toBeTruthy();
     expect(screen.getByText(/trademarks of the project/)).toBeTruthy();
-    // The once-a-day "last seen" record for admins is disclosed (migration 0055).
-    expect(screen.getByTestId("settings-footer-presence")).toHaveTextContent(
-      /Once a day.*random install ID or account.*no location/,
-    );
+    // No activity/presence line in the footer (owner, 2026-10-08).
+    expect(screen.queryByTestId("settings-footer-presence")).toBeNull();
+    expect(screen.queryByText(/Once a day/)).toBeNull();
     // No About row or screen (owner, 2026-10-08).
     expect(screen.queryByTestId("settings-row-about")).toBeNull();
     expect(screen.queryByText("About Bumelerze")).toBeNull();
