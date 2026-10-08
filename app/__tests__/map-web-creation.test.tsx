@@ -1,14 +1,19 @@
 /**
  * @jest-environment jsdom
  *
- * Web Map screen (`app/(tabs)/map.web.tsx`) — map creation + marker
+ * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — map creation + marker
  * construction from the region feed. `maplibre-gl` is mocked at the module
  * boundary (wave brief: "no jsdom WebGL"); the jsdom environment override
  * is needed because the marker layer builds real DOM elements directly
  * (`document.createElement`), which the repo's default jest-expo/RN
  * environment doesn't provide a `document` for.
  */
-import { cleanup, render, waitFor, type RenderResult } from "@testing-library/react-native";
+import {
+  cleanup,
+  render,
+  waitFor,
+  type RenderResult,
+} from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -78,7 +83,7 @@ jest.mock(
 // (native) platform by default, so a suffix-less import would silently
 // resolve `map.tsx`, not this file.
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/map.web";
+import MapScreenWeb from "../(tabs)/(map)/map.web";
 
 async function renderWithProviders(ui: ReactElement): Promise<RenderResult> {
   // `render` is async in this installed `@testing-library/react-native`
@@ -119,7 +124,9 @@ describe("MapScreenWeb creation", () => {
     // comment has the full story).
     expect(options?.attributionControl).toBe(false);
     expect(mockMapAddControl).toHaveBeenCalledTimes(1);
-    const [attributionControl] = mockMapAddControl.mock.calls[0] as [MockAttributionControl];
+    const [attributionControl] = mockMapAddControl.mock.calls[0] as [
+      MockAttributionControl,
+    ];
     expect(attributionControl.options).toEqual({ compact: true });
   });
 

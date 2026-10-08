@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  *
- * Web Map screen (`app/(tabs)/map.web.tsx`) — magnitude/date filters
+ * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — magnitude/date filters
  * (update-plan-2026-08.md §4.4). See `map-web-creation.test.tsx`'s doc
  * comment for the jsdom-environment/mocking rationale.
  *
@@ -80,7 +80,7 @@ jest.mock(
 );
 
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/map.web";
+import MapScreenWeb from "../(tabs)/(map)/map.web";
 
 async function renderWithProviders(ui: ReactElement): Promise<RenderResult> {
   return render(
@@ -100,8 +100,16 @@ beforeEach(() => {
   resetMapWebMocks();
   mockUseRegionEvents.mockReturnValue({
     events: [
-      makeEvent({ id: "low", magnitude: { value: 3.0, type: "mb" }, originTime: NOW - 10 * ONE_DAY_MS }),
-      makeEvent({ id: "mid", magnitude: { value: 4.5, type: "mb" }, originTime: NOW - 5 * ONE_DAY_MS }),
+      makeEvent({
+        id: "low",
+        magnitude: { value: 3.0, type: "mb" },
+        originTime: NOW - 10 * ONE_DAY_MS,
+      }),
+      makeEvent({
+        id: "mid",
+        magnitude: { value: 4.5, type: "mb" },
+        originTime: NOW - 5 * ONE_DAY_MS,
+      }),
       makeEvent({ id: "high", magnitude: { value: 6.5, type: "mww" }, originTime: NOW }),
     ],
     dataUpdatedAt: MOCK_DATA_UPDATED_AT,
@@ -113,7 +121,9 @@ afterEach(() => {
 });
 
 async function expandFilters(): Promise<void> {
-  const toggle = screen.getByRole("button", { name: i18n.t("map.filters.expandA11yHint") });
+  const toggle = screen.getByRole("button", {
+    name: i18n.t("map.filters.expandA11yHint"),
+  });
   await act(async () => {
     fireEvent.press(toggle);
   });
@@ -173,17 +183,25 @@ describe("MapScreenWeb magnitude/date filters", () => {
     // query time, so reusing a stale reference across a state update would
     // invoke a stale closure and silently miss the second change.
     await act(async () => {
-      fireEvent(screen.getByLabelText(i18n.t("map.filters.magnitudeMinA11yLabel")), "change", {
-        target: { value: "5" },
-      });
+      fireEvent(
+        screen.getByLabelText(i18n.t("map.filters.magnitudeMinA11yLabel")),
+        "change",
+        {
+          target: { value: "5" },
+        },
+      );
     });
     await act(async () => {
       // Dragging max below the current min clamps it AT the min (5), not
       // past it — the resulting [5, 5] range matches none of the three
       // fixture events exactly, so every marker disappears.
-      fireEvent(screen.getByLabelText(i18n.t("map.filters.magnitudeMaxA11yLabel")), "change", {
-        target: { value: "4" },
-      });
+      fireEvent(
+        screen.getByLabelText(i18n.t("map.filters.magnitudeMaxA11yLabel")),
+        "change",
+        {
+          target: { value: "4" },
+        },
+      );
     });
 
     // Cumulative constructor log (never shrinks, only grows — see the

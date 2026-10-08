@@ -4,7 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n, { isRTLLocale } from "@/i18n";
 
-import MapScreen from "../(tabs)/map";
+import MapScreen from "../(tabs)/(map)/map";
 
 /**
  * Native (iOS/Android) Map tab placeholder — resolved by Metro's platform

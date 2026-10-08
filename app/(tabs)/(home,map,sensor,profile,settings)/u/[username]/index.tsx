@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { ProfileByUsername } from "@/features/profile";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * Profile page `/u/[username]`, opened from a name or photo in the Event hub
@@ -17,6 +18,7 @@ import { useTheme } from "@/theme";
  * such account, and a failed load with Retry.
  */
 export default function PublicProfileScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { username } = useLocalSearchParams<{ username: string }>();
   const { t } = useTranslation();
   const { colors, spacing } = useTheme();
@@ -32,6 +34,7 @@ export default function PublicProfileScreen() {
         }}
       />
       <ScrollView
+        {...tabBarScroll}
         contentContainerStyle={[
           styles.content,
           {

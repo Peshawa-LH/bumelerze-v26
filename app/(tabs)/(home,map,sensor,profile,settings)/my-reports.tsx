@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { ContributionRow, ReportsEmpty, useMyReports } from "@/features/mydata";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * Every report this phone sent, newest first. The My account page previews
@@ -13,6 +14,7 @@ import { useTheme } from "@/theme";
  * long list (a virtualised FlatList, never inside the page's ScrollView).
  */
 export default function MyReportsScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -28,6 +30,7 @@ export default function MyReportsScreen() {
         }}
       />
       <FlatList
+        {...tabBarScroll}
         data={rows}
         keyExtractor={(row) => row.reportId}
         renderItem={({ item }) => <ContributionRow row={item} />}

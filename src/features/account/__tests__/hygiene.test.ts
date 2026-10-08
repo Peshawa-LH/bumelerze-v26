@@ -10,11 +10,11 @@ import { join } from "path";
 const ROOT = join(__dirname, "..", "..", "..", "..");
 
 const NEW_FILES = [
-  "app/my-data.tsx",
-  "app/my-reports.tsx",
-  "app/(tabs)/profile.tsx",
-  "app/badges.tsx",
-  "app/safety.tsx",
+  "app/(tabs)/(home,map,sensor,profile,settings)/my-data.tsx",
+  "app/(tabs)/(home,map,sensor,profile,settings)/my-reports.tsx",
+  "app/(tabs)/(profile)/profile.tsx",
+  "app/(tabs)/(home,map,sensor,profile,settings)/badges.tsx",
+  "app/(tabs)/(home,map,sensor,profile,settings)/safety.tsx",
   ...listFiles("src/features/profile", [".ts", ".tsx"]).filter(
     (f) => !f.includes("__tests__"),
   ),

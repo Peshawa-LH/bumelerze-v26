@@ -38,7 +38,7 @@ jest.mock("expo-sensors", () => ({
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import SensorScreen from "../../../../app/(tabs)/sensor";
+import SensorScreen from "../../../../app/(tabs)/(sensor)/sensor";
 
 const testSafeAreaMetrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },

@@ -12,7 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { usePrefsStore } from "@/features/onboarding";
 import i18n, { isRTLLocale } from "@/i18n";
 
-import SafetyScreen from "../../../../app/safety";
+import SafetyScreen from "../../../../app/(tabs)/(home,map,sensor,profile,settings)/safety";
 
 // The "Using Bumelerze" footer routes and reads the account state; neither is
 // under test here (see using-app.test.tsx), so stand both in.

@@ -1,6 +1,6 @@
 /**
  * Tunable constants for the web map (Map tab, web-first wave). Web only —
- * see `app/(tabs)/map.web.tsx`'s doc comment for why the interactive map is
+ * see `app/(tabs)/(map)/map.web.tsx`'s doc comment for why the interactive map is
  * gated to the web platform this wave.
  */
 

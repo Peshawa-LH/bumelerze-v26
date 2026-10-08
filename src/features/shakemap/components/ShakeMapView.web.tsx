@@ -68,7 +68,7 @@ const SHAKEMAP_WEB_HEIGHT_WIDE_PX = 420;
 const EPICENTER_MARKER_SIZE_PX = 22;
 
 /**
- * `app/(tabs)/map.web.tsx`'s doc comment explains why this file only
+ * `app/(tabs)/(map)/map.web.tsx`'s doc comment explains why this file only
  * exists on web at all (Metro's platform-extension resolution). This is
  * the SAME reason `./ShakeMapView` (no extension, what `ShakeMapSection`
  * imports) resolves to THIS file for real web builds and to
@@ -77,7 +77,7 @@ const EPICENTER_MARKER_SIZE_PX = 22;
  * `ShakeMapView.tsx`'s own doc comment). Jest tests for this file must
  * therefore import it by its own explicit filename
  * (`../components/ShakeMapView.web`), exactly like the Map tab's own
- * `map-web-*.test.tsx` files import `../(tabs)/map.web`.
+ * `map-web-*.test.tsx` files import `../(tabs)/(map)/map.web`.
  */
 
 function heightForWidth(measuredWidth: number): number {

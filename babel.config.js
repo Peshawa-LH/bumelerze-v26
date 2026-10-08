@@ -5,7 +5,7 @@ module.exports = function (api) {
 
   // Metro (real dev/prod builds) has first-class support for `import()` —
   // it code-splits and lazily loads the chunk natively, no Babel help
-  // needed (`app/(tabs)/map.web.tsx`'s lazy `import("maplibre-gl")` relies
+  // needed (`app/(tabs)/(map)/map.web.tsx`'s lazy `import("maplibre-gl")` relies
   // on exactly this for its "only pay for the map bundle if you open the
   // Map tab" behavior). Jest, though, runs source directly under Node's
   // CommonJS-only module loader, which can't evaluate a literal `import()`

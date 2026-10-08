@@ -10,6 +10,7 @@ import type { Ec8GroundType } from "../spectrum/ec8";
 import type { HandbookLookupResult } from "../types";
 import { CoordinateInputForm } from "./CoordinateInputForm";
 import { HandbookResultTable } from "./HandbookResultTable";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * Engineer's Handbook (spec-v1.md §7, design-brief.md §9) — the whole
@@ -23,6 +24,7 @@ import { HandbookResultTable } from "./HandbookResultTable";
  * treatment the felt-report flow gets.
  */
 export function HandbookScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -35,6 +37,7 @@ export function HandbookScreen() {
 
   return (
     <ScrollView
+      {...tabBarScroll}
       style={{ backgroundColor: colors.surface.base }}
       contentContainerStyle={{
         gap: spacing[5],

@@ -46,7 +46,7 @@ jest.mock("@expo/vector-icons", () => {
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import HistoricalScreen from "../../../../app/historical";
+import HistoricalScreen from "../../../../app/(tabs)/(home,map,sensor,profile,settings)/historical";
 
 const testSafeAreaMetrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },

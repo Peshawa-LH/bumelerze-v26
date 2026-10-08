@@ -5,6 +5,7 @@ import type { ColorValue } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TAB_BAR_CONTENT_HEIGHT } from "@/components/Snackbar";
+import { ScrollAwareTabBar } from "@/features/tab-bar/ScrollAwareTabBar";
 import { useTheme } from "@/theme";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -17,6 +18,12 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
  * including the language switcher and, at its top, the Safety guide. Uses expo-router's standard `Tabs` (not the experimental
  * native-tabs API) — boring and well-documented per PROJECT.md's gotcha
  * about exotic native modules.
+ *
+ * Each tab is a group with its own Stack (`(home)`, `(map)`, ...; see
+ * `(home,map,sensor,profile,settings)/_layout.tsx`), so a screen opened from a
+ * tab - an event, its hub, the catalogue, a profile - opens INSIDE that tab and
+ * the bar stays. The bar slides away while a long page is scrolled down and
+ * returns on scroll up (`ScrollAwareTabBar`).
  */
 export default function TabLayout() {
   const { t } = useTranslation();
@@ -50,6 +57,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <ScrollAwareTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.brand.primary,
@@ -96,26 +104,26 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="(home)"
         options={{ title: t("tabs.home"), tabBarIcon: icon("home") }}
       />
       <Tabs.Screen
-        name="map"
+        name="(map)"
         options={{ title: t("tabs.map"), tabBarIcon: icon("map") }}
       />
       <Tabs.Screen
-        name="sensor"
+        name="(sensor)"
         options={{ title: t("tabs.sensor"), tabBarIcon: icon("pulse") }}
       />
       <Tabs.Screen
-        name="profile"
+        name="(profile)"
         options={{
           title: t("tabs.profile"),
           tabBarIcon: icon("person-circle", "person-circle-outline"),
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="(settings)"
         options={{ title: t("tabs.settings"), tabBarIcon: icon("settings") }}
       />
     </Tabs>

@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  *
- * Web Map screen (`app/(tabs)/map.web.tsx`) — the floating filter/style
+ * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — the floating filter/style
  * controls' compact-collapse state machine (Problem 1: "controls crowd the
  * map at phone width"). See `map-web-creation.test.tsx`'s doc comment for
  * the jsdom-environment/mocking rationale.
@@ -77,7 +77,7 @@ jest.mock(
 );
 
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/map.web";
+import MapScreenWeb from "../(tabs)/(map)/map.web";
 
 const ORIGINAL_INNER_WIDTH = window.innerWidth;
 
@@ -183,7 +183,9 @@ describe("MapScreenWeb compact controls (phone width)", () => {
     ).toBeTruthy();
 
     await act(async () => {
-      fireEvent.press(screen.getByRole("button", { name: i18n.t("map.style.expandA11yHint") }));
+      fireEvent.press(
+        screen.getByRole("button", { name: i18n.t("map.style.expandA11yHint") }),
+      );
     });
 
     // Filter popover's body is gone; the filter control is back to its
@@ -196,7 +198,9 @@ describe("MapScreenWeb compact controls (phone width)", () => {
       screen.getByRole("button", { name: i18n.t("map.filters.expandA11yHint") }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("radio", { name: i18n.t(`map.style.${DEFAULT_MAP_STYLE_CATALOG_ID}`) }),
+      screen.getByRole("radio", {
+        name: i18n.t(`map.style.${DEFAULT_MAP_STYLE_CATALOG_ID}`),
+      }),
     ).toBeTruthy();
   });
 

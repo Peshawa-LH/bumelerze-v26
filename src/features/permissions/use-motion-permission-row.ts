@@ -17,7 +17,7 @@ function toStatus(status: string): PermissionRowStatus {
 
 /**
  * Settings "Permissions & data" motion/sensor row (D26 item 6) — NATIVE
- * only. `app/(tabs)/settings.tsx` renders a different, link-only row on web
+ * only. `app/(tabs)/(settings)/settings.tsx` renders a different, link-only row on web
  * instead of using this hook's status/request pair at all: iOS Safari gates
  * `DeviceMotionEvent` behind a permission that can only be requested from
  * inside the live gesture on the Sensor screen itself

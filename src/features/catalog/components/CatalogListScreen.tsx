@@ -9,6 +9,7 @@ import type { CatalogFilters, CatalogRow as CatalogRowData } from "../types";
 import { CatalogDetailSheet } from "./CatalogDetailSheet";
 import { CatalogFilterBar, type CatalogFilterValues } from "./CatalogFilterBar";
 import { CatalogRow } from "./CatalogRow";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * The Catalog browser's actual content — split out from `app/catalog.tsx`
@@ -24,6 +25,7 @@ import { CatalogRow } from "./CatalogRow";
  * would plausibly help.
  */
 export function CatalogListScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -39,7 +41,13 @@ export function CatalogListScreen() {
   const effectiveFilterValues: CatalogFilterValues | null =
     filterValues ??
     (bounds
-      ? { magMin: bounds.magMin, magMax: bounds.magMax, yearMin: bounds.yearMin, yearMax: bounds.yearMax, sources: [] }
+      ? {
+          magMin: bounds.magMin,
+          magMax: bounds.magMax,
+          yearMin: bounds.yearMin,
+          yearMax: bounds.yearMax,
+          sources: [],
+        }
       : null);
 
   // Not memoized: `useCatalogList` only cares about these VALUES (it
@@ -99,6 +107,7 @@ export function CatalogListScreen() {
   return (
     <View style={[styles.flex, { backgroundColor: colors.surface.base }]}>
       <FlatList
+        {...tabBarScroll}
         data={rows}
         keyExtractor={(row) => row.bumelerzeId}
         renderItem={({ item }) => <CatalogRow row={item} onPress={setSelectedRow} />}

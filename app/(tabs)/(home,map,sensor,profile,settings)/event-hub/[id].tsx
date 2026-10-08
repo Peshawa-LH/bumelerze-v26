@@ -45,7 +45,9 @@ export default function EventHubScreen() {
       <View style={{ flex: 1, backgroundColor: colors.surface.base }}>
         {event ? <EventHubContent event={event} /> : null}
         {isLoading ? (
-          <Text style={[bodyStyle, { padding: spacing[5] }]}>{t("eventDetail.loading")}</Text>
+          <Text style={[bodyStyle, { padding: spacing[5] }]}>
+            {t("eventDetail.loading")}
+          </Text>
         ) : null}
         {isNotFound ? (
           <Text style={[bodyStyle, { padding: spacing[5] }]}>

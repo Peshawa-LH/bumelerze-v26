@@ -8,7 +8,7 @@ import i18n, { isRTLLocale } from "@/i18n";
 import type { Event } from "../types";
 import type { PossibleEvent } from "../possible";
 
-// Home (app/(tabs)/index.tsx) is a pushed-navigator screen — it and the
+// Home (app/(tabs)/(home)/index.tsx) is a pushed-navigator screen — it and the
 // shared EventListScreen both call `useRouter()`. We don't need real
 // navigation for this render test, just a stable no-op.
 const mockPush = jest.fn();
@@ -61,7 +61,7 @@ jest.mock("../source-corroboration", () => {
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import HomeScreen from "../../../../app/(tabs)/index";
+import HomeScreen from "../../../../app/(tabs)/(home)/index";
 
 const testSafeAreaMetrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },

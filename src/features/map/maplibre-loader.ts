@@ -3,7 +3,7 @@
  * the package and primes its two required-before-any-`new Map()` globals —
  * the worker URL (`MAP_WORKER_URL`, `config.ts`'s own doc comment) and the
  * RTL text-shaping plugin (`rtl-plugin.ts`). Factored out of the Map tab
- * (`app/(tabs)/map.web.tsx`, whose own version of this stayed inline
+ * (`app/(tabs)/(map)/map.web.tsx`, whose own version of this stayed inline
  * rather than being refactored to call this — lower risk than touching
  * that already-heavily-tested file for a wave that doesn't need to) so a
  * SECOND embedded map (`ShakeMapView.web.tsx`, Event Detail) gets the

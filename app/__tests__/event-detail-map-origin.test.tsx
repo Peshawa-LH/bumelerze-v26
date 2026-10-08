@@ -100,7 +100,7 @@ jest.mock("@/features/events", () => {
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import EventDetailScreen from "../event/[id]";
+import EventDetailScreen from "../(tabs)/(home,map,sensor,profile,settings)/event/[id]";
 
 const testSafeAreaMetrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },
@@ -143,7 +143,9 @@ describe("Event Detail: origin=map back-to-map affordance", () => {
     mockCanGoBack.mockReturnValue(true);
     await renderWithProviders(<EventDetailScreen />);
 
-    const backButton = screen.getByRole("button", { name: i18n.t("eventDetail.backToMap") });
+    const backButton = screen.getByRole("button", {
+      name: i18n.t("eventDetail.backToMap"),
+    });
     await act(async () => {
       fireEvent.press(backButton);
     });
@@ -157,7 +159,9 @@ describe("Event Detail: origin=map back-to-map affordance", () => {
     mockCanGoBack.mockReturnValue(false);
     await renderWithProviders(<EventDetailScreen />);
 
-    const backButton = screen.getByRole("button", { name: i18n.t("eventDetail.backToMap") });
+    const backButton = screen.getByRole("button", {
+      name: i18n.t("eventDetail.backToMap"),
+    });
     await act(async () => {
       fireEvent.press(backButton);
     });

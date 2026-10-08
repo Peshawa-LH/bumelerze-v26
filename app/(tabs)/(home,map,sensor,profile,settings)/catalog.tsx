@@ -99,8 +99,10 @@ export default function CatalogScreen() {
           // (tsconfig paths), but the bundled db lives at the repo-root
           // assets/ directory — the alias resolved to a nonexistent
           // src/assets/... and broke Metro bundling.
-          // eslint-disable-next-line @typescript-eslint/no-require-imports -- Metro asset require, see comment above
-          assetSource={{ assetId: require("../assets/catalog/bumelerze-catalog.sqlite") }}
+          assetSource={{
+            // eslint-disable-next-line @typescript-eslint/no-require-imports -- Metro asset require, see comment above
+            assetId: require("../../../assets/catalog/bumelerze-catalog.sqlite"),
+          }}
           onInit={cleanUpLegacyDatabases}
         >
           <CatalogListScreen />
@@ -116,7 +118,10 @@ function CatalogUnavailable({ onRetry }: { onRetry: () => void }) {
 
   return (
     <View
-      style={[styles.centered, { backgroundColor: colors.surface.base, padding: spacing[5] }]}
+      style={[
+        styles.centered,
+        { backgroundColor: colors.surface.base, padding: spacing[5] },
+      ]}
     >
       <Text
         accessibilityRole="alert"
@@ -136,7 +141,11 @@ function CatalogUnavailable({ onRetry }: { onRetry: () => void }) {
         onPress={onRetry}
         style={[
           styles.retryButton,
-          { backgroundColor: colors.brand.primary, paddingHorizontal: spacing[5], paddingVertical: spacing[3] },
+          {
+            backgroundColor: colors.brand.primary,
+            paddingHorizontal: spacing[5],
+            paddingVertical: spacing[3],
+          },
         ]}
       >
         <Text

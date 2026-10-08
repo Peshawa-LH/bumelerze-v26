@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react-native";
 
-import MyDataRedirect from "../my-data";
+import MyDataRedirect from "../(tabs)/(home,map,sensor,profile,settings)/my-data";
 
 /**
  * `/my-data` was the My account page until D79 (2026-10-08). Old links (the

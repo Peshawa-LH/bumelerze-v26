@@ -26,6 +26,7 @@ import {
 import { usePrefsStore, type NotificationTier } from "@/features/onboarding";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /** Fixed example event for the rehearsal buttons (spec-v1.md §4.10/B8) —
  * not a real event, never fetched, chosen only to be a realistic-looking
@@ -33,6 +34,7 @@ import { useTheme } from "@/theme";
 const REHEARSAL_EXAMPLE_MAGNITUDE = 4.8;
 
 export default function NotificationSettingsScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -138,6 +140,7 @@ export default function NotificationSettingsScreen() {
         }}
       />
       <ScrollView
+        {...tabBarScroll}
         style={{ backgroundColor: colors.surface.base }}
         contentContainerStyle={[
           styles.container,

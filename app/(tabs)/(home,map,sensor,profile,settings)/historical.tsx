@@ -13,6 +13,7 @@ import {
 } from "@/features/historical";
 import { isRTLLocale } from "@/i18n";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * Historical View (lite) — spec-v1.md §4.7: "earthquakes here since 1900"
@@ -23,6 +24,7 @@ import { useTheme } from "@/theme";
  * deep link into Event Detail.
  */
 export default function HistoricalScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -52,6 +54,7 @@ export default function HistoricalScreen() {
       />
       <View style={[styles.container, { backgroundColor: colors.surface.base }]}>
         <FlatList
+          {...tabBarScroll}
           data={events}
           keyExtractor={(event) => event.id}
           // The curated bundle is small (~10 rows) and fixed at build time —

@@ -7,6 +7,7 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useMySummary } from "@/features/account/use-my-summary";
 import { BadgesSection } from "@/features/badges";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * "All badges": the owner's full collection (earned, locked, and the ranks
@@ -16,6 +17,7 @@ import { useTheme } from "@/theme";
  * own numbers, so it has nothing to show or ask about anyone else.
  */
 export default function BadgesScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -31,6 +33,7 @@ export default function BadgesScreen() {
         }}
       />
       <ScrollView
+        {...tabBarScroll}
         contentContainerStyle={[
           styles.content,
           {

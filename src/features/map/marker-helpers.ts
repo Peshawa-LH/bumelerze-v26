@@ -1,6 +1,6 @@
 /**
  * Pure helpers for the web map's markers and initial viewport — deliberately
- * separated from `app/(tabs)/map.web.tsx`'s MapLibre wiring so the actual
+ * separated from `app/(tabs)/(map)/map.web.tsx`'s MapLibre wiring so the actual
  * magnitude→radius/color mapping and bbox→bounds math can be unit-tested
  * directly, with no DOM/WebGL involved (wave brief: "no jsdom WebGL").
  */

@@ -11,7 +11,7 @@ export interface MapCoordinatePickerProps {
 
 /**
  * Native default: renders nothing. There is no native MapLibre map in this
- * app yet (`app/(tabs)/map.tsx`'s own placeholder explains why: the native
+ * app yet (`app/(tabs)/(map)/map.tsx`'s own placeholder explains why: the native
  * module needs a dev build, which needs the owner's Expo account). Rather
  * than show a "pick on the map" button that opens a broken/placeholder
  * screen, or fake a map with no real basemap, this entry point is simply

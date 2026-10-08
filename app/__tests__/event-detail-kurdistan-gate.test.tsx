@@ -88,7 +88,7 @@ jest.mock("@/features/events", () => {
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import EventDetailScreen from "../event/[id]";
+import EventDetailScreen from "../(tabs)/(home,map,sensor,profile,settings)/event/[id]";
 
 const testSafeAreaMetrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },

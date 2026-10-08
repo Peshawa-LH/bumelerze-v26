@@ -37,6 +37,7 @@ import { CommentItem, type CommentViewer } from "./CommentItem";
 import { HubImpactSection } from "./HubImpactSection";
 import { PrebunkCard } from "./PrebunkCard";
 import { HubSummaryCard } from "./HubSummaryCard";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 interface EventHubContentProps {
   event: Event;
@@ -50,6 +51,7 @@ interface EventHubContentProps {
  * screen is focused, and on pull-to-refresh.
  */
 export function EventHubContent({ event, transport }: EventHubContentProps) {
+  const tabBarScroll = useTabBarScroll();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -229,6 +231,7 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <FlatList<HubThread>
+        {...tabBarScroll}
         testID="hub-list"
         data={unavailable ? [] : threads}
         keyExtractor={(item) => item.root.id}

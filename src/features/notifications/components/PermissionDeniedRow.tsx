@@ -6,7 +6,7 @@ import { useTheme } from "@/theme";
 
 /**
  * Settings-link row shown only while notification permission is denied —
- * same pattern as `app/(tabs)/settings.tsx`'s `LocationPermissionSection`
+ * same pattern as `app/(tabs)/(settings)/settings.tsx`'s `LocationPermissionSection`
  * (status text + "Open Settings" deep link into the OS settings app,
  * since neither platform lets an app re-prompt after an explicit denial).
  */

@@ -22,7 +22,7 @@ jest.mock("expo-router", () => ({
 }));
 
 // eslint-disable-next-line import/first -- after the mocks
-import MyReportsScreen from "../my-reports";
+import MyReportsScreen from "../(tabs)/(home,map,sensor,profile,settings)/my-reports";
 
 const SAMPLE_TIER1: Tier1Report = {
   reportId: "report-1",

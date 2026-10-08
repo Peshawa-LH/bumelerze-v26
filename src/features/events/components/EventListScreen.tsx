@@ -17,6 +17,7 @@ import { useEventSourceAgencies } from "../source-corroboration";
 import type { Event } from "../types";
 import { EventCard } from "./EventCard";
 import { OfflineBanner } from "./OfflineBanner";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 interface EventListScreenProps {
   events: Event[];
@@ -72,6 +73,7 @@ export function EventListScreen({
   notableEventIds,
   bottomClearance = 0,
 }: EventListScreenProps) {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -187,6 +189,7 @@ export function EventListScreen({
       {headerContent}
       {isOfflineIsh ? <OfflineBanner dataUpdatedAt={dataUpdatedAt} /> : null}
       <FlatList
+        {...tabBarScroll}
         data={events}
         keyExtractor={(event) => event.id}
         renderItem={({ item }) => (

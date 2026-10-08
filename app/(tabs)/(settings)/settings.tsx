@@ -22,11 +22,13 @@ import {
   useThemePreferencesStore,
   type ThemePreference,
 } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /** The rows that open in place; only one is open at a time. */
 type OpenRow = "permissions" | "language" | "appearance";
 
 export default function SettingsScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -61,6 +63,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
+      {...tabBarScroll}
       style={{ backgroundColor: colors.surface.base }}
       contentContainerStyle={[
         styles.container,

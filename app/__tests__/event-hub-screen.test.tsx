@@ -77,7 +77,7 @@ jest.mock("@/features/events", () => {
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import EventHubScreen from "../event-hub/[id]";
+import EventHubScreen from "../(tabs)/(home,map,sensor,profile,settings)/event-hub/[id]";
 
 describe("Event hub route", () => {
   beforeEach(async () => {

@@ -9,7 +9,7 @@ import { useFeltQueueStore } from "@/features/felt";
 import i18n from "@/i18n";
 import type { UseAccountResult } from "@/features/account/use-account";
 
-import BadgesScreen from "../badges";
+import BadgesScreen from "../(tabs)/(home,map,sensor,profile,settings)/badges";
 
 /**
  * "All badges" (opened from the owner's "See all (N)"): the full collection,

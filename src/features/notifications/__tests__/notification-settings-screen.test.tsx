@@ -60,7 +60,7 @@ jest.mock("expo-notifications", () => ({
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import NotificationSettingsScreen from "../../../../app/notification-settings";
+import NotificationSettingsScreen from "../../../../app/(tabs)/(home,map,sensor,profile,settings)/notification-settings";
 
 const testSafeAreaMetrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },

@@ -71,7 +71,7 @@ jest.mock("@/features/account/service", () => ({
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import ProfileScreen from "../(tabs)/profile";
+import ProfileScreen from "../(tabs)/(profile)/profile";
 
 function account(overrides: Partial<UseAccountResult>): UseAccountResult {
   return {

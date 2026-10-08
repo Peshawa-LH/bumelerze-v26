@@ -2,7 +2,7 @@
  * Native (iOS/Android) entry point — the SVG projection renderer
  * (`ShakeMapViewSvg.tsx`) is still the only implementation available off
  * web (MapLibre React Native needs a dev build, not set up yet — same
- * reasoning `app/(tabs)/map.tsx`'s own doc comment gives for the Map tab).
+ * reasoning `app/(tabs)/(map)/map.tsx`'s own doc comment gives for the Map tab).
  *
  * This file is what `./ShakeMapView` resolves to under Jest (no "web"
  * platform in this repo's default preset — see `ShakeMapView.web.tsx`'s

@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { SnackbarProvider, TAB_BAR_CONTENT_HEIGHT } from "@/components/Snackbar";
+import { useStackScreenOptions } from "@/components/use-stack-screen-options";
 import {
   createEventsPersister,
   createEventsQueryClient,
@@ -33,6 +34,7 @@ import { useReferencePlace } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
 import { touchPresenceOnce } from "@/features/presence";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
+import { useTabBarStore } from "@/features/tab-bar";
 import { useLaunchPendingTour } from "@/features/tour";
 import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
@@ -49,7 +51,8 @@ const eventsQueryClient = createEventsQueryClient();
 const eventsPersister = createEventsPersister();
 
 export default function RootLayout() {
-  const { colors, scheme, typography } = useTheme();
+  const { scheme } = useTheme();
+  const stackScreenOptions = useStackScreenOptions();
   // Vazirmatn for Arabic-script locales (`src/theme/typography.ts`'s
   // `ARABIC_SCRIPT_FONT`). Not awaited: text renders in the fallback face
   // until the file is in, then re-renders — better than a blank first
@@ -64,6 +67,8 @@ export default function RootLayout() {
   // edge elsewhere.
   const segments = useSegments();
   const inTabs = (segments as string[])[0] === "(tabs)";
+  // The scroll-aware tab bar takes its strip with it when it slides away.
+  const tabBarHidden = useTabBarStore((state) => state.hidden);
   const [isRestarting, setIsRestarting] = useState(false);
   const hasHydrated = usePrefsStore((state) => state.hasHydrated);
   const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);
@@ -170,25 +175,10 @@ export default function RootLayout() {
           }}
         >
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-          <SnackbarProvider bottomOffset={inTabs ? TAB_BAR_CONTENT_HEIGHT : 0}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: colors.surface.base },
-                headerStyle: { backgroundColor: colors.surface.base },
-                headerTintColor: colors.text.primary,
-                // The header sets its own inline system font; hand in the
-                // theme face so Sorani/Arabic titles render in Vazirmatn on
-                // native as well as web (`ARABIC_SCRIPT_FONT`).
-                headerTitleStyle: {
-                  color: colors.text.primary,
-                  ...(typography.h3.fontFamily
-                    ? { fontFamily: typography.h3.fontFamily }
-                    : {}),
-                },
-                headerShadowVisible: false,
-              }}
-            >
+          <SnackbarProvider
+            bottomOffset={inTabs && !tabBarHidden ? TAB_BAR_CONTENT_HEIGHT : 0}
+          >
+            <Stack screenOptions={stackScreenOptions}>
               {/* Onboarding-vs-tabs gate (spec-v1.md §4.11: "first-launch
                * only, not reachable after"): registering only ONE of these
                * two screen sets — never both — means "/onboarding" and
@@ -204,42 +194,24 @@ export default function RootLayout() {
                * returning user (found 2026-10-04). */}
               <Stack.Protected guard={onboardingCompleted}>
                 <Stack.Screen name="(tabs)" />
-                {/* Each of these pushed screens owns `headerShown`/`title`/
-                 * `headerLeft` itself via its own inline `<Stack.Screen
-                 * options={{...}}>` (rendered from within the route
-                 * component) — a static `options={{headerShown: true}}`
-                 * declared HERE, at this level, was tried first and found
-                 * to be silently ineffective (verified against a built web
-                 * export: the header never rendered at all, not even its
-                 * title, only once the screen's OWN inline declaration set
-                 * `headerShown` did it appear) — matching how `catalog`,
-                 * never declared here at all, already worked correctly.
-                 * Bare declarations below just register the route names;
-                 * they carry no options. */}
-                <Stack.Screen name="event/[id]" />
-                <Stack.Screen name="event-hub/[id]" />
-                <Stack.Screen name="world" />
-                <Stack.Screen name="significant" />
-                <Stack.Screen name="historical" />
-                <Stack.Screen name="handbook" />
-                <Stack.Screen name="notification-settings" />
-                <Stack.Screen name="my-data" />
-                <Stack.Screen name="safety" />
-                <Stack.Screen name="badges" />
-                <Stack.Screen name="my-reports" />
+                {/* Only the FULL-SCREEN flows are declared here; they cover
+                 * the tab bar. Everything people browse (event, hub, catalogue,
+                 * profiles, safety, handbook, settings pages...) lives inside
+                 * the tabs, under `(tabs)/(home,map,...)`,
+                 * so the bar stays. Each of these screens owns its
+                 * `headerShown`/`title`/`headerLeft` via its own inline
+                 * `<Stack.Screen options>` (a static `options` here was found
+                 * to be silently ineffective). */}
                 <Stack.Screen name="feedback" />
                 <Stack.Screen name="account/sign-in" />
                 <Stack.Screen name="account/profile" />
                 <Stack.Screen name="account/password" />
-                <Stack.Screen name="account/people" />
                 <Stack.Screen name="admin/index" />
                 <Stack.Screen name="admin/activity" />
                 <Stack.Screen name="admin/hidden" />
                 <Stack.Screen name="admin/limited" />
                 <Stack.Screen name="admin/people" />
                 <Stack.Screen name="admin/person/[id]" />
-                <Stack.Screen name="u/[username]/index" />
-                <Stack.Screen name="u/[username]/people" />
                 <Stack.Screen name="home/new" />
                 <Stack.Screen name="home/join" />
                 <Stack.Screen name="home/[tagId]/report" />

@@ -30,7 +30,7 @@ jest.mock("@/features/account/use-account", () => ({
 }));
 
 // eslint-disable-next-line import/first -- after the mocks
-import PublicProfileScreen from "../u/[username]/index";
+import PublicProfileScreen from "../(tabs)/(home,map,sensor,profile,settings)/u/[username]/index";
 
 const PROFILE = {
   user_id: "u1",

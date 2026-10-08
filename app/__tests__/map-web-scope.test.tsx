@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  *
- * Web Map screen (`app/(tabs)/map.web.tsx`) — Kurdistan/World scope toggle
+ * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — Kurdistan/World scope toggle
  * (update-plan-2026-08.md §4.1). See `map-web-creation.test.tsx`'s doc
  * comment for the jsdom-environment/mocking rationale.
  */
@@ -52,8 +52,10 @@ jest.mock("expo-router", () => {
 // "Home" frames the reader's own area when a fix is ALREADY known (never
 // prompts); the default here is no fix, which keeps every pre-existing
 // assertion (Kurdistan bbox) exactly as it was.
-const mockUserAnchor = { current: { hasFix: false, lat: null, lon: null } as
-  { hasFix: true; lat: number; lon: number } | { hasFix: false; lat: null; lon: null } };
+const mockUserAnchor = {
+  current: { hasFix: false, lat: null, lon: null } as
+    { hasFix: true; lat: number; lon: number } | { hasFix: false; lat: null; lon: null },
+};
 jest.mock("@/features/location/use-user-distance-anchor", () => ({
   useUserDistanceAnchor: () => mockUserAnchor.current,
 }));
@@ -83,7 +85,7 @@ jest.mock(
 );
 
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/map.web";
+import MapScreenWeb from "../(tabs)/(map)/map.web";
 
 async function renderWithProviders(ui: ReactElement): Promise<RenderResult> {
   return render(
@@ -117,9 +119,7 @@ describe("MapScreenWeb scope toggle", () => {
     });
     expect(mockMarkerSetLngLat).toHaveBeenCalledWith([45.43, 35.56]); // makeEvent's default lon/lat
     expect(mockMapFitBounds).not.toHaveBeenCalled();
-    expect(
-      screen.getByRole("radio", { name: i18n.t("map.scope.home") }),
-    ).toBeTruthy();
+    expect(screen.getByRole("radio", { name: i18n.t("map.scope.home") })).toBeTruthy();
     expect(screen.getByRole("radio", { name: i18n.t("map.scope.world") })).toBeTruthy();
   });
 

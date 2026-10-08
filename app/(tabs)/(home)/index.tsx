@@ -27,7 +27,7 @@ import { useTheme } from "@/theme";
  * catalog, instead in order to access catalog you go through Historical")
  * — a direct Home link made the header crowded on a phone, so Catalog is
  * now reachable only one tap further in, from Historical's own footer link
- * (`app/historical.tsx`). Also hosts the
+ * (`app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx`). Also hosts the
  * persistent felt-report pill (D8, wave brief point 4) — association is
  * resolved HERE (most recent regional event within the last hour, else
  * unassociated) using the already-loaded region feed, not inside the pill

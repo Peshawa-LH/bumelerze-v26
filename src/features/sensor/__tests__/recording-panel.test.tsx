@@ -47,7 +47,7 @@ jest.mock("../save-recording", () => ({
 }));
 
 // eslint-disable-next-line import/first -- after the mocks above
-import SensorScreen from "../../../../app/(tabs)/sensor";
+import SensorScreen from "../../../../app/(tabs)/(sensor)/sensor";
 
 const metrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },

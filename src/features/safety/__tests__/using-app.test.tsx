@@ -9,7 +9,7 @@ import kmr from "@/i18n/locales/kmr.json";
 import i18n, { isRTLLocale } from "@/i18n";
 import { flattenKeys } from "@/i18n/locale-keys";
 
-import SafetyScreen from "../../../../app/safety";
+import SafetyScreen from "../../../../app/(tabs)/(home,map,sensor,profile,settings)/safety";
 import { UsingAppSection } from "../components/UsingAppSection";
 import {
   USING_APP_GUIDES,

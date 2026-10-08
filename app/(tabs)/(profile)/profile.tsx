@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ProfileTab } from "@/features/profile";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * The Profile tab (D79, 2026-10-08): one page for "me". For a signed-in
@@ -14,11 +15,13 @@ import { useTheme } from "@/theme";
  * Settings does.
  */
 export default function ProfileScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <ScrollView
+      {...tabBarScroll}
       style={{ backgroundColor: colors.surface.base }}
       contentContainerStyle={[
         styles.content,

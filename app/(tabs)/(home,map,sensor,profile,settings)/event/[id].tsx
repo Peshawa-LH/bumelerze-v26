@@ -32,6 +32,7 @@ import { ShareButton, shareIdFor } from "@/features/share";
 import { RiskSection, ShakeMapSection } from "@/features/shakemap";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * Event Detail — header scope only (spec-v1.md §4.5, spec-v1.md §9 Phase 1
@@ -60,6 +61,7 @@ import { useTheme } from "@/theme";
  *    the redirect is a URL hygiene step, never a loading gate.
  */
 export default function EventDetailScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { id, origin } = useLocalSearchParams<{ id: string; origin?: string }>();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -68,13 +70,8 @@ export default function EventDetailScreen() {
 
   // Event lookup (feed caches, then a direct fetch) is shared with the Event
   // hub screen — see `useRouteEvent`.
-  const {
-    event,
-    isLoading,
-    isNotFound,
-    routeIsBumelerzeId,
-    staticBumelerzeIdAlias,
-  } = useRouteEvent(id);
+  const { event, isLoading, isNotFound, routeIsBumelerzeId, staticBumelerzeIdAlias } =
+    useRouteEvent(id);
 
   // Map-event-sheet wave (owner: "an option to go back to the map"):
   // `origin === "map"` is set ONLY by the Map screen's preview sheet
@@ -143,12 +140,16 @@ export default function EventDetailScreen() {
           headerLeft: () => <HeaderBackButton />,
           headerRight: () =>
             event ? (
-              <ShareButton event={event} shareId={shareIdFor(event, displayBumelerzeId)} />
+              <ShareButton
+                event={event}
+                shareId={shareIdFor(event, displayBumelerzeId)}
+              />
             ) : null,
         }}
       />
       <View style={styles.flex}>
         <ScrollView
+          {...tabBarScroll}
           style={{ backgroundColor: colors.surface.base }}
           contentContainerStyle={{
             padding: spacing[5],
@@ -314,9 +315,7 @@ export default function EventDetailScreen() {
         ) : null}
         {/* "Who felt it?" (Event hub), the mirror pill at the opposite
          * corner; applies its own regional + activity/recency rule. */}
-        {event ? (
-          <EventHubPill event={event} routeId={displayBumelerzeId ?? id} />
-        ) : null}
+        {event ? <EventHubPill event={event} routeId={displayBumelerzeId ?? id} /> : null}
       </View>
     </>
   );

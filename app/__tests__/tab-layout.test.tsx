@@ -63,11 +63,11 @@ describe("tab bar", () => {
   it("is Home, Map, Sensor, Profile, Settings, in that order, with no Safety tab", async () => {
     await renderTabs();
     expect(declared.map((screen) => screen.name)).toEqual([
-      "index",
-      "map",
-      "sensor",
-      "profile",
-      "settings",
+      "(home)",
+      "(map)",
+      "(sensor)",
+      "(profile)",
+      "(settings)",
     ]);
     expect(declared.map((screen) => screen.options?.title)).toEqual([
       "Home",
@@ -76,12 +76,12 @@ describe("tab bar", () => {
       "Profile",
       "Settings",
     ]);
-    expect(declared.some((screen) => screen.name === "safety")).toBe(false);
+    expect(declared.some((screen) => screen.name === "(safety)")).toBe(false);
   });
 
   it("the Profile tab uses the person-circle icon, outline until it is the active tab", async () => {
     await renderTabs();
-    const profile = declared.find((screen) => screen.name === "profile");
+    const profile = declared.find((screen) => screen.name === "(profile)");
     const icon = profile?.options?.tabBarIcon;
     expect(icon?.({ color: "#000", size: 24, focused: false }).props.name).toBe(
       "person-circle-outline",

@@ -14,6 +14,7 @@ import {
   type SafetySectionId,
 } from "@/features/safety";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * Safety guide — spec-v1.md §4.9 (D11 "full feature"): PREPARE / SURVIVE /
@@ -26,6 +27,7 @@ import { useTheme } from "@/theme";
  * title and the back button. Opening it once retires the Home card.
  */
 export default function SafetyScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -61,6 +63,7 @@ export default function SafetyScreen() {
       </View>
 
       <FlatList
+        {...tabBarScroll}
         data={cards}
         keyExtractor={(card) => card.id}
         // The content is a small, fixed, compile-time list per section

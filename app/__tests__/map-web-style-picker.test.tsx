@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  *
- * Web Map screen (`app/(tabs)/map.web.tsx`) — basemap style picker
+ * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — basemap style picker
  * (update-plan-2026-08.md §4.3/Part 3) and the MapTiler attribution logo
  * (Part 4). See `map-web-creation.test.tsx`'s doc comment for the
  * jsdom-environment/mocking rationale.
@@ -92,7 +92,7 @@ jest.mock(
 );
 
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/map.web";
+import MapScreenWeb from "../(tabs)/(map)/map.web";
 
 async function renderWithProviders(ui: ReactElement): Promise<RenderResult> {
   return render(

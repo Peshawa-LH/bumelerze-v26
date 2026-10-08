@@ -24,6 +24,7 @@ import {
 } from "@/features/sensor";
 import { StationsPanel } from "@/features/stations";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * Sensor screen (spec-v1.md §4.8) — the MyShake-style "your phone is a
@@ -35,6 +36,7 @@ type SensorMode = "phone" | "stations";
 const SENSOR_MODES: readonly SensorMode[] = ["phone", "stations"];
 
 export default function SensorScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -58,6 +60,7 @@ export default function SensorScreen() {
 
   return (
     <ScrollView
+      {...tabBarScroll}
       style={{ backgroundColor: colors.surface.base }}
       contentContainerStyle={{
         paddingTop: insets.top + spacing[6],

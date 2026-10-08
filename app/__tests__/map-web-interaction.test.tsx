@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  *
- * Web Map screen (`app/(tabs)/map.web.tsx`) — marker tap/click/keyboard
+ * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — marker tap/click/keyboard
  * activation and accessibility. See `map-web-creation.test.tsx`'s doc
  * comment for the jsdom-environment/mocking rationale.
  *
@@ -105,7 +105,7 @@ jest.mock(
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/map.web";
+import MapScreenWeb from "../(tabs)/(map)/map.web";
 
 async function renderWithProviders(ui: ReactElement): Promise<RenderResult> {
   // `render` is async in this installed `@testing-library/react-native`

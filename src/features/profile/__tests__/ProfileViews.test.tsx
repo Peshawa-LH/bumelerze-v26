@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, screen } from "@testing-library/react-native";
 
-import ProfileScreen from "../../../../app/(tabs)/profile";
-import PublicProfileScreen from "../../../../app/u/[username]/index";
+import ProfileScreen from "../../../../app/(tabs)/(profile)/profile";
+import PublicProfileScreen from "../../../../app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index";
 import {
   clearQueryClients,
   mockTransport,

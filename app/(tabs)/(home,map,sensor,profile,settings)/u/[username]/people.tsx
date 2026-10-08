@@ -7,10 +7,12 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { PeopleList } from "@/features/community/components/PeopleList";
 import { useFollowList } from "@/features/community/queries";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /** Followers or following of one account (`?kind=followers|following`).
  * The server returns nothing for a private account the viewer may not see. */
 export default function PeopleScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { username, kind } = useLocalSearchParams<{ username: string; kind?: string }>();
   const { t } = useTranslation();
   const { colors, spacing } = useTheme();
@@ -28,6 +30,7 @@ export default function PeopleScreen() {
         }}
       />
       <ScrollView
+        {...tabBarScroll}
         contentContainerStyle={[
           styles.content,
           { padding: spacing[4], paddingBottom: insets.bottom + spacing[6] },

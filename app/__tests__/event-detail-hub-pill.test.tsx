@@ -92,7 +92,7 @@ jest.mock("@/features/events", () => {
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import EventDetailScreen from "../event/[id]";
+import EventDetailScreen from "../(tabs)/(home,map,sensor,profile,settings)/event/[id]";
 
 const metrics = {
   frame: { x: 0, y: 0, width: 360, height: 640 },
@@ -100,7 +100,9 @@ const metrics = {
 };
 
 function renderScreen(ui: ReactElement) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
   return render(
     <QueryClientProvider client={client}>
       <SafeAreaProvider initialMetrics={metrics}>{ui}</SafeAreaProvider>
@@ -127,7 +129,12 @@ describe("Event page: Who felt it? pill", () => {
   });
 
   it("is absent for a world (non-regional) event", async () => {
-    mockEvent = buildEvent({ isRegional: false, lat: 35.6, lon: 139.7, placeName: "Tokyo" });
+    mockEvent = buildEvent({
+      isRegional: false,
+      lat: 35.6,
+      lon: 139.7,
+      placeName: "Tokyo",
+    });
     await renderScreen(<EventDetailScreen />);
     expect(screen.queryByRole("button", { name: "Who felt it?" })).toBeNull();
   });

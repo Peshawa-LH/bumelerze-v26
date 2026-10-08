@@ -9,9 +9,11 @@ import { BlockedSection } from "@/features/community/components/BlockedSection";
 import { FollowRequestsSection } from "@/features/community/components/FollowRequestsSection";
 import { useBlockedPeople, useFollowRequests } from "@/features/community/queries";
 import { useTheme } from "@/theme";
+import { useTabBarScroll } from "@/features/tab-bar";
 
 /** People: follow requests to accept or decline, and blocked accounts. */
 export default function PeopleSettingsScreen() {
+  const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -30,6 +32,7 @@ export default function PeopleSettingsScreen() {
         }}
       />
       <ScrollView
+        {...tabBarScroll}
         contentContainerStyle={[
           styles.content,
           {
