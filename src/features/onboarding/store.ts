@@ -110,6 +110,9 @@ export interface PrefsState {
    * user is. 'off' whenever there is no place; 'all' when one is first
    * chosen, and a later change of place keeps whatever tier was picked. */
   anotherPlaceTier: NotificationTier;
+  /** The Home "Be ready" card (a link to the Safety guide) is hidden for good:
+   * the reader dismissed it or opened the Safety guide once (D79). */
+  beReadyHidden: boolean;
   /** True once the persisted values have finished loading from
    * AsyncStorage. The root layout renders nothing until this flips, so it
    * never flashes Home before onboarding, or onboarding before Home
@@ -139,13 +142,15 @@ export interface PrefsState {
    * reachable after") this is the *only* path back into onboarding once
    * it's been completed once. */
   resetOnboarding: () => void;
+  /** Hides the Home "Be ready" card for good. */
+  hideBeReady: () => void;
   setHasHydrated: (value: boolean) => void;
 }
 
 /** Persist schema version. 0 = the HomeBase model (`homeBase`, `homeBaseSource`,
  * `homeBaseAutoCheckedAt`, `homeBaseTier`); 1 = reference place + another
- * place; 2 = adds `referenceSource` (auto | manual). */
-export const PREFS_VERSION = 2;
+ * place; 2 = adds `referenceSource` (auto | manual); 3 = adds `beReadyHidden`. */
+export const PREFS_VERSION = 3;
 
 function isNotificationTier(value: unknown): value is NotificationTier {
   return NOTIFICATION_TIERS.includes(value as NotificationTier);
@@ -174,7 +179,11 @@ function readStoredPlace(value: unknown): StoredPlace | null {
 }
 
 /**
- * Persist migration, run as a chain (0 to 1, then 1 to 2).
+ * Persist migration, run as a chain (0 to 1, 1 to 2, then 2 to 3).
+ *
+ * Version 2 to 3: the Home "Be ready" card exists from now on, so every
+ * existing install starts with it visible (`beReadyHidden` false). The Safety
+ * tab left the tab bar in this release; the card is how people find it again.
  *
  * Version 1 to 2: every existing reference place was filled by the location
  * check (or the Hawler fallback), so it is "auto".
@@ -207,6 +216,9 @@ export function migratePrefs(
   }
   if (fromVersion < 2) {
     migrated = { ...migrated, referenceSource: migrated.referenceSource ?? "auto" };
+  }
+  if (fromVersion < 3) {
+    migrated = { ...migrated, beReadyHidden: migrated.beReadyHidden ?? false };
   }
   return migrated as Partial<PrefsState>;
 }
@@ -251,6 +263,7 @@ export const usePrefsStore = create<PrefsState>()(
       nearMeTier: DEFAULT_NEAR_ME_TIER,
       anotherPlace: null,
       anotherPlaceTier: "off",
+      beReadyHidden: false,
       hasHydrated: false,
       setOnboardingStep: (step) => set({ onboardingStep: step }),
       completeOnboarding: () =>
@@ -283,6 +296,7 @@ export const usePrefsStore = create<PrefsState>()(
       setAnotherPlaceTier: (tier) => set({ anotherPlaceTier: tier }),
       resetOnboarding: () =>
         set({ onboardingCompleted: false, onboardingStep: "mission" }),
+      hideBeReady: () => set({ beReadyHidden: true }),
       setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
@@ -302,6 +316,7 @@ export const usePrefsStore = create<PrefsState>()(
         nearMeTier: state.nearMeTier,
         anotherPlace: state.anotherPlace,
         anotherPlaceTier: state.anotherPlaceTier,
+        beReadyHidden: state.beReadyHidden,
       }),
       // `persistedState` is `undefined` on a first-ever launch; the migration
       // has already run for older blobs, so this only fills what is missing.

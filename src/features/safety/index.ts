@@ -32,3 +32,4 @@ export {
   type UsingAppGuide,
   type UsingAppGuideId,
 } from "./using-app";
+export { BeReadyCard } from "./components/BeReadyCard";

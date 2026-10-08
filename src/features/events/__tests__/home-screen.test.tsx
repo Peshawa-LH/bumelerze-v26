@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { AccessibilityInfo, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { usePrefsStore } from "@/features/onboarding";
 import i18n, { isRTLLocale } from "@/i18n";
 import type { Event } from "../types";
 import type { PossibleEvent } from "../possible";
@@ -400,5 +401,26 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     await renderWithProviders(<HomeScreen />);
 
     expect(screen.queryByText("shakemap", { includeHiddenElements: true })).toBeNull();
+  });
+
+  it("shows the calm 'Be ready' card above the list until it is dismissed (D79)", async () => {
+    await i18n.changeLanguage("en");
+    usePrefsStore.setState({ beReadyHidden: false });
+
+    await renderWithProviders(<HomeScreen />);
+    expect(screen.getByTestId("be-ready-card")).toBeTruthy();
+    await fireEvent.press(screen.getByTestId("be-ready-open"));
+    expect(mockPush).toHaveBeenCalledWith("/safety");
+
+    await fireEvent.press(screen.getByTestId("be-ready-dismiss"));
+    expect(screen.queryByTestId("be-ready-card")).toBeNull();
+  });
+
+  it("shows no 'Be ready' card once the Safety guide has been opened", async () => {
+    await i18n.changeLanguage("en");
+    usePrefsStore.setState({ beReadyHidden: true });
+
+    await renderWithProviders(<HomeScreen />);
+    expect(screen.queryByTestId("be-ready-card")).toBeNull();
   });
 });

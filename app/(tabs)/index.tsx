@@ -16,6 +16,7 @@ import {
   FeltReportPill,
   resolveHomeFeltAssociation,
 } from "@/features/felt";
+import { BeReadyCard } from "@/features/safety";
 import { useTheme } from "@/theme";
 
 /**
@@ -170,6 +171,8 @@ export default function HomeScreen() {
                 </Pressable>
               </View>
             </View>
+            {/* New readers: one calm pointer to the Safety guide (D79). */}
+            <BeReadyCard />
             {possibleEvents.length > 0 ? (
               <View
                 style={[

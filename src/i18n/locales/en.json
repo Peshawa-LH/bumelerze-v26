@@ -12,6 +12,11 @@
   },
   "home": {
     "title": "Home",
+    "beReady": {
+      "title": "Be ready",
+      "body": "A short guide for before, during and after an earthquake.",
+      "dismiss": "Hide this card"
+    },
     "emptyState": "No earthquakes reported in your region recently.",
     "possibleEvent": {
       "freshTitle": "Shaking reported near {{city}}",

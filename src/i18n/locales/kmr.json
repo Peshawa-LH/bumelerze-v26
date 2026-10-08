@@ -12,6 +12,11 @@
   },
   "home": {
     "title": "Destpêk",
+    "beReady": {
+      "title": "Amade be",
+      "body": "Rêbernameyeke kurt ji bo beriya erdhejê, di dema wê de û piştî wê.",
+      "dismiss": "Vê kartê veşêre"
+    },
     "emptyState": "Vê dawiyê tu erdheja li herêma te nehatiye tomarkirin.",
     "possibleEvent": {
       "freshTitle": "Lerizîn li nêzî {{city}} hat ragihandin",

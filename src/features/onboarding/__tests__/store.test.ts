@@ -102,7 +102,7 @@ describe("usePrefsStore actions", () => {
       }
     }
     expect(raw).toContain('"onboardingStep":"location"');
-    expect(raw).toContain('"version":2');
+    expect(raw).toContain('"version":3');
   });
 
   it("completeOnboarding sets both onboardingCompleted and onboardingStep", async () => {
@@ -282,11 +282,11 @@ describe("prefs migration from the HomeBase model (persist version 0 to 1)", () 
     usePrefsStore.getState().setNearMeTier("m5");
 
     let raw: string | null = null;
-    for (let attempt = 0; attempt < 50 && !raw?.includes('"version":2'); attempt += 1) {
+    for (let attempt = 0; attempt < 50 && !raw?.includes('"version":3'); attempt += 1) {
       raw = await AsyncStorage.getItem("bumelerze.prefs");
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
-    expect(raw).toContain('"version":2');
+    expect(raw).toContain('"version":3');
     expect(raw).not.toContain("homeBase");
     expect(raw).toContain('"anotherPlace":{"placeId":"duhok"');
   });
@@ -347,15 +347,50 @@ describe("prefs migration from persist version 1 to 2 (reference source)", () =>
     expect((await loadHydrated()).getState().referenceOutOfRange).toBe(false);
   });
 
-  it("migratePrefs adds the source without touching other fields, and PREFS_VERSION is 2", () => {
+  it("migratePrefs adds the source (and the later Be-ready flag) without touching other fields, and PREFS_VERSION is 3", () => {
     const { migratePrefs, PREFS_VERSION } = loadStore();
-    expect(PREFS_VERSION).toBe(2);
+    expect(PREFS_VERSION).toBe(3);
     const out = migratePrefs({ referencePlace: ERBIL, nearMeTier: "off" }, 1);
     expect(out).toEqual({
       referencePlace: ERBIL,
       nearMeTier: "off",
       referenceSource: "auto",
+      beReadyHidden: false,
     });
+  });
+});
+
+describe("prefs migration from persist version 2 to 3 (Be ready card)", () => {
+  it("an existing install gets the Be ready card (beReadyHidden false) and keeps its choices", async () => {
+    await seed(
+      { onboardingCompleted: true, referencePlace: DUHOK, referenceSource: "manual" },
+      2,
+    );
+    const store = await loadHydrated();
+    expect(store.getState().beReadyHidden).toBe(false);
+    expect(store.getState().referenceSource).toBe("manual");
+    expect(store.getState().onboardingCompleted).toBe(true);
+  });
+
+  it("hideBeReady hides the card for good: it persists across a restart", async () => {
+    const first = await loadHydrated();
+    expect(first.getState().beReadyHidden).toBe(false);
+    first.getState().hideBeReady();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const saved = await loadAsyncStorage().getItem("bumelerze.prefs");
+    expect(saved).toContain('"beReadyHidden":true');
+    // A restart: a fresh module reading what was written.
+    jest.resetModules();
+    await loadAsyncStorage().setItem("bumelerze.prefs", saved as string);
+    const reloaded = await loadHydrated();
+    expect(reloaded.getState().beReadyHidden).toBe(true);
+  });
+
+  it("replaying onboarding does not bring the card back", async () => {
+    const store = await loadHydrated();
+    store.getState().hideBeReady();
+    store.getState().resetOnboarding();
+    expect(store.getState().beReadyHidden).toBe(true);
   });
 });
 
