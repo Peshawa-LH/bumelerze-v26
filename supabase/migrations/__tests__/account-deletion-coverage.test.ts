@@ -96,6 +96,11 @@ const MANIFEST: Record<string, Entry> = {
   "home_member_undo.removed_by": { onDelete: "cascade", handling: "cascade", why: "the owner's own undo memory" },
   // I'm safe (0057)
   "safety_checkins.user_id": { onDelete: "cascade", handling: "cascade", why: "the person's check-ins (no location); also purged after 30 days" },
+  // activity, mutes (0061)
+  "activity_items.user_id": { onDelete: "cascade", handling: "cascade", why: "the person's activity list; also purged after 90 days" },
+  "activity_items.actor_id": { onDelete: "cascade", handling: "cascade", why: "rows telling others about something the person did go with the person" },
+  "mutes.muter_id": { onDelete: "cascade", handling: "cascade", why: "people the person muted" },
+  "mutes.muted_id": { onDelete: "cascade", handling: "cascade", why: "mutes of the person by others (never shown to them)" },
   // moderation and audit
   "moderation_log.actor_id": { onDelete: "set null", handling: "unlink", why: "audit rows stay, unlinked" },
   "moderation_log.target_user_id": { onDelete: "set null", handling: "unlink", why: "audit rows stay, unlinked" },
