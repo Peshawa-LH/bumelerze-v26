@@ -88,6 +88,50 @@ describe("removed comments and followed authors", () => {
     expect(threads[0]?.replies.map((r) => r.id)).toEqual(["reply"]);
   });
 
+  it("leaves readers no trace of a removed thread or a removed reply", () => {
+    const threads = buildThreads(
+      [
+        comment({ id: "gone", status: "removed", body: "" }),
+        comment({
+          id: "gone-reply",
+          parentId: "gone",
+          status: "removed",
+          body: "",
+          createdAt: 2_000,
+        }),
+        comment({ id: "kept", createdAt: 3_000 }),
+        comment({
+          id: "kept-removed-reply",
+          parentId: "kept",
+          status: "removed",
+          body: "",
+          createdAt: 4_000,
+        }),
+      ],
+      anon,
+    );
+    expect(threads.map((t) => t.root.id)).toEqual(["kept"]);
+    expect(threads[0]?.replies).toEqual([]);
+  });
+
+  it("still shows moderators every removed placeholder", () => {
+    const threads = buildThreads(
+      [
+        comment({ id: "gone", status: "removed", body: "" }),
+        comment({
+          id: "gone-reply",
+          parentId: "gone",
+          status: "removed",
+          body: "",
+          createdAt: 2_000,
+        }),
+      ],
+      { userId: "mod", isModerator: true },
+    );
+    expect(threads.map((t) => t.root.id)).toEqual(["gone"]);
+    expect(threads[0]?.replies.map((r) => r.id)).toEqual(["gone-reply"]);
+  });
+
   it("puts threads by followed people first, each group newest first", () => {
     const comments = [
       comment({ id: "a", userId: "stranger", createdAt: 5_000 }),

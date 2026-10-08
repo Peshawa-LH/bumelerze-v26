@@ -5,8 +5,8 @@ import type { HubComment, HubThread } from "./types";
  * repeats the rule for the client's own view so a moderator (who is allowed
  * to read hidden rows too) never sees a hidden comment in the thread:
  *  - visible: everyone
- *  - removed: everyone, as an empty "Comment removed" placeholder (an admin
- *    took the text down; the replies under it stay readable)
+ *  - removed: moderators always; readers only as a "Comment removed"
+ *    placeholder above replies that are still readable (see buildThreads)
  *  - pending: its author, and moderators (to approve or hide it)
  *  - hidden: nobody
  */
@@ -65,10 +65,23 @@ export function buildThreads(
     repliesByParent.set(comment.parentId, siblings);
   }
 
-  return roots.map((root) => ({
+  const threads = roots.map((root) => ({
     root,
     replies: (repliesByParent.get(root.id) ?? []).sort(
       (a, b) => a.createdAt - b.createdAt,
     ),
   }));
+  if (viewer.isModerator) {
+    return threads;
+  }
+  // Readers see no trace of removed comments (owner, 2026-10-08): a removed
+  // reply disappears, and a removed comment stays as a "Comment removed"
+  // placeholder only while replies under it are still readable.
+  return threads.flatMap((thread) => {
+    const replies = thread.replies.filter((reply) => reply.status !== "removed");
+    if (thread.root.status === "removed" && replies.length === 0) {
+      return [];
+    }
+    return [{ root: thread.root, replies }];
+  });
 }

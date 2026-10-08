@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Avatar, getAvatarUrl } from "@/features/account";
@@ -227,6 +227,9 @@ export function CommentItem({
             fontSize: typography.bodyDefault.fontSize,
             lineHeight: typography.bodyDefault.lineHeight,
             textAlign: "auto",
+            alignSelf: "stretch",
+            flexShrink: 1,
+            ...WRAP_ANYWHERE,
           }}
         >
           {comment.body}
@@ -397,6 +400,20 @@ export function CommentItem({
     </View>
   );
 }
+
+/** Long comments always wrap inside the column, also in browsers that size a
+ * mixed-direction paragraph to its full line (owner screenshot, 2026-10-08):
+ * each paragraph takes its own direction, and very long words break. */
+const WRAP_ANYWHERE = (
+  Platform.OS === "web"
+    ? {
+        overflowWrap: "anywhere",
+        wordBreak: "break-word",
+        unicodeBidi: "plaintext",
+        maxWidth: "100%",
+      }
+    : {}
+) as object;
 
 const styles = StyleSheet.create({
   row: {
