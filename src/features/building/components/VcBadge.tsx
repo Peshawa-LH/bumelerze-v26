@@ -3,24 +3,19 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/theme";
 import type { VulnerabilityClass } from "../ims25";
 
-/** Fill colour of a vulnerability class: A and B red, C amber, D blue, E and
- * F green. The letter carries the meaning; colour only reinforces it. */
-function fillFor(
-  vc: VulnerabilityClass,
-  status: ReturnType<typeof useTheme>["colors"]["status"],
-) {
-  switch (vc) {
-    case "A":
-    case "B":
-      return status.danger;
-    case "C":
-      return status.warning;
-    case "D":
-      return status.info;
-    default:
-      return status.success;
-  }
-}
+/** Vulnerability class colours from the owner's building-stock surveys
+ * (Hasan et al., WCEE 2024, Hawler; Hasan et al., 3CroCEE 2025,
+ * Sulaimani), sampled from the published legends. Same in light and dark
+ * mode. The letter carries the meaning; colour only reinforces it, so the
+ * pale classes get dark text. */
+export const VC_COLORS: Record<VulnerabilityClass, { fill: string; text: string }> = {
+  A: { fill: "#E73710", text: "#FFFFFF" },
+  B: { fill: "#F3A3A2", text: "#1C1B1F" },
+  C: { fill: "#DFF3AE", text: "#1C1B1F" },
+  D: { fill: "#AAADFC", text: "#1C1B1F" },
+  E: { fill: "#545FF9", text: "#FFFFFF" },
+  F: { fill: "#58135B", text: "#FFFFFF" },
+};
 
 /** The big round "A..F" badge. */
 export function VcBadge({
@@ -35,7 +30,7 @@ export function VcBadge({
   label: string;
   testID?: string;
 }) {
-  const { colors, typography } = useTheme();
+  const { typography } = useTheme();
   return (
     <View
       accessible
@@ -48,13 +43,13 @@ export function VcBadge({
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: fillFor(vc, colors.status),
+          backgroundColor: VC_COLORS[vc].fill,
         },
       ]}
     >
       <Text
         style={{
-          color: colors.brand.onPrimary,
+          color: VC_COLORS[vc].text,
           fontSize: Math.round(size * 0.5),
           lineHeight: Math.round(size * 0.62),
           fontWeight: "800",
