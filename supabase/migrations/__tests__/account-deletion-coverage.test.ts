@@ -87,6 +87,10 @@ const MANIFEST: Record<string, Entry> = {
   "home_join_attempts.user_id": { onDelete: "cascade", handling: "cascade", why: "join rate limit" },
   "home_surveys.user_id": { onDelete: "set null", handling: "unlink", why: "an answer given in somebody else's home stays with that home, unlinked" },
   "home_photos.user_id": { onDelete: "set null", handling: "unlink", why: "a photo added to somebody else's home stays with that home, unlinked" },
+  "home_member_undo.user_id": { onDelete: "cascade", handling: "cascade", why: "10-minute memory of a removed member, for the owner's Undo" },
+  "home_member_undo.removed_by": { onDelete: "cascade", handling: "cascade", why: "the owner's own undo memory" },
+  // I'm safe (0057)
+  "safety_checkins.user_id": { onDelete: "cascade", handling: "cascade", why: "the person's check-ins (no location); also purged after 30 days" },
   // moderation and audit
   "moderation_log.actor_id": { onDelete: "set null", handling: "unlink", why: "audit rows stay, unlinked" },
   "moderation_log.target_user_id": { onDelete: "set null", handling: "unlink", why: "audit rows stay, unlinked" },
