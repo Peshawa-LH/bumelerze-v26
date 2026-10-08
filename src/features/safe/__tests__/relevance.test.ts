@@ -49,7 +49,7 @@ function event(
 
 const EMPTY: PromptMemory = { handled: {}, lastAction: null };
 
-describe("expected intensity >= V table (D14 confirm-review pending)", () => {
+describe("expected intensity >= V table (owner-confirmed bar)", () => {
   it("is the design note's table, strongest first", () => {
     expect(EXPECTED_INTENSITY_V_TABLE.map((r) => [r.minMagnitude, r.withinKm])).toEqual([
       [7.0, 400],

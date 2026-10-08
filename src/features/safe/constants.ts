@@ -11,8 +11,8 @@
  * `minMagnitude` and the phone is within that row's `withinKm`. The test runs
  * ON THE DEVICE against the phone's own last fix; the location is never sent.
  *
- * D14 confirm-review pending (owner): the intensity bar (V) and this distance
- * table are a science default from the design note (section 5.1). Replace them
+ * Owner confirmed the intensity bar (V) on 2026-10-08 (D14 review). The
+ * distance table is the design note's default (section 5.1). Replace it
  * with the engine's GMPE intensity at the device point once an event has a
  * SHAKEmap product.
  */
