@@ -155,7 +155,7 @@ describe("Using Bumelerze: section", () => {
     expect(screen.getByText("بەکارهێنانی Bumelerze")).toBeTruthy();
     await press("using-app-tagBuilding-toggle");
     expect(
-      screen.getByText("«پڕۆفایل» بکەرەوە، پاشان «ماڵەکەم»، پاشان «بیناکەم تۆمار بکە»."),
+      screen.getByText("«هەژمار» بکەرەوە، پاشان «ماڵەکەم»، پاشان «بیناکەم تۆمار بکە»."),
     ).toBeTruthy();
     // Eastern Arabic-Indic digits in the step badges.
     // (decorative: hidden from screen readers, so query with hidden elements)

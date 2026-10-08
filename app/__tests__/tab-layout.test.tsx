@@ -102,7 +102,7 @@ describe("tab bar", () => {
         expect([...label].length).toBeLessThanOrEqual(limit);
       }
     }
-    expect(ckb.tabs.profile).toBe("پڕۆفایل");
+    expect(ckb.tabs.profile).toBe("هەژمار");
     expect(ar.tabs.profile).toBe("ملفي");
     expect(en.tabs).not.toHaveProperty("safety");
     expect(ckb.tabs).not.toHaveProperty("safety");
