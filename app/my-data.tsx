@@ -7,6 +7,7 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { CommunityRows } from "@/features/account/components/CommunityRows";
 import { DeleteAccountRow } from "@/features/account/components/DeleteAccountRow";
 import { MyLocationRow } from "@/features/account/components/MyLocationRow";
+import { PasswordRow } from "@/features/account/components/PasswordRow";
 import { PrivacyRow } from "@/features/account/components/PrivacyRow";
 import { ProfileHeader } from "@/features/account/components/ProfileHeader";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
@@ -85,6 +86,7 @@ export default function MyDataScreen() {
             testID="account-notifications-row"
           />
           <PrivacyRow email={account.email} />
+          {isAccount ? <PasswordRow /> : null}
           {isAccount ? <SignOutRow /> : null}
         </SettingsGroup>
         {isAccount ? <DeleteAccountRow /> : null}

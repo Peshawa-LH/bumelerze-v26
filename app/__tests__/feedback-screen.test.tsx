@@ -395,6 +395,17 @@ describe("Feedback screen", () => {
     );
   });
 
+  it("starts a password reset request when 'Forgot your password?' sends the route flag", async () => {
+    mockSearchParams = { passwordReset: "1" };
+    await renderWithProviders(<FeedbackScreen />);
+    expect(screen.getByLabelText(i18n.t("feedback.messageLabel")).props.value).toBe(
+      "Password reset request. I can't sign in. My username or email: ",
+    );
+    expect(screen.getByTestId("feedback-badge-request").props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: false }),
+    );
+  });
+
   it("opens with the badge request ticked and the rank named when the route says so", async () => {
     mockSearchParams = { badgeRequest: "1", rank: "seismologist" };
     await renderWithProviders(<FeedbackScreen />);

@@ -43,7 +43,14 @@ export interface AccountState {
 export type AccountErrorCode =
   | "unconfigured"
   | "invalid_email"
-  | "invalid_code"
+  | "email_taken"
+  | "weak_password"
+  | "same_password"
+  | "invalid_credentials"
+  | "reauth_needed"
+  | "setup_incomplete"
+  | "email_mismatch"
+  | "password_mismatch"
   | "rate_limited"
   | "network"
   | "no_session"
@@ -64,11 +71,6 @@ export class AccountError extends Error {
     this.code = code;
   }
 }
-
-/** How an emailed code will be verified. `upgrade`: this install's anonymous
- * user becomes the account (same user id). `signin`: the email already has
- * an account; sign into it and move this device's reports over. */
-export type EmailAuthMode = "upgrade" | "signin";
 
 export type AvatarChange =
   { kind: "keep" } | { kind: "remove" } | { kind: "new"; uri: string };

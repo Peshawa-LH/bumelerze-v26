@@ -127,14 +127,17 @@ describe("account blocks", () => {
   });
 
   describe("SignUpInvite", () => {
-    it("has one create-account button and a quiet sign-in link, both to sign-in", async () => {
+    it("has one create-account button and a quiet sign-in link that opens the sign-in form", async () => {
       await render(<SignUpInvite />);
       expect(screen.getAllByTestId("account-create")).toHaveLength(1);
       expect(screen.getByText("Get a name, badges and your building tag.")).toBeTruthy();
       await press("account-create");
       expect(mockPush).toHaveBeenLastCalledWith("/account/sign-in");
       await press("account-have");
-      expect(mockPush).toHaveBeenLastCalledWith("/account/sign-in");
+      expect(mockPush).toHaveBeenLastCalledWith({
+        pathname: "/account/sign-in",
+        params: { mode: "signin" },
+      });
     });
   });
 

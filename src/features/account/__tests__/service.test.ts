@@ -1,11 +1,12 @@
 import {
   claimThisDevicesReports,
   deleteAccount,
-  requestEmailCode,
+  createAccountWithPassword,
+  setAccountPassword,
+  signInWithPassword,
   saveProfile,
   signOutAccount,
   toAccountError,
-  verifyEmailCode,
 } from "../service";
 import { AccountError } from "../types";
 import { RESEARCH_CONSENT_VERSION, TERMS_VERSION } from "../constants";
@@ -39,12 +40,18 @@ function makeClient(user: { id: string; is_anonymous: boolean } | null) {
   return {
     auth: {
       getSession: jest.fn(async () => ({ data: { session: user ? { user } : null } })),
-      updateUser: jest.fn(ok),
-      verifyOtp: jest.fn(async (..._a: unknown[]): Promise<Res> => ({
-        data: { user: { id: "uid-1" } },
+      // Echoes the email back like GoTrue does when confirmation is off.
+      updateUser: jest.fn(async (attrs: { email?: string }): Promise<Res> => ({
+        data: { user: { id: "uid-1", email: attrs.email, is_anonymous: false } },
+        error: null,
+      })),
+      refreshSession: jest.fn(ok),
+      signInWithPassword: jest.fn(async (..._a: unknown[]): Promise<Res> => ({
+        data: { user: { id: "uid-1" }, session: {} },
         error: null,
       })),
       signInWithOtp: jest.fn(ok),
+      verifyOtp: jest.fn(ok),
       signOut: jest.fn(async () => ({ error: null })),
     },
     rpc: jest.fn(async (..._a: unknown[]): Promise<Res> => ({ data: 3, error: null })),
@@ -64,15 +71,53 @@ beforeEach(() => {
   mockClient = makeClient({ id: "uid-1", is_anonymous: true });
 });
 
-describe("requestEmailCode", () => {
-  it("upgrades the anonymous user by attaching the email", async () => {
-    const result = await requestEmailCode("  a@b.co ");
-    expect(result).toEqual({ mode: "upgrade" });
-    expect(mockClient?.auth.updateUser).toHaveBeenCalledWith({ email: "a@b.co" });
-    expect(mockClient?.auth.signInWithOtp).not.toHaveBeenCalled();
+describe("createAccountWithPassword", () => {
+  it("upgrades the anonymous user in place with one updateUser call (email + password)", async () => {
+    await createAccountWithPassword("  A@B.co ", "correct horse");
+    expect(mockClient?.auth.updateUser).toHaveBeenCalledTimes(1);
+    expect(mockClient?.auth.updateUser).toHaveBeenCalledWith({
+      email: "A@B.co",
+      password: "correct horse",
+    });
+    expect(mockSignInAnonymously).toHaveBeenCalled();
   });
 
-  it("falls back to a sign-in code when the email already has an account", async () => {
+  it("sends no email: no OTP, no redirect option, no verification step", async () => {
+    await createAccountWithPassword("a@b.co", "correct horse");
+    expect(mockClient?.auth.signInWithOtp).not.toHaveBeenCalled();
+    expect(mockClient?.auth.verifyOtp).not.toHaveBeenCalled();
+    // updateUser got exactly one argument: no { emailRedirectTo }.
+    expect(mockClient?.auth.updateUser.mock.calls[0]).toHaveLength(1);
+  });
+
+  it("refreshes the session so the access token stops saying is_anonymous", async () => {
+    await createAccountWithPassword("a@b.co", "correct horse");
+    expect(mockClient?.auth.refreshSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("still succeeds when the refresh fails (offline right after)", async () => {
+    mockClient?.auth.refreshSession.mockRejectedValueOnce(new Error("offline"));
+    await expect(
+      createAccountWithPassword("a@b.co", "correct horse"),
+    ).resolves.toBeUndefined();
+  });
+
+  it("rejects an implausible email or a short password without calling Supabase", async () => {
+    await expect(
+      createAccountWithPassword("not-an-email", "correct horse"),
+    ).rejects.toMatchObject({
+      code: "invalid_email",
+    });
+    await expect(createAccountWithPassword("a@b.co", "short")).rejects.toMatchObject({
+      code: "weak_password",
+    });
+    await expect(
+      createAccountWithPassword("a@b.co", "x".repeat(73)),
+    ).rejects.toMatchObject({ code: "weak_password" });
+    expect(mockClient?.auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("maps an email that already has an account", async () => {
     mockClient?.auth.updateUser.mockResolvedValueOnce({
       data: {},
       error: {
@@ -81,85 +126,193 @@ describe("requestEmailCode", () => {
         message: "A user with this email address has already been registered",
       },
     });
-    const result = await requestEmailCode("a@b.co");
-    expect(result).toEqual({ mode: "signin" });
-    expect(mockClient?.auth.signInWithOtp).toHaveBeenCalledWith({
-      email: "a@b.co",
-      options: { shouldCreateUser: false },
+    await expect(
+      createAccountWithPassword("a@b.co", "correct horse"),
+    ).rejects.toMatchObject({
+      code: "email_taken",
     });
   });
 
-  it("rejects an implausible email without calling Supabase", async () => {
-    await expect(requestEmailCode("not-an-email")).rejects.toMatchObject({
-      code: "invalid_email",
-    });
-    expect(mockClient?.auth.updateUser).not.toHaveBeenCalled();
-  });
-
-  it("maps rate limiting", async () => {
+  it("maps a password the server finds weak", async () => {
     mockClient?.auth.updateUser.mockResolvedValueOnce({
       data: {},
       error: {
-        code: "over_email_send_rate_limit",
-        status: 429,
-        message: "email rate limit exceeded",
+        code: "weak_password",
+        status: 422,
+        message: "Password should be at least 10 characters.",
       },
     });
-    await expect(requestEmailCode("a@b.co")).rejects.toMatchObject({
-      code: "rate_limited",
+    await expect(
+      createAccountWithPassword("a@b.co", "correct horse"),
+    ).rejects.toMatchObject({
+      code: "weak_password",
     });
+  });
+
+  it("maps being offline", async () => {
+    mockClient?.auth.updateUser.mockResolvedValueOnce({
+      data: {},
+      error: { name: "AuthRetryableFetchError", status: 0, message: "Failed to fetch" },
+    });
+    await expect(
+      createAccountWithPassword("a@b.co", "correct horse"),
+    ).rejects.toMatchObject({
+      code: "network",
+    });
+  });
+
+  it("does not claim success when the server only recorded a pending email change", async () => {
+    mockClient?.auth.updateUser.mockResolvedValueOnce({
+      data: { user: { id: "uid-1", email: "", new_email: "a@b.co", is_anonymous: true } },
+      error: null,
+    });
+    await expect(
+      createAccountWithPassword("a@b.co", "correct horse"),
+    ).rejects.toMatchObject({
+      code: "setup_incomplete",
+    });
+    expect(mockClient?.auth.refreshSession).not.toHaveBeenCalled();
+  });
+
+  it("refuses when this device already has an account", async () => {
+    mockClient = makeClient({ id: "uid-1", is_anonymous: false });
+    await expect(
+      createAccountWithPassword("a@b.co", "correct horse"),
+    ).rejects.toBeInstanceOf(AccountError);
+    expect(mockClient.auth.updateUser).not.toHaveBeenCalled();
   });
 
   it("is unavailable when Supabase is not configured", async () => {
     mockClient = null;
-    await expect(requestEmailCode("a@b.co")).rejects.toMatchObject({
+    await expect(
+      createAccountWithPassword("a@b.co", "correct horse"),
+    ).rejects.toMatchObject({
       code: "unconfigured",
     });
   });
 });
 
-describe("verifyEmailCode", () => {
-  it("verifies an upgrade with the email_change type and moves nothing", async () => {
-    const result = await verifyEmailCode("a@b.co", "123 456", "upgrade");
-    expect(mockClient?.auth.verifyOtp).toHaveBeenCalledWith({
+describe("signInWithPassword", () => {
+  it("signs in with the trimmed email and the password as typed", async () => {
+    await signInWithPassword(" a@b.co ", " pass word ");
+    expect(mockClient?.auth.signInWithPassword).toHaveBeenCalledWith({
       email: "a@b.co",
-      token: "123456",
-      type: "email_change",
+      password: " pass word ",
     });
-    expect(result).toEqual({ userId: "uid-1", claimed: 0 });
-    expect(mockClient?.rpc).not.toHaveBeenCalled();
+    expect(mockClient?.auth.signInWithOtp).not.toHaveBeenCalled();
   });
 
-  it("signs into an existing account then claims this device's reports", async () => {
-    const result = await verifyEmailCode("a@b.co", "123456", "signin");
-    expect(mockClient?.auth.verifyOtp).toHaveBeenCalledWith({
-      email: "a@b.co",
-      token: "123456",
-      type: "email",
-    });
+  it("then claims this device's reports into the account", async () => {
+    const result = await signInWithPassword("a@b.co", "correct horse");
     expect(mockClient?.rpc).toHaveBeenCalledWith("claim_device_reports", {
       p_device_id: "device-1234-abcd",
     });
-    expect(result.claimed).toBe(3);
+    expect(result).toEqual({ userId: "uid-1", claimed: 3 });
   });
 
   it("still signs in when claiming fails", async () => {
     mockClient?.rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
-    const result = await verifyEmailCode("a@b.co", "123456", "signin");
+    const result = await signInWithPassword("a@b.co", "correct horse");
     expect(result.claimed).toBe(0);
   });
 
-  it("maps a wrong or expired code", async () => {
-    mockClient?.auth.verifyOtp.mockResolvedValueOnce({
+  it("maps wrong credentials and does not claim anything", async () => {
+    mockClient?.auth.signInWithPassword.mockResolvedValueOnce({
       data: {},
       error: {
-        code: "otp_expired",
-        status: 403,
-        message: "Token has expired or is invalid",
+        code: "invalid_credentials",
+        status: 400,
+        message: "Invalid login credentials",
       },
     });
-    await expect(verifyEmailCode("a@b.co", "000000", "upgrade")).rejects.toMatchObject({
-      code: "invalid_code",
+    await expect(signInWithPassword("a@b.co", "nope nope")).rejects.toMatchObject({
+      code: "invalid_credentials",
+    });
+    expect(mockClient?.rpc).not.toHaveBeenCalled();
+  });
+
+  it("maps rate limiting and being offline", async () => {
+    mockClient?.auth.signInWithPassword.mockResolvedValueOnce({
+      data: {},
+      error: {
+        code: "over_request_rate_limit",
+        status: 429,
+        message: "Too many requests",
+      },
+    });
+    await expect(signInWithPassword("a@b.co", "correct horse")).rejects.toMatchObject({
+      code: "rate_limited",
+    });
+    mockClient?.auth.signInWithPassword.mockResolvedValueOnce({
+      data: {},
+      error: { name: "AuthRetryableFetchError", status: 0, message: "Failed to fetch" },
+    });
+    await expect(signInWithPassword("a@b.co", "correct horse")).rejects.toMatchObject({
+      code: "network",
+    });
+  });
+
+  it("rejects an implausible email or an empty password locally", async () => {
+    await expect(signInWithPassword("nope", "x")).rejects.toMatchObject({
+      code: "invalid_email",
+    });
+    await expect(signInWithPassword("a@b.co", "")).rejects.toMatchObject({
+      code: "invalid_credentials",
+    });
+    expect(mockClient?.auth.signInWithPassword).not.toHaveBeenCalled();
+  });
+});
+
+describe("setAccountPassword", () => {
+  beforeEach(() => {
+    mockClient = makeClient({ id: "uid-1", is_anonymous: false });
+  });
+
+  it("calls updateUser with only the password (no email attribute, so nothing to confirm)", async () => {
+    await setAccountPassword("a brand new one");
+    expect(mockClient?.auth.updateUser).toHaveBeenCalledTimes(1);
+    expect(mockClient?.auth.updateUser).toHaveBeenCalledWith({
+      password: "a brand new one",
+    });
+  });
+
+  it("refuses a short password without calling Supabase", async () => {
+    await expect(setAccountPassword("short")).rejects.toMatchObject({
+      code: "weak_password",
+    });
+    expect(mockClient?.auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("needs a real account, not a guest", async () => {
+    mockClient = makeClient({ id: "uid-1", is_anonymous: true });
+    await expect(setAccountPassword("a brand new one")).rejects.toMatchObject({
+      code: "no_session",
+    });
+    expect(mockClient.auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("maps same-password and reauthentication errors", async () => {
+    mockClient?.auth.updateUser.mockResolvedValueOnce({
+      data: {},
+      error: {
+        code: "same_password",
+        status: 422,
+        message: "New password should be different from the old password.",
+      },
+    });
+    await expect(setAccountPassword("a brand new one")).rejects.toMatchObject({
+      code: "same_password",
+    });
+    mockClient?.auth.updateUser.mockResolvedValueOnce({
+      data: {},
+      error: {
+        code: "reauthentication_needed",
+        status: 400,
+        message: "Reauthentication needed",
+      },
+    });
+    await expect(setAccountPassword("a brand new one")).rejects.toMatchObject({
+      code: "reauth_needed",
     });
   });
 });

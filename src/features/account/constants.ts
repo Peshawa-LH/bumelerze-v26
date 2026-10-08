@@ -37,10 +37,10 @@ export const AVATARS_BUCKET = "avatars";
 export const AVATAR_MAX_BYTES = 1_048_576;
 export const AVATAR_MAX_EDGE_PX = 256;
 
-/** Email one-time code length (Supabase default: 6 digits). */
-export const EMAIL_CODE_LENGTH = 6;
-/** Seconds before the code can be requested again. */
-export const RESEND_COOLDOWN_SECONDS = 60;
+/** Password rules. The minimum is ours (Supabase's own floor is lower);
+ * 72 is GoTrue's bcrypt limit. */
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 72;
 
 /** Social sign-in buttons stay hidden until the provider is configured in
  * Supabase and the owner flips the matching flag. Static `process.env`

@@ -199,7 +199,10 @@ describe("My account screen", () => {
       await press("account-create");
       expect(mockPush).toHaveBeenCalledWith("/account/sign-in");
       await press("account-have");
-      expect(mockPush).toHaveBeenLastCalledWith("/account/sign-in");
+      expect(mockPush).toHaveBeenLastCalledWith({
+        pathname: "/account/sign-in",
+        params: { mode: "signin" },
+      });
     });
 
     it("shows two stat cells, the badge collection, no sign-out and no delete", async () => {
@@ -212,6 +215,7 @@ describe("My account screen", () => {
         screen.getAllByTestId(/^badge-(first_report|reports_10|helpful_25)$/),
       ).toHaveLength(3);
       expect(screen.queryByTestId("account-sign-out")).toBeNull();
+      expect(screen.queryByTestId("account-password-row")).toBeNull();
       expect(screen.queryByTestId("account-delete")).toBeNull();
       expect(screen.queryByTestId("account-edit-profile")).toBeNull();
     });
@@ -436,6 +440,12 @@ describe("My account screen", () => {
       expect(screen.getByTestId("account-email").props.children).toBe(
         "shilan@example.com",
       );
+    });
+
+    it("has a Password row that opens the set / change password screen", async () => {
+      await renderWithProviders(<MyDataScreen />);
+      await press("account-password-row");
+      expect(mockPush).toHaveBeenLastCalledWith("/account/password");
     });
 
     it("signs out in one tap and has Delete as its own card, last", async () => {

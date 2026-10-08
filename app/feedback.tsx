@@ -59,13 +59,21 @@ export default function FeedbackScreen() {
   const router = useRouter();
 
   // "Request this badge" on My account opens this screen with the badge
-  // request ticked and the rank named in the message (route params).
-  const params = useLocalSearchParams<{ badgeRequest?: string; rank?: string }>();
+  // request ticked and the rank named in the message (route params). "Forgot
+  // your password?" on the sign-in screen opens it with a reset request
+  // started in the message (`passwordReset=1`).
+  const params = useLocalSearchParams<{
+    badgeRequest?: string;
+    rank?: string;
+    passwordReset?: string;
+  }>();
   const requestedRank = isRequestableRank(params?.rank) ? params.rank : null;
   const [message, setMessage] = useState(() =>
     requestedRank
       ? t("feedback.badgeRequest.prefill", { rank: t(`eventHub.roles.${requestedRank}`) })
-      : "",
+      : params?.passwordReset === "1"
+        ? t("feedback.passwordReset.prefill")
+        : "",
   );
   const [contact, setContact] = useState("");
   const [badgeRequest, setBadgeRequest] = useState(

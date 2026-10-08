@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { Platform } from "react-native";
 
 /**
  * Supabase client wiring — env-gated, ready before any Supabase project
@@ -80,10 +79,9 @@ export function getSupabaseClient(): SupabaseClient | null {
         storage: AsyncStorage,
         autoRefreshToken: true,
         persistSession: true,
-        // Web only: the email sign-in link lands on /account/callback with
-        // the session tokens in the URL, and the client must read them.
-        // Native has no URL to read (deep links are handled separately).
-        detectSessionInUrl: Platform.OS === "web",
+        // Sign-in is email + password: no flow returns session tokens in the
+        // URL. Turn this back on for web when Google / Apple sign-in ships.
+        detectSessionInUrl: false,
       },
     });
   }

@@ -1617,6 +1617,7 @@
     "account": {
       "create": "Hesabekî çêke",
       "haveAccount": "Hesabê min heye",
+      "password": "Şîfre",
       "noName": "Hesabê te",
       "finishProfile": "Profîla xwe temam bike",
       "editProfile": "Profîlê biguherîne",
@@ -1658,6 +1659,9 @@
       "label": "Ev daxwazeke nîşanê ye",
       "hint": "Bibêje kîjan nîşan û em çawa dikarin bipejirînin, wek e-peyama kar an lînka profîlê.",
       "prefill": "Daxwaza nîşanê: {{rank}}"
+    },
+    "passwordReset": {
+      "prefill": "Daxwaza vegerandina şîfreyê. Ez nikarim têkevim. Navê bikarhêner an e-nameya min: "
     }
   },
   "stations": {
@@ -1685,25 +1689,40 @@
   "account": {
     "signIn": {
       "title": "Hesabekî çêke",
-      "intro": "E-nameya xwe binivîse. Em lînkekê dişînin. Bêyî şîfre.",
+      "signInTitle": "Têkeve",
+      "intro": "E-name û şîfreyekê bi kar bîne. Paşê tu dikarî li cîhazên din jî têkevî. Raporên te û şîroveyên vê cîhazê bi te re dimînin.",
+      "signInIntro": "Bi e-name û şîfreya xwe têkeve. Raporên ku ji vê cîhazê hatine şandin li hesabê te têne zêdekirin.",
       "emailLabel": "E-name",
+      "emailAgainLabel": "E-name dîsa",
       "emailPlaceholder": "name@example.com",
-      "sendCode": "Bidomîne",
+      "emailNote": "Em e-nameya te digirin da ku paşê ji bo vegerandina hesabê te alîkariya te bikin. Em hê tu e-name naşînin, ji ber vê du caran kontrol bike.",
+      "passwordLabel": "Şîfre",
+      "passwordHint": "Herî kêm 8 nîşan.",
+      "showPassword": "Şîfreyê nîşan bide",
+      "hidePassword": "Şîfreyê veşêre",
+      "createButton": "Hesab çêke",
+      "signInButton": "Têkeve",
+      "haveAccount": "Hesabê te heye? Têkeve",
+      "newHere": "Nû yî? Hesabekî çêke",
+      "forgot": "Şîfreya xwe ji bîr kir?",
+      "forgotInfo": "Vegerandina şîfreyê bi e-nameyê tê. Niha bi riya «Nêrîn»ê bi me re têkilî daynin û em şîfreya te nû dikin.",
+      "forgotContact": "Bi me re têkilî dayne",
       "or": "an",
       "google": "Bi Google bidomîne",
       "apple": "Bi Apple bidomîne",
-      "codeLabel": "Koda 6 hejmarî",
-      "confirm": "Piştrast bike",
-      "resend": "Dîsa bişîne",
-      "resendIn": "Dîsa bişîne piştî {{seconds}} çirkeyan",
-      "changeEmail": "E-nameyeke din bi kar bîne",
       "welcomeBack": "Careke din bi xêr hatî",
       "claimed": "Tiştên ji vê cîhazê yên li hesabê te hatin zêdekirin: {{count}}",
+      "done": "Qediya"
+    },
+    "password": {
+      "title": "Şîfre",
+      "intro": "Ji bo têketina li cîhazên din şîfreyekê hilbijêre. Heke berê te hebe, ev wê diguherîne.",
+      "newLabel": "Şîfreya nû",
+      "confirmLabel": "Şîfreya nû dîsa",
+      "save": "Şîfreyê tomar bike",
+      "saved": "Şîfre hat tomarkirin.",
       "done": "Qediya",
-      "checkEmailTitle": "E-nameya xwe kontrol bike",
-      "sentTo": "Me e-nameyek şand bo {{email}}.",
-      "checkEmail": "Lînkê li ser vê cîhazê veke.",
-      "haveCode": "Kodeke te heye? Binivîse"
+      "needsAccount": "Pêşî hesabekî çêke, paşê tu dikarî şîfreyekê saz bikî."
     },
     "profile": {
       "title": "Profîla te",
@@ -1747,7 +1766,6 @@
     "errors": {
       "unconfigured": "Hesab niha ne berdest in.",
       "invalid_email": "E-nameyê kontrol bike.",
-      "invalid_code": "Kod şaş e an jî dema wê qediyaye.",
       "rate_limited": "Pir hewl hatin dayîn. Hinekî bisekine û dîsa biceribîne.",
       "network": "Girêdan tune. Dîsa biceribîne.",
       "no_session": "Ji kerema xwe pêşî têkeve.",
@@ -1758,13 +1776,15 @@
       "unknown": "Tiştek şaş çû. Dîsa biceribîne.",
       "username_invalid": "3–24 tîp, jimar, xal an xeta jêrîn bi kar bîne.",
       "username_taken": "Ev nav hatiye girtin.",
-      "username_reserved": "Ev nav ne berdest e."
-    },
-    "callback": {
-      "title": "Têketin",
-      "working": "Tê têketin…",
-      "expired": "Ev lînk qediyaye an jî berê hatiye bikaranîn.",
-      "backToSignIn": "Vegere têketinê"
+      "username_reserved": "Ev nav ne berdest e.",
+      "email_taken": "Ev e-name berê hesabek heye. Têkeve.",
+      "weak_password": "Şîfre divê ji 8 heta 72 nîşan be.",
+      "same_password": "Şîfreyeke ji ya niha cuda hilbijêre.",
+      "invalid_credentials": "E-name an şîfre şaş e.",
+      "reauth_needed": "Ji bo ewlehiyê derkeve, dîsa têkeve, paşê şîfreyê biguherîne.",
+      "setup_incomplete": "Me nikaribû çêkirina hesabê te biqedîne. Ji kerema xwe bi riya «Nêrîn»ê bi me re têkilî dayne.",
+      "email_mismatch": "Her du e-name wekhev nînin.",
+      "password_mismatch": "Her du şîfre wekhev nînin."
     }
   },
   "building": {
@@ -2324,6 +2344,22 @@
     },
     "posts": {
       "title": "Nivîsên gilîkirî"
+    },
+    "passwords": {
+      "title": "Şîfreyekê vegerîne",
+      "hint": "Hesab bibîne, paşê şîfreyeke demkî çêke û bi xwe bide kesê. Divê ew di «Hesabê min»ê de biguherîne.",
+      "searchLabel": "Navê bikarhêner an e-name",
+      "searchButton": "Bigere",
+      "noResults": "Hesab nehat dîtin.",
+      "reset": "Şîfreyê vegerîne",
+      "confirmTitle": "Şîfreyê vegerîne",
+      "confirmMessage": "Ji bo {{name}} şîfreyeke demkî were çêkirin? Şîfreya kevin naxebite û ew li her derê derdikeve.",
+      "confirmButton": "Vegerîne",
+      "resultTitle": "Şîfreya demkî ya {{name}}",
+      "resultNote": "Tenê carekê tê nîşandan. Niha kopî bike û ji wan re bişîne.",
+      "copy": "Kopî bike",
+      "copied": "Hat kopîkirin",
+      "done": "Qediya"
     }
   },
   "posts": {

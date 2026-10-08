@@ -1617,6 +1617,7 @@
     "account": {
       "create": "Create an account",
       "haveAccount": "I already have an account",
+      "password": "Password",
       "noName": "Your account",
       "finishProfile": "Finish your profile",
       "editProfile": "Edit profile",
@@ -1658,6 +1659,9 @@
       "label": "This is a badge request",
       "hint": "Say which badge and how we can check it, such as a work email or a profile link.",
       "prefill": "Badge request: {{rank}}"
+    },
+    "passwordReset": {
+      "prefill": "Password reset request. I can't sign in. My username or email: "
     }
   },
   "stations": {
@@ -1685,25 +1689,40 @@
   "account": {
     "signIn": {
       "title": "Create an account",
-      "intro": "Enter your email. We send you a link. No password.",
+      "signInTitle": "Sign in",
+      "intro": "Use your email and a password. You can then sign in on other devices. Your reports and comments from this device stay with you.",
+      "signInIntro": "Sign in with your email and password. Reports made on this device are added to your account.",
       "emailLabel": "Email",
+      "emailAgainLabel": "Email again",
       "emailPlaceholder": "name@example.com",
-      "sendCode": "Continue",
+      "emailNote": "We keep your email so we can help you recover your account later. We don't send any emails yet, so check it twice.",
+      "passwordLabel": "Password",
+      "passwordHint": "At least 8 characters.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "createButton": "Create account",
+      "signInButton": "Sign in",
+      "haveAccount": "Already have an account? Sign in",
+      "newHere": "New here? Create an account",
+      "forgot": "Forgot your password?",
+      "forgotInfo": "Password resets by email are coming. For now, contact us through Feedback and we'll reset it.",
+      "forgotContact": "Contact us",
       "or": "or",
       "google": "Continue with Google",
       "apple": "Continue with Apple",
-      "codeLabel": "6-digit code",
-      "confirm": "Confirm",
-      "resend": "Send again",
-      "resendIn": "Send again in {{seconds}} s",
-      "changeEmail": "Use a different email",
       "welcomeBack": "Welcome back",
       "claimed": "Items from this device added to your account: {{count}}",
+      "done": "Done"
+    },
+    "password": {
+      "title": "Password",
+      "intro": "Choose a password for signing in on other devices. If you already have one, this replaces it.",
+      "newLabel": "New password",
+      "confirmLabel": "New password again",
+      "save": "Save password",
+      "saved": "Password saved.",
       "done": "Done",
-      "checkEmailTitle": "Check your email",
-      "sentTo": "We sent an email to {{email}}.",
-      "checkEmail": "Open the link on this device.",
-      "haveCode": "Have a code instead? Enter it"
+      "needsAccount": "Create an account first, then you can set a password."
     },
     "profile": {
       "title": "Your profile",
@@ -1747,7 +1766,6 @@
     "errors": {
       "unconfigured": "Accounts are not available right now.",
       "invalid_email": "Check the email address.",
-      "invalid_code": "That code is wrong or expired.",
       "rate_limited": "Too many tries. Wait a minute and try again.",
       "network": "No connection. Try again.",
       "no_session": "Please sign in first.",
@@ -1758,13 +1776,15 @@
       "unknown": "Something went wrong. Try again.",
       "username_invalid": "Use 3–24 letters, digits, dots or underscores.",
       "username_taken": "That username is taken.",
-      "username_reserved": "That name isn't available."
-    },
-    "callback": {
-      "title": "Signing in",
-      "working": "Signing you in…",
-      "expired": "This link has expired or was already used.",
-      "backToSignIn": "Back to sign in"
+      "username_reserved": "That name isn't available.",
+      "email_taken": "This email already has an account. Use Sign in.",
+      "weak_password": "The password must be 8 to 72 characters.",
+      "same_password": "Choose a password different from the current one.",
+      "invalid_credentials": "Wrong email or password.",
+      "reauth_needed": "For safety, sign out, sign in again, then change your password.",
+      "setup_incomplete": "We couldn't finish creating your account. Please contact us through Feedback.",
+      "email_mismatch": "The two emails don't match.",
+      "password_mismatch": "The two passwords don't match."
     }
   },
   "building": {
@@ -2324,6 +2344,22 @@
     },
     "posts": {
       "title": "Reported posts"
+    },
+    "passwords": {
+      "title": "Reset a password",
+      "hint": "Find the account, then make a temporary password and pass it on yourself. The person should change it in My account.",
+      "searchLabel": "Username or email",
+      "searchButton": "Search",
+      "noResults": "No account found.",
+      "reset": "Reset password",
+      "confirmTitle": "Reset password",
+      "confirmMessage": "Make a temporary password for {{name}}? Their old password stops working and they are signed out everywhere.",
+      "confirmButton": "Reset",
+      "resultTitle": "Temporary password for {{name}}",
+      "resultNote": "Shown only once. Copy it now and send it to them.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "done": "Done"
     }
   },
   "posts": {

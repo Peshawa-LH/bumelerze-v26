@@ -6,17 +6,20 @@ import i18n from "@/i18n";
 
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
+let mockParams: { mode?: string } = {};
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ back: mockBack, replace: mockReplace }),
+  useRouter: () => ({ back: mockBack, replace: mockReplace, push: mockPush }),
+  useLocalSearchParams: () => mockParams,
   Stack: Object.assign(() => null, { Screen: () => null }),
 }));
 
-const mockRequest = jest.fn();
-const mockVerify = jest.fn();
+const mockCreate = jest.fn();
+const mockSignIn = jest.fn();
 jest.mock("@/features/account/service", () => ({
-  isPlausibleEmail: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()),
-  requestEmailCode: (email: string) => mockRequest(email),
-  verifyEmailCode: (email: string, code: string, mode: string) => mockVerify(email, code, mode),
+  createAccountWithPassword: (email: string, password: string) =>
+    mockCreate(email, password),
+  signInWithPassword: (email: string, password: string) => mockSignIn(email, password),
   startOAuth: jest.fn(),
 }));
 
@@ -52,14 +55,19 @@ async function type(testID: string, value: string) {
 function disabled(testID: string): boolean {
   return screen.getByTestId(testID).props.accessibilityState?.disabled === true;
 }
+async function fillCreate(overrides: { again?: string; password?: string } = {}) {
+  await type("account-email-input", "a@b.co");
+  await type("account-email-again-input", overrides.again ?? "a@b.co");
+  await type("account-password-input", overrides.password ?? "correct horse");
+}
 
-describe("Sign-in screen", () => {
+describe("Create account (sign-in screen, default mode)", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
+    mockParams = {};
     mockProfile = null;
-    mockRequest.mockResolvedValue({ mode: "upgrade" });
-    mockVerify.mockResolvedValue({ userId: "u1", claimed: 0 });
+    mockCreate.mockResolvedValue(undefined);
+    mockSignIn.mockResolvedValue({ userId: "u1", claimed: 0 });
     mockSync.mockResolvedValue(undefined);
     delete process.env.EXPO_PUBLIC_AUTH_GOOGLE;
     delete process.env.EXPO_PUBLIC_AUTH_APPLE;
@@ -67,18 +75,107 @@ describe("Sign-in screen", () => {
       await i18n.changeLanguage("en");
     }
   });
-  afterEach(() => {
-    cleanup();
-    jest.useRealTimers();
+  afterEach(cleanup);
+
+  it("asks for email twice and a password; no code or link wording anywhere", async () => {
+    await renderScreen(<SignInScreen />);
+    expect(screen.getByTestId("account-email-input")).toBeTruthy();
+    expect(screen.getByTestId("account-email-again-input")).toBeTruthy();
+    expect(screen.getByTestId("account-password-input")).toBeTruthy();
+    expect(screen.queryByText(/code|link/i)).toBeNull();
+    expect(screen.queryByTestId("account-send-code")).toBeNull();
   });
 
-  it("enables Send only for a plausible email", async () => {
+  it("sets the autofill hints password managers rely on", async () => {
     await renderScreen(<SignInScreen />);
-    expect(disabled("account-send-code")).toBe(true);
-    await type("account-email-input", "nope");
-    expect(disabled("account-send-code")).toBe(true);
+    const email = screen.getByTestId("account-email-input").props;
+    expect(email.autoComplete).toBe("email");
+    expect(email.textContentType).toBe("emailAddress");
+    const password = screen.getByTestId("account-password-input").props;
+    expect(password.autoComplete).toBe("new-password");
+    expect(password.textContentType).toBe("newPassword");
+    expect(password.secureTextEntry).toBe(true);
+  });
+
+  it("keeps the typed text left-to-right even in a right-to-left screen", async () => {
+    await renderScreen(<SignInScreen />);
+    const style = screen.getByTestId("account-password-input").props.style;
+    expect(JSON.stringify(style)).toContain('"writingDirection":"ltr"');
+  });
+
+  it("shows and hides the password with a toggle", async () => {
+    await renderScreen(<SignInScreen />);
+    await press("account-password-input-toggle");
+    expect(screen.getByTestId("account-password-input").props.secureTextEntry).toBe(
+      false,
+    );
+    await press("account-password-input-toggle");
+    expect(screen.getByTestId("account-password-input").props.secureTextEntry).toBe(true);
+  });
+
+  it("stays disabled until all three fields have something", async () => {
+    await renderScreen(<SignInScreen />);
+    expect(disabled("account-create-submit")).toBe(true);
     await type("account-email-input", "a@b.co");
-    expect(disabled("account-send-code")).toBe(false);
+    await type("account-email-again-input", "a@b.co");
+    expect(disabled("account-create-submit")).toBe(true);
+    await type("account-password-input", "x");
+    expect(disabled("account-create-submit")).toBe(false);
+  });
+
+  it("shows a mismatch error and calls nothing when the two emails differ", async () => {
+    await renderScreen(<SignInScreen />);
+    await fillCreate({ again: "a@c.co" });
+    await press("account-create-submit");
+    expect(screen.getByText("The two emails don't match.")).toBeTruthy();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("explains a too-short password locally", async () => {
+    await renderScreen(<SignInScreen />);
+    await fillCreate({ password: "short" });
+    await press("account-create-submit");
+    expect(screen.getByText("The password must be 8 to 72 characters.")).toBeTruthy();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("creates the account with email + password, then goes to the profile form", async () => {
+    await renderScreen(<SignInScreen />);
+    await fillCreate();
+    await press("account-create-submit");
+
+    expect(mockCreate).toHaveBeenCalledWith("a@b.co", "correct horse");
+    expect(mockSync).toHaveBeenCalled();
+    expect(mockReplace).toHaveBeenCalledWith("/account/profile");
+  });
+
+  it("goes back when the account already has a profile", async () => {
+    mockProfile = { displayName: "Shilan" };
+    await renderScreen(<SignInScreen />);
+    await fillCreate();
+    await press("account-create-submit");
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it("shows the server's problem in plain words and stays put", async () => {
+    const { AccountError } = jest.requireActual("@/features/account/types");
+    mockCreate.mockRejectedValueOnce(new AccountError("email_taken"));
+    await renderScreen(<SignInScreen />);
+    await fillCreate();
+    await press("account-create-submit");
+    expect(
+      screen.getByText("This email already has an account. Use Sign in."),
+    ).toBeTruthy();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("says so when there is no connection", async () => {
+    const { AccountError } = jest.requireActual("@/features/account/types");
+    mockCreate.mockRejectedValueOnce(new AccountError("network"));
+    await renderScreen(<SignInScreen />);
+    await fillCreate();
+    await press("account-create-submit");
+    expect(screen.getByText("No connection. Try again.")).toBeTruthy();
   });
 
   it("hides Google and Apple unless their flags are set", async () => {
@@ -94,84 +191,94 @@ describe("Sign-in screen", () => {
     expect(screen.getByTestId("account-google")).toBeTruthy();
     expect(screen.getByTestId("account-apple")).toBeTruthy();
   });
+});
 
-  it("after sending, asks to open the link and keeps the code behind a second option", async () => {
-    await renderScreen(<SignInScreen />);
-    await type("account-email-input", "a@b.co");
-    await press("account-send-code");
-
-    expect(mockRequest).toHaveBeenCalledWith("a@b.co");
-    expect(screen.getByTestId("account-check-email")).toBeTruthy();
-    expect(screen.queryByTestId("account-code-input")).toBeNull();
-
-    await press("account-have-code");
-    expect(screen.getByTestId("account-code-input")).toBeTruthy();
-  });
-
-  it("verifies the code, then goes to the profile form for a new account", async () => {
-    await renderScreen(<SignInScreen />);
-    await type("account-email-input", "a@b.co");
-    await press("account-send-code");
-    await press("account-have-code");
-
-    await type("account-code-input", "12a3456");
-    expect(screen.getByTestId("account-code-input").props.value).toBe("123456");
-    await press("account-confirm-code");
-
-    expect(mockVerify).toHaveBeenCalledWith("a@b.co", "123456", "upgrade");
-    expect(mockReplace).toHaveBeenCalledWith("/account/profile");
-  });
-
-  it("existing account with moved reports shows a welcome with the count", async () => {
-    mockRequest.mockResolvedValue({ mode: "signin" });
-    mockVerify.mockResolvedValue({ userId: "u1", claimed: 4 });
+describe("Sign in (sign-in screen, mode=signin)", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    mockParams = { mode: "signin" };
     mockProfile = { displayName: "Shilan" };
+    mockSignIn.mockResolvedValue({ userId: "u1", claimed: 0 });
+    mockSync.mockResolvedValue(undefined);
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(cleanup);
+
+  it("opens on the sign-in form and can switch to create and back", async () => {
+    await renderScreen(<SignInScreen />);
+    expect(screen.getByTestId("account-signin-submit")).toBeTruthy();
+    expect(screen.queryByTestId("account-email-again-input")).toBeNull();
+    await press("account-switch-mode");
+    expect(screen.getByTestId("account-create-submit")).toBeTruthy();
+    await press("account-switch-mode");
+    expect(screen.getByTestId("account-signin-submit")).toBeTruthy();
+  });
+
+  it("uses current-password autofill hints", async () => {
+    await renderScreen(<SignInScreen />);
+    const password = screen.getByTestId("account-password-input").props;
+    expect(password.autoComplete).toBe("current-password");
+    expect(password.textContentType).toBe("password");
+  });
+
+  it("enables Sign in only for a plausible email and a password", async () => {
+    await renderScreen(<SignInScreen />);
+    expect(disabled("account-signin-submit")).toBe(true);
+    await type("account-email-input", "nope");
+    await type("account-password-input", "secret");
+    expect(disabled("account-signin-submit")).toBe(true);
+    await type("account-email-input", "a@b.co");
+    expect(disabled("account-signin-submit")).toBe(false);
+  });
+
+  it("signs in and goes back when nothing was moved", async () => {
     await renderScreen(<SignInScreen />);
     await type("account-email-input", "a@b.co");
-    await press("account-send-code");
-    await press("account-have-code");
-    await type("account-code-input", "123456");
-    await press("account-confirm-code");
+    await type("account-password-input", "secret pass");
+    await press("account-signin-submit");
+    expect(mockSignIn).toHaveBeenCalledWith("a@b.co", "secret pass");
+    expect(mockBack).toHaveBeenCalled();
+  });
 
-    expect(mockVerify).toHaveBeenCalledWith("a@b.co", "123456", "signin");
+  it("shows a welcome with the count when reports moved over", async () => {
+    mockSignIn.mockResolvedValue({ userId: "u1", claimed: 4 });
+    await renderScreen(<SignInScreen />);
+    await type("account-email-input", "a@b.co");
+    await type("account-password-input", "secret pass");
+    await press("account-signin-submit");
+
     expect(screen.getByText("Welcome back")).toBeTruthy();
     expect(screen.getByText(/added to your account: 4/)).toBeTruthy();
     await press("account-done");
     expect(mockBack).toHaveBeenCalled();
   });
 
-  it("shows a message for a wrong code and stays on the screen", async () => {
+  it("shows wrong credentials in plain words", async () => {
     const { AccountError } = jest.requireActual("@/features/account/types");
-    mockVerify.mockRejectedValueOnce(new AccountError("invalid_code"));
+    mockSignIn.mockRejectedValueOnce(new AccountError("invalid_credentials"));
     await renderScreen(<SignInScreen />);
     await type("account-email-input", "a@b.co");
-    await press("account-send-code");
-    await press("account-have-code");
-    await type("account-code-input", "000000");
-    await press("account-confirm-code");
-
-    expect(screen.getByText("That code is wrong or expired.")).toBeTruthy();
-    expect(mockReplace).not.toHaveBeenCalled();
+    await type("account-password-input", "wrong");
+    await press("account-signin-submit");
+    expect(screen.getByText("Wrong email or password.")).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
   });
 
-  it("locks Resend for 60 seconds, then allows it", async () => {
+  it("forgot password: explains, sends no email, and opens Feedback with a prefill", async () => {
     await renderScreen(<SignInScreen />);
-    await type("account-email-input", "a@b.co");
-    await press("account-send-code");
-
-    expect(disabled("account-resend")).toBe(true);
-    expect(screen.getByText("Send again in 60 s")).toBeTruthy();
-
-    await act(async () => {
-      jest.advanceTimersByTime(30_000);
+    expect(screen.queryByTestId("account-forgot-info")).toBeNull();
+    await press("account-forgot");
+    expect(
+      screen.getByText(
+        "Password resets by email are coming. For now, contact us through Feedback and we'll reset it.",
+      ),
+    ).toBeTruthy();
+    await press("account-forgot-contact");
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/feedback",
+      params: { passwordReset: "1" },
     });
-    expect(screen.getByText("Send again in 30 s")).toBeTruthy();
-
-    await act(async () => {
-      jest.advanceTimersByTime(31_000);
-    });
-    expect(disabled("account-resend")).toBe(false);
-    await press("account-resend");
-    expect(mockRequest).toHaveBeenCalledTimes(2);
   });
 });

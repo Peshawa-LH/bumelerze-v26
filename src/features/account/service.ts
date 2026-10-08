@@ -28,10 +28,12 @@ import {
   AccountError,
   type AccountErrorCode,
   type AvatarChange,
-  type EmailAuthMode,
   type PrivateProfile,
   type Profile,
 } from "./types";
+import { isAcceptablePassword, isPlausibleEmail } from "./validation";
+
+export { isAcceptablePassword, isPlausibleEmail };
 
 /**
  * Accounts phase 1 service. Screens never call Supabase directly; they call
@@ -82,6 +84,28 @@ export function toAccountError(
   }
   const e = asAuthLike(error);
   const message = e.message ?? "";
+  if (isEmailTakenError(error)) {
+    return new AccountError("email_taken", message);
+  }
+  if (e.code === "same_password" || /different from the old password/i.test(message)) {
+    return new AccountError("same_password", message);
+  }
+  if (
+    e.code === "weak_password" ||
+    /password should be at least|weak password/i.test(message)
+  ) {
+    return new AccountError("weak_password", message);
+  }
+  if (e.code === "invalid_credentials" || /invalid login credentials/i.test(message)) {
+    return new AccountError("invalid_credentials", message);
+  }
+  if (
+    e.code === "reauthentication_needed" ||
+    e.code === "reauthentication_not_valid" ||
+    /reauthentication/i.test(message)
+  ) {
+    return new AccountError("reauth_needed", message);
+  }
   if (
     e.status === 429 ||
     e.code === "over_email_send_rate_limit" ||
@@ -91,14 +115,7 @@ export function toAccountError(
     return new AccountError("rate_limited", message);
   }
   if (
-    e.code === "otp_expired" ||
-    /token has expired|otp.*(expired|invalid)|invalid.*(token|otp)/i.test(message)
-  ) {
-    return new AccountError("invalid_code", message);
-  }
-  if (
     e.code === "email_address_invalid" ||
-    e.code === "validation_failed" ||
     /invalid.*email|email.*invalid/i.test(message)
   ) {
     return new AccountError("invalid_email", message);
@@ -152,43 +169,29 @@ async function requireAccountUser(client: SupabaseClient): Promise<User> {
 }
 
 // ---------------------------------------------------------------------------
-// Email code sign-in
+// Email + password (no emails are sent: Supabase "Confirm email" is off)
 // ---------------------------------------------------------------------------
 
 /**
- * Where the emailed sign-in link sends the browser back to: this site's
- * origin + the app base path (EXPO_BASE_URL, e.g. "/app") + the callback
- * route. Web only; native has no link target yet, so it is left undefined
- * and Supabase uses its default Site URL.
+ * Creates the account by upgrading this install's anonymous user in place:
+ * one `auth.updateUser({ email, password })` call. The user id never changes,
+ * so every guest report/comment/home stays attached. With "Confirm email" off
+ * in Supabase Auth the change applies at once and nothing is mailed; the
+ * address is therefore unverified, which is why the form asks for it twice.
+ * (A server that still has confirmation on would only record a pending
+ * `new_email` — detected below and reported instead of pretending success.)
  */
-export function getEmailRedirectUrl(): string | undefined {
-  if (Platform.OS !== "web" || typeof window === "undefined") {
-    return undefined;
-  }
-  const basePath = (process.env.EXPO_BASE_URL ?? "").replace(/\/$/, "");
-  return `${window.location.origin}${basePath}/account/callback`;
-}
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export function isPlausibleEmail(value: string): boolean {
-  return EMAIL_PATTERN.test(value.trim());
-}
-
-/**
- * Sends the one-time code. For this install's anonymous user the email is
- * attached to it (`updateUser`), which makes it an account with the same
- * user id once the code is confirmed. If the address already belongs to an
- * account, falls back to a plain sign-in code (`shouldCreateUser: false`)
- * and tells the caller so it verifies with the matching OTP type.
- */
-export async function requestEmailCode(
+export async function createAccountWithPassword(
   rawEmail: string,
-): Promise<{ mode: EmailAuthMode }> {
+  password: string,
+): Promise<void> {
   const client = requireClient();
   const email = rawEmail.trim();
   if (!isPlausibleEmail(email)) {
     throw new AccountError("invalid_email");
+  }
+  if (!isAcceptablePassword(password)) {
+    throw new AccountError("weak_password");
   }
 
   try {
@@ -197,125 +200,69 @@ export async function requestEmailCode(
     throw toAccountError(error, "no_session");
   }
   const user = await currentUser(client);
-
-  if (user && user.is_anonymous === true) {
-    const emailRedirectTo = getEmailRedirectUrl();
-    const { error } = emailRedirectTo
-      ? await client.auth.updateUser({ email }, { emailRedirectTo })
-      : await client.auth.updateUser({ email });
-    if (!error) {
-      return { mode: "upgrade" };
-    }
-    if (!isEmailTakenError(error)) {
-      throw toAccountError(error);
-    }
-    // Falls through: the email is already an account — sign into it.
+  if (!user || user.is_anonymous !== true) {
+    // Nothing to upgrade: no session, or this device already has an account.
+    throw new AccountError(user ? "unknown" : "no_session");
   }
 
-  const redirectTo = getEmailRedirectUrl();
-  const { error } = await client.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: false,
-      ...(redirectTo ? { emailRedirectTo: redirectTo } : {}),
-    },
-  });
+  const { data, error } = await client.auth.updateUser({ email, password });
   if (error) {
     throw toAccountError(error);
   }
-  return { mode: "signin" };
+  const updated = data?.user;
+  if (!updated || (updated.email ?? "").toLowerCase() !== email.toLowerCase()) {
+    throw new AccountError("setup_incomplete");
+  }
+  // The access token still says is_anonymous = true; row-level security
+  // (is_real_account) reads that claim, so get a fresh token now. Best effort:
+  // offline right here only delays the claim until the next automatic refresh.
+  await client.auth.refreshSession().catch(() => undefined);
 }
 
-export interface VerifyResult {
+export interface SignInResult {
   userId: string | null;
-  /** Items moved from this device's anonymous identity into the account
-   * (sign-in path only; 0 for an upgrade, where nothing needs to move). */
+  /** Items moved from this device's anonymous identity into the account. */
   claimed: number;
 }
 
-/** Confirms the emailed code. See `requestEmailCode` for the two modes. */
-export async function verifyEmailCode(
+/**
+ * Signs in to an existing account on this device. The device's guest session
+ * is replaced (as the old email-code sign-in did), then reports made from
+ * this install are moved into the account via `claim_device_reports`.
+ */
+export async function signInWithPassword(
   rawEmail: string,
-  rawCode: string,
-  mode: EmailAuthMode,
-): Promise<VerifyResult> {
+  password: string,
+): Promise<SignInResult> {
   const client = requireClient();
   const email = rawEmail.trim();
-  const token = rawCode.replace(/\s+/g, "");
-
-  const { data, error } = await client.auth.verifyOtp({
-    email,
-    token,
-    type: mode === "upgrade" ? "email_change" : "email",
-  });
+  if (!isPlausibleEmail(email)) {
+    throw new AccountError("invalid_email");
+  }
+  if (password.length === 0) {
+    throw new AccountError("invalid_credentials");
+  }
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
   if (error) {
-    throw toAccountError(error, "invalid_code");
+    throw toAccountError(error);
   }
   const userId = data?.user?.id ?? data?.session?.user?.id ?? null;
-
-  let claimed = 0;
-  if (mode === "signin") {
-    claimed = await claimThisDevicesReports(client);
-  }
+  const claimed = await claimThisDevicesReports(client);
   return { userId, claimed };
 }
 
-/** An error carried back in the callback URL (`error_description` in the
- * hash or the query string), e.g. an expired or already-used link. */
-export function readAuthUrlError(): string | null {
-  if (Platform.OS !== "web" || typeof window === "undefined") {
-    return null;
-  }
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const query = new URLSearchParams(window.location.search);
-  return (
-    hash.get("error_description") ??
-    hash.get("error") ??
-    query.get("error_description") ??
-    query.get("error") ??
-    null
-  );
-}
-
-export type EmailLinkResult =
-  | { status: "ok"; userId: string; hasProfile: boolean; claimed: number }
-  | { status: "expired" };
-
-const LINK_WAIT_MS = 8000;
-const LINK_POLL_MS = 400;
-
-/**
- * Finishes an email-link sign-in on /account/callback. The Supabase client
- * reads the session tokens out of the URL itself (web); this waits for that
- * session, then moves this device's anonymous reports into the account
- * (a no-op for an upgraded user: those rows are already theirs) and tells
- * the caller whether a profile row exists yet.
- */
-export async function completeEmailLink(
-  waitMs: number = LINK_WAIT_MS,
-): Promise<EmailLinkResult> {
+/** Sets or changes the signed-in account's password (accounts made by email
+ * link have none yet). `auth.updateUser({ password })` sends no email while
+ * "Secure password change" is off. */
+export async function setAccountPassword(password: string): Promise<void> {
   const client = requireClient();
-  if (readAuthUrlError()) {
-    return { status: "expired" };
+  if (!isAcceptablePassword(password)) {
+    throw new AccountError("weak_password");
   }
-  const deadline = Date.now() + waitMs;
-  for (;;) {
-    const user = await currentUser(client);
-    if (user && isAccountUser(user)) {
-      const claimed = await claimThisDevicesReports(client);
-      let hasProfile = false;
-      try {
-        hasProfile = (await loadProfile(user.id)).profile !== null;
-      } catch {
-        // Offline right after sign-in: send them to the profile form, which
-        // can be saved later; better than a dead end.
-      }
-      return { status: "ok", userId: user.id, hasProfile, claimed };
-    }
-    if (Date.now() >= deadline) {
-      return { status: "expired" };
-    }
-    await new Promise((resolve) => setTimeout(resolve, LINK_POLL_MS));
+  await requireAccountUser(client);
+  const { error } = await client.auth.updateUser({ password });
+  if (error) {
+    throw toAccountError(error);
   }
 }
 

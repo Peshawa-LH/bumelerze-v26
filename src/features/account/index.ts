@@ -8,7 +8,6 @@ export type {
   AccountState,
   AccountStatus,
   AvatarChange,
-  EmailAuthMode,
   PrivateProfile,
   Profile,
 } from "./types";
@@ -16,13 +15,15 @@ export {
   claimThisDevicesReports,
   deleteAccount,
   getAvatarUrl,
+  isAcceptablePassword,
   isPlausibleEmail,
   loadProfile,
   pickAvatar,
-  requestEmailCode,
+  createAccountWithPassword,
+  setAccountPassword,
+  signInWithPassword,
   saveProfile,
   signOutAccount,
   startOAuth,
-  verifyEmailCode,
 } from "./service";
 export { validateProfileForm } from "./validation";

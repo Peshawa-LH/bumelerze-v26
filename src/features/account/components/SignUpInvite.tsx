@@ -15,7 +15,9 @@ export function SignUpInvite() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const router = useRouter();
-  const goToSignIn = () => router.push("/account/sign-in");
+  const goToCreate = () => router.push("/account/sign-in");
+  const goToSignIn = () =>
+    router.push({ pathname: "/account/sign-in", params: { mode: "signin" } });
 
   return (
     <View
@@ -48,7 +50,7 @@ export function SignUpInvite() {
       <AccountButton
         tone="primary"
         label={t("myData.account.create")}
-        onPress={goToSignIn}
+        onPress={goToCreate}
         testID="account-create"
       />
       <Pressable
