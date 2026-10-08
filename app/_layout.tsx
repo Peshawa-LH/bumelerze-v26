@@ -213,6 +213,7 @@ export default function RootLayout() {
               <Stack.Screen name="my-data" />
               <Stack.Screen name="my-reports" />
               <Stack.Screen name="feedback" />
+              <Stack.Screen name="about" />
               <Stack.Screen name="account/sign-in" />
               <Stack.Screen name="account/profile" />
               <Stack.Screen name="account/callback" />

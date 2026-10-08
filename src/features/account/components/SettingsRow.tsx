@@ -7,7 +7,9 @@ import { useTheme } from "@/theme";
 
 import { useFocusVisible } from "./use-focus-visible";
 
-export type SettingsRowTrailing = "chevron" | "expand" | "none";
+/** "external" = opens a web page outside the app (an "open in new" mark that
+ * is never mirrored, unlike the chevron). */
+export type SettingsRowTrailing = "chevron" | "expand" | "external" | "none";
 
 interface SettingsRowProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -19,6 +21,9 @@ interface SettingsRowProps {
   /** "stacked" puts the value on its own line under the label, for a value
    * too long to share a phone-width row (e.g. "Duhok · Location off"). */
   valueLayout?: "inline" | "stacked";
+  /** How many lines a stacked value may take before it is cut (default 2).
+   * Raise it for credit lines that must be read in full. */
+  valueLines?: number;
   onPress?: () => void;
   trailing?: SettingsRowTrailing;
   /** For `trailing="expand"`: whether the row is open. */
@@ -40,6 +45,7 @@ export function SettingsRow({
   value,
   valueAccessory,
   valueLayout = "inline",
+  valueLines = 2,
   onPress,
   trailing = "chevron",
   expanded = false,
@@ -55,7 +61,7 @@ export function SettingsRow({
   return (
     <Pressable
       testID={testID}
-      accessibilityRole="button"
+      accessibilityRole={trailing === "external" ? "link" : "button"}
       accessibilityLabel={accessibilityLabel ?? (value ? `${label}, ${value}` : label)}
       accessibilityHint={accessibilityHint}
       accessibilityState={trailing === "expand" ? { expanded, disabled } : { disabled }}
@@ -97,7 +103,7 @@ export function SettingsRow({
                 styles.value,
                 { color: colors.text.secondary },
               ]}
-              numberOfLines={2}
+              numberOfLines={valueLines}
             >
               {value}
             </Text>
@@ -120,6 +126,9 @@ export function SettingsRow({
       ) : null}
       {valueAccessory}
       {trailing === "chevron" ? <DirectionalChevron /> : null}
+      {trailing === "external" ? (
+        <Ionicons name="open-outline" size={20} color={colors.text.tertiary} />
+      ) : null}
       {trailing === "expand" ? (
         <Ionicons
           name={expanded ? "chevron-up" : "chevron-down"}

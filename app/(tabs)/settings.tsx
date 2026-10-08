@@ -1,5 +1,4 @@
 import Constants from "expo-constants";
-import { Image } from "expo-image";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -7,6 +6,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { BrandMark } from "@/components/BrandMark";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SettingsOptionList } from "@/features/account/components/SettingsOptionList";
 import { SettingsRow, SettingsRowBody } from "@/features/account/components/SettingsRow";
@@ -21,8 +21,6 @@ import {
   useThemePreferencesStore,
   type ThemePreference,
 } from "@/theme";
-
-const PRIVACY_POLICY_URL = "https://bumelerze.com/privacy.html";
 
 /** The rows that open in place; only one is open at a time. */
 type OpenRow = "permissions" | "language" | "appearance";
@@ -189,6 +187,12 @@ export default function SettingsScreen() {
           trailing="none"
           onPress={handleReplayOnboarding}
           testID="settings-row-onboarding"
+        />
+        <SettingsRow
+          icon="information-circle-outline"
+          label={t("about.title")}
+          onPress={() => router.push("/about")}
+          testID="settings-row-about"
         />
       </SettingsGroup>
 
@@ -408,76 +412,38 @@ function DevicePermissionsBody() {
   );
 }
 
-/** Owner directive (wave brief Part 3): replaces the previous separate
- * "Data sources" and "Anonymous app-launch signal" sections with one short
- * footer — about blurb, a link to the full privacy policy (preserving the
- * telemetry disclosure the removed paragraph used to carry, just one tap
- * further away), the CC BY 4.0 attribution the EMSC/GEOFON license
- * requires, a trademark line, and the real app version.
- * [REVIEW copy]: `footerAbout` wording is the owner's own draft from the
- * wave brief, used verbatim — flagging per his "mark it so he can veto"
- * instruction. */
 /**
- * The app's one branded surface (owner, feedback 59b3eaa9, kept simple on
- * 2026-09-27: "the logo of the app and a trademark for Bumelerze" in the
- * Settings footer). The primary horizontal mark on light, the reversed
- * mark on dark — the owner's own logo package (`assets/brand/README.md`),
- * rendered by `expo-image` the same way the MapTiler mark is; there is no
- * SVG-as-component transformer in this app and none is needed for a
- * static image. The copy is the owner's shortened footer: one sentence,
- * the privacy link, the data licence, the app version, the trademark.
+ * The Settings footer is only the brand mark and the version (owner,
+ * 2026-10-08). Everything else that used to sit here (the privacy link, the
+ * data licences, the trademark line) lives on the About screen, which this
+ * footer also opens when tapped. The logo is the owner's own horizontal mark
+ * (feedback 59b3eaa9, `assets/brand/README.md`); see `BrandMark`.
  */
 function FooterSection() {
   const { t } = useTranslation();
-  const { colors, typography, spacing, scheme } = useTheme();
+  const { colors, typography, spacing } = useTheme();
+  const router = useRouter();
   const appVersion = Constants.expoConfig?.version ?? "";
-  const logoSource =
-    scheme === "dark"
-      ? require("../../assets/brand/logo/bumelerze-primary-horizontal-reversed.svg")
-      : require("../../assets/brand/logo/bumelerze-primary-horizontal.svg");
+  const versionText = appVersion
+    ? t("settings.footerVersion", { version: appVersion })
+    : "";
 
   return (
-    <View style={{ gap: spacing[3], paddingTop: spacing[4] }}>
-      <Image
-        source={logoSource}
-        contentFit="contain"
-        accessibilityLabel={t("settings.footerLogoA11yLabel")}
-        style={styles.footerLogo}
-      />
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.bodyMeta.fontSize,
-          lineHeight: typography.bodyMeta.lineHeight,
-        }}
-      >
-        {t("settings.footerAbout")}
-      </Text>
-      <Pressable
-        accessibilityRole="link"
-        onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
-        hitSlop={12}
-      >
-        <Text
-          style={{
-            color: colors.text.link,
-            fontSize: typography.labelButton.fontSize,
-            fontWeight: typography.labelButton.fontWeight,
-          }}
-        >
-          {t("settings.footerPrivacyLink")}
-        </Text>
-      </Pressable>
-      <Text
-        style={{
-          color: colors.text.tertiary,
-          fontSize: typography.bodyMeta.fontSize,
-          lineHeight: typography.bodyMeta.lineHeight,
-        }}
-      >
-        {t("settings.footerAttribution")}
-      </Text>
-      {appVersion ? (
+    <Pressable
+      testID="settings-footer"
+      accessibilityRole="button"
+      accessibilityLabel={
+        versionText
+          ? `${t("settings.footerLogoA11yLabel")}, ${versionText}`
+          : t("settings.footerLogoA11yLabel")
+      }
+      accessibilityHint={t("about.title")}
+      onPress={() => router.push("/about")}
+      hitSlop={8}
+      style={{ gap: spacing[2], paddingTop: spacing[4] }}
+    >
+      <BrandMark />
+      {versionText ? (
         <Text
           style={{
             color: colors.text.tertiary,
@@ -485,33 +451,16 @@ function FooterSection() {
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
-          {t("settings.footerVersion", { version: appVersion })}
+          {versionText}
         </Text>
       ) : null}
-      <Text
-        style={{
-          color: colors.text.tertiary,
-          fontSize: typography.bodyMeta.fontSize,
-          lineHeight: typography.bodyMeta.lineHeight,
-        }}
-      >
-        {t("settings.footerTrademark")}
-      </Text>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-  },
-  // The horizontal mark's own 5:1 box (`viewBox="0 0 1800 360"`), at a
-  // width that reads as a signature rather than a banner. `alignSelf`
-  // keeps it at the reading start under RTL.
-  footerLogo: {
-    width: 180,
-    height: 36,
-    alignSelf: "flex-start",
   },
   option: {
     minHeight: 44,

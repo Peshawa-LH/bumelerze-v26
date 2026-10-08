@@ -30,6 +30,11 @@ jest.mock("expo-router", () => {
   };
 });
 
+jest.mock("expo-constants", () => ({
+  __esModule: true,
+  default: { expoConfig: { version: "26.1.0" } },
+}));
+
 const mockOpenSettings = jest.fn();
 const mockOpenURL = jest.fn();
 jest.mock("expo-linking", () => ({
@@ -207,25 +212,30 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     expect(mockOpenSettings).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the footer's about text, attribution, trademark line, and a privacy-policy link", async () => {
+  it("shows only the brand mark and the version in the footer; the long text lives on About", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    // The owner's shortened footer (feedback 59b3eaa9, 2026-09-27): one
-    // sentence, the licence line, the trademark line, and the logo above.
-    expect(
-      screen.getByText(
-        "Bumelerze is an independent earthquake monitoring system for Kurdistan and Iraq.",
-      ),
-    ).toBeTruthy();
-    expect(screen.getByText(/licensed under CC BY 4.0/)).toBeTruthy();
-    expect(
-      screen.getByText("Bumelerze™ and its logo are trademarks of the project."),
-    ).toBeTruthy();
-    expect(screen.getByLabelText("Bumelerze")).toBeTruthy();
+    expect(screen.getByTestId("settings-footer")).toBeTruthy();
+    expect(screen.getByLabelText("Bumelerze, Version 26.1.0")).toBeTruthy();
+    expect(screen.getByText("Version 26.1.0")).toBeTruthy();
+    // Moved to the About screen (owner, 2026-10-08).
+    expect(screen.queryByText(/independent earthquake monitoring system/)).toBeNull();
+    expect(screen.queryByText(/licensed under CC BY 4.0/)).toBeNull();
+    expect(screen.queryByText(/trademarks of the project/)).toBeNull();
+    expect(screen.queryByRole("link", { name: "Privacy policy" })).toBeNull();
+  });
 
-    fireEvent.press(screen.getByRole("link", { name: "Privacy policy" }));
-    expect(mockOpenURL).toHaveBeenCalledWith("https://bumelerze.com/privacy.html");
+  it("opens About from the footer and from the About row", async () => {
+    await renderWithProviders(<SettingsScreen />);
+    await flush();
+
+    expect(screen.getByText("About Bumelerze")).toBeTruthy();
+    await fireEvent.press(screen.getByTestId("settings-row-about"));
+    expect(mockPush).toHaveBeenCalledWith("/about");
+    mockPush.mockClear();
+    await fireEvent.press(screen.getByTestId("settings-footer"));
+    expect(mockPush).toHaveBeenCalledWith("/about");
   });
 
   it("shows the owner's short subtitles and no long section paragraphs", async () => {
@@ -257,6 +267,7 @@ describe("Settings screen — grouped rows + Device permissions", () => {
       "settings-row-feedback",
       "settings-row-tour",
       "settings-row-onboarding",
+      "settings-row-about",
     ]) {
       expect(screen.getByTestId(id)).toBeTruthy();
     }

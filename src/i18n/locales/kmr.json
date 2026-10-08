@@ -610,10 +610,34 @@
     "devicePermissionsSomeDeniedHintWeb": "Hin destûr girtî ne. Di sazkariyên geroka xwe de destûrê bide.",
     "footerAbout": "Bumelerze sîstemeke serbixwe ya çavdêriya erdhejê ye ji bo Kurdistan û Iraqê.",
     "footerPrivacyLink": "Polîtîkaya nihêniyê",
-    "footerAttribution": "Daneyên erdhejê yên USGS, EMSC (seismicportal.eu), û GEOFON (Navenda GFZ Helmholtz a Zanistên Erdê, geofon.gfz.de) di bin lîsansa CC BY 4.0 de ne.",
     "footerTrademark": "Bumelerze™ û logoya wê nîşanên bazirganî yên projeyê ne.",
-    "footerVersion": "Guhertoya sepana Bumelerze {{version}}",
+    "footerVersion": "Guherto {{version}}",
     "footerLogoA11yLabel": "Bumelerze"
+  },
+  "about": {
+    "title": "Derbarê Bumelerze",
+    "version": "Guhertoya sepanê",
+    "opensInBrowser": "Di geroka te de vedibe",
+    "sectionData": "Daneyên erdhejê",
+    "sectionMaps": "Nexşe",
+    "sectionSoftware": "Font û çavkaniya vekirî",
+    "sectionLegal": "Yasayî",
+    "fontValue": "Fonta navrûyê ji bo kurdî û erebî · SIL Open Font License 1.1",
+    "openSource": "Bumelerze çavkaniya vekirî ye (Apache-2.0)",
+    "fullSources": "Hemû çavkaniyên daneyan û lîsans",
+    "sources": {
+      "usgs": { "value": "Lêkolîna Jeolojîk a Amerîkayê · Domaina giştî, destnîşankirina çavkaniyê tê xwestin" },
+      "emsc": { "value": "Navenda Erdhejnasiyê ya Ewropa û Naverast · CC BY 4.0" },
+      "geofon": { "value": "Navenda GFZ Helmholtz a Zanistên Erdê · CC BY 4.0" },
+      "isc": { "value": "Navenda Navneteweyî ya Erdhejnasiyê · ISC-GEM di bin CC BY-SA 3.0 de" },
+      "catalogue": { "label": "Kataloga herêmî", "value": "ISC, ISC-GEM, EMME, Onur et al. (2017), KISC û USGS. Her bûyer çavkaniya xwe nîşan dide." },
+      "osm": { "value": "© Beşdarên OpenStreetMap · ODbL" },
+      "openfreemap": { "value": "Nexşeya bingehîn · © OpenMapTiles · daneyên ji OpenStreetMap" },
+      "maptiler": { "value": "Nexşeya bingehîn gava hebe · © MapTiler" },
+      "terrain": { "label": "Rûyê erdê", "value": "Mapzen / AWS Open Data" },
+      "placeNames": { "label": "Navên cihên kurdî", "value": "© Beşdarên OpenStreetMap (ODbL)" },
+      "layers": { "label": "Qatên nexşeyê", "value": "Faylt: Weqfa GEM, GIN RAS (AFEAD) · Rewşa erdê (Vs30): USGS" }
+    }
   },
   "onboarding": {
     "back": "Vegere",

@@ -610,10 +610,34 @@
     "devicePermissionsSomeDeniedHintWeb": "بعض الأذونات متوقفة. اسمح بها من إعدادات المتصفح.",
     "footerAbout": "بوملێرزە نظام مستقل لرصد الزلازل في كوردستان والعراق.",
     "footerPrivacyLink": "سياسة الخصوصية",
-    "footerAttribution": "بيانات الزلازل من USGS وEMSC (seismicportal.eu) وGEOFON (مركز GFZ هلمهولتز لعلوم الأرض، geofon.gfz.de) مرخّصة بموجب CC BY 4.0.",
     "footerTrademark": "بوملێرزە™ وشعاره علامتان تجاريتان للمشروع.",
-    "footerVersion": "إصدار تطبيق بوملێرزە {{version}}",
+    "footerVersion": "الإصدار {{version}}",
     "footerLogoA11yLabel": "بوملێرزە"
+  },
+  "about": {
+    "title": "حول بوملێرزە",
+    "version": "الإصدار",
+    "opensInBrowser": "يُفتح في المتصفح",
+    "sectionData": "بيانات الزلازل",
+    "sectionMaps": "الخرائط",
+    "sectionSoftware": "الخطوط والمصدر المفتوح",
+    "sectionLegal": "قانوني",
+    "fontValue": "خط الواجهة للكردية والعربية · SIL Open Font License 1.1",
+    "openSource": "بوملێرزە مفتوح المصدر (Apache-2.0)",
+    "fullSources": "جميع مصادر البيانات والتراخيص",
+    "sources": {
+      "usgs": { "value": "هيئة المسح الجيولوجي الأمريكية · ملكية عامة، يُرجى ذكر المصدر" },
+      "emsc": { "value": "المركز الأوروبي المتوسطي لعلم الزلازل · CC BY 4.0" },
+      "geofon": { "value": "مركز GFZ هلمهولتز لعلوم الأرض · CC BY 4.0" },
+      "isc": { "value": "المركز الدولي لعلم الزلازل · ISC-GEM بترخيص CC BY-SA 3.0" },
+      "catalogue": { "label": "الفهرس الإقليمي", "value": "ISC وISC-GEM وEMME وOnur et al. (2017) وKISC وUSGS. يذكر كل حدث مصدره." },
+      "osm": { "value": "© مساهمو OpenStreetMap · ODbL" },
+      "openfreemap": { "value": "الخريطة الأساسية · © OpenMapTiles · البيانات من OpenStreetMap" },
+      "maptiler": { "value": "الخريطة الأساسية عند توفرها · © MapTiler" },
+      "terrain": { "label": "التضاريس", "value": "Mapzen / AWS Open Data" },
+      "placeNames": { "label": "أسماء الأماكن الكردية", "value": "© مساهمو OpenStreetMap (ODbL)" },
+      "layers": { "label": "طبقات الخريطة", "value": "الصدوع: مؤسسة GEM وGIN RAS (AFEAD) · طبيعة الأرض (Vs30): USGS" }
+    }
   },
   "onboarding": {
     "back": "رجوع",
