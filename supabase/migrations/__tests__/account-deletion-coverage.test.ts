@@ -67,6 +67,9 @@ const MANIFEST: Record<string, Entry> = {
   "profile_posts.user_id": { onDelete: "cascade", handling: "cascade", why: "their posts" },
   "profile_posts.removed_by": { onDelete: "set null", handling: "unlink", why: "the admin who removed it" },
   "post_reports.reporter_id": { onDelete: "cascade", handling: "cascade", why: "reports the person made" },
+  // profile P2 (0058)
+  "post_helpful.user_id": { onDelete: "cascade", handling: "cascade", why: "Helpful marks the person gave (marks on their posts go with the posts)" },
+  "profile_name_changes.user_id": { onDelete: "cascade", handling: "cascade", why: "name change history (limits, admins); also purged after 90 days" },
   "profile_reports.reporter_id": { onDelete: "cascade", handling: "cascade", why: "reports the person made" },
   "profile_reports.reported_id": { onDelete: "cascade", handling: "cascade", why: "reports about the person" },
   // people graph
