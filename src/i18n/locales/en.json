@@ -610,34 +610,10 @@
     "devicePermissionsSomeDeniedHintWeb": "Some permissions are off. Allow them in your browser settings.",
     "footerAbout": "Bumelerze is an independent earthquake monitoring system for Kurdistan and Iraq.",
     "footerPrivacyLink": "Privacy policy",
+    "footerData": "Earthquake data: USGS, EMSC and GEOFON.",
     "footerTrademark": "Bumelerze™ and its logo are trademarks of the project.",
     "footerVersion": "Version {{version}}",
     "footerLogoA11yLabel": "Bumelerze"
-  },
-  "about": {
-    "title": "About Bumelerze",
-    "version": "Version",
-    "opensInBrowser": "Opens in your browser",
-    "sectionData": "Earthquake data",
-    "sectionMaps": "Maps",
-    "sectionSoftware": "Fonts and open source",
-    "sectionLegal": "Legal",
-    "fontValue": "Interface font for Kurdish and Arabic · SIL Open Font License 1.1",
-    "openSource": "Bumelerze is open source (Apache-2.0)",
-    "fullSources": "All data sources and licences",
-    "sources": {
-      "usgs": { "value": "U.S. Geological Survey · Public domain, credit requested" },
-      "emsc": { "value": "European-Mediterranean Seismological Centre · CC BY 4.0" },
-      "geofon": { "value": "GFZ Helmholtz Centre for Geosciences · CC BY 4.0" },
-      "isc": { "value": "International Seismological Centre · ISC-GEM under CC BY-SA 3.0" },
-      "catalogue": { "label": "Regional catalogue", "value": "ISC, ISC-GEM, EMME, Onur et al. (2017), KISC and USGS. Each event names its source." },
-      "osm": { "value": "© OpenStreetMap contributors · ODbL" },
-      "openfreemap": { "value": "Base map · © OpenMapTiles · data from OpenStreetMap" },
-      "maptiler": { "value": "Base map when available · © MapTiler" },
-      "terrain": { "label": "Terrain", "value": "Mapzen / AWS Open Data" },
-      "placeNames": { "label": "Kurdish place names", "value": "© OpenStreetMap contributors (ODbL)" },
-      "layers": { "label": "Map layers", "value": "Faults: GEM Foundation, GIN RAS (AFEAD) · Ground conditions (Vs30): USGS" }
-    }
   },
   "onboarding": {
     "back": "Back",

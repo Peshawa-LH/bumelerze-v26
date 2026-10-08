@@ -188,12 +188,6 @@ export default function SettingsScreen() {
           onPress={handleReplayOnboarding}
           testID="settings-row-onboarding"
         />
-        <SettingsRow
-          icon="information-circle-outline"
-          label={t("about.title")}
-          onPress={() => router.push("/about")}
-          testID="settings-row-about"
-        />
       </SettingsGroup>
 
       <FooterSection />
@@ -412,49 +406,52 @@ function DevicePermissionsBody() {
   );
 }
 
+const PRIVACY_POLICY_URL = "https://bumelerze.com/privacy.html";
+
 /**
- * The Settings footer is only the brand mark and the version (owner,
- * 2026-10-08). Everything else that used to sit here (the privacy link, the
- * data licences, the trademark line) lives on the About screen, which this
- * footer also opens when tapped. The logo is the owner's own horizontal mark
- * (feedback 59b3eaa9, `assets/brand/README.md`); see `BrandMark`.
+ * The Settings footer (owner, 2026-10-08: no About screen, a minimal footer
+ * about Bumelerze): the owner's horizontal mark, one sentence, the privacy
+ * link, the data credit the EMSC/GEOFON licences ask for, the app version
+ * and the trademark line.
  */
 function FooterSection() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const router = useRouter();
   const appVersion = Constants.expoConfig?.version ?? "";
-  const versionText = appVersion
-    ? t("settings.footerVersion", { version: appVersion })
-    : "";
+  const meta = {
+    color: colors.text.tertiary,
+    fontSize: typography.bodyMeta.fontSize,
+    lineHeight: typography.bodyMeta.lineHeight,
+  };
 
   return (
-    <Pressable
-      testID="settings-footer"
-      accessibilityRole="button"
-      accessibilityLabel={
-        versionText
-          ? `${t("settings.footerLogoA11yLabel")}, ${versionText}`
-          : t("settings.footerLogoA11yLabel")
-      }
-      accessibilityHint={t("about.title")}
-      onPress={() => router.push("/about")}
-      hitSlop={8}
-      style={{ gap: spacing[2], paddingTop: spacing[4] }}
-    >
+    <View testID="settings-footer" style={{ gap: spacing[3], paddingTop: spacing[4] }}>
       <BrandMark />
-      {versionText ? (
+      <Text style={[meta, { color: colors.text.secondary }]}>
+        {t("settings.footerAbout")}
+      </Text>
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
+        hitSlop={12}
+        style={{ alignSelf: "flex-start" }}
+      >
         <Text
           style={{
-            color: colors.text.tertiary,
-            fontSize: typography.bodyMeta.fontSize,
-            lineHeight: typography.bodyMeta.lineHeight,
+            color: colors.text.link,
+            fontSize: typography.labelButton.fontSize,
+            fontWeight: typography.labelButton.fontWeight,
           }}
         >
-          {versionText}
+          {t("settings.footerPrivacyLink")}
         </Text>
+      </Pressable>
+      <Text style={meta}>{t("settings.footerData")}</Text>
+      {appVersion ? (
+        <Text style={meta}>{t("settings.footerVersion", { version: appVersion })}</Text>
       ) : null}
-    </Pressable>
+      <Text style={meta}>{t("settings.footerTrademark")}</Text>
+    </View>
   );
 }
 

@@ -212,30 +212,19 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     expect(mockOpenSettings).toHaveBeenCalledTimes(1);
   });
 
-  it("shows only the brand mark and the version in the footer; the long text lives on About", async () => {
+  it("shows a minimal footer about Bumelerze and no About screen", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
     expect(screen.getByTestId("settings-footer")).toBeTruthy();
-    expect(screen.getByLabelText("Bumelerze, Version 26.1.0")).toBeTruthy();
+    expect(screen.getByText(/independent earthquake monitoring system/)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Privacy policy" })).toBeTruthy();
+    expect(screen.getByText("Earthquake data: USGS, EMSC and GEOFON.")).toBeTruthy();
     expect(screen.getByText("Version 26.1.0")).toBeTruthy();
-    // Moved to the About screen (owner, 2026-10-08).
-    expect(screen.queryByText(/independent earthquake monitoring system/)).toBeNull();
-    expect(screen.queryByText(/licensed under CC BY 4.0/)).toBeNull();
-    expect(screen.queryByText(/trademarks of the project/)).toBeNull();
-    expect(screen.queryByRole("link", { name: "Privacy policy" })).toBeNull();
-  });
-
-  it("opens About from the footer and from the About row", async () => {
-    await renderWithProviders(<SettingsScreen />);
-    await flush();
-
-    expect(screen.getByText("About Bumelerze")).toBeTruthy();
-    await fireEvent.press(screen.getByTestId("settings-row-about"));
-    expect(mockPush).toHaveBeenCalledWith("/about");
-    mockPush.mockClear();
-    await fireEvent.press(screen.getByTestId("settings-footer"));
-    expect(mockPush).toHaveBeenCalledWith("/about");
+    expect(screen.getByText(/trademarks of the project/)).toBeTruthy();
+    // No About row or screen (owner, 2026-10-08).
+    expect(screen.queryByTestId("settings-row-about")).toBeNull();
+    expect(screen.queryByText("About Bumelerze")).toBeNull();
   });
 
   it("shows the owner's short subtitles and no long section paragraphs", async () => {
@@ -267,7 +256,6 @@ describe("Settings screen — grouped rows + Device permissions", () => {
       "settings-row-feedback",
       "settings-row-tour",
       "settings-row-onboarding",
-      "settings-row-about",
     ]) {
       expect(screen.getByTestId(id)).toBeTruthy();
     }
