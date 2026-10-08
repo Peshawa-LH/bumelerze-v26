@@ -213,7 +213,7 @@ describe("Family screen", () => {
       expect(screen.queryByText("Close this home")).toBeNull();
     });
 
-    it("deleting asks first (destructive), then deletes and returns to My account", async () => {
+    it("deleting asks first (destructive), then moves the home to the 14-day trash and returns to My account", async () => {
       await renderWithProviders(<FamilyScreen tagId="tag-1" />);
       await screen.findByText(/ABCD2345/);
       await press("home-delete");
@@ -224,14 +224,18 @@ describe("Family screen", () => {
         onConfirm: () => void;
       };
       expect(options.destructive).toBe(true);
-      expect(options.message).toMatch(/answers, report, photos and family links/);
-      expect(options.message).toMatch(/for everyone/);
-      expect(options.message).toMatch(/can't be undone/);
-      expect(mockTransport.deleteHome).not.toHaveBeenCalled();
+      expect(options.message).toMatch(/trash for 14 days/);
+      expect(options.message).toMatch(/family members can't see it/);
+      expect(options.message).toMatch(/restore it from your Profile/);
+      expect(options.message).toMatch(
+        /answers, report, photos and family links are deleted for good/,
+      );
+      expect(mockTransport.trashHome).not.toHaveBeenCalled();
       await act(async () => {
         options.onConfirm();
       });
-      expect(mockTransport.deleteHome).toHaveBeenCalledWith("tag-1");
+      expect(mockTransport.trashHome).toHaveBeenCalledWith("tag-1");
+      expect(mockTransport.deleteHome).not.toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith("/my-data");
       expect(mockTransport.leave).not.toHaveBeenCalled();
     });
@@ -241,13 +245,13 @@ describe("Family screen", () => {
       await screen.findByText(/ABCD2345/);
       await press("home-delete");
       // the dialog was dismissed: onConfirm is never called
-      expect(mockTransport.deleteHome).not.toHaveBeenCalled();
+      expect(mockTransport.trashHome).not.toHaveBeenCalled();
       expect(mockReplace).not.toHaveBeenCalled();
       expect(screen.getByTestId("home-delete")).toBeTruthy();
     });
 
     it("a failed delete shows the short error and stays on the screen", async () => {
-      mockTransport.deleteHome.mockRejectedValueOnce(new HomeError("network"));
+      mockTransport.trashHome.mockRejectedValueOnce(new HomeError("network"));
       await renderWithProviders(<FamilyScreen tagId="tag-1" />);
       await screen.findByText(/ABCD2345/);
       await press("home-delete");

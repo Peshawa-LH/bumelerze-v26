@@ -8,10 +8,11 @@ import { useAccount } from "@/features/account/use-account";
 import { BlockedSection } from "@/features/community/components/BlockedSection";
 import { FollowRequestsSection } from "@/features/community/components/FollowRequestsSection";
 import { useBlockedPeople, useFollowRequests } from "@/features/community/queries";
+import { MutedSection, useMutedPeople } from "@/features/mute";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
-/** People: follow requests to accept or decline, and blocked accounts. */
+/** People: follow requests to accept or decline, blocked accounts and muted people. */
 export default function PeopleSettingsScreen() {
   const tabBarScroll = useTabBarScroll();
   const { t } = useTranslation();
@@ -20,7 +21,11 @@ export default function PeopleSettingsScreen() {
   const account = useAccount();
   const requests = useFollowRequests();
   const blocked = useBlockedPeople();
-  const nothing = (requests.data?.length ?? 0) === 0 && (blocked.data?.length ?? 0) === 0;
+  const muted = useMutedPeople();
+  const nothing =
+    (requests.data?.length ?? 0) === 0 &&
+    (blocked.data?.length ?? 0) === 0 &&
+    (muted.data?.length ?? 0) === 0;
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.surface.base }]}>
@@ -44,6 +49,7 @@ export default function PeopleSettingsScreen() {
       >
         <FollowRequestsSection />
         <BlockedSection />
+        <MutedSection />
         {nothing ? (
           <Text
             testID="people-nothing"

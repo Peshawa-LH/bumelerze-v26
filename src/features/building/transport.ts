@@ -23,6 +23,7 @@ import {
   type JoinResult,
   type StoredAssessment,
   type StoredSurvey,
+  type TrashedHome,
 } from "./types";
 
 /**
@@ -53,6 +54,16 @@ export interface HomeTransport {
    * first (retrying once, and carrying on if some survive), then deletes the
    * home; answers, report and family links go with it. */
   deleteHome(tagId: string): Promise<DeleteHomeResult>;
+  /** Owner only (migration 0061): "Delete this home" puts it in the trash for
+   * 14 days. Every member, the owner included, loses access at once; photos
+   * stay in storage so a restore brings everything back. */
+  trashHome(tagId: string): Promise<void>;
+  /** Brings a trashed home back (within 14 days, within the 5-home limit). */
+  restoreHome(tagId: string): Promise<void>;
+  /** Deletes a trashed home now; the server removes its photo files later. */
+  deleteHomeNow(tagId: string): Promise<void>;
+  /** The owner's trashed homes, newest first. */
+  fetchTrashedHomes(): Promise<TrashedHome[]>;
   rotateKey(tagId: string): Promise<string>;
   fetchMemberships(userId: string): Promise<HomeMember[]>;
   fetchTags(tagIds: readonly string[]): Promise<HomeTag[]>;
@@ -131,6 +142,61 @@ export function toHomeError(
     return new HomeError("network", message);
   }
   return new HomeError("unknown", message);
+}
+
+/** Restore / delete-now failures: the 5-home limit and "too late" get their
+ * own words; 22023 here is never a wrong code or key. */
+function toTrashError(error: unknown): HomeError {
+  const message =
+    typeof error === "object" && error !== null && "message" in error
+      ? String((error as { message?: unknown }).message ?? "")
+      : "";
+  if (/:\s*limit\b/.test(message)) {
+    return new HomeError("restore_limit", message);
+  }
+  if (/:\s*expired\b/.test(message)) {
+    return new HomeError("restore_expired", message);
+  }
+  const mapped = toHomeError(error);
+  return mapped.code === "wrong_code" ? new HomeError("unknown", message) : mapped;
+}
+
+const trashedRowSchema = z.object({
+  tag_id: z.string(),
+  code: z.string(),
+  kind: z.enum(["house", "apartment"]),
+  label: z.string().nullable().optional(),
+  unit_label: z.string().nullable().optional(),
+  trashed_at: z.string(),
+  purge_at: z.string(),
+});
+
+export function parseTrashedRows(data: unknown): TrashedHome[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  const homes: TrashedHome[] = [];
+  for (const row of data) {
+    const parsed = trashedRowSchema.safeParse(row);
+    if (!parsed.success) {
+      continue;
+    }
+    const trashedAt = Date.parse(parsed.data.trashed_at);
+    const purgeAt = Date.parse(parsed.data.purge_at);
+    if (Number.isNaN(trashedAt) || Number.isNaN(purgeAt)) {
+      continue;
+    }
+    homes.push({
+      tagId: parsed.data.tag_id,
+      code: parsed.data.code,
+      kind: parsed.data.kind,
+      label: parsed.data.label ?? null,
+      unitLabel: parsed.data.unit_label ?? null,
+      trashedAt,
+      purgeAt,
+    });
+  }
+  return homes;
 }
 
 function requireClient(): SupabaseClient {
@@ -435,6 +501,43 @@ export const SupabaseHomeTransport: HomeTransport = {
       throw toHomeError(error);
     }
     return { photosLeftBehind };
+  },
+
+  async trashHome(tagId) {
+    const client = requireClient();
+    const { error } = await client.rpc("trash_home_tag", { p_tag: tagId });
+    if (error) {
+      throw toHomeError(error);
+    }
+  },
+
+  async restoreHome(tagId) {
+    const client = requireClient();
+    const { error } = await client.rpc("restore_home_tag", { p_tag: tagId });
+    if (error) {
+      throw toTrashError(error);
+    }
+  },
+
+  async deleteHomeNow(tagId) {
+    const client = requireClient();
+    const { error } = await client.rpc("delete_home_now", { p_tag: tagId });
+    if (error) {
+      throw toTrashError(error);
+    }
+  },
+
+  async fetchTrashedHomes() {
+    const client = requireClient();
+    const { data, error } = await client.rpc("my_trashed_homes");
+    if (error) {
+      // before migration 0061 there is no trash: nothing to show
+      if (error.code === "PGRST202" || error.code === "42883") {
+        return [];
+      }
+      throw toHomeError(error);
+    }
+    return parseTrashedRows(data);
   },
 
   async rotateKey(tagId) {

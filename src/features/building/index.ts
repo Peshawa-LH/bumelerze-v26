@@ -4,6 +4,7 @@ export { FamilyScreen } from "./components/FamilyScreen";
 export { HomeReportScreen } from "./components/HomeReport";
 export { HomeCard } from "./components/HomeCard";
 export { MyHomeCard } from "./components/MyHomeCard";
+export { TrashedHomesSection } from "./components/TrashedHomesSection";
 export { JoinScreen } from "./components/JoinScreen";
 export { TagFlow } from "./components/TagFlow";
 export { VcBadge } from "./components/VcBadge";
@@ -29,6 +30,7 @@ export {
   useHomePhotos,
   useLatestSurvey,
   useMyHomes,
+  useTrashedHomes,
 } from "./queries";
 export { createHomeFromDraft, saveSurveyAndAssessment } from "./service";
 export { SupabaseHomeTransport, toHomeError, type HomeTransport } from "./transport";

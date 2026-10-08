@@ -21,6 +21,7 @@ import type {
   MemberRole,
   StoredAssessment,
   StoredSurvey,
+  TrashedHome,
 } from "./types";
 
 /**
@@ -41,6 +42,7 @@ export const homeKeys = {
   photos: (userId: string, tagId: string, queued = 0) =>
     ["home", "photos", userId, tagId, queued] as const,
   family: (userId: string, tagId: string) => ["home", "family", userId, tagId] as const,
+  trash: (userId: string) => ["home", "trash", userId] as const,
 };
 
 export interface HomeSummary {
@@ -257,6 +259,22 @@ export function useFamily(
   };
 }
 
+/** The owner's homes in the 14-day trash (migration 0061); empty before it. */
+export function useTrashedHomes(transport: HomeTransport = SupabaseHomeTransport): {
+  data: TrashedHome[];
+  isLoading: boolean;
+} {
+  const { userId, enabled } = useIdentity();
+  const query = useQuery({
+    queryKey: homeKeys.trash(userId ?? ""),
+    queryFn: () => transport.fetchTrashedHomes(),
+    enabled,
+    staleTime: HOME_STALE_MS,
+    meta: NO_PERSIST,
+  });
+  return { data: query.data ?? [], isLoading: enabled && query.isLoading };
+}
+
 function refreshHomes(queryClient: QueryClient): Promise<unknown> {
   return queryClient.invalidateQueries({ queryKey: homeKeys.all });
 }
@@ -270,6 +288,10 @@ export interface HomeActions {
   restoreMember: (tagId: string, userId: string) => Promise<void>;
   /** Owner only: deletes the home for everyone (photos, report, family). */
   deleteHome: (tagId: string) => Promise<DeleteHomeResult>;
+  /** Owner only (0061): "Delete this home" = 14 days in the trash. */
+  trashHome: (tagId: string) => Promise<void>;
+  restoreHome: (tagId: string) => Promise<void>;
+  deleteHomeNow: (tagId: string) => Promise<void>;
   rotateKey: (tagId: string) => Promise<string>;
   retake: (tag: HomeTag, answers: Answers) => Promise<void>;
   /** Re-read everything (after a create). */
@@ -330,6 +352,36 @@ export function useHomeActions(
       return refreshHomes(queryClient);
     },
   });
+  const forgetHome = (tagId: string) => {
+    dropQueuedHomePhotos(tagId);
+    queryClient.removeQueries({
+      predicate: (query) =>
+        query.queryKey[0] === "home" &&
+        query.queryKey.length > 3 &&
+        query.queryKey[3] === tagId,
+    });
+    void queryClient.invalidateQueries({ queryKey: ["account", "stats"] });
+    void queryClient.invalidateQueries({ queryKey: ["safe"] });
+    void queryClient.invalidateQueries({ queryKey: ["activity"] });
+    return refreshHomes(queryClient);
+  };
+  const trashHome = useMutation({
+    mutationFn: (tagId: string) => transport.trashHome(tagId),
+    // the home's own queries would only fail now: drop them, re-read the rest
+    onSuccess: (_result, tagId) => forgetHome(tagId),
+  });
+  const restoreHome = useMutation({
+    mutationFn: (tagId: string) => transport.restoreHome(tagId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["safe"] });
+      void queryClient.invalidateQueries({ queryKey: ["activity"] });
+      return refreshHomes(queryClient);
+    },
+  });
+  const deleteHomeNow = useMutation({
+    mutationFn: (tagId: string) => transport.deleteHomeNow(tagId),
+    onSuccess: (_result, tagId) => forgetHome(tagId),
+  });
   const rotate = useMutation({
     mutationFn: (tagId: string) => transport.rotateKey(tagId),
     onSuccess: () => refreshHomes(queryClient),
@@ -350,6 +402,9 @@ export function useHomeActions(
     removeMember: (tagId, userId) => removeMember.mutateAsync({ tagId, userId }),
     restoreMember: (tagId, userId) => restoreMember.mutateAsync({ tagId, userId }),
     deleteHome: (tagId) => deleteHome.mutateAsync(tagId),
+    trashHome: (tagId) => trashHome.mutateAsync(tagId),
+    restoreHome: (tagId) => restoreHome.mutateAsync(tagId),
+    deleteHomeNow: (tagId) => deleteHomeNow.mutateAsync(tagId),
     rotateKey: (tagId) => rotate.mutateAsync(tagId),
     retake: (tag, answers) => retake.mutateAsync({ tag, answers }),
     refresh: () => refreshHomes(queryClient),

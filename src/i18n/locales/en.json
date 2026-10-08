@@ -946,7 +946,8 @@
       "flagLimit": "You've reached today's limit for reports. Try again tomorrow.",
       "following": "Following",
       "restricted": "Your account is limited right now.",
-      "deletedAccount": "Deleted account"
+      "deletedAccount": "Deleted account",
+      "mute": "Mute"
     },
     "reasons": {
       "spam": "Spam",
@@ -2190,7 +2191,7 @@
     "delete": {
       "action": "Delete this home",
       "title": "Delete this home?",
-      "warning": "The answers, report, photos and family links are removed for everyone. This can't be undone.",
+      "warning": "It goes to the trash for 14 days, and family members can't see it from now on. You can restore it from your Profile until then. After that the answers, report, photos and family links are deleted for good.",
       "confirm": "Delete",
       "doneTitle": "Home deleted",
       "photosLeft": "Some photos could not be removed from our servers. No one can see them."
@@ -2256,7 +2257,20 @@
       "wrong_code": "The code or key is wrong.",
       "network": "No connection. Try again.",
       "photo_too_large": "A photo is too large.",
-      "unknown": "Something went wrong. Try again."
+      "unknown": "Something went wrong. Try again.",
+      "restore_limit": "You already have 5 homes. Delete one before restoring this one.",
+      "restore_expired": "Too late to restore this home."
+    },
+    "trash": {
+      "snackbar": "Home moved to the trash",
+      "title": "Deleted homes",
+      "hint": "You can restore a home for 14 days. After that it is deleted for good, with its answers, report and photos.",
+      "until": "Deleted for good on {{date}}",
+      "restore": "Restore",
+      "restored": "Home restored",
+      "deleteNow": "Delete now",
+      "deleteNowTitle": "Delete for good now?",
+      "deleteNowWarning": "The answers, report, photos and family links are removed for everyone. This can't be undone."
     }
   },
   "community": {
@@ -2319,7 +2333,7 @@
     "people": {
       "title": "People",
       "empty": "No one yet.",
-      "nothing": "No requests and no blocked accounts.",
+      "nothing": "No requests, blocked or muted people.",
       "needsAccount": "Sign in to see this."
     },
     "errors": {
@@ -2341,6 +2355,18 @@
       "guidelines_required": "Please read and accept the community guidelines first.",
       "edit_locked": "This post is being reviewed, so it can't be edited now.",
       "too_long": "Too long."
+    },
+    "mute": {
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "muted": "You muted this person. Their comments and posts are hidden for you. They are not told.",
+      "snackbarMuted": "{{name}} muted"
+    },
+    "muted": {
+      "title": "Muted people",
+      "hint": "They are not told. You don't see their comments or posts.",
+      "unmuteA11y": "Unmute {{name}}",
+      "guest": "Guest"
     }
   },
   "admin": {
@@ -2898,6 +2924,14 @@
       "post": "Post",
       "restore": "Restore",
       "until": "Until {{time}}"
+    },
+    "dataExport": {
+      "title": "Download my data",
+      "hint": "One file with what you gave Bumelerze: profile, felt reports with their places, comments, posts, homes, check-ins and more.",
+      "working": "Preparing your file…",
+      "done": "Your file is ready.",
+      "error": "Couldn't prepare the file. Try again.",
+      "fileTitle": "My Bumelerze data"
     }
   },
   "snackbar": {
@@ -3043,6 +3077,50 @@
     },
     "banner": {
       "a11y": "Are you safe? A strong earthquake happened near you."
+    }
+  },
+  "activity": {
+    "title": "Activity",
+    "bell": "Activity",
+    "bellNew": "Activity, {{value}} new",
+    "hint": "Only here in the app. Bumelerze sends notifications for earthquakes only.",
+    "empty": "Nothing yet. New followers, replies, Helpful marks and family check-ins will show here.",
+    "loadError": "Couldn't load your activity.",
+    "retry": "Try again",
+    "older": "Show older",
+    "new": "New",
+    "someone": "Someone",
+    "guest": "A guest",
+    "home": "your home",
+    "quote": "“{{text}}”",
+    "kinds": {
+      "new_follower": "{{name}} started following you.",
+      "follow_request": "{{name}} asked to follow you.",
+      "follow_accepted": "{{name}} accepted your follow request.",
+      "comment_reply": "{{name}} replied to your comment.",
+      "comment_helpful": "Your comment was marked Helpful ({{value}}).",
+      "post_helpful": "Your post was marked Helpful ({{value}}).",
+      "badge_granted": "You received the {{rank}} mark.",
+      "home_join_request": "{{name}} asked to join {{home}}.",
+      "home_join_approved": "You can now see {{home}}.",
+      "family_safe": "{{name}} checked in: I'm safe."
+    },
+    "removed": {
+      "comment_hide": "A moderator hid your comment.",
+      "comment_remove": "A moderator removed your comment.",
+      "post_remove": "A moderator removed your post.",
+      "reason": "Reason: {{reason}}",
+      "reasonGuidelines": "It goes against the community guidelines.",
+      "review": "Ask for review",
+      "reviewSent": "Review requested. A person will look at it."
+    },
+    "reviewed": {
+      "comment": "We reviewed a comment you reported. Thank you.",
+      "post": "We reviewed a post you reported. Thank you.",
+      "profile": "We reviewed a profile you reported. Thank you."
+    },
+    "event": {
+      "near": "Earthquake near {{place}}"
     }
   }
 }

@@ -7,7 +7,8 @@ import { PrivacyRow } from "@/features/account/components/PrivacyRow";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SignOutRow } from "@/features/account/components/SignOutRow";
 import { useAccount } from "@/features/account/use-account";
-import { MyHomeCard } from "@/features/building";
+import { MyHomeCard, TrashedHomesSection } from "@/features/building";
+import { DownloadMyDataRow } from "@/features/data-export";
 import { MyReportsSection } from "@/features/mydata";
 import { useTheme } from "@/theme";
 import { OnlyYouDivider } from "./OnlyYouDivider";
@@ -17,7 +18,8 @@ import { RecentlyDeletedSection } from "./RecentlyDeletedSection";
  * Everything on the Profile page that only its owner may see, after the
  * "Only you see this" divider: My home, My felt reports, People and requests,
  * the Admin row (when the account has admin access), Recently deleted (my
- * comments and posts of the last 24 hours, when there are any), Password,
+ * comments and posts of the last 24 hours, when there are any), Deleted homes
+ * (the 14-day trash, when there are any), Download my data, Password,
  * Privacy, Sign out and, last, Delete account.
  *
  * PRIVACY RULE (D79): this component and everything under it read the
@@ -38,6 +40,8 @@ export function OwnerSections() {
       <MyReportsSection />
       <CommunityRows />
       <RecentlyDeletedSection />
+      {isAccount ? <TrashedHomesSection /> : null}
+      {isAccount ? <DownloadMyDataRow /> : null}
       <SettingsGroup>
         {isAccount ? <PasswordRow /> : null}
         <PrivacyRow email={account.email} />

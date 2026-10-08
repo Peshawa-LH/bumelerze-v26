@@ -31,6 +31,9 @@ export interface ThreadViewer {
   isModerator: boolean;
   /** People the viewer follows: their threads come first. */
   followingIds?: ReadonlySet<string> | undefined;
+  /** People the viewer muted (migration 0061): their comments are left out
+   * for this viewer only, and with a muted comment its replies go too. */
+  mutedIds?: ReadonlySet<string> | undefined;
 }
 
 /**
@@ -53,7 +56,15 @@ export function buildThreads(
     following !== undefined && comment.userId !== null && following.has(comment.userId)
       ? 1
       : 0;
-  const shown = comments.filter((comment) => isCommentShown(comment, viewer));
+  const muted = viewer.mutedIds;
+  const isMuted = (comment: HubComment) =>
+    muted !== undefined &&
+    comment.userId !== null &&
+    comment.userId !== viewer.userId &&
+    muted.has(comment.userId);
+  const shown = comments.filter(
+    (comment) => isCommentShown(comment, viewer) && !isMuted(comment),
+  );
   const roots = shown
     .filter((comment) => comment.parentId === null)
     .sort((a, b) => followed(b) - followed(a) || b.createdAt - a.createdAt);

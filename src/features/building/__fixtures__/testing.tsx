@@ -20,6 +20,10 @@ export const mockTransport: MockTransport = {
   removeMember: jest.fn(),
   restoreMember: jest.fn(),
   deleteHome: jest.fn(),
+  trashHome: jest.fn(),
+  restoreHome: jest.fn(),
+  deleteHomeNow: jest.fn(),
+  fetchTrashedHomes: jest.fn(),
   rotateKey: jest.fn(),
   fetchMemberships: jest.fn(),
   fetchTags: jest.fn(),
@@ -61,6 +65,10 @@ export function resetMockTransport(): void {
   mockTransport.removeMember.mockResolvedValue(undefined);
   mockTransport.restoreMember.mockResolvedValue(undefined);
   mockTransport.deleteHome.mockResolvedValue({ photosLeftBehind: false });
+  mockTransport.trashHome.mockResolvedValue(undefined);
+  mockTransport.restoreHome.mockResolvedValue(undefined);
+  mockTransport.deleteHomeNow.mockResolvedValue(undefined);
+  mockTransport.fetchTrashedHomes.mockResolvedValue([]);
   mockTransport.rotateKey.mockResolvedValue("NEWKEY99");
 }
 

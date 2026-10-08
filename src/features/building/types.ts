@@ -87,6 +87,19 @@ export interface DeleteHomeResult {
   photosLeftBehind: boolean;
 }
 
+/** A home in its owner's 14-day trash (migration 0061): no coordinates, no answers. */
+export interface TrashedHome {
+  tagId: string;
+  code: string;
+  kind: HomeKind;
+  label: string | null;
+  unitLabel: string | null;
+  /** UTC ms. */
+  trashedAt: number;
+  /** UTC ms: the nightly job deletes it for good after this. */
+  purgeAt: number;
+}
+
 export interface JoinResult {
   tagId: string;
   status: MemberStatus;
@@ -100,6 +113,8 @@ export type HomeErrorCode =
   | "wrong_code"
   | "network"
   | "photo_too_large"
+  | "restore_limit"
+  | "restore_expired"
   | "unknown";
 
 export class HomeError extends Error {

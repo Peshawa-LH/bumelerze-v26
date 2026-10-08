@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import { View } from "react-native";
 
+import { SnackbarProvider } from "@/components/Snackbar";
 import i18n from "@/i18n";
 import { DeleteHomeButton } from "../components/DeleteHomeButton";
 import { MyHomeCard } from "../components/MyHomeCard";
@@ -78,17 +79,18 @@ describe("Delete this home", () => {
     await clearQueryClients();
   });
 
-  it("refreshes the homes: the My home card falls back to 'Tag my building', then goes to My account", async () => {
+  it("moves the home to the trash: the My home card falls back to 'Tag my building', then goes to My account", async () => {
     await renderWithProviders(<Screen />);
     expect(await screen.findByTestId("home-card-tag-1")).toBeTruthy();
-    // after the delete the server has no membership and no tag any more
-    mockTransport.deleteHome.mockImplementation(async () => {
-      mockTransport.fetchMemberships.mockResolvedValue([]);
+    // in the trash the tag is closed for every member (the owner included);
+    // the membership row is still there, as on the server
+    mockTransport.trashHome.mockImplementation(async () => {
       mockTransport.fetchTags.mockResolvedValue([]);
-      return { photosLeftBehind: false };
     });
     await confirmDelete();
-    expect(mockTransport.deleteHome).toHaveBeenCalledWith("tag-1");
+    expect(mockTransport.trashHome).toHaveBeenCalledWith("tag-1");
+    // nothing is deleted at once, photo files included
+    expect(mockTransport.deleteHome).not.toHaveBeenCalled();
     // "home-tag" is also the "Tag another home" link while homes exist, so
     // wait for the deleted home's card to leave, then check the empty state.
     await waitFor(() => expect(screen.queryByTestId("home-card-tag-1")).toBeNull(), {
@@ -126,21 +128,25 @@ describe("Delete this home", () => {
     );
   });
 
-  it("tells the owner when some photo files could not be removed", async () => {
-    mockTransport.deleteHome.mockResolvedValue({ photosLeftBehind: true });
-    await renderWithProviders(<Screen />);
+  it("offers Undo, which restores the home", async () => {
+    await renderWithProviders(
+      <SnackbarProvider>
+        <Screen />
+      </SnackbarProvider>,
+    );
     await screen.findByTestId("home-card-tag-1");
     await confirmDelete();
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/my-data"));
-    await waitFor(() => expect(mockMessage).toHaveBeenCalled());
-    expect(mockMessage).toHaveBeenCalledWith(
-      "Home deleted",
-      "Some photos could not be removed from our servers. No one can see them.",
-    );
+    expect(await screen.findByText("Home moved to the trash")).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByText("Undo"));
+    });
+    await waitFor(() => expect(mockTransport.restoreHome).toHaveBeenCalledWith("tag-1"));
+    expect(mockMessage).not.toHaveBeenCalled();
   });
 
   it("on failure keeps the home, shows the error and does not navigate", async () => {
-    mockTransport.deleteHome.mockRejectedValue(new Error("boom"));
+    mockTransport.trashHome.mockRejectedValue(new Error("boom"));
     await renderWithProviders(<Screen />);
     await screen.findByTestId("home-card-tag-1");
     await confirmDelete();

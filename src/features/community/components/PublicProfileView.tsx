@@ -10,6 +10,7 @@ import { EarnedBadges } from "@/features/badges";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { formatMagnitudeValue } from "@/features/events";
 import { formatMonthYear } from "@/features/mydata/format";
+import { useMuteActions, useMutedIds } from "@/features/mute/queries";
 import { PostsSection } from "@/features/posts/components/PostsSection";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
 import type { ReportInput } from "@/features/reporting/reasons";
@@ -73,6 +74,10 @@ export function PublicProfileView({
   const [errorText, setErrorText] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const mutedIds = useMutedIds();
+  const muteActions = useMuteActions();
+  // Muted (0061): their posts and comments stay hidden here too, for me only.
+  const isMuted = !profile.isSelf && mutedIds.has(profile.userId);
 
   const details = profile.canViewFull ? profile.details : null;
   const badges = details ? profileBadgeEntries(profile) : [];
@@ -249,7 +254,13 @@ export function PublicProfileView({
         </Text>
       ) : null}
 
-      {!details ? (
+      {isMuted ? (
+        <Text style={meta} testID="public-profile-muted">
+          {t("community.mute.muted")}
+        </Text>
+      ) : null}
+
+      {!details && !isMuted ? (
         // a private account the viewer cannot see into: "visible to followers"
         <PostsSection profile={profile} />
       ) : null}
@@ -274,12 +285,14 @@ export function PublicProfileView({
             {...(profile.isSelf && self ? { seeAllCount: self.badgeTotal } : {})}
           />
 
-          <PostsSection
-            profile={profile}
-            {...(postsTransport ? { transport: postsTransport } : {})}
-          />
+          {isMuted ? null : (
+            <PostsSection
+              profile={profile}
+              {...(postsTransport ? { transport: postsTransport } : {})}
+            />
+          )}
 
-          {profile.isSelf ? null : (
+          {profile.isSelf || isMuted ? null : (
             <View style={{ gap: spacing[2] }}>
               <Text
                 accessibilityRole="header"
@@ -315,6 +328,18 @@ export function PublicProfileView({
             disabled={busy}
             onPress={handleBlock}
             testID="public-profile-block"
+          />
+          <LinkButton
+            label={isMuted ? t("community.mute.unmute") : t("community.mute.mute")}
+            disabled={busy}
+            onPress={() =>
+              void run(() =>
+                isMuted
+                  ? muteActions.unmute(profile.userId)
+                  : muteActions.mute(profile.userId),
+              )
+            }
+            testID={isMuted ? "public-profile-unmute" : "public-profile-mute"}
           />
           {reported ? (
             <Text style={meta}>{t("community.report.sent")}</Text>

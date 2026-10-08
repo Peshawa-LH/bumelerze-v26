@@ -1,7 +1,8 @@
-import { ScrollView, StyleSheet, Text } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ActivityBell } from "@/features/activity";
 import { ProfileTab } from "@/features/profile";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
@@ -34,17 +35,22 @@ export default function ProfileScreen() {
         },
       ]}
     >
-      <Text
-        accessibilityRole="header"
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h1.fontSize,
-          lineHeight: typography.h1.lineHeight,
-          fontWeight: typography.h1.fontWeight,
-        }}
-      >
-        {t("tabs.profile")}
-      </Text>
+      <View style={styles.header}>
+        <Text
+          accessibilityRole="header"
+          style={{
+            flex: 1,
+            color: colors.text.primary,
+            fontSize: typography.h1.fontSize,
+            lineHeight: typography.h1.lineHeight,
+            fontWeight: typography.h1.fontWeight,
+          }}
+        >
+          {t("tabs.profile")}
+        </Text>
+        {/* Activity (0061): follows, replies, Helpful, reviews, family check-ins. */}
+        <ActivityBell />
+      </View>
       <ProfileTab />
     </ScrollView>
   );
@@ -52,4 +58,5 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   content: { flexGrow: 1, width: "100%", maxWidth: 600, alignSelf: "center" },
+  header: { flexDirection: "row", alignItems: "center" },
 });

@@ -10,6 +10,7 @@ import {
   getRelativeTime,
   isolateNumeric,
 } from "@/features/events";
+import { useMuteActions } from "@/features/mute/queries";
 import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
@@ -86,6 +87,7 @@ export function CommentItem({
   const [reported, setReported] = useState(false);
   const [withdrawn, setWithdrawn] = useState(false);
   const showUndo = useUndoToast();
+  const muteActions = useMuteActions();
 
   const isOwn = viewer.userId !== null && comment.userId === viewer.userId;
   // The server refuses to limit an admin; do not even offer it. The private
@@ -153,6 +155,21 @@ export function CommentItem({
       showUndo({
         message: t("snackbar.commentDeleted"),
         restore: () => actions.restore(comment.id),
+      });
+    }
+  }
+
+  /** Mute the author (0061): quiet, for me only; the snackbar offers Undo. */
+  async function muteAuthor() {
+    const authorId = comment.userId;
+    if (authorId === null) {
+      return;
+    }
+    const ok = await run(() => muteActions.mute(authorId));
+    if (ok) {
+      showUndo({
+        message: t("community.mute.snackbarMuted", { name }),
+        restore: () => muteActions.unmute(authorId),
       });
     }
   }
@@ -384,6 +401,14 @@ export function CommentItem({
               >
                 {t("eventHub.thread.reportWithdrawn")}
               </Text>
+            ) : null}
+            {!isOwn && viewer.userId !== null && comment.userId !== null ? (
+              <ActionButton
+                label={t("eventHub.thread.mute")}
+                disabled={busy}
+                onPress={() => void muteAuthor()}
+                testID={`mute-${comment.id}`}
+              />
             ) : null}
             {isOwn && comment.status !== "hidden" ? (
               <ActionButton

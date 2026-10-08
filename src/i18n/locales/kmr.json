@@ -946,7 +946,8 @@
       "flagLimit": "Te gihîşt sînorê gilîkirinên îro. Sibê dîsa biceribîne.",
       "following": "Dişopînî",
       "restricted": "Hesabê te niha sînordar e.",
-      "deletedAccount": "Hesabê jêbirî"
+      "deletedAccount": "Hesabê jêbirî",
+      "mute": "Bêdeng bike"
     },
     "reasons": {
       "spam": "Spam",
@@ -2190,7 +2191,7 @@
     "delete": {
       "action": "Vê malê jê bibe",
       "title": "Ev mal bê jêbirin?",
-      "warning": "Bersiv, rapor, wêne û girêdanên malbatê ji bo hemûyan têne jêbirin. Ev nayê paşvegerandin.",
+      "warning": "Ew ji bo 14 rojan diçe çopê, û endamên malbatê ji niha ve nikarin wê bibînin. Heta wê demê tu dikarî ji Profîla xwe wê vegerînî. Piştre bersiv, rapor, wêne û girêdanên malbatê bi temamî têne jêbirin.",
       "confirm": "Jê bibe",
       "doneTitle": "Mal hate jêbirin",
       "photosLeft": "Hin wêne ji pêşkêşkerên me nehatin jêbirin. Kes nikare wan bibîne."
@@ -2256,7 +2257,20 @@
       "wrong_code": "Kod an mifte şaş e.",
       "network": "Girêdan tune. Dîsa biceribîne.",
       "photo_too_large": "Wêneyek pir mezin e.",
-      "unknown": "Tiştek şaş çû. Dîsa biceribîne."
+      "unknown": "Tiştek şaş çû. Dîsa biceribîne.",
+      "restore_limit": "Jixwe 5 malên te hene. Berî vegerandina vê, yekê jê bibe.",
+      "restore_expired": "Ji bo vegerandina vê malê dereng e."
+    },
+    "trash": {
+      "snackbar": "Mal çû çopê",
+      "title": "Malên jêbirî",
+      "hint": "Tu dikarî malekê heta 14 rojan vegerînî. Piştre ew bi bersiv, rapor û wêneyên xwe ve bi temamî tê jêbirin.",
+      "until": "Di {{date}} de bi temamî tê jêbirin",
+      "restore": "Vegerîne",
+      "restored": "Mal hate vegerandin",
+      "deleteNow": "Niha jê bibe",
+      "deleteNowTitle": "Niha bi temamî were jêbirin?",
+      "deleteNowWarning": "Bersiv, rapor, wêne û girêdanên malbatê ji bo hemûyan têne jêbirin. Ev nayê paşvegerandin."
     }
   },
   "community": {
@@ -2319,7 +2333,7 @@
     "people": {
       "title": "Mirov",
       "empty": "Hê kes tune.",
-      "nothing": "Daxwaz û hesabê astengkirî tune.",
+      "nothing": "Daxwaz, hesabên astengkirî an bêdengkirî tune ne.",
       "needsAccount": "Ji bo dîtina vê têkeve."
     },
     "errors": {
@@ -2341,6 +2355,18 @@
       "guidelines_required": "Ji kerema xwe pêşî rêbernameyên civakê bixwîne û qebûl bike.",
       "edit_locked": "Ev nivîs tê nirxandin, ji ber vê niha nayê guhertin.",
       "too_long": "Pir dirêj e."
+    },
+    "mute": {
+      "mute": "Bêdeng bike",
+      "unmute": "Bêdengiyê rake",
+      "muted": "Te ev kes bêdeng kiriye. Şîrove û nivîsên wî/wê ji te re têne veşartin. Ew nayê agahdarkirin.",
+      "snackbarMuted": "{{name}} hate bêdengkirin"
+    },
+    "muted": {
+      "title": "Kesên bêdengkirî",
+      "hint": "Ew nayên agahdarkirin. Tu şîrove û nivîsên wan nabînî.",
+      "unmuteA11y": "Bêdengiya {{name}} rake",
+      "guest": "Mêvan"
     }
   },
   "admin": {
@@ -2898,6 +2924,14 @@
       "post": "Nivîs",
       "restore": "Vegerîne",
       "until": "Heta {{time}}"
+    },
+    "dataExport": {
+      "title": "Daneyên min daxe",
+      "hint": "Pelek bi tiştên ku te dane Bumelerze: profîl, raporên hîskirinê bi cihên wan, şîrove, nivîs, mal, agahdariyên ewlehiyê û bêtir.",
+      "working": "Pelê te tê amadekirin…",
+      "done": "Pelê te amade ye.",
+      "error": "Pel nehate amadekirin. Dîsa biceribîne.",
+      "fileTitle": "Daneyên min ên Bumelerze"
     }
   },
   "snackbar": {
@@ -3043,6 +3077,50 @@
     },
     "banner": {
       "a11y": "Tu ewle yî? Li nêzî te erdhejeke xurt çêbû."
+    }
+  },
+  "activity": {
+    "title": "Çalakî",
+    "bell": "Çalakî",
+    "bellNew": "Çalakî, {{value}} nû",
+    "hint": "Tenê li vir di sepanê de. Bumelerze tenê ji bo erdhejan agahdariyan dişîne.",
+    "empty": "Hê tiştek tune. Şopînerên nû, bersiv, nîşanên Bikêr û agahdariyên ewlehiya malbatê dê li vir xuya bibin.",
+    "loadError": "Çalakiyên te nehatin barkirin.",
+    "retry": "Dîsa biceribîne",
+    "older": "Yên kevntir nîşan bide",
+    "new": "Nû",
+    "someone": "Kesek",
+    "guest": "Mêvanek",
+    "home": "mala te",
+    "quote": "“{{text}}”",
+    "kinds": {
+      "new_follower": "{{name}} dest bi şopandina te kir.",
+      "follow_request": "{{name}} xwest te bişopîne.",
+      "follow_accepted": "{{name}} daxwaza te ya şopandinê qebûl kir.",
+      "comment_reply": "{{name}} bersiva şîroveya te da.",
+      "comment_helpful": "Şîroveya te wek Bikêr hate nîşankirin ({{value}}).",
+      "post_helpful": "Nivîsa te wek Bikêr hate nîşankirin ({{value}}).",
+      "badge_granted": "Nîşana {{rank}} ji te re hate dayîn.",
+      "home_join_request": "{{name}} xwest tevlî {{home}} bibe.",
+      "home_join_approved": "Niha tu dikarî {{home}} bibînî.",
+      "family_safe": "{{name}} agahdar kir: Ez ewle me."
+    },
+    "removed": {
+      "comment_hide": "Moderatorekî şîroveya te veşart.",
+      "comment_remove": "Moderatorekî şîroveya te rakir.",
+      "post_remove": "Moderatorekî nivîsa te rakir.",
+      "reason": "Sedem: {{reason}}",
+      "reasonGuidelines": "Li dijî rêbernameyên civakê ye.",
+      "review": "Nirxandinê bixwaze",
+      "reviewSent": "Nirxandin hate xwestin. Kesek ê lê binêre."
+    },
+    "reviewed": {
+      "comment": "Me li şîroveya ku te gilî kiribû nêrî. Spas.",
+      "post": "Me li nivîsa ku te gilî kiribû nêrî. Spas.",
+      "profile": "Me li profîla ku te gilî kiribû nêrî. Spas."
+    },
+    "event": {
+      "near": "Erdhej li nêzî {{place}}"
     }
   }
 }

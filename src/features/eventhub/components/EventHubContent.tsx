@@ -18,6 +18,7 @@ import { formatMagnitudeValue, type Event } from "@/features/events";
 import { useEventUuidResult } from "@/features/feltmap/use-event-uuid";
 import { placeLine } from "@/features/geo";
 import { RestrictionBanner } from "@/features/restrictions/components/RestrictionBanner";
+import { useMutedIds } from "@/features/mute/queries";
 import { useMyRestriction } from "@/features/restrictions/queries";
 import { ShareToProfileButton } from "@/features/posts/components/ShareToProfileButton";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -69,6 +70,7 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
   const account = useAccount();
   const isAccount = account.status === "account";
   const viewerId = account.userId;
+  const mutedIds = useMutedIds();
   const permissions = useMyPermissions(viewerId, transport);
   const isModerator = permissions.has("comments.moderate");
   // Removing any comment needs the server's own answer, not the role fallback.
@@ -127,9 +129,10 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
             userId: viewerId,
             isModerator,
             followingIds: new Set(thread.data.followingIds),
+            mutedIds,
           })
         : [],
-    [thread.data, viewerId, isModerator],
+    [thread.data, viewerId, isModerator, mutedIds],
   );
 
   function handleRefresh() {
