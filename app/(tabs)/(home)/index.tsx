@@ -16,6 +16,7 @@ import {
   FeltReportPill,
   resolveHomeFeltAssociation,
 } from "@/features/felt";
+import { HomeSafeBanner, useSafePrompt } from "@/features/safe";
 import { BeReadyCard } from "@/features/safety";
 import { useTheme } from "@/theme";
 
@@ -83,6 +84,11 @@ export default function HomeScreen() {
   // resolves to an empty array, so this renders nothing extra when there's
   // nothing to show.
   const { events: possibleEvents } = usePossibleEvents();
+
+  // "Are you safe?" (I'm safe v1, entry T2): a strong earthquake that probably
+  // shook this phone's position at intensity V or more. Decided on the
+  // phone; its position is never sent. Takes the "Be ready" card's place.
+  const safePrompt = useSafePrompt(events);
 
   return (
     <View style={styles.flex}>
@@ -171,8 +177,12 @@ export default function HomeScreen() {
                 </Pressable>
               </View>
             </View>
-            {/* New readers: one calm pointer to the Safety guide (D79). */}
-            <BeReadyCard />
+            {safePrompt.event ? (
+              <HomeSafeBanner event={safePrompt.event} onDismiss={safePrompt.dismiss} />
+            ) : (
+              /* New readers: one calm pointer to the Safety guide (D79). */
+              <BeReadyCard />
+            )}
             {possibleEvents.length > 0 ? (
               <View
                 style={[

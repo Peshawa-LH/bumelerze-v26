@@ -2200,7 +2200,13 @@
       "leaveWarning": "You will no longer see this home or its report.",
       "leaveConfirm": "Leave",
       "cancel": "Cancel",
-      "qrLabel": "QR code to join this home"
+      "qrLabel": "QR code to join this home",
+      "remove": "Remove",
+      "removeA11y": "Remove {{name}}",
+      "removeTitle": "Remove {{name}}?",
+      "removeMessage": "{{name}} will no longer see this home, its report or the family status. They can ask to join again with the code and key.",
+      "removeConfirm": "Remove",
+      "removed": "{{name}} was removed"
     },
     "join": {
       "title": "Join a home",
@@ -2797,5 +2803,70 @@
     "error": "Couldn't save your answer. Check your connection and try again.",
     "settingsLabel": "Community guidelines",
     "settingsValue": "The rules for comments and posts"
+  },
+  "imSafe": {
+    "screenTitle": "I'm safe",
+    "prompt": {
+      "title": "Are you safe?",
+      "body": "Let your family know you are OK."
+    },
+    "button": {
+      "safe": "I'm safe",
+      "later": "Not now",
+      "practice": "Practice a check-in",
+      "done": "Done"
+    },
+    "status": {
+      "queued": "Saved on your phone. It will be sent when there is signal.",
+      "sent": "Your family can see that you are safe.",
+      "failed": "Not shared with your family. You can send a message instead.",
+      "undone": "Taken back."
+    },
+    "action": {
+      "shareMessage": "Send a message instead",
+      "shareAlso": "Also send a message",
+      "copied": "Message copied. Paste it into WhatsApp, Viber or SMS.",
+      "feltLink": "Let your family know"
+    },
+    "noHelp": "Bumelerze cannot send rescue teams or any help.",
+    "eventLine": "After the earthquake {{magnitude}} at {{time}}",
+    "practice": {
+      "title": "Practice a check-in",
+      "body": "There is no recent strong earthquake in the region. This practice is not stored and not shared.",
+      "done": "Practice done. Nothing was sent."
+    },
+    "guest": {
+      "body": "Without an account nothing is stored. Send the message to your family.",
+      "invite": "Create an account and join your family home so they can see this next time.",
+      "create": "Create an account"
+    },
+    "noFamily": {
+      "invite": "Join your family's home so they can see this next time.",
+      "join": "Join a home"
+    },
+    "share": {
+      "message": "I'm safe after the earthquake at {{time}}. Sent from Bumelerze.",
+      "messageNoTime": "I'm safe after the earthquake. Sent from Bumelerze."
+    },
+    "family": {
+      "title": "Family status",
+      "summary": "{{n}} of {{total}} checked in",
+      "summaryA11y": "{{n}} of {{total}} family members have checked in",
+      "safe": "Safe · {{time}}, {{ago}}",
+      "none": "Not heard from yet",
+      "earlier": "Earlier: safe · {{time}}, {{ago}}",
+      "beforeLater": "Before the {{time}} earthquake",
+      "rowSafeA11y": "{{name}}, safe, checked in at {{time}}, {{ago}}",
+      "rowNoneA11y": "{{name}}, not heard from yet",
+      "rowBeforeA11y": "{{name}}, checked in at {{time}}, before the {{later}} earthquake",
+      "empty": "No check-ins in the last day.",
+      "alone": "When others join this home, their check-ins show here.",
+      "setting": "Show my check-ins to this home",
+      "settingHint": "Only approved members of this home see them. Never your location.",
+      "loadError": "Family status could not be loaded."
+    },
+    "banner": {
+      "a11y": "Are you safe? A strong earthquake happened near you."
+    }
   }
 }

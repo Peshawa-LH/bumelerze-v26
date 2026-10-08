@@ -33,6 +33,7 @@ import {
 import { useReferencePlace } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
 import { touchPresenceOnce } from "@/features/presence";
+import { ensureCheckInForegroundSync, processCheckInQueue } from "@/features/safe/queue";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
 import { useTabBarStore } from "@/features/tab-bar";
 import { useLaunchPendingTour } from "@/features/tour";
@@ -124,6 +125,9 @@ export default function RootLayout() {
     // same two triggers (cold start, foreground).
     ensureHomePhotoQueueForegroundSync();
     void processHomePhotoQueue();
+    // "I'm safe" check-ins wait on the phone until sent, same two triggers.
+    ensureCheckInForegroundSync();
+    void processCheckInQueue();
   }, []);
 
   useEffect(() => {
@@ -217,6 +221,7 @@ export default function RootLayout() {
                 <Stack.Screen name="home/[tagId]/report" />
                 <Stack.Screen name="home/[tagId]/family" />
                 <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
+                <Stack.Screen name="im-safe" />
                 {/* The swipeable tour owns its horizontal swipes, so the iOS
                  * edge-swipe-back is off; Skip and the last button leave it. */}
                 <Stack.Screen name="tour" options={{ gestureEnabled: false }} />

@@ -488,7 +488,7 @@ function eventRegistrationCacheKey(registration: EventRegistration): string {
  * unassigned pool, which a later server-side association pass can still
  * pick up from the report's own stored lat/lon/created_at.
  */
-async function resolveEventUuid(
+export async function resolveEventUuid(
   client: SupabaseClient,
   registration: EventRegistration,
 ): Promise<string | null> {

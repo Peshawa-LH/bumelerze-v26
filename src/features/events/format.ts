@@ -272,6 +272,14 @@ function formatTimeOfDay(
   });
 }
 
+/** Device-local clock time only ("2:21 PM"; Sorani before/after noon), with
+ * the same digit and day-period rules as `formatAbsoluteDual`. For short
+ * statements about a moment the reader saw today (the "I'm safe" check-in).
+ * Callers wrap it with `isolateNumeric` inside RTL sentences. */
+export function formatClockTime(timeMs: number, locale: string, t: TranslateFn): string {
+  return formatTimeOfDay(new Date(timeMs), undefined, locale, t);
+}
+
 /** One locale-templated absolute date+time string (day/month/year/time
  * composed via the `events.dateTemplate` i18n key so each locale can order
  * the pieces naturally — Sorani/Arabic day-month-year with their own

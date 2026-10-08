@@ -265,6 +265,9 @@ export interface HomeActions {
   join: (code: string, key: string) => Promise<JoinResult>;
   decide: (tagId: string, userId: string, approve: boolean) => Promise<void>;
   leave: (tagId: string) => Promise<void>;
+  /** Owner only: remove a member; `restoreMember` undoes it for 10 minutes. */
+  removeMember: (tagId: string, userId: string) => Promise<void>;
+  restoreMember: (tagId: string, userId: string) => Promise<void>;
   /** Owner only: deletes the home for everyone (photos, report, family). */
   deleteHome: (tagId: string) => Promise<DeleteHomeResult>;
   rotateKey: (tagId: string) => Promise<string>;
@@ -293,6 +296,22 @@ export function useHomeActions(
   const leave = useMutation({
     mutationFn: (tagId: string) => transport.leave(tagId),
     onSuccess: () => refreshHomes(queryClient),
+  });
+  const removeMember = useMutation({
+    mutationFn: ({ tagId, userId }: { tagId: string; userId: string }) =>
+      transport.removeMember(tagId, userId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["safe"] });
+      return refreshHomes(queryClient);
+    },
+  });
+  const restoreMember = useMutation({
+    mutationFn: ({ tagId, userId }: { tagId: string; userId: string }) =>
+      transport.restoreMember(tagId, userId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["safe"] });
+      return refreshHomes(queryClient);
+    },
   });
   const deleteHome = useMutation({
     mutationFn: (tagId: string) => transport.deleteHome(tagId),
@@ -328,6 +347,8 @@ export function useHomeActions(
     join: (code, key) => join.mutateAsync({ code, key }),
     decide: (tagId, userId, approve) => decide.mutateAsync({ tagId, userId, approve }),
     leave: (tagId) => leave.mutateAsync(tagId),
+    removeMember: (tagId, userId) => removeMember.mutateAsync({ tagId, userId }),
+    restoreMember: (tagId, userId) => restoreMember.mutateAsync({ tagId, userId }),
     deleteHome: (tagId) => deleteHome.mutateAsync(tagId),
     rotateKey: (tagId) => rotate.mutateAsync(tagId),
     retake: (tag, answers) => retake.mutateAsync({ tag, answers }),

@@ -1,7 +1,7 @@
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Share, StyleSheet, Text, View } from "react-native";
+import { Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Avatar, getAvatarUrl } from "@/features/account";
@@ -10,6 +10,9 @@ import { useAccount } from "@/features/account/use-account";
 import { ProfileLink } from "@/features/community/components/ProfileLink";
 import { formatUsername } from "@/features/community/username";
 import { isolateNumeric } from "@/features/events/format";
+import { FamilyStatusCard } from "@/features/safe/components/FamilyStatusCard";
+import { useUndoToast } from "@/features/undo/use-undo-toast";
+import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { buildJoinLink } from "../constants";
 import { homeErrorText } from "../error-text";
@@ -61,11 +64,12 @@ export function Family({
   isOwner: boolean;
 }) {
   const { t } = useTranslation();
-  const { spacing } = useTheme();
+  const { spacing, colors, typography } = useTheme();
   const router = useRouter();
   const account = useAccount();
   const family = useFamily(tagId, isOwner);
   const actions = useHomeActions();
+  const showUndo = useUndoToast();
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +126,27 @@ export function Family({
       : base;
   }
 
+  /** Owner only: take a member out of the home, after a confirm, with Undo.
+   * For an unwanted person still in the home (design note 7). */
+  function confirmRemove(member: HomeMember) {
+    const plain = profiles[member.userId]?.displayName ?? t("building.family.unnamed");
+    confirmDialog({
+      title: t("building.family.removeTitle", { name: plain }),
+      message: t("building.family.removeMessage", { name: plain }),
+      confirmLabel: t("building.family.removeConfirm"),
+      cancelLabel: t("building.family.cancel"),
+      destructive: true,
+      onConfirm: () =>
+        void run(async () => {
+          await actions.removeMember(tagId, member.userId);
+          showUndo({
+            message: t("building.family.removed", { name: plain }),
+            restore: () => actions.restoreMember(tagId, member.userId),
+          });
+        }),
+    });
+  }
+
   /** Photo, name and @username of one member; opens their profile when they
    * have a username. Members who never picked one stay plain text. */
   function identity(member: HomeMember, testIDPrefix: string) {
@@ -156,6 +181,8 @@ export function Family({
 
   return (
     <View style={{ gap: spacing[4] }}>
+      <FamilyStatusCard tagId={tagId} profiles={profiles} myUserId={account.userId} />
+
       {isOwner ? (
         <Card testID="family-share">
           <Heading level={3}>{t("building.family.shareTitle")}</Heading>
@@ -234,6 +261,23 @@ export function Family({
           <View key={member.userId} style={styles.memberRow}>
             {identity(member, "family-member-open")}
             {member.role === "owner" ? <Meta>{t("building.family.owner")}</Meta> : null}
+            {isOwner && member.role !== "owner" && member.userId !== account.userId ? (
+              <Pressable
+                testID={`family-remove-${member.userId}`}
+                accessibilityRole="button"
+                accessibilityLabel={t("building.family.removeA11y", {
+                  name:
+                    profiles[member.userId]?.displayName ?? t("building.family.unnamed"),
+                })}
+                onPress={() => confirmRemove(member)}
+                disabled={busy}
+                style={styles.remove}
+              >
+                <Text style={[typography.labelButton, { color: colors.status.danger }]}>
+                  {t("building.family.remove")}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ))}
       </Card>
@@ -289,4 +333,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  remove: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 8 },
 });

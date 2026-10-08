@@ -47,6 +47,7 @@ export { selectHomeFeedEvents, type HomeFeedPolicyResult } from "./home-feed-pol
 export { distanceFromUserKm, haversineDistanceKm, toRadians } from "./distance";
 export {
   formatAbsoluteDual,
+  formatClockTime,
   formatCoordinates,
   formatDateOnly,
   formatDepthKm,

@@ -2200,7 +2200,13 @@
       "leaveWarning": "Êdî tu yê vê malê û raporê wê nebînî.",
       "leaveConfirm": "Derkeve",
       "cancel": "Betal bike",
-      "qrLabel": "Koda QR ji bo tevlîbûna vê malê"
+      "qrLabel": "Koda QR ji bo tevlîbûna vê malê",
+      "remove": "Rake",
+      "removeA11y": "{{name}} rake",
+      "removeTitle": "{{name}} were rakirin?",
+      "removeMessage": "{{name}} êdî vê malê, rapora wê û rewşa malbatê nabîne. Ew dikare bi kod û mifteyê dîsa daxwaza tevlîbûnê bike.",
+      "removeConfirm": "Rake",
+      "removed": "{{name}} hate rakirin"
     },
     "join": {
       "title": "Tevlî malekê bibe",
@@ -2797,5 +2803,70 @@
     "error": "Bersiva te nehat tomarkirin. Girêdana xwe kontrol bike û dîsa biceribîne.",
     "settingsLabel": "Rêbernameyên civakê",
     "settingsValue": "Rêgezên şîrove û nivîsan"
+  },
+  "imSafe": {
+    "screenTitle": "Ez ewle me",
+    "prompt": {
+      "title": "Tu ewle yî?",
+      "body": "Malbata xwe agahdar bike ku tu baş î."
+    },
+    "button": {
+      "safe": "Ez ewle me",
+      "later": "Niha na",
+      "practice": "Agahdarkirinê biceribîne",
+      "done": "Temam"
+    },
+    "status": {
+      "queued": "Li ser cîhaza te hate tomarkirin. Gava şebeke hebe dê were şandin.",
+      "sent": "Malbata te dikare bibîne ku tu ewle yî.",
+      "failed": "Ji malbata te re nehat parvekirin. Tu dikarî li şûna wê peyamekê bişînî.",
+      "undone": "Hate vegerandin."
+    },
+    "action": {
+      "shareMessage": "Li şûna wê peyamekê bişîne",
+      "shareAlso": "Peyamekê jî bişîne",
+      "copied": "Peyam hate kopîkirin. Wê li WhatsApp, Viber an SMSê bixe.",
+      "feltLink": "Malbata xwe agahdar bike"
+    },
+    "noHelp": "Bumelerze nikare tîmên rizgarkirinê an tu alîkariyê bişîne.",
+    "eventLine": "Piştî erdheja {{magnitude}} di saet {{time}} de",
+    "practice": {
+      "title": "Agahdarkirinê biceribîne",
+      "body": "Di van demên dawî de li herêmê erdhejeke xurt çênebûye. Ev ceribandin nayê tomarkirin û ji kesî re nayê şandin.",
+      "done": "Ceribandin qediya. Tiştek nehat şandin."
+    },
+    "guest": {
+      "body": "Bê hesab tiştek nayê tomarkirin. Peyamê ji malbata xwe re bişîne.",
+      "invite": "Hesabek çêke û tevlî mala malbata xwe bibe da ku carek din bibînin.",
+      "create": "Hesabekî çêke"
+    },
+    "noFamily": {
+      "invite": "Tevlî mala malbata xwe bibe da ku carek din vê bibînin.",
+      "join": "Tevlî malekê bibe"
+    },
+    "share": {
+      "message": "Piştî erdheja saet {{time}} ez ewle me. Ji Bumelerze hate şandin.",
+      "messageNoTime": "Piştî erdhejê ez ewle me. Ji Bumelerze hate şandin."
+    },
+    "family": {
+      "title": "Rewşa malbatê",
+      "summary": "{{n}} ji {{total}} agahdar kirine",
+      "summaryA11y": "{{n}} ji {{total}} endamên malbatê agahdar kirine ku ewle ne",
+      "safe": "Ewle ye · {{time}}, {{ago}}",
+      "none": "Hê nûçe nehatiye",
+      "earlier": "Berê: ewle bû · {{time}}, {{ago}}",
+      "beforeLater": "Berî erdheja {{time}}",
+      "rowSafeA11y": "{{name}}, ewle ye, di saet {{time}} de agahdar kir, {{ago}}",
+      "rowNoneA11y": "{{name}}, hê nûçe nehatiye",
+      "rowBeforeA11y": "{{name}}, di saet {{time}} de agahdar kir, berî erdheja {{later}}",
+      "empty": "Di roja dawî de kesî agahdar nekiriye.",
+      "alone": "Gava kesên din tevlî vê malê bibin, agahdariyên wan li vir xuya dibin.",
+      "setting": "Agahdariyên min nîşanî vê malê bide",
+      "settingHint": "Tenê endamên pejirandî yên vê malê wan dibînin. Qet cihê te nayê nîşandan.",
+      "loadError": "Rewşa malbatê nehat barkirin."
+    },
+    "banner": {
+      "a11y": "Tu ewle yî? Li nêzî te erdhejeke xurt çêbû."
+    }
   }
 }

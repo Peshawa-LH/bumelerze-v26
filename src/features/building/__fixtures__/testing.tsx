@@ -17,6 +17,8 @@ export const mockTransport: MockTransport = {
   requestJoin: jest.fn(),
   decideJoin: jest.fn(),
   leave: jest.fn(),
+  removeMember: jest.fn(),
+  restoreMember: jest.fn(),
   deleteHome: jest.fn(),
   rotateKey: jest.fn(),
   fetchMemberships: jest.fn(),
@@ -56,6 +58,8 @@ export function resetMockTransport(): void {
   mockTransport.uploadPhoto.mockResolvedValue(undefined);
   mockTransport.decideJoin.mockResolvedValue(undefined);
   mockTransport.leave.mockResolvedValue(undefined);
+  mockTransport.removeMember.mockResolvedValue(undefined);
+  mockTransport.restoreMember.mockResolvedValue(undefined);
   mockTransport.deleteHome.mockResolvedValue({ photosLeftBehind: false });
   mockTransport.rotateKey.mockResolvedValue("NEWKEY99");
 }

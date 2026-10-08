@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useQueueItemState } from "@/features/felt";
+import { FeltSafeCard } from "@/features/safe/components/FeltSafeCard";
 import { useTheme } from "@/theme";
 
 /**
@@ -38,18 +39,16 @@ export default function FeltReportDoneScreen() {
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.surface.base,
-          paddingTop: insets.top + spacing[4],
-          paddingBottom: insets.bottom + spacing[5],
-          paddingStart: spacing[5],
-          paddingEnd: spacing[5],
-          justifyContent: "center",
-        },
-      ]}
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.surface.base }]}
+      contentContainerStyle={{
+        flexGrow: 1,
+        paddingTop: insets.top + spacing[4],
+        paddingBottom: insets.bottom + spacing[5],
+        paddingStart: spacing[5],
+        paddingEnd: spacing[5],
+        justifyContent: "center",
+      }}
     >
       <View style={{ gap: spacing[4] }}>
         <Text
@@ -96,8 +95,11 @@ export default function FeltReportDoneScreen() {
             {t("felt.done.close")}
           </Text>
         </Pressable>
+        {/* "Are you safe?" (I'm safe v1): a card under "Thank you", never a
+         * new window in the felt flow and never an automatic check-in. */}
+        <FeltSafeCard feltReportId={feltReportId ?? null} />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

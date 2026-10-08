@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 
 import { DirectionalChevron } from "@/components/DirectionalChevron";
 import { isolateNumeric } from "@/features/events/format";
+import { summarizeFamilyStatus } from "@/features/safe/family-status";
+import { useFamilyCheckIns } from "@/features/safe/hooks";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { parseVcRange } from "../assessment";
@@ -54,6 +56,10 @@ export function HomeCard({ home }: { home: HomeSummary }) {
   const { tag, assessment, role } = home;
   const family = useFamily(tag.tagId, role === "owner");
   const approved = (family.data?.members ?? []).filter((m) => m.status === "approved");
+  // "3 of 4 checked in" for the latest earthquake somebody here checked in
+  // for (last 24 hours). Hidden when there is none or it cannot be loaded.
+  const checkIns = useFamilyCheckIns(tag.tagId);
+  const safeSummary = checkIns.data ? summarizeFamilyStatus(checkIns.data) : null;
   const range = parseVcRange(assessment?.vcRange);
   const rangeText =
     range && range.from !== range.to ? displayVcRange(assessment?.vcRange) : null;
@@ -115,6 +121,20 @@ export function HomeCard({ home }: { home: HomeSummary }) {
                 text={localizeDigits(String(approved.length), i18n.language)}
                 accessibilityLabel={t("myData.home.members", {
                   count: localizeDigits(String(approved.length), i18n.language),
+                })}
+              />
+            ) : null}
+            {safeSummary?.focus ? (
+              <Chip
+                testID={`home-safe-${tag.tagId}`}
+                icon="checkmark-circle-outline"
+                text={t("imSafe.family.summary", {
+                  n: localizeDigits(String(safeSummary.checkedIn), i18n.language),
+                  total: localizeDigits(String(safeSummary.total), i18n.language),
+                })}
+                accessibilityLabel={t("imSafe.family.summaryA11y", {
+                  n: localizeDigits(String(safeSummary.checkedIn), i18n.language),
+                  total: localizeDigits(String(safeSummary.total), i18n.language),
                 })}
               />
             ) : null}

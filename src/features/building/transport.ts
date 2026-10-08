@@ -44,6 +44,11 @@ export interface HomeTransport {
   requestJoin(code: string, key: string): Promise<JoinResult>;
   decideJoin(tagId: string, userId: string, approve: boolean): Promise<void>;
   leave(tagId: string): Promise<void>;
+  /** Owner only (migration 0057): takes a member out of the home. Their
+   * membership is remembered for 10 minutes so `restoreMember` can undo it. */
+  removeMember(tagId: string, userId: string): Promise<void>;
+  /** Owner only: undoes `removeMember` within 10 minutes. */
+  restoreMember(tagId: string, userId: string): Promise<void>;
   /** Owner only (migration 0049). Removes the home's photo files from storage
    * first (retrying once, and carrying on if some survive), then deletes the
    * home; answers, report and family links go with it. */
@@ -389,6 +394,34 @@ export const SupabaseHomeTransport: HomeTransport = {
     const { error } = await client.rpc("leave_home", { p_tag: tagId });
     if (error) {
       throw toHomeError(error);
+    }
+  },
+
+  async removeMember(tagId, userId) {
+    const client = requireClient();
+    const { error } = await client.rpc("remove_home_member", {
+      p_tag: tagId,
+      p_user: userId,
+    });
+    if (error) {
+      // 22023 here is "not found" or "cannot remove the owner", never a code
+      // or key: do not let it read as one.
+      throw error.code === "22023"
+        ? new HomeError("unknown", error.message)
+        : toHomeError(error);
+    }
+  },
+
+  async restoreMember(tagId, userId) {
+    const client = requireClient();
+    const { error } = await client.rpc("restore_home_member", {
+      p_tag: tagId,
+      p_user: userId,
+    });
+    if (error) {
+      throw error.code === "22023"
+        ? new HomeError("unknown", error.message)
+        : toHomeError(error);
     }
   },
 
