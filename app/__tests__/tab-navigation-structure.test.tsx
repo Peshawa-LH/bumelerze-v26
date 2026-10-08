@@ -92,6 +92,9 @@ const FULL_SCREEN = [
   "/admin/activity",
   "/admin/hidden",
   "/admin/limited",
+  "/admin/feedback",
+  "/admin/feedback/f1",
+  "/admin/photos",
 ];
 
 describe("where screens live", () => {

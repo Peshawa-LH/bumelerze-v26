@@ -14,6 +14,7 @@ import {
   type PeopleQuery,
   type PeopleStats,
   type PersonDetail,
+  type PersonFlags,
   type PersonKind,
   type PersonNote,
   type PersonRow,
@@ -288,6 +289,25 @@ function list<T>(value: unknown, schema: z.ZodType<T, z.ZodTypeDef, unknown>): T
   return out;
 }
 
+const flagsSchema = z.object({
+  admin_rank: z.boolean().catch(false),
+  protected: z.boolean().catch(false),
+  resets_passwords: z.boolean().catch(false),
+});
+
+/** `admin_person_flags()` (migration 0060), or null for an unexpected shape. */
+export function parsePersonFlags(data: unknown): PersonFlags | null {
+  const parsed = flagsSchema.safeParse(data);
+  if (!parsed.success) {
+    return null;
+  }
+  return {
+    privateAdmin: parsed.data.admin_rank,
+    protected: parsed.data.protected,
+    resetsPasswords: parsed.data.resets_passwords,
+  };
+}
+
 export function parsePersonDetail(data: unknown): PersonDetail {
   const obj = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
   const identity = identitySchema.safeParse(obj.identity);
@@ -499,7 +519,13 @@ export const SupabasePeopleTransport: PeopleTransport = {
     return parsePeopleStats(await call("admin_people_stats"));
   },
   async person(userId) {
-    return parsePersonDetail(await call("admin_person", { p_user_id: userId }));
+    const detail = parsePersonDetail(await call("admin_person", { p_user_id: userId }));
+    // 0060's flags; a server without them leaves the page on the rank fallback
+    const flags = await call("admin_person_flags", { p_user_id: userId }).then(
+      parsePersonFlags,
+      () => null,
+    );
+    return { ...detail, flags };
   },
   async revealEmail(userId) {
     const data = await call("admin_reveal_email", { p_user_id: userId });

@@ -2426,7 +2426,10 @@
         "email_reveal": "Showed an email address",
         "purge": "Cleaned up old text",
         "role_restore": "Gave a badge back",
-        "profile_restore": "Restored a name or photo"
+        "profile_restore": "Restored a name or photo",
+        "feedback_status": "Updated a feedback message",
+        "report_photo_approve": "Approved a felt photo",
+        "report_photo_reject": "Rejected a felt photo"
       },
       "undo": "Undo"
     },
@@ -2637,6 +2640,130 @@
         "placeholder": "Write a note",
         "add": "Add note",
         "empty": "No notes."
+      }
+    },
+    "rank": {
+      "admin": "Admin",
+      "adminPrivate": "Admin (private, not shown on the profile)"
+    },
+    "feedback": {
+      "title": "Feedback",
+      "detailTitle": "Feedback message",
+      "hint": "Messages sent from the app, badge requests and appeals. Private: never shown to anyone else.",
+      "openCount": "{{count}} open",
+      "searchLabel": "Search feedback",
+      "searchPlaceholder": "Words in the message, name or @username",
+      "counts": {
+        "unseen": "New: {{count}}",
+        "inReview": "In review: {{count}}",
+        "badgeRequests": "Badge requests: {{count}}",
+        "appeals": "Appeals: {{count}}"
+      },
+      "statusFilter": {
+        "open": "Open",
+        "unseen": "New",
+        "in_review": "In review",
+        "solved": "Solved",
+        "wont_do": "Won't do",
+        "all": "All"
+      },
+      "categoryFilter": {
+        "all": "All kinds",
+        "badge_request": "Badge requests",
+        "appeal": "Appeals",
+        "none": "Messages"
+      },
+      "status": {
+        "unseen": "New",
+        "in_review": "In review",
+        "solved": "Solved",
+        "wont_do": "Won't do"
+      },
+      "category": {
+        "badge_request": "Badge request",
+        "appeal": "Appeal",
+        "bug": "Bug",
+        "improvement": "Improvement",
+        "suggestion": "Suggestion",
+        "question": "Question",
+        "other": "Other"
+      },
+      "empty": "No feedback here.",
+      "noSender": "Sender unknown (account deleted)",
+      "guest": "Guest (no account)",
+      "account": "Account",
+      "photoCount": "Screenshots: {{count}}",
+      "hasNote": "Has a note",
+      "from": "From",
+      "contact": "Contact: {{contact}}",
+      "version": "Version {{version}}",
+      "language": "Language: {{language}}",
+      "noDevice": "No app details.",
+      "openPerson": "Open person",
+      "screenshots": "Screenshots",
+      "screenshotLabel": "Screenshot {{number}}",
+      "appeal": {
+        "title": "Appeal",
+        "until": "Until {{date}}",
+        "noEnd": "No end date",
+        "notActive": "No longer in force",
+        "unknown": "The limit this appeal is about is not available.",
+        "openLimited": "Limited accounts"
+      },
+      "badge": {
+        "title": "Grant the requested badge",
+        "orgPlaceholder": "Organisation name (partners only)",
+        "grant": "Grant requested badge",
+        "markSolved": "Already has it: mark solved",
+        "granted": "Badge granted and request solved"
+      },
+      "triage": "Status and note",
+      "notePlaceholder": "What was decided, what to do next",
+      "noteLabel": "Triage note",
+      "noteHint": "Only admins see the note.",
+      "save": "Save",
+      "saved": "Saved",
+      "errors": {
+        "noUsername": "This person has no @username yet, so a badge can't be given.",
+        "notBadgeRequest": "This message is not a badge request.",
+        "guest": "The sender has no account, so a badge can't be given."
+      }
+    },
+    "photos": {
+      "title": "Felt photos",
+      "hint": "Photos sent with felt reports stay hidden until approved. No locations and no names are shown here.",
+      "pendingCount": "{{count}} waiting",
+      "tabs": {
+        "pending": "Waiting",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "empty": {
+        "pending": "No photos waiting.",
+        "approved": "No approved photos.",
+        "rejected": "No rejected photos."
+      },
+      "intensity": "Felt: {{level}}",
+      "reported": "Report sent {{date}}",
+      "decided": {
+        "approved": "Approved {{date}} by {{name}}",
+        "rejected": "Rejected {{date}} by {{name}}"
+      },
+      "someone": "an admin",
+      "approve": "Approve",
+      "reject": "Reject",
+      "removeFile": "Delete the file again",
+      "approved": "Photo approved",
+      "rejected": "Photo rejected and deleted",
+      "rejectTitle": "Reject this photo?",
+      "rejectMessage": "The photo is deleted for good. The felt report itself stays.",
+      "fileRemoved": "File deleted",
+      "noImage": "The photo could not be loaded.",
+      "noEvent": "No earthquake linked",
+      "photoLabel": "Photo sent with a felt report",
+      "errors": {
+        "alreadyRejected": "This photo was already rejected.",
+        "fileKept": "Rejected, but the file could not be deleted yet. Open Rejected and try again."
       }
     }
   },

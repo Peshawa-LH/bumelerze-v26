@@ -88,7 +88,10 @@ export function CommentItem({
   const showUndo = useUndoToast();
 
   const isOwn = viewer.userId !== null && comment.userId === viewer.userId;
-  // The server refuses to limit an admin; do not even offer it.
+  // The server refuses to limit an admin; do not even offer it. The private
+  // admin rank (migration 0060) is invisible here by design, so for such an
+  // author the button shows and the server's "can't be limited" answer is
+  // what the moderator sees.
   const authorIsAdmin = (roles ?? []).some(
     (r) => r.role === "official" || r.role === "moderator",
   );

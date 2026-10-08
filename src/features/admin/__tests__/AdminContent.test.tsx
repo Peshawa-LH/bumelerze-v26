@@ -8,6 +8,7 @@ import {
 import type { Permission } from "@/features/eventhub/types";
 
 import { AdminContent } from "../components/AdminContent";
+import type { InboxTransport } from "../inbox/transport";
 import type { AdminTransport } from "../transport";
 
 const mockPush = jest.fn();
@@ -142,6 +143,53 @@ describe("AdminContent", () => {
     expect(screen.getByText("Please approve me")).toBeTruthy();
     expect(screen.getByText("Reported text")).toBeTruthy();
     expect(screen.getByTestId("holder-u9-professor")).toBeTruthy();
+  });
+
+  it("shows the feedback inbox and felt photos rows with what is waiting (migration 0060)", async () => {
+    givePermissions([...ADMIN, "feedback.manage", "photos.moderate"]);
+    const inbox = {
+      counts: jest.fn(async () => ({
+        feedback: {
+          unseen: 2,
+          inReview: 1,
+          solved: 0,
+          wontDo: 0,
+          badgeRequestsOpen: 1,
+          appealsOpen: 0,
+        },
+        photosPending: 4,
+      })),
+    } as unknown as InboxTransport;
+    await renderWithProviders(
+      <AdminContent
+        transport={makeAdminTransport()}
+        hubTransport={mockHub}
+        inboxTransport={inbox}
+      />,
+    );
+    expect(await screen.findByTestId("admin-feedback-row")).toBeTruthy();
+    expect(await screen.findByText("3 open")).toBeTruthy();
+    expect(screen.getByText("4 waiting")).toBeTruthy();
+    await fireEvent.press(screen.getByTestId("admin-feedback-row"));
+    expect(mockPush).toHaveBeenCalledWith("/admin/feedback");
+    await fireEvent.press(screen.getByTestId("admin-photos-row"));
+    expect(mockPush).toHaveBeenCalledWith("/admin/photos");
+  });
+
+  it("gives a moderator the felt photos row but not the feedback inbox", async () => {
+    givePermissions(["comments.moderate", "photos.moderate"]);
+    const inbox = {
+      counts: jest.fn(async () => ({ feedback: null, photosPending: 0 })),
+    } as unknown as InboxTransport;
+    await renderWithProviders(
+      <AdminContent
+        transport={makeAdminTransport()}
+        hubTransport={mockHub}
+        inboxTransport={inbox}
+      />,
+    );
+    expect(await screen.findByTestId("admin-photos-row")).toBeTruthy();
+    expect(screen.queryByTestId("admin-feedback-row")).toBeNull();
   });
 
   it("shows a moderator the queue and reports, but no rank badges and no Remove", async () => {

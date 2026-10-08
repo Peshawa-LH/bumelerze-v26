@@ -1,5 +1,20 @@
 import type { HubRoleKind } from "@/features/eventhub/types";
 
+/** The rank the activity log records for the person who acted: a public rank,
+ * or the private "admin" rank (migration 0060), which is never shown on a
+ * profile or next to a name, only here and on the admin person page. */
+export type ActorRank = HubRoleKind | "admin";
+export const ACTOR_RANKS: readonly ActorRank[] = [
+  "official",
+  "admin",
+  "moderator",
+  "seismologist",
+  "professor",
+  "researcher",
+  "engineer",
+  "partner",
+];
+
 /** Ranks an admin can give or take away in the app. The official rank is
  * deliberately missing: it stays a database-only operation. */
 export const GRANTABLE_RANKS = [
@@ -91,6 +106,11 @@ export const ACTIVITY_ACTIONS = [
   { action: "person_view", content: false },
   { action: "email_reveal", content: false },
   { action: "purge", content: false },
+  // Migration 0060: feedback triage is for audit.read_all; felt photo
+  // decisions are content (the report_ prefix), so moderators read them.
+  { action: "feedback_status", content: false },
+  { action: "report_photo_approve", content: true },
+  { action: "report_photo_reject", content: true },
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number]["action"];
 
@@ -110,6 +130,9 @@ export const ACTIVITY_FILTER_ACTIONS: readonly ActivityAction[] = [
   "password_reset",
   "profile_reset",
   "purge",
+  "feedback_status",
+  "report_photo_approve",
+  "report_photo_reject",
 ];
 
 /** One row of `admin_activity()` (migration 0052). */
@@ -126,7 +149,7 @@ export interface ActivityEntry {
   actorId: string | null;
   actorName: string | null;
   actorUsername: string | null;
-  actorRank: HubRoleKind | null;
+  actorRank: ActorRank | null;
   targetType: string | null;
   targetId: string | null;
   targetUserId: string | null;

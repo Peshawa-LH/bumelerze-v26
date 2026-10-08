@@ -2426,7 +2426,10 @@
         "email_reveal": "أظهر بريداً إلكترونياً",
         "purge": "نظّف نصاً قديماً",
         "role_restore": "أعاد شارة",
-        "profile_restore": "أعاد اسمًا أو صورة"
+        "profile_restore": "أعاد اسمًا أو صورة",
+        "feedback_status": "حدّث رسالة ملاحظات",
+        "report_photo_approve": "وافق على صورة بلاغ شعور",
+        "report_photo_reject": "رفض صورة بلاغ شعور"
       },
       "undo": "تراجع"
     },
@@ -2637,6 +2640,130 @@
         "placeholder": "اكتب ملاحظة",
         "add": "إضافة ملاحظة",
         "empty": "لا ملاحظات."
+      }
+    },
+    "rank": {
+      "admin": "مدير",
+      "adminPrivate": "مدير (خاص، لا يظهر في الملف)"
+    },
+    "feedback": {
+      "title": "الملاحظات",
+      "detailTitle": "رسالة ملاحظات",
+      "hint": "الرسائل المرسلة من التطبيق وطلبات الشارات والاعتراضات. خاصة: لا تُعرض على أي شخص آخر.",
+      "openCount": "{{count}} مفتوحة",
+      "searchLabel": "البحث في الملاحظات",
+      "searchPlaceholder": "كلمات من الرسالة أو اسم أو @اسم مستخدم",
+      "counts": {
+        "unseen": "جديدة: {{count}}",
+        "inReview": "قيد المراجعة: {{count}}",
+        "badgeRequests": "طلبات شارات: {{count}}",
+        "appeals": "اعتراضات: {{count}}"
+      },
+      "statusFilter": {
+        "open": "مفتوحة",
+        "unseen": "جديدة",
+        "in_review": "قيد المراجعة",
+        "solved": "تم الحل",
+        "wont_do": "لن يُنفَّذ",
+        "all": "الكل"
+      },
+      "categoryFilter": {
+        "all": "كل الأنواع",
+        "badge_request": "طلبات الشارات",
+        "appeal": "الاعتراضات",
+        "none": "الرسائل"
+      },
+      "status": {
+        "unseen": "جديدة",
+        "in_review": "قيد المراجعة",
+        "solved": "تم الحل",
+        "wont_do": "لن يُنفَّذ"
+      },
+      "category": {
+        "badge_request": "طلب شارة",
+        "appeal": "اعتراض",
+        "bug": "خطأ",
+        "improvement": "تحسين",
+        "suggestion": "اقتراح",
+        "question": "سؤال",
+        "other": "أخرى"
+      },
+      "empty": "لا ملاحظات هنا.",
+      "noSender": "المرسل غير معروف (حُذف الحساب)",
+      "guest": "ضيف (بلا حساب)",
+      "account": "حساب",
+      "photoCount": "لقطات شاشة: {{count}}",
+      "hasNote": "عليها ملاحظة",
+      "from": "من",
+      "contact": "للتواصل: {{contact}}",
+      "version": "الإصدار {{version}}",
+      "language": "اللغة: {{language}}",
+      "noDevice": "لا تفاصيل عن التطبيق.",
+      "openPerson": "فتح الشخص",
+      "screenshots": "لقطات الشاشة",
+      "screenshotLabel": "لقطة شاشة {{number}}",
+      "appeal": {
+        "title": "اعتراض",
+        "until": "حتى {{date}}",
+        "noEnd": "بلا تاريخ انتهاء",
+        "notActive": "لم يعد ساريًا",
+        "unknown": "القيد الذي يخصه هذا الاعتراض غير متاح.",
+        "openLimited": "الحسابات المقيَّدة"
+      },
+      "badge": {
+        "title": "منح الشارة المطلوبة",
+        "orgPlaceholder": "اسم الجهة (للشركاء فقط)",
+        "grant": "منح الشارة المطلوبة",
+        "markSolved": "لديه الشارة: وضع علامة تم الحل",
+        "granted": "مُنحت الشارة وتم حل الطلب"
+      },
+      "triage": "الحالة والملاحظة",
+      "notePlaceholder": "ما الذي تقرر وما الخطوة التالية",
+      "noteLabel": "ملاحظة المراجعة",
+      "noteHint": "الملاحظة يراها المديرون فقط.",
+      "save": "حفظ",
+      "saved": "تم الحفظ",
+      "errors": {
+        "noUsername": "ليس لهذا الشخص @اسم مستخدم بعد، لذا لا يمكن منح شارة.",
+        "notBadgeRequest": "هذه الرسالة ليست طلب شارة.",
+        "guest": "ليس للمرسل حساب، لذا لا يمكن منح شارة."
+      }
+    },
+    "photos": {
+      "title": "صور بلاغات الشعور",
+      "hint": "الصور المرسلة مع بلاغات الشعور تبقى مخفية حتى تتم الموافقة عليها. لا تُعرض هنا أي مواقع أو أسماء.",
+      "pendingCount": "{{count}} بانتظار",
+      "tabs": {
+        "pending": "بانتظار",
+        "approved": "موافق عليها",
+        "rejected": "مرفوضة"
+      },
+      "empty": {
+        "pending": "لا صور بانتظار المراجعة.",
+        "approved": "لا صور موافق عليها.",
+        "rejected": "لا صور مرفوضة."
+      },
+      "intensity": "الشعور: {{level}}",
+      "reported": "أُرسل البلاغ {{date}}",
+      "decided": {
+        "approved": "تمت الموافقة {{date}} بواسطة {{name}}",
+        "rejected": "رُفضت {{date}} بواسطة {{name}}"
+      },
+      "someone": "مدير",
+      "approve": "موافقة",
+      "reject": "رفض",
+      "removeFile": "حذف الملف مرة أخرى",
+      "approved": "تمت الموافقة على الصورة",
+      "rejected": "رُفضت الصورة وحُذفت",
+      "rejectTitle": "رفض هذه الصورة؟",
+      "rejectMessage": "ستُحذف الصورة نهائيًا. يبقى بلاغ الشعور نفسه.",
+      "fileRemoved": "حُذف الملف",
+      "noImage": "تعذر تحميل الصورة.",
+      "noEvent": "لا زلزال مرتبط",
+      "photoLabel": "صورة أُرسلت مع بلاغ شعور",
+      "errors": {
+        "alreadyRejected": "هذه الصورة مرفوضة من قبل.",
+        "fileKept": "رُفضت، لكن تعذر حذف الملف بعد. افتح المرفوضة وحاول مرة أخرى."
       }
     }
   },

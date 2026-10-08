@@ -8,6 +8,9 @@ import { SettingsRow } from "@/features/account/components/SettingsRow";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { PostsTransport } from "@/features/posts/transport";
 import { useTheme } from "@/theme";
+import { formatCount } from "../people/format";
+import { useInboxCounts } from "../inbox/queries";
+import type { InboxTransport } from "../inbox/transport";
 import { useAdminAccess } from "../queries";
 import type { AdminTransport } from "../transport";
 import { ModerationQueueSection } from "./ModerationQueueSection";
@@ -18,22 +21,33 @@ import { ReportedProfilesSection } from "./ReportedProfilesSection";
 /** The hidden admin screen. Each section appears only for the permission it
  * needs (`people.view` for People, `comments.moderate` for the queue and
  * reported profiles, `badges.grant` for rank badges, `audit.read` for the
- * Activity log), and everything is hidden for people without any, so a stray
+ * Activity log, `feedback.manage` for the feedback inbox and `photos.moderate`
+ * for felt photos), and everything is hidden for people without any, so a stray
  * link shows nothing. Resetting a password lives on a person's page (People). */
 export function AdminContent({
   transport,
   hubTransport,
   postsTransport,
+  inboxTransport,
 }: {
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
   postsTransport?: PostsTransport;
+  inboxTransport?: InboxTransport;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const access = useAdminAccess(hubTransport);
+  const counts = useInboxCounts(
+    access.canManageFeedback || access.canModeratePhotos,
+    inboxTransport,
+  );
+  const openFeedback = counts.data?.feedback
+    ? counts.data.feedback.unseen + counts.data.feedback.inReview
+    : null;
+  const pendingPhotos = counts.data?.photosPending ?? null;
   const shared = {
     ...(transport ? { transport } : {}),
     ...(hubTransport ? { hubTransport } : {}),
@@ -71,6 +85,40 @@ export function AdminContent({
             onPress={() => router.push("/admin/people")}
             testID="admin-people-row"
           />
+        </SettingsGroup>
+      ) : null}
+      {access.canManageFeedback || access.canModeratePhotos ? (
+        <SettingsGroup testID="admin-inbox-group">
+          {access.canManageFeedback ? (
+            <SettingsRow
+              icon="mail-unread-outline"
+              label={t("admin.feedback.title")}
+              value={
+                openFeedback !== null && openFeedback > 0
+                  ? t("admin.feedback.openCount", {
+                      count: formatCount(openFeedback, i18n.language),
+                    })
+                  : null
+              }
+              onPress={() => router.push("/admin/feedback")}
+              testID="admin-feedback-row"
+            />
+          ) : null}
+          {access.canModeratePhotos ? (
+            <SettingsRow
+              icon="images-outline"
+              label={t("admin.photos.title")}
+              value={
+                pendingPhotos !== null && pendingPhotos > 0
+                  ? t("admin.photos.pendingCount", {
+                      count: formatCount(pendingPhotos, i18n.language),
+                    })
+                  : null
+              }
+              onPress={() => router.push("/admin/photos")}
+              testID="admin-photos-row"
+            />
+          ) : null}
         </SettingsGroup>
       ) : null}
       {access.canModerate ? (

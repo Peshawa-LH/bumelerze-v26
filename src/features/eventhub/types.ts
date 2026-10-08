@@ -44,6 +44,10 @@ export const PERMISSIONS = [
   "people.view",
   "people.view_email",
   "people.view_guests",
+  // Migration 0060: the feedback inbox (official and the private admin rank)
+  // and the felt photo queue (also moderators).
+  "feedback.manage",
+  "photos.moderate",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 

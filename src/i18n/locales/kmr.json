@@ -2426,7 +2426,10 @@
         "email_reveal": "E-nameyek nîşan da",
         "purge": "Nivîsa kevn paqij kir",
         "role_restore": "Nîşanek vegerand",
-        "profile_restore": "Nav an wêneyek vegerand"
+        "profile_restore": "Nav an wêneyek vegerand",
+        "feedback_status": "Peyameke nêrînê nû kir",
+        "report_photo_approve": "Wêneyekî hestpêkirinê pejirand",
+        "report_photo_reject": "Wêneyekî hestpêkirinê red kir"
       },
       "undo": "Vegerîne"
     },
@@ -2637,6 +2640,130 @@
         "placeholder": "Nîşeyekê binivîse",
         "add": "Nîşe lê zêde bike",
         "empty": "Nîşe tune."
+      }
+    },
+    "rank": {
+      "admin": "Admîn",
+      "adminPrivate": "Admîn (taybet, li profîlê nayê nîşandan)"
+    },
+    "feedback": {
+      "title": "Nêrîn",
+      "detailTitle": "Peyama nêrînê",
+      "hint": "Peyamên ji sepanê hatine şandin, daxwazên nîşanê û îtiraz. Taybet in: ji kesî din re nayên nîşandan.",
+      "openCount": "{{count}} vekirî",
+      "searchLabel": "Di nêrînan de bigere",
+      "searchPlaceholder": "Peyvên di peyamê de, nav an @navê bikarhêner",
+      "counts": {
+        "unseen": "Nû: {{count}}",
+        "inReview": "Di nirxandinê de: {{count}}",
+        "badgeRequests": "Daxwazên nîşanê: {{count}}",
+        "appeals": "Îtiraz: {{count}}"
+      },
+      "statusFilter": {
+        "open": "Vekirî",
+        "unseen": "Nû",
+        "in_review": "Di nirxandinê de",
+        "solved": "Çareserkirî",
+        "wont_do": "Nayê kirin",
+        "all": "Hemû"
+      },
+      "categoryFilter": {
+        "all": "Hemû cure",
+        "badge_request": "Daxwazên nîşanê",
+        "appeal": "Îtiraz",
+        "none": "Peyam"
+      },
+      "status": {
+        "unseen": "Nû",
+        "in_review": "Di nirxandinê de",
+        "solved": "Çareserkirî",
+        "wont_do": "Nayê kirin"
+      },
+      "category": {
+        "badge_request": "Daxwaza nîşanê",
+        "appeal": "Îtiraz",
+        "bug": "Çewtî",
+        "improvement": "Başkirin",
+        "suggestion": "Pêşniyar",
+        "question": "Pirs",
+        "other": "Din"
+      },
+      "empty": "Li vir nêrîn tune.",
+      "noSender": "Şander nenas e (hesab hatiye jêbirin)",
+      "guest": "Mêvan (bê hesab)",
+      "account": "Hesab",
+      "photoCount": "Wêneyên ekranê: {{count}}",
+      "hasNote": "Not heye",
+      "from": "Ji",
+      "contact": "Têkilî: {{contact}}",
+      "version": "Guhertoya {{version}}",
+      "language": "Ziman: {{language}}",
+      "noDevice": "Agahiyên sepanê tune.",
+      "openPerson": "Kesî veke",
+      "screenshots": "Wêneyên ekranê",
+      "screenshotLabel": "Wêneya ekranê {{number}}",
+      "appeal": {
+        "title": "Îtiraz",
+        "until": "Heta {{date}}",
+        "noEnd": "Bê dîroka dawiyê",
+        "notActive": "Êdî ne di meriyetê de ye",
+        "unknown": "Sînorê ku ev îtiraz li ser e ne berdest e.",
+        "openLimited": "Hesabên sînordar"
+      },
+      "badge": {
+        "title": "Nîşana xwestî bide",
+        "orgPlaceholder": "Navê rêxistinê (tenê hevkar)",
+        "grant": "Nîşana xwestî bide",
+        "markSolved": "Jixwe heye: wek çareserkirî nîşan bide",
+        "granted": "Nîşan hate dayîn û daxwaz çareser bû"
+      },
+      "triage": "Rewş û not",
+      "notePlaceholder": "Çi hate biryardan, paşê çi were kirin",
+      "noteLabel": "Nota nirxandinê",
+      "noteHint": "Tenê admîn notê dibînin.",
+      "save": "Tomar bike",
+      "saved": "Hate tomarkirin",
+      "errors": {
+        "noUsername": "Ev kes hê @navê bikarhêner tune, ji ber vê nîşan nayê dayîn.",
+        "notBadgeRequest": "Ev peyam ne daxwaza nîşanê ye.",
+        "guest": "Şander hesab tune, ji ber vê nîşan nayê dayîn."
+      }
+    },
+    "photos": {
+      "title": "Wêneyên hestpêkirinê",
+      "hint": "Wêneyên bi raporên hestpêkirinê re hatine şandin veşartî dimînin heta ku bên pejirandin. Li vir cih û nav nayên nîşandan.",
+      "pendingCount": "{{count}} li bendê",
+      "tabs": {
+        "pending": "Li bendê",
+        "approved": "Pejirandî",
+        "rejected": "Redkirî"
+      },
+      "empty": {
+        "pending": "Wêne li bendê tune.",
+        "approved": "Wêneyên pejirandî tune.",
+        "rejected": "Wêneyên redkirî tune."
+      },
+      "intensity": "Hestpêkirin: {{level}}",
+      "reported": "Rapor hate şandin {{date}}",
+      "decided": {
+        "approved": "Hate pejirandin {{date}} ji aliyê {{name}}",
+        "rejected": "Hate redkirin {{date}} ji aliyê {{name}}"
+      },
+      "someone": "admînek",
+      "approve": "Bipejirîne",
+      "reject": "Red bike",
+      "removeFile": "Pelê dîsa jê bibe",
+      "approved": "Wêne hate pejirandin",
+      "rejected": "Wêne hate redkirin û jêbirin",
+      "rejectTitle": "Vî wêneyî red bikî?",
+      "rejectMessage": "Wêne bi temamî tê jêbirin. Rapora hestpêkirinê bi xwe dimîne.",
+      "fileRemoved": "Pel hate jêbirin",
+      "noImage": "Wêne nehate barkirin.",
+      "noEvent": "Erdhej girêdayî tune",
+      "photoLabel": "Wêneyê bi rapora hestpêkirinê re hatiye şandin",
+      "errors": {
+        "alreadyRejected": "Ev wêne jixwe hatiye redkirin.",
+        "fileKept": "Hate redkirin, lê pel hê nehatiye jêbirin. Redkirî veke û dîsa biceribîne."
       }
     }
   },

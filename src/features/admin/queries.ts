@@ -58,6 +58,10 @@ export interface AdminAccess {
   canViewEmail: boolean;
   /** Sees the guest installs (`people.view_guests`, official). */
   canViewGuests: boolean;
+  /** Reads and triages feedback (`feedback.manage`, migration 0060). */
+  canManageFeedback: boolean;
+  /** Approves or rejects felt-report photos (`photos.moderate`, 0060). */
+  canModeratePhotos: boolean;
   /** Any admin tool at all: the entry in My account shows when true. */
   any: boolean;
   /** Permissions still loading: show nothing yet rather than "not allowed". */
@@ -85,7 +89,11 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
   const canViewPeople = server && perms.has("people.view");
   const canViewEmail = server && perms.has("people.view_email");
   const canViewGuests = server && perms.has("people.view_guests");
+  const canManageFeedback = server && perms.has("feedback.manage");
+  const canModeratePhotos = server && perms.has("photos.moderate");
   return {
+    canManageFeedback,
+    canModeratePhotos,
     canViewPeople,
     canViewEmail,
     canViewGuests,
@@ -99,7 +107,14 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
     canResetPasswords,
     canAudit,
     canAuditAll,
-    any: canModerate || canGrant || canAudit || canRestrict || canViewPeople,
+    any:
+      canModerate ||
+      canGrant ||
+      canAudit ||
+      canRestrict ||
+      canViewPeople ||
+      canManageFeedback ||
+      canModeratePhotos,
     isLoading: perms.isLoading,
     has: (permission) => server && perms.has(permission),
   };

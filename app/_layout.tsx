@@ -216,6 +216,9 @@ export default function RootLayout() {
                 <Stack.Screen name="admin/limited" />
                 <Stack.Screen name="admin/people" />
                 <Stack.Screen name="admin/person/[id]" />
+                <Stack.Screen name="admin/feedback/index" />
+                <Stack.Screen name="admin/feedback/[id]" />
+                <Stack.Screen name="admin/photos" />
                 <Stack.Screen name="home/new" />
                 <Stack.Screen name="home/join" />
                 <Stack.Screen name="home/[tagId]/report" />

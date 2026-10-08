@@ -152,7 +152,13 @@ describe("Admin > People > person", () => {
       expect(screen.getByTestId("person-felt-fr1")).toHaveTextContent(/bml2026aa · Level 5/);
       expect(screen.getByText("I felt it strongly")).toBeTruthy();
       expect(screen.getByText("Hello from Duhok")).toBeTruthy();
-      expect(screen.getByTestId("person-feedback-fb1")).toHaveTextContent(/bug · unseen/);
+      expect(screen.getByTestId("person-feedback-fb1")).toHaveTextContent(/Bug · New/);
+    });
+
+    it("links a feedback message to the inbox for feedback.manage", async () => {
+      await render([...OFFICIAL, "feedback.manage"], fakePeopleTransport());
+      await fireEvent.press(await screen.findByTestId("person-feedback-fb1"));
+      expect(mockPush).toHaveBeenCalledWith("/admin/feedback/fb1");
     });
 
     it("shows an author-deleted comment without its text", async () => {
@@ -277,6 +283,37 @@ describe("Admin > People > person", () => {
       await screen.findByTestId("person-name");
       expect(screen.queryByTestId("person-action-limit")).toBeNull();
       expect(screen.queryByTestId("person-action-reset")).toBeNull();
+    });
+
+    it("protects by permission: a private admin (no public rank) cannot be limited or reset, and is marked for staff", async () => {
+      await render(
+        OFFICIAL,
+        fakePeopleTransport({
+          person: detail({ flags: { privateAdmin: true, protected: true, resetsPasswords: true } }),
+        }),
+      );
+      await screen.findByTestId("person-name");
+      expect(screen.getByTestId("person-private-admin")).toHaveTextContent(/Admin \(private/);
+      expect(screen.queryByTestId("person-action-limit")).toBeNull();
+      expect(screen.queryByTestId("person-action-reset")).toBeNull();
+      expect(screen.queryByTestId("person-action-password")).toBeNull();
+    });
+
+    it("the server's flags win over the public ranks", async () => {
+      const base = detail();
+      await render(
+        OFFICIAL,
+        fakePeopleTransport({
+          person: detail({
+            identity: { ...base.identity, ranks: [{ role: "seismologist", orgName: null }] },
+            flags: { privateAdmin: false, protected: false, resetsPasswords: false },
+          }),
+        }),
+      );
+      await screen.findByTestId("person-name");
+      expect(screen.queryByTestId("person-private-admin")).toBeNull();
+      expect(screen.getByTestId("person-action-limit")).toBeTruthy();
+      expect(screen.getByTestId("person-action-password")).toBeTruthy();
     });
 
     it("badges need an @username", async () => {

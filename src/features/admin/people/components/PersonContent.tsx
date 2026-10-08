@@ -193,8 +193,15 @@ function PersonBody({
   } as const;
 
   const isAccount = id.kind === "account";
-  // ranks that carry admin powers: never limited, reset or password-reset by others
-  const protectedAccount = id.ranks.some((r) => r.role === "official" || r.role === "moderator");
+  // Who is protected is decided by permission (migration 0060's flags), so the
+  // private admin rank counts too. An older server: the public ranks.
+  const flags = data.flags ?? null;
+  const protectedAccount = flags
+    ? flags.protected
+    : id.ranks.some((r) => r.role === "official" || r.role === "moderator");
+  const targetResetsPasswords = flags
+    ? flags.resetsPasswords
+    : id.ranks.some((r) => r.role === "official");
   const activeLimits = data.restrictions.filter(
     (r) => r.active && (r.level !== "suspend" || access.canSuspend),
   );
@@ -202,7 +209,7 @@ function PersonBody({
   const canResetPassword =
     access.canResetPasswords &&
     isAccount &&
-    !(protectedAccount && !isSelf && id.ranks.some((r) => r.role === "official"));
+    !(targetResetsPasswords && !isSelf);
   const canResetFields =
     access.canRestrict && isAccount && !isSelf && !protectedAccount &&
     (id.displayName !== null || id.avatarPath !== null);
@@ -326,6 +333,11 @@ function PersonBody({
           ) : null}
           <View style={[styles.nameRow, { gap: spacing[2] }]}>
             <StatusChip status={id.status} testID="person-status" />
+            {flags?.privateAdmin ? (
+              <Text style={[meta, { fontWeight: "600" }]} testID="person-private-admin">
+                {t("admin.rank.adminPrivate")}
+              </Text>
+            ) : null}
             <Text style={meta} testID="person-kind">
               {t(id.kind === "guest" ? "admin.people.guestKind" : "admin.people.accountKind")}
             </Text>
@@ -603,11 +615,29 @@ function PersonBody({
           ))}
         </ListBlock>
         <ListBlock title={t("admin.person.recent.feedback")} empty={data.recent.feedback.length === 0} testID="person-recent-feedback">
-          {data.recent.feedback.map((f) => (
-            <Text key={f.feedbackId} style={meta} testID={`person-feedback-${f.feedbackId}`}>
-              {[date(f.createdAt), f.category, f.status].filter(Boolean).join(" · ")}
-            </Text>
-          ))}
+          {data.recent.feedback.map((f) => {
+            const label = [
+              date(f.createdAt),
+              f.category
+                ? t(`admin.feedback.category.${f.category}`, { defaultValue: f.category })
+                : null,
+              f.status ? t(`admin.feedback.status.${f.status}`, { defaultValue: f.status }) : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+            return access.canManageFeedback ? (
+              <ActionButton
+                key={f.feedbackId}
+                label={label}
+                onPress={() => router.push(`/admin/feedback/${f.feedbackId}`)}
+                testID={`person-feedback-${f.feedbackId}`}
+              />
+            ) : (
+              <Text key={f.feedbackId} style={meta} testID={`person-feedback-${f.feedbackId}`}>
+                {label}
+              </Text>
+            );
+          })}
         </ListBlock>
       </Section>
 

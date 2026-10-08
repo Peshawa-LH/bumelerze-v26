@@ -72,9 +72,11 @@ export function ActivityRow({
       <Text style={meta} testID={`activity-actor-${entry.id}`}>
         {[
           t("admin.activity.by", { name: actor }),
-          entry.actorRank
-            ? t(`eventHub.roles.${entry.actorRank}`, { defaultValue: entry.actorRank })
-            : null,
+          entry.actorRank === "admin"
+            ? t("admin.rank.admin")
+            : entry.actorRank
+              ? t(`eventHub.roles.${entry.actorRank}`, { defaultValue: entry.actorRank })
+              : null,
         ]
           .filter(Boolean)
           .join(" · ")}
@@ -108,6 +110,9 @@ function reasonText(entry: ActivityEntry, t: TFunction): string | null {
   const reason = entry.reason;
   if (!reason) {
     return null;
+  }
+  if (entry.action === "feedback_status") {
+    return t(`admin.feedback.status.${reason}`, { defaultValue: reason });
   }
   if (entry.action === "role_grant" || entry.action === "role_revoke") {
     return t(`eventHub.roles.${reason}`, { defaultValue: reason });

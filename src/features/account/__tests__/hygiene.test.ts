@@ -45,6 +45,16 @@ const NEW_FILES = [
   ...listFiles("src/features/admin/people", [".ts", ".tsx"]).filter(
     (f) => !f.includes("__tests__") && !f.includes("__fixtures__"),
   ),
+  // the feedback inbox and the felt photo queue (migration 0060)
+  ...listFiles("src/features/admin/inbox", [".ts", ".tsx"]).filter(
+    (f) => !f.includes("__tests__"),
+  ),
+  ...listFiles("src/features/admin/photos", [".ts", ".tsx"]).filter(
+    (f) => !f.includes("__tests__"),
+  ),
+  "app/admin/feedback/index.tsx",
+  "app/admin/feedback/[id].tsx",
+  "app/admin/photos.tsx",
   "src/features/presence/touch.ts",
   "app/account/sign-in.tsx",
   "app/account/password.tsx",

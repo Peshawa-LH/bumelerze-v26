@@ -243,6 +243,17 @@ export interface PersonRestriction {
   active: boolean;
 }
 
+/** `admin_person_flags()` (migration 0060): what the person's ranks allow,
+ * public or private. Decides protection by permission, not by rank name. */
+export interface PersonFlags {
+  /** Holds the private "admin" rank (never shown on a profile). */
+  privateAdmin: boolean;
+  /** Holds any admin permission: cannot be limited or have a name or photo reset. */
+  protected: boolean;
+  /** Holds `accounts.reset_password`: nobody else may reset their password. */
+  resetsPasswords: boolean;
+}
+
 /** `admin_person()`. The history (audit rows) comes from `admin_activity`. */
 export interface PersonDetail {
   identity: PersonIdentity;
@@ -256,6 +267,9 @@ export interface PersonDetail {
     feedback: RecentFeedback[];
   };
   restrictions: PersonRestriction[];
+  /** Null when the server predates migration 0060 (the page then falls back
+   * to the public ranks). */
+  flags?: PersonFlags | null;
 }
 
 export interface PersonNote {

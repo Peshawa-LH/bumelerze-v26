@@ -453,6 +453,59 @@ function ActionProbe({ id }: { id: string }) {
   return <Text testID={`probe-${id}`}>Undo</Text>;
 }
 
+describe("Admin > Activity: personal admin accounts (migration 0060)", () => {
+  beforeEach(async () => {
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(cleanup);
+
+  it("names the real person and the private admin rank", async () => {
+    await renderWithProviders(
+      <ActivityRow
+        entry={entry(1, {
+          actorName: "Peshawa",
+          actorUsername: "peshawa",
+          actorRank: "admin",
+        })}
+      />,
+    );
+    expect(screen.getByTestId("activity-actor-l1")).toHaveTextContent(
+      "By Peshawa · Admin",
+    );
+  });
+
+  it("words feedback and felt photo actions", async () => {
+    await renderWithProviders(
+      <>
+        <ActivityRow
+          entry={entry(1, {
+            action: "feedback_status",
+            targetType: "feedback",
+            reason: "wont_do",
+          })}
+        />
+        <ActivityRow
+          entry={entry(2, {
+            action: "report_photo_reject",
+            targetType: "felt_photo",
+            targetUserId: null,
+            reason: null,
+          })}
+        />
+      </>,
+    );
+    expect(screen.getByTestId("activity-action-l1")).toHaveTextContent(
+      "Updated a feedback message",
+    );
+    expect(screen.getByText("Won't do")).toBeTruthy();
+    expect(screen.getByTestId("activity-action-l2")).toHaveTextContent(
+      "Rejected a felt photo",
+    );
+  });
+});
+
 describe("Admin > Activity: Undo (migration 0053)", () => {
   const FULL: Permission[] = [...OFFICIAL, "posts.delete", "content.restore"];
 

@@ -5,6 +5,7 @@ import { CommunityError } from "@/features/community/types";
 import { HUB_ROLE_KINDS } from "@/features/eventhub/types";
 import { getSupabaseClient } from "@/lib/supabase";
 import {
+  ACTOR_RANKS,
   ACTIVITY_PAGE_SIZE,
   HIDDEN_PAGE_SIZE,
   type ActivityEntry,
@@ -237,7 +238,7 @@ export function parseActivity(data: unknown): ActivityEntry[] {
       actorId: d.actor_id ?? null,
       actorName: d.actor_name ?? null,
       actorUsername: d.actor_username ?? null,
-      actorRank: HUB_ROLE_KINDS.find((kind) => kind === d.actor_rank) ?? null,
+      actorRank: ACTOR_RANKS.find((kind) => kind === d.actor_rank) ?? null,
       targetType: d.target_type ?? null,
       targetId: d.target_id ?? null,
       targetUserId: d.target_user_id ?? null,

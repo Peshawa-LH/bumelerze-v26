@@ -6,6 +6,7 @@ import {
   parsePeoplePage,
   parsePeopleStats,
   parsePersonDetail,
+  parsePersonFlags,
   parsePersonRow,
 } from "../transport";
 import { NO_FILTERS } from "../types";
@@ -249,5 +250,37 @@ describe("SupabasePeopleTransport", () => {
     await expect(SupabasePeopleTransport.person("u1")).rejects.toMatchObject({ code: "not_found" });
     mockRpc.mockResolvedValue({ data: null, error: { message: "admin_people_stats: not_allowed", code: "42501" } });
     await expect(SupabasePeopleTransport.stats()).rejects.toMatchObject({ code: "forbidden" });
+  });
+});
+
+describe("person flags (migration 0060)", () => {
+  it("reads the private admin rank and the protection", () => {
+    expect(parsePersonFlags({ admin_rank: true, protected: true, resets_passwords: true })).toEqual({
+      privateAdmin: true,
+      protected: true,
+      resetsPasswords: true,
+    });
+    expect(parsePersonFlags(null)).toBeNull();
+  });
+
+  it("fetches the flags with the person, and falls back to none on an older server", async () => {
+    const raw = {
+      identity: { user_id: "u1", kind: "account", ranks: [], status: "active" },
+    };
+    mockRpc.mockImplementation(async (name: string) =>
+      name === "admin_person"
+        ? { data: raw, error: null }
+        : { data: { admin_rank: true, protected: true, resets_passwords: false }, error: null },
+    );
+    const withFlags = await SupabasePeopleTransport.person("u1");
+    expect(mockRpc).toHaveBeenCalledWith("admin_person_flags", { p_user_id: "u1" });
+    expect(withFlags.flags).toEqual({ privateAdmin: true, protected: true, resetsPasswords: false });
+    mockRpc.mockImplementation(async (name: string) =>
+      name === "admin_person"
+        ? { data: raw, error: null }
+        : { data: null, error: { code: "PGRST202", message: "missing" } },
+    );
+    expect((await SupabasePeopleTransport.person("u1")).flags).toBeNull();
+    mockRpc.mockReset();
   });
 });
