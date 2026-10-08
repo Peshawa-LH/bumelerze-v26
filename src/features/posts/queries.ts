@@ -1,6 +1,7 @@
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
   type InfiniteData,
 } from "@tanstack/react-query";
@@ -26,6 +27,8 @@ const NOT_PERSISTED = { persist: false } as const;
 export const postsKeys = {
   of: (profileUserId: string, viewer: string, includeRemoved: boolean) =>
     ["community", "posts", profileUserId, viewer, includeRemoved] as const,
+  one: (profileUserId: string, postId: string, viewer: string) =>
+    ["community", "post", profileUserId, postId, viewer] as const,
 };
 
 function retryOnce(failureCount: number, error: unknown): boolean {
@@ -91,6 +94,26 @@ export function usePosts(
   };
 }
 
+/** The pinned post of a profile (migration 0058), or null. Fetched on its
+ * own because it may be older than the first page. */
+export function usePinnedPost(
+  profileUserId: string,
+  postId: string | null,
+  transport: PostsTransport = SupabasePostsTransport,
+): { post: ProfilePost | null; updatedAt: number } {
+  const account = useAccount();
+  const viewer = account.userId ?? "none";
+  const query = useQuery({
+    queryKey: postsKeys.one(profileUserId, postId ?? "", viewer),
+    queryFn: () => transport.fetchPost(profileUserId, postId as string),
+    enabled: isSupabaseConfigured() && postId !== null,
+    staleTime: 30_000,
+    retry: retryOnce,
+    meta: NOT_PERSISTED,
+  });
+  return { post: postId ? (query.data ?? null) : null, updatedAt: query.dataUpdatedAt };
+}
+
 /** Whether the viewer may remove anyone's post (`posts.delete`, official). */
 export function useCanRemovePosts(hubTransport?: EventHubTransport): boolean {
   const account = useAccount();
@@ -102,6 +125,17 @@ export function useCanRemovePosts(hubTransport?: EventHubTransport): boolean {
 
 export interface PostActions {
   create: (userId: string, body: string) => Promise<void>;
+  /** The author's own edit; rejects with `edit_locked` while reported. */
+  edit: (postId: string, body: string) => Promise<void>;
+  /** Marks or unmarks "Helpful"; resolves with the count the viewer may see. */
+  setHelpful: (
+    postId: string,
+    helpful: boolean,
+  ) => Promise<{ helpful: boolean; count: number }>;
+  /** Pins a post of mine to the top of my profile; null unpins. */
+  setPinned: (postId: string | null) => Promise<void>;
+  /** Shares an earthquake to my profile (an event card with optional text). */
+  shareEvent: (eventRef: string, text: string) => Promise<string>;
   remove: (postId: string) => Promise<void>;
   /** The Undo of my own delete (24 hours). */
   restore: (postId: string) => Promise<void>;
@@ -135,6 +169,25 @@ export function usePostActions(
     mutationFn: (postId: string) => transport.deletePost(postId),
     onSuccess: refresh,
   });
+  const edit = useMutation({
+    mutationFn: (input: { postId: string; body: string }) =>
+      transport.editPost(input.postId, input.body),
+    onSuccess: refresh,
+  });
+  const helpful = useMutation({
+    mutationFn: (input: { postId: string; helpful: boolean }) =>
+      transport.setHelpful(input.postId, input.helpful),
+    onSuccess: refresh,
+  });
+  const pin = useMutation({
+    mutationFn: (postId: string | null) => transport.setPinned(postId),
+    onSuccess: refresh,
+  });
+  const share = useMutation({
+    mutationFn: (input: { eventRef: string; text: string }) =>
+      transport.shareEvent(input.eventRef, input.text),
+    onSuccess: refresh,
+  });
   const restore = useMutation({
     mutationFn: (postId: string) => transport.restorePost(postId),
     onSuccess: refresh,
@@ -158,6 +211,10 @@ export function usePostActions(
 
   return {
     create: (userId, body) => create.mutateAsync({ userId, body }),
+    edit: (postId, body) => edit.mutateAsync({ postId, body }),
+    setHelpful: (postId, value) => helpful.mutateAsync({ postId, helpful: value }),
+    setPinned: (postId) => pin.mutateAsync(postId),
+    shareEvent: (eventRef, text) => share.mutateAsync({ eventRef, text }),
     remove: (postId) => remove.mutateAsync(postId),
     restore: (postId) => restore.mutateAsync(postId),
     adminRestore: (postId) => adminRestore.mutateAsync(postId),

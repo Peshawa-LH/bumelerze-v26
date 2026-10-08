@@ -62,6 +62,17 @@ export type AccountErrorCode =
   | "username_reserved"
   | "name_reserved"
   | "oauth_unavailable"
+  /** Migration 0058: the bio has a link, or is too long. */
+  | "bio_link"
+  | "bio_too_long"
+  /** The city label is not a place from the list. */
+  | "city_invalid"
+  /** @username already changed in the last 30 days. */
+  | "username_change_limit"
+  /** Display name changed 5 times in the last 30 days. */
+  | "name_change_limit"
+  /** The account is restricted or suspended (0054). */
+  | "restricted"
   | "unknown";
 
 export class AccountError extends Error {

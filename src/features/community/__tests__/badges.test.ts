@@ -19,6 +19,9 @@ function profile(
     suspended: false,
     details: {
       memberSince: null,
+      bio: null,
+      city: null,
+      pinnedPostId: null,
       followers: 0,
       following: 0,
       comments: 0,

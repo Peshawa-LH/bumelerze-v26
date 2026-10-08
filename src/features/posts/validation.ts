@@ -1,4 +1,4 @@
-import { POST_MAX_LENGTH } from "./constants";
+import { EVENT_POST_MAX_LENGTH, POST_MAX_LENGTH } from "./constants";
 
 export type PostBodyProblem = "empty" | "too_long";
 
@@ -14,4 +14,17 @@ export function validatePostBody(text: string): PostBodyProblem | null {
     return "too_long";
   }
   return null;
+}
+
+/** The text of an earthquake shared to a profile: optional, at most 280. */
+export function validateEventPostText(text: string): PostBodyProblem | null {
+  return text.trim().length > EVENT_POST_MAX_LENGTH ? "too_long" : null;
+}
+
+/** The rule for an edit, which depends on the kind of post. */
+export function validatePostEdit(
+  text: string,
+  kind: "text" | "event",
+): PostBodyProblem | null {
+  return kind === "event" ? validateEventPostText(text) : validatePostBody(text);
 }

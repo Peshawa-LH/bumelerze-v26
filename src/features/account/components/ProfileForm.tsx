@@ -12,7 +12,18 @@ import {
   suggestUsername,
 } from "@/features/community/username";
 import { USERNAME_MAX } from "@/features/community/constants";
+import { formatDateOnly, isolateNumeric } from "@/features/events/format";
+import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
+import { placeDisplayName, type Place } from "@/features/geo/place-search";
+import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
+import {
+  BIO_MAX_LENGTH,
+  normalizeBio,
+  validateBio,
+  type CityLabel,
+  type ProfileAbout,
+} from "../about";
 import {
   DISPLAY_NAME_MAX,
   PRIVACY_URL,
@@ -32,16 +43,50 @@ import { Avatar } from "./Avatar";
 interface ProfileFormProps {
   profile: Profile | null;
   privateProfile: PrivateProfile | null;
+  /** Bio, city and the name-change allowance (migration 0058). `undefined`
+   * when the server does not have them yet: the fields are then hidden.
+   * `null` when ready but there is no profile yet (a new account). */
+  about?: ProfileAbout | null | undefined;
+  /** Clock for "can change again on" (tests). */
+  nowMs?: number;
+  /** After a successful save, before closing (the screen refreshes caches). */
+  onSaved?: () => void;
 }
 
 /** Create / edit profile. Name is required (2-40), photo and profession are
  * optional, profession is private. Terms consent is required; research use
  * is a separate optional checkbox. Initial values come from props, so the
  * parent mounts this only once the stored rows have loaded. */
-export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
+export function ProfileForm({
+  profile,
+  privateProfile,
+  about,
+  nowMs,
+  onSaved,
+}: ProfileFormProps) {
   const { t, i18n } = useTranslation();
+  // "Can change again on" is compared with the time the form opened.
+  const [openedAt] = useState(() => Date.now());
+  const now = nowMs ?? openedAt;
   const { colors, typography, spacing } = useTheme();
   const router = useRouter();
+  const locale = i18n.language;
+  const aboutReady = about !== undefined;
+  const [bio, setBio] = useState(about?.bio ?? "");
+  const [city, setCity] = useState<CityLabel | null>(about?.city ?? null);
+  const [pickingCity, setPickingCity] = useState(false);
+  const bioProblem = aboutReady ? validateBio(bio) : null;
+  // Name-change limits (0058): the server enforces them; this only says so
+  // before anyone types a name that cannot be saved.
+  const usernameLockedUntil =
+    profile?.username && about?.usernameNextChangeAt && about.usernameNextChangeAt > now
+      ? about.usernameNextChangeAt
+      : null;
+  const nameChangesLeft = about ? about.displayNameChangesLeft : null;
+  const nameLockedUntil =
+    nameChangesLeft === 0 && about?.displayNameNextChangeAt
+      ? about.displayNameNextChangeAt
+      : null;
 
   const [name, setName] = useState(profile?.displayName ?? "");
   const [profession, setProfession] = useState<Profession | null>(
@@ -123,7 +168,7 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
   }
 
   async function handleSave() {
-    if (!validation.valid || saving) {
+    if (!validation.valid || saving || bioProblem !== null) {
       return;
     }
     setSaving(true);
@@ -139,9 +184,11 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
           ? { username: typedUsername, isPrivate, hideBadges: !showBadges }
           : {}),
         locale: i18n.language,
-        previous: { profile, privateProfile },
+        ...(aboutReady ? { about: { bio, city } } : {}),
+        previous: { profile, privateProfile, about: about ?? null },
       });
       await refreshProfile();
+      onSaved?.();
       router.back();
     } catch (error) {
       setErrorText(accountErrorText(t, error));
@@ -169,6 +216,7 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
           value={name}
           onChangeText={setName}
           maxLength={DISPLAY_NAME_MAX}
+          editable={nameLockedUntil === null}
           accessibilityLabel={t("account.profile.nameLabel")}
           autoCapitalize="words"
           autoComplete="name"
@@ -195,6 +243,20 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
         >
           {t("account.profile.nameHint")}
         </Text>
+        {nameLockedUntil !== null ? (
+          <Text style={meta} testID="profile-name-limit">
+            {t("account.profile.nameLocked", {
+              date: formatDateOnly(nameLockedUntil, locale, t),
+            })}
+          </Text>
+        ) : nameChangesLeft !== null && nameChangesLeft <= 2 ? (
+          <Text style={meta} testID="profile-name-limit">
+            {t("account.profile.nameChangesLeft", {
+              count: nameChangesLeft,
+              number: localizeDigits(String(nameChangesLeft), locale),
+            })}
+          </Text>
+        ) : null}
       </View>
 
       {communityReady ? (
@@ -204,6 +266,7 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
             value={username}
             onChangeText={setUsername}
             maxLength={USERNAME_MAX + 1}
+            editable={usernameLockedUntil === null}
             accessibilityLabel={t("account.profile.usernameLabel")}
             autoCapitalize="none"
             autoCorrect={false}
@@ -249,6 +312,17 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
                     ? t("account.profile.usernameAvailable")
                     : t("account.profile.usernameHint")}
           </Text>
+          {usernameLockedUntil !== null ? (
+            <Text style={meta} testID="profile-username-limit">
+              {t("account.profile.usernameLocked", {
+                date: formatDateOnly(usernameLockedUntil, locale, t),
+              })}
+            </Text>
+          ) : profile?.username && aboutReady ? (
+            <Text style={meta} testID="profile-username-limit">
+              {t("account.profile.usernameOncePerMonth")}
+            </Text>
+          ) : null}
           {username.trim() === "" && suggestion ? (
             <Chip
               text={t("account.profile.usernameSuggest", {
@@ -257,6 +331,99 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
               selected={false}
               onPress={() => setUsername(suggestion)}
               testID="profile-username-suggest"
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {aboutReady ? (
+        <View style={{ gap: spacing[2] }}>
+          <Text style={label}>{t("account.profile.bioLabel")}</Text>
+          <TextInput
+            value={bio}
+            onChangeText={setBio}
+            multiline
+            maxLength={BIO_MAX_LENGTH + 40}
+            accessibilityLabel={t("account.profile.bioLabel")}
+            placeholder={t("account.profile.bioPlaceholder")}
+            placeholderTextColor={colors.text.tertiary}
+            textAlignVertical="top"
+            style={[
+              styles.input,
+              styles.bio,
+              {
+                color: colors.text.primary,
+                borderColor: bioProblem ? colors.status.danger : colors.border.default,
+                backgroundColor: colors.surface.raised,
+                fontSize: typography.bodyDefault.fontSize,
+                padding: spacing[3],
+                textAlign: "auto",
+              },
+            ]}
+            testID="profile-bio-input"
+          />
+          <Text
+            style={[meta, bioProblem ? { color: colors.status.danger } : null]}
+            accessibilityLiveRegion="polite"
+            testID="profile-bio-status"
+          >
+            {bioProblem
+              ? t(`account.errors.${bioProblem}`)
+              : `${t("account.profile.bioHint")} ${isolateNumeric(
+                  `${localizeDigits(String(normalizeBio(bio).length), locale)}/${localizeDigits(
+                    String(BIO_MAX_LENGTH),
+                    locale,
+                  )}`,
+                )}`}
+          </Text>
+        </View>
+      ) : null}
+
+      {aboutReady ? (
+        <View style={{ gap: spacing[2] }}>
+          <Text style={label}>{t("account.profile.cityLabel")}</Text>
+          <Text style={meta}>{t("account.profile.cityHint")}</Text>
+          {city ? (
+            <Text
+              style={{
+                color: colors.text.primary,
+                fontSize: typography.bodyDefault.fontSize,
+              }}
+              testID="profile-city-value"
+            >
+              {t("community.profile.livesIn", { place: city.name })}
+            </Text>
+          ) : null}
+          <View style={[styles.chips, { gap: spacing[2] }]}>
+            <Chip
+              text={
+                city ? t("account.profile.cityChange") : t("account.profile.cityChoose")
+              }
+              selected={false}
+              onPress={() => setPickingCity((value) => !value)}
+              testID="profile-city-choose"
+            />
+            {city ? (
+              <Chip
+                text={t("account.profile.cityRemove")}
+                selected={false}
+                onPress={() => {
+                  setCity(null);
+                  setPickingCity(false);
+                }}
+                testID="profile-city-remove"
+              />
+            ) : null}
+          </View>
+          {pickingCity ? (
+            <PlaceSearch
+              testID="profile-city-search"
+              selectedPlaceId={city?.placeId ?? null}
+              onSelect={(place: Place) => {
+                // Only the id and the name are kept: never the coordinates.
+                setCity({ placeId: place.id, name: placeDisplayName(place, locale) });
+                setPickingCity(false);
+              }}
             />
           ) : null}
         </View>
@@ -383,7 +550,9 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
       <AccountButton
         tone="primary"
         label={saving ? t("account.profile.saving") : t("account.profile.save")}
-        disabled={!validation.valid || saving || usernameState === "taken"}
+        disabled={
+          !validation.valid || saving || usernameState === "taken" || bioProblem !== null
+        }
         onPress={() => void handleSave()}
         testID="profile-save"
       />
@@ -497,6 +666,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     minHeight: 52,
   },
+  bio: { minHeight: 88 },
   photoRow: {
     flexDirection: "row",
     alignItems: "center",

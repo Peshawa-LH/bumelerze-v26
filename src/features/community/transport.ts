@@ -98,6 +98,10 @@ const profileSchema = z.object({
   can_view_full: z.boolean().catch(false),
   suspended: z.boolean().catch(false),
   member_since: z.string().nullable().optional(),
+  bio: z.string().nullable().catch(null).optional(),
+  city_place_id: z.string().nullable().catch(null).optional(),
+  city_name: z.string().nullable().catch(null).optional(),
+  pinned_post_id: z.string().nullable().catch(null).optional(),
   followers: count.optional(),
   following: count.optional(),
   comments: count.optional(),
@@ -159,6 +163,12 @@ export function parsePublicProfile(data: unknown): PublicProfile | null {
     p.can_view_full && !p.is_blocked
       ? {
           memberSince: Number.isNaN(since) ? null : since,
+          bio: p.bio ? p.bio : null,
+          city:
+            p.city_place_id && p.city_name
+              ? { placeId: p.city_place_id, name: p.city_name }
+              : null,
+          pinnedPostId: p.pinned_post_id ?? null,
           followers: p.followers ?? 0,
           following: p.following ?? 0,
           comments: p.comments ?? 0,
@@ -270,6 +280,14 @@ export function toCommunityError(error: unknown): CommunityError {
   }
   if (message.includes("guidelines_required")) {
     return new CommunityError("guidelines_required", message);
+  }
+  // Migration 0058: "profile_posts: edit_locked", "edit_my_post: too_long".
+  if (message.includes("edit_locked")) {
+    return new CommunityError("edit_locked", message);
+  }
+  // the whole token only: "ends_too_long" (0054, admin) is a date problem
+  if (/:\s*too_long\b/.test(message)) {
+    return new CommunityError("too_long", message);
   }
   if (/protected_account|self_restriction/.test(message)) {
     return new CommunityError("protected_account", message);

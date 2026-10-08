@@ -1748,7 +1748,19 @@
       "privateLabel": "Hesabê taybet",
       "privateHint": "Divê mirov daxwaza şopandina te bikin.",
       "showBadgesLabel": "Nîşanên min li profîla min nîşan bide",
-      "guidelinesLink": "Rêbernameyên civakê bixwîne"
+      "guidelinesLink": "Rêbernameyên civakê bixwîne",
+      "nameLocked": "Te navê xwe di 30 rojan de 5 caran guhert. Tu dikarî di {{date}} de dîsa biguherînî.",
+      "nameChangesLeft": "Guhertinên navê yên mayî vê mehê: {{number}}",
+      "usernameLocked": "Te @navê bikarhêner nû guhert. Tu dikarî di {{date}} de dîsa biguherînî.",
+      "usernameOncePerMonth": "Tu dikarî @navê bikarhêner her 30 rojan carekê biguherînî.",
+      "bioLabel": "Derbarê te (vebijarkî)",
+      "bioPlaceholder": "Mînak: dilxwaz li Dihokê, endezyarê avahiyan",
+      "bioHint": "Li ser profîla te tê nîşandan. Tenê nivîs, bê girêdan.",
+      "cityLabel": "Cihê ku tu lê dijî (vebijarkî)",
+      "cityHint": "Li ser profîla te wekî «Li … dijî» tê nîşandan. Tenê navê bajêr tê tomarkirin, qet cihê te na.",
+      "cityChoose": "Bajarekî hilbijêre",
+      "cityChange": "Bajêr biguherîne",
+      "cityRemove": "Rake"
     },
     "professions": {
       "engineer": "Endezyar",
@@ -1784,7 +1796,13 @@
       "reauth_needed": "Ji bo ewlehiyê derkeve, dîsa têkeve, paşê şîfreyê biguherîne.",
       "setup_incomplete": "Me nikaribû çêkirina hesabê te biqedîne. Ji kerema xwe bi riya «Nêrîn»ê bi me re têkilî dayne.",
       "email_mismatch": "Her du e-name wekhev nînin.",
-      "password_mismatch": "Her du şîfre wekhev nînin."
+      "password_mismatch": "Her du şîfre wekhev nînin.",
+      "bio_link": "Girêdan di «Derbarê» de nayên destûrdan.",
+      "bio_too_long": "«Derbarê» divê herî zêde 160 tîp be.",
+      "city_invalid": "Cihekî ji lîsteyê hilbijêre.",
+      "username_change_limit": "Tu dikarî @navê bikarhêner her 30 rojan carekê biguherînî.",
+      "name_change_limit": "Te navê xwe di 30 rojan de 5 caran guhert. Paşê dîsa biceribîne.",
+      "restricted": "Hesabê te niha sînordar e."
     }
   },
   "building": {
@@ -2262,7 +2280,12 @@
       "openHub": "{{place}} veke",
       "share": "Profîlê parve bike",
       "shareFailed": "Parvekirin nebû. Ji kerema xwe dîsa biceribîne.",
-      "suspended": "Ev hesab hatiye rawestandin"
+      "suspended": "Ev hesab hatiye rawestandin",
+      "livesIn": "Li {{place}} dijî",
+      "qrLabel": "Koda QR ya profîla {{name}}",
+      "qrHint": "Kesên din dikarin vê kodê bi kameraya telefonê bixwînin da ku profîla te vekin.",
+      "shareLink": "Girêdanê parve bike",
+      "copyLink": "Girêdanê kopî bike"
     },
     "follow": {
       "follow": "Bişopîne",
@@ -2315,7 +2338,9 @@
       "protected_account": "Ev hesab nayê sînordarkirin.",
       "bad_end_date": "Dîroka dawîyê kontrol bike.",
       "reason_required": "Sedemekê lê zêde bike.",
-      "guidelines_required": "Ji kerema xwe pêşî rêbernameyên civakê bixwîne û qebûl bike."
+      "guidelines_required": "Ji kerema xwe pêşî rêbernameyên civakê bixwîne û qebûl bike.",
+      "edit_locked": "Ev nivîs tê nirxandin, ji ber vê niha nayê guhertin.",
+      "too_long": "Pir dirêj e."
     }
   },
   "admin": {
@@ -2710,7 +2735,31 @@
     "remove": "Rake",
     "removeConfirmTitle": "Ev nivîs were rakirin?",
     "removeConfirmMessage": "Nivîsa wê ji bo hemûyan tê jêbirin.",
-    "removedByModerators": "Ji aliyê rêveberan ve hate rakirin"
+    "removedByModerators": "Ji aliyê rêveberan ve hate rakirin",
+    "edit": "Biguherîne",
+    "editLabel": "Nivîsa postê biguherîne",
+    "save": "Tomar bike",
+    "edited": "Hate guhertin {{time}}",
+    "editLocked": "Ev nivîs hatiye gilîkirin û tê nirxandin. Piştî nirxandinê tu dikarî dîsa biguherînî.",
+    "pin": "Li serê profîlê bihêle",
+    "unpin": "Ji serî rake",
+    "pinned": "Li serî",
+    "helpful": "Bikêr",
+    "helpfulCount": "Bikêr: {{number}}",
+    "event": {
+      "label": "Erdhej",
+      "open": "Erdhejê veke: {{event}}",
+      "unavailable": "Ev erdhej êdî di lîsteyê de tune."
+    },
+    "share": {
+      "action": "Li profîla min parve bike",
+      "title": "Li profîla min parve bike",
+      "label": "Gotinên te (vebijarkî)",
+      "placeholder": "Çend gotinan lê zêde bike (vebijarkî)",
+      "noLocation": "Tenê erdhej tê parvekirin. Cihê te qet nayê zêdekirin.",
+      "submit": "Parve bike",
+      "done": "Li profîla te hate parvekirin."
+    }
   },
   "profile": {
     "onlyYou": "Tenê tu vê dibînî",

@@ -14,8 +14,6 @@ import { PostsSection } from "@/features/posts/components/PostsSection";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
 import type { ReportInput } from "@/features/reporting/reasons";
 import type { PostsTransport } from "@/features/posts/transport";
-import { SHARE_PROFILE_URL_BASE } from "@/features/share/config";
-import { shareText } from "@/features/share/share-text";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { profileBadgeEntries } from "../badges";
@@ -26,7 +24,9 @@ import type { ProfileComment, PublicProfile } from "../types";
 import { formatUsername } from "../username";
 import { FollowButton } from "./FollowButton";
 import { LinkButton } from "./LinkButton";
+import { ProfileAbout } from "./ProfileAbout";
 import { ProfileCounts } from "./ProfileCounts";
+import { ProfileShareSheet } from "./ProfileShareSheet";
 
 /** What only the owner's own page knows and passes in (never fetched here):
  * the report count (local queue merged with the server) and how many badges
@@ -72,7 +72,7 @@ export function PublicProfileView({
   const [reported, setReported] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   const details = profile.canViewFull ? profile.details : null;
   const badges = details ? profileBadgeEntries(profile) : [];
@@ -105,18 +105,6 @@ export function PublicProfileView({
       destructive: true,
       onConfirm: () => void run(() => actions.block(profile.userId)),
     });
-  }
-
-  async function handleShare() {
-    const url = `${SHARE_PROFILE_URL_BASE}/${encodeURIComponent(profile.username)}`;
-    const outcome = await shareText(url, profile.displayName);
-    if (outcome === "copied") {
-      setNotice(t("share.linkCopied"));
-    } else if (outcome === "failed") {
-      setNotice(t("community.profile.shareFailed"));
-    } else {
-      setNotice(null);
-    }
   }
 
   async function sendReport({ reason, note }: ReportInput) {
@@ -209,6 +197,8 @@ export function PublicProfileView({
         </View>
       </View>
 
+      {details ? <ProfileAbout details={details} /> : null}
+
       {profile.isSelf ? (
         <View style={{ gap: spacing[2] }}>
           <View style={[styles.buttons, { gap: spacing[2] }]}>
@@ -222,19 +212,17 @@ export function PublicProfileView({
             <View style={styles.buttonCell}>
               <AccountButton
                 label={t("community.profile.share")}
-                onPress={() => void handleShare()}
+                onPress={() => setSharing(true)}
                 testID="public-profile-share"
               />
             </View>
           </View>
-          {notice ? (
-            <Text
-              accessibilityLiveRegion="polite"
-              style={meta}
-              testID="public-profile-notice"
-            >
-              {notice}
-            </Text>
+          {sharing ? (
+            <ProfileShareSheet
+              username={profile.username}
+              displayName={profile.displayName}
+              onClose={() => setSharing(false)}
+            />
           ) : null}
         </View>
       ) : profile.isBlocked ? (

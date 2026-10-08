@@ -302,7 +302,7 @@ describe("Profile page (D79)", () => {
       expect(screen.queryByText("Felt it in the kitchen")).toBeNull();
     });
 
-    it("Edit profile opens the editor; Share profile shares the profile link", async () => {
+    it("Edit profile opens the editor; Share profile opens the QR sheet that shares the link", async () => {
       mockShare.mockResolvedValue("shared");
       await renderWithProviders(<ProfileScreen />);
       await screen.findByTestId("public-profile-edit");
@@ -312,6 +312,14 @@ describe("Profile page (D79)", () => {
       expect(mockPush).toHaveBeenCalledWith("/account/profile");
       await act(async () => {
         fireEvent.press(screen.getByTestId("public-profile-share"));
+      });
+      expect(screen.getByTestId("profile-share-sheet-qr")).toBeTruthy();
+      expect(screen.getByTestId("profile-share-sheet-url").props.children).toBe(
+        "https://bumelerze.com/app/u/shilan",
+      );
+      expect(mockShare).not.toHaveBeenCalled();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("profile-share-sheet-share"));
       });
       expect(mockShare).toHaveBeenCalledWith(
         "https://bumelerze.com/app/u/shilan",
@@ -326,7 +334,10 @@ describe("Profile page (D79)", () => {
       await act(async () => {
         fireEvent.press(screen.getByTestId("public-profile-share"));
       });
-      expect(screen.getByTestId("public-profile-notice")).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("profile-share-sheet-share"));
+      });
+      expect(screen.getByTestId("profile-share-sheet-notice")).toBeTruthy();
       expect(screen.getByText("Link copied")).toBeTruthy();
     });
 

@@ -5,6 +5,13 @@ import { Platform } from "react-native";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { removeOwnedHomePhotoFiles } from "@/features/building/transport";
+import {
+  aboutChanged,
+  aboutErrorCode,
+  saveProfileAbout,
+  type AboutInput,
+  type ProfileAbout,
+} from "./about";
 import { SupabaseGuidelinesTransport } from "@/features/guidelines/transport";
 import { isValidUsername, normalizeUsername } from "@/features/community/username";
 import { getDeviceId } from "@/features/felt/device-id";
@@ -150,6 +157,11 @@ export function toUsernameAwareError(error: unknown): AccountError {
   }
   if (/profiles_username_format/.test(message)) {
     return new AccountError("username_invalid", message);
+  }
+  // Migration 0058: name change limits, bio/city checks, restriction.
+  const about = aboutErrorCode(message);
+  if (about) {
+    return about;
   }
   return toAccountError(error);
 }
@@ -455,8 +467,15 @@ export interface SaveProfileInput {
   hideBadges?: boolean;
   /** Current UI language (stored as the user's locale). */
   locale: string;
+  /** Bio and city label (migration 0058). Sent only when they changed, and
+   * only when the server has them (`undefined` before 0058). */
+  about?: AboutInput;
   /** What is stored now, so unchanged consents keep their original time. */
-  previous?: { profile: Profile | null; privateProfile: PrivateProfile | null };
+  previous?: {
+    profile: Profile | null;
+    privateProfile: PrivateProfile | null;
+    about?: ProfileAbout | null;
+  };
 }
 
 export async function saveProfile(input: SaveProfileInput): Promise<void> {
@@ -548,6 +567,12 @@ export async function saveProfile(input: SaveProfileInput): Promise<void> {
   // effort: if it fails the person is simply asked before their first comment.
   if (previousPrivate?.termsVersion !== TERMS_VERSION) {
     await SupabaseGuidelinesTransport.accept("signup").catch(() => undefined);
+  }
+
+  // Bio and city go through their own call (the columns are not directly
+  // writable in a way the read rules could miss); only when they changed.
+  if (input.about && aboutChanged(input.about, input.previous?.about ?? null)) {
+    await saveProfileAbout(input.about);
   }
 
   // The new row is saved; the old file is garbage now (best effort).

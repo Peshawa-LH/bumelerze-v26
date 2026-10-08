@@ -1748,7 +1748,19 @@
       "privateLabel": "Private account",
       "privateHint": "People must ask to follow you.",
       "showBadgesLabel": "Show my badges on my profile",
-      "guidelinesLink": "Read the community guidelines"
+      "guidelinesLink": "Read the community guidelines",
+      "nameLocked": "You have changed your name 5 times in 30 days. You can change it again on {{date}}.",
+      "nameChangesLeft": "Name changes left this month: {{number}}",
+      "usernameLocked": "You changed your @username recently. You can change it again on {{date}}.",
+      "usernameOncePerMonth": "You can change your @username once every 30 days.",
+      "bioLabel": "About you (optional)",
+      "bioPlaceholder": "For example: volunteer in Duhok, civil engineer",
+      "bioHint": "Shown on your profile. Plain text, no links.",
+      "cityLabel": "Where you live (optional)",
+      "cityHint": "Shown on your profile as “Lives in …”. Only the town name is saved, never your location.",
+      "cityChoose": "Choose a town",
+      "cityChange": "Change town",
+      "cityRemove": "Remove"
     },
     "professions": {
       "engineer": "Engineer",
@@ -1784,7 +1796,13 @@
       "reauth_needed": "For safety, sign out, sign in again, then change your password.",
       "setup_incomplete": "We couldn't finish creating your account. Please contact us through Feedback.",
       "email_mismatch": "The two emails don't match.",
-      "password_mismatch": "The two passwords don't match."
+      "password_mismatch": "The two passwords don't match.",
+      "bio_link": "Links are not allowed in the bio.",
+      "bio_too_long": "The bio can be at most 160 characters.",
+      "city_invalid": "Choose a place from the list.",
+      "username_change_limit": "You can change your @username once every 30 days.",
+      "name_change_limit": "You have changed your name 5 times in 30 days. Try again later.",
+      "restricted": "Your account is limited right now."
     }
   },
   "building": {
@@ -2262,7 +2280,12 @@
       "openHub": "Open {{place}}",
       "share": "Share profile",
       "shareFailed": "Could not share. Please try again.",
-      "suspended": "This account is suspended"
+      "suspended": "This account is suspended",
+      "livesIn": "Lives in {{place}}",
+      "qrLabel": "QR code for the profile of {{name}}",
+      "qrHint": "Others can scan this code with their phone camera to open your profile.",
+      "shareLink": "Share link",
+      "copyLink": "Copy link"
     },
     "follow": {
       "follow": "Follow",
@@ -2315,7 +2338,9 @@
       "protected_account": "This account can't be limited.",
       "bad_end_date": "Check the end date.",
       "reason_required": "Add a reason.",
-      "guidelines_required": "Please read and accept the community guidelines first."
+      "guidelines_required": "Please read and accept the community guidelines first.",
+      "edit_locked": "This post is being reviewed, so it can't be edited now.",
+      "too_long": "Too long."
     }
   },
   "admin": {
@@ -2710,7 +2735,31 @@
     "remove": "Remove",
     "removeConfirmTitle": "Remove this post?",
     "removeConfirmMessage": "Its text is deleted for everyone.",
-    "removedByModerators": "Removed by moderators"
+    "removedByModerators": "Removed by moderators",
+    "edit": "Edit",
+    "editLabel": "Edit the post text",
+    "save": "Save",
+    "edited": "Edited {{time}}",
+    "editLocked": "This post was reported and is being reviewed. You can edit it again after the review.",
+    "pin": "Pin to profile",
+    "unpin": "Unpin",
+    "pinned": "Pinned",
+    "helpful": "Helpful",
+    "helpfulCount": "Helpful: {{number}}",
+    "event": {
+      "label": "Earthquake",
+      "open": "Open the earthquake: {{event}}",
+      "unavailable": "This earthquake is no longer listed."
+    },
+    "share": {
+      "action": "Share to my profile",
+      "title": "Share to my profile",
+      "label": "Your words (optional)",
+      "placeholder": "Add a few words (optional)",
+      "noLocation": "Only the earthquake is shared. Your location is never added.",
+      "submit": "Share",
+      "done": "Shared to your profile."
+    }
   },
   "profile": {
     "onlyYou": "Only you see this",

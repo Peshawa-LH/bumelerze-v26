@@ -39,6 +39,13 @@ export interface ProfileMilestones {
 /** What only a viewer who may see the full profile receives. */
 export interface ProfileDetails {
   memberSince: number | null;
+  /** Short plain-text "about" (at most 160 characters, no links; 0058). */
+  bio: string | null;
+  /** "Lives in": a place from the app's own town list, by id, and the name
+   * shown when the owner picked it. Never coordinates (0058). */
+  city: { placeId: string; name: string } | null;
+  /** The owner's pinned post, shown first (0058). */
+  pinnedPostId: string | null;
   followers: number;
   following: number;
   comments: number;
@@ -85,6 +92,10 @@ export type CommunityErrorCode =
   | "restricted"
   /** The identity has not accepted the community guidelines yet (0056). */
   | "guidelines_required"
+  /** The post has open reports, so its text cannot be edited now (0058). */
+  | "edit_locked"
+  /** The text is longer than the server allows (0058). */
+  | "too_long"
   /** An account that holds admin permissions, or the admin themself, cannot be limited. */
   | "protected_account"
   /** The end date is missing, in the past or too far away (admin). */

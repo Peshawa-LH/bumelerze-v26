@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -7,6 +8,7 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { ProfileForm } from "@/features/account/components/ProfileForm";
 import { useAccount } from "@/features/account/use-account";
+import { useProfileAbout } from "@/features/account/use-profile-about";
 import { useTheme } from "@/theme";
 
 /** Create / edit the account profile. Needs a signed-in account. */
@@ -16,6 +18,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const account = useAccount();
+  const queryClient = useQueryClient();
+  // Bio, city and the name-change allowance (migration 0058).
+  const about = useProfileAbout(account.status === "account" ? account.userId : null);
 
   const message = {
     color: colors.text.secondary,
@@ -25,16 +30,23 @@ export default function ProfileScreen() {
 
   let body;
   if (account.status === "account") {
-    body = account.profileLoaded ? (
-      // Keyed so the form re-initializes if the stored rows change under it.
-      <ProfileForm
-        key={account.userId ?? "account"}
-        profile={account.profile}
-        privateProfile={account.privateProfile}
-      />
-    ) : (
-      <Text style={message}>{t("account.profile.loading")}</Text>
-    );
+    body =
+      account.profileLoaded && about.status !== "loading" ? (
+        // Keyed so the form re-initializes if the stored rows change under it.
+        <ProfileForm
+          key={account.userId ?? "account"}
+          profile={account.profile}
+          privateProfile={account.privateProfile}
+          about={about.status === "ready" ? about.about : undefined}
+          onSaved={() => {
+            // the public part of the Profile tab (bio, city) and the allowance
+            void queryClient.invalidateQueries({ queryKey: ["community"] });
+            void queryClient.invalidateQueries({ queryKey: ["account", "about"] });
+          }}
+        />
+      ) : (
+        <Text style={message}>{t("account.profile.loading")}</Text>
+      );
   } else if (account.status === "loading") {
     body = <Text style={message}>{t("account.profile.loading")}</Text>;
   } else {

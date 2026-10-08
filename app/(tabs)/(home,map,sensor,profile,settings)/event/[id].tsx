@@ -28,6 +28,7 @@ import { EventHubPill, useRouteEvent } from "@/features/eventhub";
 import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
+import { ShareToProfileButton } from "@/features/posts/components/ShareToProfileButton";
 import { ShareButton, shareIdFor } from "@/features/share";
 import { RiskSection, ShakeMapSection } from "@/features/shakemap";
 import { localizeDigits } from "@/lib/format-numbers";
@@ -231,6 +232,20 @@ export default function EventDetailScreen() {
               spacing={spacing}
               t={t}
               onNavigateHistorical={() => router.push("/historical")}
+            />
+          ) : null}
+
+          {/* "Share to my profile" (P2-11): an event card on my profile, never
+           * my location. Needs the bml id, so it waits until one is known. */}
+          {event ? (
+            <ShareToProfileButton
+              eventRef={displayBumelerzeId ?? null}
+              preview={{
+                magnitude: event.magnitude.value,
+                lat: event.lat,
+                lon: event.lon,
+                time: event.originTime,
+              }}
             />
           ) : null}
 

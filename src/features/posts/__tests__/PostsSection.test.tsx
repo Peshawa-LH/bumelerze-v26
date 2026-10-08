@@ -5,14 +5,13 @@ import {
   renderWithProviders,
 } from "@/features/eventhub/__fixtures__/testing";
 import type { Permission } from "@/features/eventhub/types";
-import { parsePublicProfile } from "@/features/community/transport";
 import { CommunityError, type PublicProfile } from "@/features/community/types";
 import i18n from "@/i18n";
 
 import { PostsSection } from "../components/PostsSection";
 import { POST_MAX_LENGTH } from "../constants";
 import type { PostsTransport } from "../transport";
-import type { PostsPage, ProfilePost } from "../types";
+import { makeFake, post, profileOf } from "../__fixtures__/fake-posts";
 
 let mockAccount: { status: string; userId: string | null } = {
   status: "account",
@@ -33,88 +32,6 @@ jest.mock("@/lib/dialogs", () => ({
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn() }),
 }));
-
-const MINUTE = 60_000;
-
-function post(id: string, minutesAgo: number, overrides: Partial<ProfilePost> = {}) {
-  const at = Date.now() - minutesAgo * MINUTE;
-  return {
-    id,
-    userId: "author",
-    body: `text of ${id}`,
-    status: "visible",
-    createdAt: at,
-    cursor: new Date(at).toISOString(),
-    ...overrides,
-  } as ProfilePost;
-}
-
-function profileOf(overrides: Record<string, unknown> = {}): PublicProfile {
-  const parsed = parsePublicProfile({
-    user_id: "author",
-    username: "dilan.k",
-    display_name: "Dilan",
-    avatar_path: null,
-    is_private: false,
-    roles: [],
-    is_self: false,
-    follow_status: "none",
-    is_blocked: false,
-    can_view_full: true,
-    member_since: "2026-01-01T00:00:00Z",
-    followers: 0,
-    following: 0,
-    comments: 0,
-    helpful_received: 0,
-    posts_count: 3,
-    badges_hidden: false,
-    milestones: null,
-    recent_comments: [],
-    ...overrides,
-  });
-  if (!parsed) {
-    throw new Error("fixture did not parse");
-  }
-  return parsed;
-}
-
-/** An in-memory server: pages of 2, newest first, with real create/delete. */
-function makeFake(initial: ProfilePost[], pageSize = 2) {
-  let store = [...initial];
-  const fake = {
-    fetchPosts: jest.fn(async ({ before, includeRemoved }) => {
-      const rows = store
-        .filter((p) => includeRemoved || p.status === "visible")
-        .sort((a, b) => b.createdAt - a.createdAt)
-        .filter((p) => (before ? p.cursor < before : true));
-      const posts = rows.slice(0, pageSize);
-      const last = posts[posts.length - 1];
-      return {
-        posts,
-        nextCursor: rows.length > pageSize && last ? last.cursor : null,
-      } satisfies PostsPage;
-    }),
-    createPost: jest.fn(async (userId: string, body: string) => {
-      const now = Date.now();
-      store.push({
-        id: `new-${store.length}`,
-        userId,
-        body,
-        status: "visible",
-        createdAt: now,
-        cursor: new Date(now).toISOString(),
-      });
-    }),
-    deletePost: jest.fn(async (id: string) => {
-      store = store.filter((p) => p.id !== id);
-    }),
-    restorePost: jest.fn(async () => undefined),
-    reportPost: jest.fn(async () => undefined),
-    adminRemovePost: jest.fn(async () => undefined),
-    adminRestorePost: jest.fn(async () => undefined),
-  };
-  return fake as unknown as jest.Mocked<PostsTransport>;
-}
 
 function lastConfirm() {
   const options = mockConfirm.mock.calls.at(-1)?.[0] as

@@ -10,7 +10,7 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import { useMyRestriction } from "@/features/restrictions/queries";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useTheme } from "@/theme";
-import { useCanRemovePosts, usePostActions, usePosts } from "../queries";
+import { useCanRemovePosts, usePinnedPost, usePostActions, usePosts } from "../queries";
 import type { PostsTransport } from "../transport";
 import { PostComposer } from "./PostComposer";
 import { PostItem } from "./PostItem";
@@ -25,7 +25,8 @@ interface PostsSectionProps {
  * The "Posts" part of a public profile. Shows, in order of what the viewer may
  * do: nothing (blocked, or the server has no posts yet), "Posts are visible to
  * followers" (private account the viewer cannot see into), or the composer
- * (own page) plus the list, newest first, "Show more" for older ones.
+ * (own page) plus the pinned post (if any) and the list, newest first, "Show
+ * more" for older ones.
  */
 export function PostsSection({ profile, transport, hubTransport }: PostsSectionProps) {
   const { t } = useTranslation();
@@ -80,6 +81,8 @@ function PostsList({
   const { colors, typography, spacing } = useTheme();
   const account = useAccount();
   const list = usePosts(profile.userId, { includeRemoved: profile.isSelf }, transport);
+  const pinnedId = profile.details?.pinnedPostId ?? null;
+  const pinned = usePinnedPost(profile.userId, pinnedId, transport);
   const actions = usePostActions(transport);
   const canAdminRemove = useCanRemovePosts(hubTransport);
   const mine = useMyRestriction();
@@ -95,6 +98,12 @@ function PostsList({
   }
 
   const viewerId = account.userId;
+  // "Helpful" needs a real account; a guest identity only reads the count.
+  const canHelp = account.status === "account";
+  const pinnedPost = pinned.post && pinned.post.status === "visible" ? pinned.post : null;
+  const listed = pinnedPost
+    ? list.posts.filter((post) => post.id !== pinnedPost.id)
+    : list.posts;
   const composer =
     profile.isSelf && viewerId !== null ? (
       <PostComposer
@@ -125,7 +134,7 @@ function PostsList({
         <AccountButton label={t("events.retry")} onPress={() => void list.refetch()} />
       </View>
     );
-  } else if (list.posts.length === 0) {
+  } else if (listed.length === 0 && !pinnedPost) {
     body = (
       <Text style={meta} testID="posts-empty">
         {t("posts.empty")}
@@ -134,12 +143,26 @@ function PostsList({
   } else {
     body = (
       <>
-        {list.posts.map((post) => (
+        {pinnedPost ? (
+          <PostItem
+            key={`pinned-${pinnedPost.id}`}
+            post={pinnedPost}
+            isOwn={profile.isSelf}
+            isPinned
+            canReport={viewerId !== null}
+            canHelp={canHelp}
+            canAdminRemove={canAdminRemove}
+            nowMs={pinned.updatedAt || list.updatedAt}
+            actions={actions}
+          />
+        ) : null}
+        {listed.map((post) => (
           <PostItem
             key={post.id}
             post={post}
             isOwn={profile.isSelf}
             canReport={viewerId !== null}
+            canHelp={canHelp}
             canAdminRemove={canAdminRemove}
             nowMs={list.updatedAt}
             actions={actions}
