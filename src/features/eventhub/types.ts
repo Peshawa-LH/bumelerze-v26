@@ -27,6 +27,7 @@ export const PERMISSIONS = [
   "badges.grant",
   "hubs.feature",
   "posts.delete",
+  "accounts.reset_password",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 

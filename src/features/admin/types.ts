@@ -56,3 +56,12 @@ export interface ReportedPost {
   reportCount: number;
   lastReason: string | null;
 }
+
+/** An account found by `admin_find_accounts` (migration 0051). The email is
+ * already masked by the server (`p***@gmail.com`). */
+export interface FoundAccount {
+  userId: string;
+  username: string | null;
+  displayName: string | null;
+  maskedEmail: string | null;
+}

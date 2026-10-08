@@ -7,6 +7,7 @@ import type { PostsTransport } from "@/features/posts/transport";
 import { useTheme } from "@/theme";
 import { useAdminAccess } from "../queries";
 import type { AdminTransport } from "../transport";
+import { PasswordResetSection } from "./PasswordResetSection";
 import { ModerationQueueSection } from "./ModerationQueueSection";
 import { RankBadgesSection } from "./RankBadgesSection";
 import { ReportedPostsSection } from "./ReportedPostsSection";
@@ -14,7 +15,8 @@ import { ReportedProfilesSection } from "./ReportedProfilesSection";
 
 /** The hidden admin screen. Each section appears only for the permission it
  * needs (`comments.moderate` for the queue and reported profiles,
- * `badges.grant` for rank badges), and everything is hidden for people
+ * `badges.grant` for rank badges, `accounts.reset_password` for password
+ * resets), and everything is hidden for people
  * without any, so a stray link shows nothing. */
 export function AdminContent({
   transport,
@@ -70,6 +72,9 @@ export function AdminContent({
         </>
       ) : null}
       {access.canGrant ? <RankBadgesSection {...shared} /> : null}
+      {access.canResetPasswords ? (
+        <PasswordResetSection {...(transport ? { transport } : {})} />
+      ) : null}
     </ScrollView>
   );
 }

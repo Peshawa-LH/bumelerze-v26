@@ -31,6 +31,8 @@ export interface AdminAccess {
   canGrant: boolean;
   /** May remove anyone's profile post (`posts.delete`). */
   canRemovePosts: boolean;
+  /** May reset someone's password (`accounts.reset_password`, migration 0051). */
+  canResetPasswords: boolean;
   /** Any admin tool at all: the entry in My account shows when true. */
   any: boolean;
   /** Permissions still loading: show nothing yet rather than "not allowed". */
@@ -49,12 +51,14 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
   const canDelete = server && perms.has("comments.delete");
   const canGrant = server && perms.has("badges.grant");
   const canRemovePosts = server && perms.has("posts.delete");
+  const canResetPasswords = server && perms.has("accounts.reset_password");
   return {
     canModerate,
     canDelete,
     canRemovePosts,
     canGrant,
-    any: canModerate || canGrant,
+    canResetPasswords,
+    any: canModerate || canGrant || canResetPasswords,
     isLoading: perms.isLoading,
     has: (permission) => server && perms.has(permission),
   };
