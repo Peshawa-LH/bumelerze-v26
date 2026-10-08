@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
+import { ReportNote } from "@/features/reporting/ReportNote";
+import { reasonLabel } from "@/features/reporting/reasons";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { localizeDigits } from "@/lib/format-numbers";
 import { confirmDialog } from "@/lib/dialogs";
@@ -121,6 +123,7 @@ function QueueItem({
       : t("admin.queue.flagged", {
           number: localizeDigits(String(comment.flagCount), i18n.language),
         });
+  const reason = comment.lastReason ? reasonLabel(t, comment.lastReason) : null;
 
   return (
     <View
@@ -138,6 +141,12 @@ function QueueItem({
       <Text style={meta}>
         {`${comment.authorName ?? t("eventHub.thread.anonymous")} · ${status}`}
       </Text>
+      {reason ? (
+        <Text style={meta} testID={`queue-reason-${comment.id}`}>
+          {t("admin.reports.reason", { reason })}
+        </Text>
+      ) : null}
+      <ReportNote note={comment.lastNote} testID={`queue-note-${comment.id}`} />
       <Text
         style={{
           color: colors.text.primary,

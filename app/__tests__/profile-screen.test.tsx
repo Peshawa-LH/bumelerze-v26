@@ -471,7 +471,7 @@ describe("Profile tab", () => {
       expect(mockSignOut).toHaveBeenCalledTimes(1);
       await press("account-delete");
       expect(mockDelete).not.toHaveBeenCalled();
-      expect(screen.getByText(/permanently deletes your profile/)).toBeTruthy();
+      expect(screen.getByText(/permanently deletes your account/)).toBeTruthy();
       await press("account-delete-confirm");
       expect(mockDelete).toHaveBeenCalledTimes(1);
     });

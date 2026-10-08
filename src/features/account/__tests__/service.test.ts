@@ -357,6 +357,41 @@ describe("deleteAccount", () => {
     expect(mockSignInAnonymously).toHaveBeenCalled();
   });
 
+  it("removes the photo files of the homes this person owns before the RPC (SQL cannot delete storage objects)", async () => {
+    mockClient = makeClient({ id: "uid-1", is_anonymous: false });
+    const eq2: Anyfn = jest.fn(async () => ({
+      data: [{ tag_id: "tag-1" }, { tag_id: "tag-2" }],
+      error: null,
+    }));
+    const eq1: Anyfn = jest.fn(() => ({ eq: eq2 }));
+    const select: Anyfn = jest.fn(() => ({ eq: eq1 }));
+    mockClient.from.mockImplementation((table: string) =>
+      table === "home_members" ? { select } : { upsert: mockClient?.upsert },
+    );
+    await deleteAccount();
+    expect(select).toHaveBeenCalledWith("tag_id");
+    expect(eq1).toHaveBeenCalledWith("user_id", "uid-1");
+    expect(eq2).toHaveBeenCalledWith("role", "owner");
+    expect(mockClient.list).toHaveBeenCalledWith("tag-1", expect.anything());
+    expect(mockClient.list).toHaveBeenCalledWith("tag-2", expect.anything());
+    expect(mockClient.remove).toHaveBeenCalledWith(["tag-1/avatar-1.jpg"]);
+    expect(mockClient.remove).toHaveBeenCalledWith(["tag-2/avatar-1.jpg"]);
+    const rpcOrder = mockClient.rpc.mock.invocationCallOrder[0] as number;
+    for (const call of mockClient.remove.mock.invocationCallOrder) {
+      expect(call).toBeLessThan(rpcOrder);
+    }
+  });
+
+  it("goes on with the deletion when the homes' files cannot be listed", async () => {
+    mockClient = makeClient({ id: "uid-1", is_anonymous: false });
+    mockClient.from.mockImplementation(() => {
+      throw new Error("offline");
+    });
+    await deleteAccount();
+    expect(mockClient.rpc).toHaveBeenCalledWith("delete_my_account");
+    expect(mockClient.auth.signOut).toHaveBeenCalled();
+  });
+
   it("does not sign out when the database refuses the deletion", async () => {
     mockClient = makeClient({ id: "uid-1", is_anonymous: false });
     mockClient.rpc.mockResolvedValueOnce({ data: null, error: { message: "denied" } });
@@ -399,6 +434,45 @@ describe("saveProfile", () => {
       research_consent_version: RESEARCH_CONSENT_VERSION,
     });
     expect(typeof privateRow.terms_accepted_at).toBe("string");
+  });
+
+  it("records the community guidelines and the age tick with the first acceptance of the terms (sign-up)", async () => {
+    await saveProfile(base);
+    expect(mockClient?.rpc).toHaveBeenCalledWith("accept_guidelines", {
+      p_version: "g1",
+      p_age_ok: true,
+      p_source: "signup",
+    });
+  });
+
+  it("does not ask again when the terms were accepted before", async () => {
+    await saveProfile({
+      ...base,
+      previous: {
+        profile: null,
+        privateProfile: {
+          profession: null,
+          locale: "en",
+          termsVersion: TERMS_VERSION,
+          termsAcceptedAt: "2026-10-04T00:00:00Z",
+          researchConsentVersion: null,
+          researchConsentAt: null,
+          hideBadges: false,
+        },
+      },
+    });
+    expect(mockClient?.rpc).not.toHaveBeenCalledWith(
+      "accept_guidelines",
+      expect.anything(),
+    );
+  });
+
+  it("still saves the profile when recording the guidelines fails (the first comment asks again)", async () => {
+    mockClient?.rpc.mockResolvedValue({
+      data: null,
+      error: { message: "Failed to fetch" },
+    });
+    await expect(saveProfile(base)).resolves.toBeUndefined();
   });
 
   it("clears research consent when unchecked and keeps unchanged terms time", async () => {

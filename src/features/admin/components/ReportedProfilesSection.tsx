@@ -8,6 +8,9 @@ import { ProfileLink } from "@/features/community/components/ProfileLink";
 import { profileHref } from "@/features/community/routes";
 import { formatUsername } from "@/features/community/username";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
+import { ResetFieldsSheet } from "@/features/admin/people/components/ResetFieldsSheet";
+import { ReportNote } from "@/features/reporting/ReportNote";
+import { reasonLabel } from "@/features/reporting/reasons";
 import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -19,6 +22,7 @@ import type { AdminTransport } from "../transport";
 export function ReportedProfilesSection({
   canRestrict = false,
   canSuspend = false,
+  canViewPeople = false,
   transport,
   hubTransport,
 }: {
@@ -26,6 +30,8 @@ export function ReportedProfilesSection({
   canRestrict?: boolean;
   /** `accounts.suspend`: the sheet also offers Suspend. */
   canSuspend?: boolean;
+  /** `people.view`: show "Open person" (the person page, with history and notes). */
+  canViewPeople?: boolean;
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
 }) {
@@ -35,6 +41,10 @@ export function ReportedProfilesSection({
   const reports = useReportedProfiles(true, transport);
   const actions = useAdminActions(transport, hubTransport);
   const [errorText, setErrorText] = useState<string | null>(null);
+  // The person whose name/photo reset sheet is open (impersonation reports).
+  const [resetting, setResetting] = useState<{ userId: string; name: string } | null>(
+    null,
+  );
 
   const rows = reports.data ?? [];
   if (rows.length === 0) {
@@ -87,17 +97,38 @@ export function ReportedProfilesSection({
               t("admin.reports.count", {
                 number: localizeDigits(String(row.reportCount), i18n.language),
               }),
-              row.lastReason ? t(`community.report.reasons.${row.lastReason}`) : null,
+              row.lastReason ? reasonLabel(t, row.lastReason) : null,
             ]
               .filter(Boolean)
               .join(" · ")}
           </Text>
+          <ReportNote note={row.lastNote} testID={`reported-note-${row.userId}`} />
           <View style={styles.actions}>
             {row.username ? (
               <ActionButton
                 label={t("admin.reports.open")}
                 onPress={() => router.push(profileHref(row.username as string))}
                 testID={`reported-open-${row.userId}`}
+              />
+            ) : null}
+            {canViewPeople ? (
+              <ActionButton
+                label={t("admin.reports.openPerson")}
+                onPress={() => router.push(`/admin/person/${row.userId}`)}
+                testID={`reported-person-${row.userId}`}
+              />
+            ) : null}
+            {canRestrict ? (
+              <ActionButton
+                label={t("admin.person.actions.resetFields")}
+                onPress={() =>
+                  setResetting({
+                    userId: row.userId,
+                    name:
+                      row.displayName ?? row.username ?? t("eventHub.thread.anonymous"),
+                  })
+                }
+                testID={`reported-reset-${row.userId}`}
               />
             ) : null}
             {canRestrict ? (
@@ -127,6 +158,15 @@ export function ReportedProfilesSection({
         <Text accessibilityRole="alert" style={[meta, { color: colors.status.danger }]}>
           {errorText}
         </Text>
+      ) : null}
+      {resetting ? (
+        <ResetFieldsSheet
+          userId={resetting.userId}
+          name={resetting.name}
+          canReset={{ display_name: true, avatar: true }}
+          onClose={() => setResetting(null)}
+          {...(transport ? { transport } : {})}
+        />
       ) : null}
     </View>
   );

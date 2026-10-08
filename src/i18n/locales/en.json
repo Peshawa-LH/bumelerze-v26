@@ -931,7 +931,6 @@
       "helpfulCount": "Helpful: {{number}}",
       "report": "Report",
       "reported": "Thanks. We will review it.",
-      "reportTitle": "Why are you reporting this?",
       "delete": "Delete",
       "approve": "Approve",
       "hide": "Hide",
@@ -946,7 +945,8 @@
       "reportWithdrawn": "Report withdrawn.",
       "flagLimit": "You've reached today's limit for reports. Try again tomorrow.",
       "following": "Following",
-      "restricted": "Your account is limited right now."
+      "restricted": "Your account is limited right now.",
+      "deletedAccount": "Deleted account"
     },
     "reasons": {
       "spam": "Spam",
@@ -1607,9 +1607,23 @@
       "editProfile": "Edit profile",
       "signOut": "Sign out",
       "delete": "Delete account",
-      "deleteWarning": "This permanently deletes your profile and photo. Your reports stay, without your name.",
+      "deleteWarning": "This permanently deletes your account. It cannot be undone.",
       "deleteConfirm": "Delete permanently",
-      "deleteCancel": "Cancel"
+      "deleteCancel": "Cancel",
+      "deleteGoesTitle": "What is deleted",
+      "deleteGoes": {
+        "profile": "Your profile, photo and @username",
+        "posts": "Your posts, your followers and the people you follow",
+        "comments": "The text of your comments. A “Deleted account” line stays in the thread so replies still make sense.",
+        "homes": "Homes you own, with their answers, photos and family links. Family members lose access.",
+        "alerts": "Your alert places, ranks and badges"
+      },
+      "deleteStaysTitle": "What stays",
+      "deleteStays": {
+        "reports": "Your felt reports (and photos attached to them) stay as research data, without your name.",
+        "feedback": "Feedback you sent stays, without your name or contact details.",
+        "records": "Moderation records of reports and removals stay, without your name. If your account is limited or under review, copies of removed text are kept for up to 90 days."
+      }
     }
   },
   "feedback": {
@@ -1719,7 +1733,7 @@
       "professionLabel": "Profession (optional)",
       "professionHint": "Private. Never shown to others.",
       "preferNot": "Prefer not to say",
-      "terms": "I agree to the Terms and Privacy Policy.",
+      "terms": "I agree to the Terms, the Privacy Policy and the Community guidelines, and I am 13 or older.",
       "privacyLink": "Read the privacy policy",
       "research": "Use my reports and building information, without my name and with the location coarsened, for earthquake research and to improve Bumelerze's damage estimates. (Optional)",
       "save": "Save",
@@ -1733,7 +1747,8 @@
       "usernameSuggest": "Use {{name}}",
       "privateLabel": "Private account",
       "privateHint": "People must ask to follow you.",
-      "showBadgesLabel": "Show my badges on my profile"
+      "showBadgesLabel": "Show my badges on my profile",
+      "guidelinesLink": "Read the community guidelines"
     },
     "professions": {
       "engineer": "Engineer",
@@ -2259,15 +2274,7 @@
     },
     "report": {
       "action": "Report profile",
-      "title": "Why are you reporting this profile?",
-      "sent": "Thanks. We will review it.",
-      "reasons": {
-        "spam": "Spam",
-        "abuse": "Abusive",
-        "impersonation": "Pretending to be someone",
-        "private": "Private information",
-        "other": "Other"
-      }
+      "sent": "Thanks. We will review it."
     },
     "requests": {
       "title": "Follow requests",
@@ -2301,7 +2308,8 @@
       "restricted": "Your account is limited right now.",
       "protected_account": "This account can't be limited.",
       "bad_end_date": "Check the end date.",
-      "reason_required": "Add a reason."
+      "reason_required": "Add a reason.",
+      "guidelines_required": "Please read and accept the community guidelines first."
     }
   },
   "admin": {
@@ -2332,7 +2340,9 @@
       "empty": "No reports.",
       "count": "Reports: {{number}}",
       "dismiss": "Dismiss",
-      "open": "Open profile"
+      "open": "Open profile",
+      "reason": "Reason: {{reason}}",
+      "openPerson": "Open person"
     },
     "posts": {
       "title": "Reported posts"
@@ -2690,7 +2700,6 @@
     },
     "delete": "Delete",
     "report": "Report",
-    "reportTitle": "Why are you reporting this post?",
     "reported": "Thanks. We will review it.",
     "remove": "Remove",
     "removeConfirmTitle": "Remove this post?",
@@ -2729,5 +2738,64 @@
     "limitLifted": "Limit lifted",
     "profileReset": "Name / photo reset",
     "nothingToReset": "Nothing to reset"
+  },
+  "report": {
+    "title": {
+      "comment": "Report this comment",
+      "post": "Report this post",
+      "profile": "Report this profile"
+    },
+    "hint": "Pick the closest reason. A moderator will look at it.",
+    "reasons": {
+      "spam": "Spam or advertising",
+      "abuse_harassment": "Abuse or harassment",
+      "rumour_prediction": "Fake earthquake prediction or rumour",
+      "private_info": "Private information (address, photo, phone)",
+      "sexual_violent": "Sexual or violent content",
+      "impersonation": "Pretending to be someone else",
+      "other": "Something else"
+    },
+    "noteLabel": "Add a note (optional)",
+    "notePlaceholder": "What should the moderator know?",
+    "noteCount": "{{used}}/{{max}}",
+    "noteA11y": "Note: {{note}}",
+    "submit": "Send report",
+    "sending": "Sending…",
+    "error": "Couldn't send the report. Try again."
+  },
+  "guidelines": {
+    "title": "Community guidelines",
+    "intro": "Bumelerze is a place to share what you felt and to help each other. Please keep it that way.",
+    "rules": {
+      "predictions": {
+        "title": "No predictions or rumours",
+        "body": "No one can predict earthquakes. Do not post that a bigger one is coming, and do not pass on messages that name a day or a time."
+      },
+      "privateInfo": {
+        "title": "No private information about others",
+        "body": "Do not share someone's address, phone number or photo without their permission."
+      },
+      "graphic": {
+        "title": "No graphic images",
+        "body": "No violent or sexual content, and no pictures of injured or dead people."
+      },
+      "respect": {
+        "title": "Be respectful",
+        "body": "No insults, threats, hate or harassment. You can disagree politely."
+      },
+      "feltReports": {
+        "title": "Felt reports are for real experiences",
+        "body": "Report only what you really felt, where you really were."
+      }
+    },
+    "consequence": "Comments that break these rules can be removed, and accounts can be limited.",
+    "age": "I am 13 or older.",
+    "agree": "I agree",
+    "agreeing": "Saving…",
+    "notNow": "Not now",
+    "close": "Close",
+    "error": "Couldn't save your answer. Check your connection and try again.",
+    "settingsLabel": "Community guidelines",
+    "settingsValue": "The rules for comments and posts"
   }
 }

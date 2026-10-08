@@ -83,6 +83,8 @@ export type CommunityErrorCode =
   | "not_restorable"
   /** The account is restricted or suspended (migration 0054). */
   | "restricted"
+  /** The identity has not accepted the community guidelines yet (0056). */
+  | "guidelines_required"
   /** An account that holds admin permissions, or the admin themself, cannot be limited. */
   | "protected_account"
   /** The end date is missing, in the past or too far away (admin). */

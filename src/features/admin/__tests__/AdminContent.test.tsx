@@ -26,7 +26,6 @@ jest.mock("@/features/account/use-account", () => ({
   useAccount: () => mockAccount,
 }));
 
-
 const mockHub = makeTransport({ permissions: [] });
 const mockConfirm = jest.fn();
 jest.mock("@/lib/dialogs", () => ({
@@ -59,6 +58,8 @@ function makeAdminTransport(
         body: "Please approve me",
         status: "pending" as const,
         flagCount: 0,
+        lastReason: null,
+        lastNote: null,
         createdAt: 1,
       },
       {
@@ -70,6 +71,8 @@ function makeAdminTransport(
         body: "Reported text",
         status: "visible" as const,
         flagCount: 2,
+        lastReason: "rumour_prediction",
+        lastNote: "says a bigger one comes tonight",
         createdAt: 2,
       },
     ]),
@@ -91,7 +94,8 @@ function makeAdminTransport(
         username: "spammer",
         displayName: "Spammer",
         reportCount: 2,
-        lastReason: "spam",
+        lastReason: "impersonation",
+        lastNote: "uses the name of a professor",
       },
     ]),
     grantRole: jest.fn(async () => undefined),
@@ -382,6 +386,72 @@ describe("AdminContent", () => {
       fireEvent.press(await screen.findByTestId("reported-dismiss-u7"));
     });
     expect(transport.resolveProfileReports).toHaveBeenCalledWith("u7");
+  });
+
+  describe("report reasons and notes", () => {
+    it("shows the reason and the note on a flagged comment in the queue", async () => {
+      givePermissions(ADMIN);
+      await renderWithProviders(
+        <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+      );
+      expect(await screen.findByTestId("queue-reason-c2")).toHaveTextContent(
+        "Reason: Fake earthquake prediction or rumour",
+      );
+      expect(screen.getByTestId("queue-note-c2")).toHaveTextContent(
+        "\u201Csays a bigger one comes tonight\u201D",
+      );
+      // a comment that only waits for review has no reason line
+      expect(screen.queryByTestId("queue-reason-c1")).toBeNull();
+      expect(screen.queryByTestId("queue-note-c1")).toBeNull();
+    });
+
+    it("shows the reason and the note on a reported profile", async () => {
+      givePermissions(ADMIN);
+      await renderWithProviders(
+        <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+      );
+      expect(
+        await screen.findByText("Reports: 2 · Pretending to be someone else"),
+      ).toBeTruthy();
+      expect(screen.getByTestId("reported-note-u7")).toHaveTextContent(
+        "\u201Cuses the name of a professor\u201D",
+      );
+    });
+  });
+
+  describe("actions on a reported profile", () => {
+    it("Open person goes to the person page (people.view)", async () => {
+      givePermissions([...ADMIN, "accounts.restrict"]);
+      await renderWithProviders(
+        <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+      );
+      await fireEvent.press(await screen.findByTestId("reported-person-u7"));
+      expect(mockPush).toHaveBeenCalledWith("/admin/person/u7");
+    });
+
+    it("offers Open person, Reset name / photo and Limit account next to each other with the permissions", async () => {
+      givePermissions([...ADMIN, "accounts.restrict"]);
+      await renderWithProviders(
+        <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+      );
+      expect(await screen.findByTestId("reported-person-u7")).toBeTruthy();
+      expect(screen.getByTestId("reported-reset-u7")).toBeTruthy();
+      expect(screen.getByTestId("reported-limit-u7")).toBeTruthy();
+      await fireEvent.press(screen.getByTestId("reported-reset-u7"));
+      expect(await screen.findByTestId("reset-sheet")).toBeTruthy();
+      expect(screen.getByTestId("reset-submit")).toBeTruthy();
+    });
+
+    it("hides Open person without people.view and the reset and limit without accounts.restrict", async () => {
+      givePermissions(["comments.moderate"]);
+      await renderWithProviders(
+        <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+      );
+      await screen.findByTestId("reported-name-u7");
+      expect(screen.queryByTestId("reported-person-u7")).toBeNull();
+      expect(screen.queryByTestId("reported-reset-u7")).toBeNull();
+      expect(screen.queryByTestId("reported-limit-u7")).toBeNull();
+    });
   });
 
   describe("People entry", () => {

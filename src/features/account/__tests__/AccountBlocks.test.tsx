@@ -1,4 +1,11 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 import type { UseAccountResult } from "../use-account";
@@ -162,7 +169,7 @@ describe("account blocks", () => {
       await render(<DeleteAccountRow />);
       await press("account-delete");
       expect(mockDelete).not.toHaveBeenCalled();
-      expect(screen.getByText(/permanently deletes your profile/)).toBeTruthy();
+      expect(screen.getByText(/permanently deletes your account/)).toBeTruthy();
 
       await press("account-delete-cancel");
       expect(screen.queryByTestId("account-delete-confirm")).toBeNull();
@@ -171,6 +178,29 @@ describe("account blocks", () => {
       await press("account-delete");
       await press("account-delete-confirm");
       expect(mockDelete).toHaveBeenCalledTimes(1);
+    });
+
+    it("lists what is deleted and what stays before the confirming tap", async () => {
+      await render(<DeleteAccountRow />);
+      await press("account-delete");
+      expect(screen.getByText("What is deleted")).toBeTruthy();
+      expect(screen.getByText("What stays")).toBeTruthy();
+      const goes = screen.getByTestId("account-delete-goes");
+      expect(within(goes).getByText(/Your profile, photo and @username/)).toBeTruthy();
+      expect(within(goes).getByText(/The text of your comments/)).toBeTruthy();
+      expect(within(goes).getByText(/“Deleted account” line stays/)).toBeTruthy();
+      expect(within(goes).getByText(/Homes you own/)).toBeTruthy();
+      const stays = screen.getByTestId("account-delete-stays");
+      expect(
+        within(stays).getByText(
+          /felt reports .* stay as research data, without your name/,
+        ),
+      ).toBeTruthy();
+      expect(
+        within(stays).getByText(/Feedback you sent stays, without your name or contact/),
+      ).toBeTruthy();
+      expect(within(stays).getByText(/up to 90 days/)).toBeTruthy();
+      expect(mockDelete).not.toHaveBeenCalled();
     });
 
     it("shows a message when deleting fails", async () => {

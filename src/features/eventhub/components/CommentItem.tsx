@@ -12,20 +12,16 @@ import {
 } from "@/features/events";
 import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
+import { ReportSheet } from "@/features/reporting/ReportSheet";
+import type { ReportInput } from "@/features/reporting/reasons";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
 import { areaCityName } from "../area";
+import { isDeletedAccountComment } from "../deleted-account";
 import type { HubActions } from "../queries";
-import {
-  FLAG_REASONS,
-  HubError,
-  type FlagReason,
-  type HubAuthor,
-  type HubComment,
-  type HubRole,
-} from "../types";
+import { HubError, type HubAuthor, type HubComment, type HubRole } from "../types";
 import { ActionButton } from "./ActionButton";
 import { RemoveReasons } from "./RemoveReasons";
 import { RoleMark } from "./RoleMark";
@@ -109,6 +105,23 @@ export function CommentItem({
           value: formatRelativeTimeValue(relative.value, locale),
         });
 
+  /** The reporting sheet's send: the server decides, the sheet words a failure. */
+  async function sendReport({ reason, note }: ReportInput) {
+    await actions.flag(comment.id, reason, note);
+    setReported(true);
+    setWithdrawn(false);
+  }
+
+  function reportErrorText(error: unknown): string {
+    return t(
+      error instanceof HubError && error.code === "flag_limit"
+        ? "eventHub.thread.flagLimit"
+        : error instanceof HubError && error.code === "restricted"
+          ? "eventHub.thread.restricted"
+          : "eventHub.thread.actionError",
+    );
+  }
+
   async function run(action: () => Promise<void>): Promise<boolean> {
     setBusy(true);
     setErrorKey(null);
@@ -167,6 +180,23 @@ export function CommentItem({
     comment.helpfulCount > 0
       ? t("eventHub.thread.helpfulCount", { number: helpfulCountText })
       : t("eventHub.thread.helpful");
+
+  if (isDeletedAccountComment(comment)) {
+    // The author deleted their account: no photo, name or link, no actions.
+    return (
+      <View
+        testID={`comment-${comment.id}`}
+        style={isReply ? { marginStart: spacing[6] } : null}
+      >
+        <Text
+          style={[meta, { fontStyle: "italic" }]}
+          testID={`comment-deleted-account-${comment.id}`}
+        >
+          {t("eventHub.thread.deletedAccount")}
+        </Text>
+      </View>
+    );
+  }
 
   if (comment.status === "removed") {
     // An admin took the text down. Keep the slot so the replies under it
@@ -279,32 +309,7 @@ export function CommentItem({
           </Text>
         ) : null}
 
-        {mode === "reporting" ? (
-          <View style={{ gap: spacing[1] }} testID={`reasons-${comment.id}`}>
-            <Text style={meta}>{t("eventHub.thread.reportTitle")}</Text>
-            <View style={[styles.actions, { gap: spacing[1] }]}>
-              {FLAG_REASONS.map((reason: FlagReason) => (
-                <ActionButton
-                  key={reason}
-                  label={t(`eventHub.reasons.${reason}`)}
-                  disabled={busy}
-                  onPress={async () => {
-                    const ok = await run(() => actions.flag(comment.id, reason));
-                    if (ok) {
-                      setReported(true);
-                      setWithdrawn(false);
-                      setMode("idle");
-                    }
-                  }}
-                />
-              ))}
-              <ActionButton
-                label={t("eventHub.thread.cancel")}
-                onPress={() => setMode("idle")}
-              />
-            </View>
-          </View>
-        ) : mode === "adminRemove" ? (
+        {mode === "adminRemove" ? (
           <RemoveReasons
             testID={`remove-reasons-${comment.id}`}
             disabled={busy}
@@ -427,6 +432,16 @@ export function CommentItem({
           >
             {t(`eventHub.thread.${errorKey}`)}
           </Text>
+        ) : null}
+
+        {mode === "reporting" ? (
+          <ReportSheet
+            kind="comment"
+            testID={`report-sheet-${comment.id}`}
+            onSubmit={sendReport}
+            onClose={() => setMode("idle")}
+            errorText={reportErrorText}
+          />
         ) : null}
       </View>
     </View>

@@ -4,6 +4,7 @@ import { Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-nat
 import { useTranslation } from "react-i18next";
 
 import { SupabaseCommunityTransport } from "@/features/community/transport";
+import { GuidelinesSheet } from "@/features/guidelines/components/GuidelinesSheet";
 import {
   formatUsername,
   isValidUsername,
@@ -46,6 +47,7 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
   const [profession, setProfession] = useState<Profession | null>(
     privateProfile?.profession ?? null,
   );
+  const [showGuidelines, setShowGuidelines] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(
     privateProfile?.termsVersion === TERMS_VERSION,
   );
@@ -345,6 +347,18 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
             {t("account.profile.privacyLink")}
           </Text>
         </Pressable>
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => setShowGuidelines(true)}
+          style={styles.linkRow}
+          testID="profile-guidelines-link"
+        >
+          <Text
+            style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}
+          >
+            {t("account.profile.guidelinesLink")}
+          </Text>
+        </Pressable>
         <Checkbox
           checked={researchConsent}
           onToggle={() => setResearchConsent((value) => !value)}
@@ -373,6 +387,14 @@ export function ProfileForm({ profile, privateProfile }: ProfileFormProps) {
         onPress={() => void handleSave()}
         testID="profile-save"
       />
+
+      {showGuidelines ? (
+        <GuidelinesSheet
+          mode="read"
+          onClose={() => setShowGuidelines(false)}
+          testID="profile-guidelines"
+        />
+      ) : null}
     </View>
   );
 }

@@ -11,6 +11,7 @@ import { MyLocationRow } from "@/features/account/components/MyLocationRow";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SettingsOptionList } from "@/features/account/components/SettingsOptionList";
 import { SettingsRow, SettingsRowBody } from "@/features/account/components/SettingsRow";
+import { GuidelinesRow } from "@/features/guidelines";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
 import { confirmDialog, messageDialog } from "@/lib/dialogs";
@@ -181,6 +182,7 @@ export default function SettingsScreen() {
           onPress={() => router.push("/feedback")}
           testID="settings-row-feedback"
         />
+        <GuidelinesRow />
         <SettingsRow
           icon="compass-outline"
           label={t("settings.appTour")}

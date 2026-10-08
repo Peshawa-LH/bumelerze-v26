@@ -370,27 +370,45 @@ describe("PostsSection", () => {
       const fake = makeFake([post("p1", 2)]);
       await renderSection(profileOf(), fake);
       await fireEvent.press(await screen.findByTestId("post-report-p1"));
-      expect(screen.getByTestId("post-reasons-p1")).toBeTruthy();
-      await fireEvent.press(screen.getByTestId("post-report-reason-spam"));
-      await waitFor(() => expect(fake.reportPost).toHaveBeenCalledWith("p1", "spam"));
+      expect(screen.getByText("Report this post")).toBeTruthy();
+      await fireEvent.press(screen.getByTestId("post-report-sheet-p1-reason-spam"));
+      await fireEvent.changeText(
+        screen.getByTestId("post-report-sheet-p1-note"),
+        "ad for a shop",
+      );
+      await fireEvent.press(screen.getByTestId("post-report-sheet-p1-submit"));
+      await waitFor(() =>
+        expect(fake.reportPost).toHaveBeenCalledWith("p1", "spam", "ad for a shop"),
+      );
       expect(await screen.findByTestId("post-reported-p1")).toBeTruthy();
       expect(screen.queryByTestId("post-report-p1")).toBeNull();
     });
 
-    it("offers the same five reasons as comments", async () => {
+    it("offers the shared reasons (impersonation is for profiles only)", async () => {
       await renderSection(profileOf(), makeFake([post("p1", 2)]));
       await fireEvent.press(await screen.findByTestId("post-report-p1"));
-      for (const reason of ["spam", "abuse", "false", "private", "other"]) {
-        expect(screen.getByTestId(`post-report-reason-${reason}`)).toBeTruthy();
+      for (const reason of [
+        "spam",
+        "abuse_harassment",
+        "rumour_prediction",
+        "private_info",
+        "sexual_violent",
+        "other",
+      ]) {
+        expect(screen.getByTestId(`post-report-sheet-p1-reason-${reason}`)).toBeTruthy();
       }
+      expect(
+        screen.queryByTestId("post-report-sheet-p1-reason-impersonation"),
+      ).toBeNull();
+      expect(screen.getByText("Fake earthquake prediction or rumour")).toBeTruthy();
     });
 
     it("can be cancelled without sending anything", async () => {
       const fake = makeFake([post("p1", 2)]);
       await renderSection(profileOf(), fake);
       await fireEvent.press(await screen.findByTestId("post-report-p1"));
-      await fireEvent.press(screen.getByText("Cancel"));
-      expect(screen.queryByTestId("post-reasons-p1")).toBeNull();
+      await fireEvent.press(screen.getByTestId("post-report-sheet-p1-close"));
+      expect(screen.queryByTestId("post-report-sheet-p1")).toBeNull();
       expect(fake.reportPost).not.toHaveBeenCalled();
     });
 

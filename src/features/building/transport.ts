@@ -718,6 +718,46 @@ async function removeHomePhotoFiles(
   return leftBehind;
 }
 
+/**
+ * Removes the photo files of every home this person owns, so that deleting
+ * the account (`delete_my_account`, migration 0056) leaves no file behind: SQL
+ * cannot delete storage objects, and once the homes are gone nobody could.
+ * Best effort and never throws: a home it cannot list, or a file it cannot
+ * remove, is left (an orphan nobody can read) and the account deletion the
+ * person asked for goes on. Returns true when something may be left behind.
+ */
+export async function removeOwnedHomePhotoFiles(
+  client: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  try {
+    const { data, error } = await client
+      .from("home_members")
+      .select("tag_id")
+      .eq("user_id", userId)
+      .eq("role", "owner");
+    if (error || !Array.isArray(data)) {
+      return true;
+    }
+    let leftBehind = false;
+    for (const row of data as { tag_id?: unknown }[]) {
+      if (typeof row.tag_id !== "string") {
+        continue;
+      }
+      try {
+        if (await removeHomePhotoFiles(client, row.tag_id)) {
+          leftBehind = true;
+        }
+      } catch {
+        leftBehind = true;
+      }
+    }
+    return leftBehind;
+  } catch {
+    return true;
+  }
+}
+
 const photoMetaSchema = z.object({
   path: z.string(),
   slot: z.string(),

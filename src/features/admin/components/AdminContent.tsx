@@ -79,6 +79,7 @@ export function AdminContent({
           <ReportedProfilesSection
             canRestrict={access.canRestrict}
             canSuspend={access.canSuspend}
+            canViewPeople={access.canViewPeople}
             {...shared}
           />
           <ReportedPostsSection

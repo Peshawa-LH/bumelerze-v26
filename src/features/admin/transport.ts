@@ -61,6 +61,8 @@ const queueSchema = z.object({
   body: z.string(),
   status: z.enum(["pending", "visible"]),
   flag_count: z.coerce.number().catch(0),
+  last_reason: z.string().nullable().optional(),
+  last_note: z.string().nullable().optional(),
   created_at: z.string(),
 });
 
@@ -84,6 +86,8 @@ export function parseQueue(data: unknown): QueueComment[] {
       body: parsed.data.body,
       status: parsed.data.status,
       flagCount: parsed.data.flag_count,
+      lastReason: parsed.data.last_reason ?? null,
+      lastNote: parsed.data.last_note ?? null,
       createdAt,
     });
   }
@@ -136,6 +140,7 @@ const reportSchema = z.object({
   display_name: z.string().nullable().optional(),
   report_count: z.coerce.number().catch(0),
   last_reason: z.string().nullable().optional(),
+  last_note: z.string().nullable().optional(),
 });
 
 export function parseReportedProfiles(data: unknown): ReportedProfile[] {
@@ -152,6 +157,7 @@ export function parseReportedProfiles(data: unknown): ReportedProfile[] {
         displayName: parsed.data.display_name ?? null,
         reportCount: parsed.data.report_count,
         lastReason: parsed.data.last_reason ?? null,
+        lastNote: parsed.data.last_note ?? null,
       });
     }
   }
@@ -166,6 +172,7 @@ const postSchema = z.object({
   body: z.string(),
   report_count: z.coerce.number().catch(0),
   last_reason: z.string().nullable().optional(),
+  last_note: z.string().nullable().optional(),
 });
 
 export function parseReportedPosts(data: unknown): ReportedPost[] {
@@ -184,6 +191,7 @@ export function parseReportedPosts(data: unknown): ReportedPost[] {
         body: parsed.data.body,
         reportCount: parsed.data.report_count,
         lastReason: parsed.data.last_reason ?? null,
+        lastNote: parsed.data.last_note ?? null,
       });
     }
   }

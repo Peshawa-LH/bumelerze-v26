@@ -931,7 +931,6 @@
       "helpfulCount": "Bikêr: {{number}}",
       "report": "Gilî bike",
       "reported": "Spas. Em ê binirxînin.",
-      "reportTitle": "Çima gilî dikî?",
       "delete": "Jê bibe",
       "approve": "Bipejirîne",
       "hide": "Veşêre",
@@ -946,7 +945,8 @@
       "reportWithdrawn": "Gilî hate paşvekişandin.",
       "flagLimit": "Te gihîşt sînorê gilîkirinên îro. Sibê dîsa biceribîne.",
       "following": "Dişopînî",
-      "restricted": "Hesabê te niha sînordar e."
+      "restricted": "Hesabê te niha sînordar e.",
+      "deletedAccount": "Hesabê jêbirî"
     },
     "reasons": {
       "spam": "Spam",
@@ -1607,9 +1607,23 @@
       "editProfile": "Profîlê biguherîne",
       "signOut": "Derkeve",
       "delete": "Hesabê jê bibe",
-      "deleteWarning": "Ev profîl û wêneya te bi temamî jê dibe. Raporên te dimînin, bêyî navê te.",
+      "deleteWarning": "Ev hesabê te bi temamî jê dibe. Venagere.",
       "deleteConfirm": "Bi temamî jê bibe",
-      "deleteCancel": "Betal bike"
+      "deleteCancel": "Betal bike",
+      "deleteGoesTitle": "Çi jê dibe",
+      "deleteGoes": {
+        "profile": "Profîl, wêne û @navê bikarhêner",
+        "posts": "Nivîsên te, şopînerên te û kesên ku tu dişopînî",
+        "comments": "Nivîsa şîroveyên te. Rêzeke «Hesabê jêbirî» di gotûbêjê de dimîne da ku bersiv têgihîştî bimînin.",
+        "homes": "Xaniyên ku tu xwediyê wan î, bi bersiv, wêne û girêdanên malbatê re. Endamên malbatê gihîştinê winda dikin.",
+        "alerts": "Cihên hişyariyê, rêz û nîşanên te"
+      },
+      "deleteStaysTitle": "Çi dimîne",
+      "deleteStays": {
+        "reports": "Raporên te yên hîskirinê (û wêneyên pê ve) wekî daneya lêkolînê dimînin, bêyî navê te.",
+        "feedback": "Nêrînên ku te şandine dimînin, bêyî nav û agahiyên têkiliyê.",
+        "records": "Tomarên çavdêriyê yên gilî û rakirinan dimînin, bêyî navê te. Ger hesabê te sînordar be an di bin nirxandinê de be, kopiyên nivîsa hatî rakirin heta 90 rojan tên girtin."
+      }
     }
   },
   "feedback": {
@@ -1719,7 +1733,7 @@
       "professionLabel": "Pîşe (bi dilê te)",
       "professionHint": "Taybet. Qet ji kesî re nayê nîşandan.",
       "preferNot": "Nexwazim bibêjim",
-      "terms": "Ez bi Mercan û Siyaseta Nepenîtiyê razî me.",
+      "terms": "Ez bi Mercan, Siyaseta Nepenîtiyê û Rêbernameyên civakê razî me, û ez 13 salî an jî mezintir im.",
       "privacyLink": "Siyaseta nepenîtiyê bixwîne",
       "research": "Raport û agahiyên avahiya min, bêyî navê min û bi cihê hûrkirî, ji bo lêkolîna erdhejê û baştirkirina texmînên zirarê yên Bumelerze bi kar bîne. (Bi dilê te)",
       "save": "Tomar bike",
@@ -1733,7 +1747,8 @@
       "usernameSuggest": "Bi kar bîne {{name}}",
       "privateLabel": "Hesabê taybet",
       "privateHint": "Divê mirov daxwaza şopandina te bikin.",
-      "showBadgesLabel": "Nîşanên min li profîla min nîşan bide"
+      "showBadgesLabel": "Nîşanên min li profîla min nîşan bide",
+      "guidelinesLink": "Rêbernameyên civakê bixwîne"
     },
     "professions": {
       "engineer": "Endezyar",
@@ -2259,15 +2274,7 @@
     },
     "report": {
       "action": "Profîlê gilî bike",
-      "title": "Çima tu vê profîlê gilî dikî?",
-      "sent": "Spas. Em ê binirxînin.",
-      "reasons": {
-        "spam": "Spam",
-        "abuse": "Heqaret",
-        "impersonation": "Xwe wekî kesekî din dike",
-        "private": "Agahiya taybet",
-        "other": "Yên din"
-      }
+      "sent": "Spas. Em ê binirxînin."
     },
     "requests": {
       "title": "Daxwazên şopandinê",
@@ -2301,7 +2308,8 @@
       "restricted": "Hesabê te niha sînordar e.",
       "protected_account": "Ev hesab nayê sînordarkirin.",
       "bad_end_date": "Dîroka dawîyê kontrol bike.",
-      "reason_required": "Sedemekê lê zêde bike."
+      "reason_required": "Sedemekê lê zêde bike.",
+      "guidelines_required": "Ji kerema xwe pêşî rêbernameyên civakê bixwîne û qebûl bike."
     }
   },
   "admin": {
@@ -2332,7 +2340,9 @@
       "empty": "Gilî tune.",
       "count": "Gilî: {{number}}",
       "dismiss": "Paşguh bike",
-      "open": "Profîlê veke"
+      "open": "Profîlê veke",
+      "reason": "Sedem: {{reason}}",
+      "openPerson": "Kesê veke"
     },
     "posts": {
       "title": "Nivîsên gilîkirî"
@@ -2690,7 +2700,6 @@
     },
     "delete": "Jê bibe",
     "report": "Gilî bike",
-    "reportTitle": "Çima tu vê nivîsê gilî dikî?",
     "reported": "Spas. Em ê binirxînin.",
     "remove": "Rake",
     "removeConfirmTitle": "Ev nivîs were rakirin?",
@@ -2729,5 +2738,64 @@
     "limitLifted": "Sînor hat rakirin",
     "profileReset": "Nav / wêne hat vegerandin",
     "nothingToReset": "Tiştek tune ku were vegerandin"
+  },
+  "report": {
+    "title": {
+      "comment": "Vê şîroveyê gilî bike",
+      "post": "Vê nivîsê gilî bike",
+      "profile": "Vê profîlê gilî bike"
+    },
+    "hint": "Sedema herî nêzîk hilbijêre. Rêveberek wê binirxîne.",
+    "reasons": {
+      "spam": "Spam an reklam",
+      "abuse_harassment": "Heqaret an aciz kirin",
+      "rumour_prediction": "Pêşbîniya derewîn a erdhejê an gotegot",
+      "private_info": "Agahiya taybet (navnîşan, wêne, telefon)",
+      "sexual_violent": "Naveroka cinsî an tund",
+      "impersonation": "Xwe wekî kesekî din dike",
+      "other": "Sedemeke din"
+    },
+    "noteLabel": "Têbînî lê zêde bike (bi dilê te)",
+    "notePlaceholder": "Rêvebir çi bizane?",
+    "noteCount": "{{used}}/{{max}}",
+    "noteA11y": "Têbînî: {{note}}",
+    "submit": "Gilîyê bişîne",
+    "sending": "Tê şandin…",
+    "error": "Gilî nehat şandin. Dîsa biceribîne."
+  },
+  "guidelines": {
+    "title": "Rêbernameyên civakê",
+    "intro": "Bumelerze cihekî ye ku tu tê de qala tiştê ku te hîs kiriye dikî û alîkariya hev dikin. Ji kerema xwe wiha bihêle.",
+    "rules": {
+      "predictions": {
+        "title": "Pêşbînî û gotegot tune",
+        "body": "Kes nikare erdhejê pêşbîn bike. Nenivîse ku yeke mezintir tê û peyamên ku roj an demekê dibêjin neweşîne."
+      },
+      "privateInfo": {
+        "title": "Agahiya taybet a kesên din parve neke",
+        "body": "Navnîşan, hejmara telefonê an wêneyê kesekî bê destûra wî/wê parve neke."
+      },
+      "graphic": {
+        "title": "Wêneyên tund tune",
+        "body": "Naveroka tund an cinsî tune, û wêneyên kesên birîndar an miriyan tune."
+      },
+      "respect": {
+        "title": "Rêzê bigire",
+        "body": "Heqaret, gef, nefret û aciz kirin qedexe ne. Tu dikarî bi rêzdarî nerazî bibî."
+      },
+      "feltReports": {
+        "title": "Raporên hîskirinê ji bo ezmûnên rast in",
+        "body": "Tenê tiştê ku te bi rastî hîs kiriye rapor bike, li cihê ku tu bi rastî lê bûyî."
+      }
+    },
+    "consequence": "Şîroveyên ku van rêgezan binpê dikin dikarin werin rakirin û hesab dikarin werin sînordarkirin.",
+    "age": "Ez 13 salî an jî mezintir im.",
+    "agree": "Ez razî me",
+    "agreeing": "Tê tomarkirin…",
+    "notNow": "Niha na",
+    "close": "Bigire",
+    "error": "Bersiva te nehat tomarkirin. Girêdana xwe kontrol bike û dîsa biceribîne.",
+    "settingsLabel": "Rêbernameyên civakê",
+    "settingsValue": "Rêgezên şîrove û nivîsan"
   }
 }

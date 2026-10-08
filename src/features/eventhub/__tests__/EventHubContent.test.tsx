@@ -1,4 +1,11 @@
-import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 import { encodeGeohash } from "@/lib/felt-aggregation/geohash";
@@ -249,6 +256,64 @@ describe("EventHubContent", () => {
       expect(flat(reply).marginStart).toBe(24);
     });
 
+    describe("after the author deleted their account", () => {
+      const blank = buildComment({
+        id: "gone",
+        userId: null,
+        body: "",
+        areaGeohash: null,
+        createdAt: Date.now() - 20 * 60_000,
+        replyCount: 1,
+      });
+      const reply = buildComment({
+        id: "after",
+        parentId: "gone",
+        userId: "u-awat",
+        body: "I felt it too",
+        createdAt: Date.now() - 10 * 60_000,
+      });
+      const authors = { "u-awat": { displayName: "Awat" } };
+
+      it("shows 'Deleted account' with no photo, name, link or actions, and keeps the reply under it", async () => {
+        await renderHub(makeTransport({ comments: [blank, reply], authors }));
+        expect(await screen.findByText("I felt it too")).toBeTruthy();
+        expect(screen.getByTestId("comment-deleted-account-gone")).toHaveTextContent(
+          "Deleted account",
+        );
+        expect(screen.queryByTestId("comment-avatar-gone")).toBeNull();
+        expect(screen.queryByTestId("comment-avatar-link-gone")).toBeNull();
+        expect(screen.queryByTestId("comment-name-link-gone")).toBeNull();
+        expect(screen.queryByText("Anonymous")).toBeNull();
+        const row = screen.getByTestId("comment-gone");
+        expect(within(row).queryByRole("button")).toBeNull();
+        // the reply is a normal comment
+        expect(screen.getByTestId("comment-after")).toBeTruthy();
+      });
+
+      it("leaves a lone blank comment out, nothing is under it", async () => {
+        await renderHub(
+          makeTransport({
+            comments: [blank, buildComment({ id: "other", body: "Another one" })],
+          }),
+        );
+        expect(await screen.findByText("Another one")).toBeTruthy();
+        expect(screen.queryByTestId("comment-gone")).toBeNull();
+        expect(screen.queryByText("Deleted account")).toBeNull();
+      });
+
+      it.each([
+        ["ckb", "هەژماری سڕاوە"],
+        ["kmr", "Hesabê jêbirî"],
+        ["ar", "حساب محذوف"],
+      ] as const)("is worded in %s", async (locale, text) => {
+        await i18n.changeLanguage(locale);
+        await renderHub(makeTransport({ comments: [blank, reply], authors }));
+        expect(
+          await screen.findByTestId("comment-deleted-account-gone"),
+        ).toHaveTextContent(text);
+      });
+    });
+
     it("uses the Sorani locale for the empty-thread text", async () => {
       await i18n.changeLanguage("ckb");
       await renderHub(makeTransport());
@@ -424,12 +489,42 @@ describe("EventHubContent", () => {
       });
       await renderHub(transport);
       await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
-      expect(screen.getByText("Why are you reporting this?")).toBeTruthy();
-      await fireEvent.press(screen.getByRole("button", { name: "Spam" }));
+      // The shared report sheet: reasons first, nothing is sent until one is chosen.
+      expect(screen.getByText("Report this comment")).toBeTruthy();
+      expect(screen.queryByTestId("report-sheet-c-bad-reason-impersonation")).toBeNull();
+      expect(
+        screen.getByTestId("report-sheet-c-bad-submit").props.accessibilityState.disabled,
+      ).toBe(true);
+      await fireEvent.press(
+        screen.getByTestId("report-sheet-c-bad-reason-rumour_prediction"),
+      );
+      await fireEvent.changeText(
+        screen.getByTestId("report-sheet-c-bad-note"),
+        "  says a bigger one comes tonight  ",
+      );
+      await fireEvent.press(screen.getByTestId("report-sheet-c-bad-submit"));
       await waitFor(() =>
-        expect(transport.flagComment).toHaveBeenCalledWith("c-bad", "spam"),
+        expect(transport.flagComment).toHaveBeenCalledWith(
+          "c-bad",
+          "rumour_prediction",
+          "says a bigger one comes tonight",
+        ),
       );
       expect(await screen.findByText("Thanks. We will review it.")).toBeTruthy();
+      expect(screen.queryByTestId("report-sheet-c-bad")).toBeNull();
+    });
+
+    it("sends a report without a note as null", async () => {
+      const transport = makeTransport({
+        comments: [buildComment({ id: "c-bad", body: "Buy my stuff" })],
+      });
+      await renderHub(transport);
+      await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
+      await fireEvent.press(screen.getByTestId("report-sheet-c-bad-reason-spam"));
+      await fireEvent.press(screen.getByTestId("report-sheet-c-bad-submit"));
+      await waitFor(() =>
+        expect(transport.flagComment).toHaveBeenCalledWith("c-bad", "spam", null),
+      );
     });
 
     it("offers 'Withdraw report' for a comment reported earlier, and takes the report back", async () => {
@@ -454,7 +549,8 @@ describe("EventHubContent", () => {
       });
       await renderHub(transport);
       await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
-      await fireEvent.press(screen.getByRole("button", { name: "Spam" }));
+      await fireEvent.press(screen.getByTestId("report-sheet-c-bad-reason-spam"));
+      await fireEvent.press(screen.getByTestId("report-sheet-c-bad-submit"));
       expect(await screen.findByTestId("withdraw-report-c-bad")).toBeTruthy();
     });
 
@@ -483,12 +579,15 @@ describe("EventHubContent", () => {
       );
       await renderHub(transport);
       await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
-      await fireEvent.press(screen.getByRole("button", { name: "Spam" }));
+      await fireEvent.press(screen.getByTestId("report-sheet-c-bad-reason-spam"));
+      await fireEvent.press(screen.getByTestId("report-sheet-c-bad-submit"));
+      // The sheet stays open and says why, so the reader can close it.
       expect(
         await screen.findByText(
           "You've reached today's limit for reports. Try again tomorrow.",
         ),
       ).toBeTruthy();
+      expect(screen.getByTestId("report-sheet-c-bad")).toBeTruthy();
     });
 
     it("deletes their own comment at once and offers Undo, which restores it", async () => {

@@ -57,7 +57,9 @@ export interface HubRole {
  * an empty "Comment removed" placeholder so replies stay readable. */
 export type CommentStatus = "visible" | "pending" | "hidden" | "removed";
 
-/** Reasons a reader can give when reporting a comment (`comment_flags.reason`). */
+/** The reasons an ADMIN gives when removing a comment or post (the moderation
+ * log keeps them). Readers report with the shared list in
+ * `@/features/reporting` instead (migration 0056). */
 export type FlagReason = "spam" | "abuse" | "false" | "private" | "other";
 
 export const FLAG_REASONS: readonly FlagReason[] = [
@@ -140,6 +142,8 @@ export type HubErrorCode =
   | "not_restorable"
   /** The account is restricted or suspended (migration 0054). */
   | "restricted"
+  /** The identity has not accepted the community guidelines yet (0056). */
+  | "guidelines_required"
   | "network"
   | "not_signed_in"
   | "unknown";

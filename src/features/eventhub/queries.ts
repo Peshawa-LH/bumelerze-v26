@@ -7,17 +7,12 @@ import {
 
 import type { Event } from "@/features/events";
 import { useEventUuid } from "@/features/feltmap/use-event-uuid";
+import type { ReportReason } from "@/features/reporting/reasons";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { RECENTLY_DELETED_KEY } from "@/features/undo/keys";
 import { legacyPermissions, loadHubThread } from "./service";
 import { SupabaseEventHubTransport, type EventHubTransport } from "./transport";
-import type {
-  FlagReason,
-  HubSummary,
-  HubThreadData,
-  ModerationAction,
-  Permission,
-} from "./types";
+import type { HubSummary, HubThreadData, ModerationAction, Permission } from "./types";
 
 /** The hub re-reads this often while its screen is in front. Not a
  * background poll: it stops when the screen loses focus or the app leaves the
@@ -189,7 +184,7 @@ function refresh(queryClient: QueryClient, eventUuid: string): Promise<unknown> 
 export interface HubActions {
   post: (input: { parentId: string | null; body: string }) => Promise<void>;
   setHelpful: (commentId: string, helpful: boolean) => Promise<void>;
-  flag: (commentId: string, reason: FlagReason) => Promise<void>;
+  flag: (commentId: string, reason: ReportReason, note?: string | null) => Promise<void>;
   /** Take back my report (migration 0052). */
   withdrawFlag: (commentId: string) => Promise<void>;
   remove: (commentId: string) => Promise<void>;
@@ -222,8 +217,11 @@ export function useHubActions(
     onSuccess: () => refresh(queryClient, eventUuid),
   });
   const flag = useMutation({
-    mutationFn: (input: { commentId: string; reason: FlagReason }) =>
-      transport.flagComment(input.commentId, input.reason),
+    mutationFn: (input: {
+      commentId: string;
+      reason: ReportReason;
+      note?: string | null | undefined;
+    }) => transport.flagComment(input.commentId, input.reason, input.note),
     onSuccess: () => refresh(queryClient, eventUuid),
   });
   const withdrawFlag = useMutation({
@@ -257,7 +255,7 @@ export function useHubActions(
   return {
     post: (input) => post.mutateAsync(input),
     setHelpful: (commentId, value) => helpful.mutateAsync({ commentId, helpful: value }),
-    flag: (commentId, reason) => flag.mutateAsync({ commentId, reason }),
+    flag: (commentId, reason, note) => flag.mutateAsync({ commentId, reason, note }),
     withdrawFlag: (commentId) => withdrawFlag.mutateAsync(commentId),
     remove: (commentId) => remove.mutateAsync(commentId),
     moderate: (commentId, action) => moderate.mutateAsync({ commentId, action }),

@@ -356,11 +356,20 @@ describe("PublicProfileView", () => {
       const actions = makeActions();
       await renderView(<PublicProfileView profile={build()} actions={actions} />);
       await fireEvent.press(screen.getByTestId("public-profile-report"));
+      expect(screen.getByText("Report this profile")).toBeTruthy();
+      await fireEvent.press(
+        screen.getByTestId("public-profile-report-sheet-reason-impersonation"),
+      );
+      await fireEvent.changeText(
+        screen.getByTestId("public-profile-report-sheet-note"),
+        "uses my name",
+      );
       await act(async () => {
-        fireEvent.press(screen.getByTestId("report-reason-impersonation"));
+        fireEvent.press(screen.getByTestId("public-profile-report-sheet-submit"));
       });
-      expect(actions.report).toHaveBeenCalledWith("u1", "impersonation");
+      expect(actions.report).toHaveBeenCalledWith("u1", "impersonation", "uses my name");
       expect(await screen.findByText("Thanks. We will review it.")).toBeTruthy();
+      expect(screen.queryByTestId("public-profile-report-sheet")).toBeNull();
     });
   });
 

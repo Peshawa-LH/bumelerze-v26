@@ -12,6 +12,8 @@ import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
 import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { PostsTransport } from "@/features/posts/transport";
+import { ReportNote } from "@/features/reporting/ReportNote";
+import { reasonLabel } from "@/features/reporting/reasons";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
@@ -154,11 +156,12 @@ function ReportedPostItem({
           t("admin.reports.count", {
             number: localizeDigits(String(row.reportCount), i18n.language),
           }),
-          row.lastReason ? t(`eventHub.reasons.${row.lastReason}`) : null,
+          row.lastReason ? reasonLabel(t, row.lastReason) : null,
         ]
           .filter(Boolean)
           .join(" · ")}
       </Text>
+      <ReportNote note={row.lastNote} testID={`reported-post-note-${row.postId}`} />
       <Text
         style={{
           color: colors.text.primary,

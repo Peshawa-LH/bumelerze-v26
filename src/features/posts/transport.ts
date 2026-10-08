@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { toCommunityError } from "@/features/community/transport";
 import { CommunityError } from "@/features/community/types";
-import type { FlagReason } from "@/features/eventhub/types";
+import { cleanNote, type ReportReason } from "@/features/reporting/reasons";
 import { getSupabaseClient } from "@/lib/supabase";
 import { POSTS_PAGE_SIZE } from "./constants";
 import type { PostsPage, ProfilePost } from "./types";
@@ -30,7 +30,9 @@ export interface PostsTransport {
   deletePost(postId: string): Promise<void>;
   /** Takes my deleted post back (`restore_my_post`, 0053). */
   restorePost(postId: string): Promise<void>;
-  reportPost(postId: string, reason: FlagReason): Promise<void>;
+  /** Reports a post (`report_post`); `note` is the optional 200-character
+   * explanation (migration 0056). */
+  reportPost(postId: string, reason: ReportReason, note?: string | null): Promise<void>;
   /** Admin soft remove (`posts.delete`); `reason` is a short code. */
   adminRemovePost(postId: string, reason: string): Promise<void>;
   /** Brings back a removed post (`admin_restore_post`, 0053; `content.restore`). */
@@ -131,8 +133,13 @@ export const SupabasePostsTransport: PostsTransport = {
     await rpc("restore_my_post", { p_post_id: postId });
   },
 
-  async reportPost(postId, reason) {
-    await rpc("report_post", { p_post: postId, p_reason: reason });
+  async reportPost(postId, reason, note) {
+    const cleaned = cleanNote(note);
+    await rpc("report_post", {
+      p_post: postId,
+      p_reason: reason,
+      ...(cleaned ? { p_note: cleaned } : {}),
+    });
   },
 
   async adminRemovePost(postId, reason) {

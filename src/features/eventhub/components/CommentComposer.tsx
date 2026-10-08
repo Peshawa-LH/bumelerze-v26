@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { isGuidelinesDeclined, useGuidelinesGate } from "@/features/guidelines";
+import type { GuidelinesTransport } from "@/features/guidelines";
 import { useTheme } from "@/theme";
 
 import { toHubError } from "../transport";
@@ -22,6 +24,8 @@ interface CommentComposerProps {
   /** The account is limited (migration 0054): the box and the Post button are
    * off and a short line says why. The banner above explains the details. */
   disabled?: boolean;
+  /** Test seam for the guidelines sheet's "I agree" call. */
+  guidelinesTransport?: GuidelinesTransport;
   testID?: string;
 }
 
@@ -33,6 +37,7 @@ const ERROR_KEY: Record<HubErrorCode, string> = {
   expired: "eventHub.composer.errors.unknown",
   not_restorable: "eventHub.composer.errors.unknown",
   restricted: "eventHub.composer.errors.restricted",
+  guidelines_required: "eventHub.composer.errors.unknown",
   unknown: "eventHub.composer.errors.unknown",
 };
 
@@ -48,6 +53,7 @@ export function CommentComposer({
   onCancel,
   autoFocus = false,
   disabled = false,
+  guidelinesTransport,
   testID = "hub-composer",
 }: CommentComposerProps) {
   const { t } = useTranslation();
@@ -57,6 +63,9 @@ export function CommentComposer({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // The guidelines are asked for on the first comment: the server refuses
+  // until they were accepted, then the same comment is sent again.
+  const { guard, sheet } = useGuidelinesGate(guidelinesTransport);
 
   const canPost = text.trim().length > 0 && !busy && !disabled;
 
@@ -68,12 +77,15 @@ export function CommentComposer({
     setError(null);
     setNotice(null);
     try {
-      await onSubmit(text.trim());
+      await guard(() => onSubmit(text.trim()));
       setText("");
       setNotice(isAccount ? null : t("eventHub.composer.postedPending"));
       onCancel?.();
     } catch (caught) {
-      setError(t(ERROR_KEY[toHubError(caught).code]));
+      // Closing the guidelines without agreeing is not an error: the text stays.
+      if (!isGuidelinesDeclined(caught)) {
+        setError(t(ERROR_KEY[toHubError(caught).code]));
+      }
     } finally {
       setBusy(false);
     }
@@ -155,12 +167,14 @@ export function CommentComposer({
         </Text>
       ) : null}
 
+      {sheet}
+
       <View style={[styles.buttons, { gap: spacing[2] }]}>
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ disabled: !canPost, busy }}
           disabled={!canPost}
-          onPress={handlePost}
+          onPress={() => void handlePost()}
           testID={`${testID}-post`}
           style={[
             styles.button,

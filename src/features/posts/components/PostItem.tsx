@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
-import { FLAG_REASONS } from "@/features/eventhub/types";
+import { ReportSheet } from "@/features/reporting/ReportSheet";
+import type { ReportInput } from "@/features/reporting/reasons";
 import { formatRelativeTimeValue, getRelativeTime } from "@/features/events";
 import { confirmDialog } from "@/lib/dialogs";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
@@ -87,6 +88,11 @@ export function PostItem({
     }
   }
 
+  async function sendReport({ reason, note }: ReportInput) {
+    await actions.report(post.id, reason, note);
+    setReported(true);
+  }
+
   const removed = post.status === "removed";
 
   return (
@@ -123,32 +129,7 @@ export function PostItem({
         </Text>
       )}
 
-      {mode === "reporting" ? (
-        <View style={{ gap: spacing[1] }} testID={`post-reasons-${post.id}`}>
-          <Text style={meta}>{t("posts.reportTitle")}</Text>
-          <View style={styles.actions}>
-            {FLAG_REASONS.map((reason) => (
-              <ActionButton
-                key={reason}
-                label={t(`eventHub.reasons.${reason}`)}
-                disabled={busy}
-                testID={`post-report-reason-${reason}`}
-                onPress={async () => {
-                  const ok = await run(() => actions.report(post.id, reason));
-                  if (ok) {
-                    setReported(true);
-                    setMode("idle");
-                  }
-                }}
-              />
-            ))}
-            <ActionButton
-              label={t("eventHub.thread.cancel")}
-              onPress={() => setMode("idle")}
-            />
-          </View>
-        </View>
-      ) : mode === "adminRemove" ? (
+      {mode === "adminRemove" ? (
         <RemoveReasons
           testID={`post-remove-reasons-${post.id}`}
           disabled={busy}
@@ -212,6 +193,16 @@ export function PostItem({
         <Text accessibilityRole="alert" style={[meta, { color: colors.status.danger }]}>
           {errorText}
         </Text>
+      ) : null}
+
+      {mode === "reporting" ? (
+        <ReportSheet
+          kind="post"
+          testID={`post-report-sheet-${post.id}`}
+          onSubmit={sendReport}
+          onClose={() => setMode("idle")}
+          errorText={(error) => communityErrorText(t, error)}
+        />
       ) : null}
     </View>
   );

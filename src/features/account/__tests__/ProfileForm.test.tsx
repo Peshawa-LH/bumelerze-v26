@@ -1,5 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
 import i18n from "@/i18n";
 import { ProfileForm } from "../components/ProfileForm";
 
@@ -58,6 +60,31 @@ describe("ProfileForm", () => {
 
     await press("profile-terms"); // untick
     expect(saveDisabled()).toBe(true); // consent required
+  });
+
+  it("the terms line covers the community guidelines and being 13 or older, and the guidelines can be read from the form", async () => {
+    await render(
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 360, height: 640 },
+          insets: { top: 0, left: 0, right: 0, bottom: 0 },
+        }}
+      >
+        <ProfileForm profile={null} privateProfile={null} />
+      </SafeAreaProvider>,
+    );
+    expect(
+      screen.getByText(
+        "I agree to the Terms, the Privacy Policy and the Community guidelines, and I am 13 or older.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("profile-guidelines")).toBeNull();
+    await press("profile-guidelines-link");
+    expect(screen.getByTestId("profile-guidelines")).toBeTruthy();
+    // reading them is not agreeing: no agree button here, the checkbox above is the agreement
+    expect(screen.queryByTestId("profile-guidelines-agree")).toBeNull();
+    await press("profile-guidelines-close-button");
+    expect(screen.queryByTestId("profile-guidelines")).toBeNull();
   });
 
   it("lists every profession plus prefer-not-to-say, and research consent is optional", async () => {

@@ -3,7 +3,8 @@ import { z } from "zod";
 
 import { HUB_ROLE_KINDS, type HubRole } from "@/features/eventhub/types";
 import { getSupabaseClient } from "@/lib/supabase";
-import type { ProfileReportReason } from "./constants";
+import type { ReportReason } from "@/features/reporting/reasons";
+import { cleanNote } from "@/features/reporting/reasons";
 import {
   CommunityError,
   type FollowRequest,
@@ -40,7 +41,13 @@ export interface CommunityTransport {
   undoDecline(userId: string): Promise<void>;
   block(userId: string): Promise<void>;
   unblock(userId: string): Promise<void>;
-  reportProfile(userId: string, reason: ProfileReportReason): Promise<void>;
+  /** Reports a profile (`report_profile`); `note` is the optional
+   * 200-character explanation (migration 0056). */
+  reportProfile(
+    userId: string,
+    reason: ReportReason,
+    note?: string | null,
+  ): Promise<void>;
   /** `username_available()`; true when the name is free for the caller. */
   isUsernameAvailable(username: string): Promise<boolean>;
 }
@@ -261,6 +268,9 @@ export function toCommunityError(error: unknown): CommunityError {
   if (message.includes("account_restricted")) {
     return new CommunityError("restricted", message);
   }
+  if (message.includes("guidelines_required")) {
+    return new CommunityError("guidelines_required", message);
+  }
   if (/protected_account|self_restriction/.test(message)) {
     return new CommunityError("protected_account", message);
   }
@@ -371,8 +381,14 @@ export const SupabaseCommunityTransport: CommunityTransport = {
     await call("unblock_user", { p_user: userId });
   },
 
-  async reportProfile(userId, reason) {
-    await call("report_profile", { p_user: userId, p_reason: reason });
+  async reportProfile(userId, reason, note) {
+    const cleaned = cleanNote(note);
+    await call("report_profile", {
+      p_user: userId,
+      p_reason: reason,
+      // only sent when there is one, so a plain report never depends on the new argument
+      ...(cleaned ? { p_note: cleaned } : {}),
+    });
   },
 
   async isUsernameAvailable(username) {

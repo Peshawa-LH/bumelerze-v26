@@ -11,7 +11,7 @@ import { CommunityError } from "@/features/community/types";
 import { useMyPermissions } from "@/features/eventhub/queries";
 import { RECENTLY_DELETED_KEY } from "@/features/undo/keys";
 import type { EventHubTransport } from "@/features/eventhub/transport";
-import type { FlagReason } from "@/features/eventhub/types";
+import type { ReportReason } from "@/features/reporting/reasons";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SupabasePostsTransport, type PostsTransport } from "./transport";
 import type { PostsPage, ProfilePost } from "./types";
@@ -105,7 +105,7 @@ export interface PostActions {
   remove: (postId: string) => Promise<void>;
   /** The Undo of my own delete (24 hours). */
   restore: (postId: string) => Promise<void>;
-  report: (postId: string, reason: FlagReason) => Promise<void>;
+  report: (postId: string, reason: ReportReason, note?: string | null) => Promise<void>;
   adminRemove: (postId: string, reason: string) => Promise<void>;
   /** The Undo of an admin removal (`content.restore`, 30 days). */
   adminRestore: (postId: string) => Promise<void>;
@@ -144,8 +144,11 @@ export function usePostActions(
     onSuccess: refresh,
   });
   const report = useMutation({
-    mutationFn: (input: { postId: string; reason: FlagReason }) =>
-      transport.reportPost(input.postId, input.reason),
+    mutationFn: (input: {
+      postId: string;
+      reason: ReportReason;
+      note?: string | null | undefined;
+    }) => transport.reportPost(input.postId, input.reason, input.note),
   });
   const adminRemove = useMutation({
     mutationFn: (input: { postId: string; reason: string }) =>
@@ -158,7 +161,7 @@ export function usePostActions(
     remove: (postId) => remove.mutateAsync(postId),
     restore: (postId) => restore.mutateAsync(postId),
     adminRestore: (postId) => adminRestore.mutateAsync(postId),
-    report: (postId, reason) => report.mutateAsync({ postId, reason }),
+    report: (postId, reason, note) => report.mutateAsync({ postId, reason, note }),
     adminRemove: (postId, reason) => adminRemove.mutateAsync({ postId, reason }),
   };
 }

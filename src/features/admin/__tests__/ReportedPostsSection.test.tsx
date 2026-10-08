@@ -40,6 +40,7 @@ const REPORTED: ReportedPost = {
   body: "buy cheap stuff now",
   reportCount: 3,
   lastReason: "spam",
+  lastNote: null,
 };
 
 function adminTransport(rows: ReportedPost[] | Error): jest.Mocked<AdminTransport> {
@@ -98,8 +99,24 @@ describe("reported posts in the admin screen", () => {
     expect(await screen.findByTestId("admin-posts")).toBeTruthy();
     expect(screen.getByText("buy cheap stuff now")).toBeTruthy();
     expect(screen.getByText("Dilan")).toBeTruthy();
-    expect(screen.getByText("Reports: 3 · Spam")).toBeTruthy();
+    expect(screen.getByText("Reports: 3 · Spam or advertising")).toBeTruthy();
     expect(screen.getByText("Reported posts")).toBeTruthy();
+    expect(screen.queryByTestId("reported-post-note-p1")).toBeNull();
+  });
+
+  it("shows the reporter's note under the reason, and renames the earlier reason words", async () => {
+    await renderAdmin(
+      ["comments.moderate"],
+      adminTransport([
+        { ...REPORTED, lastReason: "false", lastNote: "says a bigger one comes" },
+      ]),
+    );
+    expect(
+      await screen.findByText("Reports: 3 · Fake earthquake prediction or rumour"),
+    ).toBeTruthy();
+    expect(screen.getByTestId("reported-post-note-p1")).toHaveTextContent(
+      "\u201Csays a bigger one comes\u201D",
+    );
   });
 
   it("tapping the author's name opens their profile", async () => {

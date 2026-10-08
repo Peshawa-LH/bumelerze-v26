@@ -4,6 +4,11 @@ import { useTranslation } from "react-i18next";
 
 import { communityErrorText } from "@/features/community/error-text";
 import { isolateNumeric } from "@/features/events";
+import {
+  isGuidelinesDeclined,
+  useGuidelinesGate,
+  type GuidelinesTransport,
+} from "@/features/guidelines";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { POST_MAX_LENGTH } from "../constants";
@@ -13,6 +18,8 @@ interface PostComposerProps {
   onSubmit: (body: string) => Promise<void>;
   /** The account is limited (migration 0054): box and Post button are off. */
   disabled?: boolean;
+  /** Test seam for the guidelines sheet's "I agree" call. */
+  guidelinesTransport?: GuidelinesTransport;
   testID?: string;
 }
 
@@ -24,6 +31,7 @@ interface PostComposerProps {
 export function PostComposer({
   onSubmit,
   disabled = false,
+  guidelinesTransport,
   testID = "post-composer",
 }: PostComposerProps) {
   const { t, i18n } = useTranslation();
@@ -31,6 +39,9 @@ export function PostComposer({
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Asked for on the first post: the server refuses until the community
+  // guidelines were accepted, then the same post is sent again.
+  const { guard, sheet } = useGuidelinesGate(guidelinesTransport);
 
   const problem = validatePostBody(text);
   const canPost = problem === null && !busy && !disabled;
@@ -51,10 +62,13 @@ export function PostComposer({
     setBusy(true);
     setError(null);
     try {
-      await onSubmit(text.trim());
+      await guard(() => onSubmit(text.trim()));
       setText("");
     } catch (caught) {
-      setError(communityErrorText(t, caught));
+      // Closing the guidelines without agreeing is not an error: the text stays.
+      if (!isGuidelinesDeclined(caught)) {
+        setError(communityErrorText(t, caught));
+      }
     } finally {
       setBusy(false);
     }
@@ -126,6 +140,7 @@ export function PostComposer({
           </Text>
         </Pressable>
       </View>
+      {sheet}
       {over ? (
         <Text
           accessibilityRole="alert"

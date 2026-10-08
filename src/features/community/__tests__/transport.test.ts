@@ -254,6 +254,11 @@ describe("SupabaseCommunityTransport", () => {
     await SupabaseCommunityTransport.block("u4");
     await SupabaseCommunityTransport.unblock("u4");
     await SupabaseCommunityTransport.reportProfile("u5", "spam");
+    await SupabaseCommunityTransport.reportProfile(
+      "u5",
+      "impersonation",
+      "  uses my name ",
+    );
     expect(mockRpc.mock.calls.map((c) => [c[0], c[1]])).toEqual([
       ["follow_user", { p_followee: "u1" }],
       ["follow_user", { p_followee: "u1" }],
@@ -263,6 +268,10 @@ describe("SupabaseCommunityTransport", () => {
       ["block_user", { p_user: "u4" }],
       ["unblock_user", { p_user: "u4" }],
       ["report_profile", { p_user: "u5", p_reason: "spam" }],
+      [
+        "report_profile",
+        { p_user: "u5", p_reason: "impersonation", p_note: "uses my name" },
+      ],
     ]);
   });
 

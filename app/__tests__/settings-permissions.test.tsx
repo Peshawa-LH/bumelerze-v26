@@ -262,6 +262,7 @@ describe("Settings screen — grouped rows + Device permissions", () => {
       "settings-row-language",
       "settings-row-appearance",
       "settings-row-feedback",
+      "settings-row-guidelines",
       "settings-row-tour",
       "settings-row-onboarding",
     ]);

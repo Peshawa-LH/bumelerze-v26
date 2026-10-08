@@ -4,6 +4,8 @@ import * as ImagePicker from "expo-image-picker";
 import { Platform } from "react-native";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+import { removeOwnedHomePhotoFiles } from "@/features/building/transport";
+import { SupabaseGuidelinesTransport } from "@/features/guidelines/transport";
 import { isValidUsername, normalizeUsername } from "@/features/community/username";
 import { getDeviceId } from "@/features/felt/device-id";
 import { SUPPORTED_LOCALES } from "@/i18n";
@@ -541,6 +543,13 @@ export async function saveProfile(input: SaveProfileInput): Promise<void> {
     throw toAccountError(privateError);
   }
 
+  // The terms checkbox covers the community guidelines and "I am 13 or older"
+  // (migration 0056), so a first acceptance of the terms records both. Best
+  // effort: if it fails the person is simply asked before their first comment.
+  if (previousPrivate?.termsVersion !== TERMS_VERSION) {
+    await SupabaseGuidelinesTransport.accept("signup").catch(() => undefined);
+  }
+
   // The new row is saved; the old file is garbage now (best effort).
   if (avatarPath !== undefined && previousAvatar && previousAvatar !== avatarPath) {
     await client.storage
@@ -661,8 +670,10 @@ export async function signOutAccount(): Promise<void> {
   await returnToAnonymous(client);
 }
 
-/** Deletes avatar files, then the account (profile rows, auth user) via the
- * `delete_my_account` RPC, then returns this device to anonymous. */
+/** Deletes avatar files and the photo files of the homes this person owns,
+ * then the account via the `delete_my_account` RPC (profile, posts, comments
+ * blanked, owned homes, auth user; see migration 0056 for the full list), then
+ * returns this device to anonymous. */
 export async function deleteAccount(): Promise<void> {
   const client = requireClient();
   const user = await requireAccountUser(client);
@@ -676,6 +687,10 @@ export async function deleteAccount(): Promise<void> {
   } catch {
     // An orphaned avatar file must not block the deletion the user asked for.
   }
+
+  // The server deletes the owned homes; their photo files are ours to remove
+  // (SQL cannot delete storage objects). Never blocks the deletion.
+  await removeOwnedHomePhotoFiles(client, user.id);
 
   const { error } = await client.rpc("delete_my_account");
   if (error) {

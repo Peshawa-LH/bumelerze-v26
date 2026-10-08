@@ -56,6 +56,14 @@ describe("admin parsers", () => {
           display_name: "X",
           report_count: 3,
           last_reason: "spam",
+          last_note: "copies my name",
+        },
+        {
+          reported_id: "u2",
+          username: null,
+          display_name: null,
+          report_count: 1,
+          last_reason: "abuse",
         },
       ]),
     ).toEqual([
@@ -65,6 +73,15 @@ describe("admin parsers", () => {
         displayName: "X",
         reportCount: 3,
         lastReason: "spam",
+        lastNote: "copies my name",
+      },
+      {
+        userId: "u2",
+        username: null,
+        displayName: null,
+        reportCount: 1,
+        lastReason: "abuse",
+        lastNote: null,
       },
     ]);
   });
@@ -93,6 +110,7 @@ describe("parseReportedPosts", () => {
         body: "buy now",
         report_count: "3",
         last_reason: "spam",
+        last_note: "ad for a shop",
         last_reported_at: "2026-10-08T10:00:00Z",
         created_at: "2026-10-08T09:00:00Z",
       },
@@ -108,6 +126,7 @@ describe("parseReportedPosts", () => {
         body: "buy now",
         reportCount: 3,
         lastReason: "spam",
+        lastNote: "ad for a shop",
       },
     ]);
   });

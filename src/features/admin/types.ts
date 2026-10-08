@@ -22,6 +22,9 @@ export interface QueueComment {
   body: string;
   status: "pending" | "visible";
   flagCount: number;
+  /** The reason and note of the latest open report (migration 0056), if any. */
+  lastReason: string | null;
+  lastNote: string | null;
   /** UTC ms. */
   createdAt: number;
 }
@@ -44,6 +47,8 @@ export interface ReportedProfile {
   displayName: string | null;
   reportCount: number;
   lastReason: string | null;
+  /** The note that came with the latest report (migration 0056). */
+  lastNote: string | null;
 }
 
 /** A visible profile post with open reports (`post_queue()`, migration 0050). */
@@ -55,6 +60,7 @@ export interface ReportedPost {
   body: string;
   reportCount: number;
   lastReason: string | null;
+  lastNote: string | null;
 }
 
 /** Every action the activity log (`moderation_log`, migrations 0043-0052) can

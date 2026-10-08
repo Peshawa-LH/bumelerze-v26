@@ -155,3 +155,55 @@ describe("removed comments and followed authors", () => {
     expect(buildThreads(comments, anon).map((t) => t.root.id)).toEqual(["b", "a"]);
   });
 });
+
+describe("comments of a deleted account", () => {
+  const blank = (id: string, extra: Partial<HubComment> = {}) =>
+    comment({ id, userId: null, body: "", ...extra });
+
+  it("stays as the head of a conversation that still has replies", () => {
+    const threads = buildThreads(
+      [blank("b"), comment({ id: "r", parentId: "b", createdAt: 2_000 })],
+      anon,
+    );
+    expect(threads).toHaveLength(1);
+    expect(threads[0]?.root.id).toBe("b");
+    expect(threads[0]?.replies.map((r) => r.id)).toEqual(["r"]);
+  });
+
+  it("disappears when nothing is under it, for readers and moderators alike", () => {
+    const rows = [blank("b"), comment({ id: "kept", createdAt: 2_000 })];
+    expect(buildThreads(rows, anon).map((t) => t.root.id)).toEqual(["kept"]);
+    expect(
+      buildThreads(rows, { userId: "mod", isModerator: true }).map((t) => t.root.id),
+    ).toEqual(["kept"]);
+  });
+
+  it("is dropped as a reply", () => {
+    const threads = buildThreads(
+      [
+        comment({ id: "root" }),
+        blank("b-reply", { parentId: "root", createdAt: 2_000 }),
+        comment({ id: "reply", parentId: "root", createdAt: 3_000 }),
+      ],
+      anon,
+    );
+    expect(threads[0]?.replies.map((r) => r.id)).toEqual(["reply"]);
+  });
+
+  it("does not stay for replies a reader cannot see", () => {
+    const threads = buildThreads(
+      [
+        blank("b"),
+        comment({
+          id: "r",
+          parentId: "b",
+          status: "removed",
+          body: "",
+          createdAt: 2_000,
+        }),
+      ],
+      anon,
+    );
+    expect(threads).toEqual([]);
+  });
+});

@@ -11,13 +11,14 @@ import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { formatMagnitudeValue } from "@/features/events";
 import { formatMonthYear } from "@/features/mydata/format";
 import { PostsSection } from "@/features/posts/components/PostsSection";
+import { ReportSheet } from "@/features/reporting/ReportSheet";
+import type { ReportInput } from "@/features/reporting/reasons";
 import type { PostsTransport } from "@/features/posts/transport";
 import { SHARE_PROFILE_URL_BASE } from "@/features/share/config";
 import { shareText } from "@/features/share/share-text";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { profileBadgeEntries } from "../badges";
-import { PROFILE_REPORT_REASONS, type ProfileReportReason } from "../constants";
 import { communityErrorText } from "../error-text";
 import type { CommunityActions } from "../queries";
 import { peopleHref } from "../routes";
@@ -118,12 +119,9 @@ export function PublicProfileView({
     }
   }
 
-  async function handleReport(reason: ProfileReportReason) {
-    const ok = await run(() => actions.report(profile.userId, reason));
-    if (ok) {
-      setReported(true);
-      setReporting(false);
-    }
+  async function sendReport({ reason, note }: ReportInput) {
+    await actions.report(profile.userId, reason, note);
+    setReported(true);
   }
 
   // A suspended account (migration 0054) shows only its @username to everybody
@@ -322,45 +320,34 @@ export function PublicProfileView({
       ) : null}
 
       {!profile.isSelf && !profile.isBlocked ? (
-        reporting ? (
-          <View style={{ gap: spacing[1] }} testID="public-profile-reasons">
-            <Text style={meta}>{t("community.report.title")}</Text>
-            <View style={[styles.actions, { gap: spacing[1] }]}>
-              {PROFILE_REPORT_REASONS.map((reason) => (
-                <LinkButton
-                  key={reason}
-                  label={t(`community.report.reasons.${reason}`)}
-                  disabled={busy}
-                  onPress={() => void handleReport(reason)}
-                  testID={`report-reason-${reason}`}
-                />
-              ))}
-              <LinkButton
-                label={t("eventHub.thread.cancel")}
-                onPress={() => setReporting(false)}
-              />
-            </View>
-          </View>
-        ) : (
-          <View style={[styles.actions, { gap: spacing[1] }]}>
+        <View style={[styles.actions, { gap: spacing[1] }]}>
+          <LinkButton
+            label={t("community.block.block")}
+            danger
+            disabled={busy}
+            onPress={handleBlock}
+            testID="public-profile-block"
+          />
+          {reported ? (
+            <Text style={meta}>{t("community.report.sent")}</Text>
+          ) : (
             <LinkButton
-              label={t("community.block.block")}
-              danger
-              disabled={busy}
-              onPress={handleBlock}
-              testID="public-profile-block"
+              label={t("community.report.action")}
+              onPress={() => setReporting(true)}
+              testID="public-profile-report"
             />
-            {reported ? (
-              <Text style={meta}>{t("community.report.sent")}</Text>
-            ) : (
-              <LinkButton
-                label={t("community.report.action")}
-                onPress={() => setReporting(true)}
-                testID="public-profile-report"
-              />
-            )}
-          </View>
-        )
+          )}
+        </View>
+      ) : null}
+
+      {reporting ? (
+        <ReportSheet
+          kind="profile"
+          testID="public-profile-report-sheet"
+          onSubmit={sendReport}
+          onClose={() => setReporting(false)}
+          errorText={(error) => communityErrorText(t, error)}
+        />
       ) : null}
     </View>
   );

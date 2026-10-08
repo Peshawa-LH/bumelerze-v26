@@ -185,12 +185,22 @@ describe("SupabasePostsTransport writes", () => {
   it("reports and removes through their functions", async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
     await SupabasePostsTransport.reportPost("p1", "spam");
+    await SupabasePostsTransport.reportPost(
+      "p2",
+      "rumour_prediction",
+      "  predicts tonight ",
+    );
     await SupabasePostsTransport.adminRemovePost("p1", "abuse");
     expect(mockRpc).toHaveBeenNthCalledWith(1, "report_post", {
       p_post: "p1",
       p_reason: "spam",
     });
-    expect(mockRpc).toHaveBeenNthCalledWith(2, "admin_remove_post", {
+    expect(mockRpc).toHaveBeenNthCalledWith(2, "report_post", {
+      p_post: "p2",
+      p_reason: "rumour_prediction",
+      p_note: "predicts tonight",
+    });
+    expect(mockRpc).toHaveBeenNthCalledWith(3, "admin_remove_post", {
       p_post_id: "p1",
       p_reason: "abuse",
     });

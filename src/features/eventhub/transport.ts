@@ -2,11 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { getSupabaseClient, signInAnonymously } from "@/lib/supabase";
+import { cleanNote, type ReportReason } from "@/features/reporting/reasons";
 import {
   HUB_ROLE_KINDS,
   HubError,
   PERMISSIONS,
-  type FlagReason,
   type HubAuthor,
   type HubComment,
   type HubRole,
@@ -33,7 +33,13 @@ export interface EventHubTransport {
     body: string;
   }): Promise<void>;
   setHelpful(commentId: string, helpful: boolean): Promise<void>;
-  flagComment(commentId: string, reason: FlagReason): Promise<void>;
+  /** Reports a comment (`comment_flags`); `note` is the optional 200-character
+   * explanation (migration 0056). */
+  flagComment(
+    commentId: string,
+    reason: ReportReason,
+    note?: string | null,
+  ): Promise<void>;
   /** Ids (among `commentIds`) this identity reported and has not withdrawn
    * (RLS returns only its own flags; migration 0052). */
   fetchMyFlags(commentIds: readonly string[]): Promise<string[]>;
@@ -201,6 +207,9 @@ export function toHubError(error: unknown): HubError {
   }
   if (/account_restricted/.test(message)) {
     return new HubError("restricted", message);
+  }
+  if (/guidelines_required/.test(message)) {
+    return new HubError("guidelines_required", message);
   }
   if (e.code === "54000" || e.status === 429) {
     return new HubError("rate_limited", message);
@@ -430,12 +439,17 @@ export const SupabaseEventHubTransport: EventHubTransport = {
     }
   },
 
-  async flagComment(commentId, reason) {
+  async flagComment(commentId, reason, note) {
     const client = requireClient();
     const userId = await requireUserId(client);
-    const { error } = await client
-      .from("comment_flags")
-      .insert({ comment_id: commentId, user_id: userId, reason });
+    const cleaned = cleanNote(note);
+    const { error } = await client.from("comment_flags").insert({
+      comment_id: commentId,
+      user_id: userId,
+      reason,
+      // only sent when there is one, so a plain report never depends on the column
+      ...(cleaned ? { note: cleaned } : {}),
+    });
     // 23505: this reader already reported it.
     if (error && error.code !== "23505") {
       throw toHubError(error);

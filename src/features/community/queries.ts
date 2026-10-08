@@ -149,7 +149,11 @@ export interface CommunityActions {
   undoDecline: (userId: string) => Promise<void>;
   block: (userId: string) => Promise<void>;
   unblock: (userId: string) => Promise<void>;
-  report: (userId: string, reason: ProfileReportReason) => Promise<void>;
+  report: (
+    userId: string,
+    reason: ProfileReportReason,
+    note?: string | null,
+  ) => Promise<void>;
 }
 
 /** Write actions. Each refreshes the community data and the Event hub
@@ -198,8 +202,11 @@ export function useCommunityActions(
     onSuccess: refresh,
   });
   const report = useMutation({
-    mutationFn: (input: { userId: string; reason: ProfileReportReason }) =>
-      transport.reportProfile(input.userId, input.reason),
+    mutationFn: (input: {
+      userId: string;
+      reason: ProfileReportReason;
+      note?: string | null | undefined;
+    }) => transport.reportProfile(input.userId, input.reason, input.note),
     onSuccess: refresh,
   });
 
@@ -214,6 +221,6 @@ export function useCommunityActions(
     decline: (userId) => decline.mutateAsync(userId),
     block: (userId) => block.mutateAsync(userId),
     unblock: (userId) => unblock.mutateAsync(userId),
-    report: (userId, reason) => report.mutateAsync({ userId, reason }),
+    report: (userId, reason, note) => report.mutateAsync({ userId, reason, note }),
   };
 }

@@ -1,5 +1,6 @@
 import {
   SupabaseHomeTransport,
+  removeOwnedHomePhotoFiles,
   parseAssessmentRows,
   parseMemberRows,
   parseTagRows,
@@ -306,11 +307,18 @@ describe("table reads", () => {
     expect(callsOf("home_members")).toContainEqual(["eq", ["tag_id", "t1"]]);
     tableResults.profiles = {
       data: [
-        { user_id: "u1", display_name: "Shilan", avatar_path: "a/b.jpg", username: "shilan" },
+        {
+          user_id: "u1",
+          display_name: "Shilan",
+          avatar_path: "a/b.jpg",
+          username: "shilan",
+        },
         { user_id: "u2", display_name: "Guest" },
       ],
     };
-    await expect(SupabaseHomeTransport.fetchMemberProfiles(["u1", "u2"])).resolves.toEqual({
+    await expect(
+      SupabaseHomeTransport.fetchMemberProfiles(["u1", "u2"]),
+    ).resolves.toEqual({
       u1: { displayName: "Shilan", username: "shilan", avatarPath: "a/b.jpg" },
       u2: { displayName: "Guest", username: null, avatarPath: null },
     });
@@ -673,6 +681,50 @@ describe("deleteHome", () => {
     await expect(SupabaseHomeTransport.deleteHome("t1")).rejects.toMatchObject({
       code: "unconfigured",
     });
+  });
+});
+
+describe("removeOwnedHomePhotoFiles (account deletion, migration 0056)", () => {
+  const client = () =>
+    mockClient as unknown as Parameters<typeof removeOwnedHomePhotoFiles>[0];
+  const files = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ name: `f${i}.jpg` }));
+
+  it("removes the files of every home the person owns, and only those", async () => {
+    tableResults.home_members = {
+      data: [{ tag_id: "t1" }, { tag_id: "t2" }],
+      error: null,
+    };
+    mockList.mockResolvedValue({ data: files(1), error: null });
+    mockRemove.mockImplementation(async (_bucket: string, paths: string[]) => ({
+      data: paths.map((name) => ({ name })),
+      error: null,
+    }));
+    await expect(removeOwnedHomePhotoFiles(client(), "u1")).resolves.toBe(false);
+    expect(callsOf("home_members")).toEqual(
+      expect.arrayContaining([
+        ["select", ["tag_id"]],
+        ["eq", ["user_id", "u1"]],
+        ["eq", ["role", "owner"]],
+      ]),
+    );
+    expect(mockRemove).toHaveBeenCalledWith("home-photos", ["t1/f0.jpg"]);
+    expect(mockRemove).toHaveBeenCalledWith("home-photos", ["t2/f0.jpg"]);
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
+
+  it("does nothing for a person who owns no home", async () => {
+    tableResults.home_members = { data: [], error: null };
+    await expect(removeOwnedHomePhotoFiles(client(), "u1")).resolves.toBe(false);
+    expect(mockList).not.toHaveBeenCalled();
+  });
+
+  it("never throws: a failed lookup or listing only says something may be left behind", async () => {
+    tableResults.home_members = { data: null, error: { message: "boom" } };
+    await expect(removeOwnedHomePhotoFiles(client(), "u1")).resolves.toBe(true);
+    tableResults.home_members = { data: [{ tag_id: "t1" }], error: null };
+    mockList.mockResolvedValue({ data: null, error: { message: "Failed to fetch" } });
+    await expect(removeOwnedHomePhotoFiles(client(), "u1")).resolves.toBe(true);
   });
 });
 

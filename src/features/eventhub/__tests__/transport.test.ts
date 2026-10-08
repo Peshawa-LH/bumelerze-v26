@@ -159,6 +159,12 @@ describe("parsers", () => {
 });
 
 describe("toHubError", () => {
+  it("maps the guidelines refusal of the insert trigger", () => {
+    expect(
+      toHubError({ code: "42501", message: "event_comments: guidelines_required" }).code,
+    ).toBe("guidelines_required");
+  });
+
   it("maps the rate-limit trigger (54000) to rate_limited", () => {
     expect(toHubError({ code: "54000", message: "too many comments" }).code).toBe(
       "rate_limited",
@@ -478,6 +484,40 @@ describe("writes", () => {
       "insert",
       [{ comment_id: "c1", user_id: "user-1", reason: "spam" }],
     ]);
+  });
+
+  it("sends the note with a report only when there is one", async () => {
+    await SupabaseEventHubTransport.flagComment(
+      "c1",
+      "rumour_prediction",
+      "  a bigger one tonight  ",
+    );
+    await SupabaseEventHubTransport.flagComment("c2", "other", "   ");
+    await SupabaseEventHubTransport.flagComment("c3", "other", null);
+    const inserts = callsOf("comment_flags").filter(([name]) => name === "insert");
+    expect(inserts).toEqual([
+      [
+        "insert",
+        [
+          {
+            comment_id: "c1",
+            user_id: "user-1",
+            reason: "rumour_prediction",
+            note: "a bigger one tonight",
+          },
+        ],
+      ],
+      ["insert", [{ comment_id: "c2", user_id: "user-1", reason: "other" }]],
+      ["insert", [{ comment_id: "c3", user_id: "user-1", reason: "other" }]],
+    ]);
+  });
+
+  it("caps a note at 200 characters", async () => {
+    await SupabaseEventHubTransport.flagComment("c1", "other", "n".repeat(500));
+    const sent = callsOf("comment_flags").find(([name]) => name === "insert")?.[1][0] as {
+      note: string;
+    };
+    expect(sent.note).toHaveLength(200);
   });
 
   it("reads only the caller's own, not-withdrawn reports", async () => {

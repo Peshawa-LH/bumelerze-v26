@@ -1,3 +1,4 @@
+import { isDeletedAccountComment } from "./deleted-account";
 import type { HubComment, HubThread } from "./types";
 
 /**
@@ -39,7 +40,9 @@ export interface ThreadViewer {
  * oldest first (a conversation reads top to bottom). Replies are one level
  * deep by construction (the server re-parents deeper ones), and a reply whose
  * parent is not shown (hidden, or not yet loaded) is dropped rather than
- * shown without its context.
+ * shown without its context. A comment whose author deleted their account
+ * (blank text, "Deleted account") stays only as the head of a conversation
+ * that still has replies; on its own, or as a reply, it is dropped.
  */
 export function buildThreads(
   comments: readonly HubComment[],
@@ -65,12 +68,16 @@ export function buildThreads(
     repliesByParent.set(comment.parentId, siblings);
   }
 
-  const threads = roots.map((root) => ({
-    root,
-    replies: (repliesByParent.get(root.id) ?? []).sort(
-      (a, b) => a.createdAt - b.createdAt,
-    ),
-  }));
+  const threads = roots
+    .map((root) => ({
+      root,
+      replies: (repliesByParent.get(root.id) ?? [])
+        .filter((reply) => !isDeletedAccountComment(reply))
+        .sort((a, b) => a.createdAt - b.createdAt),
+    }))
+    .filter(
+      (thread) => !isDeletedAccountComment(thread.root) || thread.replies.length > 0,
+    );
   if (viewer.isModerator) {
     return threads;
   }
@@ -79,7 +86,10 @@ export function buildThreads(
   // placeholder only while replies under it are still readable.
   return threads.flatMap((thread) => {
     const replies = thread.replies.filter((reply) => reply.status !== "removed");
-    if (thread.root.status === "removed" && replies.length === 0) {
+    if (
+      (thread.root.status === "removed" || isDeletedAccountComment(thread.root)) &&
+      replies.length === 0
+    ) {
       return [];
     }
     return [{ root: thread.root, replies }];
