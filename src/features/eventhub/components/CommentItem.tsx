@@ -10,6 +10,7 @@ import {
   getRelativeTime,
   isolateNumeric,
 } from "@/features/events";
+import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -56,7 +57,7 @@ interface CommentItemProps {
   isFollowing?: boolean;
 }
 
-type Mode = "idle" | "reporting" | "confirmDelete" | "adminRemove";
+type Mode = "idle" | "reporting" | "adminRemove";
 
 /** One comment: author, role mark, time, area, text and its actions. */
 export function CommentItem({
@@ -81,6 +82,7 @@ export function CommentItem({
   const [errorKey, setErrorKey] = useState<"actionError" | "flagLimit" | null>(null);
   const [reported, setReported] = useState(false);
   const [withdrawn, setWithdrawn] = useState(false);
+  const showUndo = useUndoToast();
 
   const isOwn = viewer.userId !== null && comment.userId === viewer.userId;
   const isPending = comment.status === "pending";
@@ -111,6 +113,29 @@ export function CommentItem({
       return false;
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** No confirmation: the server deletes at once and the snackbar's Undo (8 s)
+   * or the Profile's "Recently deleted" (24 h) brings the comment back. */
+  async function deleteOwn() {
+    const ok = await run(() => actions.remove(comment.id));
+    if (ok) {
+      showUndo({
+        message: t("snackbar.commentDeleted"),
+        restore: () => actions.restore(comment.id),
+      });
+    }
+  }
+
+  async function hide() {
+    const ok = await run(() => actions.moderate(comment.id, "hide"));
+    if (ok) {
+      showUndo({
+        message: t("snackbar.commentHidden"),
+        restore: () => actions.adminRestore(comment.id),
+        admin: true,
+      });
     }
   }
 
@@ -282,32 +307,16 @@ export function CommentItem({
                   void run(() => actions.adminRemove(comment.id, reason)).then((ok) => {
                     if (ok) {
                       setMode("idle");
+                      showUndo({
+                        message: t("snackbar.commentRemoved"),
+                        restore: () => actions.adminRestore(comment.id),
+                        admin: true,
+                      });
                     }
                   }),
               })
             }
           />
-        ) : mode === "confirmDelete" ? (
-          <View style={{ gap: spacing[1] }}>
-            <Text style={meta}>{t("eventHub.thread.deleteConfirm")}</Text>
-            <View style={[styles.actions, { gap: spacing[1] }]}>
-              <ActionButton
-                label={t("eventHub.thread.delete")}
-                danger
-                disabled={busy}
-                onPress={async () => {
-                  const ok = await run(() => actions.remove(comment.id));
-                  if (ok) {
-                    setMode("idle");
-                  }
-                }}
-              />
-              <ActionButton
-                label={t("eventHub.thread.cancel")}
-                onPress={() => setMode("idle")}
-              />
-            </View>
-          </View>
         ) : (
           <View style={[styles.actions, { gap: spacing[1] }]}>
             {isVisible && onReply ? (
@@ -358,7 +367,9 @@ export function CommentItem({
             {isOwn && comment.status !== "hidden" ? (
               <ActionButton
                 label={t("eventHub.thread.delete")}
-                onPress={() => setMode("confirmDelete")}
+                disabled={busy}
+                onPress={() => void deleteOwn()}
+                testID={`delete-${comment.id}`}
               />
             ) : null}
             {viewer.canDelete && !isOwn && comment.status !== "hidden" ? (
@@ -380,7 +391,8 @@ export function CommentItem({
                   label={t("eventHub.thread.hide")}
                   danger
                   disabled={busy}
-                  onPress={() => void run(() => actions.moderate(comment.id, "hide"))}
+                  onPress={() => void hide()}
+                  testID={`hide-${comment.id}`}
                 />
               </>
             ) : null}

@@ -9,6 +9,7 @@ import { useAccount } from "@/features/account/use-account";
 import { communityKeys } from "@/features/community/queries";
 import { CommunityError } from "@/features/community/types";
 import { useMyPermissions } from "@/features/eventhub/queries";
+import { RECENTLY_DELETED_KEY } from "@/features/undo/keys";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { FlagReason } from "@/features/eventhub/types";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -102,8 +103,12 @@ export function useCanRemovePosts(hubTransport?: EventHubTransport): boolean {
 export interface PostActions {
   create: (userId: string, body: string) => Promise<void>;
   remove: (postId: string) => Promise<void>;
+  /** The Undo of my own delete (24 hours). */
+  restore: (postId: string) => Promise<void>;
   report: (postId: string, reason: FlagReason) => Promise<void>;
   adminRemove: (postId: string, reason: string) => Promise<void>;
+  /** The Undo of an admin removal (`content.restore`, 30 days). */
+  adminRestore: (postId: string) => Promise<void>;
 }
 
 /** Write actions. Each refreshes the community data (posts lists and the
@@ -118,6 +123,7 @@ export function usePostActions(
       queryClient.invalidateQueries({ queryKey: communityKeys.all }),
       // the admin screen's reported-posts list (key prefix of the admin feature)
       queryClient.invalidateQueries({ queryKey: ["admin"] }),
+      queryClient.invalidateQueries({ queryKey: RECENTLY_DELETED_KEY }),
     ]);
 
   const create = useMutation({
@@ -127,6 +133,14 @@ export function usePostActions(
   });
   const remove = useMutation({
     mutationFn: (postId: string) => transport.deletePost(postId),
+    onSuccess: refresh,
+  });
+  const restore = useMutation({
+    mutationFn: (postId: string) => transport.restorePost(postId),
+    onSuccess: refresh,
+  });
+  const adminRestore = useMutation({
+    mutationFn: (postId: string) => transport.adminRestorePost(postId),
     onSuccess: refresh,
   });
   const report = useMutation({
@@ -142,6 +156,8 @@ export function usePostActions(
   return {
     create: (userId, body) => create.mutateAsync({ userId, body }),
     remove: (postId) => remove.mutateAsync(postId),
+    restore: (postId) => restore.mutateAsync(postId),
+    adminRestore: (postId) => adminRestore.mutateAsync(postId),
     report: (postId, reason) => report.mutateAsync({ postId, reason }),
     adminRemove: (postId, reason) => adminRemove.mutateAsync({ postId, reason }),
   };

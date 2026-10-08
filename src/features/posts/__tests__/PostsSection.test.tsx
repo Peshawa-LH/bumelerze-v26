@@ -108,8 +108,10 @@ function makeFake(initial: ProfilePost[], pageSize = 2) {
     deletePost: jest.fn(async (id: string) => {
       store = store.filter((p) => p.id !== id);
     }),
+    restorePost: jest.fn(async () => undefined),
     reportPost: jest.fn(async () => undefined),
     adminRemovePost: jest.fn(async () => undefined),
+    adminRestorePost: jest.fn(async () => undefined),
   };
   return fake as unknown as jest.Mocked<PostsTransport>;
 }
@@ -327,22 +329,30 @@ describe("PostsSection", () => {
       );
     });
 
-    it("deletes an own post only after a confirmation", async () => {
+    it("deletes an own post at once, with no confirmation, and offers Undo", async () => {
       const fake = makeFake([
         post("mine", 3, { userId: "me" }),
         post("also", 4, { userId: "me" }),
       ]);
       await renderSection(own(), fake);
       await fireEvent.press(await screen.findByTestId("post-delete-mine"));
-      expect(mockConfirm).toHaveBeenCalledTimes(1);
-      expect(lastConfirm().destructive).toBe(true);
-      expect(fake.deletePost).not.toHaveBeenCalled();
-      await act(async () => {
-        lastConfirm().onConfirm();
-      });
+      expect(mockConfirm).not.toHaveBeenCalled();
       await waitFor(() => expect(fake.deletePost).toHaveBeenCalledWith("mine"));
       await waitFor(() => expect(screen.queryByTestId("post-mine")).toBeNull());
       expect(screen.getByTestId("post-also")).toBeTruthy();
+      expect(await screen.findByTestId("snackbar-message")).toHaveTextContent(
+        "Post deleted",
+      );
+      expect(fake.restorePost).not.toHaveBeenCalled();
+      await fireEvent.press(screen.getByTestId("snackbar-action"));
+      await waitFor(() => expect(fake.restorePost).toHaveBeenCalledWith("mine"));
+    });
+
+    it("offers no Delete on a post an admin removed (the author cannot delete evidence)", async () => {
+      const fake = makeFake([post("gone", 10, { userId: "me", status: "removed" })]);
+      await renderSection(own(), fake);
+      expect(await screen.findByTestId("post-removed-gone")).toBeTruthy();
+      expect(screen.queryByTestId("post-delete-gone")).toBeNull();
     });
 
     it("offers no Report or Remove on one's own posts", async () => {

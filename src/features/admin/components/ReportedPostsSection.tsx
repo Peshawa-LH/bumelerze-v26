@@ -11,6 +11,7 @@ import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { PostsTransport } from "@/features/posts/transport";
+import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -76,21 +77,35 @@ function ReportedPostItem({
   const [removing, setRemoving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const showUndo = useUndoToast();
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
-  async function run(action: () => Promise<void>) {
+  async function run(action: () => Promise<void>): Promise<boolean> {
     setBusy(true);
     setErrorText(null);
     try {
       await action();
+      return true;
     } catch (error) {
       setErrorText(communityErrorText(t, error));
+      return false;
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** Remove, then offer Undo for 10 s (the server did it already). */
+  async function removePost(reason: string) {
+    if (await run(() => actions.removePost(row.postId, reason))) {
+      showUndo({
+        message: t("snackbar.postRemoved"),
+        restore: () => actions.restorePost(row.postId),
+        admin: true,
+      });
     }
   }
 
@@ -152,7 +167,7 @@ function ReportedPostItem({
               confirmLabel: t("posts.remove"),
               cancelLabel: t("eventHub.thread.cancel"),
               destructive: true,
-              onConfirm: () => void run(() => actions.removePost(row.postId, reason)),
+              onConfirm: () => void removePost(reason),
             })
           }
         />

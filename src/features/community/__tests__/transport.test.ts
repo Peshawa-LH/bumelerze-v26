@@ -205,6 +205,19 @@ describe("toCommunityError", () => {
     );
     expect(toCommunityError({ message: "???" }).code).toBe("unknown");
   });
+
+  it("maps the undo tokens of migration 0053, and a bare JWT expiry is not one of them", () => {
+    expect(toCommunityError({ message: "restore_my_post: expired" }).code).toBe(
+      "expired",
+    );
+    expect(toCommunityError({ message: "undo_unfollow_user: expired" }).code).toBe(
+      "expired",
+    );
+    expect(toCommunityError({ message: "admin_restore_post: not_restorable" }).code).toBe(
+      "not_restorable",
+    );
+    expect(toCommunityError({ message: "JWT expired" }).code).toBe("unknown");
+  });
 });
 
 describe("SupabaseCommunityTransport", () => {
@@ -251,6 +264,30 @@ describe("SupabaseCommunityTransport", () => {
       ["unblock_user", { p_user: "u4" }],
       ["report_profile", { p_user: "u5", p_reason: "spam" }],
     ]);
+  });
+
+  it("undoes an unfollow and a declined request through their functions (60 s on the server)", async () => {
+    mockRpc.mockResolvedValue({ data: "accepted", error: null });
+    await expect(SupabaseCommunityTransport.undoUnfollow("u1")).resolves.toBe("accepted");
+    mockRpc.mockResolvedValue({ data: "pending", error: null });
+    await expect(SupabaseCommunityTransport.undoUnfollow("u1")).resolves.toBe("pending");
+    mockRpc.mockResolvedValue({ data: "pending", error: null });
+    await SupabaseCommunityTransport.undoDecline("u3");
+    expect(mockRpc.mock.calls.map((c) => [c[0], c[1]])).toEqual([
+      ["undo_unfollow_user", { p_followee: "u1" }],
+      ["undo_unfollow_user", { p_followee: "u1" }],
+      ["undo_decline_follow_request", { p_follower: "u3" }],
+    ]);
+  });
+
+  it("words a refused undo as expired", async () => {
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { code: "22023", message: "undo_unfollow_user: expired" },
+    });
+    await expect(SupabaseCommunityTransport.undoUnfollow("u1")).rejects.toMatchObject({
+      code: "expired",
+    });
   });
 
   it("reads the username check as a boolean", async () => {

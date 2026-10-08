@@ -32,6 +32,8 @@ export const PERMISSIONS = [
   // (moderators); `audit.read_all` shows everything (official).
   "audit.read",
   "audit.read_all",
+  // Migration 0053: bring back what an admin removed (official only).
+  "content.restore",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -122,6 +124,10 @@ export type HubErrorCode =
   | "rate_limited"
   /** 30 reports in 24 hours (migration 0052). */
   | "flag_limit"
+  /** Too late to undo (migration 0053). */
+  | "expired"
+  /** Nothing to bring back any more (migration 0053). */
+  | "not_restorable"
   | "network"
   | "not_signed_in"
   | "unknown";

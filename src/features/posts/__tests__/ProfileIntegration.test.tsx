@@ -50,6 +50,8 @@ function actions(): CommunityActions {
   return {
     follow: jest.fn(async () => "accepted" as const),
     unfollow: noop,
+    undoUnfollow: noop,
+    undoDecline: noop,
     accept: noop,
     decline: noop,
     block: noop,

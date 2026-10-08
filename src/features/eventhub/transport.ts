@@ -55,6 +55,13 @@ export interface EventHubTransport {
   fetchFollowingIds(): Promise<string[]>;
   /** Soft delete by an admin (`admin_delete_comment()`, 0044). */
   adminDeleteComment(commentId: string, reason: string): Promise<void>;
+  /** Takes my own deleted comment back, within 24 hours
+   * (`restore_my_comment()`, 0053). */
+  restoreComment(commentId: string): Promise<void>;
+  /** Brings back a comment an admin hid or removed (`admin_restore_comment()`,
+   * 0053): a hidden one needs `comments.moderate`, a removed one
+   * `content.restore`. */
+  adminRestoreComment(commentId: string): Promise<void>;
 }
 
 /** Newest comments read per event. Replies to older threads beyond this are
@@ -185,6 +192,12 @@ export function toHubError(error: unknown): HubError {
   // the token flag_limit, the 30-reports-a-day limit of migration 0052.
   if (/flag_limit/.test(message)) {
     return new HubError("flag_limit", message);
+  }
+  if (/:\s*expired\b/.test(message)) {
+    return new HubError("expired", message);
+  }
+  if (/not_restorable/.test(message)) {
+    return new HubError("not_restorable", message);
   }
   if (e.code === "54000" || e.status === 429) {
     return new HubError("rate_limited", message);
@@ -507,6 +520,27 @@ export const SupabaseEventHubTransport: EventHubTransport = {
     const { error } = await client.rpc("admin_delete_comment", {
       p_comment_id: commentId,
       p_reason: reason,
+    });
+    if (error) {
+      throw toHubError(error);
+    }
+  },
+
+  async restoreComment(commentId) {
+    const client = requireClient();
+    const { error } = await client.rpc("restore_my_comment", {
+      p_comment_id: commentId,
+    });
+    if (error) {
+      throw toHubError(error);
+    }
+  },
+
+  async adminRestoreComment(commentId) {
+    const client = requireClient();
+    const { error } = await client.rpc("admin_restore_comment", {
+      p_comment_id: commentId,
+      p_note: null,
     });
     if (error) {
       throw toHubError(error);

@@ -134,6 +134,44 @@ export interface ActivityEntry {
   revertedBy: string | null;
 }
 
+/** The actions the Activity screen can undo (migration 0053), and the
+ * permission each needs. The server decides in the end (window, state); this
+ * only decides whether to offer the button. */
+export const UNDOABLE_ACTIONS = {
+  comment_hide: "comments.moderate",
+  comment_remove: "content.restore",
+  post_remove: "content.restore",
+  profile_reports_resolve: "comments.moderate",
+  post_reports_dismiss: "comments.moderate",
+  role_revoke: "badges.grant",
+} as const;
+export type UndoableAction = keyof typeof UNDOABLE_ACTIONS;
+
+/** One row of `admin_hidden_removed()` (migration 0053): a comment a moderator
+ * hid, or a comment or post an admin removed, in the last 30 days. */
+export interface HiddenRemovedItem {
+  kind: "comment" | "post";
+  id: string;
+  status: "hidden" | "removed";
+  /** When it was hidden or removed, UTC ms. */
+  actedAt: number;
+  /** Raw server timestamp: the cursor for the next page. */
+  cursor: string;
+  actorName: string | null;
+  reason: string | null;
+  authorId: string | null;
+  authorName: string | null;
+  authorUsername: string | null;
+  /** Event hub route id (`bml...`) of a comment, or null. */
+  hubId: string | null;
+  place: string | null;
+  /** The live text of a hidden comment, or the evidence copy of a removed
+   * item (official only). Null when the viewer may not read it. */
+  body: string | null;
+  /** The server's answer for this viewer: Restore will work. */
+  canRestore: boolean;
+}
+
 export interface ActivityFilters {
   action: string | null;
   /** The person the action was done to. */
@@ -141,3 +179,4 @@ export interface ActivityFilters {
 }
 
 export const ACTIVITY_PAGE_SIZE = 50;
+export const HIDDEN_PAGE_SIZE = 50;

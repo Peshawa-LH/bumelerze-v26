@@ -932,7 +932,6 @@
       "reported": "Spas. Em ê binirxînin.",
       "reportTitle": "Çima gilî dikî?",
       "delete": "Jê bibe",
-      "deleteConfirm": "Ev şîrove jê bibe?",
       "approve": "Bipejirîne",
       "hide": "Veşêre",
       "actionError": "Neçû serî. Dîsa biceribîne.",
@@ -2293,7 +2292,9 @@
       "rate_limited": "Gelek hewl hat dayîn. Piçekî bisekine.",
       "unavailable": "Hê ne berdest e.",
       "network": "Girêdan tune. Dîsa biceribîne.",
-      "unknown": "Neçû serî. Dîsa biceribîne."
+      "unknown": "Neçû serî. Dîsa biceribîne.",
+      "expired": "Ji bo vegerandinê dereng e.",
+      "not_restorable": "Êdî nayê vegerandin."
     }
   },
   "admin": {
@@ -2371,8 +2372,10 @@
         "lift": "Sînordarkirinek rakir",
         "person_view": "Li kesekî nêrî",
         "email_reveal": "E-nameyek nîşan da",
-        "purge": "Nivîsa kevn paqij kir"
-      }
+        "purge": "Nivîsa kevn paqij kir",
+        "role_restore": "Nîşanek vegerand"
+      },
+      "undo": "Vegerîne"
     },
     "passwords": {
       "title": "Şîfreyekê vegerîne",
@@ -2389,6 +2392,17 @@
       "copy": "Kopî bike",
       "copied": "Hat kopîkirin",
       "done": "Qediya"
+    },
+    "hidden": {
+      "title": "Veşartî û rakirî",
+      "hint": "Şîrove û nivîsên di 30 rojên dawî de hatine veşartin an rakirin. Tenê hesabê fermî nivîsa rakirî dibîne û dikare wan vegerîne.",
+      "empty": "Tiştek nehatiye veşartin an rakirin.",
+      "hiddenComment": "Şîroveya veşartî",
+      "removedComment": "Şîroveya rakirî",
+      "removedPost": "Nivîsa rakirî",
+      "restore": "Vegerîne",
+      "textHidden": "Nivîs nayê nîşandan",
+      "cannotRestore": "Nayê vegerandin."
     }
   },
   "posts": {
@@ -2406,8 +2420,6 @@
       "tooLong": "Pir dirêj e. Sînor {{max}} tîp e."
     },
     "delete": "Jê bibe",
-    "deleteConfirmTitle": "Ev nivîs were jêbirin?",
-    "deleteConfirmMessage": "Ji bo hemûyan tê rakirin.",
     "report": "Gilî bike",
     "reportTitle": "Çima tu vê nivîsê gilî dikî?",
     "reported": "Spas. Em ê binirxînin.",
@@ -2417,6 +2429,28 @@
     "removedByModerators": "Ji aliyê rêveberan ve hate rakirin"
   },
   "profile": {
-    "onlyYou": "Tenê tu vê dibînî"
+    "onlyYou": "Tenê tu vê dibînî",
+    "recentlyDeleted": {
+      "title": "Nû hatine jêbirin",
+      "hint": "Tu dikarî heta 24 demjimêran wan vegerînî.",
+      "comment": "Şîrove · {{place}}",
+      "commentNoPlace": "Şîrove",
+      "post": "Nivîs",
+      "restore": "Vegerîne",
+      "until": "Heta {{time}}"
+    }
+  },
+  "snackbar": {
+    "undo": "Vegerîne",
+    "undoFailed": "Nehat vegerandin. Dibe ku dereng be.",
+    "commentDeleted": "Şîrove hate jêbirin",
+    "postDeleted": "Nivîs hate jêbirin",
+    "unfollowed": "Te şopandina {{name}} rawestand",
+    "requestCancelled": "Daxwaz hate betalkirin",
+    "requestDeclined": "Daxwaz hate redkirin",
+    "commentHidden": "Şîrove hate veşartin",
+    "commentRemoved": "Şîrove hate rakirin",
+    "postRemoved": "Nivîs hate rakirin",
+    "restored": "Hate vegerandin"
   }
 }

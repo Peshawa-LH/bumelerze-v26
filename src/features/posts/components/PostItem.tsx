@@ -8,6 +8,7 @@ import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
 import { FLAG_REASONS } from "@/features/eventhub/types";
 import { formatRelativeTimeValue, getRelativeTime } from "@/features/events";
 import { confirmDialog } from "@/lib/dialogs";
+import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { useTheme } from "@/theme";
 import type { PostActions } from "../queries";
 import type { ProfilePost } from "../types";
@@ -44,6 +45,7 @@ export function PostItem({
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [reported, setReported] = useState(false);
+  const showUndo = useUndoToast();
 
   const relative = getRelativeTime(post.createdAt, nowMs);
   const timeText =
@@ -73,15 +75,16 @@ export function PostItem({
     }
   }
 
-  function confirmDelete() {
-    confirmDialog({
-      title: t("posts.deleteConfirmTitle"),
-      message: t("posts.deleteConfirmMessage"),
-      confirmLabel: t("posts.delete"),
-      cancelLabel: t("eventHub.thread.cancel"),
-      destructive: true,
-      onConfirm: () => void run(() => actions.remove(post.id)),
-    });
+  /** No confirmation: the server deletes at once and the snackbar's Undo
+   * (8 s) or the Profile's "Recently deleted" (24 h) brings it back. */
+  async function deleteOwn() {
+    const ok = await run(() => actions.remove(post.id));
+    if (ok) {
+      showUndo({
+        message: t("snackbar.postDeleted"),
+        restore: () => actions.restore(post.id),
+      });
+    }
   }
 
   const removed = post.status === "removed";
@@ -161,6 +164,11 @@ export function PostItem({
                 void run(() => actions.adminRemove(post.id, reason)).then((ok) => {
                   if (ok) {
                     setMode("idle");
+                    showUndo({
+                      message: t("snackbar.postRemoved"),
+                      restore: () => actions.adminRestore(post.id),
+                      admin: true,
+                    });
                   }
                 }),
             })
@@ -168,12 +176,12 @@ export function PostItem({
         />
       ) : (
         <View style={styles.actions}>
-          {isOwn ? (
+          {isOwn && !removed ? (
             <ActionButton
               label={t("posts.delete")}
               danger
               disabled={busy}
-              onPress={confirmDelete}
+              onPress={() => void deleteOwn()}
               testID={`post-delete-${post.id}`}
             />
           ) : null}

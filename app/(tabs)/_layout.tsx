@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { ColorValue } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { TAB_BAR_CONTENT_HEIGHT } from "@/components/Snackbar";
 import { useTheme } from "@/theme";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -63,7 +64,7 @@ export default function TabLayout() {
           // 2026-09-27, seen on PC and phone). 58 px fits the stack; the
           // safe-area inset is added on top so the bar clears a home
           // indicator without squeezing the labels.
-          height: 58 + insets.bottom,
+          height: TAB_BAR_CONTENT_HEIGHT + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 4,
         },

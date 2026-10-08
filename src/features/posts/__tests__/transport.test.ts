@@ -154,10 +154,32 @@ describe("SupabasePostsTransport writes", () => {
     });
   });
 
-  it("deletes by post id", async () => {
+  it("deletes through delete_my_post (a soft delete the author can undo), never a table delete", async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null });
     await SupabasePostsTransport.deletePost("p1");
-    expect(mockCalls.find((c) => c.method === "delete")).toBeDefined();
-    expect(mockCalls.find((c) => c.method === "eq")?.args).toEqual(["post_id", "p1"]);
+    expect(mockRpc).toHaveBeenCalledWith("delete_my_post", { p_post_id: "p1" });
+    expect(mockCalls.find((c) => c.method === "delete")).toBeUndefined();
+  });
+
+  it("restores through restore_my_post and admin_restore_post", async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null });
+    await SupabasePostsTransport.restorePost("p1");
+    await SupabasePostsTransport.adminRestorePost("p2");
+    expect(mockRpc).toHaveBeenNthCalledWith(1, "restore_my_post", { p_post_id: "p1" });
+    expect(mockRpc).toHaveBeenNthCalledWith(2, "admin_restore_post", {
+      p_post_id: "p2",
+      p_note: null,
+    });
+  });
+
+  it("words a too-late restore as expired", async () => {
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { code: "22023", message: "restore_my_post: expired" },
+    });
+    await expect(SupabasePostsTransport.restorePost("p1")).rejects.toMatchObject({
+      code: "expired",
+    });
   });
 
   it("reports and removes through their functions", async () => {

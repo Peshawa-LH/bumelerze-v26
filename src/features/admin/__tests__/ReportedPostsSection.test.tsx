@@ -67,6 +67,7 @@ function postsTransport(): jest.Mocked<PostsTransport> {
     deletePost: jest.fn(),
     reportPost: jest.fn(),
     adminRemovePost: jest.fn(async () => undefined),
+    adminRestorePost: jest.fn(async () => undefined),
   } as unknown as jest.Mocked<PostsTransport>;
 }
 
@@ -129,6 +130,25 @@ describe("reported posts in the admin screen", () => {
       (mockConfirm.mock.calls[0]?.[0] as { onConfirm: () => void }).onConfirm();
     });
     await waitFor(() => expect(posts.adminRemovePost).toHaveBeenCalledWith("p1", "spam"));
+  });
+
+  it("offers Undo for 10 s after Remove, and Undo restores the post", async () => {
+    const posts = await renderAdmin(
+      ["comments.moderate", "posts.delete"],
+      adminTransport([REPORTED]),
+    );
+    await fireEvent.press(await screen.findByTestId("reported-post-remove-p1"));
+    await fireEvent.press(screen.getByTestId("remove-reason-spam"));
+    await act(async () => {
+      (mockConfirm.mock.calls[0]?.[0] as { onConfirm: () => void }).onConfirm();
+    });
+    await waitFor(() => expect(posts.adminRemovePost).toHaveBeenCalledWith("p1", "spam"));
+    expect(await screen.findByTestId("snackbar-message")).toHaveTextContent(
+      "Post removed",
+    );
+    expect(posts.adminRestorePost).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByTestId("snackbar-action"));
+    await waitFor(() => expect(posts.adminRestorePost).toHaveBeenCalledWith("p1"));
   });
 
   it("Dismiss closes the reports without removing", async () => {

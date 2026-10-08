@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { useAccount } from "@/features/account/use-account";
+import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { useTheme } from "@/theme";
 import { communityErrorText } from "../error-text";
 import type { CommunityActions } from "../queries";
@@ -28,6 +29,7 @@ export function FollowButton({
   const account = useAccount();
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const showUndo = useUndoToast();
 
   const status = profile.followStatus;
   const label =
@@ -50,7 +52,17 @@ export function FollowButton({
       if (status === "none") {
         await actions.follow(profile.userId);
       } else {
+        // No confirmation: the server unfollows at once and the snackbar's
+        // Undo (the server accepts it for 60 s) gives the follow back,
+        // accepted state included.
         await actions.unfollow(profile.userId);
+        showUndo({
+          message:
+            status === "pending"
+              ? t("snackbar.requestCancelled")
+              : t("snackbar.unfollowed", { name: profile.displayName }),
+          restore: () => actions.undoUnfollow(profile.userId),
+        });
       }
     } catch (error) {
       setErrorText(communityErrorText(t, error));

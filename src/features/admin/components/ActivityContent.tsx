@@ -13,16 +13,20 @@ import {
   isValidUsername,
   normalizeUsername,
 } from "@/features/community/username";
+import { useSnackbar } from "@/components/Snackbar";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
+import { restoreErrorText } from "@/features/undo/error-text";
 import { useTheme } from "@/theme";
-import { useAdminAccess, useAdminActivity } from "../queries";
+import { useAdminAccess, useAdminActions, useAdminActivity } from "../queries";
 import type { AdminTransport } from "../transport";
 import {
   ACTIVITY_ACTIONS,
   ACTIVITY_FILTER_ACTIONS,
+  UNDOABLE_ACTIONS,
   type ActivityEntry,
   type ActivityFilters,
+  type UndoableAction,
 } from "../types";
 import { ActivityRow } from "./ActivityRow";
 
@@ -34,7 +38,8 @@ interface PersonFilter {
 /** Admin > Activity: who did what, when and why (migration 0052). Filter by
  * action and by person; 50 rows a page with "Load more". Moderators see content
  * actions only, the official rank sees everything: the server decides, the
- * chips just follow. Read-only for now. */
+ * chips just follow. A row that can be undone and has not been shows an Undo
+ * button (migration 0053): hide, remove, closed reports, a revoked badge. */
 export function ActivityContent({
   transport,
   hubTransport,
@@ -48,6 +53,10 @@ export function ActivityContent({
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const access = useAdminAccess(hubTransport);
+  const adminActions = useAdminActions(transport, hubTransport);
+  const snackbar = useSnackbar();
+  const [undoingId, setUndoingId] = useState<string | null>(null);
+  const [undoError, setUndoError] = useState<{ id: string; text: string } | null>(null);
 
   const [action, setAction] = useState<string | null>(null);
   const [person, setPerson] = useState<PersonFilter | null>(null);
@@ -86,6 +95,27 @@ export function ActivityContent({
       setLookupError(communityErrorText(t, error));
     } finally {
       setLooking(false);
+    }
+  }
+
+  function canUndo(entry: ActivityEntry): boolean {
+    if (entry.revertedBy !== null) {
+      return false;
+    }
+    const needed = UNDOABLE_ACTIONS[entry.action as UndoableAction];
+    return needed !== undefined && access.has(needed);
+  }
+
+  async function undo(entry: ActivityEntry) {
+    setUndoingId(entry.id);
+    setUndoError(null);
+    try {
+      await adminActions.undoAction(entry.id);
+      snackbar.show({ message: t("snackbar.restored") });
+    } catch (error) {
+      setUndoError({ id: entry.id, text: restoreErrorText(t, error) });
+    } finally {
+      setUndoingId(null);
     }
   }
 
@@ -221,7 +251,32 @@ export function ActivityContent({
         </Text>
       ) : (
         rows.map((entry) => (
-          <ActivityRow key={entry.id} entry={entry} onFilterPerson={filterByEntryPerson} />
+          <ActivityRow
+            key={entry.id}
+            entry={entry}
+            onFilterPerson={filterByEntryPerson}
+            renderAction={(row) =>
+              canUndo(row) ? (
+                <View style={styles.undoRow}>
+                  <ActionButton
+                    label={t("admin.activity.undo")}
+                    disabled={undoingId === row.id}
+                    onPress={() => void undo(row)}
+                    testID={`activity-undo-${row.id}`}
+                  />
+                  {undoError?.id === row.id ? (
+                    <Text
+                      accessibilityRole="alert"
+                      style={[meta, { color: colors.status.danger }]}
+                      testID={`activity-undo-error-${row.id}`}
+                    >
+                      {undoError.text}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null
+            }
+          />
         ))
       )}
 
@@ -244,6 +299,7 @@ export function ActivityContent({
 const styles = StyleSheet.create({
   content: { width: "100%", maxWidth: 560, alignSelf: "center" },
   chips: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
+  undoRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
   input: {
     minHeight: 44,
     minWidth: 160,

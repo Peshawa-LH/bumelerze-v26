@@ -11,12 +11,14 @@ import { MyHomeCard } from "@/features/building";
 import { MyReportsSection } from "@/features/mydata";
 import { useTheme } from "@/theme";
 import { OnlyYouDivider } from "./OnlyYouDivider";
+import { RecentlyDeletedSection } from "./RecentlyDeletedSection";
 
 /**
  * Everything on the Profile page that only its owner may see, after the
  * "Only you see this" divider: My home, My felt reports, People and requests,
- * the Admin row (when the account has admin access), Password, Privacy, Sign
- * out and, last, Delete account.
+ * the Admin row (when the account has admin access), Recently deleted (my
+ * comments and posts of the last 24 hours, when there are any), Password,
+ * Privacy, Sign out and, last, Delete account.
  *
  * PRIVACY RULE (D79): this component and everything under it read the
  * viewer's own data (the felt queue, `my_stats`, homes, follow requests, admin
@@ -35,6 +37,7 @@ export function OwnerSections() {
       <MyHomeCard />
       <MyReportsSection />
       <CommunityRows />
+      <RecentlyDeletedSection />
       <SettingsGroup>
         {isAccount ? <PasswordRow /> : null}
         <PrivacyRow email={account.email} />

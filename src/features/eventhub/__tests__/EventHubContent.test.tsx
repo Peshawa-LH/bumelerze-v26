@@ -89,7 +89,9 @@ describe("EventHubContent", () => {
       await i18n.changeLanguage("ckb");
       await renderHub(makeTransport({}, { fetchSummary: jest.fn(async () => null) }));
       expect(await screen.findByTestId("hub-prebunk")).toBeTruthy();
-      expect(screen.getByText(/^هیچ کەسێک ناتوانێت بوومەلەرزە پێشبینی بکات/)).toBeTruthy();
+      expect(
+        screen.getByText(/^هیچ کەسێک ناتوانێت بوومەلەرزە پێشبینی بکات/),
+      ).toBeTruthy();
     });
   });
 
@@ -489,16 +491,20 @@ describe("EventHubContent", () => {
       ).toBeTruthy();
     });
 
-    it("deletes their own comment after a confirmation", async () => {
+    it("deletes their own comment at once and offers Undo, which restores it", async () => {
       const transport = makeTransport({
         comments: [buildComment({ id: "mine", userId: "acct-1", body: "Oops" })],
       });
       await renderHub(transport);
       await fireEvent.press(await screen.findByRole("button", { name: "Delete" }));
-      expect(screen.getByText("Delete this comment?")).toBeTruthy();
-      expect(transport.deleteComment).not.toHaveBeenCalled();
-      await fireEvent.press(screen.getByRole("button", { name: "Delete" }));
       await waitFor(() => expect(transport.deleteComment).toHaveBeenCalledWith("mine"));
+      expect(screen.queryByText("Delete this comment?")).toBeNull();
+      expect(await screen.findByTestId("snackbar-message")).toHaveTextContent(
+        "Comment deleted",
+      );
+      expect(transport.restoreComment).not.toHaveBeenCalled();
+      await fireEvent.press(screen.getByTestId("snackbar-action"));
+      await waitFor(() => expect(transport.restoreComment).toHaveBeenCalledWith("mine"));
     });
 
     it("says an action failed instead of failing silently", async () => {
@@ -539,6 +545,27 @@ describe("EventHubContent", () => {
       await waitFor(() =>
         expect(transport.moderateComment).toHaveBeenCalledWith("p1", "hide"),
       );
+    });
+
+    it("offers Undo after Hide, and Undo calls the admin restore", async () => {
+      mockAccount = { status: "account", userId: "mod-1" };
+      const transport = makeTransport({
+        comments: [pending],
+        roles: { "mod-1": [{ role: "moderator", orgName: null }] },
+      });
+      await renderHub(transport);
+      await fireEvent.press(await screen.findByRole("button", { name: "Hide" }));
+      await waitFor(() =>
+        expect(transport.moderateComment).toHaveBeenCalledWith("p1", "hide"),
+      );
+      expect(await screen.findByTestId("snackbar-message")).toHaveTextContent(
+        "Comment hidden",
+      );
+      await fireEvent.press(screen.getByTestId("snackbar-action"));
+      await waitFor(() =>
+        expect(transport.adminRestoreComment).toHaveBeenCalledWith("p1"),
+      );
+      expect(transport.restoreComment).not.toHaveBeenCalled();
     });
 
     it("treats an official the same way", async () => {

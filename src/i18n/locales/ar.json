@@ -932,7 +932,6 @@
       "reported": "شكرًا. سنراجعه.",
       "reportTitle": "لماذا تبلّغ عن هذا؟",
       "delete": "حذف",
-      "deleteConfirm": "حذف هذا التعليق؟",
       "approve": "قبول",
       "hide": "إخفاء",
       "actionError": "تعذّر التنفيذ. حاول مرة أخرى.",
@@ -2293,7 +2292,9 @@
       "rate_limited": "محاولات كثيرة. انتظر قليلًا.",
       "unavailable": "غير متاح بعد.",
       "network": "لا يوجد اتصال. حاول مرة أخرى.",
-      "unknown": "تعذّر التنفيذ. حاول مرة أخرى."
+      "unknown": "تعذّر التنفيذ. حاول مرة أخرى.",
+      "expired": "فات وقت التراجع.",
+      "not_restorable": "لم يعد ممكنًا استعادته."
     }
   },
   "admin": {
@@ -2371,8 +2372,10 @@
         "lift": "رفع تقييداً",
         "person_view": "اطّلع على شخص",
         "email_reveal": "أظهر بريداً إلكترونياً",
-        "purge": "نظّف نصاً قديماً"
-      }
+        "purge": "نظّف نصاً قديماً",
+        "role_restore": "أعاد شارة"
+      },
+      "undo": "تراجع"
     },
     "passwords": {
       "title": "إعادة تعيين كلمة مرور",
@@ -2389,6 +2392,17 @@
       "copy": "نسخ",
       "copied": "تم النسخ",
       "done": "تم"
+    },
+    "hidden": {
+      "title": "المخفي والمُزال",
+      "hint": "التعليقات والمنشورات التي أُخفيت أو أُزيلت خلال آخر ٣٠ يومًا. الحساب الرسمي وحده يرى النص المُزال ويستطيع استعادته.",
+      "empty": "لا شيء مخفي أو مُزال.",
+      "hiddenComment": "تعليق مخفي",
+      "removedComment": "تعليق مُزال",
+      "removedPost": "منشور مُزال",
+      "restore": "استعادة",
+      "textHidden": "النص غير معروض",
+      "cannotRestore": "لا يمكن استعادته."
     }
   },
   "posts": {
@@ -2406,8 +2420,6 @@
       "tooLong": "طويل جدًا. الحد {{max}} حرف."
     },
     "delete": "حذف",
-    "deleteConfirmTitle": "حذف هذا المنشور؟",
-    "deleteConfirmMessage": "يُحذف للجميع.",
     "report": "إبلاغ",
     "reportTitle": "لماذا تبلّغ عن هذا المنشور؟",
     "reported": "شكرًا. سنراجعه.",
@@ -2417,6 +2429,28 @@
     "removedByModerators": "أزاله المشرفون"
   },
   "profile": {
-    "onlyYou": "أنت وحدك ترى هذا"
+    "onlyYou": "أنت وحدك ترى هذا",
+    "recentlyDeleted": {
+      "title": "المحذوفات الأخيرة",
+      "hint": "يمكنك استعادتها خلال ٢٤ ساعة.",
+      "comment": "تعليق · {{place}}",
+      "commentNoPlace": "تعليق",
+      "post": "منشور",
+      "restore": "استعادة",
+      "until": "حتى {{time}}"
+    }
+  },
+  "snackbar": {
+    "undo": "تراجع",
+    "undoFailed": "تعذّر التراجع. ربما فات الأوان.",
+    "commentDeleted": "تم حذف التعليق",
+    "postDeleted": "تم حذف المنشور",
+    "unfollowed": "ألغيت متابعة {{name}}",
+    "requestCancelled": "تم إلغاء الطلب",
+    "requestDeclined": "تم رفض الطلب",
+    "commentHidden": "تم إخفاء التعليق",
+    "commentRemoved": "تمت إزالة التعليق",
+    "postRemoved": "تمت إزالة المنشور",
+    "restored": "تمت الاستعادة"
   }
 }

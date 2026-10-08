@@ -8,6 +8,7 @@ import {
 import type { Event } from "@/features/events";
 import { useEventUuid } from "@/features/feltmap/use-event-uuid";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { RECENTLY_DELETED_KEY } from "@/features/undo/keys";
 import { legacyPermissions, loadHubThread } from "./service";
 import { SupabaseEventHubTransport, type EventHubTransport } from "./transport";
 import type {
@@ -178,6 +179,10 @@ function refresh(queryClient: QueryClient, eventUuid: string): Promise<unknown> 
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: eventHubKeys.threadsOf(eventUuid) }),
     queryClient.invalidateQueries({ queryKey: eventHubKeys.summary(eventUuid) }),
+    // the "Recently deleted" list on the Profile page
+    queryClient.invalidateQueries({ queryKey: RECENTLY_DELETED_KEY }),
+    // the admin lists (queue, hidden and removed, activity)
+    queryClient.invalidateQueries({ queryKey: ["admin"] }),
   ]);
 }
 
@@ -191,6 +196,10 @@ export interface HubActions {
   moderate: (commentId: string, action: ModerationAction) => Promise<void>;
   /** Admin soft delete; `reason` is a short code such as "spam". */
   adminRemove: (commentId: string, reason: string) => Promise<void>;
+  /** Take my deleted comment back (the Undo of a delete, 24 hours). */
+  restore: (commentId: string) => Promise<void>;
+  /** Bring back a comment an admin hid or removed (the Undo of Hide/Remove). */
+  adminRestore: (commentId: string) => Promise<void>;
 }
 
 /** Write actions for one event's hub. Each refreshes the thread (and the
@@ -236,6 +245,14 @@ export function useHubActions(
       transport.adminDeleteComment(input.commentId, input.reason),
     onSuccess: () => refresh(queryClient, eventUuid),
   });
+  const restore = useMutation({
+    mutationFn: (commentId: string) => transport.restoreComment(commentId),
+    onSuccess: () => refresh(queryClient, eventUuid),
+  });
+  const adminRestore = useMutation({
+    mutationFn: (commentId: string) => transport.adminRestoreComment(commentId),
+    onSuccess: () => refresh(queryClient, eventUuid),
+  });
 
   return {
     post: (input) => post.mutateAsync(input),
@@ -245,5 +262,7 @@ export function useHubActions(
     remove: (commentId) => remove.mutateAsync(commentId),
     moderate: (commentId, action) => moderate.mutateAsync({ commentId, action }),
     adminRemove: (commentId, reason) => adminRemove.mutateAsync({ commentId, reason }),
+    restore: (commentId) => restore.mutateAsync(commentId),
+    adminRestore: (commentId) => adminRestore.mutateAsync(commentId),
   };
 }

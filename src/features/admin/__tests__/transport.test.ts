@@ -1,5 +1,6 @@
 import {
   parseActivity,
+  parseHiddenRemoved,
   parseQueue,
   parseReportedPosts,
   parseReportedProfiles,
@@ -158,7 +159,84 @@ describe("parseActivity", () => {
   });
 
   it("drops malformed rows and answers [] for a non-list", () => {
-    expect(parseActivity([row, { log_id: "x" }, { ...row, created_at: "nope" }, 7])).toHaveLength(1);
+    expect(
+      parseActivity([row, { log_id: "x" }, { ...row, created_at: "nope" }, 7]),
+    ).toHaveLength(1);
     expect(parseActivity(null)).toEqual([]);
+  });
+});
+
+describe("parseHiddenRemoved", () => {
+  const row = {
+    kind: "comment",
+    item_id: "c1",
+    status: "removed",
+    acted_at: "2026-10-08T09:00:00.123456+00:00",
+    actor_name: "Bumelerze",
+    reason: "spam",
+    author_id: "u1",
+    author_name: "Dilan",
+    author_username: "dilan",
+    hub_id: "bml202610aa",
+    place: "Duhok",
+    body: "the evidence",
+    can_restore: true,
+  };
+
+  it("reads a row and keeps the raw timestamp as the paging cursor", () => {
+    const [item] = parseHiddenRemoved([row]);
+    expect(item).toMatchObject({
+      kind: "comment",
+      id: "c1",
+      status: "removed",
+      cursor: "2026-10-08T09:00:00.123456+00:00",
+      hubId: "bml202610aa",
+      body: "the evidence",
+      canRestore: true,
+    });
+    expect(item?.actedAt).toBe(Date.parse("2026-10-08T09:00:00.123Z"));
+  });
+
+  it("keeps a missing text as null (the viewer may not read it) and treats an unknown flag as no", () => {
+    const [item] = parseHiddenRemoved([
+      { ...row, kind: "post", body: null, can_restore: "yes", hub_id: null, place: null },
+    ]);
+    expect(item).toMatchObject({ kind: "post", body: null, canRestore: false });
+  });
+
+  it("drops malformed rows, unknown kinds and statuses, and answers [] for a non-list", () => {
+    expect(
+      parseHiddenRemoved([
+        row,
+        { ...row, kind: "photo" },
+        { ...row, status: "visible" },
+        { ...row, acted_at: "nope" },
+        7,
+      ]),
+    ).toHaveLength(1);
+    expect(parseHiddenRemoved(null)).toEqual([]);
+  });
+});
+
+describe("SupabaseAdminTransport (migration 0053)", () => {
+  it("asks for the hidden and removed list with the cursor, and undoes through the dispatcher", async () => {
+    jest.resetModules();
+    const rpc = jest.fn().mockResolvedValue({ data: [], error: null });
+    jest.doMock("@/lib/supabase", () => ({
+      getSupabaseClient: () => ({ rpc }),
+    }));
+    const { SupabaseAdminTransport } = await import("../transport");
+    await SupabaseAdminTransport.fetchHiddenRemoved("2026-10-08T09:00:00.000001+00:00");
+    await SupabaseAdminTransport.fetchHiddenRemoved(null);
+    await SupabaseAdminTransport.undoAction("log-1");
+    expect(rpc.mock.calls).toEqual([
+      [
+        "admin_hidden_removed",
+        { p_before: "2026-10-08T09:00:00.000001+00:00", p_limit: 50 },
+      ],
+      ["admin_hidden_removed", { p_before: null, p_limit: 50 }],
+      ["admin_undo_action", { p_log_id: "log-1", p_note: null }],
+    ]);
+    jest.dontMock("@/lib/supabase");
   });
 });

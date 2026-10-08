@@ -165,9 +165,9 @@ describe("toHubError", () => {
     );
   });
   it("maps the daily report limit (token flag_limit, 54000) to flag_limit, not rate_limited", () => {
-    expect(
-      toHubError({ code: "54000", message: "comment_flags: flag_limit" }).code,
-    ).toBe("flag_limit");
+    expect(toHubError({ code: "54000", message: "comment_flags: flag_limit" }).code).toBe(
+      "flag_limit",
+    );
   });
   it("maps fetch failures to network", () => {
     expect(toHubError(new Error("Failed to fetch")).code).toBe("network");
@@ -355,6 +355,37 @@ describe("permissions and ranks", () => {
     });
   });
 
+  it("restores through restore_my_comment and admin_restore_comment", async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null });
+    await SupabaseEventHubTransport.restoreComment("c1");
+    await SupabaseEventHubTransport.adminRestoreComment("c2");
+    expect(mockRpc).toHaveBeenNthCalledWith(1, "restore_my_comment", {
+      p_comment_id: "c1",
+    });
+    expect(mockRpc).toHaveBeenNthCalledWith(2, "admin_restore_comment", {
+      p_comment_id: "c2",
+      p_note: null,
+    });
+  });
+
+  it("words a too-late or impossible restore with its own codes", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "22023", message: "restore_my_comment: expired" },
+    });
+    await expect(SupabaseEventHubTransport.restoreComment("c1")).rejects.toMatchObject({
+      code: "expired",
+    });
+    mockRpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "22023", message: "admin_restore_comment: not_restorable" },
+    });
+    await expect(
+      SupabaseEventHubTransport.adminRestoreComment("c1"),
+    ).rejects.toMatchObject({ code: "not_restorable" });
+    expect(toHubError({ message: "JWT expired" }).code).toBe("unknown");
+  });
+
   it("reads the accepted follows as ids", async () => {
     mockRpc.mockResolvedValueOnce({ data: ["u1", "u2", 5], error: null });
     await expect(SupabaseEventHubTransport.fetchFollowingIds()).resolves.toEqual([
@@ -471,9 +502,9 @@ describe("writes", () => {
       data: null,
       error: { code: "54000", message: "comment_flags: flag_limit" },
     };
-    await expect(SupabaseEventHubTransport.flagComment("c1", "spam")).rejects.toMatchObject(
-      { code: "flag_limit" },
-    );
+    await expect(
+      SupabaseEventHubTransport.flagComment("c1", "spam"),
+    ).rejects.toMatchObject({ code: "flag_limit" });
   });
 
   it("deletes through delete_my_comment and moderates through moderate_comment", async () => {

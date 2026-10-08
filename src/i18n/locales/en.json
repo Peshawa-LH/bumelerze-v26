@@ -932,7 +932,6 @@
       "reported": "Thanks. We will review it.",
       "reportTitle": "Why are you reporting this?",
       "delete": "Delete",
-      "deleteConfirm": "Delete this comment?",
       "approve": "Approve",
       "hide": "Hide",
       "actionError": "Couldn't do that. Try again.",
@@ -2293,7 +2292,9 @@
       "rate_limited": "Too many tries. Wait a bit.",
       "unavailable": "Not available yet.",
       "network": "No connection. Try again.",
-      "unknown": "Couldn't do that. Try again."
+      "unknown": "Couldn't do that. Try again.",
+      "expired": "Too late to undo this.",
+      "not_restorable": "This can't be restored any more."
     }
   },
   "admin": {
@@ -2371,8 +2372,10 @@
         "lift": "Lifted a restriction",
         "person_view": "Looked at a person",
         "email_reveal": "Showed an email address",
-        "purge": "Cleaned up old text"
-      }
+        "purge": "Cleaned up old text",
+        "role_restore": "Gave a badge back"
+      },
+      "undo": "Undo"
     },
     "passwords": {
       "title": "Reset a password",
@@ -2389,6 +2392,17 @@
       "copy": "Copy",
       "copied": "Copied",
       "done": "Done"
+    },
+    "hidden": {
+      "title": "Hidden and removed",
+      "hint": "Comments and posts hidden or removed in the last 30 days. Only the official account sees removed text and can restore removed items.",
+      "empty": "Nothing hidden or removed.",
+      "hiddenComment": "Hidden comment",
+      "removedComment": "Removed comment",
+      "removedPost": "Removed post",
+      "restore": "Restore",
+      "textHidden": "Text not shown",
+      "cannotRestore": "Can't be restored."
     }
   },
   "posts": {
@@ -2406,8 +2420,6 @@
       "tooLong": "Too long. The limit is {{max}} characters."
     },
     "delete": "Delete",
-    "deleteConfirmTitle": "Delete this post?",
-    "deleteConfirmMessage": "It is removed for everyone.",
     "report": "Report",
     "reportTitle": "Why are you reporting this post?",
     "reported": "Thanks. We will review it.",
@@ -2417,6 +2429,28 @@
     "removedByModerators": "Removed by moderators"
   },
   "profile": {
-    "onlyYou": "Only you see this"
+    "onlyYou": "Only you see this",
+    "recentlyDeleted": {
+      "title": "Recently deleted",
+      "hint": "You can bring these back for 24 hours.",
+      "comment": "Comment · {{place}}",
+      "commentNoPlace": "Comment",
+      "post": "Post",
+      "restore": "Restore",
+      "until": "Until {{time}}"
+    }
+  },
+  "snackbar": {
+    "undo": "Undo",
+    "undoFailed": "Couldn't undo. It may be too late.",
+    "commentDeleted": "Comment deleted",
+    "postDeleted": "Post deleted",
+    "unfollowed": "You unfollowed {{name}}",
+    "requestCancelled": "Request cancelled",
+    "requestDeclined": "Request declined",
+    "commentHidden": "Comment hidden",
+    "commentRemoved": "Comment removed",
+    "postRemoved": "Post removed",
+    "restored": "Restored"
   }
 }

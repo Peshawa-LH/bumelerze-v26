@@ -6,9 +6,11 @@ import { HUB_ROLE_KINDS } from "@/features/eventhub/types";
 import { getSupabaseClient } from "@/lib/supabase";
 import {
   ACTIVITY_PAGE_SIZE,
+  HIDDEN_PAGE_SIZE,
   type ActivityEntry,
   type ActivityFilters,
   type GrantableRank,
+  type HiddenRemovedItem,
   type QueueComment,
   type ReportedPost,
   type FoundAccount,
@@ -47,6 +49,11 @@ export interface AdminTransport {
     filters: ActivityFilters,
     before: string | null,
   ): Promise<ActivityEntry[]>;
+  /** Comments hidden and comments and posts removed in the last 30 days
+   * (`admin_hidden_removed`, 0053). `before` is the last row's `cursor`. */
+  fetchHiddenRemoved(before: string | null): Promise<HiddenRemovedItem[]>;
+  /** Undoes the action in one log row (`admin_undo_action`, 0053). */
+  undoAction(logId: string): Promise<void>;
 }
 
 const queueSchema = z.object({
@@ -267,6 +274,54 @@ export function parseActivity(data: unknown): ActivityEntry[] {
   return rows;
 }
 
+const hiddenSchema = z.object({
+  kind: z.enum(["comment", "post"]),
+  item_id: z.string(),
+  status: z.enum(["hidden", "removed"]),
+  acted_at: z.string(),
+  actor_name: z.string().nullable().optional(),
+  reason: z.string().nullable().optional(),
+  author_id: z.string().nullable().optional(),
+  author_name: z.string().nullable().optional(),
+  author_username: z.string().nullable().optional(),
+  hub_id: z.string().nullable().optional(),
+  place: z.string().nullable().optional(),
+  body: z.string().nullable().optional(),
+  can_restore: z.boolean().catch(false),
+});
+
+export function parseHiddenRemoved(data: unknown): HiddenRemovedItem[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  const rows: HiddenRemovedItem[] = [];
+  for (const row of data) {
+    const parsed = hiddenSchema.safeParse(row);
+    const actedAt = parsed.success ? Date.parse(parsed.data.acted_at) : NaN;
+    if (!parsed.success || Number.isNaN(actedAt)) {
+      continue;
+    }
+    const d = parsed.data;
+    rows.push({
+      kind: d.kind,
+      id: d.item_id,
+      status: d.status,
+      actedAt,
+      cursor: d.acted_at,
+      actorName: d.actor_name ?? null,
+      reason: d.reason ?? null,
+      authorId: d.author_id ?? null,
+      authorName: d.author_name ?? null,
+      authorUsername: d.author_username ?? null,
+      hubId: d.hub_id ?? null,
+      place: d.place ?? null,
+      body: d.body ?? null,
+      canRestore: d.can_restore,
+    });
+  }
+  return rows;
+}
+
 async function call(name: string, args?: Record<string, unknown>): Promise<unknown> {
   const client = getSupabaseClient();
   if (!client) {
@@ -322,6 +377,14 @@ export const SupabaseAdminTransport: AdminTransport = {
         p_limit: ACTIVITY_PAGE_SIZE,
       }),
     );
+  },
+  async fetchHiddenRemoved(before) {
+    return parseHiddenRemoved(
+      await call("admin_hidden_removed", { p_before: before, p_limit: HIDDEN_PAGE_SIZE }),
+    );
+  },
+  async undoAction(logId) {
+    await call("admin_undo_action", { p_log_id: logId, p_note: null });
   },
   async resetPassword(userId, newPassword) {
     await call("admin_reset_password", {

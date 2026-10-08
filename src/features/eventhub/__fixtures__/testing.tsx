@@ -3,6 +3,7 @@ import { render } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { SnackbarProvider } from "@/components/Snackbar";
 import type { Event } from "@/features/events";
 
 import type { EventHubTransport } from "../transport";
@@ -124,6 +125,8 @@ export function makeTransport(
     }),
     fetchFollowingIds: jest.fn(async () => data.following ?? []),
     adminDeleteComment: jest.fn(async () => undefined),
+    restoreComment: jest.fn(async () => undefined),
+    adminRestoreComment: jest.fn(async () => undefined),
     ...overrides,
   };
   return transport as unknown as FakeTransport;
@@ -140,7 +143,9 @@ export function renderWithProviders(ui: ReactElement) {
   });
   return render(
     <QueryClientProvider client={client}>
-      <SafeAreaProvider initialMetrics={metrics}>{ui}</SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={metrics}>
+        <SnackbarProvider>{ui}</SnackbarProvider>
+      </SafeAreaProvider>
     </QueryClientProvider>,
   );
 }

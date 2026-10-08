@@ -3,13 +3,14 @@
 import "@/lib/web-chunk-reload";
 
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { Stack } from "expo-router";
+import { Stack, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { SnackbarProvider, TAB_BAR_CONTENT_HEIGHT } from "@/components/Snackbar";
 import {
   createEventsPersister,
   createEventsQueryClient,
@@ -58,6 +59,10 @@ export default function RootLayout() {
     "Vazirmatn-SemiBold": require("../assets/fonts/Vazirmatn-SemiBold.ttf"),
     "Vazirmatn-Bold": require("../assets/fonts/Vazirmatn-Bold.ttf"),
   });
+  // A snackbar sits above the tab bar on the tab screens and at the bottom
+  // edge elsewhere.
+  const segments = useSegments();
+  const inTabs = (segments as string[])[0] === "(tabs)";
   const [isRestarting, setIsRestarting] = useState(false);
   const hasHydrated = usePrefsStore((state) => state.hasHydrated);
   const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);
@@ -158,84 +163,87 @@ export default function RootLayout() {
           }}
         >
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.surface.base },
-              headerStyle: { backgroundColor: colors.surface.base },
-              headerTintColor: colors.text.primary,
-              // The header sets its own inline system font; hand in the
-              // theme face so Sorani/Arabic titles render in Vazirmatn on
-              // native as well as web (`ARABIC_SCRIPT_FONT`).
-              headerTitleStyle: {
-                color: colors.text.primary,
-                ...(typography.h3.fontFamily
-                  ? { fontFamily: typography.h3.fontFamily }
-                  : {}),
-              },
-              headerShadowVisible: false,
-            }}
-          >
-            {/* Onboarding-vs-tabs gate (spec-v1.md §4.11: "first-launch
-             * only, not reachable after"): registering only ONE of these
-             * two screen sets — never both — means "/onboarding" and
-             * "(tabs)" are each fully unreachable while the other is
-             * active, with no separate redirect logic needed. React
-             * Navigation resolves the new default screen itself the
-             * instant `onboardingCompleted` flips (the same
-             * conditional-screens pattern React Navigation's own
-             * "Authentication flows" guide recommends for auth gating).
-             * Expressed with `Stack.Protected`: a bare Fragment child of
-             * `<Stack>` makes expo-router 57 throw "Cannot convert a Symbol
-             * value to a string" and the app renders blank for every
-             * returning user (found 2026-10-04). */}
-            <Stack.Protected guard={onboardingCompleted}>
-              <Stack.Screen name="(tabs)" />
-              {/* Each of these pushed screens owns `headerShown`/`title`/
-               * `headerLeft` itself via its own inline `<Stack.Screen
-               * options={{...}}>` (rendered from within the route
-               * component) — a static `options={{headerShown: true}}`
-               * declared HERE, at this level, was tried first and found
-               * to be silently ineffective (verified against a built web
-               * export: the header never rendered at all, not even its
-               * title, only once the screen's OWN inline declaration set
-               * `headerShown` did it appear) — matching how `catalog`,
-               * never declared here at all, already worked correctly.
-               * Bare declarations below just register the route names;
-               * they carry no options. */}
-              <Stack.Screen name="event/[id]" />
-              <Stack.Screen name="event-hub/[id]" />
-              <Stack.Screen name="world" />
-              <Stack.Screen name="significant" />
-              <Stack.Screen name="historical" />
-              <Stack.Screen name="handbook" />
-              <Stack.Screen name="notification-settings" />
-              <Stack.Screen name="my-data" />
-              <Stack.Screen name="safety" />
-              <Stack.Screen name="badges" />
-              <Stack.Screen name="my-reports" />
-              <Stack.Screen name="feedback" />
-              <Stack.Screen name="account/sign-in" />
-              <Stack.Screen name="account/profile" />
-              <Stack.Screen name="account/password" />
-              <Stack.Screen name="account/people" />
-              <Stack.Screen name="admin/index" />
-              <Stack.Screen name="admin/activity" />
-              <Stack.Screen name="u/[username]/index" />
-              <Stack.Screen name="u/[username]/people" />
-              <Stack.Screen name="home/new" />
-              <Stack.Screen name="home/join" />
-              <Stack.Screen name="home/[tagId]/report" />
-              <Stack.Screen name="home/[tagId]/family" />
-              <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
-              {/* The swipeable tour owns its horizontal swipes, so the iOS
-               * edge-swipe-back is off; Skip and the last button leave it. */}
-              <Stack.Screen name="tour" options={{ gestureEnabled: false }} />
-            </Stack.Protected>
-            <Stack.Protected guard={!onboardingCompleted}>
-              <Stack.Screen name="onboarding" />
-            </Stack.Protected>
-          </Stack>
+          <SnackbarProvider bottomOffset={inTabs ? TAB_BAR_CONTENT_HEIGHT : 0}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.surface.base },
+                headerStyle: { backgroundColor: colors.surface.base },
+                headerTintColor: colors.text.primary,
+                // The header sets its own inline system font; hand in the
+                // theme face so Sorani/Arabic titles render in Vazirmatn on
+                // native as well as web (`ARABIC_SCRIPT_FONT`).
+                headerTitleStyle: {
+                  color: colors.text.primary,
+                  ...(typography.h3.fontFamily
+                    ? { fontFamily: typography.h3.fontFamily }
+                    : {}),
+                },
+                headerShadowVisible: false,
+              }}
+            >
+              {/* Onboarding-vs-tabs gate (spec-v1.md §4.11: "first-launch
+               * only, not reachable after"): registering only ONE of these
+               * two screen sets — never both — means "/onboarding" and
+               * "(tabs)" are each fully unreachable while the other is
+               * active, with no separate redirect logic needed. React
+               * Navigation resolves the new default screen itself the
+               * instant `onboardingCompleted` flips (the same
+               * conditional-screens pattern React Navigation's own
+               * "Authentication flows" guide recommends for auth gating).
+               * Expressed with `Stack.Protected`: a bare Fragment child of
+               * `<Stack>` makes expo-router 57 throw "Cannot convert a Symbol
+               * value to a string" and the app renders blank for every
+               * returning user (found 2026-10-04). */}
+              <Stack.Protected guard={onboardingCompleted}>
+                <Stack.Screen name="(tabs)" />
+                {/* Each of these pushed screens owns `headerShown`/`title`/
+                 * `headerLeft` itself via its own inline `<Stack.Screen
+                 * options={{...}}>` (rendered from within the route
+                 * component) — a static `options={{headerShown: true}}`
+                 * declared HERE, at this level, was tried first and found
+                 * to be silently ineffective (verified against a built web
+                 * export: the header never rendered at all, not even its
+                 * title, only once the screen's OWN inline declaration set
+                 * `headerShown` did it appear) — matching how `catalog`,
+                 * never declared here at all, already worked correctly.
+                 * Bare declarations below just register the route names;
+                 * they carry no options. */}
+                <Stack.Screen name="event/[id]" />
+                <Stack.Screen name="event-hub/[id]" />
+                <Stack.Screen name="world" />
+                <Stack.Screen name="significant" />
+                <Stack.Screen name="historical" />
+                <Stack.Screen name="handbook" />
+                <Stack.Screen name="notification-settings" />
+                <Stack.Screen name="my-data" />
+                <Stack.Screen name="safety" />
+                <Stack.Screen name="badges" />
+                <Stack.Screen name="my-reports" />
+                <Stack.Screen name="feedback" />
+                <Stack.Screen name="account/sign-in" />
+                <Stack.Screen name="account/profile" />
+                <Stack.Screen name="account/password" />
+                <Stack.Screen name="account/people" />
+                <Stack.Screen name="admin/index" />
+                <Stack.Screen name="admin/activity" />
+                <Stack.Screen name="admin/hidden" />
+                <Stack.Screen name="u/[username]/index" />
+                <Stack.Screen name="u/[username]/people" />
+                <Stack.Screen name="home/new" />
+                <Stack.Screen name="home/join" />
+                <Stack.Screen name="home/[tagId]/report" />
+                <Stack.Screen name="home/[tagId]/family" />
+                <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
+                {/* The swipeable tour owns its horizontal swipes, so the iOS
+                 * edge-swipe-back is off; Skip and the last button leave it. */}
+                <Stack.Screen name="tour" options={{ gestureEnabled: false }} />
+              </Stack.Protected>
+              <Stack.Protected guard={!onboardingCompleted}>
+                <Stack.Screen name="onboarding" />
+              </Stack.Protected>
+            </Stack>
+          </SnackbarProvider>
         </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

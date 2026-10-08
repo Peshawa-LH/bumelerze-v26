@@ -17,7 +17,7 @@ import { SupabasePostsTransport, type PostsTransport } from "@/features/posts/tr
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SupabaseAdminTransport, type AdminTransport } from "./transport";
 import type { ActivityFilters, GrantableRank } from "./types";
-import { ACTIVITY_PAGE_SIZE } from "./types";
+import { ACTIVITY_PAGE_SIZE, HIDDEN_PAGE_SIZE } from "./types";
 
 const NOT_PERSISTED = { persist: false } as const;
 
@@ -27,6 +27,7 @@ export const adminKeys = {
   holders: ["admin", "holders"] as const,
   reports: ["admin", "reports"] as const,
   posts: ["admin", "posts"] as const,
+  hidden: ["admin", "hidden"] as const,
   activity: (filters: ActivityFilters) =>
     ["admin", "activity", filters.action, filters.targetUserId] as const,
 };
@@ -45,6 +46,8 @@ export interface AdminAccess {
   canAudit: boolean;
   /** Reads every kind of action, not only content actions (`audit.read_all`). */
   canAuditAll: boolean;
+  /** May bring back what an admin removed (`content.restore`, migration 0053). */
+  canRestore: boolean;
   /** Any admin tool at all: the entry in My account shows when true. */
   any: boolean;
   /** Permissions still loading: show nothing yet rather than "not allowed". */
@@ -66,7 +69,9 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
   const canResetPasswords = server && perms.has("accounts.reset_password");
   const canAuditAll = server && perms.has("audit.read_all");
   const canAudit = canAuditAll || (server && perms.has("audit.read"));
+  const canRestore = server && perms.has("content.restore");
   return {
+    canRestore,
     canModerate,
     canDelete,
     canRemovePosts,
@@ -158,6 +163,27 @@ export function useAdminActivity(
   });
 }
 
+/** Hidden comments and removed comments and posts of the last 30 days,
+ * newest first (migration 0053). */
+export function useHiddenRemoved(
+  enabled: boolean,
+  transport: AdminTransport = SupabaseAdminTransport,
+) {
+  return useInfiniteQuery({
+    queryKey: adminKeys.hidden,
+    queryFn: ({ pageParam }) => transport.fetchHiddenRemoved(pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.length >= HIDDEN_PAGE_SIZE
+        ? (lastPage[lastPage.length - 1]?.cursor ?? null)
+        : null,
+    enabled: enabled && isSupabaseConfigured(),
+    staleTime: 15_000,
+    retry: 0,
+    meta: NOT_PERSISTED,
+  });
+}
+
 export interface AdminActions {
   moderate: (commentId: string, action: ModerationAction) => Promise<void>;
   remove: (commentId: string, reason: string) => Promise<void>;
@@ -172,6 +198,12 @@ export interface AdminActions {
   dismissPostReports: (postId: string) => Promise<void>;
   /** Soft remove a reported profile post (`posts.delete`). */
   removePost: (postId: string, reason: string) => Promise<void>;
+  /** The Undo of a hide or remove of a comment (migration 0053). */
+  restoreComment: (commentId: string) => Promise<void>;
+  /** The Undo of a post removal (`content.restore`). */
+  restorePost: (postId: string) => Promise<void>;
+  /** Undoes the action in one activity row. */
+  undoAction: (logId: string) => Promise<void>;
 }
 
 export function useAdminActions(
@@ -223,7 +255,23 @@ export function useAdminActions(
     onSuccess: refresh,
   });
 
+  const restoreComment = useMutation({
+    mutationFn: (commentId: string) => hub.adminRestoreComment(commentId),
+    onSuccess: refresh,
+  });
+  const restorePost = useMutation({
+    mutationFn: (postId: string) => postsTransport.adminRestorePost(postId),
+    onSuccess: refresh,
+  });
+  const undoAction = useMutation({
+    mutationFn: (logId: string) => transport.undoAction(logId),
+    onSuccess: refresh,
+  });
+
   return {
+    restoreComment: (commentId) => restoreComment.mutateAsync(commentId),
+    restorePost: (postId) => restorePost.mutateAsync(postId),
+    undoAction: (logId) => undoAction.mutateAsync(logId),
     moderate: (commentId, action) => moderate.mutateAsync({ commentId, action }),
     remove: (commentId, reason) => remove.mutateAsync({ commentId, reason }),
     grant: (input) => grant.mutateAsync(input),

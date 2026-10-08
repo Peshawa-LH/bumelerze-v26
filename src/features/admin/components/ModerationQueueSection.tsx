@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
+import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { localizeDigits } from "@/lib/format-numbers";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
@@ -80,21 +81,37 @@ function QueueItem({
   const [removing, setRemoving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const showUndo = useUndoToast();
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
-  async function run(action: () => Promise<void>) {
+  async function run(action: () => Promise<void>): Promise<boolean> {
     setBusy(true);
     setErrorText(null);
     try {
       await action();
+      return true;
     } catch (error) {
       setErrorText(communityErrorText(t, error));
+      return false;
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** Hide or remove, then offer Undo for 10 s (the server did it already). */
+  async function takeDown(kind: "hidden" | "removed", action: () => Promise<void>) {
+    if (await run(action)) {
+      showUndo({
+        message: t(
+          kind === "hidden" ? "snackbar.commentHidden" : "snackbar.commentRemoved",
+        ),
+        restore: () => actions.restoreComment(comment.id),
+        admin: true,
+      });
     }
   }
 
@@ -142,7 +159,8 @@ function QueueItem({
               confirmLabel: t("eventHub.thread.remove"),
               cancelLabel: t("eventHub.thread.cancel"),
               destructive: true,
-              onConfirm: () => void run(() => actions.remove(comment.id, reason)),
+              onConfirm: () =>
+                void takeDown("removed", () => actions.remove(comment.id, reason)),
             })
           }
         />
@@ -165,7 +183,9 @@ function QueueItem({
             label={t("eventHub.thread.hide")}
             danger
             disabled={busy}
-            onPress={() => void run(() => actions.moderate(comment.id, "hide"))}
+            onPress={() =>
+              void takeDown("hidden", () => actions.moderate(comment.id, "hide"))
+            }
             testID={`queue-hide-${comment.id}`}
           />
           {canDelete ? (

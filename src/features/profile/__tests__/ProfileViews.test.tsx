@@ -274,6 +274,15 @@ describe("Profile page (D79)", () => {
       expect(screen.getByText("People and requests")).toBeTruthy();
     });
 
+    it("asks for the owner's recently deleted comments and posts (owner-only, migration 0053)", async () => {
+      await renderWithProviders(<ProfileScreen />);
+      await screen.findByTestId("public-profile-name");
+      await flush();
+      expect(rpcNames()).toContain("my_recently_deleted");
+      // an empty list adds nothing to the page
+      expect(screen.queryByTestId("recently-deleted")).toBeNull();
+    });
+
     it("the public part: name, @username, member since, ONE counts row, no Follow button and no recent comments", async () => {
       await renderWithProviders(<ProfileScreen />);
       await screen.findByTestId("public-profile-name");
@@ -412,6 +421,8 @@ describe("Profile page (D79)", () => {
       expect(rpcNames()).toContain("public_profile");
       expect(rpcNames()).not.toContain("my_stats");
       expect(rpcNames()).not.toContain("my_follow_requests");
+      // nor the owner's "Recently deleted" list (migration 0053)
+      expect(rpcNames()).not.toContain("my_recently_deleted");
       expect(mockTransport.fetchMemberships).not.toHaveBeenCalled();
       expect(mockTransport.fetchTags).not.toHaveBeenCalled();
     });

@@ -30,8 +30,14 @@ export interface CommunityTransport {
   /** `pending` when the account is private, else `accepted`. */
   follow(userId: string): Promise<Exclude<FollowStatus, "none">>;
   unfollow(userId: string): Promise<void>;
+  /** Gives an unfollow back within 60 seconds (`undo_unfollow_user`, 0053);
+   * returns the follow status in force afterwards. */
+  undoUnfollow(userId: string): Promise<Exclude<FollowStatus, "none">>;
   acceptRequest(userId: string): Promise<void>;
   declineRequest(userId: string): Promise<void>;
+  /** Puts a declined follow request back within 60 seconds
+   * (`undo_decline_follow_request`, 0053). */
+  undoDecline(userId: string): Promise<void>;
   block(userId: string): Promise<void>;
   unblock(userId: string): Promise<void>;
   reportProfile(userId: string, reason: ProfileReportReason): Promise<void>;
@@ -242,12 +248,17 @@ export function toCommunityError(error: unknown): CommunityError {
   ) {
     return new CommunityError("unavailable", message);
   }
+  // The SQL says "restore_my_comment: expired"; a bare "JWT expired" is not it.
+  if (/:\s*expired\b/.test(message)) {
+    return new CommunityError("expired", message);
+  }
   for (const token of [
     "not_account",
     "profile_required",
     "blocked",
     "not_found",
     "rate_limited",
+    "not_restorable",
   ] as const) {
     if (message.includes(token)) {
       return new CommunityError(token, message);
@@ -317,12 +328,21 @@ export const SupabaseCommunityTransport: CommunityTransport = {
     await call("unfollow_user", { p_followee: userId });
   },
 
+  async undoUnfollow(userId) {
+    const status = await call("undo_unfollow_user", { p_followee: userId });
+    return status === "pending" ? "pending" : "accepted";
+  },
+
   async acceptRequest(userId) {
     await call("accept_follow_request", { p_follower: userId });
   },
 
   async declineRequest(userId) {
     await call("decline_follow_request", { p_follower: userId });
+  },
+
+  async undoDecline(userId) {
+    await call("undo_decline_follow_request", { p_follower: userId });
   },
 
   async block(userId) {

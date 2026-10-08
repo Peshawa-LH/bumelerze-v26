@@ -75,14 +75,24 @@ export function AdminContent({
           />
         </>
       ) : null}
-      {access.canAudit ? (
+      {access.canModerate || access.canAudit ? (
         <SettingsGroup testID="admin-activity-group">
-          <SettingsRow
-            icon="time-outline"
-            label={t("admin.activity.title")}
-            onPress={() => router.push("/admin/activity")}
-            testID="admin-activity-row"
-          />
+          {access.canModerate ? (
+            <SettingsRow
+              icon="eye-off-outline"
+              label={t("admin.hidden.title")}
+              onPress={() => router.push("/admin/hidden")}
+              testID="admin-hidden-row"
+            />
+          ) : null}
+          {access.canAudit ? (
+            <SettingsRow
+              icon="time-outline"
+              label={t("admin.activity.title")}
+              onPress={() => router.push("/admin/activity")}
+              testID="admin-activity-row"
+            />
+          ) : null}
         </SettingsGroup>
       ) : null}
       {access.canGrant ? <RankBadgesSection {...shared} /> : null}

@@ -74,6 +74,10 @@ export type CommunityErrorCode =
   | "not_found"
   | "forbidden"
   | "rate_limited"
+  /** Too late to undo (migration 0053). */
+  | "expired"
+  /** Nothing to bring back any more (migration 0053). */
+  | "not_restorable"
   | "unavailable"
   | "network"
   | "unknown";

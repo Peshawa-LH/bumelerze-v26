@@ -59,13 +59,14 @@ function entry(n: number, overrides: Partial<ActivityEntry> = {}): ActivityEntry
 
 function makeAdmin(
   pages: (ActivityEntry[] | Error)[] = [[entry(1)]],
-): jest.Mocked<Pick<AdminTransport, "fetchActivity">> & AdminTransport {
+): jest.Mocked<Pick<AdminTransport, "fetchActivity" | "undoAction">> & AdminTransport {
   let call = 0;
   const transport = {
     fetchQueue: jest.fn(async () => []),
     fetchRoleHolders: jest.fn(async () => []),
     fetchReportedProfiles: jest.fn(async () => []),
     fetchReportedPosts: jest.fn(async () => []),
+    undoAction: jest.fn(async () => undefined),
     fetchActivity: jest.fn(async () => {
       const page = pages[Math.min(call, pages.length - 1)] as ActivityEntry[] | Error;
       call += 1;
@@ -75,7 +76,9 @@ function makeAdmin(
       return page;
     }),
   };
-  return transport as unknown as jest.Mocked<Pick<AdminTransport, "fetchActivity">> &
+  return transport as unknown as jest.Mocked<
+    Pick<AdminTransport, "fetchActivity" | "undoAction">
+  > &
     AdminTransport;
 }
 
@@ -318,9 +321,9 @@ describe("Admin > Activity", () => {
         />,
       );
       const input = await screen.findByTestId("activity-person-input");
-      expect(screen.getByTestId("activity-person-apply").props.accessibilityState.disabled).toBe(
-        true,
-      );
+      expect(
+        screen.getByTestId("activity-person-apply").props.accessibilityState.disabled,
+      ).toBe(true);
       await act(async () => {
         fireEvent.changeText(input, "@Spammer");
       });
@@ -354,7 +357,10 @@ describe("Admin > Activity", () => {
         />,
       );
       await act(async () => {
-        fireEvent.changeText(await screen.findByTestId("activity-person-input"), "nobody");
+        fireEvent.changeText(
+          await screen.findByTestId("activity-person-input"),
+          "nobody",
+        );
       });
       await act(async () => {
         fireEvent.press(screen.getByTestId("activity-person-apply"));
@@ -375,7 +381,9 @@ describe("Admin > Activity", () => {
           null,
         ),
       );
-      expect(screen.getByTestId("activity-person-chip")).toHaveTextContent(/Only: .*@dilan/);
+      expect(screen.getByTestId("activity-person-chip")).toHaveTextContent(
+        /Only: .*@dilan/,
+      );
     });
   });
 
@@ -398,7 +406,9 @@ describe("Admin > Activity", () => {
       await renderWithProviders(
         <ActivityContent transport={makeAdmin()} hubTransport={mockHub} />,
       );
-      const style = [(await screen.findByTestId("activity-person-input")).props.style].flat(2);
+      const style = [
+        (await screen.findByTestId("activity-person-input")).props.style,
+      ].flat(2);
       expect(style).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ writingDirection: "ltr", textAlign: "left" }),
@@ -442,3 +452,116 @@ describe("Admin > Activity", () => {
 function ActionProbe({ id }: { id: string }) {
   return <Text testID={`probe-${id}`}>Undo</Text>;
 }
+
+describe("Admin > Activity: Undo (migration 0053)", () => {
+  const FULL: Permission[] = [...OFFICIAL, "posts.delete", "content.restore"];
+
+  beforeEach(async () => {
+    mockHub.fetchMyPermissions.mockReset();
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(cleanup);
+
+  it("offers Undo on a reversible row that is not undone yet, and calls the dispatcher with the log id", async () => {
+    givePermissions(FULL);
+    const transport = makeAdmin([[entry(1, { action: "comment_remove" })]]);
+    await renderWithProviders(
+      <ActivityContent transport={transport} hubTransport={mockHub} />,
+    );
+    await fireEvent.press(await screen.findByTestId("activity-undo-l1"));
+    await waitFor(() => expect(transport.undoAction).toHaveBeenCalledWith("l1"));
+    expect(await screen.findByTestId("snackbar-message")).toHaveTextContent("Restored");
+  });
+
+  it("offers Undo for hide, remove, closed reports, dismissed post reports, removed post and a revoked badge", async () => {
+    givePermissions(FULL);
+    const actions = [
+      "comment_hide",
+      "comment_remove",
+      "post_remove",
+      "profile_reports_resolve",
+      "post_reports_dismiss",
+      "role_revoke",
+    ];
+    const rows = actions.map((action, i) => entry(i + 1, { action }));
+    await renderWithProviders(
+      <ActivityContent transport={makeAdmin([rows])} hubTransport={mockHub} />,
+    );
+    await screen.findByTestId("activity-l1");
+    for (let i = 1; i <= actions.length; i += 1) {
+      expect(screen.getByTestId(`activity-undo-l${i}`)).toBeTruthy();
+    }
+  });
+
+  it("offers no Undo on a row that is already undone, an approval, a grant or a purge", async () => {
+    givePermissions(FULL);
+    const rows = [
+      entry(1, { action: "comment_hide", revertedBy: "l9" }),
+      entry(2, { action: "comment_approve" }),
+      entry(3, { action: "role_grant" }),
+      entry(4, { action: "purge", actorId: null }),
+      entry(5, { action: "comment_restore" }),
+    ];
+    await renderWithProviders(
+      <ActivityContent transport={makeAdmin([rows])} hubTransport={mockHub} />,
+    );
+    await screen.findByTestId("activity-l1");
+    expect(screen.queryByTestId(/^activity-undo-l/)).toBeNull();
+  });
+
+  it("gives a moderator Undo for hides and reports, but not for removals or badges", async () => {
+    givePermissions(MODERATOR);
+    const rows = [
+      entry(1, { action: "comment_hide" }),
+      entry(2, { action: "profile_reports_resolve" }),
+      entry(3, { action: "post_reports_dismiss" }),
+      entry(4, { action: "comment_remove" }),
+      entry(5, { action: "post_remove" }),
+      entry(6, { action: "role_revoke" }),
+    ];
+    await renderWithProviders(
+      <ActivityContent transport={makeAdmin([rows])} hubTransport={mockHub} />,
+    );
+    await screen.findByTestId("activity-l1");
+    for (const id of ["l1", "l2", "l3"]) {
+      expect(screen.getByTestId(`activity-undo-${id}`)).toBeTruthy();
+    }
+    for (const id of ["l4", "l5", "l6"]) {
+      expect(screen.queryByTestId(`activity-undo-${id}`)).toBeNull();
+    }
+  });
+
+  it("words a refused Undo (too late) under the row and keeps the button", async () => {
+    givePermissions(FULL);
+    const transport = makeAdmin([[entry(1, { action: "comment_remove" })]]);
+    transport.undoAction.mockRejectedValueOnce(new CommunityError("expired"));
+    await renderWithProviders(
+      <ActivityContent transport={transport} hubTransport={mockHub} />,
+    );
+    await fireEvent.press(await screen.findByTestId("activity-undo-l1"));
+    expect(await screen.findByTestId("activity-undo-error-l1")).toHaveTextContent(
+      "Too late to undo this.",
+    );
+    expect(screen.getByTestId("activity-undo-l1")).toBeTruthy();
+  });
+
+  it("refreshes the list after an Undo (the row then shows as undone)", async () => {
+    givePermissions(FULL);
+    const transport = makeAdmin([
+      [entry(1, { action: "comment_hide" })],
+      [entry(1, { action: "comment_hide", revertedBy: "l2" })],
+    ]);
+    await renderWithProviders(
+      <ActivityContent transport={transport} hubTransport={mockHub} />,
+    );
+    await fireEvent.press(await screen.findByTestId("activity-undo-l1"));
+    await waitFor(() =>
+      expect(screen.getByTestId("activity-action-l1")).toHaveTextContent(
+        "Hid a comment · Undone",
+      ),
+    );
+    expect(screen.queryByTestId("activity-undo-l1")).toBeNull();
+  });
+});

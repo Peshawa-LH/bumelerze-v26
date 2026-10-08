@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { useTheme } from "@/theme";
 import { communityErrorText } from "../error-text";
 import { useCommunityActions, useFollowRequests } from "../queries";
@@ -18,6 +19,7 @@ export function FollowRequestsSection({ transport }: { transport?: CommunityTran
   const actions = useCommunityActions(transport);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const showUndo = useUndoToast();
 
   if (!requests.data || requests.data.length === 0) {
     return null;
@@ -28,6 +30,12 @@ export function FollowRequestsSection({ transport }: { transport?: CommunityTran
     setErrorText(null);
     try {
       await (accept ? actions.accept(userId) : actions.decline(userId));
+      if (!accept) {
+        showUndo({
+          message: t("snackbar.requestDeclined"),
+          restore: () => actions.undoDecline(userId),
+        });
+      }
     } catch (error) {
       setErrorText(communityErrorText(t, error));
     } finally {

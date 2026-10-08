@@ -25,11 +25,16 @@ export interface PostsTransport {
     limit?: number;
   }): Promise<PostsPage>;
   createPost(userId: string, body: string): Promise<void>;
-  /** The author's own delete: a real delete. */
+  /** The author's own delete: a soft delete the author can undo for 24
+   * hours (`delete_my_post`, 0053). */
   deletePost(postId: string): Promise<void>;
+  /** Takes my deleted post back (`restore_my_post`, 0053). */
+  restorePost(postId: string): Promise<void>;
   reportPost(postId: string, reason: FlagReason): Promise<void>;
   /** Admin soft remove (`posts.delete`); `reason` is a short code. */
   adminRemovePost(postId: string, reason: string): Promise<void>;
+  /** Brings back a removed post (`admin_restore_post`, 0053; `content.restore`). */
+  adminRestorePost(postId: string): Promise<void>;
 }
 
 const rowSchema = z.object({
@@ -119,13 +124,11 @@ export const SupabasePostsTransport: PostsTransport = {
   },
 
   async deletePost(postId) {
-    const { error } = await requireClient()
-      .from("profile_posts")
-      .delete()
-      .eq("post_id", postId);
-    if (error) {
-      throw toCommunityError(error);
-    }
+    await rpc("delete_my_post", { p_post_id: postId });
+  },
+
+  async restorePost(postId) {
+    await rpc("restore_my_post", { p_post_id: postId });
   },
 
   async reportPost(postId, reason) {
@@ -134,5 +137,9 @@ export const SupabasePostsTransport: PostsTransport = {
 
   async adminRemovePost(postId, reason) {
     await rpc("admin_remove_post", { p_post_id: postId, p_reason: reason });
+  },
+
+  async adminRestorePost(postId) {
+    await rpc("admin_restore_post", { p_post_id: postId, p_note: null });
   },
 };

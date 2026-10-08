@@ -141,8 +141,12 @@ export function useBlockedPeople(
 export interface CommunityActions {
   follow: (userId: string) => Promise<Exclude<FollowStatus, "none">>;
   unfollow: (userId: string) => Promise<void>;
+  /** The Undo of an unfollow (60 seconds). */
+  undoUnfollow: (userId: string) => Promise<void>;
   accept: (userId: string) => Promise<void>;
   decline: (userId: string) => Promise<void>;
+  /** The Undo of a declined request (60 seconds). */
+  undoDecline: (userId: string) => Promise<void>;
   block: (userId: string) => Promise<void>;
   unblock: (userId: string) => Promise<void>;
   report: (userId: string, reason: ProfileReportReason) => Promise<void>;
@@ -167,6 +171,14 @@ export function useCommunityActions(
   });
   const unfollow = useMutation({
     mutationFn: (userId: string) => transport.unfollow(userId),
+    onSuccess: refresh,
+  });
+  const undoUnfollow = useMutation({
+    mutationFn: (userId: string) => transport.undoUnfollow(userId),
+    onSuccess: refresh,
+  });
+  const undoDecline = useMutation({
+    mutationFn: (userId: string) => transport.undoDecline(userId),
     onSuccess: refresh,
   });
   const accept = useMutation({
@@ -194,6 +206,10 @@ export function useCommunityActions(
   return {
     follow: (userId) => follow.mutateAsync(userId),
     unfollow: (userId) => unfollow.mutateAsync(userId),
+    undoUnfollow: async (userId) => {
+      await undoUnfollow.mutateAsync(userId);
+    },
+    undoDecline: (userId) => undoDecline.mutateAsync(userId),
     accept: (userId) => accept.mutateAsync(userId),
     decline: (userId) => decline.mutateAsync(userId),
     block: (userId) => block.mutateAsync(userId),

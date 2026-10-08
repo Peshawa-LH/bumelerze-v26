@@ -91,6 +91,8 @@ function makeActions(): jest.Mocked<CommunityActions> {
       async () => "accepted",
     ),
     unfollow: jest.fn<Promise<void>, [string]>(async () => undefined),
+    undoUnfollow: jest.fn<Promise<void>, [string]>(async () => undefined),
+    undoDecline: jest.fn<Promise<void>, [string]>(async () => undefined),
     accept: jest.fn<Promise<void>, [string]>(async () => undefined),
     decline: jest.fn<Promise<void>, [string]>(async () => undefined),
     block: jest.fn<Promise<void>, [string]>(async () => undefined),

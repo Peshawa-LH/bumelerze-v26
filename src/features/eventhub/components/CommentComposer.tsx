@@ -27,6 +27,8 @@ const ERROR_KEY: Record<HubErrorCode, string> = {
   flag_limit: "eventHub.composer.errors.unknown",
   network: "eventHub.composer.errors.network",
   not_signed_in: "eventHub.composer.errors.unknown",
+  expired: "eventHub.composer.errors.unknown",
+  not_restorable: "eventHub.composer.errors.unknown",
   unknown: "eventHub.composer.errors.unknown",
 };
 

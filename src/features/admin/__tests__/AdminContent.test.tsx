@@ -131,6 +131,8 @@ describe("AdminContent", () => {
     mockConfirm.mockClear();
     mockHub.moderateComment.mockClear();
     mockHub.adminDeleteComment.mockClear();
+    mockHub.adminRestoreComment.mockReset();
+    mockHub.adminRestoreComment.mockResolvedValue(undefined);
     mockAccount = { status: "account", userId: "admin-1" };
     if (i18n.language !== "en") {
       await i18n.changeLanguage("en");
@@ -219,6 +221,61 @@ describe("AdminContent", () => {
     await waitFor(() =>
       expect(mockHub.adminDeleteComment).toHaveBeenCalledWith("c2", "false"),
     );
+  });
+
+  it("offers Undo for 10 s after Hide, and Undo restores the comment", async () => {
+    givePermissions(ADMIN);
+    await renderWithProviders(
+      <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+    );
+    await fireEvent.press(await screen.findByTestId("queue-hide-c2"));
+    await waitFor(() =>
+      expect(mockHub.moderateComment).toHaveBeenCalledWith("c2", "hide"),
+    );
+    expect(await screen.findByTestId("snackbar-message")).toHaveTextContent(
+      "Comment hidden",
+    );
+    expect(mockHub.adminRestoreComment).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByTestId("snackbar-action"));
+    await waitFor(() => expect(mockHub.adminRestoreComment).toHaveBeenCalledWith("c2"));
+  });
+
+  it("offers Undo after Remove too, and no Undo when the action failed", async () => {
+    givePermissions(ADMIN);
+    await renderWithProviders(
+      <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+    );
+    mockHub.adminDeleteComment.mockRejectedValueOnce(new Error("boom"));
+    await fireEvent.press(await screen.findByTestId("queue-remove-c2"));
+    await fireEvent.press(await screen.findByTestId("remove-reason-false"));
+    await act(async () => {
+      (mockConfirm.mock.calls[0]?.[0] as { onConfirm: () => void }).onConfirm();
+    });
+    await waitFor(() => expect(mockHub.adminDeleteComment).toHaveBeenCalledTimes(1));
+    expect(screen.queryByTestId("snackbar")).toBeNull();
+
+    // the reason picker stays open after a failure: pick again
+    await fireEvent.press(await screen.findByTestId("remove-reason-spam"));
+    await act(async () => {
+      (mockConfirm.mock.calls[1]?.[0] as { onConfirm: () => void }).onConfirm();
+    });
+    expect(await screen.findByTestId("snackbar-message")).toHaveTextContent(
+      "Comment removed",
+    );
+    await fireEvent.press(screen.getByTestId("snackbar-action"));
+    await waitFor(() => expect(mockHub.adminRestoreComment).toHaveBeenCalledWith("c2"));
+  });
+
+  it("approving offers no Undo (nothing was taken down)", async () => {
+    givePermissions(ADMIN);
+    await renderWithProviders(
+      <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+    );
+    await fireEvent.press(await screen.findByTestId("queue-approve-c1"));
+    await waitFor(() =>
+      expect(mockHub.moderateComment).toHaveBeenCalledWith("c1", "approve"),
+    );
+    expect(screen.queryByTestId("snackbar")).toBeNull();
   });
 
   it("opens the event hub of a queued comment", async () => {
