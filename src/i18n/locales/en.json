@@ -618,7 +618,8 @@
     "footerData": "Earthquake data: USGS, EMSC and GEOFON.",
     "footerTrademark": "Bumelerze™ and its logo are trademarks of the project.",
     "footerVersion": "Version {{version}}",
-    "footerLogoA11yLabel": "Bumelerze"
+    "footerLogoA11yLabel": "Bumelerze",
+    "footerPresence": "Once a day, when you open Bumelerze, the app records the time, your device type (iOS, Android or web), the app version and your language against your random install ID or account. It is used to count active users and to help with problems. It contains no location."
   },
   "onboarding": {
     "back": "Back",
@@ -2384,17 +2385,13 @@
         "person_view": "Looked at a person",
         "email_reveal": "Showed an email address",
         "purge": "Cleaned up old text",
-        "role_restore": "Gave a badge back"
+        "role_restore": "Gave a badge back",
+        "profile_restore": "Restored a name or photo"
       },
       "undo": "Undo"
     },
     "passwords": {
       "title": "Reset a password",
-      "hint": "Find the account, then make a temporary password and pass it on yourself. The person should change it in Profile.",
-      "searchLabel": "Username or email",
-      "searchButton": "Search",
-      "noResults": "No account found.",
-      "reset": "Reset password",
       "confirmTitle": "Reset password",
       "confirmMessage": "Make a temporary password for {{name}}? Their old password stops working and they are signed out everywhere.",
       "confirmButton": "Reset",
@@ -2414,6 +2411,193 @@
       "restore": "Restore",
       "textHidden": "Text not shown",
       "cannotRestore": "Can't be restored."
+    },
+    "people": {
+      "title": "People",
+      "hint": "Accounts and app installs. Counts only: no locations, device IDs or passwords.",
+      "searchLabel": "Search people",
+      "searchPlaceholder": "Name, @username, ID, report ID, home code or device code",
+      "searchPlaceholderEmail": "Name, @username, email, ID, report ID, home code or device code",
+      "tooShort": "Type at least 2 characters.",
+      "tabs": {
+        "accounts": "Accounts",
+        "guests": "Guests",
+        "all": "All"
+      },
+      "filters": {
+        "title": "Filters",
+        "button": "Filters",
+        "buttonCount": "Filters ({{count}})",
+        "rank": "Badge",
+        "anyRank": "Any badge",
+        "all": "All",
+        "status": "Status",
+        "reported": "Open reports only",
+        "joined": "Joined between",
+        "from": "From (YYYY-MM-DD)",
+        "to": "To (YYYY-MM-DD)",
+        "dateInvalid": "Use dates like 2026-09-30, the first not after the second.",
+        "active": "Active in the last",
+        "days7": "7 days",
+        "days30": "30 days",
+        "platform": "Device",
+        "password": "Password",
+        "hasPassword": "Has a password",
+        "noPassword": "No password",
+        "apply": "Show",
+        "clear": "Clear filters"
+      },
+      "sort": {
+        "label": "Sort:",
+        "last_seen": "Last seen",
+        "joined": "Joined",
+        "open_reports": "Open reports"
+      },
+      "status": {
+        "active": "Active",
+        "restricted": "Restricted",
+        "suspended": "Suspended"
+      },
+      "platforms": {
+        "ios": "iOS",
+        "android": "Android",
+        "web": "Web"
+      },
+      "guestName": "Guest {{id}}",
+      "accountName": "Account {{id}}",
+      "guestKind": "Guest (no account)",
+      "accountKind": "Account",
+      "joined": "Joined {{date}}",
+      "lastSeen": "Last seen {{date}}",
+      "counts": {
+        "feltReports": "Reports {{count}}",
+        "comments": "Comments {{count}}",
+        "posts": "Posts {{count}}",
+        "homes": "Homes: {{owned}} own, {{member}} joined",
+        "feedback": "Feedback {{count}}"
+      },
+      "openReports": "{{count}} open reports",
+      "empty": "No one matches.",
+      "idleGuests": "{{count}} app installs with no activity are not listed.",
+      "loadMore": "Load more",
+      "stats": {
+        "title": "Numbers",
+        "accounts": "Accounts",
+        "guests": "Guests with activity",
+        "new7": "New accounts, 7 days",
+        "new30": "New accounts, 30 days",
+        "active7": "Active, 7 days",
+        "active30": "Active, 30 days",
+        "guestsSub": "guests: {{count}}",
+        "restricted": "Restricted now",
+        "suspended": "Suspended now",
+        "platforms": "By device: iOS {{ios}} · Android {{android}} · Web {{web}}",
+        "since": "Active counts start on {{date}}. Before that it is unknown.",
+        "noPresence": "Active counts have not started yet."
+      }
+    },
+    "person": {
+      "title": "Person",
+      "yes": "Yes",
+      "no": "No",
+      "idCopied": "ID copied",
+      "copyId": "Copy",
+      "actions": {
+        "viewProfile": "View profile",
+        "lift": "Lift limit",
+        "resetPassword": "Reset password",
+        "badge": "Badges",
+        "resetFields": "Reset name / photo",
+        "revealEmail": "Show email",
+        "addNote": "Add note"
+      },
+      "badge": {
+        "title": "Badges",
+        "holds": "Has: {{ranks}}",
+        "holdsNone": "No badges yet.",
+        "needsUsername": "Badges need an @username. This person has none."
+      },
+      "reset": {
+        "title": "Reset name / photo",
+        "hint": "For a name or photo that copies someone else. The name becomes \"Member xxxxxx\" and the photo is removed from the profile. You can undo it.",
+        "name": "Name",
+        "photo": "Photo",
+        "submit": "Reset"
+      },
+      "email": {
+        "confirmTitle": "Show full email?",
+        "confirmMessage": "Show the full email of {{name}}? This is logged.",
+        "confirm": "Show"
+      },
+      "identity": {
+        "title": "Details",
+        "userId": "User ID",
+        "guestShort": "Guest {{id}}: an app install without an account.",
+        "joined": "Joined",
+        "firstSeen": "Tracked since",
+        "lastSeen": "Last seen",
+        "platform": "App",
+        "language": "Language",
+        "private": "Private account",
+        "terms": "Terms accepted",
+        "research": "Research consent",
+        "email": "Email",
+        "password": "Has a password"
+      },
+      "devices": {
+        "title": "Devices",
+        "hint": "Short codes only (the first 8 characters of a hash). Full device IDs are never shown.",
+        "none": "No devices known.",
+        "shared": "Others on the same device:"
+      },
+      "activity": {
+        "title": "Activity",
+        "feltReports": "Felt reports",
+        "comments": "Comments",
+        "commentsValue": "{{total}} ({{visible}} visible, {{pending}} waiting, {{hidden}} hidden, {{removed}} removed)",
+        "posts": "Posts",
+        "feedback": "Feedback messages",
+        "follows": "Followers / following",
+        "followsValue": "{{followers}} / {{following}}",
+        "blocks": "Blocked / blocked by",
+        "blocksValue": "{{made}} / {{received}}",
+        "reports": "Reports filed / received / open",
+        "reportsValue": "{{filed}} / {{received}} / {{open}}",
+        "homes": "Homes",
+        "homesValue": "{{owned}} own, {{member}} joined"
+      },
+      "recent": {
+        "feltReports": "Latest felt reports",
+        "comments": "Latest comments",
+        "posts": "Latest posts",
+        "feedback": "Latest feedback",
+        "none": "None.",
+        "notLinked": "No event yet",
+        "intensity": "Level {{level}}",
+        "authorDeleted": "Deleted by the author",
+        "status": {
+          "visible": "Visible",
+          "pending": "Waiting",
+          "hidden": "Hidden",
+          "removed": "Removed",
+          "deleted": "Deleted"
+        }
+      },
+      "limits": {
+        "title": "Limits",
+        "none": "No limits so far."
+      },
+      "history": {
+        "title": "History",
+        "empty": "Nothing yet."
+      },
+      "notes": {
+        "title": "Private notes",
+        "hint": "Only admins see these.",
+        "placeholder": "Write a note",
+        "add": "Add note",
+        "empty": "No notes."
+      }
     }
   },
   "restrictions": {
@@ -2543,6 +2727,8 @@
       "restrict": "Account limited",
       "suspend": "Account suspended"
     },
-    "limitLifted": "Limit lifted"
+    "limitLifted": "Limit lifted",
+    "profileReset": "Name / photo reset",
+    "nothingToReset": "Nothing to reset"
   }
 }

@@ -57,15 +57,6 @@ export interface ReportedPost {
   lastReason: string | null;
 }
 
-/** An account found by `admin_find_accounts` (migration 0051). The email is
- * already masked by the server (`p***@gmail.com`). */
-export interface FoundAccount {
-  userId: string;
-  username: string | null;
-  displayName: string | null;
-  maskedEmail: string | null;
-}
-
 /** Every action the activity log (`moderation_log`, migrations 0043-0052) can
  * hold. `content` actions are the ones a moderator may read; the rest are for
  * `audit.read_all` (the official rank). */
@@ -82,7 +73,10 @@ export const ACTIVITY_ACTIONS = [
   { action: "role_grant", content: false },
   { action: "role_revoke", content: false },
   { action: "password_reset", content: false },
-  { action: "profile_reset", content: false },
+  // Migration 0055: a moderator may reset a copied name or photo, so these
+  // rows are readable with `audit.read` too.
+  { action: "profile_reset", content: true },
+  { action: "profile_restore", content: true },
   // Migration 0054: a moderator may restrict, so these rows are readable with
   // `audit.read` too.
   { action: "restrict", content: true },
@@ -108,6 +102,7 @@ export const ACTIVITY_FILTER_ACTIONS: readonly ActivityAction[] = [
   "suspend",
   "lift",
   "password_reset",
+  "profile_reset",
   "purge",
 ];
 
@@ -152,6 +147,8 @@ export const UNDOABLE_ACTIONS = {
   // Migration 0054: the Undo of a restriction lifts it.
   restrict: "accounts.restrict",
   suspend: "accounts.suspend",
+  // Migration 0055: the Undo of a name / photo reset.
+  profile_reset: "accounts.restrict",
 } as const;
 export type UndoableAction = keyof typeof UNDOABLE_ACTIONS;
 

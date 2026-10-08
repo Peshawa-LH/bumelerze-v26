@@ -41,7 +41,11 @@ const NEW_FILES = [
   "src/features/account/components/SignInForm.tsx",
   "src/features/account/components/PasswordForm.tsx",
   "src/features/account/components/PasswordRow.tsx",
-  "src/features/admin/components/PasswordResetSection.tsx",
+  // the People directory replaced the password-reset search (migration 0055)
+  ...listFiles("src/features/admin/people", [".ts", ".tsx"]).filter(
+    (f) => !f.includes("__tests__") && !f.includes("__fixtures__"),
+  ),
+  "src/features/presence/touch.ts",
   "app/account/sign-in.tsx",
   "app/account/password.tsx",
   "src/features/account/components/DeleteAccountRow.tsx",

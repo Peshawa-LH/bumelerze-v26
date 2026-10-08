@@ -8,7 +8,6 @@ import {
 import type { Permission } from "@/features/eventhub/types";
 
 import { AdminContent } from "../components/AdminContent";
-import { generateTempPassword } from "../temp-password";
 import type { AdminTransport } from "../transport";
 
 const mockPush = jest.fn();
@@ -27,13 +26,6 @@ jest.mock("@/features/account/use-account", () => ({
   useAccount: () => mockAccount,
 }));
 
-const mockSetString = jest.fn();
-jest.mock("expo-clipboard", () => ({
-  setStringAsync: (text: string) => mockSetString(text),
-}));
-jest.mock("../temp-password", () => ({
-  generateTempPassword: jest.fn(() => "K7QM-2XWD-9HPA"),
-}));
 
 const mockHub = makeTransport({ permissions: [] });
 const mockConfirm = jest.fn();
@@ -48,6 +40,9 @@ const ADMIN: Permission[] = [
   "badges.grant",
   "hubs.feature",
   "accounts.reset_password",
+  "people.view",
+  "people.view_email",
+  "people.view_guests",
 ];
 
 function makeAdminTransport(
@@ -104,14 +99,6 @@ function makeAdminTransport(
     resolveProfileReports: jest.fn(async () => undefined),
     fetchReportedPosts: jest.fn(async () => []),
     dismissPostReports: jest.fn(async () => undefined),
-    findAccounts: jest.fn(async () => [
-      {
-        userId: "u5",
-        username: "dilan",
-        displayName: "Dilan",
-        maskedEmail: "d***@gmail.com",
-      },
-    ]),
     resetPassword: jest.fn(async () => undefined),
     ...overrides,
   } as jest.Mocked<AdminTransport>;
@@ -396,157 +383,42 @@ describe("AdminContent", () => {
     });
     expect(transport.resolveProfileReports).toHaveBeenCalledWith("u7");
   });
-  describe("Reset a password", () => {
-    async function search(transport: jest.Mocked<AdminTransport>, text = "dilan") {
-      await renderWithProviders(
-        <AdminContent transport={transport} hubTransport={mockHub} />,
-      );
-      await act(async () => {
-        fireEvent.changeText(
-          await screen.findByTestId("admin-password-search-input"),
-          text,
-        );
-      });
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("admin-password-search"));
-      });
-    }
 
-    beforeEach(() => {
-      mockSetString.mockClear();
-      (generateTempPassword as jest.Mock).mockClear();
-    });
-
-    it("is hidden without the accounts.reset_password permission", async () => {
-      givePermissions(["comments.moderate", "badges.grant"]);
-      const transport = makeAdminTransport();
-      await renderWithProviders(
-        <AdminContent transport={transport} hubTransport={mockHub} />,
-      );
-      await screen.findByTestId("admin-ranks");
-      expect(screen.queryByTestId("admin-passwords")).toBeNull();
-      expect(transport.findAccounts).not.toHaveBeenCalled();
-    });
-
-    it("is hidden on a server that predates the migration (permission not in my_permissions)", async () => {
-      givePermissions(ADMIN.filter((p) => p !== "accounts.reset_password"));
+  describe("People entry", () => {
+    it("is the first row for people.view and opens the directory", async () => {
+      givePermissions(["comments.moderate", "people.view"]);
       await renderWithProviders(
         <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
       );
-      await screen.findByTestId("admin-ranks");
-      expect(screen.queryByTestId("admin-passwords")).toBeNull();
+      await fireEvent.press(await screen.findByTestId("admin-people-row"));
+      expect(mockPush).toHaveBeenCalledWith("/admin/people");
+    });
+
+    it("is absent without people.view", async () => {
+      givePermissions(["comments.moderate"]);
+      await renderWithProviders(
+        <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+      );
+      await screen.findByTestId("admin-queue");
+      expect(screen.queryByTestId("admin-people-row")).toBeNull();
     });
 
     it("alone is enough to open the admin screen", async () => {
-      givePermissions(["accounts.reset_password"]);
+      givePermissions(["people.view"]);
       await renderWithProviders(
         <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
       );
-      expect(await screen.findByTestId("admin-passwords")).toBeTruthy();
+      expect(await screen.findByTestId("admin-people-row")).toBeTruthy();
       expect(screen.queryByTestId("admin-no-access")).toBeNull();
-      expect(screen.queryByTestId("admin-queue")).toBeNull();
     });
 
-    it("needs at least 3 characters before it searches", async () => {
+    it("no longer has its own password search (it lives on the person page)", async () => {
       givePermissions(ADMIN);
       await renderWithProviders(
         <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
       );
-      await act(async () => {
-        fireEvent.changeText(
-          await screen.findByTestId("admin-password-search-input"),
-          "di",
-        );
-      });
-      expect(
-        screen.getByTestId("admin-password-search").props.accessibilityState.disabled,
-      ).toBe(true);
-    });
-
-    it("finds an account and shows the name, @username and masked email only", async () => {
-      givePermissions(ADMIN);
-      const transport = makeAdminTransport();
-      await search(transport, " @Dilan ");
-      expect(transport.findAccounts).toHaveBeenCalledWith("@Dilan");
-      expect(await screen.findByTestId("admin-account-u5")).toBeTruthy();
-      expect(screen.getByText(/@dilan.* · d\*\*\*@gmail\.com/)).toBeTruthy();
-    });
-
-    it("says so when nothing matches", async () => {
-      givePermissions(ADMIN);
-      const transport = makeAdminTransport({ findAccounts: jest.fn(async () => []) });
-      await search(transport, "nobody");
-      expect(await screen.findByTestId("admin-password-none")).toBeTruthy();
-    });
-
-    it("asks for confirmation first; nothing is reset until it is given", async () => {
-      givePermissions(ADMIN);
-      const transport = makeAdminTransport();
-      await search(transport);
-      await fireEvent.press(await screen.findByTestId("admin-reset-u5"));
-      expect(mockConfirm).toHaveBeenCalledTimes(1);
-      expect(transport.resetPassword).not.toHaveBeenCalled();
-      expect(screen.queryByTestId("admin-temp-password")).toBeNull();
-    });
-
-    it("resets with the generated temporary password and shows it once, with a copy button", async () => {
-      givePermissions(ADMIN);
-      const transport = makeAdminTransport();
-      await search(transport);
-      await fireEvent.press(await screen.findByTestId("admin-reset-u5"));
-      const options = mockConfirm.mock.calls[0]?.[0] as { onConfirm: () => void };
-      await act(async () => {
-        options.onConfirm();
-      });
-
-      expect(transport.resetPassword).toHaveBeenCalledWith("u5", "K7QM-2XWD-9HPA");
-      expect(await screen.findByTestId("admin-temp-password")).toHaveTextContent(
-        "K7QM-2XWD-9HPA",
-      );
-      expect(screen.getByText(/Temporary password for .*@dilan/)).toBeTruthy();
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("admin-temp-password-copy"));
-      });
-      expect(mockSetString).toHaveBeenCalledWith("K7QM-2XWD-9HPA");
-      expect(await screen.findByTestId("admin-temp-password-copied")).toBeTruthy();
-
-      // Once: after Done the password is gone from the screen.
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("admin-temp-password-done"));
-      });
-      expect(screen.queryByTestId("admin-temp-password")).toBeNull();
-      expect(screen.queryByText("K7QM-2XWD-9HPA")).toBeNull();
-    });
-
-    it("shows no password when the server refuses", async () => {
-      givePermissions(ADMIN);
-      const { CommunityError } = jest.requireActual("@/features/community/types");
-      const transport = makeAdminTransport({
-        resetPassword: jest.fn(async () => {
-          throw new CommunityError("forbidden");
-        }),
-      });
-      await search(transport);
-      await fireEvent.press(await screen.findByTestId("admin-reset-u5"));
-      const options = mockConfirm.mock.calls[0]?.[0] as { onConfirm: () => void };
-      await act(async () => {
-        options.onConfirm();
-      });
-      expect(await screen.findByText("Not allowed.")).toBeTruthy();
-      expect(screen.queryByTestId("admin-temp-password")).toBeNull();
-    });
-
-    it("says 'Not available yet' when the migration is not applied (lookup RPC missing)", async () => {
-      givePermissions(ADMIN);
-      const { CommunityError } = jest.requireActual("@/features/community/types");
-      const transport = makeAdminTransport({
-        findAccounts: jest.fn(async () => {
-          throw new CommunityError("unavailable");
-        }),
-      });
-      await search(transport);
-      expect(await screen.findByText("Not available yet.")).toBeTruthy();
+      await screen.findByTestId("admin-ranks");
+      expect(screen.queryByTestId("admin-passwords")).toBeNull();
     });
   });
 });

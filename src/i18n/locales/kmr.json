@@ -618,7 +618,8 @@
     "footerData": "Daneyên erdhejê: USGS, EMSC û GEOFON.",
     "footerTrademark": "Bumelerze™ û logoya wê nîşanên bazirganî yên projeyê ne.",
     "footerVersion": "Guherto {{version}}",
-    "footerLogoA11yLabel": "Bumelerze"
+    "footerLogoA11yLabel": "Bumelerze",
+    "footerPresence": "Rojê carekê, dema tu Bumelerze vedikî, sepan dem, cureya amûrê (iOS, Android an malper), guhertoya sepanê û zimanê te bi nasnameya sazkirinê ya rasthatî an hesabê te re tomar dike. Ji bo jimartina bikarhênerên çalak û alîkariya di pirsgirêkan de tê bikaranîn. Cih tê de tune."
   },
   "onboarding": {
     "back": "Vegere",
@@ -2384,17 +2385,13 @@
         "person_view": "Li kesekî nêrî",
         "email_reveal": "E-nameyek nîşan da",
         "purge": "Nivîsa kevn paqij kir",
-        "role_restore": "Nîşanek vegerand"
+        "role_restore": "Nîşanek vegerand",
+        "profile_restore": "Nav an wêneyek vegerand"
       },
       "undo": "Vegerîne"
     },
     "passwords": {
       "title": "Şîfreyekê vegerîne",
-      "hint": "Hesab bibîne, paşê şîfreyeke demkî çêke û bi xwe bide kesê. Divê ew di «Profîl»ê de biguherîne.",
-      "searchLabel": "Navê bikarhêner an e-name",
-      "searchButton": "Bigere",
-      "noResults": "Hesab nehat dîtin.",
-      "reset": "Şîfreyê vegerîne",
       "confirmTitle": "Şîfreyê vegerîne",
       "confirmMessage": "Ji bo {{name}} şîfreyeke demkî were çêkirin? Şîfreya kevin naxebite û ew li her derê derdikeve.",
       "confirmButton": "Vegerîne",
@@ -2414,6 +2411,193 @@
       "restore": "Vegerîne",
       "textHidden": "Nivîs nayê nîşandan",
       "cannotRestore": "Nayê vegerandin."
+    },
+    "people": {
+      "title": "Kes",
+      "hint": "Hesab û sazkirinên sepanê. Tenê jimar: cih, nasnameya amûrê û şîfre nayên nîşandan.",
+      "searchLabel": "Li kesan bigere",
+      "searchPlaceholder": "Nav, @navê bikarhêner, nasname, nasnameya raporê, koda malê an koda amûrê",
+      "searchPlaceholderEmail": "Nav, @navê bikarhêner, e-name, nasname, nasnameya raporê, koda malê an koda amûrê",
+      "tooShort": "Herî kêm 2 tîpan binivîse.",
+      "tabs": {
+        "accounts": "Hesab",
+        "guests": "Mêvan",
+        "all": "Hemû"
+      },
+      "filters": {
+        "title": "Parzûn",
+        "button": "Parzûn",
+        "buttonCount": "Parzûn ({{count}})",
+        "rank": "Nîşan",
+        "anyRank": "Her nîşanek",
+        "all": "Hemû",
+        "status": "Rewş",
+        "reported": "Tenê yên bi raporên vekirî",
+        "joined": "Dema tevlibûnê di navbera",
+        "from": "Ji (SAL-MEH-ROJ)",
+        "to": "Heta (SAL-MEH-ROJ)",
+        "dateInvalid": "Dîrokan wek 2026-09-30 binivîse, ya yekem ne piştî ya duyem be.",
+        "active": "Çalak di",
+        "days7": "7 rojan",
+        "days30": "30 rojan",
+        "platform": "Amûr",
+        "password": "Şîfre",
+        "hasPassword": "Şîfre heye",
+        "noPassword": "Şîfre tune",
+        "apply": "Nîşan bide",
+        "clear": "Parzûnan paqij bike"
+      },
+      "sort": {
+        "label": "Rêz bike:",
+        "last_seen": "Dawî hat dîtin",
+        "joined": "Dema tevlibûnê",
+        "open_reports": "Raporên vekirî"
+      },
+      "status": {
+        "active": "Çalak",
+        "restricted": "Sînordar",
+        "suspended": "Rawestandî"
+      },
+      "platforms": {
+        "ios": "iOS",
+        "android": "Android",
+        "web": "Malper"
+      },
+      "guestName": "Mêvan {{id}}",
+      "accountName": "Hesab {{id}}",
+      "guestKind": "Mêvan (bê hesab)",
+      "accountKind": "Hesab",
+      "joined": "Tevlî bû {{date}}",
+      "lastSeen": "Dawî hat dîtin {{date}}",
+      "counts": {
+        "feltReports": "Raport {{count}}",
+        "comments": "Şîrove {{count}}",
+        "posts": "Nivîs {{count}}",
+        "homes": "Mal: {{owned}} yên wî, {{member}} tevlî",
+        "feedback": "Nêrîn {{count}}"
+      },
+      "openReports": "{{count}} raporên vekirî",
+      "empty": "Kes nehat dîtin.",
+      "idleGuests": "{{count}} sazkirinên sepanê yên bê çalakî nayên nîşandan.",
+      "loadMore": "Bêtir nîşan bide",
+      "stats": {
+        "title": "Jimar",
+        "accounts": "Hesab",
+        "guests": "Mêvanên bi çalakî",
+        "new7": "Hesabên nû, 7 roj",
+        "new30": "Hesabên nû, 30 roj",
+        "active7": "Çalak, 7 roj",
+        "active30": "Çalak, 30 roj",
+        "guestsSub": "mêvan: {{count}}",
+        "restricted": "Niha sînordar",
+        "suspended": "Niha rawestandî",
+        "platforms": "Li gorî amûrê: iOS {{ios}} · Android {{android}} · Malper {{web}}",
+        "since": "Jimarên çalak ji {{date}} dest pê dikin. Beriya wê nayê zanîn.",
+        "noPresence": "Jimarên çalak hê dest pê nekirine."
+      }
+    },
+    "person": {
+      "title": "Kes",
+      "yes": "Erê",
+      "no": "Na",
+      "idCopied": "Nasname hate kopîkirin",
+      "copyId": "Kopî bike",
+      "actions": {
+        "viewProfile": "Profîlê bibîne",
+        "lift": "Sînor rake",
+        "resetPassword": "Şîfreyê vegerîne",
+        "badge": "Nîşan",
+        "resetFields": "Nav / wêneyê vegerîne",
+        "revealEmail": "E-nameyê nîşan bide",
+        "addNote": "Nîşe lê zêde bike"
+      },
+      "badge": {
+        "title": "Nîşan",
+        "holds": "Heye: {{ranks}}",
+        "holdsNone": "Hê nîşan tune.",
+        "needsUsername": "Nîşan @navê bikarhêner dixwaze. Ev kes tune."
+      },
+      "reset": {
+        "title": "Nav / wêneyê vegerîne",
+        "hint": "Ji bo navek an wêneyek ku dişibe yê kesekî din. Nav dibe «Member xxxxxx» û wêne ji profîlê tê rakirin. Tu dikarî vegerînî.",
+        "name": "Nav",
+        "photo": "Wêne",
+        "submit": "Vegerîne"
+      },
+      "email": {
+        "confirmTitle": "E-nameya tevahî were nîşandan?",
+        "confirmMessage": "E-nameya tevahî ya {{name}} were nîşandan? Ev tê tomarkirin.",
+        "confirm": "Nîşan bide"
+      },
+      "identity": {
+        "title": "Hûrgilî",
+        "userId": "Nasnameya bikarhêner",
+        "guestShort": "Mêvan {{id}}: sazkirinek sepanê bê hesab.",
+        "joined": "Tevlî bû",
+        "firstSeen": "Şopandin ji",
+        "lastSeen": "Dawî hat dîtin",
+        "platform": "Sepan",
+        "language": "Ziman",
+        "private": "Hesabê taybet",
+        "terms": "Şert hatin pejirandin",
+        "research": "Razîbûna lêkolînê",
+        "email": "E-name",
+        "password": "Şîfre heye"
+      },
+      "devices": {
+        "title": "Amûr",
+        "hint": "Tenê kodên kurt (8 tîpên pêşîn ên hashê). Nasnameya tevahî ya amûrê tu carî nayê nîşandan.",
+        "none": "Amûr nayên zanîn.",
+        "shared": "Yên din li ser heman amûrê:"
+      },
+      "activity": {
+        "title": "Çalakî",
+        "feltReports": "Raporên hestpêkirinê",
+        "comments": "Şîrove",
+        "commentsValue": "{{total}} ({{visible}} diyar, {{pending}} li bendê, {{hidden}} veşartî, {{removed}} rakirî)",
+        "posts": "Nivîs",
+        "feedback": "Peyamên nêrînê",
+        "follows": "Şopîner / dişopîne",
+        "followsValue": "{{followers}} / {{following}}",
+        "blocks": "Astengkirî / astengker",
+        "blocksValue": "{{made}} / {{received}}",
+        "reports": "Raporên şandî / wergirtî / vekirî",
+        "reportsValue": "{{filed}} / {{received}} / {{open}}",
+        "homes": "Mal",
+        "homesValue": "{{owned}} yên wî, {{member}} tevlî"
+      },
+      "recent": {
+        "feltReports": "Raporên dawî yên hestpêkirinê",
+        "comments": "Şîroveyên dawî",
+        "posts": "Nivîsên dawî",
+        "feedback": "Nêrînên dawî",
+        "none": "Tune.",
+        "notLinked": "Hê bi bûyerê ve nehatiye girêdan",
+        "intensity": "Asta {{level}}",
+        "authorDeleted": "Ji aliyê nivîskar ve hate jêbirin",
+        "status": {
+          "visible": "Diyar",
+          "pending": "Li bendê",
+          "hidden": "Veşartî",
+          "removed": "Rakirî",
+          "deleted": "Jêbirî"
+        }
+      },
+      "limits": {
+        "title": "Sînor",
+        "none": "Heta niha sînor tune."
+      },
+      "history": {
+        "title": "Dîrok",
+        "empty": "Hê tiştek tune."
+      },
+      "notes": {
+        "title": "Nîşeyên taybet",
+        "hint": "Tenê rêvebir van dibînin.",
+        "placeholder": "Nîşeyekê binivîse",
+        "add": "Nîşe lê zêde bike",
+        "empty": "Nîşe tune."
+      }
     }
   },
   "restrictions": {
@@ -2543,6 +2727,8 @@
       "restrict": "Hesab hat sînordarkirin",
       "suspend": "Hesab hat rawestandin"
     },
-    "limitLifted": "Sînor hat rakirin"
+    "limitLifted": "Sînor hat rakirin",
+    "profileReset": "Nav / wêne hat vegerandin",
+    "nothingToReset": "Tiştek tune ku were vegerandin"
   }
 }

@@ -52,6 +52,12 @@ export interface AdminAccess {
   canRestrict: boolean;
   /** May suspend (`accounts.suspend`, official). */
   canSuspend: boolean;
+  /** May open the People directory (`people.view`, migration 0055). */
+  canViewPeople: boolean;
+  /** Sees full emails on request (`people.view_email`, official). */
+  canViewEmail: boolean;
+  /** Sees the guest installs (`people.view_guests`, official). */
+  canViewGuests: boolean;
   /** Any admin tool at all: the entry in My account shows when true. */
   any: boolean;
   /** Permissions still loading: show nothing yet rather than "not allowed". */
@@ -76,7 +82,13 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
   const canRestore = server && perms.has("content.restore");
   const canRestrict = server && perms.has("accounts.restrict");
   const canSuspend = server && perms.has("accounts.suspend");
+  const canViewPeople = server && perms.has("people.view");
+  const canViewEmail = server && perms.has("people.view_email");
+  const canViewGuests = server && perms.has("people.view_guests");
   return {
+    canViewPeople,
+    canViewEmail,
+    canViewGuests,
     canRestore,
     canRestrict,
     canSuspend,
@@ -87,7 +99,7 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
     canResetPasswords,
     canAudit,
     canAuditAll,
-    any: canModerate || canGrant || canResetPasswords || canAudit || canRestrict,
+    any: canModerate || canGrant || canAudit || canRestrict || canViewPeople,
     isLoading: perms.isLoading,
     has: (permission) => server && perms.has(permission),
   };

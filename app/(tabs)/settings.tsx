@@ -450,6 +450,9 @@ function FooterSection() {
         </Text>
       </Pressable>
       <Text style={meta}>{t("settings.footerData")}</Text>
+      <Text style={meta} testID="settings-footer-presence">
+        {t("settings.footerPresence")}
+      </Text>
       {appVersion ? (
         <Text style={meta}>{t("settings.footerVersion", { version: appVersion })}</Text>
       ) : null}

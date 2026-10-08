@@ -13,7 +13,6 @@ import {
   type HiddenRemovedItem,
   type QueueComment,
   type ReportedPost,
-  type FoundAccount,
   type ReportedProfile,
   type RoleHolder,
 } from "./types";
@@ -38,9 +37,6 @@ export interface AdminTransport {
    * before the migration is applied. */
   fetchReportedPosts(): Promise<ReportedPost[]>;
   dismissPostReports(postId: string): Promise<void>;
-  /** Accounts matching a username prefix or an exact email
-   * (`admin_find_accounts`, 0051). */
-  findAccounts(query: string): Promise<FoundAccount[]>;
   /** Sets a new password for an account (`admin_reset_password`, 0051). */
   resetPassword(userId: string, newPassword: string): Promise<void>;
   /** One page of the activity log (`admin_activity`, 0052), newest first.
@@ -194,32 +190,6 @@ export function parseReportedPosts(data: unknown): ReportedPost[] {
   return rows;
 }
 
-const foundSchema = z.object({
-  user_id: z.string(),
-  username: z.string().nullable().optional(),
-  display_name: z.string().nullable().optional(),
-  masked_email: z.string().nullable().optional(),
-});
-
-export function parseFoundAccounts(data: unknown): FoundAccount[] {
-  if (!Array.isArray(data)) {
-    return [];
-  }
-  const rows: FoundAccount[] = [];
-  for (const row of data) {
-    const parsed = foundSchema.safeParse(row);
-    if (parsed.success) {
-      rows.push({
-        userId: parsed.data.user_id,
-        username: parsed.data.username ?? null,
-        displayName: parsed.data.display_name ?? null,
-        maskedEmail: parsed.data.masked_email ?? null,
-      });
-    }
-  }
-  return rows;
-}
-
 const activitySchema = z.object({
   log_id: z.string(),
   created_at: z.string(),
@@ -363,9 +333,6 @@ export const SupabaseAdminTransport: AdminTransport = {
   },
   async dismissPostReports(postId) {
     await call("dismiss_post_reports", { p_post_id: postId });
-  },
-  async findAccounts(query) {
-    return parseFoundAccounts(await call("admin_find_accounts", { p_query: query }));
   },
   async fetchActivity(filters, before) {
     return parseActivity(

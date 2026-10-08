@@ -10,17 +10,16 @@ import type { PostsTransport } from "@/features/posts/transport";
 import { useTheme } from "@/theme";
 import { useAdminAccess } from "../queries";
 import type { AdminTransport } from "../transport";
-import { PasswordResetSection } from "./PasswordResetSection";
 import { ModerationQueueSection } from "./ModerationQueueSection";
 import { RankBadgesSection } from "./RankBadgesSection";
 import { ReportedPostsSection } from "./ReportedPostsSection";
 import { ReportedProfilesSection } from "./ReportedProfilesSection";
 
 /** The hidden admin screen. Each section appears only for the permission it
- * needs (`comments.moderate` for the queue and reported profiles,
- * `badges.grant` for rank badges, `accounts.reset_password` for password
- * resets, `audit.read` for the Activity log), and everything is hidden for people
- * without any, so a stray link shows nothing. */
+ * needs (`people.view` for People, `comments.moderate` for the queue and
+ * reported profiles, `badges.grant` for rank badges, `audit.read` for the
+ * Activity log), and everything is hidden for people without any, so a stray
+ * link shows nothing. Resetting a password lives on a person's page (People). */
 export function AdminContent({
   transport,
   hubTransport,
@@ -64,6 +63,16 @@ export function AdminContent({
           {t("community.errors.forbidden")}
         </Text>
       )}
+      {access.canViewPeople ? (
+        <SettingsGroup testID="admin-people-group">
+          <SettingsRow
+            icon="people-outline"
+            label={t("admin.people.title")}
+            onPress={() => router.push("/admin/people")}
+            testID="admin-people-row"
+          />
+        </SettingsGroup>
+      ) : null}
       {access.canModerate ? (
         <>
           <ModerationQueueSection canDelete={access.canDelete} {...shared} />
@@ -110,9 +119,6 @@ export function AdminContent({
         </SettingsGroup>
       ) : null}
       {access.canGrant ? <RankBadgesSection {...shared} /> : null}
-      {access.canResetPasswords ? (
-        <PasswordResetSection {...(transport ? { transport } : {})} />
-      ) : null}
     </ScrollView>
   );
 }

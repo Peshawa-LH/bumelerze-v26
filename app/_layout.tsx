@@ -31,6 +31,7 @@ import {
 } from "@/features/felt";
 import { useReferencePlace } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
+import { touchPresenceOnce } from "@/features/presence";
 import { sendColdStartTelemetryPing } from "@/features/telemetry";
 import { useLaunchPendingTour } from "@/features/tour";
 import { shouldPersistQuery } from "@/lib/persist-filter";
@@ -136,6 +137,12 @@ export default function RootLayout() {
     void sendColdStartTelemetryPing();
   }, []);
 
+  useEffect(() => {
+    // "Last seen" for the admin People directory: at most once a day, only
+    // when a session already exists (migration 0055; disclosed in Settings).
+    void touchPresenceOnce();
+  }, []);
+
   if (isRestarting || !hasHydrated) {
     // Brief blank frame while the reload takes over, or while we're still
     // reading `onboardingCompleted` from AsyncStorage — never render the
@@ -229,6 +236,8 @@ export default function RootLayout() {
                 <Stack.Screen name="admin/activity" />
                 <Stack.Screen name="admin/hidden" />
                 <Stack.Screen name="admin/limited" />
+                <Stack.Screen name="admin/people" />
+                <Stack.Screen name="admin/person/[id]" />
                 <Stack.Screen name="u/[username]/index" />
                 <Stack.Screen name="u/[username]/people" />
                 <Stack.Screen name="home/new" />

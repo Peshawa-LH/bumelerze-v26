@@ -38,6 +38,12 @@ export const PERMISSIONS = [
   // official) warns or restricts; `accounts.suspend` (official) suspends.
   "accounts.restrict",
   "accounts.suspend",
+  // Migration 0055: the People directory. `people.view` (moderator, official)
+  // lists and opens accounts; `people.view_email` and `people.view_guests`
+  // (official) add emails and the guest installs.
+  "people.view",
+  "people.view_email",
+  "people.view_guests",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
