@@ -146,6 +146,15 @@ describe("ProfileForm: username and privacy", () => {
     );
   });
 
+  it("says the name is reserved when the server refuses an imitating display name", async () => {
+    const { AccountError } = jest.requireActual("../types");
+    mockSave.mockRejectedValueOnce(new AccountError("name_reserved"));
+    await render(<ProfileForm profile={PROFILE} privateProfile={PRIVATE} />);
+    await type("profile-name-input", "Bumelerze Team");
+    await press("profile-save");
+    expect(screen.getByText("This name is reserved. Choose another.")).toBeTruthy();
+  });
+
   it("shows badges by default (the switch is on)", async () => {
     await render(<ProfileForm profile={PROFILE} privateProfile={PRIVATE} />);
     expect(

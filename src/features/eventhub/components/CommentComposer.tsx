@@ -24,6 +24,7 @@ interface CommentComposerProps {
 
 const ERROR_KEY: Record<HubErrorCode, string> = {
   rate_limited: "eventHub.composer.errors.rateLimited",
+  flag_limit: "eventHub.composer.errors.unknown",
   network: "eventHub.composer.errors.network",
   not_signed_in: "eventHub.composer.errors.unknown",
   unknown: "eventHub.composer.errors.unknown",

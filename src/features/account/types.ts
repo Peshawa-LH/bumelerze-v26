@@ -60,6 +60,7 @@ export type AccountErrorCode =
   | "username_invalid"
   | "username_taken"
   | "username_reserved"
+  | "name_reserved"
   | "oauth_unavailable"
   | "unknown";
 

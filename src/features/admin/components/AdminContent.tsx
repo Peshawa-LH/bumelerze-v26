@@ -1,7 +1,10 @@
+import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SettingsGroup } from "@/features/account/components/SettingsGroup";
+import { SettingsRow } from "@/features/account/components/SettingsRow";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { PostsTransport } from "@/features/posts/transport";
 import { useTheme } from "@/theme";
@@ -16,7 +19,7 @@ import { ReportedProfilesSection } from "./ReportedProfilesSection";
 /** The hidden admin screen. Each section appears only for the permission it
  * needs (`comments.moderate` for the queue and reported profiles,
  * `badges.grant` for rank badges, `accounts.reset_password` for password
- * resets), and everything is hidden for people
+ * resets, `audit.read` for the Activity log), and everything is hidden for people
  * without any, so a stray link shows nothing. */
 export function AdminContent({
   transport,
@@ -30,6 +33,7 @@ export function AdminContent({
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const access = useAdminAccess(hubTransport);
   const shared = {
     ...(transport ? { transport } : {}),
@@ -70,6 +74,16 @@ export function AdminContent({
             {...(postsTransport ? { postsTransport } : {})}
           />
         </>
+      ) : null}
+      {access.canAudit ? (
+        <SettingsGroup testID="admin-activity-group">
+          <SettingsRow
+            icon="time-outline"
+            label={t("admin.activity.title")}
+            onPress={() => router.push("/admin/activity")}
+            testID="admin-activity-row"
+          />
+        </SettingsGroup>
       ) : null}
       {access.canGrant ? <RankBadgesSection {...shared} /> : null}
       {access.canResetPasswords ? (

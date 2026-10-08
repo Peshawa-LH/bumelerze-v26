@@ -101,7 +101,10 @@ export function useHubThread(
   const query = useQuery({
     queryKey: eventHubKeys.thread(eventUuid ?? "", viewerKey),
     queryFn: () =>
-      loadHubThread(transport, eventUuid as string, { isAccount: options.isAccount }),
+      loadHubThread(transport, eventUuid as string, {
+        isAccount: options.isAccount,
+        signedIn: options.viewerId !== null,
+      }),
     enabled: isSupabaseConfigured() && eventUuid !== null,
     staleTime: HUB_STALE_TIME_MS,
     refetchInterval: options.focused ? HUB_REFETCH_INTERVAL_MS : false,
@@ -182,6 +185,8 @@ export interface HubActions {
   post: (input: { parentId: string | null; body: string }) => Promise<void>;
   setHelpful: (commentId: string, helpful: boolean) => Promise<void>;
   flag: (commentId: string, reason: FlagReason) => Promise<void>;
+  /** Take back my report (migration 0052). */
+  withdrawFlag: (commentId: string) => Promise<void>;
   remove: (commentId: string) => Promise<void>;
   moderate: (commentId: string, action: ModerationAction) => Promise<void>;
   /** Admin soft delete; `reason` is a short code such as "spam". */
@@ -212,6 +217,10 @@ export function useHubActions(
       transport.flagComment(input.commentId, input.reason),
     onSuccess: () => refresh(queryClient, eventUuid),
   });
+  const withdrawFlag = useMutation({
+    mutationFn: (commentId: string) => transport.withdrawFlag(commentId),
+    onSuccess: () => refresh(queryClient, eventUuid),
+  });
   const remove = useMutation({
     mutationFn: (commentId: string) => transport.deleteComment(commentId),
     onSuccess: () => refresh(queryClient, eventUuid),
@@ -232,6 +241,7 @@ export function useHubActions(
     post: (input) => post.mutateAsync(input),
     setHelpful: (commentId, value) => helpful.mutateAsync({ commentId, helpful: value }),
     flag: (commentId, reason) => flag.mutateAsync({ commentId, reason }),
+    withdrawFlag: (commentId) => withdrawFlag.mutateAsync(commentId),
     remove: (commentId) => remove.mutateAsync(commentId),
     moderate: (commentId, action) => moderate.mutateAsync({ commentId, action }),
     adminRemove: (commentId, reason) => adminRemove.mutateAsync({ commentId, reason }),

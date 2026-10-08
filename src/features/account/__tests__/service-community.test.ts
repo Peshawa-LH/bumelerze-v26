@@ -180,7 +180,26 @@ describe("saveProfile community fields", () => {
   });
 });
 
+describe("a reserved display name (migration 0052)", () => {
+  it("maps the server's guard to name_reserved when saving", async () => {
+    mockClient?.upsert.mockResolvedValueOnce({
+      data: null,
+      error: { code: "23514", message: "profiles: display_name_reserved" },
+    });
+    await expect(saveProfile({ ...base, displayName: "Bumelerze" })).rejects.toMatchObject({
+      code: "name_reserved",
+    });
+  });
+});
+
 describe("toUsernameAwareError", () => {
+  it("maps display_name_reserved apart from username_reserved", () => {
+    expect(
+      toUsernameAwareError({ code: "23514", message: "profiles: display_name_reserved" })
+        .code,
+    ).toBe("name_reserved");
+  });
+
   it("maps the reserved-name guard and the format check", () => {
     expect(
       toUsernameAwareError({ code: "23514", message: "profiles: username_reserved" })

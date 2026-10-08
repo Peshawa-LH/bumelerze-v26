@@ -72,6 +72,8 @@ export interface FakeTransportData {
   permissions?: Permission[];
   /** People the viewer follows. */
   following?: string[];
+  /** Comment ids the viewer reported and has not withdrawn. */
+  flagged?: string[];
 }
 
 export type FakeTransport = {
@@ -110,6 +112,8 @@ export function makeTransport(
     postComment: jest.fn(async () => undefined),
     setHelpful: jest.fn(async () => undefined),
     flagComment: jest.fn(async () => undefined),
+    fetchMyFlags: jest.fn(async () => data.flagged ?? []),
+    withdrawFlag: jest.fn(async () => undefined),
     deleteComment: jest.fn(async () => undefined),
     moderateComment: jest.fn(async () => undefined),
     fetchMyPermissions: jest.fn(async () => {

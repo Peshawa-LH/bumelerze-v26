@@ -34,6 +34,13 @@ export interface EventHubTransport {
   }): Promise<void>;
   setHelpful(commentId: string, helpful: boolean): Promise<void>;
   flagComment(commentId: string, reason: FlagReason): Promise<void>;
+  /** Ids (among `commentIds`) this identity reported and has not withdrawn
+   * (RLS returns only its own flags; migration 0052). */
+  fetchMyFlags(commentIds: readonly string[]): Promise<string[]>;
+  /** Takes the viewer's report back (`withdraw_comment_flag`, 0052). A comment
+   * that went to review because of reports stays there until a moderator
+   * decides. */
+  withdrawFlag(commentId: string): Promise<void>;
   deleteComment(commentId: string): Promise<void>;
   moderateComment(
     commentId: string,
@@ -174,7 +181,11 @@ export function toHubError(error: unknown): HubError {
   const e: ErrorLike =
     typeof error === "object" && error !== null ? (error as ErrorLike) : {};
   const message = e.message ?? "";
-  // 54000 is the trigger's "too many comments" (10 per 10 minutes).
+  // 54000 is the trigger's "too many comments" (10 per 10 minutes) and, with
+  // the token flag_limit, the 30-reports-a-day limit of migration 0052.
+  if (/flag_limit/.test(message)) {
+    return new HubError("flag_limit", message);
+  }
   if (e.code === "54000" || e.status === 429) {
     return new HubError("rate_limited", message);
   }
@@ -411,6 +422,39 @@ export const SupabaseEventHubTransport: EventHubTransport = {
       .insert({ comment_id: commentId, user_id: userId, reason });
     // 23505: this reader already reported it.
     if (error && error.code !== "23505") {
+      throw toHubError(error);
+    }
+  },
+
+  async fetchMyFlags(commentIds) {
+    const client = getSupabaseClient();
+    if (!client || commentIds.length === 0) {
+      return [];
+    }
+    const flagged: string[] = [];
+    for (const ids of chunk(commentIds, ID_CHUNK)) {
+      // RLS returns only the caller's own flags.
+      const { data, error } = await client
+        .from("comment_flags")
+        .select("comment_id")
+        .is("withdrawn_at", null)
+        .in("comment_id", ids);
+      if (error) {
+        throw toHubError(error);
+      }
+      for (const row of (data ?? []) as unknown as ReactionRow[]) {
+        flagged.push(row.comment_id);
+      }
+    }
+    return flagged;
+  },
+
+  async withdrawFlag(commentId) {
+    const client = requireClient();
+    const { error } = await client.rpc("withdraw_comment_flag", {
+      p_comment_id: commentId,
+    });
+    if (error) {
       throw toHubError(error);
     }
   },

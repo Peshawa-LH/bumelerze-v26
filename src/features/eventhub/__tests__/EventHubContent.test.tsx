@@ -74,6 +74,25 @@ describe("EventHubContent", () => {
     expect(text).toContain("M 4.2");
   });
 
+  describe("prebunk card", () => {
+    it("shows the 'no one can predict earthquakes' reminder on every hub", async () => {
+      await renderHub(makeTransport());
+      expect(await screen.findByTestId("hub-prebunk")).toBeTruthy();
+      expect(
+        screen.getByText(
+          "No one can predict earthquakes. Ignore messages that name a day or time.",
+        ),
+      ).toBeTruthy();
+    });
+
+    it("is also there when the hub cannot load, and reads in Sorani", async () => {
+      await i18n.changeLanguage("ckb");
+      await renderHub(makeTransport({}, { fetchSummary: jest.fn(async () => null) }));
+      expect(await screen.findByTestId("hub-prebunk")).toBeTruthy();
+      expect(screen.getByText(/^هیچ کەسێک ناتوانێت بوومەلەرزە پێشبینی بکات/)).toBeTruthy();
+    });
+  });
+
   describe("empty states", () => {
     it("says there are no reports and no comments yet", async () => {
       await renderHub(makeTransport());
@@ -409,6 +428,65 @@ describe("EventHubContent", () => {
         expect(transport.flagComment).toHaveBeenCalledWith("c-bad", "spam"),
       );
       expect(await screen.findByText("Thanks. We will review it.")).toBeTruthy();
+    });
+
+    it("offers 'Withdraw report' for a comment reported earlier, and takes the report back", async () => {
+      const transport = makeTransport({
+        comments: [buildComment({ id: "c-bad", body: "Buy my stuff" })],
+        flagged: ["c-bad"],
+      });
+      await renderHub(transport);
+      expect(await screen.findByText("Thanks. We will review it.")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Report" })).toBeNull();
+      await fireEvent.press(screen.getByTestId("withdraw-report-c-bad"));
+      await waitFor(() => expect(transport.withdrawFlag).toHaveBeenCalledWith("c-bad"));
+      expect(await screen.findByTestId("report-withdrawn-c-bad")).toBeTruthy();
+      expect(screen.queryByTestId("withdraw-report-c-bad")).toBeNull();
+      // A withdrawn report cannot be raised again (the server keeps the row).
+      expect(screen.queryByRole("button", { name: "Report" })).toBeNull();
+    });
+
+    it("offers the withdraw button right after reporting", async () => {
+      const transport = makeTransport({
+        comments: [buildComment({ id: "c-bad", body: "Buy my stuff" })],
+      });
+      await renderHub(transport);
+      await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
+      await fireEvent.press(screen.getByRole("button", { name: "Spam" }));
+      expect(await screen.findByTestId("withdraw-report-c-bad")).toBeTruthy();
+    });
+
+    it("shows no withdraw button on a comment the viewer did not report", async () => {
+      await renderHub(
+        makeTransport({ comments: [buildComment({ id: "c1", body: "Fine" })] }),
+      );
+      await screen.findByText("Fine");
+      expect(screen.queryByTestId("withdraw-report-c1")).toBeNull();
+    });
+
+    it("still shows the thread when the viewer's own reports cannot be read (server without migration 0052)", async () => {
+      const transport = makeTransport(
+        { comments: [buildComment({ id: "c1", body: "Still here" })] },
+        { fetchMyFlags: jest.fn(async () => Promise.reject(new Error("no column"))) },
+      );
+      await renderHub(transport);
+      expect(await screen.findByText("Still here")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Report" })).toBeTruthy();
+    });
+
+    it("says the daily report limit is reached instead of a generic error", async () => {
+      const transport = makeTransport(
+        { comments: [buildComment({ id: "c-bad", body: "Buy my stuff" })] },
+        { flagComment: jest.fn(async () => Promise.reject(new HubError("flag_limit"))) },
+      );
+      await renderHub(transport);
+      await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
+      await fireEvent.press(screen.getByRole("button", { name: "Spam" }));
+      expect(
+        await screen.findByText(
+          "You've reached today's limit for reports. Try again tomorrow.",
+        ),
+      ).toBeTruthy();
     });
 
     it("deletes their own comment after a confirmation", async () => {

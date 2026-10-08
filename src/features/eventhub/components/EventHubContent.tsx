@@ -33,6 +33,7 @@ import type { HubThread, HubThreadData } from "../types";
 import { CommentComposer } from "./CommentComposer";
 import { CommentItem, type CommentViewer } from "./CommentItem";
 import { HubImpactSection } from "./HubImpactSection";
+import { PrebunkCard } from "./PrebunkCard";
 import { HubSummaryCard } from "./HubSummaryCard";
 
 interface EventHubContentProps {
@@ -138,6 +139,7 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
       >
         {subtitle}
       </Text>
+      <PrebunkCard />
       {unavailable ? (
         <Text style={bodyText}>{t("eventHub.unavailable")}</Text>
       ) : (
@@ -263,6 +265,7 @@ function ThreadView({
   const { spacing } = useTheme();
   const helped = useMemo(() => new Set(data?.helpedIds ?? []), [data]);
   const following = useMemo(() => new Set(data?.followingIds ?? []), [data]);
+  const flagged = useMemo(() => new Set(data?.flaggedIds ?? []), [data]);
 
   const renderComment = (comment: HubThread["root"], isReply: boolean) => (
     <CommentItem
@@ -272,6 +275,7 @@ function ThreadView({
       roles={comment.userId ? data?.roles[comment.userId] : undefined}
       viewer={viewer}
       helped={helped.has(comment.id)}
+      flagged={flagged.has(comment.id)}
       isFollowing={comment.userId !== null && following.has(comment.userId)}
       nowMs={nowMs}
       actions={actions}

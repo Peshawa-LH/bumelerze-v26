@@ -141,6 +141,11 @@ export function toUsernameAwareError(error: unknown): AccountError {
   if (/username_reserved/.test(message)) {
     return new AccountError("username_reserved", message);
   }
+  // Migration 0052: a display name that imitates the team ("Bumelerze",
+  // "Official", "Admin", ...).
+  if (/display_name_reserved/.test(message)) {
+    return new AccountError("name_reserved", message);
+  }
   if (/profiles_username_format/.test(message)) {
     return new AccountError("username_invalid", message);
   }

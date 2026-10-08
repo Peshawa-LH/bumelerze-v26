@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { useAccount } from "@/features/account/use-account";
 import { communityKeys } from "@/features/community/queries";
@@ -11,7 +16,8 @@ import type { ModerationAction, Permission } from "@/features/eventhub/types";
 import { SupabasePostsTransport, type PostsTransport } from "@/features/posts/transport";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SupabaseAdminTransport, type AdminTransport } from "./transport";
-import type { GrantableRank } from "./types";
+import type { ActivityFilters, GrantableRank } from "./types";
+import { ACTIVITY_PAGE_SIZE } from "./types";
 
 const NOT_PERSISTED = { persist: false } as const;
 
@@ -21,6 +27,8 @@ export const adminKeys = {
   holders: ["admin", "holders"] as const,
   reports: ["admin", "reports"] as const,
   posts: ["admin", "posts"] as const,
+  activity: (filters: ActivityFilters) =>
+    ["admin", "activity", filters.action, filters.targetUserId] as const,
 };
 
 export interface AdminAccess {
@@ -33,6 +41,10 @@ export interface AdminAccess {
   canRemovePosts: boolean;
   /** May reset someone's password (`accounts.reset_password`, migration 0051). */
   canResetPasswords: boolean;
+  /** May read the activity log (`audit.read`, migration 0052). */
+  canAudit: boolean;
+  /** Reads every kind of action, not only content actions (`audit.read_all`). */
+  canAuditAll: boolean;
   /** Any admin tool at all: the entry in My account shows when true. */
   any: boolean;
   /** Permissions still loading: show nothing yet rather than "not allowed". */
@@ -52,13 +64,17 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
   const canGrant = server && perms.has("badges.grant");
   const canRemovePosts = server && perms.has("posts.delete");
   const canResetPasswords = server && perms.has("accounts.reset_password");
+  const canAuditAll = server && perms.has("audit.read_all");
+  const canAudit = canAuditAll || (server && perms.has("audit.read"));
   return {
     canModerate,
     canDelete,
     canRemovePosts,
     canGrant,
     canResetPasswords,
-    any: canModerate || canGrant || canResetPasswords,
+    canAudit,
+    canAuditAll,
+    any: canModerate || canGrant || canResetPasswords || canAudit,
     isLoading: perms.isLoading,
     has: (permission) => server && perms.has(permission),
   };
@@ -113,6 +129,28 @@ export function useReportedPosts(
   return useQuery({
     queryKey: adminKeys.posts,
     queryFn: () => transport.fetchReportedPosts(),
+    enabled: enabled && isSupabaseConfigured(),
+    staleTime: 15_000,
+    retry: 0,
+    meta: NOT_PERSISTED,
+  });
+}
+
+/** The activity log, 50 rows a page, newest first. `fetchNextPage` loads the
+ * next 50 (keyset on the last row's timestamp). */
+export function useAdminActivity(
+  filters: ActivityFilters,
+  enabled: boolean,
+  transport: AdminTransport = SupabaseAdminTransport,
+) {
+  return useInfiniteQuery({
+    queryKey: adminKeys.activity(filters),
+    queryFn: ({ pageParam }) => transport.fetchActivity(filters, pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.length >= ACTIVITY_PAGE_SIZE
+        ? (lastPage[lastPage.length - 1]?.cursor ?? null)
+        : null,
     enabled: enabled && isSupabaseConfigured(),
     staleTime: 15_000,
     retry: 0,

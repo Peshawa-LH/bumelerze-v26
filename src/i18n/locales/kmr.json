@@ -883,6 +883,7 @@
   },
   "eventHub": {
     "title": "Navenda bûyerê",
+    "prebunk": "Kes nikare erdhejan pêşbîn bike. Guh nede peyamên ku roj an demek diyar dikin.",
     "pill": {
       "label": "Kî hîs kir?",
       "hint": "Navenda bûyerê vedike"
@@ -936,6 +937,9 @@
       "removeReasonTitle": "Çima tê rakirin?",
       "removeConfirmTitle": "Ev şîrove were rakirin?",
       "removeConfirmMessage": "Nivîsa wê ji bo hemûyan tê jêbirin. Bersiv dimînin.",
+      "withdrawReport": "Gilîkirinê paşve bikişîne",
+      "reportWithdrawn": "Gilî hate paşvekişandin.",
+      "flagLimit": "Te gihîşt sînorê gilîkirinên îro. Sibê dîsa biceribîne.",
       "following": "Dişopînî"
     },
     "reasons": {
@@ -1753,6 +1757,7 @@
       "username_invalid": "3–24 tîp, jimar, xal an xeta jêrîn bi kar bîne.",
       "username_taken": "Ev nav hatiye girtin.",
       "username_reserved": "Ev nav ne berdest e.",
+      "name_reserved": "Ev nav parastî ye. Navekî din hilbijêre.",
       "email_taken": "Ev e-name berê hesabek heye. Têkeve.",
       "weak_password": "Şîfre divê ji 8 heta 72 nîşan be.",
       "same_password": "Şîfreyeke ji ya niha cuda hilbijêre.",
@@ -2320,6 +2325,51 @@
     },
     "posts": {
       "title": "Nivîsên gilîkirî"
+    },
+    "activity": {
+      "title": "Çalakî",
+      "hint": "Kê çi kir di Rêvebiriyê de, û kengê.",
+      "empty": "Hê çalakî tune.",
+      "loadMore": "Zêdetir nîşan bide",
+      "allActions": "Hemû",
+      "by": "Ji aliyê {{name}}",
+      "to": "Ji bo {{name}}",
+      "system": "Pergal",
+      "undone": "Hate vegerandin",
+      "filterPerson": "Tenê çalakiyên derbarê {{name}} nîşan bide",
+      "personFilter": "Tenê: {{name}}",
+      "personClear": "Paqij bike",
+      "personLabel": "Bi kesî fîltre bike",
+      "personPlaceholder": "@username",
+      "personApply": "Fîltre bike",
+      "personNotFound": "Kesek bi vî navê bikarhêner tune.",
+      "reasons": {
+        "removed_by_admin": "Ji aliyê rêvebir ve hate rakirin",
+        "moderator": "Biryara moderatorê",
+        "flagged": "Xwendevanan gilî kir",
+        "author_deleted_text": "Nivîsa jêbirî ya kevn hate paqijkirin"
+      },
+      "actions": {
+        "comment_approve": "Şîroveyek pejirand",
+        "comment_hide": "Şîroveyek veşart",
+        "comment_remove": "Şîroveyek rakir",
+        "comment_restore": "Şîroveyek vegerand",
+        "role_grant": "Nîşanek da",
+        "role_revoke": "Nîşanek hilanî",
+        "profile_reports_resolve": "Gilîkirinên profîlekê girt",
+        "report_reopen": "Gilîkirinek vekir",
+        "post_remove": "Şandiyek rakir",
+        "post_restore": "Şandiyek vegerand",
+        "post_reports_dismiss": "Gilîkirinên şandiyekê paşguh kir",
+        "password_reset": "Şîfreyek ji nû ve danî",
+        "profile_reset": "Profîlek vesazand",
+        "restrict": "Hesabek sînordar kir",
+        "suspend": "Hesabek rawestand",
+        "lift": "Sînordarkirinek rakir",
+        "person_view": "Li kesekî nêrî",
+        "email_reveal": "E-nameyek nîşan da",
+        "purge": "Nivîsa kevn paqij kir"
+      }
     },
     "passwords": {
       "title": "Şîfreyekê vegerîne",

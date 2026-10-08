@@ -164,6 +164,11 @@ describe("toHubError", () => {
       "rate_limited",
     );
   });
+  it("maps the daily report limit (token flag_limit, 54000) to flag_limit, not rate_limited", () => {
+    expect(
+      toHubError({ code: "54000", message: "comment_flags: flag_limit" }).code,
+    ).toBe("flag_limit");
+  });
   it("maps fetch failures to network", () => {
     expect(toHubError(new Error("Failed to fetch")).code).toBe("network");
   });
@@ -442,6 +447,33 @@ describe("writes", () => {
       "insert",
       [{ comment_id: "c1", user_id: "user-1", reason: "spam" }],
     ]);
+  });
+
+  it("reads only the caller's own, not-withdrawn reports", async () => {
+    tableResults.comment_flags = { data: [{ comment_id: "c1" }], error: null };
+    await expect(SupabaseEventHubTransport.fetchMyFlags(["c1", "c2"])).resolves.toEqual([
+      "c1",
+    ]);
+    expect(callsOf("comment_flags")).toContainEqual(["is", ["withdrawn_at", null]]);
+    await expect(SupabaseEventHubTransport.fetchMyFlags([])).resolves.toEqual([]);
+  });
+
+  it("withdraws a report through withdraw_comment_flag", async () => {
+    mockRpc.mockResolvedValueOnce({ data: null, error: null });
+    await SupabaseEventHubTransport.withdrawFlag("c1");
+    expect(mockRpc).toHaveBeenCalledWith("withdraw_comment_flag", {
+      p_comment_id: "c1",
+    });
+  });
+
+  it("surfaces the daily report limit when flagging", async () => {
+    tableResults.comment_flags = {
+      data: null,
+      error: { code: "54000", message: "comment_flags: flag_limit" },
+    };
+    await expect(SupabaseEventHubTransport.flagComment("c1", "spam")).rejects.toMatchObject(
+      { code: "flag_limit" },
+    );
   });
 
   it("deletes through delete_my_comment and moderates through moderate_comment", async () => {

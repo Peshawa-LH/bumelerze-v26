@@ -18,6 +18,7 @@ import { areaCityName } from "../area";
 import type { HubActions } from "../queries";
 import {
   FLAG_REASONS,
+  HubError,
   type FlagReason,
   type HubAuthor,
   type HubComment,
@@ -42,6 +43,9 @@ interface CommentItemProps {
   roles: readonly HubRole[] | undefined;
   viewer: CommentViewer;
   helped: boolean;
+  /** The viewer reported this comment earlier (read from the server, so it
+   * survives a restart) and has not withdrawn the report. */
+  flagged?: boolean;
   /** Clock for the relative time (UTC ms), from the thread query. */
   nowMs: number;
   actions: HubActions;
@@ -61,6 +65,7 @@ export function CommentItem({
   roles,
   viewer,
   helped,
+  flagged = false,
   nowMs,
   actions,
   onReply,
@@ -73,8 +78,9 @@ export function CommentItem({
   const locale = i18n.language;
   const [mode, setMode] = useState<Mode>("idle");
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [errorKey, setErrorKey] = useState<"actionError" | "flagLimit" | null>(null);
   const [reported, setReported] = useState(false);
+  const [withdrawn, setWithdrawn] = useState(false);
 
   const isOwn = viewer.userId !== null && comment.userId === viewer.userId;
   const isPending = comment.status === "pending";
@@ -92,12 +98,16 @@ export function CommentItem({
 
   async function run(action: () => Promise<void>): Promise<boolean> {
     setBusy(true);
-    setFailed(false);
+    setErrorKey(null);
     try {
       await action();
       return true;
-    } catch {
-      setFailed(true);
+    } catch (error) {
+      setErrorKey(
+        error instanceof HubError && error.code === "flag_limit"
+          ? "flagLimit"
+          : "actionError",
+      );
       return false;
     } finally {
       setBusy(false);
@@ -110,6 +120,7 @@ export function CommentItem({
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
+  const isReported = (reported || flagged) && !withdrawn;
   const canHelp = viewer.isAccount && !isOwn && isVisible;
   const helpfulCountText = isolateNumeric(
     localizeDigits(String(comment.helpfulCount), locale),
@@ -240,6 +251,7 @@ export function CommentItem({
                     const ok = await run(() => actions.flag(comment.id, reason));
                     if (ok) {
                       setReported(true);
+                      setWithdrawn(false);
                       setMode("idle");
                     }
                   }}
@@ -308,15 +320,36 @@ export function CommentItem({
             ) : comment.helpfulCount > 0 ? (
               <Text style={[meta, styles.staticAction]}>{helpfulLabel}</Text>
             ) : null}
-            {!isOwn && isVisible && !reported ? (
+            {!isOwn && isVisible && !isReported && !withdrawn && !flagged ? (
               <ActionButton
                 label={t("eventHub.thread.report")}
                 onPress={() => setMode("reporting")}
               />
             ) : null}
-            {reported ? (
-              <Text style={[meta, styles.staticAction]}>
-                {t("eventHub.thread.reported")}
+            {!isOwn && isReported ? (
+              <>
+                <Text style={[meta, styles.staticAction]}>
+                  {t("eventHub.thread.reported")}
+                </Text>
+                <ActionButton
+                  label={t("eventHub.thread.withdrawReport")}
+                  disabled={busy}
+                  onPress={async () => {
+                    const ok = await run(() => actions.withdrawFlag(comment.id));
+                    if (ok) {
+                      setWithdrawn(true);
+                    }
+                  }}
+                  testID={`withdraw-report-${comment.id}`}
+                />
+              </>
+            ) : null}
+            {!isOwn && withdrawn ? (
+              <Text
+                style={[meta, styles.staticAction]}
+                testID={`report-withdrawn-${comment.id}`}
+              >
+                {t("eventHub.thread.reportWithdrawn")}
               </Text>
             ) : null}
             {isOwn && comment.status !== "hidden" ? (
@@ -351,12 +384,13 @@ export function CommentItem({
           </View>
         )}
 
-        {failed ? (
+        {errorKey ? (
           <Text
             style={[meta, { color: colors.status.danger }]}
             accessibilityLiveRegion="polite"
+            testID={`comment-error-${comment.id}`}
           >
-            {t("eventHub.thread.actionError")}
+            {t(`eventHub.thread.${errorKey}`)}
           </Text>
         ) : null}
       </View>

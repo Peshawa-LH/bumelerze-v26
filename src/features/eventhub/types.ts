@@ -28,6 +28,10 @@ export const PERMISSIONS = [
   "hubs.feature",
   "posts.delete",
   "accounts.reset_password",
+  // Migration 0052: the activity log. `audit.read` shows content actions
+  // (moderators); `audit.read_all` shows everything (official).
+  "audit.read",
+  "audit.read_all",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -103,6 +107,9 @@ export interface HubThreadData {
   helpedIds: string[];
   /** Ids of the people the signed-in account follows (accepted only). */
   followingIds: string[];
+  /** Comment ids the signed-in identity reported and has not withdrawn
+   * (migration 0052; empty before it is applied). */
+  flaggedIds: string[];
 }
 
 export interface HubThread {
@@ -111,7 +118,13 @@ export interface HubThread {
   replies: HubComment[];
 }
 
-export type HubErrorCode = "rate_limited" | "network" | "not_signed_in" | "unknown";
+export type HubErrorCode =
+  | "rate_limited"
+  /** 30 reports in 24 hours (migration 0052). */
+  | "flag_limit"
+  | "network"
+  | "not_signed_in"
+  | "unknown";
 
 export class HubError extends Error {
   readonly code: HubErrorCode;

@@ -883,6 +883,7 @@
   },
   "eventHub": {
     "title": "Event hub",
+    "prebunk": "No one can predict earthquakes. Ignore messages that name a day or time.",
     "pill": {
       "label": "Who felt it?",
       "hint": "Opens the Event hub"
@@ -936,6 +937,9 @@
       "removeReasonTitle": "Why remove it?",
       "removeConfirmTitle": "Remove this comment?",
       "removeConfirmMessage": "Its text is deleted for everyone. Replies stay.",
+      "withdrawReport": "Withdraw report",
+      "reportWithdrawn": "Report withdrawn.",
+      "flagLimit": "You've reached today's limit for reports. Try again tomorrow.",
       "following": "Following"
     },
     "reasons": {
@@ -1753,6 +1757,7 @@
       "username_invalid": "Use 3–24 letters, digits, dots or underscores.",
       "username_taken": "That username is taken.",
       "username_reserved": "That name isn't available.",
+      "name_reserved": "This name is reserved. Choose another.",
       "email_taken": "This email already has an account. Use Sign in.",
       "weak_password": "The password must be 8 to 72 characters.",
       "same_password": "Choose a password different from the current one.",
@@ -2320,6 +2325,51 @@
     },
     "posts": {
       "title": "Reported posts"
+    },
+    "activity": {
+      "title": "Activity",
+      "hint": "Who did what in Admin, and when.",
+      "empty": "No activity yet.",
+      "loadMore": "Load more",
+      "allActions": "All",
+      "by": "By {{name}}",
+      "to": "To {{name}}",
+      "system": "System",
+      "undone": "Undone",
+      "filterPerson": "Show only actions about {{name}}",
+      "personFilter": "Only: {{name}}",
+      "personClear": "Clear",
+      "personLabel": "Filter by person",
+      "personPlaceholder": "@username",
+      "personApply": "Filter",
+      "personNotFound": "No person with that username.",
+      "reasons": {
+        "removed_by_admin": "Removed by an admin",
+        "moderator": "Moderator decision",
+        "flagged": "Reported by readers",
+        "author_deleted_text": "Old deleted text cleaned up"
+      },
+      "actions": {
+        "comment_approve": "Approved a comment",
+        "comment_hide": "Hid a comment",
+        "comment_remove": "Removed a comment",
+        "comment_restore": "Restored a comment",
+        "role_grant": "Gave a badge",
+        "role_revoke": "Took a badge away",
+        "profile_reports_resolve": "Closed reports on a profile",
+        "report_reopen": "Reopened a report",
+        "post_remove": "Removed a post",
+        "post_restore": "Restored a post",
+        "post_reports_dismiss": "Dismissed reports on a post",
+        "password_reset": "Reset a password",
+        "profile_reset": "Reset a profile",
+        "restrict": "Restricted an account",
+        "suspend": "Suspended an account",
+        "lift": "Lifted a restriction",
+        "person_view": "Looked at a person",
+        "email_reveal": "Showed an email address",
+        "purge": "Cleaned up old text"
+      }
     },
     "passwords": {
       "title": "Reset a password",

@@ -4,17 +4,20 @@ import { toCommunityError } from "@/features/community/transport";
 import { CommunityError } from "@/features/community/types";
 import { HUB_ROLE_KINDS } from "@/features/eventhub/types";
 import { getSupabaseClient } from "@/lib/supabase";
-import type {
-  GrantableRank,
-  QueueComment,
-  ReportedPost,
-  FoundAccount,
-  ReportedProfile,
-  RoleHolder,
+import {
+  ACTIVITY_PAGE_SIZE,
+  type ActivityEntry,
+  type ActivityFilters,
+  type GrantableRank,
+  type QueueComment,
+  type ReportedPost,
+  type FoundAccount,
+  type ReportedProfile,
+  type RoleHolder,
 } from "./types";
 
 /**
- * Admin data access (migrations 0044, 0046-0047, 0050 and 0051). Every function checks
+ * Admin data access (migrations 0044, 0046-0047, 0050-0052). Every function checks
  * the caller's permission on the server; the app only decides what to show.
  */
 export interface AdminTransport {
@@ -38,6 +41,12 @@ export interface AdminTransport {
   findAccounts(query: string): Promise<FoundAccount[]>;
   /** Sets a new password for an account (`admin_reset_password`, 0051). */
   resetPassword(userId: string, newPassword: string): Promise<void>;
+  /** One page of the activity log (`admin_activity`, 0052), newest first.
+   * `before` is the `cursor` of the last row of the previous page. */
+  fetchActivity(
+    filters: ActivityFilters,
+    before: string | null,
+  ): Promise<ActivityEntry[]>;
 }
 
 const queueSchema = z.object({
@@ -204,6 +213,60 @@ export function parseFoundAccounts(data: unknown): FoundAccount[] {
   return rows;
 }
 
+const activitySchema = z.object({
+  log_id: z.string(),
+  created_at: z.string(),
+  action: z.string(),
+  actor_id: z.string().nullable().optional(),
+  actor_name: z.string().nullable().optional(),
+  actor_username: z.string().nullable().optional(),
+  actor_rank: z.string().nullable().optional(),
+  target_type: z.string().nullable().optional(),
+  target_id: z.string().nullable().optional(),
+  target_user_id: z.string().nullable().optional(),
+  target_name: z.string().nullable().optional(),
+  target_username: z.string().nullable().optional(),
+  target_summary: z.string().nullable().optional(),
+  reason: z.string().nullable().optional(),
+  note: z.string().nullable().optional(),
+  reverted_by: z.string().nullable().optional(),
+});
+
+export function parseActivity(data: unknown): ActivityEntry[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  const rows: ActivityEntry[] = [];
+  for (const row of data) {
+    const parsed = activitySchema.safeParse(row);
+    const createdAt = parsed.success ? Date.parse(parsed.data.created_at) : NaN;
+    if (!parsed.success || Number.isNaN(createdAt)) {
+      continue;
+    }
+    const d = parsed.data;
+    rows.push({
+      id: d.log_id,
+      cursor: d.created_at,
+      createdAt,
+      action: d.action,
+      actorId: d.actor_id ?? null,
+      actorName: d.actor_name ?? null,
+      actorUsername: d.actor_username ?? null,
+      actorRank: HUB_ROLE_KINDS.find((kind) => kind === d.actor_rank) ?? null,
+      targetType: d.target_type ?? null,
+      targetId: d.target_id ?? null,
+      targetUserId: d.target_user_id ?? null,
+      targetName: d.target_name ?? null,
+      targetUsername: d.target_username ?? null,
+      targetSummary: d.target_summary ?? null,
+      reason: d.reason ?? null,
+      note: d.note ?? null,
+      revertedBy: d.reverted_by ?? null,
+    });
+  }
+  return rows;
+}
+
 async function call(name: string, args?: Record<string, unknown>): Promise<unknown> {
   const client = getSupabaseClient();
   if (!client) {
@@ -248,6 +311,17 @@ export const SupabaseAdminTransport: AdminTransport = {
   },
   async findAccounts(query) {
     return parseFoundAccounts(await call("admin_find_accounts", { p_query: query }));
+  },
+  async fetchActivity(filters, before) {
+    return parseActivity(
+      await call("admin_activity", {
+        p_actor: null,
+        p_action: filters.action,
+        p_target_user: filters.targetUserId,
+        p_before: before,
+        p_limit: ACTIVITY_PAGE_SIZE,
+      }),
+    );
   },
   async resetPassword(userId, newPassword) {
     await call("admin_reset_password", {

@@ -1,4 +1,5 @@
 import {
+  parseActivity,
   parseQueue,
   parseReportedPosts,
   parseReportedProfiles,
@@ -112,5 +113,52 @@ describe("parseReportedPosts", () => {
 
   it("is empty for an answer that is not a list", () => {
     expect(parseReportedPosts(undefined)).toEqual([]);
+  });
+});
+
+describe("parseActivity", () => {
+  const row = {
+    log_id: "l1",
+    created_at: "2026-10-08T10:00:00.123456+00:00",
+    action: "comment_hide",
+    actor_id: "a1",
+    actor_name: "Mona",
+    actor_username: "mona",
+    actor_rank: "moderator",
+    target_type: "comment",
+    target_id: "c1",
+    target_user_id: "u1",
+    target_name: "Dilan",
+    target_username: "dilan",
+    target_summary: "bml202610aa",
+    reason: "spam",
+    note: null,
+    reverted_by: null,
+  };
+
+  it("reads a log row, keeping the raw timestamp as the paging cursor", () => {
+    const [entry] = parseActivity([row]);
+    expect(entry).toMatchObject({
+      id: "l1",
+      cursor: "2026-10-08T10:00:00.123456+00:00",
+      action: "comment_hide",
+      actorRank: "moderator",
+      targetSummary: "bml202610aa",
+      reason: "spam",
+      revertedBy: null,
+    });
+    expect(entry?.createdAt).toBe(Date.parse("2026-10-08T10:00:00.123Z"));
+  });
+
+  it("accepts a system row (no actor) and an action a newer server adds", () => {
+    const [entry] = parseActivity([
+      { ...row, actor_id: null, actor_name: null, actor_rank: null, action: "future_x" },
+    ]);
+    expect(entry).toMatchObject({ actorId: null, actorRank: null, action: "future_x" });
+  });
+
+  it("drops malformed rows and answers [] for a non-list", () => {
+    expect(parseActivity([row, { log_id: "x" }, { ...row, created_at: "nope" }, 7])).toHaveLength(1);
+    expect(parseActivity(null)).toEqual([]);
   });
 });

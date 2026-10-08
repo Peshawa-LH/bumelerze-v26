@@ -883,6 +883,7 @@
   },
   "eventHub": {
     "title": "مركز الحدث",
+    "prebunk": "لا أحد يستطيع التنبؤ بالزلازل. تجاهل الرسائل التي تحدد يوماً أو وقتاً.",
     "pill": {
       "label": "من شعر به؟",
       "hint": "يفتح مركز الحدث"
@@ -936,6 +937,9 @@
       "removeReasonTitle": "لماذا تُزال؟",
       "removeConfirmTitle": "إزالة هذا التعليق؟",
       "removeConfirmMessage": "يُحذف نصه للجميع. تبقى الردود.",
+      "withdrawReport": "سحب البلاغ",
+      "reportWithdrawn": "تم سحب البلاغ.",
+      "flagLimit": "وصلت إلى الحد اليومي للبلاغات. حاول غداً.",
       "following": "تتابعه"
     },
     "reasons": {
@@ -1753,6 +1757,7 @@
       "username_invalid": "استخدم ٣–٢٤ حرفًا أو رقمًا أو نقطة أو شرطة سفلية.",
       "username_taken": "اسم المستخدم هذا مأخوذ.",
       "username_reserved": "هذا الاسم غير متاح.",
+      "name_reserved": "هذا الاسم محجوز. اختر اسماً آخر.",
       "email_taken": "لهذا البريد حساب بالفعل. سجّل الدخول.",
       "weak_password": "يجب أن تتكون كلمة المرور من ٨ إلى ٧٢ حرفاً.",
       "same_password": "اختر كلمة مرور مختلفة عن الحالية.",
@@ -2320,6 +2325,51 @@
     },
     "posts": {
       "title": "منشورات تم الإبلاغ عنها"
+    },
+    "activity": {
+      "title": "النشاط",
+      "hint": "من فعل ماذا في الإدارة، ومتى.",
+      "empty": "لا نشاط بعد.",
+      "loadMore": "عرض المزيد",
+      "allActions": "الكل",
+      "by": "بواسطة {{name}}",
+      "to": "إلى {{name}}",
+      "system": "النظام",
+      "undone": "تم التراجع",
+      "filterPerson": "عرض الإجراءات المتعلقة بـ {{name}} فقط",
+      "personFilter": "فقط: {{name}}",
+      "personClear": "مسح",
+      "personLabel": "التصفية حسب الشخص",
+      "personPlaceholder": "@username",
+      "personApply": "تصفية",
+      "personNotFound": "لا يوجد شخص بهذا اسم المستخدم.",
+      "reasons": {
+        "removed_by_admin": "أزالها مشرف",
+        "moderator": "قرار المشرف",
+        "flagged": "أبلغ عنها القرّاء",
+        "author_deleted_text": "تم تنظيف نص قديم محذوف"
+      },
+      "actions": {
+        "comment_approve": "وافق على تعليق",
+        "comment_hide": "أخفى تعليقاً",
+        "comment_remove": "أزال تعليقاً",
+        "comment_restore": "أعاد تعليقاً",
+        "role_grant": "منح شارة",
+        "role_revoke": "سحب شارة",
+        "profile_reports_resolve": "أغلق بلاغات ملف شخصي",
+        "report_reopen": "أعاد فتح بلاغ",
+        "post_remove": "أزال منشوراً",
+        "post_restore": "أعاد منشوراً",
+        "post_reports_dismiss": "تجاهل بلاغات منشور",
+        "password_reset": "أعاد تعيين كلمة مرور",
+        "profile_reset": "أعاد تعيين ملف شخصي",
+        "restrict": "قيّد حساباً",
+        "suspend": "علّق حساباً",
+        "lift": "رفع تقييداً",
+        "person_view": "اطّلع على شخص",
+        "email_reveal": "أظهر بريداً إلكترونياً",
+        "purge": "نظّف نصاً قديماً"
+      }
     },
     "passwords": {
       "title": "إعادة تعيين كلمة مرور",

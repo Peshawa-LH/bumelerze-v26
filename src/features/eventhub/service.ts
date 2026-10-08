@@ -10,7 +10,7 @@ import type { HubAuthor, HubRole, HubThreadData, Permission } from "./types";
 export async function loadHubThread(
   transport: EventHubTransport,
   eventUuid: string,
-  options: { isAccount: boolean },
+  options: { isAccount: boolean; signedIn?: boolean },
 ): Promise<HubThreadData> {
   const comments = await transport.fetchComments(eventUuid);
   const userIds = [
@@ -22,7 +22,7 @@ export async function loadHubThread(
 
   const noAuthors: Record<string, HubAuthor> = {};
   const noRoles: Record<string, HubRole[]> = {};
-  const [authors, roles, helpedIds, followingIds] = await Promise.all([
+  const [authors, roles, helpedIds, followingIds, flaggedIds] = await Promise.all([
     transport.fetchAuthors(userIds).catch(() => noAuthors),
     transport.fetchRoles(userIds).catch(() => noRoles),
     options.isAccount
@@ -31,9 +31,13 @@ export async function loadHubThread(
     options.isAccount
       ? transport.fetchFollowingIds().catch((): string[] => [])
       : Promise.resolve<string[]>([]),
+    // Guests can report too, so any signed-in identity reads its own flags.
+    options.signedIn === false
+      ? Promise.resolve<string[]>([])
+      : transport.fetchMyFlags(commentIds).catch((): string[] => []),
   ]);
 
-  return { comments, authors, roles, helpedIds, followingIds };
+  return { comments, authors, roles, helpedIds, followingIds, flaggedIds };
 }
 
 /** True for the roles that may approve or hide comments. */
