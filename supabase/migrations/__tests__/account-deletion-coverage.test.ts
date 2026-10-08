@@ -51,6 +51,8 @@ const MANIFEST: Record<string, Entry> = {
   "profile_private.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.profile_private", why: "profession and consents" },
   "user_roles.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.user_roles", why: "ranks" },
   "user_roles.granted_by": { onDelete: "set null", handling: "unlink", why: "the admin who granted it; audit" },
+  "private_ranks.user_id": { onDelete: "cascade", handling: "cascade", why: "the private admin rank (0060)" },
+  "private_ranks.granted_by": { onDelete: "set null", handling: "unlink", why: "who granted it" },
   "notification_subscriptions.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.notification_subscriptions", why: "push token and alert places" },
   "guidelines_acceptance.user_id": { onDelete: "cascade", handling: "cascade", why: "the acceptance record" },
   "app_presence.user_id": { onDelete: "cascade", handling: "cascade", why: "last seen, platform, version" },
