@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BrandMark } from "@/components/BrandMark";
+import { MyLocationRow } from "@/features/account/components/MyLocationRow";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SettingsOptionList } from "@/features/account/components/SettingsOptionList";
 import { SettingsRow, SettingsRowBody } from "@/features/account/components/SettingsRow";
@@ -84,20 +85,21 @@ export default function SettingsScreen() {
         {t("settings.title")}
       </Text>
 
-      {/* Grouped rows like My account (owner note N1, 2026-10-07): one card per
-          concern, one short line or none under a title. Order is the owner's
-          (feedback 2adfbbf7, 2026-09-27, regrouped 2026-10-07): the account
-          first (the place the tagged building will live) with the engineer's
-          handbook; then the device concerns, language and look; then
-          feedback and onboarding. */}
-      <SettingsGroup testID="settings-group-account">
+      {/* Grouped rows (owner note N1, 2026-10-07): one card per concern, one
+          short line or none under a title. Order since D79 (2026-10-08): the
+          read-and-learn guides first (the Safety guide left the tab bar, so
+          it lives here, and the engineer's handbook), then what belongs to
+          this device (My location, Notifications, permissions, language,
+          look), then feedback and onboarding. "My account" is gone: it is
+          the Profile tab now. */}
+      <SettingsGroup testID="settings-group-guides">
         <SettingsRow
-          icon="person-circle-outline"
-          label={t("settings.myDataSectionTitle")}
-          value={t("settings.myDataSectionDescription")}
+          icon="shield-checkmark-outline"
+          label={t("settings.safetyGuideTitle")}
+          value={t("settings.safetyGuideDescription")}
           valueLayout="stacked"
-          onPress={() => router.push("/my-data")}
-          testID="settings-row-account"
+          onPress={() => router.push("/safety")}
+          testID="settings-row-safety"
         />
         <SettingsRow
           icon="construct-outline"
@@ -110,6 +112,7 @@ export default function SettingsScreen() {
       </SettingsGroup>
 
       <SettingsGroup testID="settings-group-device">
+        <MyLocationRow />
         <SettingsRow
           icon="notifications-outline"
           label={t("settings.notificationsSectionTitle")}

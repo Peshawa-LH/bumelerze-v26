@@ -6,12 +6,14 @@ import { useTranslation } from "react-i18next";
 
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { AccountButton } from "@/features/account/components/AccountButton";
-import { BadgeGrid } from "@/features/badges";
+import { EarnedBadges } from "@/features/badges";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { formatMagnitudeValue } from "@/features/events";
 import { formatMonthYear } from "@/features/mydata/format";
 import { PostsSection } from "@/features/posts/components/PostsSection";
 import type { PostsTransport } from "@/features/posts/transport";
+import { SHARE_PROFILE_URL_BASE } from "@/features/share/config";
+import { shareText } from "@/features/share/share-text";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { profileBadgeEntries } from "../badges";
@@ -25,9 +27,20 @@ import { FollowButton } from "./FollowButton";
 import { LinkButton } from "./LinkButton";
 import { ProfileCounts } from "./ProfileCounts";
 
+/** What only the owner's own page knows and passes in (never fetched here):
+ * the report count (local queue merged with the server) and how many badges
+ * the full collection has, for "See all (N)". */
+export interface SelfFigures {
+  reports: number;
+  badgeTotal: number;
+}
+
 interface PublicProfileViewProps {
   profile: PublicProfile;
   actions: CommunityActions;
+  /** Only the Profile tab's own view passes this, and only when
+   * `profile.isSelf`; a visitor's page never has it. */
+  self?: SelfFigures;
   /** Tests inject a fake; the app uses the Supabase one. */
   postsTransport?: PostsTransport;
 }
@@ -38,10 +51,17 @@ interface PublicProfileViewProps {
  * places, home tags, profession or email exist in the data, so none can be
  * shown. A private account the viewer may not follow-see shows the basics
  * (photo, name, @username, rank) and a Request button.
+ *
+ * Since D79 this is also the TOP of the owner's own Profile tab: the same
+ * public part for owner and visitors (buttons differ: Edit / Share profile
+ * for the owner, Follow for a visitor). Everything only the owner may see
+ * (My home, My reports, People, Admin, Password, Privacy, Sign out, Delete)
+ * is NOT in this component; the owner's page renders it after this view.
  */
 export function PublicProfileView({
   profile,
   actions,
+  self,
   postsTransport,
 }: PublicProfileViewProps) {
   const { t, i18n } = useTranslation();
@@ -51,6 +71,7 @@ export function PublicProfileView({
   const [reported, setReported] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const details = profile.canViewFull ? profile.details : null;
   const badges = details ? profileBadgeEntries(profile) : [];
@@ -83,6 +104,18 @@ export function PublicProfileView({
       destructive: true,
       onConfirm: () => void run(() => actions.block(profile.userId)),
     });
+  }
+
+  async function handleShare() {
+    const url = `${SHARE_PROFILE_URL_BASE}/${encodeURIComponent(profile.username)}`;
+    const outcome = await shareText(url, profile.displayName);
+    if (outcome === "copied") {
+      setNotice(t("share.linkCopied"));
+    } else if (outcome === "failed") {
+      setNotice(t("community.profile.shareFailed"));
+    } else {
+      setNotice(null);
+    }
   }
 
   async function handleReport(reason: ProfileReportReason) {
@@ -138,11 +171,33 @@ export function PublicProfileView({
       </View>
 
       {profile.isSelf ? (
-        <AccountButton
-          label={t("myData.account.editProfile")}
-          onPress={() => router.push("/account/profile")}
-          testID="public-profile-edit"
-        />
+        <View style={{ gap: spacing[2] }}>
+          <View style={[styles.buttons, { gap: spacing[2] }]}>
+            <View style={styles.buttonCell}>
+              <AccountButton
+                label={t("myData.account.editProfile")}
+                onPress={() => router.push("/account/profile")}
+                testID="public-profile-edit"
+              />
+            </View>
+            <View style={styles.buttonCell}>
+              <AccountButton
+                label={t("community.profile.share")}
+                onPress={() => void handleShare()}
+                testID="public-profile-share"
+              />
+            </View>
+          </View>
+          {notice ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={meta}
+              testID="public-profile-notice"
+            >
+              {notice}
+            </Text>
+          ) : null}
+        </View>
       ) : profile.isBlocked ? (
         <View style={{ gap: spacing[2] }}>
           <Text style={meta} testID="public-profile-blocked">
@@ -175,48 +230,47 @@ export function PublicProfileView({
       {details ? (
         <>
           <ProfileCounts
+            reports={
+              profile.isSelf && self
+                ? self.reports
+                : (details.milestones?.reports ?? null)
+            }
+            comments={details.comments}
             followers={details.followers}
             following={details.following}
-            comments={details.comments}
-            helpful={details.helpfulReceived}
             onOpenFollowers={() => router.push(peopleHref(profile.username, "followers"))}
             onOpenFollowing={() => router.push(peopleHref(profile.username, "following"))}
           />
 
-          {badges.length > 0 ? (
-            <View style={{ gap: spacing[2] }}>
-              <Text
-                accessibilityRole="header"
-                style={[typography.h3, { color: colors.text.primary }]}
-              >
-                {t("myData.badges.title")}
-              </Text>
-              <BadgeGrid entries={badges} />
-            </View>
-          ) : null}
+          <EarnedBadges
+            entries={badges}
+            {...(profile.isSelf && self ? { seeAllCount: self.badgeTotal } : {})}
+          />
 
           <PostsSection
             profile={profile}
             {...(postsTransport ? { transport: postsTransport } : {})}
           />
 
-          <View style={{ gap: spacing[2] }}>
-            <Text
-              accessibilityRole="header"
-              style={[typography.h3, { color: colors.text.primary }]}
-            >
-              {t("community.profile.recent")}
-            </Text>
-            {details.recentComments.length === 0 ? (
-              <Text style={meta} testID="public-profile-no-comments">
-                {t("community.profile.noComments")}
+          {profile.isSelf ? null : (
+            <View style={{ gap: spacing[2] }}>
+              <Text
+                accessibilityRole="header"
+                style={[typography.h3, { color: colors.text.primary }]}
+              >
+                {t("community.profile.recent")}
               </Text>
-            ) : (
-              details.recentComments.map((comment) => (
-                <RecentComment key={comment.id} comment={comment} />
-              ))
-            )}
-          </View>
+              {details.recentComments.length === 0 ? (
+                <Text style={meta} testID="public-profile-no-comments">
+                  {t("community.profile.noComments")}
+                </Text>
+              ) : (
+                details.recentComments.map((comment) => (
+                  <RecentComment key={comment.id} comment={comment} />
+                ))
+              )}
+            </View>
+          )}
         </>
       ) : null}
 
@@ -343,6 +397,8 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, gap: 2 },
   nameRow: { flexDirection: "row", alignItems: "center" },
   name: { flexShrink: 1 },
+  buttons: { flexDirection: "row" },
+  buttonCell: { flex: 1 },
   actions: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
   comment: { borderWidth: 1, borderRadius: 12, minHeight: 44 },
 });

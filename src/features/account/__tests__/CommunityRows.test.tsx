@@ -52,7 +52,7 @@ function setPermissions(permissions: Permission[] | null) {
   }
 }
 
-describe("CommunityRows (My account)", () => {
+describe("CommunityRows (Profile, owner only)", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockRpc.mockResolvedValue({ data: [], error: null });
@@ -70,18 +70,15 @@ describe("CommunityRows (My account)", () => {
     expect(screen.queryByTestId("account-community-group")).toBeNull();
   });
 
-  it("shows People for an account, and My public profile only once a username is chosen", async () => {
-    signedIn(null);
-    const view = await renderWithProviders(<CommunityRows />);
-    expect(screen.getByTestId("account-people-row")).toBeTruthy();
-    expect(screen.queryByTestId("account-public-profile-row")).toBeNull();
-    view.unmount();
+  it("shows People and requests for an account, and no 'my public profile' row (the page is the profile)", async () => {
     signedIn("shilan");
     await renderWithProviders(<CommunityRows />);
+    expect(screen.getByText("People and requests")).toBeTruthy();
+    expect(screen.queryByTestId("account-public-profile-row")).toBeNull();
     await act(async () => {
-      fireEvent.press(screen.getByTestId("account-public-profile-row"));
+      fireEvent.press(screen.getByTestId("account-people-row"));
     });
-    expect(mockPush).toHaveBeenCalledWith("/u/shilan");
+    expect(mockPush).toHaveBeenCalledWith("/account/people");
   });
 
   it("shows the pending request count and answers requests inline", async () => {
@@ -103,7 +100,7 @@ describe("CommunityRows (My account)", () => {
     );
     await renderWithProviders(<CommunityRows />);
     expect(await screen.findByTestId("follow-requests")).toBeTruthy();
-    expect(screen.getByLabelText(/^People, \d/)).toBeTruthy();
+    expect(screen.getByLabelText(/^People and requests, \d/)).toBeTruthy();
     await act(async () => {
       fireEvent.press(screen.getByTestId("request-accept-u2"));
     });

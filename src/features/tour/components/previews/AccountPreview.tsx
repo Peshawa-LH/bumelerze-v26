@@ -15,7 +15,7 @@ const SAMPLE_BADGES: readonly { id: string; earned: boolean }[] = [
 ];
 const BADGE_SIZE = 56;
 
-/** My account: some badge circles and the "Tag my building" row. */
+/** Profile: some badge circles and the "Tag my building" row. */
 export function AccountPreview() {
   const { t } = useTranslation();
   const { spacing } = useTheme();

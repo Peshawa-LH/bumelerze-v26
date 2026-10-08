@@ -211,6 +211,8 @@ export default function RootLayout() {
               <Stack.Screen name="handbook" />
               <Stack.Screen name="notification-settings" />
               <Stack.Screen name="my-data" />
+              <Stack.Screen name="safety" />
+              <Stack.Screen name="badges" />
               <Stack.Screen name="my-reports" />
               <Stack.Screen name="feedback" />
               <Stack.Screen name="account/sign-in" />

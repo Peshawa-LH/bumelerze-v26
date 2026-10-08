@@ -4,8 +4,10 @@ import { AccessibilityInfo, Animated } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
+import ar from "@/i18n/locales/ar.json";
 import ckb from "@/i18n/locales/ckb.json";
 import en from "@/i18n/locales/en.json";
+import kmr from "@/i18n/locales/kmr.json";
 
 import { TOUR_STOP_IDS } from "../stops";
 
@@ -78,6 +80,24 @@ describe("app tour", () => {
       expect(stops[id]?.title.length).toBeGreaterThan(0);
       expect(stops[id]?.body.length).toBeGreaterThan(0);
     }
+  });
+
+  it("points at where things live now: Safety guide in Settings, the account in Profile (D79)", () => {
+    const stops = (catalog: typeof en) =>
+      catalog.tour.stops as Record<string, { title: string; body: string }>;
+    // English names both places outright.
+    expect(stops(en).safety?.body).toContain("Settings");
+    expect(stops(en).safety?.body).toContain("Safety guide");
+    expect(stops(en).account?.title).toContain("profile");
+    expect(stops(en).account?.body).toContain("Profile");
+    // Nowhere does a stop send the reader to a tab or page that is gone.
+    for (const catalog of [en, ckb, kmr, ar] as const) {
+      const text = JSON.stringify(catalog.tour.stops);
+      expect(text).not.toMatch(/My account|Safety tab/i);
+    }
+    // Every language names the Profile page the same way as its tab label.
+    expect(stops(ckb as typeof en).account?.body).toContain(ckb.tabs.profile);
+    expect(stops(kmr as typeof en).account?.body).toContain(kmr.tabs.profile);
   });
 
   it("starts on the first stop with Next and Skip, and no Back", async () => {

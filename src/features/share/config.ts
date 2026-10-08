@@ -14,6 +14,10 @@ import type { ShareCardSize } from "./types";
  */
 export const SHARE_EVENT_URL_BASE = "https://bumelerze.com/app/event";
 
+/** Where a shared profile link lands: the web app's public profile route
+ * (`/u/<username>`), the same page the in-app profile uses. */
+export const SHARE_PROFILE_URL_BASE = "https://bumelerze.com/app/u";
+
 /** The site name printed in the card footer. A domain, not a translated word. */
 export const SHARE_SITE_TEXT = "bumelerze.com";
 

@@ -25,6 +25,7 @@ export {
 } from "./evaluate";
 export { badgePalette, toneColor, withAlpha } from "./tones";
 export { BadgeGrid } from "./components/BadgeGrid";
+export { EarnedBadges, type EarnedBadgesProps } from "./components/EarnedBadges";
 export { BadgesSection } from "./components/BadgesSection";
 export { BadgeIcon } from "./components/BadgeIcon";
 export { BadgeSheet } from "./components/BadgeSheet";

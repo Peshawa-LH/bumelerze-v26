@@ -14,21 +14,19 @@ import i18n from "@/i18n";
 import type { UseAccountResult } from "@/features/account/use-account";
 
 /**
- * My account screen (account page redesign, 2026-10-04): identity, stats,
- * badges, my home, my reports, settings group, delete. The server numbers
- * come from `my_stats()`; the page must work (and never crash) without it.
+ * The Profile tab (D79, 2026-10-08), which replaced the My account page:
+ * the owner's own page, built from the device (this file's accounts have no
+ * @username yet, so the public profile is not fetched and the header comes
+ * from the device) or, for a guest, the Guest page. The server numbers come
+ * from `my_stats()`; the page must work (and never crash) without it. The
+ * public part with a @username, the visitor view and the privacy rule are in
+ * `src/features/profile/__tests__`.
  */
 
 const mockPush = jest.fn();
-const mockScreenOptions = jest.fn();
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
-  Stack: Object.assign(() => null, {
-    Screen: (props: { options?: { title?: string } }) => {
-      mockScreenOptions(props.options);
-      return null;
-    },
-  }),
+  Stack: Object.assign(() => null, { Screen: () => null }),
 }));
 
 jest.mock("expo-crypto", () => ({
@@ -73,7 +71,7 @@ jest.mock("@/features/account/service", () => ({
 
 // Imported after the mocks above so the mocked module graph is in place.
 // eslint-disable-next-line import/first -- see comment above
-import MyDataScreen from "../my-data";
+import ProfileScreen from "../(tabs)/profile";
 
 function account(overrides: Partial<UseAccountResult>): UseAccountResult {
   return {
@@ -161,7 +159,7 @@ async function flush() {
   });
 }
 
-describe("My account screen", () => {
+describe("Profile tab", () => {
   const originalLanguage = i18n.language;
 
   beforeEach(async () => {
@@ -188,11 +186,9 @@ describe("My account screen", () => {
   });
 
   describe("anonymous", () => {
-    it("keeps the route title, shows Guest and the single sign-up invitation", async () => {
-      await renderWithProviders(<MyDataScreen />);
-      expect(mockScreenOptions).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "My account" }),
-      );
+    it("shows the Profile title, Guest and the single sign-up invitation", async () => {
+      await renderWithProviders(<ProfileScreen />);
+      expect(screen.getByText("Profile")).toBeTruthy();
       expect(screen.getByText("Guest")).toBeTruthy();
       expect(screen.getAllByTestId("account-create")).toHaveLength(1);
       expect(screen.getAllByText("Create an account")).toHaveLength(1);
@@ -205,39 +201,25 @@ describe("My account screen", () => {
       });
     });
 
-    it("shows two stat cells, the badge collection, no sign-out and no delete", async () => {
-      await renderWithProviders(<MyDataScreen />);
-      expect(screen.getByTestId("stat-reports")).toBeTruthy();
-      expect(screen.getByTestId("stat-badges")).toBeTruthy();
-      expect(screen.queryByTestId("stat-comments")).toBeNull();
-      expect(screen.queryByTestId("stat-helpful")).toBeNull();
-      expect(
-        screen.getAllByTestId(/^badge-(first_report|reports_10|helpful_25)$/),
-      ).toHaveLength(3);
+    it("a guest has no counts row, no earned badge yet and a See all link; no sign-out and no delete", async () => {
+      // No server numbers have arrived: nothing earned yet.
+      mockRpc.mockReturnValue(new Promise(() => undefined));
+      await renderWithProviders(<ProfileScreen />);
+      expect(screen.queryByTestId("profile-counts")).toBeNull();
+      expect(screen.getByTestId("badges-none-yet")).toBeTruthy();
+      expect(screen.queryByTestId(/^badge-/)).toBeNull();
       expect(screen.queryByTestId("account-sign-out")).toBeNull();
       expect(screen.queryByTestId("account-password-row")).toBeNull();
       expect(screen.queryByTestId("account-delete")).toBeNull();
       expect(screen.queryByTestId("account-edit-profile")).toBeNull();
-    });
-
-    it("lists the four requestable ranks as locked, and asks for them via Feedback", async () => {
-      await renderWithProviders(<MyDataScreen />);
-      await press("badges-toggle");
-      expect(screen.queryByText("Ranks")).toBeNull();
-      expect(screen.getByLabelText("Engineer, locked")).toBeTruthy();
-      expect(screen.queryByTestId("badge-role-official")).toBeNull();
-      expect(screen.queryByTestId("badge-role-moderator")).toBeNull();
-      expect(screen.queryByTestId("badge-role-partner")).toBeNull();
-      await press("badge-role-engineer");
-      await press("badge-sheet-request");
-      expect(mockPush).toHaveBeenLastCalledWith({
-        pathname: "/feedback",
-        params: { badgeRequest: "1", rank: "engineer" },
-      });
+      expect(screen.queryByTestId("posts-section")).toBeNull();
+      expect(screen.queryByTestId("only-you-divider")).toBeNull();
+      await press("badges-see-all");
+      expect(mockPush).toHaveBeenLastCalledWith("/badges");
     });
 
     it("hides the contributor ID until Privacy & data is opened, then shows it with a copy button", async () => {
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       expect(screen.queryByText(/TEST-DEV/)).toBeNull();
       expect(screen.queryByTestId("privacy-details")).toBeNull();
@@ -254,7 +236,7 @@ describe("My account screen", () => {
     });
 
     it("My home is a locked preview row, not a button", async () => {
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       expect(screen.getByText("My home")).toBeTruthy();
       expect(screen.getByTestId("home-locked")).toBeTruthy();
       expect(screen.getByTestId("home-section-sign-in").props.accessibilityHint).toBe(
@@ -273,14 +255,13 @@ describe("My account screen", () => {
         hasHydrated: true,
         items: [makeQueueItem("a", 1_700_000_000_000)],
       });
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       expect(screen.getByLabelText(/^First report, earned$/)).toBeTruthy();
-      expect(screen.getByLabelText("Reports: 1")).toBeTruthy();
     });
 
     it("empty reports: a compact card with one line and the report button", async () => {
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       expect(screen.getByText("My reports")).toBeTruthy();
       expect(screen.getByText("No reports yet.")).toBeTruthy();
       expect(screen.queryByTestId("my-reports-see-all")).toBeNull();
@@ -290,7 +271,7 @@ describe("My account screen", () => {
 
     it("does not flash the empty state before the persisted queue has hydrated", async () => {
       useFeltQueueStore.setState({ hasHydrated: false, items: [] });
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       expect(screen.queryByTestId("reports-empty")).toBeNull();
     });
 
@@ -301,7 +282,7 @@ describe("My account screen", () => {
           makeQueueItem(`r${n}`, 1_700_000_000_000 + n * 1000),
         ),
       });
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       expect(
         screen.getAllByTestId("mydata-level-artwork", { includeHiddenElements: true }),
       ).toHaveLength(3);
@@ -315,30 +296,21 @@ describe("My account screen", () => {
         hasHydrated: true,
         items: [1, 2, 3].map((n) => makeQueueItem(`r${n}`, 1_700_000_000_000 + n)),
       });
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       expect(screen.queryByTestId("my-reports-see-all")).toBeNull();
     });
 
-    it("has the settings group: My location first, then Notifications, Privacy & data, and no HomeBase row", async () => {
-      await renderWithProviders(<MyDataScreen />);
-      const location = screen.getByTestId("account-location-row");
-      const notifications = screen.getByTestId("account-notifications-row");
-      const rows = screen
-        .getAllByRole("button")
-        .filter((node) => node === location || node === notifications);
-      expect(rows[0]).toBe(location);
-      expect(screen.getByText("My location")).toBeTruthy();
+    it("no longer holds My location or Notifications (they moved to Settings)", async () => {
+      await renderWithProviders(<ProfileScreen />);
+      expect(screen.queryByTestId("account-location-row")).toBeNull();
+      expect(screen.queryByTestId("account-notifications-row")).toBeNull();
       expect(screen.queryByText("HomeBase")).toBeNull();
-      expect(screen.queryByTestId("homebase-row")).toBeNull();
-      expect(screen.getByText("Notifications")).toBeTruthy();
       expect(screen.getByText("Privacy & data")).toBeTruthy();
-      await press("account-notifications-row");
-      expect(mockPush).toHaveBeenCalledWith("/notification-settings");
     });
 
     it("never asks the server for stats numbers it cannot have without a session id", async () => {
       mockAccount = account({ status: "anonymous", userId: null });
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       expect(mockRpc).not.toHaveBeenCalled();
     });
@@ -346,11 +318,11 @@ describe("My account screen", () => {
     it("unconfigured: no invitation, no home card, the page still works", async () => {
       mockConfigured = false;
       mockAccount = account({ status: "unconfigured" });
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       expect(screen.queryByTestId("account-create")).toBeNull();
       expect(screen.queryByTestId("home-section")).toBeNull();
       expect(screen.getByText("Guest")).toBeTruthy();
-      expect(screen.getByTestId("stat-reports")).toBeTruthy();
+      expect(screen.getByText("Privacy & data")).toBeTruthy();
     });
   });
 
@@ -359,8 +331,8 @@ describe("My account screen", () => {
       mockAccount = ACCOUNT;
     });
 
-    it("shows four stats from my_stats(), member since, and no invitation", async () => {
-      await renderWithProviders(<MyDataScreen />);
+    it("shows reports and comments from my_stats(), member since and no invitation", async () => {
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       expect(mockRpc).toHaveBeenCalledWith("my_stats");
       expect(screen.queryByTestId("account-create")).toBeNull();
@@ -368,13 +340,12 @@ describe("My account screen", () => {
       expect(screen.getByText("Shilan")).toBeTruthy();
       expect(screen.getByLabelText("Reports: 12")).toBeTruthy();
       expect(screen.getByLabelText("Comments: 9")).toBeTruthy();
-      expect(screen.getByLabelText("Helpful: 31")).toBeTruthy();
-      expect(screen.getByLabelText(/^Badges: \d+\/1[34]$/)).toBeTruthy();
+      expect(screen.queryByLabelText(/^Helpful:/)).toBeNull();
       expect(screen.getByText("Member since Oct 2026")).toBeTruthy();
     });
 
-    it("earns server-side badges (comments, helpful, detailed, photo) from my_stats()", async () => {
-      await renderWithProviders(<MyDataScreen />);
+    it("shows only EARNED badges (milestones and ranks) from my_stats(), with See all (N) for the rest", async () => {
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       for (const label of [
         "First report, earned",
@@ -387,18 +358,20 @@ describe("My account screen", () => {
       ]) {
         expect(screen.getByLabelText(label)).toBeTruthy();
       }
-      expect(screen.getByLabelText("Home tagged, locked, 0 of 1")).toBeTruthy();
+      // Locked badges and requestable ranks are not on the page itself.
+      expect(screen.queryByLabelText(/locked/)).toBeNull();
+      expect(screen.queryByTestId("badge-home_tagged")).toBeNull();
+      expect(screen.getByTestId("badges-see-all")).toBeTruthy();
     });
 
-    it("shows skeleton pills for Comments and Helpful while my_stats() is loading", async () => {
+    it("leaves out the Comments figure while my_stats() is loading (no flicker of a wrong zero)", async () => {
       mockRpc.mockReturnValue(new Promise(() => undefined));
-      await renderWithProviders(<MyDataScreen />);
-      expect(screen.getByTestId("stat-comments-skeleton")).toBeTruthy();
-      expect(screen.getByTestId("stat-helpful-skeleton")).toBeTruthy();
-      expect(screen.getByTestId("stat-reports")).toBeTruthy();
+      await renderWithProviders(<ProfileScreen />);
+      expect(screen.queryByTestId("count-comments")).toBeNull();
+      expect(screen.getByTestId("count-reports")).toBeTruthy();
     });
 
-    it("degrades when my_stats() is missing: local numbers, dashes, no crash", async () => {
+    it("degrades when my_stats() is missing: local numbers, no Comments figure, no crash", async () => {
       mockRpc.mockResolvedValue({
         data: null,
         error: {
@@ -410,14 +383,13 @@ describe("My account screen", () => {
         hasHydrated: true,
         items: [makeQueueItem("a", 1_700_000_000_000)],
       });
-      await renderWithProviders(<MyDataScreen />);
-      // One retry (about a second) before the dash replaces the skeleton.
-      expect(
-        await screen.findByLabelText("Comments: –", {}, { timeout: 3000 }),
-      ).toBeTruthy();
+      await renderWithProviders(<ProfileScreen />);
+      // One retry (about a second) before the app gives up on the server.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      });
       expect(screen.getByLabelText("Reports: 1")).toBeTruthy();
-      expect(screen.getByLabelText("Helpful: –")).toBeTruthy();
-      expect(screen.queryByTestId("stat-comments-skeleton")).toBeNull();
+      expect(screen.queryByTestId("count-comments")).toBeNull();
       expect(screen.queryByText("Member since Oct 2026")).toBeNull();
       expect(screen.getByText("Shilan")).toBeTruthy();
     });
@@ -428,13 +400,13 @@ describe("My account screen", () => {
         hasHydrated: true,
         items: [1, 2, 3].map((n) => makeQueueItem(`r${n}`, 1_700_000_000_000 + n)),
       });
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       expect(screen.getByLabelText("Reports: 3")).toBeTruthy();
     });
 
     it("the email lives under Privacy & data, not in the header", async () => {
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       expect(screen.queryByText("shilan@example.com")).toBeNull();
       await press("account-privacy-row");
       expect(screen.getByTestId("account-email").props.children).toBe(
@@ -443,13 +415,13 @@ describe("My account screen", () => {
     });
 
     it("has a Password row that opens the set / change password screen", async () => {
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await press("account-password-row");
       expect(mockPush).toHaveBeenLastCalledWith("/account/password");
     });
 
     it("signs out in one tap and has Delete as its own card, last", async () => {
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await press("account-sign-out");
       expect(mockSignOut).toHaveBeenCalledTimes(1);
       await press("account-delete");
@@ -464,7 +436,7 @@ describe("My account screen", () => {
         member("u-owner", { role: "owner" }),
       ]);
       mockTransport.fetchTags.mockResolvedValue([TAG]);
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       await flush();
       expect(screen.getByTestId("home-card-tag-1")).toBeTruthy();
@@ -477,14 +449,14 @@ describe("My account screen", () => {
         member("u-owner", { role: "member" }),
       ]);
       mockTransport.fetchTags.mockResolvedValue([TAG]);
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       await flush();
       expect(screen.getByLabelText("Family linked, earned")).toBeTruthy();
     });
 
     it("an account with no tag gets the tag card and a join link", async () => {
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       await press("home-tag");
       expect(mockPush).toHaveBeenCalledWith("/home/new");
@@ -499,15 +471,13 @@ describe("My account screen", () => {
       mockFetchRoles.mockResolvedValue({
         "u-owner": [{ role: "official", orgName: "Bumelerze" }],
       });
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       await flush();
       expect(screen.getByTestId("role-mark-official")).toBeTruthy();
       expect(screen.getByTestId("role-mark-official-icon")).toBeTruthy();
       const first = screen.getAllByTestId(/^badge-(role-official|first_report)$/)[0];
       expect(first?.props.testID).toBe("badge-role-official");
-      // The strip's Badges figure counts milestones only.
-      expect(screen.getByLabelText(/^Badges: \d+\/1[34]$/)).toBeTruthy();
     });
   });
 
@@ -519,7 +489,7 @@ describe("My account screen", () => {
         member("u-owner", { role: "owner" }),
       ]);
       mockTransport.fetchTags.mockResolvedValue([TAG]);
-      await renderWithProviders(<MyDataScreen />);
+      await renderWithProviders(<ProfileScreen />);
       await flush();
       await flush();
       expect(screen.getByLabelText("ڕاپۆرت: ١٢")).toBeTruthy();

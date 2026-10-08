@@ -21,7 +21,7 @@ const SAMPLE_GUIDES: readonly {
   { section: "recover", cardId: "aftershocks", image: "aftershocks" },
 ];
 
-/** Safety: three guide rows with their artwork, as on the Safety tab. */
+/** Safety: three guide rows with their artwork, as in the Safety guide. */
 export function SafetyPreview() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();

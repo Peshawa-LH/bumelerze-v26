@@ -9,14 +9,22 @@ import {
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { usePrefsStore } from "@/features/onboarding";
 import i18n, { isRTLLocale } from "@/i18n";
 
-import SafetyScreen from "../../../../app/(tabs)/safety";
+import SafetyScreen from "../../../../app/safety";
 
 // The "Using Bumelerze" footer routes and reads the account state; neither is
 // under test here (see using-app.test.tsx), so stand both in.
+const mockScreenOptions = jest.fn();
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
+  Stack: Object.assign(() => null, {
+    Screen: (props: { options?: unknown }) => {
+      mockScreenOptions(props.options);
+      return null;
+    },
+  }),
 }));
 jest.mock("@/features/account/use-account", () => ({
   useAccount: () => ({ status: "unconfigured", userId: null }),
@@ -45,6 +53,11 @@ async function press(element: ReturnType<typeof screen.getByRole>) {
 describe("Safety screen", () => {
   const originalLanguage = i18n.language;
 
+  beforeEach(() => {
+    mockScreenOptions.mockClear();
+    usePrefsStore.setState({ beReadyHidden: false });
+  });
+
   afterEach(async () => {
     cleanup();
     await i18n.changeLanguage(originalLanguage);
@@ -72,6 +85,25 @@ describe("Safety screen", () => {
 
     expect(screen.getByText("چاوەڕێی پاشلەرزین بکە")).toBeTruthy();
     expect(screen.queryByText("دابکەوە، خۆت بپارێزە، توندی بگرە")).toBeNull();
+  });
+
+  it("is a pushed screen with a back header titled Safety (it left the tab bar, D79)", async () => {
+    await i18n.changeLanguage("en");
+    await renderWithProviders(<SafetyScreen />);
+    expect(mockScreenOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Safety",
+        headerShown: true,
+        headerLeft: expect.any(Function),
+      }),
+    );
+  });
+
+  it("opening it retires the Home 'Be ready' card for good", async () => {
+    await i18n.changeLanguage("en");
+    expect(usePrefsStore.getState().beReadyHidden).toBe(false);
+    await renderWithProviders(<SafetyScreen />);
+    expect(usePrefsStore.getState().beReadyHidden).toBe(true);
   });
 
   it("keeps the SURVIVE accessibility-variant block collapsed by default, expanding it on press", async () => {

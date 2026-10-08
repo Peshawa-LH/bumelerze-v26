@@ -7,7 +7,7 @@
     "home": "Destpêk",
     "map": "Nexşe",
     "sensor": "Sensor",
-    "safety": "Ewlehî",
+    "profile": "Profîl",
     "settings": "Sazkarî"
   },
   "home": {
@@ -595,11 +595,11 @@
     "appTour": "Gera sepanê",
     "replayOnboardingConfirmTitle": "Danasîn dîsa were nîşandan?",
     "replayOnboardingConfirmMessage": "Tê dîsa here ser dîmenên bi xêr hatinê. Hilbijartina zimên tê parastin.",
+    "safetyGuideTitle": "Rêbera ewlehiyê",
+    "safetyGuideDescription": "Beriya erdhejê, di dema wê de û piştî wê",
     "notificationsSectionTitle": "Agahdarî",
     "handbookSectionTitle": "Pirtûka endezyar",
     "handbookSectionDescription": "Nirxên sêwiranê ji bo endezyaran",
-    "myDataSectionTitle": "Hesabê min",
-    "myDataSectionDescription": "Profîl, nîşan, raport",
     "feedbackSectionTitle": "Nêrîn",
     "feedbackSectionDescription": "Çewtî û raman",
     "devicePermissionsSectionTitle": "Destûrên cîhazê",
@@ -677,11 +677,11 @@
       },
       "safety": {
         "title": "Amade be",
-        "body": "Beriya erdhejê, di dema wê de û piştî wê çi bikî."
+        "body": "Beriya erdhejê, di dema wê de û piştî wê çi bikî. Di Sazkariyê de, di bin «Rêbera ewlehiyê» de bibîne."
       },
       "account": {
-        "title": "Hesab û avahiya te",
-        "body": "Bi dilê xwe: nîşan, profîl û «Avahiya min tomar bike» ji bo texmînek ewlehiyê."
+        "title": "Profîl û avahiya te",
+        "body": "Bi dilê xwe, di Profîlê de: nîşan, profîl û «Avahiya min tomar bike» ji bo texmînek ewlehiyê."
       },
       "share": {
         "title": "Erdhejekê parve bike",
@@ -1503,7 +1503,6 @@
     }
   },
   "myData": {
-    "title": "Hesabê min",
     "guest": "Mêvan",
     "memberSince": "Endam ji {{date}} ve",
     "invite": {
@@ -1511,14 +1510,12 @@
     },
     "stats": {
       "reports": "Rapor",
-      "comments": "Şîrove",
-      "helpful": "Bikêr",
-      "badges": "Nîşan",
       "a11y": "{{label}}: {{count}}"
     },
     "badges": {
       "showAll": "Hemûyan nîşan bide ({{count}})",
       "showLess": "Kêmtir nîşan bide",
+      "seeAll": "Hemûyan bibîne ({{count}})",
       "title": "Nîşan",
       "earned": "Hatiye stendin",
       "locked": "Girtî",
@@ -1563,7 +1560,8 @@
       "helpful_25": {
         "name": "Pir bikêr"
       },
-      "helpfulRule": "{{count}} nîşanên bikêr bistîne."
+      "helpfulRule": "{{count}} nîşanên bikêr bistîne.",
+      "noneYet": "Hê nîşan nehatine stendin."
     },
     "home": {
       "needsAccount": "Hesab hewce ye",
@@ -2224,8 +2222,7 @@
   "community": {
     "openProfile": "Profîla {{name}} veke",
     "myAccount": {
-      "profile": "Profîla min a gelemperî",
-      "people": "Mirov",
+      "people": "Mirov û daxwaz",
       "admin": "Amûrên rêveberiyê"
     },
     "profile": {
@@ -2238,10 +2235,11 @@
       "followers": "Şopîner",
       "following": "Dişopîne",
       "comments": "Şîrove",
-      "helpful": "Bikêr",
       "recent": "Şîroveyên dawî",
       "noComments": "Hê şîrove tune.",
-      "openHub": "{{place}} veke"
+      "openHub": "{{place}} veke",
+      "share": "Profîlê parve bike",
+      "shareFailed": "Parvekirin nebû. Ji kerema xwe dîsa biceribîne."
     },
     "follow": {
       "follow": "Bişopîne",
@@ -2378,7 +2376,7 @@
     },
     "passwords": {
       "title": "Şîfreyekê vegerîne",
-      "hint": "Hesab bibîne, paşê şîfreyeke demkî çêke û bi xwe bide kesê. Divê ew di «Hesabê min»ê de biguherîne.",
+      "hint": "Hesab bibîne, paşê şîfreyeke demkî çêke û bi xwe bide kesê. Divê ew di «Profîl»ê de biguherîne.",
       "searchLabel": "Navê bikarhêner an e-name",
       "searchButton": "Bigere",
       "noResults": "Hesab nehat dîtin.",
@@ -2417,5 +2415,8 @@
     "removeConfirmTitle": "Ev nivîs were rakirin?",
     "removeConfirmMessage": "Nivîsa wê ji bo hemûyan tê jêbirin.",
     "removedByModerators": "Ji aliyê rêveberan ve hate rakirin"
+  },
+  "profile": {
+    "onlyYou": "Tenê tu vê dibînî"
   }
 }

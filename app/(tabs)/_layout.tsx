@@ -9,10 +9,11 @@ import { useTheme } from "@/theme";
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
 /**
- * 5-tab bottom navigation (spec-v1.md §4 "Navigation structure"): Home is
- * the panic-time landing screen, Map/Sensor/Safety are always-reachable
- * standalone screens, Settings holds preferences including the language
- * switcher. Uses expo-router's standard `Tabs` (not the experimental
+ * 5-tab bottom navigation (spec-v1.md §4 "Navigation structure", re-cut by
+ * D79 on 2026-10-08): Home is the panic-time landing screen, Map and Sensor
+ * are always-reachable standalone screens, Profile is the one page for "me"
+ * (the public profile plus what only I see), Settings holds preferences
+ * including the language switcher and, at its top, the Safety guide. Uses expo-router's standard `Tabs` (not the experimental
  * native-tabs API) — boring and well-documented per PROJECT.md's gotcha
  * about exotic native modules.
  */
@@ -20,19 +21,29 @@ export default function TabLayout() {
   const { t } = useTranslation();
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
-  const labelFontSize = typography.labelCaption.fontFamily ? 11 : typography.labelCaption.fontSize;
+  const labelFontSize = typography.labelCaption.fontFamily
+    ? 11
+    : typography.labelCaption.fontSize;
 
-  function icon(name: IoniconName) {
+  function icon(name: IoniconName, outlineName?: IoniconName) {
     return function renderIcon({
       color,
       size,
+      focused,
     }: {
       color: ColorValue;
       size: number;
+      focused: boolean;
     }) {
       // Ionicons types `color` as a plain string; our tint colors always are
       // one, so this narrows a value React Native itself declares broader.
-      return <Ionicons name={name} size={size} color={color as string} />;
+      return (
+        <Ionicons
+          name={outlineName && !focused ? outlineName : name}
+          size={size}
+          color={color as string}
+        />
+      );
     };
   }
 
@@ -96,10 +107,10 @@ export default function TabLayout() {
         options={{ title: t("tabs.sensor"), tabBarIcon: icon("pulse") }}
       />
       <Tabs.Screen
-        name="safety"
+        name="profile"
         options={{
-          title: t("tabs.safety"),
-          tabBarIcon: icon("shield-checkmark"),
+          title: t("tabs.profile"),
+          tabBarIcon: icon("person-circle", "person-circle-outline"),
         }}
       />
       <Tabs.Screen

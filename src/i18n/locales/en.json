@@ -7,7 +7,7 @@
     "home": "Home",
     "map": "Map",
     "sensor": "Sensor",
-    "safety": "Safety",
+    "profile": "Profile",
     "settings": "Settings"
   },
   "home": {
@@ -595,11 +595,11 @@
     "appTour": "App tour",
     "replayOnboardingConfirmTitle": "Replay onboarding?",
     "replayOnboardingConfirmMessage": "You'll go through the welcome screens again. Your language choice is kept.",
+    "safetyGuideTitle": "Safety guide",
+    "safetyGuideDescription": "Before, during and after an earthquake",
     "notificationsSectionTitle": "Notifications",
     "handbookSectionTitle": "Engineer's handbook",
     "handbookSectionDescription": "Design values for engineers",
-    "myDataSectionTitle": "My account",
-    "myDataSectionDescription": "Profile, badges, reports",
     "feedbackSectionTitle": "Feedback",
     "feedbackSectionDescription": "Bugs and ideas",
     "devicePermissionsSectionTitle": "Device permissions",
@@ -677,11 +677,11 @@
       },
       "safety": {
         "title": "Be ready",
-        "body": "What to do before, during and after an earthquake."
+        "body": "What to do before, during and after an earthquake. Find it in Settings, under Safety guide."
       },
       "account": {
-        "title": "Your account and building",
-        "body": "Optional: badges, your profile, and Tag my building for a safety estimate."
+        "title": "Your profile and building",
+        "body": "Optional, in Profile: badges, your profile, and Tag my building for a safety estimate."
       },
       "share": {
         "title": "Share an earthquake",
@@ -1503,7 +1503,6 @@
     }
   },
   "myData": {
-    "title": "My account",
     "guest": "Guest",
     "memberSince": "Member since {{date}}",
     "invite": {
@@ -1511,14 +1510,12 @@
     },
     "stats": {
       "reports": "Reports",
-      "comments": "Comments",
-      "helpful": "Helpful",
-      "badges": "Badges",
       "a11y": "{{label}}: {{count}}"
     },
     "badges": {
       "showAll": "Show all ({{count}})",
       "showLess": "Show less",
+      "seeAll": "See all ({{count}})",
       "title": "Badges",
       "earned": "Earned",
       "locked": "Locked",
@@ -1563,7 +1560,8 @@
       "helpful_25": {
         "name": "Very helpful"
       },
-      "helpfulRule": "Get {{count}} helpful marks."
+      "helpfulRule": "Get {{count}} helpful marks.",
+      "noneYet": "No badges earned yet."
     },
     "home": {
       "needsAccount": "Needs an account",
@@ -2224,8 +2222,7 @@
   "community": {
     "openProfile": "Open profile of {{name}}",
     "myAccount": {
-      "profile": "My public profile",
-      "people": "People",
+      "people": "People and requests",
       "admin": "Admin tools"
     },
     "profile": {
@@ -2238,10 +2235,11 @@
       "followers": "Followers",
       "following": "Following",
       "comments": "Comments",
-      "helpful": "Helpful",
       "recent": "Recent comments",
       "noComments": "No comments yet.",
-      "openHub": "Open {{place}}"
+      "openHub": "Open {{place}}",
+      "share": "Share profile",
+      "shareFailed": "Could not share. Please try again."
     },
     "follow": {
       "follow": "Follow",
@@ -2378,7 +2376,7 @@
     },
     "passwords": {
       "title": "Reset a password",
-      "hint": "Find the account, then make a temporary password and pass it on yourself. The person should change it in My account.",
+      "hint": "Find the account, then make a temporary password and pass it on yourself. The person should change it in Profile.",
       "searchLabel": "Username or email",
       "searchButton": "Search",
       "noResults": "No account found.",
@@ -2417,5 +2415,8 @@
     "removeConfirmTitle": "Remove this post?",
     "removeConfirmMessage": "Its text is deleted for everyone.",
     "removedByModerators": "Removed by moderators"
+  },
+  "profile": {
+    "onlyYou": "Only you see this"
   }
 }

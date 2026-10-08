@@ -7,7 +7,7 @@
  * four locale catalogs. Button and screen names inside the steps are NOT
  * retyped per locale: each step receives them as interpolation params
  * resolved from the keys the app already uses for those labels
- * (`usingAppLabelParamKeys`), so a rename there (a pill, a tab, "My account")
+ * (`usingAppLabelParamKeys`), so a rename there (a pill, a tab, "Profile")
  * updates the guide automatically.
  */
 
@@ -60,11 +60,11 @@ const GUIDE_LABEL_PARAMS: Readonly<
     official: "eventHub.roles.official",
   },
   tagBuilding: {
-    account: "myData.title",
+    account: "tabs.profile",
     home: "building.section.title",
     tag: "building.title",
   },
-  account: { account: "myData.title" },
+  account: { account: "tabs.profile" },
 };
 
 /** Route of the featured 2017 event's hub, used for "See an example". */

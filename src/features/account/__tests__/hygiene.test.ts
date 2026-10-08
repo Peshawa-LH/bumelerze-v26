@@ -12,6 +12,15 @@ const ROOT = join(__dirname, "..", "..", "..", "..");
 const NEW_FILES = [
   "app/my-data.tsx",
   "app/my-reports.tsx",
+  "app/(tabs)/profile.tsx",
+  "app/badges.tsx",
+  "app/safety.tsx",
+  ...listFiles("src/features/profile", [".ts", ".tsx"]).filter(
+    (f) => !f.includes("__tests__"),
+  ),
+  "src/features/community/components/ProfileCounts.tsx",
+  "src/features/community/components/PublicProfileView.tsx",
+  "src/features/safety/components/BeReadyCard.tsx",
   "src/components/DirectionalChevron.tsx",
   ...listFiles("src/features/badges", [".ts", ".tsx"]).filter(
     (f) => !f.includes("__tests__"),
@@ -21,7 +30,6 @@ const NEW_FILES = [
   "src/features/account/use-account-action.ts",
   "src/features/account/components/ProfileHeader.tsx",
   "src/features/account/components/SignUpInvite.tsx",
-  "src/features/account/components/StatsStrip.tsx",
   "src/features/account/components/SettingsGroup.tsx",
   "src/features/account/components/SettingsRow.tsx",
   "src/features/account/components/PrivacyRow.tsx",

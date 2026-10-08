@@ -7,7 +7,7 @@
     "home": "الرئيسية",
     "map": "الخريطة",
     "sensor": "المستشعر",
-    "safety": "السلامة",
+    "profile": "ملفي",
     "settings": "الإعدادات"
   },
   "home": {
@@ -595,11 +595,11 @@
     "appTour": "جولة في التطبيق",
     "replayOnboardingConfirmTitle": "إعادة عرض التعريف بالتطبيق؟",
     "replayOnboardingConfirmMessage": "ستمر بشاشات الترحيب مرة أخرى. سيتم الاحتفاظ باختيارك للغة.",
+    "safetyGuideTitle": "دليل السلامة",
+    "safetyGuideDescription": "قبل الزلزال وأثناءه وبعده",
     "notificationsSectionTitle": "الإشعارات",
     "handbookSectionTitle": "دليل المهندس",
     "handbookSectionDescription": "قيم التصميم للمهندسين",
-    "myDataSectionTitle": "حسابي",
-    "myDataSectionDescription": "الملف الشخصي، الشارات، التقارير",
     "feedbackSectionTitle": "الملاحظات",
     "feedbackSectionDescription": "الأخطاء والأفكار",
     "devicePermissionsSectionTitle": "أذونات الجهاز",
@@ -677,11 +677,11 @@
       },
       "safety": {
         "title": "كن مستعدًا",
-        "body": "ماذا تفعل قبل الزلزال وأثناءه وبعده."
+        "body": "ماذا تفعل قبل الزلزال وأثناءه وبعده. ستجده في الإعدادات ضمن «دليل السلامة»."
       },
       "account": {
-        "title": "حسابك ومبناك",
-        "body": "اختياري: الشارات وملفك الشخصي، و«سجّل مبناي» للحصول على تقدير للسلامة."
+        "title": "ملفك الشخصي ومبناك",
+        "body": "اختياري، في الملف الشخصي: الشارات و«سجّل مبناي» للحصول على تقدير للسلامة."
       },
       "share": {
         "title": "شارك زلزالًا",
@@ -1503,7 +1503,6 @@
     }
   },
   "myData": {
-    "title": "حسابي",
     "guest": "ضيف",
     "memberSince": "عضو منذ {{date}}",
     "invite": {
@@ -1511,14 +1510,12 @@
     },
     "stats": {
       "reports": "تقارير",
-      "comments": "تعليقات",
-      "helpful": "مفيد",
-      "badges": "الشارات",
       "a11y": "{{label}}: {{count}}"
     },
     "badges": {
       "showAll": "عرض الكل ({{count}})",
       "showLess": "عرض أقل",
+      "seeAll": "عرض الكل ({{count}})",
       "title": "الشارات",
       "earned": "تم الحصول عليها",
       "locked": "مقفلة",
@@ -1563,7 +1560,8 @@
       "helpful_25": {
         "name": "مفيد جدًا"
       },
-      "helpfulRule": "احصل على {{count}} علامات مفيد."
+      "helpfulRule": "احصل على {{count}} علامات مفيد.",
+      "noneYet": "لم تحصل على شارات بعد."
     },
     "home": {
       "needsAccount": "يتطلب حسابًا",
@@ -2224,8 +2222,7 @@
   "community": {
     "openProfile": "فتح ملف {{name}}",
     "myAccount": {
-      "profile": "ملفي العام",
-      "people": "الأشخاص",
+      "people": "الأشخاص والطلبات",
       "admin": "أدوات الإدارة"
     },
     "profile": {
@@ -2238,10 +2235,11 @@
       "followers": "المتابِعون",
       "following": "المتابَعون",
       "comments": "تعليقات",
-      "helpful": "مفيد",
       "recent": "أحدث التعليقات",
       "noComments": "لا توجد تعليقات بعد.",
-      "openHub": "فتح {{place}}"
+      "openHub": "فتح {{place}}",
+      "share": "مشاركة الملف الشخصي",
+      "shareFailed": "تعذّرت المشاركة. حاول مرة أخرى."
     },
     "follow": {
       "follow": "متابعة",
@@ -2378,7 +2376,7 @@
     },
     "passwords": {
       "title": "إعادة تعيين كلمة مرور",
-      "hint": "ابحث عن الحساب، ثم أنشئ كلمة مرور مؤقتة وسلّمها للشخص بنفسك. عليه تغييرها من «حسابي».",
+      "hint": "ابحث عن الحساب، ثم أنشئ كلمة مرور مؤقتة وسلّمها للشخص بنفسك. عليه تغييرها من «الملف الشخصي».",
       "searchLabel": "اسم المستخدم أو البريد الإلكتروني",
       "searchButton": "بحث",
       "noResults": "لم يتم العثور على حساب.",
@@ -2417,5 +2415,8 @@
     "removeConfirmTitle": "إزالة هذا المنشور؟",
     "removeConfirmMessage": "يُحذف نصه للجميع.",
     "removedByModerators": "أزاله المشرفون"
+  },
+  "profile": {
+    "onlyYou": "أنت وحدك ترى هذا"
   }
 }

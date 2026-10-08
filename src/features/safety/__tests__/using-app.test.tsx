@@ -9,7 +9,7 @@ import kmr from "@/i18n/locales/kmr.json";
 import i18n, { isRTLLocale } from "@/i18n";
 import { flattenKeys } from "@/i18n/locale-keys";
 
-import SafetyScreen from "../../../../app/(tabs)/safety";
+import SafetyScreen from "../../../../app/safety";
 import { UsingAppSection } from "../components/UsingAppSection";
 import {
   USING_APP_GUIDES,
@@ -22,6 +22,7 @@ import {
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush, replace: jest.fn(), back: jest.fn() }),
+  Stack: Object.assign(() => null, { Screen: () => null }),
 }));
 let mockAccount: { status: string; userId: string | null } = {
   status: "anonymous",
@@ -142,7 +143,7 @@ describe("Using Bumelerze: section", () => {
 
     await press("using-app-tagBuilding-toggle");
     expect(
-      screen.getByText('Open "My account", then "My home", then "Tag my building".'),
+      screen.getByText('Open "Profile", then "My home", then "Tag my building".'),
     ).toBeTruthy();
   });
 
@@ -154,9 +155,7 @@ describe("Using Bumelerze: section", () => {
     expect(screen.getByText("بەکارهێنانی Bumelerze")).toBeTruthy();
     await press("using-app-tagBuilding-toggle");
     expect(
-      screen.getByText(
-        "«هەژمارەکەم» بکەرەوە، پاشان «ماڵەکەم»، پاشان «بیناکەم تۆمار بکە».",
-      ),
+      screen.getByText("«پڕۆفایل» بکەرەوە، پاشان «ماڵەکەم»، پاشان «بیناکەم تۆمار بکە»."),
     ).toBeTruthy();
     // Eastern Arabic-Indic digits in the step badges.
     // (decorative: hidden from screen readers, so query with hidden elements)
@@ -205,14 +204,14 @@ describe("Using Bumelerze: section", () => {
     expect(mockPush).toHaveBeenCalledWith("/home/new");
   });
 
-  it("Open My account goes to /my-data and See an example opens the 2017 hub", async () => {
+  it("Open Profile goes to the Profile tab and See an example opens the 2017 hub", async () => {
     await i18n.changeLanguage("en");
     await renderWithProviders(<UsingAppSection />);
 
     await press("using-app-account-toggle");
-    expect(screen.getByText("Open My account")).toBeTruthy();
+    expect(screen.getByText("Open Profile")).toBeTruthy();
     await press("using-app-action-openAccount");
-    expect(mockPush).toHaveBeenLastCalledWith("/my-data");
+    expect(mockPush).toHaveBeenLastCalledWith("/profile");
 
     await press("using-app-eventHub-toggle");
     await press("using-app-action-seeExample");
@@ -235,7 +234,7 @@ describe("Using Bumelerze: section", () => {
   });
 });
 
-describe("Using Bumelerze: placement on the Safety tab", () => {
+describe("Using Bumelerze: placement on the Safety guide", () => {
   afterEach(async () => {
     cleanup();
     await i18n.changeLanguage("en");

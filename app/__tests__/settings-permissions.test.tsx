@@ -7,8 +7,8 @@ import i18n from "@/i18n";
 import { usePrefsStore } from "@/features/onboarding";
 
 /**
- * Settings screen — the "My Data" link row (D26 item 7) and the
- * consolidated "Device permissions" section (wave brief Part 3: "ONE
+ * Settings screen — the Safety guide / handbook / My location rows (D79) and
+ * the consolidated "Device permissions" section (wave brief Part 3: "ONE
  * button ... location, sensor, and other permissions", no separate
  * per-permission ask). Mirrors `notification-settings-screen.test.tsx`'s
  * `expo-router` mock shape (`useFocusEffect` stood in as a plain
@@ -128,18 +128,19 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("navigates to /my-data when the My Data row is pressed", async () => {
+  it("opens the Safety guide from the first row, and no longer has a My account row", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    // "My account" since the owner's Settings rearrangement (feedback
-    // 2adfbbf7, 2026-09-27): the place the tagged building will live.
-    expect(screen.getByText("My account")).toBeTruthy();
-    // No HomeBase anywhere, and not a Settings section of its own.
-    expect(screen.queryByText("HomeBase")).toBeNull();
-    await fireEvent.press(screen.getByTestId("settings-row-account"));
+    // The Safety guide left the tab bar (D79); it is the first row here.
+    expect(screen.getByText("Safety guide")).toBeTruthy();
+    await fireEvent.press(screen.getByTestId("settings-row-safety"));
+    expect(mockPush).toHaveBeenCalledWith("/safety");
 
-    expect(mockPush).toHaveBeenCalledWith("/my-data");
+    // My account became the Profile tab: no row for it, no HomeBase either.
+    expect(screen.queryByText("My account")).toBeNull();
+    expect(screen.queryByTestId("settings-row-account")).toBeNull();
+    expect(screen.queryByText("HomeBase")).toBeNull();
   });
 
   it("navigates to /feedback when the Feedback row is pressed", async () => {
@@ -231,7 +232,7 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    expect(screen.getByText("Profile, badges, reports")).toBeTruthy();
+    expect(screen.getByText("Before, during and after an earthquake")).toBeTruthy();
     expect(screen.getByText("Design values for engineers")).toBeTruthy();
     expect(screen.getByText("Location and motion sensor")).toBeTruthy();
     expect(screen.getByText("Bugs and ideas")).toBeTruthy();
@@ -242,13 +243,17 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     expect(screen.queryByText(/restarts the app/)).toBeNull();
   });
 
-  it("keeps the three groups in the owner's order", async () => {
+  it("keeps the groups in order: guides, then this device (My location first), then help", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
-    for (const id of [
-      "settings-row-account",
+    const order = screen
+      .getAllByTestId(/^(settings-row-|account-location-row$)/)
+      .map((node) => node.props.testID as string);
+    expect(order).toEqual([
+      "settings-row-safety",
       "settings-row-handbook",
+      "account-location-row",
       "settings-row-notifications",
       "settings-row-permissions",
       "settings-row-language",
@@ -256,9 +261,8 @@ describe("Settings screen — grouped rows + Device permissions", () => {
       "settings-row-feedback",
       "settings-row-tour",
       "settings-row-onboarding",
-    ]) {
-      expect(screen.getByTestId(id)).toBeTruthy();
-    }
+    ]);
+    expect(screen.getByText("My location")).toBeTruthy();
     await fireEvent.press(screen.getByTestId("settings-row-handbook"));
     expect(mockPush).toHaveBeenCalledWith("/handbook");
     await fireEvent.press(screen.getByTestId("settings-row-notifications"));

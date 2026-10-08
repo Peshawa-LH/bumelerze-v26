@@ -1,32 +1,31 @@
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { ProfileByUsername } from "@/features/profile";
+import { useMySummary } from "@/features/account/use-my-summary";
+import { BadgesSection } from "@/features/badges";
 import { useTheme } from "@/theme";
 
 /**
- * Profile page `/u/[username]`, opened from a name or photo in the Event hub
- * or a shared link. Someone else's profile is the public view only; when the
- * username is the viewer's own, the same merged own page as the Profile tab
- * renders here (inside this stack screen, so Back returns to where the link
- * was tapped from). Every state has a friendly message: profiles not
- * available yet (no server, or the community migration is not applied), no
- * such account, and a failed load with Retry.
+ * "All badges": the owner's full collection (earned, locked, and the ranks
+ * that can be requested), opened from "See all (N)" on the Profile tab. The
+ * public profile only ever shows earned badges; this page is the one place
+ * the locked ones and "Request this badge" live. It reads only the person's
+ * own numbers, so it has nothing to show or ask about anyone else.
  */
-export default function PublicProfileScreen() {
-  const { username } = useLocalSearchParams<{ username: string }>();
+export default function BadgesScreen() {
   const { t } = useTranslation();
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const summary = useMySummary();
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.surface.base }]}>
       <Stack.Screen
         options={{
-          title: t("community.profile.title"),
+          title: t("myData.badges.title"),
           headerShown: true,
           headerLeft: () => <HeaderBackButton />,
         }}
@@ -40,7 +39,12 @@ export default function PublicProfileScreen() {
           },
         ]}
       >
-        <ProfileByUsername username={username} />
+        <BadgesSection
+          entries={summary.badges}
+          earned={summary.badgesEarned}
+          total={summary.badgesTotal}
+          defaultExpanded
+        />
       </ScrollView>
     </View>
   );

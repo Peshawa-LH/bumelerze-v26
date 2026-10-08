@@ -105,9 +105,9 @@ function UsingAppGuideCard({ guide }: { guide: UsingAppGuide }) {
         {
           id: action,
           tone: "primary",
-          label: t(USING_APP_OPEN_ACCOUNT_KEY, { account: t("myData.title") }),
+          label: t(USING_APP_OPEN_ACCOUNT_KEY, { account: t("tabs.profile") }),
           hint: undefined,
-          onPress: () => router.push("/my-data"),
+          onPress: () => router.push("/profile"),
         },
       ];
     }

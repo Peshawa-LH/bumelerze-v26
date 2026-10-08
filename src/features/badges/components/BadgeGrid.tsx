@@ -26,12 +26,19 @@ export const COLLAPSED_ROWS = 2;
  * ranks the person can ask for). Only two rows show until "Show all" opens
  * the rest in place (owner, 2026-10-08). Each badge opens the detail sheet.
  * Cells mirror in RTL with the row direction. */
-export function BadgeGrid({ entries }: { entries: readonly BadgeEntry[] }) {
+export function BadgeGrid({
+  entries,
+  defaultExpanded = false,
+}: {
+  entries: readonly BadgeEntry[];
+  /** Start with every badge showing (the full collection page). */
+  defaultExpanded?: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const router = useRouter();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const selected = entries.find((entry) => entry.key === selectedKey) ?? null;
   // Earned first, keeping the catalogue order inside each half (a stable
   // partition, so held ranks stay at the very front).

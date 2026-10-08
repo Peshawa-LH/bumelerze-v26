@@ -5,32 +5,58 @@ import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
 export interface ProfileCountsProps {
-  followers: number;
-  following: number;
-  comments: number;
-  helpful: number;
+  /** Felt reports. Null hides the cell (a person who hides their badges also
+   * keeps the report count to themselves). */
+  reports?: number | null;
+  comments?: number | null;
+  followers?: number | null;
+  following?: number | null;
   onOpenFollowers?: () => void;
   onOpenFollowing?: () => void;
 }
 
-/** Followers, Following, Comments, Helpful in one card. The first two open
- * their lists when the viewer is allowed to see them. */
+interface CountCell {
+  key: "reports" | "comments" | "followers" | "following";
+  label: string;
+  value: number | null;
+  onPress?: (() => void) | undefined;
+}
+
+/** Reports, Comments, Followers, Following in ONE row (D79); the same row for
+ * the owner and for visitors. A figure that is not known (null) leaves its
+ * cell out. Followers and Following open their lists when allowed. */
 export function ProfileCounts({
-  followers,
-  following,
-  comments,
-  helpful,
+  reports = null,
+  comments = null,
+  followers = null,
+  following = null,
   onOpenFollowers,
   onOpenFollowing,
 }: ProfileCountsProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const cells = [
-    { key: "followers", value: followers, onPress: onOpenFollowers },
-    { key: "following", value: following, onPress: onOpenFollowing },
-    { key: "comments", value: comments, onPress: undefined },
-    { key: "helpful", value: helpful, onPress: undefined },
-  ] as const;
+  const all: CountCell[] = [
+    { key: "reports", label: "myData.stats.reports", value: reports },
+    { key: "comments", label: "community.profile.comments", value: comments },
+    {
+      key: "followers",
+      label: "community.profile.followers",
+      value: followers,
+      onPress: onOpenFollowers,
+    },
+    {
+      key: "following",
+      label: "community.profile.following",
+      value: following,
+      onPress: onOpenFollowing,
+    },
+  ];
+  const cells = all.flatMap((cell) =>
+    cell.value === null ? [] : [{ ...cell, value: cell.value }],
+  );
+  if (cells.length === 0) {
+    return null;
+  }
 
   return (
     <View
@@ -42,7 +68,7 @@ export function ProfileCounts({
     >
       {cells.map((cell, index) => {
         const number = localizeDigits(String(cell.value), i18n.language);
-        const label = t(`community.profile.${cell.key}`);
+        const label = t(cell.label);
         const content = (
           <>
             <Text

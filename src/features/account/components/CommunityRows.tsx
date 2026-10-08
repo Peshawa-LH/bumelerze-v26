@@ -4,17 +4,18 @@ import { useTranslation } from "react-i18next";
 import { useAdminAccess } from "@/features/admin/queries";
 import { FollowRequestsSection } from "@/features/community/components/FollowRequestsSection";
 import { useFollowRequests } from "@/features/community/queries";
-import { profileHref } from "@/features/community/routes";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useAccount } from "../use-account";
 import { SettingsGroup } from "./SettingsGroup";
 import { SettingsRow } from "./SettingsRow";
 
 /**
- * The community part of My account, for signed-in accounts only: follow
- * requests to answer right here, then rows for the public profile, People
- * (requests and blocked accounts) and, for holders of an admin permission,
- * the admin tools. Every row is hidden when its feature is not available.
+ * The community part of the owner's Profile page, for signed-in accounts
+ * only: follow requests to answer right here, then the "People and requests"
+ * row (requests and blocked accounts) and, for holders of an admin
+ * permission, the admin tools. The row for "my public profile" is gone (D79):
+ * the page itself is the public profile. Every row is hidden when its
+ * feature is not available.
  */
 export function CommunityRows() {
   const { t, i18n } = useTranslation();
@@ -26,21 +27,12 @@ export function CommunityRows() {
   if (account.status !== "account") {
     return null;
   }
-  const username = account.profile?.username ?? null;
   const pending = requests.data?.length ?? 0;
 
   return (
     <>
       <FollowRequestsSection />
       <SettingsGroup testID="account-community-group">
-        {username ? (
-          <SettingsRow
-            icon="person-circle-outline"
-            label={t("community.myAccount.profile")}
-            onPress={() => router.push(profileHref(username))}
-            testID="account-public-profile-row"
-          />
-        ) : null}
         <SettingsRow
           icon="people-outline"
           label={t("community.myAccount.people")}

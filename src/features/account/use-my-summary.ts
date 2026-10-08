@@ -33,7 +33,7 @@ export interface MySummary {
   badgesTotal: number;
 }
 
-/** Stats strip + badge collection for the My account page, from the local
+/** Counts + badge collection for the owner's Profile page, from the local
  * queue merged with the cached/fresh server numbers. */
 export function useMySummary(): MySummary {
   const items = useFeltQueueItems();

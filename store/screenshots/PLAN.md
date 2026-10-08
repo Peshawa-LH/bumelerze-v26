@@ -9,16 +9,16 @@ that build exists.
 
 ## The 8 shots (screen → route → why it's in the set)
 
-| # | Screen | Route | Why it's here |
-|---|---|---|---|
-| 1 | Home feed, Sorani | `app/(tabs)/index.tsx` | The first thing every user sees; region-first feed is the core value prop — leads the set. |
-| 2 | Event detail + shakemap, Halabja event | `app/event/[id].tsx` (+ `ShakeMapSection`) | The single most differentiating feature (own shakemaps, not reposted USGS/EMSC) — use the Halabja-border event since it's the one shakemap output already web-verified against real data (PROJECT.md Phase 1 status), so the screenshot shows something scientifically real, not a placeholder. |
-| 3 | Felt-report tier 1 | `app/felt-report/index.tsx` / `step/[step].tsx` | The one-tap "did you feel it?" cartoon picker — the community-data feature, and the app's most panic-time-relevant screen. |
-| 4 | Catalog with filters | `app/catalog.tsx` | Shows depth (regional catalog, not just a live-feed toy) and the filter UI for the P3 (researcher) persona. |
-| 5 | Safety guidance | `app/(tabs)/safety.tsx` | Before/during/after content — the "why this app matters beyond curiosity" screen. |
-| 6 | Sensor (live seismometer) | `app/(tabs)/sensor.tsx` | Novel, hard-to-fake feature (real accelerometer trace) — good differentiator shot, no other regional app has this. |
-| 7 | Handbook | `app/handbook.tsx` | Engineering/researcher-depth content (P3 persona, coordinate → design PGA) — signals scientific seriousness to reviewers and power users. |
-| 8 | Historical view | `app/historical.tsx` | Kurdistan's own seismic history (Halabja 2017, Chamchamal 1958, etc.) — reinforces "built by people who know this region," ties to the trust story in the listing description. |
+| #   | Screen                                 | Route                                           | Why it's here                                                                                                                                                                                                                                                                                   |
+| --- | -------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Home feed, Sorani                      | `app/(tabs)/index.tsx`                          | The first thing every user sees; region-first feed is the core value prop — leads the set.                                                                                                                                                                                                      |
+| 2   | Event detail + shakemap, Halabja event | `app/event/[id].tsx` (+ `ShakeMapSection`)      | The single most differentiating feature (own shakemaps, not reposted USGS/EMSC) — use the Halabja-border event since it's the one shakemap output already web-verified against real data (PROJECT.md Phase 1 status), so the screenshot shows something scientifically real, not a placeholder. |
+| 3   | Felt-report tier 1                     | `app/felt-report/index.tsx` / `step/[step].tsx` | The one-tap "did you feel it?" cartoon picker — the community-data feature, and the app's most panic-time-relevant screen.                                                                                                                                                                      |
+| 4   | Catalog with filters                   | `app/catalog.tsx`                               | Shows depth (regional catalog, not just a live-feed toy) and the filter UI for the P3 (researcher) persona.                                                                                                                                                                                     |
+| 5   | Safety guidance                        | `app/safety.tsx` (Settings -> Safety guide)     | Before/during/after content — the "why this app matters beyond curiosity" screen.                                                                                                                                                                                                               |
+| 6   | Sensor (live seismometer)              | `app/(tabs)/sensor.tsx`                         | Novel, hard-to-fake feature (real accelerometer trace) — good differentiator shot, no other regional app has this.                                                                                                                                                                              |
+| 7   | Handbook                               | `app/handbook.tsx`                              | Engineering/researcher-depth content (P3 persona, coordinate → design PGA) — signals scientific seriousness to reviewers and power users.                                                                                                                                                       |
+| 8   | Historical view                        | `app/historical.tsx`                            | Kurdistan's own seismic history (Halabja 2017, Chamchamal 1958, etc.) — reinforces "built by people who know this region," ties to the trust story in the listing description.                                                                                                                  |
 
 This order is also the recommended store-gallery order (first 2-3 images matter
 most for conversion on both stores — lead with the feed + the shakemap, the two
@@ -30,6 +30,7 @@ strongest "this is real and different" signals).
 accepts uploads for (exact list depends on the certificate at submission time —
 **[VERIFY AT SUBMISSION]**, Apple periodically retires older required sizes).
 As of current guidance, plan to capture:
+
 - **6.9" / 6.7" display** (iPhone 16 Pro Max / 15 Pro Max class) — required.
 - **6.5" display** (iPhone 11 Pro Max / XS Max class) — still commonly required
   for back-compatibility with older active listings; confirm at submission.
@@ -43,6 +44,7 @@ is the practical approach for a solo pipeline — capture once at the largest
 required size per family, not once per literal device model.
 
 **Google Play Console** requires:
+
 - **Phone screenshots** — minimum 2, up to 8; 16:9 or 9:16 aspect, JPEG/PNG,
   min dimension 320px, max 3840px. All 8 shots above fit this in portrait.
 - **Feature graphic** — 1024×500, a separate marketing banner (not one of the
