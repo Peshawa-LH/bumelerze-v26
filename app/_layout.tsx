@@ -30,6 +30,7 @@ import {
   processQueue,
   reconcileSubmittedReports,
 } from "@/features/felt";
+import { useAlertPrefsAutoSync } from "@/features/alerts/prefs-sync";
 import { useReferencePlace } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
 import { touchPresenceOnce } from "@/features/presence";
@@ -75,6 +76,9 @@ export default function RootLayout() {
   const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);
   // Background reference place: the nearest main town to the device, else Hawler.
   useReferencePlace();
+  // Alert places on the server follow "My location" while alerts are on on
+  // this device (no request at all otherwise; migration 0062).
+  useAlertPrefsAutoSync();
   // "Take a quick tour" on the last onboarding screen: open the tour once
   // onboarding is complete and the main stack (which owns "tour") is active.
   useLaunchPendingTour(onboardingCompleted);

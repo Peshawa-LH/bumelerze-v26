@@ -114,7 +114,8 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
       canRestrict ||
       canViewPeople ||
       canManageFeedback ||
-      canModeratePhotos,
+      canModeratePhotos ||
+      (server && perms.has("alerts.test")),
     isLoading: perms.isLoading,
     has: (permission) => server && perms.has(permission),
   };

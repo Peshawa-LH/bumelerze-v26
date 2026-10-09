@@ -50,6 +50,11 @@ export const PERMISSIONS = [
   "photos.moderate",
   // Migration 0059: the word filter list and the busy-time switch (official).
   "filter.manage",
+  // Migration 0062: earthquake alerts behind the rollout switch. `alerts.test`
+  // (official, admin) sees Admin > Alerts and the tester alert settings;
+  // `alerts.manage` (the same ranks) changes who receives alerts.
+  "alerts.test",
+  "alerts.manage",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 

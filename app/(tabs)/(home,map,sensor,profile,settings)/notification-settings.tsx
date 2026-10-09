@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
+import { AlertsComingSoonNote, AlertsTesterPanel, useAlertAccess } from "@/features/alerts";
 import {
   gazetteerPlaceById,
   placeDetailLine,
@@ -33,8 +34,16 @@ import { useTabBarScroll } from "@/features/tab-bar";
  * magnitude/place pair for the mock. */
 const REHEARSAL_EXAMPLE_MAGNITUDE = 4.8;
 
+/**
+ * Notification Settings. Alerts are built but not rolled out (D83, migration
+ * 0062): everyone who is not a tester sees "Alerts are coming soon" above the
+ * same settings as before; testers (and everyone once the rollout is public)
+ * get the real controls instead: alerts on this device, near-me place, test
+ * alert. While the answer is loading, neither is shown.
+ */
 export default function NotificationSettingsScreen() {
   const tabBarScroll = useTabBarScroll();
+  const access = useAlertAccess();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -153,6 +162,12 @@ export default function NotificationSettingsScreen() {
           },
         ]}
       >
+        {access.isLoading ? null : access.enabled ? (
+          <AlertsTesterPanel access={access} />
+        ) : (
+          <AlertsComingSoonNote />
+        )}
+
         {permissionStatus === "denied" ? <PermissionDeniedRow /> : null}
 
         {/* Near Me section */}

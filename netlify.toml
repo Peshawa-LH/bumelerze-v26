@@ -30,6 +30,8 @@
   # secret, is never used client-side and never belongs in an EXPO_PUBLIC_ var.
   EXPO_PUBLIC_SUPABASE_URL = "https://bcgyxepgruwardhozvfq.supabase.co"
   EXPO_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I"
+  # Web push public key (alerts, migration 0062); see deploy-pages.yml.
+  EXPO_PUBLIC_VAPID_PUBLIC_KEY = "BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw"
 
 # SPA fallback: any in-app route (e.g. /app/event/abc123) serves the app
 # shell; Expo Router takes over client-side.

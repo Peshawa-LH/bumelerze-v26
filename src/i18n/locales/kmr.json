@@ -2492,7 +2492,10 @@
         "comment_unpin": "Şîroveyek ji serî rakir",
         "filter_term_add": "Peyvek li fîltreyê zêde kir",
         "filter_term_update": "Peyveke fîltreyê guhert",
-        "surge_set": "Nirxandina demên qerebalix guhert"
+        "surge_set": "Nirxandina demên qerebalix guhert",
+        "alerts_mode": "Guherand ka kî hişyariyan distîne",
+        "alert_tester_add": "Ceribandêrekî hişyariyan zêde kir",
+        "alert_tester_remove": "Ceribandêrekî hişyariyan rakir"
       },
       "undo": "Vegerîne"
     },
@@ -2828,6 +2831,38 @@
         "alreadyRejected": "Ev wêne jixwe hatiye redkirin.",
         "fileKept": "Hate redkirin, lê pel hê nehatiye jêbirin. Redkirî veke û dîsa biceribîne."
       }
+    },
+    "alerts": {
+      "title": "Hişyarî",
+      "hint": "Hişyariyên erdhejê tenê digihîjin ceribandêran heta ku tu «Her kes» hilbijêrî. Her kesê din hîn jî dibîne ku hişyarî di demek nêzîk de tên.",
+      "modeTitle": "Kî hişyariyan distîne",
+      "modes": {
+        "off": "Tu kes (rawestandî)",
+        "testers": "Tenê ceribandêr",
+        "public": "Her kes"
+      },
+      "confirmPublicTitle": "Hişyarî ji her kesî re werin şandin?",
+      "confirmPublicMessage": "Her kesê ku hişyariyan veke dê wan bistîne, û sepan êdî nabêje ku hişyarî di demek nêzîk de tên.",
+      "confirmPublic": "Ji her kesî re bişîne",
+      "confirmOffTitle": "Hemû hişyarî werin rawestandin?",
+      "confirmOffMessage": "Heta ku tu vê vegerînî, tu kes hişyariyên erdhejê nastîne. Hişyariyên ceribandinê hîn dixebitin.",
+      "confirmOff": "Rawestîne",
+      "cancel": "Betal bike",
+      "stats": "Cîhazên bi hişyariyên vekirî: {{devices}} · Li bendê: {{waiting}}",
+      "testersTitle": "Ceribandêr",
+      "testersEmpty": "Hîn ceribandêr tune ne.",
+      "byRank": "Bi rêzê",
+      "devicesCount": "Cîhaz: {{number}}",
+      "addLabel": "Ceribandêrekî zêde bike",
+      "addPlaceholder": "@navê bikarhêner",
+      "add": "Zêde bike",
+      "remove": "Rake",
+      "notFound": "Kesek bi wî navê bikarhêner tune.",
+      "runsTitle": "Şandinên dawî",
+      "runsEmpty": "Hîn şandin tune.",
+      "run": "Plankirî {{planned}} · şandî {{sent}} · bi ser neket {{failed}} · rawestandî {{suppressed}}",
+      "testTitle": "Ceribandin",
+      "testHint": "Di şanderê rastîn re derbas dibe, tenê ji cîhazên te re."
     }
   },
   "restrictions": {
@@ -3231,6 +3266,43 @@
     "hold": {
       "filter": "Fîltreya peyvan: «{{term}}» · {{kind}}",
       "surge": "Dema qerebalix: hesabê nû"
+    }
+  },
+  "alerts": {
+    "testerChip": "Ceribandêr",
+    "testerIntro": "Tu hişyariyên erdhejê diceribînî berî ku ji her kesî re vebin. Hişyarî tenê tên wan cîhazan ên ku tu li vir vedikî.",
+    "paused": "Şandin niha ji bo her kesî rawestandî ye.",
+    "device": {
+      "title": "Ev cîhaz",
+      "on": "Hişyarî ji bo vê cîhazê vekirî ne.",
+      "off": "Hişyarî li ser vê cîhazê girtî ne.",
+      "turnOn": "Hişyariyan li ser vê cîhazê veke",
+      "turnOff": "Li ser vê cîhazê bigire",
+      "working": "Kêliyekê...",
+      "unsupported": "Ev gerok nikare hişyariyan bistîne. Chrome, Edge, Firefox an Safari biceribîne.",
+      "iosHomeScreen": "Li ser iPhone û iPad, hişyarî tenê ji Ekrana Sereke dixebitin: Share bitikîne, paşê Add to Home Screen. Bumelerze ji îkona nû veke û vegere vir.",
+      "notConfigured": "Hişyarî di vê guhertoya sepanê de amade nebûne.",
+      "denied": "Agahdarî ji bo vê malperê hatine astengkirin. Di sazkariyên gerokê de destûrê bide, paşê dîsa biceribîne.",
+      "native": "Hişyarî di sepana telefonê de bi guhertoya wê ya bê re tên. Niha wan di sepana webê de biceribîne.",
+      "failed": "Ev neçû serî. Girêdana xwe kontrol bike û dîsa biceribîne.",
+      "tooMany": "Ev hesab jixwe li ser 10 cîhazan hişyarî vekirî ne. Pêşî yekê bigire."
+    },
+    "nearMeWhere": "«Li Nêzîkê Min» cihê te ji «Cihê min» bi kar tîne: {{place}}.",
+    "nearMeNoPlace": "«Li Nêzîkê Min» hewceyî cihê te ye. Di Sazkariyê de, «Cihê min» diyar bike.",
+    "saveFailed": "Sazkariyên te yên hişyariyê nehatin tomarkirin. Dema tu serhêl bî dê werin tomarkirin.",
+    "test": {
+      "button": "Hişyariyeke ceribandinê ji min re bişîne",
+      "sent": "Hişyariya ceribandinê hat şandin. Divê di nav yek du deqeyan de bigihîje.",
+      "tooSoon": "Berî ceribandina din deqeyekê li bendê bimîne.",
+      "noDevice": "Pêşî hişyariyan li ser vê cîhazê veke."
+    },
+    "push": {
+      "updateTitle": "Nûkirin: {{title}}",
+      "updateBody": "{{place}}. Berê wekî {{previous}} hatibû ragihandin.",
+      "summaryTitle": "Bêtir erdhej li herêmê",
+      "summaryBody": "Erdhejên piçûktir piştî hişyariya te ya dawî: {{count}}. Ya herî mezin: {{magnitude}}, {{place}}.",
+      "testTitle": "Hişyariya ceribandinê",
+      "testBody": "Ev ceribandinek ji Bumelerze ye. Tu erdhej çênebû."
     }
   }
 }

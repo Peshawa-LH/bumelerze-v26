@@ -122,6 +122,10 @@ export const ACTIVITY_ACTIONS = [
   { action: "filter_term_add", content: false },
   { action: "filter_term_update", content: false },
   { action: "surge_set", content: false },
+  // Migration 0062: the alert rollout and its testers (official, admin).
+  { action: "alerts_mode", content: false },
+  { action: "alert_tester_add", content: false },
+  { action: "alert_tester_remove", content: false },
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number]["action"];
 

@@ -173,6 +173,16 @@ export function AdminContent({
           ) : null}
         </SettingsGroup>
       ) : null}
+      {access.has("alerts.test") ? (
+        <SettingsGroup testID="admin-alerts-group">
+          <SettingsRow
+            icon="notifications-outline"
+            label={t("admin.alerts.title")}
+            onPress={() => router.push("/admin/alerts")}
+            testID="admin-alerts-row"
+          />
+        </SettingsGroup>
+      ) : null}
       {access.has("filter.manage") ? (
         <SettingsGroup testID="admin-filter-group">
           <SettingsRow

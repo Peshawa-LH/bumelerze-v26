@@ -62,6 +62,10 @@ jobs:
           # ship-in-the-client reasoning as the anon key above; restrict it
           # to our origins in the MapTiler dashboard, not by hiding it.
           EXPO_PUBLIC_MAPTILER_KEY: u55zrEViEes3KunGwdnn
+          # Web push (earthquake alerts, migration 0062): the PUBLIC half of
+          # the VAPID key pair, which browsers need to subscribe. Public by
+          # design; the private half is an Edge Function secret only.
+          EXPO_PUBLIC_VAPID_PUBLIC_KEY: BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw
         run: npx expo export --platform web --output-dir pages-dist/app
       - name: Assemble site (website at root, app under /app, SPA 404 fallback)
         run: |

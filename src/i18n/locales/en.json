@@ -2492,7 +2492,10 @@
         "comment_unpin": "Unpinned a comment",
         "filter_term_add": "Added a filter word",
         "filter_term_update": "Changed a filter word",
-        "surge_set": "Changed busy-time review"
+        "surge_set": "Changed busy-time review",
+        "alerts_mode": "Changed who receives alerts",
+        "alert_tester_add": "Added an alert tester",
+        "alert_tester_remove": "Removed an alert tester"
       },
       "undo": "Undo"
     },
@@ -2828,6 +2831,38 @@
         "alreadyRejected": "This photo was already rejected.",
         "fileKept": "Rejected, but the file could not be deleted yet. Open Rejected and try again."
       }
+    },
+    "alerts": {
+      "title": "Alerts",
+      "hint": "Earthquake alerts reach testers only until you choose Everyone. Everyone else still sees that alerts are coming soon.",
+      "modeTitle": "Who receives alerts",
+      "modes": {
+        "off": "Nobody (paused)",
+        "testers": "Testers only",
+        "public": "Everyone"
+      },
+      "confirmPublicTitle": "Send alerts to everyone?",
+      "confirmPublicMessage": "Everyone who turns on alerts will receive them, and the app stops saying that alerts are coming soon.",
+      "confirmPublic": "Send to everyone",
+      "confirmOffTitle": "Pause all alerts?",
+      "confirmOffMessage": "Nobody will receive earthquake alerts until you switch this back. Test alerts still work.",
+      "confirmOff": "Pause",
+      "cancel": "Cancel",
+      "stats": "Devices with alerts on: {{devices}} · Waiting: {{waiting}}",
+      "testersTitle": "Testers",
+      "testersEmpty": "No testers yet.",
+      "byRank": "By rank",
+      "devicesCount": "Devices: {{number}}",
+      "addLabel": "Add a tester",
+      "addPlaceholder": "@username",
+      "add": "Add",
+      "remove": "Remove",
+      "notFound": "No person with that username.",
+      "runsTitle": "Recent runs",
+      "runsEmpty": "No runs yet.",
+      "run": "Planned {{planned}} · sent {{sent}} · failed {{failed}} · held back {{suppressed}}",
+      "testTitle": "Test",
+      "testHint": "Goes through the real sender to your own devices only."
     }
   },
   "restrictions": {
@@ -3231,6 +3266,43 @@
     "hold": {
       "filter": "Word filter: “{{term}}” · {{kind}}",
       "surge": "Busy time: new account"
+    }
+  },
+  "alerts": {
+    "testerChip": "Tester",
+    "testerIntro": "You are testing earthquake alerts before they open to everyone. Alerts come only to the devices you turn on here.",
+    "paused": "Sending is paused for everyone right now.",
+    "device": {
+      "title": "This device",
+      "on": "Alerts are on for this device.",
+      "off": "Alerts are off on this device.",
+      "turnOn": "Turn on alerts on this device",
+      "turnOff": "Turn off on this device",
+      "working": "One moment...",
+      "unsupported": "This browser cannot receive alerts. Try Chrome, Edge, Firefox or Safari.",
+      "iosHomeScreen": "On iPhone and iPad, alerts work only from the Home Screen: tap Share, then Add to Home Screen. Open Bumelerze from the new icon and come back here.",
+      "notConfigured": "Alerts are not set up in this version of the app.",
+      "denied": "Notifications are blocked for this site. Allow them in the browser settings, then try again.",
+      "native": "Alerts in the phone app come with its next version. For now, test them in the web app.",
+      "failed": "That did not work. Check your connection and try again.",
+      "tooMany": "This account already has alerts on 10 devices. Turn one off first."
+    },
+    "nearMeWhere": "Near me uses your place from My location: {{place}}.",
+    "nearMeNoPlace": "Near me needs your place. Set it in Settings, My location.",
+    "saveFailed": "Your alert settings were not saved. They will be saved when you are online.",
+    "test": {
+      "button": "Send me a test alert",
+      "sent": "Test alert sent. It should arrive within a minute or two.",
+      "tooSoon": "Wait a minute before the next test.",
+      "noDevice": "Turn on alerts on this device first."
+    },
+    "push": {
+      "updateTitle": "Update: {{title}}",
+      "updateBody": "{{place}}. Earlier reported as {{previous}}.",
+      "summaryTitle": "More earthquakes in the area",
+      "summaryBody": "Smaller earthquakes since your last alert: {{count}}. Largest: {{magnitude}}, {{place}}.",
+      "testTitle": "Test alert",
+      "testBody": "This is a test from Bumelerze. No earthquake happened."
     }
   }
 }

@@ -192,6 +192,24 @@ describe("AdminContent", () => {
     expect(screen.queryByTestId("admin-feedback-row")).toBeNull();
   });
 
+  it("shows the Alerts row with alerts.test (migration 0062)", async () => {
+    givePermissions(["comments.moderate", "alerts.test"]);
+    await renderWithProviders(
+      <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+    );
+    await fireEvent.press(await screen.findByTestId("admin-alerts-row"));
+    expect(mockPush).toHaveBeenCalledWith("/admin/alerts");
+  });
+
+  it("has no Alerts row without alerts.test", async () => {
+    givePermissions(["comments.moderate"]);
+    await renderWithProviders(
+      <AdminContent transport={makeAdminTransport()} hubTransport={mockHub} />,
+    );
+    expect(await screen.findByTestId("admin-queue")).toBeTruthy();
+    expect(screen.queryByTestId("admin-alerts-row")).toBeNull();
+  });
+
   it("shows a moderator the queue and reports, but no rank badges and no Remove", async () => {
     givePermissions(["comments.moderate"]);
     await renderWithProviders(
