@@ -1,0 +1,36 @@
+<!doctype html>
+{{@translationMarker}}<html lang="{{@lang}}" dir="{{@dir}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{@title}}</title>
+<meta name="description" content="{{@description}}">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#071d2b" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="{{@canonical}}">
+{{>hreflang}}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{=brand}}">
+<meta property="og:title" content="{{@title}}">
+<meta property="og:description" content="{{@description}}">
+<meta property="og:url" content="{{@canonical}}">
+<meta property="og:image" content="{{@siteUrl}}og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{=ui.og_alt}}">
+<meta property="og:locale" content="{{@ogLocale}}">
+{{>ogLocaleAlternates}}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{@title}}">
+<meta name="twitter:description" content="{{@description}}">
+<meta name="twitter:image" content="{{@siteUrl}}og-image.jpg">
+<link rel="icon" href="{{@root}}favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="{{@root}}brand/bumelerze-favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="{{@root}}brand/bumelerze-favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="{{@root}}brand/bumelerze-favicon-16.png">
+<link rel="apple-touch-icon" href="{{@root}}brand/bumelerze-app-icon-square-256.png">
+<link rel="preload" href="{{@root}}fonts/vazirmatn-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{@root}}style.css?v={{@cssHash}}">
+<script src="{{@root}}site.js?v={{@jsHash}}" defer></script>
+</head>

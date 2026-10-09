@@ -1,0 +1,420 @@
+[
+ {
+  "id": "erbil",
+  "names": {
+   "en": "Hawler",
+   "ckb": "هەولێر",
+   "kmr": "Hewlêr",
+   "ar": "أربيل"
+  },
+  "lat": 36.19,
+  "lon": 44.01
+ },
+ {
+  "id": "slemani",
+  "names": {
+   "en": "Slemani",
+   "ckb": "سلێمانی",
+   "kmr": "Silêmanî",
+   "ar": "السليمانية"
+  },
+  "lat": 35.56,
+  "lon": 45.43
+ },
+ {
+  "id": "duhok",
+  "names": {
+   "en": "Duhok",
+   "ckb": "دهۆک",
+   "kmr": "Dihok",
+   "ar": "دهوك"
+  },
+  "lat": 36.87,
+  "lon": 42.99
+ },
+ {
+  "id": "halabja",
+  "names": {
+   "en": "Halabja",
+   "ckb": "هەڵەبجە",
+   "kmr": "Helebce",
+   "ar": "حلبجة"
+  },
+  "lat": 35.18,
+  "lon": 45.98
+ },
+ {
+  "id": "zakho",
+  "names": {
+   "en": "Zakho",
+   "ckb": "زاخۆ",
+   "kmr": "Zaxo",
+   "ar": "زاخو"
+  },
+  "lat": 37.14,
+  "lon": 42.68
+ },
+ {
+  "id": "soran",
+  "names": {
+   "en": "Soran",
+   "ckb": "سۆران",
+   "kmr": "Soran",
+   "ar": "سوران"
+  },
+  "lat": 36.65,
+  "lon": 44.54
+ },
+ {
+  "id": "ranya",
+  "names": {
+   "en": "Ranya",
+   "ckb": "ڕانیە",
+   "kmr": "Ranya",
+   "ar": "رانية"
+  },
+  "lat": 36.25,
+  "lon": 44.89
+ },
+ {
+  "id": "koya",
+  "names": {
+   "en": "Koya",
+   "ckb": "کۆیە",
+   "kmr": "Koya",
+   "ar": "كوية"
+  },
+  "lat": 36.08,
+  "lon": 44.63
+ },
+ {
+  "id": "kalar",
+  "names": {
+   "en": "Kalar",
+   "ckb": "کەلار",
+   "kmr": "Kelar",
+   "ar": "كلار"
+  },
+  "lat": 34.62,
+  "lon": 45.32
+ },
+ {
+  "id": "chamchamal",
+  "names": {
+   "en": "Chamchamal",
+   "ckb": "چەمچەماڵ",
+   "kmr": "Çemçemal",
+   "ar": "جمجمال"
+  },
+  "lat": 35.53,
+  "lon": 44.83
+ },
+ {
+  "id": "akre",
+  "names": {
+   "en": "Akre",
+   "ckb": "ئاکرێ",
+   "kmr": "Akrê",
+   "ar": "عقرة"
+  },
+  "lat": 36.75,
+  "lon": 43.89
+ },
+ {
+  "id": "bardarash",
+  "names": {
+   "en": "Bardarash",
+   "ckb": "بەردەرەش",
+   "kmr": "Berdereş",
+   "ar": "بردرش"
+  },
+  "lat": 36.5,
+  "lon": 43.55
+ },
+ {
+  "id": "dukan",
+  "names": {
+   "en": "Dukan",
+   "ckb": "دووکان",
+   "kmr": "Dukan",
+   "ar": "دوكان"
+  },
+  "lat": 35.95,
+  "lon": 44.95
+ },
+ {
+  "id": "darbandikhan",
+  "names": {
+   "en": "Darbandikhan",
+   "ckb": "دەربەندیخان",
+   "kmr": "Derbendîxan",
+   "ar": "دربنديخان"
+  },
+  "lat": 35.13,
+  "lon": 45.72
+ },
+ {
+  "id": "penjwen",
+  "names": {
+   "en": "Penjwen",
+   "ckb": "پەنجوێن",
+   "kmr": "Pencwîn",
+   "ar": "بنجوين"
+  },
+  "lat": 35.62,
+  "lon": 46.2
+ },
+ {
+  "id": "qaladze",
+  "names": {
+   "en": "Qaladze",
+   "ckb": "قەڵادزێ",
+   "kmr": "Qeladizê",
+   "ar": "قلادزة"
+  },
+  "lat": 36.18,
+  "lon": 45.13
+ },
+ {
+  "id": "rawanduz",
+  "names": {
+   "en": "Rawanduz",
+   "ckb": "ڕەواندز",
+   "kmr": "Rewandiz",
+   "ar": "راوندوز"
+  },
+  "lat": 36.61,
+  "lon": 44.52
+ },
+ {
+  "id": "amedi",
+  "names": {
+   "en": "Amedi",
+   "ckb": "ئامێدی",
+   "kmr": "Amêdî",
+   "ar": "العمادية"
+  },
+  "lat": 37.09,
+  "lon": 43.49
+ },
+ {
+  "id": "kirkuk",
+  "names": {
+   "en": "Kirkuk",
+   "ckb": "کەرکووک",
+   "kmr": "Kerkûk",
+   "ar": "كركوك"
+  },
+  "lat": 35.47,
+  "lon": 44.39
+ },
+ {
+  "id": "khanaqin",
+  "names": {
+   "en": "Khanaqin",
+   "ckb": "خانەقین",
+   "kmr": "Xaneqîn",
+   "ar": "خانقين"
+  },
+  "lat": 34.36,
+  "lon": 45.39
+ },
+ {
+  "id": "kifri",
+  "names": {
+   "en": "Kifri",
+   "ckb": "کفری",
+   "kmr": "Kifrî",
+   "ar": "كفري"
+  },
+  "lat": 34.7,
+  "lon": 44.97
+ },
+ {
+  "id": "sinjar",
+  "names": {
+   "en": "Sinjar",
+   "ckb": "شنگال",
+   "kmr": "Şengal",
+   "ar": "سنجار"
+  },
+  "lat": 36.32,
+  "lon": 41.88
+ },
+ {
+  "id": "mosul",
+  "names": {
+   "en": "Mosul",
+   "ckb": "موسڵ",
+   "kmr": "Mûsil",
+   "ar": "الموصل"
+  },
+  "lat": 36.34,
+  "lon": 43.13
+ },
+ {
+  "id": "baghdad",
+  "names": {
+   "en": "Baghdad",
+   "ckb": "بەغدا",
+   "kmr": "Bexda",
+   "ar": "بغداد"
+  },
+  "lat": 33.31,
+  "lon": 44.36
+ },
+ {
+  "id": "javanrud",
+  "names": {
+   "en": "Javanrud",
+   "ckb": "جوانڕۆ",
+   "kmr": "Cewanro",
+   "ar": "جوانرود"
+  },
+  "lat": 34.8,
+  "lon": 46.49
+ },
+ {
+  "id": "kermanshah",
+  "names": {
+   "en": "Kermanshah",
+   "ckb": "کرماشان",
+   "kmr": "Kirmaşan",
+   "ar": "كرمانشاه"
+  },
+  "lat": 34.31,
+  "lon": 47.06
+ },
+ {
+  "id": "sarpol-e-zahab",
+  "names": {
+   "en": "Sarpol-e Zahab",
+   "ckb": "سەرپێڵزەهاو",
+   "kmr": "Serpêlê Zehab",
+   "ar": "سرپل ذهاب"
+  },
+  "lat": 34.46,
+  "lon": 45.86
+ },
+ {
+  "id": "qasr-e-shirin",
+  "names": {
+   "en": "Qasr-e Shirin",
+   "ckb": "قەسری شیرین",
+   "kmr": "Qesra Şîrîn",
+   "ar": "قصر شيرين"
+  },
+  "lat": 34.51,
+  "lon": 45.58
+ },
+ {
+  "id": "paveh",
+  "names": {
+   "en": "Paveh",
+   "ckb": "پاوە",
+   "kmr": "Pawe",
+   "ar": "باوة"
+  },
+  "lat": 35.05,
+  "lon": 46.36
+ },
+ {
+  "id": "marivan",
+  "names": {
+   "en": "Marivan",
+   "ckb": "مەریوان",
+   "kmr": "Merîwan",
+   "ar": "مريوان"
+  },
+  "lat": 35.52,
+  "lon": 46.17
+ },
+ {
+  "id": "baneh",
+  "names": {
+   "en": "Baneh",
+   "ckb": "بانە",
+   "kmr": "Banê",
+   "ar": "بانه"
+  },
+  "lat": 35.99,
+  "lon": 45.89
+ },
+ {
+  "id": "saqqez",
+  "names": {
+   "en": "Saqqez",
+   "ckb": "سەقز",
+   "kmr": "Seqiz",
+   "ar": "سقز"
+  },
+  "lat": 36.25,
+  "lon": 46.28
+ },
+ {
+  "id": "sanandaj",
+  "names": {
+   "en": "Sanandaj",
+   "ckb": "سنە",
+   "kmr": "Sine",
+   "ar": "سنندج"
+  },
+  "lat": 35.31,
+  "lon": 47
+ },
+ {
+  "id": "urmia",
+  "names": {
+   "en": "Urmia",
+   "ckb": "ورمێ",
+   "kmr": "Urmiye",
+   "ar": "أورميا"
+  },
+  "lat": 37.55,
+  "lon": 45.08
+ },
+ {
+  "id": "piranshahr",
+  "names": {
+   "en": "Piranshahr",
+   "ckb": "پیرانشار",
+   "kmr": "Pîranşar",
+   "ar": "بيرانشهر"
+  },
+  "lat": 36.7,
+  "lon": 45.14
+ },
+ {
+  "id": "hakkari",
+  "names": {
+   "en": "Hakkari",
+   "ckb": "هەکاری",
+   "kmr": "Hekarî",
+   "ar": "هكاري"
+  },
+  "lat": 37.57,
+  "lon": 43.74
+ },
+ {
+  "id": "sirnak",
+  "names": {
+   "en": "Şırnak",
+   "ckb": "شرنەخ",
+   "kmr": "Şirnex",
+   "ar": "شرناخ"
+  },
+  "lat": 37.52,
+  "lon": 42.46
+ },
+ {
+  "id": "cizre",
+  "names": {
+   "en": "Cizre",
+   "ckb": "جزیرە",
+   "kmr": "Cizîr",
+   "ar": "جزيرة ابن عمر"
+  },
+  "lat": 37.32,
+  "lon": 42.19
+ }
+]

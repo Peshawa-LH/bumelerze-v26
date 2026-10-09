@@ -1,0 +1,31 @@
+<main id="main" class="about">
+
+  <section class="about-hero" aria-labelledby="about-h1">
+    <div class="wrap">
+      <h1 id="about-h1">{{about.title}}</h1>
+      <div class="about-line" aria-hidden="true">{{>seismicLine}}</div>
+      <p class="lede">{{about.intro}}</p>
+      <p>{{about.why}}</p>
+    </div>
+  </section>
+
+  <section class="about-cards">
+    <div class="wrap about-grid">
+      <div class="about-card" aria-labelledby="channels-h">
+        <h2 id="channels-h">{{about.channels_title}}</h2>
+        <ul class="channels">
+          {{>channels}}
+        </ul>
+      </div>
+      <div class="about-card about-card--fake" aria-labelledby="fake-h">
+        <h2 id="fake-h"><svg class="shield" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5 4 5.5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10v-6z"/><path d="M12 8v5M12 16.2v.3"/></svg>{{about.fake_title}}</h2>
+        <ol class="fake-tips">
+          <li><span>{{about.fake_tip1}}</span></li>
+          <li><span>{{about.fake_tip2}}</span></li>
+          <li><span>{{about.fake_tip3}}</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+</main>

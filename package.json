@@ -76,6 +76,8 @@
     "format": "prettier --write .",
     "test": "jest",
     "generate:assets": "node scripts/generate-assets.js",
+    "build:site": "node scripts/build-website.mjs",
+    "build:site-assets": "node scripts/build-website-assets.mjs",
     "generate:building-pictograms": "node scripts/generate-building-pictograms.mjs && prettier --write src/features/building/pictograms.generated.ts",
     "postinstall": "node scripts/sync-maplibre-worker.js"
   },

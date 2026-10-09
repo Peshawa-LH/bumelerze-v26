@@ -1,0 +1,23 @@
+<a class="skip-link" href="#main">{{ui.skip}}</a>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand-link" href="index.html">
+      <picture>
+        <source srcset="{{@root}}brand/bumelerze-primary-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
+        <img class="brand-logo" src="{{@root}}brand/bumelerze-primary-horizontal.svg" alt="{{=brand}}" width="176" height="32">
+      </picture>
+    </a>
+    <div class="header-nav-group">
+      <nav class="site-nav" aria-label="{{=nav.aria}}">
+        {{>navLinks}}
+      </nav>
+      <details class="lang-menu">
+        <summary lang="{{@lang}}" title="{{=ui.language}}"><svg class="lang-globe" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg><span class="visually-hidden">{{ui.language}}: </span>{{@langName}}</summary>
+        <nav class="lang-switcher-inline" aria-label="{{=ui.language}}">
+          {{>langLinks}}
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
