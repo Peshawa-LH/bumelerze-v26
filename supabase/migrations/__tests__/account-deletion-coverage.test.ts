@@ -289,6 +289,32 @@ const MANIFEST: Record<string, Entry> = {
     handling: "unlink",
     why: "the admin who wrote it",
   },
+  // earthquake alerts (0062)
+  "push_subscriptions.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "this person's devices (push endpoints and tokens); their deliveries go with them",
+  },
+  "alert_testers.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "the alert tester allowlist",
+  },
+  "alert_testers.added_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who added the tester",
+  },
+  "alert_settings.updated_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who last changed the rollout",
+  },
+  "alert_queue.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "a test alert this person asked for",
+  },
 };
 
 interface Found {
