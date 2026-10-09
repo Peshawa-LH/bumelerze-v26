@@ -47,15 +47,55 @@ const MANIFEST: Record<string, Entry> = {
     why: "the message stays for the inbox, unlinked, without the contact",
   },
   // profile
-  "profiles.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.profiles", why: "the public profile" },
-  "profile_private.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.profile_private", why: "profession and consents" },
-  "user_roles.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.user_roles", why: "ranks" },
-  "user_roles.granted_by": { onDelete: "set null", handling: "unlink", why: "the admin who granted it; audit" },
-  "private_ranks.user_id": { onDelete: "cascade", handling: "cascade", why: "the private admin rank (0060)" },
-  "private_ranks.granted_by": { onDelete: "set null", handling: "unlink", why: "who granted it" },
-  "notification_subscriptions.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.notification_subscriptions", why: "push token and alert places" },
-  "guidelines_acceptance.user_id": { onDelete: "cascade", handling: "cascade", why: "the acceptance record" },
-  "app_presence.user_id": { onDelete: "cascade", handling: "cascade", why: "last seen, platform, version" },
+  "profiles.user_id": {
+    onDelete: "cascade",
+    handling: "erase",
+    inFunction: "delete from public.profiles",
+    why: "the public profile",
+  },
+  "profile_private.user_id": {
+    onDelete: "cascade",
+    handling: "erase",
+    inFunction: "delete from public.profile_private",
+    why: "profession and consents",
+  },
+  "user_roles.user_id": {
+    onDelete: "cascade",
+    handling: "erase",
+    inFunction: "delete from public.user_roles",
+    why: "ranks",
+  },
+  "user_roles.granted_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who granted it; audit",
+  },
+  "private_ranks.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "the private admin rank (0060)",
+  },
+  "private_ranks.granted_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "who granted it",
+  },
+  "notification_subscriptions.user_id": {
+    onDelete: "cascade",
+    handling: "erase",
+    inFunction: "delete from public.notification_subscriptions",
+    why: "push token and alert places",
+  },
+  "guidelines_acceptance.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "the acceptance record",
+  },
+  "app_presence.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "last seen, platform, version",
+  },
   // comments
   "event_comments.user_id": {
     onDelete: "set null",
@@ -63,22 +103,68 @@ const MANIFEST: Record<string, Entry> = {
     inFunction: "update public.event_comments c",
     why: "blanked (text and area wiped), the row stays as a placeholder",
   },
-  "comment_reactions.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.comment_reactions", why: "helpful marks" },
-  "comment_flags.user_id": { onDelete: "cascade", handling: "erase", inFunction: "delete from public.comment_flags", why: "reports the person made" },
+  "comment_reactions.user_id": {
+    onDelete: "cascade",
+    handling: "erase",
+    inFunction: "delete from public.comment_reactions",
+    why: "helpful marks",
+  },
+  "comment_flags.user_id": {
+    onDelete: "cascade",
+    handling: "erase",
+    inFunction: "delete from public.comment_flags",
+    why: "reports the person made",
+  },
   // posts and reports
-  "profile_posts.user_id": { onDelete: "cascade", handling: "cascade", why: "their posts" },
-  "profile_posts.removed_by": { onDelete: "set null", handling: "unlink", why: "the admin who removed it" },
-  "post_reports.reporter_id": { onDelete: "cascade", handling: "cascade", why: "reports the person made" },
+  "profile_posts.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "their posts",
+  },
+  "profile_posts.removed_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who removed it",
+  },
+  "post_reports.reporter_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "reports the person made",
+  },
   // profile P2 (0058)
-  "post_helpful.user_id": { onDelete: "cascade", handling: "cascade", why: "Helpful marks the person gave (marks on their posts go with the posts)" },
-  "profile_name_changes.user_id": { onDelete: "cascade", handling: "cascade", why: "name change history (limits, admins); also purged after 90 days" },
-  "profile_reports.reporter_id": { onDelete: "cascade", handling: "cascade", why: "reports the person made" },
-  "profile_reports.reported_id": { onDelete: "cascade", handling: "cascade", why: "reports about the person" },
+  "post_helpful.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "Helpful marks the person gave (marks on their posts go with the posts)",
+  },
+  "profile_name_changes.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "name change history (limits, admins); also purged after 90 days",
+  },
+  "profile_reports.reporter_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "reports the person made",
+  },
+  "profile_reports.reported_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "reports about the person",
+  },
   // people graph
   "follows.follower_id": { onDelete: "cascade", handling: "cascade", why: "follows" },
   "follows.followee_id": { onDelete: "cascade", handling: "cascade", why: "follows" },
-  "follow_undo.follower_id": { onDelete: "cascade", handling: "cascade", why: "one-minute undo memory" },
-  "follow_undo.followee_id": { onDelete: "cascade", handling: "cascade", why: "one-minute undo memory" },
+  "follow_undo.follower_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "one-minute undo memory",
+  },
+  "follow_undo.followee_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "one-minute undo memory",
+  },
   "blocks.blocker_id": { onDelete: "cascade", handling: "cascade", why: "blocks" },
   "blocks.blocked_id": { onDelete: "cascade", handling: "cascade", why: "blocks" },
   // homes
@@ -88,33 +174,121 @@ const MANIFEST: Record<string, Entry> = {
     inFunction: "delete from public.home_tags where tag_id = any (v_tags)",
     why: "homes the person owns are deleted (coordinates, answers, photo rows, members)",
   },
-  "home_members.user_id": { onDelete: "cascade", handling: "cascade", why: "memberships" },
-  "home_join_attempts.user_id": { onDelete: "cascade", handling: "cascade", why: "join rate limit" },
-  "home_surveys.user_id": { onDelete: "set null", handling: "unlink", why: "an answer given in somebody else's home stays with that home, unlinked" },
-  "home_photos.user_id": { onDelete: "set null", handling: "unlink", why: "a photo added to somebody else's home stays with that home, unlinked" },
-  "home_member_undo.user_id": { onDelete: "cascade", handling: "cascade", why: "10-minute memory of a removed member, for the owner's Undo" },
-  "home_member_undo.removed_by": { onDelete: "cascade", handling: "cascade", why: "the owner's own undo memory" },
+  "home_members.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "memberships",
+  },
+  "home_join_attempts.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "join rate limit",
+  },
+  "home_surveys.user_id": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "an answer given in somebody else's home stays with that home, unlinked",
+  },
+  "home_photos.user_id": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "a photo added to somebody else's home stays with that home, unlinked",
+  },
+  "home_member_undo.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "10-minute memory of a removed member, for the owner's Undo",
+  },
+  "home_member_undo.removed_by": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "the owner's own undo memory",
+  },
   // I'm safe (0057)
-  "safety_checkins.user_id": { onDelete: "cascade", handling: "cascade", why: "the person's check-ins (no location); also purged after 30 days" },
+  "safety_checkins.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "the person's check-ins (no location); also purged after 30 days",
+  },
   // activity, mutes (0061)
-  "activity_items.user_id": { onDelete: "cascade", handling: "cascade", why: "the person's activity list; also purged after 90 days" },
-  "activity_items.actor_id": { onDelete: "cascade", handling: "cascade", why: "rows telling others about something the person did go with the person" },
-  "mutes.muter_id": { onDelete: "cascade", handling: "cascade", why: "people the person muted" },
-  "mutes.muted_id": { onDelete: "cascade", handling: "cascade", why: "mutes of the person by others (never shown to them)" },
+  "activity_items.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "the person's activity list; also purged after 90 days",
+  },
+  "activity_items.actor_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "rows telling others about something the person did go with the person",
+  },
+  "mutes.muter_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "people the person muted",
+  },
+  "mutes.muted_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "mutes of the person by others (never shown to them)",
+  },
+  // word filter, busy times (0059)
+  "content_filter_terms.created_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who added a filter term; the term stays",
+  },
+  "content_holds.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "why the person's comment or post was held (moderators only)",
+  },
+  "moderation_settings.updated_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who switched busy-time review",
+  },
   // moderation and audit
-  "moderation_log.actor_id": { onDelete: "set null", handling: "unlink", why: "audit rows stay, unlinked" },
-  "moderation_log.target_user_id": { onDelete: "set null", handling: "unlink", why: "audit rows stay, unlinked" },
+  "moderation_log.actor_id": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "audit rows stay, unlinked",
+  },
+  "moderation_log.target_user_id": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "audit rows stay, unlinked",
+  },
   "moderation_evidence.author_id": {
     onDelete: "set null",
     handling: "erase",
     inFunction: "delete from public.moderation_evidence where author_id = v_uid",
     why: "purged now unless a restriction or appeal is active, then kept to its own expiry",
   },
-  "account_restrictions.user_id": { onDelete: "cascade", handling: "cascade", why: "restrictions on the person" },
-  "account_restrictions.created_by": { onDelete: "set null", handling: "unlink", why: "the admin who acted" },
-  "account_restrictions.lifted_by": { onDelete: "set null", handling: "unlink", why: "the admin who lifted" },
-  "admin_person_notes.user_id": { onDelete: "cascade", handling: "cascade", why: "admin notes about the person" },
-  "admin_person_notes.author_id": { onDelete: "set null", handling: "unlink", why: "the admin who wrote it" },
+  "account_restrictions.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "restrictions on the person",
+  },
+  "account_restrictions.created_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who acted",
+  },
+  "account_restrictions.lifted_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who lifted",
+  },
+  "admin_person_notes.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "admin notes about the person",
+  },
+  "admin_person_notes.author_id": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who wrote it",
+  },
 };
 
 interface Found {
@@ -141,7 +315,8 @@ function topLevelItems(body: string): string[] {
   return items.map((item) => item.trim()).filter(Boolean);
 }
 
-const REFERENCE = /references\s+auth\.users\s*\(\s*id\s*\)(?:\s+on\s+delete\s+(cascade|set null|restrict))?/i;
+const REFERENCE =
+  /references\s+auth\.users\s*\(\s*id\s*\)(?:\s+on\s+delete\s+(cascade|set null|restrict))?/i;
 
 /** Every column that references auth.users in any migration. */
 function foreignKeysToUsers(): Found[] {
@@ -151,7 +326,9 @@ function foreignKeysToUsers(): Found[] {
   const found: Found[] = [];
   for (const file of files) {
     const code = readCode(file);
-    for (const match of code.matchAll(/create table (?:if not exists )?public\.(\w+)\s*\(/gi)) {
+    for (const match of code.matchAll(
+      /create table (?:if not exists )?public\.(\w+)\s*\(/gi,
+    )) {
       const table = match[1] as string;
       let depth = 1;
       let i = (match.index ?? 0) + match[0].length;
@@ -168,7 +345,10 @@ function foreignKeysToUsers(): Found[] {
         const tableLevel = item.match(/^foreign key\s*\(\s*(\w+)\s*\)/i)?.[1];
         const name = column ?? tableLevel;
         if (name) {
-          found.push({ key: `${table}.${name}`, onDelete: ref[1]?.toLowerCase() ?? null });
+          found.push({
+            key: `${table}.${name}`,
+            onDelete: ref[1]?.toLowerCase() ?? null,
+          });
         }
       }
     }
@@ -190,10 +370,13 @@ function unreferencedPersonColumns(): string[] {
     .filter((name) => /^\d{4}_.*\.sql$/.test(name))
     .sort();
   const out: string[] = [];
-  const person = /^(user_id|owner_user_id|author_id|actor_id|target_user_id|reporter_id|reported_id|follower_id|followee_id|blocker_id|blocked_id|created_by|lifted_by|granted_by|removed_by)\s+uuid\b/i;
+  const person =
+    /^(user_id|owner_user_id|author_id|actor_id|target_user_id|reporter_id|reported_id|follower_id|followee_id|blocker_id|blocked_id|created_by|lifted_by|granted_by|removed_by)\s+uuid\b/i;
   for (const file of files) {
     const code = readCode(file);
-    for (const match of code.matchAll(/create table (?:if not exists )?public\.(\w+)\s*\(/gi)) {
+    for (const match of code.matchAll(
+      /create table (?:if not exists )?public\.(\w+)\s*\(/gi,
+    )) {
       const table = match[1] as string;
       let depth = 1;
       let i = (match.index ?? 0) + match[0].length;
@@ -251,7 +434,10 @@ describe("every column that points at a user is accounted for when the account i
   it("every 'erase' decision, and every unlink done by hand, is in the body of delete_my_account()", () => {
     for (const [key, entry] of Object.entries(MANIFEST)) {
       if (entry.inFunction) {
-        expect([key, deleteSource]).toEqual([key, expect.stringContaining(entry.inFunction)]);
+        expect([key, deleteSource]).toEqual([
+          key,
+          expect.stringContaining(entry.inFunction),
+        ]);
       }
       if (entry.handling === "erase") {
         expect([key, entry.inFunction !== undefined]).toEqual([key, true]);
