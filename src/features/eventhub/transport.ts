@@ -90,6 +90,10 @@ export const COMMENT_COLUMNS = [
   "created_at",
 ] as const;
 
+/** Read too from migration 0059 (the hub's pinned note). A server without it
+ * rejects the column, so the read is retried without it. */
+export const PINNED_COLUMN = "pinned_at";
+
 const commentRowSchema = z.object({
   comment_id: z.string(),
   event_id: z.string(),
@@ -101,6 +105,7 @@ const commentRowSchema = z.object({
   helpful_count: z.number().int().nonnegative(),
   reply_count: z.number().int().nonnegative(),
   created_at: z.string(),
+  pinned_at: z.string().nullable().optional(),
 });
 
 /** Rows that fail the contract are dropped, never thrown on: one odd row
@@ -119,6 +124,7 @@ export function parseCommentRows(rows: unknown): HubComment[] {
     if (Number.isNaN(createdAt)) {
       continue;
     }
+    const pinnedAt = parsed.data.pinned_at ? Date.parse(parsed.data.pinned_at) : NaN;
     comments.push({
       id: parsed.data.comment_id,
       eventId: parsed.data.event_id,
@@ -130,6 +136,7 @@ export function parseCommentRows(rows: unknown): HubComment[] {
       helpfulCount: parsed.data.helpful_count,
       replyCount: parsed.data.reply_count,
       createdAt,
+      pinnedAt: Number.isNaN(pinnedAt) ? null : pinnedAt,
     });
   }
   return comments;
@@ -308,12 +315,19 @@ export const SupabaseEventHubTransport: EventHubTransport = {
     if (!client) {
       return [];
     }
-    const { data, error } = await client
-      .from("event_comments")
-      .select(COMMENT_COLUMNS.join(", "))
-      .eq("event_id", eventUuid)
-      .order("created_at", { ascending: false })
-      .limit(HUB_COMMENT_LIMIT);
+    const read = (columns: string) =>
+      client
+        .from("event_comments")
+        .select(columns)
+        .eq("event_id", eventUuid)
+        .order("created_at", { ascending: false })
+        .limit(HUB_COMMENT_LIMIT);
+    let { data, error } = await read([...COMMENT_COLUMNS, PINNED_COLUMN].join(", "));
+    // 42703: the column does not exist yet (a server before migration 0059).
+    // Comments must never disappear because of a missing migration.
+    if (error && (error.code === "42703" || /pinned_at/.test(error.message ?? ""))) {
+      ({ data, error } = await read(COMMENT_COLUMNS.join(", ")));
+    }
     if (error) {
       throw toHubError(error);
     }

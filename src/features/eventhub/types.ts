@@ -48,6 +48,8 @@ export const PERMISSIONS = [
   // and the felt photo queue (also moderators).
   "feedback.manage",
   "photos.moderate",
+  // Migration 0059: the word filter list and the busy-time switch (official).
+  "filter.manage",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -90,6 +92,9 @@ export interface HubComment {
   replyCount: number;
   /** UTC ms. */
   createdAt: number;
+  /** When the Bumelerze team pinned it to the top of the hub (UTC ms), or
+   * null (migration 0059; always null before it). One per hub. */
+  pinnedAt?: number | null;
 }
 
 export interface HubAuthor {

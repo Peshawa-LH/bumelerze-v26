@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
@@ -21,6 +22,7 @@ import { useTheme } from "@/theme";
 
 import { areaCityName } from "../area";
 import { isDeletedAccountComment } from "../deleted-account";
+import { isPinnedNote } from "../threads";
 import type { HubActions } from "../queries";
 import { HubError, type HubAuthor, type HubComment, type HubRole } from "../types";
 import { ActionButton } from "./ActionButton";
@@ -38,6 +40,14 @@ export interface CommentViewer {
   canRestrict?: boolean;
   /** May also suspend it (`accounts.suspend`). */
   canSuspend?: boolean;
+  /** May pin one comment to the top of the hub (`hubs.feature`, 0059). */
+  canPin?: boolean;
+}
+
+/** Pin and unpin (migration 0059), for viewers with `canPin`. */
+export interface PinActions {
+  pin: (commentId: string) => Promise<void>;
+  unpin: (commentId: string) => Promise<void>;
 }
 
 interface CommentItemProps {
@@ -57,6 +67,7 @@ interface CommentItemProps {
   isReply?: boolean;
   /** The viewer follows the author: a small "Following" mark. */
   isFollowing?: boolean;
+  pinActions?: PinActions;
 }
 
 type Mode = "idle" | "reporting" | "adminRemove";
@@ -74,6 +85,7 @@ export function CommentItem({
   onReply,
   isReply = false,
   isFollowing = false,
+  pinActions,
 }: CommentItemProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -99,6 +111,9 @@ export function CommentItem({
   );
   const isPending = comment.status === "pending";
   const isVisible = comment.status === "visible";
+  const isPinned = !isReply && isPinnedNote(comment);
+  const canPin =
+    viewer.canPin === true && pinActions !== undefined && !isReply && isVisible;
   const name = author?.displayName ?? t("eventHub.thread.anonymous");
   const city = areaCityName(comment.areaGeohash, locale);
 
@@ -282,6 +297,18 @@ export function CommentItem({
         avatar
       )}
       <View style={[styles.content, { gap: spacing[1] }]}>
+        {isPinned ? (
+          <View
+            style={[styles.headerRow, { gap: spacing[1] }]}
+            testID={`comment-pinned-${comment.id}`}
+          >
+            <Ionicons name="pin" size={14} color={colors.brand.primary} />
+            <Text style={[meta, { color: colors.text.primary, fontWeight: "600" }]}>
+              {t("eventHub.pin.pinned")}
+            </Text>
+            <RoleMark roles={PINNED_BY} explain />
+          </View>
+        ) : null}
         <View style={[styles.headerRow, { gap: spacing[2] }]}>
           {openProfile ? (
             <Pressable
@@ -296,7 +323,7 @@ export function CommentItem({
           ) : (
             nameText
           )}
-          <RoleMark roles={roles} />
+          <RoleMark roles={roles} explain />
           {isFollowing ? (
             <Text style={meta} testID={`comment-following-${comment.id}`}>
               {t("eventHub.thread.following")}
@@ -433,6 +460,18 @@ export function CommentItem({
                 testID={`limit-${comment.id}`}
               />
             ) : null}
+            {canPin && pinActions ? (
+              <ActionButton
+                label={isPinned ? t("eventHub.pin.unpin") : t("eventHub.pin.pin")}
+                disabled={busy}
+                onPress={() =>
+                  void run(() =>
+                    isPinned ? pinActions.unpin(comment.id) : pinActions.pin(comment.id),
+                  )
+                }
+                testID={`${isPinned ? "unpin" : "pin"}-${comment.id}`}
+              />
+            ) : null}
             {viewer.isModerator && isPending ? (
               <>
                 <ActionButton
@@ -475,6 +514,9 @@ export function CommentItem({
     </View>
   );
 }
+
+/** The pinned line carries the official mark: pins are the team's. */
+const PINNED_BY: readonly HubRole[] = [{ role: "official", orgName: null }];
 
 /** Long comments always wrap inside the column, also in browsers that size a
  * mixed-direction paragraph to its full line (owner screenshot, 2026-10-08):

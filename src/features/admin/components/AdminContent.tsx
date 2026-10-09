@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SettingsRow } from "@/features/account/components/SettingsRow";
+import type { ContentFilterTransport } from "@/features/contentfilter/transport";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { PostsTransport } from "@/features/posts/transport";
 import { useTheme } from "@/theme";
@@ -29,11 +30,14 @@ export function AdminContent({
   hubTransport,
   postsTransport,
   inboxTransport,
+  filterTransport,
 }: {
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
   postsTransport?: PostsTransport;
   inboxTransport?: InboxTransport;
+  /** Test seam for the word filter's hold notes and Approve (migration 0059). */
+  filterTransport?: ContentFilterTransport;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -52,6 +56,7 @@ export function AdminContent({
     ...(transport ? { transport } : {}),
     ...(hubTransport ? { hubTransport } : {}),
   };
+  const filter = filterTransport ? { filterTransport } : {};
 
   return (
     <ScrollView
@@ -123,7 +128,7 @@ export function AdminContent({
       ) : null}
       {access.canModerate ? (
         <>
-          <ModerationQueueSection canDelete={access.canDelete} {...shared} />
+          <ModerationQueueSection canDelete={access.canDelete} {...shared} {...filter} />
           <ReportedProfilesSection
             canRestrict={access.canRestrict}
             canSuspend={access.canSuspend}
@@ -135,6 +140,7 @@ export function AdminContent({
             canRestrict={access.canRestrict}
             canSuspend={access.canSuspend}
             {...shared}
+            {...filter}
             {...(postsTransport ? { postsTransport } : {})}
           />
         </>
@@ -165,6 +171,16 @@ export function AdminContent({
               testID="admin-activity-row"
             />
           ) : null}
+        </SettingsGroup>
+      ) : null}
+      {access.has("filter.manage") ? (
+        <SettingsGroup testID="admin-filter-group">
+          <SettingsRow
+            icon="funnel-outline"
+            label={t("contentFilter.title")}
+            onPress={() => router.push("/admin/filter")}
+            testID="admin-filter-row"
+          />
         </SettingsGroup>
       ) : null}
       {access.canGrant ? <RankBadgesSection {...shared} /> : null}

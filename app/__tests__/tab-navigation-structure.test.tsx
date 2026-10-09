@@ -90,6 +90,7 @@ const FULL_SCREEN = [
   "/account/password",
   "/admin",
   "/admin/activity",
+  "/admin/filter",
   "/admin/hidden",
   "/admin/limited",
   "/admin/feedback",

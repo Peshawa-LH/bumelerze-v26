@@ -918,7 +918,8 @@
         "unknown": "Nehat şandin. Dîsa biceribîne.",
         "restricted": "Hesabê te niha sînordar e. Nikarî binivîsî."
       },
-      "memoryPlaceholder": "Tu li ku bûyî û te çi hîs kir?"
+      "memoryPlaceholder": "Tu li ku bûyî û te çi hîs kir?",
+      "surgeNote": "Demeke qerebalix e: şîroveyên hesabên nû berî ku xuya bibin têne nirxandin."
     },
     "thread": {
       "empty": "Hê şîrove tune. Yekem be ku tiştê te hîs kir parve bike.",
@@ -982,6 +983,34 @@
       "level": "Asta {{level}}",
       "note": "Ji SHAKEmap û texmîna zirarê ya Bumelerze — otomatîk, nehatiye kontrolkirin",
       "noteReviewed": "Ji SHAKEmap û texmîna zirarê ya Bumelerze"
+    },
+    "pin": {
+      "pinned": "Ji aliyê Bumelerze ve li serî",
+      "pin": "Li serî bihêle",
+      "unpin": "Ji serî rake"
+    },
+    "roleInfo": {
+      "a11y": "{{role}}. Ev nîşan tê çi wateyê?",
+      "title": "Ev nîşan tê çi wateyê?",
+      "verifiedTitle": "Kê ew piştrast kir?",
+      "close": "Bigire",
+      "note": "Nîşan nayê wê wateyê ku Bumelerze bi her tiştê ku ev kes dinivîse razî ye.",
+      "meaning": {
+        "official": "Ev hesabê tîma Bumelerze bi xwe ye. Nîşeyên wê bi navê Bumelerze diaxivin.",
+        "moderator": "Rêveber dibe alîkar ku şîrove û nivîs ewle, bi rêz û li ser mijarê bimînin.",
+        "seismologist": "Ev kes di erdhejnasiyê de dixebite, zanista erdhejan.",
+        "professor": "Ev kes li zanîngehê ders dide.",
+        "researcher": "Ev kes li ser erdhejan an bandorên wan lêkolînê dike.",
+        "engineer": "Ev kes endezyar e, bo nimûne di warê avahî û strukturan de.",
+        "partner": "Rêxistineke ku bi Bumelerze re dixebite.",
+        "partnerNamed": "{{org}} rêxistineke ku bi Bumelerze re dixebite."
+      },
+      "verified": {
+        "official": "Ev hesabê sepanê bi xwe ye, ji aliyê tîma Bumelerze ve tê birêvebirin.",
+        "moderator": "Tîma Bumelerze ev kes hilbijart û nîşan da.",
+        "partner": "Tîma Bumelerze hevkarî pejirand û nîşan da.",
+        "credential": "Tîma Bumelerze berî dayîna nîşanê paşxaneya vî kesî kontrol kir."
+      }
     }
   },
   "felt": {
@@ -2402,7 +2431,9 @@
       "openPerson": "Kesê veke"
     },
     "posts": {
-      "title": "Nivîsên gilîkirî"
+      "title": "Nivîsên gilîkirî",
+      "reviewTitle": "Nivîsên ji bo nirxandinê",
+      "waiting": "Li benda nirxandinê"
     },
     "activity": {
       "title": "Çalakî",
@@ -2455,7 +2486,13 @@
         "profile_restore": "Nav an wêneyek vegerand",
         "feedback_status": "Peyameke nêrînê nû kir",
         "report_photo_approve": "Wêneyekî hestpêkirinê pejirand",
-        "report_photo_reject": "Wêneyekî hestpêkirinê red kir"
+        "report_photo_reject": "Wêneyekî hestpêkirinê red kir",
+        "post_approve": "Nivîsek pejirand",
+        "comment_pin": "Şîroveyek li serî danî",
+        "comment_unpin": "Şîroveyek ji serî rakir",
+        "filter_term_add": "Peyvek li fîltreyê zêde kir",
+        "filter_term_update": "Peyveke fîltreyê guhert",
+        "surge_set": "Nirxandina demên qerebalix guhert"
       },
       "undo": "Vegerîne"
     },
@@ -2912,7 +2949,8 @@
       "noLocation": "Tenê erdhej tê parvekirin. Cihê te qet nayê zêdekirin.",
       "submit": "Parve bike",
       "done": "Li profîla te hate parvekirin."
-    }
+    },
+    "pending": "Li benda nirxandinê ye. Heta ku rêveberek wê bipejirîne, tenê tu vê nivîsê dibînî."
   },
   "profile": {
     "onlyYou": "Tenê tu vê dibînî",
@@ -3121,6 +3159,78 @@
     },
     "event": {
       "near": "Erdhej li nêzî {{place}}"
+    }
+  },
+  "contentFilter": {
+    "title": "Fîltreya peyvan û demên qerebalix",
+    "hint": "Şîrove û nivîsên ku peyvek an hevokek ji vê lîsteyê tê de hebe, li şûna ku tavilê xuya bibin li benda nirxandinê dimînin. Tiştek nayê redkirin an jêbirin.",
+    "surge": {
+      "title": "Nirxandin di demên qerebalix de",
+      "explain": "Ji bo 24 saetan piştî erdhejeke xurt a herêmê ({{magnitude}} an zêdetir), an dema ku {{reports}} kes di saeta yekem de dibêjin ku wan ew hîs kiriye, şîrove û nivîsên hesabên ku ji {{days}} rojan nûtir in li benda nirxandinê dimînin.",
+      "activeMagnitude": "Niha vekirî ye: {{magnitude}}, {{place}}.",
+      "activeFelt": "Niha vekirî ye: {{number}} raporên hîskirinê, {{place}}.",
+      "activeManual": "Niha vekirî ye: bi destan hatiye vekirin.",
+      "offManual": "Girtî ye: bi destan hatiye girtin.",
+      "inactive": "Niha girtî ye: ne demeke qerebalix e.",
+      "until": "Heta {{time}}.",
+      "modes": {
+        "auto": "Xweber",
+        "on": "Ji bo 24 saetan veke",
+        "off": "Ji bo 24 saetan bigire"
+      }
+    },
+    "test": {
+      "title": "Ma ev dê were rawestandin?",
+      "label": "Nivîsa ji bo ceribandinê",
+      "placeholder": "Şîroveyek an nivîsek li vir bixe",
+      "button": "Biceribîne",
+      "held": "Dê li benda nirxandinê bimîne.",
+      "notHeld": "Dê tavilê xuya bibe.",
+      "matched": "Lihevhatin: {{terms}}",
+      "surgeNote": "Nirxandina demên qerebalix vekirî ye: şîroveyên hesabên nû her li bendê dimînin."
+    },
+    "add": {
+      "title": "Peyvek an hevokek zêde bike",
+      "hint": "Peyvek tenê bi peyvên tevahî re li hev tê. Hevok li her derê nivîsê li hev tê. Tîpên mezin, nîşanên tîpan û rastnivîsa tîpên erebî ne girîng in.",
+      "label": "Peyv an hevok",
+      "placeholder": "bo nimûne: sibê erdhej",
+      "lang": "Ziman",
+      "kind": "Cure",
+      "button": "Zêde bike",
+      "added": "Hat zêdekirin. Tavilê dixebite."
+    },
+    "list": {
+      "title": "Lîste",
+      "empty": "Hêj peyv tune.",
+      "draft": "Destpêkî: ji kerema xwe binirxîne",
+      "pattern": "Şablon",
+      "off": "Girtî",
+      "holds": "Di 30 rojan de {{number}} car rawestand",
+      "turnOff": "Bigire",
+      "turnOn": "Veke",
+      "keep": "Bihêle"
+    },
+    "kinds": {
+      "prediction": "Pêşbînî an gotegot",
+      "abuse": "Heqaret",
+      "spam": "Spam",
+      "other": "Yên din"
+    },
+    "langs": {
+      "en": "Îngilîzî",
+      "ckb": "Soranî",
+      "kmr": "Kurmancî",
+      "ar": "Erebî",
+      "any": "Her ziman"
+    },
+    "errors": {
+      "term_invalid": "2 heta 100 tîpan bi kar bîne.",
+      "lang_invalid": "Zimanek hilbijêre.",
+      "kind_invalid": "Cureyek hilbijêre."
+    },
+    "hold": {
+      "filter": "Fîltreya peyvan: «{{term}}» · {{kind}}",
+      "surge": "Dema qerebalix: hesabê nû"
     }
   }
 }

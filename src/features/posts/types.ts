@@ -1,6 +1,8 @@
 /** `profile_posts.status` (migration 0050). A removed post has no text: only
- * its author still sees it, as "Removed by moderators". */
-export type PostStatus = "visible" | "removed";
+ * its author still sees it, as "Removed by moderators". A pending post
+ * (migration 0059: the word filter or busy-time review held it) is seen only
+ * by its author, as "Waiting for review", until a moderator approves it. */
+export type PostStatus = "visible" | "pending" | "removed";
 
 /** `profile_posts.kind` (migration 0058): a text post, or an earthquake shared
  * to the profile (an event card with optional text). */

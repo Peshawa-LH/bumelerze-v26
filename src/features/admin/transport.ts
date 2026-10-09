@@ -174,6 +174,8 @@ const postSchema = z.object({
   report_count: z.coerce.number().catch(0),
   last_reason: z.string().nullable().optional(),
   last_note: z.string().nullable().optional(),
+  // migration 0059; a server before it lists reported (visible) posts only
+  status: z.enum(["visible", "pending"]).catch("visible").optional(),
 });
 
 export function parseReportedPosts(data: unknown): ReportedPost[] {
@@ -193,6 +195,7 @@ export function parseReportedPosts(data: unknown): ReportedPost[] {
         reportCount: parsed.data.report_count,
         lastReason: parsed.data.last_reason ?? null,
         lastNote: parsed.data.last_note ?? null,
+        status: parsed.data.status ?? "visible",
       });
     }
   }

@@ -212,6 +212,7 @@ export default function RootLayout() {
                 <Stack.Screen name="account/password" />
                 <Stack.Screen name="admin/index" />
                 <Stack.Screen name="admin/activity" />
+                <Stack.Screen name="admin/filter" />
                 <Stack.Screen name="admin/hidden" />
                 <Stack.Screen name="admin/limited" />
                 <Stack.Screen name="admin/people" />

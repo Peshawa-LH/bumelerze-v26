@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -14,6 +15,11 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAccount } from "@/features/account";
+import {
+  useContentFilterActions,
+  useSurgeActive,
+} from "@/features/contentfilter/queries";
+import type { ContentFilterTransport } from "@/features/contentfilter/transport";
 import { formatMagnitudeValue, type Event } from "@/features/events";
 import { useEventUuidResult } from "@/features/feltmap/use-event-uuid";
 import { placeLine } from "@/features/geo";
@@ -35,7 +41,7 @@ import type { EventHubTransport } from "../transport";
 import type { HubActions } from "../queries";
 import { HubError, type HubThread, type HubThreadData } from "../types";
 import { CommentComposer } from "./CommentComposer";
-import { CommentItem, type CommentViewer } from "./CommentItem";
+import { CommentItem, type CommentViewer, type PinActions } from "./CommentItem";
 import { HubImpactSection } from "./HubImpactSection";
 import { PrebunkCard } from "./PrebunkCard";
 import { HubSummaryCard } from "./HubSummaryCard";
@@ -45,6 +51,8 @@ interface EventHubContentProps {
   event: Event;
   /** Test seam; the real Supabase transport by default. */
   transport?: EventHubTransport;
+  /** Test seam for pins and the busy-time banner (migration 0059). */
+  filterTransport?: ContentFilterTransport;
 }
 
 /**
@@ -52,7 +60,11 @@ interface EventHubContentProps {
  * impact-at-a-glance donuts, a composer, and the threaded comments. Reads refresh every 30 s while the
  * screen is focused, and on pull-to-refresh.
  */
-export function EventHubContent({ event, transport }: EventHubContentProps) {
+export function EventHubContent({
+  event,
+  transport,
+  filterTransport,
+}: EventHubContentProps) {
   const tabBarScroll = useTabBarScroll();
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -77,6 +89,14 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
   const canDelete = !permissions.legacy && permissions.has("comments.delete");
   const canRestrict = !permissions.legacy && permissions.has("accounts.restrict");
   const canSuspend = !permissions.legacy && permissions.has("accounts.suspend");
+  const canPin = !permissions.legacy && permissions.has("hubs.feature");
+  const filterActions = useContentFilterActions(filterTransport);
+  const pinActions: PinActions = {
+    pin: filterActions.pinComment,
+    unpin: filterActions.unpinComment,
+  };
+  // Busy-time review (migration 0059): new accounts' comments wait for review.
+  const surge = useSurgeActive(filterTransport);
   // A restricted or suspended account reads but does not write (migration 0054).
   const mine = useMyRestriction();
   const limited = mine.isLimited;
@@ -119,8 +139,9 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
       canDelete,
       canRestrict,
       canSuspend,
+      canPin,
     }),
-    [viewerId, isAccount, isModerator, canDelete, canRestrict, canSuspend],
+    [viewerId, isAccount, isModerator, canDelete, canRestrict, canSuspend, canPin],
   );
   const threads = useMemo(
     () =>
@@ -190,6 +211,25 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
           <HubSummaryCard summary={summary.summary} />
           <HubImpactSection event={event} summary={summary.summary} />
           <RestrictionBanner />
+          {surge ? (
+            <View
+              testID="hub-surge-note"
+              style={[
+                styles.surgeNote,
+                {
+                  backgroundColor: colors.surface.raised,
+                  borderColor: colors.border.default,
+                  padding: spacing[3],
+                  gap: spacing[2],
+                },
+              ]}
+            >
+              <Ionicons name="time-outline" size={18} color={colors.text.secondary} />
+              <Text style={[bodyText, styles.flex]}>
+                {t("eventHub.composer.surgeNote")}
+              </Text>
+            </View>
+          ) : null}
           <CommentComposer
             isAccount={isAccount}
             disabled={limited}
@@ -256,6 +296,7 @@ export function EventHubContent({ event, transport }: EventHubContentProps) {
             viewer={viewer}
             nowMs={thread.dataUpdatedAt}
             actions={actions}
+            pinActions={canPin ? pinActions : undefined}
             limited={limited}
             onSubmitReply={postComment}
             isReplying={replyTo === item.root.id}
@@ -294,6 +335,7 @@ interface ThreadViewProps {
   viewer: CommentViewer;
   nowMs: number;
   actions: HubActions;
+  pinActions?: PinActions | undefined;
   /** The viewer's account is limited: reply boxes stay off. */
   limited: boolean;
   onSubmitReply: (input: { parentId: string | null; body: string }) => Promise<void>;
@@ -308,6 +350,7 @@ function ThreadView({
   viewer,
   nowMs,
   actions,
+  pinActions,
   limited,
   onSubmitReply,
   isReplying,
@@ -334,6 +377,7 @@ function ThreadView({
       actions={actions}
       isReply={isReply}
       {...(isReply ? {} : { onReply })}
+      {...(pinActions ? { pinActions } : {})}
     />
   );
 
@@ -361,6 +405,12 @@ function ThreadView({
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+  },
+  surgeNote: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    borderWidth: 1,
+    borderRadius: 12,
   },
   retry: {
     minHeight: 44,

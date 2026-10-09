@@ -127,8 +127,24 @@ describe("parseReportedPosts", () => {
         reportCount: 3,
         lastReason: "spam",
         lastNote: "ad for a shop",
+        // no status from a server before migration 0059: a reported post
+        status: "visible",
       },
     ]);
+  });
+
+  it("reads a post held for review (migration 0059)", () => {
+    const [row] = parseReportedPosts([
+      {
+        post_id: "p9",
+        author_id: "u1",
+        body: "quake tonight",
+        report_count: 0,
+        status: "pending",
+      },
+    ]);
+    expect(row?.status).toBe("pending");
+    expect(row?.reportCount).toBe(0);
   });
 
   it("is empty for an answer that is not a list", () => {

@@ -66,7 +66,7 @@ const rowSchema = z.object({
   post_id: z.string(),
   user_id: z.string(),
   body: z.string(),
-  status: z.enum(["visible", "removed"]),
+  status: z.enum(["visible", "pending", "removed"]),
   created_at: z.string(),
   // migration 0058; absent from the plain table read before it
   kind: z.enum(["text", "event"]).catch("text").optional(),

@@ -178,7 +178,7 @@ export function PublicProfileView({
             >
               {profile.displayName}
             </Text>
-            <RoleMark roles={profile.roles} size={20} />
+            <RoleMark roles={profile.roles} size={20} explain />
           </View>
           <Text
             testID="public-profile-username"

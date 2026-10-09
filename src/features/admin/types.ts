@@ -76,6 +76,9 @@ export interface ReportedPost {
   reportCount: number;
   lastReason: string | null;
   lastNote: string | null;
+  /** "pending": held by the word filter or busy-time review and waiting for
+   * approval (migration 0059); "visible": a published post with reports. */
+  status: "visible" | "pending";
 }
 
 /** Every action the activity log (`moderation_log`, migrations 0043-0052) can
@@ -111,6 +114,14 @@ export const ACTIVITY_ACTIONS = [
   { action: "feedback_status", content: false },
   { action: "report_photo_approve", content: true },
   { action: "report_photo_reject", content: true },
+  // Migration 0059: approving a held post and pinning are content actions;
+  // the word filter list and the busy-time switch are the official's.
+  { action: "post_approve", content: true },
+  { action: "comment_pin", content: true },
+  { action: "comment_unpin", content: true },
+  { action: "filter_term_add", content: false },
+  { action: "filter_term_update", content: false },
+  { action: "surge_set", content: false },
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number]["action"];
 

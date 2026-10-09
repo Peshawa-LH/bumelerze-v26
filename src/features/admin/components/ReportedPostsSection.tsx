@@ -4,6 +4,10 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { communityErrorText } from "@/features/community/error-text";
+import { HoldNote } from "@/features/contentfilter/components/HoldNote";
+import { useContentFilterActions, useHolds } from "@/features/contentfilter/queries";
+import type { ContentFilterTransport } from "@/features/contentfilter/transport";
+import type { ContentHold } from "@/features/contentfilter/types";
 import { ProfileLink } from "@/features/community/components/ProfileLink";
 import { profileHref } from "@/features/community/routes";
 import { formatUsername } from "@/features/community/username";
@@ -22,9 +26,10 @@ import { useAdminActions, useReportedPosts } from "../queries";
 import type { AdminTransport } from "../transport";
 import type { ReportedPost } from "../types";
 
-/** Profile posts readers reported: Open the author's profile, Remove (admins
- * with `posts.delete`) or Dismiss the reports. Hidden when there are none, or
- * before migration 0050 is applied. */
+/** Profile posts to review: posts held by the word filter or busy-time review
+ * (migration 0059; Approve, with the word that matched) and posts readers
+ * reported (Dismiss). Open the author's profile, Remove (admins with
+ * `posts.delete`). Hidden when there are none, or before migration 0050. */
 export function ReportedPostsSection({
   canRemove,
   canRestrict = false,
@@ -32,6 +37,7 @@ export function ReportedPostsSection({
   transport,
   hubTransport,
   postsTransport,
+  filterTransport,
 }: {
   canRemove: boolean;
   /** `accounts.restrict`: show "Limit account" on each row. */
@@ -41,13 +47,19 @@ export function ReportedPostsSection({
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
   postsTransport?: PostsTransport;
+  filterTransport?: ContentFilterTransport;
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const reports = useReportedPosts(true, transport);
   const actions = useAdminActions(transport, hubTransport, postsTransport);
+  const filterActions = useContentFilterActions(filterTransport);
 
   const rows = reports.data ?? [];
+  const pendingIds = rows
+    .filter((row) => row.status === "pending")
+    .map((row) => row.postId);
+  const holds = useHolds("post", pendingIds, true, filterTransport);
   if (rows.length === 0) {
     return null;
   }
@@ -57,7 +69,9 @@ export function ReportedPostsSection({
         accessibilityRole="header"
         style={[typography.h3, { color: colors.text.primary }]}
       >
-        {t("admin.posts.title")}
+        {rows.some((row) => row.status === "pending")
+          ? t("admin.posts.reviewTitle")
+          : t("admin.posts.title")}
       </Text>
       {rows.map((row) => (
         <ReportedPostItem
@@ -67,6 +81,8 @@ export function ReportedPostsSection({
           canRestrict={canRestrict}
           canSuspend={canSuspend}
           actions={actions}
+          holds={holds[row.postId]}
+          approve={() => filterActions.approvePost(row.postId)}
         />
       ))}
     </View>
@@ -79,12 +95,16 @@ function ReportedPostItem({
   canRestrict,
   canSuspend,
   actions,
+  holds,
+  approve,
 }: {
   row: ReportedPost;
   canRemove: boolean;
   canRestrict: boolean;
   canSuspend: boolean;
   actions: ReturnType<typeof useAdminActions>;
+  holds: ContentHold[] | undefined;
+  approve: () => Promise<void>;
 }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -151,16 +171,20 @@ function ReportedPostItem({
           </Text>
         ) : null}
       </ProfileLink>
-      <Text style={meta}>
+      <Text style={meta} testID={`reported-post-meta-${row.postId}`}>
         {[
-          t("admin.reports.count", {
-            number: localizeDigits(String(row.reportCount), i18n.language),
-          }),
+          row.status === "pending" ? t("admin.posts.waiting") : null,
+          row.reportCount > 0
+            ? t("admin.reports.count", {
+                number: localizeDigits(String(row.reportCount), i18n.language),
+              })
+            : null,
           row.lastReason ? reasonLabel(t, row.lastReason) : null,
         ]
           .filter(Boolean)
           .join(" · ")}
       </Text>
+      <HoldNote holds={holds} testID={`reported-post-hold-${row.postId}`} />
       <ReportNote note={row.lastNote} testID={`reported-post-note-${row.postId}`} />
       <Text
         style={{
@@ -196,6 +220,14 @@ function ReportedPostItem({
               testID={`reported-post-open-${row.postId}`}
             />
           ) : null}
+          {row.status === "pending" ? (
+            <ActionButton
+              label={t("eventHub.thread.approve")}
+              disabled={busy}
+              onPress={() => void run(approve)}
+              testID={`reported-post-approve-${row.postId}`}
+            />
+          ) : null}
           {canRemove ? (
             <ActionButton
               label={t("posts.remove")}
@@ -215,12 +247,14 @@ function ReportedPostItem({
               testID={`reported-post-limit-${row.postId}`}
             />
           ) : null}
-          <ActionButton
-            label={t("admin.reports.dismiss")}
-            disabled={busy}
-            onPress={() => void run(() => actions.dismissPostReports(row.postId))}
-            testID={`reported-post-dismiss-${row.postId}`}
-          />
+          {row.reportCount > 0 ? (
+            <ActionButton
+              label={t("admin.reports.dismiss")}
+              disabled={busy}
+              onPress={() => void run(() => actions.dismissPostReports(row.postId))}
+              testID={`reported-post-dismiss-${row.postId}`}
+            />
+          ) : null}
         </View>
       )}
       {errorText ? (

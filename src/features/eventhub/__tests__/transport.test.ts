@@ -107,8 +107,16 @@ describe("parsers", () => {
         helpfulCount: 2,
         replyCount: 1,
         createdAt: Date.parse("2026-10-04T10:00:00.000Z"),
+        pinnedAt: null,
       },
     ]);
+  });
+
+  it("reads the hub's pinned note time (migration 0059)", () => {
+    const [comment] = parseCommentRows([
+      { ...COMMENT_ROW, pinned_at: "2026-10-09T08:00:00.000Z" },
+    ]);
+    expect(comment?.pinnedAt).toBe(Date.parse("2026-10-09T08:00:00.000Z"));
   });
 
   it("returns [] for a non-array body", () => {
@@ -218,6 +226,30 @@ describe("reads", () => {
     const calls = callsOf("event_comments");
     expect(calls).toContainEqual(["eq", ["event_id", "event-uuid"]]);
     expect(calls).toContainEqual(["order", ["created_at", { ascending: false }]]);
+  });
+
+  it("asks for pinned_at, and reads again without it on a server before 0059", async () => {
+    let first = true;
+    const original = tableResults;
+    tableResults = {};
+    Object.defineProperty(tableResults, "event_comments", {
+      get() {
+        if (first) {
+          first = false;
+          return {
+            data: null,
+            error: { code: "42703", message: 'column "pinned_at" does not exist' },
+          };
+        }
+        return { data: [COMMENT_ROW], error: null };
+      },
+    });
+    const comments = await SupabaseEventHubTransport.fetchComments("event-uuid");
+    expect(comments).toHaveLength(1);
+    const selects = callsOf("event_comments").filter(([m]) => m === "select");
+    expect(String(selects[0]?.[1][0])).toContain("pinned_at");
+    expect(String(selects[1]?.[1][0])).not.toContain("pinned_at");
+    tableResults = original;
   });
 
   it("maps profiles by user id and chunks long id lists", async () => {

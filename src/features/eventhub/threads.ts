@@ -26,6 +26,17 @@ export function isCommentShown(
   return false;
 }
 
+/** The hub's pinned note: pinned by the Bumelerze team and visible. The
+ * server unpins a comment that stops being visible; this repeats the rule. */
+export function isPinnedNote(comment: HubComment): boolean {
+  return (
+    comment.pinnedAt !== undefined &&
+    comment.pinnedAt !== null &&
+    comment.parentId === null &&
+    comment.status === "visible"
+  );
+}
+
 export interface ThreadViewer {
   userId: string | null;
   isModerator: boolean;
@@ -37,8 +48,9 @@ export interface ThreadViewer {
 }
 
 /**
- * Flat rows -> threads. Top-level comments newest first, except that threads
- * started by people the viewer follows come before the rest (each group still
+ * Flat rows -> threads. Top-level comments newest first, except that the
+ * hub's pinned note (migration 0059) comes first of all, and threads started
+ * by people the viewer follows come before the rest (each group still
  * newest first); each one's replies
  * oldest first (a conversation reads top to bottom). Replies are one level
  * deep by construction (the server re-parents deeper ones), and a reply whose
@@ -56,6 +68,7 @@ export function buildThreads(
     following !== undefined && comment.userId !== null && following.has(comment.userId)
       ? 1
       : 0;
+  const pinned = (comment: HubComment) => (isPinnedNote(comment) ? 1 : 0);
   const muted = viewer.mutedIds;
   const isMuted = (comment: HubComment) =>
     muted !== undefined &&
@@ -67,7 +80,10 @@ export function buildThreads(
   );
   const roots = shown
     .filter((comment) => comment.parentId === null)
-    .sort((a, b) => followed(b) - followed(a) || b.createdAt - a.createdAt);
+    .sort(
+      (a, b) =>
+        pinned(b) - pinned(a) || followed(b) - followed(a) || b.createdAt - a.createdAt,
+    );
 
   const repliesByParent = new Map<string, HubComment[]>();
   for (const comment of shown) {

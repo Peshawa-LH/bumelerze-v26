@@ -4,6 +4,10 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { communityErrorText } from "@/features/community/error-text";
+import { HoldNote } from "@/features/contentfilter/components/HoldNote";
+import { useHolds } from "@/features/contentfilter/queries";
+import type { ContentFilterTransport } from "@/features/contentfilter/transport";
+import type { ContentHold } from "@/features/contentfilter/types";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
 import { ReportNote } from "@/features/reporting/ReportNote";
@@ -17,21 +21,28 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { AdminTransport } from "../transport";
 import type { QueueComment } from "../types";
 
-/** Comments waiting for review (new from anonymous installs, or flagged by
- * readers): Approve, Hide, and for admins Remove. */
+/** Comments waiting for review (new from anonymous installs, held by the word
+ * filter or busy-time review, or flagged by readers): Approve, Hide, and for
+ * admins Remove. A held comment says which word matched (migration 0059). */
 export function ModerationQueueSection({
   canDelete,
   transport,
   hubTransport,
+  filterTransport,
 }: {
   canDelete: boolean;
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
+  filterTransport?: ContentFilterTransport;
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const queue = useModerationQueue(true, transport);
   const actions = useAdminActions(transport, hubTransport);
+  const pendingIds = (queue.data ?? [])
+    .filter((comment) => comment.status === "pending")
+    .map((comment) => comment.id);
+  const holds = useHolds("comment", pendingIds, true, filterTransport);
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
@@ -59,6 +70,7 @@ export function ModerationQueueSection({
           <QueueItem
             key={comment.id}
             comment={comment}
+            holds={holds[comment.id]}
             actions={actions}
             canDelete={canDelete}
           />
@@ -70,10 +82,12 @@ export function ModerationQueueSection({
 
 function QueueItem({
   comment,
+  holds,
   actions,
   canDelete,
 }: {
   comment: QueueComment;
+  holds: ContentHold[] | undefined;
   actions: AdminActions;
   canDelete: boolean;
 }) {
@@ -147,6 +161,7 @@ function QueueItem({
         </Text>
       ) : null}
       <ReportNote note={comment.lastNote} testID={`queue-note-${comment.id}`} />
+      <HoldNote holds={holds} testID={`queue-hold-${comment.id}`} />
       <Text
         style={{
           color: colors.text.primary,

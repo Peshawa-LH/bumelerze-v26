@@ -918,7 +918,8 @@
         "unknown": "Couldn't post. Try again.",
         "restricted": "Your account is limited right now. You can't write."
       },
-      "memoryPlaceholder": "Where were you, and what did you feel?"
+      "memoryPlaceholder": "Where were you, and what did you feel?",
+      "surgeNote": "Busy time: comments from new accounts are reviewed before they appear."
     },
     "thread": {
       "empty": "No comments yet. Be the first to share what you felt.",
@@ -982,6 +983,34 @@
       "level": "Level {{level}}",
       "note": "From the Bumelerze SHAKEmap and damage estimate — automatic, not reviewed",
       "noteReviewed": "From the Bumelerze SHAKEmap and damage estimate"
+    },
+    "pin": {
+      "pinned": "Pinned by Bumelerze",
+      "pin": "Pin to top",
+      "unpin": "Unpin"
+    },
+    "roleInfo": {
+      "a11y": "{{role}}. What does this mark mean?",
+      "title": "What does this mark mean?",
+      "verifiedTitle": "Who verified it?",
+      "close": "Close",
+      "note": "A mark does not mean Bumelerze agrees with everything this person writes.",
+      "meaning": {
+        "official": "This is the Bumelerze team's own account. Its notes speak for Bumelerze.",
+        "moderator": "A moderator helps keep comments and posts safe, kind and on topic.",
+        "seismologist": "This person works in seismology, the science of earthquakes.",
+        "professor": "This person teaches at a university.",
+        "researcher": "This person does research on earthquakes or their effects.",
+        "engineer": "This person is an engineer, for example in buildings or structures.",
+        "partner": "An organisation that works with Bumelerze.",
+        "partnerNamed": "{{org}} is an organisation that works with Bumelerze."
+      },
+      "verified": {
+        "official": "It is the app's own account, run by the Bumelerze team.",
+        "moderator": "The Bumelerze team chose this person and gave the mark.",
+        "partner": "The Bumelerze team agreed the partnership and gave the mark.",
+        "credential": "The Bumelerze team checked this person's background before giving the mark."
+      }
     }
   },
   "felt": {
@@ -2402,7 +2431,9 @@
       "openPerson": "Open person"
     },
     "posts": {
-      "title": "Reported posts"
+      "title": "Reported posts",
+      "reviewTitle": "Posts to review",
+      "waiting": "Waiting for review"
     },
     "activity": {
       "title": "Activity",
@@ -2455,7 +2486,13 @@
         "profile_restore": "Restored a name or photo",
         "feedback_status": "Updated a feedback message",
         "report_photo_approve": "Approved a felt photo",
-        "report_photo_reject": "Rejected a felt photo"
+        "report_photo_reject": "Rejected a felt photo",
+        "post_approve": "Approved a post",
+        "comment_pin": "Pinned a comment",
+        "comment_unpin": "Unpinned a comment",
+        "filter_term_add": "Added a filter word",
+        "filter_term_update": "Changed a filter word",
+        "surge_set": "Changed busy-time review"
       },
       "undo": "Undo"
     },
@@ -2912,7 +2949,8 @@
       "noLocation": "Only the earthquake is shared. Your location is never added.",
       "submit": "Share",
       "done": "Shared to your profile."
-    }
+    },
+    "pending": "Waiting for review. Only you can see this post until a moderator approves it."
   },
   "profile": {
     "onlyYou": "Only you see this",
@@ -3121,6 +3159,78 @@
     },
     "event": {
       "near": "Earthquake near {{place}}"
+    }
+  },
+  "contentFilter": {
+    "title": "Word filter and busy times",
+    "hint": "Comments and posts that match a word or phrase on this list wait for review instead of appearing at once. Nothing is refused or deleted.",
+    "surge": {
+      "title": "Busy-time review",
+      "explain": "For 24 hours after a strong regional earthquake ({{magnitude}} or more), or when {{reports}} people report feeling one in its first hour, comments and posts from accounts younger than {{days}} days wait for review.",
+      "activeMagnitude": "On now: {{magnitude}}, {{place}}.",
+      "activeFelt": "On now: {{number}} felt reports, {{place}}.",
+      "activeManual": "On now: switched on by hand.",
+      "offManual": "Off: switched off by hand.",
+      "inactive": "Off now: no busy time.",
+      "until": "Until {{time}}.",
+      "modes": {
+        "auto": "Automatic",
+        "on": "On for 24 h",
+        "off": "Off for 24 h"
+      }
+    },
+    "test": {
+      "title": "Would this be held?",
+      "label": "Text to test",
+      "placeholder": "Paste a comment or post",
+      "button": "Test",
+      "held": "It would wait for review.",
+      "notHeld": "It would appear at once.",
+      "matched": "Matched: {{terms}}",
+      "surgeNote": "Busy-time review is on: new accounts' comments wait anyway."
+    },
+    "add": {
+      "title": "Add a word or phrase",
+      "hint": "One word matches whole words only. A phrase matches anywhere in the text. Capital letters, accents and Arabic-script spellings do not matter.",
+      "label": "Word or phrase",
+      "placeholder": "e.g. earthquake tomorrow",
+      "lang": "Language",
+      "kind": "Kind",
+      "button": "Add",
+      "added": "Added. It works at once."
+    },
+    "list": {
+      "title": "The list",
+      "empty": "No words yet.",
+      "draft": "Starter: please review",
+      "pattern": "Pattern",
+      "off": "Off",
+      "holds": "Held {{number}} in 30 days",
+      "turnOff": "Switch off",
+      "turnOn": "Switch on",
+      "keep": "Keep"
+    },
+    "kinds": {
+      "prediction": "Prediction or rumour",
+      "abuse": "Abuse",
+      "spam": "Spam",
+      "other": "Other"
+    },
+    "langs": {
+      "en": "English",
+      "ckb": "Sorani",
+      "kmr": "Kurmanji",
+      "ar": "Arabic",
+      "any": "Any language"
+    },
+    "errors": {
+      "term_invalid": "Use 2 to 100 characters.",
+      "lang_invalid": "Choose a language.",
+      "kind_invalid": "Choose a kind."
+    },
+    "hold": {
+      "filter": "Word filter: “{{term}}” · {{kind}}",
+      "surge": "Busy time: new account"
     }
   }
 }

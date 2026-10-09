@@ -146,6 +146,9 @@ export function PostItem({
   }
 
   const removed = post.status === "removed";
+  // Held for review (migration 0059): only the author sees it; it can be
+  // deleted but not edited, pinned, marked or reported until it is approved.
+  const pending = post.status === "pending";
   const isEvent = post.kind === "event";
   const myHelpful = helpful?.mine ?? post.myHelpful;
   const helpfulCount = helpful?.count ?? post.helpfulCount;
@@ -263,6 +266,16 @@ export function PostItem({
         </Text>
       ) : null}
 
+      {pending ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[meta, { fontStyle: "italic" }]}
+          testID={`post-pending-${post.id}`}
+        >
+          {t("posts.pending")}
+        </Text>
+      ) : null}
+
       {mode === "editLocked" ? (
         <Text
           accessibilityLiveRegion="polite"
@@ -301,7 +314,7 @@ export function PostItem({
         />
       ) : mode === "editing" ? null : (
         <View style={styles.actions}>
-          {canHelp && !isOwn && !removed ? (
+          {canHelp && !isOwn && !removed && !pending ? (
             <ActionButton
               label={helpfulLabel}
               selected={myHelpful}
@@ -309,7 +322,7 @@ export function PostItem({
               onPress={() => void toggleHelpful()}
               testID={`post-helpful-${post.id}`}
             />
-          ) : !removed && helpfulCount > 0 ? (
+          ) : !removed && !pending && helpfulCount > 0 ? (
             <Text
               style={[meta, styles.staticAction]}
               testID={`post-helpful-count-${post.id}`}
@@ -317,7 +330,7 @@ export function PostItem({
               {helpfulLabel}
             </Text>
           ) : null}
-          {isOwn && !removed ? (
+          {isOwn && !removed && !pending ? (
             <ActionButton
               label={t("posts.edit")}
               disabled={busy}
@@ -325,7 +338,7 @@ export function PostItem({
               testID={`post-edit-${post.id}`}
             />
           ) : null}
-          {isOwn && !removed ? (
+          {isOwn && !removed && !pending ? (
             <ActionButton
               label={isPinned ? t("posts.unpin") : t("posts.pin")}
               disabled={busy}
@@ -342,7 +355,7 @@ export function PostItem({
               testID={`post-delete-${post.id}`}
             />
           ) : null}
-          {!isOwn && !removed && canReport && !reported ? (
+          {!isOwn && !removed && !pending && canReport && !reported ? (
             <ActionButton
               label={t("posts.report")}
               onPress={() => setMode("reporting")}

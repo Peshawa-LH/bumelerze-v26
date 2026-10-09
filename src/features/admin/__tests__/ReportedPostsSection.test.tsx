@@ -41,6 +41,7 @@ const REPORTED: ReportedPost = {
   reportCount: 3,
   lastReason: "spam",
   lastNote: null,
+  status: "visible",
 };
 
 function adminTransport(rows: ReportedPost[] | Error): jest.Mocked<AdminTransport> {
