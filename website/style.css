@@ -812,13 +812,6 @@ html[dir="rtl"] .hero-slider-next::before {
   padding-inline-start: 1.1rem;
 }
 
-html[dir="rtl"] .credibility-item {
-  border-inline-start: none;
-  border-inline-end: 4px solid var(--brand-red);
-  padding-inline-start: 0;
-  padding-inline-end: 1.1rem;
-}
-
 .credibility-item h3 {
   margin-block-start: 0;
 }

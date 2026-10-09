@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="بوومەلەرزە: ئەپی بوومەلەرزە کە بۆ کوردستان دروستکراوە. لیستی زیندووی بوومەلەرزەکان، ڕاپۆرتی هەستکردن بە یەک دەستلێدان، نەخشەی لەرزین و ڕێنمایی سەلامەتی، بە کوردی.">
+<meta name="description" content="بوومەلەرزە: ئەپی بوومەلەرزە کە بۆ کوردستان دروستکراوە. لیستی زیندووی بوومەلەرزەکان، ڕاپۆرتی هەستکردن بە یەک دەستلێدان، نەخشەی لەرزین و ڕێنمایی سەلامەتی، بە کوردی، عەرەبی و ئینگلیزی.">
 <meta name="color-scheme" content="dark light">
 <title>بوومەلەرزە: ئەپی بوومەلەرزە بۆ کوردستان</title>
 <link rel="icon" href="../favicon.ico" sizes="any">
@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <div class="hero-slider" data-slider>
+      <div class="hero-slider" data-slider data-live-template="سلایدی {n} لە {total}: {label}" data-live-digits="٠١٢٣٤٥٦٧٨٩">
         <p id="hero-slider-label" class="section-kicker hero-slider-label">بوومەلەرزە چی دەکات</p>
         <div class="hero-slider-viewport">
           <div class="hero-slider-track" role="group" aria-roledescription="گەڕۆکە" aria-labelledby="hero-slider-label">
@@ -80,7 +80,7 @@
             <article class="hero-slide" id="slide-2" role="group" aria-roledescription="سلاید" aria-label="٢ لە ٤" data-slide-label="بە یەک دەستلێدان پێمان بڵێ چیت هەستکرد">
               <p class="hero-slide-figure">
                 <img src="../images/hero-felt-report.webp" width="440" height="440" loading="lazy"
-                  alt="وێنەیەک لە هەڵبژاردەی ڕاپۆرتی هەستکردنی ئەپەکە: خێزانێک ماڵێکی لەرزۆک بەجێدەهێڵن، ئاستێکی بەهێزتری توندی لەرزین.">
+                  alt="وێنەیەک لە هەڵبژاردەی ڕاپۆرتی هەستکردنی ئەپەکە: خێزانێک لە ماڵەوە دانیشتوون و کاتێک گڵۆپەکە دەلەرێتەوە سەیری سەرەوە دەکەن، ئاستێکی مامناوەندی توندی لەرزین، «لەلایەن زۆرێکەوە هەست پێکراوە».">
               </p>
               <p class="hero-slide-eyebrow">ڕاپۆرتی هەستکردن</p>
               <h2>بە یەک دەستلێدان پێمان بڵێ چیت هەستکرد</h2>
@@ -95,18 +95,18 @@
               </p>
               <p class="hero-slide-eyebrow">نەخشە لەرزینەکانی بوومەلەرزە</p>
               <h2>نەخشە لەرزینی تایبەت بە خۆمان، لێرە دەژمێردرێت</h2>
-              <p>بوومەلەرزە نەخشەی توندی لەرزینی <bdi>EMS-98</bdi>ی تایبەت
+              <p>بوومەلەرزە نەخشەی توندی لەرزینی <bdi>IMS-25</bdi>ی تایبەت
               بە خۆی دەژمێرێت، بۆ بوومەلەرزەکانی ناوچەکە، تەنانەت ئەوانەی
               هیچ خزمەتگوزارییەکی جیهانی نەخشەیان بۆ دانانێت.</p>
             </article>
 
-            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="سلاید" aria-label="٤ لە ٤" data-slide-label="ڕێنمایی سەلامەتی بە کوردی">
+            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="سلاید" aria-label="٤ لە ٤" data-slide-label="ڕێنمایی سەلامەتی بە کوردی، عەرەبی و ئینگلیزی">
               <p class="hero-slide-figure">
                 <img src="../images/hero-safety.webp" width="440" height="440" loading="lazy"
                   alt="وێنەیەک لە ڕێنمایی سەلامەتی ئەپەکە: بکەوە، خۆت بپارێزە و لەژێر مێزێک پتەو بگرە.">
               </p>
               <p class="hero-slide-eyebrow">ڕێنمایی سەلامەتی</p>
-              <h2>ڕێنمایی سەلامەتی بە کوردی</h2>
+              <h2>ڕێنمایی سەلامەتی بە کوردی، عەرەبی و ئینگلیزی</h2>
               <p>ڕێنمایی بە زمانێکی سادە دەربارەی ئەوەی چی بکەیت پێش،
               لەکاتی و دوای بوومەلەرزەیەک، بۆ ماڵ و شەقامەکانی
               کوردستان.</p>
@@ -184,19 +184,18 @@
         <div class="credibility-item">
           <h3>نەخشە لەرزینەکانی تایبەت بە خۆمان</h3>
           <p>بۆ بوومەلەرزەکانی ناوچەکە، بوومەلەرزە نەخشەی توندی لەرزینی
-          <bdi>EMS-98</bdi>ی خۆی لە مۆدێلی جوڵەی زەوی و ڕاپۆرتی هەستکردن
+          <bdi>IMS-25</bdi>ی خۆی لە مۆدێلی جوڵەی زەوی و ڕاپۆرتی هەستکردن
           دەژمێرێت. هەر نەخشەیەک دۆخی پێداچوونەوەکەی نیشان دەدات.</p>
         </div>
         <div class="credibility-item">
-          <h3>ئەتلەسی بوومەلەرزە</h3>
-          <p>کاتالۆگێکی گشتی و گەڕانپێکراوی بوومەلەرزەکانی ناوچەکە، بۆ
-          ئەوەی هەرکەسێک بزانێت چی و لەکوێ ڕوویداوە.</p>
-          <a href="https://peshawa-lh.github.io/bumelerze-atlas/">گەڕان لە ئەتلەسەکە <span aria-hidden="true">↗</span></a>
+          <h3>کاتالۆگی بوومەلەرزەکان</h3>
+          <p>زیاتر لە ١٥٠٬٠٠٠ بوومەلەرزە لە ساڵی ٨٧٢ەوە، لە یەک کاتالۆگی
+          گەڕانپێکراودا.</p>
+          <a href="https://bumelerze.com/app/catalog">گەڕان لە کاتالۆگەکە <span aria-hidden="true">↗</span></a>
         </div>
         <div class="credibility-item">
           <h3>کۆدی سەرچاوە</h3>
-          <p>ئەپەکە، ئەنجینی نەخشە لەرزینەکان و هێڵی داتاکان بە شێوەی
-          کراوە و لەژێر مۆڵەتی <bdi>Apache 2.0</bdi>ن.</p>
+          <p>کۆدی ئەپەکە سەرچاوە کراوەیە و لەژێر مۆڵەتی <bdi>Apache 2.0</bdi>دایە.</p>
           <a href="https://github.com/Peshawa-LH/bumelerze-v26">بینینی کۆگاکە <span aria-hidden="true">↗</span></a>
         </div>
       </div>
@@ -225,7 +224,7 @@
     <div class="footer-col footer-brand">
       <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="بوومەلەرزە" width="176" height="32">
       <p class="footer-tagline">چاودێریکردنی بوومەلەرزە، ڕاپۆرتی هەستکردن
-      و ڕێنمایی سەلامەتی بۆ هەرێمی کوردستان، بە کوردی.</p>
+      و ڕێنمایی سەلامەتی بۆ هەرێمی کوردستان، بە کوردی، عەرەبی و ئینگلیزی.</p>
     </div>
     <div class="footer-col">
       <h2>ماڵپەڕ</h2>
@@ -239,7 +238,7 @@
     <div class="footer-col">
       <h2>داتای کراوە</h2>
       <ul>
-        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">ئەتلەسی بوومەلەرزە</a></li>
+        <li><a href="https://bumelerze.com/app/catalog">کاتالۆگی بوومەلەرزەکان</a></li>
         <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">کۆگای سەرچاوە</a></li>
       </ul>
     </div>
@@ -251,7 +250,7 @@
     </div>
     <div class="footer-legal">
       <span>سەرچاوەکانی داتا: <bdi>USGS</bdi>، <bdi>EMSC</bdi>،
-      <bdi>GEOFON</bdi> و خزمەتی لەرزینی بوومەلەرزە.</span>
+      <bdi>GEOFON</bdi> و نەخشە لەرزینەکانی بوومەلەرزە.</span>
       <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">مۆڵەتی کۆد: <bdi>Apache 2.0</bdi></a>
       <span>© ٢٠٢٦ بوومەلەرزە. لە پێشکەوتندایە.</span>
     </div>

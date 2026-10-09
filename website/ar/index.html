@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <div class="hero-slider" data-slider>
+      <div class="hero-slider" data-slider data-live-template="الشريحة {n} من {total}: {label}" data-live-digits="٠١٢٣٤٥٦٧٨٩">
         <p id="hero-slider-label" class="section-kicker hero-slider-label">ما الذي يقدمه بوملێرزە</p>
         <div class="hero-slider-viewport">
           <div class="hero-slider-track" role="group" aria-roledescription="عرض شرائح" aria-labelledby="hero-slider-label">
@@ -80,7 +80,7 @@
             <article class="hero-slide" id="slide-2" role="group" aria-roledescription="شريحة" aria-label="٢ من ٤" data-slide-label="لمسة واحدة تخبرنا بما شعرت به">
               <p class="hero-slide-figure">
                 <img src="../images/hero-felt-report.webp" width="440" height="440" loading="lazy"
-                  alt="رسم من أداة اختيار تقرير الشعور في التطبيق: عائلة تغادر منزلاً يهتز، مستوى أقوى لشدة الاهتزاز.">
+                  alt="رسم من أداة اختيار تقرير الشعور في التطبيق: عائلة جالسة في المنزل تنظر إلى الأعلى بينما يتأرجح المصباح، مستوى متوسط لشدة الاهتزاز، «شعر به كثيرون».">
               </p>
               <p class="hero-slide-eyebrow">التقارير الشعورية</p>
               <h2>لمسة واحدة تخبرنا بما شعرت به</h2>
@@ -94,18 +94,18 @@
               </p>
               <p class="hero-slide-eyebrow">خرائط اهتزاز بوملێرزە</p>
               <h2>خرائط اهتزازنا الخاصة، تُحسَب هنا</h2>
-              <p>يحسب بوملێرزە خرائط شدة اهتزاز <bdi>EMS-98</bdi> خاصة به
+              <p>يحسب بوملێرزە خرائط شدة اهتزاز <bdi>IMS-25</bdi> خاصة به
               لزلازل المنطقة، بما فيها أحداث لا تضع لها أي خدمة عالمية
               خريطة أصلاً.</p>
             </article>
 
-            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="شريحة" aria-label="٤ من ٤" data-slide-label="إرشادات السلامة بالكوردية">
+            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="شريحة" aria-label="٤ من ٤" data-slide-label="إرشادات السلامة بالكوردية والعربية والإنجليزية">
               <p class="hero-slide-figure">
                 <img src="../images/hero-safety.webp" width="440" height="440" loading="lazy"
                   alt="رسم من إرشادات السلامة في التطبيق: انبطح واحتمِ وتشبّث أسفل طاولة.">
               </p>
               <p class="hero-slide-eyebrow">إرشادات السلامة</p>
-              <h2>إرشادات السلامة بالكوردية</h2>
+              <h2>إرشادات السلامة بالكوردية والعربية والإنجليزية</h2>
               <p>إرشادات بلغة بسيطة حول ما تفعله قبل الزلزال وأثناءه
               وبعده، لبيوت كوردستان وشوارعها.</p>
             </article>
@@ -180,19 +180,18 @@
         <div class="credibility-item">
           <h3>خرائط اهتزاز خاصة بنا</h3>
           <p>لزلازل المنطقة، يحسب بوملێرزە خريطة شدة اهتزاز
-          <bdi>EMS-98</bdi> خاصة به من نماذج حركة الأرض والتقارير الشعورية.
+          <bdi>IMS-25</bdi> خاصة به من نماذج حركة الأرض والتقارير الشعورية.
           تُبيّن كل خريطة حالة مراجعتها.</p>
         </div>
         <div class="credibility-item">
-          <h3>أطلس بوملێرزە</h3>
-          <p>كتالوج عام قابل للتصفح لزلازل المنطقة، حتى يتمكن أي شخص من
-          معرفة ما حدث وأين.</p>
-          <a href="https://peshawa-lh.github.io/bumelerze-atlas/">تصفح الأطلس <span aria-hidden="true">↗</span></a>
+          <h3>كتالوج الزلازل</h3>
+          <p>أكثر من ١٥٠٬٠٠٠ زلزال منذ عام ٨٧٢، في كتالوج واحد قابل
+          للبحث.</p>
+          <a href="https://bumelerze.com/app/catalog">تصفح الكتالوج <span aria-hidden="true">↗</span></a>
         </div>
         <div class="credibility-item">
           <h3>الشيفرة المصدرية</h3>
-          <p>التطبيق ومحرك خرائط الاهتزاز وخط أنابيب البيانات مفتوحة تحت
-          رخصة <bdi>Apache 2.0</bdi>.</p>
+          <p>شيفرة التطبيق مفتوحة المصدر تحت رخصة <bdi>Apache 2.0</bdi>.</p>
           <a href="https://github.com/Peshawa-LH/bumelerze-v26">عرض المستودع <span aria-hidden="true">↗</span></a>
         </div>
       </div>
@@ -221,7 +220,7 @@
     <div class="footer-col footer-brand">
       <img class="brand-logo" src="../brand/bumelerze-primary-horizontal-reversed.svg" alt="بوملێرزە" width="176" height="32">
       <p class="footer-tagline">مراقبة الزلازل والتقارير الشعورية وإرشادات
-      السلامة لإقليم كوردستان، بالكوردية.</p>
+      السلامة لإقليم كوردستان، بالكوردية والعربية والإنجليزية.</p>
     </div>
     <div class="footer-col">
       <h2>الموقع</h2>
@@ -235,7 +234,7 @@
     <div class="footer-col">
       <h2>بيانات مفتوحة</h2>
       <ul>
-        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">أطلس بوملێرزە</a></li>
+        <li><a href="https://bumelerze.com/app/catalog">كتالوج الزلازل</a></li>
         <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">مستودع الشيفرة</a></li>
       </ul>
     </div>
@@ -247,7 +246,7 @@
     </div>
     <div class="footer-legal">
       <span>مصادر البيانات: <bdi>USGS</bdi>، <bdi>EMSC</bdi>،
-      <bdi>GEOFON</bdi>، وخدمة اهتزاز بوملێرزە.</span>
+      <bdi>GEOFON</bdi>، وخرائط اهتزاز بوملێرزە.</span>
       <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">رخصة الشيفرة: <bdi>Apache 2.0</bdi></a>
       <span>© ٢٠٢٦ بوملێرزە. قيد التطوير.</span>
     </div>

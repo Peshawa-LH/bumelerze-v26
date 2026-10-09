@@ -18,7 +18,8 @@
  *     (in addition to the browser's native arrow-key scroll on a focused
  *     scroll container);
  *   - aria-current on the active dot, and a visually-hidden live region
- *     announcing "Slide N of TOTAL: <label>" on every change, so
+ *     announcing the slider's data-live-template (translated per page,
+ *     e.g. "Slide {n} of {total}: {label}") on every change, so
  *     screen-reader users get feedback that scroll-snap alone never
  *     provides.
  *
@@ -46,6 +47,24 @@
     var next = root.querySelector(".hero-slider-next");
     var status = root.querySelector(".hero-slider-status");
     if (!track || slides.length === 0) return;
+
+    // Each page supplies its own translated announcement via
+    // data-live-template, e.g. "Slide {n} of {total}: {label}".
+    // The English fallback only applies if a page omits the attribute.
+    var liveTemplate =
+      root.getAttribute("data-live-template") ||
+      "Slide {n} of {total}: {label}";
+    // Optional: ten digit characters (0-9 order) for pages that write
+    // numbers in another script, e.g. Eastern Arabic-Indic on ckb/ar.
+    var liveDigits = root.getAttribute("data-live-digits") || "";
+
+    function formatNumber(value) {
+      var text = String(value);
+      if (liveDigits.length !== 10) return text;
+      return text.replace(/[0-9]/g, function (d) {
+        return liveDigits.charAt(Number(d));
+      });
+    }
 
     function labelFor(index) {
       var slide = slides[index];
@@ -88,13 +107,12 @@
         }
       });
       if (status) {
-        status.textContent =
-          "Slide " +
-          (index + 1) +
-          " of " +
-          slides.length +
-          ": " +
-          labelFor(index);
+        status.textContent = liveTemplate
+          .replace("{n}", formatNumber(index + 1))
+          .replace("{total}", formatNumber(slides.length))
+          .replace("{label}", function () {
+            return labelFor(index);
+          });
       }
     }
 

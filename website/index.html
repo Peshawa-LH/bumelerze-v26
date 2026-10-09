@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Bumelerze: the earthquake app built for Kurdistan. Live earthquake feed, one-tap felt reports, Bumelerze SHAKEmaps, and safety guides, in Kurdish.">
+<meta name="description" content="Bumelerze: the earthquake app built for Kurdistan. Live earthquake feed, one-tap felt reports, Bumelerze SHAKEmaps, and safety guides, in Kurdish, Arabic and English.">
 <meta name="color-scheme" content="dark light">
 <title>Bumelerze: the earthquake app built for Kurdistan</title>
 <link rel="icon" href="favicon.ico" sizes="any">
@@ -59,7 +59,7 @@
         </div>
       </div>
 
-      <div class="hero-slider" data-slider>
+      <div class="hero-slider" data-slider data-live-template="Slide {n} of {total}: {label}">
         <p id="hero-slider-label" class="section-kicker hero-slider-label">What Bumelerze does</p>
         <div class="hero-slider-viewport">
           <div class="hero-slider-track" role="group" aria-roledescription="carousel" aria-labelledby="hero-slider-label">
@@ -78,7 +78,7 @@
             <article class="hero-slide" id="slide-2" role="group" aria-roledescription="slide" aria-label="2 of 4" data-slide-label="One tap tells us what you felt">
               <p class="hero-slide-figure">
                 <img src="images/hero-felt-report.webp" width="440" height="440" loading="lazy"
-                  alt="Illustration from the app's felt-report picker: a family leaving a shaking home, a stronger shaking-intensity level.">
+                  alt="Illustration from the app's felt-report picker: a family sitting at home looks up as the ceiling lamp sways, a moderate shaking-intensity level, &quot;felt by many&quot;.">
               </p>
               <p class="hero-slide-eyebrow">Felt reports</p>
               <h2>One tap tells us what you felt</h2>
@@ -92,18 +92,18 @@
               </p>
               <p class="hero-slide-eyebrow">Bumelerze SHAKEmaps</p>
               <h2>Our own SHAKEmaps, computed here</h2>
-              <p>Bumelerze computes its own EMS-98 shaking-intensity maps
+              <p>Bumelerze computes its own IMS-25 shaking-intensity maps
               for earthquakes in the region, including ones no global
               service ever maps.</p>
             </article>
 
-            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="slide" aria-label="4 of 4" data-slide-label="Safety guidance in Kurdish">
+            <article class="hero-slide" id="slide-4" role="group" aria-roledescription="slide" aria-label="4 of 4" data-slide-label="Safety guidance in Kurdish, Arabic and English">
               <p class="hero-slide-figure">
                 <img src="images/hero-safety.webp" width="440" height="440" loading="lazy"
                   alt="Illustration from the app's safety guides: drop, cover, and hold on under a table.">
               </p>
               <p class="hero-slide-eyebrow">Safety guides</p>
-              <h2>Safety guidance in Kurdish</h2>
+              <h2>Safety guidance in Kurdish, Arabic and English</h2>
               <p>Plain-language guidance on what to do before, during, and
               after an earthquake, for Kurdistan's homes and streets.</p>
             </article>
@@ -179,19 +179,18 @@
         <div class="credibility-item">
           <h3>Our own SHAKEmaps</h3>
           <p>For earthquakes in the region, Bumelerze computes its own
-          EMS-98 shaking-intensity maps from ground-motion models and felt
+          IMS-25 shaking-intensity maps from ground-motion models and felt
           reports. Every map states its review status.</p>
         </div>
         <div class="credibility-item">
-          <h3>The Bumelerze Atlas</h3>
-          <p>A public, browsable catalog of regional earthquakes, so
-          anyone can check what happened and where.</p>
-          <a href="https://peshawa-lh.github.io/bumelerze-atlas/">Browse the Atlas <span aria-hidden="true">↗</span></a>
+          <h3>Earthquake catalogue</h3>
+          <p>150,000+ earthquakes since the year 872, in one searchable
+          catalogue.</p>
+          <a href="https://bumelerze.com/app/catalog">Browse the catalogue <span aria-hidden="true">↗</span></a>
         </div>
         <div class="credibility-item">
           <h3>Source code</h3>
-          <p>The app, the SHAKEmap engine, and the data pipeline are open
-          under Apache 2.0.</p>
+          <p>The app's code is open source under Apache 2.0.</p>
           <a href="https://github.com/Peshawa-LH/bumelerze-v26">View the repository <span aria-hidden="true">↗</span></a>
         </div>
       </div>
@@ -220,7 +219,7 @@
     <div class="footer-col footer-brand">
       <img class="brand-logo" src="brand/bumelerze-primary-horizontal-reversed.svg" alt="Bumelerze" width="176" height="32">
       <p class="footer-tagline">Earthquake monitoring, felt reports, and
-      safety guidance for the Kurdistan Region, in Kurdish.</p>
+      safety guidance for the Kurdistan Region, in Kurdish, Arabic and English.</p>
     </div>
     <div class="footer-col">
       <h2>Site</h2>
@@ -234,7 +233,7 @@
     <div class="footer-col">
       <h2>Open data</h2>
       <ul>
-        <li><a href="https://peshawa-lh.github.io/bumelerze-atlas/">Bumelerze Atlas</a></li>
+        <li><a href="https://bumelerze.com/app/catalog">Earthquake catalogue</a></li>
         <li><a href="https://github.com/Peshawa-LH/bumelerze-v26">Source repository</a></li>
       </ul>
     </div>
@@ -245,8 +244,8 @@
       </ul>
     </div>
     <div class="footer-legal">
-      <span>Data sources: USGS, EMSC, GEOFON, and the Bumelerze Shake
-      Service.</span>
+      <span>Data sources: USGS, EMSC, GEOFON, and Bumelerze
+      SHAKEmaps.</span>
       <a href="https://github.com/Peshawa-LH/bumelerze-v26/blob/main/LICENSE">Code license: Apache 2.0</a>
       <span>© 2026 Bumelerze. In development.</span>
     </div>
