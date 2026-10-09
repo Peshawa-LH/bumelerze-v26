@@ -150,9 +150,13 @@ function HiddenRemovedRow({
   const heading =
     item.kind === "post"
       ? t("admin.hidden.removedPost")
-      : item.status === "hidden"
-        ? t("admin.hidden.hiddenComment")
-        : t("admin.hidden.removedComment");
+      : item.kind === "post_comment"
+        ? item.status === "hidden"
+          ? t("admin.hidden.hiddenPostComment")
+          : t("admin.hidden.removedPostComment")
+        : item.status === "hidden"
+          ? t("admin.hidden.hiddenComment")
+          : t("admin.hidden.removedComment");
   const author =
     item.authorName ??
     (item.authorUsername ? formatUsername(item.authorUsername) : null) ??
@@ -170,7 +174,9 @@ function HiddenRemovedRow({
     try {
       await (item.kind === "post"
         ? actions.restorePost(item.id)
-        : actions.restoreComment(item.id));
+        : item.kind === "post_comment"
+          ? actions.restorePostComment(item.id)
+          : actions.restoreComment(item.id));
       snackbar.show({ message: t("snackbar.restored") });
     } catch (error) {
       setErrorText(restoreErrorText(t, error));

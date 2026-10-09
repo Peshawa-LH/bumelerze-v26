@@ -11,6 +11,7 @@ import {
   getRelativeTime,
   isolateNumeric,
 } from "@/features/events";
+import { MentionText } from "@/features/mentions/components/MentionText";
 import { useMuteActions } from "@/features/mute/queries";
 import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
@@ -336,7 +337,9 @@ export function CommentItem({
           <Text style={meta}>{t("eventHub.thread.feltNear", { city })}</Text>
         ) : null}
 
-        <Text
+        <MentionText
+          text={comment.body}
+          testID={`comment-body-${comment.id}`}
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
@@ -346,9 +349,7 @@ export function CommentItem({
             flexShrink: 1,
             ...WRAP_ANYWHERE,
           }}
-        >
-          {comment.body}
-        </Text>
+        />
 
         {isPending ? (
           <Text style={[meta, { fontStyle: "italic" }]}>

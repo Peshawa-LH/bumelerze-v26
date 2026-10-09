@@ -33,7 +33,10 @@ export interface ContentFilterTransport {
   /** Public: busy-time review is on (the Event hub banner). */
   fetchSurgeActive(): Promise<boolean>;
   /** Why the given comments or posts wait (moderators). At most 200 ids. */
-  fetchHolds(kind: "comment" | "post", ids: readonly string[]): Promise<ContentHold[]>;
+  fetchHolds(
+    kind: "comment" | "post" | "post_comment",
+    ids: readonly string[],
+  ): Promise<ContentHold[]>;
   /** Approves a held post (`comments.moderate`). */
   approvePost(postId: string): Promise<void>;
   /** Pins a comment to the top of its Event hub (`hubs.feature`). */

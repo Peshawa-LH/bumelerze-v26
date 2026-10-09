@@ -54,11 +54,18 @@ export function activityMessage(
       if (item.target === "post") {
         return t("activity.removed.post_remove");
       }
+      if (item.target === "post_comment") {
+        return item.action === "hide"
+          ? t("activity.removed.post_comment_hide")
+          : t("activity.removed.post_comment_remove");
+      }
       return item.action === "hide"
         ? t("activity.removed.comment_hide")
         : t("activity.removed.comment_remove");
     case "report_reviewed":
       return t(`activity.reviewed.${item.target ?? "comment"}`);
+    case "mention":
+      return t(`activity.mention.${item.source ?? "comment"}`, { name });
     default:
       return t(`activity.kinds.${item.kind}`, { name });
   }
@@ -68,6 +75,9 @@ export function activityMessage(
 export function activityDetail(t: TFunction, item: ActivityItem): string | null {
   switch (item.kind) {
     case "comment_reply":
+    case "post_comment":
+    case "post_comment_reply":
+    case "mention":
       return item.snippet ? t("activity.quote", { text: item.snippet }) : null;
     case "content_removed":
       return t("activity.removed.reason", {
@@ -94,6 +104,14 @@ export function activityHref(item: ActivityItem): string | null {
     case "comment_reply":
     case "comment_helpful":
       return item.hubId ? `/event-hub/${encodeURIComponent(item.hubId)}` : null;
+    case "post_comment":
+    case "post_comment_reply":
+      return item.postAuthorUsername ? profileHref(item.postAuthorUsername) : null;
+    case "mention":
+      if (item.source === "comment") {
+        return item.hubId ? `/event-hub/${encodeURIComponent(item.hubId)}` : null;
+      }
+      return item.postAuthorUsername ? profileHref(item.postAuthorUsername) : null;
     case "badge_granted":
       return "/badges";
     case "home_join_request":

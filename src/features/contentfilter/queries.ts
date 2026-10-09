@@ -12,7 +12,7 @@ export const contentFilterKeys = {
   terms: ["contentfilter", "terms"] as const,
   surge: ["contentfilter", "surge"] as const,
   surgeActive: ["contentfilter", "surge-active"] as const,
-  holds: (kind: "comment" | "post", ids: readonly string[]) =>
+  holds: (kind: "comment" | "post" | "post_comment", ids: readonly string[]) =>
     ["contentfilter", "holds", kind, ids.join(",")] as const,
 };
 
@@ -35,7 +35,7 @@ export function useSurgeActive(
 /** Why the listed comments or posts wait for review (moderators only), as a
  * map from id to its holds. Empty while loading, on error, or without ids. */
 export function useHolds(
-  kind: "comment" | "post",
+  kind: "comment" | "post" | "post_comment",
   ids: readonly string[],
   enabled: boolean,
   transport: ContentFilterTransport = SupabaseContentFilterTransport,

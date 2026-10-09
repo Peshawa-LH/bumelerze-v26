@@ -295,6 +295,10 @@ export function toCommunityError(error: unknown): CommunityError {
   if (/ends_required|ends_invalid|ends_too_long/.test(message)) {
     return new CommunityError("bad_end_date", message);
   }
+  // Migration 0063: "post_comments: comments_off".
+  if (message.includes("comments_off")) {
+    return new CommunityError("comments_off", message);
+  }
   if (message.includes("reason_required")) {
     return new CommunityError("reason_required", message);
   }

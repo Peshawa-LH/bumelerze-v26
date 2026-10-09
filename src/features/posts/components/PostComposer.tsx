@@ -9,6 +9,9 @@ import {
   useGuidelinesGate,
   type GuidelinesTransport,
 } from "@/features/guidelines";
+import { MentionSuggestions } from "@/features/mentions/components/MentionSuggestions";
+import type { MentionsTransport } from "@/features/mentions/transport";
+import { useMentionInput } from "@/features/mentions/use-mention-input";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { POST_MAX_LENGTH } from "../constants";
@@ -20,6 +23,8 @@ interface PostComposerProps {
   disabled?: boolean;
   /** Test seam for the guidelines sheet's "I agree" call. */
   guidelinesTransport?: GuidelinesTransport;
+  /** Test seam for the @mention suggestions (migration 0063). */
+  mentionsTransport?: MentionsTransport;
   testID?: string;
 }
 
@@ -32,6 +37,7 @@ export function PostComposer({
   onSubmit,
   disabled = false,
   guidelinesTransport,
+  mentionsTransport,
   testID = "post-composer",
 }: PostComposerProps) {
   const { t, i18n } = useTranslation();
@@ -42,6 +48,7 @@ export function PostComposer({
   // Asked for on the first post: the server refuses until the community
   // guidelines were accepted, then the same post is sent again.
   const { guard, sheet } = useGuidelinesGate(guidelinesTransport);
+  const mention = useMentionInput(text, setText);
 
   const problem = validatePostBody(text);
   const canPost = problem === null && !busy && !disabled;
@@ -79,6 +86,7 @@ export function PostComposer({
       <TextInput
         value={text}
         onChangeText={setText}
+        onSelectionChange={mention.onSelectionChange}
         placeholder={t("posts.composer.placeholder")}
         placeholderTextColor={colors.text.tertiary}
         accessibilityLabel={t("posts.composer.label")}
@@ -98,6 +106,12 @@ export function PostComposer({
           },
         ]}
         testID={`${testID}-input`}
+      />
+      <MentionSuggestions
+        query={disabled ? null : mention.query}
+        onPick={mention.pick}
+        testID={`${testID}-mentions`}
+        {...(mentionsTransport ? { transport: mentionsTransport } : {})}
       />
       {disabled ? (
         <Text style={meta} testID={`${testID}-disabled`}>

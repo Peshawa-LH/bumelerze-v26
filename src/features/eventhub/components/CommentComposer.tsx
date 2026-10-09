@@ -5,6 +5,9 @@ import { useTranslation } from "react-i18next";
 
 import { isGuidelinesDeclined, useGuidelinesGate } from "@/features/guidelines";
 import type { GuidelinesTransport } from "@/features/guidelines";
+import { MentionSuggestions } from "@/features/mentions/components/MentionSuggestions";
+import type { MentionsTransport } from "@/features/mentions/transport";
+import { useMentionInput } from "@/features/mentions/use-mention-input";
 import { useTheme } from "@/theme";
 
 import { toHubError } from "../transport";
@@ -26,6 +29,13 @@ interface CommentComposerProps {
   disabled?: boolean;
   /** Test seam for the guidelines sheet's "I agree" call. */
   guidelinesTransport?: GuidelinesTransport;
+  /** Test seam for the @mention suggestions (migration 0063). */
+  mentionsTransport?: MentionsTransport;
+  /** Characters allowed: 1000 for hub comments, 500 for post comments. */
+  maxLength?: number;
+  /** Already-localized message for a failure, when the caller knows better
+   * words than the hub's (post comments: "Comments are off"). */
+  errorText?: (error: unknown) => string | null;
   testID?: string;
 }
 
@@ -54,6 +64,9 @@ export function CommentComposer({
   autoFocus = false,
   disabled = false,
   guidelinesTransport,
+  mentionsTransport,
+  maxLength = COMMENT_MAX_LENGTH,
+  errorText,
   testID = "hub-composer",
 }: CommentComposerProps) {
   const { t } = useTranslation();
@@ -66,6 +79,8 @@ export function CommentComposer({
   // The guidelines are asked for on the first comment: the server refuses
   // until they were accepted, then the same comment is sent again.
   const { guard, sheet } = useGuidelinesGate(guidelinesTransport);
+  // "@na…" suggests people; picking one writes "@username " (migration 0063).
+  const mention = useMentionInput(text, setText);
 
   const canPost = text.trim().length > 0 && !busy && !disabled;
 
@@ -84,7 +99,7 @@ export function CommentComposer({
     } catch (caught) {
       // Closing the guidelines without agreeing is not an error: the text stays.
       if (!isGuidelinesDeclined(caught)) {
-        setError(t(ERROR_KEY[toHubError(caught).code]));
+        setError(errorText?.(caught) ?? t(ERROR_KEY[toHubError(caught).code]));
       }
     } finally {
       setBusy(false);
@@ -102,11 +117,12 @@ export function CommentComposer({
       <TextInput
         value={text}
         onChangeText={setText}
+        onSelectionChange={mention.onSelectionChange}
         placeholder={placeholder}
         placeholderTextColor={colors.text.tertiary}
         accessibilityLabel={t("eventHub.composer.label")}
         multiline
-        maxLength={COMMENT_MAX_LENGTH}
+        maxLength={maxLength}
         autoFocus={autoFocus}
         editable={!busy && !disabled}
         textAlignVertical="top"
@@ -123,6 +139,13 @@ export function CommentComposer({
           },
         ]}
         testID={`${testID}-input`}
+      />
+
+      <MentionSuggestions
+        query={disabled ? null : mention.query}
+        onPick={mention.pick}
+        testID={`${testID}-mentions`}
+        {...(mentionsTransport ? { transport: mentionsTransport } : {})}
       />
 
       {disabled ? (

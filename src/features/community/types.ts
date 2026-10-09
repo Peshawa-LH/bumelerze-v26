@@ -96,6 +96,8 @@ export type CommunityErrorCode =
   | "edit_locked"
   /** The text is longer than the server allows (0058). */
   | "too_long"
+  /** The post's author switched comments off (0063). */
+  | "comments_off"
   /** An account that holds admin permissions, or the admin themself, cannot be limited. */
   | "protected_account"
   /** The end date is missing, in the past or too far away (admin). */

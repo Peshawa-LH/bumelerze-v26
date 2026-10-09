@@ -44,6 +44,9 @@ function item(overrides: Partial<ActivityItem> & { id: string }): ActivityItem {
     tagId: null,
     homeLabel: null,
     homeCode: null,
+    postCommentId: null,
+    postAuthorUsername: null,
+    source: null,
     ...overrides,
   };
 }

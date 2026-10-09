@@ -26,6 +26,8 @@ export function post(
     myHelpful: false,
     editLocked: false,
     cursor: new Date(at).toISOString(),
+    commentCount: 0,
+    commentsOff: false,
     ...overrides,
   };
 }

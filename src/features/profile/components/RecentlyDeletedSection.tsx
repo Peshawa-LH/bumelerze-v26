@@ -7,6 +7,7 @@ import { formatAbsoluteDual } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { PostsTransport } from "@/features/posts/transport";
+import type { PostCommentsTransport } from "@/features/posts/comments/transport";
 import { restoreErrorText } from "@/features/undo/error-text";
 import { useRecentlyDeleted, useRestoreDeleted } from "@/features/undo/queries";
 import type { UndoTransport } from "@/features/undo/transport";
@@ -24,10 +25,12 @@ export function RecentlyDeletedSection({
   transport,
   hubTransport,
   postsTransport,
+  postCommentsTransport,
 }: {
   transport?: UndoTransport;
   hubTransport?: EventHubTransport;
   postsTransport?: PostsTransport;
+  postCommentsTransport?: PostCommentsTransport;
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -59,6 +62,7 @@ export function RecentlyDeletedSection({
           item={item}
           {...(hubTransport ? { hubTransport } : {})}
           {...(postsTransport ? { postsTransport } : {})}
+          {...(postCommentsTransport ? { postCommentsTransport } : {})}
         />
       ))}
     </View>
@@ -69,15 +73,17 @@ function DeletedItem({
   item,
   hubTransport,
   postsTransport,
+  postCommentsTransport,
 }: {
   item: RecentlyDeletedItem;
   hubTransport?: EventHubTransport;
   postsTransport?: PostsTransport;
+  postCommentsTransport?: PostCommentsTransport;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const snackbar = useSnackbar();
-  const restore = useRestoreDeleted(hubTransport, postsTransport);
+  const restore = useRestoreDeleted(hubTransport, postsTransport, postCommentsTransport);
   const [errorText, setErrorText] = useState<string | null>(null);
   const meta = {
     color: colors.text.secondary,
@@ -88,9 +94,11 @@ function DeletedItem({
   const label =
     item.kind === "post"
       ? t("profile.recentlyDeleted.post")
-      : item.place
-        ? t("profile.recentlyDeleted.comment", { place: item.place })
-        : t("profile.recentlyDeleted.commentNoPlace");
+      : item.kind === "post_comment"
+        ? t("profile.recentlyDeleted.postComment")
+        : item.place
+          ? t("profile.recentlyDeleted.comment", { place: item.place })
+          : t("profile.recentlyDeleted.commentNoPlace");
   const until = formatAbsoluteDual(item.expiresAt, i18n.language, t).local;
 
   async function run() {

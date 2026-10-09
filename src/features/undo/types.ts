@@ -1,7 +1,8 @@
 /** One row of `my_recently_deleted()` (migration 0053): something the signed-in
  * person deleted in the last 24 hours and can still bring back. */
 export interface RecentlyDeletedItem {
-  kind: "comment" | "post";
+  /** A hub comment, a post, or a comment under a post (migration 0063). */
+  kind: "comment" | "post" | "post_comment";
   id: string;
   body: string;
   /** UTC ms. */

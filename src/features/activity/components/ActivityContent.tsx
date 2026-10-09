@@ -29,6 +29,9 @@ const ICONS: Record<ActivityKind, IconName> = {
   home_join_request: "home-outline",
   home_join_approved: "home-outline",
   family_safe: "heart-outline",
+  post_comment: "chatbubbles-outline",
+  post_comment_reply: "chatbubble-outline",
+  mention: "at-outline",
 };
 
 /**

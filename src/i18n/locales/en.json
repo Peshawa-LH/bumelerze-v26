@@ -2383,7 +2383,8 @@
       "reason_required": "Add a reason.",
       "guidelines_required": "Please read and accept the community guidelines first.",
       "edit_locked": "This post is being reviewed, so it can't be edited now.",
-      "too_long": "Too long."
+      "too_long": "Too long.",
+      "comments_off": "Comments are off for this post."
     },
     "mute": {
       "mute": "Mute",
@@ -2495,7 +2496,11 @@
         "surge_set": "Changed busy-time review",
         "alerts_mode": "Changed who receives alerts",
         "alert_tester_add": "Added an alert tester",
-        "alert_tester_remove": "Removed an alert tester"
+        "alert_tester_remove": "Removed an alert tester",
+        "post_comment_approve": "Approved a comment on a post",
+        "post_comment_hide": "Hid a comment on a post",
+        "post_comment_remove": "Removed a comment on a post",
+        "post_comment_restore": "Restored a comment on a post"
       },
       "undo": "Undo"
     },
@@ -2519,7 +2524,9 @@
       "removedPost": "Removed post",
       "restore": "Restore",
       "textHidden": "Text not shown",
-      "cannotRestore": "Can't be restored."
+      "cannotRestore": "Can't be restored.",
+      "hiddenPostComment": "Hidden comment on a post",
+      "removedPostComment": "Removed comment on a post"
     },
     "people": {
       "title": "People",
@@ -2863,6 +2870,10 @@
       "run": "Planned {{planned}} · sent {{sent}} · failed {{failed}} · held back {{suppressed}}",
       "testTitle": "Test",
       "testHint": "Goes through the real sender to your own devices only."
+    },
+    "postComments": {
+      "title": "Comments on posts to review",
+      "openPost": "Open the post's profile"
     }
   },
   "restrictions": {
@@ -2987,6 +2998,30 @@
     },
     "pending": "Waiting for review. Only you can see this post until a moderator approves it."
   },
+  "postComments": {
+    "open": "Comment",
+    "count": "Comments ({{number}})",
+    "close": "Hide comments",
+    "placeholder": "Write a comment",
+    "empty": "No comments yet.",
+    "off": "Comments are off.",
+    "turnOff": "Turn off comments",
+    "turnOn": "Turn on comments",
+    "offDone": "Comments turned off",
+    "accountsOnly": "Only accounts can comment on posts.",
+    "held": "Thanks. Your comment is waiting for review.",
+    "pending": "Waiting for review. Only you can see this comment until a moderator approves it.",
+    "loadError": "Couldn't load the comments."
+  },
+  "mentions": {
+    "openProfile": "Open the profile of @{{username}}",
+    "suggestions": "People to mention",
+    "pick": "Mention {{name}} (@{{username}})",
+    "relation": {
+      "following": "You follow",
+      "follower": "Follows you"
+    }
+  },
   "profile": {
     "onlyYou": "Only you see this",
     "recentlyDeleted": {
@@ -2996,7 +3031,8 @@
       "commentNoPlace": "Comment",
       "post": "Post",
       "restore": "Restore",
-      "until": "Until {{time}}"
+      "until": "Until {{time}}",
+      "postComment": "Comment on a post"
     },
     "dataExport": {
       "title": "Download my data",
@@ -3176,7 +3212,9 @@
       "badge_granted": "You received the {{rank}} mark.",
       "home_join_request": "{{name}} asked to join {{home}}.",
       "home_join_approved": "You can now see {{home}}.",
-      "family_safe": "{{name}} checked in: I'm safe."
+      "family_safe": "{{name}} checked in: I'm safe.",
+      "post_comment": "{{name}} commented on your post.",
+      "post_comment_reply": "{{name}} replied to your comment on a post."
     },
     "removed": {
       "comment_hide": "A moderator hid your comment.",
@@ -3185,15 +3223,23 @@
       "reason": "Reason: {{reason}}",
       "reasonGuidelines": "It goes against the community guidelines.",
       "review": "Ask for review",
-      "reviewSent": "Review requested. A person will look at it."
+      "reviewSent": "Review requested. A person will look at it.",
+      "post_comment_hide": "A moderator hid your comment on a post.",
+      "post_comment_remove": "A moderator removed your comment on a post."
     },
     "reviewed": {
       "comment": "We reviewed a comment you reported. Thank you.",
       "post": "We reviewed a post you reported. Thank you.",
-      "profile": "We reviewed a profile you reported. Thank you."
+      "profile": "We reviewed a profile you reported. Thank you.",
+      "post_comment": "We reviewed a comment you reported. Thank you."
     },
     "event": {
       "near": "Earthquake near {{place}}"
+    },
+    "mention": {
+      "comment": "{{name}} mentioned you in an Event hub comment.",
+      "post": "{{name}} mentioned you in a post.",
+      "post_comment": "{{name}} mentioned you in a comment."
     }
   },
   "contentFilter": {

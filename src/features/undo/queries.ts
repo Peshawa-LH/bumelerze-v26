@@ -8,6 +8,10 @@ import {
   type EventHubTransport,
 } from "@/features/eventhub/transport";
 import { SupabasePostsTransport, type PostsTransport } from "@/features/posts/transport";
+import {
+  SupabasePostCommentsTransport,
+  type PostCommentsTransport,
+} from "@/features/posts/comments/transport";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { RECENTLY_DELETED_KEY } from "./keys";
 import { SupabaseUndoTransport, type UndoTransport } from "./transport";
@@ -40,13 +44,16 @@ export function useRecentlyDeleted(transport: UndoTransport = SupabaseUndoTransp
 export function useRestoreDeleted(
   hubTransport: EventHubTransport = SupabaseEventHubTransport,
   postsTransport: PostsTransport = SupabasePostsTransport,
+  postCommentsTransport: PostCommentsTransport = SupabasePostCommentsTransport,
 ) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (item: Pick<RecentlyDeletedItem, "kind" | "id">) =>
       item.kind === "post"
         ? postsTransport.restorePost(item.id)
-        : hubTransport.restoreComment(item.id),
+        : item.kind === "post_comment"
+          ? postCommentsTransport.restoreComment(item.id)
+          : hubTransport.restoreComment(item.id),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: RECENTLY_DELETED_KEY }),

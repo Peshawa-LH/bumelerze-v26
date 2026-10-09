@@ -2383,7 +2383,8 @@
       "reason_required": "أضف سببًا.",
       "guidelines_required": "يرجى قراءة إرشادات المجتمع والموافقة عليها أولاً.",
       "edit_locked": "هذا المنشور قيد المراجعة، لذا لا يمكن تعديله الآن.",
-      "too_long": "طويل جدًا."
+      "too_long": "طويل جدًا.",
+      "comments_off": "التعليقات مغلقة على هذا المنشور."
     },
     "mute": {
       "mute": "كتم",
@@ -2495,7 +2496,11 @@
         "surge_set": "غيّر مراجعة أوقات الازدحام",
         "alerts_mode": "غيّر من يستقبل التنبيهات",
         "alert_tester_add": "أضاف مختبِراً للتنبيهات",
-        "alert_tester_remove": "أزال مختبِراً للتنبيهات"
+        "alert_tester_remove": "أزال مختبِراً للتنبيهات",
+        "post_comment_approve": "قبل تعليقًا على منشور",
+        "post_comment_hide": "أخفى تعليقًا على منشور",
+        "post_comment_remove": "أزال تعليقًا على منشور",
+        "post_comment_restore": "استعاد تعليقًا على منشور"
       },
       "undo": "تراجع"
     },
@@ -2519,7 +2524,9 @@
       "removedPost": "منشور مُزال",
       "restore": "استعادة",
       "textHidden": "النص غير معروض",
-      "cannotRestore": "لا يمكن استعادته."
+      "cannotRestore": "لا يمكن استعادته.",
+      "hiddenPostComment": "تعليق مخفي على منشور",
+      "removedPostComment": "تعليق مُزال على منشور"
     },
     "people": {
       "title": "الأشخاص",
@@ -2863,6 +2870,10 @@
       "run": "مخطط {{planned}} · أُرسل {{sent}} · فشل {{failed}} · مؤجَّل {{suppressed}}",
       "testTitle": "اختبار",
       "testHint": "يمر عبر المرسِل الحقيقي إلى أجهزتك فقط."
+    },
+    "postComments": {
+      "title": "تعليقات على المنشورات للمراجعة",
+      "openPost": "فتح ملف صاحب المنشور"
     }
   },
   "restrictions": {
@@ -2987,6 +2998,30 @@
     },
     "pending": "بانتظار المراجعة. لا يرى هذا المنشور غيرك حتى يوافق عليه مشرف."
   },
+  "postComments": {
+    "open": "تعليق",
+    "count": "التعليقات ({{number}})",
+    "close": "إخفاء التعليقات",
+    "placeholder": "اكتب تعليقًا",
+    "empty": "لا توجد تعليقات بعد.",
+    "off": "التعليقات مغلقة.",
+    "turnOff": "إيقاف التعليقات",
+    "turnOn": "تشغيل التعليقات",
+    "offDone": "تم إيقاف التعليقات",
+    "accountsOnly": "أصحاب الحسابات فقط يمكنهم التعليق على المنشورات.",
+    "held": "شكرًا. تعليقك بانتظار المراجعة.",
+    "pending": "بانتظار المراجعة. أنت وحدك ترى هذا التعليق حتى يقبله أحد المشرفين.",
+    "loadError": "تعذّر تحميل التعليقات."
+  },
+  "mentions": {
+    "openProfile": "فتح ملف @{{username}}",
+    "suggestions": "أشخاص للإشارة إليهم",
+    "pick": "الإشارة إلى {{name}} (@{{username}})",
+    "relation": {
+      "following": "تتابعه",
+      "follower": "يتابعك"
+    }
+  },
   "profile": {
     "onlyYou": "أنت وحدك ترى هذا",
     "recentlyDeleted": {
@@ -2996,7 +3031,8 @@
       "commentNoPlace": "تعليق",
       "post": "منشور",
       "restore": "استعادة",
-      "until": "حتى {{time}}"
+      "until": "حتى {{time}}",
+      "postComment": "تعليق على منشور"
     },
     "dataExport": {
       "title": "تنزيل بياناتي",
@@ -3176,7 +3212,9 @@
       "badge_granted": "حصلت على علامة {{rank}}.",
       "home_join_request": "طلب {{name}} الانضمام إلى {{home}}.",
       "home_join_approved": "يمكنك الآن رؤية {{home}}.",
-      "family_safe": "طمأن {{name}}: أنا بخير."
+      "family_safe": "طمأن {{name}}: أنا بخير.",
+      "post_comment": "علّق {{name}} على منشورك.",
+      "post_comment_reply": "ردّ {{name}} على تعليقك على منشور."
     },
     "removed": {
       "comment_hide": "أخفى أحد المشرفين تعليقك.",
@@ -3185,15 +3223,23 @@
       "reason": "السبب: {{reason}}",
       "reasonGuidelines": "يخالف إرشادات المجتمع.",
       "review": "طلب مراجعة",
-      "reviewSent": "أُرسل طلب المراجعة. سيراجعه شخص."
+      "reviewSent": "أُرسل طلب المراجعة. سيراجعه شخص.",
+      "post_comment_hide": "أخفى أحد المشرفين تعليقك على منشور.",
+      "post_comment_remove": "أزال أحد المشرفين تعليقك على منشور."
     },
     "reviewed": {
       "comment": "راجعنا تعليقًا أبلغت عنه. شكرًا لك.",
       "post": "راجعنا منشورًا أبلغت عنه. شكرًا لك.",
-      "profile": "راجعنا ملفًا شخصيًا أبلغت عنه. شكرًا لك."
+      "profile": "راجعنا ملفًا شخصيًا أبلغت عنه. شكرًا لك.",
+      "post_comment": "راجعنا تعليقًا أبلغت عنه. شكرًا لك."
     },
     "event": {
       "near": "زلزال قرب {{place}}"
+    },
+    "mention": {
+      "comment": "أشار إليك {{name}} في تعليق في مركز الحدث.",
+      "post": "أشار إليك {{name}} في منشور.",
+      "post_comment": "أشار إليك {{name}} في تعليق."
     }
   },
   "contentFilter": {

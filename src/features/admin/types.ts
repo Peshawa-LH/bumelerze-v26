@@ -126,6 +126,11 @@ export const ACTIVITY_ACTIONS = [
   { action: "alerts_mode", content: false },
   { action: "alert_tester_add", content: false },
   { action: "alert_tester_remove", content: false },
+  // Migration 0063: comments under profile posts.
+  { action: "post_comment_approve", content: true },
+  { action: "post_comment_hide", content: true },
+  { action: "post_comment_remove", content: true },
+  { action: "post_comment_restore", content: true },
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number]["action"];
 
@@ -148,6 +153,8 @@ export const ACTIVITY_FILTER_ACTIONS: readonly ActivityAction[] = [
   "feedback_status",
   "report_photo_approve",
   "report_photo_reject",
+  "post_comment_hide",
+  "post_comment_remove",
 ];
 
 /** One row of `admin_activity()` (migration 0052). */
@@ -193,13 +200,17 @@ export const UNDOABLE_ACTIONS = {
   suspend: "accounts.suspend",
   // Migration 0055: the Undo of a name / photo reset.
   profile_reset: "accounts.restrict",
+  // Migration 0063: comments under posts, as hub comments.
+  post_comment_hide: "comments.moderate",
+  post_comment_remove: "content.restore",
 } as const;
 export type UndoableAction = keyof typeof UNDOABLE_ACTIONS;
 
 /** One row of `admin_hidden_removed()` (migration 0053): a comment a moderator
  * hid, or a comment or post an admin removed, in the last 30 days. */
 export interface HiddenRemovedItem {
-  kind: "comment" | "post";
+  /** A hub comment, a post, or a comment under a post (migration 0063). */
+  kind: "comment" | "post" | "post_comment";
   id: string;
   status: "hidden" | "removed";
   /** When it was hidden or removed, UTC ms. */

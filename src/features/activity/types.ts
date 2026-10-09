@@ -12,6 +12,10 @@ export const ACTIVITY_KINDS = [
   "home_join_request",
   "home_join_approved",
   "family_safe",
+  // migration 0063
+  "post_comment",
+  "post_comment_reply",
+  "mention",
 ] as const;
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
@@ -37,8 +41,9 @@ export interface ActivityItem {
   /** badge_granted: the rank and, for a partner, the organisation. */
   role: string | null;
   orgName: string | null;
-  /** content_removed / report_reviewed: comment, post or profile. */
-  target: "comment" | "post" | "profile" | null;
+  /** content_removed / report_reviewed: comment, post, post comment
+   * (migration 0063) or profile. */
+  target: "comment" | "post" | "post_comment" | "profile" | null;
   /** content_removed: hide (a moderator hid it) or remove. */
   action: "hide" | "remove" | null;
   /** content_removed: the reason code (a report reason) or free text. */
@@ -57,4 +62,10 @@ export interface ActivityItem {
   tagId: string | null;
   homeLabel: string | null;
   homeCode: string | null;
+  /** Migration 0063: the comment under a post, the @username of the post's
+   * author (the app opens that profile), and for a mention where the text
+   * is: a hub comment, a post or a post comment. */
+  postCommentId: string | null;
+  postAuthorUsername: string | null;
+  source: "comment" | "post" | "post_comment" | null;
 }

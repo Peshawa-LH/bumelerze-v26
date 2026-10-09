@@ -6,12 +6,15 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { useAccount } from "@/features/account/use-account";
 import { CommunityError, type PublicProfile } from "@/features/community/types";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
+import { useMyPermissions } from "@/features/eventhub/queries";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { useMyRestriction } from "@/features/restrictions/queries";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useTheme } from "@/theme";
 import { useCanRemovePosts, usePinnedPost, usePostActions, usePosts } from "../queries";
 import type { PostsTransport } from "../transport";
+import type { CommentsViewer } from "../comments/components/PostCommentsSection";
+import type { PostCommentsTransport } from "../comments/transport";
 import { PostComposer } from "./PostComposer";
 import { PostItem } from "./PostItem";
 
@@ -19,6 +22,8 @@ interface PostsSectionProps {
   profile: PublicProfile;
   transport?: PostsTransport | undefined;
   hubTransport?: EventHubTransport | undefined;
+  /** Test seam for the comments under posts (migration 0063). */
+  commentsTransport?: PostCommentsTransport | undefined;
 }
 
 /**
@@ -28,7 +33,12 @@ interface PostsSectionProps {
  * (own page) plus the pinned post (if any) and the list, newest first, "Show
  * more" for older ones.
  */
-export function PostsSection({ profile, transport, hubTransport }: PostsSectionProps) {
+export function PostsSection({
+  profile,
+  transport,
+  hubTransport,
+  commentsTransport,
+}: PostsSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const meta = {
@@ -67,6 +77,7 @@ export function PostsSection({ profile, transport, hubTransport }: PostsSectionP
       heading={heading}
       transport={transport}
       hubTransport={hubTransport}
+      commentsTransport={commentsTransport}
     />
   );
 }
@@ -76,6 +87,7 @@ function PostsList({
   heading,
   transport,
   hubTransport,
+  commentsTransport,
 }: PostsSectionProps & { heading: ReactNode }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -86,6 +98,10 @@ function PostsList({
   const actions = usePostActions(transport);
   const canAdminRemove = useCanRemovePosts(hubTransport);
   const mine = useMyRestriction();
+  const perms = useMyPermissions(
+    account.status === "account" ? account.userId : null,
+    hubTransport,
+  );
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
@@ -101,6 +117,19 @@ function PostsList({
   // "Helpful" needs a real account; a guest identity only reads the count.
   const canHelp = account.status === "account";
   const pinnedPost = pinned.post && pinned.post.status === "visible" ? pinned.post : null;
+  const commentsViewer: CommentsViewer = {
+    userId: viewerId,
+    isAccount: canHelp,
+    isLimited: mine.isLimited,
+    canReport: viewerId !== null,
+    // only a real answer from the server counts (as for the admin tools)
+    isModerator: !perms.legacy && perms.has("comments.moderate"),
+    canRemove: !perms.legacy && perms.has("comments.delete"),
+  };
+  const commentProps = {
+    commentsViewer,
+    ...(commentsTransport ? { commentsTransport } : {}),
+  };
   const listed = pinnedPost
     ? list.posts.filter((post) => post.id !== pinnedPost.id)
     : list.posts;
@@ -154,6 +183,7 @@ function PostsList({
             canAdminRemove={canAdminRemove}
             nowMs={pinned.updatedAt || list.updatedAt}
             actions={actions}
+            {...commentProps}
           />
         ) : null}
         {listed.map((post) => (
@@ -166,6 +196,7 @@ function PostsList({
             canAdminRemove={canAdminRemove}
             nowMs={list.updatedAt}
             actions={actions}
+            {...commentProps}
           />
         ))}
         {list.hasMore ? (

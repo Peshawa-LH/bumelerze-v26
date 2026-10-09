@@ -38,7 +38,11 @@ const rowSchema = z.object({
   item_count: z.coerce.number().int().nonnegative().catch(1).optional(),
   role: z.string().nullable().optional(),
   org_name: z.string().nullable().optional(),
-  target: z.enum(["comment", "post", "profile"]).nullable().catch(null).optional(),
+  target: z
+    .enum(["comment", "post", "post_comment", "profile"])
+    .nullable()
+    .catch(null)
+    .optional(),
   action: z.enum(["hide", "remove"]).nullable().catch(null).optional(),
   reason: z.string().nullable().optional(),
   appealed: z.boolean().catch(false).optional(),
@@ -51,6 +55,10 @@ const rowSchema = z.object({
   tag_id: z.string().nullable().optional(),
   home_label: z.string().nullable().optional(),
   home_code: z.string().nullable().optional(),
+  // migration 0063
+  post_comment_id: z.string().nullable().optional(),
+  post_author_username: z.string().nullable().optional(),
+  source: z.enum(["comment", "post", "post_comment"]).nullable().catch(null).optional(),
 });
 
 /** `my_activity()` rows -> items. A row of a kind this app does not know (a
@@ -99,6 +107,9 @@ export function parseActivityRows(data: unknown): ActivityItem[] {
       tagId: r.tag_id ?? null,
       homeLabel: r.home_label ?? null,
       homeCode: r.home_code ?? null,
+      postCommentId: r.post_comment_id ?? null,
+      postAuthorUsername: r.post_author_username ?? null,
+      source: r.source ?? null,
     });
   }
   return items;

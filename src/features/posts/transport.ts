@@ -79,6 +79,9 @@ const rowSchema = z.object({
   helpful_count: count.optional(),
   my_helpful: z.boolean().catch(false).optional(),
   edit_locked: z.boolean().catch(false).optional(),
+  // migration 0063
+  comment_count: count.optional(),
+  comments_off: z.boolean().catch(false).optional(),
 });
 
 function parseTime(value: string | null | undefined): number | null {
@@ -128,6 +131,8 @@ export function parsePosts(data: unknown): ProfilePost[] {
       myHelpful: p.my_helpful ?? false,
       editLocked: p.edit_locked ?? false,
       cursor: p.created_at,
+      commentCount: p.comment_count ?? 0,
+      commentsOff: p.comments_off ?? false,
     });
   }
   return posts;

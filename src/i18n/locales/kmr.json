@@ -2383,7 +2383,8 @@
       "reason_required": "Sedemekê lê zêde bike.",
       "guidelines_required": "Ji kerema xwe pêşî rêbernameyên civakê bixwîne û qebûl bike.",
       "edit_locked": "Ev nivîs tê nirxandin, ji ber vê niha nayê guhertin.",
-      "too_long": "Pir dirêj e."
+      "too_long": "Pir dirêj e.",
+      "comments_off": "Ji bo vê nivîsê şîrove girtî ne."
     },
     "mute": {
       "mute": "Bêdeng bike",
@@ -2495,7 +2496,11 @@
         "surge_set": "Nirxandina demên qerebalix guhert",
         "alerts_mode": "Guherand ka kî hişyariyan distîne",
         "alert_tester_add": "Ceribandêrekî hişyariyan zêde kir",
-        "alert_tester_remove": "Ceribandêrekî hişyariyan rakir"
+        "alert_tester_remove": "Ceribandêrekî hişyariyan rakir",
+        "post_comment_approve": "Şîroveyek li ser nivîsekê pejirand",
+        "post_comment_hide": "Şîroveyek li ser nivîsekê veşart",
+        "post_comment_remove": "Şîroveyek li ser nivîsekê rakir",
+        "post_comment_restore": "Şîroveyek li ser nivîsekê vegerand"
       },
       "undo": "Vegerîne"
     },
@@ -2519,7 +2524,9 @@
       "removedPost": "Nivîsa rakirî",
       "restore": "Vegerîne",
       "textHidden": "Nivîs nayê nîşandan",
-      "cannotRestore": "Nayê vegerandin."
+      "cannotRestore": "Nayê vegerandin.",
+      "hiddenPostComment": "Şîroveya veşartî li ser nivîsekê",
+      "removedPostComment": "Şîroveya rakirî li ser nivîsekê"
     },
     "people": {
       "title": "Kes",
@@ -2863,6 +2870,10 @@
       "run": "Plankirî {{planned}} · şandî {{sent}} · bi ser neket {{failed}} · rawestandî {{suppressed}}",
       "testTitle": "Ceribandin",
       "testHint": "Di şanderê rastîn re derbas dibe, tenê ji cîhazên te re."
+    },
+    "postComments": {
+      "title": "Şîroveyên li ser nivîsan ji bo nirxandinê",
+      "openPost": "Profîla nivîsê veke"
     }
   },
   "restrictions": {
@@ -2987,6 +2998,30 @@
     },
     "pending": "Li benda nirxandinê ye. Heta ku rêveberek wê bipejirîne, tenê tu vê nivîsê dibînî."
   },
+  "postComments": {
+    "open": "Şîrove",
+    "count": "Şîrove ({{number}})",
+    "close": "Şîroveyan veşêre",
+    "placeholder": "Şîroveyekê binivîse",
+    "empty": "Hê şîrove tune.",
+    "off": "Şîrove girtî ne.",
+    "turnOff": "Şîroveyan bigire",
+    "turnOn": "Şîroveyan veke",
+    "offDone": "Şîrove hatin girtin",
+    "accountsOnly": "Tenê xwedî hesab dikarin li ser nivîsan şîrove binivîsin.",
+    "held": "Spas. Şîroveya te li benda nirxandinê ye.",
+    "pending": "Li benda nirxandinê ye. Heta moderatorek wê bipejirîne, tenê tu vê şîroveyê dibînî.",
+    "loadError": "Şîrove nehatin barkirin."
+  },
+  "mentions": {
+    "openProfile": "Profîla @{{username}} veke",
+    "suggestions": "Kesên ku bên binavkirin",
+    "pick": "Navê {{name}} bike (@{{username}})",
+    "relation": {
+      "following": "Tu dişopînî",
+      "follower": "Te dişopîne"
+    }
+  },
   "profile": {
     "onlyYou": "Tenê tu vê dibînî",
     "recentlyDeleted": {
@@ -2996,7 +3031,8 @@
       "commentNoPlace": "Şîrove",
       "post": "Nivîs",
       "restore": "Vegerîne",
-      "until": "Heta {{time}}"
+      "until": "Heta {{time}}",
+      "postComment": "Şîrove li ser nivîsekê"
     },
     "dataExport": {
       "title": "Daneyên min daxe",
@@ -3176,7 +3212,9 @@
       "badge_granted": "Nîşana {{rank}} ji te re hate dayîn.",
       "home_join_request": "{{name}} xwest tevlî {{home}} bibe.",
       "home_join_approved": "Niha tu dikarî {{home}} bibînî.",
-      "family_safe": "{{name}} agahdar kir: Ez ewle me."
+      "family_safe": "{{name}} agahdar kir: Ez ewle me.",
+      "post_comment": "{{name}} li ser nivîsa te şîrove nivîsand.",
+      "post_comment_reply": "{{name}} bersiva şîroveya te ya li ser nivîsekê da."
     },
     "removed": {
       "comment_hide": "Moderatorekî şîroveya te veşart.",
@@ -3185,15 +3223,23 @@
       "reason": "Sedem: {{reason}}",
       "reasonGuidelines": "Li dijî rêbernameyên civakê ye.",
       "review": "Nirxandinê bixwaze",
-      "reviewSent": "Nirxandin hate xwestin. Kesek ê lê binêre."
+      "reviewSent": "Nirxandin hate xwestin. Kesek ê lê binêre.",
+      "post_comment_hide": "Moderatorekî şîroveya te ya li ser nivîsekê veşart.",
+      "post_comment_remove": "Moderatorekî şîroveya te ya li ser nivîsekê rakir."
     },
     "reviewed": {
       "comment": "Me li şîroveya ku te gilî kiribû nêrî. Spas.",
       "post": "Me li nivîsa ku te gilî kiribû nêrî. Spas.",
-      "profile": "Me li profîla ku te gilî kiribû nêrî. Spas."
+      "profile": "Me li profîla ku te gilî kiribû nêrî. Spas.",
+      "post_comment": "Me li şîroveya ku te gilî kiribû nêrî. Spas."
     },
     "event": {
       "near": "Erdhej li nêzî {{place}}"
+    },
+    "mention": {
+      "comment": "{{name}} di şîroveyeke Navenda bûyerê de navê te kir.",
+      "post": "{{name}} di nivîsekê de navê te kir.",
+      "post_comment": "{{name}} di şîroveyekê de navê te kir."
     }
   },
   "contentFilter": {

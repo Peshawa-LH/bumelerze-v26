@@ -14,6 +14,10 @@ import {
 } from "@/features/eventhub/transport";
 import type { ModerationAction, Permission } from "@/features/eventhub/types";
 import { SupabasePostsTransport, type PostsTransport } from "@/features/posts/transport";
+import {
+  SupabasePostCommentsTransport,
+  type PostCommentsTransport,
+} from "@/features/posts/comments/transport";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SupabaseAdminTransport, type AdminTransport } from "./transport";
 import type { ActivityFilters, GrantableRank } from "./types";
@@ -240,12 +244,15 @@ export interface AdminActions {
   restorePost: (postId: string) => Promise<void>;
   /** Undoes the action in one activity row. */
   undoAction: (logId: string) => Promise<void>;
+  /** The Undo of a hide or remove of a comment under a post (0063). */
+  restorePostComment: (commentId: string) => Promise<void>;
 }
 
 export function useAdminActions(
   transport: AdminTransport = SupabaseAdminTransport,
   hubTransport?: EventHubTransport,
   postsTransport: PostsTransport = SupabasePostsTransport,
+  postCommentsTransport: PostCommentsTransport = SupabasePostCommentsTransport,
 ): AdminActions {
   const queryClient = useQueryClient();
   const hub = hubTransport ?? SupabaseEventHubTransport;
@@ -303,6 +310,10 @@ export function useAdminActions(
     mutationFn: (logId: string) => transport.undoAction(logId),
     onSuccess: refresh,
   });
+  const restorePostComment = useMutation({
+    mutationFn: (commentId: string) => postCommentsTransport.adminRestore(commentId),
+    onSuccess: refresh,
+  });
 
   return {
     restoreComment: (commentId) => restoreComment.mutateAsync(commentId),
@@ -315,5 +326,6 @@ export function useAdminActions(
     resolveReports: (userId) => resolveReports.mutateAsync(userId),
     dismissPostReports: (postId) => dismissPostReports.mutateAsync(postId),
     removePost: (postId, reason) => removePost.mutateAsync({ postId, reason }),
+    restorePostComment: (commentId) => restorePostComment.mutateAsync(commentId),
   };
 }

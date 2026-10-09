@@ -22,6 +22,12 @@ import type { PostActions } from "../queries";
 import type { ProfilePost } from "../types";
 import { validatePostEdit } from "../validation";
 import { EventPostCard } from "./EventPostCard";
+import {
+  PostCommentsSection,
+  type CommentsViewer,
+} from "../comments/components/PostCommentsSection";
+import type { PostCommentsTransport } from "../comments/transport";
+import { MentionText } from "@/features/mentions/components/MentionText";
 
 interface PostItemProps {
   post: ProfilePost;
@@ -38,6 +44,11 @@ interface PostItemProps {
   /** Clock for the relative time (UTC ms). */
   nowMs: number;
   actions: PostActions;
+  /** Who reads the comments under the post (migration 0063); no comments
+   * part when left out. */
+  commentsViewer?: CommentsViewer;
+  /** Test seam for the comments. */
+  commentsTransport?: PostCommentsTransport;
 }
 
 type Mode = "idle" | "reporting" | "adminRemove" | "editing" | "editLocked";
@@ -56,6 +67,8 @@ export function PostItem({
   isPinned = false,
   nowMs,
   actions,
+  commentsViewer,
+  commentsTransport,
 }: PostItemProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -252,7 +265,8 @@ export function PostItem({
           </View>
         </View>
       ) : post.body !== "" ? (
-        <Text
+        <MentionText
+          text={post.body}
           testID={`post-body-${post.id}`}
           style={{
             color: colors.text.primary,
@@ -261,9 +275,7 @@ export function PostItem({
             // Follows the language of the post, not of the app.
             textAlign: "auto",
           }}
-        >
-          {post.body}
-        </Text>
+        />
       ) : null}
 
       {pending ? (
@@ -386,6 +398,17 @@ export function PostItem({
         >
           {errorText}
         </Text>
+      ) : null}
+
+      {commentsViewer && post.status === "visible" && mode !== "editing" ? (
+        <PostCommentsSection
+          postId={post.id}
+          commentCount={post.commentCount}
+          commentsOff={post.commentsOff}
+          isPostOwner={isOwn}
+          viewer={commentsViewer}
+          {...(commentsTransport ? { transport: commentsTransport } : {})}
+        />
       ) : null}
 
       {mode === "reporting" ? (

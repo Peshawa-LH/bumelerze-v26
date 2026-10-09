@@ -14,7 +14,9 @@ import { useInboxCounts } from "../inbox/queries";
 import type { InboxTransport } from "../inbox/transport";
 import { useAdminAccess } from "../queries";
 import type { AdminTransport } from "../transport";
+import type { PostCommentsTransport } from "@/features/posts/comments/transport";
 import { ModerationQueueSection } from "./ModerationQueueSection";
+import { PostCommentQueueSection } from "./PostCommentQueueSection";
 import { RankBadgesSection } from "./RankBadgesSection";
 import { ReportedPostsSection } from "./ReportedPostsSection";
 import { ReportedProfilesSection } from "./ReportedProfilesSection";
@@ -31,6 +33,7 @@ export function AdminContent({
   postsTransport,
   inboxTransport,
   filterTransport,
+  postCommentsTransport,
 }: {
   transport?: AdminTransport;
   hubTransport?: EventHubTransport;
@@ -38,6 +41,8 @@ export function AdminContent({
   inboxTransport?: InboxTransport;
   /** Test seam for the word filter's hold notes and Approve (migration 0059). */
   filterTransport?: ContentFilterTransport;
+  /** Test seam for comments under posts (migration 0063). */
+  postCommentsTransport?: PostCommentsTransport;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -142,6 +147,11 @@ export function AdminContent({
             {...shared}
             {...filter}
             {...(postsTransport ? { postsTransport } : {})}
+          />
+          <PostCommentQueueSection
+            canRemove={access.canDelete}
+            {...filter}
+            {...(postCommentsTransport ? { transport: postCommentsTransport } : {})}
           />
         </>
       ) : null}

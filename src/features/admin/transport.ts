@@ -257,7 +257,7 @@ export function parseActivity(data: unknown): ActivityEntry[] {
 }
 
 const hiddenSchema = z.object({
-  kind: z.enum(["comment", "post"]),
+  kind: z.enum(["comment", "post", "post_comment"]),
   item_id: z.string(),
   status: z.enum(["hidden", "removed"]),
   acted_at: z.string(),

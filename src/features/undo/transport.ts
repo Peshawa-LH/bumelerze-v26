@@ -17,7 +17,7 @@ export interface UndoTransport {
 }
 
 const rowSchema = z.object({
-  kind: z.enum(["comment", "post"]),
+  kind: z.enum(["comment", "post", "post_comment"]),
   item_id: z.string(),
   body: z.string(),
   deleted_at: z.string(),

@@ -47,6 +47,10 @@ export interface ProfilePost {
   /** The raw `created_at` text, used unchanged as the next page's cursor so
    * microseconds are never lost. */
   cursor: string;
+  /** Visible comments this viewer may see (migration 0063; 0 before it). */
+  commentCount: number;
+  /** The author switched comments off for this post (0063). */
+  commentsOff: boolean;
 }
 
 export interface PostsPage {
