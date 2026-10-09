@@ -12,17 +12,23 @@ import { functionSource, readCode } from "../sql-test-utils";
  *   erase    the row is deleted or blanked by delete_my_account() itself
  *   unlink   the row stays with the column set to null (foreign key on delete
  *            set null), on purpose, for the reason given
+ *   blank    the foreign key sets the author to null and a trigger on the
+ *            table blanks the row in the same step (0063: post comments, so
+ *            delete_my_account() itself did not have to change); the
+ *            trigger's body must contain `inTrigger.snippet`
  *
  * "erase" entries must also be visible in the body of delete_my_account(), so
  * the function cannot drift away from this list.
  */
-type Handling = "cascade" | "erase" | "unlink";
+type Handling = "cascade" | "erase" | "unlink" | "blank";
 
 interface Entry {
   onDelete: "cascade" | "set null";
   handling: Handling;
   /** A snippet that must appear in delete_my_account() (erase and unlink-by-update only). */
   inFunction?: string;
+  /** "blank" only: the trigger function that blanks the row, and a snippet of it. */
+  inTrigger?: { file: string; fn: string; snippet: string };
   why: string;
 }
 
@@ -315,6 +321,32 @@ const MANIFEST: Record<string, Entry> = {
     handling: "cascade",
     why: "a test alert this person asked for",
   },
+  // comments on posts, mentions (0063)
+  "post_comments.user_id": {
+    onDelete: "set null",
+    handling: "blank",
+    inTrigger: {
+      file: "0063_mentions_post_comments.sql",
+      fn: "post_comments_before_update",
+      snippet: "new.body := '';",
+    },
+    why: "blanked like hub comments: text wiped, author link gone, 'Deleted account' placeholder",
+  },
+  "post_comment_reports.reporter_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "reports the person made on post comments",
+  },
+  "mentions.mentioned_user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "mentions of the person (their notices go with activity_items)",
+  },
+  "mentions.author_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "mentions the person made",
+  },
 };
 
 interface Found {
@@ -468,6 +500,21 @@ describe("every column that points at a user is accounted for when the account i
       if (entry.handling === "erase") {
         expect([key, entry.inFunction !== undefined]).toEqual([key, true]);
       }
+    }
+  });
+
+  it("every 'blank' decision is in the trigger that does it, on the set-null foreign key", () => {
+    for (const [key, entry] of Object.entries(MANIFEST)) {
+      if (entry.handling !== "blank") continue;
+      expect([key, entry.onDelete]).toEqual([key, "set null"]);
+      expect(entry.inTrigger).toBeDefined();
+      const { file, fn, snippet } = entry.inTrigger as NonNullable<Entry["inTrigger"]>;
+      const source = functionSource(readCode(file), fn);
+      expect([key, source]).toEqual([key, expect.stringContaining(snippet)]);
+      expect([key, source]).toEqual([
+        key,
+        expect.stringContaining("old.user_id is not null and new.user_id is null"),
+      ]);
     }
   });
 
