@@ -97,6 +97,17 @@ describe("website build", () => {
     }
   });
 
+  it("never calls the app free, in any language (owner decision 2026-10-10)", () => {
+    // en "free", ckb "(بە)خۆڕایی", kmr "belaş", ar "مجان(ي/ًا)".
+    const free = /\bfree\b|خۆڕایی|belaş|مجان/i;
+    for (const rel of pageFiles()) {
+      expect({ rel, match: read(rel).match(free)?.[0] ?? null }).toEqual({
+        rel,
+        match: null,
+      });
+    }
+  });
+
   it("names early warning only as an aim, never as available", () => {
     const aims = [read("index.html"), read("how-it-works.html")]
       .flatMap(
