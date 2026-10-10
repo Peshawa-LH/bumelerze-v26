@@ -151,10 +151,12 @@ describe("website build", () => {
       )
       .join("\n");
     expect(aims).toMatch(/early warning/i);
-    // the shared goals list says where early warning stands
-    expect(read("how-it-works.html")).toMatch(/early warning is not available today/);
-    for (const rel of ["index.html", "how-it-works.html", "about.html"]) {
-      expect(read(rel)).toMatch(/class="status status--testing">In testing</);
+    // the shared goals say where early warning stands, and what it is not
+    expect(read("how-it-works.html")).toMatch(
+      /early warning[^<]*is in testing\. It is not prediction\./i,
+    );
+    for (const rel of ["index.html", "about.html"]) {
+      expect(read(rel)).toMatch(/early warning models in testing/);
     }
   });
 

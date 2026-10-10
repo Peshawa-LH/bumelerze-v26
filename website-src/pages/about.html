@@ -18,6 +18,11 @@
     </div>
   </section>
 
+  <!-- Separator: the site's seismic line, as between the acts on Home. -->
+  <div class="act act--plain" aria-hidden="true">
+    <div class="act-line">{{>seismicLine}}</div>
+  </div>
+
   <section class="band" id="principles" aria-labelledby="principles-h">
     <div class="wrap-wide">
       <h2 id="principles-h">{{about.principles.headline}}</h2>
@@ -26,6 +31,11 @@
       </ul>
     </div>
   </section>
+
+  <!-- Separator: the site's seismic line, as between the acts on Home. -->
+  <div class="act act--plain" aria-hidden="true">
+    <div class="act-line">{{>seismicLine}}</div>
+  </div>
 
   <!-- Marked data-aim: names longer-term aims only (see the claims test). -->
   <section class="band band--alt" id="roadmap" aria-labelledby="roadmap-h" data-aim>
@@ -47,12 +57,17 @@
         <div class="road-col road-col--aims">
           <h3 class="road-head"><span class="road-mark" aria-hidden="true"></span>{{about.roadmap.aims.title}}</h3>
           <ul class="goals goals--compact">
-            {{>goals short aims h4}}
+            {{>goals short h4}}
           </ul>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- Separator: the site's seismic line, as between the acts on Home. -->
+  <div class="act act--plain" aria-hidden="true">
+    <div class="act-line">{{>seismicLine}}</div>
+  </div>
 
   <section class="band" id="official" aria-labelledby="official-h">
     <div class="wrap-wide">

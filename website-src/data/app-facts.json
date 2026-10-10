@@ -450,7 +450,7 @@
       "usedIn": {
         "pages": ["index.html", "how-it-works.html", "support.html", "about.html"],
         "keys": [
-          "goal.alerts.long",
+          "goal.warning.long",
           "outlook.button",
           "support.alerts.a1",
           "about.roadmap.next2"

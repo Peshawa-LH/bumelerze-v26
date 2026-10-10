@@ -241,19 +241,16 @@ const COMPONENTS = {
       .join("");
   },
   vcFigure(ctx) {
-    // Building types over the vulnerability classes they typically fall in,
-    // A (most vulnerable) to F, on one shared six-column grid, so the figure
-    // reads in the page's direction: A sits on the reading-start side.
+    // Four building types in one even row, in the page's reading direction
+    // (mud walls on the reading-start side), and the A-F scale below as its
+    // own row. Deliberately no link between a building and a class.
     const tiles = [
-      ["structure-mud-walls", "building.mud", "1 / span 1"],
-      ["structure-stone-walls", "building.stone", "2 / span 1"],
-      ["structure-brick-walls", "building.brick", "3 / span 1"],
-      ["structure-frame", "building.frame", "4 / span 2"],
+      ["structure-mud-walls", "building.mud"],
+      ["structure-stone-walls", "building.stone"],
+      ["structure-brick-walls", "building.brick"],
+      ["structure-frame", "building.frame"],
     ]
-      .map(
-        ([file, key, col]) =>
-          `<li style="grid-column: ${col}">${pictogram(file)}<span>${ctx.t(key)}</span></li>`,
-      )
+      .map(([file, key]) => `<li>${pictogram(file)}<span>${ctx.t(key)}</span></li>`)
       .join("\n            ");
     const classes = ["A", "B", "C", "D", "E", "F"]
       .map((c) => `<li class="vc-${c.toLowerCase()}">${c}</li>`)
@@ -266,6 +263,7 @@ const COMPONENTS = {
           <div class="vc-ends"><span>A · ${ctx.t("building.vc_a")}</span><span>F · ${ctx.t("building.vc_f")}</span></div>
         </div>`;
   },
+
   catalogMap(ctx) {
     const r = ctx.root;
     const sizes = "(min-width: 52rem) 36rem, 92vw";
@@ -465,37 +463,19 @@ const SOCIAL_ICONS = {
   x: '<svg class="social-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.82-5.96 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.12l11.96 15.64Z"/></svg>',
 };
 
-/** The shared goals list (outlook copy, section A), in render order, with
- * each status's tone and a line icon. */
+/** The three shared goals (Home outlook, How it works section 7, About
+ * aims), in render order, each with a line icon. */
 const GOALS = [
   {
-    key: "alerts",
-    tone: "soon",
+    key: "warning",
     icon: '<path d="M12 3.5c-3.3 0-5.8 2.6-5.8 6v4L4.5 17h15l-1.7-3.5v-4c0-3.4-2.5-6-5.8-6Z"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/>',
   },
   {
-    key: "early_warning",
-    tone: "testing",
-    icon: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.6 2M10 2.5h4M18.6 6.4l1.5-1.5"/>',
-  },
-  {
-    key: "building_assessment",
-    tone: "planned",
+    key: "buildings",
     icon: '<path d="M3.5 20V8.5l6.5-4.5 6.5 4.5v3"/><path d="M3.5 20h8"/><path d="M7.5 12h2.5M7.5 16h2.5"/><circle cx="17" cy="16.5" r="3.2"/><path d="m19.4 18.9 2.2 2.2"/>',
   },
   {
-    key: "shm",
-    tone: "longterm",
-    icon: '<rect x="4" y="4" width="10" height="16.5" rx="1"/><path d="M7 8h4M7 12h4M7 16h4"/><path d="M17.5 9c1.2 1.7 1.2 4.3 0 6M20 7c2 2.9 2 7.1 0 10"/>',
-  },
-  {
-    key: "models",
-    tone: "planned",
-    icon: '<path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12.5 9 5 9-5"/><path d="m3 16.5 9 5 9-5"/>',
-  },
-  {
     key: "resilience",
-    tone: "longterm",
     icon: '<path d="M12 2.8 4.5 5.8v5.7c0 4.7 3.2 8.2 7.5 9.7 4.3-1.5 7.5-5 7.5-9.7V5.8Z"/><path d="M8.5 13 12 10l3.5 3v3.5h-7Z"/>',
   },
 ];
@@ -597,23 +577,20 @@ const SUPPORT_ABOUT_COMPONENTS = {
       )
       .join("\n        ");
   },
-  goals(ctx, [length = "short", which = "all", level = "h3"]) {
-    // One shared list of goals (Home: short, How it works: long, About aims:
-    // short without alerts, which sits under "Next"). Each shows its status.
-    const keys = GOALS.filter((g) => which === "all" || g.key !== "alerts");
-    return keys
-      .map(
-        (g) => `<li class="goal">
+  goals(ctx, [length = "short", level = "h3"]) {
+    // The same three goals on Home and About (title + short line) and on
+    // How it works (title + long text).
+    return GOALS.map(
+      (g) => `<li class="goal">
           <span class="goal-icon">${icon(g.icon)}</span>
           <div class="goal-text">
             <${level} class="goal-title">${ctx.t(`goal.${g.key}.title`)}</${level}>
-            <span class="status status--${g.tone}">${ctx.t(`goal.${g.key}.status`)}</span>
             <p>${ctx.t(`goal.${g.key}.${length}`)}</p>
           </div>
         </li>`,
-      )
-      .join("\n        ");
+    ).join("\n        ");
   },
+
   roadmapItems(ctx, [group]) {
     return ROADMAP[group]
       .map(
@@ -911,7 +888,7 @@ async function main() {
       console.error(problems.join("\n"));
       process.exit(1);
     }
-    fs.writeFileSync(LOCK_FILE, JSON.stringify(prints, null, 1) + "\n");
+    fs.writeFileSync(LOCK_FILE, JSON.stringify(prints, null, 2) + "\n");
     console.log(
       `app-facts.lock.json refreshed (${Object.keys(prints).length} statements)`,
     );

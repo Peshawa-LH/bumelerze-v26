@@ -1298,45 +1298,63 @@ html[dir="rtl"] .live-next::before {
   background: var(--card);
 }
 
-/* Vulnerability figure: building types over the classes they typically
- * fall in, on one six-column grid shared with the A-F scale. Logical grid
- * placement, so A (and mud walls) sit on the reading-start side. */
-.vc-figure {
-  --vc-gap: 0.35rem;
-}
-
+/* Vulnerability figure: four building pictograms in one even row, then
+ * the A-F scale as a separate row. Logical order, so mud walls and A sit on
+ * the reading-start side in every language. */
 .vc-tiles,
 .vc-scale {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: var(--vc-gap);
 }
 
+.vc-figure {
+  container-type: inline-size;
+}
+
+/* Four columns sized to their labels and spread across the row with equal
+ * space between them: labels wrap only between words when they must, and
+ * never overlap. */
 .vc-tiles {
-  margin-block-end: 0.6rem;
-  align-items: end;
+  grid-template-columns: repeat(4, auto);
+  justify-content: space-between;
+  gap: 1.25rem 0.5rem;
+  align-items: start;
+  margin-block-end: 1.5rem;
 }
 
 .vc-tiles li {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  padding-block-end: 0.5rem;
-  border-block-end: 2px solid var(--border-strong);
+  gap: 0.5rem;
   text-align: center;
   font-size: 1rem;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
+  line-height: 1.3;
+  text-wrap: balance;
 }
 
 .vc-tiles svg {
-  width: clamp(2.4rem, 7vw, 3.4rem);
-  height: auto;
+  width: 3.5rem;
+  height: 3.5rem;
   color: var(--ink);
+}
+
+/* Very large text on a phone: two by two instead of a squeezed row. */
+@container (max-width: 15rem) {
+  .vc-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vc-tiles li {
+    overflow-wrap: break-word;
+  }
+}
+
+.vc-scale {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.35rem;
 }
 
 .vc-scale li {
@@ -1500,7 +1518,7 @@ html[dir="rtl"] .live-next::before {
 }
 
 /* Outlook (Home), What comes next (How it works), roadmap aims (About):
- * one shared goals list, each item with its icon and status. */
+ * one shared list of three goals, each with its icon. */
 .outlook {
   padding: clamp(1rem, 2vw, 2rem) var(--pad);
 }
@@ -1533,13 +1551,38 @@ html[dir="rtl"] .live-next::before {
   text-align: start;
 }
 
-.goals--grid {
-  margin-block-start: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+/* Home: three light items in one row (stacked on phones): icon, title and
+ * one short line, no cards, plenty of air. */
+.goals--row {
+  margin-block-start: 2.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 2rem 2.5rem;
+  max-width: 62rem;
+  margin-inline: auto;
+}
+
+.goals--row .goal {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: center;
+}
+
+.goals--row .goal-text {
+  flex: none;
+  width: 100%;
+}
+
+.goals--row .goal-icon {
+  background: var(--card);
 }
 
 .goals--long {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 }
 
 /* Flex with wrap, not a fixed two-column grid: when the card is too narrow
@@ -1575,71 +1618,19 @@ html[dir="rtl"] .live-next::before {
 
 .goal-title {
   display: block;
+  margin: 0;
   font-size: 1.15rem;
   letter-spacing: 0;
   line-height: 1.4;
 }
 
-/* The status sits on its own line under the title, so long titles and
- * labels wrap cleanly at any text size and in every language. */
-.goal .status {
-  display: flex;
-  width: fit-content;
-  margin-block-start: 0.35rem;
-}
-
 .goal p {
-  margin-block-start: 0.4rem;
+  margin-block: 0.3rem 0;
   color: var(--muted);
 }
 
 .goals--long .goal p {
   color: var(--ink);
-}
-
-/* Status pills: the text carries the meaning; the dot only echoes it. */
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.05rem 0.6rem;
-  border: 1.5px solid var(--border-strong);
-  border-radius: 999px;
-  color: var(--ink);
-  font-size: 1rem;
-  font-weight: 600;
-  max-width: 100%;
-  vertical-align: 0.1em;
-}
-
-.status::before {
-  content: "";
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--muted);
-}
-
-.status--soon::before {
-  background: var(--ok);
-}
-
-.status--testing::before {
-  background: var(--gold);
-}
-
-.status--planned::before {
-  background: transparent;
-  border: 2px solid var(--muted);
-}
-
-.status--longterm {
-  border-style: dashed;
-}
-
-.status--longterm::before {
-  background: transparent;
-  border: 2px dashed var(--muted);
 }
 
 .next-closing {
