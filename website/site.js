@@ -49,19 +49,27 @@
   }
 
   // ------------------------------------------------------------ live card
-  let dataEl = document.getElementById("site-data");
-  let liveBody = document.querySelector("[data-live]");
-  if (dataEl && liveBody) {
-    liveCard(JSON.parse(dataEl.textContent), liveBody);
+  // A small carousel: the latest earthquake near Kurdistan, then up to three
+  // significant earthquakes worldwide, each linking to its page in the app.
+  const dataEl = document.getElementById("site-data");
+  const liveRoot = document.querySelector("[data-live-root]");
+  if (dataEl && liveRoot) {
+    liveCard(JSON.parse(dataEl.textContent), liveRoot);
   }
 
-  function liveCard(data, body) {
+  function liveCard(data, root) {
+    const body = root.querySelector("[data-live]");
     // Same region rule as the app's Home feed: the region box
     // (src/features/events/config.ts REGION_BBOX), magnitude 3 and up, the
     // 180-day fetch window.
-    let box = { minLat: 33.0, maxLat: 38.5, minLon: 41.0, maxLon: 48.5 };
-    let start = new Date(Date.now() - 180 * 864e5).toISOString().slice(0, 10);
-    let usgs =
+    const box = { minLat: 33.0, maxLat: 38.5, minLon: 41.0, maxLon: 48.5 };
+    const inBox = (e) =>
+      e.lat >= box.minLat &&
+      e.lat <= box.maxLat &&
+      e.lon >= box.minLon &&
+      e.lon <= box.maxLon;
+    const start = new Date(Date.now() - 180 * 864e5).toISOString().slice(0, 10);
+    const usgs =
       "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&orderby=time&limit=1&minmagnitude=3" +
       "&minlatitude=" +
       box.minLat +
@@ -73,7 +81,7 @@
       box.maxLon +
       "&starttime=" +
       start;
-    let emsc =
+    const emsc =
       "https://www.seismicportal.eu/fdsnws/event/1/query?format=json&orderby=time&limit=1&minmag=3" +
       "&minlat=" +
       box.minLat +
@@ -85,12 +93,18 @@
       box.maxLon +
       "&starttime=" +
       start;
+    // The app's Significant list for the world: the USGS M4.5+ week feed,
+    // sig = 100 x magnitude + PAGER bonus, kept at 600 and up
+    // (src/features/events/normalize.ts, config.ts SIGNIFICANCE_THRESHOLDS).
+    const world =
+      "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson";
+    const alertBonus = { green: 0, yellow: 100, orange: 200, red: 300 };
 
-    function getJson(url) {
-      let ctrl = "AbortController" in window ? new AbortController() : null;
-      let timer = setTimeout(function () {
+    function getJson(url, ms) {
+      const ctrl = "AbortController" in window ? new AbortController() : null;
+      const timer = setTimeout(function () {
         if (ctrl) ctrl.abort();
-      }, 7000);
+      }, ms || 6000);
       return fetch(url, ctrl ? { signal: ctrl.signal } : {})
         .then(function (r) {
           if (!r.ok) throw new Error("HTTP " + r.status);
@@ -101,13 +115,7 @@
         });
     }
 
-    function first(json) {
-      return json && json.features && json.features[0];
-    }
-
-    let fromUsgs = getJson(usgs).then(function (j) {
-      let f = first(j);
-      if (!f || f.properties.mag == null) return null;
+    const fromUsgsFeature = function (f) {
       return {
         id: f.id,
         t: f.properties.time,
@@ -116,42 +124,94 @@
         lat: f.geometry.coordinates[1],
         src: "USGS",
         place: f.properties.place || "",
+        sig: Math.round(100 * f.properties.mag + (alertBonus[f.properties.alert] || 0)),
       };
-    });
-    let fromEmsc = getJson(emsc).then(function (j) {
-      let f = first(j);
-      if (!f || f.properties.mag == null) return null;
-      let p = f.properties;
-      return {
-        id: p.unid,
-        t: Date.parse(p.time),
-        mag: p.mag,
-        lat: p.lat,
-        lon: p.lon,
-        src: "EMSC",
-        place: p.flynn_region || "",
-      };
+    };
+
+    const regional = Promise.allSettled([
+      getJson(usgs).then(function (j) {
+        const f = j && j.features && j.features[0];
+        return f && f.properties.mag != null ? fromUsgsFeature(f) : null;
+      }),
+      getJson(emsc).then(function (j) {
+        const f = j && j.features && j.features[0];
+        if (!f || f.properties.mag == null) return null;
+        const p = f.properties;
+        return {
+          id: p.unid,
+          t: Date.parse(p.time),
+          mag: p.mag,
+          lat: p.lat,
+          lon: p.lon,
+          src: "EMSC",
+          place: p.flynn_region || "",
+        };
+      }),
+    ]).then(function (results) {
+      const u = results[0].status === "fulfilled" ? results[0].value : null;
+      const e = results[1].status === "fulfilled" ? results[1].value : null;
+      let pick = u && e ? (e.t > u.t ? e : u) : u || e;
+      // The app's merge rule: the same quake from two networks is shown
+      // once, USGS first (16 s, 50 km).
+      if (pick === e && u && Math.abs(u.t - e.t) <= 16000 && km(u, e) <= 50) pick = u;
+      return pick && isFinite(pick.t) ? pick : null;
     });
 
-    Promise.allSettled([fromUsgs, fromEmsc]).then(function (results) {
-      let u = results[0].status === "fulfilled" ? results[0].value : null;
-      let e = results[1].status === "fulfilled" ? results[1].value : null;
-      let pick = u && e ? (e.t > u.t ? e : u) : u || e;
-      // The app's merge rule: the same quake from two networks is shown once,
-      // USGS first (16 s, 50 km).
-      if (pick === e && u && Math.abs(u.t - e.t) <= 16000 && km(u, e) <= 50) pick = u;
-      if (!pick || !isFinite(pick.t)) {
-        fail();
-        return;
+    const significant = getJson(world)
+      .then(function (j) {
+        return (j.features || [])
+          .filter(function (f) {
+            return f.properties.mag != null;
+          })
+          .map(fromUsgsFeature)
+          .filter(function (ev) {
+            return ev.sig >= 600 && !inBox(ev);
+          })
+          .sort(function (a, b) {
+            return b.sig - a.sig || b.t - a.t;
+          })
+          .slice(0, 3);
+      })
+      .then(function (list) {
+        if (!list.length) return list;
+        // Region names for far events, in the page language (the app's
+        // Flinn-Engdahl table); without it the network's own place text.
+        return getJson(data.fe, 5000)
+          .then(function (fe) {
+            list.forEach(function (ev) {
+              ev.region = feName(fe, ev.lat, ev.lon);
+            });
+            return list;
+          })
+          .catch(function () {
+            return list;
+          });
+      });
+
+    Promise.allSettled([regional, significant]).then(function (res) {
+      const slides = [];
+      const near = res[0].status === "fulfilled" ? res[0].value : null;
+      if (near) slides.push({ ev: near, label: data.labelNear });
+      if (res[1].status === "fulfilled") {
+        res[1].value.forEach(function (ev) {
+          if (
+            near &&
+            (ev.id === near.id ||
+              (Math.abs(ev.t - near.t) <= 16000 && km(ev, near) <= 50))
+          )
+            return;
+          slides.push({ ev: ev, label: data.labelWorld });
+        });
       }
-      render(pick);
+      if (!slides.length) fail();
+      else render(slides);
     });
 
     function fail() {
       body.textContent = "";
-      let p = document.createElement("p");
-      p.className = "live-fallback";
-      p.textContent = data.fallback;
+      const label = el("p", "live-label", data.labelNear);
+      body.appendChild(label);
+      const p = el("p", "live-fallback", data.fallback);
       body.appendChild(p);
       body.setAttribute("aria-busy", "false");
     }
@@ -174,12 +234,12 @@
     function placeLine(ev) {
       let best = null;
       data.cities.forEach(function (c) {
-        let d = km(ev, { lat: c[1], lon: c[2] });
+        const d = km(ev, { lat: c[1], lon: c[2] });
         if (!best || d < best.d) best = { c: c, d: d };
       });
-      if (!best || best.d > 300) return ev.place;
-      let dist = best.d >= 10 ? Math.round(best.d) : Math.round(best.d * 10) / 10;
-      let dir =
+      if (!best || best.d > 300) return ev.region || ev.place;
+      const dist = best.d >= 10 ? Math.round(best.d) : Math.round(best.d * 10) / 10;
+      const dir =
         data.dirs[Math.round(bearing({ lat: best.c[1], lon: best.c[2] }, ev) / 45) % 8];
       return fill(data.place, {
         distance: "⁨" + digits(dist) + " " + data.km + "⁩",
@@ -189,15 +249,15 @@
     }
 
     function ago(t) {
-      let mins = Math.max(0, Math.round((Date.now() - t) / 60000));
-      let unit = mins < 60 ? "minute" : mins < 1440 ? "hour" : "day";
-      let value =
+      const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
+      const unit = mins < 60 ? "minute" : mins < 1440 ? "hour" : "day";
+      const value =
         unit === "minute"
           ? mins
           : unit === "hour"
             ? Math.round(mins / 60)
             : Math.round(mins / 1440);
-      let locale = data.lang === "kmr" ? "ku" : data.lang;
+      const locale = data.lang === "kmr" ? "ku" : data.lang;
       try {
         if (
           window.Intl &&
@@ -217,35 +277,149 @@
       return fill(data.rel[unit[0]], { value: digits(value) });
     }
 
-    function render(ev) {
-      let a = document.createElement("a");
+    function slideEl(s, i, total) {
+      const ev = s.ev;
+      const wrap = el("div", "live-slide", "");
+      wrap.setAttribute("role", "group");
+      wrap.setAttribute("aria-roledescription", "slide");
+      wrap.setAttribute(
+        "aria-label",
+        fill(data.slide, { n: digits(i + 1), total: digits(total) }),
+      );
+      const label = el("p", "live-label", "");
+      label.appendChild(el("span", "live-dot", ""));
+      label.lastChild.setAttribute("aria-hidden", "true");
+      label.appendChild(document.createTextNode(s.label));
+      const a = document.createElement("a");
       a.className = "live-card";
       a.href = data.app + "event/" + encodeURIComponent(ev.id);
-      let mag = el(
-        "span",
-        "live-mag",
-        fill(data.mag, { value: digits(ev.mag.toFixed(1)) }),
-      );
-      let place = el("span", "live-place", placeLine(ev));
-      let meta = el("span", "live-meta", "");
-      let time = document.createElement("time");
+      const meta = el("span", "live-meta", "");
+      const time = document.createElement("time");
       time.dateTime = new Date(ev.t).toISOString();
       time.textContent = ago(ev.t);
-      let src = document.createElement("bdi");
+      const src = document.createElement("bdi");
       src.textContent = ev.src;
       meta.appendChild(time);
       meta.appendChild(document.createTextNode(" · "));
       meta.appendChild(src);
-      let open = el("span", "live-open", data.open + " ");
+      const open = el("span", "live-open", data.open + " ");
       open.appendChild(el("span", "arrow", ""));
       open.lastChild.setAttribute("aria-hidden", "true");
-      [mag, place, meta, open].forEach(function (n) {
+      [
+        el("span", "live-mag", fill(data.mag, { value: digits(ev.mag.toFixed(1)) })),
+        el("span", "live-place", placeLine(ev)),
+        meta,
+        open,
+      ].forEach(function (n) {
         a.appendChild(n);
       });
-      body.textContent = "";
-      body.appendChild(a);
-      body.setAttribute("aria-busy", "false");
+      wrap.appendChild(label);
+      wrap.appendChild(a);
+      return wrap;
     }
+
+    function render(slides) {
+      body.textContent = "";
+      body.setAttribute("aria-busy", "false");
+      const track = el("div", "live-track", "");
+      const nodes = slides.map(function (s, i) {
+        const n = slideEl(s, i, slides.length);
+        n.hidden = i > 0;
+        track.appendChild(n);
+        return n;
+      });
+      body.appendChild(track);
+      if (slides.length < 2) return;
+
+      root.setAttribute("aria-roledescription", "carousel");
+      let index = 0;
+      let timer = null;
+      const controls = el("div", "live-controls", "");
+      const prev = el("button", "live-step live-prev", "");
+      prev.type = "button";
+      prev.setAttribute("aria-label", data.prev);
+      const next = el("button", "live-step live-next", "");
+      next.type = "button";
+      next.setAttribute("aria-label", data.next);
+      const dots = el("div", "live-dots", "");
+      const dotEls = slides.map(function (s, i) {
+        const d = el("button", "live-dot-btn", "");
+        d.type = "button";
+        d.setAttribute(
+          "aria-label",
+          fill(data.slide, { n: digits(i + 1), total: digits(slides.length) }),
+        );
+        d.addEventListener("click", function () {
+          show(i, true);
+        });
+        dots.appendChild(d);
+        return d;
+      });
+      prev.addEventListener("click", function () {
+        show((index - 1 + nodes.length) % nodes.length, true);
+      });
+      next.addEventListener("click", function () {
+        show((index + 1) % nodes.length, true);
+      });
+      controls.appendChild(prev);
+      controls.appendChild(dots);
+      controls.appendChild(next);
+      body.appendChild(controls);
+
+      function show(i, byUser) {
+        index = i;
+        nodes.forEach(function (n, k) {
+          n.hidden = k !== i;
+        });
+        dotEls.forEach(function (d, k) {
+          d.setAttribute("aria-current", k === i ? "true" : "false");
+        });
+        // Announce only changes the reader asked for, never auto-advance.
+        track.setAttribute("aria-live", byUser ? "polite" : "off");
+        if (byUser) stop();
+      }
+      function stop() {
+        if (timer) clearInterval(timer);
+        timer = null;
+      }
+      function startAuto() {
+        if (reduceMotion || timer) return;
+        timer = setInterval(function () {
+          show((index + 1) % nodes.length, false);
+        }, 7000);
+      }
+      root.addEventListener("mouseenter", stop);
+      root.addEventListener("mouseleave", startAuto);
+      root.addEventListener("focusin", stop);
+      root.addEventListener("focusout", function (e) {
+        if (!root.contains(e.relatedTarget)) startAuto();
+      });
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) stop();
+        else startAuto();
+      });
+      show(0, false);
+      startAuto();
+    }
+  }
+
+  /** Flinn-Engdahl region name for a point, from the per-language table the
+   * build writes (data/fe-<lang>.json); same lookup as the app's
+   * src/features/geo/fe-region.ts. */
+  function feName(fe, lat, lon) {
+    if (!isFinite(lat) || !isFinite(lon)) return null;
+    const lonValue = lon === -180 ? 180 : lon;
+    const absLon = Math.trunc(Math.abs(lonValue));
+    const absLat = Math.trunc(Math.abs(lat));
+    const quadrant = lat >= 0 ? (lonValue >= 0 ? 0 : 1) : lonValue >= 0 ? 2 : 3;
+    const row = fe.grid[quadrant * 91 + absLat];
+    if (!row) return null;
+    let found = 0;
+    for (let i = 0; i < row.length; i += 4) {
+      if (parseInt(row.slice(i, i + 2), 36) > absLon) break;
+      found = parseInt(row.slice(i + 2, i + 4), 36);
+    }
+    return found >= 1 ? fe.names[found - 1] || null : null;
   }
 
   function el(tag, cls, text) {

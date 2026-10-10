@@ -67,6 +67,19 @@ const NAV = [
 
 const read = (p) => fs.readFileSync(p, "utf8");
 
+/** Numbers the site states that come straight from the app's data, read at
+ * build time so the site cannot drift from the app (website-src/README.md). */
+let factsCache = null;
+function appFacts() {
+  if (!factsCache) {
+    const stations = JSON.parse(
+      read(path.join(ROOT, "assets", "stations", "live-stations.json")),
+    );
+    factsCache = { stations: stations.stations.length };
+  }
+  return factsCache;
+}
+
 function loadStrings() {
   const strings = {};
   for (const { code } of LANGS) {
@@ -218,16 +231,6 @@ const COMPONENTS = {
       )
       .join("\n          ");
   },
-  buildingTiles(ctx) {
-    return [
-      ["structure-frame", "building.frame"],
-      ["structure-brick-walls", "building.brick"],
-      ["structure-stone-walls", "building.stone"],
-      ["structure-mud-walls", "building.mud"],
-    ]
-      .map(([file, key]) => `<li>${pictogram(file)}<span>${ctx.t(key)}</span></li>`)
-      .join("\n            ");
-  },
   intensityLegend(ctx) {
     // Colours: the app's intensityRamp (src/theme/palette.ts), levels IV-VIII
     // as shown on this map (shakemap-meta.json levels_shown). Numerals follow
@@ -237,11 +240,30 @@ const COMPONENTS = {
       .map(([lvl, c]) => `<li style="--swatch:${c}">${intensity(ctx, Number(lvl))}</li>`)
       .join("");
   },
-
-  vcBar(ctx) {
-    return `<div class="vc" dir="ltr">
-          <img src="${ctx.root}img/vc-bar.svg" width="630" height="72" loading="lazy" decoding="async" alt="${escapeAttr(ctx.t("building.alt_vc"))}">
-          <div class="vc-ends"><span dir="auto">A · ${ctx.t("building.vc_a")}</span><span dir="auto">F · ${ctx.t("building.vc_f")}</span></div>
+  vcFigure(ctx) {
+    // Building types over the vulnerability classes they typically fall in,
+    // A (most vulnerable) to F, on one shared six-column grid, so the figure
+    // reads in the page's direction: A sits on the reading-start side.
+    const tiles = [
+      ["structure-mud-walls", "building.mud", "1 / span 1"],
+      ["structure-stone-walls", "building.stone", "2 / span 1"],
+      ["structure-brick-walls", "building.brick", "3 / span 1"],
+      ["structure-frame", "building.frame", "4 / span 2"],
+    ]
+      .map(
+        ([file, key, col]) =>
+          `<li style="grid-column: ${col}">${pictogram(file)}<span>${ctx.t(key)}</span></li>`,
+      )
+      .join("\n            ");
+    const classes = ["A", "B", "C", "D", "E", "F"]
+      .map((c) => `<li class="vc-${c.toLowerCase()}">${c}</li>`)
+      .join("");
+    return `<div class="vc-figure">
+          <ul class="vc-tiles">
+            ${tiles}
+          </ul>
+          <ol class="vc-scale" aria-label="${escapeAttr(ctx.t("building.alt_vc"))}">${classes}</ol>
+          <div class="vc-ends"><span>A · ${ctx.t("building.vc_a")}</span><span>F · ${ctx.t("building.vc_f")}</span></div>
         </div>`;
   },
   catalogMap(ctx) {
@@ -340,6 +362,12 @@ const COMPONENTS = {
       },
       fallback: ctx.t("live.fallback"),
       open: ctx.t("live.open"),
+      labelNear: ctx.t("live.label"),
+      labelWorld: ctx.t("live.label_world"),
+      prev: ctx.t("live.prev"),
+      next: ctx.t("live.next"),
+      slide: ctx.t("live.slide"),
+      fe: `${ctx.root}data/fe-${ctx.lang}.json`,
       cities: places.map((p) => [p.names[ctx.lang] ?? p.names.en, p.lat, p.lon]),
     };
     return `<script type="application/json" id="site-data">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
@@ -428,16 +456,85 @@ const PRINCIPLE_ICONS = [
   '<path d="m8 7-5 5 5 5M16 7l5 5-5 5M13.5 4.5l-3 15"/>',
 ];
 
+// Monochrome brand glyphs (currentColor), one size everywhere.
 const SOCIAL_ICONS = {
-  facebook:
-    '<path d="M14 8.5h2.5V5H14a3.5 3.5 0 0 0-3.5 3.5V11H8v3.5h2.5V21H14v-6.5h2.5l.5-3.5h-3V9a.5.5 0 0 1 .5-.5Z"/>',
   instagram:
-    '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6"/>',
-  tiktok: '<path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8M14 3.5c.4 2.6 2.2 4.4 5 4.6"/>',
-  youtube:
-    '<rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path d="m10 9 5 3-5 3Z"/>',
-  telegram: '<path d="M21 4 2.8 11.2l6.2 2.2L18 7l-7 8 .4 5 3.3-3.8 4.3 3.2Z"/>',
-  x: '<path d="M4 4l16 16M20 4 4 20"/>',
+    '<svg class="social-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg>',
+  facebook:
+    '<svg class="social-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>',
+  x: '<svg class="social-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.82-5.96 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.12l11.96 15.64Z"/></svg>',
+};
+
+/** The shared goals list (outlook copy, section A), in render order, with
+ * each status's tone and a line icon. */
+const GOALS = [
+  {
+    key: "alerts",
+    tone: "soon",
+    icon: '<path d="M12 3.5c-3.3 0-5.8 2.6-5.8 6v4L4.5 17h15l-1.7-3.5v-4c0-3.4-2.5-6-5.8-6Z"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/>',
+  },
+  {
+    key: "early_warning",
+    tone: "testing",
+    icon: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.6 2M10 2.5h4M18.6 6.4l1.5-1.5"/>',
+  },
+  {
+    key: "building_assessment",
+    tone: "planned",
+    icon: '<path d="M3.5 20V8.5l6.5-4.5 6.5 4.5v3"/><path d="M3.5 20h8"/><path d="M7.5 12h2.5M7.5 16h2.5"/><circle cx="17" cy="16.5" r="3.2"/><path d="m19.4 18.9 2.2 2.2"/>',
+  },
+  {
+    key: "shm",
+    tone: "longterm",
+    icon: '<rect x="4" y="4" width="10" height="16.5" rx="1"/><path d="M7 8h4M7 12h4M7 16h4"/><path d="M17.5 9c1.2 1.7 1.2 4.3 0 6M20 7c2 2.9 2 7.1 0 10"/>',
+  },
+  {
+    key: "models",
+    tone: "planned",
+    icon: '<path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12.5 9 5 9-5"/><path d="m3 16.5 9 5 9-5"/>',
+  },
+  {
+    key: "resilience",
+    tone: "longterm",
+    icon: '<path d="M12 2.8 4.5 5.8v5.7c0 4.7 3.2 8.2 7.5 9.7 4.3-1.5 7.5-5 7.5-9.7V5.8Z"/><path d="M8.5 13 12 10l3.5 3v3.5h-7Z"/>',
+  },
+];
+
+/** About roadmap items with their icons ("Longer-term aims" reuse GOALS). */
+const ROADMAP = {
+  now: [
+    ["now1", '<path d="M2 13h4l2-6.5 3.2 12 3-9 2 3.5H22"/>'],
+    [
+      "now2",
+      '<circle cx="12" cy="12" r="2.4"/><path d="M7.6 7.6a6.2 6.2 0 0 0 0 8.8M16.4 7.6a6.2 6.2 0 0 1 0 8.8"/>',
+    ],
+    [
+      "now3",
+      '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.4"/>',
+    ],
+    [
+      "now4",
+      '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.6V20h13V9.6"/><path d="m9.2 14.5 2 2 3.8-4"/>',
+    ],
+    [
+      "now5",
+      '<path d="M4.5 4.5h6a2 2 0 0 1 2 2V20a1.8 1.8 0 0 0-1.8-1.8H4.5Z"/><path d="M19.5 4.5h-5a2 2 0 0 0-2 2V20a1.8 1.8 0 0 1 1.8-1.8h5.2Z"/>',
+    ],
+    [
+      "now6",
+      '<circle cx="7" cy="8" r="2.6"/><circle cx="17" cy="8" r="2.6"/><path d="M2.5 18c.6-3 2.2-4.6 4.5-4.6s3.9 1.6 4.5 4.6M12.5 18c.6-3 2.2-4.6 4.5-4.6s3.9 1.6 4.5 4.6"/>',
+    ],
+  ],
+  next: [
+    [
+      "next1",
+      '<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M10.8 18.5h2.4"/>',
+    ],
+    [
+      "next2",
+      '<path d="M12 3.5c-3.3 0-5.8 2.6-5.8 6v4L4.5 17h15l-1.7-3.5v-4c0-3.4-2.5-6-5.8-6Z"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/>',
+    ],
+  ],
 };
 
 const SUPPORT_ABOUT_COMPONENTS = {
@@ -500,34 +597,52 @@ const SUPPORT_ABOUT_COMPONENTS = {
       )
       .join("\n        ");
   },
-  timeline(ctx) {
-    return [1, 2, 3]
-      .map((n) => {
-        const text = ctx.t(`about.next${n}`);
-        const at = text.indexOf(": ");
-        const body =
-          at > 0 && at < 16
-            ? `<strong>${text.slice(0, at)}</strong> ${rich(text.slice(at + 2))}`
-            : rich(text);
-        return `<li class="step"><span class="step-dot" aria-hidden="true">${ctx.num(n)}</span><p>${body}</p></li>`;
-      })
+  goals(ctx, [length = "short", which = "all", level = "h3"]) {
+    // One shared list of goals (Home: short, How it works: long, About aims:
+    // short without alerts, which sits under "Next"). Each shows its status.
+    const keys = GOALS.filter((g) => which === "all" || g.key !== "alerts");
+    return keys
+      .map(
+        (g) => `<li class="goal">
+          <span class="goal-icon">${icon(g.icon)}</span>
+          <div class="goal-text">
+            <${level} class="goal-title">${ctx.t(`goal.${g.key}.title`)}</${level}>
+            <span class="status status--${g.tone}">${ctx.t(`goal.${g.key}.status`)}</span>
+            <p>${ctx.t(`goal.${g.key}.${length}`)}</p>
+          </div>
+        </li>`,
+      )
       .join("\n        ");
   },
-  social(ctx) {
+  roadmapItems(ctx, [group]) {
+    return ROADMAP[group]
+      .map(
+        ([key, paths]) =>
+          `<li><span class="road-icon">${icon(paths)}</span><span>${ctx.t(`about.roadmap.${key}`)}</span></li>`,
+      )
+      .join("\n            ");
+  },
+  social(ctx, [variant = "block"]) {
+    // Official accounts from website-src/data/social.json, as icon links
+    // (the platform name is the accessible name and the tooltip).
     const list = JSON.parse(read(path.join(SRC, "data", "social.json")));
     const shown = list.filter((s) => SOCIAL_ICONS[s.platform] && s.url);
-    if (!shown.length) return `<p class="social-none">${ctx.t("about.social.none")}</p>`;
-    return `<ul class="social-list">${shown
-      .map(
-        (s) =>
-          `<li><a href="${escapeAttr(s.url)}" rel="me noopener">${icon(SOCIAL_ICONS[s.platform], "social-icon")}<span>${ctx.t(`about.social.${s.platform}`)}</span></a></li>`,
-      )
+    if (!shown.length) {
+      return variant === "block"
+        ? `<p class="social-none">${ctx.t("about.social.none")}</p>`
+        : "";
+    }
+    return `<ul class="social-icons social-icons--${variant}">${shown
+      .map((s) => {
+        const name = escapeAttr(ctx.t(`about.social.${s.platform}`));
+        return `<li><a class="social-link" href="${escapeAttr(s.url)}" rel="me noopener noreferrer" target="_blank" aria-label="${name}" title="${name}">${SOCIAL_ICONS[s.platform]}</a></li>`;
+      })
       .join("")}</ul>`;
   },
   fakeTips(ctx) {
     const check =
       '<path d="M12 2.8 4.5 5.8v5.7c0 4.7 3.2 8.2 7.5 9.7 4.3-1.5 7.5-5 7.5-9.7V5.8Z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/>';
-    return [1, 2, 3, 4]
+    return [1, 2, 3]
       .map(
         (n) =>
           `<li>${icon(check, "tip-icon")}<span>${rich(ctx.t(`about.fake_tip${n}`))}</span></li>`,
@@ -554,10 +669,9 @@ function makeContext(strings, langInfo, page, assetHashes) {
     const v = strings[lang][key];
     if (v === undefined) throw new Error(`missing string "${key}" (${lang}, ${page.id})`);
     // {{red}}...{{/red}} marks the brand-red phrase of a headline.
-    return v.replace(
-      /\{\{red\}\}([\s\S]*?)\{\{\/red\}\}/g,
-      '<span class="accent">$1</span>',
-    );
+    return v
+      .replace(/\{\{red\}\}([\s\S]*?)\{\{\/red\}\}/g, '<span class="accent">$1</span>')
+      .replace(/\{\{fact:(\w+)\}\}/g, (_, name) => num(appFacts()[name]));
   };
   const root = lang === "en" ? "" : "../";
   const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
@@ -672,12 +786,24 @@ export function renderSite() {
       out[rel] = renderPage(strings, l, page, hashes);
     }
   }
+  // Per-language Flinn-Engdahl names for the live card's world slides
+  // (fetched only when a far-away earthquake is shown). English fallback
+  // names inside right-to-left text are isolated, as in the app.
+  const fe = JSON.parse(read(path.join(SRC, "data", "fe-regions.json")));
+  for (const l of LANGS) {
+    const names = fe.en.map((en, i) => {
+      const tr = fe.tr[i + 1]?.[l.code];
+      if (l.code !== "en" && tr) return tr;
+      return l.dir === "rtl" ? `\u2066${en}\u2069` : en;
+    });
+    out[`data/fe-${l.code}.json`] = JSON.stringify({ grid: fe.grid, names }) + "\n";
+  }
   out["sitemap.xml"] = sitemap();
   out["robots.txt"] = ROBOTS;
   return out;
 }
 
-function syncAppData() {
+async function syncAppData() {
   const src = read(path.join(ROOT, "src/features/geo/gazetteer.ts"));
   const body = src.split("export const GAZETTEER_CITIES")[1];
   const re =
@@ -696,11 +822,114 @@ function syncAppData() {
     JSON.stringify(places, null, 1) + "\n",
   );
   console.log(`places.json: ${places.length} places`);
+  // Flinn-Engdahl regions (the app's names for far-away earthquakes): the
+  // 1-degree grid, the English names and the app's translations.
+  const fe = await import(
+    path.join(ROOT, "src/features/geo/data/fe-regions.generated.ts")
+  );
+  const feTr = await import(
+    path.join(ROOT, "src/features/geo/data/fe-region-translations.ts")
+  );
+  fs.writeFileSync(
+    path.join(SRC, "data", "fe-regions.json"),
+    JSON.stringify({
+      grid: fe.FE_GRID_ROWS,
+      en: fe.FE_REGION_NAMES_EN,
+      tr: feTr.FE_REGION_TRANSLATIONS,
+    }) + "\n",
+  );
+  console.log("fe-regions.json: Flinn-Engdahl grid and names");
 }
 
-function main() {
+// ------------------------------------------------------------- app facts
+// website-src/data/app-facts.json lists every website statement that rests on
+// the app's behaviour, labels or data, with the app sources it rests on (an
+// English locale key or a file). The lock file stores a fingerprint of each
+// source; --check-facts fails, naming the statements to review, when any
+// source changed. Review those statements, fix the site copy if needed, then
+// --refresh-facts.
+
+const FACTS_FILE = path.join(SRC, "data", "app-facts.json");
+const LOCK_FILE = path.join(SRC, "data", "app-facts.lock.json");
+
+function factFingerprints() {
+  const en = JSON.parse(read(path.join(ROOT, "src", "i18n", "locales", "en.json")));
+  const siteEn = JSON.parse(read(path.join(SRC, "strings", "en.json")));
+  const lookup = (key) =>
+    key.split(".").reduce((o, k) => (o == null ? undefined : o[k]), en);
+  const sha = (buf) => crypto.createHash("sha256").update(buf).digest("hex").slice(0, 16);
+  const { facts } = JSON.parse(read(FACTS_FILE));
+  const prints = {};
+  const problems = [];
+  for (const fact of facts) {
+    prints[fact.id] = {};
+    for (const src of fact.appSources) {
+      const name = src.key ? `key:${src.key}` : `file:${src.file}`;
+      if (src.key) {
+        const value = lookup(src.key);
+        if (typeof value !== "string")
+          problems.push(`${fact.id}: app key ${src.key} no longer exists`);
+        prints[fact.id][name] = typeof value === "string" ? sha(value) : null;
+      } else {
+        const file = path.join(ROOT, src.file);
+        if (!fs.existsSync(file))
+          problems.push(`${fact.id}: app file ${src.file} no longer exists`);
+        prints[fact.id][name] = fs.existsSync(file) ? sha(fs.readFileSync(file)) : null;
+      }
+    }
+    for (const key of fact.usedIn.keys) {
+      if (!(key in siteEn))
+        problems.push(`${fact.id}: site string ${key} no longer exists`);
+    }
+  }
+  return { facts, prints, problems };
+}
+
+function checkFacts() {
+  const { facts, prints, problems } = factFingerprints();
+  const lock = fs.existsSync(LOCK_FILE) ? JSON.parse(read(LOCK_FILE)) : {};
+  for (const fact of facts) {
+    const changed = Object.keys(prints[fact.id]).filter(
+      (name) => lock[fact.id]?.[name] !== prints[fact.id][name],
+    );
+    if (changed.length) {
+      const where = `${fact.usedIn.pages.join(", ")}: ${fact.usedIn.keys.join(", ")}`;
+      problems.push(
+        `${fact.id}: app source changed: ${changed.join(", ")}\n    statement: ${fact.statement}\n    review: ${where}`,
+      );
+    }
+  }
+  return problems;
+}
+
+async function main() {
   const args = process.argv.slice(2);
-  if (args.includes("--sync-app-data")) syncAppData();
+  if (args.includes("--sync-app-data")) await syncAppData();
+  if (args.includes("--refresh-facts")) {
+    const { prints, problems } = factFingerprints();
+    if (problems.length) {
+      console.error(problems.join("\n"));
+      process.exit(1);
+    }
+    fs.writeFileSync(LOCK_FILE, JSON.stringify(prints, null, 1) + "\n");
+    console.log(
+      `app-facts.lock.json refreshed (${Object.keys(prints).length} statements)`,
+    );
+    return;
+  }
+  if (args.includes("--check-facts")) {
+    const problems = checkFacts();
+    if (problems.length) {
+      console.error(
+        `The app changed under ${problems.length} website statement(s). Review each one, ` +
+          "update the site copy if needed, then run `node scripts/build-website.mjs --refresh-facts`.\n\n" +
+          problems.join("\n"),
+      );
+      process.exit(1);
+    }
+    console.log("app facts: all sources unchanged");
+    return;
+  }
   const files = renderSite();
   if (args.includes("--check")) {
     const stale = Object.entries(files)

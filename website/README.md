@@ -43,7 +43,7 @@ works, not in the hero, footer or About.
 |---|---|
 | `index.html` | `website-src/pages/index.html`, all text from `website-src/strings/<lang>.json` |
 | `how-it-works.html` | `website-src/pages/how-it-works.html`: data, SHAKEmaps, damage estimates, felt reports, Tag my building, community, what comes next, with a data-flow diagram (HTML labels, so it translates and mirrors) |
-| `about.html` | `website-src/pages/about.html`, text from the strings files: why it exists, principles, today and next, official channels (`#official`), the social accounts block, how to spot a fake, working together |
+| `about.html` | `website-src/pages/about.html`, text from the strings files: why it exists, principles, the roadmap (available now / next / longer-term aims, the aims from the shared goals list), official channels (`#official`) with the social icons, the Follow block, how to spot a fake (3 tips), working together |
 | `support.html` | `website-src/pages/support.html`: a help centre rendered from the `support.*` strings. Seven groups (`#start`, `#quakes`, `#share`, `#family`, `#account`, `#alerts`, `#contact`), each question a native `<details>` accordion with its own anchor (`#start-q3` opens that question). The search box filters as you type; without script it stays hidden and every question is visible. |
 | `handbook.html` | per-language body in `website-src/pages/handbook/<lang>.html` (content and inline SVGs kept from the earlier site) |
 | `privacy.html` | per-language body in `website-src/pages/privacy/<lang>.html` |
@@ -72,24 +72,33 @@ numbered list, e-mail addresses and `bumelerze.com/app` into links, and
 the privacy policy and the About page's official channels, so each language
 marks its own phrase. Quoted app labels use the app's own locale strings.
 
-The About page's "Follow Bumelerze" block reads `website-src/data/social.json`,
-a list such as `[{"platform": "facebook", "url": "https://..."}]`
-(platforms: facebook, instagram, tiktok, youtube, telegram, x). Empty, it
-shows `about.social.none`; each entry renders as an icon link with
-`rel="me noopener"`. Add an account only once it is confirmed official, then
-run `npm run build:site`.
+Official social accounts live in `website-src/data/social.json` (platform
+and URL; glyphs exist for instagram, facebook and x: add one to
+`SOCIAL_ICONS` in `scripts/build-website.mjs` for another platform). Each
+renders as an icon link (platform name as accessible name and tooltip,
+`rel="me noopener noreferrer"`, new tab) in About's official channels, its
+Follow block and every footer. With an empty list the Follow block shows
+`about.social.none` and the footer shows no icons.
 
 ### The live card
 
-The home page asks USGS and EMSC (the public FDSN event services, the same
-ones the app reads) for the newest earthquake of magnitude 3 or more inside
-the app's region box (`REGION_BBOX` in `src/features/events/config.ts`) over
-the last 180 days, with a 7-second timeout. When both answer with the same
-quake (16 s, 50 km) the USGS record wins, as in the app. The place line uses
-the app's own wording ("81 km N of Urmia") and town names, from
-`website-src/data/places.json` (refresh it from the app's gazetteer with
-`node scripts/build-website.mjs --sync-app-data`). The card links to
-`/app/event/<id>`. If the feeds fail, the card shows a one-line fallback.
+A small carousel. Slide one is the newest earthquake of magnitude 3 or more
+inside the app's region box (`REGION_BBOX`, `src/features/events/config.ts`)
+over the last 180 days, from USGS and EMSC (the same FDSN services the app
+reads); when both report the same quake (16 s, 50 km) the USGS record wins,
+as in the app. Up to three more slides are significant earthquakes
+worldwide, by the app's Significant rule: the USGS M4.5+ week feed,
+sig = 100 x magnitude + PAGER bonus, at least 600, outside the region box,
+highest first. Place lines use the app's wording and town names
+(`website-src/data/places.json`) near the region, and the app's
+Flinn-Engdahl region names further away (`website/data/fe-<lang>.json`,
+fetched only then). Each slide links to `/app/event/<id>`. Requests time out
+after 6 s; if every feed fails the card shows a one-line fallback.
+
+The carousel advances every 7 s, pauses on hover and focus and when the tab
+is hidden, never advances under reduced motion, and announces only the
+changes the reader asks for (previous, next, dots). Refresh the place data
+from the app with `node scripts/build-website.mjs --sync-app-data`.
 
 ### Images
 

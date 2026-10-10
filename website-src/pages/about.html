@@ -27,13 +27,30 @@
     </div>
   </section>
 
-  <!-- Marked data-aim: names a longer-term aim only (see the claims test). -->
-  <section class="band band--alt" id="next" aria-labelledby="next-h" data-aim>
+  <!-- Marked data-aim: names longer-term aims only (see the claims test). -->
+  <section class="band band--alt" id="roadmap" aria-labelledby="roadmap-h" data-aim>
     <div class="wrap-wide">
-      <h2 id="next-h">{{about.next.headline}}</h2>
-      <ol class="timeline">
-        {{>timeline}}
-      </ol>
+      <h2 id="roadmap-h">{{about.roadmap.headline}}</h2>
+      <div class="roadmap">
+        <div class="road-col road-col--now">
+          <h3 class="road-head"><span class="road-mark" aria-hidden="true"></span>{{about.roadmap.now.title}}</h3>
+          <ul class="road-list">
+            {{>roadmapItems now}}
+          </ul>
+        </div>
+        <div class="road-col road-col--next">
+          <h3 class="road-head"><span class="road-mark" aria-hidden="true"></span>{{about.roadmap.next.title}}</h3>
+          <ul class="road-list">
+            {{>roadmapItems next}}
+          </ul>
+        </div>
+        <div class="road-col road-col--aims">
+          <h3 class="road-head"><span class="road-mark" aria-hidden="true"></span>{{about.roadmap.aims.title}}</h3>
+          <ul class="goals goals--compact">
+            {{>goals short aims h4}}
+          </ul>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -44,6 +61,7 @@
       <ul class="channels">
         {{>channels}}
       </ul>
+      {{>social inline}}
     </div>
   </section>
 
@@ -51,7 +69,7 @@
     <div class="wrap-wide">
       <h2 id="social-h">{{about.social.headline}}</h2>
       <p class="body-text">{{about.social.intro}}</p>
-      {{>social}}
+      {{>social block}}
     </div>
   </section>
 

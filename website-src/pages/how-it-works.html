@@ -72,10 +72,7 @@
         <p class="body-text">{{hiw.building.body}}</p>
       </div>
       <div class="feature-fig building-fig">
-        <ul class="building-tiles">
-          {{>buildingTiles}}
-        </ul>
-        {{>vcBar}}
+        {{>vcFigure}}
       </div>
     </div>
   </section>
@@ -97,17 +94,20 @@
   </section>
 
   <section class="band band--alt" id="next" aria-labelledby="next-h" data-aim>
-    <div class="feature">
+    <div class="feature feature--stack">
       <div class="feature-text">
         <p class="step-num" aria-hidden="true">{{>actNum 7}}</p>
         <h2 id="next-h">{{hiw.next.headline}}</h2>
-        <p class="body-text">{{hiw.next.body}}</p>
-        <div class="cta-row">
-          <a class="btn btn-primary" href="https://bumelerze.com/app/notification-settings">{{future.button}}</a>
-        </div>
+        <p class="body-text">{{hiw.next.intro}}</p>
       </div>
-      <div class="feature-fig icon-fig" aria-hidden="true">
-        <svg viewBox="0 0 240 160" focusable="false"><g class="ic-line"><path d="M120 22c-17 0-29 13-29 30v20l-9 15h76l-9-15V52c0-17-12-30-29-30Z"/><path d="M109 96a11 11 0 0 0 22 0"/></g><g class="ic-wave"><path d="M20 58h22l7-14 10 28 7-14h18M220 58h-22l-7-14-10 28-7-14h-18"/></g></svg>
+      <ul class="goals goals--long">
+        {{>goals long all h3}}
+      </ul>
+      <div class="next-closing">
+        <p class="body-text">{{hiw.next.closing}}</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://bumelerze.com/app/notification-settings">{{outlook.button}}</a>
+        </div>
       </div>
     </div>
   </section>

@@ -10,9 +10,9 @@
           <a class="btn btn-outline" href="#act1">{{hero.cta_secondary}}</a>
         </div>
       </div>
-      <aside class="live" aria-labelledby="live-label">
-        <p class="live-label" id="live-label"><span class="live-dot" aria-hidden="true"></span>{{live.label}}</p>
-        <div class="live-body" data-live aria-live="polite" aria-busy="true">
+      <aside class="live" aria-label="{{=live.carousel}}" data-live-root>
+        <div class="live-body" data-live aria-busy="true">
+          <p class="live-label"><span class="live-dot" aria-hidden="true"></span>{{live.label}}</p>
           <div class="live-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
           <span class="visually-hidden">{{live.loading}}</span>
         </div>
@@ -90,10 +90,7 @@
         <p class="lede">{{building.line}}</p>
       </div>
       <div class="feature-fig building-fig">
-        <ul class="building-tiles">
-          {{>buildingTiles}}
-        </ul>
-        {{>vcBar}}
+        {{>vcFigure}}
       </div>
     </div>
   </section>
@@ -148,12 +145,15 @@
     <div class="act-line">{{>seismicLine}}</div>
   </div>
 
-  <section class="future" id="future" aria-labelledby="future-h" data-aim>
-    <div class="future-card">
-      <svg class="future-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M24 6c-7 0-12 5.3-12 12.5v8.3L8.5 33h31L36 26.8v-8.3C36 11.3 31 6 24 6Z"/><path d="M19.5 37a4.5 4.5 0 0 0 9 0"/><path class="future-wave" d="M2 20h3l2-5 3 10 2-5h2M46 20h-3l-2-5-3 10-2-5h-2"/></svg>
-      <h2 id="future-h">{{future.headline}}</h2>
-      <p class="lede">{{future.line}}</p>
-      <a class="btn btn-primary btn-lg" href="https://bumelerze.com/app/notification-settings">{{future.button}}</a>
+  <!-- Marked data-aim: names longer-term aims only (see the claims test). -->
+  <section class="outlook" id="outlook" aria-labelledby="outlook-h" data-aim>
+    <div class="outlook-inner">
+      <h2 id="outlook-h">{{outlook.headline}}</h2>
+      <p class="lede">{{outlook.line}}</p>
+      <ul class="goals goals--grid">
+        {{>goals short all h3}}
+      </ul>
+      <a class="btn btn-primary btn-lg" href="https://bumelerze.com/app/notification-settings">{{outlook.button}}</a>
     </div>
   </section>
 

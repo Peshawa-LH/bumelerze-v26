@@ -123,7 +123,11 @@ describe("website build", () => {
       )
       .join("\n");
     expect(aims).toMatch(/early warning/i);
-    expect(read("how-it-works.html")).toMatch(/currently in testing/);
+    // the shared goals list says where early warning stands
+    expect(read("how-it-works.html")).toMatch(/early warning is not available today/);
+    for (const rel of ["index.html", "how-it-works.html", "about.html"]) {
+      expect(read(rel)).toMatch(/class="status status--testing">In testing</);
+    }
   });
 
   it("support: seven anchored groups, every question an accordion with its own anchor", () => {
@@ -148,19 +152,24 @@ describe("website build", () => {
     }
   });
 
-  it("about: official channels anchor, and the social block follows social.json", () => {
+  it("social accounts from social.json show as icon links on About and in every footer", () => {
     const social = JSON.parse(
       fs.readFileSync(path.join(ROOT, "website-src", "data", "social.json"), "utf8"),
     ) as { platform: string; url: string }[];
-    for (const lang of LANGS) {
-      const html = read(lang === "en" ? "about.html" : path.join(lang, "about.html"));
-      expect(html).toContain('id="official"');
+    for (const rel of pageFiles()) {
+      const html = read(rel);
+      if (rel.endsWith("about.html")) expect(html).toContain('id="official"');
       if (social.length === 0) {
-        expect(html).toContain('class="social-none"');
-        expect(html).not.toContain('rel="me noopener"');
-      } else {
-        for (const s of social)
-          expect(html).toContain(`href="${s.url}" rel="me noopener"`);
+        expect(html).not.toContain('class="social-link"');
+        continue;
+      }
+      for (const s of social) {
+        // icons only: the address is never printed as visible text
+        expect(html).toContain(
+          `href="${s.url}" rel="me noopener noreferrer" target="_blank"`,
+        );
+        expect(html).not.toContain(`>${s.url}<`);
+        expect(s.url).not.toMatch(/[?&](s|utm_[a-z]+)=/);
       }
     }
   });
