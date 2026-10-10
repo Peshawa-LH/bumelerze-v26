@@ -134,5 +134,6 @@
   "hiw.flow.feed": "قائمة واحدة مدمجة",
   "hiw.flow.shakemap": "خريطة الاهتزاز",
   "hiw.flow.damage": "تقدير الأضرار (العراق)",
-  "hiw.flow.reports": "تقارير الشعور"
+  "hiw.flow.reports": "تقارير الشعور",
+  "ui.menu": "القائمة"
 }

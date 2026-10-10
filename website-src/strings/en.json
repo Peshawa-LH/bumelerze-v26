@@ -134,5 +134,6 @@
   "hiw.flow.feed": "One merged feed",
   "hiw.flow.shakemap": "SHAKEmap",
   "hiw.flow.damage": "Damage estimate (Iraq)",
-  "hiw.flow.reports": "Felt reports"
+  "hiw.flow.reports": "Felt reports",
+  "ui.menu": "Menu"
 }

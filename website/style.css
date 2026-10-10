@@ -370,6 +370,7 @@ html[dir="rtl"] .arrow::before {
 }
 
 .brand-link {
+  flex: none;
   display: inline-flex;
   align-items: center;
   min-height: 3rem;
@@ -499,37 +500,153 @@ html[dir="rtl"] .lang-menu .lang-switcher-inline a {
   background: var(--bg-alt);
 }
 
-@media (max-width: 47.99rem) {
-  /* Row 1: logo + language; row 2: the four nav links. */
-  .header-nav-group {
-    display: contents;
+/* Navigation never wraps. From 60rem up, the five links sit in one
+ * row (60rem: the widest language, Kurmanji, needs about 57rem for logo,
+ * five links and the language button); below it they move behind a menu button (a native <details>, so it
+ * works without script) styled like the language button. Exactly one of the
+ * two is displayed, so assistive tech sees one site nav at a time. */
+.site-header-inner {
+  flex-wrap: nowrap;
+}
+
+.header-nav-group {
+  flex-wrap: nowrap;
+}
+
+.site-nav--row {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.nav-menu {
+  position: relative;
+  display: none;
+}
+
+.nav-menu summary,
+.lang-menu summary {
+  white-space: nowrap;
+}
+
+.nav-menu summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  justify-content: center;
+  padding: 0.3rem 0.8rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.nav-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-menu[open] summary {
+  border-color: var(--ink);
+}
+
+.nav-burger {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.nav-panel {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: calc(100% + 0.35rem);
+  z-index: 20;
+  min-width: min(13rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  display: flex;
+  flex-direction: column;
+  padding: 0.3rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  box-shadow: var(--shadow);
+}
+
+.nav-panel a {
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.6rem;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav-panel a:hover {
+  background: var(--bg-alt);
+}
+
+.nav-panel a[aria-current="page"] {
+  background: var(--bg-alt);
+  color: var(--red-text);
+}
+
+@media (max-width: 59.99rem) {
+  .site-nav--row {
+    display: none;
   }
 
-  .lang-menu {
-    margin-inline-start: auto;
+  .nav-menu {
+    display: block;
   }
+}
 
-  .site-nav {
-    order: 3;
-    width: calc(100% + 1.2rem);
-    margin-inline: -0.6rem;
-  }
-
-  .site-nav a {
-    padding-inline: 0.6rem;
-  }
-
+@media (max-width: 33.99rem) {
+  /* Phones: the menu button shows only its icon (name kept for screen
+   * readers and as a tooltip), so logo, menu and language share one row. */
   .site-header-inner {
     column-gap: 0.5rem;
   }
 
+  .header-nav-group {
+    gap: 0.4rem;
+  }
+
+  .nav-menu-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .nav-menu summary,
+  .lang-menu summary {
+    padding-inline: 0.6rem;
+    gap: 0.3rem;
+  }
+}
+
+@media (max-width: 29.99rem) {
+  /* Small phones: the language button shows only its globe too. */
   .brand-logo {
     height: 26px;
   }
 
-  .lang-menu summary {
-    padding-inline: 0.65rem;
-    gap: 0.35rem;
+  .lang-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }
 

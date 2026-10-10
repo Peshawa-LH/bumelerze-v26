@@ -38,8 +38,8 @@
 <link rel="icon" type="image/png" sizes="16x16" href="../brand/bumelerze-favicon-16.png">
 <link rel="apple-touch-icon" href="../brand/bumelerze-app-icon-square-256.png">
 <link rel="preload" href="../fonts/vazirmatn-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../style.css?v=e326fa7007">
-<script src="../site.js?v=3d42a84e96" defer></script>
+<link rel="stylesheet" href="../style.css?v=2ac2c3369a">
+<script src="../site.js?v=87982bcabc" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">بازدان بۆ ناوەڕۆکی سەرەکی</a>
@@ -53,15 +53,27 @@
       </picture>
     </a>
     <div class="header-nav-group">
-      <nav class="site-nav" aria-label="ماڵپەڕ">
+      <!-- Wide screens: the full row. Narrower: the same links behind a
+           menu button. CSS shows exactly one of the two. -->
+      <nav class="site-nav site-nav--row" aria-label="ماڵپەڕ">
         <a href="index.html">ماڵەوە</a>
         <a href="how-it-works.html">چۆن کاردەکات</a>
         <a href="handbook.html">پەڕتووکی ئەندازیار</a>
         <a href="about.html" aria-current="page">دەربارە</a>
         <a href="support.html">پشتگیری</a>
       </nav>
+      <details class="nav-menu">
+        <summary title="مێنیو"><svg class="nav-burger" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="nav-menu-label">مێنیو</span></summary>
+        <nav class="nav-panel" aria-label="ماڵپەڕ">
+          <a href="index.html">ماڵەوە</a>
+        <a href="how-it-works.html">چۆن کاردەکات</a>
+        <a href="handbook.html">پەڕتووکی ئەندازیار</a>
+        <a href="about.html" aria-current="page">دەربارە</a>
+        <a href="support.html">پشتگیری</a>
+        </nav>
+      </details>
       <details class="lang-menu">
-        <summary lang="ckb" title="زمان"><svg class="lang-globe" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg><span class="visually-hidden">زمان: </span>کوردیی ناوەندی</summary>
+        <summary lang="ckb" title="زمان"><svg class="lang-globe" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg><span class="visually-hidden">زمان: </span><span class="lang-name">کوردیی ناوەندی</span></summary>
         <nav class="lang-switcher-inline" aria-label="زمان">
           <a href="../about.html" lang="en" dir="ltr" hreflang="en">English</a>
           <a href="../kmr/about.html" lang="kmr" dir="ltr" hreflang="kmr">Kurmancî</a>

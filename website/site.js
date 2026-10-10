@@ -12,12 +12,16 @@
   // ------------------------------------------------------- language menu
   // A native <details>; this only closes it on an outside click or Escape.
   function closeMenus(except) {
-    document.querySelectorAll("details.lang-menu[open]").forEach(function (d) {
-      if (d !== except) d.removeAttribute("open");
-    });
+    document
+      .querySelectorAll("details.lang-menu[open], details.nav-menu[open]")
+      .forEach(function (d) {
+        if (d !== except) d.removeAttribute("open");
+      });
   }
   document.addEventListener("click", function (e) {
-    closeMenus(e.target.closest && e.target.closest("details.lang-menu"));
+    closeMenus(
+      e.target.closest && e.target.closest("details.lang-menu, details.nav-menu"),
+    );
   });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") closeMenus(null);
