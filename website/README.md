@@ -89,11 +89,12 @@ safe, hub). To show another app screen in a phone frame, add it to
 `SITE_SCREENS`, rerun, and change the name in
 `website-src/pages/index.html` (`{{>phone <screen> <alt-key>}}`).
 
-The footer skyline (Zagros ridges, the Erbil citadel, and a stepped
-Hawraman village with rooftop water tanks and a minaret) is drawn by
-`node scripts/draw-website-skyline.mjs` into
+The footer skyline (Zagros ridges, a small town on the plain with a mosque
+and minaret, and a Hawraman-style village climbing a hill, with rooftop
+water tanks) is drawn by `node scripts/draw-website-skyline.mjs` into
 `website-src/partials/svg/skyline.svg`; its three layers are classes
-(`far`, `mid`, `near`) that the stylesheet tints per theme.
+(`far`, `mid`, `near`) that the stylesheet tints per theme. `--variant 2`
+draws the mirror image; `--out <file>` writes elsewhere.
 
 Intensity numerals follow the app's rule (`src/features/shakemap/intensity-format.ts`):
 Roman (IV, V) in English and Kurmanji, Eastern Arabic digits (٤, ٥) in
