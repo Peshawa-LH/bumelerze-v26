@@ -138,54 +138,81 @@ function tree(x, h) {
 const far = ridge(21, 40, 104, 0.7, 2);
 const mid = ridge(8, 80, 130, 0.68, 2);
 
-// The village hill: a rounded shoulder near one end.
+// The village hill: a rounded shoulder near the right end. A low foothill
+// at the far left carries a few scattered houses.
 const HILL_X = 1330;
 const hill = (x) => BASE - 58 * Math.exp(-(((x - HILL_X) / 230) ** 2));
+const foothill = (x) => BASE - 16 * Math.exp(-(((x - 40) / 110) ** 2));
+const ground = (x) => Math.min(BASE, hill(x), foothill(x));
 const hillPath =
-  "M-10 154L" +
-  XS.map((x) => `${x} ${r1(Math.min(BASE, hill(x)))}`).join("L") +
-  "L1610 154Z";
+  "M-10 154L" + XS.map((x) => `${x} ${r1(ground(x))}`).join("L") + "L1610 154Z";
 
 const R = rng(7);
 const near = [];
 
-// Town on the plain: a short, calm stretch with gaps, a mosque and minaret.
-for (const [a, b] of [
-  [560, 700],
-  [744, 900],
-]) {
+/** Houses on the flat plain between a and b: varied widths and heights,
+ * small irregular gaps (sometimes a tree in a wider one). */
+function plain(a, b, { tall = 0.35, gaps = [0, 1, 2, 3, 6] } = {}) {
   let x = a;
-  while (x < b - 22) {
-    const w = pick(R, [24, 28, 32, 36, 40]);
-    const h = pick(R, [12, 12, 13, 22, 23]);
-    near.push(house(R, x, w, h, BASE, { dishes: 0.3 }));
-    x += w + pick(R, [0, 2, 3]);
+  while (x < b - 20) {
+    const w = pick(R, [22, 26, 28, 32, 36, 40]);
+    const roll = R();
+    const h =
+      roll < tall
+        ? pick(R, [22, 23, 24])
+        : roll < tall + 0.06
+          ? 33
+          : pick(R, [11, 12, 13, 14]);
+    near.push(house(R, x, Math.min(w, b - x), h, BASE, { dishes: 0.3 }));
+    let gap = pick(R, gaps);
+    if (gap >= 6 && R() < 0.5) {
+      near.push(tree(x + w + 6, pick(R, [12, 14, 16])));
+      gap = 12;
+    }
+    x += w + gap;
   }
 }
-near.push(mosque(707), minaret(737, 64));
-near.push(tree(546, 15), tree(914, 13), tree(930, 16));
 
-// Village climbing the hill: each house cut into the slope (its downhill
-// corner on the ground), some set back on the roof terrace below.
-let vx = 1100;
-while (vx < 1320) {
-  const w = pick(R, [13, 15, 17, 19]);
-  const h = pick(R, [9, 10, 11, 12]);
-  const g = hill(vx);
-  near.push(
-    house(R, vx, w, h, g, { win: 2.4, sink: hill(vx) - hill(vx + w) + 3, tanks: 0.5 }),
-  );
-  if (R() < 0.45 && vx > 1150) {
+/** Houses climbing a slope: each cut into the ground (its downhill corner
+ * on the slope), some set back on the roof terrace of the one below. */
+function slope(groundFn, a, b, { stack = 0.45 } = {}) {
+  let x = a;
+  while (x < b) {
+    const w = pick(R, [13, 15, 17, 19]);
+    const h = pick(R, [9, 10, 11, 12]);
+    const g0 = groundFn(x);
+    const g1 = groundFn(x + w);
+    const g = Math.max(g0, g1); // the lower corner
     near.push(
-      house(R, vx + 4, w - 5, pick(R, [8, 9, 10]), g - h - 1.2, {
-        win: 2.4,
-        sink: 1.5,
-        tanks: 0.5,
-      }),
+      house(R, x, w, h, g, { win: 2.4, sink: Math.abs(g0 - g1) + 3, tanks: 0.5 }),
     );
+    if (R() < stack && BASE - g > 14) {
+      near.push(
+        house(R, x + 4, w - 5, pick(R, [8, 9, 10]), g - h - 1.2, {
+          win: 2.4,
+          sink: 1.5,
+          tanks: 0.5,
+        }),
+      );
+    }
+    x += w + pick(R, [1, 2, 3]);
   }
-  vx += w + pick(R, [1, 2, 3]);
 }
+
+// Far left: a few scattered houses on the foothill.
+slope(foothill, 6, 40, { stack: 0 });
+slope(foothill, 70, 108, { stack: 0 });
+// Left neighbourhood, with a small minaret further off.
+plain(150, 300);
+near.push(minaret(306, 44));
+plain(318, 420);
+near.push(tree(432, 14));
+// The town around the mosque: longer and denser.
+plain(452, 690, { gaps: [0, 1, 2, 3] });
+near.push(mosque(694), minaret(724, 66));
+plain(732, 1000, { gaps: [0, 1, 2, 3, 6] });
+// The village runs down the hill until it nearly meets the town.
+slope(hill, 1018, 1322);
 
 const layer = (cls, d, op) =>
   `<path class="${cls}" fill="currentColor"${op ? ` fill-opacity="${op}"` : ""} d="${d}"/>`;
