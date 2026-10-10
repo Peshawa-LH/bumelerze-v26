@@ -70,6 +70,7 @@ jobs:
       - name: Assemble site (website at root, app under /app, SPA 404 fallback)
         run: |
           cp -r website/. pages-dist/
+          rm -f pages-dist/README.md
           # The site has no build step, so stamp its stylesheet and scripts
           # with the commit here: browsers cache both and a changed
           # style.css otherwise reaches phones only when their cache expires.

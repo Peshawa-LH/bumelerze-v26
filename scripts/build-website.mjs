@@ -308,7 +308,6 @@ const COMPONENTS = {
       ["about.channel_app", APP_URL, "phone"],
       ["about.channel_email_general", "mailto:hello@bumelerze.com", "mail"],
       ["about.channel_email_data", "mailto:dev@bumelerze.com", "mail"],
-      ["about.channel_code", "https://github.com/Peshawa-LH/bumelerze-v26", "code"],
     ];
     return items
       .map(([key, href, icon]) => {
@@ -491,7 +490,7 @@ const SUPPORT_ABOUT_COMPONENTS = {
     }).join("\n\n  ");
   },
   principles(ctx) {
-    return [1, 2, 3, 4]
+    return [1, 2, 3]
       .map(
         (n) => `<li class="principle">
           <span class="principle-icon">${icon(PRINCIPLE_ICONS[n - 1])}</span>

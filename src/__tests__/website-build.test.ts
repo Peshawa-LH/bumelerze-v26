@@ -83,6 +83,11 @@ describe("website build", () => {
       /\bAtlas\b/,
       /(?<!How )did you feel it/i, // the feature is "share your experience"; "How did you feel it?" is the app's picker title
       /\btestimony\b/i,
+      // No source-code links or licence claims: the code is not published.
+      /github\.com\/Peshawa-LH/i,
+      /Apache/i,
+      /open[- ]source/i,
+      /source (code|repository)/i,
     ];
     for (const rel of pageFiles()) {
       // Early warning may be named only as a future aim, inside the
