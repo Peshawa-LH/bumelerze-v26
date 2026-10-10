@@ -1,0 +1,557 @@
+{
+  "_about": "Website statements that depend on the app's behaviour, labels or data. A jest test fingerprints every app source listed here (website-src/data/app-facts.lock.json) and fails when one changes, naming the statements to review. After reviewing (and fixing the site copy if needed), refresh the lock with: node scripts/build-website.mjs --refresh-facts",
+  "facts": [
+    {
+      "id": "feed-networks",
+      "statement": "The live feed merges USGS, EMSC and GEOFON and shows each earthquake once.",
+      "usedIn": {
+        "pages": ["index.html", "how-it-works.html", "support.html"],
+        "keys": ["feed.line", "hiw.data.body", "support.quakes.q1", "support.quakes.a1"]
+      },
+      "appSources": [
+        {
+          "file": "src/features/events/config.ts"
+        },
+        {
+          "file": "src/features/events/merge.ts"
+        }
+      ]
+    },
+    {
+      "id": "live-card-region-rule",
+      "statement": "The home live card uses the app Home rule: region box, M3+, 180-day window, USGS-first merge.",
+      "usedIn": {
+        "pages": ["index.html"],
+        "keys": ["live.label"]
+      },
+      "appSources": [
+        {
+          "file": "src/features/events/config.ts"
+        },
+        {
+          "file": "src/features/events/home-feed-policy.ts"
+        }
+      ]
+    },
+    {
+      "id": "live-card-significant-rule",
+      "statement": "The live card's world slides follow the app Significant list: USGS M4.5+ week feed, sig >= 600.",
+      "usedIn": {
+        "pages": ["index.html"],
+        "keys": ["live.label_world"]
+      },
+      "appSources": [
+        {
+          "file": "src/features/events/normalize.ts"
+        },
+        {
+          "file": "app/(tabs)/(home,map,sensor,profile,settings)/significant.tsx"
+        },
+        {
+          "file": "src/features/events/usgs.ts"
+        }
+      ]
+    },
+    {
+      "id": "live-card-wording",
+      "statement": "Live card magnitude, place line, directions and time ago use the app wording.",
+      "usedIn": {
+        "pages": ["index.html"],
+        "keys": [
+          "live.mag_template",
+          "live.place_template",
+          "live.directions",
+          "live.rel_minutes",
+          "live.rel_hours",
+          "live.rel_days"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "events.magnitudeDisplay"
+        },
+        {
+          "key": "geo.placeLine.template"
+        },
+        {
+          "key": "geo.directions.n"
+        },
+        {
+          "key": "events.relativeTime.minutes"
+        },
+        {
+          "key": "events.relativeTime.hours"
+        },
+        {
+          "key": "events.relativeTime.days"
+        },
+        {
+          "file": "src/features/geo/gazetteer.ts"
+        },
+        {
+          "file": "src/features/geo/place-line.ts"
+        },
+        {
+          "file": "src/features/geo/data/fe-regions.generated.ts"
+        },
+        {
+          "file": "src/features/geo/data/fe-region-translations.ts"
+        }
+      ]
+    },
+    {
+      "id": "event-route",
+      "statement": "Live card and other links open /app/event/<provider id>; community links open /app/account/sign-in; alerts link opens /app/notification-settings.",
+      "usedIn": {
+        "pages": ["index.html", "how-it-works.html"],
+        "keys": ["live.open", "community.button", "outlook.button"]
+      },
+      "appSources": [
+        {
+          "file": "app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx"
+        },
+        {
+          "file": "app/account/sign-in.tsx"
+        },
+        {
+          "file": "app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx"
+        }
+      ]
+    },
+    {
+      "id": "felt-levels",
+      "statement": "The felt strip shows levels 1-6 with the app's picker labels; \"12 pictures\"; the app says thank you after a report.",
+      "usedIn": {
+        "pages": ["index.html", "how-it-works.html"],
+        "keys": [
+          "felt.question",
+          "felt.level1",
+          "felt.level6",
+          "felt.thanks",
+          "felt.line"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "felt.tier1.title"
+        },
+        {
+          "key": "felt.tier1.levels.1.label"
+        },
+        {
+          "key": "felt.tier1.levels.6.label"
+        },
+        {
+          "key": "felt.tier1.levels.12.label"
+        },
+        {
+          "key": "felt.done.title"
+        }
+      ]
+    },
+    {
+      "id": "felt-button",
+      "statement": "Support quotes the \"I felt it!\" button and the felt flow.",
+      "usedIn": {
+        "pages": ["support.html", "about.html"],
+        "keys": ["support.share.a1", "about.roadmap.now2"]
+      },
+      "appSources": [
+        {
+          "key": "felt.pill.label"
+        }
+      ]
+    },
+    {
+      "id": "im-safe",
+      "statement": "\"I'm safe\": family-only, setting and share-message labels, cannot send help.",
+      "usedIn": {
+        "pages": ["index.html", "support.html", "about.html"],
+        "keys": [
+          "safe.headline",
+          "safe.line",
+          "support.family.q1",
+          "support.family.a1",
+          "support.family.a2",
+          "support.family.a3",
+          "about.roadmap.now4"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "imSafe.button.safe"
+        },
+        {
+          "key": "imSafe.family.setting"
+        },
+        {
+          "key": "imSafe.action.shareMessage"
+        },
+        {
+          "key": "imSafe.noHelp"
+        }
+      ]
+    },
+    {
+      "id": "offline",
+      "statement": "Offline: last saved earthquakes shown; felt reports, check-ins and feedback queued.",
+      "usedIn": {
+        "pages": ["index.html", "support.html"],
+        "keys": ["support.start.a6", "support.contact.a1"]
+      },
+      "appSources": [
+        {
+          "key": "events.offlineBanner"
+        },
+        {
+          "key": "felt.done.queuedMessage"
+        },
+        {
+          "key": "feedback.confirmation.queuedMessage"
+        }
+      ]
+    },
+    {
+      "id": "languages",
+      "statement": "Four languages, changed in Settings under Language.",
+      "usedIn": {
+        "pages": ["support.html"],
+        "keys": ["support.start.a5"]
+      },
+      "appSources": [
+        {
+          "key": "settings.languageSectionTitle"
+        },
+        {
+          "key": "tabs.settings"
+        }
+      ]
+    },
+    {
+      "id": "shakemaps-damage",
+      "statement": "Own SHAKEmaps for Kurdistan and Iraq; damage estimates; no casualty numbers.",
+      "usedIn": {
+        "pages": ["index.html", "how-it-works.html", "support.html", "about.html"],
+        "keys": [
+          "shake.line",
+          "hiw.shakemaps.body",
+          "hiw.damage.body",
+          "support.quakes.a4",
+          "support.quakes.a5",
+          "about.roadmap.now3"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "eventDetail.shakemap.sectionTitle"
+        },
+        {
+          "key": "eventDetail.risk.casualtiesNote"
+        }
+      ]
+    },
+    {
+      "id": "intensity-numerals",
+      "statement": "Intensity numerals: Roman in en/kmr, Eastern digits in ckb/ar; legend colours from the app ramp.",
+      "usedIn": {
+        "pages": ["index.html", "how-it-works.html"],
+        "keys": ["shake.legend"]
+      },
+      "appSources": [
+        {
+          "file": "src/features/shakemap/intensity-format.ts"
+        },
+        {
+          "file": "src/theme/palette.ts"
+        }
+      ]
+    },
+    {
+      "id": "report-reason",
+      "statement": "Support quotes the report reason for fake predictions.",
+      "usedIn": {
+        "pages": ["support.html"],
+        "keys": ["support.quakes.a6"]
+      },
+      "appSources": [
+        {
+          "key": "report.reasons.rumour_prediction"
+        }
+      ]
+    },
+    {
+      "id": "contributor-id",
+      "statement": "Contributor ID in Profile under \"Privacy & data\" with Copy; felt reports stay after account deletion.",
+      "usedIn": {
+        "pages": ["support.html"],
+        "keys": ["support.share.a5", "support.account.a7", "support.contact.a3"]
+      },
+      "appSources": [
+        {
+          "key": "myData.privacy.title"
+        },
+        {
+          "key": "myData.privacy.id"
+        },
+        {
+          "key": "myData.privacy.copy"
+        },
+        {
+          "key": "myData.account.deleteStays.reports"
+        }
+      ]
+    },
+    {
+      "id": "family-home",
+      "statement": "Family home: My home, Tag my building, Share this home, Join a home, Ask to join; 14-day trash.",
+      "usedIn": {
+        "pages": ["support.html"],
+        "keys": ["support.family.a4", "support.family.a5", "support.family.a7"]
+      },
+      "appSources": [
+        {
+          "key": "building.section.title"
+        },
+        {
+          "key": "building.title"
+        },
+        {
+          "key": "building.family.shareTitle"
+        },
+        {
+          "key": "building.section.join"
+        },
+        {
+          "key": "building.join.request"
+        },
+        {
+          "key": "building.delete.warning"
+        }
+      ]
+    },
+    {
+      "id": "tag-my-building",
+      "statement": "Tag my building returns a vulnerability class A-F; figure labels and class names.",
+      "usedIn": {
+        "pages": ["index.html", "how-it-works.html", "support.html", "about.html"],
+        "keys": [
+          "building.headline",
+          "building.line",
+          "building.mud",
+          "building.frame",
+          "building.vc_a",
+          "building.vc_f",
+          "hiw.building.body",
+          "support.family.a6",
+          "about.roadmap.now5"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "building.title"
+        },
+        {
+          "key": "building.vc.name.A"
+        },
+        {
+          "key": "building.vc.name.F"
+        },
+        {
+          "key": "building.q.structure.options.mud"
+        },
+        {
+          "key": "building.q.structure.options.frame"
+        }
+      ]
+    },
+    {
+      "id": "account",
+      "statement": "Optional account with email and password; no emails sent; forgot-password flow; Download my data; Delete account.",
+      "usedIn": {
+        "pages": ["support.html"],
+        "keys": [
+          "support.account.a1",
+          "support.account.a2",
+          "support.account.a3",
+          "support.account.a7",
+          "support.account.a8"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "account.signIn.intro"
+        },
+        {
+          "key": "account.signIn.emailNote"
+        },
+        {
+          "key": "account.signIn.forgot"
+        },
+        {
+          "key": "account.signIn.forgotContact"
+        },
+        {
+          "key": "profile.dataExport.title"
+        },
+        {
+          "key": "myData.account.delete"
+        }
+      ]
+    },
+    {
+      "id": "guidelines-moderation",
+      "statement": "Community guidelines in Settings; Report; Ask for review.",
+      "usedIn": {
+        "pages": ["support.html"],
+        "keys": [
+          "support.account.q4",
+          "support.account.a4",
+          "support.account.a5",
+          "support.account.a6"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "guidelines.title"
+        },
+        {
+          "key": "guidelines.settingsLabel"
+        },
+        {
+          "key": "eventHub.thread.report"
+        },
+        {
+          "key": "restrictions.banner.ask"
+        }
+      ]
+    },
+    {
+      "id": "network-event-hub",
+      "statement": "The Bumelerze Network and Event hubs.",
+      "usedIn": {
+        "pages": ["index.html", "how-it-works.html", "support.html", "about.html"],
+        "keys": [
+          "community.headline",
+          "community.line",
+          "hiw.community.body",
+          "support.share.a4",
+          "about.roadmap.now6"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "eventHub.title"
+        }
+      ]
+    },
+    {
+      "id": "alerts-settings",
+      "statement": "Alerts coming soon; notification settings already in the app (near you, one more place, smallest magnitude).",
+      "usedIn": {
+        "pages": ["index.html", "how-it-works.html", "support.html", "about.html"],
+        "keys": [
+          "goal.alerts.long",
+          "outlook.button",
+          "support.alerts.a1",
+          "about.roadmap.next2"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "notificationSettings.title"
+        },
+        {
+          "key": "settings.notificationsSectionTitle"
+        },
+        {
+          "file": "app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx"
+        }
+      ]
+    },
+    {
+      "id": "feedback",
+      "statement": "Feedback is in Settings.",
+      "usedIn": {
+        "pages": ["support.html"],
+        "keys": [
+          "support.card_contact.body",
+          "support.contact.a1",
+          "support.contact_body"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "settings.feedbackSectionTitle"
+        }
+      ]
+    },
+    {
+      "id": "sensor-stations",
+      "statement": "Phone sensor and the number of live stations (rendered from the data file).",
+      "usedIn": {
+        "pages": ["index.html"],
+        "keys": [
+          "sensor.headline",
+          "sensor.line",
+          "sensor.count",
+          "sensor.stations_label"
+        ]
+      },
+      "appSources": [
+        {
+          "key": "sensor.phone.title"
+        },
+        {
+          "key": "sensor.mode.stations"
+        },
+        {
+          "file": "assets/stations/live-stations.json"
+        }
+      ]
+    },
+    {
+      "id": "catalogue-numbers",
+      "statement": "Catalogue: 150,072 earthquakes since 872 from six catalogues (numbers kept in the strings; check them when the catalogue changes).",
+      "usedIn": {
+        "pages": ["how-it-works.html"],
+        "keys": ["hiw.data.body"]
+      },
+      "appSources": [
+        {
+          "file": "assets/catalog/bumelerze-catalog.sqlite"
+        }
+      ]
+    },
+    {
+      "id": "handbook",
+      "statement": "Handbook page: Iraqi code 2017 in force / 2025 forthcoming, preliminary reference, one-page PDF report, soil class estimated from terrain slope.",
+      "usedIn": {
+        "pages": ["handbook.html"],
+        "keys": ["handbook.meta.description"]
+      },
+      "appSources": [
+        {
+          "key": "handbook.title"
+        },
+        {
+          "key": "handbook.disclaimer"
+        },
+        {
+          "key": "handbook.spectrum.sourceNote.isc2017"
+        },
+        {
+          "key": "handbook.spectrum.sourceNote.isc2025"
+        },
+        {
+          "key": "handbook.report.disclaimerTitle"
+        },
+        {
+          "key": "handbook.report.action"
+        },
+        {
+          "key": "handbook.spectrum.banner.vs30Proxy"
+        }
+      ]
+    }
+  ]
+}

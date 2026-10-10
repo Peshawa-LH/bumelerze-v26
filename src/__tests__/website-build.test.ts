@@ -52,6 +52,34 @@ describe("website build", () => {
     });
   });
 
+  it("the app has not changed under any website statement (app-facts.lock.json)", () => {
+    // website-src/data/app-facts.json lists the statements that rest on the
+    // app's labels, behaviour or data. When this fails, the output names each
+    // statement to review; after reviewing, refresh with
+    //   node scripts/build-website.mjs --refresh-facts
+    let output = "";
+    let failed = false;
+    try {
+      output = execFileSync(
+        process.execPath,
+        ["scripts/build-website.mjs", "--check-facts"],
+        {
+          cwd: ROOT,
+          encoding: "utf8",
+          stdio: "pipe",
+        },
+      );
+    } catch (error) {
+      failed = true;
+      const e = error as { stdout?: string; stderr?: string };
+      output = `${e.stdout ?? ""}${e.stderr ?? ""}`;
+    }
+    expect({ failed, output }).toEqual({
+      failed: false,
+      output: expect.stringContaining("all sources unchanged"),
+    });
+  });
+
   it("renders every page in every language", () => {
     for (const rel of pageFiles()) {
       expect(fs.existsSync(path.join(SITE, rel))).toBe(true);

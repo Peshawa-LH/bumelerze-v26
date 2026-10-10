@@ -1,0 +1,131 @@
+{
+  "feed-networks": {
+    "file:src/features/events/config.ts": "149823ed9d399243",
+    "file:src/features/events/merge.ts": "50c3cca31e292b34"
+  },
+  "live-card-region-rule": {
+    "file:src/features/events/config.ts": "149823ed9d399243",
+    "file:src/features/events/home-feed-policy.ts": "a3d122d3a198eaae"
+  },
+  "live-card-significant-rule": {
+    "file:src/features/events/normalize.ts": "f71790cac6bc0cb3",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/significant.tsx": "4cb666d63e6f0cf1",
+    "file:src/features/events/usgs.ts": "62a9f8272772b5ad"
+  },
+  "live-card-wording": {
+    "key:events.magnitudeDisplay": "e3c49490d4140d9d",
+    "key:geo.placeLine.template": "50643018e01e0406",
+    "key:geo.directions.n": "8ce86a6ae65d3692",
+    "key:events.relativeTime.minutes": "a622e9da85a00c1c",
+    "key:events.relativeTime.hours": "803ccdbd2a917f8e",
+    "key:events.relativeTime.days": "264e48724f535348",
+    "file:src/features/geo/gazetteer.ts": "e77bf4b211836b4c",
+    "file:src/features/geo/place-line.ts": "61e424a8e713161e",
+    "file:src/features/geo/data/fe-regions.generated.ts": "4f540524b2b6af1a",
+    "file:src/features/geo/data/fe-region-translations.ts": "5563fb896d6aa9bf"
+  },
+  "event-route": {
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "74db8384e5b65af1",
+    "file:app/account/sign-in.tsx": "e60cad5746f30dbb",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "af28c67a15d4a237"
+  },
+  "felt-levels": {
+    "key:felt.tier1.title": "a9e21464bb9ea045",
+    "key:felt.tier1.levels.1.label": "6c5c72f2ed0ba255",
+    "key:felt.tier1.levels.6.label": "c949e213d85c3061",
+    "key:felt.tier1.levels.12.label": "bd1a269165f25dea",
+    "key:felt.done.title": "268bc1833e83306f"
+  },
+  "felt-button": {
+    "key:felt.pill.label": "5468735f0292b4d5"
+  },
+  "im-safe": {
+    "key:imSafe.button.safe": "7fe9695467ab0778",
+    "key:imSafe.family.setting": "4958f25197f48446",
+    "key:imSafe.action.shareMessage": "aacb4e9c737ddfa1",
+    "key:imSafe.noHelp": "7a500320ec45d582"
+  },
+  "offline": {
+    "key:events.offlineBanner": "c42df689b521382c",
+    "key:felt.done.queuedMessage": "94f1730eec1dc819",
+    "key:feedback.confirmation.queuedMessage": "bd7d4d3f23433350"
+  },
+  "languages": {
+    "key:settings.languageSectionTitle": "a4fe65264ef7dbb3",
+    "key:tabs.settings": "74a883a037bc227f"
+  },
+  "shakemaps-damage": {
+    "key:eventDetail.shakemap.sectionTitle": "24fa5635451a0a1c",
+    "key:eventDetail.risk.casualtiesNote": "baba6bb1213c6c3c"
+  },
+  "intensity-numerals": {
+    "file:src/features/shakemap/intensity-format.ts": "2c9c954cdb2b6aac",
+    "file:src/theme/palette.ts": "da4ada2f11624ec6"
+  },
+  "report-reason": {
+    "key:report.reasons.rumour_prediction": "db772db3f63064b7"
+  },
+  "contributor-id": {
+    "key:myData.privacy.title": "4391d8a9917162d1",
+    "key:myData.privacy.id": "abd69513ea4b45a5",
+    "key:myData.privacy.copy": "e21f935f11d7e966",
+    "key:myData.account.deleteStays.reports": "b7f92e3d607675d5"
+  },
+  "family-home": {
+    "key:building.section.title": "2852cdc035410ea8",
+    "key:building.title": "e793d39e7a0f0384",
+    "key:building.family.shareTitle": "52f8455857453c0f",
+    "key:building.section.join": "c78cb0a6408d4dbb",
+    "key:building.join.request": "461bd7c6f19e3f8e",
+    "key:building.delete.warning": "89a1a88905ee3ace"
+  },
+  "tag-my-building": {
+    "key:building.title": "e793d39e7a0f0384",
+    "key:building.vc.name.A": "80d9fcb2971fa9c6",
+    "key:building.vc.name.F": "2854534405d74d61",
+    "key:building.q.structure.options.mud": "026ed0c02dd81e82",
+    "key:building.q.structure.options.frame": "8c70ea13de0acd47"
+  },
+  "account": {
+    "key:account.signIn.intro": "39ef301af44522a5",
+    "key:account.signIn.emailNote": "dc1936f3b16749b8",
+    "key:account.signIn.forgot": "afd25fdf17c7f534",
+    "key:account.signIn.forgotContact": "47aaf31b83d6bfd7",
+    "key:profile.dataExport.title": "edbfbe26317edf70",
+    "key:myData.account.delete": "a2e20a33570001ae"
+  },
+  "guidelines-moderation": {
+    "key:guidelines.title": "a194afdfcf42084d",
+    "key:guidelines.settingsLabel": "a194afdfcf42084d",
+    "key:eventHub.thread.report": "b6ce788d9786917c",
+    "key:restrictions.banner.ask": "0315a8c6a5a6b100"
+  },
+  "network-event-hub": {
+    "key:eventHub.title": "380038d38e5baf25"
+  },
+  "alerts-settings": {
+    "key:notificationSettings.title": "07a063cab7ec227c",
+    "key:settings.notificationsSectionTitle": "788011833a5a0f22",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "af28c67a15d4a237"
+  },
+  "feedback": {
+    "key:settings.feedbackSectionTitle": "aac77df347205252"
+  },
+  "sensor-stations": {
+    "key:sensor.phone.title": "4cf48d6ce263004f",
+    "key:sensor.mode.stations": "7d4633593c765acf",
+    "file:assets/stations/live-stations.json": "b49d16e5a1a65358"
+  },
+  "catalogue-numbers": {
+    "file:assets/catalog/bumelerze-catalog.sqlite": "1af8d47490b83904"
+  },
+  "handbook": {
+    "key:handbook.title": "93509db80564138f",
+    "key:handbook.disclaimer": "2eef9a593722fa6f",
+    "key:handbook.spectrum.sourceNote.isc2017": "ce4417fcee92f601",
+    "key:handbook.spectrum.sourceNote.isc2025": "a3e327a14a3528eb",
+    "key:handbook.report.disclaimerTitle": "7b0e161eb0e85c62",
+    "key:handbook.report.action": "71dd11ba21812d15",
+    "key:handbook.spectrum.banner.vs30Proxy": "2b1c035f62d8e77e"
+  }
+}
