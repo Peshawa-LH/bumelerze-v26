@@ -1,0 +1,37 @@
+<main id="main" class="support">
+
+  <section class="page-hero support-hero" aria-labelledby="support-h1">
+    <div class="wrap">
+      <h1 id="support-h1">{{support.title}}</h1>
+      <p class="lede">{{support.intro}}</p>
+      <!-- Search is progressive enhancement: hidden until site.js runs, so
+           without script every question simply stays visible below. -->
+      <div class="faq-search" data-faq-search-wrap hidden>
+        <label class="visually-hidden" for="faq-q">{{support.search_placeholder}}</label>
+        <svg class="faq-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        <input id="faq-q" type="search" placeholder="{{=support.search_placeholder}}" autocomplete="off" spellcheck="false" data-faq-search>
+      </div>
+      <nav class="topic-chips" aria-label="{{=support.topics}}">
+        {{>supportChips}}
+      </nav>
+    </div>
+  </section>
+
+  <section class="support-cards">
+    <div class="wrap-wide card-row">
+        {{>supportCards}}
+    </div>
+  </section>
+
+  <p class="faq-empty" data-faq-empty role="status" hidden>{{support.search_empty}}</p>
+
+  {{>supportGroups}}
+
+  <section class="band support-still" aria-labelledby="still-h">
+    <div class="wrap">
+      <h2 id="still-h">{{support.contact_title}}</h2>
+      <p class="lede">{{>rich support.contact_body}}</p>
+    </div>
+  </section>
+
+</main>

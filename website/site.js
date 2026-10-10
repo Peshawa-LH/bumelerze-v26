@@ -279,6 +279,63 @@
     return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
   }
 
+  // -------------------------------------------------------- support page
+  // Search filters the questions as you type (question and answer text, in
+  // the page language) and a #group or #question link opens its item. All
+  // progressive enhancement: without script every question is visible.
+  const faqItems = Array.from(document.querySelectorAll(".faq-item"));
+  if (faqItems.length) {
+    const norm = (s) =>
+      s
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{M}/gu, "")
+        .replace(/[يى]/g, "ی")
+        .replace(/ك/g, "ک")
+        .replace(/[ةە]/g, "ه")
+        .replace(/ـ/g, "")
+        .replace(/\s+/g, " ");
+    const index = faqItems.map((el) => ({ el, text: norm(el.textContent) }));
+    const groups = Array.from(document.querySelectorAll("[data-faq-group]"));
+    const empty = document.querySelector("[data-faq-empty]");
+    const box = document.querySelector("[data-faq-search-wrap]");
+    const input = document.querySelector("[data-faq-search]");
+    if (box && input) {
+      box.hidden = false;
+      input.addEventListener("input", function () {
+        const words = norm(input.value.trim()).split(" ").filter(Boolean);
+        let shown = 0;
+        index.forEach(function (item) {
+          const match = words.every(function (w) {
+            return item.text.includes(w);
+          });
+          item.el.hidden = !match;
+          if (match) shown += 1;
+        });
+        groups.forEach(function (g) {
+          g.hidden = !g.querySelector(".faq-item:not([hidden])");
+        });
+        if (empty) empty.hidden = shown > 0;
+        // A short list of matches opens, so the answer is right there.
+        if (words.length && shown <= 3) {
+          index.forEach(function (item) {
+            if (!item.el.hidden) item.el.open = true;
+          });
+        }
+      });
+    }
+    const openFromHash = function () {
+      const id = decodeURIComponent(location.hash.slice(1));
+      const target = id && document.getElementById(id);
+      if (target && target.tagName === "DETAILS") {
+        target.open = true;
+        target.scrollIntoView({ block: "start" });
+      }
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+  }
+
   // ------------------------------------------------------------ felt strip
   // A demonstration only: choosing a picture shows the app's "thank you"
   // tick. Nothing is sent anywhere.

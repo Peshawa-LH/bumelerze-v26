@@ -43,9 +43,10 @@ works, not in the hero, footer or About.
 |---|---|
 | `index.html` | `website-src/pages/index.html`, all text from `website-src/strings/<lang>.json` |
 | `how-it-works.html` | `website-src/pages/how-it-works.html`: data, SHAKEmaps, damage estimates, felt reports, Tag my building, community, what comes next, with a data-flow diagram (HTML labels, so it translates and mirrors) |
-| `about.html` | `website-src/pages/about.html`, text from the strings files |
+| `about.html` | `website-src/pages/about.html`, text from the strings files: why it exists, principles, today and next, official channels (`#official`), the social accounts block, how to spot a fake, working together |
+| `support.html` | `website-src/pages/support.html`: a help centre rendered from the `support.*` strings. Seven groups (`#start`, `#quakes`, `#share`, `#family`, `#account`, `#alerts`, `#contact`), each question a native `<details>` accordion with its own anchor (`#start-q3` opens that question). The search box filters as you type; without script it stays hidden and every question is visible. |
 | `handbook.html` | per-language body in `website-src/pages/handbook/<lang>.html` (content and inline SVGs kept from the earlier site) |
-| `support.html`, `privacy.html` | per-language body in `website-src/pages/<page>/<lang>.html` |
+| `privacy.html` | per-language body in `website-src/pages/privacy/<lang>.html` |
 
 Each exists at the root (English) and under `ckb/` (Sorani, RTL), `kmr/`
 (Kurmanji) and `ar/` (Arabic, RTL). Head, header, footer and the sitemap,
@@ -62,6 +63,21 @@ and the build script. See `website-src/README.md` for the template syntax.
 | `img/` | Every image the pages use, resized and compressed. **Generated** by `npm run build:site-assets` (see below). |
 | `og-image.jpg` | The 1200x630 social preview image. |
 | `brand/`, `brand-v2/`, `brand-beta/`, `favicon.ico` | Logo and favicons. `brand/` and `favicon.ico` are **generated** by `node scripts/generate-assets.js` from whichever of `brand-v2/` or `brand-beta/` is active (`ACTIVE_BRAND_RELEASE`). The wordmark is never mirrored on RTL pages. |
+
+### Support answers and social accounts
+
+Support answers are plain strings. The build turns "1) … 2) …" into a
+numbered list, e-mail addresses and `bumelerze.com/app` into links, and
+`[[how|…]]`, `[[privacy|…]]`, `[[official|…]]` into links to How it works,
+the privacy policy and the About page's official channels, so each language
+marks its own phrase. Quoted app labels use the app's own locale strings.
+
+The About page's "Follow Bumelerze" block reads `website-src/data/social.json`,
+a list such as `[{"platform": "facebook", "url": "https://..."}]`
+(platforms: facebook, instagram, tiktok, youtube, telegram, x). Empty, it
+shows `about.social.none`; each entry renders as an icon link with
+`rel="me noopener"`. Add an account only once it is confirmed official, then
+run `npm run build:site`.
 
 ### The live card
 

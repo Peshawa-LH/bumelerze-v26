@@ -1,30 +1,73 @@
 <main id="main" class="about">
 
-  <section class="about-hero" aria-labelledby="about-h1">
-    <div class="wrap">
-      <h1 id="about-h1">{{about.title}}</h1>
-      <div class="about-line" aria-hidden="true">{{>seismicLine}}</div>
-      <p class="lede">{{about.intro}}</p>
-      <p>{{about.why}}</p>
+  <section class="page-hero about-top" aria-labelledby="about-h1">
+    <div class="wrap-wide about-top-inner">
+      <div class="about-top-text">
+        <h1 id="about-h1">{{about.title}}</h1>
+        <div class="about-line" aria-hidden="true">{{>seismicLine}}</div>
+        <p class="lede">{{about.intro}}</p>
+      </div>
+      <img class="about-family" src="{{@root}}img/cast-family.webp" width="600" height="420" alt="{{=safe.alt_family}}">
     </div>
   </section>
 
-  <section class="about-cards">
-    <div class="wrap about-grid">
-      <div class="about-card" aria-labelledby="channels-h">
-        <h2 id="channels-h">{{about.channels_title}}</h2>
-        <ul class="channels">
-          {{>channels}}
-        </ul>
-      </div>
-      <div class="about-card about-card--fake" aria-labelledby="fake-h">
-        <h2 id="fake-h"><svg class="shield" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5 4 5.5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10v-6z"/><path d="M12 8v5M12 16.2v.3"/></svg>{{about.fake_title}}</h2>
-        <ol class="fake-tips">
-          <li><span>{{about.fake_tip1}}</span></li>
-          <li><span>{{about.fake_tip2}}</span></li>
-          <li><span>{{about.fake_tip3}}</span></li>
-        </ol>
-      </div>
+  <section class="band band--alt" id="why" aria-labelledby="why-h">
+    <div class="wrap-wide">
+      <h2 id="why-h">{{about.why.headline}}</h2>
+      <p class="body-text">{{about.why.body}}</p>
+    </div>
+  </section>
+
+  <section class="band" id="principles" aria-labelledby="principles-h">
+    <div class="wrap-wide">
+      <h2 id="principles-h">{{about.principles.headline}}</h2>
+      <ul class="principles">
+        {{>principles}}
+      </ul>
+    </div>
+  </section>
+
+  <!-- Marked data-aim: names a longer-term aim only (see the claims test). -->
+  <section class="band band--alt" id="next" aria-labelledby="next-h" data-aim>
+    <div class="wrap-wide">
+      <h2 id="next-h">{{about.next.headline}}</h2>
+      <ol class="timeline">
+        {{>timeline}}
+      </ol>
+    </div>
+  </section>
+
+  <section class="band" id="official" aria-labelledby="official-h">
+    <div class="wrap-wide">
+      <h2 id="official-h">{{about.channels_title}}</h2>
+      <p class="body-text">{{about.channels_intro}}</p>
+      <ul class="channels">
+        {{>channels}}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band band--alt" id="social" aria-labelledby="social-h">
+    <div class="wrap-wide">
+      <h2 id="social-h">{{about.social.headline}}</h2>
+      <p class="body-text">{{about.social.intro}}</p>
+      {{>social}}
+    </div>
+  </section>
+
+  <section class="band" id="fake" aria-labelledby="fake-h">
+    <div class="wrap-wide">
+      <h2 id="fake-h">{{about.fake_title}}</h2>
+      <ul class="fake-list">
+          {{>fakeTips}}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band band--alt" id="collab" aria-labelledby="collab-h">
+    <div class="wrap-wide">
+      <h2 id="collab-h">{{about.collab.headline}}</h2>
+      <p class="body-text">{{>rich about.collab.body}}</p>
     </div>
   </section>
 

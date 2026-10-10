@@ -445,8 +445,8 @@ html[dir="rtl"] .arrow::before {
   content: "";
   width: 0.42em;
   height: 0.42em;
-  border-inline-end: 2px solid currentColor;
-  border-block-end: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
   transform: translateY(-25%) rotate(45deg);
 }
 
@@ -506,7 +506,9 @@ html[dir="rtl"] .lang-menu .lang-switcher-inline a {
  * works without script) styled like the language button. Exactly one of the
  * two is displayed, so assistive tech sees one site nav at a time. */
 .site-header-inner {
-  flex-wrap: nowrap;
+  /* one row at every normal text size; only very large text wraps the
+   * menu and language buttons under the logo instead of overflowing */
+  flex-wrap: wrap;
 }
 
 .header-nav-group {
@@ -1660,13 +1662,32 @@ html[dir="rtl"] .flow-reports::after {
 
 /* ------------------------------------------------------------- about */
 
-.about-hero {
-  background: var(--bg-alt);
-  padding-block: clamp(2.25rem, 1.5rem + 3vw, 4rem) clamp(2rem, 1.5rem + 2vw, 3rem);
+[hidden] {
+  display: none !important;
 }
 
-.about .wrap {
-  max-width: 46rem;
+.line-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.about-top-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (min-width: 52rem) {
+  .about-top-inner {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+    gap: 3rem;
+  }
 }
 
 .about-line {
@@ -1674,65 +1695,205 @@ html[dir="rtl"] .flow-reports::after {
   margin-block: 1rem 1.25rem;
 }
 
-.about-hero .lede {
+.about-top .lede {
   color: var(--ink);
-  max-width: none;
+  max-width: 40rem;
 }
 
-.about-hero p + p {
-  margin-block-start: 1rem;
+.about-family {
+  justify-self: center;
+  width: min(22rem, 72%);
+  aspect-ratio: 600 / 420;
 }
 
-.about-cards {
-  padding-block: clamp(2rem, 1.5rem + 3vw, 3.5rem) 1rem;
+.about .band > div {
+  padding-block: clamp(2.75rem, 2rem + 3vw, 4.5rem);
 }
 
-.about-cards .wrap {
-  max-width: 64rem;
+.about .band h2 {
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+  margin-block-end: 0.75rem;
 }
 
-.about-grid {
+.principles {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem;
-  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
 }
 
-@media (min-width: 52rem) {
-  .about-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.about-card {
-  padding: clamp(1.25rem, 3vw, 1.75rem);
+.principle {
+  padding: 1.4rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
 }
 
-.about-card h2 {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: clamp(1.4rem, 1.2rem + 0.8vw, 1.75rem);
-  margin-block-end: 1rem;
+.principle h3 {
+  font-size: 1.2rem;
+  letter-spacing: 0;
+  margin-block: 0.9rem 0.4rem;
 }
 
-.about-card--fake {
-  border-color: rgba(200, 32, 47, 0.45);
-  box-shadow: inset 0 4px 0 var(--red);
+.principle p {
+  color: var(--muted);
 }
 
-.shield {
+.principle-icon,
+.quick-icon,
+.faq-icon {
+  display: inline-grid;
+  place-items: center;
   flex: none;
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  color: var(--red-text);
+}
+
+.band--alt .faq-icon {
+  background: var(--card);
+}
+
+/* "Today, and what comes next": three steps joined by a line. Phones: a
+ * vertical line down the start side; wider: a row. */
+.timeline {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.timeline .step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.timeline .step p {
+  padding-block-start: 0.45rem;
+  max-width: 26rem;
+}
+
+.step-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px solid var(--red);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--red-text);
+  font-weight: 700;
+}
+
+.timeline .step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(1.375rem - 1px);
+  inset-block-start: 2.75rem;
+  height: calc(100% - 1.25rem);
+  border-inline-start: 2px dashed var(--border-strong);
+}
+
+@media (min-width: 52rem) {
+  .timeline {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem;
+  }
+
+  .timeline .step {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .timeline .step:not(:last-child)::after {
+    inset-block-start: calc(1.375rem - 1px);
+    inset-inline-start: 3.5rem;
+    inset-inline-end: -1.25rem;
+    height: 0;
+    border-inline-start: 0;
+    border-block-start: 2px dashed var(--border-strong);
+  }
+}
+
+.social-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.social-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.4rem 1rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.social-icon {
+  width: 1.3rem;
+  height: 1.3rem;
   fill: none;
-  stroke: var(--red);
-  stroke-width: 2;
+  stroke: currentColor;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.social-none {
+  margin-block-start: 1.25rem;
+  padding: 1rem 1.2rem;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 1rem;
+  color: var(--muted);
+  max-width: 40rem;
+}
+
+.fake-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  max-width: 42rem;
+}
+
+.fake-list li {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+  overflow-wrap: anywhere;
+}
+
+.tip-icon {
+  width: 2rem;
+  height: 2rem;
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#official .channels {
+  margin-block-start: 1.25rem;
 }
 
 .channels {
@@ -1778,37 +1939,244 @@ html[dir="rtl"] .flow-reports::after {
   justify-self: start;
 }
 
-.fake-tips {
-  overflow-wrap: anywhere;
-  list-style: none;
-  counter-reset: tip;
-  margin: 0;
-  padding: 0;
+/* ----------------------------------------------------------- support */
+
+.support-hero .wrap {
+  max-width: 48rem;
+}
+
+.faq-search {
+  position: relative;
+  margin-block-start: 1.5rem;
+  max-width: 36rem;
+}
+
+.faq-search input {
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.6rem 1.1rem;
+  padding-inline-start: 3rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.0625rem;
+}
+
+.faq-search input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.faq-search input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.faq-search-icon {
+  position: absolute;
+  inset-inline-start: 1.05rem;
+  inset-block-start: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: translateY(-50%);
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.topic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 1.25rem;
+}
+
+.chip-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.3rem 0.95rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.chip-link:hover {
+  border-color: var(--ink);
+}
+
+.support-cards {
+  padding-block: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+.card-row {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
   gap: 1rem;
 }
 
-.fake-tips li {
-  counter-increment: tip;
-  display: grid;
-  grid-template-columns: 2.1rem minmax(0, 1fr);
-  gap: 0.8rem;
+.quick-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
 }
 
-.fake-tips li::before {
-  content: counter(tip);
+.quick-card h2 {
+  font-size: 1.25rem;
+  letter-spacing: 0;
+  margin-block-start: 0.4rem;
+}
+
+.quick-card p {
+  color: var(--muted);
+  flex: 1;
+}
+
+.quick-card .text-link {
+  min-height: 2.75rem;
+}
+
+.faq-empty {
+  max-width: 48rem;
+  margin: 1rem auto 2rem;
+  padding: 1rem var(--pad);
+  color: var(--muted);
+  text-align: center;
+  font-weight: 600;
+}
+
+.faq-band > .faq-group {
+  max-width: 48rem;
+  margin-inline: auto;
+  padding: clamp(2.5rem, 2rem + 2vw, 4rem) var(--pad);
+}
+
+.faq-title {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+  font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem);
+  margin-block-end: 1.25rem;
+}
+
+.faq-list {
+  border-block-start: 1px solid var(--border-strong);
+}
+
+.faq-item {
+  border-block-end: 1px solid var(--border-strong);
+  scroll-margin-block-start: 1rem;
+}
+
+.faq-item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.25rem;
+  padding: 0.9rem 0.25rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  line-height: 1.45;
+}
+
+html[dir="rtl"] .faq-item summary {
+  line-height: 1.7;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary:hover .faq-q {
+  color: var(--red-text);
+}
+
+.faq-chev {
+  flex: none;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-inline-end: 0.35rem;
+  /* physical borders: a down chevron is the same in both directions */
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-25%) rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.faq-item[open] summary .faq-q {
+  color: var(--red-text);
+}
+
+.faq-item[open] .faq-chev {
+  transform: translateY(20%) rotate(225deg);
+}
+
+.faq-a {
+  padding: 0 0.25rem 1.25rem;
+  max-width: 42rem;
+}
+
+.faq-a p {
+  margin-block: 0 0.6rem;
+}
+
+.steps {
+  list-style: none;
+  counter-reset: step;
+  margin: 0.4rem 0 0.6rem;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.steps li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 1.9rem minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+}
+
+.steps li::before {
+  content: counter(step);
   display: grid;
   place-items: center;
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 1.9rem;
+  height: 1.9rem;
   border-radius: 50%;
-  background: var(--red);
-  color: #ffffff;
+  background: var(--bg-alt);
+  color: var(--red-text);
   font-weight: 700;
 }
 
-:is(:lang(ckb), :lang(ar)) .fake-tips li::before {
-  content: counter(tip, arabic-indic);
+.band--alt .steps li::before {
+  background: var(--card);
+}
+
+:is(:lang(ckb), :lang(ar)) .steps li::before {
+  content: counter(step, arabic-indic);
+}
+
+.support-still .wrap {
+  padding-block: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+}
+
+.support-still .lede {
+  max-width: 40rem;
 }
 
 /* ---------------------------------------------- handbook + prose pages */

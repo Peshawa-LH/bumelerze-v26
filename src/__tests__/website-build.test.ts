@@ -14,6 +14,7 @@ const SITE = path.join(ROOT, "website");
 const LANGS = ["en", "ckb", "kmr", "ar"];
 const PAGES = [
   "index.html",
+  "how-it-works.html",
   "about.html",
   "handbook.html",
   "support.html",
@@ -80,6 +81,8 @@ describe("website build", () => {
       /real-time/i,
       /early warning/i,
       /\bAtlas\b/,
+      /(?<!How )did you feel it/i, // the feature is "share your experience"; "How did you feel it?" is the app's picker title
+      /\btestimony\b/i,
     ];
     for (const rel of pageFiles()) {
       // Early warning may be named only as a future aim, inside the
@@ -116,6 +119,45 @@ describe("website build", () => {
       .join("\n");
     expect(aims).toMatch(/early warning/i);
     expect(read("how-it-works.html")).toMatch(/currently in testing/);
+  });
+
+  it("support: seven anchored groups, every question an accordion with its own anchor", () => {
+    const groups = ["start", "quakes", "share", "family", "account", "alerts", "contact"];
+    for (const lang of LANGS) {
+      const html = read(lang === "en" ? "support.html" : path.join(lang, "support.html"));
+      for (const g of groups) expect(html).toContain(`id="${g}"`);
+      const ids = [...html.matchAll(/<details class="faq-item" id="([a-z]+-q\d+)"/g)].map(
+        (m) => m[1],
+      );
+      expect(ids).toHaveLength(37);
+      expect(new Set(ids).size).toBe(37);
+      // numbered steps become lists; contact addresses become mailto links
+      expect((html.match(/<ol class="steps">/g) ?? []).length).toBe(6);
+      expect(html).toContain('href="mailto:dev@bumelerze.com"');
+      expect(html).toContain('href="mailto:hello@bumelerze.com"');
+      expect(html).toContain('href="how-it-works.html"');
+      expect(html).toContain('href="privacy.html"');
+      expect(html).toContain('href="about.html#official"');
+      // search box stays hidden until site.js shows it
+      expect(html).toMatch(/data-faq-search-wrap hidden/);
+    }
+  });
+
+  it("about: official channels anchor, and the social block follows social.json", () => {
+    const social = JSON.parse(
+      fs.readFileSync(path.join(ROOT, "website-src", "data", "social.json"), "utf8"),
+    ) as { platform: string; url: string }[];
+    for (const lang of LANGS) {
+      const html = read(lang === "en" ? "about.html" : path.join(lang, "about.html"));
+      expect(html).toContain('id="official"');
+      if (social.length === 0) {
+        expect(html).toContain('class="social-none"');
+        expect(html).not.toContain('rel="me noopener"');
+      } else {
+        for (const s of social)
+          expect(html).toContain(`href="${s.url}" rel="me noopener"`);
+      }
+    }
   });
 
   it("writes intensity in Roman numerals for en/kmr and Eastern digits for ckb/ar", () => {
