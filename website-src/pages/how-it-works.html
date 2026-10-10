@@ -1,0 +1,115 @@
+<main id="main" class="hiw">
+
+  <section class="page-hero" aria-labelledby="hiw-h1">
+    <div class="wrap">
+      <h1 id="hiw-h1">{{hiw.title}}</h1>
+      <p class="lede">{{hiw.intro}}</p>
+    </div>
+    <div class="wrap-wide">
+      {{>flowDiagram}}
+    </div>
+  </section>
+
+  <div class="act act--plain" aria-hidden="true">
+    <div class="act-line">{{>seismicLine}}</div>
+  </div>
+
+  <section class="band band--alt" id="data" aria-labelledby="data-h">
+    <div class="feature">
+      <div class="feature-text">
+        <p class="step-num" aria-hidden="true">{{>actNum 1}}</p>
+        <h2 id="data-h">{{hiw.data.headline}}</h2>
+        <p class="body-text">{{hiw.data.body}}</p>
+      </div>
+      <div class="feature-fig map-fig">
+        <div class="map-frame map-frame--catalog">{{>catalogMap}}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="shakemaps" aria-labelledby="shakemaps-h">
+    <div class="feature feature--flip">
+      <div class="feature-text">
+        <p class="step-num" aria-hidden="true">{{>actNum 2}}</p>
+        <h2 id="shakemaps-h">{{hiw.shakemaps.headline}}</h2>
+        <p class="body-text">{{hiw.shakemaps.body}}</p>
+      </div>
+      {{>shakeFigure}}
+    </div>
+  </section>
+
+  <section class="band band--alt" id="damage" aria-labelledby="damage-h">
+    <div class="feature">
+      <div class="feature-text">
+        <p class="step-num" aria-hidden="true">{{>actNum 3}}</p>
+        <h2 id="damage-h">{{hiw.damage.headline}}</h2>
+        <p class="body-text">{{hiw.damage.body}}</p>
+      </div>
+      <div class="feature-fig">{{>phone hub hiw.damage.alt}}</div>
+    </div>
+  </section>
+
+  <section class="band" id="reports" aria-labelledby="reports-h">
+    <div class="feature feature--flip">
+      <div class="feature-text">
+        <p class="step-num" aria-hidden="true">{{>actNum 4}}</p>
+        <h2 id="reports-h">{{hiw.reports.headline}}</h2>
+        <p class="body-text">{{hiw.reports.body}}</p>
+      </div>
+      <div class="feature-fig">
+        <ul class="felt-mini" aria-label="{{=felt.question}}">
+          {{>feltMini}}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band--alt" id="building" aria-labelledby="building-h">
+    <div class="feature">
+      <div class="feature-text">
+        <p class="step-num" aria-hidden="true">{{>actNum 5}}</p>
+        <h2 id="building-h">{{hiw.building.headline}}</h2>
+        <p class="body-text">{{hiw.building.body}}</p>
+      </div>
+      <div class="feature-fig building-fig">
+        <ul class="building-tiles">
+          {{>buildingTiles}}
+        </ul>
+        {{>vcBar}}
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="community" aria-labelledby="community-h">
+    <div class="feature feature--flip">
+      <div class="feature-text">
+        <p class="step-num" aria-hidden="true">{{>actNum 6}}</p>
+        <h2 id="community-h">{{hiw.community.headline}}</h2>
+        <p class="body-text">{{hiw.community.body}}</p>
+        <div class="cta-row">
+          <a class="btn btn-outline" href="https://bumelerze.com/app/account/sign-in">{{community.button}}</a>
+        </div>
+      </div>
+      <div class="feature-fig icon-fig" aria-hidden="true">
+        <svg viewBox="0 0 240 160" focusable="false"><g class="ic-soft"><circle cx="70" cy="62" r="22"/><path d="M30 132c4-26 20-40 40-40s36 14 40 40Z"/><circle cx="170" cy="62" r="22"/><path d="M130 132c4-26 20-40 40-40s36 14 40 40Z"/></g><g class="ic-line"><path d="M96 34h48a8 8 0 0 1 8 8v20a8 8 0 0 1-8 8h-22l-10 10v-10h-16a8 8 0 0 1-8-8V42a8 8 0 0 1 8-8Z"/><path d="M106 48h28M106 57h18"/></g></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band--alt" id="next" aria-labelledby="next-h" data-aim>
+    <div class="feature">
+      <div class="feature-text">
+        <p class="step-num" aria-hidden="true">{{>actNum 7}}</p>
+        <h2 id="next-h">{{hiw.next.headline}}</h2>
+        <p class="body-text">{{hiw.next.body}}</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://bumelerze.com/app/notification-settings">{{future.button}}</a>
+        </div>
+      </div>
+      <div class="feature-fig icon-fig" aria-hidden="true">
+        <svg viewBox="0 0 240 160" focusable="false"><g class="ic-line"><path d="M120 22c-17 0-29 13-29 30v20l-9 15h76l-9-15V52c0-17-12-30-29-30Z"/><path d="M109 96a11 11 0 0 0 22 0"/></g><g class="ic-wave"><path d="M20 58h22l7-14 10 28 7-14h18M220 58h-22l-7-14-10 28-7-14h-18"/></g></svg>
+      </div>
+    </div>
+  </section>
+
+</main>

@@ -82,7 +82,12 @@ describe("website build", () => {
       /\bAtlas\b/,
     ];
     for (const rel of pageFiles()) {
-      const html = read(rel);
+      // Early warning may be named only as a future aim, inside the
+      // sections marked data-aim (home "future", How it works "next").
+      const html = read(rel).replace(
+        /<section[^>]*\bdata-aim\b[^>]*>[\s\S]*?<\/section>/g,
+        "",
+      );
       for (const pattern of forbidden) {
         expect({ rel, match: html.match(pattern)?.[0] ?? null }).toEqual({
           rel,
@@ -90,6 +95,26 @@ describe("website build", () => {
         });
       }
     }
+  });
+
+  it("names early warning only as an aim, never as available", () => {
+    const aims = [read("index.html"), read("how-it-works.html")]
+      .flatMap(
+        (html) => html.match(/<section[^>]*\bdata-aim\b[^>]*>[\s\S]*?<\/section>/g) ?? [],
+      )
+      .join("\n");
+    expect(aims).toMatch(/early warning/i);
+    expect(read("how-it-works.html")).toMatch(/not available today/);
+  });
+
+  it("writes intensity in Roman numerals for en/kmr and Eastern digits for ckb/ar", () => {
+    const legend = (rel: string) =>
+      read(rel).match(/class="intensity-legend"[^>]*>([\s\S]*?)<\/ol>/)![1]!;
+    expect(legend("index.html")).toContain(">VIII<");
+    expect(legend("kmr/index.html")).toContain(">VIII<");
+    expect(legend("ckb/index.html")).toContain(">٨<");
+    expect(legend("ar/index.html")).toContain(">٨<");
+    expect(legend("ckb/index.html")).not.toMatch(/[IVX]/);
   });
 
   it("only shows felt cartoons 1-6 and never a safety-dont image", () => {

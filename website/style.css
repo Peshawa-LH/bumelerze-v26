@@ -29,9 +29,9 @@
  * DARK THEME (prefers-color-scheme: dark), built on Approved Navy so both
  * themes are the brand. Night earthquakes are common: dark is a first-class
  * theme, not an inversion.
- *   ivory on navy #071D2B / alt #0E2431 / card #112633   15.97 / 14.81 / 14.44
- *   --muted #9BA3A6 on navy / alt / card                  6.71 / 6.22 / 6.07
- *   --red-text #E18082 on navy / alt / card               6.24 / 5.79 / 5.64
+ *   ivory on navy #071D2B / alt #0F2737 / card #16303F   15.97 / 14.26 / 12.74
+ *   --muted #9BA3A6 on navy / alt / card                  6.71 / 5.99 / 5.35
+ *   --red-text #E18082 on navy / alt / card               6.24 / 5.57 / 4.98
  *     (raw signal red on navy is only 3.04:1, so in dark theme it is used
  *     for fills, borders and icons only; every red TEXT resolves to
  *     --red-text)
@@ -112,9 +112,9 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #071d2b; /* approved navy */
-    --bg-alt: #0e2431;
-    --bg-soft: #0e2431;
-    --card: #112633;
+    --bg-alt: #0f2737;
+    --bg-soft: #0f2737;
+    --card: #16303f;
     --ink: #fff5e8;
     --muted: #9ba3a6;
     --red: #c8202f;
@@ -304,6 +304,8 @@ a:hover {
   line-height: 1.25;
   text-decoration: none;
   text-align: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .btn-primary {
@@ -329,7 +331,7 @@ a:hover {
 
 .btn-lg {
   min-height: 3.5rem;
-  padding-inline: 2.2rem;
+  padding-inline: min(2.2rem, 6vw);
   font-size: 1.15rem;
 }
 
@@ -464,7 +466,8 @@ html[dir="rtl"] .arrow::before {
   inset-inline-end: 0;
   inset-block-start: calc(100% + 0.35rem);
   z-index: 20;
-  min-width: 11rem;
+  min-width: min(11rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
   display: flex;
   flex-direction: column;
   padding: 0.3rem;
@@ -575,7 +578,7 @@ html[dir="rtl"] .seismic-line {
 
 .hero {
   background: var(--bg-alt);
-  padding-block-start: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+  padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem);
 }
 
 .hero-inner {
@@ -597,27 +600,6 @@ html[dir="rtl"] .seismic-line {
 
 .hero .lede {
   color: var(--ink);
-}
-
-.hero-cast {
-  position: relative;
-  max-width: 56rem;
-  margin: clamp(1.25rem, 3vw, 2.5rem) auto 0;
-  padding-inline: var(--pad);
-}
-
-.hero-cast img {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  aspect-ratio: 800 / 280;
-}
-
-/* The cast stands on the seismic line, which runs edge to edge. */
-.hero-ground {
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
-  margin-block-start: clamp(-1.6rem, -2vw, -0.6rem);
 }
 
 /* Live card: the latest earthquake near Kurdistan, filled in by site.js. */
@@ -743,54 +725,69 @@ html[dir="rtl"] .seismic-line {
 }
 
 /* ----------------------------------------------------------- acts */
-
-.act-block {
-  padding-block-end: 1rem;
-}
-
-.act-block--alt {
-  background: var(--bg-alt);
-}
+/* Act header: the logo's seismic line edge to edge, its blip centred and
+ * the gold bead at the end, then the act's number and name. A plain act
+ * (line only) separates the later parts without a label. */
 
 .act {
-  max-width: var(--max);
-  margin-inline: auto;
-  padding: clamp(2.5rem, 2rem + 3vw, 4.5rem) var(--pad) 0;
+  padding-block: clamp(3rem, 2rem + 4vw, 5.5rem) clamp(1.75rem, 1.25rem + 2vw, 3rem);
   text-align: center;
+  background: var(--bg);
+}
+
+.act--plain {
+  padding-block: clamp(2rem, 1.5rem + 2vw, 3rem);
 }
 
 .act-line {
-  max-width: 44rem;
-  margin-inline: auto;
+  width: 100%;
 }
 
-.act-label {
-  display: inline-flex;
+/* Fixed height with "slice" scaling: the blip stays centred and legible on
+ * a phone while the line itself runs to both edges. */
+.act-line .seismic-line {
+  height: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
+  overflow: hidden;
+}
+
+.act-head {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.7rem;
-  margin-block-start: 0.6rem;
-  font-size: 1.05rem;
-  line-height: 1.4;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--red-text);
-}
-
-html[dir="rtl"] .act-label {
-  text-transform: none;
-  font-size: 1.15rem;
+  margin-block-start: clamp(1rem, 2vw, 1.5rem);
+  padding-inline: var(--pad);
+  font-size: clamp(1.7rem, 1.25rem + 1.8vw, 2.6rem);
 }
 
 .act-num {
   flex: none;
   display: inline-grid;
   place-items: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  border: 2px solid currentColor;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px solid var(--red);
   border-radius: 50%;
-  font-size: 1rem;
+  color: var(--red-text);
+  font-size: 1.15rem;
+  font-weight: 700;
   letter-spacing: 0;
+  line-height: 1;
+}
+
+/* Bands: every feature is its own full-width band, alternating ground,
+ * with a hairline between, so each reads as a separate moment. */
+.band {
+  background: var(--bg);
+  border-block-start: 1px solid var(--border);
+}
+
+.band--alt {
+  background: var(--bg-alt);
+}
+
+.act + .band {
+  border-block-start-color: transparent;
 }
 
 /* ---------------------------------------------------------- features */
@@ -800,7 +797,7 @@ html[dir="rtl"] .act-label {
 .feature {
   max-width: var(--max);
   margin-inline: auto;
-  padding: clamp(2.25rem, 1.5rem + 3vw, 4rem) var(--pad);
+  padding: clamp(3rem, 2rem + 4vw, 5.5rem) var(--pad);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 2rem;
@@ -830,25 +827,6 @@ html[dir="rtl"] .act-label {
 .feature-fig {
   min-width: 0;
   margin: 0;
-}
-
-.chips {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 1.4rem 0 0;
-  padding: 0;
-}
-
-.chips li {
-  padding: 0.3rem 0.95rem;
-  border: 1.5px solid var(--border-strong);
-  border-radius: 999px;
-  background: var(--card);
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: 0.04em;
 }
 
 /* Phone frame: drawn in CSS around a plain screenshot, so swapping the
@@ -1131,21 +1109,6 @@ html[dir="rtl"] .act-label {
   text-align: center;
 }
 
-/* safety grid */
-.safety-grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.4rem, 1.5vw, 1rem);
-}
-
-.safety-grid img {
-  width: 100%;
-  aspect-ratio: 1;
-}
-
 /* building: pictograms + vulnerability-class bar */
 .building-fig {
   padding: clamp(1.1rem, 3vw, 1.75rem);
@@ -1298,80 +1261,308 @@ html[dir="rtl"] .act-label {
   fill: var(--red);
 }
 
-/* trust strip */
-.trust {
-  background: var(--bg-alt);
-  border-block: 1px solid var(--border);
-}
-
-.trust-list {
-  list-style: none;
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 1.75rem var(--pad);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1rem 2rem;
-}
-
-@media (min-width: 52rem) {
-  .trust-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.trust-list li {
+.link-row {
   display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  font-weight: 700;
-  font-size: 1.08rem;
-  line-height: 1.4;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
 }
 
-.trust-list svg {
-  flex: none;
-  width: 2.6rem;
-  height: 2.6rem;
-  padding: 0.55rem;
-  border-radius: 50%;
-  background: var(--card);
+.text-link--quiet {
+  color: var(--muted);
+}
+
+/* future: alerts coming soon, early warning as an aim */
+.future {
+  padding: clamp(1rem, 2vw, 2rem) var(--pad) clamp(1rem, 2vw, 2rem);
+}
+
+.future-card {
+  max-width: 46rem;
+  margin-inline: auto;
+  padding: clamp(2rem, 1.5rem + 3vw, 3.5rem) clamp(1.25rem, 4vw, 3rem);
   border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  background: var(--bg-alt);
+  text-align: center;
+}
+
+.future-card .lede {
+  margin-inline: auto;
+}
+
+.future-card .btn {
+  margin-block-start: 1.75rem;
+}
+
+.future-icon {
+  display: block;
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto 1rem;
   fill: none;
   stroke: var(--red);
-  stroke-width: 2;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-/* closing call to action */
-.get {
-  padding: clamp(3rem, 2rem + 4vw, 5rem) var(--pad) 1rem;
+.future-icon .future-wave {
+  stroke: var(--muted);
+  stroke-width: 1.8;
 }
 
-.get-card {
-  max-width: 44rem;
-  margin-inline: auto;
+/* -------------------------------------------------------- how it works */
+
+.page-hero {
+  background: var(--bg-alt);
+  padding-block: clamp(2.5rem, 1.5rem + 4vw, 4.5rem);
+}
+
+.page-hero .wrap {
+  max-width: var(--max);
+}
+
+.page-hero .lede {
+  color: var(--ink);
+  max-width: 40rem;
+}
+
+.step-num {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-block-end: 1rem;
+  border: 2px solid var(--red);
+  border-radius: 50%;
+  color: var(--red-text);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hiw .feature-text h2 {
+  font-size: clamp(1.55rem, 1.2rem + 1.5vw, 2.25rem);
+}
+
+.body-text {
+  margin-block-start: 0.9rem;
+  max-width: 36rem;
+  font-size: 1.125rem;
+  text-wrap: pretty;
+}
+
+/* Data-flow diagram. Labels are HTML; arrows are text glyphs placed
+ * between the boxes and swapped for the reading direction. Phones: one
+ * column, felt reports beside the SHAKEmap box. Wider: one row. */
+.flow {
+  margin: clamp(2rem, 4vw, 3rem) 0 0;
+}
+
+.flow-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-areas:
+    "net ."
+    "feed ."
+    "shake rep"
+    "dmg .";
+  gap: 2.5rem 2rem;
+}
+
+.flow-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1rem 0.75rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 1.1rem;
+  background: var(--card);
   text-align: center;
 }
 
-.get-card .lede {
-  margin-inline: auto;
+.flow-networks {
+  grid-area: net;
 }
 
-.get-card .btn {
-  margin-block-start: 1.6rem;
+.flow-feed {
+  grid-area: feed;
 }
 
-.pill {
-  display: inline-block;
-  margin-block-end: 1rem;
-  padding: 0.25rem 0.95rem;
-  border: 1.5px dashed var(--border-strong);
-  border-radius: 999px;
-  color: var(--muted);
+.flow-shake {
+  grid-area: shake;
+  border-color: var(--red);
+}
+
+.flow-damage {
+  grid-area: dmg;
+}
+
+.flow-reports {
+  grid-area: rep;
+  border-style: dashed;
+}
+
+.flow-icon svg {
+  display: block;
+  width: 2.4rem;
+  height: 2.4rem;
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.flow-icon .fill {
+  fill: var(--red);
+  stroke: none;
+}
+
+.flow-label {
+  overflow-wrap: anywhere;
   font-weight: 700;
+  line-height: 1.35;
+}
+
+.flow-sub {
+  color: var(--muted);
   font-size: 1rem;
+}
+
+.flow-node::after {
+  position: absolute;
+  color: var(--red-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.flow-networks::after,
+.flow-feed::after,
+.flow-shake::after {
+  content: "↓";
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.flow-reports::after {
+  content: "←";
+  top: 50%;
+  right: calc(100% + 0.4rem);
+  transform: translateY(-50%);
+}
+
+html[dir="rtl"] .flow-reports::after {
+  content: "→";
+  right: auto;
+  left: calc(100% + 0.4rem);
+}
+
+@media (min-width: 52rem) {
+  .flow-steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas:
+      "net feed shake dmg"
+      ". . rep .";
+    gap: 2.5rem 2.5rem;
+  }
+
+  .flow-networks::after,
+  .flow-feed::after,
+  .flow-shake::after {
+    content: "→";
+    top: 50%;
+    left: calc(100% + 0.5rem);
+    transform: translateY(-50%);
+  }
+
+  html[dir="rtl"] .flow-networks::after,
+  html[dir="rtl"] .flow-feed::after,
+  html[dir="rtl"] .flow-shake::after {
+    content: "←";
+    left: auto;
+    right: calc(100% + 0.5rem);
+  }
+
+  .flow-reports::after,
+  html[dir="rtl"] .flow-reports::after {
+    content: "↑";
+    top: auto;
+    bottom: calc(100% + 0.5rem);
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+}
+
+/* felt pictures on How it works (not buttons) */
+.felt-mini {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.felt-mini li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: var(--card);
+}
+
+.felt-mini img {
+  width: 100%;
+  max-width: 7.5rem;
+  aspect-ratio: 1;
+}
+
+.icon-fig {
+  display: flex;
+  justify-content: center;
+}
+
+.icon-fig svg {
+  width: min(22rem, 90%);
+  height: auto;
+}
+
+.icon-fig .ic-soft {
+  fill: var(--bg-alt);
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.band--alt .icon-fig .ic-soft {
+  fill: var(--card);
+}
+
+.icon-fig .ic-line {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-fig .ic-wave {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ------------------------------------------------------------- about */
@@ -1588,10 +1779,6 @@ h1 .accent {
 
 .lede-wide {
   max-width: 48rem;
-}
-
-.hero:not(:has(.hero-cast)) {
-  padding-block-end: clamp(2rem, 1.5rem + 3vw, 3.5rem);
 }
 
 .hb-map {

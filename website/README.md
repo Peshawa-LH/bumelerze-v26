@@ -20,19 +20,29 @@ Live at <https://bumelerze.com>, deployed by GitHub Pages on every push to
 the app's web build under `/app`). Netlify (`netlify.toml`) is a dormant
 mirror. Contact: `hello@bumelerze.com`, `dev@bumelerze.com`.
 
-The 2026-10 redesign rebuilt the home page as a short, figure-led tour in
-three acts (when the ground shakes / prepare ahead of time / explore the
-data), added an About page with the official channels and how to spot a
-fake, and moved every page onto one template with four strings files. The
-English copy comes from the outreach brief; ckb, kmr and ar are machine
-drafts pending native review, and every page in those languages carries
+The 2026-10 redesign (revised after the owner's review on 2026-10-10)
+rebuilt the home page as a short, figure-led page: a clean hero (headline,
+one line, two buttons, the live earthquake card), then two numbered acts
+(when the ground shakes / prepare ahead of time), the catalogue, sensor and
+community, and a closing block on alerts (coming soon) with early warning
+named only as a longer-term aim. Each feature is its own full-width band on
+alternating grounds; the logo's seismic line, drawn edge to edge, separates
+the major parts. It added a How it works page and an About page (official
+channels, how to spot a fake), and moved every page onto one template with
+four strings files. English copy comes from the outreach copy file
+(`site-copy-2026-10-v2.md`); ckb, kmr and ar are machine drafts pending
+native review, and every page in those languages carries
 `<!-- translation: draft-machine, pending native review -->`.
+
+Sources are named once on Home (the feed section) and in full on How it
+works, not in the hero, footer or About.
 
 ## Pages
 
 | Page | Source |
 |---|---|
 | `index.html` | `website-src/pages/index.html`, all text from `website-src/strings/<lang>.json` |
+| `how-it-works.html` | `website-src/pages/how-it-works.html`: data, SHAKEmaps, damage estimates, felt reports, Tag my building, community, what comes next, with a data-flow diagram (HTML labels, so it translates and mirrors) |
 | `about.html` | `website-src/pages/about.html`, text from the strings files |
 | `handbook.html` | per-language body in `website-src/pages/handbook/<lang>.html` (content and inline SVGs kept from the earlier site) |
 | `support.html`, `privacy.html` | per-language body in `website-src/pages/<page>/<lang>.html` |
@@ -68,16 +78,26 @@ the app's own wording ("81 km N of Urmia") and town names, from
 ### Images
 
 `npm run build:site-assets` resizes the felt cartoons (levels 01 to 06 only)
-and six correct-advice safety pictures from `assets/artwork/`. With
-`-- --external <dir>` it also takes the figures and app screenshots that are
-produced outside this repository (`<dir>/figures`, `<dir>/screens`): the
-cast compositions, the catalogue and SHAKEmap figures, the
-vulnerability-class bar, the OG image, the seismic-line and skyline SVGs
-(copied into `website-src/partials/svg/` for inlining), and one screenshot
+from `assets/artwork/`. With `-- --external <dir>` it also takes the
+figures and app screenshots that are produced outside this repository
+(`<dir>/figures`, `<dir>/screens`): the family composition, the catalogue
+and SHAKEmap figures, the vulnerability-class bar, the OG image, the
+seismic-line SVG (copied into `website-src/partials/svg/` for inlining),
+and one screenshot
 per phone frame per language (`SITE_SCREENS` in the script: home, home-dark,
 safe, hub). To show another app screen in a phone frame, add it to
 `SITE_SCREENS`, rerun, and change the name in
 `website-src/pages/index.html` (`{{>phone <screen> <alt-key>}}`).
+
+The footer skyline (Zagros ridges, the Erbil citadel, and a stepped
+Hawraman village with rooftop water tanks and a minaret) is drawn by
+`node scripts/draw-website-skyline.mjs` into
+`website-src/partials/svg/skyline.svg`; its three layers are classes
+(`far`, `mid`, `near`) that the stylesheet tints per theme.
+
+Intensity numerals follow the app's rule (`src/features/shakemap/intensity-format.ts`):
+Roman (IV, V) in English and Kurmanji, Eastern Arabic digits (٤, ٥) in
+Sorani and Arabic, on the SHAKEmap legend and the felt pictures.
 
 Rules the scripts and the test enforce: no felt cartoon above level 6, no
 `safety-dont-*` image, and no felt-picker screenshot (it shows levels 10 to
@@ -85,12 +105,10 @@ Rules the scripts and the test enforce: no felt cartoon above level 6, no
 
 ### Weight
 
-Measured 2026-10-09 (gzip for text, Chromium): the home page's first view on
-a 390 px phone at 3x is about 365 KB in 17 requests (HTML, CSS, script, two
-font files, the cast picture and the images the browser fetches early
-because they sit just below the fold). With every image loaded it is about
-615 KB. All images carry width and height, so the layout does not shift
-(CLS under 0.01).
+Measured 2026-10-10 (gzip for text, Chromium): the home page's first view on
+a 390 px phone at 3x is about 250 KB in 16 requests; with every image
+loaded it is about 400 KB. All images carry width and height, so the layout
+does not shift (CLS about 0.001).
 
 ## How to deploy (Cloudflare Pages, drag-and-drop, about 5 minutes)
 
@@ -137,13 +155,13 @@ problem.
   favicon, this site's header/footer wordmark, and the Play Store hi-res
   icon in one pass; no HTML edits needed. See `assets/brand/README.md`
   "Beta vs v2.0".
-- **Native apps publish** → the closing section of the home page points only
-  at the web app (`https://bumelerze.com/app`) and says native apps come next
-  (`get.line`); add real store links there once they exist rather than a
-  placeholder badge, and update `about.fake_tip1` (not in any store yet).
-- **Alerts go live** → remove the "Alerts: coming soon" pill (`get.alerts_tag`).
-- **Numbers that move** (150,072 events, 37 stations, 15 safety cards) live in
-  the strings files; re-check them before a deploy.
+- **Native apps publish** → add real store links (not a placeholder badge)
+  and update `about.fake_tip1` (not in any store yet).
+- **Alerts go live** → rewrite the closing `future.*` block and
+  `hiw.next.body`. The test only allows the words "early warning" inside the
+  sections marked `data-aim`.
+- **Numbers that move** (150,072 events, 37 stations, 12 pictures, 6
+  catalogues) live in the strings files; re-check them before a deploy.
 - ~~**Domain + email live**~~ → done (2026-08): the pending-domain note
   paragraphs are removed from all HTML files and every contact link points
   at the live `hello@bumelerze.com` address.

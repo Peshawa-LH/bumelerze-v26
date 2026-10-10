@@ -29,6 +29,34 @@
     <xhtml:link rel="alternate" hreflang="ar" href="https://bumelerze.com/ar/"/>
   </url>
   <url>
+    <loc>https://bumelerze.com/how-it-works.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bumelerze.com/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="ckb" href="https://bumelerze.com/ckb/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="kmr" href="https://bumelerze.com/kmr/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://bumelerze.com/ar/how-it-works.html"/>
+  </url>
+  <url>
+    <loc>https://bumelerze.com/ckb/how-it-works.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bumelerze.com/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="ckb" href="https://bumelerze.com/ckb/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="kmr" href="https://bumelerze.com/kmr/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://bumelerze.com/ar/how-it-works.html"/>
+  </url>
+  <url>
+    <loc>https://bumelerze.com/kmr/how-it-works.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bumelerze.com/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="ckb" href="https://bumelerze.com/ckb/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="kmr" href="https://bumelerze.com/kmr/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://bumelerze.com/ar/how-it-works.html"/>
+  </url>
+  <url>
+    <loc>https://bumelerze.com/ar/how-it-works.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bumelerze.com/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="ckb" href="https://bumelerze.com/ckb/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="kmr" href="https://bumelerze.com/kmr/how-it-works.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://bumelerze.com/ar/how-it-works.html"/>
+  </url>
+  <url>
     <loc>https://bumelerze.com/handbook.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://bumelerze.com/handbook.html"/>
     <xhtml:link rel="alternate" hreflang="ckb" href="https://bumelerze.com/ckb/handbook.html"/>
