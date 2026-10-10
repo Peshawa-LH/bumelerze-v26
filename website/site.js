@@ -347,7 +347,7 @@
 
     function step() {
       tick += 1;
-      if (tick - quakeAt > 420) quakeAt = tick + 120 + Math.floor(Math.random() * 160);
+      if (tick - quakeAt > 300) quakeAt = tick + 60 + Math.floor(Math.random() * 80);
       traces.forEach(function (t, i) {
         t.push(sample(i));
         t.shift();

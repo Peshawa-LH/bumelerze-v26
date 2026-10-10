@@ -1162,30 +1162,6 @@ html[dir="rtl"] .seismic-line {
   width: 100%;
 }
 
-.status-chip {
-  position: absolute;
-  inset-block-start: 0.85rem;
-  inset-inline-start: 0.85rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.3rem 0.85rem;
-  border: 1.5px solid var(--border-strong);
-  border-radius: 999px;
-  background: var(--card);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.status-chip::before {
-  content: "";
-  width: 0.6rem;
-  height: 0.6rem;
-  border: 2px solid var(--muted);
-  border-radius: 50%;
-}
-
 .map-fig figcaption {
   display: flex;
   flex-wrap: wrap;

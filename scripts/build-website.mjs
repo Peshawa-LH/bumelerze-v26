@@ -269,7 +269,6 @@ const COMPONENTS = {
             <source media="(prefers-color-scheme: dark)" srcset="${r}img/shakemap-dark.webp">
             <img src="${r}img/shakemap-light.webp" width="1000" height="714" loading="lazy" decoding="async" alt="${escapeAttr(ctx.t("shake.alt"))}">
           </picture>
-          <span class="status-chip">${ctx.t("shake.chip")}</span>
         </div>
         <figcaption>
           <span class="cap-event">${ctx.t("shake.caption")}</span>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How Bumelerze works: data, SHAKEmaps, damage estimates</title>
-<meta name="description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Iraq, and how your reports help.">
+<meta name="description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#071d2b" media="(prefers-color-scheme: dark)">
@@ -17,7 +17,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Bumelerze">
 <meta property="og:title" content="How Bumelerze works: data, SHAKEmaps, damage estimates">
-<meta property="og:description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Iraq, and how your reports help.">
+<meta property="og:description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
 <meta property="og:url" content="https://bumelerze.com/how-it-works.html">
 <meta property="og:image" content="https://bumelerze.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
@@ -29,7 +29,7 @@
 <meta property="og:locale:alternate" content="ar_IQ">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="How Bumelerze works: data, SHAKEmaps, damage estimates">
-<meta name="twitter:description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Iraq, and how your reports help.">
+<meta name="twitter:description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
 <meta name="twitter:image" content="https://bumelerze.com/og-image.jpg">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="brand/bumelerze-favicon.svg">
@@ -37,8 +37,8 @@
 <link rel="icon" type="image/png" sizes="16x16" href="brand/bumelerze-favicon-16.png">
 <link rel="apple-touch-icon" href="brand/bumelerze-app-icon-square-256.png">
 <link rel="preload" href="fonts/vazirmatn-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=2ac2c3369a">
-<script src="site.js?v=87982bcabc" defer></script>
+<link rel="stylesheet" href="style.css?v=4a2c465cc6">
+<script src="site.js?v=4f57e79f37" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to main content</a>
@@ -92,12 +92,12 @@
     </div>
     <div class="wrap-wide">
       <figure class="flow">
-        <figcaption class="visually-hidden">How the parts connect: three networks feed one merged list, which drives the SHAKEmaps; felt reports also feed the SHAKEmaps, and the SHAKEmaps drive the damage estimates.</figcaption>
+        <figcaption class="visually-hidden">How the parts connect: a detected earthquake enters one merged list from the networks, which drives the SHAKEmaps; felt reports also feed the SHAKEmaps, and the SHAKEmaps drive the damage estimates.</figcaption>
         <ol class="flow-steps">
-          <li class="flow-node flow-networks"><span class="flow-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 9 25 27H7Z"/><path d="M9 7a10 10 0 0 0 0 9M23 7a10 10 0 0 1 0 9M5 4a15 15 0 0 0 0 15M27 4a15 15 0 0 1 0 15"/></svg></span><span class="flow-label">Three networks</span><span class="flow-sub" dir="ltr">USGS · EMSC · GEOFON</span></li>
+          <li class="flow-node flow-networks"><span class="flow-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 9 25 27H7Z"/><path d="M9 7a10 10 0 0 0 0 9M23 7a10 10 0 0 1 0 9M5 4a15 15 0 0 0 0 15M27 4a15 15 0 0 1 0 15"/></svg></span><span class="flow-label">Earthquake detected</span><span class="flow-sub" dir="ltr">USGS · EMSC · GEOFON</span></li>
           <li class="flow-node flow-feed"><span class="flow-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="4"/><path d="M10 12h12M10 17h12M10 22h7"/></svg></span><span class="flow-label">One merged feed</span></li>
           <li class="flow-node flow-shake"><span class="flow-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="7.5"/><circle cx="16" cy="16" r="3" class="fill"/></svg></span><span class="flow-label">SHAKEmap</span></li>
-          <li class="flow-node flow-damage"><span class="flow-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 15 16 6l11 9v12H5Z"/><path d="m15 13 3 4-3 3 2 4"/></svg></span><span class="flow-label">Damage estimate (Iraq)</span></li>
+          <li class="flow-node flow-damage"><span class="flow-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 15 16 6l11 9v12H5Z"/><path d="m15 13 3 4-3 3 2 4"/></svg></span><span class="flow-label">Damage estimate</span></li>
           <li class="flow-node flow-reports"><span class="flow-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="10" r="4.5"/><path d="M7 27c1-6 4.5-9 9-9s8 3 9 9"/></svg></span><span class="flow-label">Felt reports</span></li>
         </ol>
       </figure>
@@ -113,7 +113,7 @@
       <div class="feature-text">
         <p class="step-num" aria-hidden="true">1</p>
         <h2 id="data-h">Where the data comes from</h2>
-        <p class="body-text">Live earthquakes come from three networks: USGS, EMSC and GEOFON. The catalogue holds 150,072 earthquakes since the year 872, from six catalogues: ISC, ISC-GEM, EMME, Onur 2017, KISC and USGS. Each earthquake is merged and shown once, with its sources.</p>
+        <p class="body-text">Live earthquakes come from international networks such as USGS, EMSC and GEOFON. The catalogue holds 150,072 earthquakes since the year 872, from six catalogues: ISC, ISC-GEM, EMME, Onur 2017, KISC and USGS. Each earthquake is merged and shown once, with its sources.</p>
       </div>
       <div class="feature-fig map-fig">
         <div class="map-frame map-frame--catalog"><picture>
@@ -129,7 +129,7 @@
       <div class="feature-text">
         <p class="step-num" aria-hidden="true">2</p>
         <h2 id="shakemaps-h">SHAKEmaps, made by Bumelerze</h2>
-        <p class="body-text">A SHAKEmap shows how strongly the ground shook in each place. Bumelerze computes its own for earthquakes in Iraq or felt in Kurdistan, from ground-motion models, nearby seismic stations and people's reports. Each map is labelled automatic or reviewed.</p>
+        <p class="body-text">A SHAKEmap shows how strongly the ground shook in each place. Bumelerze computes its own for earthquakes in Kurdistan or felt in Iraq, from ground-motion models, nearby seismic stations and people's reports.</p>
       </div>
       <figure class="feature-fig map-fig">
         <div class="map-frame">
@@ -137,7 +137,6 @@
             <source media="(prefers-color-scheme: dark)" srcset="img/shakemap-dark.webp">
             <img src="img/shakemap-light.webp" width="1000" height="714" loading="lazy" decoding="async" alt="Map of estimated shaking intensity for the 12 November 2017 earthquake near Halabja, strongest around the epicentre and weaker with distance.">
           </picture>
-          <span class="status-chip">Automatic</span>
         </div>
         <figcaption>
           <span class="cap-event">M7.3 · 12 November 2017 · near Halabja</span>
@@ -151,8 +150,8 @@
     <div class="feature">
       <div class="feature-text">
         <p class="step-num" aria-hidden="true">3</p>
-        <h2 id="damage-h">Damage estimates for Iraq</h2>
-        <p class="body-text">Probabilistic models combine the mapped shaking with Iraq's building stock and its vulnerability classes to estimate likely damage to buildings. These are estimates, not certainties. They cover Iraq only.</p>
+        <h2 id="damage-h">Damage estimates for Kurdistan and Iraq</h2>
+        <p class="body-text">Probabilistic models combine the mapped shaking with Iraq's building stock and its vulnerability classes to estimate likely damage to buildings. These are estimates, not certainties. They cover Kurdistan and Iraq.</p>
       </div>
       <div class="feature-fig"><div class="phone"><picture><img src="img/screens/hub-en.webp" width="540" height="1169" loading="lazy" decoding="async" alt="The app's page for one earthquake, with its estimated building damage."></picture></div></div>
     </div>
@@ -239,7 +238,7 @@
   <div class="site-footer-inner">
     <div class="footer-col footer-brand">
       <img class="brand-logo" src="brand/bumelerze-primary-horizontal-reversed.svg" alt="Bumelerze" width="176" height="32" loading="lazy">
-      <p class="footer-tagline">Earthquake information for Kurdistan, in your language. Free, with no ads.</p>
+      <p class="footer-tagline">Earthquake information for Kurdistan, in your language.</p>
     </div>
     <div class="footer-col">
       <h2>Site</h2>

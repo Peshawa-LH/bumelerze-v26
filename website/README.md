@@ -23,7 +23,7 @@ mirror. Contact: `hello@bumelerze.com`, `dev@bumelerze.com`.
 The 2026-10 redesign (revised after the owner's review on 2026-10-10)
 rebuilt the home page as a short, figure-led page: a clean hero (headline,
 one line, two buttons, the live earthquake card), then two numbered acts
-(when the ground shakes / prepare ahead of time), the catalogue, sensor and
+(when the ground shakes / prepare ahead of time), the sensor and
 community, and a closing block on alerts (coming soon) with early warning
 named only as a longer-term aim. Each feature is its own full-width band on
 alternating grounds; the logo's seismic line, drawn edge to edge, separates
