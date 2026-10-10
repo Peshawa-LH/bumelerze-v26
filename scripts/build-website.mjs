@@ -69,8 +69,6 @@ export const PAGES = [
 const NAV = [
   { id: "home", file: "index.html", key: "nav.home" },
   { id: "how", file: "how-it-works.html", key: "nav.how_it_works" },
-  { id: "handbook", file: "handbook.html", key: "nav.handbook" },
-  { id: "about", file: "about.html", key: "nav.about" },
   { id: "support", file: "support.html", key: "nav.support" },
 ];
 

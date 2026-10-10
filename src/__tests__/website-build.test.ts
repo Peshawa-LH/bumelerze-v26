@@ -115,7 +115,7 @@ describe("website build", () => {
       )
       .join("\n");
     expect(aims).toMatch(/early warning/i);
-    expect(read("how-it-works.html")).toMatch(/not available today/);
+    expect(read("how-it-works.html")).toMatch(/currently in testing/);
   });
 
   it("writes intensity in Roman numerals for en/kmr and Eastern digits for ckb/ar", () => {

@@ -500,9 +500,9 @@ html[dir="rtl"] .lang-menu .lang-switcher-inline a {
   background: var(--bg-alt);
 }
 
-/* Navigation never wraps. From 60rem up, the five links sit in one
- * row (60rem: the widest language, Kurmanji, needs about 57rem for logo,
- * five links and the language button); below it they move behind a menu button (a native <details>, so it
+/* Navigation never wraps. From 48rem up, the three links (Home, How it
+ * works, Support; Handbook and About live in the footer and in page links)
+ * sit in one row with the logo and the language button; below it they move behind a menu button (a native <details>, so it
  * works without script) styled like the language button. Exactly one of the
  * two is displayed, so assistive tech sees one site nav at a time. */
 .site-header-inner {
@@ -597,7 +597,7 @@ html[dir="rtl"] .lang-menu .lang-switcher-inline a {
   color: var(--red-text);
 }
 
-@media (max-width: 59.99rem) {
+@media (max-width: 47.99rem) {
   .site-nav--row {
     display: none;
   }
