@@ -287,14 +287,7 @@ const COMPONENTS = {
         </figcaption>
       </figure>`;
   },
-  feltMini(ctx) {
-    return ["01", "02", "03", "04", "05", "06"]
-      .map((lvl, i) => {
-        const n = i + 1;
-        return `<li><img src="${ctx.root}img/felt/level-${lvl}.webp" width="240" height="240" loading="lazy" decoding="async" alt=""><span class="felt-num" aria-hidden="true">${intensity(ctx, n)}</span><span class="felt-label">${ctx.t(`felt.level${n}`)}</span></li>`;
-      })
-      .join("\n          ");
-  },
+
   flowDiagram(ctx) {
     // Networks -> merged feed -> SHAKEmap -> damage estimate, with felt
     // reports feeding the SHAKEmap. Labels are HTML (translated); the
@@ -311,6 +304,84 @@ const COMPONENTS = {
           ${node("flow-reports", "reports", ctx.t("hiw.flow.reports"))}
         </ol>
       </figure>`;
+  },
+  // ---- How it works: method figures. Code-drawn, labels are HTML (so they
+  // translate and follow the page direction); drawings are small inline SVGs
+  // in the flow diagram's line style. Arrows are glyphs swapped for RTL.
+  methodData(ctx) {
+    const names = ["USGS", "EMSC", "GEOFON"];
+    const chips = names
+      .map(
+        (n) =>
+          `<li class="mfig-chip">${icon(METHOD_ICONS.station)}<span dir="ltr">${n}</span></li>`,
+      )
+      .join("");
+    const card = `<div class="mfig-event">
+            <p class="mfig-event-head">${icon(METHOD_ICONS.quake)}<span>${ctx.t("hiw.data.fig.one_event")}</span></p>
+            <ul class="mfig-tags">${names.map((n) => `<li dir="ltr">${n}</li>`).join("")}</ul>
+          </div>`;
+    return mfig("mfig--data", [
+      stage(`<ul class="mfig-chips">${chips}</ul>`, ctx.t("hiw.data.fig.networks")),
+      merge(ctx.t("hiw.data.fig.merge")),
+      stage(card, ctx.t("hiw.data.fig.sources")),
+    ]);
+  },
+  methodShake(ctx) {
+    const chip = (ic, key) =>
+      `<li class="mfig-chip">${icon(METHOD_ICONS[ic])}<span>${ctx.t(key)}</span></li>`;
+    return mfig("mfig--shake", [
+      stage(
+        `<ul class="mfig-chips">${chip("models", "hiw.shakemaps.fig.models")}${chip("station", "hiw.shakemaps.fig.stations")}${chip("person", "hiw.shakemaps.fig.reports")}</ul>`,
+      ),
+      merge(),
+      stage(
+        `${shakeDrawing()}<ol class="intensity-legend" dir="ltr">${COMPONENTS.intensityLegend(ctx)}</ol>`,
+        ctx.t("hiw.shakemaps.fig.map"),
+      ),
+    ]);
+  },
+  methodDamage(ctx) {
+    // A schematic, not an estimate: one intensity level, the A-F classes,
+    // and illustrative shares of damage grades 1-5 (no casualty figure).
+    const level = 7;
+    const shaking = `<div class="mfig-swatch" style="--swatch:${INTENSITY_RAMP[level]}">${intensity(ctx, level)}</div>`;
+    const classes = `<ol class="mfig-vc">${["A", "B", "C", "D", "E", "F"]
+      .map((c) => `<li class="vc-${c.toLowerCase()}">${c}</li>`)
+      .join("")}</ol>`;
+    const shares = [34, 28, 20, 12, 6];
+    const bars = `<ol class="mfig-dg">${shares
+      .map(
+        (h, i) =>
+          `<li><span class="mfig-dg-bar" style="--h:${h};--dg:${DAMAGE_GRADES[i]}"></span><span class="mfig-dg-num">${ctx.num(i + 1)}</span></li>`,
+      )
+      .join("")}</ol>`;
+    return mfig("mfig--damage", [
+      stage(shaking, ctx.t("hiw.damage.fig.shaking")),
+      '<span class="mfig-op" aria-hidden="true">×</span>',
+      stage(
+        classes,
+        ctx.t("hiw.damage.fig.buildings"),
+        ctx.t("hiw.damage.fig.classes_note"),
+      ),
+      ARROW,
+      stage(
+        bars,
+        ctx.t("hiw.damage.fig.result"),
+        // keep the scale's Latin name in one left-to-right run in RTL text
+        ctx
+          .t("hiw.damage.fig.grades")
+          .replace(/\(([A-Z]+-\d+)\)/, '<bdi dir="ltr">($1)</bdi>'),
+      ),
+    ]);
+  },
+  methodReports(ctx) {
+    return mfig("mfig--reports", [
+      stage(reportsDrawing("taps"), ctx.t("hiw.reports.fig.taps")),
+      ARROW,
+      stage(reportsDrawing("cells"), ctx.t("hiw.reports.fig.areas")),
+      ARROW,
+      stage(reportsDrawing("map"), ctx.t("hiw.reports.fig.map")),
+    ]);
   },
   phone(ctx, args) {
     // {{>phone home alt_key}} or {{>phone home alt_key dark}}: a CSS device
@@ -384,12 +455,153 @@ const FLOW_ICONS = {
     '<svg viewBox="0 0 32 32"><circle cx="16" cy="10" r="4.5"/><path d="M7 27c1-6 4.5-9 9-9s8 3 9 9"/></svg>',
 };
 
+// ------------------------------------------- How it works: method figures
+
+/** The app's intensity ramp (src/theme/palette.ts intensityRamp) and
+ * damage-grade palette (damageGradePalette, DG1-DG5). */
+const INTENSITY_RAMP = [
+  "",
+  "#FFFFFF",
+  "#EDEFF3",
+  "#ACB4CE",
+  "#A1D7E3",
+  "#8FC891",
+  "#F9EC33",
+  "#EEB509",
+  "#E9872D",
+  "#DF532A",
+  "#D9262A",
+  "#DB0000",
+  "#CC0000",
+];
+const DAMAGE_GRADES = ["#1B5E20", "#8FC891", "#F9EC33", "#DF532A", "#B3141A"];
+
+const METHOD_ICONS = {
+  station:
+    '<path d="M12 6.5 18.5 19h-13Z"/><path d="M8 5a6 6 0 0 0 0 6M16 5a6 6 0 0 1 0 6"/>',
+  quake: '<path d="M2 13h4l2-6.5 3.2 12 3-9 2 3.5H22"/>',
+  models: '<path d="M4 4v16h16"/><path d="M6.5 7c2 6 5 9.5 12 10.5"/>',
+  person:
+    '<circle cx="12" cy="8" r="3.6"/><path d="M5 20.5c.8-4.6 3.5-7 7-7s6.2 2.4 7 7"/>',
+};
+
+const ARROW = '<span class="mfig-arrow" aria-hidden="true"></span>';
+
+/** Several inputs converging into one: three lines merging into an arrow
+ * (wide layout) or a plain arrow (stacked), with an optional step label. */
+function merge(label = "") {
+  return `<div class="mfig-merge"><span class="mfig-arrow" aria-hidden="true"><svg viewBox="0 0 48 96" focusable="false"><path d="M2 14c22 0 20 34 40 34M2 48h40M2 82c22 0 20-34 40-34"/><path d="m35 41 8 7-8 7"/></svg></span>${label ? `<p class="mfig-step">${label}</p>` : ""}</div>`;
+}
+
+function stage(visual, label = "", sub = "") {
+  return `<div class="mfig-stage"><div class="mfig-visual">${visual}</div>${label ? `<p class="mfig-label">${label}</p>` : ""}${sub ? `<p class="mfig-sub">${sub}</p>` : ""}</div>`;
+}
+
+/** A method figure: stages in a row (or a column on narrow screens); the
+ * labels are page text, so the figure reads in the page's language. */
+function mfig(cls, parts) {
+  return `<figure class="feature-fig mfig ${cls}">
+        <div class="mfig-row">${parts.join("")}</div>
+      </figure>`;
+}
+
+/** A closed, gently irregular ring around (cx, cy): the stylised contour
+ * of one intensity level. */
+function blob(cx, cy, rx, ry, phase) {
+  const pts = [];
+  for (let i = 0; i < 48; i++) {
+    const a = (i / 48) * Math.PI * 2;
+    const k = 1 + 0.1 * Math.sin(2 * a + phase) + 0.05 * Math.sin(3 * a + 1.3 * phase);
+    pts.push(
+      `${(cx + rx * k * Math.cos(a)).toFixed(1)} ${(cy + ry * k * Math.sin(a)).toFixed(1)}`,
+    );
+  }
+  return `M${pts.join("L")}Z`;
+}
+
+/** Stylised SHAKEmap: intensity IV-VIII rings around the epicentre, a few
+ * stations (triangles) and felt reports (dots). No real data. */
+function shakeDrawing() {
+  const levels = [4, 5, 6, 7, 8];
+  const rings = levels
+    .map((lvl, i) => {
+      const s = 1 - i * 0.19;
+      return `<path d="${blob(104, 70, 92 * s, 58 * s, 0.6 + i * 0.5)}" fill="${INTENSITY_RAMP[lvl]}"/>`;
+    })
+    .join("");
+  const stations = [
+    [36, 40],
+    [162, 34],
+    [150, 112],
+    [62, 116],
+  ]
+    .map(([x, y]) => `<path class="sd-station" d="M${x} ${y - 6}l5.5 9.5h-11Z"/>`)
+    .join("");
+  const reports = [
+    [80, 52],
+    [128, 88],
+    [118, 46],
+    [72, 90],
+    [140, 66],
+    [96, 102],
+  ]
+    .map(([x, y]) => `<circle class="sd-report" cx="${x}" cy="${y}" r="3"/>`)
+    .join("");
+  return `<svg class="mfig-map" viewBox="0 0 208 140" aria-hidden="true" focusable="false"><rect class="sd-bg" width="208" height="140" rx="12"/><g class="sd-rings">${rings}</g>${stations}${reports}<path class="sd-epi" d="m104 61 2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6-4.5-4.1 6-.7Z"/></svg>`;
+}
+
+/** Felt reports, grouped into square area cells (the app bins reports by
+ * geohash cell), coloured by community intensity. One grid, three states:
+ * "taps", "cells", "map". */
+function reportsDrawing(state) {
+  const size = 20;
+  const x0 = 4;
+  const y0 = 9;
+  // reports per cell and the community intensity they average to
+  const filled = {
+    "1,1": [3, 5],
+    "2,1": [5, 6],
+    "2,0": [2, 4],
+    "3,1": [3, 5],
+    "1,2": [1, 4],
+    "3,2": [2, 4],
+    "2,2": [2, 5],
+    "2,3": [1, 4],
+  };
+  let grid = "";
+  let dots = "";
+  for (let c = 0; c < 5; c++)
+    for (let r = 0; r < 5; r++) {
+      const [x, y] = [x0 + c * size, y0 + r * size];
+      const f = filled[`${c},${r}`];
+      const on = state === "map" && f;
+      if (state !== "taps") {
+        grid += `<rect class="rd-cell${on ? " rd-cell--on" : ""}" x="${x}" y="${y}" width="${size}" height="${size}"${on ? ` style="fill:${INTENSITY_RAMP[f[1]]}"` : ""}/>`;
+      }
+      if (f && state !== "map") {
+        for (let i = 0; i < f[0]; i++) {
+          const a = i * 2.4 + c;
+          const d = i === 0 ? 0 : 5.5;
+          dots += `<circle class="rd-dot" cx="${(x + size / 2 + d * Math.cos(a)).toFixed(1)}" cy="${(y + size / 2 + d * Math.sin(a)).toFixed(1)}" r="2.3"/>`;
+        }
+      }
+    }
+  // "Your tap": one report ringed in the first state
+  const you =
+    state === "taps"
+      ? `<circle class="rd-you" cx="${x0 + 2 * size + size / 2}" cy="${y0 + size + size / 2}" r="5.8"/>`
+      : "";
+  return `<svg class="mfig-cells" viewBox="0 0 108 118" aria-hidden="true" focusable="false"><rect class="rd-bg" x="0.5" y="0.5" width="107" height="117" rx="10"/>${grid}${dots}${you}</svg>`;
+}
+
 // ------------------------------------------------ support + about helpers
 
 const PAGE_LINKS = {
   how: "how-it-works.html",
+  next: "how-it-works.html#next",
   privacy: "privacy.html",
   official: "about.html#official",
+  tag: `${APP_URL}home/new`,
 };
 
 /** Inline formatting for copy: [[how|label]] page links, e-mail addresses
@@ -398,7 +610,7 @@ const PAGE_LINKS = {
 function rich(text) {
   return text
     .replace(
-      /\[\[(how|privacy|official)\|([^\]]+)\]\]/g,
+      /\[\[(how|next|privacy|official|tag)\|([^\]]+)\]\]/g,
       (_, k, label) => `<a href="${PAGE_LINKS[k]}">${label}</a>`,
     )
     .replace(/\b([a-z]+@bumelerze\.com)\b/g, '<a href="mailto:$1"><bdi>$1</bdi></a>')
@@ -480,31 +692,8 @@ const GOALS = [
   },
 ];
 
-/** About roadmap items with their icons ("Longer-term aims" reuse GOALS). */
+/** About roadmap ("Next") items with their icons. */
 const ROADMAP = {
-  now: [
-    ["now1", '<path d="M2 13h4l2-6.5 3.2 12 3-9 2 3.5H22"/>'],
-    [
-      "now2",
-      '<circle cx="12" cy="12" r="2.4"/><path d="M7.6 7.6a6.2 6.2 0 0 0 0 8.8M16.4 7.6a6.2 6.2 0 0 1 0 8.8"/>',
-    ],
-    [
-      "now3",
-      '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.4"/>',
-    ],
-    [
-      "now4",
-      '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.6V20h13V9.6"/><path d="m9.2 14.5 2 2 3.8-4"/>',
-    ],
-    [
-      "now5",
-      '<path d="M4.5 4.5h6a2 2 0 0 1 2 2V20a1.8 1.8 0 0 0-1.8-1.8H4.5Z"/><path d="M19.5 4.5h-5a2 2 0 0 0-2 2V20a1.8 1.8 0 0 1 1.8-1.8h5.2Z"/>',
-    ],
-    [
-      "now6",
-      '<circle cx="7" cy="8" r="2.6"/><circle cx="17" cy="8" r="2.6"/><path d="M2.5 18c.6-3 2.2-4.6 4.5-4.6s3.9 1.6 4.5 4.6M12.5 18c.6-3 2.2-4.6 4.5-4.6s3.9 1.6 4.5 4.6"/>',
-    ],
-  ],
   next: [
     [
       "next1",
@@ -572,7 +761,7 @@ const SUPPORT_ABOUT_COMPONENTS = {
         (n) => `<li class="principle">
           <span class="principle-icon">${icon(PRINCIPLE_ICONS[n - 1])}</span>
           <h3>${ctx.t(`about.principle${n}.title`)}</h3>
-          <p>${ctx.t(`about.principle${n}.body`)}</p>
+          <p>${rich(ctx.t(`about.principle${n}.body`))}</p>
         </li>`,
       )
       .join("\n        ");

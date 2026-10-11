@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How Bumelerze works: data, SHAKEmaps, damage estimates</title>
-<meta name="description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
+<meta name="description" content="How Bumelerze merges earthquake data from several networks, makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#071d2b" media="(prefers-color-scheme: dark)">
@@ -17,7 +17,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Bumelerze">
 <meta property="og:title" content="How Bumelerze works: data, SHAKEmaps, damage estimates">
-<meta property="og:description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
+<meta property="og:description" content="How Bumelerze merges earthquake data from several networks, makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
 <meta property="og:url" content="https://bumelerze.com/how-it-works.html">
 <meta property="og:image" content="https://bumelerze.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
@@ -29,7 +29,7 @@
 <meta property="og:locale:alternate" content="ar_IQ">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="How Bumelerze works: data, SHAKEmaps, damage estimates">
-<meta name="twitter:description" content="Where Bumelerze gets its earthquake data, how it makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
+<meta name="twitter:description" content="How Bumelerze merges earthquake data from several networks, makes SHAKEmaps and damage estimates for Kurdistan and Iraq, and how your reports help.">
 <meta name="twitter:image" content="https://bumelerze.com/og-image.jpg">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="brand/bumelerze-favicon.svg">
@@ -37,7 +37,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="brand/bumelerze-favicon-16.png">
 <link rel="apple-touch-icon" href="brand/bumelerze-app-icon-square-256.png">
 <link rel="preload" href="fonts/vazirmatn-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=c099a4f688">
+<link rel="stylesheet" href="style.css?v=9f58c4c8e0">
 <script src="site.js?v=455140fc90" defer></script>
 </head>
 <body>
@@ -84,7 +84,7 @@
   <section class="page-hero" aria-labelledby="hiw-h1">
     <div class="wrap">
       <h1 id="hiw-h1">How Bumelerze works</h1>
-      <p class="lede">Bumelerze brings trusted earthquake data together, maps the shaking, and estimates likely damage. Here is how each part works, and where its limits are.</p>
+      <p class="lede">The method behind what Bumelerze shows: where the data comes from, how the maps and damage estimates are made, and where their limits are.</p>
     </div>
     <div class="wrap-wide">
       <figure class="flow">
@@ -109,14 +109,20 @@
       <div class="feature-text">
         <p class="step-num" aria-hidden="true">1</p>
         <h2 id="data-h">Where the data comes from</h2>
-        <p class="body-text">Live earthquakes come from international networks such as USGS, EMSC and GEOFON. The catalogue holds 150,072 earthquakes since the year 872, from six catalogues: ISC, ISC-GEM, EMME, Onur 2017, KISC and USGS. Each earthquake is merged and shown once, with its sources.</p>
+        <p class="body-text">Live earthquakes come from several networks: USGS, EMSC, GEOFON and more. Reports of the same earthquake are merged, so it appears once, with its sources. The catalogue holds 150,072 earthquakes since the year 872, from six catalogues: ISC, ISC-GEM, EMME, Onur 2017, KISC and USGS.</p>
       </div>
-      <div class="feature-fig map-fig">
-        <div class="map-frame map-frame--catalog"><picture>
+      <figure class="feature-fig mfig mfig--data">
+        <div class="mfig-row"><div class="mfig-stage"><div class="mfig-visual"><ul class="mfig-chips"><li class="mfig-chip"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5 18.5 19h-13Z"/><path d="M8 5a6 6 0 0 0 0 6M16 5a6 6 0 0 1 0 6"/></svg><span dir="ltr">USGS</span></li><li class="mfig-chip"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5 18.5 19h-13Z"/><path d="M8 5a6 6 0 0 0 0 6M16 5a6 6 0 0 1 0 6"/></svg><span dir="ltr">EMSC</span></li><li class="mfig-chip"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5 18.5 19h-13Z"/><path d="M8 5a6 6 0 0 0 0 6M16 5a6 6 0 0 1 0 6"/></svg><span dir="ltr">GEOFON</span></li></ul></div><p class="mfig-label">Several networks</p></div><div class="mfig-merge"><span class="mfig-arrow" aria-hidden="true"><svg viewBox="0 0 48 96" focusable="false"><path d="M2 14c22 0 20 34 40 34M2 48h40M2 82c22 0 20-34 40-34"/><path d="m35 41 8 7-8 7"/></svg></span><p class="mfig-step">Matched and merged</p></div><div class="mfig-stage"><div class="mfig-visual"><div class="mfig-event">
+            <p class="mfig-event-head"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 13h4l2-6.5 3.2 12 3-9 2 3.5H22"/></svg><span>One earthquake</span></p>
+            <ul class="mfig-tags"><li dir="ltr">USGS</li><li dir="ltr">EMSC</li><li dir="ltr">GEOFON</li></ul>
+          </div></div><p class="mfig-label">Sources shown</p></div></div>
+      </figure>
+    </div>
+    <div class="wrap-wide catalog-row">
+      <div class="map-frame map-frame--catalog"><picture>
             <source media="(prefers-color-scheme: dark)" srcset="img/catalog-map-dark.webp 1600w, img/catalog-map-dark@2x.webp 3200w" sizes="(min-width: 52rem) 36rem, 92vw">
             <img src="img/catalog-map-light.webp" srcset="img/catalog-map-light.webp 1600w, img/catalog-map-light@2x.webp 3200w" sizes="(min-width: 52rem) 36rem, 92vw" width="1600" height="1100" loading="lazy" decoding="async" alt="Map of every earthquake in the Bumelerze catalogue: dots crowd along the Zagros mountains from Turkey through Kurdistan into Iran.">
           </picture></div>
-      </div>
     </div>
   </section>
 
@@ -124,20 +130,11 @@
     <div class="feature feature--flip">
       <div class="feature-text">
         <p class="step-num" aria-hidden="true">2</p>
-        <h2 id="shakemaps-h">SHAKEmaps, made by Bumelerze</h2>
-        <p class="body-text">A SHAKEmap shows how strongly the ground shook in each place. Bumelerze computes its own for earthquakes in Kurdistan or felt in Iraq, from ground-motion models, nearby seismic stations and people's reports.</p>
+        <h2 id="shakemaps-h">What goes into a SHAKEmap</h2>
+        <p class="body-text">A SHAKEmap shows how strongly the ground shook in each place. Bumelerze computes its own for earthquakes in Kurdistan or felt in Iraq. It combines ground-motion models, nearby seismic stations and people's felt reports. Where stations are few, the models carry more weight.</p>
       </div>
-      <figure class="feature-fig map-fig">
-        <div class="map-frame">
-          <picture>
-            <source media="(prefers-color-scheme: dark)" srcset="img/shakemap-dark.webp">
-            <img src="img/shakemap-light.webp" width="1000" height="714" loading="lazy" decoding="async" alt="Map of estimated shaking intensity for the 12 November 2017 earthquake near Halabja, strongest around the epicentre and weaker with distance.">
-          </picture>
-        </div>
-        <figcaption>
-          <span class="cap-event">M7.3 · 12 November 2017 · near Halabja</span>
-          <span class="legend"><span class="legend-label">Intensity</span><ol class="intensity-legend" dir="ltr"><li style="--swatch:#A1D7E3">IV</li><li style="--swatch:#8FC891">V</li><li style="--swatch:#F9EC33">VI</li><li style="--swatch:#EEB509">VII</li><li style="--swatch:#E9872D">VIII</li></ol></span>
-        </figcaption>
+      <figure class="feature-fig mfig mfig--shake">
+        <div class="mfig-row"><div class="mfig-stage"><div class="mfig-visual"><ul class="mfig-chips"><li class="mfig-chip"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4v16h16"/><path d="M6.5 7c2 6 5 9.5 12 10.5"/></svg><span>Ground-motion models</span></li><li class="mfig-chip"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5 18.5 19h-13Z"/><path d="M8 5a6 6 0 0 0 0 6M16 5a6 6 0 0 1 0 6"/></svg><span>Seismic stations</span></li><li class="mfig-chip"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.6"/><path d="M5 20.5c.8-4.6 3.5-7 7-7s6.2 2.4 7 7"/></svg><span>Felt reports</span></li></ul></div></div><div class="mfig-merge"><span class="mfig-arrow" aria-hidden="true"><svg viewBox="0 0 48 96" focusable="false"><path d="M2 14c22 0 20 34 40 34M2 48h40M2 82c22 0 20-34 40-34"/><path d="m35 41 8 7-8 7"/></svg></span></div><div class="mfig-stage"><div class="mfig-visual"><svg class="mfig-map" viewBox="0 0 208 140" aria-hidden="true" focusable="false"><rect class="sd-bg" width="208" height="140" rx="12"/><g class="sd-rings"><path d="M204.4 70.0L206.3 78.5L205.3 87.1L201.3 95.4L194.5 102.9L185.3 109.3L174.4 114.4L162.6 118.1L150.4 120.6L138.2 122.1L126.4 122.8L115.1 122.9L104.0 122.7L93.1 122.0L82.3 121.0L71.6 119.3L61.0 117.0L50.7 113.8L41.1 109.7L32.4 104.6L24.9 98.8L18.9 92.2L14.4 85.1L11.5 77.7L10.0 70.0L10.1 62.2L11.6 54.4L14.6 46.7L19.2 39.1L25.5 32.0L33.6 25.6L43.3 20.1L54.4 15.8L66.5 13.0L79.2 11.6L91.8 11.7L104.0 13.2L115.3 15.7L125.7 19.0L135.1 22.7L143.8 26.5L152.1 30.4L160.4 34.4L168.9 38.6L177.4 43.3L185.8 48.6L193.5 54.9L200.0 62.0Z" fill="#A1D7E3"/><path d="M188.9 70.0L188.7 77.0L186.0 83.9L181.1 90.1L174.4 95.6L166.3 100.2L157.5 103.7L148.4 106.4L139.2 108.5L130.3 110.0L121.5 111.1L112.8 111.9L104.0 112.5L95.1 112.6L86.1 112.2L77.0 111.1L68.0 109.3L59.5 106.6L51.6 103.0L44.6 98.7L38.7 93.8L33.9 88.3L30.3 82.5L27.8 76.3L26.5 70.0L26.5 63.6L27.7 57.1L30.4 50.8L34.5 44.7L40.2 39.1L47.3 34.3L55.7 30.4L65.1 27.5L75.0 25.8L85.0 25.3L94.7 25.7L104.0 26.9L112.7 28.6L120.8 30.5L128.6 32.6L136.3 34.7L144.1 37.0L152.2 39.6L160.4 42.7L168.4 46.6L175.8 51.2L182.1 56.8L186.6 63.1Z" fill="#8FC891"/><path d="M169.2 70.0L167.7 75.3L164.5 80.2L160.0 84.6L154.5 88.4L148.5 91.5L142.3 94.1L136.0 96.3L129.8 98.1L123.6 99.8L117.3 101.2L110.8 102.4L104.0 103.2L97.0 103.6L89.8 103.4L82.6 102.6L75.6 101.0L69.0 98.8L63.0 95.8L57.7 92.4L53.2 88.5L49.5 84.2L46.7 79.7L44.8 74.9L43.7 70.0L43.8 65.0L45.0 60.0L47.4 55.2L51.1 50.7L55.9 46.7L61.8 43.4L68.5 40.9L75.7 39.1L83.1 38.2L90.3 37.8L97.3 38.0L104.0 38.5L110.4 39.2L116.8 39.9L123.2 40.7L129.9 41.7L136.8 43.0L143.9 44.8L150.8 47.4L157.2 50.6L162.6 54.7L166.6 59.4L168.9 64.6Z" fill="#F9EC33"/><path d="M147.8 70.0L146.0 73.5L143.4 76.7L140.2 79.5L136.7 81.9L133.0 84.0L129.3 85.9L125.5 87.7L121.7 89.3L117.7 90.8L113.4 92.1L108.8 93.2L104.0 93.9L98.9 94.2L93.8 94.0L88.7 93.3L83.8 92.0L79.3 90.3L75.1 88.2L71.5 85.7L68.3 83.0L65.7 80.0L63.7 76.8L62.4 73.5L61.8 70.0L62.1 66.5L63.2 63.1L65.3 59.9L68.2 57.0L71.9 54.5L76.1 52.4L80.8 50.9L85.5 49.8L90.3 49.2L95.0 48.8L99.5 48.5L104.0 48.4L108.5 48.2L113.3 48.2L118.2 48.4L123.4 48.8L128.7 49.7L133.9 51.2L138.7 53.2L142.8 55.9L145.9 59.1L147.8 62.6L148.4 66.3Z" fill="#EEB509"/><path d="M127.0 70.0L125.8 71.8L124.5 73.5L122.9 74.9L121.3 76.3L119.6 77.5L117.9 78.7L116.0 79.9L114.1 81.0L111.9 82.0L109.5 82.8L106.8 83.5L104.0 83.9L101.1 84.0L98.1 83.8L95.3 83.3L92.6 82.5L90.0 81.5L87.7 80.3L85.7 78.9L83.9 77.3L82.4 75.6L81.4 73.8L80.7 71.9L80.5 70.0L80.9 68.1L81.7 66.2L83.1 64.5L84.9 63.0L87.0 61.8L89.3 60.7L91.7 59.9L94.2 59.3L96.6 58.8L99.0 58.3L101.5 57.9L104.0 57.5L106.7 57.1L109.6 56.9L112.6 56.9L115.7 57.2L118.8 57.9L121.6 58.9L124.1 60.3L126.0 62.0L127.2 63.9L127.7 66.0L127.6 68.0Z" fill="#E9872D"/></g><path class="sd-station" d="M36 34l5.5 9.5h-11Z"/><path class="sd-station" d="M162 28l5.5 9.5h-11Z"/><path class="sd-station" d="M150 106l5.5 9.5h-11Z"/><path class="sd-station" d="M62 110l5.5 9.5h-11Z"/><circle class="sd-report" cx="80" cy="52" r="3"/><circle class="sd-report" cx="128" cy="88" r="3"/><circle class="sd-report" cx="118" cy="46" r="3"/><circle class="sd-report" cx="72" cy="90" r="3"/><circle class="sd-report" cx="140" cy="66" r="3"/><circle class="sd-report" cx="96" cy="102" r="3"/><path class="sd-epi" d="m104 61 2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6-4.5-4.1 6-.7Z"/></svg><ol class="intensity-legend" dir="ltr"><li style="--swatch:#A1D7E3">IV</li><li style="--swatch:#8FC891">V</li><li style="--swatch:#F9EC33">VI</li><li style="--swatch:#EEB509">VII</li><li style="--swatch:#E9872D">VIII</li></ol></div><p class="mfig-label">The SHAKEmap</p></div></div>
       </figure>
     </div>
   </section>
@@ -146,10 +143,12 @@
     <div class="feature">
       <div class="feature-text">
         <p class="step-num" aria-hidden="true">3</p>
-        <h2 id="damage-h">Damage estimates for Kurdistan and Iraq</h2>
-        <p class="body-text">Probabilistic models combine the mapped shaking with Iraq's building stock and its vulnerability classes to estimate likely damage to buildings. These are estimates, not certainties. They cover Kurdistan and Iraq.</p>
+        <h2 id="damage-h">How a damage estimate is made</h2>
+        <p class="body-text">A probabilistic model combines the mapped shaking with the buildings in each area and their vulnerability classes, A to F. The result is the likely damage to buildings. These are estimates, not certainties, for Kurdistan and Iraq, with no casualty numbers. <a href="https://bumelerze.com/app/home/new">Tag my building</a> gives your own home's class.</p>
       </div>
-      <div class="feature-fig"><div class="phone"><picture><img src="img/screens/hub-en.webp" width="540" height="1169" loading="lazy" decoding="async" alt="The app's page for one earthquake, with its estimated building damage."></picture></div></div>
+      <figure class="feature-fig mfig mfig--damage">
+        <div class="mfig-row"><div class="mfig-stage"><div class="mfig-visual"><div class="mfig-swatch" style="--swatch:#EEB509">VII</div></div><p class="mfig-label">Mapped shaking</p></div><span class="mfig-op" aria-hidden="true">×</span><div class="mfig-stage"><div class="mfig-visual"><ol class="mfig-vc"><li class="vc-a">A</li><li class="vc-b">B</li><li class="vc-c">C</li><li class="vc-d">D</li><li class="vc-e">E</li><li class="vc-f">F</li></ol></div><p class="mfig-label">Buildings and their classes</p><p class="mfig-sub">A most vulnerable, F strongest</p></div><span class="mfig-arrow" aria-hidden="true"></span><div class="mfig-stage"><div class="mfig-visual"><ol class="mfig-dg"><li><span class="mfig-dg-bar" style="--h:34;--dg:#1B5E20"></span><span class="mfig-dg-num">1</span></li><li><span class="mfig-dg-bar" style="--h:28;--dg:#8FC891"></span><span class="mfig-dg-num">2</span></li><li><span class="mfig-dg-bar" style="--h:20;--dg:#F9EC33"></span><span class="mfig-dg-num">3</span></li><li><span class="mfig-dg-bar" style="--h:12;--dg:#DF532A"></span><span class="mfig-dg-num">4</span></li><li><span class="mfig-dg-bar" style="--h:6;--dg:#B3141A"></span><span class="mfig-dg-num">5</span></li></ol></div><p class="mfig-label">Likely damage to buildings</p><p class="mfig-sub">Expected damage grade <bdi dir="ltr">(IMS-25)</bdi></p></div></div>
+      </figure>
     </div>
   </section>
 
@@ -157,64 +156,19 @@
     <div class="feature feature--flip">
       <div class="feature-text">
         <p class="step-num" aria-hidden="true">4</p>
-        <h2 id="reports-h">Your reports improve the maps</h2>
-        <p class="body-text">To share your experience, tap the picture closest to what you felt. No account is needed. Reports are grouped by area into community intensity, which helps improve the SHAKEmaps.</p>
+        <h2 id="reports-h">How your reports improve the maps</h2>
+        <p class="body-text">After an earthquake, tap the picture closest to what you felt. No account is needed. Reports are grouped by area into community intensity, which feeds the SHAKEmap, especially where there are few stations.</p>
       </div>
-      <div class="feature-fig">
-        <ul class="felt-mini" aria-label="How did you feel it?">
-          <li><img src="img/felt/level-01.webp" width="240" height="240" loading="lazy" decoding="async" alt=""><span class="felt-num" aria-hidden="true">I</span><span class="felt-label">Not felt</span></li>
-          <li><img src="img/felt/level-02.webp" width="240" height="240" loading="lazy" decoding="async" alt=""><span class="felt-num" aria-hidden="true">II</span><span class="felt-label">Barely felt</span></li>
-          <li><img src="img/felt/level-03.webp" width="240" height="240" loading="lazy" decoding="async" alt=""><span class="felt-num" aria-hidden="true">III</span><span class="felt-label">Weak shaking</span></li>
-          <li><img src="img/felt/level-04.webp" width="240" height="240" loading="lazy" decoding="async" alt=""><span class="felt-num" aria-hidden="true">IV</span><span class="felt-label">Felt by many</span></li>
-          <li><img src="img/felt/level-05.webp" width="240" height="240" loading="lazy" decoding="async" alt=""><span class="felt-num" aria-hidden="true">V</span><span class="felt-label">Strong shaking</span></li>
-          <li><img src="img/felt/level-06.webp" width="240" height="240" loading="lazy" decoding="async" alt=""><span class="felt-num" aria-hidden="true">VI</span><span class="felt-label">Light damage</span></li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section class="band band--alt" id="building" aria-labelledby="building-h">
-    <div class="feature">
-      <div class="feature-text">
-        <p class="step-num" aria-hidden="true">5</p>
-        <h2 id="building-h">Know your building's class</h2>
-        <p class="body-text">Tag my building asks plain questions about your home. It returns the building type, a vulnerability class from A to F, likely damage in strong shaking, and practical tips. It is a guide, not an engineer's inspection.</p>
-      </div>
-      <div class="feature-fig building-fig">
-        <div class="vc-figure">
-          <ul class="vc-tiles">
-            <li><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" fill-opacity=".2" d="M8 56l2-38q0-4 4-4h36q4 0 4 4l2 38z"/><path d="M8 56l2-38q0-4 4-4h36q4 0 4 4l2 38zM10 21h44"/><g fill="currentColor" stroke="none"><circle cx="17" cy="28" r="2.4"/><circle cx="27" cy="28" r="2.4"/><circle cx="37" cy="28" r="2.4"/><circle cx="47" cy="28" r="2.4"/></g><path d="M14 56V46a6 6 0 0 1 12 0v10"/><g stroke-opacity=".55"><path d="M34 40h6M43 46h5M34 51h4M42 53h6"/></g></svg><span>Mud walls</span></li>
-            <li><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h52v48H6z"/><g stroke-opacity=".55"><path d="M6 22l15-1 9 -2 14 3 14-2M6 35l10-1 17 2 14-2 11 2M6 46l19 1 14-1 19 1M22 8l-1 13M42 8l2 14M14 22l2 12M32 20l1 16M47 22l0 12M24 36l1 11M40 35l-1 11M16 46l1 10M34 47l0 9M48 47l0 9"/></g></svg><span>Stone walls</span></li>
-            <li><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8h48v9h-8v9h8v9h-8v9h8v9H8z"/><g stroke-opacity=".55"><path d="M8 17h40M8 26h40M8 35h40M8 44h40M24 8v9M40 8v9M16 17v9M32 17v9M24 26v9M40 26v9M16 35v9M32 35v9M24 44v9M40 44v9"/></g></svg><span>Brick walls</span></li>
-            <li><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" fill-opacity=".2" d="M6 6h52v52H6zM13 13v38h38V13z" fill-rule="evenodd"/><path d="M6 6h52v52H6zM13 13v38h38V13z"/><g stroke-opacity=".55"><path d="M13 26h38M13 38h38M32 13v13M22 26v12M42 26v12M32 38v13"/></g></svg><span>Concrete frame</span></li>
-          </ul>
-          <ol class="vc-scale" aria-label="Vulnerability classes, A to F"><li class="vc-a">A</li><li class="vc-b">B</li><li class="vc-c">C</li><li class="vc-d">D</li><li class="vc-e">E</li><li class="vc-f">F</li></ol>
-          <div class="vc-ends"><span>A · Most vulnerable</span><span>F · Strongest</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="band" id="community" aria-labelledby="community-h">
-    <div class="feature feature--flip">
-      <div class="feature-text">
-        <p class="step-num" aria-hidden="true">6</p>
-        <h2 id="community-h">The Bumelerze Network</h2>
-        <p class="body-text">Accounts are optional. Earthquakes in the region get their own Event hub, where the Bumelerze Network gathers to share what people felt and to comment. Hubs and comments are moderated. You can download your data or delete your account at any time.</p>
-        <div class="cta-row">
-          <a class="btn btn-outline" href="https://bumelerze.com/app/account/sign-in">Create an account</a>
-        </div>
-      </div>
-      <div class="feature-fig icon-fig" aria-hidden="true">
-        <svg viewBox="0 0 240 160" focusable="false"><g class="ic-soft"><circle cx="70" cy="62" r="22"/><path d="M30 132c4-26 20-40 40-40s36 14 40 40Z"/><circle cx="170" cy="62" r="22"/><path d="M130 132c4-26 20-40 40-40s36 14 40 40Z"/></g><g class="ic-line"><path d="M96 34h48a8 8 0 0 1 8 8v20a8 8 0 0 1-8 8h-22l-10 10v-10h-16a8 8 0 0 1-8-8V42a8 8 0 0 1 8-8Z"/><path d="M106 48h28M106 57h18"/></g></svg>
-      </div>
+      <figure class="feature-fig mfig mfig--reports">
+        <div class="mfig-row"><div class="mfig-stage"><div class="mfig-visual"><svg class="mfig-cells" viewBox="0 0 108 118" aria-hidden="true" focusable="false"><rect class="rd-bg" x="0.5" y="0.5" width="107" height="117" rx="10"/><circle class="rd-dot" cx="34.0" cy="39.0" r="2.3"/><circle class="rd-dot" cx="28.7" cy="37.6" r="2.3"/><circle class="rd-dot" cx="38.9" cy="36.4" r="2.3"/><circle class="rd-dot" cx="34.0" cy="59.0" r="2.3"/><circle class="rd-dot" cx="54.0" cy="19.0" r="2.3"/><circle class="rd-dot" cx="52.3" cy="13.8" r="2.3"/><circle class="rd-dot" cx="54.0" cy="39.0" r="2.3"/><circle class="rd-dot" cx="52.3" cy="33.8" r="2.3"/><circle class="rd-dot" cx="58.8" cy="41.7" r="2.3"/><circle class="rd-dot" cx="48.6" cy="40.2" r="2.3"/><circle class="rd-dot" cx="57.1" cy="34.5" r="2.3"/><circle class="rd-dot" cx="54.0" cy="59.0" r="2.3"/><circle class="rd-dot" cx="52.3" cy="53.8" r="2.3"/><circle class="rd-dot" cx="54.0" cy="79.0" r="2.3"/><circle class="rd-dot" cx="74.0" cy="39.0" r="2.3"/><circle class="rd-dot" cx="77.5" cy="34.7" r="2.3"/><circle class="rd-dot" cx="74.3" cy="44.5" r="2.3"/><circle class="rd-dot" cx="74.0" cy="59.0" r="2.3"/><circle class="rd-dot" cx="77.5" cy="54.7" r="2.3"/><circle class="rd-you" cx="54" cy="39" r="5.8"/></svg></div><p class="mfig-label">Your tap</p></div><span class="mfig-arrow" aria-hidden="true"></span><div class="mfig-stage"><div class="mfig-visual"><svg class="mfig-cells" viewBox="0 0 108 118" aria-hidden="true" focusable="false"><rect class="rd-bg" x="0.5" y="0.5" width="107" height="117" rx="10"/><rect class="rd-cell" x="4" y="9" width="20" height="20"/><rect class="rd-cell" x="4" y="29" width="20" height="20"/><rect class="rd-cell" x="4" y="49" width="20" height="20"/><rect class="rd-cell" x="4" y="69" width="20" height="20"/><rect class="rd-cell" x="4" y="89" width="20" height="20"/><rect class="rd-cell" x="24" y="9" width="20" height="20"/><rect class="rd-cell" x="24" y="29" width="20" height="20"/><rect class="rd-cell" x="24" y="49" width="20" height="20"/><rect class="rd-cell" x="24" y="69" width="20" height="20"/><rect class="rd-cell" x="24" y="89" width="20" height="20"/><rect class="rd-cell" x="44" y="9" width="20" height="20"/><rect class="rd-cell" x="44" y="29" width="20" height="20"/><rect class="rd-cell" x="44" y="49" width="20" height="20"/><rect class="rd-cell" x="44" y="69" width="20" height="20"/><rect class="rd-cell" x="44" y="89" width="20" height="20"/><rect class="rd-cell" x="64" y="9" width="20" height="20"/><rect class="rd-cell" x="64" y="29" width="20" height="20"/><rect class="rd-cell" x="64" y="49" width="20" height="20"/><rect class="rd-cell" x="64" y="69" width="20" height="20"/><rect class="rd-cell" x="64" y="89" width="20" height="20"/><rect class="rd-cell" x="84" y="9" width="20" height="20"/><rect class="rd-cell" x="84" y="29" width="20" height="20"/><rect class="rd-cell" x="84" y="49" width="20" height="20"/><rect class="rd-cell" x="84" y="69" width="20" height="20"/><rect class="rd-cell" x="84" y="89" width="20" height="20"/><circle class="rd-dot" cx="34.0" cy="39.0" r="2.3"/><circle class="rd-dot" cx="28.7" cy="37.6" r="2.3"/><circle class="rd-dot" cx="38.9" cy="36.4" r="2.3"/><circle class="rd-dot" cx="34.0" cy="59.0" r="2.3"/><circle class="rd-dot" cx="54.0" cy="19.0" r="2.3"/><circle class="rd-dot" cx="52.3" cy="13.8" r="2.3"/><circle class="rd-dot" cx="54.0" cy="39.0" r="2.3"/><circle class="rd-dot" cx="52.3" cy="33.8" r="2.3"/><circle class="rd-dot" cx="58.8" cy="41.7" r="2.3"/><circle class="rd-dot" cx="48.6" cy="40.2" r="2.3"/><circle class="rd-dot" cx="57.1" cy="34.5" r="2.3"/><circle class="rd-dot" cx="54.0" cy="59.0" r="2.3"/><circle class="rd-dot" cx="52.3" cy="53.8" r="2.3"/><circle class="rd-dot" cx="54.0" cy="79.0" r="2.3"/><circle class="rd-dot" cx="74.0" cy="39.0" r="2.3"/><circle class="rd-dot" cx="77.5" cy="34.7" r="2.3"/><circle class="rd-dot" cx="74.3" cy="44.5" r="2.3"/><circle class="rd-dot" cx="74.0" cy="59.0" r="2.3"/><circle class="rd-dot" cx="77.5" cy="54.7" r="2.3"/></svg></div><p class="mfig-label">Grouped by area</p></div><span class="mfig-arrow" aria-hidden="true"></span><div class="mfig-stage"><div class="mfig-visual"><svg class="mfig-cells" viewBox="0 0 108 118" aria-hidden="true" focusable="false"><rect class="rd-bg" x="0.5" y="0.5" width="107" height="117" rx="10"/><rect class="rd-cell" x="4" y="9" width="20" height="20"/><rect class="rd-cell" x="4" y="29" width="20" height="20"/><rect class="rd-cell" x="4" y="49" width="20" height="20"/><rect class="rd-cell" x="4" y="69" width="20" height="20"/><rect class="rd-cell" x="4" y="89" width="20" height="20"/><rect class="rd-cell" x="24" y="9" width="20" height="20"/><rect class="rd-cell rd-cell--on" x="24" y="29" width="20" height="20" style="fill:#8FC891"/><rect class="rd-cell rd-cell--on" x="24" y="49" width="20" height="20" style="fill:#A1D7E3"/><rect class="rd-cell" x="24" y="69" width="20" height="20"/><rect class="rd-cell" x="24" y="89" width="20" height="20"/><rect class="rd-cell rd-cell--on" x="44" y="9" width="20" height="20" style="fill:#A1D7E3"/><rect class="rd-cell rd-cell--on" x="44" y="29" width="20" height="20" style="fill:#F9EC33"/><rect class="rd-cell rd-cell--on" x="44" y="49" width="20" height="20" style="fill:#8FC891"/><rect class="rd-cell rd-cell--on" x="44" y="69" width="20" height="20" style="fill:#A1D7E3"/><rect class="rd-cell" x="44" y="89" width="20" height="20"/><rect class="rd-cell" x="64" y="9" width="20" height="20"/><rect class="rd-cell rd-cell--on" x="64" y="29" width="20" height="20" style="fill:#8FC891"/><rect class="rd-cell rd-cell--on" x="64" y="49" width="20" height="20" style="fill:#A1D7E3"/><rect class="rd-cell" x="64" y="69" width="20" height="20"/><rect class="rd-cell" x="64" y="89" width="20" height="20"/><rect class="rd-cell" x="84" y="9" width="20" height="20"/><rect class="rd-cell" x="84" y="29" width="20" height="20"/><rect class="rd-cell" x="84" y="49" width="20" height="20"/><rect class="rd-cell" x="84" y="69" width="20" height="20"/><rect class="rd-cell" x="84" y="89" width="20" height="20"/></svg></div><p class="mfig-label">Into the SHAKEmap</p></div></div>
+      </figure>
     </div>
   </section>
 
   <section class="band band--alt" id="next" aria-labelledby="next-h" data-aim>
     <div class="feature feature--stack">
       <div class="feature-text">
-        <p class="step-num" aria-hidden="true">7</p>
+        <p class="step-num" aria-hidden="true">5</p>
         <h2 id="next-h">What comes next</h2>
         <p class="body-text">Where Bumelerze is heading. None of this is available yet.</p>
       </div>

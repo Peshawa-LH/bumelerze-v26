@@ -1827,68 +1827,402 @@ html[dir="rtl"] .flow-reports::after {
   }
 }
 
-/* felt pictures on How it works (not buttons) */
-.felt-mini {
+/* Method figures (How it works): code-drawn schematics in the flow
+ * diagram's style. Stages stack on narrow figures and sit in one row when
+ * the figure is wide enough; arrows follow the reading direction. */
+.mfig {
+  container-type: inline-size;
+  padding: clamp(1.1rem, 3vw, 1.75rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.mfig-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mfig-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+}
+
+.mfig-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 100%;
+}
+
+.mfig-label {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.mfig-sub,
+.mfig-step {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.mfig-step {
+  font-weight: 600;
+  text-align: center;
+}
+
+.mfig-arrow {
+  display: grid;
+  place-items: center;
+  color: var(--red-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mfig-arrow:empty::before,
+.mfig-merge .mfig-arrow::before {
+  content: "↓";
+}
+
+.mfig-merge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mfig-merge svg {
+  display: none;
+  width: 2.75rem;
+  height: auto;
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mfig-op {
+  color: var(--muted);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* chips: networks, SHAKEmap inputs */
+.mfig-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.mfig-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.8rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: start;
+  max-width: 100%;
+}
+
+.mfig-chip span {
+  min-width: 0;
+  overflow-wrap: anywhere; /* one long Sorani word at 200% text size */
+}
+
+.mfig-chip .line-icon,
+.mfig-event-head .line-icon {
+  flex: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  color: var(--red-text);
+}
+
+/* one earthquake with its source tags */
+.mfig-event {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 10rem;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid var(--red);
+  border-radius: 1.1rem;
+  background: var(--bg);
+}
+
+.mfig-event-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.mfig-tags {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.mfig-tags li {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  background: var(--card);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* stylised SHAKEmap */
+.mfig-map {
+  display: block;
+  width: min(100%, 15rem);
+  height: auto;
+}
+
+.mfig .intensity-legend {
+  width: min(100%, 15rem);
+}
+
+.sd-bg {
+  fill: var(--bg-alt);
+  stroke: var(--border);
+}
+
+.sd-rings path {
+  stroke: rgb(0 0 0 / 0.18);
+  stroke-width: 0.8;
+}
+
+.sd-station {
+  fill: #ffffff;
+  stroke: #1c1b1f;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.sd-report {
+  fill: var(--red);
+  stroke: #ffffff;
+  stroke-width: 1.2;
+}
+
+.sd-epi {
+  fill: #1c1b1f;
+  stroke: #ffffff;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+/* damage: shaking x classes -> damage grades */
+.mfig-swatch {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--swatch);
+  color: #0b1219;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.mfig-vc {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.65rem;
+  grid-template-columns: repeat(6, 1.45rem);
+  gap: 0.2rem;
 }
 
-.felt-mini li {
-  position: relative;
+.mfig-vc li {
+  display: grid;
+  place-items: center;
+  height: 2.2rem;
+  border-radius: 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.mfig-dg {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.3rem;
+  height: 4.6rem;
+}
+
+.mfig-dg li {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.55rem 0.45rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 1.1rem;
-  background: var(--card);
+  justify-content: flex-end;
+  gap: 0.25rem;
+  height: 100%;
 }
 
-.felt-mini img {
-  width: 100%;
-  max-width: 7.5rem;
-  aspect-ratio: 1;
+.mfig-dg-bar {
+  width: 1.35rem;
+  height: calc(var(--h) * 0.095rem);
+  border: 1px solid var(--border-strong);
+  border-radius: 0.3rem 0.3rem 0 0;
+  background: var(--dg);
 }
 
-.icon-fig {
-  display: flex;
-  justify-content: center;
+.mfig-dg-num {
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.icon-fig svg {
-  width: min(22rem, 90%);
+/* felt reports: dots, area cells, community intensity */
+.mfig-cells {
+  display: block;
+  width: min(100%, 7.5rem);
   height: auto;
 }
 
-.icon-fig .ic-soft {
+.rd-bg {
   fill: var(--bg-alt);
+  stroke: var(--border);
+}
+
+.rd-cell {
+  fill: none;
   stroke: var(--border-strong);
-  stroke-width: 1.5;
+  stroke-width: 1;
 }
 
-.band--alt .icon-fig .ic-soft {
-  fill: var(--card);
+.rd-cell--on {
+  stroke: rgb(0 0 0 / 0.25);
 }
 
-.icon-fig .ic-line {
+.rd-dot {
+  fill: var(--red);
+  stroke: var(--card);
+  stroke-width: 1;
+}
+
+.rd-you {
   fill: none;
   stroke: var(--red);
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  stroke-width: 1.4;
 }
 
-.icon-fig .ic-wave {
-  fill: none;
-  stroke: var(--muted);
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+@container (min-width: 30rem) {
+  .mfig-row {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .mfig-stage {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  .mfig-arrow:empty::before {
+    content: "→";
+  }
+
+  html[dir="rtl"] .mfig-arrow:empty::before {
+    content: "←";
+  }
+
+  .mfig-merge {
+    flex: none;
+    max-width: 7rem;
+  }
+
+  .mfig-merge svg {
+    display: block;
+  }
+
+  .mfig-merge .mfig-arrow::before {
+    content: none;
+  }
+
+  html[dir="rtl"] .mfig-merge svg {
+    transform: scaleX(-1);
+  }
+
+  .mfig-chips {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mfig--damage .mfig-stage:nth-child(3) {
+    flex-grow: 1.4;
+  }
+}
+
+/* The three report panels are small: keep them in one row on phones too,
+ * stacking only when the figure is very narrow (large text). */
+@container (min-width: 17rem) {
+  .mfig--reports .mfig-row {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .mfig--reports .mfig-stage {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  .mfig--reports .mfig-arrow {
+    align-self: center;
+    margin-block-end: 2rem;
+  }
+
+  .mfig--reports .mfig-arrow:empty::before {
+    content: "→";
+  }
+
+  html[dir="rtl"] .mfig--reports .mfig-arrow:empty::before {
+    content: "←";
+  }
+}
+
+/* catalogue map under the data figure */
+.catalog-row {
+  margin-block-start: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.catalog-row .map-frame {
+  max-width: 44rem;
+  margin-inline: auto;
 }
 
 /* ------------------------------------------------------------- about */
@@ -1989,42 +2323,19 @@ html[dir="rtl"] .flow-reports::after {
   background: var(--card);
 }
 
-/* About roadmap: three columns with a clear difference in kind: available
- * now (solid, ticked), next (outlined, arrow), longer-term aims (dashed). */
-.roadmap {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1rem;
-  margin-block-start: 1.5rem;
-  align-items: start;
-}
-
-@media (min-width: 60rem) {
-  .roadmap {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
+/* About roadmap: the "Next" items in one outlined card, then a link line
+ * to the longer-term aims on How it works. */
 .road-col {
+  max-width: 40rem;
+  margin-block-start: 1.5rem;
   padding: 1.25rem;
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius);
   background: var(--card);
-  border: 1.5px solid var(--border);
 }
 
-.road-col--now {
-  border-color: var(--ok);
-  box-shadow: inset 0 4px 0 var(--ok);
-}
-
-.road-col--next {
-  border-color: var(--border-strong);
-}
-
-.road-col--aims {
-  border-style: dashed;
-  border-color: var(--border-strong);
-  background: transparent;
+.road-aims {
+  margin-block: 1.25rem 0;
 }
 
 .road-head {
@@ -2048,15 +2359,6 @@ html[dir="rtl"] .flow-reports::after {
   font-weight: 700;
 }
 
-.road-col--now .road-mark {
-  background: var(--ok);
-  color: #ffffff;
-}
-
-.road-col--now .road-mark::before {
-  content: "✓";
-}
-
 .road-col--next .road-mark {
   border: 2px solid var(--ink);
   color: var(--ink);
@@ -2068,10 +2370,6 @@ html[dir="rtl"] .flow-reports::after {
 
 html[dir="rtl"] .road-col--next .road-mark::before {
   content: "←";
-}
-
-.road-col--aims .road-mark {
-  border: 2px dashed var(--muted);
 }
 
 .road-list {
@@ -2103,32 +2401,6 @@ html[dir="rtl"] .road-col--next .road-mark::before {
 .road-icon .line-icon {
   width: 1.25rem;
   height: 1.25rem;
-}
-
-.goals--compact .goal {
-  padding: 0.6rem 0;
-  border: 0;
-  border-block-end: 1px solid var(--border);
-  border-radius: 0;
-  background: none;
-}
-
-.goals--compact .goal:last-child {
-  border-block-end: 0;
-}
-
-.goals--compact .goal-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-}
-
-.goals--compact .goal-icon .line-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.goals--compact .goal-title {
-  font-size: 1.05rem;
 }
 
 /* Social: icon links only (platform name as accessible name + tooltip). */

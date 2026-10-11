@@ -32,35 +32,16 @@
     </div>
   </section>
 
-  <!-- Separator: the site's seismic line, as between the acts on Home. -->
-  <div class="act act--plain" aria-hidden="true">
-    <div class="act-line">{{>seismicLine}}</div>
-  </div>
-
-  <!-- Marked data-aim: names longer-term aims only (see the claims test). -->
-  <section class="band band--alt" id="roadmap" aria-labelledby="roadmap-h" data-aim>
+  <section class="band band--alt" id="roadmap" aria-labelledby="roadmap-h">
     <div class="wrap-wide">
       <h2 id="roadmap-h">{{about.roadmap.headline}}</h2>
-      <div class="roadmap">
-        <div class="road-col road-col--now">
-          <h3 class="road-head"><span class="road-mark" aria-hidden="true"></span>{{about.roadmap.now.title}}</h3>
-          <ul class="road-list">
-            {{>roadmapItems now}}
-          </ul>
-        </div>
-        <div class="road-col road-col--next">
-          <h3 class="road-head"><span class="road-mark" aria-hidden="true"></span>{{about.roadmap.next.title}}</h3>
-          <ul class="road-list">
-            {{>roadmapItems next}}
-          </ul>
-        </div>
-        <div class="road-col road-col--aims">
-          <h3 class="road-head"><span class="road-mark" aria-hidden="true"></span>{{about.roadmap.aims.title}}</h3>
-          <ul class="goals goals--compact">
-            {{>goals short h4}}
-          </ul>
-        </div>
+      <div class="road-col road-col--next">
+        <h3 class="road-head"><span class="road-mark" aria-hidden="true"></span>{{about.roadmap.next.title}}</h3>
+        <ul class="road-list">
+          {{>roadmapItems next}}
+        </ul>
       </div>
+      <p class="road-aims">{{>rich about.roadmap.aims_link}}</p>
     </div>
   </section>
 

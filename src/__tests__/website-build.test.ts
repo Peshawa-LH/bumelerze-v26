@@ -155,8 +155,22 @@ describe("website build", () => {
     expect(read("how-it-works.html")).toMatch(
       /early warning[^<]*is in testing\. It is not prediction\./i,
     );
-    for (const rel of ["index.html", "about.html"]) {
-      expect(read(rel)).toMatch(/early warning models in testing/);
+    expect(read("index.html")).toMatch(/early warning models in testing/);
+  });
+
+  it("how it works explains the method with its own figures, not Home's", () => {
+    for (const lang of LANGS) {
+      const html = read(
+        lang === "en" ? "how-it-works.html" : path.join(lang, "how-it-works.html"),
+      );
+      for (const fig of ["mfig--data", "mfig--shake", "mfig--damage", "mfig--reports"]) {
+        expect(html).toContain(fig);
+      }
+      expect(html).toContain('class="flow"');
+      // no shakemap image, felt pictures, building pictograms or app screenshot
+      expect(html).not.toMatch(/img\/(shakemap-|felt\/|screens\/)/);
+      expect(html).not.toContain("vc-tiles");
+      expect(html).not.toContain('id="community"');
     }
   });
 

@@ -6,7 +6,15 @@
       "statement": "The live feed merges USGS, EMSC and GEOFON and shows each earthquake once.",
       "usedIn": {
         "pages": ["index.html", "how-it-works.html", "support.html"],
-        "keys": ["feed.line", "hiw.data.body", "support.quakes.q1", "support.quakes.a1"]
+        "keys": [
+          "feed.line",
+          "hiw.data.body",
+          "support.quakes.q1",
+          "support.quakes.a1",
+          "hiw.data.fig.networks",
+          "hiw.data.fig.merge",
+          "hiw.data.fig.sources"
+        ]
       },
       "appSources": [
         {
@@ -120,7 +128,7 @@
     },
     {
       "id": "felt-levels",
-      "statement": "The felt strip shows levels 1-6 with the app's picker labels; \"12 pictures\"; the app says thank you after a report.",
+      "statement": "The felt strip shows levels 1-6 with the app's picker labels; \"12 pictures\"; the app says thank you after a report. How it works: reports are grouped by area into community intensity that feeds the SHAKEmap.",
       "usedIn": {
         "pages": ["index.html", "how-it-works.html"],
         "keys": [
@@ -128,7 +136,9 @@
           "felt.level1",
           "felt.level6",
           "felt.thanks",
-          "felt.line"
+          "felt.line",
+          "hiw.reports.body",
+          "hiw.reports.fig.areas"
         ]
       },
       "appSources": [
@@ -146,6 +156,9 @@
         },
         {
           "key": "felt.done.title"
+        },
+        {
+          "file": "supabase/functions/aggregate-felt-cells/index.ts"
         }
       ]
     },
@@ -153,8 +166,8 @@
       "id": "felt-button",
       "statement": "Support quotes the \"I felt it!\" button and the felt flow.",
       "usedIn": {
-        "pages": ["support.html", "about.html"],
-        "keys": ["support.share.a1", "about.roadmap.now2"]
+        "pages": ["support.html"],
+        "keys": ["support.share.a1"]
       },
       "appSources": [
         {
@@ -166,15 +179,14 @@
       "id": "im-safe",
       "statement": "\"I'm safe\": family-only, setting and share-message labels, cannot send help.",
       "usedIn": {
-        "pages": ["index.html", "support.html", "about.html"],
+        "pages": ["index.html", "support.html"],
         "keys": [
           "safe.headline",
           "safe.line",
           "support.family.q1",
           "support.family.a1",
           "support.family.a2",
-          "support.family.a3",
-          "about.roadmap.now4"
+          "support.family.a3"
         ]
       },
       "appSources": [
@@ -229,16 +241,20 @@
     },
     {
       "id": "shakemaps-damage",
-      "statement": "Own SHAKEmaps for Kurdistan and Iraq; damage estimates; no casualty numbers.",
+      "statement": "Own SHAKEmaps for Kurdistan and Iraq from ground-motion models, stations and felt reports; damage estimates by damage grade (IMS-25); no casualty numbers.",
       "usedIn": {
-        "pages": ["index.html", "how-it-works.html", "support.html", "about.html"],
+        "pages": ["index.html", "how-it-works.html", "support.html"],
         "keys": [
           "shake.line",
           "hiw.shakemaps.body",
           "hiw.damage.body",
           "support.quakes.a4",
           "support.quakes.a5",
-          "about.roadmap.now3"
+          "hiw.shakemaps.fig.models",
+          "hiw.shakemaps.fig.stations",
+          "hiw.shakemaps.fig.reports",
+          "hiw.damage.fig.result",
+          "hiw.damage.fig.grades"
         ]
       },
       "appSources": [
@@ -247,15 +263,18 @@
         },
         {
           "key": "eventDetail.risk.casualtiesNote"
+        },
+        {
+          "key": "eventDetail.shakemap.legendCaptionDamage"
         }
       ]
     },
     {
       "id": "intensity-numerals",
-      "statement": "Intensity numerals: Roman in en/kmr, Eastern digits in ckb/ar; legend colours from the app ramp.",
+      "statement": "Intensity numerals: Roman in en/kmr, Eastern digits in ckb/ar; legend, figure and damage-grade colours from the app ramps.",
       "usedIn": {
         "pages": ["index.html", "how-it-works.html"],
-        "keys": ["shake.legend"]
+        "keys": ["shake.legend", "hiw.damage.fig.shaking"]
       },
       "appSources": [
         {
@@ -331,9 +350,9 @@
     },
     {
       "id": "tag-my-building",
-      "statement": "Tag my building returns a vulnerability class A-F; figure labels and class names.",
+      "statement": "Tag my building (accounts only, at /app/home/new) returns a vulnerability class A-F; figure labels and class names.",
       "usedIn": {
-        "pages": ["index.html", "how-it-works.html", "support.html", "about.html"],
+        "pages": ["index.html", "how-it-works.html", "support.html"],
         "keys": [
           "building.headline",
           "building.line",
@@ -341,9 +360,8 @@
           "building.frame",
           "building.vc_a",
           "building.vc_f",
-          "hiw.building.body",
           "support.family.a6",
-          "about.roadmap.now5"
+          "hiw.damage.body"
         ]
       },
       "appSources": [
@@ -361,6 +379,9 @@
         },
         {
           "key": "building.q.structure.options.frame"
+        },
+        {
+          "file": "app/home/new.tsx"
         }
       ]
     },
@@ -429,14 +450,8 @@
       "id": "network-event-hub",
       "statement": "The Bumelerze Network and Event hubs.",
       "usedIn": {
-        "pages": ["index.html", "how-it-works.html", "support.html", "about.html"],
-        "keys": [
-          "community.headline",
-          "community.line",
-          "hiw.community.body",
-          "support.share.a4",
-          "about.roadmap.now6"
-        ]
+        "pages": ["index.html", "support.html"],
+        "keys": ["community.headline", "community.line", "support.share.a4"]
       },
       "appSources": [
         {
