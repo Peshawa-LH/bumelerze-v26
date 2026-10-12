@@ -23,3 +23,19 @@ export EXPO_PUBLIC_VAPID_PUBLIC_KEY=BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eF
 
 rm -rf dist-app
 npx expo export --platform web --output-dir dist-app
+
+# Cloudflare Pages never uploads directories named node_modules, and its SPA
+# fallback then answers those URLs with index.html — which silently broke the
+# icon fonts (@expo/vector-icons), expo-router images and the wa-sqlite engine
+# behind the offline catalogue. Move them to assets/vendor and rewrite the
+# references in the exported bundles.
+if [ -d dist-app/assets/node_modules ]; then
+  mv dist-app/assets/node_modules dist-app/assets/vendor
+  grep -rlF "/assets/node_modules/" dist-app | while IFS= read -r f; do
+    perl -pi -e 's#/assets/node_modules/#/assets/vendor/#g' "$f"
+  done
+fi
+if find dist-app -path '*node_modules*' | grep -q . || grep -rqF "node_modules/" dist-app/_expo dist-app/index.html; then
+  echo "build-app-web: node_modules paths remain in dist-app (Cloudflare Pages would drop them)" >&2
+  exit 1
+fi
