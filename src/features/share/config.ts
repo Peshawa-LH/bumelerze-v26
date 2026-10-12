@@ -1,3 +1,5 @@
+import { SHORT_EVENT_URL_BASE, SHORT_PROFILE_URL_BASE } from "@/config/urls";
+
 import type { ShareCardSize } from "./types";
 
 /**
@@ -6,17 +8,17 @@ import type { ShareCardSize } from "./types";
  */
 
 /**
- * Where a shared event link lands: the web app's event route, which already
- * resolves a `bml` id (and a provider id, redirecting to the `bml` one). The
- * short `bumelerze.com/e/<id>` form and rich link previews are deferred until
- * the edge-function infrastructure exists, so this is the one place to change
- * when they arrive.
+ * A shared event link: the short `bumelerze.com/e/<id>` form, which the
+ * website forwards to the web app's event route (that route resolves a `bml`
+ * id, and a provider id by redirecting to the `bml` one). Short links never
+ * change when the app's own address does (src/config/urls.ts). Rich link
+ * previews are still deferred.
  */
-export const SHARE_EVENT_URL_BASE = "https://bumelerze.com/app/event";
+export const SHARE_EVENT_URL_BASE = SHORT_EVENT_URL_BASE;
 
-/** Where a shared profile link lands: the web app's public profile route
- * (`/u/<username>`), the same page the in-app profile uses. */
-export const SHARE_PROFILE_URL_BASE = "https://bumelerze.com/app/u";
+/** A shared profile link: `bumelerze.com/u/<username>`, forwarded to the web
+ * app's public profile route (`/u/<username>`). */
+export const SHARE_PROFILE_URL_BASE = SHORT_PROFILE_URL_BASE;
 
 /** The site name printed in the card footer. A domain, not a translated word. */
 export const SHARE_SITE_TEXT = "bumelerze.com";

@@ -1,3 +1,5 @@
+import { PRIVACY_POLICY_URL } from "@/config/urls";
+
 /** Accounts phase 1 constants. Values here mirror
  * `supabase/migrations/0035_accounts_profiles.sql` exactly — change them
  * together or the database check constraints will reject the write. */
@@ -30,7 +32,7 @@ export const DISPLAY_NAME_MAX = 40;
 export const TERMS_VERSION = "2026-10-04";
 export const RESEARCH_CONSENT_VERSION = "2026-10-04";
 
-export const PRIVACY_URL = "https://bumelerze.com/privacy";
+export const PRIVACY_URL = PRIVACY_POLICY_URL;
 
 export const AVATARS_BUCKET = "avatars";
 /** Bucket limit (migration 0035): 1 MB. */

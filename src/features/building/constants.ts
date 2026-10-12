@@ -1,3 +1,5 @@
+import { SHORT_JOIN_URL } from "@/config/urls";
+
 /** Values here mirror `supabase/migrations/0037_home_tags.sql` exactly. */
 
 export const HOME_PHOTOS_BUCKET = "home-photos";
@@ -12,8 +14,10 @@ export const PHOTO_CAPTION_MAX = 80;
 export const LABEL_MAX = 60;
 /** `home_tags.unit_label` check: at most 40 characters. */
 export const UNIT_LABEL_MAX = 40;
-/** The join link carries the code and the key and nothing else (never the location). */
-export const JOIN_LINK_BASE = "https://bumelerze.com/app/home/join";
+/** The join link carries the code and the key and nothing else (never the
+ * location). It is the short `bumelerze.com/join` link, which the website
+ * forwards to the app's `/home/join` route with the same query. */
+export const JOIN_LINK_BASE = SHORT_JOIN_URL;
 /** `create_home_tag` refuses a sixth active home per account. */
 export const MAX_HOMES_PER_ACCOUNT = 5;
 /** `request_join_home` allows this many tries per hour. */
@@ -59,12 +63,13 @@ export function buildJoinLink(code: string, key: string): string {
 }
 
 /** Reads a scanned QR text (or a pasted link) back into a code and key.
- * Accepts the web link and the app-scheme link; null for anything else or
- * when the code or key has the wrong shape. */
+ * Accepts the short link (`…/join?`), the app's own route (`…/home/join?`,
+ * also on QR codes printed before the short link existed) and the app-scheme
+ * link; null for anything else or when the code or key has the wrong shape. */
 export function parseJoinLink(text: string): { code: string; key: string } | null {
   const trimmed = text.trim();
   const query = trimmed.includes("?") ? trimmed.slice(trimmed.indexOf("?") + 1) : "";
-  if (!/\/home\/join\/?\?/.test(trimmed) || !query) {
+  if (!/\/join\/?\?/.test(trimmed) || !query) {
     return null;
   }
   const params = new URLSearchParams(query.split("#")[0]);

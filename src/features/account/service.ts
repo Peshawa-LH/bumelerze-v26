@@ -312,7 +312,8 @@ export async function claimThisDevicesReports(
 export type OAuthProvider = "google" | "apple";
 
 /** Where the provider sends the browser back to: the current origin plus
- * the app's base path (e.g. https://bumelerze.com/app). */
+ * the app's base path — https://app.bumelerze.com (no base path) in
+ * production, so it must stay in the Supabase Auth redirect list. */
 export function getWebRedirectUrl(): string {
   const baseUrl =
     (Constants.expoConfig?.experiments as { baseUrl?: string } | undefined)?.baseUrl ??

@@ -2,9 +2,11 @@
  * Bumelerze web push service worker (earthquake alerts, migration 0062).
  *
  * Exported as-is from public/ to the root of the web build, so it is served
- * next to the app (bumelerze.com/app/push-sw.js) and its scope is the app
- * (/app/). It is registered only when a person turns on alerts on this
- * device. It has NO fetch handler: it never touches page loads or caching.
+ * next to the app (app.bumelerze.com/push-sw.js) and its scope is the app
+ * (/). Under a subpath build its scope would be that subpath instead: every
+ * URL below is built from the registration scope, never hard-coded. It is
+ * registered only when a person turns on alerts on this device. It has NO
+ * fetch handler: it never touches page loads or caching.
  *
  * push              shows the notification. The text is already localized by
  *                   the send-alerts edge function; the payload is

@@ -231,7 +231,7 @@ describe("Join a home", () => {
     });
 
     it("a scanned invite fills the fields; the owner still approves each join", async () => {
-      mockScanText = "https://bumelerze.com/app/home/join?code=BMH-7K3Q9P&key=ABCD2345";
+      mockScanText = "https://bumelerze.com/join?code=BMH-7K3Q9P&key=ABCD2345";
       await renderWithProviders(<JoinScreen />);
       await act(async () => {
         fireEvent.press(screen.getByTestId("join-scan"));

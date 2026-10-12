@@ -347,7 +347,7 @@
       "enableButton": "Enable motion sensor",
       "enableHint": "Your browser needs a quick tap to allow this before it can show live motion.",
       "explanation": "We couldn't get live motion data from your browser. On iPhone, check Settings → Safari → Motion & Orientation Access and make sure it's turned on, then reload this page. Some browsers and computers don't have a motion sensor at all. If that's the case here, this live view just won't be available.",
-      "desktop": "The live seismogram needs a phone's motion sensor. Open bumelerze.com/app on your phone to try it."
+      "desktop": "The live seismogram needs a phone's motion sensor. Open app.bumelerze.com on your phone to try it."
     },
     "view": {
       "traces": "Traces",

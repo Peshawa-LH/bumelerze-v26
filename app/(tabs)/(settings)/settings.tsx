@@ -6,6 +6,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PRIVACY_POLICY_URL } from "@/config/urls";
 import { BrandMark } from "@/components/BrandMark";
 import { MyLocationRow } from "@/features/account/components/MyLocationRow";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
@@ -413,8 +414,6 @@ function DevicePermissionsBody() {
     </SettingsRowBody>
   );
 }
-
-const PRIVACY_POLICY_URL = "https://bumelerze.com/privacy.html";
 
 /**
  * The Settings footer (owner, 2026-10-08: no About screen, a minimal footer

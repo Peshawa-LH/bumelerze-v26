@@ -327,7 +327,7 @@ function useIsCompactMapControls(): boolean {
 
 /**
  * Web Map tab — the real interactive map (wave brief: "web-first... the
- * deployed web build (now at bumelerze.com/app) is the primary live
+ * deployed web build (now at app.bumelerze.com) is the primary live
  * channel; the native MapLibre module waits for the dev-build workflow").
  *
  * Metro-only file: this `.web.tsx` platform-extension sibling of `map.tsx`

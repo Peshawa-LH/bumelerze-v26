@@ -6,12 +6,16 @@ import type { ExpoConfig } from "expo/config";
 // Environment config lives here (not app.json) so Phase-2+ work can branch on
 // EAS build profiles / env vars without touching this file's structure.
 
-// Netlify web-preview export (netlify.toml sets this to "/app"): serve the
-// exported web app from a subpath of the static site instead of the domain
-// root. Uses SPA ("single") output there because the host only has a simple
-// wildcard rewrite — the default "static" per-route HTML export needs
-// per-dynamic-segment rewrites instead. Unset (local dev, tests, native
-// builds) nothing changes.
+// Web hosting (2026-10): the app is served at the ROOT of app.bumelerze.com
+// (Cloudflare Pages, scripts/build-app-web.sh, no base path); the website
+// stays on GitHub Pages at bumelerze.com, which only forwards the old
+// bumelerze.com/app/... links and the short links (/e, /u, /join) to the app
+// and no longer hosts an app build. BUMELERZE_WEB_BASE_URL is only for a
+// build served under a subpath (the dormant Netlify mirror sets "/app"):
+// unset (production, local dev, tests, native builds) nothing changes.
+// Hosted builds use SPA ("single") output because the hosts only have a
+// simple wildcard fallback — the default "static" per-route HTML export
+// needs per-dynamic-segment rewrites instead.
 const webBaseUrl = process.env.BUMELERZE_WEB_BASE_URL;
 
 // Brand colors for icon/splash chrome come straight from the logo
@@ -78,8 +82,8 @@ const config: ExpoConfig = {
     package: "org.bumelerze.app",
   },
   web: {
-    // "single" (SPA) for hosted web builds: under a base path (/app) or at a
-    // subdomain root (app.bumelerze.com, scripts/build-app-web.sh).
+    // "single" (SPA) for hosted web builds: at the subdomain root
+    // (app.bumelerze.com, scripts/build-app-web.sh) or under a base path.
     output: webBaseUrl || process.env.BUMELERZE_WEB_OUTPUT === "single" ? "single" : "static",
     favicon: "./assets/images/favicon.png",
   },

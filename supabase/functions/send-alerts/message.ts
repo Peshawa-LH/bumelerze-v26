@@ -52,7 +52,9 @@ export interface PushMessage {
   tag: string;
   /** Web push Topic header: the push service keeps only the newest per topic. */
   topic: string;
-  /** App path under the web base (/app): "event/bml2026abcd". */
+  /** App path relative to the app's root (app.bumelerze.com/, or the push
+   * service worker's scope): "event/bml2026abcd". Never an absolute URL, so
+   * a change of the app's address needs no change here. */
   path: string;
   /** No sound or vibration (the sequence summary). */
   quiet: boolean;

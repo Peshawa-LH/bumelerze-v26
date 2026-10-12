@@ -8,7 +8,7 @@ import {
   isolateUrlForLocale,
 } from "../caption";
 
-const URL = "https://bumelerze.com/app/event/bml202602ia";
+const URL = "https://bumelerze.com/e/bml202602ia";
 const LRI = "⁦";
 const PDI = "⁩";
 
@@ -28,7 +28,7 @@ describe("buildShareUrl", () => {
   });
 
   it("encodes an id that is not url-safe (a provider id is shared as-is)", () => {
-    expect(buildShareUrl("a b/c")).toBe("https://bumelerze.com/app/event/a%20b%2Fc");
+    expect(buildShareUrl("a b/c")).toBe("https://bumelerze.com/e/a%20b%2Fc");
   });
 });
 
@@ -75,7 +75,7 @@ describe("buildShareCaption", () => {
 
   it("uses the provider id in the link when no Bumelerze id is known yet", async () => {
     const caption = await captionIn("en", "gfz2026tksc");
-    expect(caption).toContain("https://bumelerze.com/app/event/gfz2026tksc");
+    expect(caption).toContain("https://bumelerze.com/e/gfz2026tksc");
   });
 
   it("stays one short line", async () => {

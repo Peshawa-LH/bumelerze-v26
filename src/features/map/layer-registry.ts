@@ -9,6 +9,8 @@ import type {
   RasterLayerSpecification,
 } from "maplibre-gl";
 
+import { HANDBOOK_URL } from "@/config/urls";
+
 import { MAP_ASSET_REVISION } from "./config";
 import { findFirstSymbolLayerId } from "./terrain";
 import { VS30_OVERLAY_BOUNDS } from "./vs30-overlay";
@@ -49,7 +51,7 @@ export const MAP_LAYERS: readonly MapLayerEntry[] = [
     titleKey: "map.layers.events",
     attributionKey: "map.layers.eventsAttribution",
     source: "USGS, EMSC, GEOFON",
-    sourceUrl: "https://bumelerze.com/handbook.html",
+    sourceUrl: HANDBOOK_URL,
     license: "public feeds, attributed",
     availabilityStatus: "available",
     rendererType: "markers",
@@ -92,7 +94,7 @@ export const MAP_LAYERS: readonly MapLayerEntry[] = [
     titleKey: "map.layers.historical",
     attributionKey: "map.layers.historicalAttribution",
     source: "Bumelerze catalogue (EMME, ISC-GEM, ISC, USGS, EMSC and others)",
-    sourceUrl: "https://bumelerze.com/handbook.html",
+    sourceUrl: HANDBOOK_URL,
     license: "per source catalogue, attributed",
     availabilityStatus: "available",
     rendererType: "geojson",

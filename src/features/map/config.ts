@@ -56,8 +56,8 @@ export const MAP_STYLE_URLS = {
  * the export output root — so this path resolves to a real, always-served
  * file in both environments. `process.env.EXPO_BASE_URL` is the same
  * build-time-inlined constant Expo Router itself uses for subpath hosting
- * (empty locally, "/app" in the Netlify export per `app.config.ts`'s
- * `experiments.baseUrl` / `BUMELERZE_WEB_BASE_URL`), so this always matches
+ * (empty locally and at app.bumelerze.com; a subpath only when a build sets
+ * `BUMELERZE_WEB_BASE_URL`, see `app.config.ts`), so this always matches
  * wherever the app itself is actually served from.
  */
 /**

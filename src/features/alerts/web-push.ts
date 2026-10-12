@@ -2,9 +2,9 @@ import type { WebPushKeys } from "./types";
 
 /**
  * Browser side of web push (migration 0062). The service worker is
- * `public/push-sw.js`, exported next to the app (bumelerze.com/app/push-sw.js)
- * so its scope is the app. Everything here takes the browser objects as an
- * argument so tests can hand in fakes.
+ * `public/push-sw.js`, exported next to the app (app.bumelerze.com/push-sw.js,
+ * scope "/") so its scope is the whole app. Everything here takes the
+ * browser objects as an argument so tests can hand in fakes.
  */
 
 /** Static access so Metro inlines it (same reason as lib/supabase.ts). */
@@ -13,7 +13,9 @@ export function readVapidPublicKey(): string | null {
   return value && value.trim().length > 0 ? value.trim() : null;
 }
 
-/** "/app" on bumelerze.com, "" in local dev (app.config.ts experiments.baseUrl). */
+/** The app's base path: "" at app.bumelerze.com and in local dev; set only
+ * when a build is served under a subpath (app.config.ts experiments.baseUrl,
+ * e.g. the dormant Netlify mirror's "/app"). */
 export function webBase(): string {
   return process.env.EXPO_BASE_URL ?? "";
 }

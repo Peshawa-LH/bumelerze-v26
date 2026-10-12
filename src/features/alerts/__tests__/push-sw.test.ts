@@ -9,7 +9,7 @@ import { join } from "path";
 import { runInNewContext } from "vm";
 
 const SOURCE = readFileSync(join(__dirname, "../../../../public/push-sw.js"), "utf8");
-const SCOPE = "https://bumelerze.com/app/";
+const SCOPE = "https://app.bumelerze.com/";
 
 type Listener = (event: Record<string, unknown>) => void;
 
@@ -26,7 +26,7 @@ function load(windows: { url: string; navigate?: jest.Mock; focus?: jest.Mock }[
         return Promise.resolve();
       },
     },
-    location: { origin: "https://bumelerze.com" },
+    location: { origin: "https://app.bumelerze.com" },
     skipWaiting: jest.fn(),
     clients: {
       claim: jest.fn(() => Promise.resolve()),

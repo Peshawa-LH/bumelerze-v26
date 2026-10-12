@@ -2,7 +2,7 @@ import { Alert, Platform } from "react-native";
 
 /**
  * Dialogs that work on every platform. React Native Web's `Alert.alert` does
- * nothing, so on web (bumelerze.com/app, the phone-testing channel) every
+ * nothing, so on web (app.bumelerze.com, the phone-testing channel) every
  * confirm silently failed — "Replay onboarding" in Settings looked dead
  * (owner, 2026-10-05). Web uses the browser's own `confirm`/`alert`;
  * native keeps the system dialog.

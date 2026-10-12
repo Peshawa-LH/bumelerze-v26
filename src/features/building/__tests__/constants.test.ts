@@ -42,21 +42,26 @@ describe("codes and keys", () => {
 describe("join link (N6)", () => {
   it("builds the link from the code and key and nothing else", () => {
     const link = buildJoinLink("BMH-7K3Q9P", "ABCD2345");
-    expect(link).toBe("https://bumelerze.com/app/home/join?code=BMH-7K3Q9P&key=ABCD2345");
+    expect(link).toBe("https://bumelerze.com/join?code=BMH-7K3Q9P&key=ABCD2345");
     expect(new URL(link).searchParams.size).toBe(2);
     expect(link).not.toMatch(/lat|lon|location/i);
   });
 
-  it("reads back the web link, the app-scheme link and lowercase or spaced values", () => {
+  it("reads back the short link, the app's own and older links, the app-scheme link and lowercase or spaced values", () => {
     const expected = { code: "BMH-7K3Q9P", key: "ABCD2345" };
     expect(parseJoinLink(buildJoinLink("BMH-7K3Q9P", "ABCD2345"))).toEqual(expected);
+    // QR codes printed before the short link, and the app's own route
+    expect(
+      parseJoinLink("https://bumelerze.com/app/home/join?code=BMH-7K3Q9P&key=ABCD2345"),
+    ).toEqual(expected);
+    expect(
+      parseJoinLink("https://app.bumelerze.com/home/join?code=BMH-7K3Q9P&key=ABCD2345"),
+    ).toEqual(expected);
     expect(parseJoinLink("bumelerze://home/join?code=BMH-7K3Q9P&key=ABCD2345")).toEqual(
       expected,
     );
     expect(
-      parseJoinLink(
-        "  https://bumelerze.com/app/home/join?key=abcd2345&code=bmh-7k3q9p ",
-      ),
+      parseJoinLink("  https://bumelerze.com/join?key=abcd2345&code=bmh-7k3q9p "),
     ).toEqual(expected);
     expect(
       parseJoinLink(
@@ -67,13 +72,14 @@ describe("join link (N6)", () => {
 
   it("refuses anything else: other pages, missing or malformed parts, plain text", () => {
     expect(parseJoinLink("https://example.com/?code=BMH-7K3Q9P&key=ABCD2345")).toBeNull();
+    expect(parseJoinLink("https://bumelerze.com/join?code=BMH-7K3Q9P")).toBeNull();
     expect(
-      parseJoinLink("https://bumelerze.com/app/home/join?code=BMH-7K3Q9P"),
+      parseJoinLink("https://bumelerze.com/join?code=BMH-12&key=ABCD2345"),
     ).toBeNull();
+    expect(parseJoinLink("https://bumelerze.com/join")).toBeNull();
     expect(
-      parseJoinLink("https://bumelerze.com/app/home/join?code=BMH-12&key=ABCD2345"),
+      parseJoinLink("https://bumelerze.com/joint?code=BMH-7K3Q9P&key=ABCD2345"),
     ).toBeNull();
-    expect(parseJoinLink("https://bumelerze.com/app/home/join")).toBeNull();
     expect(parseJoinLink("BMH-7K3Q9P")).toBeNull();
     expect(parseJoinLink("")).toBeNull();
   });

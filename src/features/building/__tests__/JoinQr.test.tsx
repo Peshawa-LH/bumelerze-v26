@@ -16,11 +16,11 @@ jest.mock("react-native-qrcode-svg", () => ({
 describe("JoinQr", () => {
   it("draws the text it is given in dark modules on a white card, whatever the theme", async () => {
     await render(
-      <JoinQr value="https://bumelerze.com/app/home/join?code=BMH-7K3Q9P&key=ABCD2345" />,
+      <JoinQr value="https://bumelerze.com/join?code=BMH-7K3Q9P&key=ABCD2345" />,
     );
     expect(mockQr).toHaveBeenCalledWith(
       expect.objectContaining({
-        value: "https://bumelerze.com/app/home/join?code=BMH-7K3Q9P&key=ABCD2345",
+        value: "https://bumelerze.com/join?code=BMH-7K3Q9P&key=ABCD2345",
         color: neutral[1100],
         backgroundColor: neutral[0],
       }),

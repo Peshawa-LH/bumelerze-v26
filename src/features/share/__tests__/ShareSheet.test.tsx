@@ -47,7 +47,7 @@ jest.mock("../image-export", () => ({
   canShareImageFiles: () => true,
 }));
 
-const URL_ = "https://bumelerze.com/app/event/bml202602ia";
+const URL_ = "https://bumelerze.com/e/bml202602ia";
 
 function image(size: "square" | "story"): ShareImage {
   return {
