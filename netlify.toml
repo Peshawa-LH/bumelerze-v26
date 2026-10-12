@@ -1,4 +1,10 @@
-# Netlify deploy configuration.
+# Netlify deploy configuration — DORMANT MIRROR of the old layout.
+#
+# Production no longer looks like this (2026-10): the website is on GitHub
+# Pages at bumelerze.com (.github/workflows/deploy-pages.yml), the app on
+# Cloudflare Pages at app.bumelerze.com (scripts/build-app-web.sh), and
+# bumelerze.com/app only forwards to the app. This file is kept unchanged in
+# case Netlify is ever resumed as a mirror.
 #
 # One site, two things served:
 #   /      -> the static marketing/privacy site (website/ folder, no build)

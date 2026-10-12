@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 # Builds the app's web version for app.bumelerze.com (Cloudflare Pages).
+# Hosting layout: the app lives ONLY here; the website is on GitHub Pages at
+# bumelerze.com (.github/workflows/deploy-pages.yml), which no longer builds
+# the app and only forwards bumelerze.com/app/... and the short links
+# (/e/<id>, /u/<name>, /join?…) to this origin (website-src/redirects.js).
 # Cloudflare installs dependencies (npm ci) before running this script.
 # Pages settings: build command `bash scripts/build-app-web.sh`,
 # output directory `dist-app`. The app sits at the domain root, so no base

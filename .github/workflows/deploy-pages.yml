@@ -1,22 +1,25 @@
-# Deploys the website + app web build to GitHub Pages on every push to main.
-# Created 2026-08-16 when Netlify's free-tier credits ran out mid-development
-# (their deploys pause until the next billing cycle; the netlify.toml config
-# stays — if/when Netlify resumes, both hosts simply mirror the same build).
+# Deploys the WEBSITE to GitHub Pages on every push to main.
+#
+# Hosting layout (since 2026-10):
+#   https://bumelerze.com/          -> website (this workflow, GitHub Pages;
+#                                      Cloudflare DNS -> Pages custom domain)
+#   https://app.bumelerze.com/      -> the app (Cloudflare Pages project
+#                                      `bumelerze-app`, builds main with
+#                                      `bash scripts/build-app-web.sh`)
+#
+# bumelerze.com no longer hosts the app. It only forwards, in the browser:
+#   /app, /app/<path>   -> the same path on app.bumelerze.com (query + hash kept)
+#   /e/<id>, /u/<name>, /join?…  -> the app's event, profile and join pages
+# Both forwarding pages (website/app/index.html and website/404.html, which
+# Pages serves for any path that is not a file) are generated with the rest
+# of the site by scripts/build-website.mjs from website-src/redirects.js.
+#
+# The website is committed pre-built (website/, checked by the jest website
+# tests), so this job has no build step and needs no Node: it publishes
+# website/ as-is. Asset URLs already carry content hashes from the build.
 #
 # Public repo => Actions minutes and Pages hosting are free without limits
-# that matter at our scale.
-#
-# URL layout (custom domain bumelerze.com registered on the Pages site,
-# 2026-08-17 — Cloudflare DNS A records -> GitHub Pages):
-#   https://bumelerze.com/        -> website
-#   https://bumelerze.com/app/    -> the app
-#   app.bumelerze.com             -> 301 redirect to /app (Cloudflare rule)
-#
-# SPA fallback: Pages has no redirect engine; 404.html is a copy of the app
-# shell, so unknown deep links (e.g. /app/event/xyz) boot the app and the
-# client router takes over. Pages sets no custom cache headers; the app's
-# built-in stale-chunk reload guard (src/lib/web-chunk-reload.ts) covers
-# post-deploy staleness.
+# that matter at our scale. netlify.toml is a dormant mirror (2026-08-16).
 
 name: Deploy to GitHub Pages
 
@@ -39,45 +42,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci --no-audit --no-fund
-      - name: Export app web build
-        env:
-          # Domain-root base now that bumelerze.com is the Pages custom
-          # domain (same mechanism as the Netlify /app base — see
-          # app.config.ts webBaseUrl).
-          BUMELERZE_WEB_BASE_URL: /app
-          # Stamps the map worker and RTL plugin URLs so a deploy is never
-          # served with a browser's stale copy of either (map/config.ts).
-          EXPO_PUBLIC_BUILD_ID: ${{ github.sha }}
-          # Publishable client values — same reasoning as netlify.toml:
-          # EXPO_PUBLIC_* vars ship inside every client bundle by design;
-          # the anon key is Supabase's public key, protected by RLS.
-          EXPO_PUBLIC_SUPABASE_URL: https://bcgyxepgruwardhozvfq.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I
-          # MapTiler publishable key (dev@bumelerze.com account) — same
-          # ship-in-the-client reasoning as the anon key above; restrict it
-          # to our origins in the MapTiler dashboard, not by hiding it.
-          EXPO_PUBLIC_MAPTILER_KEY: u55zrEViEes3KunGwdnn
-          # Web push (earthquake alerts, migration 0062): the PUBLIC half of
-          # the VAPID key pair, which browsers need to subscribe. Public by
-          # design; the private half is an Edge Function secret only.
-          EXPO_PUBLIC_VAPID_PUBLIC_KEY: BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw
-        run: npx expo export --platform web --output-dir pages-dist/app
-      - name: Assemble site (website at root, app under /app, SPA 404 fallback)
+      - name: Assemble the website (no app build; /app only forwards)
         run: |
+          mkdir pages-dist
           cp -r website/. pages-dist/
           rm -f pages-dist/README.md
-          # The site has no build step, so stamp its stylesheet and scripts
-          # with the commit here: browsers cache both and a changed
-          # style.css otherwise reaches phones only when their cache expires.
-          sha="${GITHUB_SHA::7}"
-          find pages-dist -maxdepth 2 -name '*.html' -not -path 'pages-dist/app/*' \
-            -exec sed -i -E "s#(href=\"(\.\./)?style\.css)\"#\1?v=$sha\"#g; s#(src=\"(\.\./)?(lang-menu|slider)\.js)\"#\1?v=$sha\"#g" {} +
-          cp pages-dist/app/index.html pages-dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: pages-dist

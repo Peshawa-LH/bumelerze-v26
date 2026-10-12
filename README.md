@@ -6,7 +6,7 @@ what just shook, lets people say what they felt, and turns those reports back
 into usable intensity data. It is built for a region that gets shaken regularly
 and is not well served by the existing apps.
 
-**Website:** <https://bumelerze.com> · **App:** <https://bumelerze.com/app> ·
+**Website:** <https://bumelerze.com> · **App:** <https://app.bumelerze.com> ·
 **Contact:** <hello@bumelerze.com>
 
 > **Status: in development.** This is not a finished release. The web build at
