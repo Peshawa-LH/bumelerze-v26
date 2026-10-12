@@ -78,7 +78,9 @@ const config: ExpoConfig = {
     package: "org.bumelerze.app",
   },
   web: {
-    output: webBaseUrl ? "single" : "static",
+    // "single" (SPA) for hosted web builds: under a base path (/app) or at a
+    // subdomain root (app.bumelerze.com, scripts/build-app-web.sh).
+    output: webBaseUrl || process.env.BUMELERZE_WEB_OUTPUT === "single" ? "single" : "static",
     favicon: "./assets/images/favicon.png",
   },
   plugins: [

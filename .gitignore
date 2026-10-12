@@ -66,3 +66,4 @@ scripts/.cache/
 # checkout on machines that predate the split; ignore it so it can never be
 # re-added to this repo by accident.
 /shake-service/
+dist-app/
