@@ -28,7 +28,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = path.join(ROOT, "website-src");
 const OUT = path.join(ROOT, "website");
 const SITE_URL = "https://bumelerze.com/";
-const APP_URL = "https://bumelerze.com/app/";
+const APP_URL = "https://app.bumelerze.com/";
 
 export const LANGS = [
   { code: "en", dir: "ltr", name: "English", og: "en_GB", digits: "latin" },
@@ -605,7 +605,7 @@ const PAGE_LINKS = {
 };
 
 /** Inline formatting for copy: [[how|label]] page links, e-mail addresses
- * as mailto links, and bumelerze.com/app as a link to the app. Strings are
+ * as mailto links, and app.bumelerze.com as a link to the app. Strings are
  * trusted (they come from website-src/strings). */
 function rich(text) {
   return text
@@ -615,8 +615,8 @@ function rich(text) {
     )
     .replace(/\b([a-z]+@bumelerze\.com)\b/g, '<a href="mailto:$1"><bdi>$1</bdi></a>')
     .replace(
-      /(^|[\s(«“])bumelerze\.com\/app\b/g,
-      '$1<a href="https://bumelerze.com/app/"><bdi>bumelerze.com/app</bdi></a>',
+      /(^|[\s(«“])app\.bumelerze\.com\b/g,
+      `$1<a href="${APP_URL}"><bdi>app.bumelerze.com</bdi></a>`,
     );
 }
 
@@ -941,6 +941,79 @@ function sitemap() {
 
 const ROBOTS = `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}sitemap.xml\n`;
 
+// ------------------------------------------------ forwards to the app
+// bumelerze.com no longer hosts the app (it lives at app.bumelerze.com).
+// Two small pages keep old and short links working; both inline the one
+// mapping in website-src/redirects.js. GitHub Pages serves 404.html for any
+// path that is not a file, which is how /app/<path>, /e/<id>, /u/<name> and
+// /join reach the script; app/index.html answers /app and /app/ directly.
+
+const REDIRECT_PAGE_STYLE =
+  "body{margin:0;font:18px/1.5 system-ui,sans-serif;background:#fff5e8;color:#1c1b1f}" +
+  "main{max-width:32rem;margin:15vh auto;padding:0 1.25rem}" +
+  "a{color:#a8151f;font-weight:600}" +
+  "@media (prefers-color-scheme:dark){body{background:#0b1a26;color:#f2f2f3}a{color:#ff8a8f}}" +
+  "html.forwarding .not-found{display:none}";
+
+function redirectScript(fallbackToApp) {
+  const mapping = read(path.join(SRC, "redirects.js"))
+    .replace(/\/\*[\s\S]*?\*\//, "")
+    .trim();
+  return `<script>
+${mapping}
+(function () {
+  var to = appRedirect(location.pathname, location.search, location.hash)${fallbackToApp ? ' || APP_ORIGIN + "/"' : ""};
+  if (to) {
+    document.documentElement.className = "forwarding";
+    location.replace(to);
+  }
+})();
+</script>`;
+}
+
+function redirectPage({ title, script, body, noscriptTo }) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>${title}</title>
+${noscriptTo ? `<noscript><meta http-equiv="refresh" content="0; url=${noscriptTo}"></noscript>\n` : ""}<style>${REDIRECT_PAGE_STYLE}</style>
+${script}
+</head>
+<body>
+<main>
+${body}
+</main>
+</body>
+</html>
+`;
+}
+
+/** website/app/index.html: bumelerze.com/app(/) -> app.bumelerze.com. */
+function appForwardPage() {
+  return redirectPage({
+    title: "Bumelerze has moved to app.bumelerze.com",
+    script: redirectScript(true),
+    noscriptTo: APP_URL,
+    body: `<p>The Bumelerze app is now at <a href="${APP_URL}">app.bumelerze.com</a>.</p>`,
+  });
+}
+
+/** website/404.html: forwards old and short links, else "page not found". */
+function notFoundPage() {
+  return redirectPage({
+    title: "Page not found · Bumelerze",
+    script: redirectScript(false),
+    body: `<div class="not-found">
+<h1>Page not found</h1>
+<p>This page does not exist on bumelerze.com.</p>
+<p><a href="${SITE_URL}">Go to the Bumelerze website</a> · <a href="${APP_URL}">Open the app</a></p>
+</div>`,
+  });
+}
+
 /** Renders every output file in memory: { relativePath: content }. */
 export function renderSite() {
   const strings = loadStrings();
@@ -966,6 +1039,9 @@ export function renderSite() {
   }
   out["sitemap.xml"] = sitemap();
   out["robots.txt"] = ROBOTS;
+  // Forwards only: the app itself is never built into the website.
+  out["404.html"] = notFoundPage();
+  out["app/index.html"] = appForwardPage();
   return out;
 }
 

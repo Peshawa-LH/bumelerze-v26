@@ -16,9 +16,12 @@ live here; the build stamps their content hash into every page
 ## Current state (2026-10 redesign)
 
 Live at <https://bumelerze.com>, deployed by GitHub Pages on every push to
-`main` (`.github/workflows/deploy-pages.yml`: website at the domain root,
-the app's web build under `/app`). Netlify (`netlify.toml`) is a dormant
-mirror. Contact: `hello@bumelerze.com`, `dev@bumelerze.com`.
+`main` (`.github/workflows/deploy-pages.yml` publishes this folder as-is).
+The app is NOT here: it lives at <https://app.bumelerze.com> (Cloudflare
+Pages). `app/index.html` and `404.html` only forward the app's old
+`bumelerze.com/app/...` address and the short links (`/e/<id>`, `/u/<name>`,
+`/join?…`) to it; both are generated from `website-src/redirects.js`.
+Netlify (`netlify.toml`) is a dormant mirror. Contact: `hello@bumelerze.com`, `dev@bumelerze.com`.
 
 The 2026-10 redesign (revised after the owner's review on 2026-10-10)
 rebuilt the home page as a short, figure-led page: a clean hero (headline,
@@ -67,7 +70,7 @@ and the build script. See `website-src/README.md` for the template syntax.
 ### Support answers and social accounts
 
 Support answers are plain strings. The build turns "1) … 2) …" into a
-numbered list, e-mail addresses and `bumelerze.com/app` into links, and
+numbered list, e-mail addresses and `app.bumelerze.com` into links, and
 `[[how|…]]`, `[[privacy|…]]`, `[[official|…]]` into links to How it works,
 the privacy policy and the About page's official channels, so each language
 marks its own phrase. Quoted app labels use the app's own locale strings.
@@ -92,7 +95,7 @@ sig = 100 x magnitude + PAGER bonus, at least 600, outside the region box,
 highest first. Place lines use the app's wording and town names
 (`website-src/data/places.json`) near the region, and the app's
 Flinn-Engdahl region names further away (`website/data/fe-<lang>.json`,
-fetched only then). Each slide links to `/app/event/<id>`. Requests time out
+fetched only then). Each slide links to `app.bumelerze.com/event/<id>`. Requests time out
 after 6 s; if every feed fails the card shows a one-line fallback.
 
 The carousel advances every 7 s, pauses on hover and focus and when the tab

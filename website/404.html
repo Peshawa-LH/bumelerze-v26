@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Page not found · Bumelerze</title>
+<style>body{margin:0;font:18px/1.5 system-ui,sans-serif;background:#fff5e8;color:#1c1b1f}main{max-width:32rem;margin:15vh auto;padding:0 1.25rem}a{color:#a8151f;font-weight:600}@media (prefers-color-scheme:dark){body{background:#0b1a26;color:#f2f2f3}a{color:#ff8a8f}}html.forwarding .not-found{display:none}</style>
+<script>
+var APP_ORIGIN = "https://app.bumelerze.com";
+
+function appRedirect(pathname, search, hash) {
+  var rest = search || "";
+  rest += hash || "";
+  var m;
+  if (pathname === "/app" || pathname.indexOf("/app/") === 0) {
+    var inner = pathname.slice(5);
+    if (inner === "index.html") inner = "";
+    return APP_ORIGIN + "/" + inner + rest;
+  }
+  if ((m = /^\/e\/([^/]+)\/?$/.exec(pathname))) {
+    return APP_ORIGIN + "/event/" + m[1] + rest;
+  }
+  if ((m = /^\/u\/([^/]+)\/?$/.exec(pathname))) {
+    return APP_ORIGIN + "/u/" + m[1] + rest;
+  }
+  if (/^\/join\/?$/.test(pathname)) {
+    return APP_ORIGIN + "/home/join" + rest;
+  }
+  return null;
+}
+(function () {
+  var to = appRedirect(location.pathname, location.search, location.hash);
+  if (to) {
+    document.documentElement.className = "forwarding";
+    location.replace(to);
+  }
+})();
+</script>
+</head>
+<body>
+<main>
+<div class="not-found">
+<h1>Page not found</h1>
+<p>This page does not exist on bumelerze.com.</p>
+<p><a href="https://bumelerze.com/">Go to the Bumelerze website</a> · <a href="https://app.bumelerze.com/">Open the app</a></p>
+</div>
+</main>
+</body>
+</html>

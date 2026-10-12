@@ -129,6 +129,12 @@
     "key:handbook.spectrum.sourceNote.isc2025": "a3e327a14a3528eb",
     "key:handbook.report.disclaimerTitle": "7b0e161eb0e85c62",
     "key:handbook.report.action": "71dd11ba21812d15",
-    "key:handbook.spectrum.banner.vs30Proxy": "2b1c035f62d8e77e"
+    "key:handbook.spectrum.banner.vs30Proxy": "2b1c035f62d8e77e",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/handbook.tsx": "8dc077374f5ee6d9"
+  },
+  "app-address": {
+    "file:src/config/urls.ts": "8e910e03b5070323",
+    "file:app/home/join.tsx": "3757249ccf02cd6b",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index.tsx": "ac262cb9c3dfebed"
   }
 }

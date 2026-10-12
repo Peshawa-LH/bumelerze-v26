@@ -8,6 +8,11 @@
 import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import { runInNewContext } from "vm";
+
+import { APP_ORIGIN } from "@/config/urls";
+import { buildJoinLink } from "@/features/building/constants";
+import { SHARE_EVENT_URL_BASE, SHARE_PROFILE_URL_BASE } from "@/features/share/config";
 
 const ROOT = path.resolve(__dirname, "../..");
 const SITE = path.join(ROOT, "website");
@@ -262,6 +267,160 @@ describe("website build", () => {
     );
     for (const rel of pageFiles()) {
       expect(read(rel)).not.toMatch(/<script[^>]+src="https?:/);
+    }
+  });
+});
+
+/** Runs website-src/redirects.js, or a forwarding page's inline script, in a
+ * sandbox with a fake browser location. */
+function loadMapping(): (
+  pathname: string,
+  search?: string,
+  hash?: string,
+) => string | null {
+  const source = fs.readFileSync(path.join(ROOT, "website-src", "redirects.js"), "utf8");
+  const sandbox: Record<string, unknown> = {};
+  runInNewContext(source, sandbox);
+  return sandbox.appRedirect as (p: string, s?: string, h?: string) => string | null;
+}
+
+function runForwardPage(rel: string, url: string): string | null {
+  const html = read(rel);
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)![1]!;
+  const u = new URL(url);
+  let replaced: string | null = null;
+  const sandbox = {
+    location: {
+      pathname: u.pathname,
+      search: u.search,
+      hash: u.hash,
+      replace: (to: string) => {
+        replaced = to;
+      },
+    },
+    document: { documentElement: { className: "" } },
+  };
+  runInNewContext(script, sandbox);
+  return replaced;
+}
+
+describe("forwards from bumelerze.com to app.bumelerze.com", () => {
+  const appRedirect = loadMapping();
+  const APP = "https://app.bumelerze.com";
+
+  it.each([
+    ["/app", "", "", `${APP}/`],
+    ["/app/", "", "", `${APP}/`],
+    ["/app/index.html", "", "", `${APP}/`],
+    ["/app/event/bml20170001", "", "", `${APP}/event/bml20170001`],
+    ["/app/map", "?lat=35.5&lon=45.4", "#layers", `${APP}/map?lat=35.5&lon=45.4#layers`],
+    ["/app/u/dilan.k", "", "#top", `${APP}/u/dilan.k#top`],
+    [
+      "/app/home/join",
+      "?code=BMH-7K3Q9P&key=ABCD2345",
+      "",
+      `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`,
+    ],
+    [
+      "/app/account/sign-in",
+      "?next=%2Fevent%2Fx",
+      "",
+      `${APP}/account/sign-in?next=%2Fevent%2Fx`,
+    ],
+    ["/e/bml20170001", "", "", `${APP}/event/bml20170001`],
+    ["/e/bml20170001/", "?ref=qr", "#felt", `${APP}/event/bml20170001?ref=qr#felt`],
+    ["/u/a%20b", "", "", `${APP}/u/a%20b`],
+    [
+      "/join",
+      "?code=BMH-7K3Q9P&key=ABCD2345",
+      "",
+      `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`,
+    ],
+    [
+      "/join/",
+      "?code=BMH-7K3Q9P&key=ABCD2345",
+      "#x",
+      `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345#x`,
+    ],
+  ])("%s%s%s -> %s", (pathname, search, hash, expected) => {
+    expect(appRedirect(pathname, search, hash)).toBe(expected);
+  });
+
+  it.each([
+    "/",
+    "/apple",
+    "/application/x",
+    "/e",
+    "/e/",
+    "/e/a/b",
+    "/u/",
+    "/joint",
+    "/about.html",
+    "/ckb/missing",
+  ])("leaves %s alone (not ours to forward)", (pathname) => {
+    expect(appRedirect(pathname, "?q=1", "#h")).toBeNull();
+  });
+
+  it("the links the app shares land on the right app pages", () => {
+    const via = (link: string) => {
+      const u = new URL(link);
+      expect(u.origin).toBe("https://bumelerze.com");
+      return appRedirect(u.pathname, u.search, u.hash);
+    };
+    expect(APP_ORIGIN).toBe(APP);
+    expect(via(`${SHARE_EVENT_URL_BASE}/bml20170001`)).toBe(`${APP}/event/bml20170001`);
+    expect(via(`${SHARE_PROFILE_URL_BASE}/dilan.k`)).toBe(`${APP}/u/dilan.k`);
+    expect(via(buildJoinLink("BMH-7K3Q9P", "ABCD2345"))).toBe(
+      `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`,
+    );
+  });
+
+  it("bumelerze.com/app forwards every path, query and hash to the same place on the app", () => {
+    expect(runForwardPage("app/index.html", "https://bumelerze.com/app/")).toBe(
+      `${APP}/`,
+    );
+    expect(runForwardPage("app/index.html", "https://bumelerze.com/app/?x=1#y")).toBe(
+      `${APP}/?x=1#y`,
+    );
+    // deeper paths are not files on the site, so Pages serves 404.html
+    expect(
+      runForwardPage("404.html", "https://bumelerze.com/app/event/bml20170001?a=1#b"),
+    ).toBe(`${APP}/event/bml20170001?a=1#b`);
+    expect(runForwardPage("404.html", "https://bumelerze.com/e/bml20170001")).toBe(
+      `${APP}/event/bml20170001`,
+    );
+    expect(
+      runForwardPage(
+        "404.html",
+        "https://bumelerze.com/join?code=BMH-7K3Q9P&key=ABCD2345",
+      ),
+    ).toBe(`${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`);
+    // anything else stays on the "page not found" page
+    expect(runForwardPage("404.html", "https://bumelerze.com/nothing-here")).toBeNull();
+    expect(read("404.html")).toContain("Page not found");
+    expect(read("404.html")).toContain('href="https://bumelerze.com/"');
+  });
+
+  it("bumelerze.com no longer hosts the app: only the forwarding page under /app, no app build in the deploy", () => {
+    // the site build puts exactly one file under app/: the forwarding page
+    expect(fs.readdirSync(path.join(SITE, "app"))).toEqual(["index.html"]);
+    const stub = read("app/index.html");
+    expect(stub).not.toMatch(/<script[^>]+src=/);
+    expect(stub).not.toMatch(/_expo|bundle|entry-/);
+    expect(stub).toContain("location.replace");
+    // the Pages workflow publishes website/ as-is and exports no app
+    const workflow = fs.readFileSync(
+      path.join(ROOT, ".github", "workflows", "deploy-pages.yml"),
+      "utf8",
+    );
+    const steps = workflow.split("\njobs:")[1]!;
+    expect(steps).not.toMatch(
+      /expo export|BUMELERZE_WEB_BASE_URL|pages-dist\/app|npm ci/,
+    );
+    expect(steps).toContain("cp -r website/. pages-dist/");
+    // and the site's own links point at the app's new address
+    for (const rel of pageFiles()) {
+      expect(read(rel)).not.toMatch(/bumelerze\.com\/app\b/);
     }
   });
 });

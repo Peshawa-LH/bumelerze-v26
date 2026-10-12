@@ -109,7 +109,7 @@
     },
     {
       "id": "event-route",
-      "statement": "Live card and other links open /app/event/<provider id>; community links open /app/account/sign-in; alerts link opens /app/notification-settings.",
+      "statement": "Live card and other links open app.bumelerze.com/event/<provider id>; community links open /account/sign-in; alerts links open /notification-settings (all at the root of app.bumelerze.com).",
       "usedIn": {
         "pages": ["index.html", "how-it-works.html"],
         "keys": ["live.open", "community.button", "outlook.button"]
@@ -350,7 +350,7 @@
     },
     {
       "id": "tag-my-building",
-      "statement": "Tag my building (accounts only, at /app/home/new) returns a vulnerability class A-F; figure labels and class names.",
+      "statement": "Tag my building (accounts only, at app.bumelerze.com/home/new) returns a vulnerability class A-F; figure labels and class names.",
       "usedIn": {
         "pages": ["index.html", "how-it-works.html", "support.html"],
         "keys": [
@@ -539,7 +539,7 @@
     },
     {
       "id": "handbook",
-      "statement": "Handbook page: Iraqi code 2017 in force / 2025 forthcoming, preliminary reference, one-page PDF report, soil class estimated from terrain slope.",
+      "statement": "Handbook page: Iraqi code 2017 in force / 2025 forthcoming, preliminary reference, one-page PDF report, soil class estimated from terrain slope. The handbook pages' button opens app.bumelerze.com/handbook.",
       "usedIn": {
         "pages": ["handbook.html"],
         "keys": ["handbook.meta.description"]
@@ -565,6 +565,34 @@
         },
         {
           "key": "handbook.spectrum.banner.vs30Proxy"
+        },
+        {
+          "file": "app/(tabs)/(home,map,sensor,profile,settings)/handbook.tsx"
+        }
+      ]
+    },
+    {
+      "id": "app-address",
+      "statement": "The app's only official address is app.bumelerze.com (served at the root); bumelerze.com/app and the short links bumelerze.com/e, /u and /join forward to it (website-src/redirects.js mirrors src/config/urls.ts).",
+      "usedIn": {
+        "pages": ["support.html", "about.html", "index.html"],
+        "keys": [
+          "support.start.a2",
+          "support.start.a3",
+          "support.start.a4",
+          "support.card_start.body",
+          "about.channel_app"
+        ]
+      },
+      "appSources": [
+        {
+          "file": "src/config/urls.ts"
+        },
+        {
+          "file": "app/home/join.tsx"
+        },
+        {
+          "file": "app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index.tsx"
         }
       ]
     }

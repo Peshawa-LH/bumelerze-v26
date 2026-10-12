@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Bumelerze has moved to app.bumelerze.com</title>
+<noscript><meta http-equiv="refresh" content="0; url=https://app.bumelerze.com/"></noscript>
+<style>body{margin:0;font:18px/1.5 system-ui,sans-serif;background:#fff5e8;color:#1c1b1f}main{max-width:32rem;margin:15vh auto;padding:0 1.25rem}a{color:#a8151f;font-weight:600}@media (prefers-color-scheme:dark){body{background:#0b1a26;color:#f2f2f3}a{color:#ff8a8f}}html.forwarding .not-found{display:none}</style>
+<script>
+var APP_ORIGIN = "https://app.bumelerze.com";
+
+function appRedirect(pathname, search, hash) {
+  var rest = search || "";
+  rest += hash || "";
+  var m;
+  if (pathname === "/app" || pathname.indexOf("/app/") === 0) {
+    var inner = pathname.slice(5);
+    if (inner === "index.html") inner = "";
+    return APP_ORIGIN + "/" + inner + rest;
+  }
+  if ((m = /^\/e\/([^/]+)\/?$/.exec(pathname))) {
+    return APP_ORIGIN + "/event/" + m[1] + rest;
+  }
+  if ((m = /^\/u\/([^/]+)\/?$/.exec(pathname))) {
+    return APP_ORIGIN + "/u/" + m[1] + rest;
+  }
+  if (/^\/join\/?$/.test(pathname)) {
+    return APP_ORIGIN + "/home/join" + rest;
+  }
+  return null;
+}
+(function () {
+  var to = appRedirect(location.pathname, location.search, location.hash) || APP_ORIGIN + "/";
+  if (to) {
+    document.documentElement.className = "forwarding";
+    location.replace(to);
+  }
+})();
+</script>
+</head>
+<body>
+<main>
+<p>The Bumelerze app is now at <a href="https://app.bumelerze.com/">app.bumelerze.com</a>.</p>
+</main>
+</body>
+</html>

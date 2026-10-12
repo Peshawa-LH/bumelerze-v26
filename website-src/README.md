@@ -12,6 +12,24 @@ node scripts/build-website.mjs --sync-app-data   # refresh data/places.json, the
 Commit `website-src/` and the regenerated `website/` together; the jest test
 `src/__tests__/website-build.test.ts` fails if they disagree.
 
+## Where things are served (since 2026-10)
+
+- **bumelerze.com** — this website, on GitHub Pages
+  (`.github/workflows/deploy-pages.yml` publishes `website/` as-is; no app
+  build).
+- **app.bumelerze.com** — the app, on Cloudflare Pages
+  (`scripts/build-app-web.sh`, served at the domain root). Site links to the
+  app use `APP_URL` in `scripts/build-website.mjs`.
+- **Forwards on bumelerze.com.** `redirects.js` maps the app's old address
+  and the short links the app shares to the app, keeping query and hash:
+  `/app`, `/app/<path>` → same path on the app; `/e/<id>` → `/event/<id>`;
+  `/u/<name>` → `/u/<name>`; `/join?code&key` → `/home/join?code&key`. The
+  build inlines it into `website/app/index.html` (answers `/app`) and
+  `website/404.html` (Pages serves it for every other unknown path, which
+  otherwise shows a small "page not found"). The app's side of the same
+  addresses is `src/config/urls.ts`; a website test runs the app's own link
+  builders through this mapping.
+
 ## Layout
 
 | Path | What |
@@ -24,6 +42,7 @@ Commit `website-src/` and the regenerated `website/` together; the jest test
 | `data/places.json` | Town names in four languages for the live card's place line, from the app's gazetteer. |
 | `data/social.json` | Official social media accounts (platform + URL, no tracking parameters). Rendered as icon links on About and in every footer. |
 | `data/fe-regions.json` | The app's Flinn-Engdahl grid, English names and translations (from `--sync-app-data`). The build writes `website/data/fe-<lang>.json`, which the live card fetches only when it shows a far-away earthquake. |
+| `redirects.js` | The forwards from bumelerze.com to the app (see above). Plain ES5, inlined by the build. |
 | `data/app-facts.json`, `data/app-facts.lock.json` | The register of website statements that rest on the app, and the fingerprints of their app sources (see below). |
 
 ## Template syntax
