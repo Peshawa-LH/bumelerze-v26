@@ -160,6 +160,51 @@ describe("Sensor screen", () => {
     expect(screen.getByLabelText(i18n.t("sensor.chartA11yLabel"))).toBeTruthy();
   });
 
+  it("shows a plain note under each view, with the technical detail behind the info button (review note 8.1)", async () => {
+    mockIsAvailableAsync.mockResolvedValue(true);
+    mockGetPermissionsAsync.mockResolvedValue({
+      status: "granted",
+      granted: true,
+      canAskAgain: true,
+      expires: "never",
+    });
+
+    await renderWithProviders(<SensorScreen />);
+    await flush();
+
+    expect(screen.getByText(i18n.t("sensor.motionNote"))).toBeTruthy();
+    expect(screen.queryByText(i18n.t("sensor.motionNoteDetail"))).toBeNull();
+    const info = screen.getByLabelText(i18n.t("sensor.infoToggle"));
+    expect(info.props.accessibilityState).toEqual({ expanded: false });
+    await pressAndFlush(info);
+    expect(screen.getByText(i18n.t("sensor.motionNoteDetail"))).toBeTruthy();
+    expect(screen.getByLabelText(i18n.t("sensor.infoToggle")).props.accessibilityState).toEqual({
+      expanded: true,
+    });
+
+    // The spectrum view has its own note, closed again.
+    await pressAndFlush(screen.getByText(i18n.t("sensor.view.spectrum")));
+    expect(screen.getByText(i18n.t("sensor.spectrum.note"))).toBeTruthy();
+    expect(screen.queryByText(i18n.t("sensor.spectrum.noteDetail"))).toBeNull();
+    await pressAndFlush(screen.getByLabelText(i18n.t("sensor.infoToggle")));
+    expect(screen.getByText(i18n.t("sensor.spectrum.noteDetail"))).toBeTruthy();
+  });
+
+  it("does not overclaim: the phone's sensor is likened to strong-motion stations, not a seismometer's physics", () => {
+    const lead = i18n.getFixedT("en")("sensor.phone.lead");
+    expect(lead).not.toMatch(/same physics|professional seismometer/i);
+    expect(lead).toContain("strong-motion");
+    expect(lead).toContain("Nothing is sent anywhere");
+    // The plain notes keep the jargon out of the first sentence.
+    const en = i18n.getFixedT("en");
+    expect(en("sensor.motionNote")).not.toMatch(/g scale|gravity/i);
+    expect(en("sensor.spectrum.note")).not.toMatch(/damping|natural period/i);
+    expect(en("sensor.motionNoteDetail")).toContain("±0.5 g");
+    expect(en("sensor.spectrum.noteDetail")).toContain("5 % damping");
+    expect(en("sensor.web.explanation")).not.toMatch(/\bWe\b/);
+    expect(en("sensor.web.explanation").split("\n")).toHaveLength(3);
+  });
+
   it("renders the explainer text and title in Sorani (RTL)", async () => {
     expect(isRTLLocale("ckb")).toBe(true);
     await i18n.changeLanguage("ckb");

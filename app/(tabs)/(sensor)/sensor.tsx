@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ChannelLegend,
   RecordingPanel,
+  SensorNote,
   type SensorView,
   SpaceView,
   SpectrumChart,
@@ -258,15 +259,16 @@ export default function SensorScreen() {
             />
           )}
 
-          <Text
-            style={{
-              color: colors.text.tertiary,
-              fontSize: typography.bodyMeta.fontSize,
-              lineHeight: typography.bodyMeta.lineHeight,
-            }}
-          >
-            {view === "spectrum" ? t("sensor.spectrum.note") : t("sensor.motionNote")}
-          </Text>
+          <SensorNote
+            key={view === "spectrum" ? "spectrum" : "motion"}
+            text={view === "spectrum" ? t("sensor.spectrum.note") : t("sensor.motionNote")}
+            detail={
+              view === "spectrum"
+                ? t("sensor.spectrum.noteDetail")
+                : t("sensor.motionNoteDetail")
+            }
+            testID="sensor-note"
+          />
 
           <RecordingPanel
             recording={recording}

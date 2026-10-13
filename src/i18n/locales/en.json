@@ -345,20 +345,22 @@
     "chartA11yLabel": "Live accelerometer chart showing the last ten seconds of motion",
     "web": {
       "enableButton": "Enable motion sensor",
-      "enableHint": "Your browser needs a quick tap to allow this before it can show live motion.",
-      "explanation": "We couldn't get live motion data from your browser. On iPhone, check Settings → Safari → Motion & Orientation Access and make sure it's turned on, then reload this page. Some browsers and computers don't have a motion sensor at all. If that's the case here, this live view just won't be available.",
-      "desktop": "The live seismogram needs a phone's motion sensor. Open app.bumelerze.com on your phone to try it."
+      "enableHint": "Tap the button and allow motion access to see the live view.",
+      "explanation": "This browser is not sending motion data.\n1. On iPhone: Settings → Safari → turn on Motion & Orientation Access.\n2. Reload this page.",
+      "desktop": "The live view needs a phone's motion sensor. Open app.bumelerze.com on your phone to try it."
     },
     "view": {
       "traces": "Traces",
       "space": "3D",
       "spectrum": "Spectrum"
     },
-    "motionNote": "Gravity is removed, so a phone lying still reads flat. Each channel is centred on zero at a fixed ±0.5 g scale.",
+    "motionNote": "A phone lying still shows flat lines.",
+    "motionNoteDetail": "Gravity is removed, and each channel is centred on zero on a fixed ±0.5 g scale.",
+    "infoToggle": "More about this view",
     "spaceA11yLabel": "Live 3D view of your phone's motion: a dot moves along the X, Y and Z axes and leaves a short trail",
     "phone": {
       "title": "Your phone as a seismometer",
-      "lead": "Its accelerometer uses the same physics as a professional seismometer. Nothing is sent anywhere; a recording stays on your phone."
+      "lead": "Your phone's motion sensor (accelerometer) works like the sensors in strong-motion stations, on a smaller scale. Nothing is sent anywhere; recordings stay on your phone."
     },
     "mode": {
       "phone": "Phone sensor",
@@ -368,11 +370,12 @@
       "periodAxis": "Period (s)",
       "saAxis": "Sa (g)",
       "a11yLabel": "Response spectrum of the last ten seconds of motion, per axis",
-      "note": "Response spectrum of the last ten seconds: how hard a building of each natural period would have been shaken, 5 % damping. Scaled to the strongest axis."
+      "note": "How strongly buildings of different heights would have shaken in the last ten seconds.",
+      "noteDetail": "Response spectrum (Sa) for each natural period, 5 % damping, scaled to the strongest axis."
     },
     "recording": {
       "title": "Record",
-      "hint": "Save a window of the raw accelerometer as a text file for your own processing.",
+      "hint": "Save the raw motion as a text file for your own use.",
       "duration": "{{seconds}} s",
       "start": "Record",
       "stop": "Stop",
@@ -1700,7 +1703,7 @@
     }
   },
   "stations": {
-    "intro": "Open data seismic stations around Kurdistan region and Iraq. Tap a station to watch available data streams.",
+    "intro": "Live readings from open seismic stations around the Kurdistan Region and Iraq. Tap a station to see them.",
     "tier": {
       "live": "Live",
       "recent": "Delayed",

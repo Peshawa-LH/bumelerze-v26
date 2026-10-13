@@ -45,6 +45,7 @@ export {
   type ResponseSpectrum,
 } from "./response-spectrum";
 export { RecordingPanel } from "./components/RecordingPanel";
+export { SensorNote } from "./components/SensorNote";
 export {
   buildRecordingText,
   RECORDING_DURATIONS_MS,

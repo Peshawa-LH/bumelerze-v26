@@ -345,20 +345,22 @@
     "chartA11yLabel": "Xêza rasterast a lerizanpîvê ku deh saniyeyên dawî yên tevgerê nîşan dide",
     "web": {
       "enableButton": "Sensora tevgerê veke",
-      "enableHint": "Geroka te ji bo dayîna vê destûrê pêdiviya bi lêdanek e, berî ku ew karibe tevgera rasterast nîşan bide.",
-      "explanation": "Me nikarî daneyên tevgera rasterast ji geroka te bistîne. Li ser iPhone, biçe Sazkarî ← Safari ← Gihîştina Tevger û Rawestanê û pê ewle be ku ew vekirî ye, paşê vê rûpelê ji nû ve bar bike. Hin gerok û komputer qet sensorek tevgerê nînin. Heke rewş ev be, ev dîmena rasterast li vir ne berdest e.",
-      "desktop": "Seismograma zindî hewceyî sensora tevgerê ya telefonê ye. app.bumelerze.com li ser telefona xwe veke da ku biceribînî."
+      "enableHint": "Li bişkojê bitikîne û destûra gihîştina tevgerê bide da ku dîmena rasterast bibînî.",
+      "explanation": "Ev gerok daneyên tevgerê naşîne.\n1. Li ser iPhone: Sazkarî → Safari → «Gihîştina Tevger û Rawestanê» veke.\n2. Vê rûpelê ji nû ve bar bike.",
+      "desktop": "Dîmena rasterast hewceyî sensora tevgerê ya telefonê ye. app.bumelerze.com li ser telefona xwe veke da ku biceribînî."
     },
     "view": {
       "traces": "Şepol",
       "space": "3D",
       "spectrum": "Spektrum"
     },
-    "motionNote": "Rakêşana erdê hatiye rakirin, ji ber vê telefonek bêliv xêzeke rast nîşan dide. Her kanal li ser sifirê hatiye navendkirin bi pîvaneke sabit a ±0,5 g.",
+    "motionNote": "Telefoneke bêliv xêzên rast nîşan dide.",
+    "motionNoteDetail": "Rakêşana erdê hatiye rakirin, û her kanal li ser sifirê hatiye navendkirin bi pîvaneke sabit a ±0.5 g.",
+    "infoToggle": "Bêtir li ser vê dîmenê",
     "spaceA11yLabel": "Dîmena 3D ya zindî ya livîna telefona te: xalek li ser tewereyên X, Y û Z dilive û şopeke kurt li dû xwe dihêle",
     "phone": {
       "title": "Telefona te wek seysmometre",
-      "lead": "Akselerometreya wê heman fizîka seysmometreyeke pîşeyî bi kar tîne. Tiştek nayê şandin; tomarkirin li ser telefona te dimîne."
+      "lead": "Sensora tevgerê ya telefona te (akselerometre) mîna sensorên stasyonên tevgera xurt dixebite, lê di asteke piçûktir de. Tiştek nayê şandin; tomar li ser telefona te dimînin."
     },
     "mode": {
       "phone": "Sensora telefonê",
@@ -368,11 +370,12 @@
       "periodAxis": "Dem (s)",
       "saAxis": "Sa (g)",
       "a11yLabel": "Spektruma bersivê ya deh çirkeyên dawî yên livînê, ji bo her tewereyê",
-      "note": "Spektruma bersivê ya deh çirkeyên dawî: avahiyek bi her demeke xwezayî dê çiqas bihata hejandin, dampînga 5 %. Li gorî tewereya herî bihêz hatiye pîvan."
+      "note": "Avahiyên bi bilindahiyên cuda di deh çirkeyên dawî de dê çiqas bi hêz bihejiyana.",
+      "noteDetail": "Spektruma bersivê (Sa) ji bo her demeke xwezayî, dampînga 5 %, li gorî tewereya herî bihêz hatiye pîvan."
     },
     "recording": {
       "title": "Tomarkirin",
-      "hint": "Pencereyeke akselerometreya xav wek pelê nivîsê tomar bike ji bo pêvajoya xwe.",
+      "hint": "Tevgera xav wek pelê nivîsê tomar bike ji bo karanîna xwe.",
       "duration": "{{seconds}} çirke",
       "start": "Tomar bike",
       "stop": "Rawestîne",
@@ -1700,7 +1703,7 @@
     }
   },
   "stations": {
-    "intro": "Stasyonên daneyên vekirî yên erdhejê li dora herêma Kurdistanê û Iraqê. Stasyonekê bitikîne da ku daneyên berdest bibînî.",
+    "intro": "Xwendinên rasterast ji stasyonên sismolojîk ên vekirî li dora Herêma Kurdistanê û Iraqê. Li stasyonekê bitikîne da ku wan bibînî.",
     "tier": {
       "live": "Zindî",
       "recent": "Derengmayî",
