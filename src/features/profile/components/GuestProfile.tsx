@@ -8,14 +8,14 @@ import { useAccount } from "@/features/account/use-account";
 import { useMySummary } from "@/features/account/use-my-summary";
 import { EarnedBadges } from "@/features/badges";
 import { MyHomeCard } from "@/features/building";
-import { MyReportsSection } from "@/features/mydata";
+import { MyReportsRow } from "@/features/mydata";
 import { useTheme } from "@/theme";
 
 /**
  * The Profile tab for an install without an account (or with no server): a
  * grey "Guest" header, the one sign-up invitation, then what a guest has on
- * this device: earned badges, the home card (a locked preview), felt reports
- * and the contributor ID. No posts and no follow counts: they need an account.
+ * this device: earned badges, the home card (a locked preview), and the
+ * "My reports" row that opens the list of felt reports on its own page. No posts and no follow counts: they need an account.
  */
 export function GuestProfile() {
   const { spacing } = useTheme();
@@ -30,7 +30,7 @@ export function GuestProfile() {
         seeAllCount={summary.badges.length}
       />
       <MyHomeCard />
-      <MyReportsSection />
+      <MyReportsRow />
       <SettingsGroup>
         <PrivacyRow email={null} />
       </SettingsGroup>

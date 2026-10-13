@@ -9,9 +9,6 @@ export {
 } from "./format";
 export { useContributorId } from "./use-contributor-id";
 export { ContributionRow } from "./components/ContributionRow";
-export {
-  MyReportsSection,
-  ReportsEmpty,
-  REPORTS_PREVIEW,
-} from "./components/MyReportsSection";
+export { MyReportsRow } from "./components/MyReportsRow";
+export { ReportsEmpty } from "./components/ReportsEmpty";
 export { useMyReports, type MyReports } from "./use-my-reports";

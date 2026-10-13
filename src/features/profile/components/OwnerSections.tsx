@@ -9,14 +9,15 @@ import { SignOutRow } from "@/features/account/components/SignOutRow";
 import { useAccount } from "@/features/account/use-account";
 import { MyHomeCard, TrashedHomesSection } from "@/features/building";
 import { DownloadMyDataRow } from "@/features/data-export";
-import { MyReportsSection } from "@/features/mydata";
+import { MyReportsRow } from "@/features/mydata";
 import { useTheme } from "@/theme";
 import { OnlyYouDivider } from "./OnlyYouDivider";
 import { RecentlyDeletedSection } from "./RecentlyDeletedSection";
 
 /**
  * Everything on the Profile page that only its owner may see, after the
- * "Only you see this" divider: My home, My felt reports, People and requests,
+ * "Only you see this" divider: My home, the "My reports" row (the list itself
+ * is its own page since review note 15.5), People and requests,
  * the Admin row (when the account has admin access), Recently deleted (my
  * comments and posts of the last 24 hours, when there are any), Deleted homes
  * (the 14-day trash, when there are any), Download my data, Password,
@@ -37,7 +38,7 @@ export function OwnerSections() {
     <View style={{ gap: spacing[4] }} testID="owner-sections">
       <OnlyYouDivider />
       <MyHomeCard />
-      <MyReportsSection />
+      <MyReportsRow />
       <CommunityRows />
       <RecentlyDeletedSection />
       {isAccount ? <TrashedHomesSection /> : null}

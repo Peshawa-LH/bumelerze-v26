@@ -61,7 +61,8 @@ const NEW_FILES = [
   "src/features/account/components/DeleteAccountRow.tsx",
   "src/features/building/components/MyHomeCard.tsx",
   "src/features/building/components/HomeCard.tsx",
-  "src/features/mydata/components/MyReportsSection.tsx",
+  "src/features/mydata/components/MyReportsRow.tsx",
+  "src/features/mydata/components/ReportsEmpty.tsx",
   "src/features/mydata/use-my-reports.ts",
   "src/features/eventhub/components/RoleMark.tsx",
 ];

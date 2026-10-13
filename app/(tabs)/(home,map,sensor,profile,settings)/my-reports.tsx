@@ -9,9 +9,10 @@ import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
- * Every report this phone sent, newest first. The My account page previews
- * only the latest three so its scroll stays short; this screen holds the
- * long list (a virtualised FlatList, never inside the page's ScrollView).
+ * Every report this phone sent, newest first. Opened from the "My reports"
+ * row on the Profile page (review note 15.5: the list left the profile so it
+ * no longer pushes the rows below it down); a virtualised FlatList, never
+ * inside the profile's ScrollView.
  */
 export default function MyReportsScreen() {
   const tabBarScroll = useTabBarScroll();

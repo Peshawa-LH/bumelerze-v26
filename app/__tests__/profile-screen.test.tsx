@@ -305,22 +305,7 @@ describe("Profile tab", () => {
       expect(screen.getByLabelText(/^First report, earned$/)).toBeTruthy();
     });
 
-    it("empty reports: a compact card with one line and the report button", async () => {
-      await renderWithProviders(<ProfileScreen />);
-      expect(screen.getByText("My reports")).toBeTruthy();
-      expect(screen.getByText("No reports yet.")).toBeTruthy();
-      expect(screen.queryByTestId("my-reports-see-all")).toBeNull();
-      await press("reports-empty-cta");
-      expect(mockPush).toHaveBeenCalledWith("/felt-report");
-    });
-
-    it("does not flash the empty state before the persisted queue has hydrated", async () => {
-      useFeltQueueStore.setState({ hasHydrated: false, items: [] });
-      await renderWithProviders(<ProfileScreen />);
-      expect(screen.queryByTestId("reports-empty")).toBeNull();
-    });
-
-    it("shows the newest three reports and 'See all' to the full list when there are more", async () => {
+    it("My reports is one row (review note 15.5): count, and the list opens on its own page", async () => {
       useFeltQueueStore.setState({
         hasHydrated: true,
         items: [1, 2, 3, 4].map((n) =>
@@ -328,21 +313,33 @@ describe("Profile tab", () => {
         ),
       });
       await renderWithProviders(<ProfileScreen />);
+      const row = screen.getByTestId("my-reports-row");
+      expect(screen.getByText("My reports")).toBeTruthy();
+      expect(screen.getByText("4")).toBeTruthy();
+      // The reports themselves are no longer on the profile.
       expect(
-        screen.getAllByTestId("mydata-level-artwork", { includeHiddenElements: true }),
-      ).toHaveLength(3);
-      expect(screen.getByTestId("my-reports-count").props.children).toBeTruthy();
-      await press("my-reports-see-all");
+        screen.queryAllByTestId("mydata-level-artwork", { includeHiddenElements: true }),
+      ).toHaveLength(0);
+      expect(screen.queryByTestId("my-reports-see-all")).toBeNull();
+      expect(row).toBeTruthy();
+      await press("my-reports-row");
       expect(mockPush).toHaveBeenCalledWith("/my-reports");
     });
 
-    it("no 'See all' with three reports or fewer", async () => {
-      useFeltQueueStore.setState({
-        hasHydrated: true,
-        items: [1, 2, 3].map((n) => makeQueueItem(`r${n}`, 1_700_000_000_000 + n)),
-      });
+    it("with no reports the row still opens the list page (which shows the empty card)", async () => {
       await renderWithProviders(<ProfileScreen />);
-      expect(screen.queryByTestId("my-reports-see-all")).toBeNull();
+      expect(screen.getByText("My reports")).toBeTruthy();
+      expect(screen.getByText("0")).toBeTruthy();
+      expect(screen.queryByTestId("reports-empty")).toBeNull();
+      await press("my-reports-row");
+      expect(mockPush).toHaveBeenCalledWith("/my-reports");
+    });
+
+    it("does not show a count before the persisted queue has hydrated", async () => {
+      useFeltQueueStore.setState({ hasHydrated: false, items: [] });
+      await renderWithProviders(<ProfileScreen />);
+      expect(screen.getByTestId("my-reports-row")).toBeTruthy();
+      expect(screen.queryByText("0")).toBeNull();
     });
 
     it("no longer holds My location or Notifications (they moved to Settings)", async () => {

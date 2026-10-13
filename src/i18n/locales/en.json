@@ -1600,7 +1600,6 @@
     },
     "reports": {
       "title": "My reports",
-      "seeAll": "See all",
       "empty": "No reports yet."
     },
     "location": {
