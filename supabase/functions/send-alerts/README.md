@@ -13,14 +13,30 @@ Supabase Edge Function (Deno) that delivers earthquake alerts (migration
   Expo `DeviceNotRegistered` switch the device off.
 - It takes no targeting input, so calling it can only drain the queue sooner.
 
+## Health and the key self-check
+
+`GET` (or `POST {"health": true}`) answers
+`{"data": {"requestId", "mode", "keys"}}` and does nothing else. `mode` is the
+rollout (`off` | `testers` | `public`); `keys` is `ok`, `mismatch` or
+`missing`, never a key value:
+
+- the public key is derived from `VAPID_PRIVATE_KEY` (P-256, uncompressed
+  point, base64url, `vapid-check.ts`) and compared with `VAPID_PUBLIC_KEY`
+  and with the key the app subscribes with (`app-key.ts`, the one copy;
+  a test checks `scripts/build-app-web.sh` and `netlify.toml` carry it too);
+- on `mismatch` or `missing` a send is refused before anything is planned or
+  claimed (`500 vapid_keys` / `misconfigured`), so the queue simply waits.
+
 ## Deploy
 
 ```
 supabase functions deploy send-alerts --no-verify-jwt
 ```
 
-Files: `index.ts`, `run.ts`, `plan.ts`, `senders.ts`, `message.ts`,
-`strings.ts`, `gazetteer-data.ts`.
+Entrypoint: `index.ts` (Deno wiring only). It imports `handler.ts`,
+`run.ts`, `plan.ts`, `senders.ts`, `message.ts`, `strings.ts`,
+`gazetteer-data.ts`, `vapid-check.ts` and `app-key.ts`, all by relative path,
+so a wrapper that imports `index.ts` from a pinned commit needs nothing else.
 
 Secrets: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
 (`mailto:dev@bumelerze.com`); optional `EXPO_ACCESS_TOKEN`. Without the VAPID
@@ -38,4 +54,6 @@ Kurdistan (Iraq)"), never a provider's.
 ## Tests
 
 `npx jest supabase/functions/send-alerts`: message text in four languages,
-status mapping, endpoint allowlist, Expo tickets, batching, malformed plans.
+status mapping, endpoint allowlist, Expo tickets, batching, malformed plans,
+the key self-check against Node's own P-256 derivation, the health answer and
+the refusal on mismatch, and a testers-mode dry run of a regional event.
