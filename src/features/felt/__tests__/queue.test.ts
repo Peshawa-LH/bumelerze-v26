@@ -684,3 +684,92 @@ describe("reconcileSubmittedReports (reports removed on the server)", () => {
     expect(queue.useFeltQueueStore.getState().items).toHaveLength(1);
   });
 });
+
+describe("details added before the first part reached the server (review note 3.1)", () => {
+  const REGISTRATION = {
+    provider: "usgs" as const,
+    providerId: "us7000urmia",
+    originTime: Date.UTC(2026, 9, 13, 13, 50),
+    lat: 37.5,
+    lon: 45.1,
+    depthKm: 10,
+    magnitude: 4.6,
+    magType: "mb",
+    placeName: "Urmia",
+  };
+
+  it("sends the first part (with its event) before the details when the first try failed", async () => {
+    const { enqueueTier1Report, enqueueTier2Report, processQueue, useFeltQueueStore } =
+      loadQueue();
+    const calls: string[] = [];
+    let tier1Online = false;
+    const transport = {
+      submitTier1: jest.fn(async (report: { reportId: string; eventRegistration: unknown }) => {
+        calls.push(`tier1:${JSON.stringify(report.eventRegistration)}`);
+        return tier1Online
+          ? { outcome: "submitted" as const, serverReportId: report.reportId }
+          : { outcome: "failed" as const, retryable: true };
+      }),
+      submitTier2: jest.fn(async (report: { detailId: string }) => {
+        calls.push("tier2");
+        return { outcome: "submitted" as const, serverReportId: report.detailId };
+      }),
+    };
+
+    const tier1 = await enqueueTier1Report(
+      { cartoonLevel: 5, location: SAMPLE_LOCATION, eventId: "us7000urmia", eventRegistration: REGISTRATION },
+      transport,
+    );
+    await waitFor(() => itemState(useFeltQueueStore, tier1.reportId) === "failed");
+
+    tier1Online = true;
+    await enqueueTier2Report(
+      { feltReportId: tier1.reportId, answers: EMPTY_ANSWERS },
+      transport,
+    );
+    await waitFor(() => itemState(useFeltQueueStore, tier1.reportId) === "submitted");
+    await processQueue(transport);
+
+    expect(calls).toEqual([
+      `tier1:${JSON.stringify(REGISTRATION)}`,
+      `tier1:${JSON.stringify(REGISTRATION)}`,
+      "tier2",
+    ]);
+    const item = useFeltQueueStore.getState().items[0];
+    expect(item?.tier1.submittedAt).not.toBeNull();
+    expect(item?.tier1.eventRegistration).toEqual(REGISTRATION);
+  });
+
+  it("does not mark details as sent when they were attached while the first part was in flight", async () => {
+    const { enqueueTier1Report, enqueueTier2Report, useFeltQueueStore } = loadQueue();
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const transport = {
+      submitTier1: jest.fn(async (report: { reportId: string }) => {
+        await gate;
+        return { outcome: "submitted" as const, serverReportId: report.reportId };
+      }),
+      submitTier2: jest.fn(async (report: { detailId: string }) => ({
+        outcome: "submitted" as const,
+        serverReportId: report.detailId,
+      })),
+    };
+
+    const tier1 = await enqueueTier1Report(
+      { cartoonLevel: 5, location: SAMPLE_LOCATION, eventId: "us7000urmia", eventRegistration: REGISTRATION },
+      transport,
+    );
+    expect(itemState(useFeltQueueStore, tier1.reportId)).toBe("syncing");
+    await enqueueTier2Report(
+      { feltReportId: tier1.reportId, answers: { ...EMPTY_ANSWERS, comment: "Shook hard." } },
+      transport,
+    );
+
+    release();
+    await waitFor(() => transport.submitTier2.mock.calls.length === 1);
+    await waitFor(() => itemState(useFeltQueueStore, tier1.reportId) === "submitted");
+    expect(transport.submitTier1).toHaveBeenCalledTimes(1);
+  });
+});

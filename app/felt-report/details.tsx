@@ -15,7 +15,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { enqueueTier2Report, useTier2DraftStore } from "@/features/felt";
+import { enqueueTier2Report, useCloseFeltFlow, useTier2DraftStore } from "@/features/felt";
 import { useTheme } from "@/theme";
 
 /**
@@ -43,6 +43,7 @@ export default function DetailsReportScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const closeFlow = useCloseFeltFlow();
 
   const answers = useTier2DraftStore((state) => state.answers);
   const setAnswer = useTier2DraftStore((state) => state.setAnswer);
@@ -112,11 +113,7 @@ export default function DetailsReportScreen() {
 
   function handleClose() {
     resetDraft();
-    if (router.canDismiss()) {
-      router.dismiss();
-    } else {
-      router.back();
-    }
+    closeFlow();
   }
 
   return (

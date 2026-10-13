@@ -29,7 +29,13 @@ const mockDismiss = jest.fn();
  * between tests. */
 let mockSearchParams: Record<string, string | undefined> = {};
 
+const mockCloseFlow = jest.fn();
+
 jest.mock("expo-router", () => ({
+  // The flow closes through its parent stack entry (useCloseFeltFlow).
+  useNavigation: () => ({
+    getParent: () => ({ canGoBack: () => true, goBack: mockCloseFlow }),
+  }),
   useLocalSearchParams: () => mockSearchParams,
   useRouter: () => ({
     push: mockPush,

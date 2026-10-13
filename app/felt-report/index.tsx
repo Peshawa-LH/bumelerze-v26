@@ -15,6 +15,7 @@ import { placeDisplayName } from "@/features/geo";
 import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { useTheme } from "@/theme";
 import {
+  useCloseFeltFlow,
   CARTOON_LEVELS,
   decodeEventRegistrationParam,
   enqueueTier1Report,
@@ -53,6 +54,7 @@ export default function Tier1FeltReportScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const closeFlow = useCloseFeltFlow();
 
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
   const { location, isGps, manualPlace, setManualPlace } = useFeltLocation();
@@ -90,11 +92,7 @@ export default function Tier1FeltReportScreen() {
   }
 
   function handleClose() {
-    if (router.canDismiss()) {
-      router.dismiss();
-    } else {
-      router.back();
-    }
+    closeFlow();
   }
 
   const manualPlaceName = placeDisplayName(manualPlace, i18n.language);

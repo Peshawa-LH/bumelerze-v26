@@ -18,7 +18,13 @@ const mockCanDismiss = jest.fn(() => false);
 const mockDismiss = jest.fn();
 const routeParams = { feltReportId: "unset", eventId: "evt-1" };
 
+const mockCloseFlow = jest.fn();
+
 jest.mock("expo-router", () => ({
+  // The flow closes through its parent stack entry (useCloseFeltFlow).
+  useNavigation: () => ({
+    getParent: () => ({ canGoBack: () => true, goBack: mockCloseFlow }),
+  }),
   useLocalSearchParams: () => routeParams,
   useRouter: () => ({
     back: mockBack,
@@ -85,7 +91,7 @@ describe("Shared done screen", () => {
     expect(screen.getByText(i18n.t("felt.done.queuedMessage"))).toBeTruthy();
   });
 
-  it("Close dismisses the modal", async () => {
+  it("Close leaves the whole flow (not just this screen)", async () => {
     const tier1 = await enqueueTier1Report({
       cartoonLevel: 4,
       location: SAMPLE_LOCATION,
@@ -99,6 +105,7 @@ describe("Shared done screen", () => {
     });
 
     fireEvent.press(screen.getByRole("button", { name: i18n.t("felt.done.close") }));
-    expect(mockDismiss).toHaveBeenCalled();
+    expect(mockCloseFlow).toHaveBeenCalledTimes(1);
+    expect(mockDismiss).not.toHaveBeenCalled();
   });
 });

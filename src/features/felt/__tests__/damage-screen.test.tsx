@@ -18,7 +18,13 @@ const mockBack = jest.fn();
 const mockCanDismiss = jest.fn(() => false);
 const mockDismiss = jest.fn();
 
+const mockCloseFlow = jest.fn();
+
 jest.mock("expo-router", () => ({
+  // The flow closes through its parent stack entry (useCloseFeltFlow).
+  useNavigation: () => ({
+    getParent: () => ({ canGoBack: () => true, goBack: mockCloseFlow }),
+  }),
   useLocalSearchParams: () => ({ feltReportId: "report-1", eventId: "evt-1" }),
   useRouter: () => ({
     push: mockPush,

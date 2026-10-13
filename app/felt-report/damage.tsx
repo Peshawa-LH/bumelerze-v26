@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/theme";
 import {
+  useCloseFeltFlow,
   BUILDING_DAMAGE_GRADES,
   DAMAGE_ARTWORK,
   DAMAGE_TYPOLOGIES,
@@ -36,6 +37,7 @@ export default function DamageReportScreen() {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const closeFlow = useCloseFeltFlow();
 
   const initDraft = useTier2DraftStore((state) => state.initDraft);
   const setAnswer = useTier2DraftStore((state) => state.setAnswer);
@@ -76,11 +78,7 @@ export default function DamageReportScreen() {
   }
 
   function handleClose() {
-    if (router.canDismiss()) {
-      router.dismiss();
-    } else {
-      router.back();
-    }
+    closeFlow();
   }
 
   return (

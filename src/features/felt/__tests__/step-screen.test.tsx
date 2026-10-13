@@ -28,7 +28,13 @@ const routeParams: { step: string; feltReportId: string; eventId?: string } = {
   eventId: "evt-1",
 };
 
+const mockCloseFlow = jest.fn();
+
 jest.mock("expo-router", () => ({
+  // The flow closes through its parent stack entry (useCloseFeltFlow).
+  useNavigation: () => ({
+    getParent: () => ({ canGoBack: () => true, goBack: mockCloseFlow }),
+  }),
   useLocalSearchParams: () => routeParams,
   useRouter: () => ({
     push: mockPush,

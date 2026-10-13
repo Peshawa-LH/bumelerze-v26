@@ -1,9 +1,9 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useQueueItemState } from "@/features/felt";
+import { useCloseFeltFlow, useQueueItemState } from "@/features/felt";
 import { FeltSafeCard } from "@/features/safe/components/FeltSafeCard";
 import { useTheme } from "@/theme";
 
@@ -27,15 +27,11 @@ export default function FeltReportDoneScreen() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const closeFlow = useCloseFeltFlow();
   const queueState = useQueueItemState(feltReportId ?? null);
 
   function handleClose() {
-    if (router.canDismiss()) {
-      router.dismiss();
-    } else {
-      router.back();
-    }
+    closeFlow();
   }
 
   return (

@@ -401,16 +401,43 @@ export async function processQueue(
         _patchItem(reportId, { state: "syncing", lastAttemptAt: Date.now() });
 
         try {
-          const result = item.tier2
-            ? await transport.submitTier2(item.tier2)
-            : await transport.submitTier1(item.tier1);
+          let result: TransportResult;
+          if (item.tier2 && item.tier1.submittedAt === null) {
+            // Details were added before the first part ever reached the
+            // server (offline at the tap, or its first try failed). Send the
+            // first part FIRST: the details row needs it to exist, and only
+            // the first part carries the event link (review note 3.1).
+            result = await transport.submitTier1(item.tier1);
+            if (result.outcome === "submitted") {
+              _patchItem(reportId, {
+                tier1: { ...item.tier1, submittedAt: Date.now() },
+              });
+              result = await transport.submitTier2(item.tier2);
+            }
+          } else {
+            result = item.tier2
+              ? await transport.submitTier2(item.tier2)
+              : await transport.submitTier1(item.tier1);
+          }
 
           if (result.outcome === "submitted") {
+            // Details attached WHILE this send was in flight must not be
+            // marked as sent with it: keep the item queued and go round once
+            // more (the attach's own processQueue call was folded into
+            // `rerunRequested` because this pass held the lock).
+            const current = useFeltQueueStore
+              .getState()
+              .items.find((entry) => entry.tier1.reportId === reportId);
+            const detailsArrivedMeanwhile =
+              current?.tier2 != null && current.tier2 !== item.tier2;
             _patchItem(reportId, {
-              state: "submitted",
+              state: detailsArrivedMeanwhile ? "queued" : "submitted",
               tier1: { ...item.tier1, submittedAt: Date.now() },
               nextRetryAt: null,
             });
+            if (detailsArrivedMeanwhile) {
+              rerunRequested = true;
+            }
           } else if (result.outcome === "awaiting-backend") {
             _patchItem(reportId, { state: "awaiting-backend", nextRetryAt: null });
           } else {
