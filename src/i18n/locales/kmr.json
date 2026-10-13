@@ -657,31 +657,39 @@
     "stops": {
       "home": {
         "title": "Erdhejên nêzîkî te",
-        "body": "Erdhejên herî nû yên Kurdistan û derdora wê. Li yekê bitikîne ji bo hûrgiliyan."
+        "body": "Erdhejên herî nû yên Kurdistanê û derdora wê; li yekê bitikîne ji bo hûrgiliyan."
       },
       "felt": {
-        "title": "Te hîs kir? Yek tikandin.",
-        "body": "Ji me re bêje te çi hîs kir. Heke bixwazî, paşê hûrgilî lê zêde bike."
+        "title": "Ezmûna xwe bi yek pêlêkirinê parve bike",
+        "body": "Tiştê ku te hîs kir hilbijêre; paşê dikarî hûrgiliyan lê zêde bikî."
+      },
+      "safe": {
+        "title": "Ez ewle me û mala malbata te",
+        "body": "Bi yek pêlêkirinê tu ji endamên mala malbata xwe re dibêjî ku tu ewle yî."
       },
       "hub": {
-        "title": "Bibîne kî hîs kir",
-        "body": "Ji bo her erdhejê: tiştê yên din hîs kirine, bandor û şîrove."
+        "title": "Navendên bûyerê û Tora Bumelerze",
+        "body": "Navenda her erdhejê nîşan dide ka mirovan çi hîs kir, bandor û şîroveyên Tora Bumelerze."
       },
       "map": {
         "title": "Nexşe û SHAKEmap",
         "body": "Erdhej, nexşeyên lerzînê û faylt li ser yek nexşeyê."
       },
+      "catalog": {
+        "title": "Katalog û dîrok",
+        "body": "1150 sal erdhejên herêmê bibîne, ji sala 872an heta îro."
+      },
       "sensor": {
         "title": "Telefona te wekî sismometre",
-        "body": "Tevgera telefona xwe rasterast bibîne, û stasyonên sismolojîk ên nêzîk."
+        "body": "Tevgera telefona xwe rasterast bibîne, û xwendinên stasyonên sismolojîk ên nêzîk."
       },
       "safety": {
-        "title": "Amade be",
-        "body": "Beriya erdhejê, di dema wê de û piştî wê çi bikî. Di Sazkariyê de, di bin «Rêbera ewlehiyê» de bibîne."
+        "title": "Amade be: rêbera ewlehiyê û Avahiya min tomar bike",
+        "body": "«Rêbera ewlehiyê» di Sazkariyê de ye, û «Avahiya min tomar bike» di Profîlê de texmînek ewlehiyê ji avahiya te re dide."
       },
-      "account": {
-        "title": "Profîl û avahiya te",
-        "body": "Bi dilê xwe, di Profîlê de: nîşan, profîl û «Avahiya min tomar bike» ji bo texmînek ewlehiyê."
+      "handbook": {
+        "title": "Pirtûka endezyar",
+        "body": "Nirxên sêwiranê ji bo endezyaran, di Sazkariyê de."
       },
       "share": {
         "title": "Erdhejekê parve bike",

@@ -657,31 +657,39 @@
     "stops": {
       "home": {
         "title": "Earthquakes near you",
-        "body": "The latest earthquakes in and around Kurdistan. Tap one for the details."
+        "body": "The latest earthquakes in and around Kurdistan; tap one for the details."
       },
       "felt": {
-        "title": "Felt it? One tap.",
-        "body": "Tell us what you felt. Add details later if you like."
+        "title": "Share your experience in one tap",
+        "body": "Tap what you felt; you can add details later."
+      },
+      "safe": {
+        "title": "I'm safe and your family home",
+        "body": "One tap tells the people in your family home that you are safe."
       },
       "hub": {
-        "title": "See who felt it",
-        "body": "What others felt, the impact and comments, for each earthquake."
+        "title": "Event hubs and the Bumelerze Network",
+        "body": "Each earthquake's hub shows what people felt, the impact, and comments from the Bumelerze Network."
       },
       "map": {
         "title": "Maps and SHAKEmaps",
         "body": "Earthquakes, shaking maps and fault lines on one map."
       },
+      "catalog": {
+        "title": "Catalogue and history",
+        "body": "Browse 1,150 years of earthquakes in the region, from the year 872 to today."
+      },
       "sensor": {
         "title": "Your phone as a seismometer",
-        "body": "Watch your phone's motion live, and nearby seismic stations."
+        "body": "Watch your phone's motion live, and readings from nearby seismic stations."
       },
       "safety": {
-        "title": "Be ready",
-        "body": "What to do before, during and after an earthquake. Find it in Settings, under Safety guide."
+        "title": "Be ready: safety guide and Tag my building",
+        "body": "The Safety guide is in Settings, and Tag my building in Profile gives your building a safety estimate."
       },
-      "account": {
-        "title": "Your profile and building",
-        "body": "Optional, in Profile: badges, your profile, and Tag my building for a safety estimate."
+      "handbook": {
+        "title": "Engineer's handbook",
+        "body": "Design values for engineers, in Settings."
       },
       "share": {
         "title": "Share an earthquake",

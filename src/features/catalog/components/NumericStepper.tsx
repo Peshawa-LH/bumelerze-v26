@@ -17,6 +17,9 @@ interface NumericStepperProps {
   incrementA11yLabel: string;
   /** Decimal places a typed value is rounded to (0 = whole numbers). */
   decimals?: number;
+  /** False shows the value without letting it be typed into (the tour's
+   * still preview). */
+  editable?: boolean;
   testID?: string;
 }
 
@@ -51,6 +54,7 @@ export function NumericStepper({
   decrementA11yLabel,
   incrementA11yLabel,
   decimals = 0,
+  editable = true,
   testID,
 }: NumericStepperProps) {
   const { colors, typography, spacing } = useTheme();
@@ -137,6 +141,7 @@ export function NumericStepper({
           testID={testID}
           accessibilityLabel={label}
           allowFontScaling
+          editable={editable}
           value={draft ?? formatValue(value)}
           onFocus={() => setDraft(formatValue(value))}
           onChangeText={setDraft}

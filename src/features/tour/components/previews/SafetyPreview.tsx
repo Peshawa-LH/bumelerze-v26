@@ -2,6 +2,9 @@ import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
+import { SettingsGroup } from "@/features/account/components/SettingsGroup";
+import { SettingsRow } from "@/features/account/components/SettingsRow";
+
 import {
   SAFETY_ARTWORK,
   safetyCardTitleKey,
@@ -10,7 +13,7 @@ import {
 } from "@/features/safety";
 import { useTheme } from "@/theme";
 
-/** One guide from each tab: before, during and after. */
+/** One guide from before and one from during an earthquake. */
 const SAMPLE_GUIDES: readonly {
   section: SafetySectionId;
   cardId: string;
@@ -18,10 +21,10 @@ const SAMPLE_GUIDES: readonly {
 }[] = [
   { section: "prepare", cardId: "emergencyKit", image: "emergencyKit" },
   { section: "survive", cardId: "dropCoverHold", image: "dropCoverHold" },
-  { section: "recover", cardId: "aftershocks", image: "aftershocks" },
 ];
 
-/** Safety: three guide rows with their artwork, as in the Safety guide. */
+/** Be ready: two Safety guide rows with their artwork, then the "Tag my
+ * building" row as it appears on the Profile page. */
 export function SafetyPreview() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -68,6 +71,9 @@ export function SafetyPreview() {
           </View>
         </View>
       ))}
+      <SettingsGroup>
+        <SettingsRow icon="home-outline" label={t("building.title")} />
+      </SettingsGroup>
     </View>
   );
 }

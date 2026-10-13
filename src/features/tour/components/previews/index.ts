@@ -1,11 +1,13 @@
 import type { ComponentType } from "react";
 
 import type { TourStopId } from "../../stops";
-import { AccountPreview } from "./AccountPreview";
+import { CatalogPreview } from "./CatalogPreview";
 import { FeltPreview } from "./FeltPreview";
+import { HandbookPreview } from "./HandbookPreview";
 import { HomePreview } from "./HomePreview";
 import { HubPreview } from "./HubPreview";
 import { MapPreview } from "./MapPreview";
+import { SafePreview } from "./SafePreview";
 import { SafetyPreview } from "./SafetyPreview";
 import { SensorPreview } from "./SensorPreview";
 import { SharePreview } from "./SharePreview";
@@ -14,10 +16,12 @@ import { SharePreview } from "./SharePreview";
 export const TOUR_PREVIEWS: Record<TourStopId, ComponentType> = {
   home: HomePreview,
   felt: FeltPreview,
+  safe: SafePreview,
   hub: HubPreview,
   map: MapPreview,
+  catalog: CatalogPreview,
   sensor: SensorPreview,
   safety: SafetyPreview,
-  account: AccountPreview,
+  handbook: HandbookPreview,
   share: SharePreview,
 };

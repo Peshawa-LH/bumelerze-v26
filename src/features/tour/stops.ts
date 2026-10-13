@@ -5,15 +5,21 @@
  * catalogs, and its picture is a live preview component looked up by id in
  * `components/previews`. One list, so the screen, the progress dots and the
  * tests can never disagree about count or order.
+ *
+ * Ten stops since review note 12.1 (2026-10-13): I'm safe + family home,
+ * catalogue + history and the engineer's handbook were added, and Tag my
+ * building moved into "Be ready" (the profile/badges stop was dropped).
  */
 export const TOUR_STOP_IDS = [
   "home",
   "felt",
+  "safe",
   "hub",
   "map",
+  "catalog",
   "sensor",
   "safety",
-  "account",
+  "handbook",
   "share",
 ] as const;
 

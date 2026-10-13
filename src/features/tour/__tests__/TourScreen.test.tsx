@@ -37,14 +37,17 @@ function renderTour(ui: ReactElement = <TourScreen />) {
   return render(<SafeAreaProvider initialMetrics={metrics}>{ui}</SafeAreaProvider>);
 }
 
+/** Review note 12.1 (2026-10-13): ten stops, in this order. */
 const EXPECTED_ORDER = [
   "home",
   "felt",
+  "safe",
   "hub",
   "map",
+  "catalog",
   "sensor",
   "safety",
-  "account",
+  "handbook",
   "share",
 ];
 
@@ -73,31 +76,103 @@ describe("app tour", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("has the eight stops in the agreed order, each with a title and a line in every language", () => {
+  it("has the ten stops in the agreed order, each with a title and one short sentence in every language", () => {
     expect([...TOUR_STOP_IDS]).toEqual(EXPECTED_ORDER);
-    for (const id of EXPECTED_ORDER) {
-      const stops = en.tour.stops as Record<string, { title: string; body: string }>;
-      expect(stops[id]?.title.length).toBeGreaterThan(0);
-      expect(stops[id]?.body.length).toBeGreaterThan(0);
+    for (const catalog of [en, ckb, kmr, ar] as const) {
+      const stops = catalog.tour.stops as Record<string, { title: string; body: string }>;
+      expect(Object.keys(stops)).toEqual(EXPECTED_ORDER);
+      for (const id of EXPECTED_ORDER) {
+        expect(stops[id]?.title.length).toBeGreaterThan(0);
+        const body = stops[id]?.body ?? "";
+        expect(body.length).toBeGreaterThan(0);
+        // One sentence: a single full stop, at the end.
+        expect(body.replace(/[.\u06d4]$/, "")).not.toMatch(/[.\u06d4]\s/);
+      }
     }
   });
 
-  it("points at where things live now: Safety guide in Settings, the account in Profile (D79)", () => {
+  it("uses the website's names for things (review note 12.1)", () => {
+    const stops = en.tour.stops as Record<string, { title: string; body: string }>;
+    expect(stops.felt?.title).toBe("Share your experience in one tap");
+    expect(stops.hub?.title).toBe("Event hubs and the Bumelerze Network");
+    expect(stops.catalog?.body).toContain("1,150 years");
+    expect(stops.map?.title).toContain("SHAKEmaps");
+    for (const catalog of [en, ckb, kmr, ar] as const) {
+      const text = JSON.stringify(catalog.tour.stops);
+      expect(text).not.toMatch(/Did you feel it|ShakeMap/);
+    }
+    // Sorani: Bumelerze Network = تۆڕی بوومەلەرزە; Sorani and Arabic write the
+    // years in Eastern Arabic-Indic digits.
+    const ckbStops = ckb.tour.stops as Record<string, { title: string; body: string }>;
+    const arStops = ar.tour.stops as Record<string, { title: string; body: string }>;
+    expect(ckbStops.hub?.title).toContain("تۆڕی بوومەلەرزە");
+    for (const body of [ckbStops.catalog?.body, arStops.catalog?.body]) {
+      expect(body).toContain("١١٥٠");
+      expect(body).toContain("٨٧٢");
+      expect(body).not.toMatch(/[0-9]/);
+    }
+  });
+
+  it("points at where things live now: Safety guide and handbook in Settings, Tag my building in Profile (D79)", () => {
     const stops = (catalog: typeof en) =>
       catalog.tour.stops as Record<string, { title: string; body: string }>;
-    // English names both places outright.
+    // English names the places outright.
     expect(stops(en).safety?.body).toContain("Settings");
     expect(stops(en).safety?.body).toContain("Safety guide");
-    expect(stops(en).account?.title).toContain("profile");
-    expect(stops(en).account?.body).toContain("Profile");
+    expect(stops(en).safety?.body).toContain("Tag my building");
+    expect(stops(en).safety?.body).toContain("Profile");
+    expect(stops(en).handbook?.body).toContain("Settings");
     // Nowhere does a stop send the reader to a tab or page that is gone.
     for (const catalog of [en, ckb, kmr, ar] as const) {
       const text = JSON.stringify(catalog.tour.stops);
       expect(text).not.toMatch(/My account|Safety tab/i);
     }
-    // Every language names the Profile page the same way as its tab label.
-    expect(stops(ckb as typeof en).account?.body).toContain(ckb.tabs.profile);
-    expect(stops(kmr as typeof en).account?.body).toContain(kmr.tabs.profile);
+    // Every language names the Profile page and Settings as its tabs do, and
+    // Tag my building as its own row does.
+    for (const catalog of [ckb, kmr, ar] as const) {
+      const body = stops(catalog as unknown as typeof en).safety?.body ?? "";
+      expect(body).toContain(catalog.tabs.profile);
+      expect(body).toContain(catalog.building.title);
+      // (Kurmanji inflects Sazkarî to Sazkariyê, hence the stem.)
+      expect(stops(catalog as unknown as typeof en).handbook?.body).toContain(
+        catalog.tabs.settings.slice(0, 5),
+      );
+    }
+  });
+
+  it("draws each new or changed stop with the part of the app it is about", async () => {
+    await renderTour();
+    const hidden = { includeHiddenElements: true } as const;
+    // What each stop's preview must show (real components and strings).
+    const expectations: Partial<Record<string, () => void>> = {
+      safe: () => {
+        expect(screen.getByText("I'm safe", hidden)).toBeTruthy();
+        expect(screen.getByText("Family status", hidden)).toBeTruthy();
+      },
+      hub: () => {
+        expect(screen.getByText("Who felt it?", hidden)).toBeTruthy();
+        expect(screen.getByText("Bumelerze", hidden)).toBeTruthy();
+      },
+      catalog: () => {
+        expect(screen.getByDisplayValue("872", hidden)).toBeTruthy();
+        expect(
+          screen.getByDisplayValue(String(new Date().getFullYear()), hidden),
+        ).toBeTruthy();
+      },
+      safety: () => {
+        expect(screen.getByText("Tag my building", hidden)).toBeTruthy();
+      },
+      handbook: () => {
+        // Once in the preview, once as the stop's title.
+        expect(screen.getAllByText("Engineer's handbook", hidden)).toHaveLength(2);
+      },
+    };
+    for (const id of EXPECTED_ORDER) {
+      expectations[id]?.();
+      if (id !== "share") {
+        await next();
+      }
+    }
   });
 
   it("starts on the first stop with Next and Skip, and no Back", async () => {
@@ -106,7 +181,7 @@ describe("app tour", () => {
     expect(screen.getByTestId("tour-next")).toBeTruthy();
     expect(screen.getByTestId("tour-skip")).toBeTruthy();
     expect(screen.queryByTestId("tour-back")).toBeNull();
-    expect(screen.getByLabelText("Step 1 of 8")).toBeTruthy();
+    expect(screen.getByLabelText("Step 1 of 10")).toBeTruthy();
   });
 
   it("walks forward through every stop in order and back again", async () => {
@@ -117,10 +192,10 @@ describe("app tour", () => {
         await next();
       }
     }
-    expect(screen.getByLabelText("Step 8 of 8")).toBeTruthy();
+    expect(screen.getByLabelText("Step 10 of 10")).toBeTruthy();
 
     await fireEvent.press(screen.getByTestId("tour-back"));
-    expect(screen.getByText(titleOf("account"))).toBeTruthy();
+    expect(screen.getByText(titleOf("handbook"))).toBeTruthy();
     await fireEvent.press(screen.getByTestId("tour-back"));
     expect(screen.getByText(titleOf("safety"))).toBeTruthy();
   });
@@ -184,7 +259,7 @@ describe("app tour", () => {
     for (let step = 0; step < EXPECTED_ORDER.length; step += 1) {
       expect(screen.queryByText(/^tour\./)).toBeNull();
       expect(
-        screen.queryByText(/^(felt|eventHub|safety|share|building|sensor)\./),
+        screen.queryByText(/^(felt|eventHub|safety|share|building|sensor|imSafe|catalog|handbook)\./),
       ).toBeNull();
       await next();
     }
@@ -199,14 +274,14 @@ describe("app tour", () => {
       expect(screen.getByText(titleOf(id, ckb as unknown as typeof en))).toBeTruthy();
       expect(screen.queryByText(/^tour\./)).toBeNull();
       expect(
-        screen.queryByText(/^(felt|eventHub|safety|share|building|sensor)\./),
+        screen.queryByText(/^(felt|eventHub|safety|share|building|sensor|imSafe|catalog|handbook)\./),
       ).toBeNull();
       if (id !== "share") {
         await next();
       }
     }
     // Sorani digits in the progress label, last button in Sorani.
-    expect(screen.getByLabelText("هەنگاوی ٨ لە ٨")).toBeTruthy();
+    expect(screen.getByLabelText("هەنگاوی ١٠ لە ١٠")).toBeTruthy();
     expect(screen.getByText(ckb.tour.finish)).toBeTruthy();
   });
 });

@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 import { DonutChart, type DonutSlice } from "@/components/DonutChart";
+import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { useTheme } from "@/theme";
 
 import { StaticPill } from "../StaticPill";
@@ -14,10 +15,14 @@ const SAMPLE_SHARES: readonly { level: number; value: number }[] = [
   { level: 5, value: 4 },
 ];
 
-/** Event hub: the "Who felt it?" pill, a small felt donut and a comment row. */
+const OFFICIAL_ROLES = [{ role: "official" as const, orgName: null }];
+
+/** Event hub: the "Who felt it?" pill, a small felt donut and a comment
+ * from the Bumelerze Network's official account (name and role mark real,
+ * the text drawn). */
 export function HubPreview() {
   const { t } = useTranslation();
-  const { colors, spacing } = useTheme();
+  const { colors, typography, spacing } = useTheme();
   const slices: DonutSlice[] = SAMPLE_SHARES.map(({ level, value }) => ({
     key: `level-${level}`,
     value,
@@ -54,14 +59,18 @@ export function HubPreview() {
           }}
         />
         <View style={{ flex: 1, gap: spacing[2] }}>
-          <View
-            style={{
-              height: 8,
-              width: "45%",
-              borderRadius: 4,
-              backgroundColor: colors.border.default,
-            }}
-          />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing[1] }}>
+            <Text
+              style={{
+                color: colors.text.primary,
+                fontSize: typography.bodyMeta.fontSize,
+                fontWeight: "700",
+              }}
+            >
+              {t("eventHub.roles.official")}
+            </Text>
+            <RoleMark roles={OFFICIAL_ROLES} />
+          </View>
           <View
             style={{
               height: 8,
