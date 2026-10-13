@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { CATALOG_MAG_STEP, CATALOG_YEAR_STEP } from "../config";
+import { CATALOG_FIRST_YEAR, catalogCurrentYear } from "../filter-input";
 import { formatCatalogYear } from "../format";
 import {
   CATALOG_SOURCES,
@@ -41,6 +42,11 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
   const locale = i18n.language;
   const { colors, typography, spacing } = useTheme();
 
+  // Years: from the catalogue's first event (AD 872) to this year, whatever
+  // the bundled data happens to end at, so a typed "2026" is never refused.
+  const yearFloor = CATALOG_FIRST_YEAR;
+  const yearCeiling = Math.max(catalogCurrentYear(), bounds.yearMax);
+
   function formatMag(value: number): string {
     return localizeDigits(value.toFixed(1), locale);
   }
@@ -67,6 +73,8 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
           max={values.magMax}
           step={CATALOG_MAG_STEP}
           formatValue={formatMag}
+          decimals={1}
+          testID="catalog-filter-mag-min"
           onChange={(next) => onChange({ ...values, magMin: next })}
           decrementA11yLabel={t("catalog.filters.decrement")}
           incrementA11yLabel={t("catalog.filters.increment")}
@@ -78,6 +86,8 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
           max={bounds.magMax}
           step={CATALOG_MAG_STEP}
           formatValue={formatMag}
+          decimals={1}
+          testID="catalog-filter-mag-max"
           onChange={(next) => onChange({ ...values, magMax: next })}
           decrementA11yLabel={t("catalog.filters.decrement")}
           incrementA11yLabel={t("catalog.filters.increment")}
@@ -88,10 +98,11 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
         <NumericStepper
           label={t("catalog.filters.yearMinLabel")}
           value={values.yearMin}
-          min={bounds.yearMin}
+          min={yearFloor}
           max={values.yearMax}
           step={CATALOG_YEAR_STEP}
           formatValue={(v) => formatCatalogYear(v, locale)}
+          testID="catalog-filter-year-min"
           onChange={(next) => onChange({ ...values, yearMin: next })}
           decrementA11yLabel={t("catalog.filters.decrement")}
           incrementA11yLabel={t("catalog.filters.increment")}
@@ -100,9 +111,10 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
           label={t("catalog.filters.yearMaxLabel")}
           value={values.yearMax}
           min={values.yearMin}
-          max={bounds.yearMax}
+          max={yearCeiling}
           step={CATALOG_YEAR_STEP}
           formatValue={(v) => formatCatalogYear(v, locale)}
+          testID="catalog-filter-year-max"
           onChange={(next) => onChange({ ...values, yearMax: next })}
           decrementA11yLabel={t("catalog.filters.decrement")}
           incrementA11yLabel={t("catalog.filters.increment")}

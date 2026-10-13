@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useTheme } from "@/theme";
+
+import { parseFilterInput } from "../filter-input";
 
 interface NumericStepperProps {
   label: string;
@@ -13,6 +15,9 @@ interface NumericStepperProps {
   onChange: (value: number) => void;
   decrementA11yLabel: string;
   incrementA11yLabel: string;
+  /** Decimal places a typed value is rounded to (0 = whole numbers). */
+  decimals?: number;
+  testID?: string;
 }
 
 /** Press-and-hold repeat delay/interval (ms) — starts slow so a single tap
@@ -23,6 +28,12 @@ const HOLD_REPEAT_START_DELAY_MS = 400;
 const HOLD_REPEAT_INTERVAL_MS = 90;
 
 /**
+ * The value in the middle is also a text box (review note 9.1): type a
+ * number on the numeric keypad, in ASCII or Eastern Arabic-Indic digits
+ * (٤٫٥ as well as 4.5); it is applied on blur or "done", clamped into
+ * [min, max] and rounded to `decimals`. Anything that is not a number puts
+ * the last good value back.
+ *
  * A boring, big-touch-target −/value/+ control (wave brief: "boring RN
  * controls, big touch targets") shared by the magnitude and year range
  * filters. Supports press-and-hold to repeat-step, since a single-step tap
@@ -39,8 +50,13 @@ export function NumericStepper({
   onChange,
   decrementA11yLabel,
   incrementA11yLabel,
+  decimals = 0,
+  testID,
 }: NumericStepperProps) {
   const { colors, typography, spacing } = useTheme();
+  // Text being typed; null while the box is not being edited (then it shows
+  // the formatted value).
+  const [draft, setDraft] = useState<string | null>(null);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -64,6 +80,17 @@ export function NumericStepper({
     holdTimer.current = setTimeout(() => {
       holdInterval.current = setInterval(() => step_(direction), HOLD_REPEAT_INTERVAL_MS);
     }, HOLD_REPEAT_START_DELAY_MS);
+  }
+
+  function commitDraft() {
+    if (draft === null) {
+      return;
+    }
+    const parsed = parseFilterInput(draft, { min, max, decimals });
+    setDraft(null);
+    if (parsed !== null && parsed !== value) {
+      onChange(parsed);
+    }
   }
 
   function endHold() {
@@ -93,8 +120,6 @@ export function NumericStepper({
           styles.row,
           { borderColor: colors.border.default, gap: spacing[2] },
         ]}
-        accessible
-        accessibilityLabel={`${label}: ${formatValue(value)}`}
       >
         <Pressable
           accessibilityRole="button"
@@ -108,18 +133,28 @@ export function NumericStepper({
             −
           </Text>
         </Pressable>
-        <Text
+        <TextInput
+          testID={testID}
+          accessibilityLabel={label}
           allowFontScaling
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-            fontVariant: ["tabular-nums"],
-            minWidth: 56,
-            textAlign: "center",
-          }}
-        >
-          {formatValue(value)}
-        </Text>
+          value={draft ?? formatValue(value)}
+          onFocus={() => setDraft(formatValue(value))}
+          onChangeText={setDraft}
+          onBlur={commitDraft}
+          onSubmitEditing={commitDraft}
+          keyboardType={decimals > 0 ? "decimal-pad" : "number-pad"}
+          inputMode={decimals > 0 ? "decimal" : "numeric"}
+          returnKeyType="done"
+          selectTextOnFocus
+          maxLength={8}
+          style={[
+            styles.input,
+            {
+              color: colors.text.primary,
+              fontSize: typography.bodyDefault.fontSize,
+            },
+          ]}
+        />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={incrementA11yLabel}
@@ -148,6 +183,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 4,
+  },
+  input: {
+    fontVariant: ["tabular-nums"],
+    minWidth: 56,
+    minHeight: 44,
+    flexShrink: 1,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    textAlign: "center",
   },
   button: {
     minWidth: 44,
