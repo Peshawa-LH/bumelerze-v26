@@ -216,6 +216,17 @@ const MANIFEST: Record<string, Entry> = {
     handling: "cascade",
     why: "the person's check-ins (no location); also purged after 30 days",
   },
+  // I'm safe in the app, withdrawn reports (0064)
+  "safety_settings.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "who the person's check-ins reach (family, mutual follows or followers)",
+  },
+  "felt_reports.withdrawn_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "who withdrew the report; the withdrawn report stays for research, unlinked like the author",
+  },
   // activity, mutes (0061)
   "activity_items.user_id": {
     onDelete: "cascade",
