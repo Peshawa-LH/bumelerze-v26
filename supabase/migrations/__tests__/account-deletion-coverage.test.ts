@@ -358,6 +358,17 @@ const MANIFEST: Record<string, Entry> = {
     handling: "cascade",
     why: "mentions the person made",
   },
+  // hearts on the hub and on comments under posts (0065)
+  "hub_likes.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "hearts the person gave on Event hubs",
+  },
+  "post_comment_likes.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "hearts the person gave on comments under posts",
+  },
 };
 
 interface Found {
