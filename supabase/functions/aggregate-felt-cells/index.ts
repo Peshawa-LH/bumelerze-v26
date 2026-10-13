@@ -61,6 +61,7 @@ import {
 import {
   cellRowUnchanged,
   computeCellRow,
+  emptiedCellRows,
   groupIntoCells,
   isDebounced,
   joinReportsAndDetails,
@@ -108,7 +109,8 @@ async function aggregateOneEvent(
   }
 
   const reports = await fetchReportsForEvent(client, eventId);
-  if (reports.length === 0) {
+  const latestByGeohash = pickLatestPerGeohash(existingRows);
+  if (reports.length === 0 && latestByGeohash.size === 0) {
     return { eventId, debounced: false, cellsComputed: 0, cellsWritten: 0, cellsUnchanged: 0 };
   }
 
@@ -118,10 +120,15 @@ async function aggregateOneEvent(
   );
   const cellReports = joinReportsAndDetails(reports, details);
   const groups = groupIntoCells(cellReports);
-  const latestByGeohash = pickLatestPerGeohash(existingRows);
 
   let written = 0;
   let unchanged = 0;
+  // Cells whose every report was withdrawn (migration 0064): a zero version
+  // replaces the old numbers.
+  for (const emptied of emptiedCellRows(eventId, groups, latestByGeohash)) {
+    await insertCellVersion(client, emptied);
+    written += 1;
+  }
   for (const group of groups) {
     const existing = latestByGeohash.get(group.geohash);
     const nextVersion = existing ? existing.version + 1 : 1;

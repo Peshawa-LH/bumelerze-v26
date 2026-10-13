@@ -33,9 +33,9 @@ export function createServiceRoleClient(): SupabaseClient {
   return createClient(url, serviceRoleKey, { auth: { persistSession: false } });
 }
 
-/** All `felt_reports` rows associated with one event (`event_id is not
+/** All live `felt_reports` rows associated with one event (`event_id is not
  * null` is the DB's own invariant for any row this query returns, since we
- * filter on it). Unassociated reports (`event_id is null`) are out of
+ * filter on it; withdrawn reports, migration 0064, are left out). Unassociated reports (`event_id is null`) are out of
  * scope for `felt_cells`, which is keyed on `event_id` — they simply don't
  * contribute until the (separate, not-this-wave) association job attaches
  * them to an event. */
@@ -46,7 +46,9 @@ export async function fetchReportsForEvent(
   const { data, error } = await client
     .from("felt_reports")
     .select("report_id, device_id, event_id, cartoon_level, lat, lon, geohash_p5")
-    .eq("event_id", eventId);
+    .eq("event_id", eventId)
+    // Migration 0064: a withdrawn report no longer counts anywhere public.
+    .is("withdrawn_at", null);
   if (error) {
     throw new Error(`fetchReportsForEvent(${eventId}): ${error.message}`);
   }
@@ -102,11 +104,12 @@ export async function fetchDetailsForReports(
   if (error) {
     throw new Error(`fetchDetailsForReports: ${error.message}`);
   }
-  return (data ?? []) as FeltReportDetailRow[];
+  return (data ?? []) as unknown as FeltReportDetailRow[];
 }
 
 /** Distinct event ids that have at least one associated felt report whose
- * `submitted_at` falls within the lookback window — the sweep mode's
+ * `submitted_at` (or, since migration 0064, `withdrawn_at` or `restored_at`)
+ * falls within the lookback window — the sweep mode's
  * candidate list (`index.ts`'s "no `eventId` in the request body" branch).
  * Bounded by `sinceHours` specifically so a sweep stays cheap without a
  * dedicated "needs recompute" tracking table (PROJECT.md minimal-ops: no
@@ -121,7 +124,9 @@ export async function fetchEventIdsWithRecentReports(
     .from("felt_reports")
     .select("event_id")
     .not("event_id", "is", null)
-    .gte("submitted_at", sinceIso);
+    // New reports, and (migration 0064) reports withdrawn or restored in the
+    // window, so their cells are recomputed without (or with) them.
+    .or(`submitted_at.gte.${sinceIso},withdrawn_at.gte.${sinceIso},restored_at.gte.${sinceIso}`);
   if (error) {
     throw new Error(`fetchEventIdsWithRecentReports: ${error.message}`);
   }

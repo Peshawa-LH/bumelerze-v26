@@ -210,6 +210,53 @@ export function cellRowUnchanged(
   );
 }
 
+/** Index means of a cell with no reports left: every index unknown. */
+const EMPTY_INDEX_MEANS = {
+  felt: null,
+  motion: null,
+  reaction: null,
+  stand: null,
+  shelf: null,
+  picture: null,
+  furniture: null,
+  damage: null,
+} as const;
+
+/**
+ * Cells that had reports but have none left (every report in them was
+ * withdrawn, migration 0064): a new version with zero reports, so the
+ * latest version, the only public one (0064's `felt_cells_public_select`
+ * policy), stops showing the old numbers. A cell already at zero is left
+ * alone, so a repeat run writes nothing.
+ */
+export function emptiedCellRows(
+  eventId: string,
+  groups: readonly CellGroup[],
+  latestByGeohash: ReadonlyMap<string, FeltCellInsertRow & { version: number }>,
+): FeltCellInsertRow[] {
+  const live = new Set(groups.map((group) => group.geohash));
+  const rows: FeltCellInsertRow[] = [];
+  for (const [geohash, existing] of latestByGeohash) {
+    if (live.has(geohash) || existing.n_reports === 0) {
+      continue;
+    }
+    rows.push({
+      event_id: eventId,
+      geohash,
+      precision: existing.precision,
+      n_reports: 0,
+      n_tier2: 0,
+      cdi: null,
+      cws: null,
+      index_means: { ...EMPTY_INDEX_MEANS },
+      damage_dist: {},
+      ground_effects: {},
+      version: existing.version + 1,
+    });
+  }
+  return rows;
+}
+
 /** Picks the latest (highest-version) stored row per geohash from a flat
  * list spanning every version of every cell for an event (`db.ts`'s
  * `fetchAllCellVersionsForEvent`, already ordered `version desc`). */

@@ -15,6 +15,7 @@
 import {
   cellRowUnchanged,
   computeCellRow,
+  emptiedCellRows,
   groupIntoCells,
   isDebounced,
   joinReportsAndDetails,
@@ -214,6 +215,61 @@ describe("pickLatestPerGeohash", () => {
     expect(latest.get("a")?.version).toBe(3);
     expect(latest.get("b")?.version).toBe(1);
     expect(latest.size).toBe(2);
+  });
+});
+
+describe("emptiedCellRows (withdrawn reports, migration 0064)", () => {
+  const stored = (geohash: string, n: number, version: number, precision: 4 | 5 | 6 = 5) => ({
+    event_id: "evt-1",
+    geohash,
+    precision,
+    n_reports: n,
+    n_tier2: 0,
+    cdi: n > 0 ? 3.1 : null,
+    cws: null,
+    index_means: { felt: 1, motion: null, reaction: null, stand: null, shelf: null, picture: null, furniture: null, damage: null },
+    damage_dist: {},
+    ground_effects: {},
+    version,
+  });
+
+  it("writes a zero version for a stored cell no live report falls in any more", () => {
+    const latest = pickLatestPerGeohash([stored("u4pru", 3, 2), stored("u4pr", 3, 1, 4)]);
+    const groups = groupIntoCells([tier1Cell("a", "u4prv")]);
+    const rows = emptiedCellRows("evt-1", groups, latest);
+    expect(rows.map((r) => [r.geohash, r.version, r.n_reports, r.cdi])).toEqual([["u4pru", 3, 0, null]]);
+    expect(rows[0]?.precision).toBe(5);
+    expect(rows[0]?.index_means.felt).toBeNull();
+  });
+
+  it("empties every cell of an event whose reports were all withdrawn", () => {
+    const latest = pickLatestPerGeohash([stored("u4pru", 3, 2), stored("u4pr", 4, 5, 4)]);
+    const rows = emptiedCellRows("evt-1", [], latest);
+    expect(rows.map((r) => [r.geohash, r.version, r.precision])).toEqual([
+      ["u4pru", 3, 5],
+      ["u4pr", 6, 4],
+    ]);
+  });
+
+  it("writes nothing for a cell that is still live or already empty (a repeat run is a no-op)", () => {
+    const latest = pickLatestPerGeohash([stored("u4pru", 0, 3), stored("u4prv", 2, 1)]);
+    const groups = groupIntoCells([tier1Cell("a", "u4prv")]);
+    expect(emptiedCellRows("evt-1", groups, latest)).toEqual([]);
+  });
+});
+
+describe("db.ts reads live reports only (migration 0064)", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const source: string = require("fs").readFileSync(require("path").join(__dirname, "..", "db.ts"), "utf8");
+
+  it("leaves withdrawn reports out of a cell", () => {
+    expect(source).toContain('.is("withdrawn_at", null)');
+  });
+
+  it("sweeps events whose reports were withdrawn or restored in the window", () => {
+    expect(source).toContain(
+      "`submitted_at.gte.${sinceIso},withdrawn_at.gte.${sinceIso},restored_at.gte.${sinceIso}`",
+    );
   });
 });
 
