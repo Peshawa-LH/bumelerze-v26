@@ -51,6 +51,7 @@ function photo(overrides: Partial<QueuePhoto> = {}): QueuePhoto {
     originTime: Date.parse("2026-10-09T09:55:00Z"),
     moderatedAt: null,
     moderatedByName: null,
+    reportWithdrawnAt: null,
     ...overrides,
   };
 }
@@ -85,6 +86,7 @@ describe("parsers", () => {
         origin_time: "2026-10-09T09:55:00Z",
         moderated_at: "2026-10-09T11:00:00Z",
         moderated_by_name: "Mona",
+        report_withdrawn_at: "2026-10-09T12:00:00Z",
         lat: 36.1,
       },
       { photo_id: "broken" },
@@ -95,6 +97,7 @@ describe("parsers", () => {
       status: "rejected",
       intensity: 6,
       cursor: "2026-10-09T11:00:00Z",
+      reportWithdrawnAt: Date.parse("2026-10-09T12:00:00Z"),
     });
     expect(Object.keys(rows[0] as object)).not.toContain("lat");
     expect(parseModerateResult({ status: "approved", storage_path: "a" })).toEqual({
@@ -134,8 +137,20 @@ describe("Admin > Felt photos", () => {
     expect(screen.getByTestId("photo-event-p1")).toHaveTextContent(/Hawler/);
     expect(screen.getByTestId("photo-report-p1")).toHaveTextContent(/Felt: V/);
     expect(screen.queryByText(/36\.|44\./)).toBeNull();
+    expect(screen.queryByTestId("photo-withdrawn-p1")).toBeNull();
     await fireEvent.press(screen.getByTestId("photo-open-p1"));
     expect(mockPush).toHaveBeenCalledWith("/event-hub/bml2026bb");
+  });
+
+  it("keeps a photo of a withdrawn report in the queue, marked (migration 0064)", async () => {
+    hub.fetchMyPermissions.mockResolvedValue(MODERATOR);
+    const t = fakePhotos([
+      photo({ reportWithdrawnAt: Date.parse("2026-10-09T12:00:00Z") }),
+    ]);
+    await renderWithProviders(<FeltPhotoQueueContent transport={t} hubTransport={hub} />);
+    expect(await screen.findByTestId("photo-withdrawn-p1")).toHaveTextContent(
+      "Withdrawn by the user",
+    );
   });
 
   it("approves", async () => {

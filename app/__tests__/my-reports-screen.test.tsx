@@ -1,5 +1,13 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+
+import { SnackbarProvider } from "@/components/Snackbar";
 
 import { useFeltQueueStore, type QueueItem, type Tier1Report } from "@/features/felt";
 import i18n from "@/i18n";
@@ -56,7 +64,9 @@ const metrics = {
 function renderScreen() {
   return render(
     <SafeAreaProvider initialMetrics={metrics}>
-      <MyReportsScreen />
+      <SnackbarProvider>
+        <MyReportsScreen />
+      </SnackbarProvider>
     </SafeAreaProvider>,
   );
 }
@@ -97,6 +107,48 @@ describe("My reports screen (full list)", () => {
     expect(screen.getByText("No reports yet.")).toBeTruthy();
     await fireEvent.press(screen.getByTestId("reports-empty-cta"));
     expect(mockPush).toHaveBeenCalledWith("/felt-report");
+  });
+
+  it("withdraws a report after a confirm sheet that says what happens, with Undo", async () => {
+    // never sent (no attempt yet): withdrawn on the phone alone, no network
+    useFeltQueueStore.setState({
+      hasHydrated: true,
+      items: [makeItem("r1", 1_700_000_001_000), makeItem("r2", 1_700_000_002_000)],
+    });
+    await renderScreen();
+    expect(screen.getByTestId("withdraw-r1")).toHaveTextContent("Withdraw");
+    expect(screen.queryByText(/Delete/)).toBeNull();
+    await fireEvent.press(screen.getByTestId("withdraw-r1"));
+    expect(screen.getByText("Withdraw this report?")).toBeTruthy();
+    expect(screen.getByTestId("withdraw-sheet-body")).toHaveTextContent(
+      /It disappears from your list and from public maps and counts\./,
+    );
+    await fireEvent.press(screen.getByTestId("withdraw-sheet-confirm"));
+    await waitFor(() => expect(screen.queryByTestId("withdraw-r1")).toBeNull());
+    expect(screen.getByTestId("withdraw-r2")).toBeTruthy();
+    expect(screen.queryByTestId("withdraw-sheet")).toBeNull();
+    expect(screen.getByTestId("snackbar-message")).toHaveTextContent("Report withdrawn");
+    await fireEvent.press(screen.getByTestId("snackbar-action"));
+    await waitFor(() => expect(screen.getByTestId("withdraw-r1")).toBeTruthy());
+  });
+
+  it("keeps the report when the sheet is cancelled", async () => {
+    useFeltQueueStore.setState({ hasHydrated: true, items: [makeItem("r1", 1)] });
+    await renderScreen();
+    await fireEvent.press(screen.getByTestId("withdraw-r1"));
+    await fireEvent.press(screen.getByTestId("withdraw-sheet-cancel"));
+    expect(screen.queryByTestId("withdraw-sheet")).toBeNull();
+    expect(screen.getByTestId("withdraw-r1")).toBeTruthy();
+    expect(useFeltQueueStore.getState().items[0]?.withdrawnAt).toBeUndefined();
+  });
+
+  it("offers no Withdraw while the report is being sent", async () => {
+    useFeltQueueStore.setState({
+      hasHydrated: true,
+      items: [{ ...makeItem("r1", 1), state: "syncing" }],
+    });
+    await renderScreen();
+    expect(screen.queryByTestId("withdraw-r1")).toBeNull();
   });
 
   it("does not flash the empty state before the queue has hydrated", async () => {

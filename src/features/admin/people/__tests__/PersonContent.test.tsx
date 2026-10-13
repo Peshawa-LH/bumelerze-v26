@@ -150,6 +150,11 @@ describe("Admin > People > person", () => {
 
       // lists: felt report = time, event, level; never a place
       expect(screen.getByTestId("person-felt-fr1")).toHaveTextContent(/bml2026aa · Level 5/);
+      expect(screen.getByTestId("person-felt-fr1")).not.toHaveTextContent(/Withdrawn/);
+      // a withdrawn report stays visible to admins, marked (migration 0064)
+      expect(screen.getByTestId("person-felt-fr2")).toHaveTextContent(
+        /Level 3 · Withdrawn by the user/,
+      );
       expect(screen.getByText("I felt it strongly")).toBeTruthy();
       expect(screen.getByText("Hello from Duhok")).toBeTruthy();
       expect(screen.getByTestId("person-feedback-fb1")).toHaveTextContent(/Bug · New/);

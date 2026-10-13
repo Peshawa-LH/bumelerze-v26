@@ -71,6 +71,16 @@ export type TransportResult =
  * bytes + row land, or not, try again next drain". */
 export type PhotoUploadResult = { outcome: "uploaded" } | { outcome: "failed" };
 
+/** "Withdraw" on the server (migration 0064's `withdraw_felt_report`):
+ * `not_found` means the server has no such report of this phone (nothing to
+ * take out), `failed` that it could not be asked (offline). */
+export type WithdrawResult = "withdrawn" | "not_found" | "failed";
+
+/** Undo of a withdraw (`restore_felt_report`, 10 minutes): `expired` after
+ * that, `conflict` when the phone sent a new report for the same earthquake
+ * meanwhile. */
+export type RestoreResult = "restored" | "expired" | "conflict" | "failed";
+
 export interface FeltTransport {
   submitTier1(report: Tier1Report): Promise<TransportResult>;
   /** Tier-2 submission supersedes the device's tier-1 pick (D18 §3.2) — a
@@ -95,6 +105,11 @@ export interface FeltTransport {
     reportIds: readonly string[],
     deviceId: string,
   ): Promise<Set<string> | null>;
+  /** Optional (migration 0064): withdraw one sent report, proving ownership
+   * by its client-generated id together with the device id. */
+  withdrawReport?(reportId: string, deviceId: string): Promise<WithdrawResult>;
+  /** Optional (migration 0064): Undo of `withdrawReport`. */
+  restoreReport?(reportId: string, deviceId: string): Promise<RestoreResult>;
 }
 
 /**
@@ -159,6 +174,12 @@ export interface QueueItem {
   nextRetryAt: number | null;
   /** See `PhotoUploadState`'s own doc. */
   photoState: PhotoUploadState | null;
+  /** Review note 10.1: when the person withdrew this report (UTC ms). A
+   * withdrawn item is hidden from My reports, never sent, and no longer the
+   * event's "your report". Missing on items saved before the feature. */
+  withdrawnAt?: number | null;
+  /** True when the withdraw reached the server (Undo must ask it too). */
+  withdrawnOnServer?: boolean;
 }
 
 const QUEUE_STORAGE_KEY = "bumelerze.felt.queue";
@@ -391,9 +412,10 @@ export async function processQueue(
       const { items, _patchItem } = useFeltQueueStore.getState();
       const eligible = items.filter(
         (item) =>
-          item.state === "queued" ||
-          (item.state === "failed" &&
-            (item.nextRetryAt === null || item.nextRetryAt <= now)),
+          !item.withdrawnAt &&
+          (item.state === "queued" ||
+            (item.state === "failed" &&
+              (item.nextRetryAt === null || item.nextRetryAt <= now))),
       );
 
       for (const item of eligible) {
@@ -481,6 +503,7 @@ export async function processQueue(
         const photoEligible = itemsAfterReports.filter(
           (item) =>
             item.tier2?.photoUri &&
+            !item.withdrawnAt &&
             item.state === "submitted" &&
             (item.photoState === "pending-upload" || item.photoState === "failed"),
         );
@@ -521,8 +544,15 @@ export async function reconcileSubmittedReports(
     return;
   }
   const byDevice = new Map<string, string[]>();
+  const now = Date.now();
   for (const item of useFeltQueueStore.getState().items) {
     if (item.state !== "submitted") {
+      continue;
+    }
+    // A report withdrawn moments ago is still within its Undo window: keep
+    // it on the phone so Undo can bring it back (the server no longer lists
+    // withdrawn reports, migration 0064).
+    if (item.withdrawnAt && now - item.withdrawnAt < WITHDRAW_UNDO_WINDOW_MS) {
       continue;
     }
     const ids = byDevice.get(item.tier1.deviceId) ?? [];
@@ -550,6 +580,98 @@ export async function reconcileSubmittedReports(
 }
 
 const RECONCILE_BATCH = 500;
+
+/** The server accepts an Undo of a withdraw for 10 minutes (migration 0064). */
+export const WITHDRAW_UNDO_WINDOW_MS = 10 * 60_000;
+
+/** Withdrawn by the person (review note 10.1): hidden everywhere on the phone. */
+export function isWithdrawn(item: QueueItem): boolean {
+  return Boolean(item.withdrawnAt);
+}
+
+/** True when the report may already be on the server: it was sent, or an
+ * attempt was made whose answer may have been lost. */
+function mayBeOnServer(item: QueueItem): boolean {
+  return (
+    item.state === "submitted" ||
+    item.tier1.submittedAt !== null ||
+    item.lastAttemptAt !== null
+  );
+}
+
+/**
+ * "Withdraw" (review note 10.1). A report that may be on the server is
+ * withdrawn there first (it then leaves public maps and counts); one that
+ * never left the phone is simply never sent. Resolves "failed" when the
+ * server could not be asked: nothing changes on the phone then, so the
+ * person can try again. A report being sent right now cannot be withdrawn
+ * until that attempt is over.
+ */
+export async function withdrawReport(
+  reportId: string,
+  transport: FeltTransport = getDefaultFeltTransport(),
+  now: number = Date.now(),
+): Promise<"withdrawn" | "failed"> {
+  const item = useFeltQueueStore
+    .getState()
+    .items.find((entry) => entry.tier1.reportId === reportId);
+  if (!item || item.state === "syncing") {
+    return "failed";
+  }
+  if (item.withdrawnAt) {
+    return "withdrawn";
+  }
+  let onServer = false;
+  if (mayBeOnServer(item) && item.state !== "awaiting-backend") {
+    if (typeof transport.withdrawReport !== "function") {
+      return "failed";
+    }
+    const result = await transport
+      .withdrawReport(reportId, item.tier1.deviceId)
+      .catch((): WithdrawResult => "failed");
+    if (result === "failed") {
+      return "failed";
+    }
+    onServer = result === "withdrawn";
+  }
+  useFeltQueueStore
+    .getState()
+    ._patchItem(reportId, { withdrawnAt: now, withdrawnOnServer: onServer });
+  return "withdrawn";
+}
+
+/** Undo of `withdrawReport`. Throws when it cannot be undone (the Undo
+ * snackbar then says so). */
+export async function restoreWithdrawnReport(
+  reportId: string,
+  transport: FeltTransport = getDefaultFeltTransport(),
+): Promise<void> {
+  const item = useFeltQueueStore
+    .getState()
+    .items.find((entry) => entry.tier1.reportId === reportId);
+  if (!item) {
+    throw new Error("restore: not on this phone");
+  }
+  if (!item.withdrawnAt) {
+    return;
+  }
+  if (item.withdrawnOnServer) {
+    if (typeof transport.restoreReport !== "function") {
+      throw new Error("restore: unavailable");
+    }
+    const result = await transport.restoreReport(reportId, item.tier1.deviceId);
+    if (result !== "restored") {
+      throw new Error(`restore: ${result}`);
+    }
+  }
+  useFeltQueueStore
+    .getState()
+    ._patchItem(reportId, { withdrawnAt: null, withdrawnOnServer: false });
+  if (!item.withdrawnOnServer) {
+    // It was never sent: send it as before.
+    void processQueue(transport);
+  }
+}
 
 let appStateListenerAttached = false;
 
@@ -593,7 +715,11 @@ export function useQueueItemState(reportId: string | null): QueueItemState | nul
  * server-side felt-map lookup — there is no backend to query yet. */
 export function useOwnQueueItemForEvent(eventId: string | null): QueueItem | null {
   return useFeltQueueStore((state) =>
-    eventId ? (state.items.find((item) => item.tier1.eventId === eventId) ?? null) : null,
+    eventId
+      ? (state.items.find(
+          (item) => item.tier1.eventId === eventId && !item.withdrawnAt,
+        ) ?? null)
+      : null,
   );
 }
 

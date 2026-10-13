@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { DAMAGE_ARTWORK, LEVEL_ARTWORK } from "@/features/felt";
@@ -8,19 +8,19 @@ import type { ContributionRowViewModel } from "../format";
 
 interface ContributionRowProps {
   row: ContributionRowViewModel;
+  /** Shows "Withdraw" (review note 10.1) when given and the row allows it. */
+  onWithdraw?: () => void;
 }
 
 /**
  * One My Data list row (D26 item 7 wave brief): date, event (if the report
  * is attached to one), felt level with its artwork thumbnail, damage grade
  * with its own thumbnail when window 2 was answered, and sync status.
- * Read-only — unlike `LevelTile`/`DamageTile` (the felt-report FLOW's own
- * tappable tiles this reuses artwork from), nothing here is a `Pressable`:
- * a past contribution has no further action to take on it in this v1 (wave
- * brief: "NO badges/gamification (future)" — this extends to "no
- * re-open/edit" too, out of scope here).
+ * The one action on a past contribution is "Withdraw" (review note 10.1;
+ * never "Delete": the server keeps the row, it just stops counting it),
+ * shown when the list passes `onWithdraw`. No re-open or edit.
  */
-export function ContributionRow({ row }: ContributionRowProps) {
+export function ContributionRow({ row, onWithdraw }: ContributionRowProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
 
@@ -130,6 +130,28 @@ export function ContributionRow({ row }: ContributionRowProps) {
           {t("myData.photoAttachedLabel")}
         </Text>
       ) : null}
+
+      {onWithdraw && row.canWithdraw ? (
+        <Pressable
+          testID={`withdraw-${row.reportId}`}
+          accessibilityRole="button"
+          accessibilityLabel={t("myData.withdraw.a11y", { date: row.dateText })}
+          onPress={onWithdraw}
+          hitSlop={8}
+          style={styles.withdraw}
+        >
+          <Text
+            style={{
+              color: colors.text.link,
+              fontSize: typography.labelButton.fontSize,
+              lineHeight: typography.labelButton.lineHeight,
+              fontWeight: typography.labelButton.fontWeight,
+            }}
+          >
+            {t("myData.withdraw.action")}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -153,4 +175,5 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
   },
+  withdraw: { alignSelf: "flex-start", minHeight: 44, justifyContent: "center" },
 });

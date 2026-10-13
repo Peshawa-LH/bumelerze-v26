@@ -114,7 +114,20 @@ export function detail(overrides: Partial<PersonDetail> = {}): PersonDetail {
     },
     recent: {
       feltReports: [
-        { reportId: "fr1", createdAt: Date.now() - DAY, event: "bml2026aa", intensity: 5 },
+        {
+          reportId: "fr1",
+          createdAt: Date.now() - DAY,
+          event: "bml2026aa",
+          intensity: 5,
+          withdrawnAt: null,
+        },
+        {
+          reportId: "fr2",
+          createdAt: Date.now() - 2 * DAY,
+          event: null,
+          intensity: 3,
+          withdrawnAt: Date.now() - DAY,
+        },
       ],
       comments: [
         {

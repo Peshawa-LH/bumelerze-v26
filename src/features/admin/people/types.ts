@@ -203,6 +203,8 @@ export interface RecentFeltReport {
   event: string | null;
   /** The EMS-98 picture picked (1-12). Never a place. */
   intensity: number | null;
+  /** When the person withdrew it (migration 0064); null while it counts. */
+  withdrawnAt: number | null;
 }
 
 export interface RecentComment {

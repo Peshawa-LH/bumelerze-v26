@@ -1667,6 +1667,16 @@
         "feedback": "Nêrînên ku te şandine dimînin, bêyî nav û agahiyên têkiliyê.",
         "records": "Tomarên çavdêriyê yên gilî û rakirinan dimînin, bêyî navê te. Ger hesabê te sînordar be an di bin nirxandinê de be, kopiyên nivîsa hatî rakirin heta 90 rojan tên girtin."
       }
+    },
+    "withdraw": {
+      "action": "Paşve bikişîne",
+      "a11y": "Rapora {{date}} paşve bikişîne",
+      "title": "Vê raporê paşve bikişînî?",
+      "body": "Ew ji lîsteya te û ji nexşe û hejmarên giştî radibe. Bumelerze wê hiltîne, lê êdî nîşan nade û nahesibîne.",
+      "undoNote": "Piştî wê, ji bo çend çirkeyan tu dikarî vegerînî.",
+      "confirm": "Raporê paşve bikişîne",
+      "cancel": "Bihêle",
+      "failed": "Nehat paşvekişandin. Girêdana xwe kontrol bike û dîsa biceribîne."
     }
   },
   "feedback": {
@@ -2887,7 +2897,8 @@
     "postComments": {
       "title": "Şîroveyên li ser nivîsan ji bo nirxandinê",
       "openPost": "Profîla nivîsê veke"
-    }
+    },
+    "withdrawnByUser": "Ji aliyê bikarhêner ve hate paşvekişandin"
   },
   "restrictions": {
     "levels": {
@@ -3066,7 +3077,8 @@
     },
     "limitLifted": "Sînor hat rakirin",
     "profileReset": "Nav / wêne hat vegerandin",
-    "nothingToReset": "Tiştek tune ku were vegerandin"
+    "nothingToReset": "Tiştek tune ku were vegerandin",
+    "reportWithdrawn": "Rapor paşve hate kişandin"
   },
   "report": {
     "title": {

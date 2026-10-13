@@ -86,6 +86,9 @@ export interface ContributionRowViewModel {
    * "has it synced", matching the row's `syncStatus` field already
    * covering sync state separately. */
   hasPhoto: boolean;
+  /** "Withdraw" can be offered (review note 10.1): not while a send is in
+   * flight. */
+  canWithdraw: boolean;
 }
 
 /**
@@ -138,6 +141,7 @@ export function buildContributionRow(
     syncStatus,
     syncStatusText: t(`myData.syncStatus.${syncStatus}`),
     hasPhoto: item.tier2?.photoUri != null,
+    canWithdraw: item.state !== "syncing",
   };
 }
 

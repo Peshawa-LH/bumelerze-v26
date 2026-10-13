@@ -1667,6 +1667,16 @@
         "feedback": "Feedback you sent stays, without your name or contact details.",
         "records": "Moderation records of reports and removals stay, without your name. If your account is limited or under review, copies of removed text are kept for up to 90 days."
       }
+    },
+    "withdraw": {
+      "action": "Withdraw",
+      "a11y": "Withdraw the report from {{date}}",
+      "title": "Withdraw this report?",
+      "body": "It disappears from your list and from public maps and counts. Bumelerze keeps it stored but no longer shows or counts it.",
+      "undoNote": "Right after, you can undo it for a few seconds.",
+      "confirm": "Withdraw report",
+      "cancel": "Keep it",
+      "failed": "Could not withdraw it. Check your connection and try again."
     }
   },
   "feedback": {
@@ -2887,7 +2897,8 @@
     "postComments": {
       "title": "Comments on posts to review",
       "openPost": "Open the post's profile"
-    }
+    },
+    "withdrawnByUser": "Withdrawn by the user"
   },
   "restrictions": {
     "levels": {
@@ -3066,7 +3077,8 @@
     },
     "limitLifted": "Limit lifted",
     "profileReset": "Name / photo reset",
-    "nothingToReset": "Nothing to reset"
+    "nothingToReset": "Nothing to reset",
+    "reportWithdrawn": "Report withdrawn"
   },
   "report": {
     "title": {

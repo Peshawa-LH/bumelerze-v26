@@ -6,7 +6,13 @@ import { dataUriMimeType } from "@/lib/durable-photo-uri";
 
 import { getSupabaseClient, signInAnonymously } from "@/lib/supabase";
 
-import type { FeltTransport, PhotoUploadResult, TransportResult } from "./queue";
+import type {
+  FeltTransport,
+  PhotoUploadResult,
+  RestoreResult,
+  TransportResult,
+  WithdrawResult,
+} from "./queue";
 import type { EventRegistration, Tier1Report, Tier2Report } from "./types";
 
 /** Private Storage bucket created by migration 0016 — see that file for the
@@ -650,5 +656,48 @@ export const SupabaseTransport: FeltTransport = {
       return null;
     }
     return new Set(data.map((row: unknown) => String(row)));
+  },
+
+  /** Migration 0064's `withdraw_felt_report`: ownership is the report id
+   * together with the device id (and the account, when signed in). */
+  async withdrawReport(reportId: string, deviceId: string): Promise<WithdrawResult> {
+    const client = getSupabaseClient();
+    if (!client) {
+      return "failed";
+    }
+    try {
+      const { error } = await client.rpc("withdraw_felt_report", {
+        p_report_id: reportId,
+        p_device_id: deviceId,
+      });
+      if (!error) {
+        return "withdrawn";
+      }
+      return error.code === "P0002" ? "not_found" : "failed";
+    } catch {
+      return "failed";
+    }
+  },
+
+  /** Migration 0064's `restore_felt_report` (Undo, 10 minutes). */
+  async restoreReport(reportId: string, deviceId: string): Promise<RestoreResult> {
+    const client = getSupabaseClient();
+    if (!client) {
+      return "failed";
+    }
+    try {
+      const { error } = await client.rpc("restore_felt_report", {
+        p_report_id: reportId,
+        p_device_id: deviceId,
+      });
+      if (!error) {
+        return "restored";
+      }
+      if (/expired/.test(error.message ?? "")) return "expired";
+      if (/conflict/.test(error.message ?? "")) return "conflict";
+      return "failed";
+    } catch {
+      return "failed";
+    }
   },
 };

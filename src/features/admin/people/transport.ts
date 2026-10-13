@@ -334,6 +334,7 @@ export function parsePersonDetail(data: unknown): PersonDetail {
     created_at: str,
     event: str,
     intensity: optNum,
+    withdrawn_at: str,
   });
   const comment = z.object({
     comment_id: z.string(),
@@ -419,6 +420,7 @@ export function parsePersonDetail(data: unknown): PersonDetail {
         createdAt: ms(r.created_at),
         event: r.event ?? null,
         intensity: r.intensity ?? null,
+        withdrawnAt: ms(r.withdrawn_at),
       })),
       comments: list(recent.comments, comment).map((c) => ({
         commentId: c.comment_id,

@@ -34,6 +34,9 @@ export interface QueuePhoto {
   originTime: number | null;
   moderatedAt: number | null;
   moderatedByName: string | null;
+  /** When the person withdrew the report (migration 0064): the photo is no
+   * longer public, but stays here marked "Withdrawn by the user". */
+  reportWithdrawnAt: number | null;
 }
 
 export interface ModerateResult {
@@ -78,6 +81,7 @@ const rowSchema = z.object({
   origin_time: str,
   moderated_at: str,
   moderated_by_name: str,
+  report_withdrawn_at: str,
 });
 
 export function parseQueuePhotos(data: unknown): QueuePhoto[] {
@@ -107,6 +111,7 @@ export function parseQueuePhotos(data: unknown): QueuePhoto[] {
       originTime: ms(d.origin_time),
       moderatedAt: ms(d.moderated_at),
       moderatedByName: d.moderated_by_name ?? null,
+      reportWithdrawnAt: ms(d.report_withdrawn_at),
     });
   }
   return out;

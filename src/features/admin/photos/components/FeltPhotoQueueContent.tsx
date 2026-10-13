@@ -289,6 +289,11 @@ function PhotoCard({
         </Text>
       ) : null}
       {decided ? <Text style={meta}>{decided}</Text> : null}
+      {photo.reportWithdrawnAt !== null ? (
+        <Text style={meta} testID={`photo-withdrawn-${photo.id}`}>
+          {t("admin.withdrawnByUser")}
+        </Text>
+      ) : null}
       <View style={styles.row}>
         {photo.hubId ? (
           <ActionButton

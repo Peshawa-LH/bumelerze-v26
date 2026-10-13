@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  isWithdrawn,
   reconcileSubmittedReports,
   sortQueueItemsNewestFirst,
   useFeltQueueHasHydrated,
@@ -20,7 +21,8 @@ export interface MyReports {
 /**
  * The reports this phone sent, newest first, as list rows. The local queue is
  * the whole source (it already holds everything, so this works offline); the
- * one server call forgets sent reports the server no longer has. Shared by
+ * one server call forgets sent reports the server no longer has. Withdrawn
+ * reports (review note 10.1) are left out, of the rows and of the count. Shared by
  * the My account page (latest three) and the full list.
  */
 export function useMyReports(): MyReports {
@@ -40,8 +42,8 @@ export function useMyReports(): MyReports {
   const rows = useMemo(
     () =>
       hasHydrated
-        ? sortQueueItemsNewestFirst(items).map((item) =>
-            buildContributionRow(item, locale, t),
+        ? sortQueueItemsNewestFirst(items.filter((item) => !isWithdrawn(item))).map(
+            (item) => buildContributionRow(item, locale, t),
           )
         : [],
     [hasHydrated, items, locale, t],

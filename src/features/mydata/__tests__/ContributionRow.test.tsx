@@ -15,6 +15,7 @@ const BASE_ROW: ContributionRowViewModel = {
   syncStatus: "on-device",
   syncStatusText: "On this device",
   hasPhoto: false,
+  canWithdraw: true,
 };
 
 describe("ContributionRow", () => {

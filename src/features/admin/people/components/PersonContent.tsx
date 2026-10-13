@@ -582,6 +582,7 @@ function PersonBody({
                 date(r.createdAt),
                 r.event ?? t("admin.person.recent.notLinked"),
                 r.intensity !== null ? t("admin.person.recent.intensity", { level: n(r.intensity) }) : null,
+                r.withdrawnAt !== null ? t("admin.withdrawnByUser") : null,
               ]
                 .filter(Boolean)
                 .join(" · ")}
