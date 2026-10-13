@@ -403,15 +403,30 @@ export default function NotificationSettingsScreen() {
           )}
         </View>
 
-        <Text
-          style={{
-            color: colors.text.tertiary,
-            fontSize: typography.labelCaption.fontSize,
-            lineHeight: typography.labelCaption.lineHeight,
-          }}
-        >
-          {t("notificationSettings.fatigueFooter")}
-        </Text>
+        {/* How many alerts: the aftershock guard and hourly cap of
+            alert_rules() / alert_plan_event() (migration 0062), in words. */}
+        <View style={{ gap: spacing[1] }} testID="alerts-fatigue">
+          <Text
+            accessibilityRole="header"
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.bodyDefault.fontSize,
+              lineHeight: typography.bodyDefault.lineHeight,
+              fontWeight: "700",
+            }}
+          >
+            {t("notificationSettings.fatigueTitle")}
+          </Text>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+              lineHeight: typography.bodyMeta.lineHeight,
+            }}
+          >
+            {t("notificationSettings.fatigueFooter")}
+          </Text>
+        </View>
       </ScrollView>
 
       <RehearsalAlertModal

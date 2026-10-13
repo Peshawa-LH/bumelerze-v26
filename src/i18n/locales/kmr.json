@@ -720,7 +720,7 @@
       "m4": "M4.0 û bilindtir",
       "m5": "M5.0 û bilindtir"
     },
-    "fatigueFooter": "Di rêzeya piştejeran de agahdarî sînordar in.",
+    "fatigueFooter": "Piştî erdhejeke xurt (pileya 5 an zêdetir) gelek caran gelek piştejer çêdibin. Ji bo ku tu di bin hişyariyan de nemînî, ji bo 3 rojên pêş û di nav 100 km de, Bumelerze tenê ji bo wan piştejeran hişyarî dide ku hema bêje bi qasî erdheja sereke xurt in (herî zêde nîv pileyek piçûktir). Herwiha di saetekê de herî zêde 3 hişyariyan dişîne. Erdhejeke nû ya xurttir her tim tê. Erdhejên ku nehatin şandin di yek kurteyeke bêdeng de tên komkirin, herî zêde yek di her 12 saetan de.",
     "permission": {
       "deniedStatus": "Agahdariyên Bumelerze li ser vê amûrê hatine girtin.",
       "openSettings": "Sazkariyan Veke"
@@ -737,7 +737,8 @@
       "exampleTitle": "Erdhejek {{magnitude}}",
       "exampleBody": "14 km başûrrojhilatê Hewlêrê, Herêma Kurdistanê",
       "close": "Bigire"
-    }
+    },
+    "fatigueTitle": "Tu çend hişyariyan distînî"
   },
   "eventDetail": {
     "title": "Kirdeyên bûyerê",
