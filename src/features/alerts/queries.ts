@@ -4,12 +4,19 @@ import { useAccount } from "@/features/account/use-account";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 import { SupabaseAlertsTransport, type AlertsTransport } from "./transport";
-import { NO_ALERT_ACCESS, type AlertAccess, type AlertMode, type AlertsOverview } from "./types";
+import {
+  NO_ALERT_ACCESS,
+  type AlertAccess,
+  type AlertDevice,
+  type AlertMode,
+  type AlertsOverview,
+} from "./types";
 
 export const alertsKeys = {
   all: ["alerts"] as const,
   access: (userId: string) => ["alerts", "access", userId] as const,
   overview: ["alerts", "overview"] as const,
+  devices: (userId: string) => ["alerts", "devices", userId] as const,
 };
 
 export interface UseAlertAccess extends AlertAccess {
@@ -36,6 +43,23 @@ export function useAlertAccess(transport: AlertsTransport = SupabaseAlertsTransp
   });
   const data = query.data ?? NO_ALERT_ACCESS;
   return { ...data, isLoading: enabled && query.isLoading };
+}
+
+/** This account's devices with alerts (alerts_my_devices); testers only. */
+export function useMyAlertDevices(
+  allowed: boolean,
+  transport: AlertsTransport = SupabaseAlertsTransport,
+) {
+  const account = useAccount();
+  const userId = account.userId;
+  return useQuery<AlertDevice[]>({
+    queryKey: alertsKeys.devices(userId ?? "none"),
+    queryFn: () => transport.fetchMyDevices(),
+    enabled: allowed && isSupabaseConfigured() && userId !== null,
+    staleTime: 15_000,
+    retry: 1,
+    meta: { persist: false },
+  });
 }
 
 /** Admin > Alerts (admin_alerts_overview, alerts.test). */

@@ -6,6 +6,7 @@ import {
   ALERT_MODES,
   AlertsError,
   type AlertAccess,
+  type AlertDevice,
   type AlertMode,
   type AlertPreferencesPayload,
   type AlertsOverview,
@@ -20,6 +21,8 @@ export interface AlertsTransport {
   fetchAccess(): Promise<AlertAccess>;
   registerWebPush(keys: WebPushKeys, locale: string): Promise<void>;
   unregisterWebPush(endpoint: string): Promise<void>;
+  /** This account's browsers and phones (alerts_my_devices). */
+  fetchMyDevices(): Promise<AlertDevice[]>;
   savePreferences(payload: AlertPreferencesPayload): Promise<void>;
   /** Returns how many of my devices it goes to. */
   sendTest(): Promise<number>;
@@ -73,6 +76,34 @@ const overviewSchema = z.object({
     )
     .catch([]),
 });
+
+const devicesSchema = z.array(
+  z.object({
+    push_subscription_id: z.string(),
+    kind: z.enum(["web", "expo"]).catch("web"),
+    endpoint: z.string().nullable().optional(),
+    locale: z.string().nullable().optional(),
+    created_at: z.string(),
+    last_ok_at: z.string().nullable().optional(),
+    disabled: z.boolean().catch(false),
+  }),
+);
+
+export function parseDevices(data: unknown): AlertDevice[] {
+  const parsed = devicesSchema.safeParse(data ?? []);
+  if (!parsed.success) {
+    throw new AlertsError("unknown", "alerts_my_devices returned an unexpected shape");
+  }
+  return parsed.data.map((d) => ({
+    id: d.push_subscription_id,
+    kind: d.kind,
+    endpoint: d.endpoint ?? null,
+    locale: d.locale ?? null,
+    createdAt: Date.parse(d.created_at),
+    lastOkAt: d.last_ok_at ? Date.parse(d.last_ok_at) : null,
+    disabled: d.disabled,
+  }));
+}
 
 export function parseAccess(data: unknown): AlertAccess {
   const parsed = accessSchema.safeParse(data);
@@ -191,6 +222,9 @@ export const SupabaseAlertsTransport: AlertsTransport = {
   },
   async unregisterWebPush(endpoint) {
     await call("alerts_unregister_push", { p_endpoint: endpoint, p_expo_token: null });
+  },
+  async fetchMyDevices() {
+    return parseDevices(await call("alerts_my_devices"));
   },
   async savePreferences(p) {
     await call("alerts_save_preferences", {

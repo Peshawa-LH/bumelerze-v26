@@ -67,6 +67,21 @@ export interface AlertPreferencesPayload {
   language: string;
 }
 
+/** One row of alerts_my_devices(): a browser or phone of this account. */
+export interface AlertDevice {
+  id: string;
+  kind: "web" | "expo";
+  /** Web push endpoint (null for a phone app). Identifies "this device". */
+  endpoint: string | null;
+  locale: string | null;
+  /** UTC ms. */
+  createdAt: number;
+  /** UTC ms of the last push the service accepted, if any. */
+  lastOkAt: number | null;
+  /** The push service said the subscription is gone (404/410). */
+  disabled: boolean;
+}
+
 export interface WebPushKeys {
   endpoint: string;
   p256dh: string;
@@ -84,6 +99,10 @@ export type AlertsErrorCode =
   | "too_many_devices"
   | "invalid"
   | "denied"
+  /** The permission question was closed without an answer. */
+  | "dismissed"
+  /** The browser itself failed to subscribe (push service error). */
+  | "browser"
   | "network"
   | "unknown";
 

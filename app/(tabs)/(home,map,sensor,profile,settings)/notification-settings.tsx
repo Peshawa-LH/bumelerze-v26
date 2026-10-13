@@ -1,11 +1,17 @@
 import { Stack } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { AlertsComingSoonNote, AlertsTesterPanel, useAlertAccess } from "@/features/alerts";
+import {
+  AlertsComingSoonNote,
+  AlertsLanguageNote,
+  AlertsNearMePlace,
+  AlertsTesterPanel,
+  useAlertAccess,
+} from "@/features/alerts";
 import {
   gazetteerPlaceById,
   placeDetailLine,
@@ -40,10 +46,16 @@ const REHEARSAL_EXAMPLE_MAGNITUDE = 4.8;
  * same settings as before; testers (and everyone once the rollout is public)
  * get the real controls instead: alerts on this device, near-me place, test
  * alert. While the answer is loading, neither is shown.
+ *
+ * On the web the browser's permission belongs to the tester panel alone
+ * (review note 11.3): no prompt from a tier change, no "Open Settings" row
+ * (a web page cannot open the phone's settings) and no local "play the
+ * sound" rehearsal (scheduled notifications do not exist on the web).
  */
 export default function NotificationSettingsScreen() {
   const tabBarScroll = useTabBarScroll();
   const access = useAlertAccess();
+  const isWeb = Platform.OS === "web";
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -80,6 +92,9 @@ export default function NotificationSettingsScreen() {
    * — here, moving a tier away from "off" or tapping a rehearsal button
    * that fires a real notification. Never called on screen mount. */
   async function requestPermissionIfNeeded(): Promise<NotificationPermissionStatus> {
+    if (isWeb) {
+      return permissionStatus;
+    }
     const result = await ensureNotificationPermission();
     setOverride(result);
     return result;
@@ -168,7 +183,7 @@ export default function NotificationSettingsScreen() {
           <AlertsComingSoonNote />
         )}
 
-        {permissionStatus === "denied" ? <PermissionDeniedRow /> : null}
+        {!isWeb && permissionStatus === "denied" ? <PermissionDeniedRow /> : null}
 
         {/* Near Me section */}
         <View style={{ gap: spacing[2] }}>
@@ -192,6 +207,7 @@ export default function NotificationSettingsScreen() {
           >
             {t("notificationSettings.nearMe.explainer")}
           </Text>
+          {access.enabled ? <AlertsNearMePlace /> : null}
           <TierSelector
             value={nearMeTier}
             onChange={(tier) => void handleNearMeTierChange(tier)}
@@ -321,6 +337,8 @@ export default function NotificationSettingsScreen() {
           )}
         </View>
 
+        {access.enabled ? <AlertsLanguageNote /> : null}
+
         {/* Rehearsal */}
         <View style={{ gap: spacing[2] }}>
           <Text
@@ -363,24 +381,26 @@ export default function NotificationSettingsScreen() {
             </Text>
           </Pressable>
 
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => void handlePlaySound()}
-            style={[
-              styles.row,
-              { borderColor: colors.border.default, paddingVertical: spacing[3] },
-            ]}
-          >
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.bodyDefault.fontSize,
-                fontWeight: "600",
-              }}
+          {isWeb ? null : (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => void handlePlaySound()}
+              style={[
+                styles.row,
+                { borderColor: colors.border.default, paddingVertical: spacing[3] },
+              ]}
             >
-              {t("notificationSettings.rehearsal.playSound")}
-            </Text>
-          </Pressable>
+              <Text
+                style={{
+                  color: colors.text.primary,
+                  fontSize: typography.bodyDefault.fontSize,
+                  fontWeight: "600",
+                }}
+              >
+                {t("notificationSettings.rehearsal.playSound")}
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         <Text

@@ -11,9 +11,12 @@ import { createJSONStorage, persist } from "zustand/middleware";
 export interface AlertDeviceState {
   deviceOn: boolean;
   endpoint: string | null;
+  /** Language the server has for this device (push_subscriptions.locale):
+   * a push is worded in it, so a change of app language re-registers. */
+  locale: string | null;
   /** Key of the last preferences the server saved (see prefs-sync.ts). */
   syncedKey: string | null;
-  setDevice: (on: boolean, endpoint: string | null) => void;
+  setDevice: (on: boolean, endpoint: string | null, locale?: string | null) => void;
   setSyncedKey: (key: string | null) => void;
 }
 
@@ -22,9 +25,14 @@ export const useAlertDeviceStore = create<AlertDeviceState>()(
     (set) => ({
       deviceOn: false,
       endpoint: null,
+      locale: null,
       syncedKey: null,
-      setDevice: (deviceOn, endpoint) =>
-        set(deviceOn ? { deviceOn, endpoint } : { deviceOn, endpoint, syncedKey: null }),
+      setDevice: (deviceOn, endpoint, locale = null) =>
+        set(
+          deviceOn
+            ? { deviceOn, endpoint, locale }
+            : { deviceOn, endpoint, locale: null, syncedKey: null },
+        ),
       setSyncedKey: (syncedKey) => set({ syncedKey }),
     }),
     {
@@ -34,6 +42,7 @@ export const useAlertDeviceStore = create<AlertDeviceState>()(
       partialize: (state) => ({
         deviceOn: state.deviceOn,
         endpoint: state.endpoint,
+        locale: state.locale,
         syncedKey: state.syncedKey,
       }),
     },

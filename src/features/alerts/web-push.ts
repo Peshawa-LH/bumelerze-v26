@@ -22,12 +22,27 @@ export function webBase(): string {
 
 export const SERVICE_WORKER_FILE = "push-sw.js";
 
+/**
+ * Where the app is running, as far as alerts are concerned (review note
+ * 11.3: iPhone Safari is not "blocked", it simply has no web push).
+ *
+ * - supported       a browser (or an iOS Home Screen app) with web push
+ * - ios-browser     iPhone/iPad in Safari or another browser, iOS 16.4+:
+ *                   web push exists only in the Home Screen app
+ * - ios-update      iPhone/iPad older than iOS 16.4: no web push at all
+ * - unsupported     a browser without service workers / PushManager
+ * - not-configured  a build without the public VAPID key
+ * - native          the iOS/Android app (Expo push, comes with the native build)
+ */
 export type WebPushSupport =
   | "supported"
   | "unsupported"
-  | "ios-home-screen"
+  | "ios-browser"
+  | "ios-update"
   | "not-configured"
   | "native";
+
+export type BrowserPermission = "default" | "granted" | "denied";
 
 /** The parts of `window`/`navigator` this module reads. */
 export interface BrowserEnv {
@@ -115,6 +130,31 @@ export function isStandalone(env: BrowserEnv): boolean {
   }
 }
 
+/**
+ * The iOS/iPadOS version from the user agent: "CPU iPhone OS 17_4" or
+ * "CPU OS 16_4" (iPad), or, for an iPad that reports itself as a Mac,
+ * Safari's "Version/17.4". Null when it cannot be read.
+ */
+export function iosVersion(nav: BrowserEnv["navigator"]): [number, number] | null {
+  const ua = nav.userAgent ?? "";
+  const os = /\bOS (\d+)[_.](\d+)/.exec(ua);
+  const match = /iPad|iPhone|iPod/.test(ua) && os ? os : /Version\/(\d+)\.(\d+)/.exec(ua);
+  if (!match) {
+    return null;
+  }
+  return [Number(match[1]), Number(match[2])];
+}
+
+/** Web push on iPhone and iPad needs iOS 16.4 (Home Screen apps only). */
+const IOS_WEB_PUSH: [number, number] = [16, 4];
+
+function olderThan(version: [number, number] | null, min: [number, number]): boolean {
+  if (!version) {
+    return false; // unknown: assume a current iOS
+  }
+  return version[0] < min[0] || (version[0] === min[0] && version[1] < min[1]);
+}
+
 export function detectSupport(
   platformOS: string,
   vapidPublicKey: string | null,
@@ -129,13 +169,30 @@ export function detectSupport(
   if (!env) {
     return "unsupported";
   }
-  if (isIosDevice(env.navigator) && !isStandalone(env)) {
-    return "ios-home-screen";
+  const hasPush = Boolean(
+    env.navigator.serviceWorker && env.window.PushManager && env.window.Notification,
+  );
+  if (isIosDevice(env.navigator)) {
+    if (olderThan(iosVersion(env.navigator), IOS_WEB_PUSH)) {
+      return "ios-update";
+    }
+    if (!isStandalone(env)) {
+      // Safari (or Chrome, Firefox...) on iPhone: the APIs are simply absent
+      // here. Not "blocked": they appear in the Home Screen app.
+      return "ios-browser";
+    }
+    // A Home Screen app without push is an iOS too old to have it.
+    return hasPush ? "supported" : "ios-update";
   }
-  if (!env.navigator.serviceWorker || !env.window.PushManager || !env.window.Notification) {
-    return "unsupported";
-  }
-  return "supported";
+  return hasPush ? "supported" : "unsupported";
+}
+
+/** The browser's notification permission, or null without the API. */
+export function browserPermission(env: BrowserEnv | null): BrowserPermission | null {
+  const permission = env?.window.Notification?.permission;
+  return permission === "default" || permission === "granted" || permission === "denied"
+    ? permission
+    : null;
 }
 
 export function urlBase64ToUint8Array(value: string): Uint8Array {

@@ -11,14 +11,18 @@ import { usePrefsStore } from "@/features/onboarding";
 
 import { buildPreferencesPayload, coarse, useAlertPrefsAutoSync } from "../prefs-sync";
 import { useAlertDeviceStore } from "../store";
-import { parseAccess, parseOverview, toAlertsError, type AlertsTransport } from "../transport";
+import { deviceKindLabel } from "../components/AlertsTesterPanel";
+import { parseAccess, parseDevices, parseOverview, toAlertsError, type AlertsTransport } from "../transport";
 import {
+  browserPermission,
   detectSupport,
   ensureWebAppManifest,
+  iosVersion,
   isIosDevice,
   keysOf,
   subscribeBrowser,
   urlBase64ToUint8Array,
+  webBase,
   type BrowserEnv,
 } from "../web-push";
 
@@ -30,34 +34,89 @@ jest.mock("@/lib/supabase", () => ({
 
 const VAPID = "BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw";
 
-function env(over: Partial<BrowserEnv["navigator"]> = {}, win: Partial<BrowserEnv["window"]> = {}): BrowserEnv {
+type Loose<T> = { [K in keyof T]?: T[K] | undefined };
+
+/** Drops keys set to undefined (the browser simply lacks them). */
+function defined<T extends object>(value: T): T {
+  return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T;
+}
+
+function env(over: Loose<BrowserEnv["navigator"]> = {}, win: Loose<BrowserEnv["window"]> = {}): BrowserEnv {
+  const navigator: Loose<BrowserEnv["navigator"]> = {
+    userAgent: "Mozilla/5.0 (X11; Linux x86_64) Chrome/130",
+    serviceWorker: {
+      register: jest.fn(),
+      getRegistration: jest.fn(),
+      ready: Promise.resolve({ pushManager: { getSubscription: jest.fn(), subscribe: jest.fn() } }),
+    },
+    ...over,
+  };
+  const window: Loose<BrowserEnv["window"]> = {
+    PushManager: {},
+    Notification: { permission: "default", requestPermission: jest.fn() },
+    ...win,
+  };
   return {
-    navigator: {
-      userAgent: "Mozilla/5.0 (X11; Linux x86_64) Chrome/130",
-      serviceWorker: {
-        register: jest.fn(),
-        getRegistration: jest.fn(),
-        ready: Promise.resolve({ pushManager: { getSubscription: jest.fn(), subscribe: jest.fn() } }),
-      },
-      ...over,
-    },
-    window: {
-      PushManager: {},
-      Notification: { permission: "default", requestPermission: jest.fn() },
-      ...win,
-    },
+    navigator: defined(navigator) as BrowserEnv["navigator"],
+    window: defined(window) as BrowserEnv["window"],
   };
 }
 
-describe("detectSupport", () => {
-  it("native app, no key, no browser, iPhone outside the Home Screen, no push, supported", () => {
+const IPHONE_18 = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Version/18.0 Mobile Safari/604.1";
+const IPHONE_16_3 = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) Version/16.3 Mobile Safari/604.1";
+const IPAD_AS_MAC = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/17.4 Safari/605.1.15";
+const NO_PUSH = { PushManager: undefined, Notification: undefined };
+
+describe("detectSupport (review note 11.3)", () => {
+  it("native app, no key, no browser, no push, supported", () => {
     expect(detectSupport("ios", VAPID, env())).toBe("native");
+    expect(detectSupport("android", VAPID, env())).toBe("native");
     expect(detectSupport("web", null, env())).toBe("not-configured");
     expect(detectSupport("web", VAPID, null)).toBe("unsupported");
-    expect(detectSupport("web", VAPID, env({ userAgent: "iPhone OS 18" }))).toBe("ios-home-screen");
-    expect(detectSupport("web", VAPID, env({ userAgent: "iPhone OS 18", standalone: true }))).toBe("supported");
     expect(detectSupport("web", VAPID, env({}, { PushManager: undefined }))).toBe("unsupported");
     expect(detectSupport("web", VAPID, env())).toBe("supported");
+  });
+
+  it("iPhone in Safari has no push APIs: Home Screen app needed, not 'unsupported' or 'blocked'", () => {
+    expect(detectSupport("web", VAPID, env({ userAgent: IPHONE_18, serviceWorker: undefined }, NO_PUSH))).toBe(
+      "ios-browser",
+    );
+    // Chrome on iPhone (CriOS) is the same WebKit: same answer.
+    expect(detectSupport("web", VAPID, env({ userAgent: `${IPHONE_18} CriOS/130` }, NO_PUSH))).toBe("ios-browser");
+  });
+
+  it("iPhone Home Screen app: supported; without push APIs it is an iOS too old", () => {
+    expect(detectSupport("web", VAPID, env({ userAgent: IPHONE_18, standalone: true }))).toBe("supported");
+    expect(detectSupport("web", VAPID, env({ userAgent: IPHONE_18, standalone: true }, NO_PUSH))).toBe("ios-update");
+  });
+
+  it("iOS older than 16.4: needs an update, in Safari or on the Home Screen", () => {
+    expect(detectSupport("web", VAPID, env({ userAgent: IPHONE_16_3 }, NO_PUSH))).toBe("ios-update");
+    expect(detectSupport("web", VAPID, env({ userAgent: IPHONE_16_3, standalone: true }, NO_PUSH))).toBe("ios-update");
+  });
+
+  it("iPad that says it is a Mac: iOS rules; a real Mac's Safari 16+ needs no Home Screen", () => {
+    const ipad = { userAgent: IPAD_AS_MAC, platform: "MacIntel", maxTouchPoints: 5 };
+    expect(detectSupport("web", VAPID, env(ipad, NO_PUSH))).toBe("ios-browser");
+    expect(detectSupport("web", VAPID, env({ ...ipad, standalone: true }))).toBe("supported");
+    const mac = { userAgent: IPAD_AS_MAC, platform: "MacIntel", maxTouchPoints: 0 };
+    expect(detectSupport("web", VAPID, env(mac))).toBe("supported");
+    expect(detectSupport("web", VAPID, env(mac, { PushManager: undefined }))).toBe("unsupported");
+  });
+
+  it("reads the iOS version from the user agent", () => {
+    expect(iosVersion({ userAgent: IPHONE_18 })).toEqual([18, 0]);
+    expect(iosVersion({ userAgent: "Mozilla/5.0 (iPad; CPU OS 16_4 like Mac OS X)" })).toEqual([16, 4]);
+    expect(iosVersion({ userAgent: IPAD_AS_MAC })).toEqual([17, 4]);
+    expect(iosVersion({ userAgent: "Mozilla/5.0 (Linux; Android 14)" })).toBeNull();
+  });
+
+  it("the browser's permission, or null without the API", () => {
+    expect(browserPermission(env({}, { Notification: { permission: "denied", requestPermission: jest.fn() } }))).toBe(
+      "denied",
+    );
+    expect(browserPermission(env({}, NO_PUSH))).toBeNull();
+    expect(browserPermission(null)).toBeNull();
   });
 
   it("an iPad that says it is a Mac is still iOS", () => {
@@ -79,7 +138,31 @@ describe("web push keys", () => {
     ).toThrow();
   });
 
-  it("replaces a subscription made with another server key", async () => {
+  it("registers the worker at the root of app.bumelerze.com (no /app base)", async () => {
+    const created = {
+      endpoint: "https://fcm.googleapis.com/x",
+      toJSON: () => ({ endpoint: "https://fcm.googleapis.com/x", keys: { p256dh: "p", auth: "a" } }),
+      unsubscribe: jest.fn(),
+    };
+    const registration = {
+      pushManager: {
+        getSubscription: jest.fn(() => Promise.resolve(null)),
+        subscribe: jest.fn(() => Promise.resolve(created)),
+      },
+    };
+    const e = env({
+      serviceWorker: {
+        register: jest.fn(() => Promise.resolve(registration)),
+        getRegistration: jest.fn(),
+        ready: Promise.resolve(registration),
+      },
+    });
+    expect(webBase()).toBe("");
+    await subscribeBrowser(e, webBase(), VAPID);
+    expect(e.navigator.serviceWorker?.register).toHaveBeenCalledWith("/push-sw.js", { scope: "/" });
+  });
+
+  it("replaces a subscription made with another server key (also under a subpath build)", async () => {
     const oldUnsubscribe = jest.fn(() => Promise.resolve(true));
     const oldSub = {
       endpoint: "https://fcm.googleapis.com/old",
@@ -114,7 +197,7 @@ describe("web push keys", () => {
     expect(keys).toEqual({ endpoint: "https://fcm.googleapis.com/new", p256dh: "p2", auth: "a2" });
   });
 
-  it("adds the manifest links once, under the base path", () => {
+  it("adds the manifest links once, at the root, or under a subpath build's base", () => {
     const appended: { attrs: Record<string, string> }[] = [];
     const e: BrowserEnv = {
       ...env(),
@@ -128,13 +211,17 @@ describe("web push keys", () => {
         },
       },
     };
-    ensureWebAppManifest(e, "/app");
-    ensureWebAppManifest(e, "/app");
+    ensureWebAppManifest(e, webBase());
+    ensureWebAppManifest(e, webBase());
     expect(appended.map((n) => n.attrs.rel ?? n.attrs.name)).toEqual([
       "manifest",
       "apple-touch-icon",
       "apple-mobile-web-app-capable",
     ]);
+    expect(appended[0]?.attrs.href).toBe("/manifest.webmanifest");
+    expect(appended[1]?.attrs.href).toBe("/push-icon-192.png");
+    appended.length = 0;
+    ensureWebAppManifest(e, "/app");
     expect(appended[0]?.attrs.href).toBe("/app/manifest.webmanifest");
   });
 });
@@ -222,6 +309,54 @@ describe("transport parsing", () => {
       "unavailable",
     );
     expect(toAlertsError(new TypeError("Network request failed")).code).toBe("network");
+  });
+
+  it("reads my devices; a phone app has no endpoint", () => {
+    expect(
+      parseDevices([
+        {
+          push_subscription_id: "d1",
+          kind: "web",
+          endpoint: "https://fcm.googleapis.com/fcm/send/x",
+          locale: "ckb",
+          created_at: "2026-10-12T10:00:00Z",
+          last_ok_at: null,
+          disabled: false,
+        },
+        { push_subscription_id: "d2", kind: "expo", endpoint: null, locale: "en", created_at: "2026-10-01T00:00:00Z", last_ok_at: "2026-10-02T00:00:00Z", disabled: true },
+      ]),
+    ).toEqual([
+      {
+        id: "d1",
+        kind: "web",
+        endpoint: "https://fcm.googleapis.com/fcm/send/x",
+        locale: "ckb",
+        createdAt: Date.UTC(2026, 9, 12, 10),
+        lastOkAt: null,
+        disabled: false,
+      },
+      {
+        id: "d2",
+        kind: "expo",
+        endpoint: null,
+        locale: "en",
+        createdAt: Date.UTC(2026, 9, 1),
+        lastOkAt: Date.UTC(2026, 9, 2),
+        disabled: true,
+      },
+    ]);
+    expect(parseDevices(null)).toEqual([]);
+  });
+
+  it("names a device by its push service", () => {
+    const t = ((key: string) => key) as unknown as Parameters<typeof deviceKindLabel>[1];
+    const label = (endpoint: string | null, kind: "web" | "expo" = "web") => deviceKindLabel({ kind, endpoint }, t);
+    expect(label("https://fcm.googleapis.com/fcm/send/x")).toBe("alerts.devices.chrome");
+    expect(label("https://web.push.apple.com/Q")).toBe("alerts.devices.safari");
+    expect(label("https://updates.push.services.mozilla.com/wpush/v2/x")).toBe("alerts.devices.firefox");
+    expect(label("https://wns2-db5p.notify.windows.com/w/?token=x")).toBe("alerts.devices.edge");
+    expect(label("not a url")).toBe("alerts.devices.browser");
+    expect(label(null, "expo")).toBe("alerts.devices.phoneApp");
   });
 
   it("reads access and the admin overview", () => {

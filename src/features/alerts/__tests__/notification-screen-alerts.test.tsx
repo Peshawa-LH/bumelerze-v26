@@ -7,6 +7,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -45,11 +46,12 @@ jest.mock("expo-location", () => ({
   getCurrentPositionAsync: () => Promise.resolve(null),
 }));
 
+let mockPermission = "undetermined";
 jest.mock("expo-notifications", () => ({
   PermissionStatus: { GRANTED: "granted", DENIED: "denied", UNDETERMINED: "undetermined" },
   SchedulableTriggerInputTypes: { TIME_INTERVAL: "timeInterval" },
   AndroidImportance: { HIGH: 4 },
-  getPermissionsAsync: () => Promise.resolve({ status: "undetermined" }),
+  getPermissionsAsync: () => Promise.resolve({ status: mockPermission }),
   requestPermissionsAsync: () => Promise.resolve({ status: "granted" }),
   scheduleNotificationAsync: jest.fn(),
   setNotificationChannelAsync: jest.fn(),
@@ -132,6 +134,50 @@ describe("Notification Settings under the alert rollout", () => {
     access({ tester: true, enabled: true });
     await renderScreen();
     expect(screen.getByTestId("alerts-device-native")).toBeTruthy();
+  });
+
+  it("a tester sees where near me is and the language alerts come in", async () => {
+    access({ tester: true, enabled: true });
+    await renderScreen();
+    expect(screen.getByTestId("alerts-near-me-where")).toBeTruthy();
+    expect(screen.getByText("Alerts come in the app's language: English. To change it, go to Settings, Language.")).toBeTruthy();
+  });
+
+  it("the public does not get the tester notes", async () => {
+    access({});
+    await renderScreen();
+    expect(screen.queryByTestId("alerts-near-me-where")).toBeNull();
+    expect(screen.queryByTestId("alerts-language")).toBeNull();
+  });
+
+  describe("on the web (review note 11.3)", () => {
+    const originalOS = Platform.OS;
+    afterEach(() => {
+      Platform.OS = originalOS;
+      mockPermission = "undetermined";
+    });
+
+    it("never shows the phone's Open Settings row, nor the local sound rehearsal", async () => {
+      Platform.OS = "web";
+      // iPhone Safari has no Notification API: expo-notifications says denied.
+      mockPermission = "denied";
+      access({});
+      await renderScreen();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(screen.queryByText("Notifications are blocked for Bumelerze on this device.")).toBeNull();
+      expect(screen.queryByText("Open Settings")).toBeNull();
+      expect(screen.queryByText("Play the alert sound")).toBeNull();
+      expect(screen.getByText("See the alert")).toBeTruthy();
+    });
+
+    it("the phone app still offers Open Settings when notifications are denied", async () => {
+      Platform.OS = "ios";
+      mockPermission = "denied";
+      access({});
+      await renderScreen();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(screen.getByText("Open Settings")).toBeTruthy();
+    });
   });
 
   it("coming soon in Sorani", async () => {
