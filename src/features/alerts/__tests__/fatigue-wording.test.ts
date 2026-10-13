@@ -24,13 +24,13 @@ describe("the 'how many alerts' text matches the planner", () => {
     expect(plan).toContain("interval '72 hours'");
     expect(plan).toMatch(/alert_distance_km\(m\.lat, m\.lon, ev\.lat, ev\.lon\) <= 100/);
     expect(text).toContain("(magnitude 5 or more)");
-    expect(text).toContain("for the next 3 days and within 100 km");
+    expect(text).toContain("For the next 3 days within 100 km");
   });
 
-  it("an aftershock alerts only if at most half a magnitude below the mainshock (or as strong)", () => {
+  it("an aftershock alerts only if almost as strong (at most half a magnitude below the mainshock)", () => {
     expect(rules).toContain("'mainshock_margin', 0.5");
     expect(plan).toContain("ev.magnitude < greatest(v_main - 0.5, v_floor + 1.0)");
-    expect(text).toContain("at most half a magnitude smaller");
+    expect(text).toContain("almost as strong as the main earthquake");
   });
 
   it("at most 3 an hour, except a new, stronger mainshock", () => {
@@ -45,6 +45,6 @@ describe("the 'how many alerts' text matches the planner", () => {
   it("the rest: one quiet summary, at most one every 12 hours", () => {
     expect(rules).toContain("'summary_every_hours', 12");
     expect(summaries).toContain("interval '12 hours'");
-    expect(text).toContain("one quiet summary, at most one every 12 hours");
+    expect(text).toContain("one summary, at most every 12 hours");
   });
 });

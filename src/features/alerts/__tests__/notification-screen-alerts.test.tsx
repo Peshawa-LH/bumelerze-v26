@@ -158,7 +158,7 @@ describe("Notification Settings under the alert rollout", () => {
     expect(text).toBeTruthy();
     expect(
       screen.getByText(
-        "After a strong earthquake (magnitude 5 or more) there are often many aftershocks. To avoid flooding you, for the next 3 days and within 100 km, Bumelerze alerts you only to aftershocks that are nearly as strong as the main earthquake (at most half a magnitude smaller). It also sends at most 3 alerts an hour. A new, stronger earthquake always comes through. The earthquakes left out are grouped into one quiet summary, at most one every 12 hours.",
+        "After a strong earthquake (magnitude 5 or more) there are often many aftershocks. For the next 3 days within 100 km, you get alerts only for aftershocks almost as strong as the main earthquake, and at most 3 alerts an hour. A new, stronger earthquake always comes through. The rest are grouped into one summary, at most every 12 hours.",
       ),
     ).toBeTruthy();
     expect(screen.queryByText("Alerts are limited during aftershock sequences.")).toBeNull();
