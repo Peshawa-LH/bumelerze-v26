@@ -38,11 +38,16 @@ export function AlertsTesterPanel({
   const [testState, setTestState] = useState<"idle" | "busy" | "sent" | AlertsErrorCode>("idle");
 
   const resolvedEnv = useMemo(() => (env === undefined ? browserEnv() : env), [env]);
+  // The manifest (and a theme-color in the app's own background colour, so
+  // Safari never paints its bars in the manifest's red) live only while this
+  // panel is on screen; the cleanup removes them again.
+  const themeColor = colors.surface.base;
   useEffect(() => {
     if (Platform.OS === "web" && resolvedEnv) {
-      ensureWebAppManifest(resolvedEnv, webBase());
+      return ensureWebAppManifest(resolvedEnv, webBase(), themeColor);
     }
-  }, [resolvedEnv]);
+    return undefined;
+  }, [resolvedEnv, themeColor]);
 
   const body = {
     color: colors.text.primary,

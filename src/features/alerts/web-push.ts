@@ -53,8 +53,15 @@ export interface BrowserEnv {
   document?: {
     head: { appendChild(node: unknown): unknown };
     querySelector(selector: string): unknown;
-    createElement(tag: string): { setAttribute(name: string, value: string): void };
+    createElement(tag: string): HeadNodeLike;
   };
+}
+
+/** The parts of a `<link>`/`<meta>` element the manifest helpers touch. */
+export interface HeadNodeLike {
+  setAttribute(name: string, value: string): void;
+  getAttribute?(name: string): string | null;
+  remove?(): void;
 }
 
 export interface PushSubscriptionLike {
@@ -221,14 +228,27 @@ export async function unsubscribeBrowser(env: BrowserEnv, base: string): Promise
 
 /**
  * iOS installs a site as a Home Screen app (the only way it gets web push)
- * from the page's manifest. Added only on the tester screen, so the public
- * app's Add to Home Screen behaves exactly as before.
+ * from the page's manifest. Added only while the tester screen is open, so
+ * the public app's Add to Home Screen behaves exactly as before.
+ *
+ * Safari also takes the browser bars' colour from the manifest's
+ * `theme_color` (the logo's Signal Red) when the page has no
+ * `<meta name="theme-color">`. So that the bars never turn red, a theme-color
+ * meta with the app's own background colour is set alongside the manifest,
+ * and the returned cleanup removes everything this call added and puts back
+ * any theme-color that was there before. Call it on unmount: nothing may
+ * stay changed after the screen closes (review note 11.2, 2026-10-13).
  */
-export function ensureWebAppManifest(env: BrowserEnv, base: string): void {
+export function ensureWebAppManifest(
+  env: BrowserEnv,
+  base: string,
+  themeColor?: string,
+): () => void {
   const doc = env.document;
   if (!doc) {
-    return;
+    return () => {};
   }
+  const added: HeadNodeLike[] = [];
   const add = (tag: string, attrs: Record<string, string>, selector: string) => {
     if (doc.querySelector(selector)) {
       return;
@@ -238,6 +258,7 @@ export function ensureWebAppManifest(env: BrowserEnv, base: string): void {
       node.setAttribute(name, value);
     }
     doc.head.appendChild(node);
+    added.push(node);
   };
   add("link", { rel: "manifest", href: `${base}/manifest.webmanifest` }, 'link[rel="manifest"]');
   add("link", { rel: "apple-touch-icon", href: `${base}/push-icon-192.png` }, 'link[rel="apple-touch-icon"]');
@@ -246,4 +267,29 @@ export function ensureWebAppManifest(env: BrowserEnv, base: string): void {
     { name: "apple-mobile-web-app-capable", content: "yes" },
     'meta[name="apple-mobile-web-app-capable"]',
   );
+
+  let restoreThemeColor: (() => void) | null = null;
+  if (themeColor) {
+    const existing = doc.querySelector('meta[name="theme-color"]') as HeadNodeLike | null;
+    if (existing) {
+      const previous = existing.getAttribute?.("content") ?? null;
+      existing.setAttribute("content", themeColor);
+      restoreThemeColor = () => {
+        if (previous !== null) {
+          existing.setAttribute("content", previous);
+        }
+      };
+    } else {
+      add("meta", { name: "theme-color", content: themeColor }, 'meta[name="theme-color"]');
+    }
+  }
+
+  return () => {
+    for (const node of added) {
+      node.remove?.();
+    }
+    added.length = 0;
+    restoreThemeColor?.();
+    restoreThemeColor = null;
+  };
 }
