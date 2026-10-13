@@ -11,6 +11,7 @@ import type { PromptMemory } from "./relevance";
 import {
   SupabaseCheckInTransport,
   type CheckInFailure,
+  type CheckInTold,
   type CheckInTransport,
 } from "./transport";
 
@@ -33,14 +34,21 @@ import {
 export type CheckInState =
   | "queued" // saved on the phone, not sent yet (or waiting for a retry)
   | "syncing" // an attempt is in flight
-  | "sent" // the server confirmed: the family can see it
+  | "sent" // the server confirmed: the people chosen can see it
   | "failed"; // stopped: see `failure` (retried later when `nextRetryAt` is set)
 
 export interface CheckInItem {
   clientId: string;
-  /** `provider:providerId` of the earthquake. */
+  /** `provider:providerId` of the earthquake, or `report:<id>` for a
+   * check-in tied to a felt report only. */
   eventKey: string;
-  event: EventRegistration;
+  /** The earthquake; null for a check-in tied to a felt report only. */
+  event: EventRegistration | null;
+  /** The person's own felt report it comes from (migration 0064). Missing on
+   * items saved before. */
+  feltReportId?: string | null;
+  /** How many people the server says were told (null until sent). */
+  told?: CheckInTold | null;
   /** The server's event id once resolved. */
   serverEventId: string | null;
   checkedInAt: number;
@@ -133,7 +141,8 @@ export function markPromptHandled(
 
 export interface EnqueueCheckInInput {
   eventKey: string;
-  event: EventRegistration;
+  event: EventRegistration | null;
+  feltReportId?: string | null;
 }
 
 /** The one-tap action. Resolves once the check-in is saved on the phone; the
@@ -147,6 +156,8 @@ export function enqueueCheckIn(
     clientId: Crypto.randomUUID(),
     eventKey: input.eventKey,
     event: input.event,
+    feltReportId: input.feltReportId ?? null,
+    told: null,
     serverEventId: null,
     checkedInAt: now,
     state: "queued",
@@ -157,7 +168,7 @@ export function enqueueCheckIn(
   };
   const store = useCheckInStore.getState();
   store._add(item);
-  store._handle(input.eventKey, input.event.magnitude, now);
+  store._handle(input.eventKey, input.event?.magnitude ?? 0, now);
   void processCheckInQueue(transport);
   return item;
 }
@@ -217,17 +228,23 @@ async function sendOne(item: CheckInItem, transport: CheckInTransport): Promise<
   };
 
   try {
-    const eventId = item.serverEventId ?? (await transport.resolveEvent(item.event));
-    if (!eventId) {
+    const reportId = item.feltReportId ?? null;
+    // From a felt report the server finds the report's own earthquake; the
+    // event is resolved here only for a check-in without a report.
+    const eventId =
+      item.serverEventId ??
+      (reportId || !item.event ? null : await transport.resolveEvent(item.event));
+    if (!eventId && !reportId) {
       fail(true, "network");
       return;
     }
-    if (eventId !== item.serverEventId) {
+    if (eventId && eventId !== item.serverEventId) {
       _patch(id, { serverEventId: eventId });
     }
     const result = await transport.checkIn({
       clientId: id,
       eventId,
+      reportId,
       checkedInAt: item.checkedInAt,
     });
     if (result.outcome === "sent") {
@@ -236,6 +253,7 @@ async function sendOne(item: CheckInItem, transport: CheckInTransport): Promise<
         attempts: item.attempts + 1,
         failure: null,
         nextRetryAt: null,
+        told: result.told ?? null,
       });
     } else if (result.outcome === "retracted") {
       _remove(id);
@@ -304,7 +322,12 @@ export function useCheckInItem(clientId: string | null): CheckInItem | null {
   );
 }
 
-/** The phone's latest live check-in for an event, if any. */
+/** The key a check-in tied to a felt report only is remembered by. */
+export function reportKey(feltReportId: string): string {
+  return `report:${feltReportId}`;
+}
+
+/** The phone's latest live check-in for an event (or report key), if any. */
 export function useCheckInForEvent(key: string | null): CheckInItem | null {
   return useCheckInStore((s) => {
     if (!key) return null;

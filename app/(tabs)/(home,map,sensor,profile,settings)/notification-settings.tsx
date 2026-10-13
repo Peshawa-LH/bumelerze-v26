@@ -31,6 +31,7 @@ import {
   type NotificationPermissionStatus,
 } from "@/features/notifications";
 import { usePrefsStore, type NotificationTier } from "@/features/onboarding";
+import { SafeAudienceSection } from "@/features/safe";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
@@ -46,6 +47,9 @@ const REHEARSAL_EXAMPLE_MAGNITUDE = 4.8;
  * same settings as before; testers (and everyone once the rollout is public)
  * get the real controls instead: alerts on this device, near-me place, test
  * alert. While the answer is loading, neither is shown.
+ *
+ * Account holders also choose who sees their "I'm safe" check-ins (review
+ * note 3.3): family only, family and mutual follows, or all followers.
  *
  * On the web the browser's permission belongs to the tester panel alone
  * (review note 11.3): no prompt from a tier change, no "Open Settings" row
@@ -338,6 +342,9 @@ export default function NotificationSettingsScreen() {
         </View>
 
         {access.enabled ? <AlertsLanguageNote /> : null}
+
+        {/* Who sees my "I'm safe" (accounts only, migration 0064). */}
+        <SafeAudienceSection />
 
         {/* Rehearsal */}
         <View style={{ gap: spacing[2] }}>

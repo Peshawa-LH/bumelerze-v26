@@ -59,7 +59,16 @@ const rowSchema = z.object({
   post_comment_id: z.string().nullable().optional(),
   post_author_username: z.string().nullable().optional(),
   source: z.enum(["comment", "post", "post_comment"]).nullable().catch(null).optional(),
+  // migration 0064
+  event_time: z.string().nullable().optional(),
+  checked_in_at: z.string().nullable().optional(),
 });
+
+function msOrNull(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
 
 /** `my_activity()` rows -> items. A row of a kind this app does not know (a
  * newer server) or with a bad date is dropped, never thrown on. */
@@ -110,6 +119,8 @@ export function parseActivityRows(data: unknown): ActivityItem[] {
       postCommentId: r.post_comment_id ?? null,
       postAuthorUsername: r.post_author_username ?? null,
       source: r.source ?? null,
+      eventTime: msOrNull(r.event_time),
+      checkedInAt: msOrNull(r.checked_in_at),
     });
   }
   return items;

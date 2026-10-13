@@ -47,6 +47,8 @@ function item(overrides: Partial<ActivityItem> & { id: string }): ActivityItem {
     postCommentId: null,
     postAuthorUsername: null,
     source: null,
+    eventTime: null,
+    checkedInAt: null,
     ...overrides,
   };
 }

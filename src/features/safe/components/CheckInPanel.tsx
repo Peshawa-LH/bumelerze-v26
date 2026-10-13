@@ -6,17 +6,25 @@ import { useTranslation } from "react-i18next";
 import type { EventRegistration } from "@/features/felt";
 import { useTheme } from "@/theme";
 
-import { eventLineText } from "../format";
-import { registrationKey, useCheckInAudience, useFamilyCheckIn } from "../hooks";
+import { eventLineText, reachWho } from "../format";
+import {
+  checkInKey,
+  useCheckInAudience,
+  useInAppCheckIn,
+  useSafeAudience,
+} from "../hooks";
 import { useCheckInForEvent, useCheckInItem, type CheckInItem } from "../queue";
 import { buildSafeShareMessage, shareSafeMessage } from "../share";
 import { NoHelpNote } from "./NoHelpNote";
 import { SafeButton } from "./SafeButton";
 
 export interface CheckInPanelProps {
-  /** The earthquake the check-in is about; null when there is none to attach
-   * to (then only the share sheet is offered). */
+  /** The earthquake the check-in is about; null when there is none. */
   event: EventRegistration | null;
+  /** The person's own felt report it comes from (review note 3.3): with it
+   * the check-in is real even without a regional M4.0, tied to the report's
+   * earthquake when it has one, else to the report. */
+  feltReportId?: string | null;
   /** Practice: nothing stored, nothing shared. */
   practice?: boolean;
   /** Put the "cannot send help" statement first (after a damage report of
@@ -32,16 +40,21 @@ export interface CheckInPanelProps {
 /**
  * "Are you safe?" with one big "I'm safe" button. Panic-time rules: one tap,
  * no typing, no map, no image download, honest wording ("Saved on your
- * phone" until the server confirms, then "Your family can see it").
+ * phone" until the server confirms, then who can see it).
  *
- * - Account in a home: the tap is queued for the family, a 10 s Undo shows,
- *   and "Send a message" stays available.
- * - Guest, or account without a home: the tap opens the share sheet with a
- *   pre-written message (no server row), plus one invitation line.
+ * - Account: the tap tells the people the person chose inside the app
+ *   (family, mutual follows or followers; Settings > Notifications). The
+ *   panel says who before and after; a 10 s Undo shows. A message outside
+ *   the app is an optional extra after the tap.
+ * - Account nobody would see yet (no family home, no follows): the panel
+ *   says so and the tap opens the share sheet instead.
+ * - Guest: the tap opens the share sheet with a pre-written message (no
+ *   server row), plus one invitation line.
  * - Practice: a rehearsal; nothing leaves the phone.
  */
 export function CheckInPanel({
   event,
+  feltReportId = null,
   practice = false,
   noticeFirst = false,
   onNotNow,
@@ -51,20 +64,33 @@ export function CheckInPanel({
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const router = useRouter();
-  const { audience, reason } = useCheckInAudience();
-  const familyCheckIn = useFamilyCheckIn();
+  const { audience } = useCheckInAudience();
+  const reach = useSafeAudience();
+  const inAppCheckIn = useInAppCheckIn();
   const [clientId, setClientId] = useState<string | null>(null);
   const [practiceDone, setPracticeDone] = useState(false);
   const [shareNote, setShareNote] = useState<string | null>(null);
 
-  const key = event ? registrationKey(event) : null;
-  const existing = useCheckInForEvent(practice ? null : key);
+  const target = { event, feltReportId };
+  const key = practice ? null : checkInKey(target);
+  const existing = useCheckInForEvent(key);
   const tapped = useCheckInItem(clientId);
   const item: CheckInItem | null = tapped ?? existing;
 
   const locale = i18n.language;
   const shareMessage = buildSafeShareMessage(t, locale, event?.originTime ?? null);
-  const canQueue = !practice && audience === "family" && event !== null;
+  const choice = reach.data?.audience ?? "mutual";
+  const before = reach.data
+    ? reachWho(
+        t,
+        locale,
+        { family: reach.data.family, follows: reach.data.follows },
+        choice,
+      )
+    : null;
+  // Known to reach nobody: say so and offer the message as the main action.
+  const nobody = audience === "inapp" && reach.data !== null && before === null;
+  const canQueue = !practice && audience === "inapp" && key !== null && !nobody;
 
   async function share() {
     const result = await shareSafeMessage(shareMessage);
@@ -76,8 +102,8 @@ export function CheckInPanel({
       setPracticeDone(true);
       return;
     }
-    if (canQueue && event) {
-      setClientId(familyCheckIn(event));
+    if (canQueue) {
+      setClientId(inAppCheckIn(target));
       return;
     }
     void share();
@@ -90,14 +116,22 @@ export function CheckInPanel({
   if (practiceDone) {
     status = t("imSafe.practice.done");
   } else if (item) {
-    status =
-      item.state === "sent"
-        ? t("imSafe.status.sent")
-        : item.state === "failed"
-          ? t("imSafe.status.failed")
-          : t("imSafe.status.queued");
+    if (item.state === "sent") {
+      const told = item.told ?? null;
+      const who = told ? reachWho(t, locale, told, choice) : before;
+      status = who
+        ? t("imSafe.reach.after", { who })
+        : told
+          ? t("imSafe.status.sentNobody")
+          : t("imSafe.status.sent");
+    } else {
+      status =
+        item.state === "failed" ? t("imSafe.status.failed") : t("imSafe.status.queued");
+    }
   }
   const done = practiceDone || item !== null;
+
+  const meta = [typography.bodyMeta, { color: colors.text.secondary }];
 
   return (
     <View testID={testID} style={{ gap: spacing[3] }}>
@@ -117,11 +151,19 @@ export function CheckInPanel({
         {practice ? t("imSafe.practice.body") : t("imSafe.prompt.body")}
       </Text>
       {event && !practice ? (
-        <Text
-          testID="im-safe-event-line"
-          style={[typography.bodyMeta, { color: colors.text.secondary }]}
-        >
+        <Text testID="im-safe-event-line" style={meta}>
           {eventLineText(t, locale, event.magnitude, event.originTime)}
+        </Text>
+      ) : null}
+
+      {!done && canQueue && before ? (
+        <Text testID="im-safe-reach" style={meta}>
+          {t("imSafe.reach.before", { who: before })}
+        </Text>
+      ) : null}
+      {!done && !practice && nobody ? (
+        <Text testID="im-safe-nobody" style={meta}>
+          {t("imSafe.reach.nobody")}
         </Text>
       ) : null}
 
@@ -144,6 +186,7 @@ export function CheckInPanel({
             style={[
               typography.bodyDefault,
               {
+                flex: 1,
                 color: colors.text.primary,
                 fontWeight: item?.state === "sent" ? "700" : "400",
               },
@@ -154,46 +197,37 @@ export function CheckInPanel({
         </View>
       ) : null}
 
-      {!practice && (canQueue || done) ? (
+      {/* A message outside the app: the optional extra after the tap. */}
+      {!practice && done && !practiceDone ? (
         <LinkButton
-          label={done ? t("imSafe.action.shareAlso") : t("imSafe.action.shareMessage")}
+          label={t("imSafe.action.shareAlso")}
           onPress={() => void share()}
           testID="im-safe-share"
         />
       ) : null}
       {shareNote ? (
-        <Text
-          testID="im-safe-copied"
-          style={[typography.bodyMeta, { color: colors.text.secondary }]}
-        >
+        <Text testID="im-safe-copied" style={meta}>
           {shareNote}
         </Text>
       ) : null}
 
       {!practice && audience === "share" ? (
-        <View style={{ gap: spacing[1] }} testID={`im-safe-invite-${reason ?? "guest"}`}>
-          <Text style={[typography.bodyMeta, { color: colors.text.secondary }]}>
-            {reason === "no_home" ? t("imSafe.noFamily.invite") : t("imSafe.guest.body")}
-          </Text>
-          {reason === "no_home" ? (
-            <LinkButton
-              label={t("imSafe.noFamily.join")}
-              onPress={() => router.push("/home/join")}
-              testID="im-safe-join"
-            />
-          ) : (
-            <>
-              <Text style={[typography.bodyMeta, { color: colors.text.secondary }]}>
-                {t("imSafe.guest.invite")}
-              </Text>
-              <LinkButton
-                label={t("imSafe.guest.create")}
-                onPress={() => router.push("/account/sign-in")}
-                testID="im-safe-create-account"
-              />
-            </>
-          )}
+        <View style={{ gap: spacing[1] }} testID="im-safe-invite-guest">
+          <Text style={meta}>{t("imSafe.guest.body")}</Text>
+          <Text style={meta}>{t("imSafe.guest.invite")}</Text>
+          <LinkButton
+            label={t("imSafe.guest.create")}
+            onPress={() => router.push("/account/sign-in")}
+            testID="im-safe-create-account"
+          />
         </View>
+      ) : null}
+      {!practice && nobody && !done ? (
+        <LinkButton
+          label={t("imSafe.noFamily.join")}
+          onPress={() => router.push("/home/join")}
+          testID="im-safe-join"
+        />
       ) : null}
 
       {onNotNow && !done ? (

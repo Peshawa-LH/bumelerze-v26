@@ -56,8 +56,8 @@ export function HomeCard({ home }: { home: HomeSummary }) {
   const { tag, assessment, role } = home;
   const family = useFamily(tag.tagId, role === "owner");
   const approved = (family.data?.members ?? []).filter((m) => m.status === "approved");
-  // "3 of 4 checked in" for the latest earthquake somebody here checked in
-  // for (last 24 hours). Hidden when there is none or it cannot be loaded.
+  // "3 of 4 checked in" when somebody here checked in during the last 24
+  // hours. Hidden when nobody did or it cannot be loaded.
   const checkIns = useFamilyCheckIns(tag.tagId);
   const safeSummary = checkIns.data ? summarizeFamilyStatus(checkIns.data) : null;
   const range = parseVcRange(assessment?.vcRange);
@@ -124,7 +124,7 @@ export function HomeCard({ home }: { home: HomeSummary }) {
                 })}
               />
             ) : null}
-            {safeSummary?.focus ? (
+            {safeSummary?.active ? (
               <Chip
                 testID={`home-safe-${tag.tagId}`}
                 icon="checkmark-circle-outline"

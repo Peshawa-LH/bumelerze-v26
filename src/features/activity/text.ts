@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { profileHref } from "@/features/community/routes";
+import { formatClockTime, isolateNumeric } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
 import { normalizeReason, reasonLabel } from "@/features/reporting/reasons";
 import type { ActivityItem } from "./types";
@@ -66,6 +67,13 @@ export function activityMessage(
       return t(`activity.reviewed.${item.target ?? "comment"}`);
     case "mention":
       return t(`activity.mention.${item.source ?? "comment"}`, { name });
+    case "safe_checkin":
+      return item.eventTime !== null
+        ? t("activity.kinds.safe_checkin", {
+            name,
+            time: isolateNumeric(formatClockTime(item.eventTime, locale, t)),
+          })
+        : t("activity.kinds.safe_checkin_noTime", { name });
     default:
       return t(`activity.kinds.${item.kind}`, { name });
   }
@@ -86,6 +94,7 @@ export function activityDetail(t: TFunction, item: ActivityItem): string | null 
           : t("activity.removed.reasonGuidelines"),
       });
     case "family_safe":
+    case "safe_checkin":
     case "comment_helpful":
       return item.place ? t("activity.event.near", { place: item.place }) : null;
     default:
@@ -117,6 +126,11 @@ export function activityHref(item: ActivityItem): string | null {
     case "home_join_request":
     case "family_safe":
       return item.tagId ? `/home/${encodeURIComponent(item.tagId)}/family` : null;
+    case "safe_checkin":
+      if (item.hubId) {
+        return `/event-hub/${encodeURIComponent(item.hubId)}`;
+      }
+      return item.actor?.username ? profileHref(item.actor.username) : null;
     case "home_join_approved":
       return item.tagId ? `/home/${encodeURIComponent(item.tagId)}/report` : null;
     default:

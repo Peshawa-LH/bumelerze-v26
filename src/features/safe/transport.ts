@@ -5,27 +5,46 @@ import type { EventRegistration } from "@/features/felt";
 import { getSupabaseClient } from "@/lib/supabase";
 
 /**
- * "I'm safe" data access (migration 0057). Screens and the queue never call
- * Supabase directly; tests inject a fake.
+ * "I'm safe" data access (migrations 0057 and 0064). Screens and the queue
+ * never call Supabase directly; tests inject a fake.
  *
- * PRIVACY: the check-in call carries exactly three things: the phone's random
- * client id, the server's event id and the time. No coordinates, no device id.
+ * PRIVACY: the check-in call carries the phone's random client id, the
+ * server's event id or the id of the person's own felt report, and the time.
+ * No coordinates, no device id.
  * (Resolving a feed event to the server's id sends the EARTHQUAKE's public
  * epicentre, the same call a felt report already makes; never the phone's.)
  */
 
 export type CheckInFailure =
-  "unconfigured" | "network" | "not_account" | "event" | "rate_limited" | "unknown";
+  | "unconfigured"
+  | "network"
+  | "not_account"
+  | "event"
+  | "report"
+  | "rate_limited"
+  | "unknown";
+
+/** How many people a check-in reached inside the app (migration 0064):
+ * approved family members, and follows under the person's choice. */
+export interface CheckInTold {
+  family: number;
+  follows: number;
+}
 
 export type CheckInResult =
-  | { outcome: "sent" }
+  | { outcome: "sent"; told?: CheckInTold | null }
   /** The server already holds this client id as taken back (Undo arrived first). */
   | { outcome: "retracted" }
   | { outcome: "failed"; retryable: boolean; reason: CheckInFailure };
 
 export interface CheckInInput {
   clientId: string;
-  eventId: string;
+  /** The server's event id; null for a check-in tied to a felt report only. */
+  eventId: string | null;
+  /** The person's own felt report (migration 0064): the check-in is real
+   * even without a regional M4.0, tied to the report's earthquake when it
+   * has one. */
+  reportId?: string | null;
   /** Phone time, ms. The server clamps it (not in the future, not before the
    * earthquake, not older than 72 hours). */
   checkedInAt: number;
@@ -39,7 +58,8 @@ export interface CheckInTransport {
   retract(clientId: string): Promise<boolean>;
 }
 
-/** One check-in as the family sees it: who, when, which earthquake. */
+/** One check-in as the family sees it: who, when, which earthquake (null
+ * for a check-in tied to a felt report only, migration 0064). */
 export interface FamilyCheckIn {
   userId: string;
   checkedInAt: number;
@@ -49,7 +69,7 @@ export interface FamilyCheckIn {
     magnitude: number;
     place: string | null;
     originTime: number;
-  };
+  } | null;
 }
 
 export interface FamilyCheckIns {
@@ -86,8 +106,15 @@ export function classifyCheckInError(error: unknown): {
   if (e.code === "42501") {
     return { retryable: false, reason: "not_account" };
   }
+  if (e.code === "P0002") {
+    // The felt report has not reached the server yet: try again later.
+    return { retryable: true, reason: "report" };
+  }
   if (e.code === "22023") {
-    return { retryable: false, reason: /event_/.test(message) ? "event" : "unknown" };
+    return {
+      retryable: false,
+      reason: /event_|report_/.test(message) ? "event" : "unknown",
+    };
   }
   if (e.code === "54000" || e.status === 429) {
     return { retryable: true, reason: "rate_limited" };
@@ -102,9 +129,15 @@ export function classifyCheckInError(error: unknown): {
   return { retryable: true, reason: "unknown" };
 }
 
+const countSchema = z.coerce.number().int().nonnegative().catch(0);
 const checkInResultSchema = z.object({
   client_id: z.string(),
   status: z.enum(["safe", "retracted"]),
+  told: z
+    .object({ family: countSchema, follows: countSchema })
+    .nullable()
+    .optional()
+    .catch(null),
 });
 
 const familySchema = z.object({
@@ -116,11 +149,11 @@ const familySchema = z.object({
 const familyRowSchema = z.object({
   user_id: z.string(),
   checked_in_at: z.string(),
-  event_id: z.string(),
-  bumelerze_id: z.string().nullable(),
-  magnitude: z.union([z.number(), z.string()]),
-  place: z.string().nullable(),
-  origin_time: z.string(),
+  event_id: z.string().nullable(),
+  bumelerze_id: z.string().nullable().optional(),
+  magnitude: z.union([z.number(), z.string()]).nullable().optional(),
+  place: z.string().nullable().optional(),
+  origin_time: z.string().nullable().optional(),
 });
 
 /** Parses `family_checkins` output. Rows that break the contract are dropped. */
@@ -134,26 +167,28 @@ export function parseFamilyCheckIns(data: unknown): FamilyCheckIns {
     const row = familyRowSchema.safeParse(raw);
     if (!row.success) continue;
     const checkedInAt = Date.parse(row.data.checked_in_at);
-    const originTime = Date.parse(row.data.origin_time);
-    const magnitude = Number(row.data.magnitude);
-    if (
-      !Number.isFinite(checkedInAt) ||
-      !Number.isFinite(originTime) ||
-      !Number.isFinite(magnitude)
-    ) {
-      continue;
-    }
-    checkins.push({
-      userId: row.data.user_id,
-      checkedInAt,
-      event: {
+    if (!Number.isFinite(checkedInAt)) continue;
+    let event: FamilyCheckIn["event"] = null;
+    if (row.data.event_id !== null) {
+      const originTime = Date.parse(row.data.origin_time ?? "");
+      const magnitude = Number(row.data.magnitude);
+      if (
+        !Number.isFinite(originTime) ||
+        row.data.magnitude === null ||
+        row.data.magnitude === undefined ||
+        !Number.isFinite(magnitude)
+      ) {
+        continue;
+      }
+      event = {
         eventId: row.data.event_id,
-        bumelerzeId: row.data.bumelerze_id,
+        bumelerzeId: row.data.bumelerze_id ?? null,
         magnitude,
-        place: row.data.place,
+        place: row.data.place ?? null,
         originTime,
-      },
-    });
+      };
+    }
+    checkins.push({ userId: row.data.user_id, checkedInAt, event });
   }
   checkins.sort((a, b) => b.checkedInAt - a.checkedInAt);
   return {
@@ -170,7 +205,7 @@ export const SupabaseCheckInTransport: CheckInTransport = {
     return resolveEventUuid(client, registration);
   },
 
-  async checkIn({ clientId, eventId, checkedInAt }) {
+  async checkIn({ clientId, eventId, reportId, checkedInAt }) {
     const client = getSupabaseClient();
     if (!client) {
       return { outcome: "failed", retryable: true, reason: "unconfigured" };
@@ -180,6 +215,7 @@ export const SupabaseCheckInTransport: CheckInTransport = {
         p_client_id: clientId,
         p_event_id: eventId,
         p_checked_in_at: new Date(checkedInAt).toISOString(),
+        ...(reportId ? { p_report_id: reportId } : {}),
       });
       if (error) {
         return { outcome: "failed", ...classifyCheckInError(error) };
@@ -190,7 +226,7 @@ export const SupabaseCheckInTransport: CheckInTransport = {
       }
       return parsed.data.status === "retracted"
         ? { outcome: "retracted" }
-        : { outcome: "sent" };
+        : { outcome: "sent", told: parsed.data.told ?? null };
     } catch (caught) {
       return { outcome: "failed", ...classifyCheckInError(caught) };
     }
@@ -207,6 +243,65 @@ export const SupabaseCheckInTransport: CheckInTransport = {
     } catch {
       return false;
     }
+  },
+};
+
+/** Who a check-in reaches (migration 0064, Settings > Notifications). */
+export const SAFE_AUDIENCES = ["family", "mutual", "followers"] as const;
+export type SafeAudienceChoice = (typeof SAFE_AUDIENCES)[number];
+
+/** The person's choice, and how many people each choice reaches today. */
+export interface SafeAudience {
+  audience: SafeAudienceChoice;
+  /** Approved family members who would be told. */
+  family: number;
+  /** Mutual follows outside the family. */
+  mutual: number;
+  /** Every accepted follower outside the family (mutual ones included). */
+  followers: number;
+  /** Follows told under the current choice. */
+  follows: number;
+}
+
+export interface SafeAudienceTransport {
+  fetchAudience(): Promise<SafeAudience>;
+  setAudience(audience: SafeAudienceChoice): Promise<SafeAudience>;
+}
+
+const audienceSchema = z.object({
+  audience: z.enum(SAFE_AUDIENCES).catch("mutual"),
+  family: countSchema,
+  mutual: countSchema,
+  followers: countSchema,
+  follows: countSchema,
+});
+
+/** Parses `my_safe_audience` / `set_safe_audience`. Throws on a bad shape. */
+export function parseSafeAudience(data: unknown): SafeAudience {
+  const parsed = audienceSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new FamilyStatusError("safe_audience");
+  }
+  return parsed.data;
+}
+
+export const SupabaseSafeAudienceTransport: SafeAudienceTransport = {
+  async fetchAudience() {
+    const client = getSupabaseClient();
+    if (!client) throw new FamilyStatusError("unconfigured");
+    const { data, error } = await client.rpc("my_safe_audience");
+    if (error) throw new FamilyStatusError(error.message);
+    return parseSafeAudience(data);
+  },
+
+  async setAudience(audience) {
+    const client = getSupabaseClient();
+    if (!client) throw new FamilyStatusError("unconfigured");
+    const { data, error } = await client.rpc("set_safe_audience", {
+      p_audience: audience,
+    });
+    if (error) throw new FamilyStatusError(error.message);
+    return parseSafeAudience(data);
   },
 };
 

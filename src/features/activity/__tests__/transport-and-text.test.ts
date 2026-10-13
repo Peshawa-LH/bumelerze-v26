@@ -148,6 +148,34 @@ describe("activity text", () => {
     );
   });
 
+  it("says a follow is safe after the earthquake, at the earthquake's time (migration 0064)", () => {
+    const [safe] = parseActivityRows([
+      row({
+        kind: "safe_checkin",
+        event_time: "2026-10-09T10:21:00Z",
+        checked_in_at: "2026-10-09T10:40:00Z",
+        hub_id: "bml2026aaa",
+        place: "Halabja",
+      }),
+    ]);
+    expect(safe).toMatchObject({
+      kind: "safe_checkin",
+      eventTime: Date.parse("2026-10-09T10:21:00Z"),
+      checkedInAt: Date.parse("2026-10-09T10:40:00Z"),
+    });
+    expect(activityMessage(t, safe!, "en")).toMatch(
+      /^Bnar is safe after the earthquake at .+\.$/,
+    );
+    expect(activityMessage(t, safe!, "ckb")).toMatch(/[٠-٩]/);
+    expect(
+      activityMessage(t, item({ kind: "safe_checkin", eventTime: null }), "en"),
+    ).toBe("Bnar is safe after the earthquake.");
+    expect(activityDetail(t, safe!)).toBe("Earthquake near Halabja");
+    expect(activityHref(safe!)).toBe("/event-hub/bml2026aaa");
+    // tied to a felt report only: no hub, the person's profile instead
+    expect(activityHref(item({ kind: "safe_checkin", hubId: null }))).toBe("/u/userb");
+  });
+
   it("localizes the Helpful count's digits", () => {
     expect(
       activityMessage(t, item({ kind: "post_helpful", count: 12 }), "ckb"),

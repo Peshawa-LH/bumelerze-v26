@@ -26,7 +26,10 @@ export interface MemberStatus {
 }
 
 export interface FamilyStatusSummary {
-  focus: FamilyCheckIn["event"] | null;
+  focus: NonNullable<FamilyCheckIn["event"]> | null;
+  /** Somebody checked in during the last 24 hours (a check-in tied to a
+   * felt report only has no earthquake, so it sets no focus). */
+  active: boolean;
   members: MemberStatus[];
   checkedIn: number;
   total: number;
@@ -37,9 +40,9 @@ export function summarizeFamilyStatus(
   now: number = Date.now(),
 ): FamilyStatusSummary {
   const recent = data.checkins.filter((c) => now - c.checkedInAt <= DISPLAY_WINDOW_MS);
-  let focus: FamilyCheckIn["event"] | null = null;
+  let focus: NonNullable<FamilyCheckIn["event"]> | null = null;
   for (const c of recent) {
-    if (!focus || c.event.originTime > focus.originTime) {
+    if (c.event && (!focus || c.event.originTime > focus.originTime)) {
       focus = c.event;
     }
   }
@@ -69,6 +72,7 @@ export function summarizeFamilyStatus(
 
   return {
     focus,
+    active: recent.length > 0,
     members,
     checkedIn: members.filter((m) => m.state === "safe").length,
     total: members.length,

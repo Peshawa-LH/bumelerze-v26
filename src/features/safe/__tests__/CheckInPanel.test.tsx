@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import { Share } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -18,17 +19,13 @@ let mockAccount: { status: string; userId: string | null } = {
   userId: "u1",
 };
 jest.mock("@/features/account/use-account", () => ({ useAccount: () => mockAccount }));
-let mockHomes: { homes: unknown[] } | null = { homes: [{ tag: { tagId: "t1" } }] };
-jest.mock("@/features/building/queries", () => ({
-  useMyHomes: () => ({
-    data: mockHomes,
-    isLoading: false,
-    isError: false,
-    refetch: jest.fn(),
-  }),
+jest.mock("@/lib/supabase", () => ({
+  isSupabaseConfigured: () => true,
+  getSupabaseClient: () => null,
 }));
 const mockCheckIn = jest.fn();
 const mockRetract = jest.fn();
+const mockAudience = jest.fn();
 jest.mock("../transport", () => ({
   ...jest.requireActual("../transport"),
   SupabaseCheckInTransport: {
@@ -36,7 +33,13 @@ jest.mock("../transport", () => ({
     checkIn: (input: unknown) => mockCheckIn(input),
     retract: (id: string) => mockRetract(id),
   },
+  SupabaseSafeAudienceTransport: {
+    fetchAudience: () => mockAudience(),
+    setAudience: jest.fn(),
+  },
 }));
+
+const REACH = { audience: "mutual", family: 1, mutual: 2, followers: 4, follows: 2 };
 
 const EVENT: EventRegistration = {
   provider: "usgs",
@@ -55,16 +58,29 @@ const metrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
+let queryClient = new QueryClient();
+
 async function renderPanel(props: Partial<Parameters<typeof CheckInPanel>[0]> = {}) {
+  queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
   await act(async () => {
     await render(
-      <SafeAreaProvider initialMetrics={metrics}>
-        <SnackbarProvider>
-          <CheckInPanel event={EVENT} {...props} />
-        </SnackbarProvider>
-      </SafeAreaProvider>,
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider initialMetrics={metrics}>
+          <SnackbarProvider>
+            <CheckInPanel event={EVENT} {...props} />
+          </SnackbarProvider>
+        </SafeAreaProvider>
+      </QueryClientProvider>,
     );
   });
+  // the audience answer
+  for (let i = 0; i < 3; i += 1) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
 }
 
 async function press(testID: string) {
@@ -76,16 +92,19 @@ async function press(testID: string) {
 beforeEach(async () => {
   __resetCheckInQueueForTests();
   mockAccount = { status: "account", userId: "u1" };
-  mockHomes = { homes: [{ tag: { tagId: "t1" } }] };
-  mockCheckIn.mockReset().mockResolvedValue({ outcome: "sent" });
+  mockAudience.mockReset().mockResolvedValue(REACH);
+  mockCheckIn.mockReset().mockResolvedValue({ outcome: "sent", told: null });
   mockRetract.mockReset().mockResolvedValue(true);
   mockPush.mockReset();
   await i18n.changeLanguage("en");
 });
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  queryClient.clear();
+});
 
 describe("CheckInPanel", () => {
-  it("one tap: saved on the phone, Undo offered, then 'Your family can see it'", async () => {
+  it("one tap tells the chosen people in the app: who before, saved with Undo, then who can see it", async () => {
     let release: (v: unknown) => void = () => undefined;
     mockCheckIn.mockImplementation(() => new Promise((resolve) => (release = resolve)));
     await renderPanel();
@@ -93,6 +112,11 @@ describe("CheckInPanel", () => {
     expect(
       screen.getByText("Bumelerze cannot send rescue teams or any help."),
     ).toBeTruthy();
+    expect(screen.getByTestId("im-safe-reach")).toHaveTextContent(
+      "Your family and 2 of your mutual follows will see this.",
+    );
+    // the message outside the app is not the main action any more
+    expect(screen.queryByTestId("im-safe-share")).toBeNull();
     await press("im-safe-button");
     expect(useCheckInStore.getState().items).toHaveLength(1);
     expect(screen.getByTestId("im-safe-status")).toHaveTextContent(
@@ -100,14 +124,29 @@ describe("CheckInPanel", () => {
     );
     expect(screen.getByTestId("snackbar-action")).toHaveTextContent("Undo");
     // No "sent" wording before the server says so.
-    expect(screen.queryByText("Your family can see that you are safe.")).toBeNull();
+    expect(screen.queryByText(/can see that you are safe/)).toBeNull();
     await act(async () => {
-      release({ outcome: "sent" });
+      release({ outcome: "sent", told: { family: 1, follows: 3 } });
     });
     expect(screen.getByTestId("im-safe-status")).toHaveTextContent(
-      "Your family can see that you are safe.",
+      "Sent. Your family and 3 of your mutual follows can see that you are safe.",
     );
     expect(screen.queryByTestId("im-safe-button")).toBeNull();
+    // ...and now, optionally, a message outside the app
+    expect(screen.getByTestId("im-safe-share")).toHaveTextContent("Also send a message");
+  });
+
+  it("says 'followers' when that is the person's choice", async () => {
+    mockAudience.mockResolvedValue({
+      ...REACH,
+      family: 0,
+      audience: "followers",
+      follows: 4,
+    });
+    await renderPanel();
+    expect(screen.getByTestId("im-safe-reach")).toHaveTextContent(
+      "4 of your followers will see this.",
+    );
   });
 
   it("Undo takes it back and the button returns", async () => {
@@ -139,24 +178,53 @@ describe("CheckInPanel", () => {
     expect(message).not.toMatch(/Halabja|35\.3|46\.1|http/);
     expect(useCheckInStore.getState().items).toHaveLength(0);
     expect(mockCheckIn).not.toHaveBeenCalled();
+    expect(mockAudience).not.toHaveBeenCalled();
     expect(screen.getByTestId("im-safe-invite-guest")).toBeTruthy();
     await press("im-safe-create-account");
     expect(mockPush).toHaveBeenCalledWith("/account/sign-in");
     share.mockRestore();
   });
 
-  it("an account without a home: share sheet and 'Join a home'", async () => {
-    mockHomes = { homes: [] };
+  it("an account nobody would see yet: says so, offers the message instead, and 'Join a home'", async () => {
+    mockAudience.mockResolvedValue({
+      audience: "mutual",
+      family: 0,
+      mutual: 0,
+      followers: 3,
+      follows: 0,
+    });
     const share = jest
       .spyOn(Share, "share")
       .mockResolvedValue({ action: "sharedAction" });
     await renderPanel();
+    expect(screen.getByTestId("im-safe-nobody")).toHaveTextContent(
+      /Nobody in Bumelerze would see this yet/,
+    );
+    expect(screen.queryByTestId("im-safe-reach")).toBeNull();
     await press("im-safe-button");
     expect(share).toHaveBeenCalledTimes(1);
     expect(useCheckInStore.getState().items).toHaveLength(0);
     await press("im-safe-join");
     expect(mockPush).toHaveBeenCalledWith("/home/join");
     share.mockRestore();
+  });
+
+  it("while the audience is unknown (offline), an account's tap is still queued", async () => {
+    mockAudience.mockRejectedValue(new Error("offline"));
+    await renderPanel();
+    await press("im-safe-button");
+    expect(useCheckInStore.getState().items).toHaveLength(1);
+  });
+
+  it("from a felt report with no earthquake: real, tied to the report", async () => {
+    await renderPanel({ event: null, feltReportId: "r9" });
+    expect(screen.queryByText("Practice a check-in")).toBeNull();
+    await press("im-safe-button");
+    expect(useCheckInStore.getState().items[0]).toMatchObject({
+      eventKey: "report:r9",
+      feltReportId: "r9",
+      event: null,
+    });
   });
 
   it("practice stores nothing and shares nothing", async () => {
@@ -168,14 +236,16 @@ describe("CheckInPanel", () => {
     expect(useCheckInStore.getState().items).toHaveLength(0);
     expect(share).not.toHaveBeenCalled();
     expect(mockCheckIn).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("im-safe-share")).toBeNull();
     share.mockRestore();
   });
 
-  it("'Send a message instead' works next to the family check-in", async () => {
+  it("'Also send a message' works after the check-in", async () => {
     const share = jest
       .spyOn(Share, "share")
       .mockResolvedValue({ action: "sharedAction" });
     await renderPanel();
+    await press("im-safe-button");
     await press("im-safe-share");
     expect(share).toHaveBeenCalledTimes(1);
     share.mockRestore();
@@ -197,10 +267,11 @@ describe("CheckInPanel", () => {
     expect(style.minHeight).toBeGreaterThanOrEqual(64);
   });
 
-  it("speaks Sorani, right to left", async () => {
+  it("speaks Sorani, right to left, with Sorani digits", async () => {
     await i18n.changeLanguage("ckb");
     await renderPanel();
     expect(screen.getByText("ئایا سەلامەتیت؟")).toBeTruthy();
     expect(screen.getByRole("button", { name: "من سەلامەتم" })).toBeTruthy();
+    expect(screen.getByTestId("im-safe-reach")).toHaveTextContent(/٢/);
   });
 });

@@ -16,6 +16,8 @@ export const ACTIVITY_KINDS = [
   "post_comment",
   "post_comment_reply",
   "mention",
+  // migration 0064: "I'm safe" from a follow (family stays family_safe)
+  "safe_checkin",
 ] as const;
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
@@ -68,4 +70,9 @@ export interface ActivityItem {
   postCommentId: string | null;
   postAuthorUsername: string | null;
   source: "comment" | "post" | "post_comment" | null;
+  /** Check-ins (migration 0064): the earthquake's time, else the time of
+   * the felt report the check-in came from (UTC ms). */
+  eventTime: number | null;
+  /** Check-ins: when the person tapped "I'm safe" (UTC ms). */
+  checkedInAt: number | null;
 }

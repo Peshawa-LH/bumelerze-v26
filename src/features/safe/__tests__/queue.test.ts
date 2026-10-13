@@ -90,10 +90,36 @@ describe("I'm safe queue", () => {
       "checkedInAt",
       "clientId",
       "eventId",
+      "reportId",
     ]);
+    expect(calls.checkIn[0]?.reportId).toBeNull();
     expect(JSON.stringify(calls.checkIn[0])).not.toMatch(
       /lat|lon|geo|device|35\.3|46\.1/,
     );
+  });
+
+  it("from a felt report: sends the report id, resolves no event, and keeps who was told", async () => {
+    const { transport, calls } = fakeTransport({
+      checkIn: async (input) => {
+        calls.checkIn.push(input);
+        return { outcome: "sent", told: { family: 1, follows: 2 } };
+      },
+    });
+    enqueueCheckIn({ eventKey: "report:r1", event: null, feltReportId: "r1" }, transport);
+    await flush();
+    expect(calls.resolve).toBe(0);
+    expect(calls.checkIn[0]).toMatchObject({ eventId: null, reportId: "r1" });
+    expect(items()[0]).toMatchObject({ state: "sent", told: { family: 1, follows: 2 } });
+  });
+
+  it("a report not on the server yet is retried, not dropped", async () => {
+    const { transport } = fakeTransport({
+      checkIn: async () => ({ outcome: "failed", retryable: true, reason: "report" }),
+    });
+    enqueueCheckIn({ eventKey: "report:r1", event: null, feltReportId: "r1" }, transport);
+    await flush();
+    expect(items()[0]).toMatchObject({ state: "queued", failure: "report" });
+    expect(items()[0]?.nextRetryAt).not.toBeNull();
   });
 
   it("offline: stays queued with a retry time, then sends with the SAME client id", async () => {

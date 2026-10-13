@@ -738,7 +738,18 @@
       "exampleBody": "14 km başûrrojhilatê Hewlêrê, Herêma Kurdistanê",
       "close": "Bigire"
     },
-    "fatigueTitle": "Tu çend hişyariyan distînî"
+    "fatigueTitle": "Tu çend hişyariyan distînî",
+    "safe": {
+      "title": "Kî «Ez ewle me» ya min dibîne",
+      "explainer": "Dema tu «Ez ewle me» dikî, ev kes wê di lîsteya Çalakiyan a xwe ya li Bumelerze de dibînin. Qet cihê te na.",
+      "options": {
+        "family": "Tenê malbat",
+        "mutual": "Malbat + şopînerên hevpar",
+        "followers": "Malbat + hemû şopîner"
+      },
+      "nobody": "Niha kes wê nabîne. Tevlî mala malbata xwe bibe an bi hevalan re hevdu bişopînin.",
+      "saveFailed": "Nehat tomarkirin. Ji kerema xwe dîsa biceribîne."
+    }
   },
   "eventDetail": {
     "title": "Kirdeyên bûyerê",
@@ -3143,7 +3154,7 @@
     "screenTitle": "Ez ewle me",
     "prompt": {
       "title": "Tu ewle yî?",
-      "body": "Malbata xwe agahdar bike ku tu baş î."
+      "body": "Malbat û hevalên xwe yên li Bumelerze agahdar bike ku tu baş î."
     },
     "button": {
       "safe": "Ez ewle me",
@@ -3153,15 +3164,16 @@
     },
     "status": {
       "queued": "Li ser cîhaza te hate tomarkirin. Gava şebeke hebe dê were şandin.",
-      "sent": "Malbata te dikare bibîne ku tu ewle yî.",
-      "failed": "Ji malbata te re nehat parvekirin. Tu dikarî li şûna wê peyamekê bişînî.",
-      "undone": "Hate vegerandin."
+      "sent": "Hat şandin. Kesên ku te hilbijartine dikarin bibînin ku tu ewle yî.",
+      "failed": "Nehat şandin. Tu dikarî li şûna wê peyamekê bişînî.",
+      "undone": "Hate vegerandin.",
+      "sentNobody": "Hat tomarkirin, lê hê kes di Bumelerze de wê nabîne. Tu dikarî li şûna wê peyamekê bişînî."
     },
     "action": {
       "shareMessage": "Li şûna wê peyamekê bişîne",
       "shareAlso": "Peyamekê jî bişîne",
       "copied": "Peyam hate kopîkirin. Wê li WhatsApp, Viber an SMSê bixe.",
-      "feltLink": "Malbata xwe agahdar bike"
+      "feltLink": "Malbat û hevalên xwe agahdar bike"
     },
     "noHelp": "Bumelerze nikare tîmên rizgarkirinê an tu alîkariyê bişîne.",
     "eventLine": "Piştî erdheja {{magnitude}} di saet {{time}} de",
@@ -3176,7 +3188,6 @@
       "create": "Hesabekî çêke"
     },
     "noFamily": {
-      "invite": "Tevlî mala malbata xwe bibe da ku carek din vê bibînin.",
       "join": "Tevlî malekê bibe"
     },
     "share": {
@@ -3202,6 +3213,18 @@
     },
     "banner": {
       "a11y": "Tu ewle yî? Li nêzî te erdhejeke xurt çêbû."
+    },
+    "who": {
+      "family": "Malbata te",
+      "familyMutual": "Malbata te û {{count}} ji şopînerên te yên hevpar",
+      "familyFollowers": "Malbata te û {{count}} ji şopînerên te",
+      "mutual": "{{count}} ji şopînerên te yên hevpar",
+      "followers": "{{count}} ji şopînerên te"
+    },
+    "reach": {
+      "before": "{{who}} dê vê bibînin.",
+      "after": "Hat şandin. {{who}} dikarin bibînin ku tu ewle yî.",
+      "nobody": "Hê kes di Bumelerze de vê nabîne. Tevlî mala malbata xwe bibe an bi hevalan re hevdu bişopînin. Tu dikarî li şûna wê peyamekê bişînî."
     }
   },
   "activity": {
@@ -3209,7 +3232,7 @@
     "bell": "Çalakî",
     "bellNew": "Çalakî, {{value}} nû",
     "hint": "Tenê li vir di sepanê de. Bumelerze tenê ji bo erdhejan agahdariyan dişîne.",
-    "empty": "Hê tiştek tune. Şopînerên nû, bersiv, nîşanên Bikêr û agahdariyên ewlehiya malbatê dê li vir xuya bibin.",
+    "empty": "Hê tiştek tune. Şopînerên nû, bersiv, nîşanên Bikêr û agahdariyên «Ez ewle me» dê li vir xuya bibin.",
     "loadError": "Çalakiyên te nehatin barkirin.",
     "retry": "Dîsa biceribîne",
     "older": "Yên kevntir nîşan bide",
@@ -3230,7 +3253,9 @@
       "home_join_approved": "Niha tu dikarî {{home}} bibînî.",
       "family_safe": "{{name}} agahdar kir: Ez ewle me.",
       "post_comment": "{{name}} li ser nivîsa te şîrove nivîsand.",
-      "post_comment_reply": "{{name}} bersiva şîroveya te ya li ser nivîsekê da."
+      "post_comment_reply": "{{name}} bersiva şîroveya te ya li ser nivîsekê da.",
+      "safe_checkin": "{{name}} piştî erdheja saet {{time}} ewle ye.",
+      "safe_checkin_noTime": "{{name}} piştî erdhejê ewle ye."
     },
     "removed": {
       "comment_hide": "Moderatorekî şîroveya te veşart.",

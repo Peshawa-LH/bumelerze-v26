@@ -19,8 +19,16 @@ import { CheckInPanel } from "./CheckInPanel";
  * earthquake, or to the newest regional M4.0+ of the last 72 hours; with
  * neither it becomes "Practice a check-in" (stored nowhere, shared with
  * nobody), so the check-in never turns into a daily "are you alive" signal.
+ * From a felt report (`reportParam`) it is always real: the server ties it
+ * to the report's earthquake, or to the report itself (review note 3.3).
  */
-export function ImSafeScreen({ eventParam }: { eventParam: string | undefined }) {
+export function ImSafeScreen({
+  eventParam,
+  reportParam,
+}: {
+  eventParam: string | undefined;
+  reportParam?: string | undefined;
+}) {
   const { t } = useTranslation();
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
@@ -30,9 +38,12 @@ export function ImSafeScreen({ eventParam }: { eventParam: string | undefined })
   const fromParam = decodeEventRegistrationParam(eventParam);
   // eslint-disable-next-line react-hooks/purity -- see EventListScreen.tsx's comment on this exact pattern
   const now = Date.now();
+  const feltReportId = reportParam ? reportParam : null;
   const usable =
-    fromParam && now - fromParam.originTime <= MANUAL_WINDOW_MS ? fromParam : null;
-  const manual = usable ? null : pickManualEvent(events);
+    fromParam && (feltReportId || now - fromParam.originTime <= MANUAL_WINDOW_MS)
+      ? fromParam
+      : null;
+  const manual = usable || feltReportId ? null : pickManualEvent(events);
   const event = usable ?? (manual ? toEventRegistration(manual) : null);
 
   return (
@@ -53,7 +64,8 @@ export function ImSafeScreen({ eventParam }: { eventParam: string | undefined })
       >
         <CheckInPanel
           event={event}
-          practice={event === null}
+          feltReportId={feltReportId}
+          practice={event === null && feltReportId === null}
           titleLevel={1}
           testID="im-safe-screen"
         />

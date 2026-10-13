@@ -2,16 +2,14 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useRegionEvents } from "@/features/events";
 import {
   encodeEventRegistrationParam,
-  toEventRegistration,
   useFeltQueueStore,
   type EventRegistration,
 } from "@/features/felt";
 import { useTheme } from "@/theme";
 
-import { feltPromptKind, pickManualEvent } from "../relevance";
+import { feltPromptKind } from "../relevance";
 import { CheckInPanel } from "./CheckInPanel";
 
 /** Damage grade from which the "cannot send help" statement comes first. */
@@ -23,7 +21,9 @@ const NOTICE_FIRST_FROM_DAMAGE_GRADE = 3;
  * shaking does not mean the person is safe.
  *
  * Level V and up: the full "Are you safe?" panel. III-IV: one quiet link to
- * the check-in screen. II and below: nothing.
+ * the check-in screen. II and below: nothing. Either way the check-in carries
+ * the report (review note 3.3): it is real even without a regional M4.0,
+ * tied to the report's earthquake when it has one, else to the report.
  */
 export function FeltSafeCard({ feltReportId }: { feltReportId: string | null }) {
   const queued = useFeltQueueStore((s) =>
@@ -36,18 +36,30 @@ export function FeltSafeCard({ feltReportId }: { feltReportId: string | null }) 
     return null;
   }
   if (kind === "quiet") {
-    return <QuietLink event={queued.tier1.eventRegistration} />;
+    return (
+      <QuietLink
+        event={queued.tier1.eventRegistration}
+        reportId={queued.tier1.reportId}
+      />
+    );
   }
   const damage = queued.tier2?.answers.buildingDamageLevel ?? null;
   return (
     <PrimaryCard
       reportEvent={queued.tier1.eventRegistration}
+      reportId={queued.tier1.reportId}
       noticeFirst={damage !== null && damage >= NOTICE_FIRST_FROM_DAMAGE_GRADE}
     />
   );
 }
 
-function QuietLink({ event }: { event: EventRegistration | null }) {
+function QuietLink({
+  event,
+  reportId,
+}: {
+  event: EventRegistration | null;
+  reportId: string;
+}) {
   const { t } = useTranslation();
   const { colors, typography } = useTheme();
   const router = useRouter();
@@ -59,7 +71,9 @@ function QuietLink({ event }: { event: EventRegistration | null }) {
       onPress={() =>
         router.push({
           pathname: "/im-safe",
-          params: event ? { event: encodeEventRegistrationParam(event) } : {},
+          params: event
+            ? { event: encodeEventRegistrationParam(event), report: reportId }
+            : { report: reportId },
         })
       }
       style={{ minHeight: 48, justifyContent: "center" }}
@@ -73,16 +87,14 @@ function QuietLink({ event }: { event: EventRegistration | null }) {
 
 function PrimaryCard({
   reportEvent,
+  reportId,
   noticeFirst,
 }: {
   reportEvent: EventRegistration | null;
+  reportId: string;
   noticeFirst: boolean;
 }) {
   const { colors, spacing } = useTheme();
-  const { events } = useRegionEvents();
-  // The report's own earthquake; otherwise the newest qualifying regional one.
-  const manual = reportEvent ? null : pickManualEvent(events);
-  const event = reportEvent ?? (manual ? toEventRegistration(manual) : null);
   return (
     <View
       testID="felt-safe-card"
@@ -94,7 +106,11 @@ function PrimaryCard({
         padding: spacing[4],
       }}
     >
-      <CheckInPanel event={event} noticeFirst={noticeFirst} />
+      <CheckInPanel
+        event={reportEvent}
+        feltReportId={reportId}
+        noticeFirst={noticeFirst}
+      />
     </View>
   );
 }

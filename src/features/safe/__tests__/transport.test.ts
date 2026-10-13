@@ -1,8 +1,10 @@
 import {
   SupabaseCheckInTransport,
   SupabaseFamilyCheckInTransport,
+  SupabaseSafeAudienceTransport,
   classifyCheckInError,
   parseFamilyCheckIns,
+  parseSafeAudience,
 } from "../transport";
 
 type Result = { data?: unknown; error?: { code?: string; message?: string } | null };
@@ -31,7 +33,7 @@ describe("check_in call", () => {
       eventId: "e1",
       checkedInAt: Date.UTC(2026, 9, 8, 11, 30),
     });
-    expect(result).toEqual({ outcome: "sent" });
+    expect(result).toEqual({ outcome: "sent", told: null });
     const [name, args] = mockRpc.mock.calls[0] ?? [];
     expect(name).toBe("check_in");
     expect(Object.keys(args ?? {}).sort()).toEqual([
@@ -43,6 +45,26 @@ describe("check_in call", () => {
       p_client_id: "c1",
       p_event_id: "e1",
       p_checked_in_at: "2026-10-08T11:30:00.000Z",
+    });
+  });
+
+  it("from a felt report: sends the report id too (migration 0064), and reads who was told", async () => {
+    mockRpc.mockResolvedValue({
+      data: { client_id: "c1", status: "safe", told: { family: 2, follows: 3 }, lat: 1 },
+      error: null,
+    });
+    const result = await SupabaseCheckInTransport.checkIn({
+      clientId: "c1",
+      eventId: null,
+      reportId: "r1",
+      checkedInAt: Date.UTC(2026, 9, 8, 11, 30),
+    });
+    expect(result).toEqual({ outcome: "sent", told: { family: 2, follows: 3 } });
+    expect(mockRpc.mock.calls[0]?.[1]).toEqual({
+      p_client_id: "c1",
+      p_event_id: null,
+      p_checked_in_at: "2026-10-08T11:30:00.000Z",
+      p_report_id: "r1",
     });
   });
 
@@ -73,6 +95,13 @@ describe("check_in call", () => {
       classifyCheckInError({ code: "54000", message: "check_in: rate_limited" })
         .retryable,
     ).toBe(true);
+    // the felt report has not reached the server yet: retried
+    expect(
+      classifyCheckInError({ code: "P0002", message: "check_in: report_not_found" }),
+    ).toEqual({ retryable: true, reason: "report" });
+    expect(
+      classifyCheckInError({ code: "22023", message: "check_in: report_too_old" }),
+    ).toEqual({ retryable: false, reason: "event" });
     expect(classifyCheckInError({ message: "Failed to fetch" })).toEqual({
       retryable: true,
       reason: "network",
@@ -102,6 +131,49 @@ describe("check_in call", () => {
   });
 });
 
+describe("who my check-ins reach (migration 0064)", () => {
+  it("reads and changes the choice, with the numbers", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: { audience: "mutual", family: 2, mutual: 3, followers: 5, follows: 3 },
+      error: null,
+    });
+    await expect(SupabaseSafeAudienceTransport.fetchAudience()).resolves.toEqual({
+      audience: "mutual",
+      family: 2,
+      mutual: 3,
+      followers: 5,
+      follows: 3,
+    });
+    expect(mockRpc).toHaveBeenLastCalledWith("my_safe_audience", undefined);
+    mockRpc.mockResolvedValueOnce({
+      data: { audience: "family", family: 2, mutual: 3, followers: 5, follows: 0 },
+      error: null,
+    });
+    await expect(
+      SupabaseSafeAudienceTransport.setAudience("family"),
+    ).resolves.toMatchObject({
+      audience: "family",
+      follows: 0,
+    });
+    expect(mockRpc).toHaveBeenLastCalledWith("set_safe_audience", {
+      p_audience: "family",
+    });
+  });
+
+  it("falls back to the default choice for an unknown value, and refuses a broken shape", () => {
+    expect(
+      parseSafeAudience({
+        audience: "everyone",
+        family: 0,
+        mutual: 0,
+        followers: 0,
+        follows: 0,
+      }).audience,
+    ).toBe("mutual");
+    expect(() => parseSafeAudience(null)).toThrow();
+  });
+});
+
 describe("family status", () => {
   const row = {
     user_id: "u1",
@@ -126,9 +198,30 @@ describe("family status", () => {
     });
     expect(parsed.myShare).toBe(false);
     expect(parsed.sharing).toEqual(["u1", "u2"]);
-    expect(parsed.checkins.map((c) => [c.userId, c.event.magnitude])).toEqual([
+    expect(parsed.checkins.map((c) => [c.userId, c.event?.magnitude])).toEqual([
       ["u1", 5.1],
       ["u2", 5.4],
+    ]);
+  });
+
+  it("keeps a check-in tied to a felt report only, without an earthquake", () => {
+    const parsed = parseFamilyCheckIns({
+      sharing: ["u1"],
+      checkins: [
+        {
+          user_id: "u1",
+          checked_in_at: "2026-10-08T11:30:00Z",
+          event_id: null,
+          report_id: "r1",
+          bumelerze_id: null,
+          magnitude: null,
+          place: null,
+          origin_time: null,
+        },
+      ],
+    });
+    expect(parsed.checkins).toEqual([
+      { userId: "u1", checkedInAt: Date.parse("2026-10-08T11:30:00Z"), event: null },
     ]);
   });
 

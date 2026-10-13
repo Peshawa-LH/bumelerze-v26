@@ -738,7 +738,18 @@
       "exampleBody": "14 km southeast of Hawler, Kurdistan Region",
       "close": "Close"
     },
-    "fatigueTitle": "How many alerts you get"
+    "fatigueTitle": "How many alerts you get",
+    "safe": {
+      "title": "Who sees my “I'm safe”",
+      "explainer": "When you tap “I'm safe”, these people see it in their Activity list in Bumelerze. Never your location.",
+      "options": {
+        "family": "Family only",
+        "mutual": "Family + mutual follows",
+        "followers": "Family + all followers"
+      },
+      "nobody": "Right now nobody would see it. Join your family's home or follow each other with friends.",
+      "saveFailed": "Couldn't save. Please try again."
+    }
   },
   "eventDetail": {
     "title": "Event detail",
@@ -3143,7 +3154,7 @@
     "screenTitle": "I'm safe",
     "prompt": {
       "title": "Are you safe?",
-      "body": "Let your family know you are OK."
+      "body": "Let your family and friends in Bumelerze know you are OK."
     },
     "button": {
       "safe": "I'm safe",
@@ -3153,15 +3164,16 @@
     },
     "status": {
       "queued": "Saved on your phone. It will be sent when there is signal.",
-      "sent": "Your family can see that you are safe.",
-      "failed": "Not shared with your family. You can send a message instead.",
-      "undone": "Taken back."
+      "sent": "Sent. The people you chose can see that you are safe.",
+      "failed": "Not sent. You can send a message instead.",
+      "undone": "Taken back.",
+      "sentNobody": "Saved, but nobody in Bumelerze can see it yet. You can send a message instead."
     },
     "action": {
       "shareMessage": "Send a message instead",
       "shareAlso": "Also send a message",
       "copied": "Message copied. Paste it into WhatsApp, Viber or SMS.",
-      "feltLink": "Let your family know"
+      "feltLink": "Let your family and friends know"
     },
     "noHelp": "Bumelerze cannot send rescue teams or any help.",
     "eventLine": "After the earthquake {{magnitude}} at {{time}}",
@@ -3176,7 +3188,6 @@
       "create": "Create an account"
     },
     "noFamily": {
-      "invite": "Join your family's home so they can see this next time.",
       "join": "Join a home"
     },
     "share": {
@@ -3202,6 +3213,18 @@
     },
     "banner": {
       "a11y": "Are you safe? A strong earthquake happened near you."
+    },
+    "who": {
+      "family": "Your family",
+      "familyMutual": "Your family and {{count}} of your mutual follows",
+      "familyFollowers": "Your family and {{count}} of your followers",
+      "mutual": "{{count}} of your mutual follows",
+      "followers": "{{count}} of your followers"
+    },
+    "reach": {
+      "before": "{{who}} will see this.",
+      "after": "Sent. {{who}} can see that you are safe.",
+      "nobody": "Nobody in Bumelerze would see this yet. Join your family's home or follow each other with friends. You can send a message instead."
     }
   },
   "activity": {
@@ -3209,7 +3232,7 @@
     "bell": "Activity",
     "bellNew": "Activity, {{value}} new",
     "hint": "Only here in the app. Bumelerze sends notifications for earthquakes only.",
-    "empty": "Nothing yet. New followers, replies, Helpful marks and family check-ins will show here.",
+    "empty": "Nothing yet. New followers, replies, Helpful marks and “I'm safe” check-ins will show here.",
     "loadError": "Couldn't load your activity.",
     "retry": "Try again",
     "older": "Show older",
@@ -3230,7 +3253,9 @@
       "home_join_approved": "You can now see {{home}}.",
       "family_safe": "{{name}} checked in: I'm safe.",
       "post_comment": "{{name}} commented on your post.",
-      "post_comment_reply": "{{name}} replied to your comment on a post."
+      "post_comment_reply": "{{name}} replied to your comment on a post.",
+      "safe_checkin": "{{name}} is safe after the earthquake at {{time}}.",
+      "safe_checkin_noTime": "{{name}} is safe after the earthquake."
     },
     "removed": {
       "comment_hide": "A moderator hid your comment.",
