@@ -26,7 +26,6 @@ import { placeLine } from "@/features/geo";
 import { RestrictionBanner } from "@/features/restrictions/components/RestrictionBanner";
 import { useMutedIds } from "@/features/mute/queries";
 import { useMyRestriction } from "@/features/restrictions/queries";
-import { ShareToProfileButton } from "@/features/posts/components/ShareToProfileButton";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useTheme } from "@/theme";
 
@@ -193,16 +192,6 @@ export function EventHubContent({
       >
         {subtitle}
       </Text>
-      <ShareToProfileButton
-        eventRef={event.bumelerzeId ?? eventUuid ?? null}
-        preview={{
-          magnitude: event.magnitude.value,
-          lat: event.lat,
-          lon: event.lon,
-          time: event.originTime,
-        }}
-        testID="hub-share-to-profile"
-      />
       <PrebunkCard />
       {unavailable ? (
         <Text style={bodyText}>{t("eventHub.unavailable")}</Text>

@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
-  ActivityIndicator,
   Modal,
   Platform,
   Pressable,
@@ -17,6 +16,8 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useEventSourceAgencies, type Event } from "@/features/events";
+import type { GuidelinesTransport } from "@/features/guidelines";
+import type { PostsTransport } from "@/features/posts/transport";
 import { magnitudeTone } from "@/features/events/magnitude-tone";
 import { useResolvedShakeMap } from "@/features/shakemap/live-queries";
 import { useTheme } from "@/theme";
@@ -27,6 +28,8 @@ import { buildCardStrings } from "./card-strings";
 import { buildShareCaption, buildShareUrl, ensureLinkInText } from "./caption";
 import { CardRenderer, type CardRendererHandle } from "./CardRenderer";
 import { deliverImage } from "./image-export";
+import { PostToProfileAction } from "./PostToProfileAction";
+import { ShareActionButton } from "./ShareActionButton";
 import { copyText, shareText } from "./share-text";
 import { SHARE_CARD_SIZES, type ShareCardSize, type ShareImage } from "./types";
 
@@ -67,17 +70,31 @@ export interface ShareSheetProps {
   event: Event;
   /** Id for the link: the Bumelerze id when known, else the event's own id. */
   shareId: string;
+  /** The event's `bml` id (or registry id) for "Post to my profile"; that
+   * option hides while it is unknown. */
+  profileRef?: string | null;
   onClose: () => void;
+  /** Tests inject fakes. */
+  postsTransport?: PostsTransport;
+  guidelinesTransport?: GuidelinesTransport;
 }
 
 /**
- * "Share this earthquake": a small sheet with the editable caption and three
- * actions, share the link, or share the image as a square post or a tall
- * story. Images are generated only when asked for: on the phone at the tap
+ * "Share this earthquake": a small sheet with the editable caption and its
+ * actions: share the link, share the image as a square post or a tall story,
+ * and (for an account with a @username) post it to my profile with the same
+ * caption. Images are generated only when asked for: on the phone at the tap
  * (with a spinner), on the web as soon as the sheet opens (the browser's
  * share dialog must be called synchronously from the tap).
  */
-export function ShareSheet({ event, shareId, onClose }: ShareSheetProps) {
+export function ShareSheet({
+  event,
+  shareId,
+  profileRef = null,
+  onClose,
+  postsTransport,
+  guidelinesTransport,
+}: ShareSheetProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { colors, typography, spacing } = useTheme();
@@ -316,7 +333,7 @@ export function ShareSheet({ event, shareId, onClose }: ShareSheetProps) {
               />
             </View>
 
-            <ActionButton
+            <ShareActionButton
               testID="share-link"
               label={t("share.link")}
               icon="link-outline"
@@ -327,7 +344,7 @@ export function ShareSheet({ event, shareId, onClose }: ShareSheetProps) {
               const ready = Boolean(images[size]);
               const busy = busySize === size || (isWeb && preparing && !ready);
               return (
-                <ActionButton
+                <ShareActionButton
                   key={size}
                   testID={`share-image-${size}`}
                   label={label}
@@ -338,9 +355,15 @@ export function ShareSheet({ event, shareId, onClose }: ShareSheetProps) {
                 />
               );
             })}
+            <PostToProfileAction
+              eventRef={profileRef}
+              caption={caption}
+              {...(postsTransport ? { transport: postsTransport } : {})}
+              {...(guidelinesTransport ? { guidelinesTransport } : {})}
+            />
             {/* Instagram and TikTok take the picture only; the caption then
              * has to be pasted, so copying it is always one tap away. */}
-            <ActionButton
+            <ShareActionButton
               testID="share-copy-caption"
               label={t("share.copyCaption")}
               icon="copy-outline"
@@ -367,66 +390,6 @@ export function ShareSheet({ event, shareId, onClose }: ShareSheetProps) {
   );
 }
 
-function ActionButton({
-  testID,
-  label,
-  icon,
-  primary = false,
-  quiet = false,
-  busy = false,
-  disabled = false,
-  onPress,
-}: {
-  testID: string;
-  label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  primary?: boolean;
-  quiet?: boolean;
-  busy?: boolean;
-  disabled?: boolean;
-  onPress: () => void;
-}) {
-  const { colors, typography, spacing } = useTheme();
-  const foreground = primary ? colors.brand.onPrimary : colors.brand.primary;
-  return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled, busy }}
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        {
-          minHeight: 52,
-          paddingHorizontal: spacing[4],
-          gap: spacing[2],
-          backgroundColor: primary ? colors.brand.primary : "transparent",
-          borderColor: quiet ? "transparent" : colors.brand.primary,
-          opacity: disabled ? 0.55 : pressed ? 0.85 : 1,
-        },
-      ]}
-    >
-      {busy ? (
-        <ActivityIndicator size="small" color={foreground} />
-      ) : (
-        <Ionicons name={icon} size={22} color={foreground} />
-      )}
-      <Text
-        style={{
-          color: foreground,
-          fontSize: typography.labelButton.fontSize,
-          lineHeight: typography.labelButton.lineHeight,
-          fontWeight: typography.labelButton.fontWeight,
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1 },
   rootNative: { justifyContent: "flex-end" },
@@ -442,12 +405,5 @@ const styles = StyleSheet.create({
   title: { flex: 1 },
   close: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   input: { borderWidth: 1, borderRadius: 12, minHeight: 132, textAlignVertical: "top" },
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    borderRadius: 14,
-  },
   statusRow: { minHeight: 22 },
 });

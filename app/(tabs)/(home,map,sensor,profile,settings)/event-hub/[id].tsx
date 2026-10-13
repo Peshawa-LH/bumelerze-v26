@@ -3,8 +3,9 @@ import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { isBumelerzeId } from "@/features/events";
+import { isBumelerzeId, type Event } from "@/features/events";
 import { EventHubContent, useRouteEvent } from "@/features/eventhub";
+import { useEventUuidResult } from "@/features/feltmap/use-event-uuid";
 import { ShareButton, shareIdFor } from "@/features/share";
 import { useTheme } from "@/theme";
 
@@ -35,9 +36,9 @@ export default function EventHubScreen() {
           headerLeft: () => <HeaderBackButton />,
           headerRight: () =>
             event ? (
-              <ShareButton
+              <HubShareButton
                 event={event}
-                shareId={shareIdFor(event, id && isBumelerzeId(id) ? id : null)}
+                bumelerzeId={id && isBumelerzeId(id) ? id : null}
               />
             ) : null,
         }}
@@ -56,5 +57,25 @@ export default function EventHubScreen() {
         ) : null}
       </View>
     </>
+  );
+}
+
+/** The header's share icon. "Post to my profile" in its sheet needs the
+ * event's `bml` id, else its registry id (looked up the same way the hub
+ * body does; the answer is cached). */
+function HubShareButton({
+  event,
+  bumelerzeId,
+}: {
+  event: Event;
+  bumelerzeId: string | null;
+}) {
+  const { uuid } = useEventUuidResult(event);
+  return (
+    <ShareButton
+      event={event}
+      shareId={shareIdFor(event, bumelerzeId)}
+      profileRef={event.bumelerzeId ?? bumelerzeId ?? uuid ?? null}
+    />
   );
 }

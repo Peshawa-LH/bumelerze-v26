@@ -1,6 +1,5 @@
 export { PostsSection } from "./components/PostsSection";
 export { EventPostCard } from "./components/EventPostCard";
-export { ShareToProfileButton } from "./components/ShareToProfileButton";
 export { EVENT_POST_MAX_LENGTH, POST_MAX_LENGTH, POSTS_PAGE_SIZE } from "./constants";
 export {
   postsKeys,

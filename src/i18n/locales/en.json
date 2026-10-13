@@ -1543,7 +1543,9 @@
       "prompt": "Did you feel it? Report in Bumelerze",
       "credit": "Event data: {{sources}} · SHAKEmap: Bumelerze",
       "creditNoMap": "Event data: {{sources}}"
-    }
+    },
+    "postToProfile": "Post to my profile",
+    "postedToProfile": "Posted to your profile."
   },
   "myData": {
     "guest": "Guest",
@@ -2997,15 +2999,6 @@
       "label": "Earthquake",
       "open": "Open the earthquake: {{event}}",
       "unavailable": "This earthquake is no longer listed."
-    },
-    "share": {
-      "action": "Share to my profile",
-      "title": "Share to my profile",
-      "label": "Your words (optional)",
-      "placeholder": "Add a few words (optional)",
-      "noLocation": "Only the earthquake is shared. Your location is never added.",
-      "submit": "Share",
-      "done": "Shared to your profile."
     },
     "pending": "Waiting for review. Only you can see this post until a moderator approves it."
   },

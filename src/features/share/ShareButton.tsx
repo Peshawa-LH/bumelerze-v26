@@ -12,13 +12,15 @@ export interface ShareButtonProps {
   event: Event;
   /** Id for the link: the Bumelerze id when known, else the event's own id. */
   shareId: string;
+  /** The event's `bml` id (or registry id) for "Post to my profile". */
+  profileRef?: string | null;
 }
 
 /**
  * The share icon for a screen header. Opens the share sheet; the sheet (and
  * everything it loads) exists only while it is open.
  */
-export function ShareButton({ event, shareId }: ShareButtonProps) {
+export function ShareButton({ event, shareId, profileRef = null }: ShareButtonProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const [open, setOpen] = useState(false);
@@ -35,7 +37,12 @@ export function ShareButton({ event, shareId }: ShareButtonProps) {
         <Ionicons name="share-outline" size={24} color={colors.text.primary} />
       </Pressable>
       {open ? (
-        <ShareSheet event={event} shareId={shareId} onClose={() => setOpen(false)} />
+        <ShareSheet
+          event={event}
+          shareId={shareId}
+          profileRef={profileRef}
+          onClose={() => setOpen(false)}
+        />
       ) : null}
     </>
   );

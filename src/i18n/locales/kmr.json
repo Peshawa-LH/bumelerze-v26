@@ -1543,7 +1543,9 @@
       "prompt": "Te hîs kir? Di Bumelerze de rapor bike",
       "credit": "Daneyên bûyerê: {{sources}} · SHAKEmap: Bumelerze",
       "creditNoMap": "Daneyên bûyerê: {{sources}}"
-    }
+    },
+    "postToProfile": "Li profîla min biweşîne",
+    "postedToProfile": "Li profîla te hate weşandin."
   },
   "myData": {
     "guest": "Mêvan",
@@ -2997,15 +2999,6 @@
       "label": "Erdhej",
       "open": "Erdhejê veke: {{event}}",
       "unavailable": "Ev erdhej êdî di lîsteyê de tune."
-    },
-    "share": {
-      "action": "Li profîla min parve bike",
-      "title": "Li profîla min parve bike",
-      "label": "Gotinên te (vebijarkî)",
-      "placeholder": "Çend gotinan lê zêde bike (vebijarkî)",
-      "noLocation": "Tenê erdhej tê parvekirin. Cihê te qet nayê zêdekirin.",
-      "submit": "Parve bike",
-      "done": "Li profîla te hate parvekirin."
     },
     "pending": "Li benda nirxandinê ye. Heta ku rêveberek wê bipejirîne, tenê tu vê nivîsê dibînî."
   },
