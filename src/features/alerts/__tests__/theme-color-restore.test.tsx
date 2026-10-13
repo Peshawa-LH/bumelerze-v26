@@ -143,3 +143,17 @@ describe("AlertsTesterPanel on the web", () => {
     expect(themeColor()).toBeNull();
   });
 });
+
+describe("web-app manifest colours", () => {
+  it("never asks the browser to paint its bars red", () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require("fs") as typeof import("fs");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require("path") as typeof import("path");
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "../../../../public/manifest.webmanifest"), "utf8"),
+    ) as { theme_color?: string; background_color?: string };
+    expect(manifest.theme_color).toBeUndefined();
+    expect(String(manifest.background_color).toUpperCase()).not.toBe("#C8202F");
+  });
+});

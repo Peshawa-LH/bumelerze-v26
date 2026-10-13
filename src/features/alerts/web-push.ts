@@ -231,12 +231,13 @@ export async function unsubscribeBrowser(env: BrowserEnv, base: string): Promise
  * from the page's manifest. Added only while the tester screen is open, so
  * the public app's Add to Home Screen behaves exactly as before.
  *
- * Safari also takes the browser bars' colour from the manifest's
- * `theme_color` (the logo's Signal Red) when the page has no
- * `<meta name="theme-color">`. So that the bars never turn red, a theme-color
- * meta with the app's own background colour is set alongside the manifest,
- * and the returned cleanup removes everything this call added and puts back
- * any theme-color that was there before. Call it on unmount: nothing may
+ * Safari takes the browser bars' colour from a manifest `theme_color`, even
+ * over a `<meta name="theme-color">` added later, so the manifest has NO
+ * theme_color and no red at all (review note 11.2: the bars stayed red on
+ * this screen while the manifest said Signal Red). A theme-color meta with
+ * the app's own background colour is still set alongside the manifest, and
+ * the returned cleanup removes everything this call added and puts back any
+ * theme-color that was there before. Call it on unmount: nothing may
  * stay changed after the screen closes (review note 11.2, 2026-10-13).
  */
 export function ensureWebAppManifest(
