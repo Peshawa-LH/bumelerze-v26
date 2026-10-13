@@ -94,8 +94,8 @@ export default function SettingsScreen() {
           short line or none under a title. Order since D79 (2026-10-08): the
           read-and-learn guides first (the Safety guide left the tab bar, so
           it lives here, and the engineer's handbook), then what belongs to
-          this device (My location, Notifications, permissions, language,
-          look), then feedback and onboarding. "My account" is gone: it is
+          this device (Notifications on its own, then My location,
+          permissions, language, look), then feedback and onboarding. "My account" is gone: it is
           the Profile tab now. */}
       <SettingsGroup testID="settings-group-guides">
         <SettingsRow
@@ -116,14 +116,19 @@ export default function SettingsScreen() {
         />
       </SettingsGroup>
 
-      <SettingsGroup testID="settings-group-device">
-        <MyLocationRow />
+      {/* Notifications in a group of its own (review note 11.1, 2026-10-13),
+          apart from the device rows below. */}
+      <SettingsGroup testID="settings-group-notifications">
         <SettingsRow
           icon="notifications-outline"
           label={t("settings.notificationsSectionTitle")}
           onPress={() => router.push("/notification-settings")}
           testID="settings-row-notifications"
         />
+      </SettingsGroup>
+
+      <SettingsGroup testID="settings-group-device">
+        <MyLocationRow />
         <View>
           <SettingsRow
             icon="location-outline"

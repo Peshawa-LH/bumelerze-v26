@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { Alert, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -246,7 +246,7 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     expect(screen.queryByText(/restarts the app/)).toBeNull();
   });
 
-  it("keeps the groups in order: guides, then this device (My location first), then help", async () => {
+  it("keeps the groups in order: guides, Notifications alone, this device (My location first), then help", async () => {
     await renderWithProviders(<SettingsScreen />);
     await flush();
 
@@ -256,8 +256,8 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     expect(order).toEqual([
       "settings-row-safety",
       "settings-row-handbook",
-      "account-location-row",
       "settings-row-notifications",
+      "account-location-row",
       "settings-row-permissions",
       "settings-row-language",
       "settings-row-appearance",
@@ -267,6 +267,14 @@ describe("Settings screen — grouped rows + Device permissions", () => {
       "settings-row-onboarding",
     ]);
     expect(screen.getByText("My location")).toBeTruthy();
+    // Review note 11.1: Notifications is a group of its own, not one of the
+    // device rows (My location / permissions / language / appearance).
+    const notificationsGroup = screen.getByTestId("settings-group-notifications");
+    expect(within(notificationsGroup).getByTestId("settings-row-notifications")).toBeTruthy();
+    expect(within(notificationsGroup).queryByTestId("account-location-row")).toBeNull();
+    const deviceGroup = screen.getByTestId("settings-group-device");
+    expect(within(deviceGroup).queryByTestId("settings-row-notifications")).toBeNull();
+    expect(within(deviceGroup).getByTestId("settings-row-appearance")).toBeTruthy();
     await fireEvent.press(screen.getByTestId("settings-row-handbook"));
     expect(mockPush).toHaveBeenCalledWith("/handbook");
     await fireEvent.press(screen.getByTestId("settings-row-notifications"));
