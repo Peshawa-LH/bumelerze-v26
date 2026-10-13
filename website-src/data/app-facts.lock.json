@@ -25,9 +25,9 @@
     "file:src/features/geo/data/fe-region-translations.ts": "5563fb896d6aa9bf"
   },
   "event-route": {
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "74db8384e5b65af1",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "577996b6dbf0157a",
     "file:app/account/sign-in.tsx": "e60cad5746f30dbb",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "cf50de084ad1536b"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "0679f6997a16f39e"
   },
   "felt-levels": {
     "key:felt.tier1.title": "a9e21464bb9ea045",
@@ -35,7 +35,7 @@
     "key:felt.tier1.levels.6.label": "c949e213d85c3061",
     "key:felt.tier1.levels.12.label": "bd1a269165f25dea",
     "key:felt.done.title": "268bc1833e83306f",
-    "file:supabase/functions/aggregate-felt-cells/index.ts": "b3873b65bd9b6c36"
+    "file:supabase/functions/aggregate-felt-cells/index.ts": "9c9fb3401f2bb203"
   },
   "felt-button": {
     "key:felt.pill.label": "5468735f0292b4d5"
@@ -109,7 +109,7 @@
   "alerts-settings": {
     "key:notificationSettings.title": "07a063cab7ec227c",
     "key:settings.notificationsSectionTitle": "788011833a5a0f22",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "cf50de084ad1536b"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "0679f6997a16f39e"
   },
   "feedback": {
     "key:settings.feedbackSectionTitle": "aac77df347205252"
