@@ -4,7 +4,7 @@ import i18n from "@/i18n";
 
 import { ROLE_BADGES, ROLE_PRIORITY } from "@/features/badges/catalog";
 
-import { RoleMark } from "../components/RoleMark";
+import { RoleMark, roleMarkHitSlop } from "../components/RoleMark";
 
 describe("RoleMark", () => {
   it("shows the official account's mark as the Bumelerze icon, with no text", async () => {
@@ -113,5 +113,25 @@ describe("RoleMark: the official mark is single-colour, never the logo red", () 
     expect(screen.getByTestId("role-mark-official").props.style).toEqual(
       expect.arrayContaining([expect.objectContaining({ width: 20, height: 20 })]),
     );
+  });
+});
+
+describe("RoleMark tap target (review B-12)", () => {
+  it("grows an 18 or 20 px mark to 44 pt, and never shrinks a bigger one", () => {
+    expect(roleMarkHitSlop(18)).toBe(13);
+    expect(roleMarkHitSlop(20)).toBe(12);
+    expect(roleMarkHitSlop(44)).toBe(0);
+    expect(roleMarkHitSlop(60)).toBe(0);
+  });
+
+  it("the explaining mark's button reaches 44 pt at both sizes", async () => {
+    const view = await render(
+      <RoleMark roles={[{ role: "official", orgName: null }]} explain />,
+    );
+    expect(screen.getByTestId("role-mark-button-official").props.hitSlop).toBe(13);
+    await view.rerender(
+      <RoleMark size={20} roles={[{ role: "official", orgName: null }]} explain />,
+    );
+    expect(screen.getByTestId("role-mark-button-official").props.hitSlop).toBe(12);
   });
 });

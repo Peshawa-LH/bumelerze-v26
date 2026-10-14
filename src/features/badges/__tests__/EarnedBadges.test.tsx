@@ -69,14 +69,16 @@ describe("EarnedBadges", () => {
   });
 });
 
-describe("BadgeGrid defaultExpanded", () => {
+describe("BadgeGrid full (the See-all page)", () => {
   beforeEach(async () => {
     await i18n.changeLanguage("en");
   });
   afterEach(cleanup);
-  it("starts with the whole collection showing when asked", async () => {
-    await renderBadges(<BadgeGrid entries={ALL} defaultExpanded />);
-    expect(screen.getByText("Show less")).toBeTruthy();
+  it("shows the whole collection, named, with no Show less (review B-21)", async () => {
+    await renderBadges(<BadgeGrid entries={ALL} full />);
+    expect(screen.queryByText("Show less")).toBeNull();
+    expect(screen.queryByTestId("badges-toggle")).toBeNull();
     expect(screen.getByLabelText("Engineer, locked")).toBeTruthy();
+    expect(screen.getByText("Engineer", { includeHiddenElements: true })).toBeTruthy();
   });
 });

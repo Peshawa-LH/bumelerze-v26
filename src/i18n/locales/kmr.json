@@ -118,6 +118,9 @@
     "dateOnlyTemplate": "{{day}} {{month}} {{year}}",
     "offlineBanner": "Tu offline î. Bûyerên ji {{time}} têne nîşandan",
     "offlineAnnouncement": "Tu offline î. Bûyerên herî dawî yên tomarkirî têne nîşandan.",
+    "newEventsAnnouncement": "Bûmelerzeyên nû di lîsteyê de: {{number}}",
+    "newEventsAnnouncement_one": "Bûmelerzeyeke nû di lîsteyê de ye",
+    "newEventsAnnouncement_other": "{{number}} bûmelerzeyên nû di lîsteyê de ne",
     "errorTitle": "Bûyerên herî dawî nehatin barkirin",
     "retry": "Dîsa biceribîne",
     "viewWorld": "Cîhan",
@@ -182,8 +185,10 @@
     "retry": "Dîsa biceribîne",
     "filters": {
       "magMinLabel": "Rêjeya kêmtirîn",
+      "magAny": "Hemû",
       "magMaxLabel": "Rêjeya herî zêde",
       "yearMinLabel": "Ji sala",
+      "yearMinOldestLabel": "Ji sala (kevintirîn)",
       "yearMaxLabel": "Heta sala",
       "decrement": "Kêm bike",
       "increment": "Zêde bike"
@@ -1264,6 +1269,22 @@
           "3": "Çatên mezin ên dîwêr, hin sîwan an keriyên hilweşiyayî",
           "4": "Çatên giran an hilweşîna qismî ya dîwaran",
           "5": "Hilweşîna qismî an tevahî ya dîwar an banî"
+        }
+      },
+      "gradesShort": {
+        "highrise": {
+          "1": "Ti zirara xuya tune",
+          "2": "Çatên tenik di sîwanê de",
+          "3": "Çatên xar di dîwarên tijîkirî de",
+          "4": "Çatên fireh di stûn an kevanan de",
+          "5": "Hilweşîna qismî"
+        },
+        "lowrise": {
+          "1": "Ti zirara xuya tune",
+          "2": "Çatên tenik di sîwanê de",
+          "3": "Çatên mezin di dîwaran de",
+          "4": "Dîwar giran çatiyane an têk diçin",
+          "5": "Dîwar an banî hilweşiyaye"
         }
       }
     },

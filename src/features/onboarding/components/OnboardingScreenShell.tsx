@@ -81,7 +81,8 @@ export function OnboardingScreenShell({
               accessibilityRole="button"
               accessibilityLabel={t("onboarding.back")}
               onPress={handleBack}
-              hitSlop={12}
+              // 44 pt box (review A-9: "Back" measured 40 x 18).
+              style={styles.backButton}
             >
               <Text
                 style={{
@@ -186,7 +187,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   backSlot: {
-    minWidth: 40,
+    minWidth: 44,
+  },
+  backButton: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
   },
   scroll: {
     flex: 1,

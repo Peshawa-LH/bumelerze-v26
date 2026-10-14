@@ -59,6 +59,8 @@ describe("My home card", () => {
     expect(screen.getByTestId("home-locked")).toBeTruthy();
     const row = screen.getByTestId("home-section-sign-in");
     expect(row.props.accessibilityHint).toBe("Needs an account");
+    // The reason is visible too, not only spoken (review B-28).
+    expect(screen.getByText("Needs an account")).toBeTruthy();
     expect(screen.queryByText("Create an account")).toBeNull();
     expect(screen.queryByTestId("account-create")).toBeNull();
     expect(screen.queryByTestId("home-join")).toBeNull();

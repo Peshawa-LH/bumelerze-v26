@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
-import { AccessibilityInfo } from "react-native";
+import { AccessibilityInfo, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -255,6 +255,19 @@ describe("Window 1 — tier-1 felt-report screen", () => {
     expect(announceSpy).toHaveBeenCalledWith(i18n.t("felt.tier1.queuedAnnouncement"));
 
     announceSpy.mockRestore();
+  });
+
+  it("'Close' and the 'Location … · Change' row are 44 pt targets (review A-9/B-12)", async () => {
+    await renderWithProviders(<Tier1FeltReportScreen />);
+
+    const close = screen.getByRole("button", { name: i18n.t("felt.tier1.close") });
+    const closeStyle = StyleSheet.flatten(close.props.style);
+    expect(closeStyle.minHeight).toBeGreaterThanOrEqual(44);
+    expect(closeStyle.minWidth).toBeGreaterThanOrEqual(44);
+
+    const changeText = await screen.findByText(i18n.t("felt.tier1.changeLocation"));
+    const row = changeText.parent;
+    expect(StyleSheet.flatten(row?.props.style).minHeight).toBeGreaterThanOrEqual(44);
   });
 
   describe("eventReg route param (migration 0011: FeltReportPill's registration snapshot)", () => {

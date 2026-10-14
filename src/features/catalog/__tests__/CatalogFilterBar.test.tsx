@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 import { CatalogFilterBar, type CatalogFilterValues } from "../components/CatalogFilterBar";
+import { CATALOG_FIRST_YEAR } from "../filter-input";
 import type { CatalogBounds } from "../types";
 
 const BOUNDS: CatalogBounds = { magMin: 0, magMax: 8, yearMin: 900, yearMax: 2020 };
@@ -26,6 +27,50 @@ describe("CatalogFilterBar", () => {
 
   beforeEach(async () => {
     await i18n.changeLanguage("en");
+  });
+
+  // Review A-23: "Min magnitude −0.5" / "From year 872" look odd to lay users.
+  describe("floor wording", () => {
+    const atFloor: CatalogFilterValues = {
+      ...BASE_VALUES,
+      magMin: BOUNDS.magMin,
+      yearMin: CATALOG_FIRST_YEAR,
+    };
+
+    it("reads 'Any' for the minimum magnitude at the floor and 'From year (oldest)' at 872", async () => {
+      await render(<CatalogFilterBar bounds={BOUNDS} values={atFloor} onChange={jest.fn()} />);
+      expect(screen.getByDisplayValue("Any")).toBeTruthy();
+      expect(screen.getByText("From year (oldest)")).toBeTruthy();
+      expect(screen.queryByText("From year")).toBeNull();
+      // The other boxes keep their numbers.
+      expect(screen.getByDisplayValue("6.0")).toBeTruthy();
+      expect(screen.getByDisplayValue("872")).toBeTruthy();
+    });
+
+    it("shows the plain number and label away from the floor", async () => {
+      await render(<CatalogFilterBar bounds={BOUNDS} values={BASE_VALUES} onChange={jest.fn()} />);
+      expect(screen.getByDisplayValue("4.0")).toBeTruthy();
+      expect(screen.queryByDisplayValue("Any")).toBeNull();
+      expect(screen.getByText("From year")).toBeTruthy();
+      expect(screen.queryByText("From year (oldest)")).toBeNull();
+    });
+
+    it("typing a number over 'Any' still applies it", async () => {
+      const onChange = jest.fn();
+      await render(<CatalogFilterBar bounds={BOUNDS} values={atFloor} onChange={onChange} />);
+      const box = screen.getByDisplayValue("Any");
+      await fireEvent(box, "focus");
+      await fireEvent.changeText(box, "3");
+      await fireEvent(box, "blur");
+      expect(onChange).toHaveBeenCalledWith({ ...atFloor, magMin: 3 });
+    });
+
+    it("says it in Sorani: 'هەموو' and the oldest-year label", async () => {
+      await i18n.changeLanguage("ckb");
+      await render(<CatalogFilterBar bounds={BOUNDS} values={atFloor} onChange={jest.fn()} />);
+      expect(screen.getByDisplayValue(i18n.t("catalog.filters.magAny"))).toBeTruthy();
+      expect(screen.getByText(i18n.t("catalog.filters.yearMinOldestLabel"))).toBeTruthy();
+    });
   });
 
   it("increments magMin by CATALOG_MAG_STEP on a single tap", async () => {

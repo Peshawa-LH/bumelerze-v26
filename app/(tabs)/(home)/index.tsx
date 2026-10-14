@@ -38,7 +38,10 @@ import { useTheme } from "@/theme";
  * home-feed-policy.ts`, update-plan-2026-08.md §1.1) — this screen stays
  * "dumb": it feeds the policy the region + notable-tail pools and renders
  * whatever it decides, all window/floor/notable-carve-out logic lives in
- * that one pure, unit-tested module.
+ * that one pure, unit-tested module. The title row and its three links are
+ * the only fixed chrome; the "Be ready" card (or the "Are you safe?" banner
+ * in its place) and the possible-event cards scroll away with the feed
+ * (review A-19: fixed, they held about a quarter of a phone's height).
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -127,13 +130,12 @@ export default function HomeScreen() {
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => router.push("/world")}
-                  // Vertical-only hitSlop: these three links sit side by side
-                  // with only spacing[3] (12px) between them, so a symmetric
-                  // hitSlop would let adjacent links' hit areas overlap and
-                  // mis-target taps — growing only top/bottom avoids that
-                  // while still lifting the target closer to 48dp
-                  // (accessibility-tester Phase 5 audit).
-                  hitSlop={{ top: 10, bottom: 10 }}
+                  // A real 44 pt row (review A-9: the text alone measured
+                  // 18 px and a vertical hitSlop only reached 38 px). No
+                  // horizontal hitSlop: the three links sit only spacing[3]
+                  // (12 px) apart, so grown-sideways hit areas would overlap
+                  // and mis-target taps.
+                  style={styles.headerLink}
                 >
                   <Text
                     style={{
@@ -148,7 +150,7 @@ export default function HomeScreen() {
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => router.push("/significant")}
-                  hitSlop={{ top: 10, bottom: 10 }}
+                  style={styles.headerLink}
                 >
                   <Text
                     style={{
@@ -163,7 +165,7 @@ export default function HomeScreen() {
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => router.push("/historical")}
-                  hitSlop={{ top: 10, bottom: 10 }}
+                  style={styles.headerLink}
                 >
                   <Text
                     style={{
@@ -177,6 +179,10 @@ export default function HomeScreen() {
                 </Pressable>
               </View>
             </View>
+          </>
+        }
+        listHeaderContent={
+          <>
             {safePrompt.event ? (
               <HomeSafeBanner event={safePrompt.event} onDismiss={safePrompt.dismiss} />
             ) : (
@@ -215,6 +221,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  headerLink: {
+    minHeight: 44,
+    justifyContent: "center",
   },
   links: {
     flexDirection: "row",

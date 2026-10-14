@@ -383,8 +383,8 @@ describe("vulnerability class", () => {
     expect(shifted.E).toBeCloseTo(0);
   });
 
-  it("M7 without an engineer is one class more vulnerable (IMS-25 3.5.1.6)", () => {
-    for (const builder of ["builder", "self", "dk", undefined]) {
+  it("M7 without an engineer designing AND supervising is one class more vulnerable (IMS-25 3.5.1.6; plans-only too, review C-5)", () => {
+    for (const builder of ["builder", "self", "dk", "eng_plans", undefined]) {
       for (const answers of [
         { structure: "confined", builder },
         { structure: "block", belts: "yes", roof: "slab", builder },
@@ -396,8 +396,8 @@ describe("vulnerability class", () => {
         expect(result.vc_range).toBe("C-D");
       }
     }
-    for (const builder of ["eng_full", "eng_plans"]) {
-      const answers: Answers = { structure: "confined", builder };
+    {
+      const answers: Answers = { structure: "confined", builder: "eng_full" };
       expect(isM7NonEngineered(answers)).toBe(false);
       const result = assessAnswers(answers, URBAN_KRG);
       expect(result.vc_most_likely).toBe("D");

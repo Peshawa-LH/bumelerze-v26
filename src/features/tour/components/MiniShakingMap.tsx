@@ -1,3 +1,4 @@
+import { View } from "react-native";
 import Svg, { Circle, Ellipse, Path, Polygon, Rect } from "react-native-svg";
 
 import { useTheme } from "@/theme";
@@ -27,13 +28,21 @@ export interface MiniShakingMapProps {
  * epicentre star, optionally with a few fault lines and event dots. Pure SVG
  * and theme colours (the same intensity ramp as the real map), no tiles and no
  * network, so the tour stays light and works offline. Never mirrored: a map
- * does not flip in right-to-left languages.
+ * does not flip in right-to-left languages. Decorative for assistive tech
+ * (review E-9): the stop's title and sentence next to it say what it shows,
+ * so TalkBack/VoiceOver skip the drawing instead of landing on a nameless
+ * image.
  */
 export function MiniShakingMap({ width, detail = true }: MiniShakingMapProps) {
   const { colors } = useTheme();
   const height = (width * 7) / 10;
   return (
-    <Svg width={width} height={height} viewBox="0 0 200 140">
+    <View
+      testID="tour-preview-graphic"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      <Svg width={width} height={height} viewBox="0 0 200 140">
       <Rect x={0} y={0} width={200} height={140} fill={colors.surface.sunken} />
       <Path
         d="M0 100 C40 88 70 112 110 98 S170 84 200 96"
@@ -87,6 +96,7 @@ export function MiniShakingMap({ width, detail = true }: MiniShakingMapProps) {
         stroke={colors.text.primary}
         strokeWidth={1.4}
       />
-    </Svg>
+      </Svg>
+    </View>
   );
 }

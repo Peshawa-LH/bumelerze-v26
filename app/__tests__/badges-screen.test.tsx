@@ -71,9 +71,12 @@ describe("All badges screen", () => {
     expect(screen.getByTestId("badges-counter")).toBeTruthy();
   });
 
-  it("shows locked badges and the requestable ranks, already expanded", async () => {
+  it("shows every badge at once, named, with no Show less control (review B-21)", async () => {
     await renderWithProviders(<BadgesScreen />);
-    expect(screen.getByText("Show less")).toBeTruthy();
+    expect(screen.queryByText("Show less")).toBeNull();
+    expect(screen.queryByTestId("badges-toggle")).toBeNull();
+    expect(screen.getByText("Engineer", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByText("Home tagged", { includeHiddenElements: true })).toBeTruthy();
     expect(screen.getByLabelText("Engineer, locked")).toBeTruthy();
     expect(screen.getByLabelText("Home tagged, locked, 0 of 1")).toBeTruthy();
     expect(screen.queryByTestId("badge-role-official")).toBeNull();

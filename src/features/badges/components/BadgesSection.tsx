@@ -13,12 +13,13 @@ export function BadgesSection({
   entries,
   earned,
   total,
-  defaultExpanded = false,
+  full = false,
 }: {
   entries: readonly BadgeEntry[];
   earned: number;
   total: number;
-  defaultExpanded?: boolean;
+  /** The full collection page: see `BadgeGrid`'s `full`. */
+  full?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -43,7 +44,7 @@ export function BadgesSection({
           {counter}
         </Text>
       </View>
-      <BadgeGrid entries={entries} defaultExpanded={defaultExpanded} />
+      <BadgeGrid entries={entries} full={full} />
     </View>
   );
 }

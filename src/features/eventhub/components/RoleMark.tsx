@@ -96,7 +96,9 @@ export function RoleMark({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t("eventHub.roleInfo.a11y", { role: label })}
-        hitSlop={12}
+        // The mark stays 18/20 px beside a name; the tap area is 44 pt
+        // (review B-12: 20 x 20 with no reach).
+        hitSlop={roleMarkHitSlop(size)}
         onPress={() => setOpen(true)}
         testID={`role-mark-button-${role.role}`}
       >
@@ -106,6 +108,13 @@ export function RoleMark({
     </>
   );
 }
+
+/** Slop that grows a `size` px mark to the 44 pt minimum tap target. */
+export function roleMarkHitSlop(size: number): number {
+  return Math.max(0, Math.ceil((MIN_TAP_TARGET - size) / 2));
+}
+
+const MIN_TAP_TARGET = 44;
 
 const styles = StyleSheet.create({
   mark: { alignItems: "center", justifyContent: "center" },

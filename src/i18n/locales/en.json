@@ -118,6 +118,9 @@
     "dateOnlyTemplate": "{{month}} {{day}}, {{year}}",
     "offlineBanner": "You're offline. Showing events from {{time}}",
     "offlineAnnouncement": "You're offline. Showing the last saved events.",
+    "newEventsAnnouncement": "New earthquakes in the list: {{number}}",
+    "newEventsAnnouncement_one": "1 new earthquake in the list",
+    "newEventsAnnouncement_other": "{{number}} new earthquakes in the list",
     "errorTitle": "Couldn't load the latest events",
     "retry": "Retry",
     "viewWorld": "World",
@@ -182,8 +185,10 @@
     "retry": "Retry",
     "filters": {
       "magMinLabel": "Min magnitude",
+      "magAny": "Any",
       "magMaxLabel": "Max magnitude",
       "yearMinLabel": "From year",
+      "yearMinOldestLabel": "From year (oldest)",
       "yearMaxLabel": "To year",
       "decrement": "Decrease",
       "increment": "Increase"
@@ -1264,6 +1269,22 @@
           "3": "Large wall cracks, some fallen plaster or masonry",
           "4": "Serious cracking or partial failure of walls",
           "5": "Partial or full collapse of walls or roof"
+        }
+      },
+      "gradesShort": {
+        "highrise": {
+          "1": "No visible damage",
+          "2": "Hairline cracks in plaster",
+          "3": "Diagonal cracks in infill walls",
+          "4": "Wide cracks in columns or beams",
+          "5": "Partial collapse"
+        },
+        "lowrise": {
+          "1": "No visible damage",
+          "2": "Hairline cracks in plaster",
+          "3": "Large cracks in walls",
+          "4": "Walls seriously cracked or failing",
+          "5": "Walls or roof collapsed"
         }
       }
     },

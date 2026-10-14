@@ -76,6 +76,28 @@ describe("app tour", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
+  it("keeps the preview drawings out of the accessibility tree: the stop's title and sentence describe them (review E-9)", async () => {
+    await renderTour();
+    const decorated = new Set(["map", "sensor", "safety", "share"]);
+    for (let index = 0; index < TOUR_STOP_IDS.length; index += 1) {
+      if (decorated.has(TOUR_STOP_IDS[index] ?? "")) {
+        const graphics = screen.getAllByTestId("tour-preview-graphic", {
+          includeHiddenElements: true,
+        });
+        expect(graphics.length).toBeGreaterThan(0);
+        for (const graphic of graphics) {
+          expect(graphic.props.accessibilityElementsHidden).toBe(true);
+          expect(graphic.props.importantForAccessibility).toBe("no-hide-descendants");
+        }
+        // Hidden from assistive tech, so absent from the default (a11y) query.
+        expect(screen.queryByTestId("tour-preview-graphic")).toBeNull();
+      }
+      if (index < TOUR_STOP_IDS.length - 1) {
+        await next();
+      }
+    }
+  });
+
   it("has the ten stops in the agreed order, each with a title and one short sentence in every language", () => {
     expect([...TOUR_STOP_IDS]).toEqual(EXPECTED_ORDER);
     for (const catalog of [en, ckb, kmr, ar] as const) {
