@@ -38,7 +38,10 @@ import { useTheme } from "@/theme";
  * home-feed-policy.ts`, update-plan-2026-08.md §1.1) — this screen stays
  * "dumb": it feeds the policy the region + notable-tail pools and renders
  * whatever it decides, all window/floor/notable-carve-out logic lives in
- * that one pure, unit-tested module.
+ * that one pure, unit-tested module. The title row and its three links are
+ * the only fixed chrome; the "Be ready" card (or the "Are you safe?" banner
+ * in its place) and the possible-event cards scroll away with the feed
+ * (review A-19: fixed, they held about a quarter of a phone's height).
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -176,6 +179,10 @@ export default function HomeScreen() {
                 </Pressable>
               </View>
             </View>
+          </>
+        }
+        listHeaderContent={
+          <>
             {safePrompt.event ? (
               <HomeSafeBanner event={safePrompt.event} onDismiss={safePrompt.dismiss} />
             ) : (

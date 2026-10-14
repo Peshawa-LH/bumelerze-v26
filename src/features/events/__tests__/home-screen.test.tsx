@@ -470,6 +470,31 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     expect(screen.queryByTestId("be-ready-card")).toBeNull();
   });
 
+  it("lets the 'Be ready' and possible-event cards scroll with the feed while the title row and links stay fixed (review A-19)", async () => {
+    await i18n.changeLanguage("en");
+    usePrefsStore.setState({ beReadyHidden: false });
+    mockUsePossibleEvents.mockReturnValue({ events: [samplePossibleEvent], isReady: true });
+
+    await renderWithProviders(<HomeScreen />);
+
+    function insideList(element: { parent: unknown } | null): boolean {
+      let node = element as { parent: unknown; props?: { testID?: string } } | null;
+      while (node) {
+        if (node.props?.testID === "event-list") {
+          return true;
+        }
+        node = node.parent as typeof node;
+      }
+      return false;
+    }
+
+    expect(insideList(screen.getByTestId("be-ready-card"))).toBe(true);
+    expect(insideList(screen.getByRole("alert"))).toBe(true);
+    expect(insideList(screen.getByTestId(`event-card-${sampleEvent.id}`))).toBe(true);
+    expect(insideList(screen.getByText("Home"))).toBe(false);
+    expect(insideList(screen.getByRole("button", { name: "World" }))).toBe(false);
+  });
+
   it("shows no 'Be ready' card once the Safety guide has been opened", async () => {
     await i18n.changeLanguage("en");
     usePrefsStore.setState({ beReadyHidden: true });

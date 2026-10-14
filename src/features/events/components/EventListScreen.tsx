@@ -29,10 +29,18 @@ interface EventListScreenProps {
   dataUpdatedAt: number;
   emptyMessage: string;
   onRefetch: () => void;
-  /** Home renders World/Significant links above the list; pushed screens
-   * (World, Significant) pass nothing — their native Stack header already
-   * carries the title. */
+  /** Home renders its title row and the World/Significant/Historical links
+   * above the list; pushed screens (World, Significant) pass nothing — their
+   * native Stack header already carries the title. Stays put while the
+   * list scrolls, so keep it to one row. */
   headerContent?: ReactNode;
+  /** Scrolls WITH the list (rendered as the list's own header): Home's
+   * "Be ready" card, the "Are you safe?" banner and the possible-event
+   * cards. Review A-19: kept fixed, these held about a quarter of a phone's
+   * height while the feed scrolled underneath. Content here is expected to
+   * carry its own horizontal padding, like a card; the list cancels its
+   * content inset around it so the two line up. */
+  listHeaderContent?: ReactNode;
   /** Home sits inside the tab navigator with `headerShown: false`, so it
    * needs its own top safe-area padding; pushed screens get that from the
    * native header and should leave this `false` (default). */
@@ -70,6 +78,7 @@ export function EventListScreen({
   emptyMessage,
   onRefetch,
   headerContent,
+  listHeaderContent,
   applyTopInset = false,
   notableEventIds,
   bottomClearance = 0,
@@ -154,6 +163,7 @@ export function EventListScreen({
     return (
       <View style={containerStyle}>
         {headerContent}
+        {listHeaderContent}
         <View style={styles.centered}>
           <Text
             accessibilityRole="header"
@@ -199,6 +209,7 @@ export function EventListScreen({
     return (
       <View style={containerStyle}>
         {headerContent}
+        {listHeaderContent}
         <View style={{ padding: spacing[4], gap: spacing[3] }}>
           {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
             <View
@@ -224,8 +235,18 @@ export function EventListScreen({
       {isOfflineIsh ? <OfflineBanner dataUpdatedAt={dataUpdatedAt} /> : null}
       <FlatList
         {...tabBarScroll}
+        testID="event-list"
         data={events}
         keyExtractor={(event) => event.id}
+        ListHeaderComponent={listHeaderContent ? <>{listHeaderContent}</> : null}
+        // The header's cards bring their own side padding (`BeReadyCard`,
+        // `PossibleEventCard`'s wrapper); pull the header back out of this
+        // list's content inset so they line up with the event cards below,
+        // and up to where the fixed `headerContent` ends.
+        ListHeaderComponentStyle={{
+          marginHorizontal: -spacing[4],
+          marginTop: -spacing[4],
+        }}
         renderItem={({ item }) => (
           <EventCard
             event={item}
