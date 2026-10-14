@@ -68,10 +68,12 @@ const testSafeAreaMetrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
+function withProviders(ui: ReactElement) {
+  return <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>;
+}
+
 function renderWithProviders(ui: ReactElement) {
-  return render(
-    <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>,
-  );
+  return render(withProviders(ui));
 }
 
 const sampleEvent: Event = {
@@ -334,6 +336,81 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
 
     expect(announceSpy).toHaveBeenCalledWith(i18n.t("events.offlineAnnouncement"));
     announceSpy.mockRestore();
+  });
+
+  describe("new-earthquake announcement (review E-10)", () => {
+    const refreshedEvent: Event = {
+      ...sampleEvent,
+      id: "us7000new1",
+      originTime: Date.now() - 60_000,
+      magnitude: { value: 4.1, type: "mb" },
+      provenance: { ...sampleEvent.provenance, providerId: "us7000new1" },
+    };
+
+    function feed(events: Event[], dataUpdatedAt: number) {
+      mockUseRegionEvents.mockReturnValue({
+        events,
+        isInitialLoading: false,
+        isOfflineIsh: false,
+        isHardError: false,
+        isRefreshing: false,
+        dataUpdatedAt,
+        skippedCount: 0,
+        refetch: jest.fn(),
+      });
+    }
+
+    it("announces how many earthquakes a completed refresh added, in the reader's language", async () => {
+      const announceSpy = jest
+        .spyOn(AccessibilityInfo, "announceForAccessibility")
+        .mockImplementation(() => undefined);
+      await i18n.changeLanguage("ckb");
+      feed([sampleEvent], 1_000);
+      const view = await renderWithProviders(<HomeScreen />);
+      // The first population is not news.
+      expect(announceSpy).not.toHaveBeenCalled();
+
+      feed([refreshedEvent, sampleEvent], 2_000);
+      await view.rerender(withProviders(<HomeScreen />));
+
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+      expect(announceSpy).toHaveBeenCalledWith("بوومەلەرزەیەکی نوێ لە لیستەکەدایە");
+      announceSpy.mockRestore();
+    });
+
+    it("says nothing when a refresh adds no event, or when the list changes without a fetch", async () => {
+      const announceSpy = jest
+        .spyOn(AccessibilityInfo, "announceForAccessibility")
+        .mockImplementation(() => undefined);
+      await i18n.changeLanguage("en");
+      feed([sampleEvent], 1_000);
+      const view = await renderWithProviders(<HomeScreen />);
+
+      // Same events, newer fetch: nothing new.
+      feed([sampleEvent], 2_000);
+      await view.rerender(withProviders(<HomeScreen />));
+      // The notable-tail pool arriving later changes the list without a new
+      // fetch time: old news, remembered but not spoken.
+      mockUseNotableTailEvents.mockReturnValue({
+        events: [
+          {
+            ...refreshedEvent,
+            id: "notable-old",
+            originTime: Date.now() - 200 * 24 * 60 * 60_000,
+            magnitude: { value: 6.2, type: "mw" },
+          },
+        ],
+      });
+      await view.rerender(withProviders(<HomeScreen />));
+      expect(announceSpy).not.toHaveBeenCalled();
+
+      // A real newcomer after that is counted once, in English.
+      feed([refreshedEvent, sampleEvent], 3_000);
+      await view.rerender(withProviders(<HomeScreen />));
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+      expect(announceSpy).toHaveBeenCalledWith("1 new earthquake in the list");
+      announceSpy.mockRestore();
+    });
   });
 
   it("passes no dir prop to the card: the web app root sets the reading direction (AppRoot.web.tsx)", async () => {

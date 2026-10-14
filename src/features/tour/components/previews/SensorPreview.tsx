@@ -94,6 +94,11 @@ export function SensorPreview() {
 
       <View
         onLayout={onLayout}
+        // Decorative trace (review E-9): the stop's title says what it is,
+        // the axis chips below name the lines.
+        testID="tour-preview-graphic"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
         style={{
           borderRadius: 12,
           borderWidth: 1,

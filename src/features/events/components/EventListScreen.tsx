@@ -12,6 +12,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { useEventSourceAgencies } from "../source-corroboration";
 import type { Event } from "../types";
@@ -74,7 +75,7 @@ export function EventListScreen({
   bottomClearance = 0,
 }: EventListScreenProps) {
   const tabBarScroll = useTabBarScroll();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -107,6 +108,39 @@ export function EventListScreen({
     }
     wasOfflineRef.current = isOfflineIsh;
   }, [isOfflineIsh, t]);
+
+  // Review E-10: a screen-reader user on the two-minute poll had no cue when
+  // a refresh brought new earthquakes (only the offline state was spoken).
+  // After every COMPLETED fetch (`dataUpdatedAt` moves only then) the ids are
+  // compared with the previous list and the number of newcomers announced.
+  // The first population and a later arrival of the notable-tail pool (which
+  // changes `events` without a new `dataUpdatedAt`, and is old news by
+  // definition) only update the remembered ids.
+  const seenIdsRef = useRef<ReadonlySet<string> | null>(null);
+  const announcedAtRef = useRef(dataUpdatedAt);
+  useEffect(() => {
+    const ids = new Set(events.map((event) => event.id));
+    const previous = seenIdsRef.current;
+    seenIdsRef.current = ids;
+    if (previous === null || previous.size === 0 || dataUpdatedAt === announcedAtRef.current) {
+      return;
+    }
+    announcedAtRef.current = dataUpdatedAt;
+    let added = 0;
+    for (const id of ids) {
+      if (!previous.has(id)) {
+        added += 1;
+      }
+    }
+    if (added > 0) {
+      AccessibilityInfo.announceForAccessibility(
+        t("events.newEventsAnnouncement", {
+          count: added,
+          number: localizeDigits(String(added), i18n.language),
+        }),
+      );
+    }
+  }, [events, dataUpdatedAt, t, i18n.language]);
 
   const containerStyle = [
     styles.container,

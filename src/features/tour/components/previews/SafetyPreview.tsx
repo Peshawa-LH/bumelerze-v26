@@ -48,6 +48,11 @@ export function SafetyPreview() {
             source={SAFETY_ARTWORK[image]}
             contentFit="cover"
             style={{ width: 56, height: 56, borderRadius: 10 }}
+            // Decorative (review E-9): the guide's section and title sit
+            // right next to it.
+            testID="tour-preview-graphic"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
           />
           <View style={{ flex: 1, gap: 2 }}>
             <Text

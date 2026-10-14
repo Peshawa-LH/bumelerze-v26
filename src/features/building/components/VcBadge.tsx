@@ -7,9 +7,12 @@ import type { VulnerabilityClass } from "../ims25";
  * (Hasan et al., WCEE 2024, Hawler; Hasan et al., 3CroCEE 2025,
  * Sulaimani), sampled from the published legends. Same in light and dark
  * mode. The letter carries the meaning; colour only reinforces it, so the
- * pale classes get dark text. */
+ * pale classes get dark text. Class A is a shade darker than the published
+ * #E73710 (review E-2: white on it was 4.24:1; #D32F0C gives 5.0:1), the
+ * same hex the website uses. Every chip, badge and legend reads this one
+ * table, so they move together. */
 export const VC_COLORS: Record<VulnerabilityClass, { fill: string; text: string }> = {
-  A: { fill: "#E73710", text: "#FFFFFF" },
+  A: { fill: "#D32F0C", text: "#FFFFFF" },
   B: { fill: "#F3A3A2", text: "#1C1B1F" },
   C: { fill: "#DFF3AE", text: "#1C1B1F" },
   D: { fill: "#AAADFC", text: "#1C1B1F" },
