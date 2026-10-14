@@ -273,11 +273,10 @@ export const QUESTIONS: readonly Question[] = [
     notes: ["flatslab"],
     pictograms: {
       frame: "structure-frame",
-      // No drawings yet for concrete walls and the flat slab; the confined
-      // walls reuse the corner-column drawing of the helper.
-      walls: null,
+      walls: "structure-shear-walls",
+      // The confined walls reuse the corner-column drawing of the helper.
       confined: "structure-corner-column",
-      flatslab: null,
+      flatslab: "structure-flat-slab",
       block: "structure-block-walls",
       brick: "structure-brick-walls",
       stone: "structure-stone-walls",
