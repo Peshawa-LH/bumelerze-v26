@@ -7,6 +7,7 @@ import {
   buildEvent,
   makeTransport,
   renderWithProviders,
+  openCommentMenu,
 } from "@/features/eventhub/__fixtures__/testing";
 import i18n from "@/i18n";
 
@@ -134,6 +135,7 @@ describe("mute", () => {
       <EventHubContent event={buildEvent()} transport={transport} />,
     );
     await screen.findByText("Felt it");
+    await openCommentMenu("c-other");
     await act(async () => {
       fireEvent.press(screen.getByTestId("mute-c-other"));
     });
@@ -153,7 +155,7 @@ describe("mute", () => {
       <EventHubContent event={buildEvent()} transport={transport} />,
     );
     await screen.findByText("Mine");
-    expect(screen.queryByTestId("mute-c-me")).toBeNull();
+    expect(await openCommentMenu("c-me")).not.toContain("mute-c-me");
   });
 
   it("Muted people lists them with Unmute; a guest is shown as Guest", async () => {

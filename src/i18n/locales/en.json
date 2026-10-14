@@ -918,10 +918,6 @@
       "hint": "Opens the Event hub"
     },
     "summary": {
-      "people": "People reported: {{number}}",
-      "none": "No reports yet",
-      "firstReport": "First report: {{time}}",
-      "levelA11y": "{{label}}: {{number}}",
       "memories": "Were you there? Share where you were and what you felt."
     },
     "unavailable": "Not available right now.",
@@ -992,17 +988,11 @@
     },
     "impact": {
       "title": "Impact at a glance",
-      "felt": {
-        "title": "What people felt",
-        "caption": "Share of reports by shaking level"
-      },
       "damage": {
-        "title": "Estimated building damage",
-        "caption": "Share of buildings in the shaken area"
+        "title": "Estimated building damage"
       },
       "people": {
-        "title": "People by shaking level",
-        "caption": "Share of people at level {{level}} and above"
+        "title": "People by shaking level"
       },
       "level": "Level {{level}}",
       "note": "From the Bumelerze SHAKEmap and damage estimate — automatic, not reviewed",

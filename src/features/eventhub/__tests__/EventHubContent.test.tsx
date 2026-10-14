@@ -11,10 +11,14 @@ import i18n from "@/i18n";
 import { encodeGeohash } from "@/lib/felt-aggregation/geohash";
 
 import { EventHubContent } from "../components/EventHubContent";
+import { makeSocialTransport } from "@/features/social/__fixtures__/testing";
+
 import { HubError } from "../types";
 import {
   buildComment,
   buildEvent,
+  commentMenuAction,
+  openCommentMenu,
   EMPTY_SUMMARY,
   makeTransport,
   renderWithProviders,
@@ -53,6 +57,9 @@ jest.mock("@/features/account", () => ({
 }));
 
 const SLEMANI_AREA = encodeGeohash(35.57, 45.44, 5);
+
+const openMenu = (id: string) => openCommentMenu(id);
+const menuAction = (id: string, row: string) => commentMenuAction(id, row);
 
 async function renderHub(transport: ReturnType<typeof makeTransport>) {
   await renderWithProviders(
@@ -102,16 +109,21 @@ describe("EventHubContent", () => {
     });
   });
 
-  describe("empty states", () => {
-    it("says there are no reports and no comments yet", async () => {
+  describe("the hub as a post (review note 4.4)", () => {
+    it("says there are no comments yet, and the felt button opens Share your experience", async () => {
       await renderHub(makeTransport());
-      expect(await screen.findByText("No reports yet")).toBeTruthy();
       expect(
         await screen.findByText("No comments yet. Be the first to share what you felt."),
       ).toBeTruthy();
+      const felt = screen.getByTestId("hub-actions-felt");
+      expect(felt).toHaveTextContent(/I felt it!$/);
+      await fireEvent.press(felt);
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.objectContaining({ pathname: "/felt-report" }),
+      );
     });
 
-    it("shows the people count, level distribution and first report time", async () => {
+    it("counts the people who felt it in the action row, and the comments", async () => {
       await renderHub(
         makeTransport({
           summary: {
@@ -119,44 +131,82 @@ describe("EventHubContent", () => {
             people: 12,
             levels: { 3: 4, 5: 10 },
             firstReportAt: Date.UTC(2026, 9, 4, 10, 30),
-            comments: 0,
+            comments: 3,
           },
         }),
       );
-      expect(await screen.findByText(/^People reported: .*12/)).toBeTruthy();
-      expect(screen.getByTestId("hub-level-3")).toBeTruthy();
-      expect(screen.getByTestId("hub-level-5")).toBeTruthy();
-      // Once in the summary rows, once in the impact donut's legend.
-      expect(screen.getAllByText("Weak shaking")).toHaveLength(2);
-      expect(screen.getAllByText("Strong shaking")).toHaveLength(2);
-      expect(screen.getByText(/^.{0,2}10.{0,2}$/)).toBeTruthy();
-      expect(screen.getByText(/^First report: /)).toBeTruthy();
-      expect(screen.queryByText("No reports yet")).toBeNull();
+      expect(await screen.findByText(/14.{0,2} felt it$/)).toBeTruthy();
+      expect(screen.getByTestId("hub-actions-comments")).toHaveTextContent(/3/);
+      expect(screen.getByTestId("hub-comment-count")).toHaveTextContent(/3/);
     });
 
-    it("shows the impact donuts under the summary when there are reports", async () => {
-      await renderHub(
-        makeTransport({
-          summary: {
-            reports: 14,
-            people: 12,
-            levels: { 3: 4, 5: 10 },
-            firstReportAt: Date.UTC(2026, 9, 4, 10, 30),
-            comments: 0,
-          },
-        }),
-      );
-      expect(await screen.findByTestId("hub-impact")).toBeTruthy();
-      expect(screen.getByTestId("hub-impact-felt")).toBeTruthy();
-      // No SHAKEmap/damage product for this event, so no model charts.
-      expect(screen.queryByTestId("hub-impact-damage")).toBeNull();
-      expect(screen.queryByTestId("hub-impact-people")).toBeNull();
-    });
-
-    it("shows no impact section when there is nothing to chart", async () => {
+    it("has the post header, the slides and the share image as slide 1", async () => {
       await renderHub(makeTransport());
-      expect(await screen.findByTestId("hub-subtitle")).toBeTruthy();
-      expect(screen.queryByTestId("hub-impact")).toBeNull();
+      expect(await screen.findByTestId("hub-post-header")).toBeTruthy();
+      expect(
+        screen.getByTestId("event-mark", { includeHiddenElements: true }),
+      ).toBeTruthy();
+      expect(screen.getByTestId("hub-carousel")).toBeTruthy();
+      expect(screen.getByTestId("slide-share-image")).toBeTruthy();
+      // The hub is Bumelerze's: the official mark beside the title.
+      expect(
+        within(screen.getByTestId("hub-post-header")).getByTestId(
+          "role-mark-official-icon",
+        ),
+      ).toBeTruthy();
+    });
+
+    it("opens the share sheet from the action row and from the ... menu", async () => {
+      await renderHub(makeTransport());
+      await fireEvent.press(await screen.findByTestId("hub-actions-share"));
+      expect(await screen.findByTestId("share-sheet")).toBeTruthy();
+    });
+
+    it("an account gives the hub a heart and takes it back; the count follows", async () => {
+      mockAccount = { status: "account", userId: "acct-1" };
+      const social = makeSocialTransport({ hubLikes: { count: 127, liked: false } });
+      await renderWithProviders(
+        <EventHubContent
+          event={buildEvent()}
+          transport={makeTransport()}
+          socialTransport={social}
+        />,
+      );
+      const heart = await screen.findByTestId("hub-actions-heart");
+      expect(heart).toHaveTextContent(/127/);
+      expect(heart.props.accessibilityState.selected).toBe(false);
+      await fireEvent.press(heart);
+      await waitFor(() => expect(social.setHubLike).toHaveBeenCalledWith("uuid-1", true));
+      await waitFor(() =>
+        expect(screen.getByTestId("hub-actions-heart")).toHaveTextContent(/128/),
+      );
+      expect(
+        screen.getByTestId("hub-actions-heart").props.accessibilityState.selected,
+      ).toBe(true);
+      await fireEvent.press(screen.getByTestId("hub-actions-heart"));
+      await waitFor(() =>
+        expect(social.setHubLike).toHaveBeenCalledWith("uuid-1", false),
+      );
+    });
+
+    it("a guest reads the hub's hearts but cannot give one", async () => {
+      const social = makeSocialTransport({ hubLikes: { count: 5, liked: false } });
+      await renderWithProviders(
+        <EventHubContent
+          event={buildEvent()}
+          transport={makeTransport()}
+          socialTransport={social}
+        />,
+      );
+      expect(await screen.findByLabelText(/^Likes: .*5/)).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /^Likes/ })).toBeNull();
+      expect(social.setHubLike).not.toHaveBeenCalled();
+    });
+
+    it("shows no heart when the server has no hearts yet (migration 0065 missing)", async () => {
+      await renderHub(makeTransport());
+      await screen.findByTestId("hub-actions");
+      expect(screen.queryByTestId("hub-actions-heart")).toBeNull();
     });
 
     it("says it could not load, with a retry, when the comments cannot be read", async () => {
@@ -218,6 +268,12 @@ describe("EventHubContent", () => {
     it("lists threads newest first with replies oldest first, names, role marks, area and time", async () => {
       await renderHub(makeTransport(data));
       expect(await screen.findByText("Strong shaking in Slemani")).toBeTruthy();
+      // Replies start folded under "View 2 replies".
+      expect(screen.queryByText("First reply")).toBeNull();
+      expect(screen.getByTestId("replies-toggle-root-new")).toHaveTextContent(
+        /View .*2.* replies/,
+      );
+      await fireEvent.press(screen.getByTestId("replies-toggle-root-new"));
 
       const bodies = screen
         .getAllByText(
@@ -234,26 +290,33 @@ describe("EventHubContent", () => {
       // Name from profiles; no profile -> Anonymous.
       expect(screen.getAllByText("Awat").length).toBe(2);
       expect(screen.getByText("Anonymous")).toBeTruthy();
-      // Official mark: the Bumelerze icon, no text beside it.
-      expect(screen.getByTestId("role-mark-official-icon")).toBeTruthy();
+      // Official mark: the Bumelerze icon, no text beside it (one on the
+      // hub's own header, one on the official comment).
+      expect(
+        within(screen.getByTestId("comment-root-old")).getByTestId(
+          "role-mark-official-icon",
+        ),
+      ).toBeTruthy();
       // Area from the geohash, as a city, never coordinates.
       expect(screen.getByText("felt it near Slemani")).toBeTruthy();
       // Relative times.
-      expect(screen.getByText("5m ago")).toBeTruthy();
-      expect(screen.getByText("2h ago")).toBeTruthy();
-      // Helpful count is visible to anonymous readers as plain text.
-      expect(screen.getByText(/^Helpful: .*3/)).toBeTruthy();
+      expect(screen.getByText(/· 5m ago$/)).toBeTruthy();
+      expect(screen.getByText(/· 2h ago$/)).toBeTruthy();
+      // The heart's count is visible to anonymous readers, read-only.
+      expect(screen.getByLabelText(/^Likes: .*3/)).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /^Likes/ })).toBeNull();
     });
 
     it("indents replies one level under their thread", async () => {
       await renderHub(makeTransport(data));
+      await fireEvent.press(await screen.findByTestId("replies-toggle-root-new"));
       await screen.findByText("First reply");
-      const root = screen.getByTestId("comment-root-new");
-      const reply = screen.getByTestId("comment-reply-a");
-      const flat = (node: { props: { style?: unknown } }) =>
-        Object.assign({}, ...[node.props.style].flat(3).filter(Boolean));
-      expect(flat(root).marginStart).toBeUndefined();
-      expect(flat(reply).marginStart).toBe(24);
+      // The indent is an empty column at the start of a row, so it mirrors
+      // in Sorani and Arabic on the web too.
+      expect(screen.getByTestId("comment-root-new")).toBeTruthy();
+      expect(screen.queryByTestId("comment-indent-root-new")).toBeNull();
+      const indent = screen.getByTestId("comment-indent-reply-a");
+      expect(indent.props.style).toEqual({ width: 48 });
     });
 
     describe("after the author deleted their account", () => {
@@ -276,6 +339,7 @@ describe("EventHubContent", () => {
 
       it("shows 'Deleted account' with no photo, name, link or actions, and keeps the reply under it", async () => {
         await renderHub(makeTransport({ comments: [blank, reply], authors }));
+        await fireEvent.press(await screen.findByTestId("replies-toggle-gone"));
         expect(await screen.findByText("I felt it too")).toBeTruthy();
         expect(screen.getByTestId("comment-deleted-account-gone")).toHaveTextContent(
           "Deleted account",
@@ -326,8 +390,13 @@ describe("EventHubContent", () => {
   });
 
   describe("anonymous reader", () => {
-    it("is told the comment waits for review, with a sign-in link", async () => {
+    it("is told the comment waits for review, with a sign-in link, once they start writing", async () => {
       await renderHub(makeTransport());
+      expect(screen.queryByTestId("hub-composer-anonymous-note")).toBeNull();
+      await fireEvent.changeText(
+        await screen.findByTestId("hub-composer-input"),
+        "I felt",
+      );
       expect(
         await screen.findByText(
           "Your comment will appear after review. Create an account to post right away.",
@@ -357,12 +426,14 @@ describe("EventHubContent", () => {
         }),
       );
       expect(await screen.findByText("My pending note")).toBeTruthy();
-      expect(screen.getByText("Waiting for review")).toBeTruthy();
+      // Only the author sees a held comment, and is told so.
+      expect(screen.getByText("Waiting for review · only you see this")).toBeTruthy();
       expect(screen.queryByText("Someone else pending")).toBeNull();
-      expect(screen.queryByRole("button", { name: "Helpful" })).toBeNull();
-      // Own comment can be deleted, others' can be reported.
-      expect(screen.getByRole("button", { name: "Delete" })).toBeTruthy();
-      expect(screen.getAllByRole("button", { name: "Report" })).toHaveLength(1);
+      expect(screen.queryByRole("button", { name: /^Likes/ })).toBeNull();
+      // Own comment can be deleted, others' can be reported: in the "..." sheet.
+      expect(await openMenu("mine")).toEqual(["delete-mine"]);
+      await fireEvent.press(screen.getByTestId("comment-menu-mine-cancel"));
+      expect(await openMenu("theirs")).toEqual(["mute-theirs", "report-theirs"]);
     });
 
     it("posts through the transport and tells them it awaits review", async () => {
@@ -440,7 +511,7 @@ describe("EventHubContent", () => {
       expect(await screen.findByText("Couldn't post. Try again.")).toBeTruthy();
     });
 
-    it("toggles Helpful on someone else's comment, not on their own", async () => {
+    it("toggles the heart (the Helpful mark) on someone else's comment, not on their own", async () => {
       const transport = makeTransport({
         comments: [
           buildComment({ id: "theirs", body: "Their note", helpfulCount: 1 }),
@@ -449,10 +520,10 @@ describe("EventHubContent", () => {
         helped: ["theirs"],
       });
       await renderHub(transport);
-      const helpful = await screen.findByRole("button", { name: /^Helpful: .*1/ });
+      const helpful = await screen.findByRole("button", { name: /^Likes: .*1/ });
       expect(helpful.props.accessibilityState.selected).toBe(true);
-      // Only one Helpful button: the account's own comment has none.
-      expect(screen.queryAllByRole("button", { name: /^Helpful/ })).toHaveLength(1);
+      // Only one heart button: the account's own comment has none.
+      expect(screen.queryAllByRole("button", { name: /^Likes/ })).toHaveLength(1);
 
       await fireEvent.press(helpful);
       await waitFor(() =>
@@ -466,10 +537,12 @@ describe("EventHubContent", () => {
       });
       await renderHub(transport);
       await fireEvent.press(await screen.findByRole("button", { name: "Reply" }));
-      const input = await screen.findByTestId("reply-composer-root-1-input");
+      // The docked composer takes the reply, and says to whom.
+      const input = await screen.findByTestId("hub-composer-input");
       expect(input.props.placeholder).toBe("Write a reply");
+      expect(screen.getByTestId("hub-reply-cancel")).toBeTruthy();
       await fireEvent.changeText(input, "Yes, strongly");
-      await fireEvent.press(screen.getByTestId("reply-composer-root-1-post"));
+      await fireEvent.press(screen.getByTestId("hub-composer-post"));
       await waitFor(() =>
         expect(transport.postComment).toHaveBeenCalledWith({
           eventUuid: "uuid-1",
@@ -477,10 +550,8 @@ describe("EventHubContent", () => {
           body: "Yes, strongly",
         }),
       );
-      // The reply box closes once posted.
-      await waitFor(() =>
-        expect(screen.queryByTestId("reply-composer-root-1")).toBeNull(),
-      );
+      // Back to a plain comment once posted.
+      await waitFor(() => expect(screen.queryByTestId("hub-reply-cancel")).toBeNull());
     });
 
     it("reports a comment with a reason", async () => {
@@ -488,7 +559,7 @@ describe("EventHubContent", () => {
         comments: [buildComment({ id: "c-bad", body: "Buy my stuff" })],
       });
       await renderHub(transport);
-      await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
+      await menuAction("c-bad", "report-c-bad");
       // The shared report sheet: reasons first, nothing is sent until one is chosen.
       expect(screen.getByText("Report this comment")).toBeTruthy();
       expect(screen.queryByTestId("report-sheet-c-bad-reason-impersonation")).toBeNull();
@@ -519,7 +590,7 @@ describe("EventHubContent", () => {
         comments: [buildComment({ id: "c-bad", body: "Buy my stuff" })],
       });
       await renderHub(transport);
-      await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
+      await menuAction("c-bad", "report-c-bad");
       await fireEvent.press(screen.getByTestId("report-sheet-c-bad-reason-spam"));
       await fireEvent.press(screen.getByTestId("report-sheet-c-bad-submit"));
       await waitFor(() =>
@@ -534,13 +605,14 @@ describe("EventHubContent", () => {
       });
       await renderHub(transport);
       expect(await screen.findByText("Thanks. We will review it.")).toBeTruthy();
-      expect(screen.queryByRole("button", { name: "Report" })).toBeNull();
+      expect(await openMenu("c-bad")).not.toContain("report-c-bad");
       await fireEvent.press(screen.getByTestId("withdraw-report-c-bad"));
       await waitFor(() => expect(transport.withdrawFlag).toHaveBeenCalledWith("c-bad"));
       expect(await screen.findByTestId("report-withdrawn-c-bad")).toBeTruthy();
-      expect(screen.queryByTestId("withdraw-report-c-bad")).toBeNull();
       // A withdrawn report cannot be raised again (the server keeps the row).
-      expect(screen.queryByRole("button", { name: "Report" })).toBeNull();
+      const rows = await openMenu("c-bad");
+      expect(rows).not.toContain("withdraw-report-c-bad");
+      expect(rows).not.toContain("report-c-bad");
     });
 
     it("offers the withdraw button right after reporting", async () => {
@@ -548,10 +620,11 @@ describe("EventHubContent", () => {
         comments: [buildComment({ id: "c-bad", body: "Buy my stuff" })],
       });
       await renderHub(transport);
-      await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
+      await menuAction("c-bad", "report-c-bad");
       await fireEvent.press(screen.getByTestId("report-sheet-c-bad-reason-spam"));
       await fireEvent.press(screen.getByTestId("report-sheet-c-bad-submit"));
-      expect(await screen.findByTestId("withdraw-report-c-bad")).toBeTruthy();
+      await screen.findByTestId("comment-reported-c-bad");
+      expect(await openMenu("c-bad")).toContain("withdraw-report-c-bad");
     });
 
     it("shows no withdraw button on a comment the viewer did not report", async () => {
@@ -559,7 +632,7 @@ describe("EventHubContent", () => {
         makeTransport({ comments: [buildComment({ id: "c1", body: "Fine" })] }),
       );
       await screen.findByText("Fine");
-      expect(screen.queryByTestId("withdraw-report-c1")).toBeNull();
+      expect(await openMenu("c1")).not.toContain("withdraw-report-c1");
     });
 
     it("still shows the thread when the viewer's own reports cannot be read (server without migration 0052)", async () => {
@@ -569,7 +642,7 @@ describe("EventHubContent", () => {
       );
       await renderHub(transport);
       expect(await screen.findByText("Still here")).toBeTruthy();
-      expect(screen.getByRole("button", { name: "Report" })).toBeTruthy();
+      expect(await openMenu("c1")).toContain("report-c1");
     });
 
     it("says the daily report limit is reached instead of a generic error", async () => {
@@ -578,7 +651,7 @@ describe("EventHubContent", () => {
         { flagComment: jest.fn(async () => Promise.reject(new HubError("flag_limit"))) },
       );
       await renderHub(transport);
-      await fireEvent.press(await screen.findByRole("button", { name: "Report" }));
+      await menuAction("c-bad", "report-c-bad");
       await fireEvent.press(screen.getByTestId("report-sheet-c-bad-reason-spam"));
       await fireEvent.press(screen.getByTestId("report-sheet-c-bad-submit"));
       // The sheet stays open and says why, so the reader can close it.
@@ -595,7 +668,7 @@ describe("EventHubContent", () => {
         comments: [buildComment({ id: "mine", userId: "acct-1", body: "Oops" })],
       });
       await renderHub(transport);
-      await fireEvent.press(await screen.findByRole("button", { name: "Delete" }));
+      await menuAction("mine", "delete-mine");
       await waitFor(() => expect(transport.deleteComment).toHaveBeenCalledWith("mine"));
       expect(screen.queryByText("Delete this comment?")).toBeNull();
       expect(await screen.findByTestId("snackbar-message")).toHaveTextContent(
@@ -612,7 +685,7 @@ describe("EventHubContent", () => {
         { setHelpful: jest.fn(async () => Promise.reject(new HubError("network"))) },
       );
       await renderHub(transport);
-      await fireEvent.press(await screen.findByRole("button", { name: "Helpful" }));
+      await fireEvent.press(await screen.findByRole("button", { name: /^Likes/ }));
       expect(await screen.findByText("Couldn't do that. Try again.")).toBeTruthy();
     });
   });
@@ -635,12 +708,12 @@ describe("EventHubContent", () => {
       expect(await screen.findByText("Needs a look")).toBeTruthy();
       expect(screen.getByText("Waiting for review")).toBeTruthy();
 
-      await fireEvent.press(screen.getByRole("button", { name: "Approve" }));
+      await menuAction("p1", "approve-p1");
       await waitFor(() =>
         expect(transport.moderateComment).toHaveBeenCalledWith("p1", "approve"),
       );
 
-      await fireEvent.press(screen.getByRole("button", { name: "Hide" }));
+      await menuAction("p1", "hide-p1");
       await waitFor(() =>
         expect(transport.moderateComment).toHaveBeenCalledWith("p1", "hide"),
       );
@@ -653,7 +726,7 @@ describe("EventHubContent", () => {
         roles: { "mod-1": [{ role: "moderator", orgName: null }] },
       });
       await renderHub(transport);
-      await fireEvent.press(await screen.findByRole("button", { name: "Hide" }));
+      await menuAction("p1", "hide-p1");
       await waitFor(() =>
         expect(transport.moderateComment).toHaveBeenCalledWith("p1", "hide"),
       );
@@ -675,7 +748,7 @@ describe("EventHubContent", () => {
           roles: { "off-1": [{ role: "official", orgName: null }] },
         }),
       );
-      expect(await screen.findByRole("button", { name: "Approve" })).toBeTruthy();
+      expect(await openMenu("p1")).toContain("approve-p1");
     });
 
     it("never shows hidden comments, even to a moderator", async () => {

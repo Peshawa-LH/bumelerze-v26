@@ -3,17 +3,16 @@ import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { isBumelerzeId, type Event } from "@/features/events";
+import { isBumelerzeId } from "@/features/events";
 import { EventHubContent, useRouteEvent } from "@/features/eventhub";
-import { useEventUuidResult } from "@/features/feltmap/use-event-uuid";
-import { ShareButton, shareIdFor } from "@/features/share";
 import { useTheme } from "@/theme";
 
 /**
- * Event hub: who felt this earthquake and what they said. Opened from the
- * "Who felt it?" pill on `/event/[id]` with the same id (a `bml` id, or a
- * provider id for older links), so the event resolves exactly as it does on
- * the event page. The body is `EventHubContent`.
+ * Event hub: the earthquake as a post, with who felt it and what they said.
+ * Opened from the "Who felt it?" pill on `/event/[id]` with the same id (a
+ * `bml` id, or a provider id for older links), so the event resolves exactly
+ * as it does on the event page. The body is `EventHubContent`; sharing lives
+ * in its action row and its "..." menu (review note 4.4).
  */
 export default function EventHubScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,17 +33,15 @@ export default function EventHubScreen() {
           title: t("eventHub.title"),
           headerShown: true,
           headerLeft: () => <HeaderBackButton />,
-          headerRight: () =>
-            event ? (
-              <HubShareButton
-                event={event}
-                bumelerzeId={id && isBumelerzeId(id) ? id : null}
-              />
-            ) : null,
         }}
       />
       <View style={{ flex: 1, backgroundColor: colors.surface.base }}>
-        {event ? <EventHubContent event={event} /> : null}
+        {event ? (
+          <EventHubContent
+            event={event}
+            bumelerzeId={id && isBumelerzeId(id) ? id : null}
+          />
+        ) : null}
         {isLoading ? (
           <Text style={[bodyStyle, { padding: spacing[5] }]}>
             {t("eventDetail.loading")}
@@ -57,25 +54,5 @@ export default function EventHubScreen() {
         ) : null}
       </View>
     </>
-  );
-}
-
-/** The header's share icon. "Post to my profile" in its sheet needs the
- * event's `bml` id, else its registry id (looked up the same way the hub
- * body does; the answer is cached). */
-function HubShareButton({
-  event,
-  bumelerzeId,
-}: {
-  event: Event;
-  bumelerzeId: string | null;
-}) {
-  const { uuid } = useEventUuidResult(event);
-  return (
-    <ShareButton
-      event={event}
-      shareId={shareIdFor(event, bumelerzeId)}
-      profileRef={event.bumelerzeId ?? bumelerzeId ?? uuid ?? null}
-    />
   );
 }

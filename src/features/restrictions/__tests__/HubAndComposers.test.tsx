@@ -6,6 +6,7 @@ import {
   buildComment,
   buildEvent,
   makeTransport,
+  openCommentMenu,
   renderWithProviders,
 } from "@/features/eventhub/__fixtures__/testing";
 import { HubError } from "@/features/eventhub/types";
@@ -137,11 +138,8 @@ describe("Event hub for a limited account", () => {
     await waitFor(() =>
       expect(screen.getByTestId("hub-composer-input").props.editable).toBe(false),
     );
-    // a reply box is off as well
-    await fireEvent.press(screen.getByText("Reply"));
-    await waitFor(() =>
-      expect(screen.getByTestId("reply-composer-c1-input").props.editable).toBe(false),
-    );
+    // and there is no Reply to start one
+    expect(screen.queryByTestId("comment-reply-c1")).toBeNull();
   });
 
   it("a warning changes nothing about writing", async () => {
@@ -225,14 +223,17 @@ describe("'Limit account' in the Event hub comment menu", () => {
 
   it("a moderator can limit an ordinary author, not an admin, not themself", async () => {
     await renderHub(hubWith({ permissions: ["comments.moderate", "accounts.restrict"] }));
-    expect(await screen.findByTestId("limit-c1")).toBeTruthy();
-    expect(screen.queryByTestId("limit-c2")).toBeNull();
-    expect(screen.queryByTestId("limit-c3")).toBeNull();
+    expect(await openCommentMenu("c1")).toContain("limit-c1");
+    await fireEvent.press(screen.getByTestId("comment-menu-c1-cancel"));
+    expect(await openCommentMenu("c2")).not.toContain("limit-c2");
+    await fireEvent.press(screen.getByTestId("comment-menu-c2-cancel"));
+    expect(await openCommentMenu("c3")).not.toContain("limit-c3");
   });
 
   it("the sheet opens for that author, without Suspend for a moderator", async () => {
     await renderHub(hubWith({ permissions: ["comments.moderate", "accounts.restrict"] }));
-    await fireEvent.press(await screen.findByTestId("limit-c1"));
+    await openCommentMenu("c1");
+    await fireEvent.press(screen.getByTestId("limit-c1"));
     expect(await screen.findByTestId("limit-sheet-target")).toHaveTextContent("Dilan");
     expect(screen.queryByTestId("limit-level-suspend")).toBeNull();
   });
@@ -243,14 +244,15 @@ describe("'Limit account' in the Event hub comment menu", () => {
         permissions: ["comments.moderate", "accounts.restrict", "accounts.suspend"],
       }),
     );
-    await fireEvent.press(await screen.findByTestId("limit-c1"));
+    await openCommentMenu("c1");
+    await fireEvent.press(screen.getByTestId("limit-c1"));
     expect(await screen.findByTestId("limit-level-suspend")).toBeTruthy();
   });
 
   it("offers nothing to someone without accounts.restrict", async () => {
     await renderHub(hubWith({ permissions: ["comments.moderate"] }));
     await screen.findByText("Rumour: quake at 9pm");
-    expect(screen.queryByTestId("limit-c1")).toBeNull();
+    expect(await openCommentMenu("c1")).not.toContain("limit-c1");
   });
 
   it("limits the author through the server and offers Undo", async () => {
@@ -259,7 +261,8 @@ describe("'Limit account' in the Event hub comment menu", () => {
       .mockResolvedValue("r-new");
     const lift = jest.spyOn(SupabaseRestrictionsTransport, "lift").mockResolvedValue();
     await renderHub(hubWith({ permissions: ["comments.moderate", "accounts.restrict"] }));
-    await fireEvent.press(await screen.findByTestId("limit-c1"));
+    await openCommentMenu("c1");
+    await fireEvent.press(screen.getByTestId("limit-c1"));
     await fireEvent.press(await screen.findByTestId("limit-reason-rumour"));
     await fireEvent.press(screen.getByTestId("limit-submit"));
     await waitFor(() =>

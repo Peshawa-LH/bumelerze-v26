@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -36,6 +36,16 @@ interface CommentComposerProps {
   /** Already-localized message for a failure, when the caller knows better
    * words than the hub's (post comments: "Comments are off"). */
   errorText?: (error: unknown) => string | null;
+  /** "box" (a tall field with the Post button under it) or "docked": one
+   * row, the writer's photo, the field and "Post", for the bar that stays
+   * above the tab bar (review note 4.4). */
+  variant?: "box" | "docked";
+  /** Docked: the photo at the start of the row. */
+  leading?: ReactNode;
+  /** Docked: a line above the row, e.g. "Replying to aram.h" with a close. */
+  banner?: ReactNode;
+  /** Docked: a new value moves the cursor into the field (Reply tapped). */
+  focusKey?: string | null;
   testID?: string;
 }
 
@@ -67,6 +77,10 @@ export function CommentComposer({
   mentionsTransport,
   maxLength = COMMENT_MAX_LENGTH,
   errorText,
+  variant = "box",
+  leading,
+  banner,
+  focusKey = null,
   testID = "hub-composer",
 }: CommentComposerProps) {
   const { t } = useTranslation();
@@ -81,6 +95,12 @@ export function CommentComposer({
   const { guard, sheet } = useGuidelinesGate(guidelinesTransport);
   // "@na…" suggests people; picking one writes "@username " (migration 0063).
   const mention = useMentionInput(text, setText);
+  const inputRef = useRef<TextInput | null>(null);
+  useEffect(() => {
+    if (focusKey !== null) {
+      inputRef.current?.focus();
+    }
+  }, [focusKey]);
 
   const canPost = text.trim().length > 0 && !busy && !disabled;
 
@@ -111,6 +131,117 @@ export function CommentComposer({
     fontSize: typography.bodyMeta.fontSize,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
+
+  const notes = (
+    <>
+      {disabled ? (
+        <Text style={meta} testID={`${testID}-disabled`}>
+          {t("restrictions.composerDisabled")}
+        </Text>
+      ) : null}
+      {error ? (
+        <Text
+          style={[meta, { color: colors.status.danger }]}
+          accessibilityLiveRegion="polite"
+        >
+          {error}
+        </Text>
+      ) : null}
+      {notice ? (
+        <Text style={meta} accessibilityLiveRegion="polite">
+          {notice}
+        </Text>
+      ) : null}
+    </>
+  );
+
+  if (variant === "docked") {
+    return (
+      <View style={{ gap: spacing[1] }} testID={testID}>
+        {banner}
+        <MentionSuggestions
+          query={disabled ? null : mention.query}
+          onPick={mention.pick}
+          testID={`${testID}-mentions`}
+          {...(mentionsTransport ? { transport: mentionsTransport } : {})}
+        />
+        {notes}
+        {!isAccount && text.trim().length > 0 ? (
+          <View style={[styles.dockedNote, { gap: spacing[2] }]}>
+            <Text style={[meta, styles.flexShrink]} testID={`${testID}-anonymous-note`}>
+              {t("eventHub.composer.anonymousNote")}
+            </Text>
+            <Pressable
+              accessibilityRole="link"
+              onPress={() => router.push("/account/sign-in")}
+              hitSlop={8}
+              style={styles.linkTarget}
+            >
+              <Text
+                style={{
+                  color: colors.text.link,
+                  fontSize: typography.bodyMeta.fontSize,
+                  fontWeight: typography.labelButton.fontWeight,
+                }}
+              >
+                {t("eventHub.composer.createAccount")}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+        {sheet}
+        <View style={[styles.dockedRow, { gap: spacing[2] }]}>
+          {leading}
+          <TextInput
+            ref={inputRef}
+            value={text}
+            onChangeText={setText}
+            onSelectionChange={mention.onSelectionChange}
+            placeholder={placeholder}
+            placeholderTextColor={colors.text.tertiary}
+            accessibilityLabel={t("eventHub.composer.label")}
+            multiline
+            maxLength={maxLength}
+            autoFocus={autoFocus}
+            editable={!busy && !disabled}
+            textAlignVertical="center"
+            style={[
+              styles.dockedInput,
+              {
+                color: colors.text.primary,
+                borderColor: colors.border.default,
+                backgroundColor: colors.surface.sunken,
+                fontSize: typography.bodyDefault.fontSize,
+                paddingHorizontal: spacing[4],
+                paddingVertical: spacing[2],
+                textAlign: "auto",
+              },
+            ]}
+            testID={`${testID}-input`}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !canPost, busy }}
+            disabled={!canPost}
+            onPress={() => void handlePost()}
+            testID={`${testID}-post`}
+            hitSlop={4}
+            style={[styles.dockedPost, { paddingHorizontal: spacing[2] }]}
+          >
+            <Text
+              style={{
+                color: canPost ? colors.text.link : colors.text.tertiary,
+                fontSize: typography.labelButton.fontSize,
+                fontWeight: typography.labelButton.fontWeight,
+              }}
+            >
+              {busy ? t("eventHub.composer.posting") : t("eventHub.composer.post")}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={{ gap: spacing[2] }} testID={testID}>
@@ -263,5 +394,28 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
     alignSelf: "flex-start",
+  },
+  dockedNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  flexShrink: { flexShrink: 1 },
+  dockedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dockedInput: {
+    flex: 1,
+    minHeight: 44,
+    maxHeight: 120,
+    borderWidth: 1,
+    borderRadius: 22,
+  },
+  dockedPost: {
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

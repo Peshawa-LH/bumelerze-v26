@@ -7,6 +7,7 @@ import {
   buildComment,
   buildEvent,
   makeTransport,
+  openCommentMenu,
   renderWithProviders,
 } from "../__fixtures__/testing";
 
@@ -80,7 +81,10 @@ describe("Event hub: ranks, removal, profiles and follows", () => {
         ],
       });
       await renderHub(transport);
-      await fireEvent.press(await screen.findByTestId("remove-c1"));
+      const rows = await openCommentMenu("c1");
+      // Remove is the last row, after everything else (mockup 1d).
+      expect(rows[rows.length - 1]).toBe("remove-c1");
+      await fireEvent.press(screen.getByTestId("remove-c1"));
       await fireEvent.press(await screen.findByTestId("remove-reason-abuse"));
 
       expect(mockConfirm).toHaveBeenCalledTimes(1);
@@ -108,14 +112,15 @@ describe("Event hub: ranks, removal, profiles and follows", () => {
           permissions: ["comments.moderate"],
         }),
       );
-      expect(await screen.findByRole("button", { name: "Approve" })).toBeTruthy();
-      expect(screen.queryByTestId("remove-c1")).toBeNull();
+      expect(await openCommentMenu("p1")).toContain("approve-p1");
+      await fireEvent.press(screen.getByTestId("comment-menu-p1-cancel"));
+      expect(await openCommentMenu("c1")).not.toContain("remove-c1");
     });
 
     it("shows no Remove to an ordinary account", async () => {
       await renderHub(makeTransport({ comments: [visible], permissions: [] }));
       await screen.findByText("Rude words");
-      expect(screen.queryByTestId("remove-c1")).toBeNull();
+      expect(await openCommentMenu("c1")).not.toContain("remove-c1");
     });
 
     it("keeps moderators working but gives no Remove when the server has no my_permissions yet", async () => {
@@ -129,8 +134,9 @@ describe("Event hub: ranks, removal, profiles and follows", () => {
           roles: { "off-1": [{ role: "official", orgName: null }] },
         }),
       );
-      expect(await screen.findByRole("button", { name: "Approve" })).toBeTruthy();
-      expect(screen.queryByTestId("remove-c1")).toBeNull();
+      expect(await openCommentMenu("p1")).toContain("approve-p1");
+      await fireEvent.press(screen.getByTestId("comment-menu-p1-cancel"));
+      expect(await openCommentMenu("c1")).not.toContain("remove-c1");
     });
 
     it("does not offer Remove on the admin's own comment (they have Delete)", async () => {
@@ -142,7 +148,9 @@ describe("Event hub: ranks, removal, profiles and follows", () => {
         }),
       );
       await screen.findByText("Mine");
-      expect(screen.queryByTestId("remove-own")).toBeNull();
+      const rows = await openCommentMenu("own");
+      expect(rows).toContain("delete-own");
+      expect(rows).not.toContain("remove-own");
     });
   });
 
@@ -167,10 +175,11 @@ describe("Event hub: ranks, removal, profiles and follows", () => {
         }),
       );
       expect(await screen.findByText("Comment removed")).toBeTruthy();
+      await fireEvent.press(screen.getByTestId("replies-toggle-root"));
       expect(screen.getByText("I agree with the point")).toBeTruthy();
       expect(screen.queryByText("Bad Actor")).toBeNull();
       // a placeholder has no actions
-      expect(screen.queryByTestId("remove-root")).toBeNull();
+      expect(screen.queryByTestId("comment-more-root")).toBeNull();
     });
   });
 

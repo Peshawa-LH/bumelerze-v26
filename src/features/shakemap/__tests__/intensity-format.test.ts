@@ -121,7 +121,7 @@ describe("intensity wording in the locale files", () => {
       for (const text of strings(locale.building.damage.intensity)) {
         expect(text).toContain("{{level}}");
       }
-      expect(locale.eventHub.impact.people.caption).toContain("{{level}}");
+      expect(locale.eventHub.impact.level).toContain("{{level}}");
     }
   });
 });

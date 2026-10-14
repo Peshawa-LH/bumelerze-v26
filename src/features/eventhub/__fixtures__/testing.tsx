@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render } from "@testing-library/react-native";
+import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -148,4 +148,46 @@ export function renderWithProviders(ui: ReactElement) {
       </SafeAreaProvider>
     </QueryClientProvider>,
   );
+}
+
+/** Opens a comment's "..." sheet (hub comments: prefix "comment", post
+ * comments: "post-comment") and returns the test ids of its rows, Cancel
+ * left out. */
+export async function openCommentMenu(
+  commentId: string,
+  prefix: "comment" | "post-comment" = "comment",
+): Promise<string[]> {
+  await fireEvent.press(await screen.findByTestId(`${prefix}-more-${commentId}`));
+  const sheet = await screen.findByTestId(`${prefix}-menu-${commentId}`);
+  return within(sheet)
+    .queryAllByRole("button")
+    .map((row) => String(row.props.testID ?? ""))
+    .filter((id) => id !== "" && !id.endsWith("-cancel"));
+}
+
+/** Opens a comment's "..." sheet and taps one of its rows. */
+export async function commentMenuAction(
+  commentId: string,
+  rowId: string,
+  prefix: "comment" | "post-comment" = "comment",
+) {
+  await openCommentMenu(commentId, prefix);
+  await fireEvent.press(screen.getByTestId(rowId));
+}
+
+/** Opens a profile post's "..." sheet and returns the test ids of its rows,
+ * Cancel left out. */
+export async function openPostMenu(postId: string): Promise<string[]> {
+  await fireEvent.press(await screen.findByTestId(`post-header-${postId}-more`));
+  const sheet = await screen.findByTestId(`post-header-${postId}-menu`);
+  return within(sheet)
+    .queryAllByRole("button")
+    .map((row) => String(row.props.testID ?? ""))
+    .filter((id) => id !== "" && !id.endsWith("-cancel"));
+}
+
+/** Opens a profile post's "..." sheet and taps one of its rows. */
+export async function postMenuAction(postId: string, rowId: string) {
+  await openPostMenu(postId);
+  await fireEvent.press(screen.getByTestId(rowId));
 }

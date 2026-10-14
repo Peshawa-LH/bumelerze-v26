@@ -15,7 +15,9 @@ import { buildThreads } from "../threads";
 import {
   buildComment,
   buildEvent,
+  commentMenuAction,
   makeTransport,
+  openCommentMenu,
   renderWithProviders,
 } from "../__fixtures__/testing";
 
@@ -82,7 +84,7 @@ describe("pinned note, busy time and role marks", () => {
     expect(hidden.map((t) => t.root.id)).toEqual(["new", "mid"]);
   });
 
-  it("shows 'Pinned by Bumelerze' with the official mark, and no pin buttons for readers", async () => {
+  it("shows 'Pinned by Bumelerze' on the first card, and no pin rows for readers", async () => {
     const filter = makeFilterTransport();
     await renderWithProviders(
       <EventHubContent
@@ -93,9 +95,12 @@ describe("pinned note, busy time and role marks", () => {
     );
     const label = await screen.findByTestId("comment-pinned-pinned");
     expect(within(label).getByText("Pinned by Bumelerze")).toBeTruthy();
-    expect(within(label).getByTestId("role-mark-official")).toBeTruthy();
-    expect(screen.queryByTestId("pin-new")).toBeNull();
-    expect(screen.queryByTestId("unpin-pinned")).toBeNull();
+    // The pinned card is the first thread.
+    const threads = screen.getAllByTestId(/^thread-/).map((node) => node.props.testID);
+    expect(threads[0]).toBe("thread-pinned");
+    expect(await openCommentMenu("new")).not.toContain("pin-new");
+    await fireEvent.press(screen.getByTestId("comment-menu-new-cancel"));
+    expect(await openCommentMenu("pinned")).not.toContain("unpin-pinned");
     expect(screen.queryByTestId("hub-surge-note")).toBeNull();
   });
 
@@ -108,9 +113,9 @@ describe("pinned note, busy time and role marks", () => {
         filterTransport={filter}
       />,
     );
-    await fireEvent.press(await screen.findByTestId("pin-new"));
+    await commentMenuAction("new", "pin-new");
     await waitFor(() => expect(filter.pinComment).toHaveBeenCalledWith("new"));
-    await fireEvent.press(screen.getByTestId("unpin-pinned"));
+    await commentMenuAction("pinned", "unpin-pinned");
     await waitFor(() => expect(filter.unpinComment).toHaveBeenCalledWith("pinned"));
   });
 

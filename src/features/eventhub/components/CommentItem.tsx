@@ -1,24 +1,16 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Text } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Avatar, getAvatarUrl } from "@/features/account";
-import { profileHref } from "@/features/community/routes";
-import {
-  formatRelativeTimeValue,
-  getRelativeTime,
-  isolateNumeric,
-} from "@/features/events";
-import { MentionText } from "@/features/mentions/components/MentionText";
+import { formatRelativeTimeValue, getRelativeTime } from "@/features/events";
 import { useMuteActions } from "@/features/mute/queries";
-import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
-import { useUndoToast } from "@/features/undo/use-undo-toast";
+import { LimitAccountSheet } from "@/features/restrictions/components/LimitAccountSheet";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
 import type { ReportInput } from "@/features/reporting/reasons";
+import { CommentRow } from "@/features/social/components/CommentRow";
+import type { MenuItem } from "@/features/social/components/MenuSheet";
+import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
-import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
 import { areaCityName } from "../area";
@@ -26,9 +18,7 @@ import { isDeletedAccountComment } from "../deleted-account";
 import { isPinnedNote } from "../threads";
 import type { HubActions } from "../queries";
 import { HubError, type HubAuthor, type HubComment, type HubRole } from "../types";
-import { ActionButton } from "./ActionButton";
 import { RemoveReasons } from "./RemoveReasons";
-import { RoleMark } from "./RoleMark";
 
 export interface CommentViewer {
   userId: string | null;
@@ -63,7 +53,7 @@ interface CommentItemProps {
   /** Clock for the relative time (UTC ms), from the thread query. */
   nowMs: number;
   actions: HubActions;
-  /** Reply button handler; omitted for replies (the thread takes the reply). */
+  /** Reply handler; omitted for replies (the thread takes the reply). */
   onReply?: () => void;
   isReply?: boolean;
   /** The viewer follows the author: a small "Following" mark. */
@@ -71,9 +61,16 @@ interface CommentItemProps {
   pinActions?: PinActions;
 }
 
-type Mode = "idle" | "reporting" | "adminRemove";
+type Mode = "idle" | "reporting" | "adminRemove" | "limiting";
 
-/** One comment: author, role mark, time, area, text and its actions. */
+const NO_AUTHOR = { name: "", username: null, avatarPath: null, roles: [] };
+
+/**
+ * One Event hub comment, drawn with the shared `CommentRow`: the heart is
+ * the comment's Helpful mark (same counts, same badges; review note 4.4),
+ * and Pin, Mute, Report, Delete, Limit, Hide and Remove live in its "..."
+ * sheet, the way each viewer may use them.
+ */
 export function CommentItem({
   comment,
   author,
@@ -89,8 +86,7 @@ export function CommentItem({
   pinActions,
 }: CommentItemProps) {
   const { t, i18n } = useTranslation();
-  const router = useRouter();
-  const { colors, typography, spacing } = useTheme();
+  const { colors, typography } = useTheme();
   const locale = i18n.language;
   const [mode, setMode] = useState<Mode>("idle");
   const [busy, setBusy] = useState(false);
@@ -102,11 +98,51 @@ export function CommentItem({
   const showUndo = useUndoToast();
   const muteActions = useMuteActions();
 
+  const meta = {
+    color: colors.text.secondary,
+    fontSize: typography.bodyMeta.fontSize,
+    lineHeight: typography.bodyMeta.lineHeight,
+  } as const;
+
+  if (isDeletedAccountComment(comment)) {
+    // The author deleted their account: no photo, name or link, no actions.
+    return (
+      <CommentRow
+        id={comment.id}
+        author={NO_AUTHOR}
+        body=""
+        timeText=""
+        isReply={isReply}
+        placeholder={{
+          text: t("eventHub.thread.deletedAccount"),
+          testID: `comment-deleted-account-${comment.id}`,
+        }}
+      />
+    );
+  }
+  if (comment.status === "removed") {
+    // An admin took the text down. Keep the slot so the replies under it
+    // still read in order; no author, no text, no actions.
+    return (
+      <CommentRow
+        id={comment.id}
+        author={NO_AUTHOR}
+        body=""
+        timeText=""
+        isReply={isReply}
+        placeholder={{
+          text: t("eventHub.thread.removed"),
+          testID: `comment-removed-${comment.id}`,
+        }}
+      />
+    );
+  }
+
   const isOwn = viewer.userId !== null && comment.userId === viewer.userId;
   // The server refuses to limit an admin; do not even offer it. The private
   // admin rank (migration 0060) is invisible here by design, so for such an
-  // author the button shows and the server's "can't be limited" answer is
-  // what the moderator sees.
+  // author the row shows and the server's "can't be limited" answer is what
+  // the moderator sees.
   const authorIsAdmin = (roles ?? []).some(
     (r) => r.role === "official" || r.role === "moderator",
   );
@@ -126,7 +162,6 @@ export function CommentItem({
           value: formatRelativeTimeValue(relative.value, locale),
         });
 
-  /** The reporting sheet's send: the server decides, the sheet words a failure. */
   async function sendReport({ reason, note }: ReportInput) {
     await actions.flag(comment.id, reason, note);
     setReported(true);
@@ -201,357 +236,224 @@ export function CommentItem({
     }
   }
 
-  const meta = {
-    color: colors.text.secondary,
-    fontSize: typography.bodyMeta.fontSize,
-    lineHeight: typography.bodyMeta.lineHeight,
-  } as const;
+  async function withdrawReport() {
+    const ok = await run(() => actions.withdrawFlag(comment.id));
+    if (ok) {
+      setWithdrawn(true);
+    }
+  }
 
   const isReported = (reported || flagged) && !withdrawn;
   const canHelp = viewer.isAccount && !isOwn && isVisible;
-  const helpfulCountText = isolateNumeric(
-    localizeDigits(String(comment.helpfulCount), locale),
-  );
-  const helpfulLabel =
-    comment.helpfulCount > 0
-      ? t("eventHub.thread.helpfulCount", { number: helpfulCountText })
-      : t("eventHub.thread.helpful");
 
-  if (isDeletedAccountComment(comment)) {
-    // The author deleted their account: no photo, name or link, no actions.
-    return (
-      <View
-        testID={`comment-${comment.id}`}
-        style={isReply ? { marginStart: spacing[6] } : null}
-      >
-        <Text
-          style={[meta, { fontStyle: "italic" }]}
-          testID={`comment-deleted-account-${comment.id}`}
-        >
-          {t("eventHub.thread.deletedAccount")}
-        </Text>
-      </View>
-    );
+  // The "..." rows, in the order of the mockup: the team's pin first, then
+  // what everyone may do, my own Delete, and moderators' actions, the
+  // destructive ones last.
+  const items: MenuItem[] = [];
+  if (canPin && pinActions) {
+    items.push({
+      key: "pin",
+      icon: "pin-outline",
+      label: isPinned ? t("eventHub.pin.unpin") : t("eventHub.pin.pin"),
+      detail: isPinned ? undefined : t("social.menu.pinDetail"),
+      badge: t("social.menu.officialOnly"),
+      onPress: () =>
+        void run(() =>
+          isPinned ? pinActions.unpin(comment.id) : pinActions.pin(comment.id),
+        ),
+      testID: `${isPinned ? "unpin" : "pin"}-${comment.id}`,
+    });
+  }
+  if (viewer.isModerator && isPending) {
+    items.push({
+      key: "approve",
+      icon: "checkmark-circle-outline",
+      label: t("eventHub.thread.approve"),
+      badge: t("social.menu.moderatorsOnly"),
+      onPress: () => void run(() => actions.moderate(comment.id, "approve")),
+      testID: `approve-${comment.id}`,
+    });
+  }
+  if (!isOwn && viewer.userId !== null && comment.userId !== null) {
+    items.push({
+      key: "mute",
+      icon: "volume-mute-outline",
+      label: t("social.menu.mute", { name }),
+      detail: t("social.menu.muteDetail"),
+      disabled: busy,
+      onPress: () => void muteAuthor(),
+      testID: `mute-${comment.id}`,
+    });
+  }
+  // A withdrawn report cannot be raised again (the server keeps the row).
+  if (!isOwn && isVisible && !isReported && !withdrawn && !flagged) {
+    items.push({
+      key: "report",
+      icon: "flag-outline",
+      label: t("eventHub.thread.report"),
+      detail: t("social.menu.reportDetail"),
+      onPress: () => setMode("reporting"),
+      testID: `report-${comment.id}`,
+    });
+  }
+  if (!isOwn && isReported) {
+    items.push({
+      key: "withdraw",
+      icon: "arrow-undo-outline",
+      label: t("eventHub.thread.withdrawReport"),
+      disabled: busy,
+      onPress: () => void withdrawReport(),
+      testID: `withdraw-report-${comment.id}`,
+    });
+  }
+  if (isOwn && comment.status !== "hidden") {
+    items.push({
+      key: "delete",
+      icon: "trash-outline",
+      label: t("eventHub.thread.delete"),
+      detail: t("social.menu.deleteDetail"),
+      danger: true,
+      disabled: busy,
+      onPress: () => void deleteOwn(),
+      testID: `delete-${comment.id}`,
+    });
+  }
+  if (viewer.canRestrict && !isOwn && comment.userId !== null && !authorIsAdmin) {
+    items.push({
+      key: "limit",
+      icon: "hand-left-outline",
+      label: t("restrictions.admin.action"),
+      badge: t("social.menu.moderatorsOnly"),
+      danger: true,
+      onPress: () => setMode("limiting"),
+      testID: `limit-${comment.id}`,
+    });
+  }
+  if (viewer.isModerator && isPending) {
+    items.push({
+      key: "hide",
+      icon: "eye-off-outline",
+      label: t("eventHub.thread.hide"),
+      badge: t("social.menu.moderatorsOnly"),
+      danger: true,
+      disabled: busy,
+      onPress: () => void hide(),
+      testID: `hide-${comment.id}`,
+    });
+  }
+  if (viewer.canDelete && !isOwn && comment.status !== "hidden") {
+    items.push({
+      key: "remove",
+      icon: "trash-outline",
+      label: t("eventHub.thread.remove"),
+      detail: t("eventHub.thread.removeConfirmMessage"),
+      badge: t("social.menu.moderatorsOnly"),
+      danger: true,
+      onPress: () => setMode("adminRemove"),
+      testID: `remove-${comment.id}`,
+    });
   }
 
-  if (comment.status === "removed") {
-    // An admin took the text down. Keep the slot so the replies under it
-    // still read in order; no author, no text, no actions.
-    return (
-      <View
-        testID={`comment-${comment.id}`}
-        style={isReply ? { marginStart: spacing[6] } : null}
-      >
-        <Text
-          style={[meta, { fontStyle: "italic" }]}
-          testID={`comment-removed-${comment.id}`}
-        >
-          {t("eventHub.thread.removed")}
+  const footer = (
+    <>
+      {mode === "adminRemove" ? (
+        <RemoveReasons
+          testID={`remove-reasons-${comment.id}`}
+          disabled={busy}
+          onCancel={() => setMode("idle")}
+          onSelect={(reason) =>
+            confirmDialog({
+              title: t("eventHub.thread.removeConfirmTitle"),
+              message: t("eventHub.thread.removeConfirmMessage"),
+              confirmLabel: t("eventHub.thread.remove"),
+              cancelLabel: t("eventHub.thread.cancel"),
+              destructive: true,
+              onConfirm: () =>
+                void run(() => actions.adminRemove(comment.id, reason)).then((ok) => {
+                  if (ok) {
+                    setMode("idle");
+                    showUndo({
+                      message: t("snackbar.commentRemoved"),
+                      restore: () => actions.adminRestore(comment.id),
+                      admin: true,
+                    });
+                  }
+                }),
+            })
+          }
+        />
+      ) : null}
+      {!isOwn && isReported ? (
+        <Text style={meta} testID={`comment-reported-${comment.id}`}>
+          {t("eventHub.thread.reported")}
         </Text>
-      </View>
-    );
-  }
-
-  const username = author?.username ?? null;
-  const openProfile = username ? () => router.push(profileHref(username)) : null;
-  const avatar = (
-    <Avatar
-      uri={getAvatarUrl(author?.avatarPath)}
-      name={author?.displayName ?? null}
-      size={isReply ? 28 : 36}
-      testID={`comment-avatar-${comment.id}`}
-    />
-  );
-  const nameText = (
-    <Text
-      style={{
-        color: colors.text.primary,
-        fontSize: typography.bodyDefault.fontSize,
-        lineHeight: typography.bodyDefault.lineHeight,
-        fontWeight: "600",
-      }}
-    >
-      {name}
-    </Text>
+      ) : null}
+      {!isOwn && withdrawn ? (
+        <Text style={meta} testID={`report-withdrawn-${comment.id}`}>
+          {t("eventHub.thread.reportWithdrawn")}
+        </Text>
+      ) : null}
+      {errorKey ? (
+        <Text
+          style={[meta, { color: colors.status.danger }]}
+          accessibilityLiveRegion="polite"
+          testID={`comment-error-${comment.id}`}
+        >
+          {t(`eventHub.thread.${errorKey}`)}
+        </Text>
+      ) : null}
+      {mode === "reporting" ? (
+        <ReportSheet
+          kind="comment"
+          testID={`report-sheet-${comment.id}`}
+          onSubmit={sendReport}
+          onClose={() => setMode("idle")}
+          errorText={reportErrorText}
+        />
+      ) : null}
+      {mode === "limiting" && comment.userId !== null ? (
+        <LimitAccountSheet
+          target={{ userId: comment.userId, name }}
+          canSuspend={viewer.canSuspend === true}
+          onClose={() => setMode("idle")}
+        />
+      ) : null}
+    </>
   );
 
   return (
-    <View
-      testID={`comment-${comment.id}`}
-      style={[
-        styles.row,
-        { gap: spacing[3] },
-        isReply ? { marginStart: spacing[6] } : null,
-      ]}
-    >
-      {openProfile ? (
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel={t("community.openProfile", { name })}
-          hitSlop={isReply ? 8 : 4}
-          onPress={openProfile}
-          testID={`comment-avatar-link-${comment.id}`}
-        >
-          {avatar}
-        </Pressable>
-      ) : (
-        avatar
-      )}
-      <View style={[styles.content, { gap: spacing[1] }]}>
-        {isPinned ? (
-          <View
-            style={[styles.headerRow, { gap: spacing[1] }]}
-            testID={`comment-pinned-${comment.id}`}
-          >
-            <Ionicons name="pin" size={14} color={colors.brand.primary} />
-            <Text style={[meta, { color: colors.text.primary, fontWeight: "600" }]}>
-              {t("eventHub.pin.pinned")}
-            </Text>
-            <RoleMark roles={PINNED_BY} explain />
-          </View>
-        ) : null}
-        <View style={[styles.headerRow, { gap: spacing[2] }]}>
-          {openProfile ? (
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel={t("community.openProfile", { name })}
-              hitSlop={{ top: 10, bottom: 10 }}
-              onPress={openProfile}
-              testID={`comment-name-link-${comment.id}`}
-            >
-              {nameText}
-            </Pressable>
-          ) : (
-            nameText
-          )}
-          <RoleMark roles={roles} explain />
-          {isFollowing ? (
-            <Text style={meta} testID={`comment-following-${comment.id}`}>
-              {t("eventHub.thread.following")}
-            </Text>
-          ) : null}
-          <Text style={meta}>{timeText}</Text>
-        </View>
-
-        {city ? (
-          <Text style={meta}>{t("eventHub.thread.feltNear", { city })}</Text>
-        ) : null}
-
-        <MentionText
-          text={comment.body}
-          testID={`comment-body-${comment.id}`}
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-            textAlign: "auto",
-            alignSelf: "stretch",
-            flexShrink: 1,
-            ...WRAP_ANYWHERE,
-          }}
-        />
-
-        {isPending ? (
-          <Text style={[meta, { fontStyle: "italic" }]}>
-            {t("eventHub.thread.pending")}
-          </Text>
-        ) : null}
-
-        {mode === "adminRemove" ? (
-          <RemoveReasons
-            testID={`remove-reasons-${comment.id}`}
-            disabled={busy}
-            onCancel={() => setMode("idle")}
-            onSelect={(reason) =>
-              confirmDialog({
-                title: t("eventHub.thread.removeConfirmTitle"),
-                message: t("eventHub.thread.removeConfirmMessage"),
-                confirmLabel: t("eventHub.thread.remove"),
-                cancelLabel: t("eventHub.thread.cancel"),
-                destructive: true,
-                onConfirm: () =>
-                  void run(() => actions.adminRemove(comment.id, reason)).then((ok) => {
-                    if (ok) {
-                      setMode("idle");
-                      showUndo({
-                        message: t("snackbar.commentRemoved"),
-                        restore: () => actions.adminRestore(comment.id),
-                        admin: true,
-                      });
-                    }
-                  }),
-              })
+    <CommentRow
+      id={comment.id}
+      author={{
+        name,
+        username: author?.username ?? null,
+        avatarPath: author?.avatarPath ?? null,
+        roles,
+      }}
+      body={comment.body}
+      timeText={timeText}
+      meta={city ? t("eventHub.thread.feltNear", { city }) : null}
+      isReply={isReply}
+      pinned={isPinned}
+      following={isFollowing}
+      pendingText={
+        isPending ? (isOwn ? t("social.pendingOwn") : t("eventHub.thread.pending")) : null
+      }
+      heart={
+        isVisible
+          ? {
+              count: comment.helpfulCount,
+              liked: helped,
+              disabled: busy,
+              onToggle: canHelp
+                ? () => void run(() => actions.setHelpful(comment.id, !helped))
+                : undefined,
             }
-          />
-        ) : (
-          <View style={[styles.actions, { gap: spacing[1] }]}>
-            {isVisible && onReply ? (
-              <ActionButton label={t("eventHub.thread.reply")} onPress={onReply} />
-            ) : null}
-            {canHelp ? (
-              <ActionButton
-                label={helpfulLabel}
-                selected={helped}
-                disabled={busy}
-                onPress={() => void run(() => actions.setHelpful(comment.id, !helped))}
-              />
-            ) : comment.helpfulCount > 0 ? (
-              <Text style={[meta, styles.staticAction]}>{helpfulLabel}</Text>
-            ) : null}
-            {!isOwn && isVisible && !isReported && !withdrawn && !flagged ? (
-              <ActionButton
-                label={t("eventHub.thread.report")}
-                onPress={() => setMode("reporting")}
-              />
-            ) : null}
-            {!isOwn && isReported ? (
-              <>
-                <Text style={[meta, styles.staticAction]}>
-                  {t("eventHub.thread.reported")}
-                </Text>
-                <ActionButton
-                  label={t("eventHub.thread.withdrawReport")}
-                  disabled={busy}
-                  onPress={async () => {
-                    const ok = await run(() => actions.withdrawFlag(comment.id));
-                    if (ok) {
-                      setWithdrawn(true);
-                    }
-                  }}
-                  testID={`withdraw-report-${comment.id}`}
-                />
-              </>
-            ) : null}
-            {!isOwn && withdrawn ? (
-              <Text
-                style={[meta, styles.staticAction]}
-                testID={`report-withdrawn-${comment.id}`}
-              >
-                {t("eventHub.thread.reportWithdrawn")}
-              </Text>
-            ) : null}
-            {!isOwn && viewer.userId !== null && comment.userId !== null ? (
-              <ActionButton
-                label={t("eventHub.thread.mute")}
-                disabled={busy}
-                onPress={() => void muteAuthor()}
-                testID={`mute-${comment.id}`}
-              />
-            ) : null}
-            {isOwn && comment.status !== "hidden" ? (
-              <ActionButton
-                label={t("eventHub.thread.delete")}
-                disabled={busy}
-                onPress={() => void deleteOwn()}
-                testID={`delete-${comment.id}`}
-              />
-            ) : null}
-            {viewer.canDelete && !isOwn && comment.status !== "hidden" ? (
-              <ActionButton
-                label={t("eventHub.thread.remove")}
-                danger
-                onPress={() => setMode("adminRemove")}
-                testID={`remove-${comment.id}`}
-              />
-            ) : null}
-            {viewer.canRestrict && !isOwn && comment.userId !== null && !authorIsAdmin ? (
-              <LimitAccountButton
-                target={{ userId: comment.userId, name }}
-                canSuspend={viewer.canSuspend === true}
-                testID={`limit-${comment.id}`}
-              />
-            ) : null}
-            {canPin && pinActions ? (
-              <ActionButton
-                label={isPinned ? t("eventHub.pin.unpin") : t("eventHub.pin.pin")}
-                disabled={busy}
-                onPress={() =>
-                  void run(() =>
-                    isPinned ? pinActions.unpin(comment.id) : pinActions.pin(comment.id),
-                  )
-                }
-                testID={`${isPinned ? "unpin" : "pin"}-${comment.id}`}
-              />
-            ) : null}
-            {viewer.isModerator && isPending ? (
-              <>
-                <ActionButton
-                  label={t("eventHub.thread.approve")}
-                  disabled={busy}
-                  onPress={() => void run(() => actions.moderate(comment.id, "approve"))}
-                />
-                <ActionButton
-                  label={t("eventHub.thread.hide")}
-                  danger
-                  disabled={busy}
-                  onPress={() => void hide()}
-                  testID={`hide-${comment.id}`}
-                />
-              </>
-            ) : null}
-          </View>
-        )}
-
-        {errorKey ? (
-          <Text
-            style={[meta, { color: colors.status.danger }]}
-            accessibilityLiveRegion="polite"
-            testID={`comment-error-${comment.id}`}
-          >
-            {t(`eventHub.thread.${errorKey}`)}
-          </Text>
-        ) : null}
-
-        {mode === "reporting" ? (
-          <ReportSheet
-            kind="comment"
-            testID={`report-sheet-${comment.id}`}
-            onSubmit={sendReport}
-            onClose={() => setMode("idle")}
-            errorText={reportErrorText}
-          />
-        ) : null}
-      </View>
-    </View>
+          : null
+      }
+      onReply={isVisible ? onReply : undefined}
+      menuItems={items}
+      footer={footer}
+    />
   );
 }
-
-/** The pinned line carries the official mark: pins are the team's. */
-const PINNED_BY: readonly HubRole[] = [{ role: "official", orgName: null }];
-
-/** Long comments always wrap inside the column, also in browsers that size a
- * mixed-direction paragraph to its full line (owner screenshot, 2026-10-08):
- * each paragraph takes its own direction, and very long words break. */
-const WRAP_ANYWHERE = (
-  Platform.OS === "web"
-    ? {
-        overflowWrap: "anywhere",
-        wordBreak: "break-word",
-        unicodeBidi: "plaintext",
-        maxWidth: "100%",
-      }
-    : {}
-) as object;
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  content: {
-    flex: 1,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-  },
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-  },
-  staticAction: {
-    paddingHorizontal: 8,
-  },
-});

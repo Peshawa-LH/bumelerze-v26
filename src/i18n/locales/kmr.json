@@ -918,10 +918,6 @@
       "hint": "Navenda bûyerê vedike"
     },
     "summary": {
-      "people": "Kesên ragihandin: {{number}}",
-      "none": "Hê ragihandin tune",
-      "firstReport": "Ragihandina yekem: {{time}}",
-      "levelA11y": "{{label}}: {{number}}",
       "memories": "Tu li wir bûyî? Bêje tu li ku bûyî û te çi hîs kir."
     },
     "unavailable": "Niha peyda nabe.",
@@ -992,17 +988,11 @@
     },
     "impact": {
       "title": "Bandor bi kurtî",
-      "felt": {
-        "title": "Mirovan çi hîs kir",
-        "caption": "Rêjeya ragihandinan li gorî asta hejînê"
-      },
       "damage": {
-        "title": "Zirara avahiyan a texmînkirî",
-        "caption": "Rêjeya avahiyan li herêma hejandî"
+        "title": "Zirara avahiyan a texmînkirî"
       },
       "people": {
-        "title": "Mirov li gorî asta hejînê",
-        "caption": "Rêjeya mirovan di asta {{level}} û jortir de"
+        "title": "Mirov li gorî asta hejînê"
       },
       "level": "Asta {{level}}",
       "note": "Ji SHAKEmap û texmîna zirarê ya Bumelerze — otomatîk, nehatiye kontrolkirin",
