@@ -227,6 +227,7 @@ export default function RootLayout() {
                 <Stack.Screen name="admin/moderation" />
                 <Stack.Screen name="admin/stats" />
                 <Stack.Screen name="admin/hubs" />
+                <Stack.Screen name="officials" />
                 <Stack.Screen name="home/new" />
                 <Stack.Screen name="home/join" />
                 <Stack.Screen name="home/[tagId]/report" />

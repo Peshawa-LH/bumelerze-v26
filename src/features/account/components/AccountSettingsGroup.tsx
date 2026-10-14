@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { AuthoritySharingRow } from "@/features/authority/components/AuthoritySharingRow";
 import { useTheme } from "@/theme";
 import { useAccount } from "../use-account";
 import { DeleteAccountRow } from "./DeleteAccountRow";
@@ -11,7 +12,8 @@ import { SignOutRow } from "./SignOutRow";
 
 /**
  * Settings > Account, for a signed-in account only: Password, Privacy & data
- * (with the email), Sign out and, last and apart, Delete account. They left
+ * (with the email), the switch for government officials (0066, default off),
+ * Sign out and, last and apart, Delete account. They left
  * the Profile page so that it keeps one tidy "Only you see this" list
  * (review note 5.1, mockup 3a).
  */
@@ -33,6 +35,7 @@ export function AccountSettingsGroup() {
       <SettingsGroup>
         <PasswordRow />
         <PrivacyRow email={account.email} />
+        <AuthoritySharingRow />
         <SignOutRow />
       </SettingsGroup>
       <DeleteAccountRow />

@@ -99,6 +99,25 @@ describe("OwnerList: admin entry", () => {
     expect(await screen.findByTestId("account-admin-row")).toBeTruthy();
   });
 
+  it("shows a Government official the Officials row and no admin row", async () => {
+    signedIn("shilan");
+    setPermissions(["authority.view"]);
+    await renderWithProviders(<OwnerList />);
+    await act(async () => {
+      fireEvent.press(await screen.findByTestId("account-officials-row"));
+    });
+    expect(mockPush).toHaveBeenCalledWith("/officials");
+    expect(screen.queryByTestId("account-admin-row")).toBeNull();
+  });
+
+  it("shows no Officials row to admins without the Government official rank", async () => {
+    signedIn("shilan");
+    setPermissions(["comments.moderate", "stats.read", "hubs.open"]);
+    await renderWithProviders(<OwnerList />);
+    expect(await screen.findByTestId("account-admin-row")).toBeTruthy();
+    expect(screen.queryByTestId("account-officials-row")).toBeNull();
+  });
+
   it("hides the admin row on a server without my_permissions, even for an official", async () => {
     signedIn("shilan");
     setPermissions(null);

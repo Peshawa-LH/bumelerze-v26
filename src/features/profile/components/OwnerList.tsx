@@ -15,7 +15,8 @@ import { useTheme } from "@/theme";
 /**
  * The owner's own tools under "Only you see this" (review note 5.1, mockup
  * 3a), as ONE tidy list: My reports, My home, People and requests, Download
- * my data and, for admins, Admin tools. Each opens its own page (or, for
+ * my data, for Government officials the Officials page (0066) and, for
+ * admins, Admin tools. Each opens its own page (or, for
  * the download, does it in place).
  */
 export function OwnerList() {
@@ -90,6 +91,14 @@ export function OwnerList() {
         testID="account-people-row"
       />
       <DownloadMyDataRow variant="row" />
+      {admin.has("authority.view") ? (
+        <SettingsRow
+          icon="business-outline"
+          label={t("officials.title")}
+          onPress={() => router.push("/officials")}
+          testID="account-officials-row"
+        />
+      ) : null}
       {admin.any ? (
         <SettingsRow
           icon="shield-checkmark-outline"
