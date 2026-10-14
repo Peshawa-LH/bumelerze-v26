@@ -272,7 +272,7 @@ export function ProfileForm({
             autoCorrect={false}
             autoComplete="username"
             textContentType="username"
-            placeholder="username"
+            placeholder={t("account.profile.usernamePlaceholder")}
             placeholderTextColor={colors.text.tertiary}
             style={[
               styles.input,

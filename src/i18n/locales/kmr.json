@@ -1,5 +1,4 @@
 {
-  "_status": "draft-machine",
   "nav": {
     "back": "Vegere",
     "loading": "Tê barkirin…",
@@ -933,7 +932,6 @@
       "posting": "Tê şandin…",
       "anonymousNote": "Şîroveya te piştî nirxandinê xuya dibe. Hesabek biafirîne da ku tavilê biweşe.",
       "createAccount": "Hesab biafirîne",
-      "posted": "Hate şandin.",
       "postedPending": "Spas. Şîroveya te li benda nirxandinê ye.",
       "errors": {
         "rateLimited": "Gelek şîrove hatin nivîsandin. Çend xulekan bisekine.",
@@ -1240,7 +1238,6 @@
         "label": "Min ti zirar nedît",
         "hint": "Hildibijêre û tavilê berdewam dike"
       },
-      "tileA11yHint": "Hildibijêre û tavilê berdewam dike",
       "typologies": {
         "highrise": "Avahiya bilind",
         "lowrise": "Avahiya yekqatî an nizm (li gorî Iraqê)"
@@ -1281,7 +1278,6 @@
     }
   },
   "handbook": {
-    "settingsRowTitle": "Pirtûka endezyar",
     "title": "Pirtûka endezyar",
     "intro": "Ji bo cihekî li Kurdistan/Iraq koordînatan binivîse da ku nirxên jêderkirî bibînî.",
     "coordinates": {
@@ -1388,8 +1384,6 @@
         "IV": "IV (avahiyên bingehîn)"
       },
       "rLabel": "R (koefîsyana guherandina bersivê)",
-      "rNote": "Tenê R = 4 (çarçoveya betona hesin a navîn) li gorî mînaka hesabkirî ya qanûnê xwe hatiye pejirandin. Her pergalek din pêdiviya wê bi tabloya 3-2/1 ya tevahî ya kopiya te ya ISC-2017 heye, rasterast li jêr binivîse.",
-      "rChipLabel": "R = {{r}} ({{systemLabel}})",
       "rOptions": {
         "rcMomentFrameIntermediate": "çarçoveya betona hesin a navîn"
       },
@@ -1487,16 +1481,12 @@
       "systemChange": "Biguherîne",
       "systemHideList": "Lîsteyê veşêre",
       "ec8": {
-        "show": "Bi Eurocode 8 re bide ber hev",
-        "hide": "Berhevdana Eurocode 8 veşêre",
-        "caveat": "Xêza qutbûyî: tayfa elastîk a Cure 1 li gorî EN 1998-1, cureya erdê {{groundType}}, damping 5%, bi PGA ya Koda Iraqê 2025 wek ag. Ev berhevdana şiklî ye, ne tayfa sêwirana Eurocode: referansa EC8 metirsiya 475 salî ye, Iraq pêvekeke neteweyî ya EC8 tune, û cureyên erdê yên EC8 ne polên cihî yên koda Iraqê ne.",
         "paramsTitle": "Parametreyên Eurocode 8",
         "params": "ag {{ag}} g · cureya erdê {{groundType}} · S {{s}} · TB {{tb}} s · TC {{tc}} s · TD {{td}} s · plato 2.5·S·ag = {{plateau}} g"
       },
       "systemOptional": "Hevkara guherîna bersivê R",
       "systemLookup": "R, Ω0 û Cd ji tabloya kodê bibîne",
       "rNoteFree": "Ji Tabloya 3-2/1 ya Koda Iraqê 2017 ji bo sîstema te. Tayfa jorîn bi R ve girêdayî nîne; ew ji bo birîna bingehê û xêza kêmkirî hewce ye.",
-      "asceNote": "Xêza tîr her weha tayfa ASCE 7-10 e: Koda Iraqê 2017 çar şaxên ASCE û tabloyên wê yên Fa û Fv bêguhertin bi kar tîne, loma xêzeke ASCE 7-10 tam li ser wê dikeve. ASCE 7-16 hevkarên cihî guhertine û wê cuda be, lê ew standard li vir nîne.",
       "methodLabel": "Tayfê bihesibîne bi",
       "methods": {
         "isc": "Koda Iraqê",
@@ -1870,7 +1860,8 @@
       "cityHint": "Li ser profîla te wekî «Li … dijî» tê nîşandan. Tenê navê bajêr tê tomarkirin, qet cihê te na.",
       "cityChoose": "Bajarekî hilbijêre",
       "cityChange": "Bajêr biguherîne",
-      "cityRemove": "Rake"
+      "cityRemove": "Rake",
+      "usernamePlaceholder": "username"
     },
     "professions": {
       "engineer": "Endezyar",
@@ -2317,8 +2308,7 @@
       "title": "Ev mal bê jêbirin?",
       "warning": "Ew ji bo 14 rojan diçe çopê, û endamên malbatê ji niha ve nikarin wê bibînin. Heta wê demê tu dikarî ji Profîla xwe wê vegerînî. Piştre bersiv, rapor, wêne û girêdanên malbatê bi temamî têne jêbirin.",
       "confirm": "Jê bibe",
-      "doneTitle": "Mal hate jêbirin",
-      "photosLeft": "Hin wêne ji pêşkêşkerên me nehatin jêbirin. Kes nikare wan bibîne."
+      "doneTitle": "Mal hate jêbirin"
     },
     "family": {
       "title": "Malbat",
@@ -2482,7 +2472,6 @@
       "comments_off": "Ji bo vê nivîsê şîrove girtî ne."
     },
     "mute": {
-      "mute": "Bêdeng bike",
       "unmute": "Bêdengiyê rake",
       "muted": "Te ev kes bêdeng kiriye. Şîrove û nivîsên wî/wê ji te re têne veşartin. Ew nayê agahdarkirin.",
       "snackbarMuted": "{{name}} hate bêdengkirin"
@@ -2504,22 +2493,13 @@
       "open": "Bûyerê veke"
     },
     "ranks": {
-      "title": "Nîşan bide",
-      "usernameLabel": "Navê bikarhêner",
       "rankLabel": "Nîşan",
       "orgLabel": "Rêxistin",
-      "noteLabel": "Nîşeya taybet",
-      "grant": "Nîşan bide",
-      "revoke": "Nîşanê rake",
       "granted": "Nîşan hat dayîn.",
-      "revoked": "Nîşan hat rakirin.",
-      "holders": "Kê nîşan heye",
-      "noHolders": "Hê nîşan nehatiye dayîn.",
-      "givenBy": "Ji aliyê {{name}} ve hat dayîn"
+      "revoked": "Nîşan hat rakirin."
     },
     "reports": {
       "title": "Profîlên gilîkirî",
-      "empty": "Gilî tune.",
       "count": "Gilî: {{number}}",
       "dismiss": "Paşguh bike",
       "open": "Profîlê veke",
@@ -2605,7 +2585,6 @@
       "undo": "Vegerîne"
     },
     "passwords": {
-      "title": "Şîfreyekê vegerîne",
       "confirmTitle": "Şîfreyê vegerîne",
       "confirmMessage": "Ji bo {{name}} şîfreyeke demkî were çêkirin? Şîfreya kevin naxebite û ew li her derê derdikeve.",
       "confirmButton": "Vegerîne",
@@ -2722,7 +2701,6 @@
         "viewProfile": "Profîlê bibîne",
         "lift": "Sînor rake",
         "resetPassword": "Şîfreyê vegerîne",
-        "badge": "Nîşan",
         "resetFields": "Nav / wêneyê vegerîne",
         "revealEmail": "E-nameyê nîşan bide",
         "addNote": "Nîşe lê zêde bike",
@@ -2730,9 +2708,7 @@
         "suspend": "Rawestîne"
       },
       "badge": {
-        "title": "Nîşan",
         "holds": "Heye: {{ranks}}",
-        "holdsNone": "Hê nîşan tune.",
         "needsUsername": "Nîşan @navê bikarhêner dixwaze. Ev kes tune.",
         "giveTitle": "Nîşanê bide @{{username}}",
         "give": "Nîşanê bide: {{badge}}",
@@ -2843,7 +2819,6 @@
       "title": "Nêrîn",
       "detailTitle": "Peyama nêrînê",
       "hint": "Peyamên ji sepanê hatine şandin, daxwazên nîşanê û îtiraz. Taybet in: ji kesî din re nayên nîşandan.",
-      "openCount": "{{count}} vekirî",
       "searchLabel": "Di nêrînan de bigere",
       "searchPlaceholder": "Peyvên di peyamê de, nav an @navê bikarhêner",
       "counts": {
@@ -3195,8 +3170,6 @@
     "pin": "Li serê profîlê bihêle",
     "unpin": "Ji serî rake",
     "pinned": "Li serî",
-    "helpful": "Bikêr",
-    "helpfulCount": "Bikêr: {{number}}",
     "event": {
       "label": "Erdhej",
       "open": "Erdhejê veke: {{event}}",
@@ -3206,7 +3179,6 @@
   },
   "postComments": {
     "open": "Şîrove",
-    "count": "Şîrove ({{number}})",
     "close": "Şîroveyan veşêre",
     "placeholder": "Şîroveyekê binivîse",
     "empty": "Hê şîrove tune.",
@@ -3353,14 +3325,12 @@
     "button": {
       "safe": "Ez ewle me",
       "later": "Niha na",
-      "practice": "Agahdarkirinê biceribîne",
       "done": "Temam"
     },
     "status": {
       "queued": "Li ser cîhaza te hate tomarkirin. Gava şebeke hebe dê were şandin.",
       "sent": "Hat şandin. Kesên ku te hilbijartine dikarin bibînin ku tu ewle yî.",
       "failed": "Nehat şandin. Tu dikarî li şûna wê peyamekê bişînî.",
-      "undone": "Hate vegerandin.",
       "sentNobody": "Hat tomarkirin, lê hê kes di Bumelerze de wê nabîne. Tu dikarî li şûna wê peyamekê bişînî."
     },
     "action": {
@@ -3402,8 +3372,7 @@
       "empty": "Di roja dawî de kesî agahdar nekiriye.",
       "alone": "Gava kesên din tevlî vê malê bibin, agahdariyên wan li vir xuya dibin.",
       "setting": "Agahdariyên min nîşanî vê malê bide",
-      "settingHint": "Tenê endamên pejirandî yên vê malê wan dibînin. Qet cihê te nayê nîşandan.",
-      "loadError": "Rewşa malbatê nehat barkirin."
+      "settingHint": "Tenê endamên pejirandî yên vê malê wan dibînin. Qet cihê te nayê nîşandan."
     },
     "banner": {
       "a11y": "Tu ewle yî? Li nêzî te erdhejeke xurt çêbû."
@@ -3554,7 +3523,6 @@
     "testerIntro": "Tu hişyariyên erdhejê diceribînî berî ku ji her kesî re vebin. Hişyarî tenê tên wan cîhazan ên ku tu li vir vedikî.",
     "paused": "Şandin niha ji bo her kesî rawestandî ye.",
     "device": {
-      "title": "Ev cîhaz",
       "on": "Hişyarî ji bo vê cîhazê vekirî ne.",
       "off": "Hişyarî li ser vê cîhazê girtî ne.",
       "turnOn": "Hişyariyan li ser vê cîhazê veke",
@@ -3585,7 +3553,6 @@
     },
     "nearMeWhere": "«Li Nêzîkê Min» cihê te ji «Cihê min» bi kar tîne: {{place}}.",
     "nearMeNoPlace": "«Li Nêzîkê Min» hewceyî cihê te ye. Di Sazkariyê de, «Cihê min» diyar bike.",
-    "saveFailed": "Sazkariyên te yên hişyariyê nehatin tomarkirin. Dema tu serhêl bî dê werin tomarkirin.",
     "test": {
       "button": "Hişyariyeke ceribandinê ji min re bişîne",
       "sent": "Hişyariya ceribandinê hat şandin. Divê di nav nêzîkî du deqeyan de bigihîje. Heke negihîşt, kontrol bike ku agahdarî destûrdayî ne û Do Not Disturb an Focus girtî ye.",
