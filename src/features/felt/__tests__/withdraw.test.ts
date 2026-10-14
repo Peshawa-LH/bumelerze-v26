@@ -104,11 +104,15 @@ describe("withdrawing a felt report from the phone", () => {
     expect(stored()?.state).toBe("queued");
   });
 
-  it("refuses while a send is in flight", async () => {
+  it("waits for a send in flight, and gives up (failed) when it does not finish in time", async () => {
+    // Review C-2: a withdraw during a send used to fail at once; it now waits
+    // for the send (withdraw-race.test.ts covers the send finishing). A send
+    // that never finishes still ends in "failed", nothing changed on the phone.
     useFeltQueueStore.setState({ items: [item({ state: "syncing" })] });
     const t = transport();
-    expect(await withdrawReport("r1", t)).toBe("failed");
+    expect(await withdrawReport("r1", t, Date.now(), 20)).toBe("failed");
     expect(t.withdrawReport).not.toHaveBeenCalled();
+    expect(stored()?.withdrawnAt).toBeUndefined();
   });
 
   it("Undo asks the server back and shows the report again", async () => {

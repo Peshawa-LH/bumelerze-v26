@@ -418,8 +418,19 @@ export async function processQueue(
               (item.nextRetryAt === null || item.nextRetryAt <= now))),
       );
 
-      for (const item of eligible) {
-        const reportId = item.tier1.reportId;
+      for (const snapshot of eligible) {
+        const reportId = snapshot.tier1.reportId;
+        // Re-read right before sending: while an earlier item's network call
+        // was in flight the person may have withdrawn this one (review C-2:
+        // it was still sent, and the server counted a report the phone
+        // showed as withdrawn). A withdrawn report is never sent; details
+        // attached meanwhile go with it.
+        const item = useFeltQueueStore
+          .getState()
+          .items.find((entry) => entry.tier1.reportId === reportId);
+        if (!item || item.withdrawnAt || item.state === "syncing") {
+          continue;
+        }
         _patchItem(reportId, { state: "syncing", lastAttemptAt: Date.now() });
 
         try {
@@ -599,22 +610,53 @@ function mayBeOnServer(item: QueueItem): boolean {
   );
 }
 
+/** How long a withdraw waits for a send that is in flight at that moment. */
+export const WITHDRAW_WAIT_FOR_SEND_MS = 15_000;
+
+/** The item once no send is in flight for it (at once when none is);
+ * still "syncing" if the send has not finished within `timeoutMs`. */
+function waitUntilNotSyncing(reportId: string, timeoutMs: number): Promise<QueueItem | null> {
+  const read = () =>
+    useFeltQueueStore.getState().items.find((entry) => entry.tier1.reportId === reportId) ??
+    null;
+  const current = read();
+  if (!current || current.state !== "syncing") {
+    return Promise.resolve(current);
+  }
+  return new Promise((resolve) => {
+    const finish = () => {
+      clearTimeout(timer);
+      unsubscribe();
+      resolve(read());
+    };
+    const timer = setTimeout(finish, timeoutMs);
+    const unsubscribe = useFeltQueueStore.subscribe(() => {
+      const next = read();
+      if (!next || next.state !== "syncing") {
+        finish();
+      }
+    });
+  });
+}
+
 /**
  * "Withdraw" (review note 10.1). A report that may be on the server is
  * withdrawn there first (it then leaves public maps and counts); one that
  * never left the phone is simply never sent. Resolves "failed" when the
  * server could not be asked: nothing changes on the phone then, so the
- * person can try again. A report being sent right now cannot be withdrawn
- * until that attempt is over.
+ * person can try again. A report being sent right now is withdrawn once
+ * that attempt is over (the withdraw waits up to `waitForSendMs` for it,
+ * then goes to the server, since the report is there by then) — until
+ * 2026-10-14 it failed instead, and a report withdrawn while an EARLIER
+ * item was in flight was still sent (review C-2; see `processQueue`).
  */
 export async function withdrawReport(
   reportId: string,
   transport: FeltTransport = getDefaultFeltTransport(),
   now: number = Date.now(),
+  waitForSendMs: number = WITHDRAW_WAIT_FOR_SEND_MS,
 ): Promise<"withdrawn" | "failed"> {
-  const item = useFeltQueueStore
-    .getState()
-    .items.find((entry) => entry.tier1.reportId === reportId);
+  const item = await waitUntilNotSyncing(reportId, waitForSendMs);
   if (!item || item.state === "syncing") {
     return "failed";
   }
