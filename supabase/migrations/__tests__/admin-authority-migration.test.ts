@@ -53,8 +53,12 @@ describe("0066 can be pasted into the SQL editor as one line", () => {
 
   it("creates exactly one table, closed behind RLS", () => {
     expect(createdTables(sql)).toEqual(["authority_sharing"]);
-    expect(sql).toContain("alter table public.authority_sharing enable row level security;");
-    expect(sql).toContain("revoke all on public.authority_sharing from public, anon, authenticated;");
+    expect(sql).toContain(
+      "alter table public.authority_sharing enable row level security;",
+    );
+    expect(sql).toContain(
+      "revoke all on public.authority_sharing from public, anon, authenticated;",
+    );
     expect(sql).toMatch(
       /create table if not exists public\.authority_sharing \([\s\S]*?user_id uuid primary key references auth\.users \(id\) on delete cascade/,
     );
@@ -65,7 +69,9 @@ describe("the Government official rank", () => {
   it("holds authority.view only, and nobody is given it here", () => {
     expect(sql).toContain("('authority', 'authority.view')");
     // the only insert into user_roles is inside admin_grant_role itself
-    expect(sql.replace(fn("admin_grant_role"), "")).not.toMatch(/insert into public\.user_roles/i);
+    expect(sql.replace(fn("admin_grant_role"), "")).not.toMatch(
+      /insert into public\.user_roles/i,
+    );
     expect(sql).not.toMatch(/insert into public\.private_ranks/i);
   });
 
@@ -98,7 +104,11 @@ describe("the Government official rank", () => {
 
 describe("what officials see", () => {
   it("every authority function checks authority.view and writes the log", () => {
-    for (const name of ["authority_overview", "authority_event_safety", "authority_people"]) {
+    for (const name of [
+      "authority_overview",
+      "authority_event_safety",
+      "authority_people",
+    ]) {
       const body = fn(name);
       expect(body).toContain("public.has_permission(v_uid, 'authority.view')");
       expect(body).toContain("perform public.write_audit(");
@@ -107,7 +117,9 @@ describe("what officials see", () => {
 
   it("suppresses anything under 5 on the server", () => {
     const overview = fn("authority_overview");
-    expect(overview).toContain("case when s.n >= 5 and homes.area <> 'other' then homes.area else 'other' end");
+    expect(overview).toContain(
+      "case when s.n >= 5 and homes.area <> 'other' then homes.area else 'other' end",
+    );
     expect(overview).toContain("where a.total >= 5");
     expect(overview).toContain("case when g.n >= 5 then g.n end");
     expect(overview).toContain("having count(distinct c.user_id) >= 5");
@@ -118,7 +130,11 @@ describe("what officials see", () => {
   });
 
   it("never sends a coordinate, a home code or a contact", () => {
-    for (const name of ["authority_overview", "authority_event_safety", "authority_people"]) {
+    for (const name of [
+      "authority_overview",
+      "authority_event_safety",
+      "authority_people",
+    ]) {
       const body = fn(name);
       expect(body).not.toMatch(/'lat'|'lon'|'code'|'email'|'label'|device_id|geohash/);
     }
@@ -149,7 +165,9 @@ describe("the sharing switch", () => {
 
   it("is part of Download my data, wrapping the 0065 export once", () => {
     expect(sql).toContain("and p.prosrc like '%export_my_data_0065%'");
-    expect(sql).toContain("alter function public.export_my_data() rename to export_my_data_0065;");
+    expect(sql).toContain(
+      "alter function public.export_my_data() rename to export_my_data_0065;",
+    );
     const body = fn("export_my_data");
     expect(body).toContain("return public.export_my_data_0065()");
     expect(body).toContain("'authority_sharing'");
@@ -169,7 +187,14 @@ describe("admin tools", () => {
   it("the launcher counts are for staff, per tool", () => {
     const body = fn("admin_tool_counts");
     expect(body).toContain("not public.holds_admin_permission(v_uid)");
-    for (const perm of ["people.view", "comments.moderate", "filter.manage", "alerts.test", "hubs.open", "feedback.manage"]) {
+    for (const perm of [
+      "people.view",
+      "comments.moderate",
+      "filter.manage",
+      "alerts.test",
+      "hubs.open",
+      "feedback.manage",
+    ]) {
       expect(body).toContain(`public.has_permission(v_uid, '${perm}')`);
     }
   });
@@ -185,7 +210,9 @@ describe("admin tools", () => {
   });
 
   it("hub search treats % and _ as plain characters", () => {
-    expect(fn("admin_hub_events")).toContain("replace(replace(replace(v_q, '\\', '\\\\'), '%', '\\%'), '_', '\\_')");
+    expect(fn("admin_hub_events")).toContain(
+      "replace(replace(replace(v_q, '\\', '\\\\'), '%', '\\%'), '_', '\\_')",
+    );
   });
 });
 
@@ -198,9 +225,15 @@ describe("who may call what", () => {
     expect(sql).toContain(
       "revoke all on function public.can_view_posts_of(uuid) from public, anon, authenticated;",
     );
-    expect(sql).toContain("revoke all on function public.is_home_member(uuid) from public, anon;");
-    expect(sql).toContain("revoke all on function public.is_home_owner(uuid) from public, anon;");
-    expect(sql).toContain("grant execute on function public.is_home_member(uuid) to authenticated;");
+    expect(sql).toContain(
+      "revoke all on function public.is_home_member(uuid) from public, anon;",
+    );
+    expect(sql).toContain(
+      "revoke all on function public.is_home_owner(uuid) from public, anon;",
+    );
+    expect(sql).toContain(
+      "grant execute on function public.is_home_member(uuid) to authenticated;",
+    );
   });
 
   it("keeps internal helpers internal", () => {
@@ -209,7 +242,9 @@ describe("who may call what", () => {
       "official_account_id()",
       "holds_admin_permission(uuid)",
     ]) {
-      expect(sql).toContain(`revoke all on function public.${sig} from public, anon, authenticated;`);
+      expect(sql).toContain(
+        `revoke all on function public.${sig} from public, anon, authenticated;`,
+      );
     }
   });
 
