@@ -41,6 +41,12 @@ export async function fetchUsgsChannel(
   const payload = await fetchJsonWithRetry(buildUsgsUrl(bbox, sinceMs), {
     timeoutMs: TIMEOUT_MS,
   });
+  if (payload === null) {
+    // 204 No Content or a blank body: USGS lists no event in the window
+    // (it normally answers with an empty FeatureCollection instead, but the
+    // FDSN spec allows 204). Zero events, not a failed channel (D-9).
+    return { channel: "usgs", records: [], skippedCount: 0, emptyBody: true };
+  }
   const collection = usgsFeatureCollectionSchema.parse(payload);
 
   const records: ChannelFetchResult["records"] = [];
@@ -60,5 +66,5 @@ export async function fetchUsgsChannel(
     records.push(record);
   }
 
-  return { channel: "usgs", records, skippedCount };
+  return { channel: "usgs", records, skippedCount, emptyBody: false };
 }

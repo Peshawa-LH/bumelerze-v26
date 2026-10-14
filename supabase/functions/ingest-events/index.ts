@@ -55,12 +55,19 @@ function jsonError(
   details?: unknown,
 ): Response {
   return new Response(
-    JSON.stringify({ error: { code, message, requestId, ...(details ? { details } : {}) } }),
+    JSON.stringify({
+      error: { code, message, requestId, ...(details ? { details } : {}) },
+    }),
     { status, headers: { "content-type": "application/json" } },
   );
 }
 
-function log(level: "info" | "error", requestId: string, msg: string, extra?: unknown): void {
+function log(
+  level: "info" | "error",
+  requestId: string,
+  msg: string,
+  extra?: unknown,
+): void {
   const line = JSON.stringify({ level, requestId, msg, ...(extra ? { extra } : {}) });
   if (level === "error") {
     console.error(line);
@@ -82,7 +89,12 @@ Deno.serve(async (req: Request) => {
     try {
       body = JSON.parse(text);
     } catch {
-      return jsonError(400, "invalid_json", "Request body must be valid JSON.", requestId);
+      return jsonError(
+        400,
+        "invalid_json",
+        "Request body must be valid JSON.",
+        requestId,
+      );
     }
   }
 
@@ -113,6 +125,8 @@ Deno.serve(async (req: Request) => {
       channel: fetchResult.channel,
       fetched: fetchResult.records.length,
       skippedParsing: fetchResult.skippedCount,
+      // "no events" said with an empty body (204) vs. with an empty list.
+      emptyBody: fetchResult.emptyBody === true,
     });
 
     const client = createServiceRoleClient();
@@ -123,8 +137,10 @@ Deno.serve(async (req: Request) => {
         updateSourceRecord(client, sourceRecordId, record),
       createSourceRecordViaEventRegistry: (record) =>
         createSourceRecordViaEventRegistry(client, record),
-      fetchSourceRecordsForEvent: (eventId) => fetchSourceRecordsForEvent(client, eventId),
-      applyDerivedFields: (eventId, derived) => applyDerivedFields(client, eventId, derived),
+      fetchSourceRecordsForEvent: (eventId) =>
+        fetchSourceRecordsForEvent(client, eventId),
+      applyDerivedFields: (eventId, derived) =>
+        applyDerivedFields(client, eventId, derived),
     };
 
     const summary = await ingestChannel(fetchResult, db);

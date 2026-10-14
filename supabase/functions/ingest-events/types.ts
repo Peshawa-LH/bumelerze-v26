@@ -21,8 +21,7 @@ export type ChannelId = "emsc" | "usgs" | "geofon" | "isc";
  * `channels.ts` has ONE place that states "how often should this run",
  * checkable against the SQL migration in review. */
 export type ChannelCadence =
-  | { kind: "live"; intervalSeconds: number }
-  | { kind: "bulletin"; times: "daily" };
+  { kind: "live"; intervalSeconds: number } | { kind: "bulletin"; times: "daily" };
 
 /**
  * One parsed record from one provider's feed, BEFORE it is matched against
@@ -134,6 +133,12 @@ export interface ChannelFetchResult {
   /** Feed entries present in the response but skipped (tolerant-parsing
    * contract above). */
   skippedCount: number;
+  /** True when the agency answered "no matching events" with no body at
+   * all (`204 No Content`, or a blank 2xx) rather than an empty list — the
+   * FDSN WS-EVENT convention, and zero events either way (http.ts header,
+   * finding D-9). Logged by index.ts so the two cases stay tellable apart;
+   * optional so the Jest fakes in __tests__ need not spell it out. */
+  emptyBody?: boolean;
 }
 
 export type RecordOutcome = "created" | "updated" | "unchanged" | "error";
