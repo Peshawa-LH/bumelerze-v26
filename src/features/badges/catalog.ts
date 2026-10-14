@@ -171,6 +171,7 @@ export interface RoleBadge {
 export const ROLE_PRIORITY: readonly HubRoleKind[] = [
   "official",
   "moderator",
+  "authority",
   "seismologist",
   "professor",
   "researcher",
@@ -201,6 +202,8 @@ export const ROLE_BADGES: Record<HubRoleKind, RoleBadge> = {
     mark: true,
   },
   moderator: { icon: "shield-checkmark", tone: "link", mark: false },
+  // Government official (migration 0066): a public building, in the info tone.
+  authority: { icon: "business", tone: "info", mark: false },
   seismologist: { icon: "earth", tone: "info", mark: false },
   professor: { icon: "school", tone: "success", mark: false },
   researcher: { icon: "flask", tone: "link", mark: false },

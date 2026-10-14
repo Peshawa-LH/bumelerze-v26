@@ -8,6 +8,7 @@ export const ACTOR_RANKS: readonly ActorRank[] = [
   "official",
   "admin",
   "moderator",
+  "authority",
   "seismologist",
   "professor",
   "researcher",
@@ -15,9 +16,11 @@ export const ACTOR_RANKS: readonly ActorRank[] = [
   "partner",
 ];
 
-/** Ranks an admin can give or take away in the app. The official rank is
- * deliberately missing: it stays a database-only operation. */
+/** Ranks an admin can give or take away in the app, in the order the Give
+ * badge sheet lists them. The official rank is deliberately missing: it stays
+ * a database-only operation. "authority" (Government official) since 0066. */
 export const GRANTABLE_RANKS = [
+  "authority",
   "moderator",
   "seismologist",
   "professor",
@@ -131,6 +134,13 @@ export const ACTIVITY_ACTIONS = [
   { action: "post_comment_hide", content: true },
   { action: "post_comment_remove", content: true },
   { action: "post_comment_restore", content: true },
+  // Migration 0066: opening a hub and its pinned note (official, admin), and
+  // every look a Government official takes at the Officials page.
+  { action: "hub_open", content: false },
+  { action: "hub_close", content: false },
+  { action: "hub_note", content: false },
+  { action: "authority_view", content: false },
+  { action: "authority_people_view", content: false },
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number]["action"];
 
@@ -155,6 +165,10 @@ export const ACTIVITY_FILTER_ACTIONS: readonly ActivityAction[] = [
   "report_photo_reject",
   "post_comment_hide",
   "post_comment_remove",
+  "hub_open",
+  "hub_note",
+  "authority_view",
+  "authority_people_view",
 ];
 
 /** One row of `admin_activity()` (migration 0052). */

@@ -89,6 +89,7 @@ describe("admin parsers", () => {
   it("never offers the official rank for granting", () => {
     expect(GRANTABLE_RANKS).not.toContain("official");
     expect(GRANTABLE_RANKS).toEqual([
+      "authority",
       "moderator",
       "seismologist",
       "professor",

@@ -95,7 +95,12 @@ export function PeopleFilterSheet({
       {t(key)}
     </Text>
   );
-  const ranks: (HubRoleKind | "any")[] = ["any", ...HUB_ROLE_KINDS];
+  // The server's rank filter (admin_people_search, 0055) predates the
+  // Government official rank of 0066, so that rank is not offered here.
+  const ranks: (HubRoleKind | "any")[] = [
+    "any",
+    ...HUB_ROLE_KINDS.filter((kind) => kind !== "authority"),
+  ];
 
   return (
     <Sheet title={t("admin.people.filters.title")} onClose={onClose} testID="people-filter-sheet">

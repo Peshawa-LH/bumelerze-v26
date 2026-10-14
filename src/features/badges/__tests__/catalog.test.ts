@@ -85,10 +85,11 @@ describe("badge catalogue", () => {
     }
   });
 
-  it("keeps the role priority official > moderator > seismologist > professor > researcher > engineer > partner", () => {
+  it("keeps the role priority official > moderator > Government official > seismologist > professor > researcher > engineer > partner", () => {
     expect(ROLE_PRIORITY).toEqual([
       "official",
       "moderator",
+      "authority",
       "seismologist",
       "professor",
       "researcher",

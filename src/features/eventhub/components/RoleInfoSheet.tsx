@@ -28,6 +28,9 @@ function verifiedKey(role: HubRole["role"]): string {
   if (role === "partner") {
     return "eventHub.roleInfo.verified.partner";
   }
+  if (role === "authority") {
+    return "eventHub.roleInfo.verified.authority";
+  }
   return "eventHub.roleInfo.verified.credential";
 }
 

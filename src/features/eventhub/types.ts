@@ -1,9 +1,11 @@
-/** Ranks granted by the Bumelerze team (`public.user_roles`, migrations 0036
- * and 0043). Highest first. Only official and moderator carry powers (see
- * `role_permissions`); the rest are credential marks. */
+/** Ranks granted by the Bumelerze team (`public.user_roles`, migrations 0036,
+ * 0043 and 0066). Highest first. Official and moderator carry staff powers;
+ * "authority" (shown as "Government official", 0066) opens the Officials page
+ * and nothing else; the rest are credential marks. */
 export type HubRoleKind =
   | "official"
   | "moderator"
+  | "authority"
   | "seismologist"
   | "professor"
   | "researcher"
@@ -13,6 +15,7 @@ export type HubRoleKind =
 export const HUB_ROLE_KINDS: readonly HubRoleKind[] = [
   "official",
   "moderator",
+  "authority",
   "seismologist",
   "professor",
   "researcher",
@@ -55,6 +58,12 @@ export const PERMISSIONS = [
   // `alerts.manage` (the same ranks) changes who receives alerts.
   "alerts.test",
   "alerts.manage",
+  // Migration 0066: Admin > Statistics and Admin > Open a hub (official and
+  // the private admin rank), and the Officials page (the "authority" rank,
+  // Government official, only).
+  "stats.read",
+  "hubs.open",
+  "authority.view",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
