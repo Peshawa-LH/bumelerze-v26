@@ -2,6 +2,8 @@ import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react
 
 import {
   makeTransport,
+  openPostMenu,
+  postMenuAction,
   renderWithProviders,
 } from "@/features/eventhub/__fixtures__/testing";
 import type { Permission } from "@/features/eventhub/types";
@@ -51,6 +53,11 @@ async function renderSection(
   return renderWithProviders(
     <PostsSection profile={profile} transport={transport} hubTransport={hub} />,
   );
+}
+
+/** The rows of a post's "..." sheet; none when it has no "...". */
+async function menuRows(postId: string): Promise<string[]> {
+  return screen.queryByTestId(`post-header-${postId}-more`) ? openPostMenu(postId) : [];
 }
 
 describe("PostsSection", () => {
@@ -252,7 +259,7 @@ describe("PostsSection", () => {
         post("also", 4, { userId: "me" }),
       ]);
       await renderSection(own(), fake);
-      await fireEvent.press(await screen.findByTestId("post-delete-mine"));
+      await postMenuAction("mine", "post-delete-mine");
       expect(mockConfirm).not.toHaveBeenCalled();
       await waitFor(() => expect(fake.deletePost).toHaveBeenCalledWith("mine"));
       await waitFor(() => expect(screen.queryByTestId("post-mine")).toBeNull());
@@ -269,7 +276,7 @@ describe("PostsSection", () => {
       const fake = makeFake([post("gone", 10, { userId: "me", status: "removed" })]);
       await renderSection(own(), fake);
       expect(await screen.findByTestId("post-removed-gone")).toBeTruthy();
-      expect(screen.queryByTestId("post-delete-gone")).toBeNull();
+      expect(await menuRows("gone")).not.toContain("post-delete-gone");
     });
 
     it("offers no Report or Remove on one's own posts", async () => {
@@ -277,8 +284,9 @@ describe("PostsSection", () => {
         "posts.delete",
       ]);
       await screen.findByTestId("post-mine");
-      expect(screen.queryByTestId("post-report-mine")).toBeNull();
-      expect(screen.queryByTestId("post-remove-mine")).toBeNull();
+      const rows = await menuRows("mine");
+      expect(rows).not.toContain("post-report-mine");
+      expect(rows).not.toContain("post-remove-mine");
     });
   });
 
@@ -286,7 +294,7 @@ describe("PostsSection", () => {
     it("asks for a reason, sends it, and thanks the reader", async () => {
       const fake = makeFake([post("p1", 2)]);
       await renderSection(profileOf(), fake);
-      await fireEvent.press(await screen.findByTestId("post-report-p1"));
+      await postMenuAction("p1", "post-report-p1");
       expect(screen.getByText("Report this post")).toBeTruthy();
       await fireEvent.press(screen.getByTestId("post-report-sheet-p1-reason-spam"));
       await fireEvent.changeText(
@@ -298,12 +306,12 @@ describe("PostsSection", () => {
         expect(fake.reportPost).toHaveBeenCalledWith("p1", "spam", "ad for a shop"),
       );
       expect(await screen.findByTestId("post-reported-p1")).toBeTruthy();
-      expect(screen.queryByTestId("post-report-p1")).toBeNull();
+      expect(await menuRows("p1")).not.toContain("post-report-p1");
     });
 
     it("offers the shared reasons (impersonation is for profiles only)", async () => {
       await renderSection(profileOf(), makeFake([post("p1", 2)]));
-      await fireEvent.press(await screen.findByTestId("post-report-p1"));
+      await postMenuAction("p1", "post-report-p1");
       for (const reason of [
         "spam",
         "abuse_harassment",
@@ -323,7 +331,7 @@ describe("PostsSection", () => {
     it("can be cancelled without sending anything", async () => {
       const fake = makeFake([post("p1", 2)]);
       await renderSection(profileOf(), fake);
-      await fireEvent.press(await screen.findByTestId("post-report-p1"));
+      await postMenuAction("p1", "post-report-p1");
       await fireEvent.press(screen.getByTestId("post-report-sheet-p1-close"));
       expect(screen.queryByTestId("post-report-sheet-p1")).toBeNull();
       expect(fake.reportPost).not.toHaveBeenCalled();
@@ -333,7 +341,7 @@ describe("PostsSection", () => {
       mockAccount = { status: "anonymous", userId: null };
       await renderSection(profileOf(), makeFake([post("p1", 2)]));
       await screen.findByTestId("post-p1");
-      expect(screen.queryByTestId("post-report-p1")).toBeNull();
+      expect(await menuRows("p1")).not.toContain("post-report-p1");
     });
   });
 
@@ -341,7 +349,7 @@ describe("PostsSection", () => {
     it("offers Remove with a reason and a confirmation to an official", async () => {
       const fake = makeFake([post("p1", 2)]);
       await renderSection(profileOf(), fake, ["posts.delete"]);
-      await fireEvent.press(await screen.findByTestId("post-remove-p1"));
+      await postMenuAction("p1", "post-remove-p1");
       await fireEvent.press(screen.getByTestId("remove-reason-abuse"));
       expect(mockConfirm).toHaveBeenCalledTimes(1);
       expect(fake.adminRemovePost).not.toHaveBeenCalled();
@@ -356,13 +364,13 @@ describe("PostsSection", () => {
     it("gives a moderator (comments.moderate only) no Remove", async () => {
       await renderSection(profileOf(), makeFake([post("p1", 2)]), ["comments.moderate"]);
       await screen.findByTestId("post-p1");
-      expect(screen.queryByTestId("post-remove-p1")).toBeNull();
+      expect(await menuRows("p1")).not.toContain("post-remove-p1");
     });
 
     it("gives an ordinary reader no Remove", async () => {
       await renderSection(profileOf(), makeFake([post("p1", 2)]), []);
       await screen.findByTestId("post-p1");
-      expect(screen.queryByTestId("post-remove-p1")).toBeNull();
+      expect(await menuRows("p1")).not.toContain("post-remove-p1");
     });
 
     it("gives no Remove when the server predates my_permissions", async () => {
@@ -376,7 +384,7 @@ describe("PostsSection", () => {
         />,
       );
       await screen.findByTestId("post-p1");
-      expect(screen.queryByTestId("post-remove-p1")).toBeNull();
+      expect(await menuRows("p1")).not.toContain("post-remove-p1");
     });
   });
 
@@ -422,11 +430,12 @@ describe("PostsSection", () => {
         "پۆستێک بنووسە",
       );
       expect(screen.getByTestId("post-composer-post")).toBeTruthy();
-      expect(screen.getByText("سڕینەوە")).toBeTruthy();
       expect(screen.getByTestId("post-composer-counter").props.children).toContain(
         "٠/٥٠٠",
       );
       expect(screen.getByTestId("post-body-k").props.style.textAlign).toBe("auto");
+      await openPostMenu("k");
+      expect(screen.getByText("سڕینەوە")).toBeTruthy();
       // no Latin brand name or placeholder leaks into the Arabic-script UI
       expect(JSON.stringify(screen.toJSON())).not.toMatch(/Bumelerze|\{\{/);
     });

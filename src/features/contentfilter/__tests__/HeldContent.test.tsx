@@ -6,6 +6,7 @@ import type { QueueComment, ReportedPost } from "@/features/admin/types";
 import {
   makeTransport,
   renderWithProviders,
+  openPostMenu,
 } from "@/features/eventhub/__fixtures__/testing";
 import type { Permission } from "@/features/eventhub/types";
 import { PostsSection } from "@/features/posts/components/PostsSection";
@@ -102,9 +103,12 @@ describe("held content", () => {
         "Waiting for review. Only you can see this post until a moderator approves it.",
       ),
     ).toBeTruthy();
-    expect(screen.queryByTestId("post-edit-held")).toBeNull();
-    expect(screen.queryByTestId("post-pin-held")).toBeNull();
-    expect(screen.getByTestId("post-delete-held")).toBeTruthy();
+    const rows = await openPostMenu("held");
+    expect(rows).not.toContain("post-edit-held");
+    expect(rows).not.toContain("post-pin-held");
+    expect(rows).toContain("post-delete-held");
+    // and no heart on a post nobody else can see yet
+    expect(screen.queryByTestId("post-actions-held-heart")).toBeNull();
   });
 
   it("tells moderators which word held a comment, and its kind", async () => {

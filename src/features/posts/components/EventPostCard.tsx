@@ -2,7 +2,9 @@ import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { DirectionalChevron } from "@/components/DirectionalChevron";
 import { formatAbsoluteDual, formatMagnitudeValue } from "@/features/events/format";
+import { magnitudeTone } from "@/features/events/magnitude-tone";
 import { placeLine } from "@/features/geo/place-line";
 import { useTheme } from "@/theme";
 import type { PostEvent } from "../types";
@@ -35,7 +37,7 @@ export function EventPostCard({
     styles.card,
     {
       borderColor: colors.border.default,
-      backgroundColor: colors.surface.base,
+      backgroundColor: colors.surface.sunken,
       padding: spacing[3],
       gap: spacing[1],
     },
@@ -76,53 +78,66 @@ export function EventPostCard({
     .join(", ");
 
   const content = (
-    <>
-      <Text
-        style={[typography.labelButton, { color: colors.text.secondary }]}
-        numberOfLines={1}
-      >
-        {t("posts.event.label")}
-      </Text>
+    <View style={[styles.row, { gap: spacing[3] }]}>
+      <View
+        style={[
+          styles.stripe,
+          {
+            backgroundColor:
+              event.magnitude !== null
+                ? colors.magnitudeBand[magnitudeTone(event.magnitude)]
+                : colors.border.default,
+          },
+        ]}
+      />
       {magnitude ? (
         <Text
           testID={`${testID}-magnitude`}
           style={{
             color: colors.text.primary,
-            fontSize: typography.h3.fontSize,
-            lineHeight: typography.h3.lineHeight,
-            fontWeight: typography.h3.fontWeight,
+            fontSize: typography.h2.fontSize,
+            lineHeight: typography.h2.lineHeight,
+            fontWeight: "700",
           }}
         >
           {magnitude}
         </Text>
       ) : null}
-      {place ? (
-        <Text
-          testID={`${testID}-place`}
-          numberOfLines={2}
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-            textAlign: "auto",
-          }}
-        >
-          {place}
-        </Text>
-      ) : null}
-      {time ? (
-        <Text
-          testID={`${testID}-time`}
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyMeta.fontSize,
-            lineHeight: typography.bodyMeta.lineHeight,
-          }}
-        >
-          {time}
-        </Text>
-      ) : null}
-    </>
+      <View style={styles.text}>
+        {place ? (
+          <Text
+            testID={`${testID}-place`}
+            numberOfLines={2}
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.bodyMeta.fontSize,
+              lineHeight: typography.bodyMeta.lineHeight,
+              fontWeight: "600",
+              textAlign: "auto",
+            }}
+          >
+            {place}
+          </Text>
+        ) : (
+          <Text style={[typography.bodyMeta, { color: colors.text.secondary }]}>
+            {t("posts.event.label")}
+          </Text>
+        )}
+        {time ? (
+          <Text
+            testID={`${testID}-time`}
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.bodyMeta.fontSize,
+              lineHeight: typography.bodyMeta.lineHeight,
+            }}
+          >
+            {time}
+          </Text>
+        ) : null}
+      </View>
+      {interactive ? <DirectionalChevron /> : null}
+    </View>
   );
 
   if (!interactive) {
@@ -146,5 +161,8 @@ export function EventPostCard({
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 12, minHeight: 44 },
+  card: { borderWidth: 1, borderRadius: 12, minHeight: 44, overflow: "hidden" },
+  row: { flexDirection: "row", alignItems: "center" },
+  stripe: { width: 4, alignSelf: "stretch", borderRadius: 2 },
+  text: { flex: 1 },
 });

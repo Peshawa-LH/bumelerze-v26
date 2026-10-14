@@ -15,8 +15,9 @@ import { useCanRemovePosts, usePinnedPost, usePostActions, usePosts } from "../q
 import type { PostsTransport } from "../transport";
 import type { CommentsViewer } from "../comments/components/PostCommentsSection";
 import type { PostCommentsTransport } from "../comments/transport";
+import type { SocialTransport } from "@/features/social/transport";
 import { PostComposer } from "./PostComposer";
-import { PostItem } from "./PostItem";
+import { PostItem, type PostAuthor } from "./PostItem";
 
 interface PostsSectionProps {
   profile: PublicProfile;
@@ -24,6 +25,10 @@ interface PostsSectionProps {
   hubTransport?: EventHubTransport | undefined;
   /** Test seam for the comments under posts (migration 0063). */
   commentsTransport?: PostCommentsTransport | undefined;
+  /** Test seam for the hearts on comments (migration 0065). */
+  socialTransport?: SocialTransport | undefined;
+  /** The "Posts" heading; off under the profile's Posts tab. */
+  showHeading?: boolean;
 }
 
 /**
@@ -38,6 +43,8 @@ export function PostsSection({
   transport,
   hubTransport,
   commentsTransport,
+  socialTransport,
+  showHeading = true,
 }: PostsSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -47,14 +54,14 @@ export function PostsSection({
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
-  const heading = (
+  const heading = showHeading ? (
     <Text
       accessibilityRole="header"
       style={[typography.h3, { color: colors.text.primary }]}
     >
       {t("posts.title")}
     </Text>
-  );
+  ) : null;
 
   if (profile.isBlocked) {
     return null;
@@ -78,6 +85,7 @@ export function PostsSection({
       transport={transport}
       hubTransport={hubTransport}
       commentsTransport={commentsTransport}
+      socialTransport={socialTransport}
     />
   );
 }
@@ -88,6 +96,7 @@ function PostsList({
   transport,
   hubTransport,
   commentsTransport,
+  socialTransport,
 }: PostsSectionProps & { heading: ReactNode }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -126,9 +135,17 @@ function PostsList({
     isModerator: !perms.legacy && perms.has("comments.moderate"),
     canRemove: !perms.legacy && perms.has("comments.delete"),
   };
+  const author: PostAuthor = {
+    displayName: profile.displayName,
+    username: profile.username,
+    avatarPath: profile.avatarPath,
+    roles: profile.roles,
+  };
   const commentProps = {
     commentsViewer,
+    author,
     ...(commentsTransport ? { commentsTransport } : {}),
+    ...(socialTransport ? { socialTransport } : {}),
   };
   const listed = pinnedPost
     ? list.posts.filter((post) => post.id !== pinnedPost.id)

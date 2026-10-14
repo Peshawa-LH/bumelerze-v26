@@ -1,19 +1,16 @@
-import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Text } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Avatar, getAvatarUrl } from "@/features/account";
 import { communityErrorText } from "@/features/community/error-text";
-import { profileHref } from "@/features/community/routes";
-import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
-import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { formatRelativeTimeValue, getRelativeTime } from "@/features/events";
-import { MentionText } from "@/features/mentions/components/MentionText";
 import { useMuteActions } from "@/features/mute/queries";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
 import type { ReportInput } from "@/features/reporting/reasons";
+import { CommentRow } from "@/features/social/components/CommentRow";
+import type { MenuItem } from "@/features/social/components/MenuSheet";
+import type { LikeState } from "@/features/social/transport";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
@@ -29,6 +26,8 @@ export interface PostCommentViewer {
   isModerator: boolean;
   /** `comments.delete` (the official account): Remove. */
   canRemove: boolean;
+  /** A real account: may give hearts (migration 0065). */
+  isAccount?: boolean;
 }
 
 interface PostCommentItemProps {
@@ -42,12 +41,19 @@ interface PostCommentItemProps {
   isReply?: boolean;
   /** Reply handler; omitted when the viewer cannot comment. */
   onReply?: () => void;
+  /** The comment's hearts (migration 0065); none known yet when left out. */
+  like?: LikeState;
+  /** Gives or takes back my heart. */
+  onLike?: (like: boolean) => Promise<unknown>;
 }
 
 type Mode = "idle" | "reporting" | "adminRemove";
 
-/** One comment under a post: photo, name, rank mark, time, the text with
- * @mention links, and the actions that fit the viewer. */
+const NO_AUTHOR = { name: "", username: null, avatarPath: null, roles: [] };
+
+/** One comment under a post, drawn with the SAME `CommentRow` as the Event
+ * hub (review note 5.1): heart, Reply, and Delete, Mute, Report, Hide and
+ * Remove in its "..." sheet. */
 export function PostCommentItem({
   comment,
   viewer,
@@ -56,10 +62,11 @@ export function PostCommentItem({
   nowMs,
   isReply = false,
   onReply,
+  like,
+  onLike,
 }: PostCommentItemProps) {
   const { t, i18n } = useTranslation();
-  const router = useRouter();
-  const { colors, typography, spacing } = useTheme();
+  const { colors, typography } = useTheme();
   const [mode, setMode] = useState<Mode>("idle");
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -72,21 +79,25 @@ export function PostCommentItem({
     fontSize: typography.bodyMeta.fontSize,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
-  const indent = isReply ? { marginStart: spacing[6] } : null;
 
   if (comment.status === "removed" || isDeletedAccountPostComment(comment)) {
     // Keeps the slot so the replies under it still read in order.
     return (
-      <View testID={`post-comment-${comment.id}`} style={indent}>
-        <Text
-          style={[meta, { fontStyle: "italic" }]}
-          testID={`post-comment-placeholder-${comment.id}`}
-        >
-          {comment.status === "removed"
-            ? t("eventHub.thread.removed")
-            : t("eventHub.thread.deletedAccount")}
-        </Text>
-      </View>
+      <CommentRow
+        id={comment.id}
+        testIDPrefix="post-comment"
+        author={NO_AUTHOR}
+        body=""
+        timeText=""
+        isReply={isReply}
+        placeholder={{
+          text:
+            comment.status === "removed"
+              ? t("eventHub.thread.removed")
+              : t("eventHub.thread.deletedAccount"),
+          testID: `post-comment-placeholder-${comment.id}`,
+        }}
+      />
     );
   }
 
@@ -155,203 +166,148 @@ export function PostCommentItem({
     setReported(true);
   }
 
-  const openProfile = comment.username
-    ? () => router.push(profileHref(comment.username as string))
-    : null;
-  const avatar = (
-    <Avatar
-      uri={getAvatarUrl(comment.avatarPath)}
-      name={comment.displayName}
-      size={isReply ? 28 : 32}
-    />
-  );
+  const items: MenuItem[] = [];
+  if (!isOwn && viewer.userId !== null && comment.userId !== null) {
+    items.push({
+      key: "mute",
+      icon: "volume-mute-outline",
+      label: t("social.menu.mute", { name }),
+      detail: t("social.menu.muteDetail"),
+      disabled: busy,
+      onPress: () => void mute(),
+      testID: `post-comment-mute-${comment.id}`,
+    });
+  }
+  if (!isOwn && isVisible && viewer.canReport && !reported) {
+    items.push({
+      key: "report",
+      icon: "flag-outline",
+      label: t("eventHub.thread.report"),
+      detail: t("social.menu.reportDetail"),
+      onPress: () => setMode("reporting"),
+      testID: `post-comment-report-${comment.id}`,
+    });
+  }
+  if (isOwn || isPostOwner) {
+    items.push({
+      key: "delete",
+      icon: "trash-outline",
+      label: t("eventHub.thread.delete"),
+      detail: isOwn ? t("social.menu.deleteDetail") : t("social.menu.deleteOnMyPost"),
+      danger: true,
+      disabled: busy,
+      onPress: () => void deleteComment(),
+      testID: `post-comment-delete-${comment.id}`,
+    });
+  }
+  if (viewer.isModerator && !isOwn && isVisible) {
+    items.push({
+      key: "hide",
+      icon: "eye-off-outline",
+      label: t("eventHub.thread.hide"),
+      badge: t("social.menu.moderatorsOnly"),
+      danger: true,
+      disabled: busy,
+      onPress: () => void hide(),
+      testID: `post-comment-hide-${comment.id}`,
+    });
+  }
+  if (viewer.canRemove && !isOwn) {
+    items.push({
+      key: "remove",
+      icon: "trash-outline",
+      label: t("eventHub.thread.remove"),
+      detail: t("eventHub.thread.removeConfirmMessage"),
+      badge: t("social.menu.moderatorsOnly"),
+      danger: true,
+      onPress: () => setMode("adminRemove"),
+      testID: `post-comment-remove-${comment.id}`,
+    });
+  }
+
+  const liked = like?.liked ?? false;
+  const canLike =
+    viewer.isAccount === true && !isOwn && isVisible && onLike !== undefined;
 
   return (
-    <View
-      testID={`post-comment-${comment.id}`}
-      style={[styles.row, { gap: spacing[2] }, indent]}
-    >
-      {openProfile ? (
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel={t("community.openProfile", { name })}
-          onPress={openProfile}
-          hitSlop={8}
-        >
-          {avatar}
-        </Pressable>
-      ) : (
-        avatar
-      )}
-      <View style={[styles.content, { gap: spacing[1] }]}>
-        <View style={[styles.header, { gap: spacing[2] }]}>
-          {openProfile ? (
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel={t("community.openProfile", { name })}
-              onPress={openProfile}
-              hitSlop={{ top: 10, bottom: 10 }}
-              testID={`post-comment-name-${comment.id}`}
-            >
-              <Text style={[styles.name, { color: colors.text.primary }]}>{name}</Text>
-            </Pressable>
-          ) : (
-            <Text style={[styles.name, { color: colors.text.primary }]}>{name}</Text>
-          )}
-          <RoleMark roles={comment.roles} explain />
-          <Text style={meta}>{timeText}</Text>
-        </View>
-
-        <MentionText
-          text={comment.body}
-          testID={`post-comment-body-${comment.id}`}
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-            textAlign: "auto",
-            alignSelf: "stretch",
-            flexShrink: 1,
-            ...WRAP_ANYWHERE,
-          }}
-        />
-
-        {comment.status === "pending" ? (
-          <Text
-            style={[meta, { fontStyle: "italic" }]}
-            testID={`post-comment-pending-${comment.id}`}
-          >
-            {t("postComments.pending")}
-          </Text>
-        ) : null}
-
-        {mode === "adminRemove" ? (
-          <RemoveReasons
-            disabled={busy}
-            onCancel={() => setMode("idle")}
-            onSelect={(reason) =>
-              confirmDialog({
-                title: t("eventHub.thread.removeConfirmTitle"),
-                message: t("eventHub.thread.removeConfirmMessage"),
-                confirmLabel: t("eventHub.thread.remove"),
-                cancelLabel: t("eventHub.thread.cancel"),
-                destructive: true,
-                onConfirm: () =>
-                  void run(() => actions.adminRemove(comment.id, reason)).then((ok) => {
-                    if (ok) {
-                      setMode("idle");
-                      showUndo({
-                        message: t("snackbar.commentRemoved"),
-                        restore: () => actions.adminRestore(comment.id),
-                        admin: true,
-                      });
-                    }
-                  }),
-              })
+    <CommentRow
+      id={comment.id}
+      testIDPrefix="post-comment"
+      author={{
+        name,
+        username: comment.username,
+        avatarPath: comment.avatarPath,
+        roles: comment.roles,
+      }}
+      body={comment.body}
+      timeText={timeText}
+      isReply={isReply}
+      pendingText={comment.status === "pending" ? t("postComments.pending") : null}
+      heart={
+        isVisible
+          ? {
+              count: like?.count ?? 0,
+              liked,
+              disabled: busy,
+              onToggle: canLike ? () => void run(() => onLike(!liked)) : undefined,
             }
-          />
-        ) : (
-          <View style={styles.actions}>
-            {isVisible && onReply ? (
-              <ActionButton
-                label={t("eventHub.thread.reply")}
-                onPress={onReply}
-                testID={`post-comment-reply-${comment.id}`}
-              />
-            ) : null}
-            {!isOwn && isVisible && viewer.canReport && !reported ? (
-              <ActionButton
-                label={t("eventHub.thread.report")}
-                onPress={() => setMode("reporting")}
-                testID={`post-comment-report-${comment.id}`}
-              />
-            ) : null}
-            {reported ? (
-              <Text
-                style={[meta, styles.staticAction]}
-                testID={`post-comment-reported-${comment.id}`}
-              >
-                {t("eventHub.thread.reported")}
-              </Text>
-            ) : null}
-            {!isOwn && viewer.userId !== null && comment.userId !== null ? (
-              <ActionButton
-                label={t("eventHub.thread.mute")}
-                disabled={busy}
-                onPress={() => void mute()}
-                testID={`post-comment-mute-${comment.id}`}
-              />
-            ) : null}
-            {isOwn || isPostOwner ? (
-              <ActionButton
-                label={t("eventHub.thread.delete")}
-                danger={!isOwn}
-                disabled={busy}
-                onPress={() => void deleteComment()}
-                testID={`post-comment-delete-${comment.id}`}
-              />
-            ) : null}
-            {viewer.isModerator && !isOwn && isVisible ? (
-              <ActionButton
-                label={t("eventHub.thread.hide")}
-                danger
-                disabled={busy}
-                onPress={() => void hide()}
-                testID={`post-comment-hide-${comment.id}`}
-              />
-            ) : null}
-            {viewer.canRemove && !isOwn ? (
-              <ActionButton
-                label={t("eventHub.thread.remove")}
-                danger
-                onPress={() => setMode("adminRemove")}
-                testID={`post-comment-remove-${comment.id}`}
-              />
-            ) : null}
-          </View>
-        )}
-
-        {errorText ? (
-          <Text
-            accessibilityRole="alert"
-            style={[meta, { color: colors.status.danger }]}
-            testID={`post-comment-error-${comment.id}`}
-          >
-            {errorText}
-          </Text>
-        ) : null}
-
-        {mode === "reporting" ? (
-          <ReportSheet
-            kind="comment"
-            testID={`post-comment-report-sheet-${comment.id}`}
-            onSubmit={sendReport}
-            onClose={() => setMode("idle")}
-            errorText={(error) => communityErrorText(t, error)}
-          />
-        ) : null}
-      </View>
-    </View>
+          : null
+      }
+      onReply={isVisible ? onReply : undefined}
+      menuItems={items}
+      footer={
+        <>
+          {mode === "adminRemove" ? (
+            <RemoveReasons
+              disabled={busy}
+              onCancel={() => setMode("idle")}
+              onSelect={(reason) =>
+                confirmDialog({
+                  title: t("eventHub.thread.removeConfirmTitle"),
+                  message: t("eventHub.thread.removeConfirmMessage"),
+                  confirmLabel: t("eventHub.thread.remove"),
+                  cancelLabel: t("eventHub.thread.cancel"),
+                  destructive: true,
+                  onConfirm: () =>
+                    void run(() => actions.adminRemove(comment.id, reason)).then((ok) => {
+                      if (ok) {
+                        setMode("idle");
+                        showUndo({
+                          message: t("snackbar.commentRemoved"),
+                          restore: () => actions.adminRestore(comment.id),
+                          admin: true,
+                        });
+                      }
+                    }),
+                })
+              }
+            />
+          ) : null}
+          {reported ? (
+            <Text style={meta} testID={`post-comment-reported-${comment.id}`}>
+              {t("eventHub.thread.reported")}
+            </Text>
+          ) : null}
+          {errorText ? (
+            <Text
+              accessibilityRole="alert"
+              style={[meta, { color: colors.status.danger }]}
+              testID={`post-comment-error-${comment.id}`}
+            >
+              {errorText}
+            </Text>
+          ) : null}
+          {mode === "reporting" ? (
+            <ReportSheet
+              kind="comment"
+              testID={`post-comment-report-sheet-${comment.id}`}
+              onSubmit={sendReport}
+              onClose={() => setMode("idle")}
+              errorText={(error) => communityErrorText(t, error)}
+            />
+          ) : null}
+        </>
+      }
+    />
   );
 }
-
-/** Long comments always wrap inside the column (as in the Event hub). */
-const WRAP_ANYWHERE = (
-  Platform.OS === "web"
-    ? {
-        overflowWrap: "anywhere",
-        wordBreak: "break-word",
-        unicodeBidi: "plaintext",
-        maxWidth: "100%",
-      }
-    : {}
-) as object;
-
-const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "flex-start" },
-  content: { flex: 1 },
-  header: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
-  name: { fontWeight: "600" },
-  actions: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
-  staticAction: { paddingHorizontal: 8 },
-});

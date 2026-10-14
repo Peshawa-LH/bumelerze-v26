@@ -2,6 +2,8 @@ import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react
 
 import {
   makeTransport,
+  openPostMenu,
+  postMenuAction,
   renderWithProviders,
 } from "@/features/eventhub/__fixtures__/testing";
 import { CommunityError, type PublicProfile } from "@/features/community/types";
@@ -11,6 +13,7 @@ import i18n from "@/i18n";
 import { PostsSection } from "../components/PostsSection";
 import type { PostsTransport } from "../transport";
 import { makeFake, post, profileOf } from "../__fixtures__/fake-posts";
+import { makeFakeComments } from "../comments/__fixtures__/fake-comments";
 
 let mockAccount: { status: string; userId: string | null } = {
   status: "account",
@@ -42,9 +45,11 @@ async function renderSection(profile: PublicProfile, transport: PostsTransport) 
   );
 }
 
-/** "Helpful: N" exactly as shown (the number is wrapped in direction isolates). */
-const helpful = (n: number) =>
-  i18n.t("posts.helpfulCount", { number: isolateNumeric(String(n)) });
+/** The heart's spoken label, "Likes: N" (the number is wrapped in direction
+ * isolates). The heart is the post's Helpful mark (review note 4.4). */
+const likes = (n: number) =>
+  i18n.t("social.heart.label", { number: isolateNumeric(String(n)) });
+const heart = (id: string) => screen.getByTestId(`post-actions-${id}-heart`);
 
 const own = (extra: Record<string, unknown> = {}) =>
   profileOf({ is_self: true, user_id: "me", ...extra });
@@ -63,7 +68,7 @@ describe("profile posts P2", () => {
     it("edits my post, sends the trimmed text and shows the edited mark", async () => {
       const fake = makeFake([post("mine", 30, { userId: "me", body: "typo hre" })]);
       await renderSection(own(), fake);
-      await fireEvent.press(await screen.findByTestId("post-edit-mine"));
+      await postMenuAction("mine", "post-edit-mine");
       const input = screen.getByTestId("post-edit-input-mine");
       expect(input.props.value).toBe("typo hre");
       await fireEvent.changeText(input, "  typo here  ");
@@ -71,14 +76,16 @@ describe("profile posts P2", () => {
       await waitFor(() =>
         expect(fake.editPost).toHaveBeenCalledWith("mine", "typo here"),
       );
-      expect(await screen.findByTestId("post-edited-mine")).toBeTruthy();
+      expect(await screen.findByTestId("post-header-mine-subtitle")).toHaveTextContent(
+        /Edited/,
+      );
       expect(screen.getByTestId("post-body-mine").props.children).toBe("typo here");
     });
 
     it("shows 'Edited' with the time of the last edit", async () => {
       const at = Date.now() - 3 * 60_000;
       await renderSection(profileOf(), makeFake([post("p", 60, { editedAt: at })]));
-      const mark = await screen.findByTestId("post-edited-p");
+      const mark = await screen.findByTestId("post-header-p-subtitle");
       expect(mark.props.children).toContain(
         i18n.t("posts.edited", {
           time: i18n.t("events.relativeTime.minutes", { value: "3" }),
@@ -89,7 +96,7 @@ describe("profile posts P2", () => {
     it("is locked while the post is reported: no editor, a calm note, no call", async () => {
       const fake = makeFake([post("mine", 5, { userId: "me", editLocked: true })]);
       await renderSection(own(), fake);
-      await fireEvent.press(await screen.findByTestId("post-edit-mine"));
+      await postMenuAction("mine", "post-edit-mine");
       expect(screen.queryByTestId("post-edit-input-mine")).toBeNull();
       expect(screen.getByTestId("post-edit-locked-mine")).toHaveTextContent(
         i18n.t("posts.editLocked"),
@@ -101,7 +108,7 @@ describe("profile posts P2", () => {
       const fake = makeFake([post("mine", 5, { userId: "me" })]);
       fake.editPost.mockRejectedValueOnce(new CommunityError("edit_locked"));
       await renderSection(own(), fake);
-      await fireEvent.press(await screen.findByTestId("post-edit-mine"));
+      await postMenuAction("mine", "post-edit-mine");
       await fireEvent.changeText(screen.getByTestId("post-edit-input-mine"), "bait");
       await fireEvent.press(screen.getByTestId("post-edit-save-mine"));
       expect(await screen.findByTestId("post-error-mine")).toHaveTextContent(
@@ -113,7 +120,7 @@ describe("profile posts P2", () => {
 
     it("keeps Save off for an empty text post and over the limit", async () => {
       await renderSection(own(), makeFake([post("mine", 5, { userId: "me" })]));
-      await fireEvent.press(await screen.findByTestId("post-edit-mine"));
+      await postMenuAction("mine", "post-edit-mine");
       await fireEvent.changeText(screen.getByTestId("post-edit-input-mine"), "  ");
       expect(
         screen.getByTestId("post-edit-save-mine").props.accessibilityState.disabled,
@@ -130,7 +137,7 @@ describe("profile posts P2", () => {
     it("offers no Edit on someone else's post", async () => {
       await renderSection(profileOf(), makeFake([post("theirs", 5)]));
       await screen.findByTestId("post-theirs");
-      expect(screen.queryByTestId("post-edit-theirs")).toBeNull();
+      expect(await openPostMenu("theirs")).not.toContain("post-edit-theirs");
     });
 
     it("offers no Edit or Pin on a removed post", async () => {
@@ -139,39 +146,36 @@ describe("profile posts P2", () => {
         makeFake([post("gone", 5, { userId: "me", status: "removed", body: "" })]),
       );
       await screen.findByTestId("post-removed-gone");
-      expect(screen.queryByTestId("post-edit-gone")).toBeNull();
-      expect(screen.queryByTestId("post-pin-gone")).toBeNull();
+      const rows = screen.queryByTestId("post-header-gone-more")
+        ? await openPostMenu("gone")
+        : [];
+      expect(rows).not.toContain("post-edit-gone");
+      expect(rows).not.toContain("post-pin-gone");
     });
   });
 
-  describe("Helpful (no likes)", () => {
+  describe("the heart (the Helpful mark, same counts and badges)", () => {
     it("toggles my mark and shows the server's count", async () => {
       const fake = makeFake([post("p", 5, { helpfulCount: 2 })]);
       await renderSection(profileOf(), fake);
-      const button = await screen.findByTestId("post-helpful-p");
-      expect(button).toHaveTextContent(helpful(2));
-      expect(button.props.accessibilityState.selected).toBe(false);
-      await fireEvent.press(button);
+      await screen.findByTestId("post-actions-p-heart");
+      expect(heart("p").props.accessibilityLabel).toBe(likes(2));
+      expect(heart("p").props.accessibilityState.selected).toBe(false);
+      await fireEvent.press(heart("p"));
       await waitFor(() => expect(fake.setHelpful).toHaveBeenCalledWith("p", true));
-      await waitFor(() =>
-        expect(screen.getByTestId("post-helpful-p")).toHaveTextContent(helpful(3)),
-      );
-      expect(screen.getByTestId("post-helpful-p").props.accessibilityState.selected).toBe(
-        true,
-      );
-      await fireEvent.press(screen.getByTestId("post-helpful-p"));
+      await waitFor(() => expect(heart("p").props.accessibilityLabel).toBe(likes(3)));
+      expect(heart("p").props.accessibilityState.selected).toBe(true);
+      await fireEvent.press(heart("p"));
       await waitFor(() => expect(fake.setHelpful).toHaveBeenLastCalledWith("p", false));
-      await waitFor(() =>
-        expect(screen.getByTestId("post-helpful-p")).toHaveTextContent(helpful(2)),
-      );
+      await waitFor(() => expect(heart("p").props.accessibilityLabel).toBe(likes(2)));
     });
 
     it("guests cannot mark; they only read the count", async () => {
       mockAccount = { status: "anonymous", userId: "guest" };
       await renderSection(profileOf(), makeFake([post("p", 5, { helpfulCount: 4 })]));
       await screen.findByTestId("post-p");
-      expect(screen.queryByTestId("post-helpful-p")).toBeNull();
-      expect(screen.getByTestId("post-helpful-count-p")).toHaveTextContent(helpful(4));
+      expect(heart("p").props.accessibilityLabel).toBe(likes(4));
+      expect(heart("p").props.accessibilityRole).toBeUndefined();
     });
 
     it("is not offered on my own post (the count still shows)", async () => {
@@ -180,17 +184,40 @@ describe("profile posts P2", () => {
         makeFake([post("mine", 5, { userId: "me", helpfulCount: 1 })]),
       );
       await screen.findByTestId("post-mine");
-      expect(screen.queryByTestId("post-helpful-mine")).toBeNull();
-      expect(screen.getByTestId("post-helpful-count-mine")).toHaveTextContent(helpful(1));
+      expect(heart("mine").props.accessibilityLabel).toBe(likes(1));
+      expect(heart("mine").props.accessibilityRole).toBeUndefined();
     });
 
     it("says so when the account is limited", async () => {
       const fake = makeFake([post("p", 5)]);
       fake.setHelpful.mockRejectedValueOnce(new CommunityError("restricted"));
       await renderSection(profileOf(), fake);
-      await fireEvent.press(await screen.findByTestId("post-helpful-p"));
+      await fireEvent.press(await screen.findByTestId("post-actions-p-heart"));
       expect(await screen.findByTestId("post-error-p")).toHaveTextContent(
         i18n.t("community.errors.restricted"),
+      );
+    });
+  });
+
+  describe("comments switch", () => {
+    it("the post's author turns comments off from the ... menu, with Undo", async () => {
+      const comments = makeFakeComments([]);
+      await renderWithProviders(
+        <PostsSection
+          profile={own()}
+          transport={makeFake([post("mine", 5, { userId: "me" })])}
+          hubTransport={makeTransport()}
+          commentsTransport={comments}
+        />,
+      );
+      await postMenuAction("mine", "post-comments-switch-mine");
+      await waitFor(() =>
+        expect(comments.setCommentsOff).toHaveBeenCalledWith("mine", true),
+      );
+      expect(await screen.findByText("Comments turned off")).toBeTruthy();
+      await fireEvent.press(screen.getByText("Undo"));
+      await waitFor(() =>
+        expect(comments.setCommentsOff).toHaveBeenLastCalledWith("mine", false),
       );
     });
   });
@@ -213,8 +240,9 @@ describe("profile posts P2", () => {
         5,
       );
       await renderSection(own(), fake);
-      const pin = await screen.findByTestId("post-pin-b");
-      expect(pin).toHaveTextContent(i18n.t("posts.pin"));
+      await openPostMenu("b");
+      const pin = screen.getByTestId("post-pin-b");
+      expect(pin.props.accessibilityLabel).toBe(i18n.t("posts.pin"));
       await fireEvent.press(pin);
       await waitFor(() => expect(fake.setPinned).toHaveBeenCalledWith("b"));
     });
@@ -226,8 +254,9 @@ describe("profile posts P2", () => {
       );
       await renderSection(own({ pinned_post_id: "b" }), fake);
       await screen.findByTestId("post-pinned-b");
+      await openPostMenu("b");
       const unpin = screen.getByTestId("post-pin-b");
-      expect(unpin).toHaveTextContent(i18n.t("posts.unpin"));
+      expect(unpin.props.accessibilityLabel).toBe(i18n.t("posts.unpin"));
       await fireEvent.press(unpin);
       await waitFor(() => expect(fake.setPinned).toHaveBeenLastCalledWith(null));
     });
@@ -235,7 +264,7 @@ describe("profile posts P2", () => {
     it("offers no Pin on someone else's posts", async () => {
       await renderSection(profileOf(), makeFake([post("x", 1)]));
       await screen.findByTestId("post-x");
-      expect(screen.queryByTestId("post-pin-x")).toBeNull();
+      expect(await openPostMenu("x")).not.toContain("post-pin-x");
     });
   });
 
@@ -289,7 +318,7 @@ describe("profile posts P2", () => {
         { ...eventPost("e4", "bml2026abc", "words"), userId: "me" },
       ]);
       await renderSection(own(), fake);
-      await fireEvent.press(await screen.findByTestId("post-edit-e4"));
+      await postMenuAction("e4", "post-edit-e4");
       await fireEvent.changeText(screen.getByTestId("post-edit-input-e4"), "");
       expect(
         screen.getByTestId("post-edit-save-e4").props.accessibilityState.disabled,
@@ -313,7 +342,10 @@ describe("profile posts P2", () => {
       profileOf(),
       makeFake([post("p", 5, { helpfulCount: 2, body: "سڵاو" })]),
     );
-    expect(await screen.findByTestId("post-helpful-p")).toHaveTextContent(/سوودبەخش/);
+    expect(await screen.findByTestId("post-actions-p-heart")).toHaveTextContent(/٢/);
+    expect(heart("p").props.accessibilityLabel).toBe(
+      i18n.t("social.heart.label", { number: isolateNumeric("٢") }),
+    );
     expect(screen.getByTestId("post-body-p").props.style.textAlign).toBe("auto");
     await i18n.changeLanguage("en");
   });

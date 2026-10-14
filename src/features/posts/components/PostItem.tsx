@@ -3,9 +3,13 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { Avatar, getAvatarUrl } from "@/features/account";
 import { communityErrorText } from "@/features/community/error-text";
+import { profileShareUrl } from "@/features/community/components/ProfileShareSheet";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { RemoveReasons } from "@/features/eventhub/components/RemoveReasons";
+import { RoleMark } from "@/features/eventhub/components/RoleMark";
+import type { HubRole } from "@/features/eventhub/types";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
 import type { ReportInput } from "@/features/reporting/reasons";
 import {
@@ -13,6 +17,12 @@ import {
   getRelativeTime,
   isolateNumeric,
 } from "@/features/events";
+import { buildShareUrl } from "@/features/share/caption";
+import { shareText } from "@/features/share/share-text";
+import { ActionRow } from "@/features/social/components/ActionRow";
+import type { MenuItem } from "@/features/social/components/MenuSheet";
+import { PostHeader } from "@/features/social/components/PostHeader";
+import type { SocialTransport } from "@/features/social/transport";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
@@ -26,16 +36,27 @@ import {
   PostCommentsSection,
   type CommentsViewer,
 } from "../comments/components/PostCommentsSection";
+import { usePostCommentActions } from "../comments/queries";
 import type { PostCommentsTransport } from "../comments/transport";
 import { MentionText } from "@/features/mentions/components/MentionText";
 
+/** Who wrote the post: the profile's own public fields. */
+export interface PostAuthor {
+  displayName: string;
+  username: string;
+  avatarPath: string | null;
+  roles: readonly HubRole[];
+}
+
 interface PostItemProps {
   post: ProfilePost;
+  /** The profile the post is on (its author). */
+  author: PostAuthor;
   /** The viewer wrote it (this is their own profile page). */
   isOwn: boolean;
   /** The viewer may report posts: signed in, even anonymously. */
   canReport: boolean;
-  /** The viewer may mark posts helpful: a real account (not a guest). */
+  /** The viewer may give hearts: a real account (not a guest). */
   canHelp?: boolean;
   /** The viewer holds `posts.delete`. */
   canAdminRemove: boolean;
@@ -47,19 +68,23 @@ interface PostItemProps {
   /** Who reads the comments under the post (migration 0063); no comments
    * part when left out. */
   commentsViewer?: CommentsViewer;
-  /** Test seam for the comments. */
+  /** Test seams for the comments and their hearts. */
   commentsTransport?: PostCommentsTransport;
+  socialTransport?: SocialTransport;
 }
 
 type Mode = "idle" | "reporting" | "adminRemove" | "editing" | "editLocked";
 
-/** One post on a profile: relative time ("Edited" once changed), an
- * earthquake card for a shared event, the text, and the actions that fit the
- * viewer: Edit, Pin and Delete for the author, Helpful and Report for others,
- * Remove for admins. The author and photo are in the profile header already,
- * so they are not repeated. */
+/** One post on a profile, built like the Event hub's post (review note
+ * 5.1): the author's photo, name, rank mark and time with "...", the text and
+ * the shared earthquake, then one action row (heart, comments, share) and
+ * the comments drawn with the hub's comment component. Edit, Pin, comments
+ * on or off and Delete are the author's "..." rows; Report for others;
+ * Remove for admins. The heart is the post's Helpful mark (0058): same count,
+ * same badge. */
 export function PostItem({
   post,
+  author,
   isOwn,
   canReport,
   canHelp = false,
@@ -69,17 +94,21 @@ export function PostItem({
   actions,
   commentsViewer,
   commentsTransport,
+  socialTransport,
 }: PostItemProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const [mode, setMode] = useState<Mode>("idle");
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [reported, setReported] = useState(false);
   const [draft, setDraft] = useState(post.body);
-  // The server's answer to my last Helpful tap, until the list refreshes.
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  // The server's answer to my last heart tap, until the list refreshes.
   const [helpful, setHelpful] = useState<{ mine: boolean; count: number } | null>(null);
   const showUndo = useUndoToast();
+  const commentActions = usePostCommentActions(commentsTransport);
   const locale = i18n.language;
 
   const relativeText = (ms: number) => {
@@ -158,6 +187,26 @@ export function PostItem({
     });
   }
 
+  async function setCommentsOff(off: boolean) {
+    const ok = await run(() => commentActions.setCommentsOff(post.id, off));
+    if (ok && off) {
+      showUndo({
+        message: t("postComments.offDone"),
+        restore: () => commentActions.setCommentsOff(post.id, false),
+      });
+    }
+  }
+
+  async function share() {
+    const link =
+      post.kind === "event" && post.event?.ref
+        ? buildShareUrl(post.event.ref)
+        : profileShareUrl(author.username);
+    const text = post.body ? `${post.body}\n${link}` : link;
+    const outcome = await shareText(text, author.displayName);
+    setNotice(outcome === "copied" ? t("share.linkCopied") : null);
+  }
+
   const removed = post.status === "removed";
   // Held for review (migration 0059): only the author sees it; it can be
   // deleted but not edited, pinned, marked or reported until it is approved.
@@ -165,16 +214,76 @@ export function PostItem({
   const isEvent = post.kind === "event";
   const myHelpful = helpful?.mine ?? post.myHelpful;
   const helpfulCount = helpful?.count ?? post.helpfulCount;
-  const helpfulCountText = isolateNumeric(localizeDigits(String(helpfulCount), locale));
-  const helpfulLabel =
-    helpfulCount > 0
-      ? t("posts.helpfulCount", { number: helpfulCountText })
-      : t("posts.helpful");
 
   const max = isEvent ? EVENT_POST_MAX_LENGTH : POST_MAX_LENGTH;
   const draftProblem = validatePostEdit(draft, post.kind);
   const usedText = localizeDigits(String(draft.trim().length), locale);
   const maxText = localizeDigits(String(max), locale);
+  const live = !removed && !pending;
+
+  const items: MenuItem[] = [];
+  if (isOwn && live) {
+    items.push({
+      key: "edit",
+      icon: "create-outline",
+      label: t("posts.edit"),
+      disabled: busy,
+      onPress: startEdit,
+      testID: `post-edit-${post.id}`,
+    });
+    items.push({
+      key: "pin",
+      icon: "pin-outline",
+      label: isPinned ? t("posts.unpin") : t("posts.pin"),
+      disabled: busy,
+      onPress: () => void run(() => actions.setPinned(isPinned ? null : post.id)),
+      testID: `post-pin-${post.id}`,
+    });
+    if (post.status === "visible") {
+      items.push({
+        key: "comments",
+        icon: post.commentsOff ? "chatbubble-outline" : "chatbubble-ellipses-outline",
+        label: post.commentsOff ? t("postComments.turnOn") : t("postComments.turnOff"),
+        disabled: busy,
+        onPress: () => void setCommentsOff(!post.commentsOff),
+        testID: `post-comments-switch-${post.id}`,
+      });
+    }
+  }
+  if (!isOwn && live && canReport && !reported) {
+    items.push({
+      key: "report",
+      icon: "flag-outline",
+      label: t("posts.report"),
+      detail: t("social.menu.reportDetail"),
+      onPress: () => setMode("reporting"),
+      testID: `post-report-${post.id}`,
+    });
+  }
+  if (isOwn && !removed) {
+    items.push({
+      key: "delete",
+      icon: "trash-outline",
+      label: t("posts.delete"),
+      detail: t("social.menu.deleteDetail"),
+      danger: true,
+      disabled: busy,
+      onPress: () => void deleteOwn(),
+      testID: `post-delete-${post.id}`,
+    });
+  }
+  if (canAdminRemove && !isOwn && !removed) {
+    items.push({
+      key: "remove",
+      icon: "trash-outline",
+      label: t("posts.remove"),
+      detail: t("posts.removeConfirmMessage"),
+      badge: t("social.menu.moderatorsOnly"),
+      danger: true,
+      onPress: () => setMode("adminRemove"),
+      testID: `post-remove-${post.id}`,
+    });
+  }
 
   return (
     <View
@@ -182,10 +291,9 @@ export function PostItem({
       style={[
         styles.card,
         {
-          backgroundColor: colors.surface.raised,
-          borderColor: colors.border.default,
-          padding: spacing[3],
-          gap: spacing[1],
+          borderBottomColor: colors.border.subtle,
+          paddingVertical: spacing[3],
+          gap: spacing[2],
         },
       ]}
     >
@@ -196,16 +304,32 @@ export function PostItem({
         </View>
       ) : null}
 
-      <Text style={meta}>
-        {timeText}
-        {editedText ? (
-          <Text testID={`post-edited-${post.id}`}>{` · ${editedText}`}</Text>
-        ) : null}
-      </Text>
-
-      {!removed && isEvent && post.event ? (
-        <EventPostCard event={post.event} testID={`post-event-${post.id}`} />
-      ) : null}
+      <PostHeader
+        testID={`post-header-${post.id}`}
+        leading={
+          <Avatar
+            uri={getAvatarUrl(author.avatarPath)}
+            name={author.displayName}
+            size={36}
+            testID={`post-avatar-${post.id}`}
+          />
+        }
+        title={
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.name,
+              { color: colors.text.primary, fontSize: typography.bodyDefault.fontSize },
+            ]}
+          >
+            {author.displayName}
+          </Text>
+        }
+        mark={<RoleMark roles={author.roles} explain />}
+        subtitle={editedText ? `${timeText} · ${editedText}` : timeText}
+        menuItems={items}
+        moreLabel={t("social.moreOptions")}
+      />
 
       {removed ? (
         <Text style={[meta, { fontStyle: "italic" }]} testID={`post-removed-${post.id}`}>
@@ -278,6 +402,10 @@ export function PostItem({
         />
       ) : null}
 
+      {!removed && isEvent && post.event ? (
+        <EventPostCard event={post.event} testID={`post-event-${post.id}`} />
+      ) : null}
+
       {pending ? (
         <Text
           accessibilityLiveRegion="polite"
@@ -324,72 +452,39 @@ export function PostItem({
             })
           }
         />
-      ) : mode === "editing" ? null : (
-        <View style={styles.actions}>
-          {canHelp && !isOwn && !removed && !pending ? (
-            <ActionButton
-              label={helpfulLabel}
-              selected={myHelpful}
-              disabled={busy}
-              onPress={() => void toggleHelpful()}
-              testID={`post-helpful-${post.id}`}
-            />
-          ) : !removed && !pending && helpfulCount > 0 ? (
-            <Text
-              style={[meta, styles.staticAction]}
-              testID={`post-helpful-count-${post.id}`}
-            >
-              {helpfulLabel}
-            </Text>
-          ) : null}
-          {isOwn && !removed && !pending ? (
-            <ActionButton
-              label={t("posts.edit")}
-              disabled={busy}
-              onPress={startEdit}
-              testID={`post-edit-${post.id}`}
-            />
-          ) : null}
-          {isOwn && !removed && !pending ? (
-            <ActionButton
-              label={isPinned ? t("posts.unpin") : t("posts.pin")}
-              disabled={busy}
-              onPress={() => void run(() => actions.setPinned(isPinned ? null : post.id))}
-              testID={`post-pin-${post.id}`}
-            />
-          ) : null}
-          {isOwn && !removed ? (
-            <ActionButton
-              label={t("posts.delete")}
-              danger
-              disabled={busy}
-              onPress={() => void deleteOwn()}
-              testID={`post-delete-${post.id}`}
-            />
-          ) : null}
-          {!isOwn && !removed && !pending && canReport && !reported ? (
-            <ActionButton
-              label={t("posts.report")}
-              onPress={() => setMode("reporting")}
-              testID={`post-report-${post.id}`}
-            />
-          ) : null}
-          {reported ? (
-            <Text style={[meta, styles.staticAction]} testID={`post-reported-${post.id}`}>
-              {t("posts.reported")}
-            </Text>
-          ) : null}
-          {canAdminRemove && !isOwn && !removed ? (
-            <ActionButton
-              label={t("posts.remove")}
-              danger
-              onPress={() => setMode("adminRemove")}
-              testID={`post-remove-${post.id}`}
-            />
-          ) : null}
-        </View>
-      )}
+      ) : null}
 
+      {live && mode !== "editing" ? (
+        <ActionRow
+          testID={`post-actions-${post.id}`}
+          heart={{
+            count: helpfulCount,
+            liked: myHelpful,
+            disabled: busy,
+            onToggle: canHelp && !isOwn ? () => void toggleHelpful() : undefined,
+          }}
+          comments={
+            commentsViewer && post.status === "visible"
+              ? {
+                  count: post.commentCount,
+                  onPress: () => setCommentsOpen((open) => !open),
+                }
+              : undefined
+          }
+          onShare={() => void share()}
+        />
+      ) : null}
+
+      {reported ? (
+        <Text style={meta} testID={`post-reported-${post.id}`}>
+          {t("posts.reported")}
+        </Text>
+      ) : null}
+      {notice ? (
+        <Text style={meta} accessibilityLiveRegion="polite">
+          {notice}
+        </Text>
+      ) : null}
       {errorText ? (
         <Text
           accessibilityRole="alert"
@@ -407,7 +502,10 @@ export function PostItem({
           commentsOff={post.commentsOff}
           isPostOwner={isOwn}
           viewer={commentsViewer}
+          open={commentsOpen}
+          onOpenChange={setCommentsOpen}
           {...(commentsTransport ? { transport: commentsTransport } : {})}
+          {...(socialTransport ? { socialTransport } : {})}
         />
       ) : null}
 
@@ -425,9 +523,8 @@ export function PostItem({
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderRadius: 12 },
+  card: { borderBottomWidth: StyleSheet.hairlineWidth },
   row: { flexDirection: "row", alignItems: "center" },
-  actions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
-  staticAction: { paddingHorizontal: 8 },
+  name: { fontWeight: "600", flexShrink: 1 },
   input: { minHeight: 88, borderWidth: 1, borderRadius: 12 },
 });
