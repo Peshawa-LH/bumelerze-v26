@@ -514,7 +514,10 @@
       },
       "appSources": [
         {
-          "key": "sensor.phone.title"
+          "key": "sensor.title"
+        },
+        {
+          "key": "stations.intro"
         },
         {
           "key": "sensor.mode.stations"
