@@ -139,7 +139,9 @@ const metrics = {
 
 export function renderWithProviders(ui: ReactElement) {
   const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    // gcTime 0 for mutations too: their default 5-minute cleanup timer would
+    // keep a single-file Jest run open long after the tests finished.
+    defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: 0 } },
   });
   return render(
     <QueryClientProvider client={client}>
