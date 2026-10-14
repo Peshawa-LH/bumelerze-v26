@@ -5,7 +5,7 @@
 // the zod re-validation pass (`fdsn-text-schema.ts`), matching
 // usgs-adapter.ts/emsc-adapter.ts's own I/O-vs-pure-logic split.
 
-import { fetchTextWithRetry } from "./http.ts";
+import { fetchTextWithRetry, isEmptyFeedBody } from "./http.ts";
 import {
   normalizeFdsnTextRow,
   parseFdsnTextLine,
@@ -27,6 +27,11 @@ export async function fetchFdsnTextChannel(
 
   const records: ChannelFetchResult["records"] = [];
   let skippedCount = 0;
+
+  // A 204 / blank body ("no matching events", the usual GEOFON answer for
+  // this region) falls through the loop below as zero records; it is only
+  // flagged so the log can tell it from a list with zero parseable rows.
+  const emptyBody = isEmptyFeedBody(text);
 
   for (const rawLine of text.split("\n")) {
     const line = rawLine.trim();
@@ -57,5 +62,5 @@ export async function fetchFdsnTextChannel(
     records.push(record);
   }
 
-  return { channel: options.channel, records, skippedCount };
+  return { channel: options.channel, records, skippedCount, emptyBody };
 }

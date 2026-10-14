@@ -1,4 +1,4 @@
-import { fetchJsonWithRetry, fetchTextWithRetry } from "../http";
+import { fetchJsonWithRetry, fetchTextWithRetry, isEmptyFeedBody } from "../http";
 
 describe("fetchTextWithRetry", () => {
   const originalFetch = global.fetch;
@@ -8,7 +8,9 @@ describe("fetchTextWithRetry", () => {
   });
 
   it("returns the body text on a successful first attempt, no retry", async () => {
-    const fetchMock = jest.fn().mockResolvedValue({ ok: true, text: async () => "hello" });
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue({ ok: true, text: async () => "hello" });
     global.fetch = fetchMock as unknown as typeof fetch;
 
     const result = await fetchTextWithRetry("https://example.test", { timeoutMs: 1000 });
@@ -49,9 +51,40 @@ describe("fetchTextWithRetry", () => {
     global.fetch = fetchMock as unknown as typeof fetch;
 
     await expect(
-      fetchTextWithRetry("https://example.test", { timeoutMs: 1000, retryDelayMs: 1, retries: 0 }),
+      fetchTextWithRetry("https://example.test", {
+        timeoutMs: 1000,
+        retryDelayMs: 1,
+        retries: 0,
+      }),
     ).rejects.toThrow(/503/);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("treats 204 No Content (the FDSN 'no matching events' answer) as an empty body, not a failure, and does not retry it", async () => {
+    // A real 204 has no body; `text()` would resolve "" anyway, but the
+    // helper must not even depend on that.
+    const text = jest.fn();
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true, status: 204, text });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const result = await fetchTextWithRetry("https://example.test", { timeoutMs: 1000 });
+
+    expect(result).toBe("");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(text).not.toHaveBeenCalled();
+  });
+});
+
+describe("isEmptyFeedBody", () => {
+  it("is true for nothing at all and for whitespace only", () => {
+    expect(isEmptyFeedBody("")).toBe(true);
+    expect(isEmptyFeedBody(" \n\t\r\n")).toBe(true);
+  });
+
+  it("is false as soon as there is any content, even an empty JSON list", () => {
+    expect(isEmptyFeedBody("[]")).toBe(false);
+    expect(isEmptyFeedBody('{"type":"FeatureCollection","features":[]}')).toBe(false);
+    expect(isEmptyFeedBody("#EventID|Time\n")).toBe(false);
   });
 });
 
@@ -65,10 +98,48 @@ describe("fetchJsonWithRetry", () => {
   it("parses the response body as JSON", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
+      status: 200,
       text: async () => JSON.stringify({ hello: "world" }),
     }) as unknown as typeof fetch;
 
     const result = await fetchJsonWithRetry("https://example.test", { timeoutMs: 1000 });
     expect(result).toEqual({ hello: "world" });
+  });
+
+  it("resolves null (zero events) for a 204 No Content instead of failing on JSON.parse('') (D-9)", async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue({ ok: true, status: 204, text: async () => "" });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const result = await fetchJsonWithRetry("https://example.test", { timeoutMs: 1000 });
+
+    expect(result).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("resolves null for a 200 whose body is blank or whitespace (seen from EMSC)", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => " \n",
+      }) as unknown as typeof fetch;
+
+    const result = await fetchJsonWithRetry("https://example.test", { timeoutMs: 1000 });
+    expect(result).toBeNull();
+  });
+
+  it("still throws when a body is present but is not JSON (a genuine feed problem)", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => "<html>Service Unavailable</html>",
+    }) as unknown as typeof fetch;
+
+    await expect(
+      fetchJsonWithRetry("https://example.test", { timeoutMs: 1000, retries: 0 }),
+    ).rejects.toThrow(SyntaxError);
   });
 });

@@ -10,6 +10,13 @@ module.exports = {
   // top of jest-expo's existing vector-icons mapping.
   moduleNameMapper: {
     "\\.css$": "<rootDir>/jest.css-mock.js",
+    // The Deno edge functions import zod with Deno's `npm:` specifier
+    // (`npm:zod@3.25.76`); the app depends on the same zod, so the channel
+    // adapters in supabase/functions/ingest-events can be exercised under
+    // Jest with a fake `fetch` (their __tests__/adapters.test.ts). Only
+    // zod is mapped — supabase-js stays Deno-only, so db.ts and index.ts
+    // remain outside the Jest reach by design.
+    "^npm:zod@.*$": "zod",
   },
   // react-native-worklets (react-native-reanimated 4's underlying engine)
   // ships its own jest resolver that skips `.native.ts` files when resolving

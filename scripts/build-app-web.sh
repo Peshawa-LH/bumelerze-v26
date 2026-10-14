@@ -8,6 +8,18 @@
 # Pages settings: build command `bash scripts/build-app-web.sh`,
 # output directory `dist-app`. The app sits at the domain root, so no base
 # path; unknown deep links fall back to index.html (Pages SPA behaviour).
+#
+# Accepted risk (review 2026-10-14, D-4): because of that SPA fallback, every
+# unknown path answers 200 with the app's HTML, including a bundle a later
+# deploy removed (a stale tab then sees "Unexpected token <") and paths such
+# as /sitemap.xml. The service worker keeps each deploy's own assets, so a
+# stale tab recovers on its next load; a Pages Function returning 404 for
+# missing /_expo/static/* files was considered and left for later.
+# public/_headers (HSTS, frame-ancestors none, nosniff, referrer policy) and
+# public/robots.txt ride along: `expo export` copies public/ to the root of
+# dist-app, which the check after the export confirms. No long-lived caching
+# is set for /_expo/static/*: the same fallback would then cache HTML for a
+# year, and the service worker already caches the assets per build.
 set -euo pipefail
 
 export BUMELERZE_WEB_OUTPUT=single
@@ -28,6 +40,15 @@ export EXPO_PUBLIC_VAPID_PUBLIC_KEY=BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eF
 rm -rf dist-app
 # --clear: a stale Metro cache has silently produced an empty app before.
 npx expo export --platform web --output-dir dist-app --clear
+
+# The hosting files must reach the output root (Cloudflare Pages reads
+# _headers there) or the deploy would quietly lose its security headers.
+for hosting_file in _headers robots.txt; do
+  if ! cmp -s "public/$hosting_file" "dist-app/$hosting_file"; then
+    echo "build-app-web: public/$hosting_file was not copied into dist-app" >&2
+    exit 1
+  fi
+done
 
 # Cloudflare Pages never uploads directories named node_modules, and its SPA
 # fallback then answers those URLs with index.html — which silently broke the

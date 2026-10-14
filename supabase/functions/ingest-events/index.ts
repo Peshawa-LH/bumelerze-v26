@@ -37,9 +37,12 @@ import {
   createSourceRecordViaEventRegistry,
   fetchSourceRecordsForEvent,
   findSourceRecord,
+  recordFeedHeartbeat,
   updateSourceRecord,
 } from "./db.ts";
+import type { FeedHeartbeat } from "./heartbeat.ts";
 import { ingestChannel, type Db } from "./ingest-channel.ts";
+import type { ChannelId } from "./types.ts";
 
 const RequestSchema = z
   .object({
@@ -55,17 +58,41 @@ function jsonError(
   details?: unknown,
 ): Response {
   return new Response(
-    JSON.stringify({ error: { code, message, requestId, ...(details ? { details } : {}) } }),
+    JSON.stringify({
+      error: { code, message, requestId, ...(details ? { details } : {}) },
+    }),
     { status, headers: { "content-type": "application/json" } },
   );
 }
 
-function log(level: "info" | "error", requestId: string, msg: string, extra?: unknown): void {
+function log(
+  level: "info" | "error",
+  requestId: string,
+  msg: string,
+  extra?: unknown,
+): void {
   const line = JSON.stringify({ level, requestId, msg, ...(extra ? { extra } : {}) });
   if (level === "error") {
     console.error(line);
   } else {
     console.log(line);
+  }
+}
+
+/** Best effort, never throws: the heartbeat (migration 0067) witnesses the
+ * run for the watchdog; a problem writing it is logged, not propagated. */
+async function heartbeat(
+  requestId: string,
+  provider: ChannelId,
+  value: FeedHeartbeat,
+): Promise<void> {
+  try {
+    await recordFeedHeartbeat(createServiceRoleClient(), provider, value);
+  } catch (error) {
+    log("error", requestId, "heartbeat failed", {
+      channel: provider,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -82,7 +109,12 @@ Deno.serve(async (req: Request) => {
     try {
       body = JSON.parse(text);
     } catch {
-      return jsonError(400, "invalid_json", "Request body must be valid JSON.", requestId);
+      return jsonError(
+        400,
+        "invalid_json",
+        "Request body must be valid JSON.",
+        requestId,
+      );
     }
   }
 
@@ -113,6 +145,8 @@ Deno.serve(async (req: Request) => {
       channel: fetchResult.channel,
       fetched: fetchResult.records.length,
       skippedParsing: fetchResult.skippedCount,
+      // "no events" said with an empty body (204) vs. with an empty list.
+      emptyBody: fetchResult.emptyBody === true,
     });
 
     const client = createServiceRoleClient();
@@ -123,8 +157,10 @@ Deno.serve(async (req: Request) => {
         updateSourceRecord(client, sourceRecordId, record),
       createSourceRecordViaEventRegistry: (record) =>
         createSourceRecordViaEventRegistry(client, record),
-      fetchSourceRecordsForEvent: (eventId) => fetchSourceRecordsForEvent(client, eventId),
-      applyDerivedFields: (eventId, derived) => applyDerivedFields(client, eventId, derived),
+      fetchSourceRecordsForEvent: (eventId) =>
+        fetchSourceRecordsForEvent(client, eventId),
+      applyDerivedFields: (eventId, derived) =>
+        applyDerivedFields(client, eventId, derived),
     };
 
     const summary = await ingestChannel(fetchResult, db);
@@ -134,6 +170,11 @@ Deno.serve(async (req: Request) => {
       updated: summary.updated,
       unchanged: summary.unchanged,
       errors: summary.errors,
+    });
+    await heartbeat(requestId, channelDef.provider, {
+      ok: true,
+      summary,
+      emptyBody: fetchResult.emptyBody === true,
     });
 
     return new Response(JSON.stringify({ data: { requestId, summary } }), {
@@ -147,10 +188,11 @@ Deno.serve(async (req: Request) => {
     // scheduled cron tick for this channel is the retry (see http.ts's own
     // header comment on why this function does not itself build a longer
     // backoff loop).
-    log("error", requestId, "channel failed", {
-      channel: channelDef.id,
-      error: err instanceof Error ? err.message : String(err),
-    });
+    const message = err instanceof Error ? err.message : String(err);
+    log("error", requestId, "channel failed", { channel: channelDef.id, error: message });
+    // The failure itself is the heartbeat's news: the watchdog opens an
+    // alert once a feed has had no successful run for an hour (D-2).
+    await heartbeat(requestId, channelDef.provider, { ok: false, error: message });
     return jsonError(
       502,
       "channel_fetch_failed",

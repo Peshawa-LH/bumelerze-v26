@@ -33,6 +33,11 @@ export async function fetchEmscChannel(
   const payload = await fetchJsonWithRetry(buildEmscUrl(bbox, sinceMs), {
     timeoutMs: TIMEOUT_MS,
   });
+  if (payload === null) {
+    // 204 No Content or a blank body: EMSC lists no event in the window.
+    // Zero events, not a failed channel (http.ts header, finding D-9).
+    return { channel: "emsc", records: [], skippedCount: 0, emptyBody: true };
+  }
   const collection = emscFeatureCollectionSchema.parse(payload);
 
   const records: ChannelFetchResult["records"] = [];
@@ -52,5 +57,5 @@ export async function fetchEmscChannel(
     records.push(record);
   }
 
-  return { channel: "emsc", records, skippedCount };
+  return { channel: "emsc", records, skippedCount, emptyBody: false };
 }

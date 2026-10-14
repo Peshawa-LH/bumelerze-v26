@@ -31,7 +31,8 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.1
 
 import { REGION_BBOX } from "./channels.ts";
 import type { DerivedFields } from "./derivation.ts";
-import type { RawSourceRecord, StoredSourceRecord } from "./types.ts";
+import { buildFeedHeartbeatRow, type FeedHeartbeat } from "./heartbeat.ts";
+import type { ChannelId, RawSourceRecord, StoredSourceRecord } from "./types.ts";
 
 export function createServiceRoleClient(): SupabaseClient {
   const url = Deno.env.get("SUPABASE_URL");
@@ -114,9 +115,11 @@ export async function findSourceRecord(
     .eq("provider_event_id", providerEventId)
     .maybeSingle();
   if (error) {
-    throw new Error(`findSourceRecord(${provider}, ${providerEventId}): ${error.message}`);
+    throw new Error(
+      `findSourceRecord(${provider}, ${providerEventId}): ${error.message}`,
+    );
   }
-  return data ? mapSourceRecordRow(data as SourceRecordRow) : null;
+  return data ? mapSourceRecordRow(data as unknown as SourceRecordRow) : null;
 }
 
 /** Updates an already-known source record in place with a freshly-fetched
@@ -186,7 +189,11 @@ export async function createSourceRecordViaEventRegistry(
   }
   const eventId = data as string;
 
-  const inserted = await findSourceRecord(client, record.provider, record.providerEventId);
+  const inserted = await findSourceRecord(
+    client,
+    record.provider,
+    record.providerEventId,
+  );
   if (!inserted) {
     // Should be unreachable: the RPC guarantees a row exists for this exact
     // key once it returns successfully. Surfaced loudly rather than
@@ -214,7 +221,7 @@ export async function fetchSourceRecordsForEvent(
   if (error) {
     throw new Error(`fetchSourceRecordsForEvent(${eventId}): ${error.message}`);
   }
-  return ((data ?? []) as SourceRecordRow[]).map(mapSourceRecordRow);
+  return ((data ?? []) as unknown as SourceRecordRow[]).map(mapSourceRecordRow);
 }
 
 /**
@@ -268,5 +275,27 @@ export async function applyDerivedFields(
   const { error } = await client.from("events").update(update).eq("event_id", eventId);
   if (error) {
     throw new Error(`applyDerivedFields(${eventId}): ${error.message}`);
+  }
+}
+
+/**
+ * Writes this run's heartbeat for the channel into `public.feed_heartbeats`
+ * (migration 0067, service role only): `last_ok_at` plus a small summary
+ * after a successful run, `last_error_at`/`last_error` after a failed one
+ * (row shape: `heartbeat.ts`). A failure to write it is logged by the
+ * caller and never fails the run itself: the heartbeat is a witness of the
+ * ingest, not part of it.
+ */
+export async function recordFeedHeartbeat(
+  client: SupabaseClient,
+  provider: ChannelId,
+  heartbeat: FeedHeartbeat,
+): Promise<void> {
+  const row = buildFeedHeartbeatRow(provider, heartbeat, new Date().toISOString());
+  const { error } = await client
+    .from("feed_heartbeats")
+    .upsert(row, { onConflict: "provider" });
+  if (error) {
+    throw new Error(`recordFeedHeartbeat(${provider}): ${error.message}`);
   }
 }
