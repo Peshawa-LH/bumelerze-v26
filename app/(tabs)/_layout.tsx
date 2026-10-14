@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TAB_BAR_CONTENT_HEIGHT } from "@/components/Snackbar";
 import { ScrollAwareTabBar } from "@/features/tab-bar/ScrollAwareTabBar";
+import { tabBarButtonOptions } from "@/features/tab-bar/web-tab-button";
 import { useTheme } from "@/theme";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -60,6 +61,9 @@ export default function TabLayout() {
       tabBar={(props) => <ScrollAwareTabBar {...props} />}
       screenOptions={{
         headerShown: false,
+        // Web: a press always counts, however long it is held
+        // (features/tab-bar/web-tab-button.tsx). iOS/Android: the default.
+        ...tabBarButtonOptions,
         tabBarActiveTintColor: colors.brand.primary,
         tabBarInactiveTintColor: colors.text.tertiary,
         tabBarStyle: {
