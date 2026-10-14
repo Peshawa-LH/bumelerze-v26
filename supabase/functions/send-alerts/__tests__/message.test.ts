@@ -79,8 +79,10 @@ describe("helpers", () => {
 
   it("builds the place line from the gazetteer, with region", () => {
     expect(placeLine(36.1, 44.2, "en")).toBe("⁦20 km⁩ SE of Hawler, Kurdistan (Iraq)");
+    // The Sorani template no longer glues "ەوە" onto the town name (owner
+    // decision, 2026-10-14); the vendored strings follow the app catalog.
     expect(placeLine(36.1, 44.2, "ckb")).toBe(
-      "⁦٢٠ کم⁩ باشووری ڕۆژهەڵاتی هەولێرەوە، کوردستان (عێراق)",
+      "⁦٢٠ کم⁩ باشووری ڕۆژهەڵاتی هەولێر، کوردستان (عێراق)",
     );
   });
 

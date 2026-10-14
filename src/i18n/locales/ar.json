@@ -78,7 +78,7 @@
       "syria": "سوريا"
     },
     "placeLine": {
-      "template": "{{distance}} {{direction}} من {{city}}",
+      "template": "{{distance}} {{direction}} {{city}}",
       "withRegion": "{{line}}، {{region}}",
       "coordinates": "قرب {{lat}}، {{lon}}"
     }

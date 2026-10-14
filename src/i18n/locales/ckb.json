@@ -78,7 +78,7 @@
       "syria": "سووریا"
     },
     "placeLine": {
-      "template": "{{distance}} {{direction}}ی {{city}}ەوە",
+      "template": "{{distance}} {{direction}}ی {{city}}",
       "withRegion": "{{line}}، {{region}}",
       "coordinates": "نزیک {{lat}}، {{lon}}"
     }
@@ -104,7 +104,7 @@
       "hours": "{{value}} کاتژمێر لەمەوبەر",
       "days": "{{value}} ڕۆژ لەمەوبەر"
     },
-    "distanceFromCity": "{{distance}} لە {{city}}ەوە",
+    "distanceFromCity": "{{distance}} دوور لە {{city}}",
     "distanceFromYou": "{{distance}} لە تۆوە",
     "magnitudeA11yLabel": "بەهێزی {{value}}",
     "magnitudeDisplay": "{{value}} پلە",
@@ -123,8 +123,8 @@
     "shakemapTagA11yLabel": "نەخشەی لەرزین بەردەستە",
     "tagRow": {
       "moreSourcesTag": "+{{count}}",
-      "sourcesA11yLabel": "تۆمارکراوە لەلایەن {{agencies}}ەوە",
-      "sourcesWithMoreA11yLabel": "تۆمارکراوە لەلایەن {{agencies}}ەوە و {{count}} زیاتر"
+      "sourcesA11yLabel": "تۆمارکراوە لەلایەن {{agencies}}",
+      "sourcesWithMoreA11yLabel": "تۆمارکراوە لەلایەن {{agencies}} و {{count}} زیاتر"
     }
   },
   "world": {
