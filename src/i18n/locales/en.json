@@ -1260,6 +1260,22 @@
           "4": "Serious cracking or partial failure of walls",
           "5": "Partial or full collapse of walls or roof"
         }
+      },
+      "gradesShort": {
+        "highrise": {
+          "1": "No visible damage",
+          "2": "Hairline cracks in plaster",
+          "3": "Diagonal cracks in infill walls",
+          "4": "Wide cracks in columns or beams",
+          "5": "Partial collapse"
+        },
+        "lowrise": {
+          "1": "No visible damage",
+          "2": "Hairline cracks in plaster",
+          "3": "Large cracks in walls",
+          "4": "Walls seriously cracked or failing",
+          "5": "Walls or roof collapsed"
+        }
       }
     },
     "details": {

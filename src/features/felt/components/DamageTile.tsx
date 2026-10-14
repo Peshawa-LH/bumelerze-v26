@@ -10,16 +10,21 @@ import type { BuildingDamageGrade, DamageTypology } from "../types";
 interface DamageTileProps {
   typology: DamageTypology;
   grade: BuildingDamageGrade;
-  /** Short damage-state label for this grade, already localized for this
-   * typology (e.g. "Hairline cracks") — the row header above the grid
-   * carries the typology label, so the tile itself doesn't repeat it
-   * visually, only in its accessibility label (see below). */
+  /** Short damage-state caption for this grade, already localized for this
+   * typology (e.g. "Large cracks in walls", `felt.damage.gradesShort`) —
+   * the row header above the grid carries the typology label, so the tile
+   * itself doesn't repeat it visually, only in its accessibility label (see
+   * below). Two tiles share a row (review A-3, owner 2026-10-14), so the
+   * caption has room for one or two lines at body size, never the 8-10
+   * one-word lines the five-per-row grid produced. */
   label: string;
   /** Full "<typology>. <damage state>." accessibility label — combines both
    * pieces of context per the wave brief ("LevelTile-style: typology label
    * + damage-state label"), since a screen-reader user tabbing through two
    * back-to-back rows needs the typology restated on every tile, not just
-   * the row header. */
+   * the row header. The parent passes the FULL damage description here
+   * (`felt.damage.grades`), so the spoken name keeps every detail the short
+   * visible caption leaves out. */
   accessibilityLabel: string;
   locale: string;
   onPress: (typology: DamageTypology, grade: BuildingDamageGrade) => void;
@@ -75,7 +80,7 @@ function DamageTileImpl({
           backgroundColor: colors.surface.raised,
           borderColor: colors.border.default,
           padding: spacing[2],
-          gap: spacing[1],
+          gap: spacing[2],
           minHeight: 48,
           opacity: pressed ? 0.85 : 1,
         },
@@ -113,12 +118,18 @@ function DamageTileImpl({
       </View>
       <Text
         allowFontScaling
+        testID="damage-tile-caption"
+        // Body-meta size, not the caption size `LevelTile` uses: this tile
+        // is twice as wide (two per row), and the picture is what a person
+        // compares in a hurry — the caption only has to be readable at a
+        // glance. No numberOfLines cap (design-language.md §8: never
+        // truncate at any font scale); the tile simply grows.
         style={{
           color: colors.text.primary,
           textAlign: "center",
-          fontSize: typography.labelCaption.fontSize,
-          lineHeight: typography.labelCaption.lineHeight,
-          fontWeight: typography.labelCaption.fontWeight,
+          fontSize: typography.bodyMeta.fontSize,
+          lineHeight: typography.bodyMeta.lineHeight,
+          fontWeight: "500",
         }}
       >
         {t("felt.numberedLabel", { number: numeralText, label })}
@@ -132,8 +143,10 @@ export const DamageTile = memo(DamageTileImpl);
 const styles = StyleSheet.create({
   // Pre-measurement fallback only (see the `width` prop's doc comment) —
   // deliberately `flexGrow: 0` even here, so this never stretches either.
+  // Two per row (review A-3): just under half the grid, so the first frame
+  // already wraps the same way the measured layout will.
   tile: {
-    flexBasis: "18%",
+    flexBasis: "47%",
     flexGrow: 0,
     flexShrink: 0,
     borderWidth: 1,
@@ -151,6 +164,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
   },
+  // Square, full tile width: at two per row on a 360-390 px phone that is
+  // a 135-150 px picture (the review's 44 px artwork was the whole
+  // complaint), and the 512 px source art has plenty of room to spare.
   swatch: {
     width: "100%",
     aspectRatio: 1,

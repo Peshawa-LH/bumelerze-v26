@@ -19,9 +19,11 @@ import {
 
 /**
  * Window 2 of 3 — damage picker (2026-08-15 flow restructure, owner
- * directive). Two typology rows (high-rise / single-low-rise, each 5
- * grades DG1-DG5) plus a prominent "I didn't see damage" default that lets
- * the user pass through with one tap. Every tile — including the default —
+ * directive). Two typology groups (high-rise / single-low-rise, each 5
+ * grades DG1-DG5, two pictures per row since review A-3 — owner
+ * 2026-10-14: the five-per-row tiles were 44 px pictures with captions
+ * broken into one-word lines) plus a prominent "I didn't see damage"
+ * default that lets the user pass through with one tap. Every tile — including the default —
  * both records the pick AND advances to window 3 immediately, the same
  * one-tap philosophy as tier 1's cartoon grid and the tier-2 questionnaire.
  * The pick is written into the shared post-tier-1 draft (`tier2-draft-
@@ -41,7 +43,7 @@ export default function DamageReportScreen() {
 
   const initDraft = useTier2DraftStore((state) => state.initDraft);
   const setAnswer = useTier2DraftStore((state) => state.setAnswer);
-  // Both typology rows are 5-column grids at the same gap (`styles.grid`
+  // Both typology grids are 2-column grids at the same gap (`styles.grid`
   // below) and the same horizontal padding, so one measurement covers both
   // — see `grid-layout.ts`'s doc comment on sharing a single instance.
   const { tileWidth, onLayout: onGridLayout } = useTileGridLayout(
@@ -174,15 +176,23 @@ export default function DamageReportScreen() {
             >
               {t(`felt.damage.typologies.${typology}`)}
             </Text>
-            <View style={styles.grid} onLayout={onGridLayout}>
+            <View
+              testID={`damage-grid-${typology}`}
+              style={styles.grid}
+              onLayout={onGridLayout}
+            >
               {BUILDING_DAMAGE_GRADES.map((grade) => {
+                // The spoken name keeps the full damage description; the
+                // visible caption under the picture is the short form
+                // (`DamageTile`'s `label`/`accessibilityLabel` docs).
                 const gradeLabel = t(`felt.damage.grades.${typology}.${grade}`);
+                const shortLabel = t(`felt.damage.gradesShort.${typology}.${grade}`);
                 return (
                   <DamageTile
                     key={`${typology}-${grade}`}
                     typology={typology}
                     grade={grade}
-                    label={gradeLabel}
+                    label={shortLabel}
                     locale={i18n.language}
                     accessibilityLabel={`${t(`felt.damage.typologies.${typology}`)}. ${gradeLabel}`}
                     onPress={handleSelectGrade}
@@ -199,11 +209,16 @@ export default function DamageReportScreen() {
   );
 }
 
-// One typology row (5 damage grades DG1-DG5) per grid — must match
-// `styles.grid`'s `gap` below (kept as named constants, not a magic 10, so
-// the two can never drift apart silently).
-const DAMAGE_TILE_COLUMNS = 5;
+// One typology group (5 damage grades DG1-DG5) per grid, two tiles per row
+// (review A-3, owner 2026-10-14: pictures big enough to compare, captions
+// readable) — must match `styles.grid`'s `gap` below (kept as named
+// constants, not a magic 10, so the two can never drift apart silently).
+const DAMAGE_TILE_COLUMNS = 2;
 const DAMAGE_TILE_GAP = 10;
+// Wide web windows: two half-width tiles would be 600 px pictures on a
+// desktop; cap the grid so each stays about the size of a phone screen's.
+// Phones (under this width) are unaffected.
+const DAMAGE_GRID_MAX_WIDTH = 560;
 
 const styles = StyleSheet.create({
   container: {
@@ -218,6 +233,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: DAMAGE_TILE_GAP,
+    maxWidth: DAMAGE_GRID_MAX_WIDTH,
   },
   noDamageButton: {
     borderRadius: 12,

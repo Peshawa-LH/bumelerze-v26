@@ -1260,6 +1260,22 @@
           "4": "Çatên giran an hilweşîna qismî ya dîwaran",
           "5": "Hilweşîna qismî an tevahî ya dîwar an banî"
         }
+      },
+      "gradesShort": {
+        "highrise": {
+          "1": "Ti zirara xuya tune",
+          "2": "Çatên tenik di sîwanê de",
+          "3": "Çatên xar di dîwarên tijîkirî de",
+          "4": "Çatên fireh di stûn an kevanan de",
+          "5": "Hilweşîna qismî"
+        },
+        "lowrise": {
+          "1": "Ti zirara xuya tune",
+          "2": "Çatên tenik di sîwanê de",
+          "3": "Çatên mezin di dîwaran de",
+          "4": "Dîwar giran çatiyane an têk diçin",
+          "5": "Dîwar an banî hilweşiyaye"
+        }
       }
     },
     "details": {
