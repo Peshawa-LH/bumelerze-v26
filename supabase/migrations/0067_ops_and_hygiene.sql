@@ -201,3 +201,88 @@ exception when others then
   raise notice 'pg_cron scheduling skipped (%): schedule ops_check_feeds (*/15 * * * *, select public.ops_check_feeds();) and purge_cron_history (50 4 * * *, delete from cron.job_run_details where coalesce(end_time, start_time) < now() - interval 7 days) by hand.', sqlerrm;
 end
 $$;
+
+-- 6. RPC error codes (D-10) ------------------------------------------------------------------
+-- alerts_send_test: the 0062 body; no_device is 22023 (HTTP 400, was P0002
+-- which PostgREST maps to 500) and too_soon is P0001 (400, was 54000 = 413),
+-- each with a hint that names the limit. The app matches the message
+-- tokens (src/features/alerts/transport.ts), never the status.
+create or replace function public.alerts_send_test()
+returns integer
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_uid uuid := public.alerts_require_enabled('alerts_send_test');
+  v_devices integer;
+begin
+  select count(*) into v_devices from public.push_subscriptions ps
+   where ps.user_id = v_uid and ps.disabled_at is null;
+  if v_devices = 0 then
+    raise exception 'alerts_send_test: no_device' using errcode = '22023',
+      hint = 'Turn alerts on in this browser or phone first.';
+  end if;
+  if exists (select 1 from public.alert_queue q
+              where q.kind = 'test' and q.user_id = v_uid and q.queued_at > now() - interval '60 seconds') then
+    raise exception 'alerts_send_test: too_soon' using errcode = 'P0001',
+      hint = 'One test alert per minute.';
+  end if;
+  if (select count(*) from public.alert_queue q
+       where q.kind = 'test' and q.user_id = v_uid and q.queued_at > now() - interval '24 hours') >= 20 then
+    raise exception 'alerts_send_test: too_soon' using errcode = 'P0001',
+      hint = 'At most 20 test alerts a day.';
+  end if;
+  insert into public.alert_queue (kind, user_id) values ('test', v_uid);
+  return v_devices;
+end
+$$;
+revoke all on function public.alerts_send_test() from public, anon;
+grant execute on function public.alerts_send_test() to authenticated;
+
+-- restore_felt_report: the 0064 body; not_found is 22023 (400, was P0002 =
+-- 500). The app treats any restore error other than expired or conflict the
+-- same way, so the code is free to change. withdraw_felt_report is NOT
+-- re-created here: the app reads its P0002 as "nothing to withdraw"
+-- (src/features/felt/supabase-transport.ts); that one changes with the app.
+create or replace function public.restore_felt_report(p_report_id uuid, p_device_id text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_row record;
+begin
+  if p_report_id is null or not public.owns_felt_report(p_report_id, p_device_id) then
+    raise exception 'restore_felt_report: not_found' using errcode = '22023';
+  end if;
+  select r.report_id as report_id, r.device_id as device_id, r.event_id as event_id,
+         r.withdrawn_at as withdrawn_at
+    into v_row
+    from public.felt_reports r
+   where r.report_id = p_report_id
+   for update;
+  if v_row.withdrawn_at is null then
+    return jsonb_build_object('report_id', p_report_id, 'withdrawn_at', null);
+  end if;
+  if v_row.withdrawn_at < now() - interval '10 minutes' then
+    raise exception 'restore_felt_report: expired' using errcode = '22023';
+  end if;
+  if v_row.event_id is not null and exists (
+    select 1 from public.felt_reports o
+     where o.device_id = v_row.device_id
+       and o.event_id = v_row.event_id
+       and o.withdrawn_at is null
+       and o.report_id <> p_report_id
+  ) then
+    raise exception 'restore_felt_report: conflict' using errcode = '22023';
+  end if;
+  update public.felt_reports
+     set withdrawn_at = null, withdrawn_by = null, restored_at = now()
+   where report_id = p_report_id;
+  return jsonb_build_object('report_id', p_report_id, 'withdrawn_at', null);
+end
+$$;
+revoke all on function public.restore_felt_report(uuid, text) from public;
+grant execute on function public.restore_felt_report(uuid, text) to anon, authenticated;
