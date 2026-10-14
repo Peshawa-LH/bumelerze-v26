@@ -96,12 +96,9 @@ export default function SignInScreen() {
           </>
         ) : (
           <>
-            <Text
-              accessibilityRole="header"
-              style={[typography.h2, { color: colors.text.primary }]}
-            >
-              {title}
-            </Text>
+            {/* The title is the stack header's (review B-27: it was repeated
+             * here as a page heading, like on every other pushed screen it
+             * is shown once, in the header). */}
             {step === "create" ? (
               <CreateAccountForm onCreated={() => afterAuth(0)} />
             ) : (

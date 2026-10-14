@@ -35,12 +35,7 @@ export default function PasswordScreen() {
           paddingBottom: insets.bottom + spacing[6],
         }}
       >
-        <Text
-          accessibilityRole="header"
-          style={[typography.h2, { color: colors.text.primary }]}
-        >
-          {t("account.password.title")}
-        </Text>
+        {/* The title is the stack header's alone (review B-27). */}
         {account.status === "account" ? (
           <PasswordForm onDone={() => router.back()} />
         ) : account.status === "loading" ? (

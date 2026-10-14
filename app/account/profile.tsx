@@ -80,17 +80,7 @@ export default function ProfileScreen() {
           paddingBottom: insets.bottom + spacing[6],
         }}
       >
-        <Text
-          accessibilityRole="header"
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.h2.fontSize,
-            lineHeight: typography.h2.lineHeight,
-            fontWeight: typography.h2.fontWeight,
-          }}
-        >
-          {t("account.profile.title")}
-        </Text>
+        {/* The title is the stack header's alone (review B-27). */}
         {body}
       </ScrollView>
     </View>

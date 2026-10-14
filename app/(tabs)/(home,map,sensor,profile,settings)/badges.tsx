@@ -32,6 +32,10 @@ export default function BadgesScreen() {
       <Stack.Screen
         options={{
           title: t("myData.badges.title"),
+          // The section below carries its own "Badges n/N" heading; the
+          // header keeps the title for the back label and the browser tab
+          // but does not draw it twice (review B-27).
+          headerTitle: "",
           headerShown: true,
           headerLeft: () => <HeaderBackButton />,
         }}

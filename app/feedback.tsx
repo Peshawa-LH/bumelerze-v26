@@ -264,17 +264,8 @@ export default function FeedbackScreen() {
           headerLeft: () => <HeaderBackButton />,
         }}
       />
-      <Text
-        accessibilityRole="header"
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.h1.fontSize,
-          lineHeight: typography.h1.lineHeight,
-          fontWeight: typography.h1.fontWeight,
-        }}
-      >
-        {t("feedback.title")}
-      </Text>
+      {/* The title is the stack header's alone (review B-27); the page
+       * opens with what the form is for. */}
       <Text
         style={{
           color: colors.text.secondary,

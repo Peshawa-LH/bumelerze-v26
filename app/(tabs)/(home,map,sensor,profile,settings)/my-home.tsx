@@ -35,6 +35,10 @@ export default function MyHomeScreen() {
       <Stack.Screen
         options={{
           title: t("building.section.title"),
+          // The card below carries its own "My home" heading; the header
+          // keeps the title for the back label and the browser tab but does
+          // not draw it twice (review B-27).
+          headerTitle: "",
           headerShown: true,
           headerLeft: () => <HeaderBackButton />,
         }}
