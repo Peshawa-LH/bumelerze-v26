@@ -1,29 +1,44 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { useSnackbar } from "@/components/Snackbar";
 import { AccountButton } from "@/features/account/components/AccountButton";
+import { ROLE_BADGES } from "@/features/badges/catalog";
+import { toneColor } from "@/features/badges/tones";
 import { communityErrorText } from "@/features/community/error-text";
-import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { useTheme } from "@/theme";
 import { useAdminActions } from "../../queries";
 import type { AdminTransport } from "../../transport";
 import { GRANTABLE_RANKS, type GrantableRank } from "../../types";
+import { useTextDir } from "../../ui/text-dir";
 import { Sheet } from "./Sheet";
 
-/** Give or take away a rank badge for ONE person (the Admin > Rank badges
- * form, with the @username already filled in). */
+/** One-line explanations under the ranks that need one (mockup 5d). */
+const DESCRIBED: Partial<Record<GrantableRank, string>> = {
+  authority: "admin.person.badge.describe.authority",
+  moderator: "admin.person.badge.describe.moderator",
+  partner: "admin.person.badge.describe.partner",
+};
+
+/**
+ * "Give badge to @name" (review 15.1, mockup 5d), opened from a person's
+ * page: one radio row per badge an admin may give (Government official
+ * first, marked New), badges the person already holds shown as "Has it",
+ * the organisation for a partner, a private note only admins see, and one
+ * primary button that names the badge. Taking a badge away is on the
+ * person page, next to each badge held.
+ */
 export function BadgeSheet({
   username,
-  name,
   heldRanks,
   onClose,
   transport,
   hubTransport,
 }: {
   username: string;
-  name: string;
   heldRanks: readonly string[];
   onClose: () => void;
   transport?: AdminTransport;
@@ -31,37 +46,43 @@ export function BadgeSheet({
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
+  const dir = useTextDir();
+  const snackbar = useSnackbar();
   const actions = useAdminActions(transport, hubTransport);
-  const [rank, setRank] = useState<GrantableRank>("engineer");
+  const held = (rank: GrantableRank) => heldRanks.includes(rank);
+  const [rank, setRank] = useState<GrantableRank | null>(
+    GRANTABLE_RANKS.find((r) => !held(r)) ?? null,
+  );
   const [org, setOrg] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
-  const meta = {
-    color: colors.text.secondary,
-    fontSize: typography.bodyMeta.fontSize,
-    lineHeight: typography.bodyMeta.lineHeight,
-  } as const;
+  const meta = [typography.bodyMeta, dir, { color: colors.text.secondary }];
   const input = [
     styles.input,
+    typography.bodyDefault,
     {
       color: colors.text.primary,
       borderColor: colors.border.default,
       backgroundColor: colors.surface.base,
-      fontSize: typography.bodyDefault.fontSize,
       paddingHorizontal: spacing[3],
       textAlign: "auto" as const,
     },
   ];
 
-  async function run(action: () => Promise<void>, message: string) {
+  async function give() {
+    if (!rank) return;
     setBusy(true);
     setErrorText(null);
-    setDone(null);
     try {
-      await action();
-      setDone(message);
+      await actions.grant({
+        username,
+        role: rank,
+        orgName: rank === "partner" ? org : null,
+        note,
+      });
+      snackbar.show({ message: t("admin.ranks.granted") });
+      onClose();
     } catch (error) {
       setErrorText(communityErrorText(t, error));
     } finally {
@@ -71,28 +92,100 @@ export function BadgeSheet({
 
   return (
     <Sheet
-      title={t("admin.person.badge.title")}
-      subtitle={name}
+      title={t("admin.person.badge.giveTitle", { username })}
       onClose={onClose}
       testID="badge-sheet"
     >
-      <Text style={meta}>
-        {heldRanks.length > 0
-          ? t("admin.person.badge.holds", {
-              ranks: heldRanks.map((r) => t(`eventHub.roles.${r}`)).join(", "),
-            })
-          : t("admin.person.badge.holdsNone")}
-      </Text>
-      <View style={styles.chips} accessibilityRole="radiogroup">
-        {GRANTABLE_RANKS.map((value) => (
-          <ActionButton
-            key={value}
-            label={t(`eventHub.roles.${value}`)}
-            selected={rank === value}
-            onPress={() => setRank(value)}
-            testID={`badge-rank-${value}`}
-          />
-        ))}
+      <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel={t("admin.ranks.rankLabel")}
+      >
+        {GRANTABLE_RANKS.map((value, index) => {
+          const has = held(value);
+          const selected = rank === value;
+          const badge = ROLE_BADGES[value];
+          const name = t(`eventHub.roles.${value}`);
+          const key = DESCRIBED[value];
+          const describe = key ? t(key) : null;
+          return (
+            <Pressable
+              key={value}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: selected, selected, disabled: has }}
+              accessibilityLabel={[
+                name,
+                value === "authority" ? t("admin.person.badge.newTag") : null,
+                describe,
+                has ? t("admin.person.badge.hasIt") : null,
+              ]
+                .filter(Boolean)
+                .join(". ")}
+              disabled={has}
+              onPress={() => setRank(value)}
+              testID={`badge-rank-${value}`}
+              style={[
+                styles.row,
+                {
+                  gap: spacing[3],
+                  paddingVertical: spacing[2],
+                  paddingHorizontal: spacing[2],
+                  borderTopWidth: index > 0 ? StyleSheet.hairlineWidth : 0,
+                  borderTopColor: colors.border.subtle,
+                  backgroundColor: selected ? colors.surface.sunken : "transparent",
+                },
+              ]}
+            >
+              <Ionicons
+                name={badge.icon}
+                size={22}
+                color={toneColor(badge.tone, colors)}
+              />
+              <View style={styles.text}>
+                <View style={[styles.nameRow, { gap: spacing[2] }]}>
+                  <Text
+                    style={[typography.bodyDefault, dir, { color: colors.text.primary }]}
+                  >
+                    {name}
+                  </Text>
+                  {value === "authority" ? (
+                    <View
+                      style={[
+                        styles.tag,
+                        {
+                          borderColor: colors.brand.primary,
+                          paddingHorizontal: spacing[2],
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[typography.labelCaption, { color: colors.brand.primary }]}
+                      >
+                        {t("admin.person.badge.newTag")}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+                {describe ? <Text style={meta}>{describe}</Text> : null}
+              </View>
+              {has ? (
+                <View style={[styles.nameRow, { gap: 4 }]} testID={`badge-has-${value}`}>
+                  <Ionicons name="checkmark" size={18} color={colors.status.success} />
+                  <Text
+                    style={[typography.labelCaption, { color: colors.status.success }]}
+                  >
+                    {t("admin.person.badge.hasIt")}
+                  </Text>
+                </View>
+              ) : (
+                <Ionicons
+                  name={selected ? "radio-button-on" : "radio-button-off"}
+                  size={22}
+                  color={selected ? colors.brand.primary : colors.text.tertiary}
+                />
+              )}
+            </Pressable>
+          );
+        })}
       </View>
       {rank === "partner" ? (
         <TextInput
@@ -110,46 +203,23 @@ export function BadgeSheet({
         value={note}
         onChangeText={setNote}
         maxLength={200}
-        placeholder={t("admin.ranks.noteLabel")}
+        placeholder={t("admin.person.badge.noteLabel")}
         placeholderTextColor={colors.text.tertiary}
-        accessibilityLabel={t("admin.ranks.noteLabel")}
+        accessibilityLabel={t("admin.person.badge.noteLabel")}
         style={input}
         testID="badge-note-input"
       />
       <AccountButton
         tone="primary"
-        label={t("admin.ranks.grant")}
-        disabled={busy}
-        onPress={() =>
-          void run(
-            () =>
-              actions.grant({
-                username,
-                role: rank,
-                orgName: rank === "partner" ? org : null,
-                note,
-              }),
-            t("admin.ranks.granted"),
-          )
+        label={
+          rank
+            ? t("admin.person.badge.give", { badge: t(`eventHub.roles.${rank}`) })
+            : t("admin.person.badge.allHeld")
         }
+        disabled={busy || rank === null}
+        onPress={() => void give()}
         testID="badge-grant"
       />
-      <AccountButton
-        tone="destructive"
-        label={t("admin.ranks.revoke")}
-        disabled={busy}
-        onPress={() => void run(() => actions.revoke(username, rank), t("admin.ranks.revoked"))}
-        testID="badge-revoke"
-      />
-      {done ? (
-        <Text
-          accessibilityLiveRegion="polite"
-          style={[meta, { color: colors.status.success }]}
-          testID="badge-done"
-        >
-          {done}
-        </Text>
-      ) : null}
       {errorText ? (
         <Text
           accessibilityRole="alert"
@@ -164,6 +234,9 @@ export function BadgeSheet({
 }
 
 const styles = StyleSheet.create({
-  chips: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
+  row: { minHeight: 56, flexDirection: "row", alignItems: "center", borderRadius: 10 },
+  text: { flex: 1, gap: 2 },
+  nameRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
+  tag: { borderWidth: 1, borderRadius: 999, paddingVertical: 1 },
   input: { minHeight: 48, borderWidth: 1, borderRadius: 10 },
 });

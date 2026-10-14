@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { useRef, useState, type ReactNode } from "react";
@@ -11,21 +12,26 @@ import { communityErrorText } from "@/features/community/error-text";
 import { profileHref } from "@/features/community/routes";
 import { formatAbsoluteDual } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
+import { ROLE_BADGES } from "@/features/badges/catalog";
+import { toneColor } from "@/features/badges/tones";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { levelText, reasonText, untilText } from "@/features/restrictions/labels";
 import { useRestrictionActions } from "@/features/restrictions/queries";
 import type { RestrictionsTransport } from "@/features/restrictions/transport";
-import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
+import { LimitAccountSheet } from "@/features/restrictions/components/LimitAccountSheet";
+import type { RestrictionLevel } from "@/features/restrictions/types";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
-import { useAdminAccess } from "../../queries";
+import { useAdminAccess, useAdminActions } from "../../queries";
 import { SupabaseAdminTransport, type AdminTransport } from "../../transport";
 import { formatCount, personName, shortId } from "../format";
 import { usePeopleActions, usePerson } from "../queries";
 import type { PeopleTransport } from "../transport";
 import type { PersonDetail } from "../types";
 import { generateTempPassword } from "../../temp-password";
+import { GRANTABLE_RANKS, type GrantableRank } from "../../types";
+import { ActionGrid, GridButton, ToolCard, ToolSectionTitle } from "../../ui";
 import { BadgeSheet } from "./BadgeSheet";
 import { PersonHistory } from "./PersonHistory";
 import { PersonNotes } from "./PersonNotes";
@@ -37,10 +43,13 @@ import { TempPasswordCard } from "./TempPasswordCard";
  * One person's page (Admin > People > person). Opening it is logged on the
  * server (`person_view`); the page shows counts, lists and fingerprints only,
  * never a location, a raw device id or a full email (that needs a tap, a
- * confirmation and is logged too). Actions reuse the existing flows: view the
- * public profile, Limit / Lift (migration 0054), reset a password (0051), give
- * or take a badge (0046), reset a copied name or photo and add a private note
- * (0055). Each action shows only for the permission it needs.
+ * confirmation and is logged too). The actions are a two-column grid
+ * (review 15.3, mockup 5c): Give badge first (0046, Government official since
+ * 0066), then view the public profile, reset a password (0051), reset a
+ * copied name or photo, show the email, add a private note (0055), Lift, and
+ * last, in red with their consequence, Limit and Suspend (0054). Badges held
+ * are listed with "Take away". Each action shows only for the permission it
+ * needs.
  */
 export function PersonContent({
   userId,
@@ -168,8 +177,10 @@ function PersonBody({
   const access = useAdminAccess(hubTransport);
   const peopleActions = usePeopleActions(transport);
   const restrictionActions = useRestrictionActions(restrictionsTransport);
+  const adminActions = useAdminActions(adminTransport, hubTransport);
   const snackbar = useSnackbar();
   const [badgeOpen, setBadgeOpen] = useState(false);
+  const [limitLevel, setLimitLevel] = useState<RestrictionLevel | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [issued, setIssued] = useState<string | null>(null);
@@ -252,6 +263,23 @@ function PersonBody({
           const password = generateTempPassword();
           await (adminTransport ?? SupabaseAdminTransport).resetPassword(id.userId, password);
           setIssued(password);
+        }),
+    });
+  }
+
+  function confirmTakeAway(role: GrantableRank, label: string) {
+    if (!id.username) return;
+    const username = id.username;
+    confirmDialog({
+      title: t("admin.person.badges.confirmTitle", { badge: label }),
+      message: t("admin.person.badges.confirmMessage", { name }),
+      confirmLabel: t("admin.person.badges.takeAway"),
+      cancelLabel: t("eventHub.thread.cancel"),
+      destructive: true,
+      onConfirm: () =>
+        void run(async () => {
+          await adminActions.revoke(username, role);
+          snackbar.show({ message: t("admin.ranks.revoked") });
         }),
     });
   }
@@ -345,70 +373,97 @@ function PersonBody({
         </View>
       </View>
 
-      {/* actions */}
-      <View style={[styles.actions, { gap: spacing[1] }]} testID="person-actions">
-        {id.username ? (
-          <ActionButton
-            label={t("admin.person.actions.viewProfile")}
-            onPress={() => router.push(profileHref(id.username as string))}
-            testID="person-action-profile"
-          />
-        ) : null}
-        {canLimit ? (
-          <LimitAccountButton
-            target={{ userId: id.userId, name }}
-            canSuspend={access.canSuspend}
-            {...(restrictionsTransport ? { transport: restrictionsTransport } : {})}
-            testID="person-action-limit"
-          />
-        ) : null}
-        {activeLimits.length > 0 ? (
-          <ActionButton
-            label={t("admin.person.actions.lift")}
-            disabled={busy}
-            onPress={() => void lift((activeLimits[0] as { restrictionId: string }).restrictionId)}
-            testID="person-action-lift"
-          />
-        ) : null}
-        {canResetPassword ? (
-          <ActionButton
-            label={t("admin.person.actions.resetPassword")}
-            danger
-            disabled={busy}
-            onPress={confirmPassword}
-            testID="person-action-password"
-          />
-        ) : null}
+      {/* actions: Give badge first, destructive last (mockup 5c) */}
+      <ActionGrid testID="person-actions">
         {canBadge ? (
-          <ActionButton
-            label={t("admin.person.actions.badge")}
+          <GridButton
+            icon="ribbon-outline"
+            label={t("admin.person.actions.giveBadge")}
+            tone="primary"
             disabled={!id.username}
             onPress={() => setBadgeOpen(true)}
             testID="person-action-badge"
           />
         ) : null}
+        {id.username ? (
+          <GridButton
+            icon="person-circle-outline"
+            label={t("admin.person.actions.viewProfile")}
+            onPress={() => router.push(profileHref(id.username as string))}
+            testID="person-action-profile"
+          />
+        ) : null}
+        {canResetPassword ? (
+          <GridButton
+            icon="key-outline"
+            label={t("admin.person.actions.resetPassword")}
+            disabled={busy}
+            onPress={confirmPassword}
+            testID="person-action-password"
+          />
+        ) : null}
         {canResetFields ? (
-          <ActionButton
+          <GridButton
+            icon="create-outline"
             label={t("admin.person.actions.resetFields")}
-            danger
             onPress={() => setResetOpen(true)}
             testID="person-action-reset"
           />
         ) : null}
         {access.canViewEmail && isAccount && id.maskedEmail ? (
-          <ActionButton
+          <GridButton
+            icon="mail-outline"
             label={t("admin.person.actions.revealEmail")}
             disabled={busy}
             onPress={confirmReveal}
             testID="person-action-email"
           />
         ) : null}
-        <ActionButton
+        <GridButton
+          icon="document-text-outline"
           label={t("admin.person.actions.addNote")}
           onPress={onAddNote}
           testID="person-action-note"
         />
-      </View>
+        {activeLimits.length > 0 ? (
+          <GridButton
+            icon="lock-open-outline"
+            label={t("admin.person.actions.lift")}
+            disabled={busy}
+            onPress={() => void lift((activeLimits[0] as { restrictionId: string }).restrictionId)}
+            testID="person-action-lift"
+          />
+        ) : null}
+        {canLimit ? (
+          <GridButton
+            icon="hand-left-outline"
+            label={t("restrictions.admin.action")}
+            detail={t("restrictions.admin.levelHints.restrict")}
+            tone="danger"
+            onPress={() => setLimitLevel("restrict")}
+            testID="person-action-limit"
+          />
+        ) : null}
+        {canLimit && access.canSuspend ? (
+          <GridButton
+            icon="ban-outline"
+            label={t("admin.person.actions.suspend")}
+            detail={t("restrictions.admin.levelHints.suspend")}
+            tone="danger"
+            onPress={() => setLimitLevel("suspend")}
+            testID="person-action-suspend"
+          />
+        ) : null}
+      </ActionGrid>
+      {limitLevel ? (
+        <LimitAccountSheet
+          target={{ userId: id.userId, name }}
+          canSuspend={access.canSuspend}
+          initialLevel={limitLevel}
+          onClose={() => setLimitLevel(null)}
+          {...(restrictionsTransport ? { transport: restrictionsTransport } : {})}
+        />
+      ) : null}
       {canBadge && !id.username ? (
         <Text style={meta} testID="person-badge-needs-username">
           {t("admin.person.badge.needsUsername")}
@@ -425,7 +480,6 @@ function PersonBody({
       {badgeOpen && id.username ? (
         <BadgeSheet
           username={id.username}
-          name={name}
           heldRanks={id.ranks.map((r) => r.role)}
           onClose={() => setBadgeOpen(false)}
           {...(adminTransport ? { transport: adminTransport } : {})}
@@ -441,6 +495,48 @@ function PersonBody({
           {...(transport ? { peopleTransport: transport } : {})}
           {...(adminTransport ? { transport: adminTransport } : {})}
         />
+      ) : null}
+
+      {/* badges held, each with Take away */}
+      {isAccount ? (
+        <View style={{ gap: spacing[2] }} testID="person-badges">
+          <ToolSectionTitle title={t("admin.person.badges.title")} />
+          <ToolCard>
+            {id.ranks.length === 0 ? (
+              <Text style={meta} testID="person-badges-none">
+                {t("admin.person.badges.none")}
+              </Text>
+            ) : (
+              id.ranks.map((r) => {
+                const badge = ROLE_BADGES[r.role];
+                const label =
+                  r.role === "partner" && r.orgName ? r.orgName : t(`eventHub.roles.${r.role}`);
+                const removable =
+                  canBadge &&
+                  id.username !== null &&
+                  (GRANTABLE_RANKS as readonly string[]).includes(r.role);
+                return (
+                  <View
+                    key={r.role}
+                    style={[styles.badgeRow, { gap: spacing[3] }]}
+                    testID={`person-badge-${r.role}`}
+                  >
+                    <Ionicons name={badge.icon} size={22} color={toneColor(badge.tone, colors)} />
+                    <Text style={[body, styles.badgeName]}>{label}</Text>
+                    {removable ? (
+                      <ActionButton
+                        label={t("admin.person.badges.takeAway")}
+                        disabled={busy}
+                        onPress={() => confirmTakeAway(r.role as GrantableRank, label)}
+                        testID={`person-badge-remove-${r.role}`}
+                      />
+                    ) : null}
+                  </View>
+                );
+              })
+            )}
+          </ToolCard>
+        </View>
       ) : null}
 
       {/* identity */}
@@ -734,7 +830,8 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, gap: 4 },
   nameRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
   name: { flexShrink: 1 },
-  actions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
+  badgeRow: { flexDirection: "row", alignItems: "center", minHeight: 44 },
+  badgeName: { flex: 1 },
   line: { gap: 2 },
   lineLabel: { fontWeight: "600" },
   lineValue: { flexShrink: 1 },

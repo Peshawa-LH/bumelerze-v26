@@ -51,11 +51,15 @@ export function LimitAccountSheet({
   canSuspend,
   onClose,
   transport,
+  initialLevel = "restrict",
 }: {
   target: LimitTarget;
   canSuspend: boolean;
   onClose: () => void;
   transport?: RestrictionsTransport;
+  /** The level chosen when the sheet opens (the person page's Suspend
+   * button opens it at "suspend"; without `canSuspend` it falls back). */
+  initialLevel?: RestrictionLevel;
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -63,7 +67,9 @@ export function LimitAccountSheet({
   const actions = useRestrictionActions(transport);
   const showUndo = useUndoToast();
 
-  const [level, setLevel] = useState<RestrictionLevel>("restrict");
+  const [level, setLevel] = useState<RestrictionLevel>(
+    initialLevel === "suspend" && !canSuspend ? "restrict" : initialLevel,
+  );
   const [duration, setDuration] = useState<DurationId>("d7");
   const [customDate, setCustomDate] = useState("");
   // the typed date as an ISO end of day, or null when it is not a usable date

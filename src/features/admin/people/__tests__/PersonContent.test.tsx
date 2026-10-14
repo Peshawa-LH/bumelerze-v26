@@ -84,13 +84,17 @@ function entry(overrides: Partial<ActivityEntry> = {}): ActivityEntry {
   };
 }
 
-function adminTransport(rows: ActivityEntry[] = []): jest.Mocked<AdminTransport> {
+function adminTransport(
+  rows: ActivityEntry[] = [],
+  overrides: Partial<AdminTransport> = {},
+): jest.Mocked<AdminTransport> {
   return {
     fetchActivity: jest.fn(async () => rows),
     undoAction: jest.fn(async () => undefined),
     resetPassword: jest.fn(async () => undefined),
     grantRole: jest.fn(async () => undefined),
     revokeRole: jest.fn(async () => undefined),
+    ...overrides,
   } as unknown as jest.Mocked<AdminTransport>;
 }
 
@@ -532,13 +536,38 @@ describe("Admin > People > person", () => {
   });
 
   describe("badges", () => {
-    it("gives a badge to this person without typing the @username", async () => {
-      const { admin } = await render(OFFICIAL, fakePeopleTransport());
+    const withRanks = (ranks: { role: "engineer" | "authority" | "official"; orgName: null }[]) => {
+      const base = detail();
+      return fakePeopleTransport({ person: detail({ identity: { ...base.identity, ranks } }) });
+    };
+
+    it("puts Give badge first in the action grid, as the primary action", async () => {
+      await render(OFFICIAL, fakePeopleTransport());
+      const grid = await screen.findByTestId("person-actions");
+      const ids = (grid.props.children as unknown[])
+        .flat()
+        .filter(Boolean)
+        .map((child) => (child as { props: { testID?: string } }).props.testID);
+      expect(ids[0]).toBe("person-action-badge");
+    });
+
+    it("gives a badge from the sheet: Government official first and New, held badges say Has it", async () => {
+      const { admin } = await render(OFFICIAL, withRanks([{ role: "engineer", orgName: null }]));
       await fireEvent.press(await screen.findByTestId("person-action-badge"));
       expect(await screen.findByTestId("badge-sheet")).toBeTruthy();
+      expect(screen.getByText("Give badge to @aso")).toBeTruthy();
+      expect(screen.getByTestId("badge-rank-authority")).toHaveTextContent(/Government official/);
+      expect(screen.getByTestId("badge-rank-authority")).toHaveTextContent(/New/);
+      expect(screen.getByTestId("badge-has-engineer")).toHaveTextContent(/Has it/);
+      expect(screen.getByTestId("badge-rank-engineer").props.accessibilityState.disabled).toBe(true);
+      expect(screen.queryByTestId("badge-rank-official")).toBeNull();
+      // the first badge not held is chosen
+      expect(screen.getByTestId("badge-grant")).toHaveTextContent("Give badge: Government official");
       await act(async () => {
         fireEvent.press(screen.getByTestId("badge-rank-professor"));
+        fireEvent.changeText(screen.getByTestId("badge-note-input"), "ID checked");
       });
+      expect(screen.getByTestId("badge-grant")).toHaveTextContent("Give badge: Professor");
       await act(async () => {
         fireEvent.press(screen.getByTestId("badge-grant"));
       });
@@ -547,19 +576,109 @@ describe("Admin > People > person", () => {
           username: "aso",
           role: "professor",
           orgName: null,
-          note: "",
+          note: "ID checked",
         }),
       );
-      expect(await screen.findByTestId("badge-done")).toBeTruthy();
+      await waitFor(() => expect(screen.queryByTestId("badge-sheet")).toBeNull());
     });
 
-    it("takes a badge away", async () => {
-      const { admin } = await render(OFFICIAL, fakePeopleTransport());
+    it("asks for the organisation only for a partner", async () => {
+      await render(OFFICIAL, fakePeopleTransport());
+      await fireEvent.press(await screen.findByTestId("person-action-badge"));
+      expect(screen.queryByTestId("badge-org-input")).toBeNull();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("badge-rank-partner"));
+      });
+      expect(screen.getByTestId("badge-org-input")).toBeTruthy();
+    });
+
+    it("words a failed grant in plain language and keeps the sheet open", async () => {
+      const { CommunityError } = jest.requireActual("@/features/community/types");
+      const admin = adminTransport([], {
+        grantRole: jest.fn(async () => {
+          throw new CommunityError("not_found");
+        }),
+      });
+      await render(OFFICIAL, fakePeopleTransport(), admin);
       await fireEvent.press(await screen.findByTestId("person-action-badge"));
       await act(async () => {
-        fireEvent.press(await screen.findByTestId("badge-revoke"));
+        fireEvent.press(screen.getByTestId("badge-grant"));
+      });
+      expect(await screen.findByTestId("badge-error")).toHaveTextContent("Not found.");
+      expect(screen.getByTestId("badge-sheet")).toBeTruthy();
+    });
+
+    it("lists badges held, each with Take away after a confirmation", async () => {
+      const { admin } = await render(
+        OFFICIAL,
+        withRanks([
+          { role: "authority", orgName: null },
+          { role: "engineer", orgName: null },
+        ]),
+      );
+      expect(await screen.findByTestId("person-badge-authority")).toHaveTextContent(
+        /Government official/,
+      );
+      await fireEvent.press(screen.getByTestId("person-badge-remove-engineer"));
+      const options = mockConfirm.mock.calls[0]?.[0] as {
+        title: string;
+        destructive: boolean;
+        onConfirm: () => void;
+      };
+      expect(options.title).toBe("Take away the Engineer badge?");
+      expect(options.destructive).toBe(true);
+      await act(async () => {
+        options.onConfirm();
       });
       await waitFor(() => expect(admin.revokeRole).toHaveBeenCalledWith("aso", "engineer"));
+    });
+
+    it("offers no Take away without badges.grant", async () => {
+      await render(MODERATOR, withRanks([{ role: "engineer", orgName: null }]));
+      expect(await screen.findByTestId("person-badge-engineer")).toBeTruthy();
+      expect(screen.queryByTestId("person-badge-remove-engineer")).toBeNull();
+    });
+
+    it("never offers to take away the official rank", async () => {
+      await render(OFFICIAL, withRanks([{ role: "official", orgName: null }]));
+      expect(await screen.findByTestId("person-badge-official")).toBeTruthy();
+      expect(screen.queryByTestId("person-badge-remove-official")).toBeNull();
+    });
+
+    it("says when the person has no badges", async () => {
+      await render(OFFICIAL, fakePeopleTransport());
+      expect(await screen.findByTestId("person-badges-none")).toHaveTextContent("No badges.");
+    });
+  });
+
+  describe("Limit and Suspend", () => {
+    it("are last in the grid, in red, each with its consequence", async () => {
+      await render(OFFICIAL, fakePeopleTransport());
+      const grid = await screen.findByTestId("person-actions");
+      const ids = (grid.props.children as unknown[])
+        .flat()
+        .filter(Boolean)
+        .map((child) => (child as { props: { testID?: string } }).props.testID);
+      expect(ids.slice(-2)).toEqual(["person-action-limit", "person-action-suspend"]);
+      expect(screen.getByTestId("person-action-limit").props.accessibilityLabel).toMatch(
+        /Limit account\. Can't comment/,
+      );
+      expect(screen.getByTestId("person-action-suspend").props.accessibilityLabel).toMatch(
+        /Suspend\. As restrict/,
+      );
+    });
+
+    it("Suspend opens the same Limit sheet at the suspend level", async () => {
+      await render(OFFICIAL, fakePeopleTransport());
+      await fireEvent.press(await screen.findByTestId("person-action-suspend"));
+      expect(await screen.findByTestId("limit-sheet")).toBeTruthy();
+      expect(screen.getByTestId("limit-level-suspend").props.accessibilityState.selected).toBe(true);
+    });
+
+    it("a moderator has Limit but no Suspend", async () => {
+      await render(MODERATOR, fakePeopleTransport());
+      await screen.findByTestId("person-action-limit");
+      expect(screen.queryByTestId("person-action-suspend")).toBeNull();
     });
   });
 
