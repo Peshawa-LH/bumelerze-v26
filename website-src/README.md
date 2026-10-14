@@ -26,15 +26,19 @@ Commit `website-src/` and the regenerated `website/` together; the jest test
   `/u/<name>` → `/u/<name>`; `/join?code&key` → `/home/join?code&key`. The
   build inlines it into `website/app/index.html` (answers `/app`) and
   `website/404.html` (Pages serves it for every other unknown path, which
-  otherwise shows a small "page not found"). The app's side of the same
-  addresses is `src/config/urls.ts`; a website test runs the app's own link
-  builders through this mapping.
+  otherwise shows a small "page not found"). Both pages carry the site's
+  preview tags (a generic Bumelerze title, the og image) and a visible "Open
+  this in the Bumelerze app" link in all four languages (`forward.*` strings),
+  so a shared short link unfurls as the brand and still leads into the app
+  for clients that run no script. The app's side of the same addresses is
+  `src/config/urls.ts`; a website test runs the app's own link builders
+  through this mapping.
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `strings/{en,ckb,kmr,ar}.json` | Every visible string, flat `key: value`. English copy keys are verbatim from the outreach copy file; the other three are machine drafts. Every language must have every English key, or the build stops. Feature names (Did you feel it, I'm safe, SHAKEmap, Tag my building, ...) match `src/i18n/locales/*.json`. |
+| `strings/{en,ckb,kmr,ar}.json` | Every visible string, flat `key: value`. English copy keys are verbatim from the outreach copy file; the other three are machine drafts. Every language must have every English key, or the build stops. Feature names (Did you feel it, I'm safe, SHAKEmap, Tag my building, ...) match `src/i18n/locales/*.json`. The brand is `Bumelerze` in English, Kurmanji and Arabic (in Arabic text inside a bidi isolate, `\u2066Bumelerze\u2069`) and `بوومەلەرزە` in Sorani; the build refuses Sorani letters in the Arabic file except the Kurdish word in `about.intro`. |
 | `pages/index.html`, `pages/how-it-works.html`, `pages/support.html`, `pages/about.html` | Templates rendered from the strings. |
 | `pages/{handbook,privacy}/<lang>.html` | Per-language page bodies (the inside of `<main>`), copied verbatim into the shared layout. Edit the text here. |
 | `partials/layout.html`, `head.html`, `header.html`, `footer.html` | Shared page chrome. |

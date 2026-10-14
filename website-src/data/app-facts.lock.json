@@ -115,7 +115,8 @@
     "key:settings.feedbackSectionTitle": "aac77df347205252"
   },
   "sensor-stations": {
-    "key:sensor.phone.title": "4cf48d6ce263004f",
+    "key:sensor.title": "162cc64ca1e4ffe9",
+    "key:stations.intro": "e0ba5ab341f1e7b8",
     "key:sensor.mode.stations": "7d4633593c765acf",
     "file:assets/stations/live-stations.json": "b49d16e5a1a65358"
   },

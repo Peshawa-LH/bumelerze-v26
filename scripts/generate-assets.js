@@ -94,7 +94,7 @@ const BRAND_RELEASES = {
     squareIconFile: "bumelerze-app-icon-square.svg",
     faviconFile: "bumelerze-favicon.svg",
     website: {
-      sourceDir: path.join(WEBSITE_ROOT, "brand-v2"),
+      sourceDir: path.join(BRAND_DIR, "website-v2"),
       primaryHorizontalFile: "bumelerze-primary-horizontal.svg",
       primaryHorizontalReversedFile: "bumelerze-primary-horizontal-reversed.svg",
       faviconSvgFile: "bumelerze-favicon.svg",
@@ -109,7 +109,7 @@ const BRAND_RELEASES = {
     squareIconFile: "bumelerze-beta-app-icon-square.svg",
     faviconFile: "bumelerze-beta-favicon.svg",
     website: {
-      sourceDir: path.join(WEBSITE_ROOT, "brand-beta"),
+      sourceDir: path.join(BRAND_DIR, "website-beta"),
       primaryHorizontalFile: "bumelerze-primary-horizontal.svg",
       primaryHorizontalReversedFile: "bumelerze-primary-horizontal-reversed.svg",
       faviconSvgFile: "bumelerze-favicon.svg",
@@ -367,10 +367,11 @@ async function assertPureWhiteSilhouette(filePath) {
 // site with no build step and no templating (website/README.md), so it
 // references a fixed, flat set of filenames under website/brand/ — it never
 // hand-codes "v2" or "beta" anywhere. Both source sets are preserved
-// side by side (website/brand-v2/, the pre-existing non-Beta files;
-// website/brand-beta/, added for this switch) and this function copies the
-// ACTIVE release's files onto those fixed filenames, the same way the rest
-// of this script rasterizes onto fixed filenames in assets/images/.
+// side by side outside the published tree (assets/brand/website-v2/, the
+// pre-existing non-Beta files; assets/brand/website-beta/, added for this
+// switch) and this function copies the ACTIVE release's files onto those
+// fixed filenames, the same way the rest of this script rasterizes onto
+// fixed filenames in assets/images/.
 // website/brand/ is therefore a GENERATED directory: do not hand-edit it,
 // re-run this script instead. bumelerze-symbol-color.svg is copied
 // unconditionally from assets/brand/logo/ (not from either release folder)

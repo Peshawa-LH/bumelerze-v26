@@ -22,6 +22,7 @@
  *   --muted #686C70 on white / ivory / off-white   5.29 / 4.91 / 4.96  (AA)
  *   white on signal red (primary button)           5.67                (AA)
  *   white on #A81A27 (pressed/hover button)        7.39                (AAA)
+ *   white on #D32F0C (class-A chip, 16 px bold)     5.02                (AA)
  *   endpoint gold on white                         1.82  FAILS: gold is
  *     decorative only on light surfaces (the bead on the seismic line), never
  *     text and never a focus ring there.
@@ -823,14 +824,14 @@ html[dir="rtl"] .live-next::before {
   flex-wrap: wrap;
   justify-content: center;
   min-width: 0;
-  gap: 0.15rem;
 }
 
+/* 44 px hit area (like the arrows), a 0.6 rem visual dot */
 .live-dot-btn {
   display: inline-grid;
   place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
   border: 0;
   background: none;
@@ -1369,7 +1370,7 @@ html[dir="rtl"] .live-next::before {
 /* The owner's class colours (Tag my building's A-F badges). Large bold
  * letters: white on A, E, F; ink on B, C, D. */
 .vc-a {
-  background: #e73710;
+  background: #d32f0c;
   color: #ffffff;
 }
 .vc-b {

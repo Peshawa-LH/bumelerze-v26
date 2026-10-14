@@ -20,7 +20,8 @@ Live at <https://bumelerze.com>, deployed by GitHub Pages on every push to
 The app is NOT here: it lives at <https://app.bumelerze.com> (Cloudflare
 Pages). `app/index.html` and `404.html` only forward the app's old
 `bumelerze.com/app/...` address and the short links (`/e/<id>`, `/u/<name>`,
-`/join?…`) to it; both are generated from `website-src/redirects.js`.
+`/join?…`) to it; both are generated from `website-src/redirects.js` and
+carry the brand's preview tags plus a no-script link into the app.
 Netlify (`netlify.toml`) is a dormant mirror. Contact: `hello@bumelerze.com`, `dev@bumelerze.com`.
 
 The 2026-10 redesign (revised after the owner's review on 2026-10-10)
@@ -65,7 +66,7 @@ and the build script. See `website-src/README.md` for the template syntax.
 | `fonts/` | Vazirmatn 400 and 700, subset to Latin, Latin Extended-A and Arabic (Sorani letters included) as WOFF2, about 39 KB each. Licence: `OFL-Vazirmatn.txt`. |
 | `img/` | Every image the pages use, resized and compressed. **Generated** by `npm run build:site-assets` (see below). |
 | `og-image.jpg` | The 1200x630 social preview image. |
-| `brand/`, `brand-v2/`, `brand-beta/`, `favicon.ico` | Logo and favicons. `brand/` and `favicon.ico` are **generated** by `node scripts/generate-assets.js` from whichever of `brand-v2/` or `brand-beta/` is active (`ACTIVE_BRAND_RELEASE`). The wordmark is never mirrored on RTL pages. |
+| `brand/`, `favicon.ico` | Logo and favicons, **generated** by `node scripts/generate-assets.js` from whichever of `assets/brand/website-v2/` or `assets/brand/website-beta/` is active (`ACTIVE_BRAND_RELEASE`); the source sets are not published. The wordmark is never mirrored on RTL pages. |
 
 ### Support answers and social accounts
 
