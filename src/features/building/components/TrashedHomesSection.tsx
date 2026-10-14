@@ -111,7 +111,9 @@ function TrashedHomeRow({
         {name}
       </Text>
       <Text style={meta}>{t("building.trash.until", { date: until })}</Text>
-      <View style={[styles.actions, { gap: spacing[1] }]}>
+      {/* Restore and the destructive "Delete now" sit side by side: a real gap
+          between their 44 px targets, since the web ignores hitSlop. */}
+      <View style={[styles.actions, { gap: spacing[4] }]}>
         <ActionButton
           label={t("building.trash.restore")}
           disabled={busy}
