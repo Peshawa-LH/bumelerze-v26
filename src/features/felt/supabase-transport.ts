@@ -378,19 +378,17 @@ export interface FeltPhotoInsert {
 }
 
 /**
- * Maps a resolved storage path to a `felt_photos` upsert row (migration
+ * Maps a resolved storage path to a `felt_photos` insert row (migration
  * 0003 + 0016's added `felt_photos_report_id_uq`). Deliberately NOT sent
- * (left to the database, or to whatever the row already has on a retry):
- *  - `photo_id`          — `default gen_random_uuid()`, only meaningful on
- *                          a true first insert
- *  - `moderation_status` — `default 'pending'` on insert; on an upsert
- *                          conflict this column is simply absent from the
- *                          payload, so Postgres leaves it untouched rather
- *                          than resetting an already-moderated row (see
- *                          migration 0016's own comment on
- *                          `felt_photos_report_id_uq`)
- *  - `moderated_at`, `moderated_by` — same reasoning, D15's moderation
- *                          UPDATE happens via service_role, not this client
+ * (left to the database):
+ *  - `photo_id`          — `default gen_random_uuid()`
+ *  - `moderation_status` — `default 'pending'`; a retry never touches an
+ *                          existing row (its insert hits
+ *                          `felt_photos_report_id_uq` and is treated as
+ *                          done, see `uploadFeltPhoto`), so an
+ *                          already-moderated row is never reset
+ *  - `moderated_at`, `moderated_by` — D15's moderation UPDATE happens via
+ *                          service_role, not this client
  *  - `created_at`         — `default now()`
  */
 export function buildFeltPhotoInsert(
@@ -403,7 +401,7 @@ export function buildFeltPhotoInsert(
 /**
  * Uploads a window-3 photo (`Tier2Report.photoUri`) to the private
  * `felt-photos` Storage bucket (migration 0016) at
- * `<auth.uid()>/<felt_report_id>.jpg`, then upserts the matching
+ * `<auth.uid()>/<felt_report_id>.jpg`, then inserts the matching
  * `felt_photos` row (moderation stays whatever it already was — see
  * migration 0016's own comment on why `moderation_status` is never sent
  * here). Never throws: every failure path returns `{ outcome: "failed" }`
@@ -447,16 +445,19 @@ export async function uploadFeltPhoto(
       return { outcome: "failed" };
     }
 
-    // onConflict: 'report_id' targets migration 0016's new unique
-    // constraint — a retry after a dropped response upserts the SAME row
-    // rather than erroring or duplicating (see `buildFeltPhotoInsert`'s own
-    // doc for why `moderation_status` is safe to omit here).
+    // A plain insert, never an upsert (2026-10-14). For `insert … on
+    // conflict do update` Postgres also applies the table's SELECT policy
+    // to the new row, and that policy only passes approved photos of live
+    // reports — a fresh photo is `pending`, so the whole upsert was refused
+    // ("new row violates row-level security policy") even with no
+    // conflicting row, and the storage object was left without its row. A
+    // retry after a dropped response hits migration 0016's
+    // `felt_photos_report_id_uq` instead: the row is already there, so that
+    // unique violation is success (same rule as the report rows above).
     const { error: rowError } = await client
       .from("felt_photos")
-      .upsert(buildFeltPhotoInsert(report.feltReportId, storagePath), {
-        onConflict: "report_id",
-      });
-    if (rowError) {
+      .insert(buildFeltPhotoInsert(report.feltReportId, storagePath));
+    if (rowError && rowError.code !== POSTGRES_UNIQUE_VIOLATION) {
       return { outcome: "failed" };
     }
 

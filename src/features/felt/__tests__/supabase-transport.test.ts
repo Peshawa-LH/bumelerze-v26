@@ -714,12 +714,15 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
   function mockStorageClient(options: {
     session?: { user: { id: string } } | null;
     uploadError?: { message: string } | null;
-    upsertError?: { message: string } | null;
+    insertError?: { message: string; code?: string } | null;
   }) {
     const upload = jest.fn(async () => ({ error: options.uploadError ?? null }));
     const storageFrom = jest.fn(() => ({ upload }));
-    const upsert = jest.fn(async () => ({ error: options.upsertError ?? null }));
-    const from = jest.fn(() => ({ upsert }));
+    const insert = jest.fn(async () => ({ error: options.insertError ?? null }));
+    // Present only to prove it is never used: an upsert is refused by the
+    // live row-level security (the SELECT policy is applied to the new row).
+    const upsert = jest.fn(async () => ({ error: null }));
+    const from = jest.fn(() => ({ insert, upsert }));
     const getSession = jest.fn(async () => ({
       data: {
         session:
@@ -735,6 +738,7 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
       from,
       upload,
       storageFrom,
+      insert,
       upsert,
     };
   }
@@ -751,7 +755,7 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
     expect(client.storageFrom).not.toHaveBeenCalled();
   });
 
-  it("uploads to <auth.uid()>/<felt_report_id>.jpg and upserts the felt_photos row on the happy path", async () => {
+  it("uploads to <auth.uid()>/<felt_report_id>.jpg and inserts the felt_photos row on the happy path", async () => {
     const { SupabaseTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({});
@@ -766,13 +770,41 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
       expect.objectContaining({ upsert: true, contentType: "image/jpeg" }),
     );
     expect(client.from).toHaveBeenCalledWith("felt_photos");
-    expect(client.upsert).toHaveBeenCalledWith(
-      {
-        report_id: SAMPLE_TIER2_WITH_PHOTO.feltReportId,
-        storage_path: `anon-uid-1/${SAMPLE_TIER2_WITH_PHOTO.feltReportId}.jpg`,
-      },
-      { onConflict: "report_id" },
+    expect(client.insert).toHaveBeenCalledWith({
+      report_id: SAMPLE_TIER2_WITH_PHOTO.feltReportId,
+      storage_path: `anon-uid-1/${SAMPLE_TIER2_WITH_PHOTO.feltReportId}.jpg`,
+    });
+    expect(result).toEqual({ outcome: "uploaded" });
+  });
+
+  it("never upserts into felt_photos: the live SELECT policy (approved and live) is applied to an upsert's new row and refuses a pending photo", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockStorageClient({});
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+
+    expect(client.upsert).not.toHaveBeenCalled();
+    expect(client.insert).toHaveBeenCalledTimes(1);
+    // The storage upload keeps overwriting the same path on a retry.
+    expect(client.upload).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.anything(),
+      expect.objectContaining({ upsert: true }),
     );
+  });
+
+  it("treats a unique violation (23505: the photo row already exists from an earlier try) as uploaded", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockStorageClient({
+      insertError: { message: "duplicate key value violates unique constraint", code: "23505" },
+    });
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+
     expect(result).toEqual({ outcome: "uploaded" });
   });
 
@@ -788,7 +820,7 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
     expect(result).toEqual({ outcome: "failed" });
   });
 
-  it("returns 'failed' when the storage upload itself errors, without attempting the felt_photos upsert", async () => {
+  it("returns 'failed' when the storage upload itself errors, without attempting the felt_photos insert", async () => {
     const { SupabaseTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({ uploadError: { message: "bucket not found" } });
@@ -800,11 +832,11 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
     expect(result).toEqual({ outcome: "failed" });
   });
 
-  it("returns 'failed' when the storage upload succeeds but the felt_photos upsert errors", async () => {
+  it("returns 'failed' (retried on the next drain) when the row insert fails for another reason", async () => {
     const { SupabaseTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({
-      upsertError: { message: "constraint violation" },
+      insertError: { message: "new row violates row-level security policy", code: "42501" },
     });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
