@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 import Svg, {
   ClipPath,
   Circle,
@@ -19,6 +19,7 @@ import {
 import type { CardModel, CardRect, CardText } from "./card-layout";
 import { POP_DIRECTIONAL_ISOLATE, RIGHT_TO_LEFT_ISOLATE } from "./config";
 import { SHARE_FONT_BOLD, SHARE_FONT_REGULAR } from "./share-font-names";
+import { ensureShareFontsLoaded } from "./share-fonts";
 
 export interface ShareCardSvgProps {
   model: CardModel;
@@ -115,18 +116,22 @@ function CardTextShape({ item }: { item: CardText }) {
 
 /**
  * The share card, drawn from a `CardModel` and nothing else: no theme, no
- * hooks, no translation. The same element tree is rasterised on the phone
+ * translation. The same element tree is rasterised on the phone
  * (`Svg.toDataURL`) and, after font embedding, in the browser. Sized by
  * `displayWidth` (the viewBox is always the 1080-wide card), so it can be
  * mounted small and exported large.
  *
- * Not a screen element: the share sheet mounts it hidden, only while an image
- * is being made.
+ * Shown on the Event hub's first slide, and mounted hidden by the share sheet
+ * while an image is being made. Its one side effect: on the web it fetches
+ * its two faces the first time a card renders (`share-fonts.ts`).
  */
 export const ShareCardSvg = forwardRef<Svg, ShareCardSvgProps>(function ShareCardSvg(
   { model, displayWidth },
   ref,
 ) {
+  useEffect(() => {
+    void ensureShareFontsLoaded();
+  }, []);
   const { map } = model;
   const clipId = `share-map-clip-${model.size}`;
   const displayHeight = (displayWidth * model.height) / model.width;
