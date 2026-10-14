@@ -1,6 +1,8 @@
 // Side-effect import, web no-op on native: self-heal reload when a stale
 // cached page requests lazy chunks a newer deploy removed (see the module).
 import "@/lib/web-chunk-reload";
+// Side-effect import, web only: the cut-down icon font (see the module).
+import "@/lib/web-icon-font";
 
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Stack, useSegments } from "expo-router";
