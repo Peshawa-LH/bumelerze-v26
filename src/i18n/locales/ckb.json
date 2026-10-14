@@ -769,12 +769,12 @@
     "distanceSectionTitle": "دووری",
     "historicalContextLink": "بوومەلەرزەکان لێرە لە ساڵی ١٩٠٠ەوە",
     "sourceSectionTitle": "سەرچاوە",
-    "sourceUpdated": "نوێکراوەتەوە لە {{time}}",
+    "sourceUpdated": "نوێکراوەتەوە لە {{time}} (کاتی ناوخۆیی)",
     "sourceCitation": "داتای ڕووداو: {{network}} (لە ڕێگەی خزمەتگوزاری FDSN)",
     "sourceProviderTitle": "{{network}} ئەم ڕووداوە بەم ناوەی خوارەوە تۆمار دەکات: {{title}}",
     "shakemap": {
       "sectionTitle": "نەخشەی لەرزین",
-      "updated": "نوێکراوەتەوە لە {{time}}",
+      "updated": "نوێکراوەتەوە لە {{time}} (کاتی ناوخۆیی)",
       "citation": "نەخشەی لەرزین: {{producer}}، وەشانی {{version}}",
       "engineVersion": "ئەنجینی مەترسی، وەشانی {{version}}",
       "legendCaption": "توندی (IMS-25): پێوەری نەخشەی لەرزینی بوومەلەرزە",
@@ -901,7 +901,7 @@
       "legendCaption": "توندی دیمانی کۆمەڵایەتی (CDI): بە هەستی خەڵک",
       "mapA11yLabel": "نەخشەی ڕاپۆرتی هەستکراو، {{count}} ڕاپۆرت، توندی لە {{min}} بۆ {{max}}، نزیک {{place}}",
       "reportCount": "{{count}} ڕاپۆرت لە {{cells}} ناوچەدا",
-      "updated": "نوێکراوەتەوە لە {{time}}",
+      "updated": "نوێکراوەتەوە لە {{time}} (کاتی ناوخۆیی)",
       "citation": "ڕاپۆرتەکانی هەستکراوی بوومەلەرزە: لەلایەن کۆمەڵگاوە نێردراون، بەپێی ناوچە کۆکراونەتەوە",
       "unavailableOffline": "نەخشەی هەستکراو لە دۆخی ئۆفلاین بەردەست نییە",
       "retry": "دووبارە هەوڵبدەوە"

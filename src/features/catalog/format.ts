@@ -1,7 +1,9 @@
 import type { TFunction } from "i18next";
 
 import {
+  formatAbsoluteDual,
   formatCoordinates,
+  formatDateOnly,
   formatDepthKm,
   formatMagnitudeValue,
   isolateNumeric,
@@ -70,33 +72,31 @@ export function formatCatalogDepth(
   return isolateNumeric(`${formatDepthKm(row.depthKm, locale)} ${t("units.km")}`);
 }
 
-/** Full UTC date+time for the detail sheet, digit-localized, deliberately
- * simpler than `formatAbsoluteDual` (no dual UTC/local — every catalog
- * event's local time zone at the time of occurrence is ambiguous/unknown
- * for many decades-old records, so this only ever shows the one
- * unambiguous value: UTC).
+/** Full UTC date+time for the detail sheet in the SAME medium style as the
+ * event page's Time section ("Nov 12, 2017, 6:18 PM UTC"; Sorani with its
+ * own month names and before/after-noon tokens) — one date style for one
+ * app (A-12). Only UTC, never a local time: every catalog event's local
+ * zone at the time of occurrence is ambiguous for decades-old records, so
+ * the one unambiguous value is shown.
  *
  * `epochSeconds` is the db's `t` column (schema v3) — SECONDS, not
  * milliseconds, hence the `* 1000` below. Negative values (events before
  * 1970; this catalog starts in 872) are valid `Date` inputs and format
  * correctly with no special-casing — `Date` and `Intl.DateTimeFormat` both
  * support the full proleptic Gregorian range this needs. */
-export function formatCatalogDateTimeUtc(epochSeconds: number, locale: string): string {
-  const date = new Date(epochSeconds * 1000);
-  const datePart = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    timeZone: "UTC",
-  }).format(date);
-  const timePart = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-    hourCycle: "h23",
-    timeZone: "UTC",
-  }).format(date);
-  return `${localizeDigits(datePart, locale)} ${localizeDigits(timePart, locale)} UTC`;
+export function formatCatalogDateTimeUtc(
+  epochSeconds: number,
+  locale: string,
+  t: TranslateFn,
+): string {
+  return formatAbsoluteDual(epochSeconds * 1000, locale, t).utc;
+}
+
+/** The calendar date (UTC) for a list row — "Nov 12, 2017" rather than the
+ * bare year the rows used to show (A-23), in the same per-locale template
+ * the rest of the app uses for a date without a time. */
+export function formatCatalogDate(epochSeconds: number, locale: string, t: TranslateFn): string {
+  return formatDateOnly(epochSeconds * 1000, locale, t, "UTC");
 }
 
 export function formatCatalogCoordinates(

@@ -100,9 +100,15 @@ export function formatDepthKm(depthKm: number, locale: string): string {
 }
 
 /** Lat/lon pair, three decimals, digit-localized. The comma separator is
- * plain punctuation, not a numeral, so it's never localized. */
+ * plain punctuation, not a numeral, so it's never localized. The whole pair
+ * is one left-to-right isolate: a coordinate pair is a notation, read
+ * "latitude, longitude" in every script, and under an RTL paragraph the
+ * bidi algorithm otherwise swaps the two numbers around the comma
+ * ("٤٥.٩٥٩ ,٣٤.٩١١" — A-7). */
 export function formatCoordinates(lat: number, lon: number, locale: string): string {
-  return `${formatFixedLocalized(lat, 3, locale)}, ${formatFixedLocalized(lon, 3, locale)}`;
+  return isolateNumeric(
+    `${formatFixedLocalized(lat, 3, locale)}, ${formatFixedLocalized(lon, 3, locale)}`,
+  );
 }
 
 export type RelativeTimeUnit = "justNow" | "minutes" | "hours" | "days";
@@ -315,8 +321,12 @@ export function formatDateOnly(
   originTimeMs: number,
   locale: string,
   t: TranslateFn,
+  /** IANA zone; omitted = the device's local zone (the map filter). The
+   * catalogue passes "UTC": its archival records have no meaningful local
+   * zone, so the one unambiguous calendar date is the UTC one. */
+  timeZone?: string,
 ): string {
-  const { day, month, year } = dateComponents(new Date(originTimeMs), undefined, locale);
+  const { day, month, year } = dateComponents(new Date(originTimeMs), timeZone, locale);
 
   return t("events.dateOnlyTemplate", {
     day: localizeDigits(String(day), locale),

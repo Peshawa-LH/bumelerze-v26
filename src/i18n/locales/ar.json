@@ -769,12 +769,12 @@
     "distanceSectionTitle": "المسافة",
     "historicalContextLink": "الزلازل هنا منذ عام 1900",
     "sourceSectionTitle": "المصدر",
-    "sourceUpdated": "آخر تحديث {{time}}",
+    "sourceUpdated": "آخر تحديث {{time}} (التوقيت المحلي)",
     "sourceCitation": "بيانات الحدث: {{network}} (عبر خدمة FDSN)",
     "sourceProviderTitle": "{{network}} يسجل هذا الحدث باسم: {{title}}",
     "shakemap": {
       "sectionTitle": "خريطة الاهتزاز (SHAKEmap)",
-      "updated": "آخر تحديث {{time}}",
+      "updated": "آخر تحديث {{time}} (التوقيت المحلي)",
       "citation": "خريطة الاهتزاز: {{producer}}، الإصدار {{version}}",
       "engineVersion": "محرك المخاطر، الإصدار {{version}}",
       "legendCaption": "الشدة (IMS-25): مقياس خريطة الاهتزاز الخاص بـ ⁦Bumelerze⁩",
@@ -901,7 +901,7 @@
       "legendCaption": "شدة CDI المجتمعية: مُبلَّغ عنها ذاتيًا",
       "mapA11yLabel": "خريطة تقارير الشعور بالزلزال، {{count}} تقرير، شدة من {{min}} إلى {{max}}، بالقرب من {{place}}",
       "reportCount": "{{count}} تقرير عبر {{cells}} منطقة",
-      "updated": "آخر تحديث {{time}}",
+      "updated": "آخر تحديث {{time}} (التوقيت المحلي)",
       "citation": "تقارير الشعور بالزلزال الخاصة بـ ⁦Bumelerze⁩: مُقدَّمة من المجتمع، مجمّعة حسب المنطقة",
       "unavailableOffline": "خريطة الشعور بالزلزال غير متاحة دون اتصال",
       "retry": "إعادة المحاولة"

@@ -2,11 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
-import {
-  formatCatalogMagnitude,
-  formatCatalogPlace,
-  formatCatalogYear,
-} from "../format";
+import { formatCatalogDate, formatCatalogMagnitude, formatCatalogPlace } from "../format";
 import type { CatalogRow as CatalogRowData } from "../types";
 
 interface CatalogRowProps {
@@ -14,21 +10,23 @@ interface CatalogRowProps {
   onPress: (row: CatalogRowData) => void;
 }
 
-/** One archival-catalog list row: year, magnitude, gazetteer place line,
- * source chip (provenance principle — every catalog value's origin is
+/** One archival-catalog list row: date (UTC), magnitude, gazetteer place
+ * line, source chip (provenance principle — every catalog value's origin is
  * always visible, PROJECT.md gotcha on never scattering unlabeled
- * feed-specific data through the UI). Tapping opens `CatalogDetailSheet`. */
+ * feed-specific data through the UI). Tapping opens `CatalogDetailSheet`.
+ * The row shows the full calendar date, not only the year (A-23): two
+ * events in one year were indistinguishable in the list. */
 export function CatalogRow({ row, onPress }: CatalogRowProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { colors, typography, spacing } = useTheme();
 
-  const yearText = formatCatalogYear(row.year, locale);
+  const dateText = formatCatalogDate(row.time, locale, t);
   const magnitudeText = formatCatalogMagnitude(row, locale, t);
   const placeText = formatCatalogPlace(row, locale, t);
   const sourceLabel = t(`catalog.sources.${row.sourceCatalog}`);
 
-  const accessibilityLabel = [yearText, magnitudeText, placeText, sourceLabel].join(". ");
+  const accessibilityLabel = [dateText, magnitudeText, placeText, sourceLabel].join(". ");
 
   return (
     <Pressable
@@ -55,7 +53,7 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
             fontVariant: ["tabular-nums"],
           }}
         >
-          {yearText}
+          {dateText}
         </Text>
         <Text
           allowFontScaling

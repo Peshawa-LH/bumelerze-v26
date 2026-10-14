@@ -3,7 +3,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n, { isRTLLocale } from "@/i18n";
 import { CatalogListScreen } from "../components/CatalogListScreen";
-import { formatCatalogMagnitude, formatCatalogYear } from "../format";
+import { formatCatalogDate, formatCatalogMagnitude } from "../format";
 import type { CatalogBounds, CatalogRow } from "../types";
 
 // Mocking `../use-catalog` (not expo-sqlite/SQLiteProvider) is the same
@@ -98,7 +98,7 @@ describe("CatalogListScreen", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("renders rows in ckb (Sorani, RTL) with localized magnitude/year and no results count", async () => {
+  it("renders rows in ckb (Sorani, RTL) with localized magnitude/date and no results count", async () => {
     expect(isRTLLocale("ckb")).toBe(true);
     await i18n.changeLanguage("ckb");
     mockCatalog([HALABJA_ROW, AQRAH_ROW]);
@@ -106,9 +106,15 @@ describe("CatalogListScreen", () => {
     await renderWithProviders();
 
     const t = i18n.t.bind(i18n);
-    expect(screen.getByText(formatCatalogYear(2017, "ckb"))).toBeTruthy();
+    // The full UTC calendar date, not only the year (A-23): the Halabja row
+    // reads "12 November 2017" in Sorani digits and month name.
+    const halabjaDate = formatCatalogDate(HALABJA_ROW.time, "ckb", t);
+    expect(halabjaDate).toContain("١٢");
+    expect(halabjaDate).toContain("٢٠١٧");
+    expect(halabjaDate).toContain(t("months.short.11"));
+    expect(screen.getByText(halabjaDate)).toBeTruthy();
     expect(screen.getByText(formatCatalogMagnitude(HALABJA_ROW, "ckb", t))).toBeTruthy();
-    expect(screen.getByText(formatCatalogYear(1991, "ckb"))).toBeTruthy();
+    expect(screen.getByText(formatCatalogDate(AQRAH_ROW.time, "ckb", t))).toBeTruthy();
     expect(screen.getByText(formatCatalogMagnitude(AQRAH_ROW, "ckb", t))).toBeTruthy();
 
     // Source-catalog provenance chips (untranslated codes, same across

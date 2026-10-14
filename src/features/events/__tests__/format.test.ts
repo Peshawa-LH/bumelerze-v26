@@ -92,9 +92,11 @@ describe("formatDistanceKm / formatDepthKm / formatCoordinates", () => {
     expect(formatDepthKm(12.04, "ar")).toBe("١٢.٠");
   });
 
-  it("coordinates render three decimals per axis, comma punctuation never localized", () => {
-    expect(formatCoordinates(35.56, 45.43, "en")).toBe("35.560, 45.430");
-    expect(formatCoordinates(35.56, 45.43, "ckb")).toBe("٣٥.٥٦٠, ٤٥.٤٣٠");
+  it("coordinates render three decimals per axis, comma punctuation never localized, the pair isolated as one LTR unit", () => {
+    // One isolate around the whole pair (A-7 a): under an RTL paragraph the
+    // bidi algorithm otherwise swaps the two numbers around the comma.
+    expect(formatCoordinates(35.56, 45.43, "en")).toBe(isolateNumeric("35.560, 45.430"));
+    expect(formatCoordinates(35.56, 45.43, "ckb")).toBe(isolateNumeric("٣٥.٥٦٠, ٤٥.٤٣٠"));
   });
 });
 

@@ -769,12 +769,12 @@
     "distanceSectionTitle": "Distance",
     "historicalContextLink": "Earthquakes here since 1900",
     "sourceSectionTitle": "Source",
-    "sourceUpdated": "Updated {{time}}",
+    "sourceUpdated": "Updated {{time}} (local time)",
     "sourceCitation": "Event data: {{network}} (via FDSN web service)",
     "sourceProviderTitle": "{{network}} lists this event as: {{title}}",
     "shakemap": {
       "sectionTitle": "SHAKEmap",
-      "updated": "Updated {{time}}",
+      "updated": "Updated {{time}} (local time)",
       "citation": "SHAKEmap: {{producer}}, version {{version}}",
       "engineVersion": "Hazard engine version {{version}}",
       "legendCaption": "Intensity (IMS-25): Bumelerze SHAKEmap scale",
@@ -901,7 +901,7 @@
       "legendCaption": "Community Decimal Intensity (CDI): self-reported",
       "mapA11yLabel": "Felt-report map, {{count}} reports, intensity {{min}} to {{max}}, near {{place}}",
       "reportCount": "{{count}} reports across {{cells}} areas",
-      "updated": "Updated {{time}}",
+      "updated": "Updated {{time}} (local time)",
       "citation": "Bumelerze felt reports: community-submitted, aggregated per area",
       "unavailableOffline": "Felt map unavailable offline",
       "retry": "Retry"

@@ -769,12 +769,12 @@
     "distanceSectionTitle": "Dûrahî",
     "historicalContextLink": "Erdhejên li vir ji sala 1900an vir ve",
     "sourceSectionTitle": "Çavkanî",
-    "sourceUpdated": "Hate rojanekirin {{time}}",
+    "sourceUpdated": "Hate rojanekirin {{time}} (dema herêmî)",
     "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)",
     "sourceProviderTitle": "{{network}} vê bûyerê weha binav dike: {{title}}",
     "shakemap": {
       "sectionTitle": "SHAKEmap",
-      "updated": "Hate rojanekirin {{time}}",
+      "updated": "Hate rojanekirin {{time}} (dema herêmî)",
       "citation": "SHAKEmap: {{producer}}, guhertoya {{version}}",
       "engineVersion": "Motora xetereyê, guhertoya {{version}}",
       "legendCaption": "Tundî (IMS-25): pîvana SHAKEmap ya Bumelerze",
@@ -901,7 +901,7 @@
       "legendCaption": "Tundiya Dehîdî ya Civakî (CDI): bi xwe hatiye ragihandin",
       "mapA11yLabel": "Nexşeya raporên hîskirinê, {{count}} rapor, tundî ji {{min}} heta {{max}}, nêzî {{place}}",
       "reportCount": "{{count}} rapor li {{cells}} herêman",
-      "updated": "Hate rojanekirin {{time}}",
+      "updated": "Hate rojanekirin {{time}} (dema herêmî)",
       "citation": "Raporên hîskirinê yên Bumelerze: ji aliyê civakê ve hatine şandin, li gorî herêmê hatine berhevkirin",
       "unavailableOffline": "Nexşeya hîskirinê offline ne berdest e",
       "retry": "Dîsa biceribîne"

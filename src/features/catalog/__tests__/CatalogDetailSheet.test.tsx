@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { isolateNumeric } from "@/features/events";
 import i18n from "@/i18n";
 import { CatalogDetailSheet } from "../components/CatalogDetailSheet";
 import { formatCatalogDateTimeUtc } from "../format";
@@ -65,10 +66,12 @@ describe("CatalogDetailSheet", () => {
     await renderSheet(ROW);
 
     expect(screen.getByText("Bumelerze ID")).toBeTruthy();
-    expect(screen.getByText("bml2017000s")).toBeTruthy();
+    // Ids are Latin/digit tokens wrapped in a bidi isolate so an RTL
+    // paragraph cannot reorder them (A-7 c).
+    expect(screen.getByText(isolateNumeric("bml2017000s"))).toBeTruthy();
     // Still alongside the provider-id provenance row, not replacing it.
     expect(screen.getByText("Source ID")).toBeTruthy();
-    expect(screen.getByText("us2000bmcg")).toBeTruthy();
+    expect(screen.getByText(isolateNumeric("us2000bmcg"))).toBeTruthy();
   });
 
   it("labels the bml id row in Sorani under ckb", async () => {
@@ -77,23 +80,36 @@ describe("CatalogDetailSheet", () => {
 
     expect(screen.getByText("ژمارەی بوومەلەرزە")).toBeTruthy();
     // The id value itself stays Latin/untranslated (an identifier).
-    expect(screen.getByText("bml2017000s")).toBeTruthy();
+    expect(screen.getByText(isolateNumeric("bml2017000s"))).toBeTruthy();
   });
 
-  it("converts the epoch-seconds `time` column to the correct UTC date/time (schema v3)", async () => {
+  it("converts the epoch-seconds `time` column to the correct UTC date/time in the event page's style (schema v3, A-12)", async () => {
     await i18n.changeLanguage("en");
     await renderSheet(ROW);
 
-    expect(screen.getByText(formatCatalogDateTimeUtc(ROW.time, "en"))).toBeTruthy();
-    expect(screen.getByText("11/12/2017 18:18:17 UTC")).toBeTruthy();
+    const t = i18n.t.bind(i18n);
+    expect(screen.getByText(formatCatalogDateTimeUtc(ROW.time, "en", t))).toBeTruthy();
+    // Same medium style as the event page's Time section, never "11/12/2017 18:18:17".
+    expect(screen.getByText("Nov 12, 2017, 6:18 PM UTC")).toBeTruthy();
   });
 
   it("renders a correct date for a pre-1970 event (negative epoch seconds, not an error case)", async () => {
     await i18n.changeLanguage("en");
     await renderSheet(PRE_1970_ROW);
 
-    expect(screen.getByText(formatCatalogDateTimeUtc(PRE_1970_ROW.time, "en"))).toBeTruthy();
-    expect(screen.getByText("5/5/1958 05:21:34 UTC")).toBeTruthy();
+    const t = i18n.t.bind(i18n);
+    expect(screen.getByText(formatCatalogDateTimeUtc(PRE_1970_ROW.time, "en", t))).toBeTruthy();
+    expect(screen.getByText("May 5, 1958, 5:21 AM UTC")).toBeTruthy();
+  });
+
+  it("gives every value the app language's direction and reading-start alignment under Sorani", async () => {
+    await i18n.changeLanguage("ckb");
+    await renderSheet(ROW);
+
+    const value = screen.getByText(isolateNumeric("bml2017000s"));
+    const style = Object.assign({}, ...[value.props.style].flat());
+    expect(style.writingDirection).toBe("rtl");
+    expect(style.textAlign).toBe("right");
   });
 });
 
