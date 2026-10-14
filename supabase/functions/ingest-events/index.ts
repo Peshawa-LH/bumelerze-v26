@@ -37,9 +37,12 @@ import {
   createSourceRecordViaEventRegistry,
   fetchSourceRecordsForEvent,
   findSourceRecord,
+  recordFeedHeartbeat,
   updateSourceRecord,
 } from "./db.ts";
+import type { FeedHeartbeat } from "./heartbeat.ts";
 import { ingestChannel, type Db } from "./ingest-channel.ts";
+import type { ChannelId } from "./types.ts";
 
 const RequestSchema = z
   .object({
@@ -73,6 +76,23 @@ function log(
     console.error(line);
   } else {
     console.log(line);
+  }
+}
+
+/** Best effort, never throws: the heartbeat (migration 0067) witnesses the
+ * run for the watchdog; a problem writing it is logged, not propagated. */
+async function heartbeat(
+  requestId: string,
+  provider: ChannelId,
+  value: FeedHeartbeat,
+): Promise<void> {
+  try {
+    await recordFeedHeartbeat(createServiceRoleClient(), provider, value);
+  } catch (error) {
+    log("error", requestId, "heartbeat failed", {
+      channel: provider,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -151,6 +171,11 @@ Deno.serve(async (req: Request) => {
       unchanged: summary.unchanged,
       errors: summary.errors,
     });
+    await heartbeat(requestId, channelDef.provider, {
+      ok: true,
+      summary,
+      emptyBody: fetchResult.emptyBody === true,
+    });
 
     return new Response(JSON.stringify({ data: { requestId, summary } }), {
       status: 200,
@@ -163,10 +188,11 @@ Deno.serve(async (req: Request) => {
     // scheduled cron tick for this channel is the retry (see http.ts's own
     // header comment on why this function does not itself build a longer
     // backoff loop).
-    log("error", requestId, "channel failed", {
-      channel: channelDef.id,
-      error: err instanceof Error ? err.message : String(err),
-    });
+    const message = err instanceof Error ? err.message : String(err);
+    log("error", requestId, "channel failed", { channel: channelDef.id, error: message });
+    // The failure itself is the heartbeat's news: the watchdog opens an
+    // alert once a feed has had no successful run for an hour (D-2).
+    await heartbeat(requestId, channelDef.provider, { ok: false, error: message });
     return jsonError(
       502,
       "channel_fetch_failed",
