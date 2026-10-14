@@ -75,12 +75,24 @@ function requiredKeys(): string[] {
   }
   keys.push("building.flow.review.locationPin");
   for (const vc of VULNERABILITY_CLASSES) {
-    keys.push(
-      `building.vc.name.${vc}`,
-      `building.vc.meaning.${vc}`,
-      `building.report.vcLabel`,
-    );
+    keys.push(`building.vc.name.${vc}`, `building.vc.meaning.${vc}`);
   }
+  for (const key of [
+    "pessimistic",
+    "mostLikely",
+    "optimistic",
+    "a11y",
+    "short",
+    "summaryA11y",
+  ]) {
+    keys.push(`building.vc.scenario.${key}`);
+  }
+  keys.push(
+    "building.report.scenarioNote",
+    "building.report.olderMethod",
+    "profile.myHome.value",
+    "profile.myHome.valueRange",
+  );
   for (const type of IMS_TYPES) {
     keys.push(`building.types.${plainTypeKey(type.type)}`);
   }

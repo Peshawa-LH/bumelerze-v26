@@ -8,13 +8,14 @@ import { isolateNumeric } from "@/features/events/format";
 import { formatIntensity } from "@/features/shakemap";
 import { useTheme } from "@/theme";
 import {
+  METHOD,
   expectedDamageTable,
   improvementTips,
-  parseVcRange,
   plainTypeKey,
   rankedTypes,
+  vcScenarios,
 } from "../assessment";
-import { displayVcRange, formatPercent, formatPga, formatVs30 } from "../format";
+import { formatPercent, formatPga, formatVs30 } from "../format";
 import { INTENSITY_LEVEL_NUMBER } from "../ims25";
 import { useQueuedPhotoCount } from "../photo-queue";
 import { occupancyFromUse, type Occupancy } from "../questionnaire";
@@ -24,7 +25,7 @@ import type { HomePhoto, HomeTag, StoredAssessment } from "../types";
 import { AccountGate } from "./AccountGate";
 import { DeleteHomeButton } from "./DeleteHomeButton";
 import { Body, Card, Heading, Meta, ScreenFrame } from "./ui";
-import { VcBadge } from "./VcBadge";
+import { VcScenarioRow } from "./VcScenarios";
 
 /** Share of the second most likely type above which the report mentions it. */
 const SECOND_TYPE_MIN = 0.25;
@@ -142,38 +143,25 @@ export function Report({
   }
 
   const vc = assessment.vcMostLikely;
-  const range = parseVcRange(assessment.vcRange);
-  const rangeText = displayVcRange(assessment.vcRange);
+  const scenarios = vcScenarios(vc, assessment.vcRange);
   const ranked = rankedTypes(assessment.imsTypeProbs);
   const top = ranked[0];
   const second = ranked[1];
   const hazard = assessment.hazard;
   const table = expectedDamageTable(vc);
   const tips = improvementTips(assessment.imsTypeProbs);
-  const showRange = range !== null && range.from !== range.to;
 
   return (
     <View style={{ gap: spacing[4] }}>
       {header}
 
       <Card testID="report-vc">
-        <View style={[styles.vcRow, { gap: spacing[4] }]}>
-          <VcBadge
-            vc={vc}
-            size={96}
-            label={t("building.report.vcLabel", { vc })}
-            testID="report-vc-badge"
-          />
-          <View style={styles.vcText}>
-            <Heading level={3}>{t(`building.vc.name.${vc}`)}</Heading>
-            <Body tone="secondary">{t(`building.vc.meaning.${vc}`)}</Body>
-          </View>
+        <VcScenarioRow scenarios={scenarios} testID="report-vc-scenarios" />
+        <Meta testID="report-scenario-note">{t("building.report.scenarioNote")}</Meta>
+        <View style={styles.vcText}>
+          <Heading level={3}>{t(`building.vc.name.${vc}`)}</Heading>
+          <Body tone="secondary">{t(`building.vc.meaning.${vc}`)}</Body>
         </View>
-        {showRange && rangeText ? (
-          <Meta testID="report-range">
-            {t("building.report.range", { range: rangeText })}
-          </Meta>
-        ) : null}
         {assessment.confidence !== null ? (
           <Meta testID="report-confidence">
             {t("building.report.confidence", {
@@ -308,6 +296,9 @@ export function Report({
         <Meta testID="report-photos-uploading">{t("building.photos.uploading")}</Meta>
       ) : null}
 
+      {assessment.method !== METHOD && assessment.reviewStatus === "automatic" ? (
+        <Meta testID="report-older-method">{t("building.report.olderMethod")}</Meta>
+      ) : null}
       <Meta testID="report-disclaimer">
         {assessment.reviewStatus === "engineer_reviewed"
           ? t("building.report.reviewed")
@@ -320,8 +311,7 @@ export function Report({
 }
 
 const styles = StyleSheet.create({
-  vcRow: { flexDirection: "row", alignItems: "center" },
-  vcText: { flex: 1, gap: 4 },
+  vcText: { gap: 4 },
   photoCell: { width: 140, gap: 4 },
   photo: { width: 140, height: 140, borderRadius: 10 },
 });

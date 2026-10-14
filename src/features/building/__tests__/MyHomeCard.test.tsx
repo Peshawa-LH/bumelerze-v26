@@ -99,13 +99,13 @@ describe("My home card", () => {
     ]);
     await renderWithProviders(<MyHomeCard />);
     expect(await screen.findByTestId("home-card-tag-1")).toBeTruthy();
-    expect((await screen.findByTestId("home-members-tag-1")).props.accessibilityLabel).toBe(
-      "Members: 3",
-    );
+    expect(
+      (await screen.findByTestId("home-members-tag-1")).props.accessibilityLabel,
+    ).toBe("Members: 3");
     expect(screen.getByText("Our house")).toBeTruthy();
     expect(screen.getByText(/BMH-7K3Q9P/)).toBeTruthy();
     expect(screen.getByTestId("home-vc-tag-1").props.accessibilityLabel).toMatch(
-      /^Vulnerability class [A-F]$/,
+      /^Most likely: vulnerability class [A-F]$/,
     );
     expect(screen.queryByTestId("home-skeleton")).toBeNull();
     await press("home-report-tag-1");

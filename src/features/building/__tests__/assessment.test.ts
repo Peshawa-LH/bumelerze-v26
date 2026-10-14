@@ -16,6 +16,7 @@ import {
   expectedDamageTable,
   formatVcRange,
   hasEngineerBenefit,
+  hasVcSpread,
   improvementTips,
   isM7NonEngineered,
   mostLikelyVc,
@@ -30,6 +31,7 @@ import {
   typeVcShifts,
   vcDistribution,
   vcRange,
+  vcScenarios,
   vulnerableSigns,
 } from "../assessment";
 import { IMS_TYPES, TYPE_PRIORS, type VcProbs } from "../ims25";
@@ -529,6 +531,27 @@ describe("range", () => {
     expect(parseVcRange("E")).toEqual({ from: "E", to: "E" });
     expect(parseVcRange(null)).toBeNull();
     expect(parseVcRange("nonsense")).toBeNull();
+  });
+
+  it("gives the pessimistic, most likely and optimistic classes", () => {
+    expect(vcScenarios("C", "B-D")).toEqual({
+      pessimistic: "B",
+      mostLikely: "C",
+      optimistic: "D",
+    });
+    expect(vcScenarios("C", "C")).toEqual({
+      pessimistic: "C",
+      mostLikely: "C",
+      optimistic: "C",
+    });
+    // An old row without a range shows the most likely class three times.
+    expect(vcScenarios("B", null)).toEqual({
+      pessimistic: "B",
+      mostLikely: "B",
+      optimistic: "B",
+    });
+    expect(hasVcSpread(vcScenarios("C", "B-D"))).toBe(true);
+    expect(hasVcSpread(vcScenarios("C", "C"))).toBe(false);
   });
 
   it("always contains the most likely class", () => {

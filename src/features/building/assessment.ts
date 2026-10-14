@@ -496,6 +496,33 @@ export function parseVcRange(
   return { from, to };
 }
 
+/** The three classes a result is shown with: the most vulnerable end of the
+ * 80 % range (pessimistic), the most likely class and the least vulnerable
+ * end (optimistic). Works on stored results too: without a range all three
+ * are the most likely class. */
+export interface VcScenarios {
+  pessimistic: VulnerabilityClass;
+  mostLikely: VulnerabilityClass;
+  optimistic: VulnerabilityClass;
+}
+
+export function vcScenarios(
+  mostLikely: VulnerabilityClass,
+  range: string | null | undefined,
+): VcScenarios {
+  const parsed = parseVcRange(range);
+  return {
+    pessimistic: parsed?.from ?? mostLikely,
+    mostLikely,
+    optimistic: parsed?.to ?? mostLikely,
+  };
+}
+
+/** True when the three classes are not all the same. */
+export function hasVcSpread(scenarios: VcScenarios): boolean {
+  return scenarios.pessimistic !== scenarios.optimistic;
+}
+
 // ---------------------------------------------------------------------------
 // Confidence
 // ---------------------------------------------------------------------------

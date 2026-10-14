@@ -2212,13 +2212,20 @@
         "D": "Çîna D. Ji piraniya avahiyên vir çêtir e.",
         "E": "Çîna E. Berxwedaneke baş.",
         "F": "Çîna F, ya herî kêm lawaz. Zirareke kêm tê çaverêkirin."
+      },
+      "scenario": {
+        "pessimistic": "Reşbîn",
+        "mostLikely": "Herî muhtemel",
+        "optimistic": "Geşbîn",
+        "a11y": "{{scenario}}: çîna lawaziyê {{vc}}",
+        "short": "Reşbîn {{pessimistic}} · Geşbîn {{optimistic}}",
+        "summaryA11y": "Çîna reşbîn {{pessimistic}}, çîna herî muhtemel {{likely}}, çîna geşbîn {{optimistic}}"
       }
     },
     "report": {
       "title": "Raporta avahiyê",
       "codeLabel": "Koda malê",
-      "vcLabel": "Çîna lawaziyê {{vc}}",
-      "range": "Navbera gengaz: {{range}}",
+      "scenarioNote": "Avahiya rastîn dikare li her derê di navbera çîna reşbîn û ya geşbîn de be.",
       "confidence": "Pêbawerî: {{value}}",
       "nonResidentialNote": "Texmîn li ser malên asayî hatiye avakirin; bikaranîna vê avahiyê dikare wê biguhere.",
       "typeTitle": "Avahiya te",
@@ -2235,6 +2242,7 @@
       "safety": "Rêbernameyên ewlehiyê",
       "photo": "Wêneya avahiya te",
       "automatic": "Bi awayekî xweber hatiye çêkirin. Nirxandina endazyar nêzîk e.",
+      "olderMethod": "Bi guhertoyeke berê ya rêbazê hatiye hesibandin. Ji bo nûkirinê pirsan dîsa bibersivîne.",
       "reviewed": "Ji aliyê endazyarekî ve hate nirxandin.",
       "family": "Malbat",
       "retake": "Pirsan dîsa bibersivîne",
@@ -3121,6 +3129,7 @@
     "qr": "Koda QR ya profîla min nîşan bide",
     "myHome": {
       "value": "VC {{vc}} · {{name}}",
+      "valueRange": "VC {{vc}} ({{pessimistic}}–{{optimistic}}) · {{name}}",
       "count": "{{number}} mal"
     },
     "peopleNew": "{{number}} nû"

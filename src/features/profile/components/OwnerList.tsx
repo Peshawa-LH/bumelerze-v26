@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SettingsRow } from "@/features/account/components/SettingsRow";
 import { useAdminAccess } from "@/features/admin/queries";
-import { useMyHomes } from "@/features/building";
+import { hasVcSpread, useMyHomes, vcScenarios } from "@/features/building";
 import { useFollowRequests } from "@/features/community/queries";
 import { DownloadMyDataRow } from "@/features/data-export";
 import { useMyReports } from "@/features/mydata";
@@ -38,9 +38,19 @@ export function OwnerList() {
     });
   } else if (first) {
     const name = first.tag.label ?? t(`building.kinds.${first.tag.kind}`);
-    homeValue = first.assessment
-      ? t("profile.myHome.value", { vc: first.assessment.vcMostLikely, name })
-      : name;
+    const scenarios = first.assessment
+      ? vcScenarios(first.assessment.vcMostLikely, first.assessment.vcRange)
+      : null;
+    homeValue = !scenarios
+      ? name
+      : hasVcSpread(scenarios)
+        ? t("profile.myHome.valueRange", {
+            vc: scenarios.mostLikely,
+            pessimistic: scenarios.pessimistic,
+            optimistic: scenarios.optimistic,
+            name,
+          })
+        : t("profile.myHome.value", { vc: scenarios.mostLikely, name });
   }
 
   return (

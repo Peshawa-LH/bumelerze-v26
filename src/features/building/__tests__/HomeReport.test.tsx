@@ -73,30 +73,74 @@ describe("Building report", () => {
     await clearQueryClients();
   });
 
-  it("shows the tag code, the big class badge and what it means", async () => {
+  it("shows the tag code, the three classes and what the most likely one means", async () => {
     await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
     expect(await screen.findByText(/BMH-7K3Q9P/)).toBeTruthy();
     expect(screen.getByText("Our house")).toBeTruthy();
-    const badge = screen.getByTestId("report-vc-badge");
+    const badge = screen.getByTestId("report-vc-scenarios-mostLikely");
     const vc = storedAssessment().vcMostLikely;
-    expect(badge.props.accessibilityLabel).toBe(`Vulnerability class ${vc}`);
+    expect(badge.props.accessibilityLabel).toBe(`Most likely: vulnerability class ${vc}`);
     expect(vc).toBe("A");
+    // The visible labels are hidden from screen readers: each badge already
+    // says its scenario.
+    const hidden = { includeHiddenElements: true };
+    expect(screen.getByText("Pessimistic", hidden)).toBeTruthy();
+    expect(screen.getByText("Most likely", hidden)).toBeTruthy();
+    expect(screen.getByText("Optimistic", hidden)).toBeTruthy();
+    expect(screen.getByTestId("report-scenario-note")).toBeTruthy();
+    // A result of the current method carries no "older method" note.
+    expect(screen.queryByTestId("report-older-method")).toBeNull();
     expect(screen.getByText("Most vulnerable")).toBeTruthy();
     expect(
       screen.getByText(/Heavy damage is likely in a strong earthquake/),
     ).toBeTruthy();
   });
 
-  it("gives the likely range and the confidence", async () => {
+  it("puts the ends of the range at pessimistic and optimistic, with the confidence", async () => {
     const assessment = storedAssessment(ANSWERS, {
-      vcRange: "A–B".replace("–", "-"),
+      vcMostLikely: "C",
+      vcRange: "B-D",
       confidence: 0.67,
     });
     load(assessment);
     await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
-    expect(await screen.findByTestId("report-range")).toBeTruthy();
-    expect(screen.getByText(/Likely range: A–B/)).toBeTruthy();
+    const pessimistic = await screen.findByTestId("report-vc-scenarios-pessimistic");
+    expect(pessimistic.props.accessibilityLabel).toBe(
+      "Pessimistic: vulnerability class B",
+    );
+    expect(
+      screen.getByTestId("report-vc-scenarios-mostLikely").props.accessibilityLabel,
+    ).toBe("Most likely: vulnerability class C");
+    expect(
+      screen.getByTestId("report-vc-scenarios-optimistic").props.accessibilityLabel,
+    ).toBe("Optimistic: vulnerability class D");
+    // Every badge shows its letter: the colour never stands alone.
+    for (const letter of ["B", "C", "D"]) {
+      expect(screen.getAllByText(letter).length).toBeGreaterThan(0);
+    }
     expect(screen.getByText(/Confidence: .*67%/)).toBeTruthy();
+  });
+
+  it("speaks the three classes in Sorani, letters kept Latin", async () => {
+    load(storedAssessment(ANSWERS, { vcMostLikely: "C", vcRange: "B-D" }));
+    await act(async () => {
+      await i18n.changeLanguage("ckb");
+    });
+    await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+    const optimistic = await screen.findByTestId("report-vc-scenarios-optimistic");
+    expect(optimistic.props.accessibilityLabel).toBe("گەشبینانە: پۆلی لاوازی D");
+    expect(screen.getByText("ڕەشبینانە", { includeHiddenElements: true })).toBeTruthy();
+    await act(async () => {
+      await i18n.changeLanguage("en");
+    });
+  });
+
+  it("marks a result of the earlier method and offers the retake", async () => {
+    load(storedAssessment(ANSWERS, { method: "auto-v0" }));
+    await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
+    expect(await screen.findByTestId("report-older-method")).toBeTruthy();
+    expect(screen.getByText(/earlier version of the method/)).toBeTruthy();
+    expect(screen.getByTestId("report-retake")).toBeTruthy();
   });
 
   describe("non-residential buildings", () => {
@@ -157,11 +201,15 @@ describe("Building report", () => {
     });
   });
 
-  it("omits the range line when the class is certain", async () => {
-    load(storedAssessment(ANSWERS, { vcRange: "A" }));
+  it("shows the same class three times when the class is certain", async () => {
+    load(storedAssessment(ANSWERS, { vcMostLikely: "A", vcRange: "A" }));
     await renderWithProviders(<HomeReportScreen tagId="tag-1" />);
     await screen.findByTestId("report-vc");
-    expect(screen.queryByTestId("report-range")).toBeNull();
+    for (const key of ["pessimistic", "mostLikely", "optimistic"]) {
+      expect(
+        screen.getByTestId(`report-vc-scenarios-${key}`).props.accessibilityLabel,
+      ).toMatch(/vulnerability class A$/);
+    }
   });
 
   it("describes the building type in plain words with the IMS code as a small line", async () => {

@@ -2212,13 +2212,20 @@
         "D": "Class D. Better than most buildings here.",
         "E": "Class E. Good resistance.",
         "F": "Class F, the least vulnerable. Little damage expected."
+      },
+      "scenario": {
+        "pessimistic": "Pessimistic",
+        "mostLikely": "Most likely",
+        "optimistic": "Optimistic",
+        "a11y": "{{scenario}}: vulnerability class {{vc}}",
+        "short": "Pessimistic {{pessimistic}} · Optimistic {{optimistic}}",
+        "summaryA11y": "Pessimistic class {{pessimistic}}, most likely class {{likely}}, optimistic class {{optimistic}}"
       }
     },
     "report": {
       "title": "Building report",
       "codeLabel": "Home code",
-      "vcLabel": "Vulnerability class {{vc}}",
-      "range": "Likely range: {{range}}",
+      "scenarioNote": "The real building may sit anywhere from the pessimistic to the optimistic class.",
       "confidence": "Confidence: {{value}}",
       "nonResidentialNote": "Estimate based on typical homes; this building's use may change it.",
       "typeTitle": "Your building",
@@ -2235,6 +2242,7 @@
       "safety": "Safety guides",
       "photo": "Photo of your building",
       "automatic": "Automatically generated. Engineer review is coming soon.",
+      "olderMethod": "Worked out with an earlier version of the method. Retake the questions to update it.",
       "reviewed": "Reviewed by an engineer.",
       "family": "Family",
       "retake": "Retake the questions",
@@ -3121,6 +3129,7 @@
     "qr": "Show my profile's QR code",
     "myHome": {
       "value": "VC {{vc}} · {{name}}",
+      "valueRange": "VC {{vc}} ({{pessimistic}}–{{optimistic}}) · {{name}}",
       "count": "{{number}} homes"
     },
     "peopleNew": "{{number}} new"

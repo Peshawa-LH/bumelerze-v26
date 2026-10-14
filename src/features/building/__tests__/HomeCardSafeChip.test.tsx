@@ -9,6 +9,7 @@ import {
   mockTransport,
   renderWithProviders,
   resetMockTransport,
+  storedAssessment,
 } from "../__fixtures__/testing";
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: jest.fn() }) }));
@@ -88,5 +89,23 @@ describe("Profile home card: family check-in chip", () => {
     );
     await screen.findByTestId("home-members-tag-1");
     expect(screen.queryByTestId("home-safe-tag-1")).toBeNull();
+  });
+
+  it("names the pessimistic and optimistic classes next to the most likely badge", async () => {
+    mockFetchFamily.mockResolvedValue({ myShare: true, sharing: [], checkins: [] });
+    const assessment = storedAssessment(undefined, { vcMostLikely: "C", vcRange: "B-D" });
+    await renderWithProviders(
+      <HomeCard home={{ tag: TAG, role: "owner", assessment }} />,
+    );
+    const chip = await screen.findByTestId("home-scenarios-tag-1");
+    expect(chip).toHaveTextContent("Pessimistic B · Optimistic D");
+    expect(
+      screen.getByLabelText(
+        "Pessimistic class B, most likely class C, optimistic class D",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByTestId("home-vc-tag-1").props.accessibilityLabel).toBe(
+      "Most likely: vulnerability class C",
+    );
   });
 });

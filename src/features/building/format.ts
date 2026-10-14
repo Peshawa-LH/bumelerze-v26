@@ -17,8 +17,3 @@ export function formatPga(pgaG: number, locale: string): string {
 export function formatVs30(vs30: number, locale: string): string {
   return isolateNumeric(localizeDigits(String(Math.round(vs30 / 10) * 10), locale));
 }
-
-/** "B-D" -> "B–D" for display (en dash); "C" stays "C". */
-export function displayVcRange(range: string | null | undefined): string | null {
-  return range ? range.replace("-", "–") : null;
-}

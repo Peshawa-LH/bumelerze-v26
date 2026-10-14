@@ -9,8 +9,7 @@ import { summarizeFamilyStatus } from "@/features/safe/family-status";
 import { useFamilyCheckIns } from "@/features/safe/hooks";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
-import { parseVcRange } from "../assessment";
-import { displayVcRange } from "../format";
+import { hasVcSpread, vcScenarios } from "../assessment";
 import { useFamily, type HomeSummary } from "../queries";
 import { VcBadge } from "./VcBadge";
 
@@ -60,9 +59,9 @@ export function HomeCard({ home }: { home: HomeSummary }) {
   // hours. Hidden when nobody did or it cannot be loaded.
   const checkIns = useFamilyCheckIns(tag.tagId);
   const safeSummary = checkIns.data ? summarizeFamilyStatus(checkIns.data) : null;
-  const range = parseVcRange(assessment?.vcRange);
-  const rangeText =
-    range && range.from !== range.to ? displayVcRange(assessment?.vcRange) : null;
+  const scenarios = assessment
+    ? vcScenarios(assessment.vcMostLikely, assessment.vcRange)
+    : null;
   const title = tag.label ?? t(`building.kinds.${tag.kind}`);
 
   return (
@@ -93,7 +92,10 @@ export function HomeCard({ home }: { home: HomeSummary }) {
           <VcBadge
             vc={assessment.vcMostLikely}
             size={56}
-            label={t("building.report.vcLabel", { vc: assessment.vcMostLikely })}
+            label={t("building.vc.scenario.a11y", {
+              scenario: t("building.vc.scenario.mostLikely"),
+              vc: assessment.vcMostLikely,
+            })}
             testID={`home-vc-${tag.tagId}`}
           />
         ) : null}
@@ -138,10 +140,18 @@ export function HomeCard({ home }: { home: HomeSummary }) {
                 })}
               />
             ) : null}
-            {assessment && rangeText ? (
+            {scenarios && hasVcSpread(scenarios) ? (
               <Chip
-                text={isolateNumeric(rangeText)}
-                accessibilityLabel={t("building.report.range", { range: rangeText })}
+                testID={`home-scenarios-${tag.tagId}`}
+                text={t("building.vc.scenario.short", {
+                  pessimistic: scenarios.pessimistic,
+                  optimistic: scenarios.optimistic,
+                })}
+                accessibilityLabel={t("building.vc.scenario.summaryA11y", {
+                  pessimistic: scenarios.pessimistic,
+                  likely: scenarios.mostLikely,
+                  optimistic: scenarios.optimistic,
+                })}
               />
             ) : null}
             {!assessment ? <Chip text={t("building.report.noReport")} /> : null}
