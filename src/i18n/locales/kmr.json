@@ -577,10 +577,10 @@
     "languageRestartNotice": "Ji bo sepandina zimanê nû ji nû ve tê destpêkirin…",
     "languageRestartFailedMessage": "Ji kerema xwe Bumelerze bigire û ji nû ve veke da ku guherîna ziman biqedîne.",
     "languages": {
-      "en": "Îngilîzî",
-      "ckb": "Kurdiya Soranî",
+      "en": "Îngilîzî (English)",
+      "ckb": "Kurdiya Soranî (کوردیی ناوەندی)",
       "kmr": "Kurmancî",
-      "ar": "Erebî"
+      "ar": "Erebî (العربية)"
     },
     "languageNative": {
       "en": "English",
