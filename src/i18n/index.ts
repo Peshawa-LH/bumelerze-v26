@@ -4,10 +4,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { I18nManager, Platform } from "react-native";
 
-import ar from "./locales/ar.json";
-import ckb from "./locales/ckb.json";
-import en from "./locales/en.json";
-import kmr from "./locales/kmr.json";
+import { initialTranslations, loadTranslation } from "./locale-resources";
 
 /**
  * i18n scaffolding (D12, PROJECT.md hard requirement): every visible string
@@ -30,12 +27,14 @@ export const ARABIC_SCRIPT_LOCALES: readonly SupportedLocale[] = ["ckb", "ar"];
 
 const LANGUAGE_STORAGE_KEY = "bumelerze.language";
 
-const resources = {
-  en: { translation: en },
-  ckb: { translation: ckb },
-  kmr: { translation: kmr },
-  ar: { translation: ar },
-} as const;
+// iOS/Android: all four languages. Web: English only at first; the others
+// arrive through `ensureLocaleLoaded` (locale-resources.web.ts).
+const resources = Object.fromEntries(
+  Object.entries(initialTranslations()).map(([locale, translation]) => [
+    locale,
+    { translation },
+  ]),
+);
 
 function isSupportedLocale(value: string | null): value is SupportedLocale {
   return (
@@ -181,6 +180,45 @@ void i18n.use(initReactI18next).init({
   returnNull: false,
 });
 
+/**
+ * Makes sure the translation for `locale` is in i18next. Immediate on
+ * iOS/Android (everything is bundled); on the web it downloads that one
+ * language file the first time. Never rejects: offline without the file,
+ * the app stays readable in English (the fallback).
+ */
+export async function ensureLocaleLoaded(locale: SupportedLocale): Promise<void> {
+  if (i18n.hasResourceBundle(locale, "translation")) {
+    return;
+  }
+  try {
+    const translation = await loadTranslation(locale);
+    i18n.addResourceBundle(locale, "translation", translation, true, true);
+    // i18next works out `resolvedLanguage` (which `i18n.dir()` reads) only
+    // when the language is set: it fell back to English while the file was
+    // missing, so Sorani and Arabic read as left-to-right. Set it again.
+    if (i18n.language === locale) {
+      // eslint-disable-next-line import/no-named-as-default-member -- standard i18next idiom
+      await i18n.changeLanguage(locale);
+    }
+  } catch {
+    // Offline and never downloaded: English shows instead.
+  }
+}
+
+/** Resolves once the starting language can be shown (at once on iOS/Android). */
+export const initialLocaleReady: Promise<void> = ensureLocaleLoaded(initialLocale);
+
+let initialLocaleIsReady = false;
+void initialLocaleReady.then(() => {
+  initialLocaleIsReady = true;
+});
+
+/** True once `initialLocaleReady` has resolved (synchronous check for the
+ * root layout's first render). */
+export function isInitialLocaleReady(): boolean {
+  return initialLocaleIsReady;
+}
+
 export interface ChangeLocaleResult {
   /**
    * True when the reading direction flipped. Per design-language.md §5
@@ -200,6 +238,7 @@ export async function changeLocale(
   const nextIsRTL = isRTLLocale(locale);
   const requiresRestart = nextIsRTL !== I18nManager.isRTL;
 
+  await ensureLocaleLoaded(locale);
   // eslint-disable-next-line import/no-named-as-default-member -- standard i18next idiom
   await i18n.changeLanguage(locale);
   await persistLocale(locale);

@@ -9,6 +9,8 @@ import { Stack, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { Platform } from "react-native";
+import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -43,9 +45,23 @@ import { useLaunchPendingTour } from "@/features/tour";
 import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
-import { applyPersistedLocaleOnLaunch } from "@/i18n";
+import {
+  ARABIC_SCRIPT_LOCALES,
+  applyPersistedLocaleOnLaunch,
+  initialLocaleReady,
+  isInitialLocaleReady,
+  type SupportedLocale,
+} from "@/i18n";
 import { restartApp } from "@/i18n/restart-app";
 import { applyDocumentColorSchemeWeb, useTheme } from "@/theme";
+
+const VAZIRMATN_FACES = {
+  "Vazirmatn-Regular": require("../assets/fonts/Vazirmatn-Regular.ttf"),
+  "Vazirmatn-Medium": require("../assets/fonts/Vazirmatn-Medium.ttf"),
+  "Vazirmatn-SemiBold": require("../assets/fonts/Vazirmatn-SemiBold.ttf"),
+  "Vazirmatn-Bold": require("../assets/fonts/Vazirmatn-Bold.ttf"),
+};
+const NO_FONTS = {};
 
 // Created once per app instance (module scope, not per render) so the
 // persisted cache round-trips through the SAME client across re-renders —
@@ -61,12 +77,32 @@ export default function RootLayout() {
   // `ARABIC_SCRIPT_FONT`). Not awaited: text renders in the fallback face
   // until the file is in, then re-renders — better than a blank first
   // paint on a weak connection.
-  useFonts({
-    "Vazirmatn-Regular": require("../assets/fonts/Vazirmatn-Regular.ttf"),
-    "Vazirmatn-Medium": require("../assets/fonts/Vazirmatn-Medium.ttf"),
-    "Vazirmatn-SemiBold": require("../assets/fonts/Vazirmatn-SemiBold.ttf"),
-    "Vazirmatn-Bold": require("../assets/fonts/Vazirmatn-Bold.ttf"),
-  });
+  // On the web the four faces (about 270 KB) are downloaded only while
+  // Sorani or Arabic is the language: English and Kurmanji never use them,
+  // and switching into an Arabic-script language reloads the page anyway
+  // (reading direction changes). iOS/Android have them on the device.
+  const { i18n } = useTranslation();
+  const needsArabicScriptFont =
+    Platform.OS !== "web" ||
+    ARABIC_SCRIPT_LOCALES.includes(i18n.language as SupportedLocale);
+  useFonts(needsArabicScriptFont ? VAZIRMATN_FACES : NO_FONTS);
+  // The web build downloads the language file in use before the first
+  // screen (src/i18n/locale-resources.web.ts); immediate on iOS/Android.
+  const [localeReady, setLocaleReady] = useState(isInitialLocaleReady);
+  useEffect(() => {
+    if (localeReady) {
+      return;
+    }
+    let active = true;
+    void initialLocaleReady.then(() => {
+      if (active) {
+        setLocaleReady(true);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [localeReady]);
   // A snackbar sits above the tab bar on the tab screens and at the bottom
   // edge elsewhere.
   const segments = useSegments();
@@ -158,7 +194,7 @@ export default function RootLayout() {
     void touchPresenceOnce();
   }, []);
 
-  if (isRestarting || !hasHydrated) {
+  if (isRestarting || !hasHydrated || !localeReady) {
     // Brief blank frame while the reload takes over, or while we're still
     // reading `onboardingCompleted` from AsyncStorage — never render the
     // Stack before we know whether it should register the tab screens or
