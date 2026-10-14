@@ -27,8 +27,8 @@ interface NumericStepperProps {
  * still reads as one discrete step, then repeats quickly enough to cross
  * the catalog's full year range (872-2023, `CATALOG_YEAR_STEP` decades
  * apart) in a few seconds of holding rather than requiring 100+ taps. */
-const HOLD_REPEAT_START_DELAY_MS = 400;
-const HOLD_REPEAT_INTERVAL_MS = 90;
+export const HOLD_REPEAT_START_DELAY_MS = 400;
+export const HOLD_REPEAT_INTERVAL_MS = 90;
 
 /**
  * The value in the middle is also a text box (review note 9.1): type a
@@ -39,9 +39,15 @@ const HOLD_REPEAT_INTERVAL_MS = 90;
  *
  * A boring, big-touch-target −/value/+ control (wave brief: "boring RN
  * controls, big touch targets") shared by the magnitude and year range
- * filters. Supports press-and-hold to repeat-step, since a single-step tap
- * alone would make the year filter's 872-2023 span impractical to
- * traverse (see `config.ts`'s `CATALOG_YEAR_STEP` doc comment).
+ * filters.
+ *
+ * Tap and hold (review A-1, 2026-10-14): a tap steps once, through
+ * `onPress` — on the web a quick touch or a mouse click never reached
+ * `onPressIn`, so the buttons looked dead. Holding steps once more every
+ * `HOLD_REPEAT_INTERVAL_MS` after `HOLD_REPEAT_START_DELAY_MS`, from the
+ * LATEST value (a ref, not the value of the render the press began in), and
+ * the `onPress` that follows the release of a hold is swallowed, so a hold
+ * never ends with an extra step.
  */
 export function NumericStepper({
   label,
@@ -63,6 +69,16 @@ export function NumericStepper({
   const [draft, setDraft] = useState<string | null>(null);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Always the latest value: the repeat interval reads it, so every repeat
+  // steps from where the previous one left the value (`step_` writes it at
+  // once; the effect catches a value changed from outside, e.g. typed in).
+  const valueRef = useRef(value);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+  // Set once a hold has stepped on its own; the release's `onPress` then
+  // does nothing.
+  const heldRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -75,26 +91,15 @@ export function NumericStepper({
     return Math.min(max, Math.max(min, Math.round(next * 100) / 100));
   }
 
-  function step_(direction: 1 | -1) {
-    onChange(clamp(value + direction * step));
-  }
-
-  function startHold(direction: 1 | -1) {
-    step_(direction);
-    holdTimer.current = setTimeout(() => {
-      holdInterval.current = setInterval(() => step_(direction), HOLD_REPEAT_INTERVAL_MS);
-    }, HOLD_REPEAT_START_DELAY_MS);
-  }
-
-  function commitDraft() {
-    if (draft === null) {
-      return;
+  /** One step from the latest value; false when the limit was already reached. */
+  function step_(direction: 1 | -1): boolean {
+    const next = clamp(valueRef.current + direction * step);
+    if (next === valueRef.current) {
+      return false;
     }
-    const parsed = parseFilterInput(draft, { min, max, decimals });
-    setDraft(null);
-    if (parsed !== null && parsed !== value) {
-      onChange(parsed);
-    }
+    valueRef.current = next;
+    onChange(next);
+    return true;
   }
 
   function endHold() {
@@ -105,6 +110,40 @@ export function NumericStepper({
     if (holdInterval.current) {
       clearInterval(holdInterval.current);
       holdInterval.current = null;
+    }
+  }
+
+  function startHold(direction: 1 | -1) {
+    endHold();
+    heldRef.current = false;
+    holdTimer.current = setTimeout(() => {
+      holdTimer.current = null;
+      holdInterval.current = setInterval(() => {
+        heldRef.current = true;
+        if (!step_(direction)) {
+          endHold();
+        }
+      }, HOLD_REPEAT_INTERVAL_MS);
+    }, HOLD_REPEAT_START_DELAY_MS);
+  }
+
+  function tap(direction: 1 | -1) {
+    if (heldRef.current) {
+      // The release of a hold that already stepped: not one more step.
+      heldRef.current = false;
+      return;
+    }
+    step_(direction);
+  }
+
+  function commitDraft() {
+    if (draft === null) {
+      return;
+    }
+    const parsed = parseFilterInput(draft, { min, max, decimals });
+    setDraft(null);
+    if (parsed !== null && parsed !== value) {
+      onChange(parsed);
     }
   }
 
@@ -131,6 +170,7 @@ export function NumericStepper({
           disabled={value <= min}
           onPressIn={() => startHold(-1)}
           onPressOut={endHold}
+          onPress={() => tap(-1)}
           style={[styles.button, { opacity: value <= min ? 0.4 : 1 }]}
         >
           <Text style={{ color: colors.text.primary, fontSize: typography.h3.fontSize }}>
@@ -166,6 +206,7 @@ export function NumericStepper({
           disabled={value >= max}
           onPressIn={() => startHold(1)}
           onPressOut={endHold}
+          onPress={() => tap(1)}
           style={[styles.button, { opacity: value >= max ? 0.4 : 1 }]}
         >
           <Text style={{ color: colors.text.primary, fontSize: typography.h3.fontSize }}>

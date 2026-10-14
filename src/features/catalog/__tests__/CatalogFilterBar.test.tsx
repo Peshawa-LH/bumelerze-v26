@@ -34,13 +34,14 @@ describe("CatalogFilterBar", () => {
 
     const incrementButtons = screen.getAllByLabelText("Increase");
     // magMin's stepper is the first one rendered (magMin, magMax, yearMin, yearMax order).
+    // A tap is the `press` event (review A-1: the step moved to `onPress`
+    // so a quick touch and a mouse click count on the web too).
     // `fireEvent` is itself async (wraps the handler call in `act()`) — every
     // call MUST be awaited, or two overlapping un-awaited `act()` calls
     // corrupt react-test-renderer's global act-nesting state and silently
     // break every subsequent test's render in the same file (discovered
     // the hard way building this suite).
-    await fireEvent(incrementButtons[0] as never, "pressIn");
-    await fireEvent(incrementButtons[0] as never, "pressOut");
+    await fireEvent.press(incrementButtons[0] as never);
 
     expect(onChange).toHaveBeenCalledWith({ ...BASE_VALUES, magMin: 4.5 });
   });
@@ -51,8 +52,7 @@ describe("CatalogFilterBar", () => {
 
     const decrementButtons = screen.getAllByLabelText("Decrease");
     // Order: magMin, magMax, yearMin, yearMax -> yearMax's decrement is the 4th.
-    await fireEvent(decrementButtons[3] as never, "pressIn");
-    await fireEvent(decrementButtons[3] as never, "pressOut");
+    await fireEvent.press(decrementButtons[3] as never);
 
     expect(onChange).toHaveBeenCalledWith({ ...BASE_VALUES, yearMax: 2000 });
   });
@@ -63,8 +63,7 @@ describe("CatalogFilterBar", () => {
     await render(<CatalogFilterBar bounds={BOUNDS} values={pinned} onChange={onChange} />);
 
     const incrementButtons = screen.getAllByLabelText("Increase");
-    await fireEvent(incrementButtons[0] as never, "pressIn"); // magMin's increment, disabled (value === max)
-    await fireEvent(incrementButtons[0] as never, "pressOut");
+    await fireEvent.press(incrementButtons[0] as never); // magMin's increment, disabled (value === max)
 
     expect(onChange).not.toHaveBeenCalled();
   });
