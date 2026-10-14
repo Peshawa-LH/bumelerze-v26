@@ -142,7 +142,7 @@ const config: ExpoConfig = {
       "expo-location",
       {
         locationWhenInUsePermission:
-          'Bumelerze uses your location to show accurate distances to earthquakes and to make your "did you feel it?" reports valid scientific testimony. Only used while the app is open.',
+          "Bumelerze uses your location to show accurate distances to earthquakes and to make the experiences you share useful for mapping real shaking. Only used while the app is open.",
       },
     ],
     [

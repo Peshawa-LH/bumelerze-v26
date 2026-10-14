@@ -64,14 +64,14 @@ describe("buildCardModel: formats", () => {
     expect(SHARE_IMAGE_HEIGHTS).toEqual({ square: 1080, story: 1920 });
   });
 
-  it("only the story carries the QR code and the 'did you feel it' line", async () => {
+  it("only the story carries the QR code and the 'share your experience' line", async () => {
     const square = buildCardModel(await input({ size: "square" }));
     const story = buildCardModel(await input({ size: "story" }));
     expect(square.qr).toBeNull();
-    expect(textOf(square)).not.toContain("Did you feel it? Report in Bumelerze");
+    expect(textOf(square)).not.toContain("Share your experience in Bumelerze");
     expect(story.qr).not.toBeNull();
     expect(story.qr?.path.startsWith("M")).toBe(true);
-    expect(textOf(story).join(" ")).toContain("Did you feel it?");
+    expect(textOf(story).join(" ")).toContain("Share your experience in Bumelerze");
   });
 
   it("keeps every block inside the card, with the footer last", async () => {

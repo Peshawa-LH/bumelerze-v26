@@ -12,8 +12,8 @@ import {
 
 /**
  * Screen 3 — location permission (spec-v1.md §4.11 step 3). Scientific-
- * contribution framing (LastQuake pattern: "your location makes your
- * reports valid scientific testimony") comes before the real foreground
+ * contribution framing (LastQuake pattern: your location makes your shared
+ * experiences useful for mapping real shaking) comes before the real foreground
  * permission request. Whatever the user answers, the flow continues — a
  * denial is never a dead end (spec: "if a user denies a permission
  * mid-flow, the flow must continue").

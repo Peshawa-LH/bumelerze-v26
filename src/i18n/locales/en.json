@@ -640,7 +640,7 @@
     },
     "location": {
       "title": "Your location makes science better",
-      "description": "Sharing your location lets Bumelerze show accurate distances and turns your \"did you feel it?\" reports into valid scientific testimony that helps map real shaking. You can change this anytime in Settings.",
+      "description": "Sharing your location lets Bumelerze show accurate distances and makes your shared experiences useful for mapping real shaking. You can change this anytime in Settings.",
       "allow": "Allow location access",
       "notNow": "Not now"
     },
@@ -1593,7 +1593,7 @@
     "card": {
       "legend": "Intensity (IMS-25)",
       "automatic": "Automatic estimate",
-      "prompt": "Did you feel it? Report in Bumelerze",
+      "prompt": "Share your experience in Bumelerze",
       "credit": "Event data: {{sources}} · SHAKEmap: Bumelerze",
       "creditNoMap": "Event data: {{sources}}"
     },

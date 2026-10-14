@@ -54,7 +54,7 @@ describe("wrapText", () => {
 
 describe("wrapTextBalanced", () => {
   it("breaks a two-line sentence near its middle, not with one orphan word", () => {
-    const text = "Did you feel it? Report in Bumelerze";
+    const text = "Share your experience in Bumelerze";
     const greedy = wrapText(text, 46, 700, 718, 3);
     const balanced = wrapTextBalanced(text, 46, 700, 718, 3);
     expect(balanced.join(" ")).toBe(text);

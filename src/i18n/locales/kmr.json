@@ -640,7 +640,7 @@
     },
     "location": {
       "title": "Cîhê te zanistê baştir dike",
-      "description": "Parvekirina cîhê te dihêle Bumelerze dûrahiyên rast nîşan bide û raporên te yên \"te hîs kir?\" dike şahidiyeke zanistî ya derbasdar ku dibe alîkar ji bo nexşekirina lerizîna rastîn. Tu dikarî vê her dem ji Sazkariyan biguherînî.",
+      "description": "Parvekirina cîhê te dihêle Bumelerze dûrahiyên rast nîşan bide û serpêhatiyên ku tu parve dikî ji bo nexşekirina lerizîna rastîn bikêr dike. Tu dikarî vê her dem ji Sazkariyan biguherînî.",
       "allow": "Destûra gihîştina cîhê bide",
       "notNow": "Niha na"
     },
@@ -1593,7 +1593,7 @@
     "card": {
       "legend": "Tundî (IMS-25)",
       "automatic": "Texmîna otomatîk",
-      "prompt": "Te hîs kir? Di Bumelerze de rapor bike",
+      "prompt": "Serpêhatiya xwe di Bumelerze de parve bike",
       "credit": "Daneyên bûyerê: {{sources}} · SHAKEmap: Bumelerze",
       "creditNoMap": "Daneyên bûyerê: {{sources}}"
     },

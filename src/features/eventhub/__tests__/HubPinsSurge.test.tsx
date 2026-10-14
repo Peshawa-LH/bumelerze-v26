@@ -56,7 +56,7 @@ jest.mock("@/features/account", () => ({
 
 const NOW = Date.now();
 const comments = [
-  buildComment({ id: "new", body: "Newest testimony", createdAt: NOW - 60_000 }),
+  buildComment({ id: "new", body: "Newest comment", createdAt: NOW - 60_000 }),
   buildComment({
     id: "pinned",
     body: "Official note: aftershocks are normal",
