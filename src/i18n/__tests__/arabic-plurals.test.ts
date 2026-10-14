@@ -22,9 +22,11 @@ const FORMS = ["zero", "one", "two", "few", "many", "other"] as const;
 
 test("every Arabic plural stem carries all six CLDR forms", () => {
   const keys = Object.keys(flatten(ar));
+  // A stem is a plural key only when its `_other` form exists; a key that
+  // merely ends in "_one" (e.g. an option named "no_one") is not one.
   const stems = new Set<string>();
   for (const key of keys) {
-    const match = /^(.*)_(zero|one|two|few|many|other)$/.exec(key);
+    const match = /^(.*)_other$/.exec(key);
     if (match) stems.add(match[1] as string);
   }
   const incomplete = [...stems].filter((stem) =>
