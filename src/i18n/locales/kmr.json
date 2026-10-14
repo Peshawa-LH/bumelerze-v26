@@ -1230,7 +1230,8 @@
             "3": "Erdhilweşîn, hilweşîna rê, an têkçûna mezin a erdê"
           }
         }
-      }
+      },
+      "progress": "Gav {{current}} ji {{total}}"
     },
     "damage": {
       "title": "Zirar hebû?",

@@ -21,10 +21,18 @@ import i18n from "@/i18n";
 import {
   encodeEventRegistrationParam,
   enqueueTier1Report,
+  TIER2_QUESTIONS,
   useFeltQueueStore,
   useTier2DraftStore,
   type EventRegistration,
 } from "../";
+
+/** The route indices the questionnaire actually shows after window 1: the
+ * science-pack order minus the "felt" question, which the window-1 level
+ * answers (A-13) — nine screens at indices 0 and 2-9. */
+const ASKED_STEPS = TIER2_QUESTIONS.map((question, index) => (question.field === "felt" ? null : index)).filter(
+  (index): index is number => index !== null,
+);
 
 jest.mock("expo-location", () => ({
   PermissionStatus: { GRANTED: "granted", DENIED: "denied", UNDETERMINED: "undetermined" },
@@ -118,7 +126,7 @@ async function pressButton(name: string) {
 }
 
 async function skipAllQuestions() {
-  for (let step = 0; step < 10; step++) {
+  for (let shown = 0; shown < ASKED_STEPS.length; shown++) {
     await fireEvent.press(await screen.findByText(i18n.t("felt.tier2.skip")));
   }
 }
@@ -163,13 +171,17 @@ describe("felt-report flow in a real router", () => {
     await pressButton(i18n.t("felt.damage.noDamage.label"));
     await pressButton(i18n.t("felt.details.addMoreDetail"));
 
-    for (let step = 0; step < 10; step++) {
+    // Nine screens: the "felt" question (index 1) is answered by the level
+    // tapped in window 1 and stepped over (A-13).
+    for (const step of ASKED_STEPS) {
       expect(app.getPathname()).toBe(`/felt-report/step/${step}`);
       expect(app.getSearchParams().eventId).toBe(EVENT_ID);
       expect(useTier2DraftStore.getState().eventId).toBe(EVENT_ID);
       await fireEvent.press(await screen.findByText(i18n.t("felt.tier2.skip")));
     }
     expect(app.getPathname()).toBe("/felt-report/done");
+    // Level 4 ("Felt by many") was written into the draft as "yes" on the way.
+    expect(items()[0]?.tier2?.answers.felt).toBe("yes");
 
     await pressButton(i18n.t("felt.done.close"));
     expect(app.getPathname()).toBe(`/event/${EVENT_ID}`);

@@ -1230,7 +1230,8 @@
             "3": "Landslide, collapsed road, or large ground failure"
           }
         }
-      }
+      },
+      "progress": "Step {{current}} of {{total}}"
     },
     "damage": {
       "title": "Was there any damage?",
