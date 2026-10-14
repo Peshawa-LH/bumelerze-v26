@@ -51,6 +51,7 @@ import {
 import { sendColdStartTelemetryPing } from "@/features/telemetry/ping";
 import { useTabBarStore } from "@/features/tab-bar/store";
 import { useLaunchPendingTour } from "@/features/tour/launch";
+import { useDocumentTitle } from "@/lib/document-title";
 import { isTabRootPath, startOfflineShell, startUpdateOnResume } from "@/lib/offline-shell";
 import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
@@ -134,6 +135,8 @@ export default function RootLayout() {
   // edge elsewhere.
   const segments = useSegments();
   const inTabs = (segments as string[])[0] === "(tabs)";
+  // Web: the browser tab's title follows the screen (nothing on iOS/Android).
+  useDocumentTitle();
   // Web: a newer deploy is picked up when the page comes back into view, but
   // only at a moment that costs nothing (`isReloadSafe`, read at that moment).
   const pathname = usePathname();

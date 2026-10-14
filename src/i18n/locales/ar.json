@@ -7,7 +7,8 @@
     "retry": "إعادة المحاولة",
     "notFoundTitle": "الصفحة غير موجودة",
     "notFoundBody": "هذه الصفحة غير موجودة أو تم نقلها.",
-    "goHome": "الذهاب إلى الرئيسية"
+    "goHome": "الذهاب إلى الرئيسية",
+    "documentTitle": "{{title}} · Bumelerze"
   },
   "tabs": {
     "home": "الرئيسية",

@@ -7,7 +7,8 @@
     "retry": "Retry",
     "notFoundTitle": "Page not found",
     "notFoundBody": "This page does not exist or has moved.",
-    "goHome": "Go to Home"
+    "goHome": "Go to Home",
+    "documentTitle": "{{title}} · Bumelerze"
   },
   "tabs": {
     "home": "Home",

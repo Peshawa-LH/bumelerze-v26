@@ -7,7 +7,8 @@
     "retry": "Dîsa biceribîne",
     "notFoundTitle": "Rûpel nehat dîtin",
     "notFoundBody": "Ev rûpel tune ye an jî hatiye guhertin.",
-    "goHome": "Biçe Destpêkê"
+    "goHome": "Biçe Destpêkê",
+    "documentTitle": "{{title}} · Bumelerze"
   },
   "tabs": {
     "home": "Destpêk",

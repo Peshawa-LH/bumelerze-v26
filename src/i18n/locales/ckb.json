@@ -7,7 +7,8 @@
     "retry": "دووبارە هەوڵبدەوە",
     "notFoundTitle": "پەڕە نەدۆزرایەوە",
     "notFoundBody": "ئەم پەڕە بوونی نییە یان گوازراوەتەوە.",
-    "goHome": "بڕۆ بۆ ماڵەوە"
+    "goHome": "بڕۆ بۆ ماڵەوە",
+    "documentTitle": "{{title}} · Bumelerze"
   },
   "tabs": {
     "home": "ماڵەوە",
