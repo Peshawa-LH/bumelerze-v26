@@ -386,20 +386,20 @@ describe("Profile tab", () => {
       expect(screen.getByText("Member since Oct 2026")).toBeTruthy();
     });
 
-    it("shows only EARNED badges (milestones and ranks) from my_stats(), with See all (N) for the rest", async () => {
+    it("shows a row of EARNED badges (at most five) from my_stats(), with See all (N) for the rest", async () => {
       await renderWithProviders(<ProfileScreen />);
       await flush();
+      // One line in the header (mockup 3a): the first five earned badges.
       for (const label of [
         "First report, earned",
         "10 reports, earned",
         "Detailed reporter, earned",
         "Photographer, earned",
         "First comment, earned",
-        "Helpful, earned",
-        "Very helpful, earned",
       ]) {
         expect(screen.getByLabelText(label)).toBeTruthy();
       }
+      expect(screen.queryByLabelText("Very helpful, earned")).toBeNull();
       // Locked badges and requestable ranks are not on the page itself.
       expect(screen.queryByLabelText(/locked/)).toBeNull();
       expect(screen.queryByTestId("badge-home_tagged")).toBeNull();
@@ -447,33 +447,21 @@ describe("Profile tab", () => {
       expect(screen.getByLabelText("Reports: 3")).toBeTruthy();
     });
 
-    it("the email lives under Privacy & data, not in the header", async () => {
+    it("keeps Password, Privacy & data, Sign out and Delete account off the Profile (they are in Settings > Account)", async () => {
       await renderWithProviders(<ProfileScreen />);
+      await flush();
       expect(screen.queryByText("shilan@example.com")).toBeNull();
-      await press("account-privacy-row");
-      expect(screen.getByTestId("account-email").props.children).toBe(
-        "shilan@example.com",
-      );
+      for (const id of [
+        "account-privacy-row",
+        "account-password-row",
+        "account-sign-out",
+        "account-delete",
+      ]) {
+        expect(screen.queryByTestId(id)).toBeNull();
+      }
     });
 
-    it("has a Password row that opens the set / change password screen", async () => {
-      await renderWithProviders(<ProfileScreen />);
-      await press("account-password-row");
-      expect(mockPush).toHaveBeenLastCalledWith("/account/password");
-    });
-
-    it("signs out in one tap and has Delete as its own card, last", async () => {
-      await renderWithProviders(<ProfileScreen />);
-      await press("account-sign-out");
-      expect(mockSignOut).toHaveBeenCalledTimes(1);
-      await press("account-delete");
-      expect(mockDelete).not.toHaveBeenCalled();
-      expect(screen.getByText(/permanently deletes your account/)).toBeTruthy();
-      await press("account-delete-confirm");
-      expect(mockDelete).toHaveBeenCalledTimes(1);
-    });
-
-    it("tagged home: card, then Family chip and badge earned", async () => {
+    it("My home is one row with the home's name, and opens its own page", async () => {
       mockTransport.fetchMemberships.mockResolvedValue([
         member("u-owner", { role: "owner" }),
       ]);
@@ -481,29 +469,23 @@ describe("Profile tab", () => {
       await renderWithProviders(<ProfileScreen />);
       await flush();
       await flush();
-      expect(screen.getByTestId("home-card-tag-1")).toBeTruthy();
-      expect(screen.getByLabelText("Home tagged, earned")).toBeTruthy();
+      expect(screen.queryByTestId("home-card-tag-1")).toBeNull();
+      expect(screen.getByTestId("my-home-row")).toHaveTextContent(/Our house/);
+      await press("my-home-row");
+      expect(mockPush).toHaveBeenCalledWith("/my-home");
     });
 
-    it("joining someone else's home earns Family linked", async () => {
-      mockRpc.mockResolvedValue({ data: [STATS_ROW], error: null });
-      mockTransport.fetchMemberships.mockResolvedValue([
-        member("u-owner", { role: "member" }),
-      ]);
-      mockTransport.fetchTags.mockResolvedValue([TAG]);
+    it("the 'Only you see this' list has My reports, My home, People and requests and Download my data", async () => {
       await renderWithProviders(<ProfileScreen />);
       await flush();
-      await flush();
-      expect(screen.getByLabelText("Family linked, earned")).toBeTruthy();
-    });
-
-    it("an account with no tag gets the tag card and a join link", async () => {
-      await renderWithProviders(<ProfileScreen />);
-      await flush();
-      await press("home-tag");
-      expect(mockPush).toHaveBeenCalledWith("/home/new");
-      await press("home-join");
-      expect(mockPush).toHaveBeenCalledWith("/home/join");
+      for (const id of [
+        "my-reports-row",
+        "my-home-row",
+        "account-people-row",
+        "data-export-row",
+      ]) {
+        expect(screen.getByTestId(id)).toBeTruthy();
+      }
     });
   });
 
@@ -536,8 +518,6 @@ describe("Profile tab", () => {
       await flush();
       expect(screen.getByLabelText("ڕاپۆرت: ١٢")).toBeTruthy();
       expect(screen.getByLabelText("تێبینی: ٩")).toBeTruthy();
-      // Home card code is wrapped in a left-to-right isolate.
-      expect(screen.getByText("⁦BMH-7K3Q9P⁩")).toBeTruthy();
       expect(
         screen.getAllByTestId("directional-chevron", { includeHiddenElements: true })
           .length,

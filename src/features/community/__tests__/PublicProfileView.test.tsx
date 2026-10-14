@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -137,14 +138,19 @@ describe("PublicProfileView", () => {
       "⁦@dilan.k⁩",
     );
     expect(screen.getByTestId("role-mark-seismologist")).toBeTruthy();
-    expect(screen.getByTestId("public-profile-member-since")).toBeTruthy();
     expect(screen.getByTestId("count-followers")).toBeTruthy();
+    // Posts first; the person's Event hub comments are the second tab.
+    expect(
+      screen.getByTestId("profile-tab-posts").props.accessibilityState.selected,
+    ).toBe(true);
+    await fireEvent.press(screen.getByTestId("profile-tab-comments"));
     expect(screen.getByText("Felt it strongly in the kitchen")).toBeTruthy();
     expect(screen.getByText("M 4.2 · Near Slemani")).toBeTruthy();
   });
 
   it("links a recent comment to its Event hub, and leaves one without a hub plain", async () => {
     await renderView(<PublicProfileView profile={build()} actions={makeActions()} />);
+    await fireEvent.press(screen.getByTestId("profile-tab-comments"));
     await fireEvent.press(screen.getByTestId("profile-comment-c1"));
     expect(mockPush).toHaveBeenCalledWith("/event-hub/bml202610aa");
     expect(screen.getByTestId("profile-comment-c2").props.onPress).toBeUndefined();
@@ -323,6 +329,17 @@ describe("PublicProfileView", () => {
     it("asks before blocking, then blocks", async () => {
       const actions = makeActions();
       await renderView(<PublicProfileView profile={build()} actions={actions} />);
+      // Block, Mute and Report live in the "..." (mockup 3c), Block last.
+      await fireEvent.press(screen.getByTestId("public-profile-more"));
+      const rows = within(screen.getByTestId("public-profile-menu"))
+        .getAllByRole("button")
+        .map((row) => String(row.props.testID ?? ""))
+        .filter((id) => id.startsWith("public-profile-") && !id.endsWith("-cancel"));
+      expect(rows).toEqual([
+        "public-profile-mute",
+        "public-profile-report",
+        "public-profile-block",
+      ]);
       await fireEvent.press(screen.getByTestId("public-profile-block"));
       expect(mockConfirm).toHaveBeenCalledTimes(1);
       expect(actions.block).not.toHaveBeenCalled();
@@ -355,6 +372,7 @@ describe("PublicProfileView", () => {
     it("reports a profile with a reason", async () => {
       const actions = makeActions();
       await renderView(<PublicProfileView profile={build()} actions={actions} />);
+      await fireEvent.press(screen.getByTestId("public-profile-more"));
       await fireEvent.press(screen.getByTestId("public-profile-report"));
       expect(screen.getByText("Report this profile")).toBeTruthy();
       await fireEvent.press(

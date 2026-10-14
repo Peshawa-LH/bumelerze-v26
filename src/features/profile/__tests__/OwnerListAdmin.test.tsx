@@ -4,7 +4,7 @@ import i18n from "@/i18n";
 import { renderWithProviders } from "@/features/eventhub/__fixtures__/testing";
 import type { Permission } from "@/features/eventhub/types";
 
-import { CommunityRows } from "../components/CommunityRows";
+import { OwnerList } from "../components/OwnerList";
 
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockPush }) }));
@@ -61,7 +61,7 @@ function setPermissions(permissions: Permission[] | null) {
   }
 }
 
-describe("CommunityRows: admin entry", () => {
+describe("OwnerList: admin entry", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockRpc.mockResolvedValue({ data: [], error: null });
@@ -75,7 +75,7 @@ describe("CommunityRows: admin entry", () => {
 
   it("shows no admin row to an ordinary account", async () => {
     signedIn("shilan");
-    await renderWithProviders(<CommunityRows />);
+    await renderWithProviders(<OwnerList />);
     await permissionsAnswered();
     await act(async () => undefined);
     expect(screen.getByTestId("account-people-row")).toBeTruthy();
@@ -85,7 +85,7 @@ describe("CommunityRows: admin entry", () => {
   it("shows the admin row to a moderator and opens the admin screen", async () => {
     signedIn("shilan");
     setPermissions(["comments.moderate"]);
-    await renderWithProviders(<CommunityRows />);
+    await renderWithProviders(<OwnerList />);
     await act(async () => {
       fireEvent.press(await screen.findByTestId("account-admin-row"));
     });
@@ -95,7 +95,7 @@ describe("CommunityRows: admin entry", () => {
   it("shows the admin row to someone who can only grant badges", async () => {
     signedIn("shilan");
     setPermissions(["badges.grant"]);
-    await renderWithProviders(<CommunityRows />);
+    await renderWithProviders(<OwnerList />);
     expect(await screen.findByTestId("account-admin-row")).toBeTruthy();
   });
 
@@ -103,11 +103,32 @@ describe("CommunityRows: admin entry", () => {
     signedIn("shilan");
     setPermissions(null);
     mockFetchRoles.mockResolvedValue({ u1: [{ role: "official", orgName: null }] });
-    await renderWithProviders(<CommunityRows />);
+    await renderWithProviders(<OwnerList />);
     await permissionsAnswered();
     await waitFor(() => expect(mockFetchRoles).toHaveBeenCalled());
     await act(async () => undefined);
     expect(screen.queryByTestId("account-admin-row")).toBeNull();
     expect(screen.getByTestId("account-people-row")).toBeTruthy();
+  });
+
+  it("is one list: My reports, My home, People and requests, Download my data", async () => {
+    signedIn("shilan");
+    await renderWithProviders(<OwnerList />);
+    await permissionsAnswered();
+    await act(async () => undefined);
+    for (const id of [
+      "my-reports-row",
+      "my-home-row",
+      "account-people-row",
+      "data-export-row",
+    ]) {
+      expect(screen.getByTestId(id)).toBeTruthy();
+    }
+    fireEvent.press(screen.getByTestId("my-home-row"));
+    expect(mockPush).toHaveBeenCalledWith("/my-home");
+    fireEvent.press(screen.getByTestId("my-reports-row"));
+    expect(mockPush).toHaveBeenCalledWith("/my-reports");
+    fireEvent.press(screen.getByTestId("account-people-row"));
+    expect(mockPush).toHaveBeenCalledWith("/account/people");
   });
 });

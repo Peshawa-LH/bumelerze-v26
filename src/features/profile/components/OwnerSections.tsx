@@ -1,30 +1,21 @@
 import { View } from "react-native";
 
-import { CommunityRows } from "@/features/account/components/CommunityRows";
-import { DeleteAccountRow } from "@/features/account/components/DeleteAccountRow";
-import { PasswordRow } from "@/features/account/components/PasswordRow";
-import { PrivacyRow } from "@/features/account/components/PrivacyRow";
-import { SettingsGroup } from "@/features/account/components/SettingsGroup";
-import { SignOutRow } from "@/features/account/components/SignOutRow";
-import { useAccount } from "@/features/account/use-account";
-import { MyHomeCard, TrashedHomesSection } from "@/features/building";
-import { DownloadMyDataRow } from "@/features/data-export";
-import { MyReportsRow } from "@/features/mydata";
 import { useTheme } from "@/theme";
 import { OnlyYouDivider } from "./OnlyYouDivider";
+import { OwnerList } from "./OwnerList";
 import { RecentlyDeletedSection } from "./RecentlyDeletedSection";
 
 /**
  * Everything on the Profile page that only its owner may see, after the
- * "Only you see this" divider: My home, the "My reports" row (the list itself
- * is its own page since review note 15.5), People and requests,
- * the Admin row (when the account has admin access), Recently deleted (my
- * comments and posts of the last 24 hours, when there are any), Deleted homes
- * (the 14-day trash, when there are any), Download my data, Password,
- * Privacy, Sign out and, last, Delete account.
+ * "Only you see this" divider (review note 5.1, mockup 3a): one tidy list
+ * (My reports, My home, People and requests, Download my data, Admin tools
+ * for admins) and, only when there is something in it, Recently deleted (my
+ * comments and posts of the last 24 hours). My home has its own page (with
+ * the 14-day trash of deleted homes); Password, Privacy, Sign out and Delete
+ * account are in Settings > Account.
  *
  * PRIVACY RULE (D79): this component and everything under it read the
- * viewer's own data (the felt queue, `my_stats`, homes, follow requests, admin
+ * viewer's own data (the felt queue, homes, follow requests, admin
  * permissions). It is therefore rendered ONLY by the owner's page
  * (`OwnProfile`) and never by the public profile of anyone else: a visitor's
  * render does not mount it, so none of those queries even start. The test
@@ -32,23 +23,11 @@ import { RecentlyDeletedSection } from "./RecentlyDeletedSection";
  */
 export function OwnerSections() {
   const { spacing } = useTheme();
-  const account = useAccount();
-  const isAccount = account.status === "account";
   return (
-    <View style={{ gap: spacing[4] }} testID="owner-sections">
+    <View style={{ gap: spacing[3] }} testID="owner-sections">
       <OnlyYouDivider />
-      <MyHomeCard />
-      <MyReportsRow />
-      <CommunityRows />
+      <OwnerList />
       <RecentlyDeletedSection />
-      {isAccount ? <TrashedHomesSection /> : null}
-      {isAccount ? <DownloadMyDataRow /> : null}
-      <SettingsGroup>
-        {isAccount ? <PasswordRow /> : null}
-        <PrivacyRow email={account.email} />
-        {isAccount ? <SignOutRow /> : null}
-      </SettingsGroup>
-      {isAccount ? <DeleteAccountRow /> : null}
     </View>
   );
 }

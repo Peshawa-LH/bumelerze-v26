@@ -57,8 +57,8 @@ export function ProfileByUsername({ username }: { username: string | undefined }
     );
   }
   return profile.data.isSelf ? (
-    <OwnProfile profile={profile.data} actions={actions} />
+    <OwnProfile profile={profile.data} actions={actions} inStack />
   ) : (
-    <PublicProfileView profile={profile.data} actions={actions} />
+    <PublicProfileView profile={profile.data} actions={actions} moreInHeader />
   );
 }

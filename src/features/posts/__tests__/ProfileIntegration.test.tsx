@@ -122,7 +122,9 @@ describe("Posts on the public profile page", () => {
         postsTransport={posts}
       />,
     );
-    expect(screen.getByText("Posts are visible to followers.")).toBeTruthy();
+    // One calm lock in place of the posts (mockup 3d).
+    expect(screen.getByTestId("posts-gate")).toBeTruthy();
+    expect(screen.getByText("This account is private. Follow to see more.")).toBeTruthy();
     expect(posts.fetchPosts).not.toHaveBeenCalled();
   });
 
@@ -142,7 +144,7 @@ describe("Posts on the public profile page", () => {
       />,
     );
     expect(screen.getByTestId("public-profile-name")).toBeTruthy();
-    expect(screen.getByTestId("profile-counts")).toBeTruthy();
+    expect(screen.getByTestId("profile-stats")).toBeTruthy();
     expect(screen.queryByText("Couldn't do that. Try again.")).toBeNull();
   });
 });

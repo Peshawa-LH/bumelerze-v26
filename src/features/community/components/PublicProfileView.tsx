@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { Stack, useRouter } from "expo-router";
+import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -9,13 +9,18 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { EarnedBadges } from "@/features/badges";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { formatMagnitudeValue } from "@/features/events";
-import { formatMonthYear } from "@/features/mydata/format";
 import { useMuteActions, useMutedIds } from "@/features/mute/queries";
 import { PostsSection } from "@/features/posts/components/PostsSection";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
 import type { ReportInput } from "@/features/reporting/reasons";
 import type { PostsTransport } from "@/features/posts/transport";
+import { MenuSheet, type MenuItem } from "@/features/social/components/MenuSheet";
+import { useProfileHeader } from "@/features/social/queries";
+import type { SocialTransport } from "@/features/social/transport";
+import { ProfileStats } from "@/features/profile/components/ProfileStats";
+import { ProfileTabs, type ProfileTab } from "@/features/profile/components/ProfileTabs";
 import { confirmDialog } from "@/lib/dialogs";
+import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { profileBadgeEntries } from "../badges";
 import { communityErrorText } from "../error-text";
@@ -24,9 +29,7 @@ import { peopleHref } from "../routes";
 import type { ProfileComment, PublicProfile } from "../types";
 import { formatUsername } from "../username";
 import { FollowButton } from "./FollowButton";
-import { LinkButton } from "./LinkButton";
 import { ProfileAbout } from "./ProfileAbout";
-import { ProfileCounts } from "./ProfileCounts";
 import { ProfileShareSheet } from "./ProfileShareSheet";
 
 /** What only the owner's own page knows and passes in (never fetched here):
@@ -43,28 +46,37 @@ interface PublicProfileViewProps {
   /** Only the Profile tab's own view passes this, and only when
    * `profile.isSelf`; a visitor's page never has it. */
   self?: SelfFigures;
-  /** Tests inject a fake; the app uses the Supabase one. */
+  /** The owner's "Only you see this" part, between the badges and the
+   * Posts / Comments tabs. Only `OwnProfile` passes it. */
+  ownerSection?: ReactNode;
+  /** The page sits in a stack screen: Block, Mute and Report go into its
+   * top bar's "..." (mockup 3c). Otherwise the "..." is on the page. */
+  moreInHeader?: boolean;
+  /** Tests inject fakes; the app uses the Supabase ones. */
   postsTransport?: PostsTransport;
+  socialTransport?: SocialTransport;
 }
 
 /**
- * A public profile page. Renders ONLY what `PublicProfile` carries, which is
- * public-safe by construction (see `parsePublicProfile`): no felt-report
- * places, home tags, profession or email exist in the data, so none can be
- * shown. A private account the viewer may not follow-see shows the basics
- * (photo, name, @username, rank) and a Request button.
- *
- * Since D79 this is also the TOP of the owner's own Profile tab: the same
- * public part for owner and visitors (buttons differ: Edit / Share profile
- * for the owner, Follow for a visitor). Everything only the owner may see
- * (My home, My reports, People, Admin, Password, Privacy, Sign out, Delete)
- * is NOT in this component; the owner's page renders it after this view.
+ * A profile page (review note 5.1, mockups 3a-3d), the same for the owner
+ * and for visitors: photo with posts, followers and following; name and rank
+ * mark, @username, bio and town; Edit profile + Share profile (owner) or
+ * Follow + Share profile (visitor), "Followed by ..." for trust; the badges
+ * row; then Posts and Comments as two tabs. A private account the viewer may
+ * not see into keeps its header and counts and shows a calm lock in place of
+ * the posts. Renders ONLY what `PublicProfile` (and the header counts)
+ * carry, which is public-safe by construction: no felt-report places, home
+ * tags, profession or email exist in the data, so none can be shown. Block,
+ * Mute and Report are in the "..." of the top bar.
  */
 export function PublicProfileView({
   profile,
   actions,
   self,
+  ownerSection,
+  moreInHeader = false,
   postsTransport,
+  socialTransport,
 }: PublicProfileViewProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -74,8 +86,14 @@ export function PublicProfileView({
   const [errorText, setErrorText] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [tab, setTab] = useState<ProfileTab>("posts");
   const mutedIds = useMutedIds();
   const muteActions = useMuteActions();
+  const { header } = useProfileHeader(
+    profile.suspended && !profile.isSelf ? undefined : profile.username,
+    socialTransport,
+  );
   // Muted (0061): their posts and comments stay hidden here too, for me only.
   const isMuted = !profile.isSelf && mutedIds.has(profile.userId);
 
@@ -126,11 +144,11 @@ export function PublicProfileView({
           <Avatar
             uri={null}
             name={profile.username}
-            size={88}
+            size={80}
             placeholder="person"
             testID="public-profile-avatar"
           />
-          <View style={styles.headerText}>
+          <View style={styles.flex}>
             <Text
               accessibilityRole="header"
               testID="public-profile-username"
@@ -158,77 +176,172 @@ export function PublicProfileView({
     );
   }
 
+  const posts = header?.posts ?? details?.postsCount ?? null;
+  const followers = header?.followers ?? details?.followers ?? null;
+  const following = header?.following ?? details?.following ?? null;
+  const canOpenLists = details !== null;
+
+  const menuItems: MenuItem[] =
+    profile.isSelf || profile.isBlocked
+      ? []
+      : [
+          {
+            key: "mute",
+            icon: isMuted ? "volume-high-outline" : "volume-mute-outline",
+            label: isMuted
+              ? t("community.mute.unmute")
+              : t("social.menu.mute", { name: profile.displayName }),
+            detail: isMuted ? undefined : t("social.menu.muteDetail"),
+            disabled: busy,
+            onPress: () =>
+              void run(() =>
+                isMuted
+                  ? muteActions.unmute(profile.userId)
+                  : muteActions.mute(profile.userId),
+              ),
+            testID: isMuted ? "public-profile-unmute" : "public-profile-mute",
+          },
+          ...(reported
+            ? []
+            : [
+                {
+                  key: "report",
+                  icon: "flag-outline" as const,
+                  label: t("community.report.action"),
+                  detail: t("social.menu.reportProfileDetail"),
+                  onPress: () => setReporting(true),
+                  testID: "public-profile-report",
+                },
+              ]),
+          {
+            key: "block",
+            icon: "ban-outline",
+            label: t("community.block.block"),
+            detail: t("social.menu.blockDetail"),
+            danger: true,
+            disabled: busy,
+            onPress: handleBlock,
+            testID: "public-profile-block",
+          },
+        ];
+
+  const moreButton =
+    menuItems.length > 0 ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("social.profileMore", { name: profile.displayName })}
+        onPress={() => setMenuOpen(true)}
+        hitSlop={4}
+        style={styles.more}
+        testID="public-profile-more"
+      >
+        <Ionicons name="ellipsis-horizontal" size={22} color={colors.text.primary} />
+      </Pressable>
+    ) : null;
+
+  const followedBy = header?.followedBy ?? [];
+  const followedTotal = header?.followedByTotal ?? 0;
+  let followedByText: string | null = null;
+  if (!profile.isSelf && followedBy.length > 0) {
+    const [a, b] = followedBy;
+    const more = followedTotal - followedBy.length;
+    followedByText =
+      more > 0 && a && b
+        ? t("social.followedBy.more", {
+            a: a.username,
+            b: b.username,
+            number: localizeDigits(String(more), i18n.language),
+          })
+        : a && b
+          ? t("social.followedBy.two", { a: a.username, b: b.username })
+          : t("social.followedBy.one", { a: a?.username ?? "" });
+  }
+
   return (
-    <View style={{ gap: spacing[4] }} testID="public-profile">
+    <View style={{ gap: spacing[3] }} testID="public-profile">
+      {moreInHeader && moreButton ? (
+        <Stack.Screen
+          options={{
+            title: formatUsername(profile.username),
+            headerRight: () => moreButton,
+          }}
+        />
+      ) : null}
+
       <View style={[styles.header, { gap: spacing[4] }]}>
         <Avatar
           uri={getAvatarUrl(profile.avatarPath)}
           name={profile.displayName}
-          size={88}
+          size={80}
           placeholder="person"
           testID="public-profile-avatar"
         />
-        <View style={styles.headerText}>
-          <View style={[styles.nameRow, { gap: spacing[2] }]}>
-            <Text
-              accessibilityRole="header"
-              numberOfLines={2}
-              testID="public-profile-name"
-              style={[typography.h2, styles.name, { color: colors.text.primary }]}
-            >
-              {profile.displayName}
-            </Text>
-            <RoleMark roles={profile.roles} size={20} explain />
-          </View>
+        {posts !== null && followers !== null && following !== null ? (
+          <ProfileStats
+            posts={posts}
+            followers={followers}
+            following={following}
+            {...(canOpenLists
+              ? {
+                  onOpenFollowers: () =>
+                    router.push(peopleHref(profile.username, "followers")),
+                  onOpenFollowing: () =>
+                    router.push(peopleHref(profile.username, "following")),
+                }
+              : {})}
+          />
+        ) : (
+          <View style={styles.flex} />
+        )}
+        {!moreInHeader ? moreButton : null}
+      </View>
+
+      <View style={{ gap: 2 }}>
+        <View style={[styles.nameRow, { gap: spacing[2] }]}>
           <Text
-            testID="public-profile-username"
-            style={[meta, { writingDirection: "ltr", textAlign: "left" }]}
+            accessibilityRole="header"
+            numberOfLines={2}
+            testID="public-profile-name"
+            style={[typography.h3, styles.name, { color: colors.text.primary }]}
           >
-            {formatUsername(profile.username)}
+            {profile.displayName}
           </Text>
-          {profile.isPrivate ? (
-            <View style={[styles.nameRow, { gap: spacing[1] }]}>
-              <Ionicons name="lock-closed" size={14} color={colors.text.secondary} />
-              <Text style={meta}>{t("community.profile.private")}</Text>
-            </View>
-          ) : null}
-          {details && details.memberSince !== null ? (
-            <Text testID="public-profile-member-since" style={meta}>
-              {t("myData.memberSince", {
-                date: formatMonthYear(details.memberSince, i18n.language, t),
-              })}
-            </Text>
-          ) : null}
+          <RoleMark roles={profile.roles} size={20} explain />
         </View>
+        <Text
+          testID="public-profile-username"
+          style={[meta, { writingDirection: "ltr", textAlign: "left" }]}
+        >
+          {formatUsername(profile.username)}
+        </Text>
+        {profile.isPrivate && details ? (
+          <View style={[styles.nameRow, { gap: spacing[1] }]}>
+            <Ionicons name="lock-closed" size={14} color={colors.text.secondary} />
+            <Text style={meta}>{t("community.profile.private")}</Text>
+          </View>
+        ) : null}
       </View>
 
       {details ? <ProfileAbout details={details} /> : null}
 
       {profile.isSelf ? (
-        <View style={{ gap: spacing[2] }}>
-          <View style={[styles.buttons, { gap: spacing[2] }]}>
-            <View style={styles.buttonCell}>
-              <AccountButton
-                label={t("myData.account.editProfile")}
-                onPress={() => router.push("/account/profile")}
-                testID="public-profile-edit"
-              />
-            </View>
-            <View style={styles.buttonCell}>
-              <AccountButton
-                label={t("community.profile.share")}
-                onPress={() => setSharing(true)}
-                testID="public-profile-share"
-              />
-            </View>
-          </View>
-          {sharing ? (
-            <ProfileShareSheet
-              username={profile.username}
-              displayName={profile.displayName}
-              onClose={() => setSharing(false)}
+        <View style={[styles.buttons, { gap: spacing[2] }]}>
+          <View style={styles.buttonCell}>
+            <AccountButton
+              tone="secondary"
+              label={t("myData.account.editProfile")}
+              onPress={() => router.push("/account/profile")}
+              testID="public-profile-edit"
             />
-          ) : null}
+          </View>
+          <View style={styles.buttonCell}>
+            <AccountButton
+              tone="secondary"
+              label={t("community.profile.share")}
+              onPress={() => setSharing(true)}
+              testID="public-profile-share"
+            />
+          </View>
         </View>
       ) : profile.isBlocked ? (
         <View style={{ gap: spacing[2] }}>
@@ -243,15 +356,41 @@ export function PublicProfileView({
           />
         </View>
       ) : (
-        <FollowButton profile={profile} actions={actions} />
+        <View style={[styles.buttons, { gap: spacing[2] }]}>
+          <View style={styles.buttonCell}>
+            <FollowButton profile={profile} actions={actions} />
+          </View>
+          <View style={styles.buttonCell}>
+            <AccountButton
+              tone="secondary"
+              label={t("community.profile.share")}
+              onPress={() => setSharing(true)}
+              testID="public-profile-share"
+            />
+          </View>
+        </View>
       )}
 
-      {!profile.isBlocked && !details ? (
-        <Text style={meta} testID="public-profile-private-note">
-          {profile.followStatus === "pending"
-            ? t("community.profile.requestSent")
-            : t("community.profile.privateNote")}
+      {followedByText ? (
+        <Text style={meta} testID="public-profile-followed-by">
+          {followedByText}
         </Text>
+      ) : null}
+
+      {sharing ? (
+        <ProfileShareSheet
+          username={profile.username}
+          displayName={profile.displayName}
+          onClose={() => setSharing(false)}
+        />
+      ) : null}
+
+      {details ? (
+        <EarnedBadges
+          variant="row"
+          entries={badges}
+          {...(profile.isSelf && self ? { seeAllCount: self.badgeTotal } : {})}
+        />
       ) : null}
 
       {isMuted ? (
@@ -260,58 +399,51 @@ export function PublicProfileView({
         </Text>
       ) : null}
 
-      {!details && !isMuted ? (
-        // a private account the viewer cannot see into: "visible to followers"
-        <PostsSection profile={profile} />
+      {ownerSection}
+
+      {!profile.isBlocked && !details ? (
+        // A private account the viewer cannot see into: a calm lock.
+        <View
+          style={[styles.lock, { gap: spacing[2], paddingVertical: spacing[6] }]}
+          testID="posts-gate"
+        >
+          <Ionicons name="lock-closed-outline" size={36} color={colors.text.secondary} />
+          <Text
+            accessibilityRole="header"
+            style={[typography.labelButton, { color: colors.text.primary }]}
+          >
+            {t("community.profile.private")}
+          </Text>
+          <Text style={[meta, styles.center]} testID="public-profile-private-note">
+            {profile.followStatus === "pending"
+              ? t("community.profile.requestSent")
+              : t("community.profile.privateNote")}
+          </Text>
+        </View>
       ) : null}
 
-      {details ? (
-        <>
-          <ProfileCounts
-            reports={
-              profile.isSelf && self
-                ? self.reports
-                : (details.milestones?.reports ?? null)
-            }
-            comments={details.comments}
-            followers={details.followers}
-            following={details.following}
-            onOpenFollowers={() => router.push(peopleHref(profile.username, "followers"))}
-            onOpenFollowing={() => router.push(peopleHref(profile.username, "following"))}
-          />
-
-          <EarnedBadges
-            entries={badges}
-            {...(profile.isSelf && self ? { seeAllCount: self.badgeTotal } : {})}
-          />
-
-          {isMuted ? null : (
+      {details && !isMuted ? (
+        <View style={{ gap: spacing[3] }}>
+          <ProfileTabs value={tab} onChange={setTab} />
+          {tab === "posts" ? (
             <PostsSection
               profile={profile}
+              showHeading={false}
               {...(postsTransport ? { transport: postsTransport } : {})}
+              {...(socialTransport ? { socialTransport } : {})}
             />
-          )}
-
-          {profile.isSelf || isMuted ? null : (
-            <View style={{ gap: spacing[2] }}>
-              <Text
-                accessibilityRole="header"
-                style={[typography.h3, { color: colors.text.primary }]}
-              >
-                {t("community.profile.recent")}
-              </Text>
-              {details.recentComments.length === 0 ? (
-                <Text style={meta} testID="public-profile-no-comments">
-                  {t("community.profile.noComments")}
-                </Text>
-              ) : (
-                details.recentComments.map((comment) => (
-                  <RecentComment key={comment.id} comment={comment} />
-                ))
-              )}
+          ) : details.recentComments.length === 0 ? (
+            <Text style={meta} testID="public-profile-no-comments">
+              {t("community.profile.noComments")}
+            </Text>
+          ) : (
+            <View style={{ gap: spacing[2] }} testID="public-profile-comments">
+              {details.recentComments.map((comment) => (
+                <RecentComment key={comment.id} comment={comment} />
+              ))}
             </View>
           )}
-        </>
+        </View>
       ) : null}
 
       {errorText ? (
@@ -319,38 +451,18 @@ export function PublicProfileView({
           {errorText}
         </Text>
       ) : null}
+      {reported ? (
+        <Text style={meta} testID="public-profile-reported">
+          {t("community.report.sent")}
+        </Text>
+      ) : null}
 
-      {!profile.isSelf && !profile.isBlocked ? (
-        <View style={[styles.actions, { gap: spacing[1] }]}>
-          <LinkButton
-            label={t("community.block.block")}
-            danger
-            disabled={busy}
-            onPress={handleBlock}
-            testID="public-profile-block"
-          />
-          <LinkButton
-            label={isMuted ? t("community.mute.unmute") : t("community.mute.mute")}
-            disabled={busy}
-            onPress={() =>
-              void run(() =>
-                isMuted
-                  ? muteActions.unmute(profile.userId)
-                  : muteActions.mute(profile.userId),
-              )
-            }
-            testID={isMuted ? "public-profile-unmute" : "public-profile-mute"}
-          />
-          {reported ? (
-            <Text style={meta}>{t("community.report.sent")}</Text>
-          ) : (
-            <LinkButton
-              label={t("community.report.action")}
-              onPress={() => setReporting(true)}
-              testID="public-profile-report"
-            />
-          )}
-        </View>
+      {menuOpen ? (
+        <MenuSheet
+          items={menuItems}
+          onClose={() => setMenuOpen(false)}
+          testID="public-profile-menu"
+        />
       ) : null}
 
       {reporting ? (
@@ -366,6 +478,7 @@ export function PublicProfileView({
   );
 }
 
+/** One of the person's recent Event hub comments, opening its hub. */
 function RecentComment({ comment }: { comment: ProfileComment }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -435,11 +548,13 @@ function RecentComment({ comment }: { comment: ProfileComment }) {
 
 const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center" },
-  headerText: { flex: 1, gap: 2 },
+  flex: { flex: 1 },
   nameRow: { flexDirection: "row", alignItems: "center" },
   name: { flexShrink: 1 },
   buttons: { flexDirection: "row" },
   buttonCell: { flex: 1 },
-  actions: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
+  more: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
+  lock: { alignItems: "center" },
+  center: { textAlign: "center" },
   comment: { borderWidth: 1, borderRadius: 12, minHeight: 44 },
 });

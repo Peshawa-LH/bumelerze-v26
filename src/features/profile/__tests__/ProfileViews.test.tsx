@@ -162,6 +162,10 @@ const STATS_ROW = {
 const OWNER_ONLY_TEST_IDS = [
   "only-you-divider",
   "owner-sections",
+  "owner-list",
+  "my-reports-row",
+  "my-home-row",
+  "data-export-row",
   "home-section",
   "my-reports-group",
   "account-community-group",
@@ -174,7 +178,7 @@ const OWNER_ONLY_TEST_IDS = [
   "follow-requests",
   "badges-see-all",
   "public-profile-edit",
-  "public-profile-share",
+  // (Share profile is for visitors too since review note 5.1, mockup 3c.)
 ];
 
 function setRpc(options: { publicProfile?: unknown; publicProfileError?: unknown }) {
@@ -252,26 +256,35 @@ describe("Profile page (D79)", () => {
       await renderWithProviders(<ProfileScreen />);
       await screen.findByTestId("public-profile-name");
       await flush();
+      // Mockup 3a: photo and counts, name, @username, Edit / Share profile,
+      // the badges row, then "Only you see this" as one list, then the tabs.
       const order = [
+        "profile-stats",
         "public-profile-name",
         "public-profile-username",
         "public-profile-edit",
         "public-profile-share",
-        "profile-counts",
         "profile-badges",
-        "posts-section",
         "only-you-divider",
-        "home-section",
-        "my-reports-group",
+        "my-reports-row",
+        "my-home-row",
         "account-people-row",
-        "account-password-row",
-        "account-privacy-row",
-        "account-sign-out",
-        "account-delete",
+        "data-export-row",
+        "profile-tabs",
+        "posts-section",
       ].map(position);
       expect(order).toEqual([...order].sort((a, b) => a - b));
       expect(screen.getByText("Only you see this")).toBeTruthy();
       expect(screen.getByText("People and requests")).toBeTruthy();
+      // Password, Privacy, Sign out and Delete account live in Settings now.
+      for (const id of [
+        "account-password-row",
+        "account-privacy-row",
+        "account-sign-out",
+        "account-delete",
+      ]) {
+        expect(screen.queryByTestId(id)).toBeNull();
+      }
     });
 
     it("asks for the owner's recently deleted comments and posts (owner-only, migration 0053)", async () => {
@@ -283,7 +296,7 @@ describe("Profile page (D79)", () => {
       expect(screen.queryByTestId("recently-deleted")).toBeNull();
     });
 
-    it("the public part: name, @username, member since, ONE counts row, no Follow button and no recent comments", async () => {
+    it("the public part: name, @username, posts / followers / following, no Follow button", async () => {
       await renderWithProviders(<ProfileScreen />);
       await screen.findByTestId("public-profile-name");
       await flush();
@@ -291,14 +304,13 @@ describe("Profile page (D79)", () => {
       expect(screen.getByTestId("public-profile-username").props.children).toBe(
         "⁦@shilan⁩",
       );
-      expect(screen.getByText("Member since Oct 2026")).toBeTruthy();
-      expect(screen.getAllByTestId("profile-counts")).toHaveLength(1);
-      expect(screen.getByLabelText("Reports: 12")).toBeTruthy();
-      expect(screen.getByLabelText("Comments: 9")).toBeTruthy();
-      expect(screen.getByLabelText("Followers: 3")).toBeTruthy();
-      expect(screen.getByLabelText("Following: 2")).toBeTruthy();
+      expect(screen.getAllByTestId("profile-stats")).toHaveLength(1);
+      expect(screen.getByLabelText(/^posts: \d+$/)).toBeTruthy();
+      expect(screen.getByLabelText("followers: 3")).toBeTruthy();
+      expect(screen.getByLabelText("following: 2")).toBeTruthy();
       expect(screen.queryByLabelText(/^Helpful:/)).toBeNull();
       expect(screen.queryByTestId("follow-button")).toBeNull();
+      // The person's Event hub comments sit behind the Comments tab.
       expect(screen.queryByText("Felt it in the kitchen")).toBeNull();
     });
 
@@ -343,7 +355,6 @@ describe("Profile page (D79)", () => {
       await screen.findByTestId("profile-badges");
       await flush();
       expect(screen.getByLabelText("First report, earned")).toBeTruthy();
-      expect(screen.getByLabelText("Very helpful, earned")).toBeTruthy();
       expect(screen.queryByLabelText(/locked/)).toBeNull();
       expect(screen.queryByLabelText(/Engineer/)).toBeNull();
       expect(screen.getByTestId("badges-see-all")).toBeTruthy();
@@ -359,9 +370,8 @@ describe("Profile page (D79)", () => {
       await renderWithProviders(<ProfileScreen />);
       await screen.findByTestId("account-admin-row");
       expect(position("account-people-row")).toBeLessThan(position("account-admin-row"));
-      expect(position("account-admin-row")).toBeLessThan(
-        position("account-password-row"),
-      );
+      // Admin tools close the list, after Download my data.
+      expect(position("data-export-row")).toBeLessThan(position("account-admin-row"));
     });
 
     it("shows no Admin row to an ordinary account", async () => {
@@ -384,7 +394,7 @@ describe("Profile page (D79)", () => {
       expect(screen.getByText("Shilan")).toBeTruthy();
       expect(screen.getByLabelText("Reports: 12")).toBeTruthy();
       expect(screen.getByTestId("only-you-divider")).toBeTruthy();
-      expect(screen.getByTestId("account-sign-out")).toBeTruthy();
+      expect(screen.getByTestId("owner-list")).toBeTruthy();
     });
 
     it("an account without a @username yet still gets the page: local header and owner sections, no public fetch", async () => {
@@ -408,8 +418,11 @@ describe("Profile page (D79)", () => {
       expect(screen.getByTestId("public-profile-name").props.children).toBe(
         "Dilan Ahmed",
       );
-      expect(screen.getByLabelText("Followers: 4")).toBeTruthy();
+      expect(screen.getByLabelText("followers: 4")).toBeTruthy();
       expect(screen.getByTestId("follow-button")).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("profile-tab-comments"));
+      });
       expect(screen.getByText("Felt it in the kitchen")).toBeTruthy();
       for (const id of OWNER_ONLY_TEST_IDS) {
         expect({ id, shown: screen.queryByTestId(id) !== null }).toEqual({
@@ -477,7 +490,7 @@ describe("Profile page (D79)", () => {
       await screen.findByTestId("public-profile-edit");
       await flush();
       expect(screen.getByTestId("only-you-divider")).toBeTruthy();
-      expect(screen.getByTestId("account-sign-out")).toBeTruthy();
+      expect(screen.getByTestId("owner-list")).toBeTruthy();
       expect(screen.getByTestId("own-profile")).toBeTruthy();
     });
   });
@@ -489,8 +502,8 @@ describe("Profile page (D79)", () => {
       await screen.findByTestId("public-profile-name");
       await flush();
       expect(screen.getByText("تەنها تۆ ئەمە دەبینیت")).toBeTruthy();
-      expect(screen.getByLabelText("ڕاپۆرت: ١٢")).toBeTruthy();
       expect(screen.getByLabelText("شوێنکەوتووان: ٣")).toBeTruthy();
+      expect(screen.getByText("پۆستەکان")).toBeTruthy();
     });
   });
 });

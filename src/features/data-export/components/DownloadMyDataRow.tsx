@@ -31,15 +31,27 @@ type Deliver = (
 export function DownloadMyDataRow({
   transport = SupabaseDataExportTransport,
   deliver = deliverJsonFile,
+  variant = "group",
 }: {
   transport?: DataExportTransport;
   deliver?: Deliver;
+  /** "row": the bare row for a list the caller groups (the Profile's
+   * "Only you see this" list); a failure then shows as a snackbar. */
+  variant?: "group" | "row";
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const snackbar = useSnackbar();
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+
+  function fail(message: string) {
+    if (variant === "row") {
+      snackbar.show({ message });
+    } else {
+      setErrorText(message);
+    }
+  }
 
   async function run() {
     if (busy) {
@@ -55,12 +67,12 @@ export function DownloadMyDataRow({
         t("profile.dataExport.fileTitle"),
       );
       if (outcome === "unavailable") {
-        setErrorText(t("profile.dataExport.error"));
+        fail(t("profile.dataExport.error"));
       } else {
         snackbar.show({ message: t("profile.dataExport.done") });
       }
     } catch (error) {
-      setErrorText(
+      fail(
         error instanceof CommunityError && error.code !== "unknown"
           ? communityErrorText(t, error)
           : t("profile.dataExport.error"),
@@ -68,6 +80,19 @@ export function DownloadMyDataRow({
     } finally {
       setBusy(false);
     }
+  }
+
+  if (variant === "row") {
+    return (
+      <SettingsRow
+        icon="download-outline"
+        label={busy ? t("profile.dataExport.working") : t("profile.dataExport.title")}
+        onPress={() => void run()}
+        disabled={busy}
+        accessibilityHint={t("profile.dataExport.hint")}
+        testID="data-export-row"
+      />
+    );
   }
 
   return (

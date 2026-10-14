@@ -120,13 +120,23 @@ describe("Mute on a profile", () => {
 
   it("Mute hides their posts and comments here, for me, and offers Unmute", async () => {
     await renderView(<PublicProfileView profile={build()} actions={actions} />);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("profile-tab-comments"));
+    });
     expect(await screen.findByText("Felt it strongly in the kitchen")).toBeTruthy();
+    // Mute is in the "..." (mockup 3c).
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("public-profile-more"));
+    });
     await act(async () => {
       fireEvent.press(screen.getByTestId("public-profile-mute"));
     });
     expect(mockMute).toHaveBeenCalledWith("u1");
     expect(await screen.findByTestId("public-profile-muted")).toBeTruthy();
     expect(screen.queryByText("Felt it strongly in the kitchen")).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("public-profile-more"));
+    });
     await act(async () => {
       fireEvent.press(screen.getByTestId("public-profile-unmute"));
     });

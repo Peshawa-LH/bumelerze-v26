@@ -16,39 +16,48 @@ interface OwnProfileProps {
    * the header is then built from what is on the device. */
   profile: PublicProfile | null;
   actions: CommunityActions;
+  /** The page sits in a stack screen (`/u/<me>`), not the Profile tab. */
+  inStack?: boolean;
 }
 
 /**
- * The owner's Profile page: the public part (what visitors see, with Edit /
- * Share profile in place of Follow) and, below it, the owner-only sections.
- * This is the ONLY place that mounts `OwnerSections` for a signed-in account,
- * and it is reached only for the viewer's own profile.
+ * The owner's Profile page (review note 5.1, mockups 3a and 3b): the public
+ * part (what visitors see, with Edit / Share profile in place of Follow),
+ * the "Only you see this" list, then the Posts / Comments tabs. This is the
+ * ONLY place that mounts `OwnerSections` for a signed-in account, and it is
+ * reached only for the viewer's own profile.
  */
-export function OwnProfile({ profile, actions }: OwnProfileProps) {
+export function OwnProfile({ profile, actions, inStack = false }: OwnProfileProps) {
   const { spacing } = useTheme();
   const summary = useMySummary();
 
-  return (
-    <View style={{ gap: spacing[4] }} testID="own-profile">
-      {profile ? (
+  if (profile) {
+    return (
+      <View testID="own-profile">
         <PublicProfileView
           profile={profile}
           actions={actions}
+          moreInHeader={inStack}
           self={{ reports: summary.counts.reports, badgeTotal: summary.badges.length }}
+          ownerSection={<OwnerSections />}
         />
-      ) : (
-        <View style={{ gap: spacing[4] }} testID="own-profile-local">
-          <ProfileHeader memberSince={summary.memberSince} roles={summary.roles} />
-          <ProfileCounts
-            reports={summary.counts.reports}
-            comments={summary.counts.comments}
-          />
-          <EarnedBadges
-            entries={summary.badges.filter((entry) => entry.earned)}
-            seeAllCount={summary.badges.length}
-          />
-        </View>
-      )}
+      </View>
+    );
+  }
+  return (
+    <View style={{ gap: spacing[4] }} testID="own-profile">
+      <View style={{ gap: spacing[4] }} testID="own-profile-local">
+        <ProfileHeader memberSince={summary.memberSince} roles={summary.roles} />
+        <ProfileCounts
+          reports={summary.counts.reports}
+          comments={summary.counts.comments}
+        />
+        <EarnedBadges
+          variant="row"
+          entries={summary.badges.filter((entry) => entry.earned)}
+          seeAllCount={summary.badges.length}
+        />
+      </View>
       <OwnerSections />
     </View>
   );
