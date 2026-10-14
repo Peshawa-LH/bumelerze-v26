@@ -132,7 +132,9 @@ export default function SettingsScreen() {
         <MyLocationRow />
         <View>
           <SettingsRow
-            icon="location-outline"
+            // Not the pin: "My location" above already wears it (review
+            // B-28); this row is about what the device may do.
+            icon="phone-portrait-outline"
             label={t("settings.devicePermissionsSectionTitle")}
             value={t("settings.devicePermissionsSectionDescription")}
             valueLayout="stacked"

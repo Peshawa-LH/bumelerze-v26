@@ -16,8 +16,10 @@ const CIRCLE = 48;
 
 /**
  * "My home" on the My account page.
- * - Anonymous: one muted preview row (lock, "Tag my building"); a preview of
- *   what an account unlocks, not a second sign-up button.
+ * - Anonymous: one muted preview row (lock, "Tag my building", and the
+ *   one-line reason "Needs an account" — review B-28: without it the row
+ *   seemed to jump into the sign-up form for no reason); a preview of what
+ *   an account unlocks, not a second sign-up button.
  * - Account without a tag: a card that starts tagging, and a "Join a home" link.
  * - Account with tags: one `HomeCard` each, "Tag another" and "Join a home".
  * Hidden while no Supabase project is configured or the session is loading.
@@ -62,15 +64,17 @@ export function MyHomeCard() {
           >
             <Ionicons name="lock-closed" size={22} color={colors.text.secondary} />
           </View>
-          <Text
-            style={[
-              typography.bodyDefault,
-              styles.grow,
-              { color: colors.text.secondary },
-            ]}
-          >
-            {t("building.title")}
-          </Text>
+          <View style={styles.grow}>
+            <Text style={[typography.bodyDefault, { color: colors.text.secondary }]}>
+              {t("building.title")}
+            </Text>
+            <Text
+              testID="home-locked-reason"
+              style={[typography.bodyMeta, { color: colors.text.tertiary }]}
+            >
+              {t("myData.home.needsAccount")}
+            </Text>
+          </View>
           <DirectionalChevron />
         </Pressable>
       </View>
