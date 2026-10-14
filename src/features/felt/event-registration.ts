@@ -1,4 +1,8 @@
 import type { Event } from "@/features/events";
+// The concrete module, not the `@/features/geo` barrel (which pulls in the
+// place-search components): only the naming rule is needed here.
+import { placeLine, type PlaceLineEvent } from "@/features/geo/place-line";
+import i18n from "@/i18n";
 
 import type { EventRegistration } from "./types";
 
@@ -11,6 +15,13 @@ import type { EventRegistration } from "./types";
  * new data-fetch or React Query dependency, keeping the "no network call
  * before the durable local queue write" invariant `queue.ts`'s own doc
  * describes.
+ *
+ * The place in the snapshot is the app's own place line (the one every
+ * screen shows), in English so the shared registry reads the same whatever
+ * language the reporter uses — never the agency's raw region string
+ * ("IRAQ", "NORTHWESTERN IRAN"), which leaked into the snapshot and could
+ * surface downstream (review A-20). English is always bundled, so the line
+ * can be built offline on the web too.
  */
 export function toEventRegistration(event: Event): EventRegistration {
   return {
@@ -22,8 +33,17 @@ export function toEventRegistration(event: Event): EventRegistration {
     depthKm: event.depthKm,
     magnitude: event.magnitude.value,
     magType: event.magnitude.type,
-    placeName: event.placeName,
+    placeName: registrationPlaceName(event),
   };
+}
+
+/** Directional isolates the place line puts round its numerals for
+ * right-to-left text: invisible, and only clutter in a stored English line. */
+const ISOLATE_MARKS = /[⁦-⁩]/g;
+
+/** The app's English place line for the registry snapshot. */
+export function registrationPlaceName(event: PlaceLineEvent): string {
+  return placeLine(event, "en", i18n.getFixedT("en")).replace(ISOLATE_MARKS, "");
 }
 
 /**
