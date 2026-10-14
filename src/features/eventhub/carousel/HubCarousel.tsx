@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import {
   PanResponder,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -141,7 +140,7 @@ export function HubCarousel({
         {size > 0 ? slide.render(size) : null}
         {count > 1 ? (
           <View
-            style={[styles.counter, counterSide(rtl), { backgroundColor: COUNTER_BG }]}
+            style={[styles.counter, { backgroundColor: COUNTER_BG }]}
             testID={`${testID}-counter`}
           >
             <Text
@@ -187,24 +186,16 @@ export function HubCarousel({
   );
 }
 
-/**
- * The counter sits at the end edge, away from the share image's magnitude
- * (which is at the start edge in every language). Native flips `end` in
- * Sorani and Arabic; the web build resolves `end` to the right edge, where
- * the Sorani image has its magnitude, so on web the side is set by hand.
- */
-function counterSide(rtl: boolean) {
-  if (Platform.OS === "web") {
-    return rtl ? { left: 10 } : { right: 10 };
-  }
-  return { end: 10 };
-}
-
 const styles = StyleSheet.create({
   frame: { alignSelf: "center", borderRadius: 12, overflow: "hidden" },
+  // At the end edge, away from the share image's magnitude (at the start
+  // edge in every language). The web app root sets the reading direction
+  // (AppRoot.web.tsx), so `end` is the left edge in Sorani and Arabic on
+  // the web too.
   counter: {
     position: "absolute",
     top: 10,
+    end: 10,
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 3,

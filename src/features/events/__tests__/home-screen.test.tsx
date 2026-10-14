@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
-import { AccessibilityInfo, Platform } from "react-native";
+import { AccessibilityInfo } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { usePrefsStore } from "@/features/onboarding";
@@ -326,40 +326,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     announceSpy.mockRestore();
   });
 
-  describe("[regression] the accent-stripe card flips to the reading-start edge on web", () => {
-    // react-native-web only resolves `borderStartColor`/`borderStartWidth`
-    // from a `dir` prop threaded onto the element itself — it does not
-    // inherit direction from the `<html dir="rtl">` the i18n boot sets, so
-    // this only ever mattered (and only ever broke) on `Platform.OS ===
-    // "web"`. See `EventCard.tsx`'s `webDirProp` comment for the full
-    // root-cause writeup.
-    const originalPlatformOS = Platform.OS;
-
-    beforeAll(() => {
-      Platform.OS = "web";
-    });
-
-    afterAll(() => {
-      Platform.OS = originalPlatformOS;
-    });
-
-    it('passes dir="rtl" to the card in Sorani so its logical border props resolve to the visual right', async () => {
-      await i18n.changeLanguage("ckb");
-      await renderWithProviders(<HomeScreen />);
-
-      const card = screen.getByTestId(`event-card-${sampleEvent.id}`);
-      expect(card.props.dir).toBe("rtl");
-    });
-
-    it('passes dir="ltr" to the card in English', async () => {
-      await renderWithProviders(<HomeScreen />);
-
-      const card = screen.getByTestId(`event-card-${sampleEvent.id}`);
-      expect(card.props.dir).toBe("ltr");
-    });
-  });
-
-  it("never passes a web-only dir prop to the card on native", async () => {
+  it("passes no dir prop to the card: the web app root sets the reading direction (AppRoot.web.tsx)", async () => {
     await i18n.changeLanguage("ckb");
     await renderWithProviders(<HomeScreen />);
 

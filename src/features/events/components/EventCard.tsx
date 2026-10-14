@@ -1,9 +1,8 @@
 import { memo } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { placeLine } from "@/features/geo";
-import { isRTLLocale } from "@/i18n";
 import { useTheme } from "@/theme";
 import {
   formatMagnitudeValue,
@@ -76,22 +75,6 @@ function EventCardImpl({
   });
   const tone = magnitudeTone(event.magnitude.value);
 
-  // Web-only fix-up: react-native-web resolves logical style props
-  // (`borderStartColor`/`borderStartWidth` below) from a `dir` prop
-  // threaded onto *this* element, not from the ambient `<html dir="rtl">`
-  // the i18n boot sets on `document.documentElement` — an unset `dir` prop
-  // always bakes them to their LTR physical side regardless of document
-  // direction (verified directly against the installed react-native-web
-  // 0.21.2's SSR output). `I18nManager.isRTL` can't stand in for this
-  // either: react-native-web's own `I18nManager` is a stub whose
-  // `getConstants()` always reports `isRTL: false`. `isRTLLocale(locale)`,
-  // driven straight off the active i18next language, is the one direction
-  // signal this component can actually trust on web. Native needs none of
-  // this — `I18nManager.isRTL` there is the real, correctly-set flag RN's
-  // own layout engine already uses to flip `borderStart*`/etc.
-  const webDirProp =
-    Platform.OS === "web" ? { dir: isRTLLocale(locale) ? "rtl" : "ltr" } : null;
-
   const tagRowA11yLabel = buildTagRowAccessibilityLabel(
     {
       provider: event.provenance.provider,
@@ -119,7 +102,6 @@ function EventCardImpl({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={() => onPress(event)}
-      {...webDirProp}
       style={({ pressed }) => [
         styles.card,
         {
