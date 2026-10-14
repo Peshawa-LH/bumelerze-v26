@@ -1416,15 +1416,17 @@ const MAP_TOUCH_CONTROLS_STYLE_ID = "bml-map-touch-controls-css";
  * inline attribution links 14 px tall (review A-9/B-12). These rules lift
  * every control on this map to the 44 pt tap minimum without touching the
  * icons: the zoom/group buttons (if ever added here) become 44 px squares,
- * the compact attribution pill is a 44 px circle when closed, and each credit
- * link is a 44 px-tall inline block once it is open. The credit text itself
- * is unchanged (OpenStreetMap's guidelines: never removed, one press away).
+ * the compact attribution pill is a 44 px circle when closed (its 24 px "i"
+ * icon drawn once, centred — not tiled across the bigger circle), and each
+ * credit link is a 44 px-tall inline block once it is open. The credit text
+ * itself is unchanged (OpenStreetMap's guidelines: never removed, one press
+ * away).
  */
 const MAP_TOUCH_CONTROLS_CSS = `
 .${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-group button { width: 44px; height: 44px; }
 .${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib.maplibregl-compact { min-height: 44px; padding: 0 44px 0 0; border-radius: 22px; }
 .${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib.maplibregl-compact-show { padding: 0 48px 0 10px; }
-.${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib-button { width: 44px; height: 44px; border-radius: 22px; background-position: center; }
+.${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib-button { width: 44px; height: 44px; border-radius: 22px; background-position: center; background-repeat: no-repeat; background-size: 24px 24px; }
 .${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib-inner { line-height: 44px; }
 .${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib a { display: inline-block; min-height: 44px; line-height: 44px; }
 `;

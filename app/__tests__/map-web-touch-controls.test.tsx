@@ -124,6 +124,10 @@ describe("MapScreenWeb 44 pt MapLibre controls (review A-9/B-12)", () => {
     expect(css).toContain(
       `.${CONTAINER_CLASS} .maplibregl-ctrl-attrib-button { width: 44px; height: 44px;`,
     );
+    // The stock 24 px icon must not tile across the bigger button.
+    expect(css).toMatch(
+      /maplibregl-ctrl-attrib-button \{[^}]*background-repeat: no-repeat;[^}]*background-size: 24px 24px;/,
+    );
     // ...and each credit link is a 44 px-tall block once it is open.
     expect(css).toContain(
       `.${CONTAINER_CLASS} .maplibregl-ctrl-attrib a { display: inline-block; min-height: 44px; line-height: 44px; }`,
