@@ -1,6 +1,6 @@
 {
   "name": "bumelerze",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "26.1.0",
   "dependencies": {
     "@expo/vector-icons": "~15.0.2",

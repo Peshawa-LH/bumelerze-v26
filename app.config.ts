@@ -88,7 +88,14 @@ const config: ExpoConfig = {
     favicon: "./assets/images/favicon.png",
   },
   plugins: [
-    "expo-router",
+    [
+      // Web production builds load each screen's code only when that screen
+      // is opened (Expo Router "async routes"), so the first visit downloads
+      // Home and the feed, not the map, catalogue, admin tools and so on.
+      // Development and the iOS/Android builds are unchanged (one bundle).
+      "expo-router",
+      { asyncRoutes: { web: "production", default: false } },
+    ],
     [
       "expo-splash-screen",
       {

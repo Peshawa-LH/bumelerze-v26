@@ -22,7 +22,8 @@ export EXPO_PUBLIC_MAPTILER_KEY=u55zrEViEes3KunGwdnn
 export EXPO_PUBLIC_VAPID_PUBLIC_KEY=BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw
 
 rm -rf dist-app
-npx expo export --platform web --output-dir dist-app
+# --clear: a stale Metro cache has silently produced an empty app before.
+npx expo export --platform web --output-dir dist-app --clear
 
 # Cloudflare Pages never uploads directories named node_modules, and its SPA
 # fallback then answers those URLs with index.html — which silently broke the
@@ -39,3 +40,20 @@ if find dist-app -path '*node_modules*' | grep -q . || grep -rqF "node_modules/"
   echo "build-app-web: node_modules paths remain in dist-app (Cloudflare Pages would drop them)" >&2
   exit 1
 fi
+
+# Web Workers (the offline catalogue's SQLite) must carry all their modules.
+node scripts/check-web-workers.mjs dist-app
+
+# An empty export (a known Metro cache failure) must never be deployed:
+# the page must name its scripts, and each must exist and not be empty.
+scripts=$(grep -o 'src="/_expo/static/js/web/[^"]*\.js"' dist-app/index.html | sed 's/^src="\(.*\)"$/\1/')
+if [ -z "$scripts" ]; then
+  echo "build-app-web: index.html names no app scripts" >&2
+  exit 1
+fi
+for script in $scripts; do
+  if [ ! -s "dist-app$script" ]; then
+    echo "build-app-web: $script is missing or empty" >&2
+    exit 1
+  fi
+done
