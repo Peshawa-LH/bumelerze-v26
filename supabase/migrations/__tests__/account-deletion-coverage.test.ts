@@ -369,6 +369,12 @@ const MANIFEST: Record<string, Entry> = {
     handling: "cascade",
     why: "hearts the person gave on comments under posts",
   },
+  // the switch for government officials (0066)
+  "authority_sharing.user_id": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "the person's own sharing switch for government officials",
+  },
 };
 
 interface Found {
