@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
-import { AdminContent } from "@/features/admin/components/AdminContent";
+import { ModerationContent } from "@/features/admin/components/ModerationContent";
 import { ActivityContent } from "@/features/admin/components/ActivityContent";
 import type { AdminTransport } from "@/features/admin/transport";
 import type { ActivityEntry } from "@/features/admin/types";
@@ -76,7 +76,9 @@ function adminTransport(
 
 async function renderAdmin(permissions: Permission[], transport = adminTransport()) {
   hub.fetchMyPermissions.mockResolvedValue(permissions);
-  await renderWithProviders(<AdminContent transport={transport} hubTransport={hub} />);
+  await renderWithProviders(
+    <ModerationContent transport={transport} hubTransport={hub} />,
+  );
   return transport;
 }
 

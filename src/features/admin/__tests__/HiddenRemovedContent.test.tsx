@@ -290,23 +290,19 @@ describe("Admin > Hidden and removed", () => {
     });
   });
 
-  describe("the entry in the admin screen", () => {
+  describe("the tile on the admin launcher", () => {
     it("is offered to anyone who can moderate, and opens the screen", async () => {
       mockHub.fetchMyPermissions.mockResolvedValue(MODERATOR);
-      await renderWithProviders(
-        <AdminContent transport={admin([[]])} hubTransport={mockHub} />,
-      );
-      await fireEvent.press(await screen.findByTestId("admin-hidden-row"));
+      await renderWithProviders(<AdminContent hubTransport={mockHub} />);
+      await fireEvent.press(await screen.findByTestId("admin-tile-hidden"));
       expect(mockPush).toHaveBeenCalledWith("/admin/hidden");
     });
 
     it("is not offered to an ordinary account", async () => {
       mockHub.fetchMyPermissions.mockResolvedValue([]);
-      await renderWithProviders(
-        <AdminContent transport={admin([[]])} hubTransport={mockHub} />,
-      );
+      await renderWithProviders(<AdminContent hubTransport={mockHub} />);
       await screen.findByTestId("admin-no-access");
-      expect(screen.queryByTestId("admin-hidden-row")).toBeNull();
+      expect(screen.queryByTestId("admin-tile-hidden")).toBeNull();
     });
   });
 });

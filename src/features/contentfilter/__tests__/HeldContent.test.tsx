@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
-import { AdminContent } from "@/features/admin/components/AdminContent";
+import { ModerationContent } from "@/features/admin/components/ModerationContent";
 import type { AdminTransport } from "@/features/admin/transport";
 import type { QueueComment, ReportedPost } from "@/features/admin/types";
 import {
@@ -77,7 +77,11 @@ async function renderAdmin(permissions: Permission[], filter = makeFilterTranspo
   const hub = makeTransport({ permissions });
   const transport = adminTransport();
   await renderWithProviders(
-    <AdminContent transport={transport} hubTransport={hub} filterTransport={filter} />,
+    <ModerationContent
+      transport={transport}
+      hubTransport={hub}
+      filterTransport={filter}
+    />,
   );
   return { filter, transport };
 }
@@ -146,14 +150,10 @@ describe("held content", () => {
     await waitFor(() => expect(filter.approvePost).toHaveBeenCalledWith("p-held"));
   });
 
-  it("offers the Word filter screen with filter.manage", async () => {
+  // The Word filter entry is a tile on the admin launcher now
+  // (AdminLauncher.test.tsx covers it); the queue page has no filter row.
+  it("has no Word filter row on the queue page", async () => {
     await renderAdmin(["comments.moderate", "filter.manage"]);
-    await fireEvent.press(await screen.findByTestId("admin-filter-row"));
-    expect(mockPush).toHaveBeenCalledWith("/admin/filter");
-  });
-
-  it("does not offer it without filter.manage", async () => {
-    await renderAdmin(["comments.moderate"]);
     await screen.findByTestId("admin-queue");
     expect(screen.queryByTestId("admin-filter-row")).toBeNull();
   });

@@ -1,213 +1,191 @@
-import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text } from "react-native";
+import { useRouter, type Href } from "expo-router";
+import type { Ionicons } from "@expo/vector-icons";
+import { Text } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SettingsGroup } from "@/features/account/components/SettingsGroup";
-import { SettingsRow } from "@/features/account/components/SettingsRow";
-import type { ContentFilterTransport } from "@/features/contentfilter/transport";
 import type { EventHubTransport } from "@/features/eventhub/transport";
-import type { PostsTransport } from "@/features/posts/transport";
 import { useTheme } from "@/theme";
 import { formatCount } from "../people/format";
-import { useInboxCounts } from "../inbox/queries";
-import type { InboxTransport } from "../inbox/transport";
 import { useAdminAccess } from "../queries";
-import type { AdminTransport } from "../transport";
-import type { PostCommentsTransport } from "@/features/posts/comments/transport";
-import { ModerationQueueSection } from "./ModerationQueueSection";
-import { PostCommentQueueSection } from "./PostCommentQueueSection";
-import { RankBadgesSection } from "./RankBadgesSection";
-import { ReportedPostsSection } from "./ReportedPostsSection";
-import { ReportedProfilesSection } from "./ReportedProfilesSection";
+import { useToolCounts } from "../tools/queries";
+import type { ToolCountsTransport } from "../tools/transport";
+import { ToolPage, ToolTile, ToolTileGrid } from "../ui";
 
-/** The hidden admin screen. Each section appears only for the permission it
- * needs (`people.view` for People, `comments.moderate` for the queue and
- * reported profiles, `badges.grant` for rank badges, `audit.read` for the
- * Activity log, `feedback.manage` for the feedback inbox and `photos.moderate`
- * for felt photos), and everything is hidden for people without any, so a stray
- * link shows nothing. Resetting a password lives on a person's page (People). */
+interface Tile {
+  key: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  status: string | null;
+  dot?: "attention" | "info" | null;
+  href: Href;
+}
+
+/**
+ * Admin home (review 15.1, mockup 5a): a launcher of tool tiles ONLY, two per
+ * row, each with a status line. Nothing can be done on this page itself;
+ * every tool opens its own page. Each tile shows only for the permission its
+ * tool needs (`people.view`, `comments.moderate`, `filter.manage`,
+ * `alerts.test`, `stats.read`, `hubs.open`, `feedback.manage`, `audit.read`),
+ * and everything is hidden for people without any, so a stray link shows
+ * nothing. Felt photos and limited accounts live inside the Moderation queue;
+ * badges are given from People > person.
+ */
 export function AdminContent({
-  transport,
   hubTransport,
-  postsTransport,
-  inboxTransport,
-  filterTransport,
-  postCommentsTransport,
+  countsTransport,
 }: {
-  transport?: AdminTransport;
   hubTransport?: EventHubTransport;
-  postsTransport?: PostsTransport;
-  inboxTransport?: InboxTransport;
-  /** Test seam for the word filter's hold notes and Approve (migration 0059). */
-  filterTransport?: ContentFilterTransport;
-  /** Test seam for comments under posts (migration 0063). */
-  postCommentsTransport?: PostCommentsTransport;
+  /** Test seam for `admin_tool_counts()` (migration 0066). */
+  countsTransport?: ToolCountsTransport;
 }) {
   const { t, i18n } = useTranslation();
-  const { colors, typography, spacing } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { colors, typography } = useTheme();
   const router = useRouter();
   const access = useAdminAccess(hubTransport);
-  const counts = useInboxCounts(
-    access.canManageFeedback || access.canModeratePhotos,
-    inboxTransport,
-  );
-  const openFeedback = counts.data?.feedback
-    ? counts.data.feedback.unseen + counts.data.feedback.inReview
-    : null;
-  const pendingPhotos = counts.data?.photosPending ?? null;
-  const shared = {
-    ...(transport ? { transport } : {}),
-    ...(hubTransport ? { hubTransport } : {}),
-  };
-  const filter = filterTransport ? { filterTransport } : {};
+  const counts = useToolCounts(access.any, countsTransport).data;
+  const n = (value: number) => formatCount(value, i18n.language);
+
+  const tiles: Tile[] = [];
+  if (access.canViewPeople) {
+    tiles.push({
+      key: "people",
+      icon: "people-outline",
+      title: t("admin.tools.people"),
+      status:
+        counts?.accounts != null
+          ? t("admin.tools.accounts", { number: n(counts.accounts) })
+          : null,
+      href: "/admin/people",
+    });
+  }
+  if (access.canModerate || access.canModeratePhotos || access.canRestrict) {
+    const waiting = counts?.waiting ?? null;
+    tiles.push({
+      key: "moderation",
+      icon: "shield-checkmark-outline",
+      title: t("admin.tools.moderation"),
+      status:
+        waiting === null
+          ? t("admin.tools.moderationHint")
+          : waiting > 0
+            ? t("admin.tools.waiting", { number: n(waiting) })
+            : t("admin.tools.nothingWaiting"),
+      dot: waiting !== null && waiting > 0 ? "attention" : null,
+      href: "/admin/moderation",
+    });
+  }
+  if (access.canModerate) {
+    tiles.push({
+      key: "hidden",
+      icon: "eye-off-outline",
+      title: t("admin.tools.hidden"),
+      status: t("admin.tools.last30"),
+      href: "/admin/hidden",
+    });
+  }
+  if (access.has("filter.manage")) {
+    tiles.push({
+      key: "filter",
+      icon: "funnel-outline",
+      title: t("admin.tools.filter"),
+      status:
+        counts?.busy == null
+          ? null
+          : counts.busy
+            ? t("admin.tools.busyOn")
+            : t("admin.tools.busyOff"),
+      dot: counts?.busy ? "attention" : null,
+      href: "/admin/filter",
+    });
+  }
+  if (access.has("alerts.test")) {
+    const mode = counts?.alertsMode ?? null;
+    tiles.push({
+      key: "alerts",
+      icon: "notifications-outline",
+      title: t("admin.tools.alerts"),
+      status:
+        mode === null
+          ? null
+          : t("admin.tools.alertsStatus", {
+              mode: t(`admin.alerts.modes.${mode}`, { defaultValue: mode }),
+              number: n(counts?.alertDevices ?? 0),
+            }),
+      href: "/admin/alerts",
+    });
+  }
+  if (access.has("stats.read")) {
+    tiles.push({
+      key: "stats",
+      icon: "bar-chart-outline",
+      title: t("admin.tools.stats"),
+      status: t("admin.tools.statsHint"),
+      href: "/admin/stats",
+    });
+  }
+  if (access.has("hubs.open")) {
+    tiles.push({
+      key: "hubs",
+      icon: "chatbubbles-outline",
+      title: t("admin.tools.hubs"),
+      status:
+        counts?.hubsOpen != null
+          ? t("admin.tools.hubsOpen", { number: n(counts.hubsOpen) })
+          : null,
+      href: "/admin/hubs",
+    });
+  }
+  if (access.canManageFeedback) {
+    const fresh = counts?.feedbackNew ?? null;
+    tiles.push({
+      key: "feedback",
+      icon: "mail-unread-outline",
+      title: t("admin.tools.feedback"),
+      status:
+        fresh === null
+          ? null
+          : fresh > 0
+            ? t("admin.tools.new", { number: n(fresh) })
+            : t("admin.tools.nothingNew"),
+      dot: fresh !== null && fresh > 0 ? "info" : null,
+      href: "/admin/feedback",
+    });
+  }
+  if (access.canAudit) {
+    tiles.push({
+      key: "activity",
+      icon: "time-outline",
+      title: t("admin.tools.activity"),
+      status: t("admin.tools.activityHint"),
+      href: "/admin/activity",
+    });
+  }
 
   return (
-    <ScrollView
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={[
-        styles.content,
-        {
-          gap: spacing[5],
-          padding: spacing[4],
-          paddingBottom: insets.bottom + spacing[6],
-        },
-      ]}
-    >
+    <ToolPage testID="admin-launcher">
       {access.any || access.isLoading ? null : (
         <Text
           testID="admin-no-access"
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.bodyDefault.fontSize,
-            lineHeight: typography.bodyDefault.lineHeight,
-          }}
+          style={[typography.bodyDefault, { color: colors.text.secondary }]}
         >
           {t("community.errors.forbidden")}
         </Text>
       )}
-      {access.canViewPeople ? (
-        <SettingsGroup testID="admin-people-group">
-          <SettingsRow
-            icon="people-outline"
-            label={t("admin.people.title")}
-            onPress={() => router.push("/admin/people")}
-            testID="admin-people-row"
-          />
-        </SettingsGroup>
-      ) : null}
-      {access.canManageFeedback || access.canModeratePhotos ? (
-        <SettingsGroup testID="admin-inbox-group">
-          {access.canManageFeedback ? (
-            <SettingsRow
-              icon="mail-unread-outline"
-              label={t("admin.feedback.title")}
-              value={
-                openFeedback !== null && openFeedback > 0
-                  ? t("admin.feedback.openCount", {
-                      count: formatCount(openFeedback, i18n.language),
-                    })
-                  : null
-              }
-              onPress={() => router.push("/admin/feedback")}
-              testID="admin-feedback-row"
+      {tiles.length > 0 ? (
+        <ToolTileGrid testID="admin-tiles">
+          {tiles.map((tile) => (
+            <ToolTile
+              key={tile.key}
+              icon={tile.icon}
+              title={tile.title}
+              status={tile.status}
+              dot={tile.dot ?? null}
+              onPress={() => router.push(tile.href)}
+              testID={`admin-tile-${tile.key}`}
             />
-          ) : null}
-          {access.canModeratePhotos ? (
-            <SettingsRow
-              icon="images-outline"
-              label={t("admin.photos.title")}
-              value={
-                pendingPhotos !== null && pendingPhotos > 0
-                  ? t("admin.photos.pendingCount", {
-                      count: formatCount(pendingPhotos, i18n.language),
-                    })
-                  : null
-              }
-              onPress={() => router.push("/admin/photos")}
-              testID="admin-photos-row"
-            />
-          ) : null}
-        </SettingsGroup>
+          ))}
+        </ToolTileGrid>
       ) : null}
-      {access.canModerate ? (
-        <>
-          <ModerationQueueSection canDelete={access.canDelete} {...shared} {...filter} />
-          <ReportedProfilesSection
-            canRestrict={access.canRestrict}
-            canSuspend={access.canSuspend}
-            canViewPeople={access.canViewPeople}
-            {...shared}
-          />
-          <ReportedPostsSection
-            canRemove={access.canRemovePosts}
-            canRestrict={access.canRestrict}
-            canSuspend={access.canSuspend}
-            {...shared}
-            {...filter}
-            {...(postsTransport ? { postsTransport } : {})}
-          />
-          <PostCommentQueueSection
-            canRemove={access.canDelete}
-            {...filter}
-            {...(postCommentsTransport ? { transport: postCommentsTransport } : {})}
-          />
-        </>
-      ) : null}
-      {access.canModerate || access.canAudit || access.canRestrict ? (
-        <SettingsGroup testID="admin-activity-group">
-          {access.canModerate ? (
-            <SettingsRow
-              icon="eye-off-outline"
-              label={t("admin.hidden.title")}
-              onPress={() => router.push("/admin/hidden")}
-              testID="admin-hidden-row"
-            />
-          ) : null}
-          {access.canRestrict ? (
-            <SettingsRow
-              icon="hand-left-outline"
-              label={t("restrictions.list.title")}
-              onPress={() => router.push("/admin/limited")}
-              testID="admin-limited-row"
-            />
-          ) : null}
-          {access.canAudit ? (
-            <SettingsRow
-              icon="time-outline"
-              label={t("admin.activity.title")}
-              onPress={() => router.push("/admin/activity")}
-              testID="admin-activity-row"
-            />
-          ) : null}
-        </SettingsGroup>
-      ) : null}
-      {access.has("alerts.test") ? (
-        <SettingsGroup testID="admin-alerts-group">
-          <SettingsRow
-            icon="notifications-outline"
-            label={t("admin.alerts.title")}
-            onPress={() => router.push("/admin/alerts")}
-            testID="admin-alerts-row"
-          />
-        </SettingsGroup>
-      ) : null}
-      {access.has("filter.manage") ? (
-        <SettingsGroup testID="admin-filter-group">
-          <SettingsRow
-            icon="funnel-outline"
-            label={t("contentFilter.title")}
-            onPress={() => router.push("/admin/filter")}
-            testID="admin-filter-row"
-          />
-        </SettingsGroup>
-      ) : null}
-      {access.canGrant ? <RankBadgesSection {...shared} /> : null}
-    </ScrollView>
+    </ToolPage>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { width: "100%", maxWidth: 560, alignSelf: "center" },
-});

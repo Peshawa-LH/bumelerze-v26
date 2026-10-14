@@ -6,9 +6,9 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { AdminContent } from "@/features/admin";
 import { useTheme } from "@/theme";
 
-/** Hidden admin screen: comment review queue, reported profiles and rank
- * badges. Not linked from anywhere except My account, and only for accounts
- * holding an admin permission. */
+/** Admin home: a launcher of tool tiles (review 15.1). Linked only from
+ * Profile > Only you see this, and only for accounts holding an admin
+ * permission. */
 export default function AdminScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();

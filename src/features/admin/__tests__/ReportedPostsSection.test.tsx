@@ -9,7 +9,7 @@ import { CommunityError } from "@/features/community/types";
 import type { PostsTransport } from "@/features/posts/transport";
 import i18n from "@/i18n";
 
-import { AdminContent } from "../components/AdminContent";
+import { ModerationContent } from "../components/ModerationContent";
 import type { AdminTransport } from "../transport";
 import type { ReportedPost } from "../types";
 
@@ -80,7 +80,11 @@ async function renderAdmin(
 ) {
   mockHub.fetchMyPermissions.mockResolvedValue(permissions);
   await renderWithProviders(
-    <AdminContent transport={transport} hubTransport={mockHub} postsTransport={posts} />,
+    <ModerationContent
+      transport={transport}
+      hubTransport={mockHub}
+      postsTransport={posts}
+    />,
   );
   return posts;
 }
@@ -187,7 +191,7 @@ describe("reported posts in the admin screen", () => {
   it("shows nothing to an ordinary account and never asks the server", async () => {
     const transport = adminTransport([REPORTED]);
     await renderAdmin([], transport);
-    await screen.findByTestId("admin-no-access");
+    await screen.findByTestId("moderation-no-access");
     expect(screen.queryByTestId("admin-posts")).toBeNull();
     expect(transport.fetchReportedPosts).not.toHaveBeenCalled();
   });

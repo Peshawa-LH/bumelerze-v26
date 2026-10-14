@@ -418,32 +418,26 @@ describe("Admin > Activity", () => {
   });
 
   describe("entry in Admin", () => {
-    it("shows an Activity row to holders of audit.read, which opens the screen", async () => {
+    it("shows an Activity log tile to holders of audit.read, which opens the screen", async () => {
       givePermissions(MODERATOR);
-      await renderWithProviders(
-        <AdminContent transport={makeAdmin()} hubTransport={mockHub} />,
-      );
-      await fireEvent.press(await screen.findByTestId("admin-activity-row"));
+      await renderWithProviders(<AdminContent hubTransport={mockHub} />);
+      await fireEvent.press(await screen.findByTestId("admin-tile-activity"));
       expect(mockPush).toHaveBeenCalledWith("/admin/activity");
     });
 
-    it("hides the row without audit.read", async () => {
+    it("hides the tile without audit.read", async () => {
       givePermissions(["comments.moderate"]);
-      await renderWithProviders(
-        <AdminContent transport={makeAdmin()} hubTransport={mockHub} />,
-      );
-      await screen.findByTestId("admin-queue");
-      expect(screen.queryByTestId("admin-activity-row")).toBeNull();
+      await renderWithProviders(<AdminContent hubTransport={mockHub} />);
+      await screen.findByTestId("admin-tile-moderation");
+      expect(screen.queryByTestId("admin-tile-activity")).toBeNull();
     });
 
     it("lets audit.read alone open the admin screen", async () => {
       givePermissions(["audit.read"]);
-      await renderWithProviders(
-        <AdminContent transport={makeAdmin()} hubTransport={mockHub} />,
-      );
-      expect(await screen.findByTestId("admin-activity-row")).toBeTruthy();
+      await renderWithProviders(<AdminContent hubTransport={mockHub} />);
+      expect(await screen.findByTestId("admin-tile-activity")).toBeTruthy();
       expect(screen.queryByTestId("admin-no-access")).toBeNull();
-      expect(screen.queryByTestId("admin-queue")).toBeNull();
+      expect(screen.queryByTestId("admin-tile-moderation")).toBeNull();
     });
   });
 });

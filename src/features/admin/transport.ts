@@ -304,7 +304,13 @@ export function parseHiddenRemoved(data: unknown): HiddenRemovedItem[] {
   return rows;
 }
 
-async function call(name: string, args?: Record<string, unknown>): Promise<unknown> {
+/** One RPC with the shared error mapping (`unavailable` before a migration
+ * is applied, `forbidden` without the permission, ...). Exported for the
+ * Stage 6 tools (launcher counts, statistics, hubs, officials). */
+export async function call(
+  name: string,
+  args?: Record<string, unknown>,
+): Promise<unknown> {
   const client = getSupabaseClient();
   if (!client) {
     throw new CommunityError("unavailable", "Supabase is not configured");
