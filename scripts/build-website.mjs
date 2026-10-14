@@ -92,7 +92,35 @@ function loadStrings() {
     if (missing.length)
       throw new Error(`strings/${code}.json is missing: ${missing.join(", ")}`);
   }
+  checkBrandSpelling(strings);
   return strings;
+}
+
+/** The brand is written "Bumelerze" in Arabic copy (owner decision
+ * 2026-10-14), inside a bidi isolate (U+2066 … U+2069) when it sits in Arabic
+ * text, and "بوومەلەرزە" in Sorani. The Sorani letters ێ (U+06CE) and ە
+ * (U+06D5) do not exist in Arabic, so any such letter in the Arabic file is a
+ * stray Kurdish transliteration; the one place they belong is the Kurdish
+ * word the About intro derives the name from, inside «…». */
+export const ARABIC_ETYMOLOGY_KEY = "about.intro";
+export function checkBrandSpelling(strings) {
+  const problems = [];
+  for (const [key, value] of Object.entries(strings.ar)) {
+    const text = key === ARABIC_ETYMOLOGY_KEY ? value.replace(/«[^»]*»/g, "") : value;
+    if (/[ێە]/.test(text))
+      problems.push(
+        `strings/ar.json ${key}: Sorani letters in Arabic copy, write the brand as Bumelerze`,
+      );
+    if (/Bumelerze/.test(value) && /[؀-ۿ]/.test(value) && !/⁦Bumelerze⁩/.test(value))
+      problems.push(
+        `strings/ar.json ${key}: Bumelerze inside Arabic text needs a bidi isolate (\\u2066…\\u2069)`,
+      );
+  }
+  for (const [key, value] of Object.entries(strings.ckb)) {
+    if (/بومەلەرزە/.test(value))
+      problems.push(`strings/ckb.json ${key}: the brand is spelt بوومەلەرزە`);
+  }
+  if (problems.length) throw new Error(problems.join("\n"));
 }
 
 const escapeAttr = (s) =>

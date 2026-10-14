@@ -38,7 +38,7 @@ Commit `website-src/` and the regenerated `website/` together; the jest test
 
 | Path | What |
 |---|---|
-| `strings/{en,ckb,kmr,ar}.json` | Every visible string, flat `key: value`. English copy keys are verbatim from the outreach copy file; the other three are machine drafts. Every language must have every English key, or the build stops. Feature names (Did you feel it, I'm safe, SHAKEmap, Tag my building, ...) match `src/i18n/locales/*.json`. |
+| `strings/{en,ckb,kmr,ar}.json` | Every visible string, flat `key: value`. English copy keys are verbatim from the outreach copy file; the other three are machine drafts. Every language must have every English key, or the build stops. Feature names (Did you feel it, I'm safe, SHAKEmap, Tag my building, ...) match `src/i18n/locales/*.json`. The brand is `Bumelerze` in English, Kurmanji and Arabic (in Arabic text inside a bidi isolate, `\u2066Bumelerze\u2069`) and `بوومەلەرزە` in Sorani; the build refuses Sorani letters in the Arabic file except the Kurdish word in `about.intro`. |
 | `pages/index.html`, `pages/how-it-works.html`, `pages/support.html`, `pages/about.html` | Templates rendered from the strings. |
 | `pages/{handbook,privacy}/<lang>.html` | Per-language page bodies (the inside of `<main>`), copied verbatim into the shared layout. Edit the text here. |
 | `partials/layout.html`, `head.html`, `header.html`, `footer.html` | Shared page chrome. |

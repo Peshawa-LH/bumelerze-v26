@@ -149,6 +149,51 @@ describe("website build", () => {
     }
   });
 
+  it("writes the brand as Bumelerze in Arabic and بوومەلەرزە in Sorani (owner decision 2026-10-14)", () => {
+    const strings = (lang: string) =>
+      JSON.parse(
+        fs.readFileSync(
+          path.join(ROOT, "website-src", "strings", `${lang}.json`),
+          "utf8",
+        ),
+      ) as Record<string, string>;
+    const ar = strings("ar");
+    expect(ar.brand).toBe("Bumelerze");
+    // ێ (U+06CE) and ە (U+06D5) are Sorani letters, not Arabic: in the
+    // Arabic file they can only be the Kurdish word the About intro derives
+    // the name from, inside «…». Elsewhere the Latin name sits in a bidi
+    // isolate so it reads right inside Arabic text.
+    for (const [key, value] of Object.entries(ar)) {
+      const text = key === "about.intro" ? value.replace(/«[^»]*»/g, "") : value;
+      expect({ key, sorani: text.match(/[ێە]/)?.[0] ?? null }).toEqual({
+        key,
+        sorani: null,
+      });
+      if (/Bumelerze/.test(value) && /[؀-ۿ]/.test(value)) {
+        expect({ key, isolated: /⁦Bumelerze⁩/.test(value) }).toEqual({
+          key,
+          isolated: true,
+        });
+      }
+    }
+    expect(ar["about.intro"]).toContain('«<span lang="ckb">بوومەلەرزە</span>»');
+    for (const [key, value] of Object.entries(strings("ckb"))) {
+      expect({ key, short: /بومەلەرزە/.test(value) }).toEqual({ key, short: false });
+    }
+    // and the rendered Arabic pages: nothing Sorani outside what is marked
+    // as Kurdish (the language switcher's own name, the etymology)
+    for (const page of PAGES) {
+      const html = read(path.join("ar", page)).replace(
+        /<(a|span)\b[^>]*\blang="ckb"[^>]*>[\s\S]*?<\/\1>/g,
+        "",
+      );
+      expect({ page, sorani: html.match(/[ێە]/)?.[0] ?? null }).toEqual({
+        page,
+        sorani: null,
+      });
+    }
+  });
+
   it("names early warning only as an aim, never as available", () => {
     const aims = [read("index.html"), read("how-it-works.html")]
       .flatMap(
