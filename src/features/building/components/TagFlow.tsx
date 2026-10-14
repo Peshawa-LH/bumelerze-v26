@@ -424,6 +424,11 @@ function QuestionStep({ state, onChange }: StepProps) {
       </View>
     </View>
   ) : null;
+  const notes = (question.notes ?? []).map((note) => (
+    <Meta key={note} testID={`note-${question.id}-${note}`}>
+      {t(`building.q.${question.id}.notes.${note}`)}
+    </Meta>
+  ));
 
   if (question.input === "text") {
     return (
@@ -456,11 +461,14 @@ function QuestionStep({ state, onChange }: StepProps) {
     <View style={{ gap: spacing[3] }}>
       {title}
       {helper}
+      {notes}
       {pictograms ? (
         <PictureGrid>
           {question.options.map((option) => {
             const pictogram = pictograms[option];
-            return pictogram ? (
+            // `null` is a drawing still to come (a neutral frame); an option
+            // missing from the map is not shown as a picture.
+            return pictogram !== undefined ? (
               <PictureOption
                 key={option}
                 pictogram={pictogram}

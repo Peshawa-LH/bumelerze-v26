@@ -18,16 +18,21 @@ import type { PictogramName } from "./pictograms.generated";
  *    corner-column follow-up for "I don't know" structures, replaces people
  *    day/night by one `people` question and ends with an optional free-text
  *    `remarks`. Its first question offered five home types only.
- *  - q-v3 (this file) makes the first question "What kind of building is it?":
+ *  - q-v3 makes the first question "What kind of building is it?":
  *    eight options that say both what the building is used for and what type
  *    of building it is (house, apartment in a complex, shop, warehouse, ...).
  *    The answer is stored as `use`; `kind` for the server and `occupancy` for
  *    research are derived from it. Older answers still load:
  *    `sanitizeAnswers` maps `peopleNight` to `people` (q-v1) and the q-v1/q-v2
  *    `use` ids to the q-v3 ids (see `LEGACY_USE`).
+ *  - q-v4 (this file, calibration review 2026-10-14) adds three structure
+ *    options after the concrete frame: concrete walls (`walls`, RC2), block
+ *    walls with concrete columns at the corners (`confined`, M7, no belts
+ *    question) and concrete columns with flat ceilings and no beams
+ *    (`flatslab`, RC4). Every q-v1..q-v3 structure id keeps its meaning.
  */
 
-export const QUESTIONNAIRE_VERSION = "q-v3";
+export const QUESTIONNAIRE_VERSION = "q-v4";
 export const DONT_KNOW = "dk";
 /** Characters allowed in the free-text remarks. */
 export const REMARKS_MAX = 1000;
@@ -70,13 +75,30 @@ export interface Question {
   firstScreen?: boolean;
   /** Only asked when this returns true for the answers so far. */
   appliesTo?: (answers: Answers) => boolean;
-  /** A drawing for each option (the options are then shown as pictures). */
-  pictograms?: Readonly<Record<string, PictogramName>>;
+  /** A drawing for each option (the options are then shown as pictures).
+   * `null`: the drawing is not made yet; the option shows a neutral frame. */
+  pictograms?: Readonly<Record<string, PictogramName | null>>;
   /** A drawing under the title, with the text `building.q.<id>.helper`. */
   helperPictogram?: PictogramName;
+  /** Short extra hints under the helper, `building.q.<id>.notes.<note>`. */
+  notes?: readonly string[];
 }
 
 const WALLS = ["block", "brick"] as const;
+
+/** What holds the building up (q-v4 order: the concrete systems first). */
+export const STRUCTURE_OPTIONS = [
+  "frame",
+  "walls",
+  "confined",
+  "flatslab",
+  ...WALLS,
+  "stone",
+  "mud",
+  "steel",
+  "wood",
+  DONT_KNOW,
+] as const;
 
 /** People who live in this home (one family's home). */
 const PEOPLE_OPTIONS = ["p1_2", "p3_5", "p6_10", "p11p", DONT_KNOW] as const;
@@ -245,11 +267,17 @@ export const QUESTIONS: readonly Question[] = [
   },
   {
     id: "structure",
-    options: ["frame", ...WALLS, "stone", "mud", "steel", "wood", DONT_KNOW],
+    options: STRUCTURE_OPTIONS,
     structural: true,
     helperPictogram: "structure-corner-column",
+    notes: ["flatslab"],
     pictograms: {
       frame: "structure-frame",
+      // No drawings yet for concrete walls and the flat slab; the confined
+      // walls reuse the corner-column drawing of the helper.
+      walls: null,
+      confined: "structure-corner-column",
+      flatslab: null,
       block: "structure-block-walls",
       brick: "structure-brick-walls",
       stone: "structure-stone-walls",

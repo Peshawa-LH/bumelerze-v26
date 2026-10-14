@@ -86,11 +86,13 @@ export const TAG: HomeTag = {
   createdAt: "2026-10-04T10:00:00Z",
 };
 
+/** Fired brick: half M6, half M7 (belts unknown), so the report names M6
+ * first and M7 as "could also be". */
 export const ANSWERS: Answers = {
   floors: "f2",
   age: "a25_50",
   builder: "builder",
-  structure: "block",
+  structure: "brick",
   belts: "dk",
   roof: "slab",
   added: "yes",

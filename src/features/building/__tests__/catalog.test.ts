@@ -10,6 +10,10 @@ import { DONT_KNOW, QUESTIONS } from "../questionnaire";
 
 const catalogs = { en, ckb, kmr, ar } as const;
 
+/** Picture options shown with a neutral frame until the artwork exists
+ * (q-v4 concrete walls and flat slab, calibration review 2026-10-14). */
+const DRAWINGS_TO_COME = ["structure.walls", "structure.flatslab"];
+
 function lookup(catalog: unknown, path: string): unknown {
   return path.split(".").reduce<unknown>((node, key) => {
     return typeof node === "object" && node !== null
@@ -28,6 +32,9 @@ function requiredKeys(): string[] {
     }
     if (question.helperPictogram) {
       keys.push(`building.q.${question.id}.helper`);
+    }
+    for (const note of question.notes ?? []) {
+      keys.push(`building.q.${question.id}.notes.${note}`);
     }
     if (question.input === "text") {
       keys.push(`building.q.${question.id}.hint`, `building.q.${question.id}.label`);
@@ -153,7 +160,18 @@ describe("Tag my building strings", () => {
     for (const question of QUESTIONS) {
       for (const [option, name] of Object.entries(question.pictograms ?? {})) {
         expect(question.options).toContain(option);
-        expect(names.has(name)).toBe(true);
+        if (name === null) {
+          // A drawing still to come: only the ones on the artwork list.
+          expect(DRAWINGS_TO_COME).toContain(`${question.id}.${option}`);
+        } else {
+          expect(names.has(name)).toBe(true);
+        }
+      }
+      if (question.pictograms) {
+        // Every option of a picture question has an entry, or it would vanish.
+        for (const option of question.options) {
+          expect(question.pictograms[option]).not.toBeUndefined();
+        }
       }
       if (question.helperPictogram) {
         expect(names.has(question.helperPictogram)).toBe(true);

@@ -2056,8 +2056,14 @@
       "structure": {
         "title": "Avahî li ser çi sekiniye?",
         "helper": "Li quncikekê binêre: stûnek betonê heye?",
+        "notes": {
+          "flatslab": "Kirîş di bin banê de xuya dibin? Wê demê stûn û kirîşên betonê hilbijêre."
+        },
         "options": {
-          "frame": "Çarçoveya betonê",
+          "frame": "Stûn û kirîşên betonê, dîwarên blokê di navberê de",
+          "walls": "Dîwarên betonê (dîwarên berxwedêr)",
+          "confined": "Dîwarên blokê bi stûnên betonê li quncikan",
+          "flatslab": "Stûnên betonê bi banên rast, bê kirîş",
           "block": "Dîwarên blokê",
           "brick": "Dîwarên kerpîçê",
           "stone": "Dîwarên kevir",
@@ -2245,7 +2251,8 @@
       "M6": "Dîwarên kerpîç an blok bi qatên betonê",
       "M7": "Dîwarên kerpîç an blok bi kember û stûnên betonê girêdayî",
       "RCframe": "Çarçoveya betonê",
-      "RC4": "Dîwarên betonê",
+      "RC2": "Dîwarên betonê",
+      "RC4": "Bana rast a betonê (bê kirîş)",
       "RCprecast": "Betona pêşdahatî",
       "steel": "Çarçoveya pola",
       "timber": "Çarçoveya daran",

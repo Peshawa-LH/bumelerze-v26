@@ -362,8 +362,8 @@ describe("Tag my building flow", () => {
     );
     const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
     expect(survey.tagId).toBe("tag-1");
-    expect(survey.version).toBe("q-v3");
-    expect(QUESTIONNAIRE_VERSION).toBe("q-v3");
+    expect(survey.version).toBe("q-v4");
+    expect(QUESTIONNAIRE_VERSION).toBe("q-v4");
     expect(survey.answers).toMatchObject({
       use: "house_single",
       structure: "frame",
@@ -371,7 +371,7 @@ describe("Tag my building flow", () => {
       location_quality: "town",
     });
     const saved = mockTransport.saveAssessment.mock.calls[0]?.[0];
-    expect(saved.assessment.method).toBe("auto-v0");
+    expect(saved.assessment.method).toBe("auto-v1");
     expect(saved.assessment.ims_type_probs["RC1-L"]).toBeGreaterThan(0);
     expect(mockReplace).toHaveBeenCalledWith({
       pathname: "/home/[tagId]/report",
@@ -560,7 +560,7 @@ describe("Tag my building flow", () => {
     await press("flow-submit");
     await waitFor(() => expect(mockReplace).toHaveBeenCalled());
     const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
-    expect(survey.version).toBe("q-v3");
+    expect(survey.version).toBe("q-v4");
     expect(survey.answers).toMatchObject({
       use: "mixed",
       basement: "part",
@@ -593,7 +593,7 @@ describe("Tag my building flow", () => {
     await press("flow-submit");
     await waitFor(() => expect(mockReplace).toHaveBeenCalled());
     const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
-    expect(survey.version).toBe("q-v3");
+    expect(survey.version).toBe("q-v4");
     expect(survey.answers).toMatchObject({
       use: "house_single",
       people: "p3_5",
@@ -630,8 +630,16 @@ describe("Tag my building flow", () => {
       expect(
         screen.getByText("Look at a corner: is there a concrete column?"),
       ).toBeTruthy();
+      expect(
+        screen.getByText(
+          "Beams hanging below the ceiling? Then choose concrete columns and beams.",
+        ),
+      ).toBeTruthy();
       for (const label of [
-        "Concrete frame",
+        "Concrete columns and beams, with block walls between",
+        "Concrete walls (shear walls)",
+        "Block walls with concrete columns at the corners",
+        "Concrete columns with flat ceilings, no beams",
         "Block walls",
         "Brick walls",
         "Stone walls",
@@ -642,7 +650,24 @@ describe("Tag my building flow", () => {
       ]) {
         expect(screen.getByLabelText(label)).toBeTruthy();
       }
-      expect(screen.getAllByRole("radio").length).toBeGreaterThanOrEqual(8);
+      expect(screen.getAllByRole("radio").length).toBeGreaterThanOrEqual(11);
+      // The two drawings still to come show a neutral frame, not nothing.
+      const hidden = { includeHiddenElements: true };
+      expect(
+        screen.getByTestId("option-structure-walls-placeholder", hidden),
+      ).toBeTruthy();
+      expect(
+        screen.getByTestId("option-structure-flatslab-placeholder", hidden),
+      ).toBeTruthy();
+    });
+
+    it("the new confined option goes straight on, without the belts or roof questions", async () => {
+      await reachStructure();
+      await press("option-structure-confined");
+      await press("flow-next");
+      expect(screen.queryByText(/concrete belts or columns/)).toBeNull();
+      expect(screen.queryByText("What are the roof and floors made of?")).toBeNull();
+      expect(screen.queryByTestId("option-belts-yes")).toBeNull();
     });
 
     it("'I don't know' asks whether columns can be seen at the corners", async () => {
@@ -926,7 +951,7 @@ describe("Tag my building flow", () => {
       expect(screen.queryByTestId("kind-house")).toBeNull();
     });
 
-    it("a q-v1 survey loads: its answers are selected, 'night' becomes 'live here', and it saves as q-v3", async () => {
+    it("a q-v1 survey loads: its answers are selected, 'night' becomes 'live here', and it saves as q-v4", async () => {
       mockTransport.fetchLatestSurvey.mockResolvedValue({
         surveyId: "survey-8",
         tagId: "tag-1",
@@ -966,12 +991,12 @@ describe("Tag my building flow", () => {
         screen.getByLabelText(/What is the shape\?: A corner or wing sticks out/),
       ).toBeTruthy();
       expect(
-        screen.getByLabelText(/What holds the building up\?: Concrete frame/),
+        screen.getByLabelText(/What holds the building up\?: Concrete columns and beams/),
       ).toBeTruthy();
       await press("flow-submit");
       await waitFor(() => expect(mockReplace).toHaveBeenCalled());
       const survey = mockTransport.saveSurvey.mock.calls[0]?.[0];
-      expect(survey.version).toBe("q-v3");
+      expect(survey.version).toBe("q-v4");
       expect(survey.answers).toMatchObject({
         use: "mixed",
         people: "p11p",

@@ -103,7 +103,7 @@ describe("saveSurveyAndAssessment", () => {
       surveyId: "survey-1",
       assessment,
     });
-    expect(assessment.method).toBe("auto-v0");
+    expect(assessment.method).toBe("auto-v1");
     expect(assessment.hazard.pga_g).not.toBeNull();
     // saved after the survey, never before
     expect(mockTransport.saveSurvey.mock.invocationCallOrder[0]).toBeLessThan(

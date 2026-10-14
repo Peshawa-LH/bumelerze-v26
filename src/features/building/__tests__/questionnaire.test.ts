@@ -1,4 +1,4 @@
-import { assessAnswers, assessBuilding, confidence } from "../assessment";
+import { METHOD, assessAnswers, assessBuilding, confidence } from "../assessment";
 import {
   DONT_KNOW,
   QUESTIONNAIRE_VERSION,
@@ -31,11 +31,11 @@ function question(id: string) {
 }
 
 describe("questionnaire version", () => {
-  it("is q-v3", () => {
-    expect(QUESTIONNAIRE_VERSION).toBe("q-v3");
+  it("is q-v4", () => {
+    expect(QUESTIONNAIRE_VERSION).toBe("q-v4");
   });
 
-  it("is stored with the survey as q-v3", async () => {
+  it("is stored with the survey as q-v4", async () => {
     const saveSurvey = jest.fn().mockResolvedValue("s1");
     await saveSurveyAndAssessment(
       "t1",
@@ -48,7 +48,7 @@ describe("questionnaire version", () => {
         } as never,
       },
     );
-    expect(saveSurvey.mock.calls[0]?.[0]).toMatchObject({ version: "q-v3" });
+    expect(saveSurvey.mock.calls[0]?.[0]).toMatchObject({ version: "q-v4" });
   });
 });
 
@@ -139,13 +139,44 @@ describe("q-v3: the first question is what kind of building it is", () => {
 });
 
 describe("N8: what holds the building up", () => {
-  const ids = ["frame", "block", "brick", "stone", "mud", "steel", "wood", "dk"];
+  const ids = [
+    "frame",
+    "walls",
+    "confined",
+    "flatslab",
+    "block",
+    "brick",
+    "stone",
+    "mud",
+    "steel",
+    "wood",
+    "dk",
+  ];
+  const before = ["frame", "block", "brick", "stone", "mud", "steel", "wood", "dk"];
 
-  it("keeps the existing answer ids, each with a picture", () => {
+  it("keeps every q-v3 answer id and adds walls, confined and flat slab (q-v4)", () => {
     expect(question("structure").options).toEqual(ids);
+    for (const id of before) {
+      expect(question("structure").options).toContain(id);
+      expect(sanitizeAnswers({ structure: id })).toEqual({ structure: id });
+    }
     expect(Object.keys(question("structure").pictograms ?? {}).sort()).toEqual(
       [...ids].sort(),
     );
+    // Walls and flat slab wait for their drawings; confined reuses the corner column.
+    expect(question("structure").pictograms?.walls).toBeNull();
+    expect(question("structure").pictograms?.flatslab).toBeNull();
+    expect(question("structure").pictograms?.confined).toBe("structure-corner-column");
+    expect(question("structure").notes).toEqual(["flatslab"]);
+  });
+
+  it("asks neither belts nor roof for the concrete options and confined walls", () => {
+    for (const structure of ["walls", "confined", "flatslab", "frame"]) {
+      const asked = visibleQuestions({ structure }).map((q) => q.id);
+      expect(asked).not.toContain("belts");
+      expect(asked).not.toContain("roof");
+      expect(asked).not.toContain("cornerColumns");
+    }
   });
 
   it("shows the corner-column helper picture", () => {
@@ -194,7 +225,9 @@ describe("N8: what holds the building up", () => {
     );
     const direct = assessAnswers({ ...base, structure: "block", belts: "no" }, context);
     expect(viaFollowUp).toEqual(direct);
-    expect(viaFollowUp.ims_type_probs.M6).toBeCloseTo(1, 2);
+    // Unconfined hollow block with a slab: half M5, half M6 (auto-v1).
+    expect(viaFollowUp.ims_type_probs.M6).toBeCloseTo(0.5, 2);
+    expect(viaFollowUp.ims_type_probs.M5).toBeCloseTo(0.5, 2);
   });
 
   it("'I don't know' twice stays on the regional prior", () => {
@@ -402,15 +435,49 @@ describe("the assessment ignores the research answers", () => {
 
 describe("q-v1 compatibility: the assessment is unchanged for equivalent answers", () => {
   // The golden file holds 160 random q-v1 answer sets (every question, with
-  // gaps and "I don't know") and the full assessment the q-v1 code produced
-  // for each, at two places. Equivalent q-v2 answers must give the same output.
+  // gaps and "I don't know") and the full assessment for each, at two places:
+  // `result` from auto-v1 (calibration review 2026-10-14) and
+  // `result_auto_v0`, what the q-v1 code produced. Equivalent q-v2..q-v4
+  // answers must give `result`.
   interface Case {
     answers: Record<string, string>;
     lat: number;
     lon: number;
     result: unknown;
+    result_auto_v0: { method: string } & Record<string, unknown>;
   }
   const cases = golden as unknown as Case[];
+
+  /** Answer sets no calibration rule of auto-v1 touches: no stock prior, no
+   * hollow block, no M7, no engineer answer that changed meaning. */
+  function untouched(answers: Record<string, string>): boolean {
+    const builder = answers.builder;
+    const byHand = builder === "builder" || builder === "self";
+    switch (answers.structure) {
+      case "mud":
+      case "wood":
+        return true;
+      case "brick":
+        return answers.belts === "no" && builder !== "eng_full";
+      case "frame":
+      case "steel":
+      case "stone":
+        return byHand;
+      default:
+        return false;
+    }
+  }
+
+  it("old answers untouched by the calibration still assess exactly as auto-v0 did", () => {
+    const same = cases.filter((entry) => untouched(entry.answers));
+    expect(same.length).toBeGreaterThan(20);
+    for (const entry of same) {
+      expect(assessBuilding(entry.answers as Answers, entry.lat, entry.lon)).toEqual({
+        ...entry.result_auto_v0,
+        method: METHOD,
+      });
+    }
+  });
 
   it("gives identical output for every golden case", () => {
     expect(cases.length).toBeGreaterThan(100);

@@ -402,7 +402,7 @@ describe("table writes", () => {
       tagId: "t1",
       surveyId: "s1",
       assessment: {
-        method: "auto-v0",
+        method: "auto-v1",
         ims_type_probs: { M6: 1 },
         vc_probs: { A: 0, B: 0.25, C: 0.625, D: 0.125, E: 0, F: 0 },
         vc_most_likely: "C",
@@ -423,7 +423,7 @@ describe("table writes", () => {
         {
           tag_id: "t1",
           survey_id: "s1",
-          method: "auto-v0",
+          method: "auto-v1",
           ims_type_probs: { M6: 1 },
           vc_probs: { A: 0, B: 0.25, C: 0.625, D: 0.125, E: 0, F: 0 },
           vc_most_likely: "C",

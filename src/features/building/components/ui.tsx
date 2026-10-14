@@ -145,12 +145,14 @@ export function PictureOption({
   testID,
 }: {
   label: string;
-  pictogram: PictogramName;
+  /** `null`: no drawing yet; a neutral empty frame keeps the grid even. */
+  pictogram: PictogramName | null;
   selected: boolean;
   onPress: () => void;
   testID?: string;
 }) {
   const { colors, typography, spacing } = useTheme();
+  const tint = selected ? colors.brand.primary : colors.text.primary;
   return (
     <Pressable
       accessibilityRole="radio"
@@ -170,11 +172,16 @@ export function PictureOption({
         },
       ]}
     >
-      <Pictogram
-        name={pictogram}
-        size={56}
-        color={selected ? colors.brand.primary : colors.text.primary}
-      />
+      {pictogram ? (
+        <Pictogram name={pictogram} size={56} color={tint} />
+      ) : (
+        <View
+          testID={testID ? `${testID}-placeholder` : undefined}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[styles.picturePlaceholder, { borderColor: colors.border.default }]}
+        />
+      )}
       <Text
         style={[
           typography.bodyMeta,
@@ -341,6 +348,7 @@ export function ScreenFrame({
 }
 
 const styles = StyleSheet.create({
+  picturePlaceholder: { width: 56, height: 56, borderRadius: 10, borderWidth: 1 },
   flex: { flex: 1 },
   card: { borderWidth: 1, borderRadius: 14 },
   option: { minHeight: 56, borderRadius: 12, justifyContent: "center" },

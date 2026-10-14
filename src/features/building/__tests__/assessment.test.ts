@@ -1,6 +1,8 @@
 import {
   BELTS_DONT_KNOW_CONFINED,
+  BLOCK_SLAB_M5,
   ENGINEERED_DONT_KNOW,
+  ENGINEER_PLANS_ONLY,
   METHOD,
   NEW_DONT_KNOW,
   ROOF_DONT_KNOW_SLAB,
@@ -15,6 +17,7 @@ import {
   formatVcRange,
   hasEngineerBenefit,
   improvementTips,
+  isM7NonEngineered,
   mostLikelyVc,
   netShift,
   parseVcRange,
@@ -24,12 +27,13 @@ import {
   siteHazard,
   storeyBand,
   typeDistribution,
+  typeVcShifts,
   vcDistribution,
   vcRange,
   vulnerableSigns,
 } from "../assessment";
 import { IMS_TYPES, TYPE_PRIORS, type VcProbs } from "../ims25";
-import type { Answers } from "../questionnaire";
+import { STRUCTURE_OPTIONS, type Answers } from "../questionnaire";
 
 const URBAN_KRG = { region: "kurdistan", settlement: "urban" } as const;
 const RURAL_KRG = { region: "kurdistan", settlement: "rural" } as const;
@@ -40,12 +44,19 @@ function sum(values: number[]): number {
 }
 
 describe("type distribution", () => {
-  it("block walls with a concrete slab and no belts are M6", () => {
+  it("hollow block with a concrete slab and no belts is half M5, half M6", () => {
     const types = typeDistribution(
       { structure: "block", belts: "no", roof: "slab" },
       URBAN_KRG,
     );
-    expect(types).toEqual({ M6: 1 });
+    expect(types.M5).toBeCloseTo(BLOCK_SLAB_M5);
+    expect(types.M6).toBeCloseTo(1 - BLOCK_SLAB_M5);
+  });
+
+  it("fired brick with a concrete slab and no belts stays M6", () => {
+    expect(
+      typeDistribution({ structure: "brick", belts: "no", roof: "slab" }, URBAN_KRG),
+    ).toEqual({ M6: 1 });
   });
 
   it("belts and corner columns make block walls M7 whatever the roof", () => {
@@ -67,7 +78,7 @@ describe("type distribution", () => {
 
   it("belts unknown splits 50/50 between M7 and M6 (owner decision)", () => {
     const types = typeDistribution(
-      { structure: "block", belts: "dk", roof: "slab" },
+      { structure: "brick", belts: "dk", roof: "slab" },
       URBAN_KRG,
     );
     expect(types.M7).toBeCloseTo(BELTS_DONT_KNOW_CONFINED);
@@ -81,18 +92,46 @@ describe("type distribution", () => {
 
   it("an unknown roof leans to the concrete slab", () => {
     const types = typeDistribution(
-      { structure: "block", belts: "no", roof: "dk" },
+      { structure: "brick", belts: "no", roof: "dk" },
       URBAN_KRG,
     );
     expect(types.M6).toBeCloseTo(ROOF_DONT_KNOW_SLAB);
     expect(types.M5).toBeCloseTo(1 - ROOF_DONT_KNOW_SLAB);
   });
 
-  it("fired brick follows the same pattern as block", () => {
-    const brick = { belts: "dk", roof: "slab" };
-    expect(typeDistribution({ structure: "brick", ...brick }, URBAN_KRG)).toEqual(
-      typeDistribution({ structure: "block", ...brick }, URBAN_KRG),
+  it("block and brick share the M7 and light-floor paths; only the slab path differs", () => {
+    for (const walls of [
+      { belts: "yes", roof: "slab" },
+      { belts: "no", roof: "jack_arch" },
+    ]) {
+      expect(typeDistribution({ structure: "brick", ...walls }, URBAN_KRG)).toEqual(
+        typeDistribution({ structure: "block", ...walls }, URBAN_KRG),
+      );
+    }
+    const block = typeDistribution(
+      { structure: "block", belts: "dk", roof: "slab" },
+      URBAN_KRG,
     );
+    expect(block.M7).toBeCloseTo(0.5);
+    expect(block.M6).toBeCloseTo(0.25);
+    expect(block.M5).toBeCloseTo(0.25);
+  });
+
+  it("the three q-v4 concrete and confined options map straight to their types", () => {
+    expect(typeDistribution({ structure: "confined" }, URBAN_KRG)).toEqual({ M7: 1 });
+    expect(typeDistribution({ structure: "flatslab" }, URBAN_KRG)).toEqual({ RC4: 1 });
+    expect(
+      typeDistribution(
+        { structure: "walls", builder: "builder", age: "under10" },
+        URBAN_KRG,
+      ),
+    ).toEqual({ "RC2-L": 1 });
+    const engineered = typeDistribution(
+      { structure: "walls", builder: "eng_full", age: "a10_25" },
+      URBAN_KRG,
+    );
+    expect(engineered["RC2-M"]).toBeCloseTo(0.6);
+    expect(engineered["RC2-L"]).toBeCloseTo(0.4);
   });
 
   it("stone is M3, M4 only when engineered and dressed", () => {
@@ -110,10 +149,17 @@ describe("type distribution", () => {
     ).toEqual({ M3: 1 });
     expect(
       typeDistribution(
-        { structure: "stone", stone: "dressed", builder: "eng_plans" },
+        { structure: "stone", stone: "dressed", builder: "eng_full" },
         URBAN_KRG,
       ),
     ).toEqual({ M4: 1 });
+    // Plans without supervision count half.
+    const plans = typeDistribution(
+      { structure: "stone", stone: "dressed", builder: "eng_plans" },
+      URBAN_KRG,
+    );
+    expect(plans.M4).toBeCloseTo(ENGINEER_PLANS_ONLY);
+    expect(plans.M3).toBeCloseTo(1 - ENGINEER_PLANS_ONLY);
   });
 
   it("stone with an unknown detail keeps M3 0.7 / M4 0.3", () => {
@@ -175,6 +221,24 @@ describe("type distribution", () => {
     }
   });
 
+  it("engineer plans without supervision count half in the moderate share", () => {
+    const frame = typeDistribution(
+      { structure: "frame", builder: "eng_plans", age: "under10" },
+      URBAN_KRG,
+    );
+    expect(frame["RC1-M"]).toBeCloseTo(0.6 * ENGINEER_PLANS_ONLY);
+    const walls = typeDistribution(
+      { structure: "walls", builder: "eng_plans", age: "under10" },
+      URBAN_KRG,
+    );
+    expect(walls["RC2-M"]).toBeCloseTo(0.6 * ENGINEER_PLANS_ONLY);
+    const steel = typeDistribution(
+      { structure: "steel", builder: "eng_plans", age: "under10" },
+      URBAN_KRG,
+    );
+    expect(steel["S-M/H"]).toBeCloseTo(ENGINEER_PLANS_ONLY);
+  });
+
   it("frame with unknown engineer and age mixes by the don't-know shares", () => {
     const types = typeDistribution({ structure: "frame" }, URBAN_KRG);
     expect(types["RC1-M"]).toBeCloseTo(0.6 * ENGINEERED_DONT_KNOW * NEW_DONT_KNOW);
@@ -217,8 +281,10 @@ describe("type distribution", () => {
     const ruralTall = typeDistribution({ floors: "f11p" }, RURAL_KRG);
     expect(rankedTypes(ruralTall)[0]?.type).toBe("RC1-H");
 
+    // Rebuilt priors (2026-10-14 crosswalk correction): hollow-block and
+    // brick walls with light floors lead the 3-storey stock outside Kurdistan.
     const iraq = typeDistribution({ floors: "f3" }, URBAN_IRAQ);
-    expect(rankedTypes(iraq)[0]?.type).toBe("M3");
+    expect(rankedTypes(iraq)[0]?.type).toBe("M5");
     expect(rankedTypes(typeDistribution({ floors: "f3" }, URBAN_KRG))[0]?.type).toBe(
       "M6",
     );
@@ -237,10 +303,10 @@ describe("type distribution", () => {
   });
 
   it("every distribution sums to one and only uses known types", () => {
-    const structures = ["frame", "block", "brick", "stone", "mud", "steel", "wood", "dk"];
+    const structures = [...STRUCTURE_OPTIONS];
     const known = new Set(IMS_TYPES.map((entry) => entry.type));
     for (const structure of structures) {
-      for (const builder of ["eng_full", "builder", "dk"]) {
+      for (const builder of ["eng_full", "eng_plans", "builder", "dk"]) {
         for (const age of ["under10", "over50", "dk"]) {
           const types = typeDistribution({ structure, builder, age }, URBAN_KRG);
           expect(sum(Object.values(types))).toBeCloseTo(1, 6);
@@ -304,6 +370,42 @@ describe("vulnerability class", () => {
     ).toBe(0);
   });
 
+  it("shifts one type's prior when asked, the others untouched", () => {
+    const plain = vcDistribution({ M7: 1 });
+    expect(plain.D).toBeCloseTo(0.625);
+    const shifted = vcDistribution({ M7: 0.5, M6: 0.5 }, { M7: 1 });
+    // M7 moved one class: C 0.625, D 0.25, B 0.125; M6 as in the table.
+    expect(shifted.B).toBeCloseTo((0.125 + 0.25) / 2);
+    expect(shifted.C).toBeCloseTo((0.625 + 0.625) / 2);
+    expect(shifted.D).toBeCloseTo((0.25 + 0.125) / 2);
+    expect(shifted.E).toBeCloseTo(0);
+  });
+
+  it("M7 without an engineer is one class more vulnerable (IMS-25 3.5.1.6)", () => {
+    for (const builder of ["builder", "self", "dk", undefined]) {
+      for (const answers of [
+        { structure: "confined", builder },
+        { structure: "block", belts: "yes", roof: "slab", builder },
+        { structure: "brick", belts: "yes", roof: "slab", builder },
+      ] as Answers[]) {
+        expect(isM7NonEngineered(answers)).toBe(true);
+        const result = assessAnswers(answers, URBAN_KRG);
+        expect(result.vc_most_likely).toBe("C");
+        expect(result.vc_range).toBe("C-D");
+      }
+    }
+    for (const builder of ["eng_full", "eng_plans"]) {
+      const answers: Answers = { structure: "confined", builder };
+      expect(isM7NonEngineered(answers)).toBe(false);
+      const result = assessAnswers(answers, URBAN_KRG);
+      expect(result.vc_most_likely).toBe("D");
+      expect(result.vc_range).toBe("D-E");
+    }
+    // M7 from the stock prior (structure unknown) is not adjusted.
+    expect(isM7NonEngineered({ structure: "dk", builder: "self" })).toBe(false);
+    expect(typeVcShifts({ structure: "frame", builder: "self" })).toEqual({});
+  });
+
   it("the engineer benefit is one shift, from either source, not both", () => {
     expect(hasEngineerBenefit({ builder: "eng_full" })).toBe(true);
     expect(hasEngineerBenefit({ builder: "eng_plans" })).toBe(false);
@@ -313,7 +415,7 @@ describe("vulnerability class", () => {
   });
 
   it("modifiers move the class one step each, capped at two", () => {
-    const base: Answers = { structure: "block", belts: "no", roof: "slab" };
+    const base: Answers = { structure: "brick", belts: "no", roof: "slab" };
     expect(assessAnswers(base, URBAN_KRG).vc_most_likely).toBe("C");
     expect(assessAnswers({ ...base, added: "yes" }, URBAN_KRG).vc_most_likely).toBe("B");
     expect(
@@ -336,11 +438,9 @@ describe("vulnerability class", () => {
     expect(five.vc_probs).toEqual(two.vc_probs);
   });
 
-  it("an engineer-supervised or strengthened building is one class better", () => {
-    const base: Answers = { structure: "block", belts: "no", roof: "slab" };
-    expect(
-      assessAnswers({ ...base, builder: "eng_full" }, URBAN_KRG).vc_most_likely,
-    ).toBe("D");
+  it("a strengthened building is one class better", () => {
+    const base: Answers = { structure: "brick", belts: "no", roof: "slab" };
+    expect(assessAnswers(base, URBAN_KRG).vc_most_likely).toBe("C");
     expect(
       assessAnswers({ ...base, strengthened: "strengthening" }, URBAN_KRG).vc_most_likely,
     ).toBe("D");
@@ -352,8 +452,43 @@ describe("vulnerability class", () => {
     ).toBe("D");
   });
 
+  it("designed and supervised earns the benefit only where the type ignores it", () => {
+    // Flat slab, mud, wood and unknown: the type does not read the builder.
+    for (const structure of ["flatslab", "mud", "wood", "dk"]) {
+      expect(hasEngineerBenefit({ structure, builder: "eng_full" })).toBe(true);
+      expect(hasEngineerBenefit({ structure, builder: "eng_plans" })).toBe(false);
+    }
+    expect(
+      assessAnswers({ structure: "flatslab", builder: "eng_full" }, URBAN_KRG)
+        .vc_most_likely,
+    ).toBe("C");
+    // Everywhere else the engineer already moved the type: no double count.
+    for (const structure of [
+      "frame",
+      "walls",
+      "confined",
+      "steel",
+      "stone",
+      "block",
+      "brick",
+    ]) {
+      expect(hasEngineerBenefit({ structure, builder: "eng_full" })).toBe(false);
+      expect(
+        hasEngineerBenefit({
+          structure,
+          builder: "eng_full",
+          strengthened: "strengthening",
+        }),
+      ).toBe(true);
+    }
+    // The corner-column follow-up routes before the rule is read.
+    expect(
+      hasEngineerBenefit({ structure: "dk", cornerColumns: "yes", builder: "eng_full" }),
+    ).toBe(false);
+  });
+
   it("signs and the engineer benefit cancel", () => {
-    const base: Answers = { structure: "block", belts: "no", roof: "slab" };
+    const base: Answers = { structure: "flatslab" };
     expect(
       assessAnswers({ ...base, builder: "eng_full", added: "yes" }, URBAN_KRG).vc_probs,
     ).toEqual(assessAnswers(base, URBAN_KRG).vc_probs);
@@ -454,11 +589,11 @@ describe("confidence", () => {
 describe("assessAnswers", () => {
   it("returns the method, a full VC distribution and a rounded type map", () => {
     const result = assessAnswers(
-      { structure: "block", belts: "dk", roof: "slab" },
+      { structure: "brick", belts: "dk", roof: "slab" },
       URBAN_KRG,
     );
     expect(result.method).toBe(METHOD);
-    expect(METHOD).toBe("auto-v0");
+    expect(METHOD).toBe("auto-v1");
     expect(result.ims_type_probs).toEqual({ M6: 0.5, M7: 0.5 });
     expect(Object.keys(result.vc_probs)).toEqual(["A", "B", "C", "D", "E", "F"]);
     expect(sum(Object.values(result.vc_probs))).toBeCloseTo(1, 3);
@@ -532,7 +667,7 @@ describe("hazard", () => {
 
   it("assessBuilding adds the hazard at the point", () => {
     const result = assessBuilding(
-      { structure: "block", belts: "no", roof: "slab" },
+      { structure: "brick", belts: "no", roof: "slab" },
       36.19,
       44.01,
     );
@@ -576,6 +711,9 @@ describe("types in plain words and tips", () => {
     expect(plainTypeKey("RC1-L")).toBe("RCframe");
     expect(plainTypeKey("RC6-M")).toBe("RCprecast");
     expect(plainTypeKey("RC4")).toBe("RC4");
+    expect(plainTypeKey("RC2-L")).toBe("RC2");
+    expect(plainTypeKey("RC2-M")).toBe("RC2");
+    expect(plainTypeKey("RC3-L")).toBe("RCframe");
     expect(plainTypeKey("S-M/H")).toBe("steel");
     expect(plainTypeKey("T2-L")).toBe("timber");
   });

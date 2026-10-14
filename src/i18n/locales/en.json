@@ -2056,8 +2056,14 @@
       "structure": {
         "title": "What holds the building up?",
         "helper": "Look at a corner: is there a concrete column?",
+        "notes": {
+          "flatslab": "Beams hanging below the ceiling? Then choose concrete columns and beams."
+        },
         "options": {
-          "frame": "Concrete frame",
+          "frame": "Concrete columns and beams, with block walls between",
+          "walls": "Concrete walls (shear walls)",
+          "confined": "Block walls with concrete columns at the corners",
+          "flatslab": "Concrete columns with flat ceilings, no beams",
           "block": "Block walls",
           "brick": "Brick walls",
           "stone": "Stone walls",
@@ -2245,7 +2251,8 @@
       "M6": "Brick or block walls with concrete floors",
       "M7": "Brick or block walls held by concrete belts and columns",
       "RCframe": "Concrete frame",
-      "RC4": "Concrete walls",
+      "RC2": "Concrete walls",
+      "RC4": "Concrete flat slab (no beams)",
       "RCprecast": "Precast concrete",
       "steel": "Steel frame",
       "timber": "Wood frame",
