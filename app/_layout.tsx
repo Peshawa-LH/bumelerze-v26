@@ -5,10 +5,10 @@ import "@/lib/web-chunk-reload";
 import "@/lib/web-icon-font";
 
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { Stack, useSegments } from "expo-router";
+import { Stack, usePathname, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -31,21 +31,27 @@ import {
 import {
   ensureFeedbackQueueForegroundSync,
   processFeedbackQueue,
+  useFeedbackQueueStore,
 } from "@/features/feedback/queue";
 import {
   ensureFeltQueueForegroundSync,
   processQueue,
   reconcileSubmittedReports,
+  useFeltQueueStore,
 } from "@/features/felt/queue";
 import { useAlertPrefsAutoSync } from "@/features/alerts/prefs-sync";
 import { useReferencePlace } from "@/features/location/reference-place";
 import { usePrefsStore } from "@/features/onboarding/store";
 import { touchPresenceOnce } from "@/features/presence/touch";
-import { ensureCheckInForegroundSync, processCheckInQueue } from "@/features/safe/queue";
+import {
+  ensureCheckInForegroundSync,
+  processCheckInQueue,
+  useCheckInStore,
+} from "@/features/safe/queue";
 import { sendColdStartTelemetryPing } from "@/features/telemetry/ping";
 import { useTabBarStore } from "@/features/tab-bar/store";
 import { useLaunchPendingTour } from "@/features/tour/launch";
-import { startOfflineShell } from "@/lib/offline-shell";
+import { isTabRootPath, startOfflineShell, startUpdateOnResume } from "@/lib/offline-shell";
 import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
@@ -73,6 +79,23 @@ const NO_FONTS = {};
 // (offline/cold-start requirement, PROJECT.md).
 const eventsQueryClient = createEventsQueryClient();
 const eventsPersister = createEventsPersister();
+
+/**
+ * Web, update on resume: whether reloading to a newer deploy right now would
+ * cost the person anything. Only on a tab root (never inside a felt report,
+ * a check-in, a form or an event page), and never while a report, check-in
+ * or feedback is being sent.
+ */
+function isReloadSafe(pathname: string): boolean {
+  if (!isTabRootPath(pathname)) {
+    return false;
+  }
+  const sending =
+    useFeltQueueStore.getState().items.some((item) => item.state === "syncing") ||
+    useCheckInStore.getState().items.some((item) => item.state === "syncing") ||
+    useFeedbackQueueStore.getState().items.some((item) => item.state === "syncing");
+  return !sending;
+}
 
 export default function RootLayout() {
   const { scheme } = useTheme();
@@ -111,6 +134,17 @@ export default function RootLayout() {
   // edge elsewhere.
   const segments = useSegments();
   const inTabs = (segments as string[])[0] === "(tabs)";
+  // Web: a newer deploy is picked up when the page comes back into view, but
+  // only at a moment that costs nothing (`isReloadSafe`, read at that moment).
+  const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+  useEffect(
+    () => startUpdateOnResume({ isSafeToReload: () => isReloadSafe(pathnameRef.current) }),
+    [],
+  );
   // The scroll-aware tab bar takes its strip with it when it slides away.
   const tabBarHidden = useTabBarStore((state) => state.hidden);
   const [isRestarting, setIsRestarting] = useState(false);

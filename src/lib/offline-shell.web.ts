@@ -95,3 +95,189 @@ export function loadedAppFiles(base: string): string[] {
     new Set(names.filter((name) => prefixes.some((prefix) => name.startsWith(prefix)))),
   );
 }
+
+/* ------------------------------------------------------------------------ */
+/* Update on resume (incident 2026-10-14)                                     */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * A phone keeps the app's tab open for days; it only ever loaded the deploy
+ * of its first visit and never saw a fix. When the page comes back into view
+ * (the tab or the phone wakes: `visibilitychange`, `focus`), and at most
+ * once every five minutes, the live page is fetched past every cache and its
+ * `<meta name="bumelerze-build">` compared with the build this page runs.
+ * A different build means a newer deploy: the service worker is asked to
+ * update first (so the reload lands on the new worker and its cache), then
+ * the page reloads — but only when that costs the person nothing: on a tab
+ * root, with no report or check-in form open and nothing being sent (the
+ * caller decides, `isSafeToReload`). Otherwise the reload waits for the next
+ * time the page comes back into view, without asking the network again.
+ * Never mid-form.
+ */
+export const UPDATE_CHECK_MIN_INTERVAL_MS = 5 * 60_000;
+const SW_UPDATE_WAIT_MS = 3000;
+
+export interface UpdateOnResumeOptions {
+  /** True when a reload would not interrupt the person. Asked right before
+   * reloading (and again on every later resume while an update waits). */
+  isSafeToReload: () => boolean;
+}
+
+/** The browser pieces the check uses; tests hand in fakes. */
+export interface UpdateEnvironment {
+  /** The build this page runs (EXPO_PUBLIC_BUILD_ID); undefined in development. */
+  build: string | undefined;
+  isDevelopment: boolean;
+  /** Fetches the live page's HTML past every cache; null when it cannot. */
+  fetchLivePage: () => Promise<string | null>;
+  /** Asks the registered service worker to look for a new version. */
+  updateServiceWorker: () => Promise<void>;
+  isOnline: () => boolean;
+  reload: () => void;
+  now: () => number;
+  addListener: (type: "visibilitychange" | "focus", listener: () => void) => () => void;
+  isVisible: () => boolean;
+}
+
+export type UpdateCheckOutcome = "skipped" | "current" | "deferred" | "reloaded";
+
+/** The deploy a page belongs to (scripts/build-app-web.sh stamps the tag). */
+export function liveBuildId(html: string): string | null {
+  const match = /<meta name="bumelerze-build" content="([^"]*)"/.exec(html);
+  return match ? match[1] ?? null : null;
+}
+
+export function isTabRootPath(pathname: string): boolean {
+  return TAB_ROOT_PATHS.has(pathname.replace(/\/+$/, "") || "/");
+}
+
+const TAB_ROOT_PATHS = new Set(["/", "/map", "/sensor", "/profile", "/settings"]);
+
+/**
+ * The checker itself, without any listener: `check()` runs one resume.
+ * `startUpdateOnResume` wires it to the page's events.
+ */
+export function createUpdateOnResume(options: UpdateOnResumeOptions, env: UpdateEnvironment) {
+  // The page just loaded this build: the first look at the server waits a
+  // full interval.
+  let lastCheckAt = env.now();
+  // A newer deploy was seen but the moment was not right; reload on the
+  // next resume that is.
+  let pendingBuild: string | null = null;
+  let checking: Promise<UpdateCheckOutcome> | null = null;
+
+  async function run(): Promise<UpdateCheckOutcome> {
+    if (!env.build || env.isDevelopment) {
+      return "skipped";
+    }
+    if (!pendingBuild) {
+      const now = env.now();
+      if (now - lastCheckAt < UPDATE_CHECK_MIN_INTERVAL_MS || !env.isOnline()) {
+        return "skipped";
+      }
+      lastCheckAt = now;
+      const html = await env.fetchLivePage();
+      if (html === null) {
+        return "skipped";
+      }
+      const live = liveBuildId(html);
+      if (!live || live === env.build) {
+        return "current";
+      }
+      pendingBuild = live;
+      // The new worker first (it skips waiting and claims the page), so the
+      // reload is served by it; a worker that does not answer must not
+      // hold the update back.
+      await Promise.race([
+        env.updateServiceWorker().catch(() => undefined),
+        new Promise<void>((resolve) => setTimeout(resolve, SW_UPDATE_WAIT_MS)),
+      ]);
+    }
+    if (!options.isSafeToReload()) {
+      return "deferred";
+    }
+    env.reload();
+    return "reloaded";
+  }
+
+  return {
+    /** One resume. Concurrent calls share one run. */
+    check(): Promise<UpdateCheckOutcome> {
+      if (!checking) {
+        checking = run().finally(() => {
+          checking = null;
+        });
+      }
+      return checking;
+    },
+    /** The newer build seen and not yet reloaded to, for tests and debugging. */
+    pendingBuild(): string | null {
+      return pendingBuild;
+    },
+  };
+}
+
+/** The real browser as an `UpdateEnvironment`; null outside one. */
+export function browserUpdateEnvironment(): UpdateEnvironment | null {
+  if (
+    typeof window === "undefined" ||
+    typeof document === "undefined" ||
+    typeof navigator === "undefined" ||
+    typeof fetch !== "function"
+  ) {
+    return null;
+  }
+  const base = webBase();
+  return {
+    build: process.env.EXPO_PUBLIC_BUILD_ID,
+    isDevelopment: __DEV__,
+    fetchLivePage: async () => {
+      try {
+        const response = await fetch(`${base}/`, {
+          cache: "no-store",
+          credentials: "same-origin",
+          headers: { accept: "text/html" },
+        });
+        return response.ok ? await response.text() : null;
+      } catch {
+        return null;
+      }
+    },
+    updateServiceWorker: async () => {
+      const registration = await navigator.serviceWorker?.getRegistration(`${base}/`);
+      await registration?.update();
+    },
+    isOnline: () => navigator.onLine !== false,
+    reload: () => window.location.reload(),
+    now: () => Date.now(),
+    addListener: (type, listener) => {
+      const target: EventTarget = type === "focus" ? window : document;
+      target.addEventListener(type, listener);
+      return () => target.removeEventListener(type, listener);
+    },
+    isVisible: () => document.visibilityState !== "hidden",
+  };
+}
+
+/**
+ * Wires the check to the page: every time it becomes visible or focused.
+ * Returns the function that removes the listeners again.
+ */
+export function startUpdateOnResume(
+  options: UpdateOnResumeOptions,
+  env: UpdateEnvironment | null = browserUpdateEnvironment(),
+): () => void {
+  if (!env || !env.build || env.isDevelopment) {
+    return () => {};
+  }
+  const checker = createUpdateOnResume(options, env);
+  const onResume = () => {
+    if (env.isVisible()) {
+      void checker.check();
+    }
+  };
+  const stops = [env.addListener("visibilitychange", onResume), env.addListener("focus", onResume)];
+  return () => {
+    for (const stop of stops) stop();
+  };
+}
