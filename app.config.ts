@@ -89,12 +89,13 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
-      // Web production builds load each screen's code only when that screen
-      // is opened (Expo Router "async routes"), so the first visit downloads
-      // Home and the feed, not the map, catalogue, admin tools and so on.
-      // Development and the iOS/Android builds are unchanged (one bundle).
+      // Async routes are OFF: with them on (2026-10-14) the web tab bar sent
+      // Profile, Settings and Sensor to the Home stack's /world route, because
+      // the shared (home,map,sensor,profile,settings) group's screens were not
+      // known until loaded. The heavy areas still load on demand through their
+      // own lazy imports (map, catalogue, admin, handbook, SHAKEmaps, locales).
       "expo-router",
-      { asyncRoutes: { web: "production", default: false } },
+      { asyncRoutes: false },
     ],
     [
       "expo-splash-screen",
