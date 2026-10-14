@@ -23,7 +23,6 @@ export {
   parseRiskSummary,
   type RawRiskProductPayload,
 } from "./risk";
-export { ATLAS_INDEX, ATLAS_EVENT_IDS } from "./atlas";
 export { mmiValueToLevel } from "./intensity-ramp";
 export {
   formatIntensity,
