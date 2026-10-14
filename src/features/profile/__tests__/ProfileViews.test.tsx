@@ -252,12 +252,13 @@ describe("Profile page (D79)", () => {
   });
 
   describe("the owner's Profile tab", () => {
-    it("shows the public part first, then 'Only you see this', then the owner-only sections in order", async () => {
+    it("shows the public part first, then the posts, then 'Only you see this' with the owner-only sections in order", async () => {
       await renderWithProviders(<ProfileScreen />);
       await screen.findByTestId("public-profile-name");
       await flush();
-      // Mockup 3a: photo and counts, name, @username, Edit / Share profile,
-      // the badges row, then "Only you see this" as one list, then the tabs.
+      // Mockup 3a, reordered by the owner on 2026-10-14: photo and counts,
+      // name, @username, Edit / Share profile, the badges row, the Posts /
+      // Comments tabs, then "Only you see this" as one list.
       const order = [
         "profile-stats",
         "public-profile-name",
@@ -265,13 +266,13 @@ describe("Profile page (D79)", () => {
         "public-profile-edit",
         "public-profile-share",
         "profile-badges",
+        "profile-tabs",
+        "posts-section",
         "only-you-divider",
         "my-reports-row",
         "my-home-row",
         "account-people-row",
         "data-export-row",
-        "profile-tabs",
-        "posts-section",
       ].map(position);
       expect(order).toEqual([...order].sort((a, b) => a - b));
       expect(screen.getByText("Only you see this")).toBeTruthy();

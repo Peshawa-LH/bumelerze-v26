@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { View } from "react-native";
 
 import { renderWithProviders } from "@/features/eventhub/__fixtures__/testing";
 import { makeFake, post, profileOf } from "@/features/posts/__fixtures__/fake-posts";
@@ -139,5 +140,28 @@ describe("profile header counts (0065)", () => {
     expect(posts.fetchPosts).not.toHaveBeenCalled();
     await fireEvent.press(screen.getByLabelText(/Request: Shno Mahmud/));
     await waitFor(() => expect(community.follow).toHaveBeenCalled());
+  });
+  it("puts your own tools after your posts and comments (owner, 2026-10-14)", async () => {
+    await renderWithProviders(
+      <PublicProfileView
+        profile={profileOf({ username: "aram.h", display_name: "Aram Hassan" })}
+        actions={actions()}
+        postsTransport={makeFake([post("p", 5)])}
+        socialTransport={makeSocialTransport({ header: HEADER })}
+        ownerSection={<View testID="owner-tools" />}
+      />,
+    );
+    await screen.findByTestId("profile-tabs");
+    const order: string[] = [];
+    const walk = (node: unknown) => {
+      if (!node || typeof node !== "object") return;
+      const n = node as { props?: { testID?: string }; children?: unknown[] };
+      const id = n.props?.testID;
+      if (id === "profile-tabs" || id === "owner-tools") order.push(id);
+      (n.children ?? []).forEach(walk);
+    };
+    const tree = screen.toJSON();
+    (Array.isArray(tree) ? tree : [tree]).forEach(walk);
+    expect(order).toEqual(["profile-tabs", "owner-tools"]);
   });
 });

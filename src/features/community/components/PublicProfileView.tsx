@@ -399,8 +399,6 @@ export function PublicProfileView({
         </Text>
       ) : null}
 
-      {ownerSection}
-
       {!profile.isBlocked && !details ? (
         // A private account the viewer cannot see into: a calm lock.
         <View
@@ -445,6 +443,9 @@ export function PublicProfileView({
           )}
         </View>
       ) : null}
+
+      {/* Your own tools ("Only you see this") come after your posts and comments. */}
+      {ownerSection}
 
       {errorText ? (
         <Text accessibilityRole="alert" style={[meta, { color: colors.status.danger }]}>
