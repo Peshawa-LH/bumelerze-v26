@@ -149,11 +149,20 @@ describe("ShareSheet on the phone", () => {
       () => new Promise<ShareImage>((resolve) => (finish = resolve)),
     );
     await open();
-    // Not awaited: the handler stays pending until the image is made.
-    void fireEvent.press(screen.getByTestId("share-image-square"));
+    // Not awaited yet: the press resolves only when the handler does, and the
+    // handler waits for the image.
+    const pressed = fireEvent.press(screen.getByTestId("share-image-square"));
     expect(await screen.findByTestId("share-preparing")).toBeTruthy();
     expect(screen.getByText("Preparing image…")).toBeTruthy();
+    // The renderer draws the card two frames before it rasterizes it. Finishing
+    // earlier called the placeholder `finish`, the image never arrived and the
+    // last wait timed out: the rare flake of this test (it passed only when
+    // findBy happened to need a second poll).
+    await waitFor(() => expect(mockRasterize).toHaveBeenCalledTimes(1));
     await act(async () => finish(image("square")));
+    await act(async () => {
+      await pressed;
+    });
     await waitFor(() => expect(screen.queryByTestId("share-preparing")).toBeNull());
   });
 
