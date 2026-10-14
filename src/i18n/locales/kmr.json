@@ -984,7 +984,8 @@
       "partner": "Hevkar",
       "seismologist": "Erdhejnas",
       "professor": "Profesor",
-      "researcher": "Lêkolîner"
+      "researcher": "Lêkolîner",
+      "authority": "Karbidestê hikûmetê"
     },
     "impact": {
       "title": "Bandor bi kurtî",
@@ -1017,13 +1018,15 @@
         "researcher": "Ev kes li ser erdhejan an bandorên wan lêkolînê dike.",
         "engineer": "Ev kes endezyar e, bo nimûne di warê avahî û strukturan de.",
         "partner": "Rêxistineke ku bi Bumelerze re dixebite.",
-        "partnerNamed": "{{org}} rêxistineke ku bi Bumelerze re dixebite."
+        "partnerNamed": "{{org}} rêxistineke ku bi Bumelerze re dixebite.",
+        "authority": "Ev kes di saziyeke hikûmetê de dixebite, wek parastina sivîl an parêzgehê."
       },
       "verified": {
         "official": "Ev hesabê sepanê bi xwe ye, ji aliyê tîma Bumelerze ve tê birêvebirin.",
         "moderator": "Tîma Bumelerze ev kes hilbijart û nîşan da.",
         "partner": "Tîma Bumelerze hevkarî pejirand û nîşan da.",
-        "credential": "Tîma Bumelerze berî dayîna nîşanê paşxaneya vî kesî kontrol kir."
+        "credential": "Tîma Bumelerze berî dayîna nîşanê paşxaneya vî kesî kontrol kir.",
+        "authority": "Tîma Bumelerze berî dayîna nîşanê piştrast kir ku ev kes di saziyeke hikûmetê de dixebite."
       }
     },
     "officialName": "Bumelerze",
@@ -2585,7 +2588,12 @@
         "post_comment_approve": "Şîroveyek li ser nivîsekê pejirand",
         "post_comment_hide": "Şîroveyek li ser nivîsekê veşart",
         "post_comment_remove": "Şîroveyek li ser nivîsekê rakir",
-        "post_comment_restore": "Şîroveyek li ser nivîsekê vegerand"
+        "post_comment_restore": "Şîroveyek li ser nivîsekê vegerand",
+        "hub_open": "Hubek vekir",
+        "hub_close": "Hubek girt",
+        "hub_note": "Notek sabitkirî di hubê de weşand",
+        "authority_view": "Karbidestê hikûmetê li hejmarên herêman nêrî",
+        "authority_people_view": "Karbidestê hikûmetê li kesên ku parve dikin nêrî"
       },
       "undo": "Vegerîne"
     },
@@ -2710,13 +2718,26 @@
         "badge": "Nîşan",
         "resetFields": "Nav / wêneyê vegerîne",
         "revealEmail": "E-nameyê nîşan bide",
-        "addNote": "Nîşe lê zêde bike"
+        "addNote": "Nîşe lê zêde bike",
+        "giveBadge": "Nîşanê bide",
+        "suspend": "Rawestîne"
       },
       "badge": {
         "title": "Nîşan",
         "holds": "Heye: {{ranks}}",
         "holdsNone": "Hê nîşan tune.",
-        "needsUsername": "Nîşan @navê bikarhêner dixwaze. Ev kes tune."
+        "needsUsername": "Nîşan @navê bikarhêner dixwaze. Ev kes tune.",
+        "giveTitle": "Nîşanê bide @{{username}}",
+        "give": "Nîşanê bide: {{badge}}",
+        "hasIt": "Heye",
+        "newTag": "Nû",
+        "allHeld": "Hemû nîşan hene",
+        "noteLabel": "Nota taybet (tenê rêveber dibînin)",
+        "describe": {
+          "authority": "Tenê hejmarên giştî li gorî herêmê dibîne, qet nav an navnîşan na, heta ku kesek bi xwe razî nebe.",
+          "moderator": "Alîkarî dike ku şîrove û post ewle bimînin.",
+          "partner": "Navê rêxistinê dipirse."
+        }
       },
       "reset": {
         "title": "Nav / wêneyê vegerîne",
@@ -2798,6 +2819,13 @@
         "placeholder": "Nîşeyekê binivîse",
         "add": "Nîşe lê zêde bike",
         "empty": "Nîşe tune."
+      },
+      "badges": {
+        "title": "Nîşan",
+        "none": "Tu nîşan tune.",
+        "takeAway": "Jê bistîne",
+        "confirmTitle": "Nîşana {{badge}} jê were standin?",
+        "confirmMessage": "{{name}} nîşanê û her tiştê ku destûr dide winda dike. Tu dikarî paşê dîsa bidî."
       }
     },
     "rank": {
@@ -2960,7 +2988,101 @@
       "title": "Şîroveyên li ser nivîsan ji bo nirxandinê",
       "openPost": "Profîla nivîsê veke"
     },
-    "withdrawnByUser": "Ji aliyê bikarhêner ve hate paşvekişandin"
+    "withdrawnByUser": "Ji aliyê bikarhêner ve hate paşvekişandin",
+    "tools": {
+      "people": "Mirov û daxwaz",
+      "accounts": "{{number}} hesab",
+      "moderation": "Rêza kontrolê",
+      "moderationHint": "Şîrove, post û wêneyên hestkirinê",
+      "waiting": "{{number}} li bendê",
+      "nothingWaiting": "Tiştek li bendê nîne",
+      "hidden": "Veşartî û rakirî",
+      "last30": "30 rojên dawî",
+      "filter": "Parzûna peyvan û demên qerebalix",
+      "busyOn": "Dema qerebalix: vekirî",
+      "busyOff": "Dema qerebalix: girtî",
+      "alerts": "Hişyarî",
+      "alertsStatus": "{{mode}} · {{number}} amûr",
+      "stats": "Statîstîk",
+      "statsHint": "Grafîk, 7 heta 90 roj",
+      "hubs": "Ji bo erdhejekê hubekê veke",
+      "hubsOpen": "{{number}} hub vekirî ne",
+      "feedback": "Qutiya nerînan",
+      "new": "{{number}} nû",
+      "nothingNew": "Tiştekî nû tune",
+      "activity": "Tomara çalakiyan",
+      "activityHint": "Kê çi kir"
+    },
+    "moderation": {
+      "hint": "Her tiştê ku li benda biryarê ye. Wêneyên hestkirinê û hesabên sînorkirî ji jor vedibin."
+    },
+    "stats": {
+      "rangeLabel": "Navbera demê",
+      "rangeDays": "{{number}} roj",
+      "rangeAll": "Hemû",
+      "dayMonth": "{{day}} {{month}}",
+      "perDay": "Rojane",
+      "perWeek": "Heftane",
+      "accounts": "hesab",
+      "newInRange": "+{{number}} di vê navberê de",
+      "feltReports": "raporên hestkirinê",
+      "busiest": "Herî qerebalix: {{day}} ({{number}})",
+      "checkins": "Agahiyên «Ez ewle me»",
+      "waiting": "li benda kontrolê",
+      "newAccountsTitle": "Hesabên nû",
+      "inRange": "{{number}} di vê navberê de",
+      "chartA11y": "{{title}}: {{number}} di vê navberê de.",
+      "feltTitle": "Raporên hestkirinê",
+      "checkinsTitle": "Agahiyên «Ez ewle me»",
+      "total": "{{number}} bi tevahî",
+      "checkinsKept": "30 rojan têne parastin",
+      "commentsTitle": "Şîrove û kontrol",
+      "commentsSubtitle": "Stûn: şîrove her roj. Xet: hîn li benda kontrolê ne.",
+      "commentsLegend": "Şîrove",
+      "waitingLegend": "Hîn li benda kontrolê ne",
+      "commentsA11y": "{{comments}} şîrove di vê navberê de, {{waiting}} ji wan hîn li benda kontrolê ne.",
+      "buildingsTitle": "Avahiyên tomarkirî li gorî pola qelsiyê",
+      "buildingsSubtitle": "{{number}} mal · hemû herêm · îro",
+      "byArea": "Li gorî herêmê: {{list}}",
+      "devicesTitle": "Amûrên hişyariyê",
+      "devicesNow": "Niha: iPhone {{ios}} · Android {{android}} · Web {{web}}",
+      "devicesNote": "Cureyê telefonê ji serdana dawî ya hesabê tê girtin.",
+      "platforms": {
+        "ios": "iPhone",
+        "android": "Android",
+        "web": "Web",
+        "other": "Sepan, cure nediyar"
+      },
+      "classA11y": "Pola {{vc}}, {{name}}: {{count}}",
+      "footer": "Tenê hejmar. Di vê rûpelê de nav, cih an nasnameya amûrê tune."
+    },
+    "hubs": {
+      "hint": "Hubeke vekirî vekirî dimîne çiqas kevn be jî. Nota sabitkirî bi navê hesabê fermî yê Bumelerze tê weşandin.",
+      "openTitle": "Hubên vekirî",
+      "openEmpty": "Niha tu hub bi destan venebûye.",
+      "findTitle": "Erdhejekê bibîne",
+      "searchLabel": "Li erdhejan bigere",
+      "searchPlaceholder": "Nasnameya Bumelerze (bml...) an cih",
+      "recentEmpty": "Di herêmê de erdhejên nû tune ne.",
+      "noMatch": "Tu erdhej li hev nayê.",
+      "magnitude": "M {{value}}",
+      "pinned": "Sabitkirî: {{text}}",
+      "open": "Hubê veke",
+      "close": "Hubê bigire",
+      "view": "Hubê bibîne",
+      "writeNote": "Nota sabitkirî binivîse",
+      "opened": "Hub vebû",
+      "closed": "Hub hate girtin",
+      "noteTitle": "Nota sabitkirî",
+      "noteHint": "Bi navê hesabê fermî yê Bumelerze tê weşandin û li serê vê hubê tê sabitkirin. Cihê nota niha digire. Her kes dikare bixwîne.",
+      "notePlaceholder": "Tiştên ku divê mirov li ser vê erdhejê bizanin",
+      "notePost": "Nota sabitkirî biweşîne",
+      "notePosted": "Nota sabitkirî hate weşandin",
+      "errors": {
+        "officialNotReady": "Hesabê fermî yê Bumelerze hîn rêbazên civakê qebûl nekiriye. Carekê pê têkeve û wan qebûl bike.",
+        "officialMissing": "Hesabê fermî yê Bumelerze (@bumelerze) nehat dîtin."
+      }
+    }
   },
   "restrictions": {
     "levels": {
@@ -3530,6 +3652,43 @@
       "one": "{{a}} dişopîne",
       "two": "{{a}} û {{b}} dişopînin",
       "more": "{{a}}, {{b}} û {{number}} kesên din dişopînin"
+    }
+  },
+  "officials": {
+    "title": "Karbidest",
+    "hint": "Hejmarên giştî li gorî herêmê. Her hejmara ji 5 kêmtir ji bo parastina mirovan tê veşartin. Her serdana vê rûpelê tê tomarkirin.",
+    "footer": "Herêm bajarokê herî nêzîk in di nav 100 km de. Tu navnîşan an cihê rast nayê nîşandan.",
+    "fewerThan5": "ji 5 kêmtir",
+    "otherAreas": "Herêmên din",
+    "buildingsTitle": "Avahiyên tomarkirî li gorî pola qelsiyê",
+    "buildingsSubtitle": "Hemû herêm. Hejmarên ji 5 kêmtir nayên nîşandan û nayên hejmartin.",
+    "areasTitle": "Li gorî herêmê",
+    "areasSubtitle": "<5 tê wateya ji 5 malan kêmtir.",
+    "areasEmpty": "Hîn tu herêm 5 an zêdetir malên tomarkirî nînin.",
+    "safetyTitle": "Piştî erdhejê: «Ez ewle me» li gorî herêmê",
+    "safetySubtitle": "Endamên malên tomarkirî li her herêmê, û çend ji wan ragihandin ku ewle ne. Ev 30 rojan têne parastin.",
+    "safetyEmpty": "Di 30 rojên dawî de tu erdhej bi 5 an zêdetir «Ez ewle me» tune bû.",
+    "chooseEvent": "Erdhejekê hilbijêre",
+    "total": "Bi tevahî {{number}} kesan ragihand ku ewle ne.",
+    "totalFew": "Ji 5 kesan kêmtir ragihandin ku ewle ne.",
+    "safeOf": "{{safe}} ji {{people}} ewle ne ({{percent}}%)",
+    "safeFew": "ji {{people}} kesan kêmtirî 5 ewle ne",
+    "feltMap": "Nexşeya hestkirinê veke",
+    "peopleTitle": "Kesên ku parvekirin hilbijartine",
+    "peopleHint": "Tenê kesên ku ev di Mîhengan de vekirine. Ew dikarin her dem bigirin. Vekirina lîsteyê bi kesên hatine nîşandan re tê tomarkirin.",
+    "peopleShow": "Lîsteyê nîşan bide",
+    "peopleEmpty": "Hîn kesî parvekirin hilnebijartiye.",
+    "noName": "Bê nav",
+    "noHome": "Tu malê tomarkirî tune.",
+    "homeClass": "Pola {{vc}}, {{name}}",
+    "homeClassRange": "Pola {{vc}}, {{name}} (navber {{range}})",
+    "homeNoClass": "Hîn nehatiye nirxandin",
+    "homeArea": "Herêma {{area}}",
+    "safeAt": "Ez ewle me: {{time}} · {{event}}",
+    "noSafe": "Di 30 rojên dawî de «Ez ewle me» tune.",
+    "sharing": {
+      "label": "Bihêle karbidestên hikûmetê texmîna ewlehiya avahiya min û rewşa min a «Ez ewle me» bibînin",
+      "hint": "Girtî ye heta tu vekî. Wê demê karbidestên bi rola Bumelerze ya piştrastkirî pola avahiya te, herêma wê (qet navnîşan na) û «Ez ewle me» ya te ya dawî dibînin."
     }
   }
 }

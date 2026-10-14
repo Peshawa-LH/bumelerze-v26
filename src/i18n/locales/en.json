@@ -984,7 +984,8 @@
       "partner": "Partner",
       "seismologist": "Seismologist",
       "professor": "Professor",
-      "researcher": "Researcher"
+      "researcher": "Researcher",
+      "authority": "Government official"
     },
     "impact": {
       "title": "Impact at a glance",
@@ -1017,13 +1018,15 @@
         "researcher": "This person does research on earthquakes or their effects.",
         "engineer": "This person is an engineer, for example in buildings or structures.",
         "partner": "An organisation that works with Bumelerze.",
-        "partnerNamed": "{{org}} is an organisation that works with Bumelerze."
+        "partnerNamed": "{{org}} is an organisation that works with Bumelerze.",
+        "authority": "This person works for a government body, such as civil defence or a governorate."
       },
       "verified": {
         "official": "It is the app's own account, run by the Bumelerze team.",
         "moderator": "The Bumelerze team chose this person and gave the mark.",
         "partner": "The Bumelerze team agreed the partnership and gave the mark.",
-        "credential": "The Bumelerze team checked this person's background before giving the mark."
+        "credential": "The Bumelerze team checked this person's background before giving the mark.",
+        "authority": "The Bumelerze team checked that this person works for a government body before giving the mark."
       }
     },
     "officialName": "Bumelerze",
@@ -2585,7 +2588,12 @@
         "post_comment_approve": "Approved a comment on a post",
         "post_comment_hide": "Hid a comment on a post",
         "post_comment_remove": "Removed a comment on a post",
-        "post_comment_restore": "Restored a comment on a post"
+        "post_comment_restore": "Restored a comment on a post",
+        "hub_open": "Opened a hub",
+        "hub_close": "Closed a hub",
+        "hub_note": "Posted a pinned hub note",
+        "authority_view": "Government official looked at area totals",
+        "authority_people_view": "Government official looked at people who share"
       },
       "undo": "Undo"
     },
@@ -2710,13 +2718,26 @@
         "badge": "Badges",
         "resetFields": "Reset name / photo",
         "revealEmail": "Show email",
-        "addNote": "Add note"
+        "addNote": "Add note",
+        "giveBadge": "Give badge",
+        "suspend": "Suspend"
       },
       "badge": {
         "title": "Badges",
         "holds": "Has: {{ranks}}",
         "holdsNone": "No badges yet.",
-        "needsUsername": "Badges need an @username. This person has none."
+        "needsUsername": "Badges need an @username. This person has none.",
+        "giveTitle": "Give badge to @{{username}}",
+        "give": "Give badge: {{badge}}",
+        "hasIt": "Has it",
+        "newTag": "New",
+        "allHeld": "Has every badge",
+        "noteLabel": "Private note (only admins see it)",
+        "describe": {
+          "authority": "Sees totals by area only, never names or addresses, unless a person opts in.",
+          "moderator": "Helps keep comments and posts safe.",
+          "partner": "Asks for the organisation name."
+        }
       },
       "reset": {
         "title": "Reset name / photo",
@@ -2798,6 +2819,13 @@
         "placeholder": "Write a note",
         "add": "Add note",
         "empty": "No notes."
+      },
+      "badges": {
+        "title": "Badges",
+        "none": "No badges.",
+        "takeAway": "Take away",
+        "confirmTitle": "Take away the {{badge}} badge?",
+        "confirmMessage": "{{name}} loses the mark and anything it allows. You can give it again later."
       }
     },
     "rank": {
@@ -2960,7 +2988,101 @@
       "title": "Comments on posts to review",
       "openPost": "Open the post's profile"
     },
-    "withdrawnByUser": "Withdrawn by the user"
+    "withdrawnByUser": "Withdrawn by the user",
+    "tools": {
+      "people": "People & requests",
+      "accounts": "{{number}} accounts",
+      "moderation": "Moderation queue",
+      "moderationHint": "Comments, posts and felt photos",
+      "waiting": "{{number}} waiting",
+      "nothingWaiting": "Nothing waiting",
+      "hidden": "Hidden & removed",
+      "last30": "Last 30 days",
+      "filter": "Word filter & busy times",
+      "busyOn": "Busy time: on",
+      "busyOff": "Busy time: off",
+      "alerts": "Alerts",
+      "alertsStatus": "{{mode}} · {{number}} devices",
+      "stats": "Statistics",
+      "statsHint": "Charts, 7 to 90 days",
+      "hubs": "Open a hub for an earthquake",
+      "hubsOpen": "{{number}} hubs open",
+      "feedback": "Feedback inbox",
+      "new": "{{number}} new",
+      "nothingNew": "Nothing new",
+      "activity": "Activity log",
+      "activityHint": "Who did what"
+    },
+    "moderation": {
+      "hint": "Everything waiting for a decision. Felt photos and limited accounts open from the top."
+    },
+    "stats": {
+      "rangeLabel": "Time range",
+      "rangeDays": "{{number}} days",
+      "rangeAll": "All",
+      "dayMonth": "{{day}} {{month}}",
+      "perDay": "Per day",
+      "perWeek": "Per week",
+      "accounts": "accounts",
+      "newInRange": "+{{number}} in this range",
+      "feltReports": "felt reports",
+      "busiest": "Busiest: {{day}} ({{number}})",
+      "checkins": "I'm safe check-ins",
+      "waiting": "waiting for review",
+      "newAccountsTitle": "New accounts",
+      "inRange": "{{number}} in this range",
+      "chartA11y": "{{title}}: {{number}} in this range.",
+      "feltTitle": "Felt reports",
+      "checkinsTitle": "I'm safe check-ins",
+      "total": "{{number}} in total",
+      "checkinsKept": "kept for 30 days",
+      "commentsTitle": "Comments and review",
+      "commentsSubtitle": "Bars: comments per day. Line: still waiting for review.",
+      "commentsLegend": "Comments",
+      "waitingLegend": "Still waiting for review",
+      "commentsA11y": "{{comments}} comments in this range, {{waiting}} of them still waiting for review.",
+      "buildingsTitle": "Tagged buildings by vulnerability class",
+      "buildingsSubtitle": "{{number}} homes · all areas · today",
+      "byArea": "By area: {{list}}",
+      "devicesTitle": "Alert devices",
+      "devicesNow": "Now: iPhone {{ios}} · Android {{android}} · Web {{web}}",
+      "devicesNote": "Phone type is taken from the account's last visit.",
+      "platforms": {
+        "ios": "iPhone",
+        "android": "Android",
+        "web": "Web",
+        "other": "App, type unknown"
+      },
+      "classA11y": "Class {{vc}}, {{name}}: {{count}}",
+      "footer": "Counts only. No names, locations or device IDs on this page."
+    },
+    "hubs": {
+      "hint": "An open hub stays open whatever its age. The pinned note is posted as the official Bumelerze account.",
+      "openTitle": "Open hubs",
+      "openEmpty": "No hub is open by hand right now.",
+      "findTitle": "Find an earthquake",
+      "searchLabel": "Search earthquakes",
+      "searchPlaceholder": "Bumelerze ID (bml...) or place",
+      "recentEmpty": "No recent earthquakes in the region.",
+      "noMatch": "No earthquake matches.",
+      "magnitude": "M {{value}}",
+      "pinned": "Pinned: {{text}}",
+      "open": "Open hub",
+      "close": "Close hub",
+      "view": "View hub",
+      "writeNote": "Write pinned note",
+      "opened": "Hub opened",
+      "closed": "Hub closed",
+      "noteTitle": "Pinned note",
+      "noteHint": "Posted as the official Bumelerze account and pinned to the top of this hub. It replaces the note pinned now. Everyone can read it.",
+      "notePlaceholder": "What people should know about this earthquake",
+      "notePost": "Post pinned note",
+      "notePosted": "Pinned note posted",
+      "errors": {
+        "officialNotReady": "The official Bumelerze account has not accepted the community guidelines yet. Sign in as it once and accept them.",
+        "officialMissing": "The official Bumelerze account (@bumelerze) was not found."
+      }
+    }
   },
   "restrictions": {
     "levels": {
@@ -3530,6 +3652,43 @@
       "one": "Followed by {{a}}",
       "two": "Followed by {{a}} and {{b}}",
       "more": "Followed by {{a}}, {{b}} and {{number}} more"
+    }
+  },
+  "officials": {
+    "title": "Officials",
+    "hint": "Totals by area. Any number under 5 is hidden to protect people. Each visit to this page is recorded.",
+    "footer": "Areas are the nearest town within 100 km. No addresses or exact locations are shown.",
+    "fewerThan5": "fewer than 5",
+    "otherAreas": "Other areas",
+    "buildingsTitle": "Tagged buildings by vulnerability class",
+    "buildingsSubtitle": "All areas. Numbers under 5 are not shown or counted.",
+    "areasTitle": "By area",
+    "areasSubtitle": "<5 means fewer than 5 homes.",
+    "areasEmpty": "No area has 5 or more tagged homes yet.",
+    "safetyTitle": "After an earthquake: I'm safe by area",
+    "safetySubtitle": "Members of tagged homes in each area, and how many checked in safe. Check-ins are kept for 30 days.",
+    "safetyEmpty": "No earthquake with 5 or more I'm safe check-ins in the last 30 days.",
+    "chooseEvent": "Choose an earthquake",
+    "total": "{{number}} people checked in safe in all.",
+    "totalFew": "Fewer than 5 people checked in safe.",
+    "safeOf": "{{safe}} of {{people}} safe ({{percent}}%)",
+    "safeFew": "fewer than 5 of {{people}} safe",
+    "feltMap": "Open the felt map",
+    "peopleTitle": "People who chose to share",
+    "peopleHint": "Only people who switched this on in Settings. They can switch it off at any time. Opening the list is recorded with who was shown.",
+    "peopleShow": "Show the list",
+    "peopleEmpty": "Nobody has chosen to share yet.",
+    "noName": "No name",
+    "noHome": "No tagged home.",
+    "homeClass": "Class {{vc}}, {{name}}",
+    "homeClassRange": "Class {{vc}}, {{name}} (range {{range}})",
+    "homeNoClass": "Not assessed yet",
+    "homeArea": "{{area}} area",
+    "safeAt": "I'm safe: {{time}} · {{event}}",
+    "noSafe": "No I'm safe in the last 30 days.",
+    "sharing": {
+      "label": "Let government officials see my building's safety estimate and my 'I'm safe' status",
+      "hint": "Off unless you switch it on. Officials with a verified Bumelerze role then see your building's class, its area (never the address) and your latest I'm safe."
     }
   }
 }
