@@ -51,6 +51,20 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
     return localizeDigits(value.toFixed(1), locale);
   }
 
+  // Review A-23: the default floors read oddly to lay users ("Min magnitude
+  // −0.5", "From year 872"). At the floor the minimum-magnitude box says
+  // "Any" — typing still works, the box selects its text on focus and a
+  // non-number puts the value back — and the from-year label says
+  // "(oldest)", since the year box is too narrow for a suffix.
+  function formatMagMin(value: number): string {
+    return value <= bounds.magMin ? t("catalog.filters.magAny") : formatMag(value);
+  }
+  const yearMinLabel = t(
+    values.yearMin <= yearFloor
+      ? "catalog.filters.yearMinOldestLabel"
+      : "catalog.filters.yearMinLabel",
+  );
+
   // "Bumelerze" (the union chip) is selected exactly when no per-source
   // subset filter is applied — see the chip's own comment below.
   const isUnionSelected = values.sources.length === 0;
@@ -72,7 +86,7 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
           min={bounds.magMin}
           max={values.magMax}
           step={CATALOG_MAG_STEP}
-          formatValue={formatMag}
+          formatValue={formatMagMin}
           decimals={1}
           testID="catalog-filter-mag-min"
           onChange={(next) => onChange({ ...values, magMin: next })}
@@ -96,7 +110,7 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
 
       <View style={[styles.stepperRow, { gap: spacing[4] }]}>
         <NumericStepper
-          label={t("catalog.filters.yearMinLabel")}
+          label={yearMinLabel}
           value={values.yearMin}
           min={yearFloor}
           max={values.yearMax}

@@ -181,8 +181,10 @@
     "retry": "Retry",
     "filters": {
       "magMinLabel": "Min magnitude",
+      "magAny": "Any",
       "magMaxLabel": "Max magnitude",
       "yearMinLabel": "From year",
+      "yearMinOldestLabel": "From year (oldest)",
       "yearMaxLabel": "To year",
       "decrement": "Decrease",
       "increment": "Increase"

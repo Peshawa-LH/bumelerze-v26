@@ -181,8 +181,10 @@
     "retry": "إعادة المحاولة",
     "filters": {
       "magMinLabel": "أقل قوة",
+      "magAny": "الكل",
       "magMaxLabel": "أعلى قوة",
       "yearMinLabel": "من سنة",
+      "yearMinOldestLabel": "من سنة (الأقدم)",
       "yearMaxLabel": "إلى سنة",
       "decrement": "إنقاص",
       "increment": "زيادة"

@@ -181,8 +181,10 @@
     "retry": "Dîsa biceribîne",
     "filters": {
       "magMinLabel": "Rêjeya kêmtirîn",
+      "magAny": "Hemû",
       "magMaxLabel": "Rêjeya herî zêde",
       "yearMinLabel": "Ji sala",
+      "yearMinOldestLabel": "Ji sala (kevintirîn)",
       "yearMaxLabel": "Heta sala",
       "decrement": "Kêm bike",
       "increment": "Zêde bike"

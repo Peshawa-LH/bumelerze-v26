@@ -181,8 +181,10 @@
     "retry": "دووبارە هەوڵبدەوە",
     "filters": {
       "magMinLabel": "کەمترین پلە",
+      "magAny": "هەموو",
       "magMaxLabel": "زۆرترین پلە",
       "yearMinLabel": "لە ساڵی",
+      "yearMinOldestLabel": "لە ساڵی (کۆنترین)",
       "yearMaxLabel": "بۆ ساڵی",
       "decrement": "کەمکردنەوە",
       "increment": "زیادکردن"
