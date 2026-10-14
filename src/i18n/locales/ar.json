@@ -35,8 +35,8 @@
   },
   "donut": {
     "other": "أخرى",
-    "percent": "{{value}}%",
-    "underOne": "<١",
+    "percent": "{{value}}٪",
+    "underOne": "أقل من ١",
     "a11ySlice": "{{label}}: {{value}}."
   },
   "time": {
@@ -836,10 +836,10 @@
         "little": "ضرر قليل أو معدوم",
         "heavy": "ضرر شديد",
         "severe": "ضرر شديد جدا أو انهيار",
-        "legendItem": "{{label}} ({{percent}}%)",
+        "legendItem": "{{label}} ({{percent}}٪)",
         "a11ySegment": "{{label}}: {{percent}} بالمئة",
         "moderate": "أضرار متوسطة",
-        "underOnePercent": "<١"
+        "underOnePercent": "أقل من ١"
       },
       "provincesTitle": "أكثر المحافظات تضررا",
       "areasTitle": "أكثر المناطق تضررا",
@@ -887,7 +887,7 @@
         "title": "الأضرار حسب نوع المبنى",
         "explainer": "نسبة مباني كل نوع التي لحقت بها أضرار جسيمة",
         "vulnerabilityClass": "الفئة {{class}}",
-        "percent": "{{value}}%",
+        "percent": "{{value}}٪",
         "rowCaption": "نحو {{value}} مبنى",
         "a11yRow": "{{type}}: {{percent}} أضرار جسيمة، نحو {{value}} مبنى"
       },
@@ -3637,7 +3637,7 @@
     "buildingsTitle": "المباني المسجّلة حسب فئة الهشاشة",
     "buildingsSubtitle": "كل المناطق. الأرقام الأقل من ٥ لا تُعرض ولا تُحسب.",
     "areasTitle": "حسب المنطقة",
-    "areasSubtitle": "<٥ تعني أقل من ٥ منازل.",
+    "areasSubtitle": "⁦<٥⁩ تعني أقل من ٥ منازل.",
     "areasEmpty": "لا توجد منطقة فيها ٥ منازل مسجّلة أو أكثر بعد.",
     "safetyTitle": "بعد الزلزال: «أنا بخير» حسب المنطقة",
     "safetySubtitle": "أعضاء المنازل المسجّلة في كل منطقة، وكم منهم أبلغوا أنهم بخير. تُحفظ التسجيلات ٣٠ يومًا.",

@@ -79,10 +79,11 @@ describe("DonutChart", () => {
     expect(toJSON()).toBeNull();
   });
 
-  it("localises the legend digits in Arabic", async () => {
+  it("localises the legend digits in Arabic, with the Arabic percent sign after the number", async () => {
     await i18n.changeLanguage("ar");
     await render(<DonutChart slices={[slice("a", 1), slice("b", 1)]} />);
-    expect(screen.getAllByText(/٥٠%/)).toHaveLength(2);
+    // "٥٠٪" (U+066A after the digits), never "%٥٠" or "٥٠%" (A-22).
+    expect(screen.getAllByText(/٥٠٪/)).toHaveLength(2);
   });
 });
 
