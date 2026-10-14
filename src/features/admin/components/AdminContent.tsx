@@ -1,5 +1,5 @@
 import { useRouter, type Href } from "expo-router";
-import type { Ionicons } from "@expo/vector-icons";
+import type Ionicons from "@expo/vector-icons/Ionicons";
 import { Text } from "react-native";
 import { useTranslation } from "react-i18next";
 

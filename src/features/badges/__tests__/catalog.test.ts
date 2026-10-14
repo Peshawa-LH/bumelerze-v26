@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import ar from "@/i18n/locales/ar.json";
 import ckb from "@/i18n/locales/ckb.json";

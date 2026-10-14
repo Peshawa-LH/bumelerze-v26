@@ -24,11 +24,12 @@ jest.mock("expo-router", () => ({
 // "which icon rendered" through the real component. Stubbing it to a plain
 // `Text` that echoes `name` as its own text content is the only reliable way
 // to assert the LTR-vs-RTL chevron choice `HeaderBackButton` makes.
-jest.mock("@expo/vector-icons", () => {
+jest.mock("@expo/vector-icons/Ionicons", () => {
   const { createElement } = jest.requireActual("react");
   const { Text } = jest.requireActual("react-native");
   return {
-    Ionicons: ({ name, testID }: { name: string; testID?: string }) =>
+    __esModule: true,
+    default: ({ name, testID }: { name: string; testID?: string }) =>
       createElement(Text, { testID }, name),
   };
 });

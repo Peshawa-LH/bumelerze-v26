@@ -35,11 +35,12 @@ jest.mock("expo-router", () => {
 // font resolution) — stubbing to a plain `Text` that echoes `name` as text
 // content is the only reliable way to assert the catalog-link chevron's
 // LTR-vs-RTL mirroring (same technique as `HeaderBackButton.test.tsx`).
-jest.mock("@expo/vector-icons", () => {
+jest.mock("@expo/vector-icons/Ionicons", () => {
   const { createElement } = jest.requireActual("react");
   const { Text } = jest.requireActual("react-native");
   return {
-    Ionicons: ({ name, testID }: { name: string; testID?: string }) =>
+    __esModule: true,
+    default: ({ name, testID }: { name: string; testID?: string }) =>
       createElement(Text, { testID }, name),
   };
 });
