@@ -1369,7 +1369,7 @@ html[dir="rtl"] .live-next::before {
 /* The owner's class colours (Tag my building's A-F badges). Large bold
  * letters: white on A, E, F; ink on B, C, D. */
 .vc-a {
-  background: #e73710;
+  background: #d32f0c;
   color: #ffffff;
 }
 .vc-b {
