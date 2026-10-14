@@ -4,6 +4,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { I18nManager, Platform } from "react-native";
 
+import { localizeDigits } from "@/lib/format-numbers";
 import { initialTranslations, loadTranslation } from "./locale-resources";
 
 /**
@@ -45,6 +46,42 @@ function isSupportedLocale(value: string | null): value is SupportedLocale {
 
 export function isRTLLocale(locale: string): boolean {
   return RTL_LOCALES.includes(locale as SupportedLocale);
+}
+
+export type TextDirection = "ltr" | "rtl";
+
+/** The reading direction of the app language — never `I18nManager.isRTL`,
+ * which react-native-web always reports as false. */
+export function textDirectionFor(locale: string): TextDirection {
+  return isRTLLocale(locale) ? "rtl" : "ltr";
+}
+
+/**
+ * Props that pin a `Text` or `TextInput` paragraph to the app language's
+ * direction on the web. react-native-web gives every root `Text` and
+ * `TextInput` `dir="auto"`, and the browser then resolves the direction
+ * from the FIRST strong character: a Sorani line that happens to start with
+ * a Latin token ("Ss ١.٠٩g", "MP.KIR1 · …", "@username") or with digits
+ * only (a date, an id) lays out as an LTR paragraph, sits at the left edge
+ * under right-aligned labels and puts its last word at the reading start
+ * (A-7, B-3, B-6, B-7, B-8). `dir="auto"` also overrides the CSS
+ * `direction` that `style.writingDirection` sets, so the attribute itself
+ * has to change. Spread it on the element; it is `{}` on native, where
+ * `writingDirection` (see `directionStyle`) is honoured directly.
+ */
+export function directionProps(locale: string): { dir?: TextDirection } {
+  return Platform.OS === "web" ? { dir: textDirectionFor(locale) } : {};
+}
+
+/** The matching style fragment: the paragraph direction (native, and CSS
+ * on web) plus reading-start alignment. RN's `textAlign` has no `start`, so
+ * the logical start is expressed as the physical side it maps to. */
+export function directionStyle(locale: string): {
+  writingDirection: TextDirection;
+  textAlign: "left" | "right";
+} {
+  const direction = textDirectionFor(locale);
+  return { writingDirection: direction, textAlign: direction === "rtl" ? "right" : "left" };
 }
 
 function detectDeviceLocale(): SupportedLocale {
@@ -120,6 +157,26 @@ function applyDocumentDirWeb(isRTL: boolean): void {
   }
 }
 
+/** Web-only: `<html lang>` follows the app language on every change, not
+ * only when the reading direction flips (B-9). The static `index.html` says
+ * `lang="en"`, so without this a Sorani, Kurmanji or Arabic page was read
+ * out and hyphenated as English by screen readers and browsers. The four
+ * codes are valid BCP-47 primary subtags as they stand (`ckb`/`kmr` are ISO
+ * 639-3). No-ops on native and during the static-export render pass. */
+function applyDocumentLangWeb(locale: SupportedLocale): void {
+  if (Platform.OS !== "web") {
+    return;
+  }
+  try {
+    if (typeof document === "undefined" || !document.documentElement) {
+      return;
+    }
+    document.documentElement.setAttribute("lang", locale);
+  } catch {
+    // Best-effort only — never let this crash boot or a language switch.
+  }
+}
+
 const WEB_FONT_STYLE_ID = "bml-arabic-script-font";
 
 /** Web-only: every text node under an RTL document renders in Vazirmatn
@@ -169,6 +226,7 @@ if (Platform.OS === "web") {
   const initialIsRTL = isRTLLocale(initialLocale);
   I18nManager.forceRTL(initialIsRTL);
   applyDocumentDirWeb(initialIsRTL);
+  applyDocumentLangWeb(initialLocale);
 }
 
 // eslint-disable-next-line import/no-named-as-default-member -- standard i18next init idiom
@@ -179,6 +237,20 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
   returnNull: false,
 });
+
+/**
+ * `{{value, digits}}` in a locale string renders the interpolated number in
+ * the locale's own digits (`localizeDigits`: Eastern Arabic-Indic for ckb
+ * and ar, untouched elsewhere). For the many templates whose number is also
+ * i18next's plural `count` — "{{count, digits}} stations" — this is the only
+ * way to localise the glyphs without a second placeholder, and it lets a
+ * translator fix a Western-digit string ("وەشانی 26.1.0") in the catalog
+ * alone. Numbers that need a bidi isolate as well (Latin units, mixed
+ * chunks) keep going through `isolateNumeric` in code.
+ */
+i18n.services.formatter?.add("digits", (value: unknown, lng: string | undefined) =>
+  localizeDigits(String(value ?? ""), lng ?? "en"),
+);
 
 /**
  * Makes sure the translation for `locale` is in i18next. Immediate on
@@ -242,6 +314,9 @@ export async function changeLocale(
   // eslint-disable-next-line import/no-named-as-default-member -- standard i18next idiom
   await i18n.changeLanguage(locale);
   await persistLocale(locale);
+  // Every change, not only a direction flip: en -> kmr keeps `dir="ltr"`
+  // but must still read as Kurmanji to assistive technology (B-9).
+  applyDocumentLangWeb(locale);
 
   if (requiresRestart) {
     I18nManager.forceRTL(nextIsRTL);

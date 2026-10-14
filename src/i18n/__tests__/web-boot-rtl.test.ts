@@ -93,6 +93,10 @@ function dirAttribute(): string | null {
   return fakeDocumentElement?.getAttribute("dir") ?? null;
 }
 
+function langAttribute(): string | null {
+  return fakeDocumentElement?.getAttribute("lang") ?? null;
+}
+
 /** Requires `../index` fresh (after `resetModules`) with `Platform.OS`
  * forced on the SAME module instance the fresh import will resolve. */
 function loadI18nModule(): typeof import("../index") {
@@ -180,6 +184,39 @@ describe("web boot: RTL persistence without an infinite reload loop", () => {
     const toEn = await changeLocale("en");
     expect(toEn.requiresRestart).toBe(true);
     expect(dirAttribute()).toBe("ltr");
+  });
+
+  it("seeds <html lang> from the persisted locale at boot (B-9)", () => {
+    jest.resetModules();
+    const storage = makeFakeLocalStorage();
+    storage.setItem(LANGUAGE_STORAGE_KEY, "ar");
+    globalWithDom.localStorage = storage;
+    installFakeDocument();
+
+    loadI18nModule();
+
+    expect(langAttribute()).toBe("ar");
+    expect(dirAttribute()).toBe("rtl");
+  });
+
+  it("updates <html lang> on every language change, including one that keeps the direction (en -> kmr)", async () => {
+    jest.resetModules();
+    globalWithDom.localStorage = makeFakeLocalStorage();
+    installFakeDocument();
+
+    const { changeLocale } = loadI18nModule();
+    expect(langAttribute()).toBe("en");
+
+    const toKmr = await changeLocale("kmr");
+    // Same direction, so no restart — the old code only touched the DOM
+    // when the direction flipped, which is exactly why `lang` stayed "en".
+    expect(toKmr.requiresRestart).toBe(false);
+    expect(langAttribute()).toBe("kmr");
+    expect(dirAttribute()).toBe("ltr");
+
+    await changeLocale("ckb");
+    expect(langAttribute()).toBe("ckb");
+    expect(dirAttribute()).toBe("rtl");
   });
 
   it("reads the exact key/value AsyncStorage's own web implementation writes to window.localStorage", async () => {
