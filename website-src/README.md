@@ -26,9 +26,13 @@ Commit `website-src/` and the regenerated `website/` together; the jest test
   `/u/<name>` → `/u/<name>`; `/join?code&key` → `/home/join?code&key`. The
   build inlines it into `website/app/index.html` (answers `/app`) and
   `website/404.html` (Pages serves it for every other unknown path, which
-  otherwise shows a small "page not found"). The app's side of the same
-  addresses is `src/config/urls.ts`; a website test runs the app's own link
-  builders through this mapping.
+  otherwise shows a small "page not found"). Both pages carry the site's
+  preview tags (a generic Bumelerze title, the og image) and a visible "Open
+  this in the Bumelerze app" link in all four languages (`forward.*` strings),
+  so a shared short link unfurls as the brand and still leads into the app
+  for clients that run no script. The app's side of the same addresses is
+  `src/config/urls.ts`; a website test runs the app's own link builders
+  through this mapping.
 
 ## Layout
 

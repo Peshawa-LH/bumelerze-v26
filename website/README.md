@@ -20,7 +20,8 @@ Live at <https://bumelerze.com>, deployed by GitHub Pages on every push to
 The app is NOT here: it lives at <https://app.bumelerze.com> (Cloudflare
 Pages). `app/index.html` and `404.html` only forward the app's old
 `bumelerze.com/app/...` address and the short links (`/e/<id>`, `/u/<name>`,
-`/join?…`) to it; both are generated from `website-src/redirects.js`.
+`/join?…`) to it; both are generated from `website-src/redirects.js` and
+carry the brand's preview tags plus a no-script link into the app.
 Netlify (`netlify.toml`) is a dormant mirror. Contact: `hello@bumelerze.com`, `dev@bumelerze.com`.
 
 The 2026-10 redesign (revised after the owner's review on 2026-10-10)

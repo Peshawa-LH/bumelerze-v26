@@ -948,12 +948,22 @@ const ROBOTS = `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}sitemap.xml\n`;
 // path that is not a file, which is how /app/<path>, /e/<id>, /u/<name> and
 // /join reach the script; app/index.html answers /app and /app/ directly.
 
+//
+// Both pages are also what a client that runs no script sees: a messenger's
+// link-preview bot, a plain fetch, some in-app browsers. So they carry the
+// site's Open Graph and Twitter cards (a generic Bumelerze title and the site
+// image, so a shared bumelerze.com/e/… unfurls as the brand, never as "Page
+// not found") and a visible way into the app in all four languages. Once the
+// script runs, it points those links at the exact target and forwards.
+
 const REDIRECT_PAGE_STYLE =
   "body{margin:0;font:18px/1.5 system-ui,sans-serif;background:#fff5e8;color:#1c1b1f}" +
   "main{max-width:32rem;margin:15vh auto;padding:0 1.25rem}" +
   "a{color:#a8151f;font-weight:600}" +
   "@media (prefers-color-scheme:dark){body{background:#0b1a26;color:#f2f2f3}a{color:#ff8a8f}}" +
-  "html.forwarding .not-found{display:none}";
+  ".open-app{list-style:none;margin:0 0 2rem;padding:0;display:grid;gap:.6rem}" +
+  "html.forwarding .not-found{display:none}" +
+  "html.missing .open-app{display:none}";
 
 function redirectScript(fallbackToApp) {
   const mapping = read(path.join(SRC, "redirects.js"))
@@ -963,15 +973,40 @@ function redirectScript(fallbackToApp) {
 ${mapping}
 (function () {
   var to = appRedirect(location.pathname, location.search, location.hash)${fallbackToApp ? ' || APP_ORIGIN + "/"' : ""};
-  if (to) {
-    document.documentElement.className = "forwarding";
-    location.replace(to);
+  var root = document.documentElement;
+  if (!to) {
+    root.className = "missing";
+    document.title = "Page not found \\u00b7 Bumelerze";
+    return;
   }
+  root.className = "forwarding";
+  if (document.addEventListener) {
+    document.addEventListener("DOMContentLoaded", function () {
+      var links = document.querySelectorAll("a[data-app-link]");
+      for (var i = 0; i < links.length; i++) links[i].href = to;
+    });
+  }
+  location.replace(to);
 })();
 </script>`;
 }
 
-function redirectPage({ title, script, body, noscriptTo }) {
+/** "Open this in the Bumelerze app", once per language, each line in its own
+ * language and direction; the script repoints every link at the exact target. */
+function openAppLinks(strings) {
+  return `<ul class="open-app">
+${LANGS.map(
+  (l) =>
+    `<li lang="${l.code}" dir="${l.dir}"><a data-app-link href="${APP_URL}">${strings[l.code]["forward.open_app"]}</a></li>`,
+).join("\n")}
+</ul>`;
+}
+
+function redirectPage(strings, { script, body, noscriptTo }) {
+  const en = strings.en;
+  const title = escapeAttr(en["meta.title"]);
+  const description = escapeAttr(en["forward.description"]);
+  const image = `${SITE_URL}og-image.jpg`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -979,6 +1014,22 @@ function redirectPage({ title, script, body, noscriptTo }) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>${title}</title>
+<meta name="description" content="${description}">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${escapeAttr(en.brand)}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:image" content="${image}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${escapeAttr(en["ui.og_alt"])}">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${description}">
+<meta name="twitter:image" content="${image}">
+<link rel="icon" href="${SITE_URL}favicon.ico" sizes="any">
 ${noscriptTo ? `<noscript><meta http-equiv="refresh" content="0; url=${noscriptTo}"></noscript>\n` : ""}<style>${REDIRECT_PAGE_STYLE}</style>
 ${script}
 </head>
@@ -992,21 +1043,21 @@ ${body}
 }
 
 /** website/app/index.html: bumelerze.com/app(/) -> app.bumelerze.com. */
-function appForwardPage() {
-  return redirectPage({
-    title: "Bumelerze has moved to app.bumelerze.com",
+function appForwardPage(strings) {
+  return redirectPage(strings, {
     script: redirectScript(true),
     noscriptTo: APP_URL,
-    body: `<p>The Bumelerze app is now at <a href="${APP_URL}">app.bumelerze.com</a>.</p>`,
+    body: `${openAppLinks(strings)}
+<p>The Bumelerze app is now at <a href="${APP_URL}">app.bumelerze.com</a>.</p>`,
   });
 }
 
 /** website/404.html: forwards old and short links, else "page not found". */
-function notFoundPage() {
-  return redirectPage({
-    title: "Page not found · Bumelerze",
+function notFoundPage(strings) {
+  return redirectPage(strings, {
     script: redirectScript(false),
-    body: `<div class="not-found">
+    body: `${openAppLinks(strings)}
+<div class="not-found">
 <h1>Page not found</h1>
 <p>This page does not exist on bumelerze.com.</p>
 <p><a href="${SITE_URL}">Go to the Bumelerze website</a> · <a href="${APP_URL}">Open the app</a></p>
@@ -1040,8 +1091,8 @@ export function renderSite() {
   out["sitemap.xml"] = sitemap();
   out["robots.txt"] = ROBOTS;
   // Forwards only: the app itself is never built into the website.
-  out["404.html"] = notFoundPage();
-  out["app/index.html"] = appForwardPage();
+  out["404.html"] = notFoundPage(strings);
+  out["app/index.html"] = appForwardPage(strings);
   return out;
 }
 
