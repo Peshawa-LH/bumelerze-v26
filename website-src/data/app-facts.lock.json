@@ -25,7 +25,7 @@
     "file:src/features/geo/data/fe-region-translations.ts": "5563fb896d6aa9bf"
   },
   "event-route": {
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "577996b6dbf0157a",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "38e17c617fe9ec59",
     "file:app/account/sign-in.tsx": "e60cad5746f30dbb",
     "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "0679f6997a16f39e"
   },
@@ -87,7 +87,7 @@
     "key:building.vc.name.F": "2854534405d74d61",
     "key:building.q.structure.options.mud": "026ed0c02dd81e82",
     "key:building.q.structure.options.frame": "1b8f50f75058cbd2",
-    "file:app/home/new.tsx": "bbb1a3c3ab7b61ad"
+    "file:app/home/new.tsx": "ba794a6df1ebd6dc"
   },
   "account": {
     "key:account.signIn.intro": "39ef301af44522a5",
@@ -130,11 +130,11 @@
     "key:handbook.report.disclaimerTitle": "7b0e161eb0e85c62",
     "key:handbook.report.action": "71dd11ba21812d15",
     "key:handbook.spectrum.banner.vs30Proxy": "2b1c035f62d8e77e",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/handbook.tsx": "8dc077374f5ee6d9"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/handbook.tsx": "66a37a40d894c00a"
   },
   "app-address": {
     "file:src/config/urls.ts": "8e910e03b5070323",
-    "file:app/home/join.tsx": "3757249ccf02cd6b",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index.tsx": "ac262cb9c3dfebed"
+    "file:app/home/join.tsx": "3c7470d0cbb4bb90",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index.tsx": "52b6cc2f2b53f6ff"
   }
 }
