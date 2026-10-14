@@ -379,3 +379,292 @@ end
 $$;
 revoke all on function public.submit_felt_report_details(uuid, text, jsonb) from public;
 grant execute on function public.submit_felt_report_details(uuid, text, jsonb) to anon, authenticated;
+
+-- 9. The People filter knows the Government official rank ---------------------------------------
+-- admin_people_search is the 0055 body with 'authority' added to the rank
+-- filter's allow-list and to the rank display order; nothing else changed.
+-- The app stops hiding that chip in the same change.
+create or replace function public.admin_people_search(
+  p_query text default null,
+  p_kind text default 'accounts',
+  p_filters jsonb default null,
+  p_sort text default 'last_seen',
+  p_cursor jsonb default null,
+  p_limit integer default 50
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_guests boolean;
+  v_email boolean;
+  v_pw boolean;
+  v_kind text := coalesce(nullif(btrim(p_kind), ''), 'accounts');
+  v_sort text := coalesce(nullif(btrim(p_sort), ''), 'last_seen');
+  v_limit integer := least(greatest(coalesce(p_limit, 50), 1), 50);
+  v_f jsonb := case when jsonb_typeof(p_filters) = 'object' then p_filters else '{}'::jsonb end;
+  v_raw text := left(btrim(coalesce(p_query, '')), 80);
+  v_q text;
+  v_at boolean;
+  v_home_code text;
+  v_report uuid;
+  v_by_user boolean := false;
+  v_by_name boolean := false;
+  v_by_mail boolean := false;
+  v_by_id boolean := false;
+  v_by_fp boolean := false;
+  v_by_home boolean := false;
+  v_by_report boolean := false;
+  v_any boolean;
+  v_pat_user text;
+  v_pat_name text;
+  v_pat_mail text;
+  v_pat_id text;
+  v_rank text := nullif(btrim(v_f ->> 'rank'), '');
+  v_status text := nullif(btrim(v_f ->> 'status'), '');
+  v_platform text := nullif(btrim(v_f ->> 'platform'), '');
+  v_reported boolean := false;
+  v_haspw boolean;
+  v_from timestamptz;
+  v_to timestamptz;
+  v_days integer;
+  v_ck numeric;
+  v_cid uuid;
+  v_out jsonb;
+begin
+  if v_uid is null or not public.has_permission(v_uid, 'people.view') then
+    raise exception 'admin_people_search: not_allowed' using errcode = '42501';
+  end if;
+  v_guests := public.has_permission(v_uid, 'people.view_guests');
+  v_email := public.has_permission(v_uid, 'people.view_email');
+  v_pw := public.has_permission(v_uid, 'accounts.reset_password');
+
+  if v_kind not in ('accounts', 'guests', 'all') then
+    raise exception 'admin_people_search: invalid_kind' using errcode = '22023';
+  end if;
+  if v_kind = 'guests' and not v_guests then
+    raise exception 'admin_people_search: not_allowed' using errcode = '42501';
+  end if;
+  if v_kind = 'all' and not v_guests then
+    v_kind := 'accounts';
+  end if;
+  if v_sort not in ('last_seen', 'joined', 'open_reports') then
+    raise exception 'admin_people_search: invalid_sort' using errcode = '22023';
+  end if;
+
+  -- filters
+  if v_rank is not null and v_rank <> 'any' and v_rank not in (
+       'official', 'moderator', 'authority', 'seismologist', 'professor', 'researcher', 'engineer', 'partner') then
+    raise exception 'admin_people_search: invalid_filter' using errcode = '22023';
+  end if;
+  if v_status is not null and v_status not in ('active', 'restricted', 'suspended') then
+    raise exception 'admin_people_search: invalid_filter' using errcode = '22023';
+  end if;
+  if v_platform is not null and v_platform not in ('ios', 'android', 'web') then
+    raise exception 'admin_people_search: invalid_filter' using errcode = '22023';
+  end if;
+  v_reported := coalesce(v_f ->> 'reported', 'false') = 'true';
+  if (v_f ->> 'has_password') in ('true', 'false') then
+    if not v_pw then
+      raise exception 'admin_people_search: not_allowed' using errcode = '42501';
+    end if;
+    v_haspw := (v_f ->> 'has_password') = 'true';
+  end if;
+  v_from := nullif(v_f ->> 'joined_from', '')::timestamptz;
+  v_to := nullif(v_f ->> 'joined_to', '')::timestamptz;
+  v_days := nullif(v_f ->> 'active_days', '')::integer;
+  if v_days is not null and v_days not in (7, 30) then
+    raise exception 'admin_people_search: invalid_filter' using errcode = '22023';
+  end if;
+
+  -- cursor
+  if p_cursor is not null then
+    v_ck := nullif(p_cursor ->> 'k', '')::numeric;
+    v_cid := nullif(p_cursor ->> 'id', '')::uuid;
+    if v_ck is null or v_cid is null then
+      raise exception 'admin_people_search: invalid_cursor' using errcode = '22023';
+    end if;
+  end if;
+
+  -- what the query can mean
+  v_q := lower(v_raw);
+  v_at := left(v_q, 1) = '@';
+  if v_raw <> '' then
+    if upper(v_raw) ~ '^BMH-[0-9A-Z]{6}$' then
+      v_by_home := true;
+      v_home_code := upper(v_raw);
+    elsif v_at then
+      v_by_user := char_length(ltrim(v_q, '@')) >= 1;
+      v_pat_user := public.people_like_escape(ltrim(v_q, '@')) || '%';
+    else
+      v_by_user := char_length(v_q) >= 3;
+      v_pat_user := public.people_like_escape(v_q) || '%';
+      v_by_name := char_length(public.name_fold(v_raw)) >= 2;
+      v_pat_name := '%' || public.people_like_escape(public.name_fold(v_raw)) || '%';
+      v_by_mail := v_email and char_length(v_q) >= 3;
+      v_pat_mail := public.people_like_escape(v_q) || '%';
+      v_by_id := v_q ~ '^[0-9a-f][0-9a-f-]{5,35}$';
+      v_pat_id := public.people_like_escape(v_q) || '%';
+      v_by_fp := v_q ~ '^[0-9a-f]{8}$';
+      if v_q ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+        v_by_report := true;
+        v_report := v_q::uuid;
+      end if;
+    end if;
+  end if;
+  v_any := v_raw = '' or v_by_user or v_by_name or v_by_mail or v_by_id or v_by_fp
+           or v_by_home or v_by_report;
+
+  with cand as (
+    select u.id as uid,
+           coalesce(u.is_anonymous, false) as guest,
+           u.email as email,
+           p.username as username,
+           p.display_name as display_name,
+           p.avatar_path as avatar_path,
+           case when coalesce(u.is_anonymous, false) then u.created_at
+                else coalesce(p.created_at, u.created_at) end as joined_at,
+           coalesce(greatest(pr.last_seen, u.last_sign_in_at), u.created_at) as seen_at,
+           coalesce(
+             pr.platform,
+             (select f.platform from public.feedback f
+               where f.user_id = u.id and f.platform is not null
+               order by f.created_at desc limit 1)
+           ) as platform,
+           coalesce(rep.n, 0) as open_reports,
+           case when coalesce(lim.suspended, false) then 'suspended'
+                when coalesce(lim.restricted, false) then 'restricted'
+                else 'active' end as status,
+           (u.encrypted_password is not null and u.encrypted_password <> '') as has_pw,
+           (not coalesce(u.is_anonymous, false)) or public.guest_has_activity(u.id) as has_activity
+      from auth.users u
+      left join public.profiles p on p.user_id = u.id
+      left join public.app_presence pr on pr.user_id = u.id
+      left join lateral (
+        select (select count(*) from public.profile_reports x
+                 where x.reported_id = u.id and x.resolved_at is null)
+             + (select count(*) from public.post_reports x
+                  join public.profile_posts po on po.post_id = x.post_id
+                 where po.user_id = u.id and x.resolved_at is null) as n
+      ) rep on true
+      left join lateral (
+        select bool_or(r.level = 'suspend') as suspended,
+               bool_or(r.level = 'restrict') as restricted
+          from public.account_restrictions r
+         where r.user_id = u.id
+           and r.level in ('restrict', 'suspend')
+           and r.lifted_at is null
+           and r.starts_at <= now()
+           and (r.ends_at is null or r.ends_at > now())
+      ) lim on true
+     where v_any
+       and (case v_kind
+              when 'accounts' then not coalesce(u.is_anonymous, false)
+              when 'guests' then coalesce(u.is_anonymous, false)
+              else true end)
+       and (v_guests or not coalesce(u.is_anonymous, false))
+       and (
+         v_raw = ''
+         or (v_by_user and lower(p.username) like v_pat_user)
+         or (v_by_name and public.name_fold(p.display_name) like v_pat_name)
+         or (v_by_mail and lower(u.email) like v_pat_mail)
+         or (v_by_id and u.id::text like v_pat_id)
+         or (v_by_fp and (
+               exists (select 1 from public.felt_reports x
+                        where x.user_id = u.id and public.device_fingerprint(x.device_id) = v_q)
+            or exists (select 1 from public.feedback x
+                        where x.user_id = u.id and public.device_fingerprint(x.device_id) = v_q)))
+         or (v_by_report and exists (
+               select 1 from public.felt_reports x where x.report_id = v_report and x.user_id = u.id))
+         or (v_by_home and exists (
+               select 1 from public.home_tags h
+                where h.code = v_home_code and h.owner_user_id = u.id))
+       )
+  ),
+  flt as (
+    select c.*,
+           case v_sort
+             when 'joined' then extract(epoch from c.joined_at)::numeric
+             when 'open_reports' then c.open_reports::numeric * 10000000000
+                                      + extract(epoch from c.seen_at)::numeric
+             else extract(epoch from c.seen_at)::numeric
+           end as k
+      from cand c
+     where (v_rank is null or exists (
+              select 1 from public.user_roles r
+               where r.user_id = c.uid and (v_rank = 'any' or r.role = v_rank)))
+       and (v_status is null or c.status = v_status)
+       and (not v_reported or c.open_reports > 0)
+       and (v_from is null or c.joined_at >= v_from)
+       and (v_to is null or c.joined_at <= v_to)
+       and (v_days is null or c.seen_at >= now() - make_interval(days => v_days))
+       and (v_platform is null or c.platform = v_platform)
+       and (v_haspw is null or c.has_pw = v_haspw)
+  ),
+  page as (
+    select f.*, row_number() over (order by f.k desc, f.uid desc) as rn
+      from flt f
+     where (not f.guest or f.has_activity)
+       and (v_ck is null or (f.k, f.uid) < (v_ck, v_cid))
+     order by f.k desc, f.uid desc
+     limit v_limit + 1
+  )
+  select jsonb_build_object(
+    'rows', coalesce((
+      select jsonb_agg(
+        jsonb_build_object(
+          'user_id', s.uid,
+          'kind', case when s.guest then 'guest' else 'account' end,
+          'username', s.username,
+          'display_name', s.display_name,
+          'avatar_path', s.avatar_path,
+          'ranks', coalesce((
+            select jsonb_agg(r.role order by array_position(
+                     array['official', 'moderator', 'authority', 'seismologist', 'professor',
+                           'researcher', 'engineer', 'partner'], r.role))
+              from public.user_roles r where r.user_id = s.uid), '[]'::jsonb),
+          'status', s.status,
+          'joined', s.joined_at,
+          'last_seen', s.seen_at,
+          'platform', s.platform,
+          'open_reports', s.open_reports,
+          'counts', jsonb_build_object(
+            'felt_reports', (select count(*) from public.felt_reports x where x.user_id = s.uid),
+            'comments', (select count(*) from public.event_comments x where x.user_id = s.uid),
+            'posts', (select count(*) from public.profile_posts x
+                       where x.user_id = s.uid and x.status <> 'deleted'),
+            'homes_owned', (select count(*) from public.home_tags x where x.owner_user_id = s.uid),
+            'homes_member', (select count(*) from public.home_members x
+                              where x.user_id = s.uid and x.role = 'member' and x.status = 'approved'),
+            'feedback', (select count(*) from public.feedback x where x.user_id = s.uid)
+          )
+        ) || case
+          when v_email then jsonb_build_object(
+            'masked_email',
+            case when s.email is null or position('@' in s.email) = 0 then null
+                 else left(s.email, 1) || '***@' || split_part(s.email, '@', 2) end)
+          else '{}'::jsonb
+        end
+        order by s.rn)
+      from page s
+     where s.rn <= v_limit), '[]'::jsonb),
+    'next_cursor', (
+      select jsonb_build_object('k', s.k::text, 'id', s.uid)
+        from page s
+       where s.rn = v_limit
+         and exists (select 1 from page x where x.rn = v_limit + 1)),
+    'idle_guests', case
+      when v_guests and v_kind <> 'accounts'
+        then (select count(*) from flt x where x.guest and not x.has_activity)
+      else null end
+  )
+  into v_out;
+  return v_out;
+end
+$$;
+revoke all on function public.admin_people_search(text, text, jsonb, text, jsonb, integer) from public, anon;
+grant execute on function public.admin_people_search(text, text, jsonb, text, jsonb, integer) to authenticated;

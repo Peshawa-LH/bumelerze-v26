@@ -91,19 +91,23 @@ export function PeopleFilterSheet({
   const set = <K extends keyof PeopleFilters>(key: K, value: PeopleFilters[K]) =>
     setDraft((previous) => ({ ...previous, [key]: value }));
   const heading = (key: string) => (
-    <Text accessibilityRole="header" style={[typography.labelButton, { color: colors.text.primary }]}>
+    <Text
+      accessibilityRole="header"
+      style={[typography.labelButton, { color: colors.text.primary }]}
+    >
       {t(key)}
     </Text>
   );
-  // The server's rank filter (admin_people_search, 0055) predates the
-  // Government official rank of 0066, so that rank is not offered here.
-  const ranks: (HubRoleKind | "any")[] = [
-    "any",
-    ...HUB_ROLE_KINDS.filter((kind) => kind !== "authority"),
-  ];
+  // Every public rank, the Government official included (admin_people_search
+  // accepts it since migration 0067).
+  const ranks: (HubRoleKind | "any")[] = ["any", ...HUB_ROLE_KINDS];
 
   return (
-    <Sheet title={t("admin.people.filters.title")} onClose={onClose} testID="people-filter-sheet">
+    <Sheet
+      title={t("admin.people.filters.title")}
+      onClose={onClose}
+      testID="people-filter-sheet"
+    >
       {heading("admin.people.filters.rank")}
       <View style={styles.chips} accessibilityRole="radiogroup">
         <ActionButton
@@ -115,7 +119,11 @@ export function PeopleFilterSheet({
         {ranks.map((rank) => (
           <ActionButton
             key={rank}
-            label={rank === "any" ? t("admin.people.filters.anyRank") : t(`eventHub.roles.${rank}`)}
+            label={
+              rank === "any"
+                ? t("admin.people.filters.anyRank")
+                : t(`eventHub.roles.${rank}`)
+            }
             selected={draft.rank === rank}
             onPress={() => set("rank", rank)}
             testID={`filter-rank-${rank}`}
