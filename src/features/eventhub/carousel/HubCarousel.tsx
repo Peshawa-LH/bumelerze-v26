@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   PanResponder,
   Pressable,
@@ -14,6 +14,8 @@ import { useTranslation } from "react-i18next";
 import { isolateNumeric } from "@/features/events/format";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
+
+import { useHorizontalSwipeLock } from "./swipe-lock";
 
 export interface CarouselSlide {
   key: string;
@@ -31,6 +33,17 @@ const COUNTER_TEXT = "#FFFFFF";
 const COUNTER_BG = "rgba(0, 0, 0, 0.66)";
 /** A swipe must travel this far (dp) to change the slide. */
 const SWIPE_DISTANCE = 40;
+/** Sideways travel (dp) after which a mostly-sideways move is the carousel's. */
+const CLAIM_DISTANCE = 10;
+
+/**
+ * Whether a move belongs to the carousel: past a few dp and more sideways
+ * than up-and-down. (Until 2026-10-14 it had to be 1.5x more sideways, so a
+ * thumb's natural arc neither scrolled the page nor moved the slide.)
+ */
+export function claimsSwipe(dx: number, dy: number): boolean {
+  return Math.abs(dx) > CLAIM_DISTANCE && Math.abs(dx) > Math.abs(dy);
+}
 
 /**
  * Which way a finished horizontal swipe moves: +1 to the next slide, -1 to
@@ -86,12 +99,19 @@ export function HubCarousel({
 
   // Rebuilt when the slide in view changes, so the release handler always
   // sees the current position and direction.
+  // Once a swipe is the carousel's it stays the carousel's: on the web
+  // react-native-web would otherwise end it as soon as the page under it
+  // scrolled a pixel (an iPhone scrolls by a swipe's vertical part), and the
+  // slide never moved. The web also holds the page still during a sideways
+  // swipe (`swipe-lock.web.ts`).
   const pan = useMemo(
     () =>
       PanResponder.create({
+        onMoveShouldSetPanResponderCapture: (_event, gesture) =>
+          claimsSwipe(gesture.dx, gesture.dy),
         onMoveShouldSetPanResponder: (_event, gesture) =>
-          Math.abs(gesture.dx) > 12 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.5,
-        onPanResponderTerminationRequest: () => true,
+          claimsSwipe(gesture.dx, gesture.dy),
+        onPanResponderTerminationRequest: () => false,
         onPanResponderRelease: (_event, gesture) => {
           const step = swipeStep(gesture.dx, rtl);
           if (step !== 0) go(index + step);
@@ -99,6 +119,9 @@ export function HubCarousel({
       }),
     [go, index, rtl],
   );
+
+  const frameRef = useRef<View>(null);
+  useHorizontalSwipeLock(frameRef, count > 0);
 
   if (count === 0) {
     return null;
@@ -124,6 +147,7 @@ export function HubCarousel({
       style={{ gap: spacing[2] }}
     >
       <View
+        ref={frameRef}
         {...pan.panHandlers}
         accessible
         accessibilityRole="adjustable"
@@ -187,7 +211,14 @@ export function HubCarousel({
 }
 
 const styles = StyleSheet.create({
-  frame: { alignSelf: "center", borderRadius: 12, overflow: "hidden" },
+  // touchAction (web): the browser may scroll the page up and down from the
+  // slide, never sideways (the carousel takes sideways swipes).
+  frame: {
+    alignSelf: "center",
+    borderRadius: 12,
+    overflow: "hidden",
+    touchAction: "pan-y",
+  },
   // At the end edge, away from the share image's magnitude (at the start
   // edge in every language). The web app root sets the reading direction
   // (AppRoot.web.tsx), so `end` is the left edge in Sorani and Arabic on

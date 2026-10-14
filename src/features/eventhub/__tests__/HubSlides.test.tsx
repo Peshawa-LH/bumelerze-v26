@@ -26,7 +26,7 @@ import {
   ROMAN_NUMERAL,
 } from "@/features/shakemap/__fixtures__/roman-numerals";
 
-import { HubCarousel, swipeStep } from "../carousel/HubCarousel";
+import { claimsSwipe, HubCarousel, swipeStep } from "../carousel/HubCarousel";
 import { buildClassDamage, percentValue, runningTotal } from "../carousel/slide-data";
 import { useHubSlides } from "../carousel/use-hub-slides";
 import type { HubSummary } from "../types";
@@ -230,6 +230,15 @@ describe("Event hub slides (review note 4.3)", () => {
     expect(await screen.findByTestId("slide-towns")).toBeTruthy();
   });
 
+  it("keeps a swipe it has taken, even when the page under it scrolls", async () => {
+    mockRisk(risk());
+    await renderSlides(FELT_SUMMARY, { towns: TOWNS, timeline: TIMELINE });
+    const frame = await screen.findByTestId("hub-carousel-slide-share");
+    // react-native-web asks this when the page scrolls mid-swipe (an iPhone
+    // scrolls by a swipe's vertical part); "true" ended every such swipe.
+    expect(frame.props.onResponderTerminationRequest()).toBe(false);
+  });
+
   it("Felt shaking by town shows a level only with 3 reports, always with numeral and name", async () => {
     mockRisk(null);
     await renderSlides(FELT_SUMMARY, { towns: TOWNS });
@@ -328,6 +337,21 @@ describe("swipeStep", () => {
   it("ignores a short swipe", () => {
     expect(swipeStep(20, false)).toBe(0);
     expect(swipeStep(-40, true)).toBe(0);
+  });
+});
+
+describe("claimsSwipe", () => {
+  it("takes a move that is more sideways than up-and-down, past a few dp", () => {
+    expect(claimsSwipe(-30, 0)).toBe(true);
+    expect(claimsSwipe(30, 25)).toBe(true);
+    // A thumb's arc (1.5:1) was neither a page scroll nor a swipe before.
+    expect(claimsSwipe(-45, 30)).toBe(true);
+  });
+
+  it("leaves up-and-down moves and tiny moves to the page", () => {
+    expect(claimsSwipe(20, 40)).toBe(false);
+    expect(claimsSwipe(25, 25)).toBe(false);
+    expect(claimsSwipe(8, 0)).toBe(false);
   });
 });
 
