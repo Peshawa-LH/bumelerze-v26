@@ -767,7 +767,7 @@
     "coordinatesSectionTitle": "الإحداثيات",
     "depthSectionTitle": "العمق",
     "distanceSectionTitle": "المسافة",
-    "historicalContextLink": "الزلازل هنا منذ عام 1900",
+    "historicalContextLink": "الزلازل التاريخية في المنطقة",
     "sourceSectionTitle": "المصدر",
     "sourceUpdated": "آخر تحديث {{time}} (التوقيت المحلي)",
     "sourceCitation": "بيانات الحدث: {{network}} (عبر خدمة FDSN)",
@@ -849,7 +849,6 @@
         "district": "الأقضية",
         "governorate": "المحافظات"
       },
-      "provinceCaption": "نحو {{value}} مبنى",
       "provinceRowA11y": "{{province}}، فئة {{band}}، نحو {{value}} مبنى تضرر بشدة",
       "areaRowA11y": "{{area}}، فئة {{band}}، نحو {{value}} مبنى تضرر بشدة",
       "areaLevelA11y": "عرض {{level}}",
@@ -894,7 +893,13 @@
       "detail": {
         "show": "عرض التفاصيل",
         "hide": "إخفاء التفاصيل"
-      }
+      },
+      "provinceCaption_one": "نحو مبنى واحد",
+      "provinceCaption_other": "نحو {{value}} مبنى",
+      "provinceCaption_zero": "لا مبانٍ",
+      "provinceCaption_two": "نحو مبنيين",
+      "provinceCaption_few": "نحو {{value}} مبانٍ",
+      "provinceCaption_many": "نحو {{value}} مبنى"
     },
     "feltMap": {
       "sectionTitle": "خريطة الشعور بالزلزال",

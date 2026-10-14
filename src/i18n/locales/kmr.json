@@ -767,7 +767,7 @@
     "coordinatesSectionTitle": "Koordînat",
     "depthSectionTitle": "Kûrahî",
     "distanceSectionTitle": "Dûrahî",
-    "historicalContextLink": "Erdhejên li vir ji sala 1900an vir ve",
+    "historicalContextLink": "Erdhejên dîrokî yên herêmê",
     "sourceSectionTitle": "Çavkanî",
     "sourceUpdated": "Hate rojanekirin {{time}} (dema herêmî)",
     "sourceCitation": "Daneyên bûyerê: {{network}} (bi rêya servîsa FDSN)",
@@ -849,7 +849,6 @@
         "district": "Qeza",
         "governorate": "Parêzgeh"
       },
-      "provinceCaption": "Nêzîkî {{value}} avahî",
       "provinceRowA11y": "{{province}}, asta {{band}}, nêzîkî {{value}} avahî bi giranî zirar dîtine",
       "areaRowA11y": "{{area}}, asta {{band}}, nêzîkî {{value}} avahî bi giranî zirar dîtine",
       "areaLevelA11y": "{{level}} nîşan bide",
@@ -894,7 +893,9 @@
       "detail": {
         "show": "Hûrgiliyan bibîne",
         "hide": "Hûrgiliyan veşêre"
-      }
+      },
+      "provinceCaption_one": "Nêzîkî {{value}} avahî",
+      "provinceCaption_other": "Nêzîkî {{value}} avahî"
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",

@@ -767,7 +767,7 @@
     "coordinatesSectionTitle": "کوردینات",
     "depthSectionTitle": "قوڵایی",
     "distanceSectionTitle": "دووری",
-    "historicalContextLink": "بوومەلەرزەکان لێرە لە ساڵی ١٩٠٠ەوە",
+    "historicalContextLink": "بوومەلەرزەکانی مێژوویی ناوچەکە",
     "sourceSectionTitle": "سەرچاوە",
     "sourceUpdated": "نوێکراوەتەوە لە {{time}} (کاتی ناوخۆیی)",
     "sourceCitation": "داتای ڕووداو: {{network}} (لە ڕێگەی خزمەتگوزاری FDSN)",
@@ -849,7 +849,6 @@
         "district": "قەزاکان",
         "governorate": "پارێزگاکان"
       },
-      "provinceCaption": "نزیکەی {{value}} خانوو",
       "provinceRowA11y": "{{province}}، پۆلی {{band}}، نزیکەی {{value}} خانوو بە توندی زیانیان پێگەیشتووە",
       "areaRowA11y": "{{area}}، پۆلی {{band}}، نزیکەی {{value}} خانوو بە توندی زیانیان پێگەیشتووە",
       "areaLevelA11y": "نیشاندانی {{level}}",
@@ -894,7 +893,9 @@
       "detail": {
         "show": "بینینی وردەکاری",
         "hide": "شاردنەوەی وردەکاری"
-      }
+      },
+      "provinceCaption_one": "نزیکەی {{value}} خانوو",
+      "provinceCaption_other": "نزیکەی {{value}} خانوو"
     },
     "feltMap": {
       "sectionTitle": "نەخشەی هەستکراو",

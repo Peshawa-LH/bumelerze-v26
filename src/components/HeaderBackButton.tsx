@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { Pressable, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -30,25 +30,36 @@ import { useTheme } from "@/theme";
  *
  * Ionicons doesn't auto-mirror for RTL (no bundled "flip" behavior), and
  * `I18nManager.isRTL` cannot be trusted here either — its react-native-web
- * shim always reports `false` (see `EventCard.tsx`'s `webDirProp` comment
- * for the full writeup) — so the chevron direction is driven explicitly off
- * `isRTLLocale(i18n.language)`, the one signal this app trusts on both
- * platforms.
+ * shim always reports `false` — so the chevron direction is driven
+ * explicitly off `isRTLLocale(i18n.language)`, the one signal this app
+ * trusts on both platforms.
  */
 export function HeaderBackButton() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const isRTL = isRTLLocale(i18n.language);
 
   function handlePress() {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
+    if (!router.canGoBack()) {
       // Deep-link / no-history entry — Home is always a sensible fallback,
       // never leaving the back control absent or dead (wave brief).
       router.replace("/");
+      return;
     }
+    if (isSeededHomeAnchorBeneath(navigation.getState())) {
+      // A cold deep link to a shared route (`/event/bml…`, `/u/name`):
+      // expo-router builds the (home) stack as [index, this screen] and
+      // seeds that anchor `index` with THIS screen's params, so a plain
+      // `back()` landed on "/?id=bml…" or "/?username=…" (B-11). Popping to
+      // the anchor through the router gives it the href's own (empty)
+      // params instead — React Navigation's POP_TO replaces them. Home
+      // itself reads no route params, so an anchor with any is this case.
+      router.dismissTo("/");
+      return;
+    }
+    router.back();
   }
 
   return (
@@ -67,6 +78,25 @@ export function HeaderBackButton() {
       />
     </Pressable>
   );
+}
+
+interface NavigationStateLike {
+  index?: number;
+  routes?: readonly { name: string; params?: object | undefined }[];
+}
+
+/** True when the route directly beneath the current one is the Home anchor
+ * (`index`) carrying params it never asks for — the signature of an
+ * expo-router deep-link seed, never of in-app navigation. */
+export function isSeededHomeAnchorBeneath(state: NavigationStateLike | undefined): boolean {
+  if (!state || typeof state.index !== "number" || !state.routes) {
+    return false;
+  }
+  const beneath = state.routes[state.index - 1];
+  if (!beneath || beneath.name !== "index" || !beneath.params) {
+    return false;
+  }
+  return Object.keys(beneath.params).length > 0;
 }
 
 const styles = StyleSheet.create({

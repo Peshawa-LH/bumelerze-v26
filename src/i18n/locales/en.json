@@ -767,7 +767,7 @@
     "coordinatesSectionTitle": "Coordinates",
     "depthSectionTitle": "Depth",
     "distanceSectionTitle": "Distance",
-    "historicalContextLink": "Earthquakes here since 1900",
+    "historicalContextLink": "Historical earthquakes in the region",
     "sourceSectionTitle": "Source",
     "sourceUpdated": "Updated {{time}} (local time)",
     "sourceCitation": "Event data: {{network}} (via FDSN web service)",
@@ -849,7 +849,6 @@
         "district": "Districts",
         "governorate": "Governorates"
       },
-      "provinceCaption": "About {{value}} buildings",
       "provinceRowA11y": "{{province}}, {{band}} band, about {{value}} buildings heavily damaged",
       "areaRowA11y": "{{area}}, {{band}} band, about {{value}} buildings heavily damaged",
       "areaLevelA11y": "Show {{level}}",
@@ -894,7 +893,9 @@
       "detail": {
         "show": "See the detail",
         "hide": "Hide the detail"
-      }
+      },
+      "provinceCaption_one": "About {{value}} building",
+      "provinceCaption_other": "About {{value}} buildings"
     },
     "feltMap": {
       "sectionTitle": "Felt map",
