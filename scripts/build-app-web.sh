@@ -14,6 +14,10 @@ export BUMELERZE_WEB_OUTPUT=single
 # Stamps the map worker and RTL plugin URLs so a deploy is never served
 # with a browser's stale copy (map/config.ts).
 export EXPO_PUBLIC_BUILD_ID="${CF_PAGES_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo local)}"
+# The offline copy (public/push-sw.js) is on unless this is set to "off":
+# the emergency switch if a deploy's offline copy ever misbehaves. With it
+# off the worker deletes its caches and only handles alerts.
+OFFLINE_SW_MODE="${BUMELERZE_OFFLINE_SW:-on}"
 # Publishable client values: EXPO_PUBLIC_* ship inside every client bundle
 # by design (same values as .github/workflows/deploy-pages.yml).
 export EXPO_PUBLIC_SUPABASE_URL=https://bcgyxepgruwardhozvfq.supabase.co
@@ -44,6 +48,19 @@ fi
 # Web Workers (the offline catalogue's SQLite) must carry all their modules.
 node scripts/check-web-workers.mjs dist-app
 
+# Service worker (alerts + offline copy): stamp this deploy's id, so every
+# deploy is a new worker with its own cache, and tag the page with the same
+# id, so the worker only ever keeps a page of its own deploy.
+case "$OFFLINE_SW_MODE" in on|off) ;; *) echo "build-app-web: BUMELERZE_OFFLINE_SW must be on or off" >&2; exit 1 ;; esac
+case "$EXPO_PUBLIC_BUILD_ID" in *[!A-Za-z0-9._-]*|"") echo "build-app-web: unexpected build id" >&2; exit 1 ;; esac
+perl -pi -e "s/^var BUILD_ID = \"dev\";\$/var BUILD_ID = \"$EXPO_PUBLIC_BUILD_ID\";/; s/^var OFFLINE_MODE = \"on\";\$/var OFFLINE_MODE = \"$OFFLINE_SW_MODE\";/" dist-app/push-sw.js
+perl -pi -e "s#<head>#<head><meta name=\"bumelerze-build\" content=\"$EXPO_PUBLIC_BUILD_ID\">#" dist-app/index.html
+if ! grep -qF "var BUILD_ID = \"$EXPO_PUBLIC_BUILD_ID\";" dist-app/push-sw.js \
+  || ! grep -qF "var OFFLINE_MODE = \"$OFFLINE_SW_MODE\";" dist-app/push-sw.js \
+  || ! grep -qF "<meta name=\"bumelerze-build\" content=\"$EXPO_PUBLIC_BUILD_ID\">" dist-app/index.html; then
+  echo "build-app-web: could not stamp the build id into push-sw.js / index.html" >&2
+  exit 1
+fi
 # An empty export (a known Metro cache failure) must never be deployed:
 # the page must name its scripts, and each must exist and not be empty.
 scripts=$(grep -o 'src="/_expo/static/js/web/[^"]*\.js"' dist-app/index.html | sed 's/^src="\(.*\)"$/\1/')

@@ -2,7 +2,8 @@
  * public/push-sw.js (the web push service worker, migration 0062) run in a
  * sandbox with a fake `self`: it shows the localized notification it is
  * given, keeps every click inside the app's scope, and focuses an open app
- * window instead of opening a second one.
+ * window instead of opening a second one. The same file's offline copy is
+ * tested in push-sw-offline.test.ts.
  */
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -59,9 +60,16 @@ const pushEvent = (payload: unknown) => ({
 });
 
 describe("push-sw.js", () => {
-  it("has no fetch handler (never touches page loads)", () => {
+  it("keeps its push handlers next to the offline copy (one worker per scope)", () => {
     const { listeners } = load();
-    expect(Object.keys(listeners).sort()).toEqual(["activate", "install", "notificationclick", "push"]);
+    expect(Object.keys(listeners).sort()).toEqual([
+      "activate",
+      "fetch",
+      "install",
+      "message",
+      "notificationclick",
+      "push",
+    ]);
   });
 
   it("shows the localized alert with tag, direction, icons and the in-scope link", async () => {

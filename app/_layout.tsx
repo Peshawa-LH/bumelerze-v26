@@ -45,6 +45,7 @@ import { ensureCheckInForegroundSync, processCheckInQueue } from "@/features/saf
 import { sendColdStartTelemetryPing } from "@/features/telemetry/ping";
 import { useTabBarStore } from "@/features/tab-bar/store";
 import { useLaunchPendingTour } from "@/features/tour/launch";
+import { startOfflineShell } from "@/lib/offline-shell";
 import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
@@ -189,6 +190,12 @@ export default function RootLayout() {
     // already available — see `sendColdStartTelemetryPing`'s own doc for
     // every gate; never requests a permission or a fresh GPS fix.
     void sendColdStartTelemetryPing();
+  }, []);
+
+  useEffect(() => {
+    // Web only: the service worker that lets the app open without signal
+    // (src/lib/offline-shell.web.ts). Nothing on iOS/Android.
+    startOfflineShell();
   }, []);
 
   useEffect(() => {
