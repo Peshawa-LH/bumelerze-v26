@@ -38,10 +38,16 @@ export function lazyScreenContent<M, P extends object>(
   let pending: Promise<M> | null = first;
   const create = () =>
     lazy(async () => {
-      // The first attempt reuses the download already started above.
-      const module = await (pending ?? load());
-      pending = null;
-      return { default: pick(module) };
+      // The first attempt reuses the download already started above. Once
+      // it has settled, either way, the next attempt downloads afresh: a
+      // rejected first download kept here forever made "Retry" re-await the
+      // same failure without a single network request (review C-1).
+      try {
+        const module = await (pending ?? load());
+        return { default: pick(module) };
+      } finally {
+        pending = null;
+      }
     });
   function LazyScreenContent(props: P) {
     // A fresh lazy component per retry: React caches a failed one forever.
