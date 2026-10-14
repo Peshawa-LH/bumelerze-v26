@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { isolateNumeric } from "@/features/events/format";
-import { formatIntensity } from "@/features/shakemap";
+import { formatIntensity } from "@/features/shakemap/intensity-format";
 import { useTheme } from "@/theme";
 import {
   METHOD,

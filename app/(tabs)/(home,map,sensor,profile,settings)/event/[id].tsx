@@ -24,7 +24,9 @@ import {
   FeltReportPill,
   useOwnQueueItemForEvent,
 } from "@/features/felt";
-import { EventHubPill, useRouteEvent } from "@/features/eventhub";
+// Deep imports: the eventhub index would also bring the whole hub screen.
+import { EventHubPill } from "@/features/eventhub/components/EventHubPill";
+import { useRouteEvent } from "@/features/eventhub/use-route-event";
 import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";

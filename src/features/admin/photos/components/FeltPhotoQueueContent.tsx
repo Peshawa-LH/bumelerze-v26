@@ -10,7 +10,7 @@ import { formatAbsoluteDual } from "@/features/events";
 import { formatMagnitudeValue, isolateNumeric } from "@/features/events/format";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
-import { formatIntensity } from "@/features/shakemap";
+import { formatIntensity } from "@/features/shakemap/intensity-format";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { useAdminAccess } from "../../queries";

@@ -6,10 +6,10 @@ import type { Event } from "@/features/events";
 import {
   buildDamageSegments,
   damagePercentText,
-  formatIntensity,
-  LOWEST_DEGREE_SHOWN,
-  useResolvedShakeMap,
-} from "@/features/shakemap";
+} from "@/features/shakemap/components/RiskDamageGradeBar";
+import { LOWEST_DEGREE_SHOWN } from "@/features/shakemap/components/RiskShakingLevels";
+import { formatIntensity } from "@/features/shakemap/intensity-format";
+import { useResolvedShakeMap } from "@/features/shakemap/live-queries";
 import { useShareCardModel } from "@/features/share/use-card-model";
 import { useFeltTimeline, useFeltTowns } from "@/features/social/queries";
 import type { SocialTransport } from "@/features/social/transport";

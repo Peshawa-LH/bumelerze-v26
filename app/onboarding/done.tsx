@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { OnboardingScreenShell, usePrefsStore } from "@/features/onboarding";
-import { useTourLaunchStore } from "@/features/tour";
+import { useTourLaunchStore } from "@/features/tour/launch";
 
 /**
  * Screen 6 — "you're set" (spec-v1.md §4.11 step 6). Completing onboarding

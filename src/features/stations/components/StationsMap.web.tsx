@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import {
-  getConfiguredMapTilerKey,
-  loadMapLibre,
-  resolveCatalogMapStyle,
-  useMapPreferencesStore,
-} from "@/features/map";
+// Deep imports, not "@/features/map": the index also pulls in the map
+// screen's sheet (gesture-handler + Reanimated), which this view never uses.
+import { loadMapLibre } from "@/features/map/maplibre-loader";
+import { useMapPreferencesStore } from "@/features/map/preferences-store";
+import { resolveCatalogMapStyle } from "@/features/map/style-catalog";
+import { getConfiguredMapTilerKey } from "@/features/map/style-provider";
 import { useTheme } from "@/theme";
 import type { LiveStation, StationFreshness } from "../types";
 import { freshnessColor } from "./colors";

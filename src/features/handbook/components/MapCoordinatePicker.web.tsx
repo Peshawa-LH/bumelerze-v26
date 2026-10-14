@@ -5,16 +5,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
 
 import { REGION_BBOX } from "@/features/events";
+// Deep imports, not "@/features/map": the index also pulls in the map
+// screen's sheet (gesture-handler + Reanimated), which this picker never uses.
+import { MapTilerAttributionLogo } from "@/features/map/components/MapTilerAttributionLogo";
 import {
   MAP_FIT_BOUNDS_PADDING_PX,
   MAP_RTL_TEXT_PLUGIN_URL,
   MAP_WORKER_URL,
-  MapTilerAttributionLogo,
-  regionBboxToLngLatBounds,
-  resolveMapStyle,
-  shouldRequestRTLTextPlugin,
-  type MapStyleProviderId,
-} from "@/features/map";
+} from "@/features/map/config";
+import { regionBboxToLngLatBounds } from "@/features/map/marker-helpers";
+import { shouldRequestRTLTextPlugin } from "@/features/map/rtl-plugin";
+import { resolveMapStyle, type MapStyleProviderId } from "@/features/map/style-provider";
 import { formatFixedLocalized } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 

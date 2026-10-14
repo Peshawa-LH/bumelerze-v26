@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Text, View, type LayoutChangeEvent } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { formatIntensity } from "@/features/shakemap";
+import { formatIntensity } from "@/features/shakemap/intensity-format";
 import { useTheme } from "@/theme";
 
 import { MiniShakingMap } from "../MiniShakingMap";

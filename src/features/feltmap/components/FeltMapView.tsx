@@ -7,11 +7,10 @@ import { pickLocalizedName, type TranslateFn } from "@/features/geo";
 import {
   computeContourBoundingBox,
   createEquirectangularProjector,
-  layoutCityLabels,
-  mmiValueToLevel,
-  pickMapCities,
-  type LabelCandidate,
-} from "@/features/shakemap";
+} from "@/features/shakemap/projection";
+import { pickMapCities } from "@/features/shakemap/cities";
+import { mmiValueToLevel } from "@/features/shakemap/intensity-ramp";
+import { layoutCityLabels, type LabelCandidate } from "@/features/shakemap/label-layout";
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { FELTMAP_MAX_CITIES, FELTMAP_VIEW_HEIGHT, FELTMAP_VIEW_WIDTH } from "../config";

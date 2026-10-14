@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import type { Event } from "@/features/events";
-import { resolveEventUuidForEvent } from "@/features/shakemap";
+import { resolveEventUuidForEvent } from "@/features/shakemap/live-transport";
 
 /**
  * The registry uuid the felt-cells view is keyed by, with the lookup state.

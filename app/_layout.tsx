@@ -11,9 +11,9 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { useTranslation } from "react-i18next";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AppRoot } from "@/components/AppRoot";
 import { SnackbarProvider, TAB_BAR_CONTENT_HEIGHT } from "@/components/Snackbar";
 import { useStackScreenOptions } from "@/components/use-stack-screen-options";
 import {
@@ -25,23 +25,26 @@ import {
   ensureHomePhotoQueueForegroundSync,
   processHomePhotoQueue,
 } from "@/features/building/photo-queue";
+// Deep imports (not the feature index files) on purpose: everything this
+// file imports is part of the web app's first download, and the index files
+// also pull in screens and data the first screen does not need.
 import {
   ensureFeedbackQueueForegroundSync,
   processFeedbackQueue,
-} from "@/features/feedback";
+} from "@/features/feedback/queue";
 import {
   ensureFeltQueueForegroundSync,
   processQueue,
   reconcileSubmittedReports,
-} from "@/features/felt";
+} from "@/features/felt/queue";
 import { useAlertPrefsAutoSync } from "@/features/alerts/prefs-sync";
-import { useReferencePlace } from "@/features/location";
-import { usePrefsStore } from "@/features/onboarding";
-import { touchPresenceOnce } from "@/features/presence";
+import { useReferencePlace } from "@/features/location/reference-place";
+import { usePrefsStore } from "@/features/onboarding/store";
+import { touchPresenceOnce } from "@/features/presence/touch";
 import { ensureCheckInForegroundSync, processCheckInQueue } from "@/features/safe/queue";
-import { sendColdStartTelemetryPing } from "@/features/telemetry";
-import { useTabBarStore } from "@/features/tab-bar";
-import { useLaunchPendingTour } from "@/features/tour";
+import { sendColdStartTelemetryPing } from "@/features/telemetry/ping";
+import { useTabBarStore } from "@/features/tab-bar/store";
+import { useLaunchPendingTour } from "@/features/tour/launch";
 import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
@@ -204,7 +207,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <AppRoot>
       <SafeAreaProvider>
         <PersistQueryClientProvider
           client={eventsQueryClient}
@@ -283,6 +286,6 @@ export default function RootLayout() {
           </SnackbarProvider>
         </PersistQueryClientProvider>
       </SafeAreaProvider>
-    </GestureHandlerRootView>
+    </AppRoot>
   );
 }
