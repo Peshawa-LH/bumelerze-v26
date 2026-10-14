@@ -621,7 +621,8 @@
     "footerData": "بيانات الزلازل: USGS وEMSC وGEOFON.",
     "footerTrademark": "بوملێرزە™ وشعاره علامتان تجاريتان للمشروع.",
     "footerVersion": "الإصدار {{version}}",
-    "footerLogoA11yLabel": "بوملێرزە"
+    "footerLogoA11yLabel": "بوملێرزە",
+    "accountSectionTitle": "الحساب"
   },
   "onboarding": {
     "back": "رجوع",
@@ -927,7 +928,7 @@
     "loadError": "تعذّر التحميل. تحقق من اتصالك.",
     "composer": {
       "label": "تعليق",
-      "placeholder": "اكتب ما شعرتَ به",
+      "placeholder": "أضف تعليقًا…",
       "replyPlaceholder": "اكتب ردًا",
       "post": "نشر",
       "posting": "جارٍ النشر…",
@@ -1033,6 +1034,51 @@
         "moderator": "اختار فريق Bumelerze هذا الشخص ومنحه العلامة.",
         "partner": "وافق فريق Bumelerze على الشراكة ومنح العلامة.",
         "credential": "تحقّق فريق Bumelerze من خلفية هذا الشخص قبل منحه العلامة."
+      }
+    },
+    "officialName": "Bumelerze",
+    "post": {
+      "near": "قرب {{city}}",
+      "when": "{{time}} بالتوقيت المحلي",
+      "depth": "العمق {{depth}}",
+      "openEvent": "فتح صفحة الزلزال",
+      "felt": "شعر به {{number}}",
+      "feltHint": "يفتح «شارك تجربتك»",
+      "comments": "التعليقات"
+    },
+    "slides": {
+      "position": "{{title}}، الشريحة {{number}} من {{total}}",
+      "goTo": "الشريحة {{number}}: {{title}}",
+      "share": "صورة المشاركة",
+      "towns": {
+        "title": "الاهتزاز المحسوس حسب البلدة",
+        "subtitle": "المستوى المعتاد من بلاغات الشعور · البلاغات لكل بلدة",
+        "note": "البلدات التي لديها ٣ بلاغات على الأقل تُظهر مستوى.",
+        "a11y": "{{town}}: المستوى {{level}}، {{label}}، {{number}} بلاغ",
+        "a11yCountOnly": "{{town}}: {{number}} بلاغ، أقل من أن يُظهر مستوى"
+      },
+      "timeline": {
+        "title": "البلاغات عبر الزمن",
+        "subtitle": "بلاغات الشعور في كل ساعة، أول ٢٤ ساعة",
+        "reports": "بلاغ",
+        "minutes": "{{number}} دقيقة",
+        "toFirst": "حتى أول بلاغ",
+        "firstHour": "في الساعة الأولى",
+        "chartA11y": "مخطط: {{number}} بلاغ شعور خلال أول ٢٤ ساعة، لكل ساعة وكمجموع تراكمي",
+        "hour": "{{number}} س",
+        "perHour": "بلاغات في الساعة",
+        "running": "المجموع التراكمي"
+      },
+      "classes": {
+        "title": "الضرر حسب فئة المباني",
+        "subtitle": "درجة الضرر المقدّرة لكل فئة هشاشة (A الأكثر هشاشة)",
+        "note": "من تقدير الضرر في Bumelerze — تلقائي، دون مراجعة",
+        "noteReviewed": "من تقدير الضرر في Bumelerze",
+        "class": "الفئة",
+        "share": "نسبة المباني حسب درجة الضرر",
+        "dg4": "DG٤+",
+        "a11y": "الفئة {{vc}}: DG١ {{dg1}}، DG٢ {{dg2}}، DG٣ {{dg3}}، DG٤ {{dg4}}، DG٥ {{dg5}}",
+        "grade": "DG{{number}}"
       }
     }
   },
@@ -3037,7 +3083,9 @@
     "accountsOnly": "أصحاب الحسابات فقط يمكنهم التعليق على المنشورات.",
     "held": "شكرًا. تعليقك بانتظار المراجعة.",
     "pending": "بانتظار المراجعة. أنت وحدك ترى هذا التعليق حتى يقبله أحد المشرفين.",
-    "loadError": "تعذّر تحميل التعليقات."
+    "loadError": "تعذّر تحميل التعليقات.",
+    "viewAll": "عرض كل التعليقات ({{number}})",
+    "viewOne": "عرض تعليق واحد"
   },
   "mentions": {
     "openProfile": "فتح ملف @{{username}}",
@@ -3067,7 +3115,18 @@
       "done": "ملفك جاهز.",
       "error": "تعذّر تجهيز الملف. حاول مرة أخرى.",
       "fileTitle": "بياناتي في Bumelerze"
-    }
+    },
+    "stats": {
+      "posts": "منشورات",
+      "followers": "المتابِعون",
+      "following": "المتابَعون"
+    },
+    "qr": "عرض رمز QR لملفي",
+    "myHome": {
+      "value": "VC {{vc}} · {{name}}",
+      "count": "{{number}} منازل"
+    },
+    "peopleNew": "{{number}} جديدة"
   },
   "snackbar": {
     "undo": "تراجع",
@@ -3426,6 +3485,45 @@
       "remove": "إزالة",
       "removeA11y": "إزالة {{device}}",
       "removeFailed": "تعذّرت الإزالة. تحقق من اتصالك وحاول مرة أخرى."
+    }
+  },
+  "social": {
+    "heart": {
+      "label": "الإعجابات: {{number}}",
+      "likeHint": "يضيف قلبًا",
+      "unlikeHint": "يسحب قلبك"
+    },
+    "comments": {
+      "label": "التعليقات: {{number}}"
+    },
+    "share": "مشاركة",
+    "more": "خيارات أخرى لتعليق {{name}}",
+    "moreOptions": "خيارات أخرى",
+    "profileMore": "خيارات أخرى لـ {{name}}",
+    "menu": {
+      "pinDetail": "يظهره أولًا للجميع.",
+      "officialOnly": "للحساب الرسمي فقط",
+      "moderatorsOnly": "للمشرفين فقط",
+      "mute": "كتم {{name}}",
+      "muteDetail": "يخفي تعليقاته ومنشوراته عنك. لا يُبلَّغ بذلك.",
+      "reportDetail": "رسائل مزعجة أو مسيئة أو معلومات خاطئة أو خاصة",
+      "reportProfileDetail": "أخبر فريق Bumelerze بما هو خاطئ في هذا الملف.",
+      "blockDetail": "تُخفى تعليقاته عنك ويتوقف كلٌّ منكما عن متابعة الآخر.",
+      "deleteDetail": "يمكنك استعادته خلال ٢٤ ساعة.",
+      "deleteOnMyPost": "يزيله من منشورك. يمكنك التراجع فورًا."
+    },
+    "pendingOwn": "بانتظار المراجعة · أنت وحدك تراه",
+    "replies": {
+      "view": "عرض الردود ({{number}})",
+      "viewOne": "عرض ردّ واحد",
+      "hide": "إخفاء الردود"
+    },
+    "replyingTo": "ردًّا على {{name}}",
+    "cancelReply": "إلغاء الرد",
+    "followedBy": {
+      "one": "يتابعه {{a}}",
+      "two": "يتابعه {{a}} و{{b}}",
+      "more": "يتابعه {{a}} و{{b}} و{{number}} آخرون"
     }
   }
 }

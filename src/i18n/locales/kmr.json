@@ -621,7 +621,8 @@
     "footerData": "Daneyên erdhejê: USGS, EMSC û GEOFON.",
     "footerTrademark": "Bumelerze™ û logoya wê nîşanên bazirganî yên projeyê ne.",
     "footerVersion": "Guherto {{version}}",
-    "footerLogoA11yLabel": "Bumelerze"
+    "footerLogoA11yLabel": "Bumelerze",
+    "accountSectionTitle": "Hesab"
   },
   "onboarding": {
     "back": "Vegere",
@@ -927,7 +928,7 @@
     "loadError": "Nehat barkirin. Girêdana xwe kontrol bike.",
     "composer": {
       "label": "Şîrove",
-      "placeholder": "Binivîse te çi hîs kir",
+      "placeholder": "Şîroveyekê lê zêde bike…",
       "replyPlaceholder": "Bersivekê binivîse",
       "post": "Bişîne",
       "posting": "Tê şandin…",
@@ -1033,6 +1034,51 @@
         "moderator": "Tîma Bumelerze ev kes hilbijart û nîşan da.",
         "partner": "Tîma Bumelerze hevkarî pejirand û nîşan da.",
         "credential": "Tîma Bumelerze berî dayîna nîşanê paşxaneya vî kesî kontrol kir."
+      }
+    },
+    "officialName": "Bumelerze",
+    "post": {
+      "near": "nêzîkî {{city}}",
+      "when": "{{time}} saeta herêmî",
+      "depth": "Kûrahî {{depth}}",
+      "openEvent": "Rûpela erdhejê veke",
+      "felt": "{{number}} kesan hîs kir",
+      "feltHint": "«Serpêhatiya xwe parve bike» vedike",
+      "comments": "Şîrove"
+    },
+    "slides": {
+      "position": "{{title}}, slayta {{number}} ji {{total}}",
+      "goTo": "Slayta {{number}}: {{title}}",
+      "share": "Wêneya parvekirinê",
+      "towns": {
+        "title": "Lerizîna hîskirî li gorî bajarokan",
+        "subtitle": "Asta asayî ji raporên hîskirinê · rapor ji bo her bajarokî",
+        "note": "Bajarokên bi kêmanî 3 raporan astekê nîşan didin.",
+        "a11y": "{{town}}: asta {{level}}, {{label}}, {{number}} rapor",
+        "a11yCountOnly": "{{town}}: {{number}} rapor, ji bo astekê kêm in"
+      },
+      "timeline": {
+        "title": "Rapor li gorî demê",
+        "subtitle": "Raporên hîskirinê di saetekê de, 24 saetên pêşîn",
+        "reports": "rapor",
+        "minutes": "{{number}} deq",
+        "toFirst": "heta rapora pêşîn",
+        "firstHour": "di saeta pêşîn de",
+        "chartA11y": "Grafîk: {{number}} raporên hîskirinê di 24 saetên pêşîn de, ji bo her saetê û wek berhevok",
+        "hour": "{{number}} s",
+        "perHour": "Rapor di saetekê de",
+        "running": "Berhevok"
+      },
+      "classes": {
+        "title": "Zirar li gorî pola avahiyan",
+        "subtitle": "Pileya zirarê ya texmînkirî ji bo her pola lawaziyê (A ya herî lawaz)",
+        "note": "Ji texmîna zirarê ya Bumelerze — otomatîk, nehatiye kontrolkirin",
+        "noteReviewed": "Ji texmîna zirarê ya Bumelerze",
+        "class": "Pol",
+        "share": "Para avahiyan li gorî pileya zirarê",
+        "dg4": "DG4+",
+        "a11y": "Pola {{vc}}: DG1 {{dg1}}, DG2 {{dg2}}, DG3 {{dg3}}, DG4 {{dg4}}, DG5 {{dg5}}",
+        "grade": "DG{{number}}"
       }
     }
   },
@@ -3037,7 +3083,9 @@
     "accountsOnly": "Tenê xwedî hesab dikarin li ser nivîsan şîrove binivîsin.",
     "held": "Spas. Şîroveya te li benda nirxandinê ye.",
     "pending": "Li benda nirxandinê ye. Heta moderatorek wê bipejirîne, tenê tu vê şîroveyê dibînî.",
-    "loadError": "Şîrove nehatin barkirin."
+    "loadError": "Şîrove nehatin barkirin.",
+    "viewAll": "Hemû {{number}} şîroveyan bibîne",
+    "viewOne": "1 şîroveyê bibîne"
   },
   "mentions": {
     "openProfile": "Profîla @{{username}} veke",
@@ -3067,7 +3115,18 @@
       "done": "Pelê te amade ye.",
       "error": "Pel nehate amadekirin. Dîsa biceribîne.",
       "fileTitle": "Daneyên min ên Bumelerze"
-    }
+    },
+    "stats": {
+      "posts": "nivîs",
+      "followers": "şopîner",
+      "following": "dişopîne"
+    },
+    "qr": "Koda QR ya profîla min nîşan bide",
+    "myHome": {
+      "value": "VC {{vc}} · {{name}}",
+      "count": "{{number}} mal"
+    },
+    "peopleNew": "{{number}} nû"
   },
   "snackbar": {
     "undo": "Vegerîne",
@@ -3426,6 +3485,45 @@
       "remove": "Rake",
       "removeA11y": "{{device}} rake",
       "removeFailed": "Nehat rakirin. Girêdana xwe kontrol bike û dîsa biceribîne."
+    }
+  },
+  "social": {
+    "heart": {
+      "label": "Dil: {{number}}",
+      "likeHint": "Dilekî dide",
+      "unlikeHint": "Dilê te paşde distîne"
+    },
+    "comments": {
+      "label": "Şîrove: {{number}}"
+    },
+    "share": "Parve bike",
+    "more": "Vebijarkên din ji bo şîroveya {{name}}",
+    "moreOptions": "Vebijarkên din",
+    "profileMore": "Vebijarkên din ji bo {{name}}",
+    "menu": {
+      "pinDetail": "Ji bo her kesî pêşî nîşan dide.",
+      "officialOnly": "Tenê fermî",
+      "moderatorsOnly": "Tenê moderator",
+      "mute": "{{name}} bêdeng bike",
+      "muteDetail": "Şîrove û nivîsên wî/wê ji te re vedişêre. Jê re nayê gotin.",
+      "reportDetail": "Spam, heqaret, agahiyên şaş an taybet",
+      "reportProfileDetail": "Ji tîma Bumelerze re bibêje ka çi bi vê profîlê re şaş e.",
+      "blockDetail": "Şîroveyên wan ji te tên veşartin û hûn êdî hev naşopînin.",
+      "deleteDetail": "Tu dikarî di nav 24 saetan de vegerînî.",
+      "deleteOnMyPost": "Ji nivîsa te radike. Tu dikarî yekser vegerînî."
+    },
+    "pendingOwn": "Li benda nirxandinê · tenê tu dibînî",
+    "replies": {
+      "view": "{{number}} bersivan bibîne",
+      "viewOne": "1 bersivê bibîne",
+      "hide": "Bersivan veşêre"
+    },
+    "replyingTo": "Bersiv ji {{name}} re",
+    "cancelReply": "Bersivê betal bike",
+    "followedBy": {
+      "one": "{{a}} dişopîne",
+      "two": "{{a}} û {{b}} dişopînin",
+      "more": "{{a}}, {{b}} û {{number}} kesên din dişopînin"
     }
   }
 }

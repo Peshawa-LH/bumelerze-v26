@@ -621,7 +621,8 @@
     "footerData": "Earthquake data: USGS, EMSC and GEOFON.",
     "footerTrademark": "Bumelerze™ and its logo are trademarks of the project.",
     "footerVersion": "Version {{version}}",
-    "footerLogoA11yLabel": "Bumelerze"
+    "footerLogoA11yLabel": "Bumelerze",
+    "accountSectionTitle": "Account"
   },
   "onboarding": {
     "back": "Back",
@@ -927,7 +928,7 @@
     "loadError": "Couldn't load. Check your connection.",
     "composer": {
       "label": "Comment",
-      "placeholder": "Share what you felt",
+      "placeholder": "Add a comment…",
       "replyPlaceholder": "Write a reply",
       "post": "Post",
       "posting": "Posting…",
@@ -1033,6 +1034,51 @@
         "moderator": "The Bumelerze team chose this person and gave the mark.",
         "partner": "The Bumelerze team agreed the partnership and gave the mark.",
         "credential": "The Bumelerze team checked this person's background before giving the mark."
+      }
+    },
+    "officialName": "Bumelerze",
+    "post": {
+      "near": "near {{city}}",
+      "when": "{{time}} local time",
+      "depth": "Depth {{depth}}",
+      "openEvent": "Open the earthquake page",
+      "felt": "{{number}} felt it",
+      "feltHint": "Opens Share your experience",
+      "comments": "Comments"
+    },
+    "slides": {
+      "position": "{{title}}, slide {{number}} of {{total}}",
+      "goTo": "Slide {{number}}: {{title}}",
+      "share": "Share image",
+      "towns": {
+        "title": "Felt shaking by town",
+        "subtitle": "Typical level from felt reports · reports per town",
+        "note": "Towns with at least 3 reports show a level.",
+        "a11y": "{{town}}: level {{level}}, {{label}}, {{number}} reports",
+        "a11yCountOnly": "{{town}}: {{number}} reports, too few for a level"
+      },
+      "timeline": {
+        "title": "Reports over time",
+        "subtitle": "Felt reports per hour, first 24 hours",
+        "reports": "reports",
+        "minutes": "{{number}} min",
+        "toFirst": "to the first report",
+        "firstHour": "in the first hour",
+        "chartA11y": "Chart: {{number}} felt reports over the first 24 hours, per hour and as a running total",
+        "hour": "{{number}} h",
+        "perHour": "Reports per hour",
+        "running": "Running total"
+      },
+      "classes": {
+        "title": "Damage by building class",
+        "subtitle": "Estimated damage grade per vulnerability class (A most vulnerable)",
+        "note": "From the Bumelerze damage estimate — automatic, not reviewed",
+        "noteReviewed": "From the Bumelerze damage estimate",
+        "class": "Class",
+        "share": "Share of buildings by damage grade",
+        "dg4": "DG4+",
+        "a11y": "Class {{vc}}: DG1 {{dg1}}, DG2 {{dg2}}, DG3 {{dg3}}, DG4 {{dg4}}, DG5 {{dg5}}",
+        "grade": "DG{{number}}"
       }
     }
   },
@@ -3037,7 +3083,9 @@
     "accountsOnly": "Only accounts can comment on posts.",
     "held": "Thanks. Your comment is waiting for review.",
     "pending": "Waiting for review. Only you can see this comment until a moderator approves it.",
-    "loadError": "Couldn't load the comments."
+    "loadError": "Couldn't load the comments.",
+    "viewAll": "View all {{number}} comments",
+    "viewOne": "View 1 comment"
   },
   "mentions": {
     "openProfile": "Open the profile of @{{username}}",
@@ -3067,7 +3115,18 @@
       "done": "Your file is ready.",
       "error": "Couldn't prepare the file. Try again.",
       "fileTitle": "My Bumelerze data"
-    }
+    },
+    "stats": {
+      "posts": "posts",
+      "followers": "followers",
+      "following": "following"
+    },
+    "qr": "Show my profile's QR code",
+    "myHome": {
+      "value": "VC {{vc}} · {{name}}",
+      "count": "{{number}} homes"
+    },
+    "peopleNew": "{{number}} new"
   },
   "snackbar": {
     "undo": "Undo",
@@ -3426,6 +3485,45 @@
       "remove": "Remove",
       "removeA11y": "Remove {{device}}",
       "removeFailed": "Could not remove it. Check your connection and try again."
+    }
+  },
+  "social": {
+    "heart": {
+      "label": "Likes: {{number}}",
+      "likeHint": "Gives a heart",
+      "unlikeHint": "Takes your heart back"
+    },
+    "comments": {
+      "label": "Comments: {{number}}"
+    },
+    "share": "Share",
+    "more": "More options for {{name}}'s comment",
+    "moreOptions": "More options",
+    "profileMore": "More options for {{name}}",
+    "menu": {
+      "pinDetail": "Shows it first, for everyone.",
+      "officialOnly": "Official only",
+      "moderatorsOnly": "Moderators only",
+      "mute": "Mute {{name}}",
+      "muteDetail": "Hide their comments and posts for you. They are not told.",
+      "reportDetail": "Spam, abusive, false or private information",
+      "reportProfileDetail": "Tell the Bumelerze team what is wrong with this profile.",
+      "blockDetail": "Their comments are hidden from you and you stop following each other.",
+      "deleteDetail": "You can bring it back within 24 hours.",
+      "deleteOnMyPost": "Removes it from your post. You can undo it right away."
+    },
+    "pendingOwn": "Waiting for review · only you see this",
+    "replies": {
+      "view": "View {{number}} replies",
+      "viewOne": "View 1 reply",
+      "hide": "Hide replies"
+    },
+    "replyingTo": "Replying to {{name}}",
+    "cancelReply": "Cancel the reply",
+    "followedBy": {
+      "one": "Followed by {{a}}",
+      "two": "Followed by {{a}} and {{b}}",
+      "more": "Followed by {{a}}, {{b}} and {{number}} more"
     }
   }
 }
