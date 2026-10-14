@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   Modal,
@@ -15,16 +15,12 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useEventSourceAgencies, type Event } from "@/features/events";
+import type { Event } from "@/features/events";
 import type { GuidelinesTransport } from "@/features/guidelines";
 import type { PostsTransport } from "@/features/posts/transport";
-import { magnitudeTone } from "@/features/events/magnitude-tone";
-import { useResolvedShakeMap } from "@/features/shakemap/live-queries";
 import { useTheme } from "@/theme";
-import { lightColors } from "@/theme/semantic";
 
-import { buildCardModel, type CardModel } from "./card-layout";
-import { buildCardStrings } from "./card-strings";
+import type { CardModel } from "./card-layout";
 import { buildShareCaption, buildShareUrl, ensureLinkInText } from "./caption";
 import { CardRenderer, type CardRendererHandle } from "./CardRenderer";
 import { deliverImage } from "./image-export";
@@ -32,6 +28,7 @@ import { PostToProfileAction } from "./PostToProfileAction";
 import { ShareActionButton } from "./ShareActionButton";
 import { copyText, shareText } from "./share-text";
 import { SHARE_CARD_SIZES, type ShareCardSize, type ShareImage } from "./types";
+import { useShareCardModel } from "./use-card-model";
 
 /** Web images are prepared right after the sheet opens, once its opening
  * transition is over, so a tap can call the browser's share dialog at once
@@ -104,9 +101,8 @@ export function ShareSheet({
   const centered = Platform.OS === "web" && width >= WIDE_WEB_MIN_WIDTH;
   const isWeb = Platform.OS === "web";
 
-  const shake = useResolvedShakeMap(event, true);
-  const agencies = useEventSourceAgencies([event]).get(event.id)?.agencies;
   const url = buildShareUrl(shareId);
+  const buildModel = useShareCardModel(event, shareId);
 
   const [caption, setCaption] = useState(() =>
     buildShareCaption({ event, shareId, locale, t }),
@@ -119,47 +115,6 @@ export function ShareSheet({
     done: false,
   });
   const rendererRef = useRef<CardRendererHandle | null>(null);
-
-  const contours = shake.contours;
-  const reviewStatus = shake.product?.reviewStatus ?? null;
-  const epicenter = contours?.epicenter ?? { lat: event.lat, lon: event.lon };
-  const epicenterLat = epicenter.lat;
-  const epicenterLon = epicenter.lon;
-  const agencyKey = (agencies ?? []).join(",");
-
-  // The card is rebuilt only when something it shows changes.
-  const buildModel = useCallback(
-    (size: ShareCardSize): CardModel =>
-      buildCardModel({
-        size,
-        locale,
-        strings: buildCardStrings({
-          event,
-          locale,
-          t,
-          agencies: agencyKey === "" ? undefined : agencyKey.split(","),
-          reviewStatus: contours ? reviewStatus : null,
-        }),
-        magnitudeValue: event.magnitude.value,
-        epicenter: { lat: epicenterLat, lon: epicenterLon },
-        contours,
-        url,
-        colors: lightColors,
-        magnitudeBandColor:
-          lightColors.magnitudeBand[magnitudeTone(event.magnitude.value)],
-      }),
-    [
-      event,
-      locale,
-      t,
-      agencyKey,
-      contours,
-      reviewStatus,
-      epicenterLat,
-      epicenterLon,
-      url,
-    ],
-  );
 
   // Images belong to the card they were made from: when the data behind the
   // card changes (the shakemap can arrive after the sheet opens) they are
