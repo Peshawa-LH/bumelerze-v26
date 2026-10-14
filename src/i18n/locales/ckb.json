@@ -622,7 +622,7 @@
     "footerPrivacyLink": "سیاسەتی تایبەتمەندی",
     "footerData": "زانیاریی بوومەلەرزە: USGS، EMSC و GEOFON.",
     "footerTrademark": "بوومەلەرزە™ و لۆگۆکەی مارکی بازرگانی پڕۆژەکەن.",
-    "footerVersion": "وەشانی {{version}}",
+    "footerVersion": "وەشانی {{version, digits}}",
     "footerLogoA11yLabel": "بوومەلەرزە",
     "accountSectionTitle": "هەژمار"
   },
@@ -1770,19 +1770,19 @@
       "silent": "داتا نییە",
       "unknown": "پشکنین…"
     },
-    "lastSample": "دوایین نموونە {{minutes}} خولەک لەمەوبەر · هەر ٣٠ چرکە نوێ دەبێتەوە",
+    "lastSample": "دوایین نموونە {{minutes, digits}} خولەک لەمەوبەر · هەر ٣٠ چرکە نوێ دەبێتەوە",
     "noData": "لە ١٠ خولەکی ڕابردوودا هیچ داتایەک لەم وێستگەیەوە نەهاتووە.",
     "loading": "دە خولەکی کۆتایی بار دەکرێت…",
     "error": "ئێستا ناتوانرێت ئەم وێستگەیە بار بکرێت.",
-    "distanceFromReference": "{{km}} کم لە هەولێرەوە",
+    "distanceFromReference": "{{km, digits}} کم لە هەولێرەوە",
     "credit": "داتا: {{credit}}",
-    "channel": "{{channel}} · {{sps}} نموونە/چرکە",
+    "channel": "{{channel}} · {{sps, digits}} نموونە/چرکە",
     "mapA11yLabel": "نەخشەی وێستگەکانی بوومەلەرزە لە دەوروبەری کوردستان",
     "chartA11yLabel": "دە خولەکی کۆتایی جوڵەی زەوی لە {{name}}",
-    "listTitle": "{{count}} وێستگە",
+    "listTitle": "{{count, digits}} وێستگە",
     "webOnlyMap": "نەخشەی وێستگەکان ئێستا پێویستی بە وێب ئەپەکەیە؛ لیستەکەی خوارەوە لە هەموو شوێنێک کار دەکات.",
-    "lastSampleSeconds": "دوایین نموونە {{seconds}} چرکە لەمەوبەر · هەر ٣٠ چرکە نوێ دەبێتەوە",
-    "streaming": "پەخشی زیندوو · دوایین نموونە {{seconds}} چرکە لەمەوبەر"
+    "lastSampleSeconds": "دوایین نموونە {{seconds, digits}} چرکە لەمەوبەر · هەر ٣٠ چرکە نوێ دەبێتەوە",
+    "streaming": "پەخشی زیندوو · دوایین نموونە {{seconds, digits}} چرکە لەمەوبەر"
   },
   "account": {
     "signIn": {
