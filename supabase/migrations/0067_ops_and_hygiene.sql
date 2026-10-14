@@ -312,3 +312,70 @@ revoke delete, truncate, references, trigger on
 -- default and RLS still decides the rows.
 alter default privileges in schema public
   revoke insert, update, delete, truncate, references, trigger on tables from anon, authenticated;
+
+-- 8. Tier-2 answers through an owner-checked RPC (D-13) ------------------------------------------
+-- felt_report_details_insert is with check (true): anyone holding a report id
+-- can attach answers to it. submit_felt_report_details checks ownership the
+-- way withdraw does (owns_felt_report: the account, or the report id with
+-- its device id) and writes the row; a second call for the same report
+-- replaces the answers (tier 2 supersedes, 0003). p_details carries the
+-- felt_report_details column names as keys (the shape the app inserts
+-- today) plus raw_answers; without raw_answers the whole object is kept as
+-- the verbatim submission. The open insert policy stays for the current app
+-- and goes in a later migration once the client calls this.
+-- Tokens: not_found, invalid (both 22023); the table's checks answer 23514.
+create or replace function public.submit_felt_report_details(p_report_id uuid, p_device_id text, p_details jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_detail_id uuid;
+begin
+  if p_report_id is null or not public.owns_felt_report(p_report_id, p_device_id) then
+    raise exception 'submit_felt_report_details: not_found' using errcode = '22023';
+  end if;
+  if p_details is null or jsonb_typeof(p_details) <> 'object' then
+    raise exception 'submit_felt_report_details: invalid' using errcode = '22023';
+  end if;
+  insert into public.felt_report_details (
+    detail_id, felt_report_id, situation, felt_answer, others_felt_answer, motion_answer,
+    reaction_answer, stand_answer, shelf_answer, picture_answer, furniture_answer,
+    building_damage_level, damage_typology, road_damage_level, raw_answers)
+  values (
+    coalesce(nullif(p_details ->> 'detail_id', '')::uuid, gen_random_uuid()),
+    p_report_id,
+    nullif(p_details ->> 'situation', ''),
+    nullif(p_details ->> 'felt_answer', ''),
+    nullif(p_details ->> 'others_felt_answer', ''),
+    nullif(p_details ->> 'motion_answer', ''),
+    nullif(p_details ->> 'reaction_answer', ''),
+    nullif(p_details ->> 'stand_answer', ''),
+    nullif(p_details ->> 'shelf_answer', ''),
+    nullif(p_details ->> 'picture_answer', ''),
+    nullif(p_details ->> 'furniture_answer', ''),
+    nullif(p_details ->> 'building_damage_level', '')::smallint,
+    nullif(p_details ->> 'damage_typology', ''),
+    nullif(p_details ->> 'road_damage_level', '')::smallint,
+    coalesce(p_details -> 'raw_answers', p_details))
+  on conflict (felt_report_id) do update
+     set situation = excluded.situation,
+         felt_answer = excluded.felt_answer,
+         others_felt_answer = excluded.others_felt_answer,
+         motion_answer = excluded.motion_answer,
+         reaction_answer = excluded.reaction_answer,
+         stand_answer = excluded.stand_answer,
+         shelf_answer = excluded.shelf_answer,
+         picture_answer = excluded.picture_answer,
+         furniture_answer = excluded.furniture_answer,
+         building_damage_level = excluded.building_damage_level,
+         damage_typology = excluded.damage_typology,
+         road_damage_level = excluded.road_damage_level,
+         raw_answers = excluded.raw_answers
+  returning detail_id into v_detail_id;
+  return jsonb_build_object('report_id', p_report_id, 'detail_id', v_detail_id);
+end
+$$;
+revoke all on function public.submit_felt_report_details(uuid, text, jsonb) from public;
+grant execute on function public.submit_felt_report_details(uuid, text, jsonb) to anon, authenticated;
