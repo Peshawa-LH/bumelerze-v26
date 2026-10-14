@@ -12,7 +12,7 @@ describe("building pictograms", () => {
     expect(Object.keys(PICTOGRAM_XML).sort()).toEqual(
       files.map((file) => file.replace(/\.svg$/, "")).sort(),
     );
-    expect(files).toHaveLength(24);
+    expect(files).toHaveLength(26);
   });
 
   it("is in sync with the SVG files (run `npm run generate:building-pictograms` after editing one)", () => {

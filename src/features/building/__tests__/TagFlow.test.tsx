@@ -651,14 +651,14 @@ describe("Tag my building flow", () => {
         expect(screen.getByLabelText(label)).toBeTruthy();
       }
       expect(screen.getAllByRole("radio").length).toBeGreaterThanOrEqual(11);
-      // The two drawings still to come show a neutral frame, not nothing.
+      // Every structure option now has its own drawing: no empty frames.
       const hidden = { includeHiddenElements: true };
       expect(
-        screen.getByTestId("option-structure-walls-placeholder", hidden),
-      ).toBeTruthy();
+        screen.queryByTestId("option-structure-walls-placeholder", hidden),
+      ).toBeNull();
       expect(
-        screen.getByTestId("option-structure-flatslab-placeholder", hidden),
-      ).toBeTruthy();
+        screen.queryByTestId("option-structure-flatslab-placeholder", hidden),
+      ).toBeNull();
     });
 
     it("the new confined option goes straight on, without the belts or roof questions", async () => {

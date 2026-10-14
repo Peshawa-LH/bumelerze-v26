@@ -164,9 +164,9 @@ describe("N8: what holds the building up", () => {
     expect(Object.keys(question("structure").pictograms ?? {}).sort()).toEqual(
       [...ids].sort(),
     );
-    // Walls and flat slab wait for their drawings; confined reuses the corner column.
-    expect(question("structure").pictograms?.walls).toBeNull();
-    expect(question("structure").pictograms?.flatslab).toBeNull();
+    // Walls and flat slab have their own drawings; confined reuses the corner column.
+    expect(question("structure").pictograms?.walls).toBe("structure-shear-walls");
+    expect(question("structure").pictograms?.flatslab).toBe("structure-flat-slab");
     expect(question("structure").pictograms?.confined).toBe("structure-corner-column");
     expect(question("structure").notes).toEqual(["flatslab"]);
   });
