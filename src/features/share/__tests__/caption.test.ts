@@ -8,7 +8,7 @@ import {
   isolateUrlForLocale,
 } from "../caption";
 
-const URL = "https://bumelerze.com/e/bml202602ia";
+const URL = "https://app.bumelerze.com/e/bml202602ia";
 const LRI = "⁦";
 const PDI = "⁩";
 
@@ -23,12 +23,12 @@ async function captionIn(locale: string, shareId = "bml202602ia"): Promise<strin
 }
 
 describe("buildShareUrl", () => {
-  it("points at the web app's event route with the id", () => {
+  it("points at the app's own short event link with the id (D-1: the app host, not the website)", () => {
     expect(buildShareUrl("bml202602ia")).toBe(URL);
   });
 
   it("encodes an id that is not url-safe (a provider id is shared as-is)", () => {
-    expect(buildShareUrl("a b/c")).toBe("https://bumelerze.com/e/a%20b%2Fc");
+    expect(buildShareUrl("a b/c")).toBe("https://app.bumelerze.com/e/a%20b%2Fc");
   });
 });
 
@@ -75,7 +75,7 @@ describe("buildShareCaption", () => {
 
   it("uses the provider id in the link when no Bumelerze id is known yet", async () => {
     const caption = await captionIn("en", "gfz2026tksc");
-    expect(caption).toContain("https://bumelerze.com/e/gfz2026tksc");
+    expect(caption).toContain("https://app.bumelerze.com/e/gfz2026tksc");
   });
 
   it("stays one short line", async () => {

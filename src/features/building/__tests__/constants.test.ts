@@ -42,7 +42,9 @@ describe("codes and keys", () => {
 describe("join link (N6)", () => {
   it("builds the link from the code and key and nothing else", () => {
     const link = buildJoinLink("BMH-7K3Q9P", "ABCD2345");
-    expect(link).toBe("https://bumelerze.com/join?code=BMH-7K3Q9P&key=ABCD2345");
+    // The app's own route on the app host (D-1); the old bumelerze.com/join
+    // links below still parse.
+    expect(link).toBe("https://app.bumelerze.com/home/join?code=BMH-7K3Q9P&key=ABCD2345");
     expect(new URL(link).searchParams.size).toBe(2);
     expect(link).not.toMatch(/lat|lon|location/i);
   });

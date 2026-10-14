@@ -8,16 +8,16 @@ import type { ShareCardSize } from "./types";
  */
 
 /**
- * A shared event link: the short `bumelerze.com/e/<id>` form, which the
- * website forwards to the web app's event route (that route resolves a `bml`
- * id, and a provider id by redirecting to the `bml` one). Short links never
- * change when the app's own address does (src/config/urls.ts). Rich link
- * previews are still deferred.
+ * A shared event link: the short `app.bumelerze.com/e/<id>` form, which the
+ * app's own `e/[id]` route sends straight on to `/event/<id>` (that route
+ * resolves a `bml` id, and a provider id by redirecting to the `bml` one).
+ * On the app host since 2026-10-14 (D-1): the page carries the app's Open
+ * Graph tags, so messengers unfurl a shared link (src/config/urls.ts).
  */
 export const SHARE_EVENT_URL_BASE = SHORT_EVENT_URL_BASE;
 
-/** A shared profile link: `bumelerze.com/u/<username>`, forwarded to the web
- * app's public profile route (`/u/<username>`). */
+/** A shared profile link: `app.bumelerze.com/u/<username>`, the web app's
+ * public profile route itself. */
 export const SHARE_PROFILE_URL_BASE = SHORT_PROFILE_URL_BASE;
 
 /** The site name printed in the card footer. A domain, not a translated word. */

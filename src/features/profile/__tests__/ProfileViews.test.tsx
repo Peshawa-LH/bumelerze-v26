@@ -328,13 +328,13 @@ describe("Profile page (D79)", () => {
       });
       expect(screen.getByTestId("profile-share-sheet-qr")).toBeTruthy();
       expect(screen.getByTestId("profile-share-sheet-url").props.children).toBe(
-        "https://bumelerze.com/u/shilan",
+        "https://app.bumelerze.com/u/shilan",
       );
       expect(mockShare).not.toHaveBeenCalled();
       await act(async () => {
         fireEvent.press(screen.getByTestId("profile-share-sheet-share"));
       });
-      expect(mockShare).toHaveBeenCalledWith("https://bumelerze.com/u/shilan", "Shilan");
+      expect(mockShare).toHaveBeenCalledWith("https://app.bumelerze.com/u/shilan", "Shilan");
     });
 
     it("says 'Link copied' where the share sheet falls back to the clipboard", async () => {

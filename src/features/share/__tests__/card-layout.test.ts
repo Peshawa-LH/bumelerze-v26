@@ -47,7 +47,7 @@ async function input(
     magnitudeValue: event.magnitude.value,
     epicenter: withMap ? EPICENTER : { lat: event.lat, lon: event.lon },
     contours: withMap ? URMIA_CONTOURS : null,
-    url: "https://bumelerze.com/e/bml202602ia",
+    url: "https://app.bumelerze.com/e/bml202602ia",
     colors: lightColors,
     magnitudeBandColor: lightColors.magnitudeBand[magnitudeTone(event.magnitude.value)],
     ...overrides,

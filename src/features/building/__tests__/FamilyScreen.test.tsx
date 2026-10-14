@@ -15,7 +15,7 @@ import {
   resetMockTransport,
 } from "../__fixtures__/testing";
 
-const LINK = "https://bumelerze.com/join?code=BMH-7K3Q9P&key=ABCD2345";
+const LINK = "https://app.bumelerze.com/home/join?code=BMH-7K3Q9P&key=ABCD2345";
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
@@ -156,7 +156,7 @@ describe("Family screen", () => {
       await press("family-new-key");
       await screen.findByText(/NEWKEY99/);
       expect(screen.getByTestId("qr-code").props.value).toBe(
-        "https://bumelerze.com/join?code=BMH-7K3Q9P&key=NEWKEY99",
+        "https://app.bumelerze.com/home/join?code=BMH-7K3Q9P&key=NEWKEY99",
       );
     });
 

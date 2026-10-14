@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>%WEB_TITLE%</title>
+    <!--
+      The page around the web app for the hosted (single-page) build: Expo
+      uses this file instead of its own template when it exists; app/+html.tsx
+      is the same page for a static export. Keep the two in step (the
+      html-shell test checks). Link-preview tags (D-1): a shared
+      app.bumelerze.com link unfurls to the app's name, one sentence and the
+      brand picture. Deliberately no browser-bar colour tag (the manifest
+      decision: Safari would paint its bars with it). scripts/build-app-web.sh
+      stamps the build id right after the opening head tag above, which must
+      therefore stay on its own line and must not be repeated anywhere.
+    -->
+    <meta name="description" content="Earthquakes in Kurdistan and Iraq — share your experience, see shaking maps, stay ready." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bumelerze" />
+    <meta property="og:title" content="Bumelerze" />
+    <meta property="og:description" content="Earthquakes in Kurdistan and Iraq — share your experience, see shaking maps, stay ready." />
+    <meta property="og:url" content="https://app.bumelerze.com/" />
+    <meta property="og:image" content="https://bumelerze.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bumelerze" />
+    <meta name="twitter:description" content="Earthquakes in Kurdistan and Iraq — share your experience, see shaking maps, stay ready." />
+    <meta name="twitter:image" content="https://bumelerze.com/og-image.jpg" />
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  </body>
+</html>

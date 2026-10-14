@@ -361,18 +361,17 @@ describe("forwards from bumelerze.com to app.bumelerze.com", () => {
     expect(appRedirect(pathname, "?q=1", "#h")).toBeNull();
   });
 
-  it("the links the app shares land on the right app pages", () => {
-    const via = (link: string) => {
-      const u = new URL(link);
-      expect(u.origin).toBe("https://bumelerze.com");
-      return appRedirect(u.pathname, u.search, u.hash);
-    };
+  it("the links the app shares point straight at the app (D-1); the site keeps forwarding the old ones", () => {
     expect(APP_ORIGIN).toBe(APP);
-    expect(via(`${SHARE_EVENT_URL_BASE}/bml20170001`)).toBe(`${APP}/event/bml20170001`);
-    expect(via(`${SHARE_PROFILE_URL_BASE}/dilan.k`)).toBe(`${APP}/u/dilan.k`);
-    expect(via(buildJoinLink("BMH-7K3Q9P", "ABCD2345"))).toBe(
+    // The event link uses the app's own short alias route (app/e/[id].tsx).
+    expect(`${SHARE_EVENT_URL_BASE}/bml20170001`).toBe(`${APP}/e/bml20170001`);
+    expect(`${SHARE_PROFILE_URL_BASE}/dilan.k`).toBe(`${APP}/u/dilan.k`);
+    expect(buildJoinLink("BMH-7K3Q9P", "ABCD2345")).toBe(
       `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`,
     );
+    // Links shared before 2026-10-14 still work through the website.
+    expect(appRedirect("/e/bml20170001", "", "")).toBe(`${APP}/event/bml20170001`);
+    expect(appRedirect("/u/dilan.k", "", "")).toBe(`${APP}/u/dilan.k`);
   });
 
   it("bumelerze.com/app forwards every path, query and hash to the same place on the app", () => {

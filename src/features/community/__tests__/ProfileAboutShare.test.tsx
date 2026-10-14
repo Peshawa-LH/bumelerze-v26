@@ -191,12 +191,12 @@ describe("Share profile: QR sheet", () => {
       i18n.t("community.profile.qrLabel", { name: "Dilan" }),
     );
     const url = screen.getByTestId("profile-share-sheet-url");
-    expect(url.props.children).toBe("https://bumelerze.com/u/dilan.k");
+    expect(url.props.children).toBe("https://app.bumelerze.com/u/dilan.k");
     expect(url.props.style.writingDirection).toBe("ltr");
     await act(async () => {
       fireEvent.press(screen.getByTestId("profile-share-sheet-copy"));
     });
-    expect(mockCopy).toHaveBeenCalledWith("https://bumelerze.com/u/dilan.k");
+    expect(mockCopy).toHaveBeenCalledWith("https://app.bumelerze.com/u/dilan.k");
     expect(screen.getByTestId("profile-share-sheet-notice")).toHaveTextContent(
       "Link copied",
     );
@@ -211,7 +211,7 @@ describe("Share profile: QR sheet", () => {
       <ProfileShareSheet username="a b" displayName="A" onClose={jest.fn()} />,
     );
     expect(screen.getByTestId("profile-share-sheet-url").props.children).toBe(
-      "https://bumelerze.com/u/a%20b",
+      "https://app.bumelerze.com/u/a%20b",
     );
   });
 });
