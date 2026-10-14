@@ -176,7 +176,9 @@ describe("Using Bumelerze: section", () => {
     expect(isRTLLocale("ar")).toBe(true);
     await i18n.changeLanguage("ar");
     await renderWithProviders(<UsingAppSection />);
-    expect(screen.getByText("استخدام Bumelerze")).toBeTruthy();
+    // The Latin brand sits in a bidi isolate inside Arabic text (owner:
+    // the brand name does not change; LRI … PDI keep the punctuation right).
+    expect(screen.getByText("استخدام ⁦Bumelerze⁩")).toBeTruthy();
     expect(screen.getByRole("button", { name: "سجّل مبناي" })).toBeTruthy();
   });
 

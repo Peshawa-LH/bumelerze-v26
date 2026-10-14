@@ -108,7 +108,7 @@ export const STRINGS = {
     "summaryTitle": "مزيد من الزلازل في المنطقة",
     "summaryBody": "زلازل أصغر منذ آخر تنبيه لك: {{count}}. أقواها: {{magnitude}}، {{place}}.",
     "testTitle": "تنبيه تجريبي",
-    "testBody": "هذا اختبار من Bumelerze. لم يقع أي زلزال."
+    "testBody": "هذا اختبار من ⁦Bumelerze⁩. لم يقع أي زلزال."
   }
 } as const;
 
