@@ -211,7 +211,7 @@ const COMPONENTS = {
   langLinks(ctx) {
     return LANGS.filter((l) => l.code !== ctx.lang)
       .map((l) => {
-        const href = ctx.root + (l.code === "en" ? "" : `${l.code}/`) + ctx.page.file;
+        const href = ctx.root + pagePath(l.code, ctx.page.file);
         return `<a href="${href}" lang="${l.code}" dir="${l.dir}" hreflang="${l.code}">${l.name}</a>`;
       })
       .join("\n          ");

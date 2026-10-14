@@ -101,7 +101,7 @@ writes/overwrites:
 | `assets/images/notification-icon.png` | 96×96, transparent, pure white: Android status-bar notification icon — release-neutral |
 | `assets/images/splash-icon.png` | 512×512, transparent (ivory mark + gold dot): splash centerpiece, composited on `expo-splash-screen`'s `backgroundColor` (Signal Red light / Approved Navy dark) — release-neutral |
 | `assets/images/favicon.png` | 48×48, opaque: Expo web preview favicon (carries the Beta band when active) |
-| `website/brand/*` | copied from `website/brand-v2/` or `website/brand-beta/` (see `website/README.md`); the header/footer wordmark and site favicon |
+| `website/brand/*` | copied from `assets/brand/website-v2/` or `assets/brand/website-beta/` (see `website/README.md`); the header/footer wordmark and site favicon |
 | `website/favicon.ico` | copied the same way |
 | `store/icon-512.png` | 512×512, opaque: Google Play Console "hi-res" store-listing icon. Apple's App Store Connect marketing icon reuses `assets/images/icon.png` directly (same 1024×1024 opaque spec) — no separate file. |
 
