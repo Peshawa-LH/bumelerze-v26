@@ -4,6 +4,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { DirectionalChevron } from "@/components/DirectionalChevron";
+import { isRTLLocale } from "@/i18n";
 import { a11yState } from "@/lib/a11y-state";
 import { useTheme } from "@/theme";
 
@@ -60,8 +61,12 @@ export function SettingsRow({
   const { i18n } = useTranslation();
   // The row's text follows the app language, not its own first letter: a
   // Latin name such as "USGS" in a Sorani row starts at the right edge like
-  // the Sorani line under it.
-  const direction = { writingDirection: i18n.dir() } as const;
+  // the Sorani line under it. Read from `i18n.language` (review C-3):
+  // `i18n.dir()` follows the resolved language, which is English while a
+  // Sorani or Arabic file is still missing on the web.
+  const direction = {
+    writingDirection: isRTLLocale(i18n.language) ? "rtl" : "ltr",
+  } as const;
   const { focusVisible, onFocus, onBlur } = useFocusVisible();
   const isWeb = Platform.OS === "web";
 

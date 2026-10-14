@@ -12,6 +12,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { isolateNumeric } from "@/features/events/format";
+import { isRTLLocale } from "@/i18n";
 import { a11yState } from "@/lib/a11y-state";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -77,7 +78,10 @@ export function HubCarousel({
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const rtl = i18n.dir() === "rtl";
+  // From the app language, like every other RTL decision: `i18n.dir()`
+  // reads i18next's resolved language, which is English (left-to-right)
+  // while a Sorani or Arabic file is still missing on the web (review C-3).
+  const rtl = isRTLLocale(i18n.language);
   const window = useWindowDimensions();
   const [width, setWidth] = useState(0);
   // The slide in view is remembered by key, so a slide that appears later

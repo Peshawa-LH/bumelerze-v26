@@ -3,6 +3,7 @@ import { StyleSheet, Switch, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { communityErrorText } from "@/features/community/error-text";
+import { isRTLLocale } from "@/i18n";
 import { useTheme } from "@/theme";
 import { useAuthoritySharing, useSetAuthoritySharing } from "../queries";
 import type { AuthorityTransport } from "../transport";
@@ -19,7 +20,9 @@ export function AuthoritySharingRow({ transport }: { transport?: AuthorityTransp
   const { colors, typography, spacing } = useTheme();
   const sharing = useAuthoritySharing(transport);
   const set = useSetAuthoritySharing(transport);
-  const dir = { writingDirection: i18n.dir() } as const;
+  // From the app language, not `i18n.dir()` (review C-3: that follows the
+  // resolved language, English while a Sorani file is missing on the web).
+  const dir = { writingDirection: isRTLLocale(i18n.language) ? "rtl" : "ltr" } as const;
   if (sharing.isError) {
     return null;
   }
