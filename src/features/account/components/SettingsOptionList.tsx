@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { a11yState } from "@/lib/a11y-state";
 import { useTheme } from "@/theme";
 
 export interface SettingsOption<T extends string> {
@@ -37,7 +38,7 @@ export function SettingsOptionList<T extends string>({
             testID={testIDPrefix ? `${testIDPrefix}-${option.value}` : undefined}
             accessibilityRole="radio"
             accessibilityLabel={option.label}
-            accessibilityState={{ selected: isActive, checked: isActive, disabled }}
+            {...a11yState({ selected: isActive, checked: isActive, disabled })}
             disabled={disabled}
             onPress={() => onSelect(option.value)}
             style={[

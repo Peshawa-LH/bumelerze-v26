@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { a11yState } from "@/lib/a11y-state";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { CATALOG_MAG_STEP, CATALOG_YEAR_STEP } from "../config";
@@ -131,7 +132,7 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
         <Pressable
           key={CATALOG_UNION_CHIP}
           accessibilityRole="checkbox"
-          accessibilityState={{ checked: isUnionSelected }}
+          {...a11yState({ checked: isUnionSelected })}
           accessibilityLabel={t(`catalog.sources.${CATALOG_UNION_CHIP}`)}
           onPress={() => onChange({ ...values, sources: [] })}
           style={[
@@ -159,7 +160,7 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
             <Pressable
               key={source}
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: isSelected }}
+              {...a11yState({ checked: isSelected })}
               accessibilityLabel={t(`catalog.sources.${source}`)}
               onPress={() => toggleSource(source)}
               style={[

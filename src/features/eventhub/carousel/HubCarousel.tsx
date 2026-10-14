@@ -12,6 +12,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { isolateNumeric } from "@/features/events/format";
+import { a11yState } from "@/lib/a11y-state";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
@@ -180,18 +181,22 @@ export function HubCarousel({
         ) : null}
       </View>
       {count > 1 ? (
-        <View style={[styles.dots, { gap: spacing[2] }]}>
+        // The dots are tabs over the slides: each one is a 44 dp-high touch
+        // strip (review A-9/B-12: the 6 px dot alone was the target) that
+        // draws the small dot in its middle, and the one in view says so
+        // with `aria-selected` on the web too (review B-4).
+        <View style={styles.dots} accessibilityRole="tablist">
           {slides.map((item, i) => (
             <Pressable
               key={item.key}
-              accessibilityRole="button"
+              accessibilityRole="tab"
               accessibilityLabel={t("eventHub.slides.goTo", {
                 title: item.title,
                 number: position(i + 1),
               })}
-              accessibilityState={{ selected: i === index }}
+              {...a11yState({ selected: i === index })}
               onPress={() => go(i)}
-              hitSlop={{ top: 14, bottom: 14, left: 6, right: 6 }}
+              style={[styles.dotHit, { paddingHorizontal: spacing[1] }]}
               testID={`${testID}-dot-${item.key}`}
             >
               <View
@@ -235,7 +240,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    minHeight: 20,
+    minHeight: 44,
   },
+  dotHit: { minHeight: 44, minWidth: 24, alignItems: "center", justifyContent: "center" },
   dot: { width: 6, height: 6, borderRadius: 3 },
 });

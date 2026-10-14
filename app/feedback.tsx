@@ -23,6 +23,7 @@ import {
   useFeedbackQueueItemState,
 } from "@/features/feedback";
 import { isRequestableRank } from "@/features/badges";
+import { a11yState } from "@/lib/a11y-state";
 import { useTheme } from "@/theme";
 
 const MESSAGE_MAX_LENGTH = 4000; // matches feedback.message's CHECK constraint, migration 0020
@@ -280,7 +281,7 @@ export default function FeedbackScreen() {
       <ScrollView contentContainerStyle={{ gap: spacing[3], paddingTop: spacing[4] }}>
         <Pressable
           accessibilityRole="checkbox"
-          accessibilityState={{ checked: badgeRequest }}
+          {...a11yState({ checked: badgeRequest })}
           accessibilityLabel={t("feedback.badgeRequest.label")}
           onPress={() => setBadgeRequest((value) => !value)}
           style={{

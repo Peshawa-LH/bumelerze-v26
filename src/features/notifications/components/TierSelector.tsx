@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import type { NotificationTier } from "@/features/onboarding";
 import { NOTIFICATION_TIERS } from "@/features/onboarding";
+import { a11yState } from "@/lib/a11y-state";
 import { useTheme } from "@/theme";
 
 interface TierSelectorProps {
@@ -39,7 +40,7 @@ export function TierSelector({ value, onChange, disabled = false }: TierSelector
           <Pressable
             key={tier}
             accessibilityRole="radio"
-            accessibilityState={{ selected: isActive, disabled, checked: isActive }}
+            {...a11yState({ selected: isActive, disabled, checked: isActive })}
             disabled={disabled}
             onPress={() => onChange(tier)}
             style={[

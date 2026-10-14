@@ -4,6 +4,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { DirectionalChevron } from "@/components/DirectionalChevron";
+import { a11yState } from "@/lib/a11y-state";
 import { useTheme } from "@/theme";
 
 import { useFocusVisible } from "./use-focus-visible";
@@ -70,7 +71,7 @@ export function SettingsRow({
       accessibilityRole={trailing === "external" ? "link" : "button"}
       accessibilityLabel={accessibilityLabel ?? (value ? `${label}, ${value}` : label)}
       accessibilityHint={accessibilityHint}
-      accessibilityState={trailing === "expand" ? { expanded, disabled } : { disabled }}
+      {...a11yState(trailing === "expand" ? { expanded, disabled } : { disabled })}
       disabled={disabled}
       onPress={onPress}
       onFocus={onFocus}
