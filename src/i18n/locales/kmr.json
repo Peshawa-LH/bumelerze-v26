@@ -1000,7 +1000,11 @@
       },
       "level": "Asta {{level}}",
       "note": "Ji SHAKEmap û texmîna zirarê ya Bumelerze — otomatîk, nehatiye kontrolkirin",
-      "noteReviewed": "Ji SHAKEmap û texmîna zirarê ya Bumelerze"
+      "noteReviewed": "Ji SHAKEmap û texmîna zirarê ya Bumelerze",
+      "unit": {
+        "thousand": "hezar",
+        "million": "mîlyon"
+      }
     },
     "pin": {
       "pinned": "Ji aliyê Bumelerze ve li serî",

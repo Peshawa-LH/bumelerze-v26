@@ -2,7 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 
-import { capSlices, DonutChart, type DonutSlice } from "../DonutChart";
+import { capSlices, DonutChart, fitFontSize, type DonutSlice } from "../DonutChart";
 
 function slice(key: string, value: number, extra: Partial<DonutSlice> = {}): DonutSlice {
   return { key, value, color: "#123456", label: `Label ${key}`, ...extra };
@@ -101,5 +101,22 @@ describe("capSlices", () => {
 
   it("leaves short lists alone", () => {
     expect(capSlices([slice("a", 1), slice("b", 2)], 4, other)).toHaveLength(2);
+  });
+});
+
+describe("donut centre fits the hole on the web (no adjustsFontSizeToFit there)", () => {
+  it("keeps the base size for a short figure", () => {
+    expect(fitFontSize("7.8", 48, 14)).toBe(14);
+  });
+
+  it("shrinks a long unit word to fit, never below 8", () => {
+    const size = fitFontSize("thousand", 42, 12);
+    expect(size).toBeLessThan(12);
+    expect(size * 8 * 0.62).toBeLessThanOrEqual(42);
+    expect(fitFontSize("a very long label indeed", 20, 12)).toBe(8);
+  });
+
+  it("ignores the invisible direction marks around numbers", () => {
+    expect(fitFontSize("⁦7.8⁩", 48, 14)).toBe(fitFontSize("7.8", 48, 14));
   });
 });

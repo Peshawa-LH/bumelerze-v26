@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -10,7 +11,7 @@ import { ShareCardSvg } from "@/features/share/ShareCardSvg";
 import type { CardModel } from "@/features/share/card-layout";
 import type { FeltTimeline, FeltTown } from "@/features/social/transport";
 import { formatIntensity } from "@/features/shakemap/intensity-format";
-import { formatApproximate, localizeDigits } from "@/lib/format-numbers";
+import { approximateParts, localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { percentValue, runningTotal, type ClassDamageRow } from "./slide-data";
 
@@ -124,7 +125,7 @@ export function ImpactSlide({
               size={donut}
               maxLegendRows={4}
               title={t("eventHub.impact.damage.title")}
-              centerText={isolateNumeric(formatApproximate(damage.total, locale, t))}
+              {...donutCentre(damage.total, locale, t)}
             />
           </View>
         ) : null}
@@ -136,13 +137,27 @@ export function ImpactSlide({
               size={donut}
               maxLegendRows={4}
               title={t("eventHub.impact.people.title")}
-              centerText={isolateNumeric(formatApproximate(people.total, locale, t))}
+              {...donutCentre(people.total, locale, t)}
             />
           </View>
         ) : null}
       </View>
     </SlideFrame>
   );
+}
+
+/** The donut's middle: the figure, and the unit word on its own line
+ * ("7.8" over "million"), so it fits the hole in every language. */
+function donutCentre(
+  total: number,
+  locale: string,
+  t: TFunction,
+): { centerText: string; centerUnit?: string } {
+  const { figure, unit } = approximateParts(total, locale);
+  return {
+    centerText: isolateNumeric(figure),
+    ...(unit ? { centerUnit: t(`eventHub.impact.unit.${unit}`) } : {}),
+  };
 }
 
 /** Slide 3: felt shaking by town. A level only with 3 reports or more. */

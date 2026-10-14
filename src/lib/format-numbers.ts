@@ -162,17 +162,32 @@ function formatDividedLocalized(divided: number, locale: string): string {
  * accessibility label).
  */
 export function formatApproximate(value: number, locale: string, t: TFunction): string {
+  const { figure, unit } = approximateParts(value, locale);
+  if (unit === "million") {
+    return t("eventDetail.risk.units.million", { count: figure });
+  }
+  if (unit === "thousand") {
+    return t("eventDetail.risk.units.thousand", { count: figure });
+  }
+  return figure;
+}
+
+/**
+ * The two parts of `formatApproximate`: the localized figure ("7.8") and
+ * which unit word goes with it, for places that set them on separate lines
+ * (the middle of a donut chart is too narrow for "7.8 million" on one).
+ */
+export function approximateParts(
+  value: number,
+  locale: string,
+): { figure: string; unit: "million" | "thousand" | null } {
   const rounded = roundToSignificantFigures(value, 2);
   const abs = Math.abs(rounded);
   if (abs >= 1_000_000) {
-    return t("eventDetail.risk.units.million", {
-      count: formatDividedLocalized(rounded / 1_000_000, locale),
-    });
+    return { figure: formatDividedLocalized(rounded / 1_000_000, locale), unit: "million" };
   }
   if (abs >= 1_000) {
-    return t("eventDetail.risk.units.thousand", {
-      count: formatDividedLocalized(rounded / 1_000, locale),
-    });
+    return { figure: formatDividedLocalized(rounded / 1_000, locale), unit: "thousand" };
   }
-  return formatIntegerLocalized(rounded, locale);
+  return { figure: formatIntegerLocalized(rounded, locale), unit: null };
 }

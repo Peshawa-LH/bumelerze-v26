@@ -1,4 +1,11 @@
-import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 import schema2SummaryFixture from "@/features/shakemap/__fixtures__/schema2/risk_summary.json";
@@ -262,6 +269,20 @@ describe("Event hub slides (review note 4.3)", () => {
     fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
     expect(await screen.findByTestId("hub-impact-people")).toBeTruthy();
     expect(screen.queryByTestId("hub-impact-damage")).toBeNull();
+  });
+
+  it("Impact at a glance sets the total and its unit word on separate lines in the donut", async () => {
+    mockRisk(risk());
+    await renderSlides(EMPTY_SUMMARY);
+    fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
+    const people = await screen.findByTestId("hub-impact-people");
+    // About 33 million people: "33" over "million", never "33 mill…".
+    expect(within(people).getByTestId("donut-center").props.children).toBe(
+      "\u206633\u2069",
+    );
+    expect(within(people).getByTestId("donut-center-unit").props.children).toBe(
+      "million",
+    );
   });
 
   it("carries no casualty wording", async () => {

@@ -1000,7 +1000,11 @@
       },
       "level": "ئاستی {{level}}",
       "note": "لە SHAKEmap و خەمڵاندنی زیانی Bumelerze — ئۆتۆماتیکی، پێداچوونەوەی بۆ نەکراوە",
-      "noteReviewed": "لە SHAKEmap و خەمڵاندنی زیانی Bumelerze"
+      "noteReviewed": "لە SHAKEmap و خەمڵاندنی زیانی Bumelerze",
+      "unit": {
+        "thousand": "هەزار",
+        "million": "ملیۆن"
+      }
     },
     "pin": {
       "pinned": "جێگیرکراو لەلایەن تۆڕی بوومەلەرزە",

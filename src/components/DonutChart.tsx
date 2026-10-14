@@ -25,6 +25,8 @@ export interface DonutChartProps {
   size?: number;
   /** Short text in the hole, e.g. the total. */
   centerText?: string;
+  /** A unit word set under `centerText` in smaller type ("million"). */
+  centerUnit?: string;
   /** Names the chart in the accessible label ("What people felt"). */
   title?: string;
   /** Legend rows, "other" bucket included. */
@@ -85,6 +87,7 @@ export function DonutChart({
   slices,
   size = DEFAULT_SIZE,
   centerText,
+  centerUnit,
   title,
   maxLegendRows = DEFAULT_LEGEND_ROWS,
   testID,
@@ -122,6 +125,8 @@ export function DonutChart({
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
+  // Room for text inside the ring.
+  const hole = size - stroke * 2;
   const starts: number[] = [];
   let running = 0;
   for (const row of rows) {
@@ -182,14 +187,28 @@ export function DonutChart({
               minimumFontScale={0.6}
               style={{
                 color: colors.text.primary,
-                fontSize: typography.bodyMeta.fontSize,
-                lineHeight: typography.bodyMeta.lineHeight,
+                fontSize: fitFontSize(centerText, hole, typography.bodyMeta.fontSize),
                 fontWeight: "700",
                 textAlign: "center",
               }}
             >
               {centerText}
             </Text>
+            {centerUnit ? (
+              <Text
+                testID="donut-center-unit"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.6}
+                style={{
+                  color: colors.text.secondary,
+                  fontSize: fitFontSize(centerUnit, hole, typography.labelCaption.fontSize),
+                  textAlign: "center",
+                }}
+              >
+                {centerUnit}
+              </Text>
+            ) : null}
           </View>
         ) : null}
       </View>
@@ -214,6 +233,22 @@ export function DonutChart({
       </View>
     </View>
   );
+}
+
+/**
+ * A font size at which `text` fits on one line in `width` px, at most
+ * `base` and never below 8. react-native-web ignores `adjustsFontSizeToFit`
+ * (iOS/Android still use it on top), and a cut "7.8 mill…" in the middle of
+ * the donut is unreadable (owner review, 2026-10). Bold digits and Latin
+ * letters are about 0.6 em wide, Arabic-script letters narrower, so the
+ * estimate errs on the small side. Exported for tests.
+ */
+export function fitFontSize(text: string, width: number, base: number): number {
+  const length = Array.from(text.replace(/[\u2066-\u2069]/g, "")).length;
+  if (length === 0 || width <= 0) {
+    return base;
+  }
+  return Math.max(8, Math.min(base, Math.floor(width / (length * 0.62))));
 }
 
 const styles = StyleSheet.create({

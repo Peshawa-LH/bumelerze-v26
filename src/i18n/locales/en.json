@@ -1000,7 +1000,11 @@
       },
       "level": "Level {{level}}",
       "note": "From the Bumelerze SHAKEmap and damage estimate — automatic, not reviewed",
-      "noteReviewed": "From the Bumelerze SHAKEmap and damage estimate"
+      "noteReviewed": "From the Bumelerze SHAKEmap and damage estimate",
+      "unit": {
+        "thousand": "thousand",
+        "million": "million"
+      }
     },
     "pin": {
       "pinned": "Pinned by Bumelerze",
