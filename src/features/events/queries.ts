@@ -3,11 +3,14 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import {
   QueryClient,
   focusManager,
+  onlineManager,
+  useIsRestoring,
   useQuery,
   type UseQueryResult,
 } from "@tanstack/react-query";
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
-import { AppState, type AppStateStatus } from "react-native";
+import { useSyncExternalStore } from "react";
+import { AppState, Platform, type AppStateStatus } from "react-native";
 
 import {
   EMSC_REGION_TIMEOUT_MS,
@@ -57,8 +60,37 @@ const QUERY_CACHE_KEY = "bumelerze.react-query-cache";
  * region feed's own 30-day query window loosely (stale-but-plausible). */
 export const PERSISTED_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
+/**
+ * Web: React Query follows the browser's online/offline events, but starts
+ * out assuming "online". A page opened without signal (the offline copy,
+ * public/push-sw.js) would then try the feed, wait for the retries to fail
+ * and only then say so. `navigator.onLine === false` is reliable (it is
+ * `true` that can be wrong), so start from it. iOS/Android: React Query has
+ * no connectivity signal here (no NetInfo) and keeps assuming online.
+ */
+function seedOnlineStateWeb(): void {
+  if (
+    Platform.OS === "web" &&
+    typeof navigator !== "undefined" &&
+    navigator.onLine === false
+  ) {
+    onlineManager.setOnline(false);
+  }
+}
+
+/** Whether React Query believes the device is online (web: the browser's
+ * online/offline events; iOS/Android: always true). */
+export function useIsOnline(): boolean {
+  return useSyncExternalStore(
+    (onChange) => onlineManager.subscribe(onChange),
+    () => onlineManager.isOnline(),
+    () => true,
+  );
+}
+
 export function createEventsQueryClient(): QueryClient {
   ensureAppStateListenerAttached();
+  seedOnlineStateWeb();
 
   return new QueryClient({
     defaultOptions: {
@@ -134,12 +166,21 @@ function useEventsFeed(
     refetchInterval: EVENTS_REFETCH_INTERVAL_MS,
     refetchIntervalInBackground: false,
   });
+  // Web: when the browser goes offline React Query PAUSES the feed instead of
+  // failing it, so `isError` alone never turned true and the offline banner
+  // never showed (found 2026-10-13). Offline is now said straight away.
+  const isOnline = useIsOnline();
+  // While the saved feed is still being read back, nothing is decided yet.
+  const isRestoring = useIsRestoring();
+  const offlineWithoutFetch =
+    !isOnline && !isRestoring && query.fetchStatus !== "fetching";
+  const hasData = query.data !== undefined;
 
   return {
     events: query.data?.events ?? [],
-    isOfflineIsh: query.isError && query.data !== undefined,
-    isInitialLoading: query.isPending,
-    isHardError: query.isError && query.data === undefined,
+    isOfflineIsh: hasData && (query.isError || offlineWithoutFetch),
+    isInitialLoading: query.isPending && !offlineWithoutFetch,
+    isHardError: !hasData && (query.isError || offlineWithoutFetch),
     dataUpdatedAt: query.dataUpdatedAt,
     skippedCount: query.data?.skippedCount ?? 0,
     refetch: query.refetch,
