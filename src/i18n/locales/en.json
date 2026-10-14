@@ -348,7 +348,7 @@
     "web": {
       "enableButton": "Enable motion sensor",
       "enableHint": "Tap the button and allow motion access to see the live view.",
-      "explanation": "This browser is not sending motion data.\n1. On iPhone: Settings → Safari → turn on Motion & Orientation Access.\n2. Reload this page.",
+      "explanation": "This browser is not sending motion data.\n1. On iPhone, tap the button and choose Allow.\n2. If you refused earlier, close this tab, open app.bumelerze.com again and allow it.",
       "desktop": "The live view needs a phone's motion sensor. Open app.bumelerze.com on your phone to try it."
     },
     "view": {

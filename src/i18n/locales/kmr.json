@@ -348,7 +348,7 @@
     "web": {
       "enableButton": "Sensora tevgerê veke",
       "enableHint": "Li bişkojê bitikîne û destûra gihîştina tevgerê bide da ku dîmena rasterast bibînî.",
-      "explanation": "Ev gerok daneyên tevgerê naşîne.\n1. Li ser iPhone: Sazkarî → Safari → «Gihîştina Tevger û Rawestanê» veke.\n2. Vê rûpelê ji nû ve bar bike.",
+      "explanation": "Ev gerok daneyên tevgerê naşîne.\n1. Li ser iPhone, li bişkojê bitikîne û «Destûr bide» hilbijêre.\n2. Heke te berê red kiribe, vê tabê bigire, app.bumelerze.com ji nû ve veke û destûr bide.",
       "desktop": "Dîmena rasterast hewceyî sensora tevgerê ya telefonê ye. app.bumelerze.com li ser telefona xwe veke da ku biceribînî."
     },
     "view": {
