@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PRIVACY_POLICY_URL } from "@/config/urls";
 import { BrandMark } from "@/components/BrandMark";
+import { AccountSettingsGroup } from "@/features/account/components/AccountSettingsGroup";
 import { MyLocationRow } from "@/features/account/components/MyLocationRow";
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SettingsOptionList } from "@/features/account/components/SettingsOptionList";
@@ -203,6 +204,8 @@ export default function SettingsScreen() {
           testID="settings-row-onboarding"
         />
       </SettingsGroup>
+
+      <AccountSettingsGroup />
 
       <FooterSection />
     </ScrollView>
