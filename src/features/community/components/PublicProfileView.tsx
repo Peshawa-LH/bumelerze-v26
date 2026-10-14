@@ -8,7 +8,9 @@ import { Avatar, getAvatarUrl } from "@/features/account";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { EarnedBadges } from "@/features/badges";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
-import { formatMagnitudeValue } from "@/features/events";
+import { formatMagnitudeValue, useEventByBumelerzeId } from "@/features/events";
+import { isolateName, placeLine } from "@/features/geo";
+import { isRTLLocale } from "@/i18n";
 import { useMuteActions, useMutedIds } from "@/features/mute/queries";
 import { PostsSection } from "@/features/posts/components/PostsSection";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
@@ -104,6 +106,10 @@ export function PublicProfileView({
     fontSize: typography.bodyMeta.fontSize,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
+  // Logical start for the Latin @username: RN's `textAlign` has no `start`,
+  // and the physical "left" put the handle on the far side of a Sorani or
+  // Arabic page (B-8).
+  const usernameAlign = isRTLLocale(i18n.language) ? "right" : "left";
 
   async function run(action: () => Promise<unknown>): Promise<boolean> {
     setBusy(true);
@@ -156,8 +162,11 @@ export function PublicProfileView({
                 typography.h2,
                 {
                   color: colors.text.primary,
+                  // A handle is Latin, so it reads left to right — but it
+                  // sits on the READING side of the page, not glued to the
+                  // physical left edge under a right-aligned name (B-8).
                   writingDirection: "ltr",
-                  textAlign: "left",
+                  textAlign: usernameAlign,
                 },
               ]}
             >
@@ -310,7 +319,7 @@ export function PublicProfileView({
         </View>
         <Text
           testID="public-profile-username"
-          style={[meta, { writingDirection: "ltr", textAlign: "left" }]}
+          style={[meta, { writingDirection: "ltr", textAlign: usernameAlign }]}
         >
           {formatUsername(profile.username)}
         </Text>
@@ -479,18 +488,38 @@ export function PublicProfileView({
   );
 }
 
-/** One of the person's recent Event hub comments, opening its hub. */
+/**
+ * One of the person's recent Event hub comments, opening its hub.
+ *
+ * The place is the app's OWN place line (`placeLine`, the same rule the
+ * Home cards use), resolved from the hub's event: `public_profile()` only
+ * ships the provider's raw English text ("38 km W of Sarpol-e Z̄ahāb,
+ * Iran"), which read as a foreign fragment inside a Sorani line (B-25).
+ * The event lookup is the cached Supabase query every hub and event page
+ * shares, so a comment whose event was already opened costs nothing; until
+ * it answers (or when there is no hub), the raw text is shown isolated so
+ * at least its words keep their order.
+ */
 function RecentComment({ comment }: { comment: ProfileComment }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { colors, typography, spacing } = useTheme();
+  const { event } = useEventByBumelerzeId(
+    comment.hubId ?? undefined,
+    comment.hubId !== null && comment.place !== null,
+  );
+  const place = event
+    ? placeLine(event, i18n.language, t)
+    : comment.place
+      ? isolateName(comment.place)
+      : null;
   const where = [
     comment.magnitude !== null
       ? t("events.magnitudeDisplay", {
           value: formatMagnitudeValue(comment.magnitude, i18n.language),
         })
       : null,
-    comment.place,
+    place,
   ]
     .filter((part): part is string => part !== null && part !== "")
     .join(" · ");
