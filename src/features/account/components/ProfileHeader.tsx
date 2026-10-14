@@ -7,6 +7,7 @@ import { formatUsername } from "@/features/community/username";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import type { HubRole } from "@/features/eventhub/types";
 import { formatMonthYear } from "@/features/mydata/format";
+import { isRTLLocale } from "@/i18n";
 import { useTheme } from "@/theme";
 import { getAvatarUrl } from "../service";
 import { useAccount } from "../use-account";
@@ -62,8 +63,9 @@ export function ProfileHeader({
                 typography.bodyMeta,
                 {
                   color: colors.text.secondary,
+                  // Latin handle, left-to-right, on the reading side (B-8).
                   writingDirection: "ltr",
-                  textAlign: "left",
+                  textAlign: isRTLLocale(i18n.language) ? "right" : "left",
                 },
               ]}
             >

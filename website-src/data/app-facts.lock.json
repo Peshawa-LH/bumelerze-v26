@@ -25,7 +25,7 @@
     "file:src/features/geo/data/fe-region-translations.ts": "5563fb896d6aa9bf"
   },
   "event-route": {
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "38e17c617fe9ec59",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "5610593aed9966be",
     "file:app/account/sign-in.tsx": "e60cad5746f30dbb",
     "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "0679f6997a16f39e"
   },

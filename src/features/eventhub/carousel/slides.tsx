@@ -11,6 +11,7 @@ import { ShareCardSvg } from "@/features/share/ShareCardSvg";
 import type { CardModel } from "@/features/share/card-layout";
 import type { FeltTimeline, FeltTown } from "@/features/social/transport";
 import { formatIntensity } from "@/features/shakemap/intensity-format";
+import { isRTLLocale } from "@/i18n";
 import { approximateParts, localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { percentValue, runningTotal, type ClassDamageRow } from "./slide-data";
@@ -171,6 +172,8 @@ export function FeltTownsSlide({
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
+  // The count cell hugs the row END (E-22): physical right in LTR, left in RTL.
+  const endAlign = isRTLLocale(locale) ? "left" : "right";
   const shown = towns.slice(0, 7);
   const max = Math.max(1, ...shown.map((town) => town.reports));
   const label = {
@@ -257,7 +260,7 @@ export function FeltTownsSlide({
                   }}
                 />
               </View>
-              <Text style={[label, styles.count]}>{countText}</Text>
+              <Text style={[label, styles.count, { textAlign: endAlign }]}>{countText}</Text>
             </View>
           );
         })}
@@ -417,6 +420,8 @@ export function ClassDamageSlide({
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
+  // The percent cells hug the row END (E-22): physical right in LTR, left in RTL.
+  const endAlign = isRTLLocale(locale) ? "left" : "right";
   const pct = (share: number) =>
     isolateNumeric(
       t("donut.percent", { value: localizeDigits(percentValue(share), locale) }),
@@ -443,7 +448,9 @@ export function ClassDamageSlide({
             {t("eventHub.slides.classes.class")}
           </Text>
           <Text style={[caption, styles.flex]}>{t("eventHub.slides.classes.share")}</Text>
-          <Text style={[caption, styles.pct]}>{t("eventHub.slides.classes.dg4")}</Text>
+          <Text style={[caption, styles.pct, { textAlign: endAlign }]}>
+            {t("eventHub.slides.classes.dg4")}
+          </Text>
         </View>
         {rows.map((row) => (
           <View
@@ -496,7 +503,7 @@ export function ClassDamageSlide({
               style={[
                 typography.labelCaption,
                 styles.pct,
-                { color: colors.text.primary },
+                { color: colors.text.primary, textAlign: endAlign },
               ]}
             >
               {pct(row.dg4Plus)}
@@ -550,7 +557,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     flexDirection: "row",
   },
-  count: { minWidth: 22, textAlign: "right" },
+  // Numeric cells align to the row END; the physical side is chosen at
+  // render time from the locale (E-22), see `endAlign` in each slide.
+  count: { minWidth: 22 },
   stats: { flexDirection: "row" },
   stat: { flex: 1, borderRadius: 8 },
   axis: { flexDirection: "row", justifyContent: "space-between" },
@@ -575,6 +584,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     flexDirection: "row",
   },
-  pct: { width: 40, textAlign: "right" },
+  pct: { width: 40 },
   swatch: { width: 10, height: 10, borderRadius: 2 },
 });

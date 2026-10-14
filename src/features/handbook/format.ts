@@ -57,9 +57,10 @@ export function formatVs30Value(vs30MS: number, locale: string, t: TranslateFn):
 /** EC8 only (owner feedback 2026-08-21: the paired "EC8 X / NEHRP Y" line
  * was one more number than the compact table needs — NEHRP is still
  * computed by `site-class.ts` for any future caller, just not surfaced
- * here). */
+ * here). "EC8 C" is a Latin code line in every locale, isolated as one
+ * unit so an RTL card keeps "EC8" before the letter (B-7). */
 export function formatSiteClassValue(ec8: string, t: TranslateFn): string {
-  return t("handbook.rows.siteClass.value", { ec8 });
+  return isolateNumeric(t("handbook.rows.siteClass.value", { ec8 }));
 }
 
 export function formatSoilMethodLabel(method: SoilMethod, t: TranslateFn): string {
@@ -125,11 +126,17 @@ export function formatIsc2025Value(
   locale: string,
   t: TranslateFn,
 ): string {
-  return t("handbook.rows.isc2025.value", {
-    ss: isolateNumeric(formatFixedLocalized(ss2475G, 2, locale)),
-    s1: isolateNumeric(formatFixedLocalized(s12475G, 2, locale)),
-    pga: isolateNumeric(formatFixedLocalized(pga2475G, 2, locale)),
-  });
+  // The whole line is a Latin-symbol formula ("Ss 1.09g / S1 0.43g / PGA
+  // 0.22g") in every locale: one isolate around it keeps the three pairs in
+  // order inside an RTL card, where isolating only the numerals let the
+  // bidi algorithm reorder the symbols around them (B-7).
+  return isolateNumeric(
+    t("handbook.rows.isc2025.value", {
+      ss: formatFixedLocalized(ss2475G, 2, locale),
+      s1: formatFixedLocalized(s12475G, 2, locale),
+      pga: formatFixedLocalized(pga2475G, 2, locale),
+    }),
+  );
 }
 
 /**

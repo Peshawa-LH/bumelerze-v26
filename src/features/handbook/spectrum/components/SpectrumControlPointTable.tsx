@@ -5,6 +5,7 @@ import * as Clipboard from "expo-clipboard";
 
 import { useTheme } from "@/theme";
 import { isolateNumeric } from "@/features/events";
+import { directionProps, directionStyle } from "@/i18n";
 import { spectralAcceleration } from "../curve";
 import {
   formatCodeCoefficient,
@@ -47,6 +48,8 @@ interface Row {
 export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumControlPointTableProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
+  const dirProps = directionProps(locale);
+  const dirStyle = directionStyle(locale);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -132,17 +135,23 @@ export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumCo
         </Pressable>
       </View>
 
+      {/* Labels are mostly Latin symbols ("Ss", "SD1", "T0") and the values
+       * are isolated numerals: both follow the APP language's direction so a
+       * Sorani table keeps every row anchored at the reading start instead of
+       * flipping LTR on its first letter (B-7). */}
       {rows.map((row) => (
         <View key={row.labelKey} style={[styles.row, { borderColor: colors.border.default, padding: spacing[3], gap: spacing[1] }]}>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
             {t(row.labelKey)}
           </Text>
           <Text
+            {...dirProps}
             style={{
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
               lineHeight: typography.bodyDefault.lineHeight,
               fontWeight: "600",
+              ...dirStyle,
             }}
           >
             {isolateNumeric(row.value)}

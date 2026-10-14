@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
+import { isRTLLocale } from "@/i18n";
 import { useTheme } from "@/theme";
 import { profileHref } from "../routes";
 import type { Person } from "../types";
@@ -21,10 +22,13 @@ export function PersonRow({
   trailing?: ReactNode;
   testID?: string;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { colors, typography, spacing } = useTheme();
   const name = person.displayName || t("eventHub.thread.anonymous");
+  // The Latin handle reads left to right but sits on the reading side of
+  // the row, under the name, in every language (B-8).
+  const usernameAlign = isRTLLocale(i18n.language) ? "right" : "left";
 
   const body = (
     <>
@@ -52,7 +56,7 @@ export function PersonRow({
               {
                 color: colors.text.secondary,
                 writingDirection: "ltr",
-                textAlign: "left",
+                textAlign: usernameAlign,
               },
             ]}
           >

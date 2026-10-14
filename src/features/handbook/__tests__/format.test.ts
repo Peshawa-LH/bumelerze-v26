@@ -33,8 +33,8 @@ describe("formatVs30Value", () => {
 });
 
 describe("formatSiteClassValue", () => {
-  it("shows EC8 only, never NEHRP (owner feedback 2026-08-21: fewer numbers)", () => {
-    expect(formatSiteClassValue("B", i18n.t)).toBe("EC8 B");
+  it("shows EC8 only, never NEHRP (owner feedback 2026-08-21: fewer numbers), isolated as one Latin line", () => {
+    expect(formatSiteClassValue("B", i18n.t)).toBe(isolateNumeric("EC8 B"));
     expect(formatSiteClassValue("B", i18n.t)).not.toMatch(/NEHRP/);
   });
 });
