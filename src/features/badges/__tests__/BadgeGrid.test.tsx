@@ -236,6 +236,72 @@ describe("BadgeGrid: requestable ranks (own account page)", () => {
   });
 });
 
+describe("BadgeGrid: the full collection page (review B-21)", () => {
+  beforeEach(async () => {
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(cleanup);
+
+  function renderFull(roles: Parameters<typeof evaluateBadges>[1] = []) {
+    const entries = evaluateBadges({ ...EMPTY_BADGE_INPUTS, reports: 1 }, roles, {
+      includeRequestableRanks: true,
+    });
+    return render(
+      <SafeAreaProvider initialMetrics={metrics}>
+        <BadgeGrid entries={entries} full />
+      </SafeAreaProvider>,
+    );
+  }
+
+  it("shows every badge at once with no Show all / Show less control", async () => {
+    await renderFull();
+    expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet|name)/)).toHaveLength(13);
+    expect(screen.queryByTestId("badges-toggle")).toBeNull();
+    expect(screen.queryByText("Show less")).toBeNull();
+    expect(screen.queryByText(/^Show all/)).toBeNull();
+  });
+
+  it("names each tile under its icon (the sheet keeps the rule), four to a row", async () => {
+    await renderFull([{ role: "partner", orgName: "Kurdistan Seismology" }]);
+    for (const name of ["First report", "Photographer", "Seismologist", "Kurdistan Seismology"]) {
+      expect(screen.getByText(name, { includeHiddenElements: true })).toBeTruthy();
+    }
+    const cell = screen.getByTestId("badge-name-photo", { includeHiddenElements: true })
+      .parent?.parent;
+    expect(cell?.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: "25%" })]),
+    );
+    // The rule text only appears once the sheet opens.
+    expect(screen.queryByText("Add a photo to a report.")).toBeNull();
+    await fireEvent.press(screen.getByTestId("badge-photo"));
+    expect(screen.getByText("Add a photo to a report.")).toBeTruthy();
+  });
+
+  it("the profile grid stays five to a row and unnamed", async () => {
+    await renderGrid({ reports: 1 });
+    expect(screen.queryByText("Photographer", { includeHiddenElements: true })).toBeNull();
+    const cell = screen.getByTestId("badge-photo").parent;
+    expect(cell?.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: "20%" })]),
+    );
+  });
+
+  it("names tiles in Sorani too", async () => {
+    await act(async () => {
+      await i18n.changeLanguage("ckb");
+    });
+    await renderFull();
+    expect(
+      screen.getByText(i18n.t("myData.badges.photo.name"), { includeHiddenElements: true }),
+    ).toBeTruthy();
+    await act(async () => {
+      await i18n.changeLanguage("en");
+    });
+  });
+});
+
 describe("BadgesSection", () => {
   beforeEach(async () => {
     if (i18n.language !== "en") {

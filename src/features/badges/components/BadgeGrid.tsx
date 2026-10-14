@@ -18,6 +18,9 @@ import { BadgeSheet } from "./BadgeSheet";
 /** Badge circle size on the page. */
 export const BADGE_SIZE = 52;
 const COLUMNS = 5;
+/** Columns on the full collection page, where each tile also carries its
+ * name: four give a name like "Photographer" room on a phone. */
+const FULL_COLUMNS = 4;
 /** Rows shown before "Show all" (owner, 2026-10-08: "only show two rows"). */
 export const COLLAPSED_ROWS = 2;
 
@@ -25,20 +28,24 @@ export const COLLAPSED_ROWS = 2;
  * ranks, then earned milestones), then the locked ones (milestones, then the
  * ranks the person can ask for). Only two rows show until "Show all" opens
  * the rest in place (owner, 2026-10-08). Each badge opens the detail sheet.
- * Cells mirror in RTL with the row direction. */
+ * Cells mirror in RTL with the row direction. With `full` (the "See all"
+ * page) everything shows at once with a short name under each tile and no
+ * "Show less" — review B-21: a collapse control on the page meant to show
+ * all, and tiles with no names, read as a mistake. */
 export function BadgeGrid({
   entries,
-  defaultExpanded = false,
+  full = false,
 }: {
   entries: readonly BadgeEntry[];
-  /** Start with every badge showing (the full collection page). */
-  defaultExpanded?: boolean;
+  /** The full collection page: every badge, its name under the tile, four
+   * to a row, no collapse control. The sheet still carries the rule text. */
+  full?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const router = useRouter();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [expanded, setExpanded] = useState(false);
   const selected = entries.find((entry) => entry.key === selectedKey) ?? null;
   // Earned first, keeping the catalogue order inside each half (a stable
   // partition, so held ranks stay at the very front).
@@ -46,8 +53,9 @@ export function BadgeGrid({
     ...entries.filter((entry) => entry.earned),
     ...entries.filter((entry) => !entry.earned),
   ];
+  const columns = full ? FULL_COLUMNS : COLUMNS;
   const limit = COLUMNS * COLLAPSED_ROWS;
-  const collapsible = ordered.length > limit;
+  const collapsible = !full && ordered.length > limit;
   const visible = collapsible && !expanded ? ordered.slice(0, limit) : ordered;
 
   function requestRank(role: HubRoleKind) {
@@ -74,7 +82,7 @@ export function BadgeGrid({
       });
     }
     return (
-      <View key={entry.key} style={styles.cell}>
+      <View key={entry.key} style={[styles.cell, { width: `${100 / columns}%` }]}>
         <Pressable
           testID={`badge-${entry.key}`}
           accessibilityRole="button"
@@ -83,7 +91,7 @@ export function BadgeGrid({
           hitSlop={4}
           onPress={() => setSelectedKey(entry.key)}
           style={({ pressed }) => [
-            styles.press,
+            full ? styles.pressNamed : styles.press,
             { backgroundColor: pressed ? colors.surface.sunken : "transparent" },
           ]}
         >
@@ -94,6 +102,22 @@ export function BadgeGrid({
             earned={entry.earned}
             size={BADGE_SIZE}
           />
+          {full ? (
+            <Text
+              testID={`badge-name-${entry.key}`}
+              // The spoken label above already says the name and state;
+              // this is the sighted reader's caption.
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={[
+                typography.labelCaption,
+                styles.name,
+                { color: entry.earned ? colors.text.primary : colors.text.secondary },
+              ]}
+            >
+              {name}
+            </Text>
+          ) : null}
         </Pressable>
       </View>
     );
@@ -147,7 +171,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   cell: {
-    width: `${100 / COLUMNS}%`,
     alignItems: "center",
     paddingVertical: 6,
   },
@@ -163,5 +186,21 @@ const styles = StyleSheet.create({
     borderRadius: BADGE_SIZE / 2,
     alignItems: "center",
     justifyContent: "center",
+  },
+  // Tile with its name under it (the full page): a rounded rectangle, so
+  // the pressed tint covers the caption too.
+  pressNamed: {
+    minWidth: 44,
+    minHeight: 44,
+    width: "100%",
+    borderRadius: 12,
+    paddingHorizontal: 2,
+    paddingBottom: 4,
+    gap: 4,
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  name: {
+    textAlign: "center",
   },
 });

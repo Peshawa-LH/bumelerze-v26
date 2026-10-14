@@ -50,7 +50,7 @@ export default function BadgesScreen() {
           entries={summary.badges}
           earned={summary.badgesEarned}
           total={summary.badgesTotal}
-          defaultExpanded
+          full
         />
       </ScrollView>
     </View>
