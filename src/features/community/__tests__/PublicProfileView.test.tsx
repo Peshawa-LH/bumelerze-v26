@@ -11,6 +11,8 @@ import {
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import type { Event } from "@/features/events";
+import { isolateName, placeLine } from "@/features/geo";
 import i18n from "@/i18n";
 
 import { PublicProfileView } from "../components/PublicProfileView";
@@ -23,6 +25,22 @@ const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
+
+// A recent comment's place is the app's own place line, resolved from the
+// hub's event (B-25). The lookup is the shared Supabase query; tests drive
+// it directly: unresolved by default (as with no Supabase configured).
+const mockEventLookup = jest.fn<
+  { event: Event | null; isLoading: boolean; isError: boolean },
+  [string | undefined, boolean]
+>(() => ({ event: null, isLoading: false, isError: false }));
+jest.mock("@/features/events", () => {
+  const actual = jest.requireActual("@/features/events");
+  return {
+    ...actual,
+    useEventByBumelerzeId: (id: string | undefined, enabled: boolean) =>
+      mockEventLookup(id, enabled),
+  };
+});
 
 let mockAccount: { status: string; userId: string | null } = {
   status: "account",
@@ -145,7 +163,45 @@ describe("PublicProfileView", () => {
     ).toBe(true);
     await fireEvent.press(screen.getByTestId("profile-tab-comments"));
     expect(screen.getByText("Felt it strongly in the kitchen")).toBeTruthy();
-    expect(screen.getByText("M 4.2 · Near Slemani")).toBeTruthy();
+    // Until the hub's event resolves, the provider's raw place is shown
+    // isolated (so its words keep their order inside an RTL line).
+    expect(screen.getByText(`M 4.2 · ${isolateName("Near Slemani")}`)).toBeTruthy();
+    expect(mockEventLookup).toHaveBeenCalledWith("bml202610aa", true);
+  });
+
+  it("names a comment's place with the app's own place line once the hub's event is known (B-25)", async () => {
+    const sulaimaniEvent: Event = {
+      id: "us-test-1",
+      bumelerzeId: "bml202610aa",
+      originTime: Date.UTC(2026, 9, 1, 10, 0, 0),
+      lat: 35.56,
+      lon: 45.43,
+      depthKm: 10,
+      magnitude: { value: 4.2, type: "mb" },
+      placeName: "Near Slemani",
+      provenance: {
+        provider: "usgs",
+        providerId: "us-test-1",
+        fetchedAt: 0,
+        providerUpdatedAt: 0,
+      },
+      sig: 100,
+      isRegional: true,
+      url: "",
+    };
+    mockEventLookup.mockImplementation((id) =>
+      id === "bml202610aa"
+        ? { event: sulaimaniEvent, isLoading: false, isError: false }
+        : { event: null, isLoading: false, isError: false },
+    );
+
+    await renderView(<PublicProfileView profile={build()} actions={makeActions()} />);
+    await fireEvent.press(screen.getByTestId("profile-tab-comments"));
+
+    const expected = placeLine(sulaimaniEvent, i18n.language, i18n.t);
+    expect(expected).not.toContain("Near Slemani");
+    expect(screen.getByText(`M 4.2 · ${expected}`)).toBeTruthy();
+    mockEventLookup.mockImplementation(() => ({ event: null, isLoading: false, isError: false }));
   });
 
   it("links a recent comment to its Event hub, and leaves one without a hub plain", async () => {

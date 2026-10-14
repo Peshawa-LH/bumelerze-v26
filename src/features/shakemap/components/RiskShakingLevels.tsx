@@ -52,7 +52,14 @@ export function RiskShakingLevels({
     return null;
   }
 
-  const widest = Math.max(...rows.map((row) => row.people));
+  // Bars are drawn on a square-root scale (A-21): the spread between
+  // degrees runs to two orders of magnitude (330 thousand at VII beside 3.2
+  // thousand at VIII on the 2017 event), and on a linear track every row
+  // but the widest collapsed to the same 2% stub, so the bars carried no
+  // information at all. A square root keeps the order and the sense of
+  // "much more" while the smaller rows stay readable; the exact figure is
+  // printed next to every bar either way.
+  const widest = Math.sqrt(Math.max(...rows.map((row) => row.people)));
 
   return (
     <View style={{ gap: spacing[2] }}>
@@ -99,7 +106,7 @@ export function RiskShakingLevels({
             <View style={[styles.track, { backgroundColor: colors.border.subtle }]}>
               <View
                 style={{
-                  width: `${Math.max(2, (row.people / widest) * 100)}%`,
+                  width: `${Math.max(2, (Math.sqrt(row.people) / widest) * 100)}%`,
                   height: "100%",
                   borderRadius: 3,
                   backgroundColor: colors.intensity[row.degree] ?? colors.status.warning,

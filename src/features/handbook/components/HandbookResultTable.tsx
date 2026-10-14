@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { isolateNumeric } from "@/features/events";
+import { directionProps, directionStyle } from "@/i18n";
 import { GMPE_SET_LABEL } from "../config";
 import {
   formatHandbookResultsTitle,
@@ -26,26 +28,67 @@ interface RowShellProps {
   sublabel?: string;
 }
 
+/**
+ * One cited row. Every line takes the APP language's direction
+ * (`directionProps`/`directionStyle`), not its first character: a Sorani
+ * card whose value starts with a Latin token ("Ss ١.٠٩g", "EC8 C", "CY14,
+ * ASB14, …") was otherwise laid out as a left-anchored LTR paragraph under
+ * right-aligned labels, and a Sorani citation beginning with a code read
+ * end-first (B-7). The Latin lines themselves are isolated by their
+ * formatters so they keep their internal order inside the RTL paragraph.
+ */
 function RowShell({ label, value, citation, sublabel }: RowShellProps) {
+  const { i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
+  const dirProps = directionProps(i18n.language);
+  const dirStyle = directionStyle(i18n.language);
   return (
     <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[1], padding: spacing[3] }]}>
-      <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>{label}</Text>
+      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        {label}
+      </Text>
       {sublabel ? (
-        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>{sublabel}</Text>
+        <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+          {sublabel}
+        </Text>
       ) : null}
       <Text
+        testID="handbook-row-value"
+        {...dirProps}
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
+          ...dirStyle,
         }}
       >
         {value}
       </Text>
-      <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontStyle: "italic" }}>
+      <Text
+        {...dirProps}
+        style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontStyle: "italic", ...dirStyle }}
+      >
         {citation}
+      </Text>
+    </View>
+  );
+}
+
+/** The honest empty-state row (no number for this coordinate): same shell,
+ * same direction rule, a message instead of a value and citation. */
+function EmptyRow({ label, message }: { label: string; message: string }) {
+  const { i18n } = useTranslation();
+  const { colors, typography, spacing } = useTheme();
+  const dirProps = directionProps(i18n.language);
+  const dirStyle = directionStyle(i18n.language);
+  return (
+    <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[1], padding: spacing[3] }]}>
+      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        {label}
+      </Text>
+      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize, ...dirStyle }}>
+        {message}
       </Text>
     </View>
   );
@@ -64,6 +107,8 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
+  const dirProps = directionProps(locale);
+  const dirStyle = directionStyle(locale);
 
   // The ISC-2025 table spans the whole country, so "no nearest district"
   // never happens inside Iraq; what does happen is a district so far away
@@ -83,11 +128,13 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
     <View style={{ gap: spacing[3] }}>
       <Text
         accessibilityRole="header"
+        {...dirProps}
         style={{
           color: colors.text.primary,
           fontSize: typography.h2.fontSize,
           lineHeight: typography.h2.lineHeight,
           fontWeight: typography.h2.fontWeight,
+          ...dirStyle,
         }}
       >
         {formatHandbookResultsTitle(result, locale, t)}
@@ -96,7 +143,8 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
       {isEntirelyOutOfCoverage ? (
         <Text
           accessibilityRole="alert"
-          style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize }}
+          {...dirProps}
+          style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize, ...dirStyle }}
         >
           {t("handbook.outOfCoverage")}
         </Text>
@@ -119,14 +167,10 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
           citation={t("handbook.rows.isc2025.citation")}
         />
       ) : (
-        <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[1], padding: spacing[3] }]}>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-            {t("handbook.rows.isc2025.label")}
-          </Text>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize }}>
-            {t("handbook.rows.isc2025.outsideCoverage")}
-          </Text>
-        </View>
+        <EmptyRow
+          label={t("handbook.rows.isc2025.label")}
+          message={t("handbook.rows.isc2025.outsideCoverage")}
+        />
       )}
 
       {/* --- PGA row --- */}
@@ -137,14 +181,10 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
           citation={t("handbook.rows.pga.citation")}
         />
       ) : (
-        <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[1], padding: spacing[3] }]}>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-            {t("handbook.rows.pga.label")}
-          </Text>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize }}>
-            {t("handbook.rows.pga.outsideZonation")}
-          </Text>
-        </View>
+        <EmptyRow
+          label={t("handbook.rows.pga.label")}
+          message={t("handbook.rows.pga.outsideZonation")}
+        />
       )}
 
       {/* --- Vs30 row --- */}
@@ -156,14 +196,10 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
           citation={result.vs30Citation}
         />
       ) : (
-        <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[1], padding: spacing[3] }]}>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
-            {t("handbook.rows.vs30.label")}
-          </Text>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize }}>
-            {t("handbook.rows.vs30.unavailable")}
-          </Text>
-        </View>
+        <EmptyRow
+          label={t("handbook.rows.vs30.label")}
+          message={t("handbook.rows.vs30.unavailable")}
+        />
       )}
 
       {/* --- Site class row (derived from Vs30, so it shares that row's
@@ -191,10 +227,11 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
         />
       ) : null}
 
-      {/* --- GMPE transparency row (static, not coordinate-dependent) --- */}
+      {/* --- GMPE transparency row (static, not coordinate-dependent). The
+       * model list is a Latin token line, isolated as one unit. --- */}
       <RowShell
         label={t("handbook.rows.gmpe.label")}
-        value={GMPE_SET_LABEL}
+        value={isolateNumeric(GMPE_SET_LABEL)}
         citation={t("handbook.rows.gmpe.note")}
       />
     </View>

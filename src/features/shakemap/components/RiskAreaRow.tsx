@@ -156,7 +156,12 @@ export function RiskAreaRow({
           lineHeight: typography.labelCaption.lineHeight,
         }}
       >
-        {t("eventDetail.risk.provinceCaption", { value: captionValue })}
+        {/* `count` only picks the plural form ("About 1 building"); the
+         * displayed figure is the rounded, digit-localised `value`. */}
+        {t("eventDetail.risk.provinceCaption", {
+          value: captionValue,
+          count: Math.round(area.buildingsHeavy),
+        })}
       </Text>
     </View>
   );

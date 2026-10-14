@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { isolateNumeric } from "@/features/events";
+import { directionProps, directionStyle } from "@/i18n";
 import { useTheme } from "@/theme";
 import { PUBLISHED_ID_BY_CATALOG_ID } from "../published-crosswalk";
 import {
@@ -96,37 +98,48 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
               <>
                 <DetailField
                   label={t("catalog.detail.dateLabel")}
-                  value={formatCatalogDateTimeUtc(row.time, locale)}
+                  value={formatCatalogDateTimeUtc(row.time, locale, t)}
+                  locale={locale}
                   colors={colors}
                   typography={typography}
                 />
                 <DetailField
                   label={t("catalog.detail.coordinatesLabel")}
                   value={formatCatalogCoordinates(row, locale)}
+                  locale={locale}
                   colors={colors}
                   typography={typography}
                 />
                 <DetailField
                   label={t("catalog.detail.depthLabel")}
                   value={formatCatalogDepth(row, locale, t) ?? t("catalog.detail.unknown")}
+                  locale={locale}
                   colors={colors}
                   typography={typography}
                 />
                 <DetailField
                   label={t("catalog.detail.magnitudeLabel")}
                   value={formatCatalogMagnitude(row, locale, t)}
+                  locale={locale}
                   colors={colors}
                   typography={typography}
                 />
                 <DetailField
                   label={t("catalog.detail.sourceLabel")}
                   value={t(`catalog.sources.${row.sourceCatalog}`)}
+                  locale={locale}
                   colors={colors}
                   typography={typography}
                 />
+                {/* Agency and bml ids are Latin/digit tokens: isolated so an
+                    RTL paragraph never reorders them, and the paragraph
+                    itself follows the locale so they line up under their
+                    right-aligned labels instead of hugging the left edge
+                    (A-7 c). */}
                 <DetailField
                   label={t("catalog.detail.sourceIdLabel")}
-                  value={row.sourceId ?? t("catalog.detail.unknown")}
+                  value={row.sourceId ? isolateNumeric(row.sourceId) : t("catalog.detail.unknown")}
+                  locale={locale}
                   colors={colors}
                   typography={typography}
                 />
@@ -137,7 +150,8 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                     row above); no other screen displays bml ids. */}
                 <DetailField
                   label={t("catalog.detail.bumelerzeIdLabel")}
-                  value={row.bumelerzeId}
+                  value={isolateNumeric(row.bumelerzeId)}
+                  locale={locale}
                   colors={colors}
                   typography={typography}
                 />
@@ -188,11 +202,18 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
 interface DetailFieldProps {
   label: string;
   value: string;
+  /** The app language; drives the value's paragraph direction. */
+  locale: string;
   colors: ReturnType<typeof useTheme>["colors"];
   typography: ReturnType<typeof useTheme>["typography"];
 }
 
-function DetailField({ label, value, colors, typography }: DetailFieldProps) {
+/** Label over value. The value's paragraph direction follows the app
+ * language explicitly (`directionProps`/`directionStyle`): react-native-web
+ * gives every `Text` `dir="auto"`, and a value made only of digits and
+ * Latin letters (a date, an id, a coordinate pair) then resolves to LTR and
+ * sits at the LEFT edge under a right-aligned Sorani label (A-7 c). */
+function DetailField({ label, value, locale, colors, typography }: DetailFieldProps) {
   return (
     <View style={styles.field}>
       <Text
@@ -206,10 +227,12 @@ function DetailField({ label, value, colors, typography }: DetailFieldProps) {
       </Text>
       <Text
         allowFontScaling
+        {...directionProps(locale)}
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           lineHeight: typography.bodyDefault.lineHeight,
+          ...directionStyle(locale),
         }}
       >
         {value}

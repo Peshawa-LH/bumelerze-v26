@@ -76,10 +76,14 @@ export function ShakeMapLegend({
           ? intensityLegendLabels(locale).map(({ level, label: numeral }) => {
               return (
                 <View key={level} style={styles.legendItem}>
+                  {/* Every swatch carries a hairline border: the level I
+                   * colour is near-white and was invisible on the light
+                   * theme (A-21) — the border is what shows a swatch exists. */}
                   <View
+                    testID={`shakemap-legend-swatch-${level}`}
                     style={[
                       styles.legendSwatch,
-                      { backgroundColor: rampColor(colors, level) },
+                      { backgroundColor: rampColor(colors, level), borderColor: colors.border.default },
                     ]}
                   />
                   <Text
@@ -101,7 +105,7 @@ export function ShakeMapLegend({
                   <View
                     style={[
                       styles.legendSwatch,
-                      { backgroundColor: damageColor(colors, level) },
+                      { backgroundColor: damageColor(colors, level), borderColor: colors.border.default },
                     ]}
                   />
                   <Text
@@ -134,5 +138,6 @@ const styles = StyleSheet.create({
     width: 16,
     height: 10,
     borderRadius: 2,
+    borderWidth: StyleSheet.hairlineWidth,
   },
 });

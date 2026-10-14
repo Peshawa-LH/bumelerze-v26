@@ -8,10 +8,33 @@ import {
   Tier2OptionButton,
   Tier2ScreenShell,
   TIER2_QUESTIONS,
+  useFeltQueueStore,
   useTier2DraftStore,
+  type CartoonLevel,
   type DamageLevel,
+  type FeltAnswer,
+  type Tier2QuestionDef,
 } from "@/features/felt";
+import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
+
+/**
+ * The cartoon level that means "Not felt" (`felt.tier1.levels.1`). Window 1
+ * already asked the person how strongly they felt it, so the questionnaire's
+ * own "Did you feel the earthquake?" is answered from that pick instead of
+ * being asked again seconds later (A-13).
+ */
+const NOT_FELT_LEVEL: CartoonLevel = 1;
+
+function feltAnswerFromLevel(level: CartoonLevel): FeltAnswer {
+  return level === NOT_FELT_LEVEL ? "no" : "yes";
+}
+
+/** The questions actually shown: every tier-2 question, minus the "felt"
+ * one when window 1 already answered it. Order is the science pack's. */
+function askedQuestions(feltKnown: boolean): readonly Tier2QuestionDef[] {
+  return feltKnown ? TIER2_QUESTIONS.filter((question) => question.field !== "felt") : TIER2_QUESTIONS;
+}
 
 /**
  * One tier-2 question per screen (spec-v1.md §4.6 — Q1-Q9/Q11,
@@ -23,6 +46,13 @@ import { useTheme } from "@/theme";
  * already in the shared draft by the time this screen ever mounts. The
  * LAST question submits directly (there is no separate comment step
  * anymore) and hands off to the shared `done` screen.
+ *
+ * The route's `step` stays the index into `TIER2_QUESTIONS` (the science
+ * numbering); what the person sees is "Step {{current}} of {{total}}" over
+ * the questions actually asked, and the "felt" question is pre-answered
+ * from the window-1 level and stepped over whenever that level is known
+ * (the queued tier-1 report for `feltReportId`). The question keeps its
+ * string for the standalone path, where no level exists.
  */
 export default function Tier2StepScreen() {
   const { step, feltReportId, eventId } = useLocalSearchParams<{
@@ -30,7 +60,7 @@ export default function Tier2StepScreen() {
     feltReportId: string;
     eventId?: string;
   }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { spacing } = useTheme();
   const router = useRouter();
 
@@ -39,6 +69,12 @@ export default function Tier2StepScreen() {
 
   const initDraft = useTier2DraftStore((state) => state.initDraft);
   const setAnswer = useTier2DraftStore((state) => state.setAnswer);
+  const tier1Level = useFeltQueueStore(
+    (state) =>
+      state.items.find((item) => item.tier1.reportId === feltReportId)?.tier1.cartoonLevel ?? null,
+  );
+  const feltKnown = tier1Level !== null;
+  const asked = askedQuestions(feltKnown);
 
   useEffect(() => {
     if (feltReportId) {
@@ -46,10 +82,23 @@ export default function Tier2StepScreen() {
     }
   }, [feltReportId, eventId, initDraft]);
 
-  if (!question) {
+  // Landing on the pre-answered question (e.g. a stale link): record the
+  // window-1 answer and move on without rendering it.
+  useEffect(() => {
+    if (question?.field === "felt" && tier1Level !== null) {
+      setAnswer("felt", feltAnswerFromLevel(tier1Level));
+      router.replace({
+        pathname: "/felt-report/step/[step]",
+        params: { step: String(stepIndex + 1), feltReportId, eventId: eventId ?? "" },
+      });
+    }
+  }, [question, tier1Level, setAnswer, router, stepIndex, feltReportId, eventId]);
+
+  if (!question || (question.field === "felt" && feltKnown)) {
     // Defensive only — every link into this route is built from
     // TIER2_QUESTIONS.length by this same module, so an out-of-range step
-    // should never actually happen.
+    // should never actually happen; the pre-answered question is being
+    // stepped over by the effect above.
     return null;
   }
 
@@ -60,6 +109,13 @@ export default function Tier2StepScreen() {
   const currentQuestion = question;
 
   async function goToStep(nextIndex: number) {
+    const next = TIER2_QUESTIONS[nextIndex];
+    if (next && next.field === "felt" && tier1Level !== null) {
+      // Window 1 already answered this one: record it and step over it.
+      setAnswer("felt", feltAnswerFromLevel(tier1Level));
+      await goToStep(nextIndex + 1);
+      return;
+    }
     if (nextIndex < TIER2_QUESTIONS.length) {
       router.push({
         pathname: "/felt-report/step/[step]",
@@ -106,11 +162,18 @@ export default function Tier2StepScreen() {
     void goToStep(stepIndex + 1);
   }
 
+  const position = asked.indexOf(currentQuestion);
+  const progress = t("felt.tier2.progress", {
+    current: localizeDigits(String(position + 1), i18n.language),
+    total: localizeDigits(String(asked.length), i18n.language),
+  });
+
   return (
     <Tier2ScreenShell
-      currentIndex={stepIndex}
-      totalSteps={TIER2_QUESTIONS.length}
+      currentIndex={position}
+      totalSteps={asked.length}
       title={t(`felt.tier2.questions.${currentQuestion.i18nKey}.title`)}
+      description={progress}
       onBack={handleBack}
       onSkip={handleSkip}
     >

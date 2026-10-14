@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react-native";
 
+import { isolateNumeric } from "@/features/events";
 import i18n from "@/i18n";
 import { HandbookResultTable } from "../components/HandbookResultTable";
 import { formatNearbySoilSummary, formatNearestSoilPoint } from "../format";
@@ -106,9 +107,10 @@ describe("HandbookResultTable", () => {
     expect(screen.getByText("Global topographic-slope model, not a site measurement")).toBeTruthy();
     expect(screen.getByText(FULL_RESULT.vs30Citation)).toBeTruthy();
 
-    // Site-class row: EC8 only, no NEHRP anywhere in the row.
+    // Site-class row: EC8 only, no NEHRP anywhere in the row. The value is a
+    // Latin code line, isolated as one unit (B-7).
     expect(screen.getByText("Site class")).toBeTruthy();
-    expect(screen.getByText("EC8 B")).toBeTruthy();
+    expect(screen.getByText(isolateNumeric("EC8 B"))).toBeTruthy();
     expect(screen.getByText("Eurocode 8 (EN 1998-1) Table 3.1")).toBeTruthy();
     expect(screen.queryByText(/NEHRP/)).toBeNull();
 
@@ -130,9 +132,25 @@ describe("HandbookResultTable", () => {
       ),
     ).toBeTruthy();
 
-    // GMPE transparency row + its note.
+    // GMPE transparency row + its note; the model list is a Latin token
+    // line, isolated as one unit.
     expect(screen.getByText("Ground-motion models used in this app")).toBeTruthy();
-    expect(screen.getByText("CY14, ASB14, BSSA14, Kale15-Iran")).toBeTruthy();
+    expect(screen.getByText(isolateNumeric("CY14, ASB14, BSSA14, Kale15-Iran"))).toBeTruthy();
+  });
+
+  it("lays every row out in the app language's direction under Sorani, not by its first letter (B-7)", async () => {
+    await i18n.changeLanguage("ckb");
+    await render(<HandbookResultTable result={FULL_RESULT} />);
+
+    // "Ss ١.٢٢g / S1 ٠.٤٩g / PGA ٠.٢٤g" starts with a Latin token: without
+    // an explicit direction the browser laid the Sorani card out LTR.
+    for (const value of screen.getAllByTestId("handbook-row-value")) {
+      const style = Object.assign({}, ...[value.props.style].flat());
+      expect(style.writingDirection).toBe("rtl");
+      expect(style.textAlign).toBe("right");
+    }
+    const isc = screen.getByText(/Ss ١\.٢٢g/);
+    expect(isc.props.children).toBe(isolateNumeric("Ss ١.٢٢g / S1 ٠.٤٩g / PGA ٠.٢٤g"));
   });
 
   it("shows the honest outside-zonation / unavailable states and hides the soil section entirely when out of coverage", async () => {

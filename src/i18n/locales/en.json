@@ -1,5 +1,4 @@
 {
-  "_status": "source",
   "nav": {
     "back": "Back",
     "loading": "Loading…",
@@ -358,7 +357,7 @@
     "web": {
       "enableButton": "Enable motion sensor",
       "enableHint": "Tap the button and allow motion access to see the live view.",
-      "explanation": "This browser is not sending motion data.\n1. On iPhone: Settings → Safari → turn on Motion & Orientation Access.\n2. Reload this page.",
+      "explanation": "This browser is not sending motion data.\n1. On iPhone, tap the button and choose Allow.\n2. If you refused earlier, close this tab, open app.bumelerze.com again and allow it.",
       "desktop": "The live view needs a phone's motion sensor. Open app.bumelerze.com on your phone to try it."
     },
     "view": {
@@ -778,14 +777,14 @@
     "coordinatesSectionTitle": "Coordinates",
     "depthSectionTitle": "Depth",
     "distanceSectionTitle": "Distance",
-    "historicalContextLink": "Earthquakes here since 1900",
+    "historicalContextLink": "Historical earthquakes in the region",
     "sourceSectionTitle": "Source",
-    "sourceUpdated": "Updated {{time}}",
+    "sourceUpdated": "Updated {{time}} (local time)",
     "sourceCitation": "Event data: {{network}} (via FDSN web service)",
     "sourceProviderTitle": "{{network}} lists this event as: {{title}}",
     "shakemap": {
       "sectionTitle": "SHAKEmap",
-      "updated": "Updated {{time}}",
+      "updated": "Updated {{time}} (local time)",
       "citation": "SHAKEmap: {{producer}}, version {{version}}",
       "engineVersion": "Hazard engine version {{version}}",
       "legendCaption": "Intensity (IMS-25): Bumelerze SHAKEmap scale",
@@ -860,7 +859,6 @@
         "district": "Districts",
         "governorate": "Governorates"
       },
-      "provinceCaption": "About {{value}} buildings",
       "provinceRowA11y": "{{province}}, {{band}} band, about {{value}} buildings heavily damaged",
       "areaRowA11y": "{{area}}, {{band}} band, about {{value}} buildings heavily damaged",
       "areaLevelA11y": "Show {{level}}",
@@ -905,14 +903,16 @@
       "detail": {
         "show": "See the detail",
         "hide": "Hide the detail"
-      }
+      },
+      "provinceCaption_one": "About {{value}} building",
+      "provinceCaption_other": "About {{value}} buildings"
     },
     "feltMap": {
       "sectionTitle": "Felt map",
       "legendCaption": "Community Decimal Intensity (CDI): self-reported",
       "mapA11yLabel": "Felt-report map, {{count}} reports, intensity {{min}} to {{max}}, near {{place}}",
       "reportCount": "{{count}} reports across {{cells}} areas",
-      "updated": "Updated {{time}}",
+      "updated": "Updated {{time}} (local time)",
       "citation": "Bumelerze felt reports: community-submitted, aggregated per area",
       "unavailableOffline": "Felt map unavailable offline",
       "retry": "Retry"
@@ -943,7 +943,6 @@
       "posting": "Posting…",
       "anonymousNote": "Your comment will appear after review. Create an account to post right away.",
       "createAccount": "Create an account",
-      "posted": "Posted.",
       "postedPending": "Thanks. Your comment is waiting for review.",
       "errors": {
         "rateLimited": "Too many comments. Wait a few minutes.",
@@ -1241,7 +1240,8 @@
             "3": "Landslide, collapsed road, or large ground failure"
           }
         }
-      }
+      },
+      "progress": "Step {{current}} of {{total}}"
     },
     "damage": {
       "title": "Was there any damage?",
@@ -1250,7 +1250,6 @@
         "label": "I didn't see any damage",
         "hint": "Selects and continues right away"
       },
-      "tileA11yHint": "Selects and continues right away",
       "typologies": {
         "highrise": "High-rise building",
         "lowrise": "Single-storey or low-rise building (Iraqi-typical)"
@@ -1307,7 +1306,6 @@
     }
   },
   "handbook": {
-    "settingsRowTitle": "Engineer's handbook",
     "title": "Engineer's handbook",
     "intro": "Enter coordinates for a site in Kurdistan/Iraq to look up cited reference values.",
     "coordinates": {
@@ -1414,8 +1412,6 @@
         "IV": "IV (essential facility)"
       },
       "rLabel": "R (response modification coefficient)",
-      "rNote": "Only R = 4 (intermediate RC moment frame) is verified against the code's own worked example. Every other system needs the full Table 3-2/1 from your own copy of ISC-2017 — enter it directly below.",
-      "rChipLabel": "R = {{r}} ({{systemLabel}})",
       "rOptions": {
         "rcMomentFrameIntermediate": "intermediate RC moment frame"
       },
@@ -1513,16 +1509,12 @@
       "systemChange": "Change",
       "systemHideList": "Hide the list",
       "ec8": {
-        "show": "Compare with Eurocode 8",
-        "hide": "Hide the Eurocode 8 comparison",
-        "caveat": "Dashed line: EN 1998-1 Type 1 elastic spectrum, ground type {{groundType}}, 5% damping, using the ISC-2025 PGA as ag. This is a shape comparison, not a Eurocode design spectrum: EC8's own reference is the 475-year hazard, Iraq has no EC8 national annex, and EC8 ground types are not ISC site classes.",
         "paramsTitle": "Eurocode 8 parameters",
         "params": "ag {{ag}} g · ground type {{groundType}} · S {{s}} · TB {{tb}} s · TC {{tc}} s · TD {{td}} s · plateau 2.5·S·ag = {{plateau}} g"
       },
       "systemOptional": "Response modification coefficient R",
       "systemLookup": "Look up R, Ω0 and Cd from the code table",
       "rNoteFree": "From ISC-2017 Table 3-2/1 for your system. The spectrum above does not depend on R; it is needed for the base shear and the reduced curve.",
-      "asceNote": "The solid curve is also the ASCE 7-10 spectrum: ISC-2017 uses ASCE's four branches and its Fa and Fv tables unchanged, so an ASCE 7-10 curve would fall exactly on it. ASCE 7-16 revised the site coefficients and would differ, but that standard is not held here.",
       "methodLabel": "Calculate the spectrum with",
       "methods": {
         "isc": "Iraqi code",
@@ -1896,7 +1888,8 @@
       "cityHint": "Shown on your profile as “Lives in …”. Only the town name is saved, never your location.",
       "cityChoose": "Choose a town",
       "cityChange": "Change town",
-      "cityRemove": "Remove"
+      "cityRemove": "Remove",
+      "usernamePlaceholder": "username"
     },
     "professions": {
       "engineer": "Engineer",
@@ -2343,8 +2336,7 @@
       "title": "Delete this home?",
       "warning": "It goes to the trash for 14 days, and family members can't see it from now on. You can restore it from your Profile until then. After that the answers, report, photos and family links are deleted for good.",
       "confirm": "Delete",
-      "doneTitle": "Home deleted",
-      "photosLeft": "Some photos could not be removed from our servers. No one can see them."
+      "doneTitle": "Home deleted"
     },
     "family": {
       "title": "Family",
@@ -2508,7 +2500,6 @@
       "comments_off": "Comments are off for this post."
     },
     "mute": {
-      "mute": "Mute",
       "unmute": "Unmute",
       "muted": "You muted this person. Their comments and posts are hidden for you. They are not told.",
       "snackbarMuted": "{{name}} muted"
@@ -2530,22 +2521,13 @@
       "open": "Open event"
     },
     "ranks": {
-      "title": "Give badges",
-      "usernameLabel": "Username",
       "rankLabel": "Badge",
       "orgLabel": "Organisation",
-      "noteLabel": "Private note",
-      "grant": "Give badge",
-      "revoke": "Take away",
       "granted": "Badge given.",
-      "revoked": "Badge taken away.",
-      "holders": "Who has badges",
-      "noHolders": "No badges given yet.",
-      "givenBy": "Given by {{name}}"
+      "revoked": "Badge taken away."
     },
     "reports": {
       "title": "Reported profiles",
-      "empty": "No reports.",
       "count": "Reports: {{number}}",
       "dismiss": "Dismiss",
       "open": "Open profile",
@@ -2631,7 +2613,6 @@
       "undo": "Undo"
     },
     "passwords": {
-      "title": "Reset a password",
       "confirmTitle": "Reset password",
       "confirmMessage": "Make a temporary password for {{name}}? Their old password stops working and they are signed out everywhere.",
       "confirmButton": "Reset",
@@ -2748,7 +2729,6 @@
         "viewProfile": "View profile",
         "lift": "Lift limit",
         "resetPassword": "Reset password",
-        "badge": "Badges",
         "resetFields": "Reset name / photo",
         "revealEmail": "Show email",
         "addNote": "Add note",
@@ -2756,9 +2736,7 @@
         "suspend": "Suspend"
       },
       "badge": {
-        "title": "Badges",
         "holds": "Has: {{ranks}}",
-        "holdsNone": "No badges yet.",
         "needsUsername": "Badges need an @username. This person has none.",
         "giveTitle": "Give badge to @{{username}}",
         "give": "Give badge: {{badge}}",
@@ -2869,7 +2847,6 @@
       "title": "Feedback",
       "detailTitle": "Feedback message",
       "hint": "Messages sent from the app, badge requests and appeals. Private: never shown to anyone else.",
-      "openCount": "{{count}} open",
       "searchLabel": "Search feedback",
       "searchPlaceholder": "Words in the message, name or @username",
       "counts": {
@@ -3221,8 +3198,6 @@
     "pin": "Pin to profile",
     "unpin": "Unpin",
     "pinned": "Pinned",
-    "helpful": "Helpful",
-    "helpfulCount": "Helpful: {{number}}",
     "event": {
       "label": "Earthquake",
       "open": "Open the earthquake: {{event}}",
@@ -3232,7 +3207,6 @@
   },
   "postComments": {
     "open": "Comment",
-    "count": "Comments ({{number}})",
     "close": "Hide comments",
     "placeholder": "Write a comment",
     "empty": "No comments yet.",
@@ -3379,14 +3353,12 @@
     "button": {
       "safe": "I'm safe",
       "later": "Not now",
-      "practice": "Practice a check-in",
       "done": "Done"
     },
     "status": {
       "queued": "Saved on your phone. It will be sent when there is signal.",
       "sent": "Sent. The people you chose can see that you are safe.",
       "failed": "Not sent. You can send a message instead.",
-      "undone": "Taken back.",
       "sentNobody": "Saved, but nobody in Bumelerze can see it yet. You can send a message instead."
     },
     "action": {
@@ -3428,8 +3400,7 @@
       "empty": "No check-ins in the last day.",
       "alone": "When others join this home, their check-ins show here.",
       "setting": "Show my check-ins to this home",
-      "settingHint": "Only approved members of this home see them. Never your location.",
-      "loadError": "Family status could not be loaded."
+      "settingHint": "Only approved members of this home see them. Never your location."
     },
     "banner": {
       "a11y": "Are you safe? A strong earthquake happened near you."
@@ -3580,7 +3551,6 @@
     "testerIntro": "You are testing earthquake alerts before they open to everyone. Alerts come only to the devices you turn on here.",
     "paused": "Sending is paused for everyone right now.",
     "device": {
-      "title": "This device",
       "on": "Alerts are on for this device.",
       "off": "Alerts are off on this device.",
       "turnOn": "Turn on alerts on this device",
@@ -3611,7 +3581,6 @@
     },
     "nearMeWhere": "Near me uses your place from My location: {{place}}.",
     "nearMeNoPlace": "Near me needs your place. Set it in Settings, My location.",
-    "saveFailed": "Your alert settings were not saved. They will be saved when you are online.",
     "test": {
       "button": "Send me a test alert",
       "sent": "Test alert sent. It should arrive within about two minutes. If it does not, check that notifications are allowed and that Do Not Disturb or Focus is off.",

@@ -63,12 +63,30 @@ function pickDefaultLevel(
  * switching level resets that toggle back to the first 6 of the newly
  * selected level.
  */
+/**
+ * Rows whose P50 rounds to at least one building. A small event's product
+ * carries every area the map window touches, down to "About 0 buildings"
+ * and "About 1 buildings" (A-11) — a zero row says nothing a reader can
+ * use, so it is dropped here, per level, BEFORE the level switch decides
+ * which levels exist. The producer's worst-first order is kept.
+ */
+function rowsWithDamage(areas: RiskAreas): RiskAreas["levels"] {
+  const filtered = {} as RiskAreas["levels"];
+  for (const level of LEVEL_SWITCH_ORDER) {
+    filtered[level] = areas.levels[level].filter((area) => Math.round(area.buildingsHeavy) >= 1);
+  }
+  return filtered;
+}
+
 export function RiskAreaList({ areas, locale, t, colors, typography, spacing }: RiskAreaListProps) {
+  const levels = useMemo(() => rowsWithDamage(areas), [areas]);
   const visibleLevels = useMemo(
-    () => LEVEL_SWITCH_ORDER.filter((level) => areas.levels[level].length > 0),
-    [areas],
+    () => LEVEL_SWITCH_ORDER.filter((level) => levels[level].length > 0),
+    [levels],
   );
-  const [level, setLevel] = useState<RiskAreaLevel>(() => pickDefaultLevel(areas, visibleLevels));
+  const [level, setLevel] = useState<RiskAreaLevel>(() =>
+    pickDefaultLevel({ ...areas, levels }, visibleLevels),
+  );
   const [showAll, setShowAll] = useState(false);
 
   if (visibleLevels.length === 0) {
@@ -78,8 +96,8 @@ export function RiskAreaList({ areas, locale, t, colors, typography, spacing }: 
   // Guards a level selected before `areas` changed out from under this
   // component (e.g. a different event's product resolving in) — falls
   // back to the first visible level rather than rendering an empty list.
-  const activeLevel = areas.levels[level].length > 0 ? level : (visibleLevels[0] as RiskAreaLevel);
-  const rows = areas.levels[activeLevel];
+  const activeLevel = levels[level].length > 0 ? level : (visibleLevels[0] as RiskAreaLevel);
+  const rows = levels[activeLevel];
 
   const worstBuildingsHeavy = rows[0]?.buildingsHeavy ?? 0;
   const visible = showAll ? rows : rows.slice(0, INITIAL_ROWS);

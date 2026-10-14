@@ -32,6 +32,7 @@ import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/ge
 import { useUserDistanceAnchor } from "@/features/location";
 import { ShareButton, shareIdFor } from "@/features/share";
 import { RiskSection, ShakeMapSection } from "@/features/shakemap";
+import { directionProps, directionStyle } from "@/i18n";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
@@ -446,17 +447,26 @@ function EventDetailHeader({
         <DetailRow
           label={t("eventDetail.utcTimeLabel")}
           value={utc}
+          locale={locale}
           colors={colors}
           typography={typography}
         />
         <DetailRow
           label={t("eventDetail.localTimeLabel")}
           value={local}
+          locale={locale}
           colors={colors}
           typography={typography}
         />
       </DetailSection>
 
+      {/* Coordinates and depth are numeric chunks already wrapped in a bidi
+       * isolate by their formatters, so they read left to right inside ANY
+       * paragraph. The paragraph itself follows the app language and the
+       * text aligns to the reading start: under Sorani and Arabic the value
+       * sits under its right-aligned label instead of at the left edge of
+       * the page (B-3). A forced `writingDirection: "ltr"` used to do that,
+       * and on web it also had no effect on the bidi order. */}
       <DetailSection
         title={t("eventDetail.coordinatesSectionTitle")}
         colors={colors}
@@ -464,12 +474,14 @@ function EventDetailHeader({
         spacing={spacing}
       >
         <Text
+          testID="event-detail-coordinates"
+          {...directionProps(locale)}
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
             lineHeight: typography.bodyDefault.lineHeight,
             fontVariant: ["tabular-nums"],
-            writingDirection: "ltr",
+            ...directionStyle(locale),
           }}
         >
           {formatCoordinates(event.lat, event.lon, locale)}
@@ -483,12 +495,14 @@ function EventDetailHeader({
         spacing={spacing}
       >
         <Text
+          testID="event-detail-depth"
+          {...directionProps(locale)}
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
             lineHeight: typography.bodyDefault.lineHeight,
             fontVariant: ["tabular-nums"],
-            writingDirection: "ltr",
+            ...directionStyle(locale),
           }}
         >
           {isolateNumeric(`${formatDepthKm(event.depthKm, locale)} ${t("units.km")}`)}
@@ -665,6 +679,8 @@ function DetailSection({
 interface DetailRowProps {
   label: string;
   value: string;
+  /** The app language; drives the value's paragraph direction. */
+  locale: string;
   colors: ReturnType<typeof useTheme>["colors"];
   typography: ReturnType<typeof useTheme>["typography"];
 }
@@ -675,8 +691,13 @@ interface DetailRowProps {
  * pushed the value to the far edge on any wide layout and, under RTL,
  * parked the (necessarily LTR) timestamp on the LEFT of its label: "the
  * time parts go to the left side of the other text" (feedback e1221625).
+ *
+ * The value is a localised SENTENCE ("١٢ی تشرینی دووەمی ٢٠١٧، ٦:١٨ دوای
+ * نیوەڕۆ UTC"), not a raw timestamp, so it takes the language's own
+ * direction: forcing LTR put the trailing "UTC" at the reading START of a
+ * Sorani line (B-3). The digits inside keep their order on their own.
  */
-function DetailRow({ label, value, colors, typography }: DetailRowProps) {
+function DetailRow({ label, value, locale, colors, typography }: DetailRowProps) {
   return (
     <View style={styles.row}>
       <Text
@@ -689,15 +710,14 @@ function DetailRow({ label, value, colors, typography }: DetailRowProps) {
         {label}
       </Text>
       <Text
+        testID="event-detail-time-value"
+        {...directionProps(locale)}
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           lineHeight: typography.bodyDefault.lineHeight,
           fontVariant: ["tabular-nums"],
-          // A timestamp reads left-to-right in every locale; `alignSelf`
-          // keeps it at the reading START under RTL rather than letting the
-          // LTR run float to the opposite edge.
-          writingDirection: "ltr",
+          ...directionStyle(locale),
           alignSelf: "flex-start",
         }}
       >

@@ -1,9 +1,12 @@
+import * as Location from "expo-location";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { GAZETTEER_CITIES, pickLocalizedName } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
+import { directionProps, directionStyle } from "@/i18n";
+import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import {
   type CoordinateFieldError,
@@ -27,25 +30,73 @@ function fieldErrorKey(error: CoordinateFieldError): string {
   }
 }
 
+type LocationRequest = "idle" | "asking" | "denied";
+
 /**
- * Coordinate entry (spec-v1.md §7): decimal-degrees text inputs (Latin
- * digits only — see `coordinate-validation.ts`'s doc comment), a "use my
- * location" button (reusing the existing read-only location anchor, same
- * as the rest of the app — never requests permission itself, spec-v1.md
- * §4.1 pattern), and an optional gazetteer town picker. Validation runs on
- * submit, not on every keystroke, so a mid-typing negative sign or partial
- * decimal never flashes an error.
+ * Asks the platform for one foreground fix, prompting for permission when
+ * it has not been decided yet (the browser prompt on web). Must run from a
+ * tap handler so the system prompt follows a user action. Returns null on
+ * a refusal or any platform failure.
+ */
+async function requestDeviceFix(): Promise<{ lat: number; lon: number } | null> {
+  try {
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (!permission.granted) {
+      return null;
+    }
+    const cached = await Location.getLastKnownPositionAsync();
+    const position =
+      cached ??
+      (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
+    if (!position) {
+      return null;
+    }
+    return { lat: position.coords.latitude, lon: position.coords.longitude };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Coordinate entry (spec-v1.md §7): decimal-degrees text inputs, a "use my
+ * location" button, an optional gazetteer town picker and the map picker.
+ * Validation runs on submit, not on every keystroke, so a mid-typing
+ * negative sign or partial decimal never flashes an error.
+ *
+ * "Use my location" asks for the fix when tapped (B-18): it used to be
+ * greyed out on every fresh web visit, with the "Location isn't available"
+ * note shown unprompted, because it only ever copied a fix the Settings
+ * screen had already obtained. Now a tap prompts the browser or phone, a
+ * known fix (`useUserDistanceAnchor`) is still used instantly without a
+ * prompt, and the note appears only after a refusal.
+ *
+ * The fields show the reader's own digits: a fix or a picked town fills
+ * them in the locale's digits (Eastern Arabic-Indic in Sorani and Arabic,
+ * matching the placeholders), and `coordinate-validation.ts` accepts those
+ * digits on submit. The inputs follow the app language's direction so a
+ * typed value sits under its label on the reading side (B-7).
  */
 export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const anchor = useUserDistanceAnchor();
+  const locale = i18n.language;
+  const dirProps = directionProps(locale);
+  const dirStyle = directionStyle(locale);
 
   const [latText, setLatText] = useState("");
   const [lonText, setLonText] = useState("");
   const [latError, setLatError] = useState<CoordinateFieldError | null>(null);
   const [lonError, setLonError] = useState<CoordinateFieldError | null>(null);
   const [isPickingTown, setIsPickingTown] = useState(false);
+  const [locationRequest, setLocationRequest] = useState<LocationRequest>("idle");
+
+  function fillCoordinates(lat: number, lon: number) {
+    setLatText(localizeDigits(lat.toFixed(4), locale));
+    setLonText(localizeDigits(lon.toFixed(4), locale));
+    setLatError(null);
+    setLonError(null);
+  }
 
   function handleSubmit() {
     const lat = validateLatitude(latText);
@@ -57,29 +108,24 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
     }
   }
 
-  function handleUseMyLocation() {
-    if (!anchor.hasFix) {
+  async function handleUseMyLocation() {
+    if (anchor.hasFix) {
+      fillCoordinates(anchor.lat, anchor.lon);
       return;
     }
-    setLatText(anchor.lat.toFixed(4));
-    setLonText(anchor.lon.toFixed(4));
-    setLatError(null);
-    setLonError(null);
+    setLocationRequest("asking");
+    const fix = await requestDeviceFix();
+    if (fix) {
+      fillCoordinates(fix.lat, fix.lon);
+      setLocationRequest("idle");
+    } else {
+      setLocationRequest("denied");
+    }
   }
 
   function handleSelectTown(lat: number, lon: number) {
-    setLatText(lat.toFixed(4));
-    setLonText(lon.toFixed(4));
-    setLatError(null);
-    setLonError(null);
+    fillCoordinates(lat, lon);
     setIsPickingTown(false);
-  }
-
-  function handleSelectFromMap(lat: number, lon: number) {
-    setLatText(lat.toFixed(4));
-    setLonText(lon.toFixed(4));
-    setLatError(null);
-    setLonError(null);
   }
 
   // Best-effort parse of whatever is currently in the text fields, purely
@@ -89,6 +135,17 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
   // back to the map's own Kurdistan default view.
   const parsedInitialLat = validateLatitude(latText).value;
   const parsedInitialLon = validateLongitude(lonText).value;
+
+  const inputStyle = [
+    styles.input,
+    {
+      color: colors.text.primary,
+      backgroundColor: colors.surface.raised,
+      fontSize: typography.bodyDefault.fontSize,
+      padding: spacing[3],
+      ...dirStyle,
+    },
+  ];
 
   return (
     <View style={{ gap: spacing[3] }}>
@@ -119,15 +176,11 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
           accessibilityLabel={t("handbook.coordinates.latLabel")}
           keyboardType="default"
           autoCorrect={false}
+          testID="handbook-lat-input"
+          {...dirProps}
           style={[
-            styles.input,
-            {
-              color: colors.text.primary,
-              borderColor: latError ? colors.status.danger : colors.border.default,
-              backgroundColor: colors.surface.raised,
-              fontSize: typography.bodyDefault.fontSize,
-              padding: spacing[3],
-            },
+            ...inputStyle,
+            { borderColor: latError ? colors.status.danger : colors.border.default },
           ]}
         />
         {latError ? (
@@ -152,15 +205,11 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
           accessibilityLabel={t("handbook.coordinates.lonLabel")}
           keyboardType="default"
           autoCorrect={false}
+          testID="handbook-lon-input"
+          {...dirProps}
           style={[
-            styles.input,
-            {
-              color: colors.text.primary,
-              borderColor: lonError ? colors.status.danger : colors.border.default,
-              backgroundColor: colors.surface.raised,
-              fontSize: typography.bodyDefault.fontSize,
-              padding: spacing[3],
-            },
+            ...inputStyle,
+            { borderColor: lonError ? colors.status.danger : colors.border.default },
           ]}
         />
         {lonError ? (
@@ -173,13 +222,14 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
       <View style={styles.row}>
         <Pressable
           accessibilityRole="button"
-          disabled={!anchor.hasFix}
-          onPress={handleUseMyLocation}
+          accessibilityState={{ busy: locationRequest === "asking" }}
+          disabled={locationRequest === "asking"}
+          onPress={() => void handleUseMyLocation()}
           hitSlop={8}
         >
           <Text
             style={{
-              color: anchor.hasFix ? colors.text.link : colors.text.tertiary,
+              color: locationRequest === "asking" ? colors.text.tertiary : colors.text.link,
               fontSize: typography.labelButton.fontSize,
               fontWeight: typography.labelButton.fontWeight,
             }}
@@ -206,11 +256,15 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
         <MapCoordinatePicker
           initialLat={parsedInitialLat}
           initialLon={parsedInitialLon}
-          onSelect={handleSelectFromMap}
+          onSelect={fillCoordinates}
         />
       </View>
-      {!anchor.hasFix ? (
-        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+      {locationRequest === "denied" ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          testID="handbook-location-denied"
+          style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}
+        >
           {t("handbook.coordinates.locationUnavailable")}
         </Text>
       ) : null}

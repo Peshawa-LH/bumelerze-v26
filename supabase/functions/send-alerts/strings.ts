@@ -32,7 +32,7 @@ export const STRINGS = {
   "ckb": {
     "magnitude": "{{value}} پلە",
     "alertTitle": "بوومەلەرزەیەکی {{magnitude}}",
-    "placeTemplate": "{{distance}} {{direction}}ی {{city}}ەوە",
+    "placeTemplate": "{{distance}} {{direction}}ی {{city}}",
     "placeWithRegion": "{{line}}، {{region}}",
     "placeCoordinates": "نزیک {{lat}}، {{lon}}",
     "km": "کم",
@@ -86,7 +86,7 @@ export const STRINGS = {
   "ar": {
     "magnitude": "{{value}} درجة",
     "alertTitle": "زلزال بقوة {{magnitude}}",
-    "placeTemplate": "{{distance}} {{direction}} من {{city}}",
+    "placeTemplate": "{{distance}} {{direction}} {{city}}",
     "placeWithRegion": "{{line}}، {{region}}",
     "placeCoordinates": "قرب {{lat}}، {{lon}}",
     "km": "كم",
@@ -108,7 +108,7 @@ export const STRINGS = {
     "summaryTitle": "مزيد من الزلازل في المنطقة",
     "summaryBody": "زلازل أصغر منذ آخر تنبيه لك: {{count}}. أقواها: {{magnitude}}، {{place}}.",
     "testTitle": "تنبيه تجريبي",
-    "testBody": "هذا اختبار من Bumelerze. لم يقع أي زلزال."
+    "testBody": "هذا اختبار من ⁦Bumelerze⁩. لم يقع أي زلزال."
   }
 } as const;
 

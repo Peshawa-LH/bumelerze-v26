@@ -8,6 +8,7 @@ export {
 export { fetchCatalogBounds, fetchCatalogCount, fetchCatalogPage, type CatalogDb } from "./db";
 export {
   formatCatalogCoordinates,
+  formatCatalogDate,
   formatCatalogDateTimeUtc,
   formatCatalogDepth,
   formatCatalogMagnitude,

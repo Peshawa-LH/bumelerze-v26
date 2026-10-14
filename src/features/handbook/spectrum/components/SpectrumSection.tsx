@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { directionProps, directionStyle } from "@/i18n";
 import type { Isc2025Result } from "../../types";
 import type { SpectrumCodeValues } from "../types";
 import { CHART_DEFAULT_T_MAX, CHART_EXTENDED_T_MAX } from "../config";
@@ -94,6 +95,10 @@ export function SpectrumSection({
 }: SpectrumSectionProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
+  // Notes that open with a Latin token ("ASCE 7-10 …", "R … · Ω0 …",
+  // "ag … · S …") follow the app language's direction, not that token (B-7).
+  const dirProps = directionProps(locale);
+  const dirStyle = directionStyle(locale);
   const [showFullRange, setShowFullRange] = useState(false);
   const [sheetCopied, setSheetCopied] = useState(false);
   const [buildingPdf, setBuildingPdf] = useState(false);
@@ -351,7 +356,7 @@ export function SpectrumSection({
           })}
         </Text>
         {methodDuplicatesIsc(state.method) ? (
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+          <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
             {t("handbook.spectrum.methodNote.asce710")}
           </Text>
         ) : null}
@@ -443,7 +448,10 @@ export function SpectrumSection({
                * already shows it, and this block is about what follows from
                * it. */}
               {state.system ? (
-                <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
+                <Text
+                  {...dirProps}
+                  style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600", ...dirStyle }}
+                >
                   {t("handbook.spectrum.systemCoefficients", {
                     r: formatCodeCoefficient(state.system.r, locale),
                     omega0: formatCodeCoefficient(state.system.omega0, locale),
@@ -560,7 +568,7 @@ export function SpectrumSection({
             />
           </ErrorBoundary>
 
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+          <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
             {t(`handbook.spectrum.methodNote.${state.method}`, {
               groundType: ec8GroundType ?? "-",
               // The ISC note names the maps the values came off, which is
@@ -589,7 +597,7 @@ export function SpectrumSection({
               <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
                 {t("handbook.spectrum.ec8.paramsTitle")}
               </Text>
-              <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+              <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
                 {t("handbook.spectrum.ec8.params", {
                   ag: formatCoefficient(state.agValue, locale),
                   groundType: ec8GroundType,
