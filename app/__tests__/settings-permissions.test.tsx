@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react-native";
 import type { ReactElement } from "react";
-import { Alert, Platform } from "react-native";
+import { Alert, Platform, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -219,7 +219,10 @@ describe("Settings screen — grouped rows + Device permissions", () => {
 
     expect(screen.getByTestId("settings-footer")).toBeTruthy();
     expect(screen.getByText(/independent earthquake monitoring system/)).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Privacy policy" })).toBeTruthy();
+    const privacyLink = screen.getByRole("link", { name: "Privacy policy" });
+    expect(privacyLink).toBeTruthy();
+    // A 44 pt row (review B-12: the link measured 105 x 18).
+    expect(StyleSheet.flatten(privacyLink.props.style).minHeight).toBeGreaterThanOrEqual(44);
     expect(screen.getByText("Earthquake data: USGS, EMSC and GEOFON.")).toBeTruthy();
     expect(screen.getByText("Version 26.1.0")).toBeTruthy();
     expect(screen.getByText(/trademarks of the project/)).toBeTruthy();

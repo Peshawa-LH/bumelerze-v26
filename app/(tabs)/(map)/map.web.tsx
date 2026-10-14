@@ -652,6 +652,10 @@ export default function MapScreenWeb() {
         // doc comment.
         ensureRTLTextPluginLoaded(maplibre);
 
+        // 44 pt MapLibre controls on this map (review A-9/B-12) — the rules
+        // are scoped to the container's class, see MAP_TOUCH_CONTROLS_CSS.
+        ensureMapTouchControlStyles();
+
         const map = new maplibre.Map({
           container: containerRef.current,
           style: styleUrl,
@@ -1208,7 +1212,7 @@ export default function MapScreenWeb() {
         {/* Web-only file (Metro platform resolution keeps this out of native
             bundles entirely) — MapLibre needs a real DOM node to attach its
             canvas to, so this is a plain DOM element rather than an RN View. */}
-        <div ref={containerRef} style={mapContainerStyle} />
+        <div ref={containerRef} className={MAP_TOUCH_CONTROLS_CLASS} style={mapContainerStyle} />
 
         {loadState === "ready" && openControl ? (
           // "tapping elsewhere ... closes the open one" — a full-mapArea,
@@ -1399,6 +1403,42 @@ const mapContainerStyle: Record<string, string> = {
   width: "100%",
   height: "100%",
 };
+
+/** Class on this map's container: scopes `MAP_TOUCH_CONTROLS_CSS` to the
+ * Map tab alone (the stations, handbook and pin maps are separate screens
+ * with their own controls, and this bundle loads lazily on the web — an
+ * unscoped rule would restyle them only after the Map tab had been opened). */
+const MAP_TOUCH_CONTROLS_CLASS = "bml-map-touch-controls";
+const MAP_TOUCH_CONTROLS_STYLE_ID = "bml-map-touch-controls-css";
+
+/**
+ * MapLibre's stock controls are 29 px buttons, a 24 px attribution toggle and
+ * inline attribution links 14 px tall (review A-9/B-12). These rules lift
+ * every control on this map to the 44 pt tap minimum without touching the
+ * icons: the zoom/group buttons (if ever added here) become 44 px squares,
+ * the compact attribution pill is a 44 px circle when closed, and each credit
+ * link is a 44 px-tall inline block once it is open. The credit text itself
+ * is unchanged (OpenStreetMap's guidelines: never removed, one press away).
+ */
+const MAP_TOUCH_CONTROLS_CSS = `
+.${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-group button { width: 44px; height: 44px; }
+.${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib.maplibregl-compact { min-height: 44px; padding: 0 44px 0 0; border-radius: 22px; }
+.${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib.maplibregl-compact-show { padding: 0 48px 0 10px; }
+.${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib-button { width: 44px; height: 44px; border-radius: 22px; background-position: center; }
+.${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib-inner { line-height: 44px; }
+.${MAP_TOUCH_CONTROLS_CLASS} .maplibregl-ctrl-attrib a { display: inline-block; min-height: 44px; line-height: 44px; }
+`;
+
+/** Adds the rules above to the document once (idempotent by element id). */
+function ensureMapTouchControlStyles(): void {
+  if (typeof document === "undefined" || document.getElementById(MAP_TOUCH_CONTROLS_STYLE_ID)) {
+    return;
+  }
+  const style = document.createElement("style");
+  style.id = MAP_TOUCH_CONTROLS_STYLE_ID;
+  style.textContent = MAP_TOUCH_CONTROLS_CSS;
+  document.head.appendChild(style);
+}
 
 const styles = StyleSheet.create({
   container: {

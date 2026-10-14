@@ -124,6 +124,16 @@ describe("Window 2 — damage picker screen", () => {
     );
   });
 
+  it("'Close' is a 44 pt target (review A-9/B-12)", async () => {
+    await act(async () => {
+      renderWithProviders(<DamageReportScreen />);
+    });
+    const close = screen.getByRole("button", { name: i18n.t("felt.tier1.close") });
+    const style = StyleSheet.flatten(close.props.style);
+    expect(style.minHeight).toBeGreaterThanOrEqual(44);
+    expect(style.minWidth).toBeGreaterThanOrEqual(44);
+  });
+
   // Review A-3 (owner, 2026-10-14): the five-per-row grid gave 44 px
   // pictures and captions broken into one-word lines on a phone. Two per
   // row, with a picture at least ~120 px wide and a short caption.

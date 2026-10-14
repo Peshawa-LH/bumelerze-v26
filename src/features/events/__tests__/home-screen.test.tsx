@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
-import { AccessibilityInfo } from "react-native";
+import { AccessibilityInfo, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { usePrefsStore } from "@/features/onboarding";
@@ -177,6 +177,16 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     // Catalog is reachable one tap further in, from Historical's own footer
     // link (`app/historical.tsx`) — not from this header row anymore.
     expect(screen.queryByRole("button", { name: "Catalog" })).toBeNull();
+  });
+
+  it("gives each header link a 44 pt row, not an 18 px line with a slop (review A-9)", async () => {
+    await renderWithProviders(<HomeScreen />);
+
+    for (const name of ["World", "Significant", "Historical"]) {
+      const link = screen.getByRole("button", { name });
+      expect(StyleSheet.flatten(link.props.style).minHeight).toBeGreaterThanOrEqual(44);
+      expect(link.props.hitSlop).toBeUndefined();
+    }
   });
 
   it("pushes /world from the World header link", async () => {

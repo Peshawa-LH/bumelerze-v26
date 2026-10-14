@@ -448,8 +448,8 @@ function FooterSection() {
       <Pressable
         accessibilityRole="link"
         onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
-        hitSlop={12}
-        style={{ alignSelf: "flex-start" }}
+        // 44 pt row (review B-12: the link measured 105 x 18).
+        style={styles.footerLink}
       >
         <Text
           style={{
@@ -484,5 +484,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  footerLink: {
+    alignSelf: "flex-start",
+    minHeight: 44,
+    justifyContent: "center",
   },
 });

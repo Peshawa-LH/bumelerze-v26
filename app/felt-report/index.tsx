@@ -126,7 +126,7 @@ export default function Tier1FeltReportScreen() {
           accessibilityRole="button"
           accessibilityLabel={t("felt.tier1.close")}
           onPress={handleClose}
-          hitSlop={12}
+          style={styles.closeButton}
         >
           <Text
             style={{
@@ -160,8 +160,9 @@ export default function Tier1FeltReportScreen() {
             // (accessibility-tester Phase 5 audit).
             accessibilityRole={isGps ? "text" : "button"}
             onPress={isGps ? undefined : () => setIsLocationExpanded((v) => !v)}
-            hitSlop={12}
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
+            // 44 pt row (review B-12: "Location: Hawler · Change" measured
+            // 350 x 17).
+            style={styles.locationRow}
           >
             <Text
               style={{
@@ -258,6 +259,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  // 44 pt box for the text link (review A-9/B-12: "Close" measured 43 x 18
+  // with a hitSlop that stopped at 42). The text keeps its place at the end
+  // of the row; only the tap area grew.
+  closeButton: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
+    alignItems: "flex-end",
+  },
+  locationRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    minHeight: 44,
   },
   grid: {
     flexDirection: "row",

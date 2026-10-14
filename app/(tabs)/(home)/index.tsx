@@ -127,13 +127,12 @@ export default function HomeScreen() {
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => router.push("/world")}
-                  // Vertical-only hitSlop: these three links sit side by side
-                  // with only spacing[3] (12px) between them, so a symmetric
-                  // hitSlop would let adjacent links' hit areas overlap and
-                  // mis-target taps — growing only top/bottom avoids that
-                  // while still lifting the target closer to 48dp
-                  // (accessibility-tester Phase 5 audit).
-                  hitSlop={{ top: 10, bottom: 10 }}
+                  // A real 44 pt row (review A-9: the text alone measured
+                  // 18 px and a vertical hitSlop only reached 38 px). No
+                  // horizontal hitSlop: the three links sit only spacing[3]
+                  // (12 px) apart, so grown-sideways hit areas would overlap
+                  // and mis-target taps.
+                  style={styles.headerLink}
                 >
                   <Text
                     style={{
@@ -148,7 +147,7 @@ export default function HomeScreen() {
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => router.push("/significant")}
-                  hitSlop={{ top: 10, bottom: 10 }}
+                  style={styles.headerLink}
                 >
                   <Text
                     style={{
@@ -163,7 +162,7 @@ export default function HomeScreen() {
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => router.push("/historical")}
-                  hitSlop={{ top: 10, bottom: 10 }}
+                  style={styles.headerLink}
                 >
                   <Text
                     style={{
@@ -215,6 +214,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  headerLink: {
+    minHeight: 44,
+    justifyContent: "center",
   },
   links: {
     flexDirection: "row",
