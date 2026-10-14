@@ -4,7 +4,10 @@
     "back": "Back",
     "loading": "Loading…",
     "loadFailed": "Couldn't load. Check your connection.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "This page does not exist or has moved.",
+    "goHome": "Go to Home"
   },
   "tabs": {
     "home": "Home",

@@ -94,8 +94,11 @@ const config: ExpoConfig = {
       // the shared (home,map,sensor,profile,settings) group's screens were not
       // known until loaded. The heavy areas still load on demand through their
       // own lazy imports (map, catalogue, admin, handbook, SHAKEmaps, locales).
+      // No generated /_sitemap route: it is a development tool that listed
+      // every route file (admin, account...) on the live site (review B-1);
+      // an unknown address shows app/+not-found.tsx instead.
       "expo-router",
-      { asyncRoutes: false },
+      { asyncRoutes: false, sitemap: false },
     ],
     [
       "expo-splash-screen",

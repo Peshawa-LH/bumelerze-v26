@@ -4,7 +4,10 @@
     "back": "Vegere",
     "loading": "Tê barkirin…",
     "loadFailed": "Nehat barkirin. Girêdana xwe kontrol bike.",
-    "retry": "Dîsa biceribîne"
+    "retry": "Dîsa biceribîne",
+    "notFoundTitle": "Rûpel nehat dîtin",
+    "notFoundBody": "Ev rûpel tune ye an jî hatiye guhertin.",
+    "goHome": "Biçe Destpêkê"
   },
   "tabs": {
     "home": "Destpêk",
