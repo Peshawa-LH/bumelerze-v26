@@ -744,7 +744,8 @@
       "appName": "Bumelerze",
       "exampleTitle": "{{magnitude}} earthquake",
       "exampleBody": "14 km southeast of Hawler, Kurdistan Region",
-      "close": "Close"
+      "close": "Close",
+      "channelName": "Alert rehearsal"
     },
     "fatigueTitle": "How many alerts you get",
     "safe": {

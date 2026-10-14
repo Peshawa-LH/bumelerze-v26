@@ -1,4 +1,4 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -72,11 +72,14 @@ export function RehearsalAlertModal({
           ]}
         >
           <View style={styles.topRow}>
-            <View
-              style={[styles.iconPlaceholder, { backgroundColor: colors.brand.primary }]}
-            >
-              <Text style={{ color: colors.brand.onPrimary, fontWeight: "800" }}>B</Text>
-            </View>
+            {/* The icon a real alert shows (the same file web push uses,
+             * public/push-icon-192.png), not a letter (review B-22). */}
+            <Image
+              source={require("../../../../public/push-icon-192.png")}
+              style={styles.appIcon}
+              accessibilityIgnoresInvertColors
+              testID="rehearsal-app-icon"
+            />
             <Text
               style={{
                 color: colors.text.secondary,
@@ -156,12 +159,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  iconPlaceholder: {
+  appIcon: {
     width: 28,
     height: 28,
     borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
   },
   closeButton: {
     minHeight: 44,

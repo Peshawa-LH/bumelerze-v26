@@ -744,7 +744,8 @@
       "appName": "بوملێرزە",
       "exampleTitle": "زلزال بقوة {{magnitude}}",
       "exampleBody": "١٤ كم جنوب شرق أربيل، إقليم كردستان",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "channelName": "تجربة التنبيه"
     },
     "fatigueTitle": "كم تنبيهاً يصلك",
     "safe": {
