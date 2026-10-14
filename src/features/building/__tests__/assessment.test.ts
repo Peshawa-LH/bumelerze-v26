@@ -8,7 +8,6 @@ import {
   ROOF_DONT_KNOW_SLAB,
   STONE_UNSURE_M4,
   assessAnswers,
-  assessBuilding,
   confidence,
   contextForLocation,
   dominantFamily,
@@ -25,7 +24,6 @@ import {
   plainTypeKey,
   rankedTypes,
   shiftVc,
-  siteHazard,
   storeyBand,
   typeDistribution,
   typeVcShifts,
@@ -34,6 +32,8 @@ import {
   vcScenarios,
   vulnerableSigns,
 } from "../assessment";
+import { assessBuilding } from "../assess-at-point";
+import { siteHazard } from "@/features/handbook/site-hazard";
 import { IMS_TYPES, TYPE_PRIORS, type VcProbs } from "../ims25";
 import { STRUCTURE_OPTIONS, type Answers } from "../questionnaire";
 

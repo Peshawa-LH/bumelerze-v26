@@ -4,9 +4,16 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { ProfileByUsername } from "@/features/profile";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadProfileArea } from "@/features/profile/area-loader";
+
+// On the web, downloaded on first use (src/features/profile/area.ts).
+const ProfileByUsername = lazyScreenContent(
+  loadProfileArea,
+  (area) => area.ProfileByUsername,
+);
 
 /**
  * Profile page `/u/[username]`, opened from a name or photo in the Event hub

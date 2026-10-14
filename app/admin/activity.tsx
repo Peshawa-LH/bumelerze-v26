@@ -3,8 +3,12 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { ActivityContent } from "@/features/admin/components/ActivityContent";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadAdminArea } from "@/features/admin/area-loader";
 import { useTheme } from "@/theme";
+
+// On the web, downloaded on first use (src/features/admin/area.ts).
+const ActivityContent = lazyScreenContent(loadAdminArea, (area) => area.ActivityContent);
 
 /** Admin > Activity: the audit log (who did what, when, why). Gated by the
  * `audit.read` permission inside the content; a stray link shows nothing. */

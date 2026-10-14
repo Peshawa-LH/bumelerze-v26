@@ -3,8 +3,15 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { FeltPhotoQueueContent } from "@/features/admin/photos";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadAdminArea } from "@/features/admin/area-loader";
 import { useTheme } from "@/theme";
+
+// On the web, downloaded on first use (src/features/admin/area.ts).
+const FeltPhotoQueueContent = lazyScreenContent(
+  loadAdminArea,
+  (area) => area.FeltPhotoQueueContent,
+);
 
 /** Admin > Felt photos: approve or reject photos attached to felt reports
  * (they stay hidden until approved, D15). Gated by `photos.moderate`. */

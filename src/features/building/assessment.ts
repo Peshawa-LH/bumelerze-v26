@@ -1,8 +1,4 @@
 import { nearestCities } from "@/features/geo/nearest";
-import { VS30_GRID } from "@/features/handbook/data";
-import { readHazard } from "@/features/handbook/hazard-source";
-import { siteClassFromVs30 } from "@/features/handbook/site-class";
-import { sampleVs30 } from "@/features/handbook/vs30-sample";
 
 import {
   DAMAGE_INTENSITIES,
@@ -546,19 +542,9 @@ export function confidence(answers: Answers): number {
 
 export const HAZARD_SOURCE_LABEL = "ISC-2025";
 
-/** Design PGA, zone, Vs30 and site class at a point, from the engineering
- * handbook's bundled data. Null fields outside the mapped area. */
-export function siteHazard(lat: number, lon: number): Hazard {
-  const reading = readHazard("isc2025", lat, lon);
-  const vs30 = sampleVs30(VS30_GRID, lat, lon);
-  return {
-    pga_g: reading.values ? reading.values.pga2475 : null,
-    zone: reading.zoneLabel,
-    vs30: vs30 === null ? null : Math.round(vs30),
-    site_class: vs30 === null ? null : siteClassFromVs30(vs30).ec8,
-    source: HAZARD_SOURCE_LABEL,
-  };
-}
+// `siteHazard` (design PGA, zone, Vs30 and site class at a point) lives in
+// `@/features/handbook/site-hazard`: it reads the handbook's bundled maps,
+// which the web build downloads only when needed (see `assess-at-point.ts`).
 
 // ---------------------------------------------------------------------------
 // Whole assessment
@@ -597,11 +583,18 @@ export function assessAnswers(
   };
 }
 
-/** The full automatic assessment of a home at (lat, lon). */
-export function assessBuilding(answers: Answers, lat: number, lon: number): Assessment {
+/** The full automatic assessment of a home at (lat, lon), given the site
+ * hazard there (`siteHazard` in `@/features/handbook/site-hazard`;
+ * `assessBuilding` in `assess-at-point.ts` does both in one call). */
+export function assessBuildingWithHazard(
+  answers: Answers,
+  lat: number,
+  lon: number,
+  hazard: Hazard,
+): Assessment {
   return {
     ...assessAnswers(answers, contextForLocation(lat, lon)),
-    hazard: siteHazard(lat, lon),
+    hazard,
   };
 }
 

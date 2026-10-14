@@ -1,4 +1,6 @@
-import { assessBuilding, type Assessment } from "./assessment";
+import { loadHandbookArea } from "@/features/handbook/area-loader";
+
+import { assessBuildingWithHazard, type Assessment } from "./assessment";
 import {
   QUESTIONNAIRE_VERSION,
   occupancyFromUse,
@@ -67,7 +69,15 @@ export async function saveSurveyAndAssessment(
 ): Promise<Assessment> {
   const transport = options.transport ?? SupabaseHomeTransport;
   const clean = pruneAnswers(answers);
-  const assessment = assessBuilding(clean, point.lat, point.lon);
+  // The hazard maps come from the handbook's own download on the web
+  // (`@/features/handbook/area`); immediate on iOS/Android.
+  const { siteHazard } = await loadHandbookArea();
+  const assessment = assessBuildingWithHazard(
+    clean,
+    point.lat,
+    point.lon,
+    siteHazard(point.lat, point.lon),
+  );
   const surveyId = await transport.saveSurvey({
     tagId,
     version: QUESTIONNAIRE_VERSION,

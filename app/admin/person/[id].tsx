@@ -3,8 +3,12 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { PersonContent } from "@/features/admin/people";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadAdminArea } from "@/features/admin/area-loader";
 import { useTheme } from "@/theme";
+
+// On the web, downloaded on first use (src/features/admin/area.ts).
+const PersonContent = lazyScreenContent(loadAdminArea, (area) => area.PersonContent);
 
 /** Admin > People > one person: identity, devices, activity, limits, history
  * and notes, plus the actions. Opening it is logged on the server. */

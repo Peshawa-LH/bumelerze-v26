@@ -4,9 +4,16 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { ActivityContent } from "@/features/activity";
 import { useTabBarScroll } from "@/features/tab-bar";
 import { useTheme } from "@/theme";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadProfileArea } from "@/features/profile/area-loader";
+
+// On the web, downloaded on first use (src/features/profile/area.ts).
+const ActivityContent = lazyScreenContent(
+  loadProfileArea,
+  (area) => area.ActivityContent,
+);
 
 /** Activity (migration 0061): opened from the bell on the Profile tab. */
 export default function ActivityScreen() {

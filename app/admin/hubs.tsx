@@ -3,8 +3,12 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { HubsContent } from "@/features/admin";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadAdminArea } from "@/features/admin/area-loader";
 import { useTheme } from "@/theme";
+
+// On the web, downloaded on first use (src/features/admin/area.ts).
+const HubsContent = lazyScreenContent(loadAdminArea, (area) => area.HubsContent);
 
 /** Admin > Open a hub for an earthquake (`hubs.open`, migration 0066). */
 export default function AdminHubsScreen() {

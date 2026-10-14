@@ -5,9 +5,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useAccount } from "@/features/account/use-account";
-import { MyHomeCard, TrashedHomesSection } from "@/features/building";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadProfileArea } from "@/features/profile/area-loader";
+
+// On the web, downloaded on first use (src/features/profile/area.ts).
+const MyHomeCard = lazyScreenContent(loadProfileArea, (area) => area.MyHomeCard);
+const TrashedHomesSection = lazyScreenContent(
+  loadProfileArea,
+  (area) => area.TrashedHomesSection,
+);
 
 /**
  * My home: the tagged homes (their class, the building report and the

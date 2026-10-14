@@ -1,7 +1,10 @@
 {
   "_status": "source",
   "nav": {
-    "back": "Back"
+    "back": "Back",
+    "loading": "Loading…",
+    "loadFailed": "Couldn't load. Check your connection.",
+    "retry": "Retry"
   },
   "tabs": {
     "home": "Home",

@@ -3,8 +3,12 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { PeopleContent } from "@/features/admin/people";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadAdminArea } from "@/features/admin/area-loader";
 import { useTheme } from "@/theme";
+
+// On the web, downloaded on first use (src/features/admin/area.ts).
+const PeopleContent = lazyScreenContent(loadAdminArea, (area) => area.PeopleContent);
 
 /** Admin > People: the directory of accounts and app installs. Gated by
  * `people.view` inside the content; a stray link shows nothing. */

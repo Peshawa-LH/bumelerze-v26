@@ -3,8 +3,15 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { AlertsAdminContent } from "@/features/alerts";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadAdminArea } from "@/features/admin/area-loader";
 import { useTheme } from "@/theme";
+
+// On the web, downloaded on first use (src/features/admin/area.ts).
+const AlertsAdminContent = lazyScreenContent(
+  loadAdminArea,
+  (area) => area.AlertsAdminContent,
+);
 
 /** Admin > Alerts (migration 0062): who receives earthquake alerts, the
  * testers, recent sending runs and a test alert. Gated by `alerts.test`

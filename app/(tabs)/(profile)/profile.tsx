@@ -5,11 +5,21 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAccount } from "@/features/account/use-account";
-import { ActivityBell } from "@/features/activity";
-import { ProfileShareSheet } from "@/features/community/components/ProfileShareSheet";
-import { ProfileTab } from "@/features/profile";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadProfileArea } from "@/features/profile/area-loader";
+
+// On the web, downloaded on first use (src/features/profile/area.ts).
+const ActivityBell = lazyScreenContent(loadProfileArea, (area) => area.ActivityBell, {
+  inline: true,
+});
+const ProfileShareSheet = lazyScreenContent(
+  loadProfileArea,
+  (area) => area.ProfileShareSheet,
+  { inline: true },
+);
+const ProfileTab = lazyScreenContent(loadProfileArea, (area) => area.ProfileTab);
 
 /**
  * The Profile tab (D79, redesigned in review note 5.1): one page for "me".

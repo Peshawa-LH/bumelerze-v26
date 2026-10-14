@@ -5,9 +5,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useMySummary } from "@/features/account/use-my-summary";
-import { BadgesSection } from "@/features/badges";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadProfileArea } from "@/features/profile/area-loader";
+
+// On the web, downloaded on first use (src/features/profile/area.ts).
+const BadgesSection = lazyScreenContent(loadProfileArea, (area) => area.BadgesSection);
 
 /**
  * "All badges": the owner's full collection (earned, locked, and the ranks

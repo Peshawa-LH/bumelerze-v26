@@ -5,12 +5,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useAccount } from "@/features/account/use-account";
-import { BlockedSection } from "@/features/community/components/BlockedSection";
-import { FollowRequestsSection } from "@/features/community/components/FollowRequestsSection";
 import { useBlockedPeople, useFollowRequests } from "@/features/community/queries";
-import { MutedSection, useMutedPeople } from "@/features/mute";
+import { useMutedPeople } from "@/features/mute";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
+import { lazyScreenContent } from "@/components/LazyScreenContent";
+import { loadProfileArea } from "@/features/profile/area-loader";
+
+// On the web, downloaded on first use (src/features/profile/area.ts).
+const BlockedSection = lazyScreenContent(loadProfileArea, (area) => area.BlockedSection);
+const FollowRequestsSection = lazyScreenContent(
+  loadProfileArea,
+  (area) => area.FollowRequestsSection,
+);
+const MutedSection = lazyScreenContent(loadProfileArea, (area) => area.MutedSection);
 
 /** People: follow requests to accept or decline, blocked accounts and muted people. */
 export default function PeopleSettingsScreen() {

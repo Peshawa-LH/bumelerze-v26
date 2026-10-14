@@ -1,4 +1,5 @@
-import { METHOD, assessAnswers, assessBuilding, confidence } from "../assessment";
+import { assessBuilding } from "../assess-at-point";
+import { METHOD, assessAnswers, confidence } from "../assessment";
 import {
   DONT_KNOW,
   QUESTIONNAIRE_VERSION,
