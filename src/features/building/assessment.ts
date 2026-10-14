@@ -39,11 +39,15 @@ import {
  *    Unconfined HOLLOW CONCRETE BLOCK with a slab is half M5, half M6 (the
  *    block is weaker than fired brick, which keeps the M6/M5 rule).
  *  - "Block walls with concrete columns at the corners" -> M7 directly.
- *  - M7 reached by a builder, self-built or unknown-builder home is shifted
- *    one class toward more vulnerable (C most likely, C-D). IMS-25 §3.5.1.6:
- *    confined masonry is "most probably of vulnerability class C, with
- *    better examples reaching vulnerability class D"; Iraqi belts are rarely
- *    true confined masonry. An engineered home keeps the IMS table (D).
+ *  - M7 reached by a builder, self-built or unknown-builder home, or from an
+ *    engineer's plans that nobody supervised, is shifted one class toward
+ *    more vulnerable (C most likely, C-D). IMS-25 §3.5.1.6: confined
+ *    masonry is "most probably of vulnerability class C, with better
+ *    examples reaching vulnerability class D"; Iraqi belts are rarely true
+ *    confined masonry, and plans without supervision are not
+ *    earthquake-resistant design (the same rule `ENGINEER_PLANS_ONLY`
+ *    applies elsewhere). Only a home an engineer designed AND supervised
+ *    keeps the IMS table (D) — owner decision on review C-5, 2026-10-14.
  *  - Stone -> M3; M4 when an engineer designed it AND it is dressed stone
  *    (0.3 when either is unknown). Mud brick -> M2.
  *  - Concrete frame (columns and beams) -> RC1-L; RC1-M 0.6 / RC1-L 0.4 only
@@ -178,11 +182,6 @@ function engineeredWeight(answers: Answers): number | null {
 
 function engineeredShare(answers: Answers): number {
   return engineeredWeight(answers) ?? ENGINEERED_DONT_KNOW;
-}
-
-/** Whether an engineer designed the home (with or without supervision). */
-function engineerDesigned(answers: Answers): boolean {
-  return answers.builder === "eng_full" || answers.builder === "eng_plans";
 }
 
 function newShare(answers: Answers): number {
@@ -339,14 +338,17 @@ export function vcDistribution(
 }
 
 /** True when the M7 of these answers was reached by belts or corner columns
- * that no engineer designed: block or brick walls with belts, or the
- * "confined" option, built by a builder, by the owner or by somebody unknown. */
+ * that no engineer both designed AND supervised: block or brick walls with
+ * belts, or the "confined" option, built by a builder, by the owner, by
+ * somebody unknown, or from an engineer's plans with nobody supervising the
+ * work (plans-only earns half weight in the engineered shares and no
+ * confinement credit here — owner decision on review C-5, 2026-10-14). */
 export function isM7NonEngineered(answers: Answers): boolean {
   const structure = effectiveStructure(answers);
   if (structure !== "block" && structure !== "brick" && structure !== "confined") {
     return false;
   }
-  return !engineerDesigned(answers);
+  return answers.builder !== "eng_full";
 }
 
 /** The per-type shifts for these answers: only the M7 adjustment so far. */

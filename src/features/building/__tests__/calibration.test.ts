@@ -240,6 +240,29 @@ describe("calibration review 2026-10-14: the 12 typical buildings", () => {
     expect(probs.E + probs.F).toBeLessThanOrEqual(0.06);
   });
 
+  // Review C-5 (owner, 2026-10-14): for the belts-and-columns house only
+  // "designed and supervised by an engineer" earns the IMS table's D; plans
+  // nobody supervised get the same non-engineered shift as a builder.
+  describe("5: the belts-and-columns house, by who built it", () => {
+    const row = CASES[4] as Case;
+    it.each([
+      ["builder", "C", "C-D"],
+      ["self", "C", "C-D"],
+      ["dk", "C", "C-D"],
+      ["eng_plans", "C", "C-D"],
+      ["eng_full", "D", "D-E"],
+    ] as const)("%s: %s (%s)", (builder, likely, range) => {
+      for (const answers of [
+        { ...row.answers, builder },
+        { ...row.answers, structure: "confined", belts: undefined, roof: undefined, builder },
+      ] as Answers[]) {
+        const result = assessAnswers(answers, row.context);
+        expect(result.vc_most_likely).toBe(likely);
+        expect(result.vc_range).toBe(range);
+      }
+    });
+  });
+
   it("the new confined option, built by a builder, is the same as case 5", () => {
     const row = CASES[4] as Case;
     const confined = assessAnswers(
