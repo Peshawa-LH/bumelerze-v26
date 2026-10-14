@@ -286,3 +286,29 @@ end
 $$;
 revoke all on function public.restore_felt_report(uuid, text) from public;
 grant execute on function public.restore_felt_report(uuid, text) to anon, authenticated;
+
+-- 7. Grants hygiene (D-12) -----------------------------------------------------------------------
+-- Supabase's default privileges gave anon and authenticated every privilege
+-- on the tables of 0002 to 0052; RLS stopped the DML (no write policies) but
+-- TRUNCATE, REFERENCES and TRIGGER are not subject to RLS at all. Only what
+-- a policy or a client statement needs is kept: insert on felt_reports and
+-- felt_report_details (the felt flow's policies), insert and update on
+-- felt_photos and profiles (the client upserts them, and an upsert needs
+-- the update privilege even when no row conflicts; profiles has an owner
+-- update policy). Reads stay exactly as they were.
+revoke insert, update, delete, truncate, references, trigger on
+  public.events, public.event_source_records, public.felt_cells, public.user_roles,
+  public.building_complexes, public.bumelerze_id_counters, public.event_merges,
+  public.home_join_attempts, public.reserved_display_terms, public.reserved_usernames
+  from anon, authenticated;
+revoke update, delete, truncate, references, trigger on
+  public.felt_reports, public.felt_report_details
+  from anon, authenticated;
+revoke delete, truncate, references, trigger on
+  public.felt_photos, public.profiles
+  from anon, authenticated;
+-- Tables created from now on (by the postgres role, as every migration is)
+-- start without write privileges for the two client roles; reads stay the
+-- default and RLS still decides the rows.
+alter default privileges in schema public
+  revoke insert, update, delete, truncate, references, trigger on tables from anon, authenticated;
