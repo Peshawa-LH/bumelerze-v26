@@ -128,7 +128,8 @@ function AreaRow({ row }: { row: AreaClasses }) {
   const dir = useTextDir();
   const num = useNumber();
   const name = areaName(row.area, i18n.language, t);
-  const less = localizeDigits("<5", i18n.language);
+  // Isolated so "<" is not mirrored in Sorani and Arabic (review A-4).
+  const less = `\u2066${localizeDigits("<5", i18n.language)}\u2069`;
   return (
     <View style={{ gap: spacing[1] }} testID={`officials-area-${row.area}`}>
       <Text

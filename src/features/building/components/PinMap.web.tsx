@@ -13,6 +13,7 @@ import { resolveCatalogMapStyle } from "@/features/map/style-catalog";
 import { getConfiguredMapTilerKey } from "@/features/map/style-provider";
 import { useTheme } from "@/theme";
 import type { PinMapProps } from "./PinMap";
+import { ensureMapTouchControlStyle } from "@/lib/map-touch-controls";
 
 const HEIGHT = 320;
 
@@ -56,6 +57,7 @@ export function PinMap({ start, onPoint, accessibilityLabel }: PinMapProps) {
         attributionControl: false,
       });
       map.addControl(new maplibre.AttributionControl({ compact: true }));
+      ensureMapTouchControlStyle();
       map.addControl(new maplibre.NavigationControl({ showCompass: false }));
       const marker = new maplibre.Marker({
         draggable: true,

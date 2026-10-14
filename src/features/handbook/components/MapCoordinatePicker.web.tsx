@@ -18,6 +18,7 @@ import { shouldRequestRTLTextPlugin } from "@/features/map/rtl-plugin";
 import { resolveMapStyle, type MapStyleProviderId } from "@/features/map/style-provider";
 import { formatFixedLocalized } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
+import { ensureMapTouchControlStyle } from "@/lib/map-touch-controls";
 
 export interface MapCoordinatePickerProps {
   /** Current coordinate parsed from the form's own text fields, or `null`
@@ -163,6 +164,7 @@ export function MapCoordinatePicker({
       // on-canvas control, part of the map itself — the brief's "the map
       // itself must not mirror" applies here, unlike the surrounding
       // React Native layout this file also builds.
+      ensureMapTouchControlStyle();
       map.addControl(new maplibre.NavigationControl({ showCompass: false }), "top-right");
 
       if (hasStartPoint) {
@@ -208,7 +210,9 @@ export function MapCoordinatePicker({
 
   function handleOpen() {
     setSelected(
-      initialLat !== null && initialLon !== null ? { lat: initialLat, lon: initialLon } : null,
+      initialLat !== null && initialLon !== null
+        ? { lat: initialLat, lon: initialLon }
+        : null,
     );
     setIsOpen(true);
   }
@@ -242,7 +246,10 @@ export function MapCoordinatePicker({
       <Modal visible={isOpen} animationType="slide" onRequestClose={handleClose}>
         {isOpen ? (
           <View
-            style={[styles.screen, { backgroundColor: colors.surface.base, paddingTop: insets.top }]}
+            style={[
+              styles.screen,
+              { backgroundColor: colors.surface.base, paddingTop: insets.top },
+            ]}
           >
             <View
               style={[
@@ -335,7 +342,9 @@ export function MapCoordinatePicker({
                 style={[
                   styles.confirmButton,
                   {
-                    backgroundColor: selected ? colors.brand.primary : colors.surface.sunken,
+                    backgroundColor: selected
+                      ? colors.brand.primary
+                      : colors.surface.sunken,
                     paddingVertical: spacing[3],
                   },
                 ]}

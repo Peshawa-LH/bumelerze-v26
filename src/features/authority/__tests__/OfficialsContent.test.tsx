@@ -97,7 +97,7 @@ describe("Officials page (owner decision 2026-10-13)", () => {
       /A.*Most vulnerable.*7/,
     );
     expect(screen.getByTestId("officials-area-halabja-C")).toHaveTextContent(/C.*5/);
-    expect(screen.getByTestId("officials-area-halabja-A")).toHaveTextContent(/A<5/);
+    expect(screen.getByTestId("officials-area-halabja-A")).toHaveTextContent(/A\u2066<5\u2069/);
     expect(screen.getByTestId("officials-area-halabja-A").props.accessibilityLabel).toBe(
       "Class A, Most vulnerable: fewer than 5",
     );

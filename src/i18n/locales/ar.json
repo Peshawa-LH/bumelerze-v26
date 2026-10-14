@@ -132,7 +132,11 @@
       "moreSourcesTag": "+{{count}}",
       "sourcesA11yLabel": "مسجَّل من قبل {{agencies}}",
       "sourcesWithMoreA11yLabel": "مسجَّل من قبل {{agencies}} و{{count}} أخرى"
-    }
+    },
+    "newEventsAnnouncement_zero": "عدد الزلازل الجديدة في القائمة: {{number}}",
+    "newEventsAnnouncement_two": "عدد الزلازل الجديدة في القائمة: {{number}}",
+    "newEventsAnnouncement_few": "عدد الزلازل الجديدة في القائمة: {{number}}",
+    "newEventsAnnouncement_many": "عدد الزلازل الجديدة في القائمة: {{number}}"
   },
   "world": {
     "title": "الكتالوج العالمي",
@@ -1775,7 +1779,11 @@
       "removeSymbol": "✕",
       "limitReached": "وصلت إلى الحد الأقصى وهو {{count}} صور. أزل واحدة لإضافة صورة أخرى.",
       "unreadable_one": "تعذّرت قراءة لقطة شاشة واحدة فتم استبعادها.",
-      "unreadable_other": "تعذّرت قراءة {{count}} لقطات شاشة فتم استبعادها."
+      "unreadable_other": "تعذّرت قراءة {{count}} لقطات شاشة فتم استبعادها.",
+      "unreadable_zero": "تعذّرت قراءة {{count}} لقطات شاشة فتم استبعادها.",
+      "unreadable_two": "تعذّرت قراءة {{count}} لقطات شاشة فتم استبعادها.",
+      "unreadable_few": "تعذّرت قراءة {{count}} لقطات شاشة فتم استبعادها.",
+      "unreadable_many": "تعذّرت قراءة {{count}} لقطات شاشة فتم استبعادها."
     },
     "submit": "إرسال الملاحظات",
     "confirmation": {

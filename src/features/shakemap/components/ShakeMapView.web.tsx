@@ -54,6 +54,7 @@ import {
   ShakeMapView as ShakeMapViewSvg,
   type ShakeMapViewProps,
 } from "./ShakeMapViewSvg";
+import { ensureMapTouchControlStyle } from "@/lib/map-touch-controls";
 
 /** Below this measured width the map renders at the shorter (phone)
  * height; at/above it, the taller (wider-layout) height — same threshold
@@ -180,6 +181,7 @@ export function ShakeMapView(props: ShakeMapViewProps) {
         });
         mapRef.current = map;
 
+        ensureMapTouchControlStyle();
         map.addControl(
           new maplibre.NavigationControl({ showCompass: false }),
           "top-right",
