@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   Modal,
@@ -11,6 +11,8 @@ import {
   TextInput,
   View,
   useWindowDimensions,
+  type NativeSyntheticEvent,
+  type TextInputContentSizeChangeEventData,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,6 +37,9 @@ import { useShareCardModel } from "./use-card-model";
  * (it needs a live user gesture and cannot wait for rendering). */
 const WEB_PREPARE_DELAY_MS = 250;
 const WIDE_WEB_MIN_WIDTH = 600;
+/** The caption box is never shorter than this, and grows with its text (the
+ * five Sorani lines were cut off at a fixed height, review A-14). */
+const CAPTION_MIN_HEIGHT = 132;
 
 type StatusKey =
   "share.linkCopied" | "share.captionCopied" | "share.imageSaved" | "share.imageFailed";
@@ -108,6 +113,20 @@ export function ShareSheet({
     buildShareCaption({ event, shareId, locale, t }),
   );
   const [status, setStatus] = useState<StatusKey | null>(null);
+  // The height the caption box needs to show every line (0 = not measured).
+  const [captionBoxHeight, setCaptionBoxHeight] = useState(0);
+  const captionPadding = spacing[3];
+  // Memoised: react-native-web re-measures whenever this handler changes,
+  // and the web's measurement (the box's scroll height) already includes
+  // the padding; adding it again grew the box on every pass, without end.
+  const onCaptionContentSizeChange = useCallback(
+    (event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+      const measured = event.nativeEvent.contentSize.height;
+      const next = Platform.OS === "web" ? measured : measured + captionPadding * 2;
+      setCaptionBoxHeight((current) => (Math.abs(current - next) < 1 ? current : next));
+    },
+    [captionPadding],
+  );
   const [busySize, setBusySize] = useState<ShareCardSize | null>(null);
   const [batch, setBatch] = useState<ImageBatch>({
     model: null,
@@ -154,7 +173,11 @@ export function ShareSheet({
 
   const handleShareLink = async () => {
     setStatus(null);
-    const outcome = await shareText(ensureLinkInText(caption, url), t("share.title"));
+    // A share dialog gets the caption with its link; where there is none,
+    // "Link copied" copies the link alone (the caption has its own button).
+    const outcome = await shareText(ensureLinkInText(caption, url), t("share.title"), {
+      clipboardText: url,
+    });
     if (outcome === "copied") setStatus("share.linkCopied");
   };
 
@@ -275,6 +298,7 @@ export function ShareSheet({
                 value={caption}
                 onChangeText={setCaption}
                 multiline
+                onContentSizeChange={onCaptionContentSizeChange}
                 style={[
                   typography.bodyDefault,
                   styles.input,
@@ -282,7 +306,8 @@ export function ShareSheet({
                     color: colors.text.primary,
                     backgroundColor: colors.surface.base,
                     borderColor: colors.border.default,
-                    padding: spacing[3],
+                    padding: captionPadding,
+                    height: Math.max(CAPTION_MIN_HEIGHT, captionBoxHeight),
                   },
                 ]}
               />
@@ -359,6 +384,11 @@ const styles = StyleSheet.create({
   },
   title: { flex: 1 },
   close: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
-  input: { borderWidth: 1, borderRadius: 12, minHeight: 132, textAlignVertical: "top" },
+  input: {
+    borderWidth: 1,
+    borderRadius: 12,
+    minHeight: CAPTION_MIN_HEIGHT,
+    textAlignVertical: "top",
+  },
   statusRow: { minHeight: 22 },
 });

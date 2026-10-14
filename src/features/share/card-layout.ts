@@ -65,8 +65,6 @@ const STAR_RADIUS = 30;
 const TOWN_DOT_RADIUS = 7;
 const TOWN_LABEL_SIZE = 27;
 const MAX_TOWN_LABELS = 6;
-const EXTRA_TOWN_DOT_RADIUS = 4.5;
-const MAX_EXTRA_TOWN_DOTS = 8;
 const KM_PER_DEGREE = 111.195;
 /** Round distances offered for the scale bar, and (a sparser set, so two rings
  * never sit almost on top of each other) for the distance rings. */
@@ -474,6 +472,104 @@ function textItem(
   return { ...item, rtl: item.rtl ?? rtl };
 }
 
+interface Box {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/** The area a drawn label covers: its width from the shared estimate, its
+ * height from the font size around the baseline at `y`. */
+export function labelBox(label: CardText): Box {
+  const width = estimateTextWidth(label.text, label.size, label.weight);
+  const left =
+    label.anchor === "start"
+      ? label.x
+      : label.anchor === "end"
+        ? label.x - width
+        : label.x - width / 2;
+  return {
+    left,
+    right: left + width,
+    top: label.y - label.size * 0.8,
+    bottom: label.y + label.size * 0.25,
+  };
+}
+
+function boxesOverlap(a: Box, b: Box, margin: number): boolean {
+  return (
+    a.left < b.right + margin &&
+    a.right > b.left - margin &&
+    a.top < b.bottom + margin &&
+    a.bottom > b.top - margin
+  );
+}
+
+export interface PillPlacement {
+  x: number;
+  y: number;
+  /** Labels the pill still covers (only when no corner was clear). */
+  covered: CardText[];
+}
+
+/** The pill's inset from the map frame's edge. */
+const PILL_INSET = 20;
+
+/**
+ * Where a badge goes on the map: the first corner, in reading order (top
+ * start, top end, bottom start — the bottom end corner holds the scale bar),
+ * that covers no label, town dot or star. If every corner is taken, the top
+ * start corner, with the labels it covers listed so the caller can drop them
+ * (a nameless dot is better than a half-hidden name).
+ */
+export function placePill(
+  size: { width: number; height: number },
+  frame: { x: number; y: number; width: number; height: number },
+  rtl: boolean,
+  labels: readonly CardText[],
+  dots: readonly { x: number; y: number; radius: number }[],
+): PillPlacement {
+  const startX = rtl ? frame.x + frame.width - PILL_INSET - size.width : frame.x + PILL_INSET;
+  const endX = rtl ? frame.x + PILL_INSET : frame.x + frame.width - PILL_INSET - size.width;
+  const topY = frame.y + PILL_INSET;
+  const bottomY = frame.y + frame.height - PILL_INSET - size.height;
+  const corners = [
+    { x: startX, y: topY },
+    { x: endX, y: topY },
+    { x: startX, y: bottomY },
+  ];
+  const boxOf = (corner: { x: number; y: number }): Box => ({
+    left: corner.x,
+    top: corner.y,
+    right: corner.x + size.width,
+    bottom: corner.y + size.height,
+  });
+  const coveredLabels = (box: Box) =>
+    labels.filter((label) => boxesOverlap(box, labelBox(label), 6));
+  const coversDot = (box: Box) =>
+    dots.some((dot) =>
+      boxesOverlap(
+        box,
+        {
+          left: dot.x - dot.radius,
+          right: dot.x + dot.radius,
+          top: dot.y - dot.radius,
+          bottom: dot.y + dot.radius,
+        },
+        4,
+      ),
+    );
+  for (const corner of corners) {
+    const box = boxOf(corner);
+    if (coveredLabels(box).length === 0 && !coversDot(box)) {
+      return { ...corner, covered: [] };
+    }
+  }
+  const fallback = corners[0]!;
+  return { ...fallback, covered: coveredLabels(boxOf(fallback)) };
+}
+
 export function buildCardModel(input: CardInput): CardModel {
   const { size, locale, strings, colors } = input;
   const rtl = isRTLLocale(locale);
@@ -795,26 +891,9 @@ export function buildCardModel(input: CardInput): CardModel {
     );
   }
 
-  // Towns that got no label still say "people live here": small dots, clear
-  // of the star and of each other's labels' dots.
-  let extraDots = 0;
-  for (const city of candidates) {
-    if (extraDots >= MAX_EXTRA_TOWN_DOTS) break;
-    if (labelled.has(city.id)) continue;
-    const point = project(city.lon, city.lat);
-    const clearOfStar =
-      Math.hypot(point.x - epicenterPoint.x, point.y - epicenterPoint.y) >
-      STAR_RADIUS + 16;
-    const inside =
-      point.x > frame.x + 16 &&
-      point.x < frame.x + frame.width - 16 &&
-      point.y > frame.y + 16 &&
-      point.y < frame.y + frame.height - 16;
-    if (clearOfStar && inside) {
-      towns.push({ x: point.x, y: point.y, radius: EXTRA_TOWN_DOT_RADIUS });
-      extraDots += 1;
-    }
-  }
+  // A town is drawn only with its name. Until 2026-10-14 towns that got no
+  // label were drawn as small nameless dots too; near the epicentre they
+  // read as unexplained marks on a map everyone shares (review A-10).
 
   // Scale: pixels per kilometre at the map's own scale (the projector is
   // uniform, so one number serves both axes).
@@ -879,8 +958,25 @@ export function buildCardModel(input: CardInput): CardModel {
   if (strings.automaticNote && drawnBands.length > 0) {
     const pillHeight = 46;
     const pillWidth = estimateTextWidth(strings.automaticNote, PILL_SIZE, 700) + 62;
-    const pillX = rtl ? frame.x + frame.width - 20 - pillWidth : frame.x + 20;
-    const pillY = frame.y + 20;
+    // A corner where the pill hides no town's name or dot and not the star
+    // (review A-10: it sat over "Dukan" and "Zakho"); if every corner is
+    // taken, the top start corner, and the names under it are dropped.
+    const pill = placePill({ width: pillWidth, height: pillHeight }, frame, rtl, labels, [
+      ...towns,
+      { x: epicenterPoint.x, y: epicenterPoint.y, radius: STAR_RADIUS },
+    ]);
+    if (pill.covered.length > 0) {
+      // The name goes with its dot (labels and town dots are pushed in
+      // step): a nameless dot is exactly the mark the card must not have.
+      const dropped = new Set(pill.covered);
+      const kept = labels
+        .map((label, index) => ({ label, town: towns[index] }))
+        .filter(({ label }) => !dropped.has(label));
+      map.labels = kept.map(({ label }) => label);
+      map.towns = kept.flatMap(({ town }) => (town ? [town] : []));
+    }
+    const pillX = pill.x;
+    const pillY = pill.y;
     overlay.push({
       x: pillX,
       y: pillY,

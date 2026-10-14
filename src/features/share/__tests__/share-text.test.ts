@@ -70,6 +70,29 @@ describe("shareText on the web", () => {
     };
     expect(await shareText("hello", "Title")).toBe("copied");
   });
+
+  it("copies only the given clipboard text where there is no share dialog (review A-14: 'Link copied' copies the link)", async () => {
+    (globalThis as { navigator?: unknown }).navigator = {};
+    expect(
+      await shareText("Felt it! https://app.bumelerze.com/e/x", "Title", {
+        clipboardText: "https://app.bumelerze.com/e/x",
+      }),
+    ).toBe("copied");
+    expect(setString).toHaveBeenCalledWith("https://app.bumelerze.com/e/x");
+  });
+
+  it("still shares the full text through a share dialog when there is one", async () => {
+    const share = jest.fn().mockResolvedValue(undefined);
+    (globalThis as { navigator?: unknown }).navigator = { share };
+    await shareText("Felt it! https://app.bumelerze.com/e/x", "Title", {
+      clipboardText: "https://app.bumelerze.com/e/x",
+    });
+    expect(share).toHaveBeenCalledWith({
+      text: "Felt it! https://app.bumelerze.com/e/x",
+      title: "Title",
+    });
+    expect(setString).not.toHaveBeenCalled();
+  });
 });
 
 describe("helpers", () => {

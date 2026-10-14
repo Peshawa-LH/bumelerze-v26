@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
-import { Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import i18n from "@/i18n";
 
@@ -98,6 +98,9 @@ describe("ShareSheet on the phone", () => {
     expect(mockShareText).toHaveBeenCalledWith(
       `Felt this! ${URL_}`,
       "Share this earthquake",
+      // Where there is no share dialog, "Link copied" copies the link alone
+      // (review A-14), never the whole caption.
+      { clipboardText: URL_ },
     );
   });
 
@@ -113,6 +116,25 @@ describe("ShareSheet on the phone", () => {
     await open();
     await fireEvent.press(screen.getByTestId("share-link"));
     expect(await screen.findByText("Link copied")).toBeTruthy();
+  });
+
+  it("the caption box grows with its text so the last line is never cut (review A-14)", async () => {
+    await open();
+    const input = screen.getByTestId("share-caption-input");
+    const heightOf = () =>
+      (StyleSheet.flatten(screen.getByTestId("share-caption-input").props.style) as {
+        height?: number;
+      }).height;
+    expect(heightOf()).toBe(132);
+    await fireEvent(input, "contentSizeChange", {
+      nativeEvent: { contentSize: { width: 300, height: 160 } },
+    });
+    expect(heightOf()).toBeGreaterThan(160);
+    // Shorter text never shrinks the box below its resting height.
+    await fireEvent(input, "contentSizeChange", {
+      nativeEvent: { contentSize: { width: 300, height: 40 } },
+    });
+    expect(heightOf()).toBe(132);
   });
 
   it("copies the caption", async () => {

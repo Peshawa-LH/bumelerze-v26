@@ -22,14 +22,25 @@ export async function copyText(text: string): Promise<boolean> {
   }
 }
 
+export interface ShareTextOptions {
+  /** What goes to the clipboard where the browser has no share dialog
+   * (default: the text itself). The share sheet passes the bare link, so
+   * "Link copied" copies exactly that; the caption has its own copy. */
+  clipboardText?: string;
+}
+
 /**
  * Shares plain text (the caption, which carries the event link) through the
  * platform's own share sheet: `Share.share` on the phone, `navigator.share`
  * on the web. Where the web has no share sheet (most desktop browsers) the
- * text is copied instead, and the outcome says "copied" so the caller can
- * show "Link copied".
+ * text — or `clipboardText` — is copied instead, and the outcome says
+ * "copied" so the caller can show "Link copied".
  */
-export async function shareText(text: string, title: string): Promise<TextShareOutcome> {
+export async function shareText(
+  text: string,
+  title: string,
+  options: ShareTextOptions = {},
+): Promise<TextShareOutcome> {
   if (Platform.OS === "web") {
     const nav = typeof navigator === "undefined" ? undefined : navigator;
     if (nav && typeof nav.share === "function") {
@@ -43,7 +54,7 @@ export async function shareText(text: string, title: string): Promise<TextShareO
         // Any other failure: fall through to the clipboard.
       }
     }
-    return (await copyText(text)) ? "copied" : "failed";
+    return (await copyText(options.clipboardText ?? text)) ? "copied" : "failed";
   }
   try {
     const result = await Share.share({ message: text, title });

@@ -9,9 +9,12 @@ import {
   bandsTouchGrid,
   computeCardBounds,
   findGridBox,
+  labelBox,
+  placePill,
   selectCardBands,
   type CardInput,
   type CardModel,
+  type CardText,
 } from "../card-layout";
 import { buildCardStrings } from "../card-strings";
 import { SHARE_IMAGE_HEIGHTS, SHARE_IMAGE_WIDTH } from "../config";
@@ -141,6 +144,125 @@ describe("buildCardModel: content", () => {
       automatic.overlay.some((rect) => rect.stroke?.color === lightColors.status.warning),
     ).toBe(true);
     expect(textOf(reviewed)).not.toContain("Automatic estimate");
+  });
+});
+
+describe("buildCardModel: the automatic-estimate pill and the town dots (review A-10)", () => {
+  afterAll(() => i18n.changeLanguage("en"));
+
+  const overlaps = (
+    a: { left: number; top: number; right: number; bottom: number },
+    b: { left: number; top: number; right: number; bottom: number },
+  ) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+  it.each([
+    ["en", "square"],
+    ["en", "story"],
+    ["ckb", "square"],
+    ["ckb", "story"],
+  ] as const)("%s %s: the pill covers no town's name and not the star", async (locale, size) => {
+    const model = buildCardModel(await input({ locale, size, reviewStatus: "automatic" }));
+    const pill = model.overlay.find(
+      (rect) => rect.stroke?.color === lightColors.status.warning,
+    )!;
+    const pillBox = {
+      left: pill.x,
+      top: pill.y,
+      right: pill.x + pill.width,
+      bottom: pill.y + pill.height,
+    };
+    for (const label of model.map.labels) {
+      expect(overlaps(pillBox, labelBox(label))).toBe(false);
+    }
+    const [sx, sy] = model.map.star.points.split(" ")[0]!.split(",").map(Number);
+    expect(
+      pillBox.left <= sx! && sx! <= pillBox.right && pillBox.top <= sy! && sy! <= pillBox.bottom,
+    ).toBe(false);
+  });
+
+  it("draws a town only with its name: no nameless dots", async () => {
+    for (const locale of ["en", "ckb"]) {
+      const model = buildCardModel(await input({ locale, reviewStatus: "automatic" }));
+      expect(model.map.towns.length).toBe(model.map.labels.length);
+      expect(
+        model.map.towns.every((town) => town.radius === model.map.towns[0]!.radius),
+      ).toBe(true);
+    }
+  });
+
+  it("a name the pill would still cover goes together with its dot", async () => {
+    // A pill as wide as the whole map leaves no free corner.
+    const base = await input({ reviewStatus: "automatic" });
+    const wide = {
+      ...base,
+      strings: { ...base.strings, automaticNote: "x".repeat(400) },
+    };
+    const model = buildCardModel(wide);
+    expect(model.map.towns.length).toBe(model.map.labels.length);
+    const pill = model.overlay.find(
+      (rect) => rect.stroke?.color === lightColors.status.warning,
+    )!;
+    const pillBox = {
+      left: pill.x,
+      top: pill.y,
+      right: pill.x + pill.width,
+      bottom: pill.y + pill.height,
+    };
+    for (const label of model.map.labels) {
+      expect(overlaps(pillBox, labelBox(label))).toBe(false);
+    }
+  });
+});
+
+describe("placePill", () => {
+  const frame = { x: 56, y: 400, width: 968, height: 600 };
+  const size = { width: 300, height: 46 };
+  const name = (x: number, y: number): CardText => ({
+    text: "Dukan",
+    x,
+    y,
+    size: 27,
+    weight: 700,
+    fill: "#000",
+    anchor: "start",
+    rtl: false,
+  });
+  const topStart = { x: 76, y: 420 };
+  const topEnd = { x: 56 + 968 - 20 - 300, y: 420 };
+  const bottomStart = { x: 76, y: 400 + 600 - 20 - 46 };
+
+  it("takes the top start corner when nothing is there", () => {
+    expect(placePill(size, frame, false, [], [])).toEqual({ ...topStart, covered: [] });
+  });
+
+  it("moves to the top end corner when a name sits under the start corner", () => {
+    expect(placePill(size, frame, false, [name(100, 445)], [])).toEqual({
+      ...topEnd,
+      covered: [],
+    });
+  });
+
+  it("then to the bottom start corner (the bottom end holds the scale bar)", () => {
+    const names = [name(100, 445), name(topEnd.x + 10, 445)];
+    expect(placePill(size, frame, false, names, [])).toEqual({ ...bottomStart, covered: [] });
+  });
+
+  it("a town dot or the star under a corner counts as taken too", () => {
+    expect(placePill(size, frame, false, [], [{ x: 120, y: 440, radius: 7 }])).toEqual({
+      ...topEnd,
+      covered: [],
+    });
+  });
+
+  it("mirrors the corners in a right-to-left card", () => {
+    expect(placePill(size, frame, true, [], [])).toEqual({ ...topEnd, covered: [] });
+  });
+
+  it("with every corner taken, keeps the top start corner and names what it covers", () => {
+    const names = [name(100, 445), name(topEnd.x + 10, 445), name(100, bottomStart.y + 30)];
+    const placed = placePill(size, frame, false, names, []);
+    expect({ x: placed.x, y: placed.y }).toEqual(topStart);
+    expect(placed.covered).toEqual([names[0]]);
   });
 });
 
