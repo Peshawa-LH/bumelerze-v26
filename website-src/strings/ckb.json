@@ -66,7 +66,7 @@
   "live.open": "لە ئەپەکەدا بیکەرەوە",
   "live.mag_template": "{{value}} پلە",
   "live.km": "کم",
-  "live.place_template": "{{distance}} {{direction}}ی {{city}}ەوە",
+  "live.place_template": "{{distance}} {{direction}}ی {{city}}",
   "live.directions": "باکوور|باکووری ڕۆژهەڵات|ڕۆژهەڵات|باشووری ڕۆژهەڵات|باشوور|باشووری ڕۆژئاوا|ڕۆژئاوا|باکووری ڕۆژئاوا",
   "live.rel_minutes": "{{value}} خولەک لەمەوبەر",
   "live.rel_hours": "{{value}} کاتژمێر لەمەوبەر",
