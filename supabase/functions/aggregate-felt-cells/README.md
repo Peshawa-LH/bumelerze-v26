@@ -24,11 +24,9 @@ aggregates the felt-map (`src/features/feltmap/`, reading
   — plain frequency counts, no CDI/EMS weighting), and the idempotent
   version-write path.
 - **Minimal-ops, HTTP-invoked.** No queue, no dedicated scheduler process —
-  just a POST endpoint. Wiring an actual trigger (a Database Webhook on
-  `felt_reports`/`felt_report_details` INSERT, or a `pg_cron` schedule
-  calling sweep mode) is one line of Supabase config once a project exists
-  to point it at; left to whoever operates the live project (see
-  `index.ts`'s top comment).
+  just a POST endpoint. The `pg_cron` job `aggregate_felt_cells` (migration
+  0017) calls it every 5 minutes in sweep mode (empty body); the debounce and
+  the skip-if-unchanged write below keep that cheap.
 
 ## Request / response
 
@@ -59,10 +57,9 @@ validation errors land here with `code: "invalid_request"`).
 
 ## Idempotency
 
-Two independent mechanisms, both required by the wave brief ("idempotent
-per event"):
+Two independent mechanisms, so the function is idempotent per event:
 
-1. **>=60s debounce** (felt-report-science-v1.md §3.2 step 5) —
+1. **>=60s debounce** (the felt-report method's aggregation step) —
    `aggregate-event.ts`'s `isDebounced`: an event whose latest stored cell
    is younger than 60s is skipped entirely for this invocation.
 2. **Skip-if-unchanged write** — `cellRowUnchanged` compares a freshly

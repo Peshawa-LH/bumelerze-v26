@@ -1,12 +1,13 @@
 # felt-aggregation
 
-Pure TypeScript implementation of the felt-report CDI science
-(`docs/research/felt-report-science-v1.md`, CONFIRMED 2026-08-04, D18).
-Zero React/React Native/Expo imports, zero new npm dependencies.
+Pure TypeScript implementation of the felt-report CDI science (the
+felt-report method, confirmed 2026-08-04, D18). Zero React/React
+Native/Expo imports, zero new npm dependencies.
 
-**Portability constraint:** this folder must run unchanged inside a
-Supabase Edge Function (Deno) once the server-side aggregation job is
-built (Phase 2 backend wave, not this wave). Concretely that means:
+**Portability constraint:** this folder also runs inside a Supabase Edge
+Function (Deno): the server-side aggregation job,
+`supabase/functions/aggregate-felt-cells/`, carries a verbatim copy in its
+own `felt-aggregation/` folder. Concretely that means:
 
 - No RN/Expo module imports anywhere in `geohash.ts`, `cdi-scoring.ts`,
   `cell-aggregation.ts`, `types.ts`, `index.ts`.
@@ -15,15 +16,15 @@ built (Phase 2 backend wave, not this wave). Concretely that means:
   RN app even though the source tree lives inside it today.
 - No new npm packages. The geohash encoder is hand-rolled specifically to
   avoid adding one.
-- When the Edge Function is built, this folder can be copied/symlinked in
-  as-is (or published as a tiny internal package) and pointed at Deno's
-  `npm:` specifier for `@/features/felt/types` if that type import is kept,
-  or the type import can be inlined at that point — no logic changes
-  required either way.
+- The Edge Function's copy differs only mechanically: the
+  `@/features/felt/types` import is replaced by its own `answer-types.ts`,
+  and relative imports carry Deno's `.ts` extensions. `__tests__/
+  vendored-sync.test.ts` feeds the same fixtures through both copies and
+  fails if their output differs.
 
-## What implements what (section map to felt-report-science-v1.md)
+## What implements what (section map to the felt-report method)
 
-| File | Science pack section(s) | What it does |
+| File | Method section(s) | What it does |
 |---|---|---|
 | `geohash.ts` | §3.1 (D18 R12) | Base32 geohash encoder, any precision; app uses p4/p5/p6. |
 | `cdi-scoring.ts` | PART 2 (Q1-Q11 answer→index tables), §3.3 cartoon table | Per-report index extraction: `scoreTier2Report` (the 8 CWS indices, with the Q3 `getFeltFromOther` modifier chain and the R17 vehicle exclusion), `CARTOON_TO_INTENSITY` (tier-1 cartoon → CDI-path intensity, identity + 9.0 cap). |
@@ -33,11 +34,11 @@ built (Phase 2 backend wave, not this wave). Concretely that means:
 
 ## What is deliberately NOT here
 
-- **EMS-98/IMS-25 assignment (§3.4).** The parallel diagnostic intensity
-  path (`ems_int`, `ems_range`, `ems_method`, the toolkit's IMS-25
-  vulnerability-class/quantity-bar tables per D18 R5/R7/R13) is
-  Phase-2 server work, once the `SHAKEmaps-Toolkit-v26` YAML tables are
-  wired in. This module only computes the CDI path.
+- **IMS-25 assignment (§3.4).** The parallel diagnostic intensity path
+  (`ems_int`, `ems_range`, `ems_method`, the IMS-25 vulnerability-class and
+  quantity-bar tables per D18 R5/R7/R13) is not built yet; it waits on the
+  IMS-25 tables from `bumelerze-engine`. This module only computes the CDI
+  path, and the server job writes those columns as null.
 - **Bumelerze-specific cartoon→intensity correction (§3.3, D18 R9).** Tier-1
   cartoon picks map through the identity table (1-9, then 9/9/9 for
   10-12) — no EMSC-style `iraw→icorr` bias correction. Fitting our own
@@ -54,24 +55,20 @@ built (Phase 2 backend wave, not this wave). Concretely that means:
   on how that resolution happens.
 - **Storage/versioning** (`event_id`, `geohash`, `precision`, `version`,
   `computed_at`, the >=60s recompute debounce of §3.2 step 5). Left to the
-  caller per the wave brief; `FeltCellAggregate` only carries the fields
-  this module actually computes.
+  caller; `FeltCellAggregate` only carries the fields this module actually
+  computes.
 
-## Edge Function deployment note
+## The server job
 
-The intended shape of the eventual server job: a Supabase Edge Function
-(Deno), triggered on new `felt_reports`/`felt_report_details` rows (or on a
-debounce timer per §3.2 step 5), that:
+`supabase/functions/aggregate-felt-cells/` (its own README) runs every 5
+minutes (`pg_cron`, migration 0017). For each event with new reports it:
 
-1. Resolves the report to an (event, geohash) cell — not this module's job.
-2. Loads all reports for that cell, maps them to `AggregationInputReport[]`.
-3. Calls `aggregateCell(...)` from this folder, unchanged.
+1. Resolves the reports to (event, geohash) cells — not this module's job.
+2. Loads all reports for each cell, maps them to `AggregationInputReport[]`.
+3. Calls `aggregateCell(...)` from its copy of this folder.
 4. Writes the result into a new `felt_cells` row (service-role key, bumps
-   `version`) alongside the EMS/IMS fields computed by the (separate,
-   Phase-2) IMS-25 diagnostic path.
-
-Because this folder has no RN/Expo/npm-package dependency, step 3 is a
-straight import with no adaptation layer.
+   `version`) only when it differs from the stored one; the IMS-25
+   diagnostic columns stay null (see above).
 
 ## A documented ambiguity worth flagging up front
 
@@ -84,9 +81,8 @@ cartoon table capping levels 10-12 at 9.0 before the trimmed mean even
 runs) — so the gate's `intensity >= 10` trigger condition is currently
 unreachable from real `aggregateCell` output. It is implemented and
 exercised directly against synthetic inputs (see
-`__tests__/cell-aggregation.test.ts`) because the science pack asks for it
+`__tests__/cell-aggregation.test.ts`) because the felt-report method asks for it
 explicitly and the same evidence-counting logic is almost certainly what
 the future `ems_int` (§3.4, uncapped, integer I-XII) path will need. See
 the full reasoning in `cell-aggregation.ts`'s doc comment on
-`applyCorroborationGate`, and the wave's final report for the exact science
-pack quote this reads against.
+`applyCorroborationGate`.
