@@ -632,7 +632,6 @@
     "footerData": "زانیاریی بوومەلەرزە: USGS، EMSC و GEOFON.",
     "footerTrademark": "بوومەلەرزە™ و لۆگۆکەی مارکی بازرگانی پڕۆژەکەن.",
     "footerVersion": "وەشانی {{version, digits}}",
-    "footerVersionBuild": "وەشانی {{version, digits}} ({{build}})",
     "footerLogoA11yLabel": "بوومەلەرزە",
     "accountSectionTitle": "هەژمار"
   },

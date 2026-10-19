@@ -41,24 +41,7 @@ describe("buildFeedbackContext", () => {
   });
 
   it("captures the real app version from expo-constants, never a hardcoded string", () => {
-    const original = process.env.EXPO_PUBLIC_BUILD_ID;
-    delete process.env.EXPO_PUBLIC_BUILD_ID;
-    try {
-      expect(buildFeedbackContext().appVersion).toBe("9.9.9");
-    } finally {
-      if (original !== undefined) process.env.EXPO_PUBLIC_BUILD_ID = original;
-    }
-  });
-
-  it("adds the short web build id so two builds of one version can be told apart (D90)", () => {
-    const original = process.env.EXPO_PUBLIC_BUILD_ID;
-    process.env.EXPO_PUBLIC_BUILD_ID = "abc1234def5678abc1234def5678abc1234def56";
-    try {
-      expect(buildFeedbackContext().appVersion).toBe("9.9.9+abc1234");
-    } finally {
-      if (original === undefined) delete process.env.EXPO_PUBLIC_BUILD_ID;
-      else process.env.EXPO_PUBLIC_BUILD_ID = original;
-    }
+    expect(buildFeedbackContext().appVersion).toBe("9.9.9");
   });
 
   it("captures the current i18next locale", async () => {

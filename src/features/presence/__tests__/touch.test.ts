@@ -32,6 +32,7 @@ jest.mock("expo-constants", () => ({
   default: { expoConfig: { version: "1.2.3" } },
 }));
 
+
 const NOW = Date.parse("2026-10-10T12:00:00Z");
 
 describe("isTouchDue", () => {
@@ -48,15 +49,7 @@ describe("isTouchDue", () => {
 });
 
 describe("touchPresenceOnce", () => {
-  const originalBuildId = process.env.EXPO_PUBLIC_BUILD_ID;
-
-  afterAll(() => {
-    if (originalBuildId === undefined) delete process.env.EXPO_PUBLIC_BUILD_ID;
-    else process.env.EXPO_PUBLIC_BUILD_ID = originalBuildId;
-  });
-
   beforeEach(() => {
-    delete process.env.EXPO_PUBLIC_BUILD_ID;
     __resetPresenceForTests();
     mockGetItem.mockReset().mockResolvedValue(null);
     mockSetItem.mockReset().mockResolvedValue(undefined);
@@ -74,15 +67,6 @@ describe("touchPresenceOnce", () => {
     expect(args.p_app_version).toBe("1.2.3");
     expect(["en", "ckb", "kmr", "ar"]).toContain(args.p_locale);
     expect(mockSetItem).toHaveBeenCalledWith(PRESENCE_STORAGE_KEY, String(NOW));
-  });
-
-  it("sends version+build from a hosted web build, in a form the server keeps (D90)", async () => {
-    process.env.EXPO_PUBLIC_BUILD_ID = "abc1234def5678abc1234def5678abc1234def56";
-    await touchPresenceOnce(() => NOW);
-    const [, args] = mockRpc.mock.calls[0] as [string, Record<string, unknown>];
-    expect(args.p_app_version).toBe("1.2.3+abc1234");
-    // touch_presence keeps the value only when it matches this (migration 0055).
-    expect(args.p_app_version).toMatch(/^[0-9A-Za-z][0-9A-Za-z._+-]{0,31}$/);
   });
 
   it("does nothing within 24 hours of the last call", async () => {

@@ -29,24 +29,6 @@ describe("i18next `digits` formatter", () => {
     expect(i18n.t("settings.footerVersion", { version: "26.1.0" })).toBe(expected);
   });
 
-  it.each([
-    ["ckb", "وەشانی ٢٦.٣.٠ (\u2066abc1234\u2069)"],
-    ["ar", "الإصدار ٢٦.٣.٠ (\u2066abc1234\u2069)"],
-    ["en", "Version 26.3.0 (\u2066abc1234\u2069)"],
-    ["kmr", "Guherto 26.3.0 (\u2066abc1234\u2069)"],
-  ] as const)(
-    "localises the version but never the build hash in %s (D90)",
-    async (locale, expected) => {
-      await i18n.changeLanguage(locale);
-      expect(
-        i18n.t("settings.footerVersionBuild", {
-          version: "26.3.0",
-          build: "\u2066abc1234\u2069",
-        }),
-      ).toBe(expected);
-    },
-  );
-
   it("localises a numeric plural `count` without disturbing plural selection", async () => {
     await i18n.changeLanguage("ckb");
     expect(i18n.t("stations.listTitle", { count: 37 })).toBe("٣٧ وێستگە");

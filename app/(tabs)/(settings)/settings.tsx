@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -15,7 +16,6 @@ import { SettingsRow, SettingsRowBody } from "@/features/account/components/Sett
 import { GuidelinesRow } from "@/features/guidelines";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
-import { appBuildId, appVersion } from "@/lib/app-version";
 import { confirmDialog, messageDialog } from "@/lib/dialogs";
 import { usePrefsStore } from "@/features/onboarding";
 import { useDevicePermissions } from "@/features/permissions";
@@ -429,19 +429,12 @@ function DevicePermissionsBody() {
  * The Settings footer (owner, 2026-10-08: no About screen, a minimal footer
  * about Bumelerze): the owner's horizontal mark, one sentence, the privacy
  * link, the data credit the EMSC/GEOFON licences ask for, the app version
- * (with the web build id when there is one, D90) and the trademark line.
+ * and the trademark line.
  */
 function FooterSection() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const version = appVersion();
-  const build = appBuildId();
-  // The build hash is isolated (LRI ... PDI) so it stays left-to-right inside
-  // Sorani and Arabic text, and it never goes through the digits formatter:
-  // it is a code, not a number.
-  const versionLine = build
-    ? t("settings.footerVersionBuild", { version, build: `⁦${build}⁩` })
-    : t("settings.footerVersion", { version });
+  const appVersion = Constants.expoConfig?.version ?? "";
   const meta = {
     color: colors.text.tertiary,
     fontSize: typography.bodyMeta.fontSize,
@@ -471,10 +464,8 @@ function FooterSection() {
         </Text>
       </Pressable>
       <Text style={meta}>{t("settings.footerData")}</Text>
-      {version ? (
-        <Text style={meta} testID="settings-footer-version">
-          {versionLine}
-        </Text>
+      {appVersion ? (
+        <Text style={meta}>{t("settings.footerVersion", { version: appVersion })}</Text>
       ) : null}
       <Text style={meta}>{t("settings.footerTrademark")}</Text>
     </View>
