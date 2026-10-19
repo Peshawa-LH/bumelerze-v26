@@ -50,12 +50,10 @@ switch and re-upload both files.
 | `kmr.md` | Kurmanji Kurdish (Latin) | `draft-machine` — needs native review |
 | `ar.md` | Arabic | `draft-machine` — needs native review |
 
-The `draft-machine`/`source` labels match the exact convention already used in
-`src/i18n/locales/*.json` (`_status` field) — the same untranslated-vs-reviewed
-gap the app's in-product strings have (`docs/decisions.md` task ledger item
-5, "Native review of Kurdish translations", Phase 5). **Do not submit ckb/kmr/ar
-store text without that review** — a mistranslated store listing is more
-publicly visible than an in-app string.
+`draft-machine` means a machine draft, the same state the app's own ckb/kmr/ar
+strings are in until the native review. **Do not submit ckb/kmr/ar store text
+without that review** — a mistranslated store listing is more publicly
+visible than an in-app string.
 
 ## Store-locale mapping — read this before pasting anything in
 
@@ -74,8 +72,8 @@ Neither store's metadata-locale list matches our four app locales exactly:
   `ar.md` / `en.md` as genuine same-language matches wherever Apple's
   storefront-language fallback would otherwise show English. **[VERIFY AT
   SUBMISSION]** — Apple's supported-locale list changes occasionally; confirm
-  the current list in App Store Connect when the account exists, alongside the
-  D5 C2 name re-check (same session).
+  the current list in App Store Connect when the account exists, in the same
+  session as the store-name availability check.
 - **Google Play Console** has a broader language list than Apple and has, in
   recent years, added Kurdish entries — but whether it distinguishes Sorani
   from Kurmanji (they use different scripts and are not mutually legible in
@@ -83,15 +81,14 @@ Neither store's metadata-locale list matches our four app locales exactly:
   Console's "Store settings → Main store listing → Manage translations" locale
   picker and check for "Kurdish" / "Kurdish (Sorani)" / "Kurdish (Kurmanji)"
   entries specifically. If only one generic "Kurdish" slot exists, it can only
-  hold one script — use it for `ckb.md` (Sorani is the primary target per
-  PROJECT.md/D12) and fall back `kmr.md` into the English slot's "also
+  hold one script — use it for `ckb.md` (Sorani is the primary target, D12)
+  and fall back `kmr.md` into the English slot's "also
   applies to" note, or into Play's auto-translate-preview text (Play machine-
   translates from your default listing for unlisted locales anyway, so an
   absent Kurmanji slot degrades to an automatic translation of the English
   text rather than disappearing).
-- This mapping ambiguity is exactly the kind of item D5's caveat C2 ("re-check
-  store names/metadata at submission") already anticipated — treat it as the
-  same checklist step, not a new blocker.
+- Treat this mapping as part of the metadata check at submission, not as a
+  new blocker.
 
 ## Character-count compliance
 
@@ -100,7 +97,7 @@ locale file — codepoints, matching how both stores count).
 
 | Locale | Title (≤30) | Subtitle/short-desc (Apple ≤30 / Google ≤80) | Full description (≤4000) | Keywords (Apple ≤100) |
 |---|---|---|---|---|
-| en | 9 | 27 / 66 | ~2,190 | 90 |
+| en | 9 | 27 / 66 | ~2,207 | 90 |
 | ckb | 10 | 29 / 76 | ~2,198 | 80 |
 | kmr | 9 | 27 / 75 | ~2,228 | 81 |
 | ar | 8 | 22 / 67 | ~1,792 | 75 |
@@ -135,7 +132,7 @@ one category, no secondary slot).
    captures both browsing paths without misrepresenting the app.
 4. **[VERIFY AT SUBMISSION]** — confirm this is still how the closest
    comparable apps (EMSC LastQuake, MyShake, Rasathane — the three reference
-   apps this project already studies, `docs/research/teardown-*.md`) are
+   apps this project already studies) are
    categorized live in each store before locking the choice; store category
    taxonomies and competitor placement can both shift, and a two-minute look
    at their live listings is cheap confirmation this doc can't do offline.
@@ -144,9 +141,11 @@ one category, no secondary slot).
 
 Expected outcome: **Apple 4+ / Google Play "Everyone" (or the equivalent IARC
 result)** — the app is factual/informational (event data, safety guidance,
-historical catalog), has no violence, sexual content, gambling, or user-
-generated open text visible to other users by default (felt-report comments
-are moderated per D15, not yet live in v1 code).
+historical catalog), with no violence, sexual content or gambling. It does
+have **user-generated text visible to other users**: Event hub comments,
+profile posts and @mentions from people with accounts. These are moderated
+(word filter, busy-time review, reports, removal by moderators, blocking and
+muting), which the rating questionnaires ask about.
 
 **One thing to answer honestly on the rating questionnaire, not to hide:**
 the historical-events catalog (`src/i18n/locales/*.json` → `events.historical`,
@@ -164,45 +163,46 @@ pulled for a re-review later — over-honest costs nothing here.
 
 ## Privacy / data-safety summary (Apple "App Privacy" + Google "Data safety")
 
-**What Bumelerze collects today, verified against the current codebase
-(2026-08-09) — not aspirational:**
+**What Bumelerze collects today, checked against the codebase and the privacy
+policy (<https://bumelerze.com/privacy.html>, effective 8 October 2026) on
+2026-10-19.** The backend is live (Supabase); everything below is sent to
+Bumelerze's own project and nowhere else.
 
-- **Location (precise, foreground-only).** Requested via `expo-location`'s
-  "when in use" permission only — the app never requests "always"/background
-  location (`app.config.ts` deliberately omits the background-location plugin
-  option; PROJECT.md hard requirement). Used for two things: (a) showing
-  distance-to-event in the feed/detail screens, and (b) attaching a
-  latitude/longitude to a felt report so it's valid scientific testimony
-  (`src/features/felt/types.ts` `FeltLocation`). **Not required** — felt
-  reports work with a manual town picker if location is denied.
-- **Anonymous per-install device ID.** A random UUID generated on-device by
-  `expo-crypto`, stored locally (`src/features/felt/device-id.ts`), attached
-  to felt reports so duplicate/spam reports from one install can be
-  recognized. Explicitly **not** tied to any account or personal identifier —
-  there is no account system in this app. A fresh install gets a fresh ID.
-- **No accounts, no sign-up, no personal identifiers** (name, email, phone)
-  are collected anywhere in the app.
-- **No backend exists yet** (Supabase project not yet created — PROJECT.md
-  "Blocked on Peshawa"). Concretely, as of today: felt reports queue
-  **on-device only** (AsyncStorage, `src/features/felt/queue.ts`) and are not
-  transmitted anywhere; the only network calls the app makes are read-only
-  GET requests to the public USGS and EMSC earthquake feeds
-  (`src/features/events/usgs.ts`, `emsc.ts`) — nothing about the user is sent
-  in those requests.
-- **Telemetry: planned, not active.** A launch-telemetry table exists in the
-  authored (not-yet-deployed) Supabase schema
-  (`supabase/migrations/0005_notifications_and_telemetry.sql`), but **no
-  client code sends anything to it today** — confirmed by grep, there is no
-  telemetry-sending code path in `src/`. When it ships, it's designed to be
-  anonymous (device ID, not identity).
-- **No ads, no ad SDKs, no third-party analytics or trackers** are integrated.
-  Crash reporting (Sentry) is planned per PROJECT.md's quality checklist but
-  **not yet wired** — confirmed by grep, no Sentry references exist in the
-  codebase yet.
+- **Location (precise, foreground-only, optional).** Requested via
+  `expo-location`'s "when in use" permission only — the app never requests
+  "always"/background location (`app.config.ts` deliberately omits the
+  background-location option). Used for distances to events, for the place
+  of a felt report, and for alert areas. If it is declined, the app still
+  works and people search for their place instead.
+- **Felt reports** (only when someone sends one): the shaking level, optional
+  details, an optional photo or comment, the location if allowed, and the
+  time. Reports are combined into area-level community intensity; a single
+  report and its exact location are never published.
+- **Anonymous per-install device ID** (the Contributor ID): a random UUID made
+  on the device (`src/features/felt/device-id.ts`), attached to reports and
+  feedback so one install's submissions can be grouped and deleted on request.
+- **Optional accounts** (since migration 0035): an email used only for
+  account recovery (no emails are sent), a hashed password, and what the
+  person chooses to share: a profile, comments, posts, a home and its photos
+  (private to the home's family), "I'm safe" check-ins (seen by the people
+  they choose). Account holders can delete their account in the app.
+- **Officials sharing** (opt-in, accounts only, off by default): a person may
+  let verified government officials see their building's class, its area
+  (never the address) and their latest "I'm safe". Without that switch,
+  officials see only area totals, with every number under 5 hidden.
+- **Feedback** (only when sent): the message, an optional contact address,
+  optional screenshots, and the app version, language and platform.
+- **Daily activity record:** once a day the app records the time, platform,
+  app version and language for the signed-in identity (anonymous or account),
+  with no location (`src/features/presence/touch.ts`, migration 0055).
+- **Anonymous launch count (telemetry ping, live):** when the app opens, and
+  only if location was already allowed, it records a coarse region (geohash
+  precision 4, city scale) and the platform, with no identifier
+  (`src/features/telemetry/ping.ts`, `telemetry_pings`).
+- **Alerts (testers only):** a web push subscription and the chosen alert
+  areas, for the people in testers mode (migration 0062).
+- **No ads, no ad SDKs, no third-party analytics or trackers, no crash
+  reporting SDK.** Nothing is sold or shared.
 
-**This summary must be revised when the Supabase backend goes live** —
-felt-report location + device ID will then leave the device (to Bumelerze's
-own database, still not sold/shared/used for ads), and telemetry may go
-active. Flag that revision as a required step in any future "wire Supabase"
-task, not something to forget silently — the store's data-safety form is a
-factual filing, not a one-time checkbox.
+Re-check this list against the privacy policy before any store filing; the
+data-safety form is a factual filing, not a one-time checkbox.

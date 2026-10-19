@@ -1,9 +1,7 @@
 # Store listing — Kurmanji (`kmr`)
 
-**Status:** `draft-machine` — machine-translated, same flag as
-`src/i18n/locales/kmr.json` (`_status`). **Needs a native Kurmanji speaker's review
-before submission** — same standing gap as the app's own translations
-(`docs/decisions.md` task ledger item 5: "Native review of Kurdish translations").
+**Status:** `draft-machine` — machine-translated. **Needs a native Kurmanji speaker's
+review before submission** — same standing gap as the app's own translations.
 
 Sourced from EN (`store/listing/en.md`), reusing the app's own established
 vocabulary (`Destpêk`, `Nexşe`, `Ewlehî`, `Min hîs kir!`, `SHAKEmap` — the app keeps
@@ -62,7 +60,7 @@ nivîsandin, ne ji cihekî din hatiye wergerandin.
 **LI SER ZANISTA RASTÎN HATIYE AVAKIRIN**
 
 Bumelerze ne dubarekirina xizmeteke biyanî ye. SHAKEmapên wê bi amûrên xweyên
-taybet têne çêkirin, pîvana tundiyê li gorî standarda EMS-98 ya zanyarên
+taybet têne çêkirin, pîvana tundiyê li gorî standarda IMS-25 ya zanyarên
 erdhejnasiyê tê bikaranîn, çavkaniyên daneyê her tim eşkere ne, û her nexşe nîşan
 dide ka hê otomatîk e an ji aliyê zanyarekî ve hatiye kontrolkirin. Ji aliyê
 lêkolînereke doktorayê ya metirsiya erdhejê ve hatiye çêkirin ku bi pîşeyî li ser
