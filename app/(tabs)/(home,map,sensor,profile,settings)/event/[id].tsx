@@ -38,7 +38,7 @@ import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
- * Event Detail — header scope only (spec-v1.md §4.5, spec-v1.md §9 Phase 1
+ * Event Detail — header scope only (the v1 spec §4.5, the v1 spec §9 Phase 1
  * cut: "no shakemap/felt-map/comments yet"). Reads from the already-cached
  * region/world feed queries first (the common case — arriving from a list
  * row or a notification tap once those exist); falls back to a direct
@@ -353,7 +353,7 @@ function EventDetailHeader({
 }: EventDetailHeaderProps) {
   const { utc, local } = formatAbsoluteDual(event.originTime, locale, t);
 
-  // Nearest-cities list (ui-backlog.md wave 5 item 5) — always shown, no
+  // Nearest-cities list (the UI backlog wave 5 item 5) — always shown, no
   // location permission needed. "From you" is a separate, optional extra
   // line, shown only once a real device fix exists.
   const nearestCityResults = nearestCities(event.lat, event.lon);
@@ -542,11 +542,11 @@ function EventDetailHeader({
         </View>
       </DetailSection>
 
-      {/* Historical-context link (spec-v1.md §4.5 "earthquakes here since
+      {/* Historical-context link (the v1 spec §4.5 "earthquakes here since
        * 1900" / §4.7 lite scope): points at the same bundled Historical View
        * for every screen — no per-location filtering in this "lite" wave —
        * shown only for regional events (the same `isRegional` flag the feed
-       * already computes, event-pipeline-design.md §4), since a far-world
+       * already computes, the event-pipeline design §4), since a far-world
        * event has no regional history worth linking to. */}
       {event.isRegional ? (
         <Pressable accessibilityRole="button" onPress={onNavigateHistorical} hitSlop={12}>
@@ -562,7 +562,7 @@ function EventDetailHeader({
         </Pressable>
       ) : null}
 
-      {/* Lazy, self-contained (spec-v1.md §4.5 ordering: Distance -> ShakeMap
+      {/* Lazy, self-contained (the v1 spec §4.5 ordering: Distance -> ShakeMap
        * -> Source) — mounted unconditionally, but renders nothing for the
        * common no-shakemap-product event (no empty shell) and never blocks
        * this header, which is already fully rendered above from feed data. */}
@@ -574,7 +574,7 @@ function EventDetailHeader({
        * product event (only 3 events carry one at launch). */}
       <RiskSection event={event} />
 
-      {/* Felt map (spec-v1.md §4.5 "Felt map tab: our own CDI-aggregated
+      {/* Felt map (the v1 spec §4.5 "Felt map tab: our own CDI-aggregated
        * grid cells"), a sibling of ShakeMap directly below it — mounted
        * unconditionally too; `FeltMapSection` itself decides
        * hidden/offline/ready (no Supabase project configured yet ->
@@ -602,7 +602,7 @@ function EventDetailHeader({
          * name comes from the event's provenance so future FDSN providers
          * (EMSC, GEOFON — D4) slot in without UI changes; a configurable
          * network-priority display is a later system feature (see
-         * docs/research/event-pipeline-design.md §2 authority tiers). */}
+         * the event-pipeline design §2 authority tiers). */}
         <Text
           style={{
             marginTop: spacing[2],

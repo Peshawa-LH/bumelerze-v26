@@ -13,12 +13,12 @@ import {
 } from "@/features/events";
 
 /**
- * Significant Events (spec-v1.md §4.3): region-significant ∪ world-
- * significant, ranked by `sig`, per event-pipeline-design.md §3.
+ * Significant Events (the v1 spec §4.3): region-significant ∪ world-
+ * significant, ranked by `sig`, per the event-pipeline design §3.
  *
  * The union here is a client-side id-set merge over the two feeds we
  * already have cached — NOT the full cross-provider dedup/merge algorithm
- * from event-pipeline-design.md §2 (spatial-temporal matching across
+ * from the event-pipeline design §2 (spatial-temporal matching across
  * providers). That's backend/Postgres work for when a second provider
  * (EMSC) joins; with USGS as the only source when this was written, an event can only
  * ever appear once per feed, so a Map keyed by id is sufficient and exact.

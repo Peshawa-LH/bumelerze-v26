@@ -72,7 +72,7 @@ export interface FeltReportDetailRow {
 
 /** Row shape written to `felt_cells` (migration 0004). `ems_int`/
  * `ems_range`/`ems_method` are always null — the parallel IMS-25 path is
- * explicit Phase-2 server work (felt-report-science-v1.md §3.4.5), not
+ * explicit Phase-2 server work (the felt-report method §3.4.5), not
  * this function's job (same "deliberately NOT here" boundary the source
  * lib's own README documents). */
 export interface FeltCellInsertRow {

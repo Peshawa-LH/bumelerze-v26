@@ -34,7 +34,7 @@
 // because the caller retried after a dropped response, or a sweep
 // re-selects an event nothing new happened to — writes nothing new
 // (`aggregate-event.ts`'s `cellRowUnchanged`); a >=60s debounce
-// (felt-report-science-v1.md §3.2 step 5) additionally skips an event
+// (the felt-report method §3.2 step 5) additionally skips an event
 // outright if it was JUST recomputed. See `README.md` in this folder for
 // the fuller design notes (grouping, p6 trigger, pg_cron alternative).
 //

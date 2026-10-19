@@ -92,7 +92,7 @@ function buildRegionQueryUrl({ windowDays, minMagnitude }: RegionQueryOptions): 
 }
 
 /** Region feed: fdsnws query, last `REGION_FEED_WINDOW_DAYS` (config.ts),
- * bbox from config.ts (event-pipeline-design.md §4), no magnitude floor —
+ * bbox from config.ts (the event-pipeline design §4), no magnitude floor —
  * the adaptive Home-feed policy (`home-feed-policy.ts`) applies its own
  * display floor client-side over this pool. `signal` is used by
  * queries.ts's parallel USGS+EMSC+GEOFON completeness merge
@@ -110,7 +110,7 @@ export async function fetchUsgsRegionEvents(
 }
 
 /**
- * Notable-tail region feed (config.ts `NOTABLE_TAIL_*`, update-plan-2026-08.md
+ * Notable-tail region feed (config.ts `NOTABLE_TAIL_*`, the August 2026 update plan
  * §1.1): backfills the M>=6/12-month "stays longer" tier that
  * `fetchUsgsRegionEvents`'s own `REGION_FEED_WINDOW_DAYS` pool doesn't
  * reach. Server-side `minmagnitude` filter keeps this response tiny
@@ -135,7 +135,7 @@ export async function fetchUsgsNotableTailEvents(
 }
 
 /** World feed: the CDN-cached M4.5+/week summary feed — cheap, no bbox/time
- * filters needed (teardown-usgs-dyfi.md §2). Deliberately USGS-only — the
+ * filters needed (the USGS DYFI teardown §2). Deliberately USGS-only — the
  * EMSC completeness merge applies to the REGION feed only: the world feed's
  * own M4.5 floor matches USGS/NEIC's global completeness, so EMSC has
  * nothing systematic to add there (the completeness gap the merge fixes is
@@ -150,7 +150,7 @@ export async function fetchUsgsWorldEvents(): Promise<UsgsFetchResult> {
 }
 
 /** Single-event lookup by USGS event id, for the cold-start deep-link case
- * (spec-v1.md §4.5: "handle direct deep-link cold start by fetching eventid
+ * (the v1 spec §4.5: "handle direct deep-link cold start by fetching eventid
  * from fdsnws if not in cache"). Returns `null` if USGS has no such event
  * rather than throwing, so the caller can show a clean not-found state.
  *

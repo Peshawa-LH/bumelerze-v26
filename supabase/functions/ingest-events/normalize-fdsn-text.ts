@@ -2,7 +2,7 @@
 // pipe-delimited channels: GEOFON (`geofon-adapter.ts`) and ISC
 // (`isc-adapter.ts`). Both channels speak the SAME 13/14-column format
 // (`format=text`) — this is the `fdsn-text.ts` extraction
-// provider-architecture.md §3 anticipated "the moment a second real FDSN
+// the provider-architecture notes §3 anticipated "the moment a second real FDSN
 // text source arrives" ("Factor the shared text parser out into
 // fdsn-text.ts... not before"): ISC is that second source. Zod-free, same
 // reason as normalize-usgs.ts.
@@ -15,7 +15,7 @@
 //    ContributorID|MagType|Magnitude|MagAuthor|EventLocationName|EventType
 //
 // The two live responses differ in exactly the way
-// source-and-ingestion-plan.md predicts:
+// the ingestion plan predicts:
 // - GEOFON leaves `Author`/`MagAuthor` BLANK for its own automatic
 //   solutions and puts the real attribution in `Contributor` (`"GFZ"`).
 // - ISC's bulletin rows carry a real `Author` (who located it) AND can
@@ -117,7 +117,7 @@ export function parseFdsnTextTimeUtc(value: string): number {
 export interface NormalizeFdsnTextOptions {
   provider: "geofon" | "isc";
   /** Applied to every row this channel produces — ISC's bulletin is
-   * reviewed by nature (source-and-ingestion-plan.md §1: "ISC is a reviewed
+   * reviewed by nature (the ingestion plan §1: "ISC is a reviewed
    * bulletin, not a feed"); GEOFON's automatic near-real-time solutions are
    * not. Neither format exposes a per-row review flag, so this is a
    * channel-level default, not read from the row. */

@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 
 /**
- * First-launch-only stack (spec-v1.md §4.11), mounted outside the tab bar —
+ * First-launch-only stack (the v1 spec §4.11), mounted outside the tab bar —
  * see app/_layout.tsx for the onboarding-vs-tabs switch. Every screen
  * renders its own chrome via OnboardingScreenShell, so the native header is
  * always hidden here.

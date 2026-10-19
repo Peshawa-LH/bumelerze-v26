@@ -14,15 +14,15 @@ export interface FeltMapSectionProps {
 }
 
 /**
- * Event Detail's felt-map section (spec-v1.md §4.5 "Felt map tab: our own
+ * Event Detail's felt-map section (the v1 spec §4.5 "Felt map tab: our own
  * CDI-aggregated grid cells"), mounted as a sibling of `ShakeMapSection`
  * (`app/event/[id].tsx`, below it). Three states, matching the brief
  * exactly:
  *  - `"hidden"` (`useFeltMap`): renders nothing at all — no Supabase
  *    project configured yet, OR configured but this event has no
- *    displayable cells yet (spec-v1.md §4.5: "no empty-state noise on old
+ *    displayable cells yet (the v1 spec §4.5: "no empty-state noise on old
  *    events" is the brief's own phrasing for this case).
- *  - `"offline"`: the spec-v1.md §4.5 offline state ("shakemap/felt-map
+ *  - `"offline"`: the v1 spec §4.5 offline state ("shakemap/felt-map
  *    /comments show 'unavailable offline' rather than blank/error") — a
  *    short message plus a retry affordance, never a silent failure (no
  *    silent catches — repo rule).

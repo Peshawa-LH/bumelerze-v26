@@ -8,7 +8,7 @@ import { OnboardingScreenShell, usePrefsStore } from "@/features/onboarding";
 import { useTheme } from "@/theme";
 
 /**
- * Screen 2 — language selection (spec-v1.md §4.11 step 2, D12): "the one
+ * Screen 2 — language selection (the v1 spec §4.11 step 2, D12): "the one
  * onboarding screen where the four-locale requirement is literally the
  * content". Reuses the exact same changeLocale/restart logic as Settings
  * (useLocaleSwitcher) — the only addition here is persisting the resume

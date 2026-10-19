@@ -25,7 +25,7 @@ interface OnboardingScreenShellProps {
 }
 
 /**
- * Shared layout for every onboarding screen (spec-v1.md §4.11: "one idea
+ * Shared layout for every onboarding screen (the v1 spec §4.11: "one idea
  * per screen", brief: "progress dots, back navigation"). One shell so
  * every screen gets the same header/footer chrome and RTL/safe-area
  * handling for free, matching how EventListScreen is shared across

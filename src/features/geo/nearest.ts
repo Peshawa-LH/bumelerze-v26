@@ -19,7 +19,7 @@ export interface NearestCityResult {
 /**
  * The `n` closest gazetteer cities to a point, nearest first. Reuses
  * `haversineDistanceKm` from `events/distance.ts` rather than
- * reimplementing distance math (typescript-react-native.md "one module
+ * reimplementing distance math (the project's TypeScript conventions "one module
  * owns scientific formatting", extended to the shared geodesic
  * primitives). `GAZETTEER_CITIES` is a non-empty compile-time constant and
  * `n` is expected positive, so this always returns at least one result for

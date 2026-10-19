@@ -36,7 +36,7 @@ function makeEvent(
 
 /**
  * Golden pairs for the §2 spatial-temporal match
- * (event-pipeline-design.md §2 step 3: |Δt| <= 16 s AND distance <= 50 km
+ * (the event-pipeline design §2 step 3: |Δt| <= 16 s AND distance <= 50 km
  * since engine review ruling H1.c, 2026-09-06; was 100 km
  * AND |ΔM| <= 1.5, all inclusive). Distance goldens are hand-computed
  * haversine values (R = 6371 km):

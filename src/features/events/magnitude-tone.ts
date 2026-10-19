@@ -2,7 +2,7 @@
  * Conservative, magnitude-only visual accent for an event card's edge
  * stripe.
  *
- * This is deliberately NOT an intensity mapping. design-language.md §3.2 is
+ * This is deliberately NOT an intensity mapping. The design language §3.2 is
  * explicit that magnitude must always render in neutral text color and that
  * only felt-impact/shakemap-derived intensity may drive color — conflating
  * the two is named as LastQuake's own card-design mistake. A magnitude is

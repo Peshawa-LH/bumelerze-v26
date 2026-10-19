@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /**
  * Tolerant zod schema for a USGS earthquake GeoJSON feature
- * (teardown-usgs-dyfi.md §2 — same shape for the fdsnws `format=geojson`
+ * (the USGS DYFI teardown §2 — same shape for the fdsnws `format=geojson`
  * query and the CDN summary feeds). Deliberately permissive:
  * - Fields we don't use are simply not listed — zod objects strip unknown
  *   keys by default, so USGS adding a new property never breaks parsing.

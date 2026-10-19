@@ -29,7 +29,7 @@ export type ChannelCadence =
  * internal normalized shape — deliberately NOT the client's `Event` type
  * (`src/features/events/types.ts`): the client model already discards
  * exactly the fields this function exists to capture (author agency,
- * magnitude author, review status) — see source-and-ingestion-plan.md §5.1/
+ * magnitude author, review status) — see the ingestion plan §5.1/
  * §6.2 and this folder's README for why a fresh, richer shape is used
  * instead of reusing/widening the client one.
  *

@@ -3,7 +3,7 @@ import { emscFeatureCollectionSchema, emscFeatureSchema } from "../emsc-schema";
 
 /**
  * Realistic EMSC seismicportal.eu fdsnws feature, hand-authored from the
- * exact property list documented in teardown-lastquake.md §2 (`unid, time,
+ * exact property list documented in the LastQuake teardown §2 (`unid, time,
  * lastupdate, lat, lon, depth, mag, magtype, evtype, auth, source_catalog,
  * source_id, flynn_region`) — this is the fixture the brief asks for,
  * mirroring how normalize.test.ts's `buildFeature` fixture was built from
@@ -34,7 +34,7 @@ const REAL_EMSC_FEATURE = {
 };
 
 describe("EMSC schema parsing", () => {
-  it("accepts a realistic EMSC fdsnws feature (teardown-lastquake.md §2 fixture)", () => {
+  it("accepts a realistic EMSC fdsnws feature (the LastQuake teardown §2 fixture)", () => {
     const parsed = emscFeatureSchema.safeParse(REAL_EMSC_FEATURE);
     expect(parsed.success).toBe(true);
   });

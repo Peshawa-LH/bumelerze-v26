@@ -1,6 +1,6 @@
 /**
  * §3.2/§3.3 aggregation algorithm — the exact per-cell CDI computation,
- * verbatim from felt-report-science-v1.md (as amended by PART 5).
+ * verbatim from the felt-report method (as amended by PART 5).
  *
  * See `types.ts` for the portability constraint (no RN/Expo imports here).
  */
@@ -219,7 +219,7 @@ function dedupeByDevice(
 /**
  * Aggregates a pre-filtered list of reports (all belonging to one event +
  * one geohash cell) into a `FeltCellAggregate`, implementing
- * felt-report-science-v1.md §3.2 (tier-2 CDI path), §3.3 (tier-1-only path
+ * the felt-report method §3.2 (tier-2 CDI path), §3.3 (tier-1-only path
  * and the count-weighted combination), §1.2/D18-R14 (corroboration gate).
  */
 export function aggregateCell(reports: readonly AggregationInputReport[]): AggregateCellOutcome {

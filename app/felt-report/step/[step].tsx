@@ -37,8 +37,8 @@ function askedQuestions(feltKnown: boolean): readonly Tier2QuestionDef[] {
 }
 
 /**
- * One tier-2 question per screen (spec-v1.md §4.6 — Q1-Q9/Q11,
- * `felt-report-science-v1.md` PART 2; Q10 removed, 2026-08-15 flow
+ * One tier-2 question per screen (the v1 spec §4.6 — Q1-Q9/Q11,
+ * the felt-report method PART 2; Q10 removed, 2026-08-15 flow
  * restructure — see `questions.ts`). Tapping an option both records the
  * answer and advances; the "Skip" footer advances without recording one
  * (every question is independently skippable). Reached only via window 3's

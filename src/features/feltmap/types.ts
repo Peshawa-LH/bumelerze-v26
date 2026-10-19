@@ -62,7 +62,7 @@ export interface ParsedFeltCellRows {
   rows: FeltCellRow[];
   /** Count of rows present in the raw response that failed schema
    * validation and were skipped — same tolerant-parsing bookkeeping
-   * convention as `events/usgs.ts`'s `skippedCount` (PROJECT.md gotcha:
+   * convention as `events/usgs.ts`'s `skippedCount` (the project gotcha:
    * external/DB-shaped data is never trusted blindly). A `felt_cells_public`
    * row should never actually fail this schema (it's our own view, not a
    * third-party feed), so in practice this stays 0 — the tolerance exists

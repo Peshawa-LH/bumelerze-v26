@@ -45,7 +45,7 @@ export function applyDocumentColorSchemeWeb(scheme: Theme["scheme"]): void {
  * Automatic/Light/Dark) — "auto" (the default) follows the system color
  * scheme exactly as this hook always did; "light"/"dark" override it. Also
  * honors the active locale's script (Arabic-script locales need taller line
- * heights, design-language.md §2). Components should never import
+ * heights, the design language §2). Components should never import
  * palette/semantic files directly — always go through this hook.
  */
 export function useTheme(): Theme {

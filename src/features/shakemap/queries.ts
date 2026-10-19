@@ -6,7 +6,7 @@ import { buildBundledReportUrl, parseRiskProduct } from "./risk";
 import type { AtlasBundleEntry, IntensityContourSet, RiskProduct } from "./types";
 
 /**
- * Bundled-only shakemap lookup (D21, `docs/decisions.md`: "Displayed
+ * Bundled-only shakemap lookup (D21, the decision log: "Displayed
  * maps are ALWAYS bumelerze-engine products ... USGS ShakeMap
  * products are never user-facing" — the live USGS fetch path
  * (`usgs-products.ts`, `fetchIntensityContours`) was REMOVED,

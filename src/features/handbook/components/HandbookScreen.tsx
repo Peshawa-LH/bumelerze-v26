@@ -13,7 +13,7 @@ import { HandbookResultTable } from "./HandbookResultTable";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
- * Engineer's Handbook (spec-v1.md §7, design-brief.md §9) — the whole
+ * Engineer's Handbook (the v1 spec §7, the design brief §9) — the whole
  * screen's content, split out from `app/handbook.tsx` (which only wraps
  * this) so it's unit-testable without Expo Router's navigation context,
  * same "screen component vs. route file" split every other pushed screen

@@ -14,7 +14,7 @@ interface AccessibilityDisclosureProps {
 }
 
 /**
- * Collapsible accessibility-variant block (spec-v1.md §4.9 / brief:
+ * Collapsible accessibility-variant block (the v1 spec §4.9 / brief:
  * "accessibility-variant block collapsible under its parent card with a
  * clear label"). One shared toggle reveals all of a card's variants
  * together (today only `dropCoverHold` has any) rather than a separate

@@ -19,8 +19,7 @@ interface PossibleEventCardProps {
 
 /**
  * A crowd-detected possible event on Home (D26 item 3, crowd detection v2:
- * migration 0034 and the EMSC study, research/emsc-crowd-detection-
- * 2026-10-04.md). It names SHAKING, not an earthquake — explosions and
+ * migration 0034 and the EMSC study of 2026-10-04). It names SHAKING, not an earthquake — explosions and
  * strikes can raise reports too — and says plainly that seismic networks
  * have not confirmed it. Two stages: for its first 30 minutes it is an
  * alert-styled card; after that it stays visible but muted as

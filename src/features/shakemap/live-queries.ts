@@ -26,7 +26,7 @@ export const liveShakeMapQueryKeys = {
  * published product version is immutable per D9's own versioning
  * discipline — deliberately no `refetchInterval` at all (unlike the region
  * feed/felt map's active polling): this is not a live-updating stream, so
- * there is nothing to gain from polling it on a fixed cadence (PROJECT.md
+ * there is nothing to gain from polling it on a fixed cadence (the project requirements
  * "battery-conscious... no aggressive background polling").
  *
  * Returns `null` — never a distinct "error"/"loading" status of its own —

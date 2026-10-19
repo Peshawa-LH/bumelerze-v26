@@ -9,7 +9,7 @@ import { loadHandbookArea } from "@/features/handbook/area-loader";
 const HandbookScreen = lazyScreenContent(loadHandbookArea, (area) => area.HandbookScreen);
 
 /**
- * Engineer's Handbook route (spec-v1.md §7, design-brief.md §9) — pushed
+ * Engineer's Handbook route (the v1 spec §7, the design brief §9) — pushed
  * from Settings only (deliberately not linked from Event Detail
  * or anywhere else: a professional-audience side tool, not a panic-time
  * surface).

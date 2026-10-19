@@ -8,7 +8,7 @@ import { toRadians } from "@/features/events/distance";
 export type DirectionKey = "N" | "NE" | "E" | "SE" | "S" | "SW" | "W" | "NW";
 
 /** i18n key for each direction — `bearing8` returns the bare key, callers
- * translate via `t(DIRECTION_I18N_KEYS[key])` (ui-backlog.md wave 5 item 3:
+ * translate via `t(DIRECTION_I18N_KEYS[key])` (the UI backlog wave 5 item 3:
  * "localized direction key ... in all four locales"). */
 export const DIRECTION_I18N_KEYS: Record<DirectionKey, string> = {
   N: "geo.directions.n",
@@ -45,8 +45,8 @@ function toDegrees(radians: number): number {
  * Initial great-circle bearing from `from` to `to`, in degrees clockwise
  * from true north (0-360, exclusive of 360 — wraps to 0). Standard forward-
  * azimuth formula; `toRadians` is imported from `events/distance.ts` so
- * this module doesn't re-derive the same trig helper (typescript-
- * react-native.md "one module owns scientific formatting" extended to the
+ * this module doesn't re-derive the same trig helper (the project's "one
+ * module owns scientific formatting" rule, extended to the
  * shared geodesic primitives, not just their display strings).
  */
 export function bearingDegrees(from: LatLon, to: LatLon): number {

@@ -112,7 +112,7 @@ export async function fetchDetailsForReports(
  * falls within the lookback window — the sweep mode's
  * candidate list (`index.ts`'s "no `eventId` in the request body" branch).
  * Bounded by `sinceHours` specifically so a sweep stays cheap without a
- * dedicated "needs recompute" tracking table (PROJECT.md minimal-ops: no
+ * dedicated "needs recompute" tracking table (the project's minimal-ops rule: no
  * extra infrastructure for something a time-bounded query already does
  * well enough at this app's report volume). */
 export async function fetchEventIdsWithRecentReports(

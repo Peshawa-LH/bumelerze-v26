@@ -23,7 +23,7 @@ type TranslateFn = TFunction;
 const CONTRIBUTOR_ID_VISIBLE_CHARS = 8;
 
 /**
- * Deliberately NOT run through `localizeDigits` (typescript-react-native
+ * Deliberately NOT run through `localizeDigits` (the project's TypeScript
  * rule: "Kurdish digits via localizeDigits where numbers render") — a
  * device id is an opaque identifier/code, not a quantity being read aloud
  * or compared numerically (unlike magnitude, distance, or a report count),

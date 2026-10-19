@@ -8,7 +8,7 @@ import { localizeDigits } from "@/lib/format-numbers";
 import { initialTranslations, loadTranslation } from "./locale-resources";
 
 /**
- * i18n scaffolding (D12, PROJECT.md hard requirement): every visible string
+ * i18n scaffolding (D12, a hard project requirement): every visible string
  * goes through t(), four locales exist from commit one. English is the
  * source-of-truth authoring language; Sorani is the primary language at
  * release (D12) — the device-locale-detection fallback below still lands on
@@ -21,7 +21,7 @@ export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 /** Sorani (Arabic script) and Arabic are RTL; Kurmanji and English are LTR. */
 export const RTL_LOCALES: readonly SupportedLocale[] = ["ckb", "ar"];
 
-/** Same two locales today, but a distinct concept (design-language.md §2) —
+/** Same two locales today, but a distinct concept (the design language §2) —
  * kept as its own list so the theme layer never has to assume RTL == Arabic
  * script if a future locale breaks that coincidence. */
 export const ARABIC_SCRIPT_LOCALES: readonly SupportedLocale[] = ["ckb", "ar"];
@@ -293,7 +293,7 @@ export function isInitialLocaleReady(): boolean {
 
 export interface ChangeLocaleResult {
   /**
-   * True when the reading direction flipped. Per design-language.md §5
+   * True when the reading direction flipped. Per the design language §5
    * ("RN/Expo implementation notes"), I18nManager.forceRTL only takes full
    * effect after a JS reload — the caller (Settings screen) must show a
    * "restarting…" state and reload, not assume the layout flips live.

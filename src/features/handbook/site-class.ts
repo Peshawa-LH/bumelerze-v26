@@ -31,7 +31,7 @@ function nehrpClassFromVs30(vs30MS: number): string {
 
 /** Derives both site-classification systems from a single sampled Vs30
  * value (m/s) — never independently estimated, always a function of the
- * same Vs30 number shown in the Vs30 row above it (spec-v1.md §7: "site
+ * same Vs30 number shown in the Vs30 row above it (the v1 spec §7: "site
  * class derived from Vs30"). */
 export function siteClassFromVs30(vs30MS: number): SiteClassResult {
   return { ec8: ec8ClassFromVs30(vs30MS), nehrp: nehrpClassFromVs30(vs30MS) };

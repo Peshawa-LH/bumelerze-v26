@@ -7,7 +7,7 @@ function answers(overrides: Partial<Tier2Answers>): Tier2Answers {
 }
 
 describe("scoreTier2Report — Q2/Q3 felt x othersFelt modifier chain (D18 R2)", () => {
-  // felt-report-science-v1.md §2 Q3, DYFI v4 getFeltFromOther verbatim:
+  // The felt-report method §2 Q3, DYFI v4 getFeltFromOther verbatim:
   // other_felt<2 -> unchanged; ==2 -> 0.36 (0 if felt=no); ==3 -> 0.72;
   // >=4 -> 1. Codes: dont_know=0, no_one=1, some=2, most=3, everyone=4.
 

@@ -16,7 +16,7 @@ import { findFirstSymbolLayerId } from "./terrain";
 import { VS30_OVERLAY_BOUNDS } from "./vs30-overlay";
 
 /**
- * The map layer registry (decisions.md D28, research/data-architecture-v2.md
+ * The map layer registry (D28, the data-architecture notes
  * §2): every dataset the map can draw, as data — what it is, where it comes
  * from, what credit it requires, whether it is on by default. The Layers
  * panel is generated from this list and the map adds/removes overlays from
@@ -39,7 +39,7 @@ export interface MapLayerEntry {
   license: string;
   availabilityStatus: "available" | "licensed-pending" | "planned";
   rendererType: "markers" | "geojson" | "raster";
-  /** design-language.md §6: only earthquakes are on by default. */
+  /** The design language §6: only earthquakes are on by default. */
   defaultOn: boolean;
   /** `false` for layers the map cannot do without (the events themselves). */
   toggleable: boolean;

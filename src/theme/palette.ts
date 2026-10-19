@@ -3,12 +3,12 @@
  *
  * Raw swatches only. Nothing here is used directly by screens/components —
  * only `semantic.ts` reads from this file. This indirection is what makes the
- * palette swappable (design-language.md §3, D7): the day the SHAKEmaps
+ * palette swappable (the design language §3, D7): the day the SHAKEmaps
  * Toolkit's real intensity hex values are extracted and reconciled, only this
  * file changes.
  *
  * REMAINING PLACEHOLDER — SWAPPABLE. One thing is still not final
- * (design-language.md "Handoff notes"):
+ * (the design language "Handoff notes"):
  *   1. Brand blue / action red exact hex (owner-review item).
  * The intensity ramp below is no longer a placeholder — see provenance note.
  *
@@ -115,9 +115,9 @@ export const status = {
  * EMS-98 intensity ramp, indexed I..XII (array index 1..12, index 0 unused
  * so the Roman-numeral level reads directly as the array index).
  *
- * PROVENANCE (ui-backlog.md item 8 / decisions.md "toolkit palette
+ * PROVENANCE (the UI backlog item 8 / the decision log "toolkit palette
  * extraction", 2026-08-07): extracted verbatim from
- * `SHAKEmaps-Toolkit-v26/modules/utils/SHAKEtools.py`, function
+ * the SHAKEmaps toolkit's `modules/utils/SHAKEtools.py`, function
  * `contour_scale(pgm_type, scale_type="ems")`, the `ems_colors` list (12
  * entries, paired 1:1 with that same function's `ems_table
  * ["intensity_values_ems"] = [0,1,2,...,12]` — 13 bin edges, 12 bins, one
@@ -301,7 +301,7 @@ export const intensityOnFillDark: readonly string[] = [
  * NOT A SCIENTIFIC SCALE, and deliberately not `intensityRamp`. A
  * magnitude is one number for the whole earthquake; the shaking a person
  * feels depends on distance and depth, which is what `intensityRamp`
- * colours. design-language.md §3.2 names conflating the two as
+ * colours. The design language §3.2 names conflating the two as
  * LastQuake's own card-design mistake, so this ramp shares the intuitive
  * cool-to-hot ORDER without borrowing a single EMS hex: the closest pair
  * (strong #D2691E vs EMS X) still differ by 1.36:1, and the EMS swatches

@@ -24,8 +24,8 @@ import type {
 } from "./types";
 
 /**
- * Offline-first felt-report submission queue (spec-v1.md §4.6 states;
- * PROJECT.md offline requirement; felt-report-science-v1.md acceptance
+ * Offline-first felt-report submission queue (the v1 spec §4.6 states;
+ * the offline requirement; the felt-report method acceptance
  * criterion — "no report is ever lost"). Every tier-1/tier-2 submission is
  * written to AsyncStorage (via zustand's `persist` middleware) BEFORE any
  * network attempt is made: the local write IS the durable "submission" from
@@ -47,7 +47,7 @@ import type {
  * attempts additionally back off and retry on the next such trigger, so a
  * device that's offline for hours still catches up the moment it's
  * foregrounded with connectivity, without any timer running while
- * backgrounded (PROJECT.md: "no aggressive background polling... no
+ * backgrounded (the project requirements: "no aggressive background polling... no
  * wake-lock abuse").
  */
 
@@ -114,8 +114,7 @@ export interface FeltTransport {
 
 /**
  * The fallback transport for whenever no Supabase project is configured yet
- * (`isSupabaseConfigured()` false — PROJECT.md "Blocked on Peshawa: Supabase
- * project"). Every report simply stays queued locally, forever, in the
+ * (`isSupabaseConfigured()` false). Every report simply stays queued locally, forever, in the
  * "awaiting-backend" state until `getDefaultFeltTransport()` below starts
  * picking `SupabaseTransport` instead (the moment the owner pastes the two
  * env values in, per `supabase/README.md`'s "Wiring status" section — no
@@ -267,7 +266,7 @@ export interface EnqueueTier1Input {
 }
 
 /**
- * The panic-time one-tap action (spec-v1.md §4.6: "one tap selects AND
+ * The panic-time one-tap action (the v1 spec §4.6: "one tap selects AND
  * submits"). Resolves once the report is durably queued — a caller can
  * immediately show the confirmation state, it never needs to wait on
  * network I/O.
@@ -485,7 +484,7 @@ export async function processQueue(
           }
         } catch {
           // The transport threw instead of returning a typed result — treated
-          // as a retryable failure. This IS the error handling (PROJECT.md:
+          // as a retryable failure. This IS the error handling (the project requirements:
           // "no silent catches"): the item visibly moves to "failed" with a
           // scheduled retry rather than the error disappearing.
           const attempts = item.attempts + 1;
@@ -718,8 +717,8 @@ export async function restoreWithdrawnReport(
 let appStateListenerAttached = false;
 
 /**
- * Wires the app-foreground sync trigger (spec-v1.md §4.6: "queues locally
- * and syncs — PROJECT.md offline requirement"). Call once from the root
+ * Wires the app-foreground sync trigger (the v1 spec §4.6: "queues locally
+ * and syncs — the offline requirement"). Call once from the root
  * layout, same lifecycle as `features/events/queries.ts`'s own AppState
  * wiring. Idempotent — safe to call on every render.
  */

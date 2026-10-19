@@ -46,7 +46,7 @@ jest.mock("expo-router", () => ({
 }));
 
 // No location permission granted — exercises the manual-town fallback path
-// (spec-v1.md §4.6: "never blocks submission").
+// (the v1 spec §4.6: "never blocks submission").
 jest.mock("expo-location", () => ({
   PermissionStatus: {
     GRANTED: "granted",

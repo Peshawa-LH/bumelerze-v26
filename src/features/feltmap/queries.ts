@@ -17,7 +17,7 @@ export interface UseFeltMapResult {
    * "hidden": no Supabase project configured yet, OR the fetch succeeded
    *   but produced zero displayable cells (an event with no felt reports
    *   yet, or none that have cleared the >=3-report display threshold) —
-   *   spec-v1.md §4.5's "never blank/error" rule applies to the OFFLINE
+   *   the v1 spec §4.5's "never blank/error" rule applies to the OFFLINE
    *   case, not to the ordinary "nothing to show yet" case, which the
    *   brief calls out explicitly: "hidden entirely when no data (no
    *   empty-state noise on old events)". The initial in-flight fetch (no
@@ -26,7 +26,7 @@ export interface UseFeltMapResult {
    *   "never blocks the header" philosophy `ShakeMapSection` already
    *   follows for its own (synchronous) lookup.
    * "ready": at least one cell to draw.
-   * "offline": configured, but the query is in an error state — spec-v1.md
+   * "offline": configured, but the query is in an error state — the v1 spec
    *   §4.5's offline state ("shakemap/felt-map/comments show 'unavailable
    *   offline' rather than blank/error"). Deliberately a single state
    *   regardless of whether stale cached cells exist underneath the failed
@@ -49,7 +49,7 @@ export interface UseFeltMapResult {
 }
 
 /**
- * Event Detail's felt-map data hook (spec-v1.md §4.5 "Felt map tab: our own
+ * Event Detail's felt-map data hook (the v1 spec §4.5 "Felt map tab: our own
  * CDI-aggregated grid cells"). Reads `felt_cells_public` for one event via
  * the injectable `transport` (defaults to the real Supabase-backed one);
  * resolves to `"hidden"` with an empty cell list whenever no Supabase

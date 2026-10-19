@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { OnboardingScreenShell, usePrefsStore } from "@/features/onboarding";
 
 /**
- * Screen 4 — notification explainer (spec-v1.md §4.11 step 4). v1 scope:
+ * Screen 4 — notification explainer (the v1 spec §4.11 step 4). v1 scope:
  * explain near-me alerts are coming — notifications themselves are
  * Phase 4 work, so this screen deliberately makes **no** real permission
  * request (no expo-notifications import at all). Keeping the screen in the

@@ -8,7 +8,7 @@ import {
 } from "@/features/onboarding";
 
 /**
- * Screen 1 — mission (spec-v1.md §4.11 step 1): "always know, in your
+ * Screen 1 — mission (the v1 spec §4.11 step 1): "always know, in your
  * language". Sets the expectation that this is a Kurdistan-first,
  * science-backed app before anything else is asked of the user.
  */

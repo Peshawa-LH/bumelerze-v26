@@ -3,7 +3,7 @@
 
 /** Rows fetched per page (`LIMIT`), both for the initial load and every
  * subsequent `onEndReached` page while scrolling. Small enough to keep
- * each query fast on low-end Android (PROJECT.md baseline device), large
+ * each query fast on low-end Android (the project's baseline device), large
  * enough that a normal scroll session rarely needs more than 2-3 pages. */
 export const CATALOG_PAGE_SIZE = 40;
 

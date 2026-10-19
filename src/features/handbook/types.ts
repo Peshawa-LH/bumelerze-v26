@@ -1,5 +1,5 @@
 /**
- * Engineer's Handbook (spec-v1.md §7, design-brief.md §9) — types mirror
+ * Engineer's Handbook (the v1 spec §7, the design brief §9) — types mirror
  * the three bundled JSON files `bumelerze-engine/scripts/build_handbook_data.py`
  * produces into `data/` (see that script's module docstring for the
  * extraction/simplification details and `bumelerze-engine/handbook-data/

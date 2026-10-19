@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /**
  * Tolerant zod schema for an EMSC seismicportal.eu fdsnws GeoJSON feature
- * (teardown-lastquake.md §2: "EMSC exposes the same FDSN standard as USGS,"
+ * (the LastQuake teardown §2: "EMSC exposes the same FDSN standard as USGS,"
  * `format=json` → GeoJSON FeatureCollection). EMSC's `properties` shape is
  * NOT the same as USGS's, even though both ride the FDSN WS-EVENT spec:
  * - EMSC repeats `lat`/`lon`/`depth` directly in `properties` (unlike USGS,

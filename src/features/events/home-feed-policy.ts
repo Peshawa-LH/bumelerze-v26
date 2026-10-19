@@ -50,7 +50,7 @@ function isNotable(event: Event, now: number): boolean {
 }
 
 /**
- * Adaptive Home-feed selection policy (update-plan-2026-08.md §1.1) — a
+ * Adaptive Home-feed selection policy (the August 2026 update plan §1.1) — a
  * PURE function over an already-fetched pool of events, so it stays
  * trivially unit-testable with fixtures and keeps the Home screen itself
  * "dumb" (spec: "the policy logic in its own module ... so the screen

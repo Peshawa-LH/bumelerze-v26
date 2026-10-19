@@ -14,9 +14,9 @@ interface SafetyTabsProps {
 }
 
 /**
- * PREPARE / SURVIVE / RECOVER top tab bar (spec-v1.md §4.9, MyShake
+ * PREPARE / SURVIVE / RECOVER top tab bar (the v1 spec §4.9, MyShake
  * pattern). A boring hand-rolled segmented control (three `Pressable`s in a
- * row) rather than a native segmented-control library, per PROJECT.md's
+ * row) rather than a native segmented-control library, per the project's
  * "prefer boring, well-documented... the owner can't debug exotic native
  * modules". `flexDirection: "row"` mirrors automatically under
  * `I18nManager.forceRTL` (same mechanism every other row layout in this app
@@ -54,7 +54,7 @@ export function SafetyTabs({ activeSection, onSelectSection }: SafetyTabsProps) 
                 backgroundColor: isActive ? colors.surface.raised : "transparent",
                 // spacing[3] (12), not spacing[2] (8) — the previous padding
                 // measured under the 48dp touch-target floor for this
-                // labelButton-sized text (design-language.md §8); these tabs
+                // labelButton-sized text (the design language §8); these tabs
                 // gate the whole PREPARE/SURVIVE/RECOVER safety content, so
                 // they get the same floor as every other primary control.
                 paddingVertical: spacing[3],

@@ -3,7 +3,7 @@ import type { EmscFeature } from "../emsc-schema";
 
 /**
  * Hand-authored fixtures modeled on the real EMSC seismicportal.eu fdsnws
- * feature shape (teardown-lastquake.md §2), mirroring `buildFeature` in
+ * feature shape (the LastQuake teardown §2), mirroring `buildFeature` in
  * normalize.test.ts — `normalizeEmscFeature` consumes the already-schema-
  * validated `EmscFeature` type, not raw JSON.
  */

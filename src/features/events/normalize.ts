@@ -5,7 +5,7 @@ import type { EventsWithSourcesRow, PrimarySourceRow } from "./supabase-event-sc
 import type { UsgsFeature } from "./usgs-schema";
 import type { Event, EventProvider } from "./types";
 
-/** True when a point falls inside the region bbox (event-pipeline-design.md
+/** True when a point falls inside the region bbox (the event-pipeline design
  * §4). Pure function, kept separate from normalization so distance/UI code
  * can reuse it without re-normalizing an event. */
 export function isInRegionBbox(lat: number, lon: number): boolean {
@@ -18,7 +18,7 @@ export function isInRegionBbox(lat: number, lon: number): boolean {
 }
 
 /**
- * Client-side significance score, event-pipeline-design.md §3:
+ * Client-side significance score, the event-pipeline design §3:
  *   sig = round(100*M + felt_term + alert_bonus)
  * felt_term is our OWN felt-report count, saturating at 60*log10(1+n),
  * capped at 200. Our felt-report system doesn't exist yet (that's Phase 2),
@@ -37,7 +37,7 @@ export function computeClientSig(
   return Math.round(100 * magnitudeValue + FELT_TERM_PHASE_1 + alertBonus);
 }
 
-/** event-pipeline-design.md §3 classification — region-significant requires
+/** The event-pipeline design §3 classification — region-significant requires
  * both the bbox flag AND the sig threshold. */
 export function isRegionSignificant(event: Event): boolean {
   return event.isRegional && event.sig >= SIGNIFICANCE_THRESHOLDS.regionSignificant;
@@ -49,7 +49,7 @@ export function isWorldSignificant(event: Event): boolean {
 
 /**
  * USGS GeoJSON feature -> internal Event. This is the ONLY place USGS field
- * names may appear outside `usgs.ts`/`usgs-schema.ts` (PROJECT.md gotcha). A
+ * names may appear outside `usgs.ts`/`usgs-schema.ts` (the project gotcha). A
  * future `normalizeEmscFeature` lives beside this one and produces the
  * exact same `Event` shape.
  *
@@ -108,8 +108,8 @@ export function normalizeUsgsFeature(
  * `normalizeUsgsFeature` above (same `Event` shape, same skip-not-throw
  * contract for structurally-valid-but-unusable features) but reads EMSC's
  * differently-shaped `properties` (emsc-schema.ts) — this is the ONLY place
- * EMSC field names may appear outside `emsc.ts`/`emsc-schema.ts` (PROJECT.md
- * gotcha).
+ * EMSC field names may appear outside `emsc.ts`/`emsc-schema.ts` (the
+ * project gotcha).
  *
  * Two EMSC-specific notes for `computeClientSig`:
  * - EMSC has no PAGER-equivalent alert field, so the alert bonus is always
@@ -148,7 +148,7 @@ function parseFdsnTextTimeUtc(value: string): number {
  * `Event` shape, same skip-not-throw contract) but reads the pipe-column
  * row shape geofon.ts parsed (geofon-schema.ts) — this is the ONLY place
  * GEOFON column semantics may appear outside `geofon.ts`/`geofon-schema.ts`
- * (PROJECT.md gotcha).
+ * (the project gotcha).
  *
  * GEOFON-specific notes:
  * - No PAGER-equivalent alert data → the alert bonus in `computeClientSig`
@@ -248,7 +248,7 @@ export function normalizeEmscFeature(
     isRegional: isInRegionBbox(properties.lat, properties.lon),
     // EMSC's fdsnws response carries no per-event page URL field (unlike
     // USGS's `properties.url`); seismicportal.eu's own event-detail page
-    // follows this documented pattern (teardown-lastquake.md §2).
+    // follows this documented pattern (the LastQuake teardown §2).
     url: `https://www.seismicportal.eu/eventdetails.html?unid=${properties.unid}`,
   };
 

@@ -19,7 +19,7 @@ interface Tier2ScreenShellProps {
 }
 
 /**
- * Shared chrome for the tier-2 question flow (spec-v1.md §4.6: "progress
+ * Shared chrome for the tier-2 question flow (the v1 spec §4.6: "progress
  * indication; every question skippable; back navigation") — the tier-2
  * analog of `features/onboarding/components/OnboardingScreenShell.tsx`,
  * reusing the same `ProgressDots` component so both flows read identically.

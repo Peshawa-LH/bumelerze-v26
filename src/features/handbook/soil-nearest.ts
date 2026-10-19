@@ -5,9 +5,9 @@ import type { NearbySoilPoint, SoilPoint } from "./types";
 /**
  * Sulaimani soil/site points within `SOIL_NEARBY_RADIUS_KM` of `(lat, lon)`,
  * nearest first — empty (not null) when nothing qualifies, so the caller's
- * "else section hidden" rule (spec-v1.md §7) is a plain length check.
+ * "else section hidden" rule (the v1 spec §7) is a plain length check.
  * Reuses `haversineDistanceKm` rather than reimplementing distance math
- * (typescript-react-native.md "one module owns scientific formatting").
+ * (the project's TypeScript conventions "one module owns scientific formatting").
  */
 export function nearbySoilPoints(
   lat: number,

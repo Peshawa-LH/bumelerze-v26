@@ -31,7 +31,7 @@ export function pointInRing(
 
 /**
  * Finds the Iraqi Seismic Code 2017 zone containing `(lat, lon)`, or `null`
- * if the point falls outside every bundled zone polygon (spec-v1.md §7:
+ * if the point falls outside every bundled zone polygon (the v1 spec §7:
  * "outside zonation" state honestly — never a nearest-zone guess). Zone VI
  * exists as two disjoint polygons in the source data (see
  * `HANDBOOK_DATA_REPORT.md` §1) — either matching first wins, both carry

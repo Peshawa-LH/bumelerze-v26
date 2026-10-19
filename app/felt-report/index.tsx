@@ -34,7 +34,7 @@ import {
 // the unassociated path (still correct per D26, just less precise).
 
 /**
- * Window 1 of 3 — the panic-time tap (spec-v1.md §4.6, D8; windows 2/3
+ * Window 1 of 3 — the panic-time tap (the v1 spec §4.6, D8; windows 2/3
  * added 2026-08-15 flow restructure, owner directive). Exactly the original
  * 12 EMS-98 cartoon grid, one tap selects — but where the old flow showed a
  * confirmation state in place, it now IMMEDIATELY, durably queues a

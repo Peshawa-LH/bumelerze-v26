@@ -5,7 +5,7 @@ import { encodeGeohash } from "@/lib/felt-aggregation";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 /**
- * Anonymous app-launch telemetry ping (spec-v1.md §5.5, D11/D13; migration
+ * Anonymous app-launch telemetry ping (the v1 spec §5.5, D11/D13; migration
  * `0005_notifications_and_telemetry.sql`'s `telemetry_pings` table). Fires
  * at most once per app process — this is a best-effort background signal
  * with no UI surface, disclosed in the website privacy policy
@@ -76,7 +76,7 @@ let hasFiredThisSession = false;
  *    the user with a permission prompt outside onboarding" rule); no
  *    permission means no ping, not a forced prompt.
  *  - A cached last-known position exists — `getLastKnownPositionAsync`
- *    only, deliberately never `getCurrentPositionAsync` (PROJECT.md
+ *    only, deliberately never `getCurrentPositionAsync` (the project requirements
  *    "battery-conscious... no wake-lock abuse": a cold-start ping must
  *    never itself trigger a fresh GPS fix).
  *

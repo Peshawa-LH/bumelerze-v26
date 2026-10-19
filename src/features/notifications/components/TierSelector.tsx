@@ -10,13 +10,13 @@ interface TierSelectorProps {
   value: NotificationTier;
   onChange: (tier: NotificationTier) => void;
   /** The "another place" section passes this true when no place is chosen —
-   * spec-v1.md §4.10: "disables tiers when no place". Rows still render
+   * the v1 spec §4.10: "disables tiers when no place". Rows still render
    * (so the tier the user last set stays visible) but cannot be pressed. */
   disabled?: boolean;
 }
 
 /**
- * Preset-tier picker (spec-v1.md §4.10: "not raw numeric sliders" — five
+ * Preset-tier picker (the v1 spec §4.10: "not raw numeric sliders" — five
  * fixed rows, off/all/M3+/M4+/M5+). Full-width stacked rows rather than a
  * horizontal 5-way segmented control, deliberately — this app's panic-time
  * typography runs large (Sorani especially), and five cramped horizontal

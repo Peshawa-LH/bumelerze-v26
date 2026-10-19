@@ -33,7 +33,7 @@ import type { Event } from "./types";
 
 /**
  * Pauses React Query's `refetchInterval` polling when the app is
- * backgrounded (PROJECT.md: "no aggressive background polling... no wake-lock
+ * backgrounded (the project requirements: "no aggressive background polling... no wake-lock
  * abuse"). React Query's `refetchIntervalInBackground` defaults to `false`,
  * but on React Native that only has an effect once `focusManager` is told
  * about app-foreground state — RN doesn't fire the DOM `visibilitychange`
@@ -97,7 +97,7 @@ export function createEventsQueryClient(): QueryClient {
       queries: {
         staleTime: EVENTS_STALE_TIME_MS,
         // Cached feed must survive a cold start with no network (offline
-        // requirement, PROJECT.md) — never garbage-collect it just because
+        // requirement, the project requirements) — never garbage-collect it just because
         // no screen is currently mounted.
         gcTime: PERSISTED_CACHE_MAX_AGE_MS,
         retry: 2,
@@ -147,7 +147,7 @@ export interface UseEventsFeedResult {
    * should show a skeleton instead of the (possibly stale) list. */
   isInitialLoading: boolean;
   /** True when there is neither cached data nor a successful fetch — the
-   * error+retry state (spec-v1.md §4.1 "error state with retry"), distinct
+   * error+retry state (the v1 spec §4.1 "error state with retry"), distinct
    * from `isOfflineIsh` (which still has something to render). */
   isHardError: boolean;
   dataUpdatedAt: number;
@@ -193,7 +193,7 @@ function useEventsFeed(
  * skippedCount, fetchedAt }`, the merge orchestration below doesn't care
  * which provider produced them. This shape IS the provider fetch contract:
  * a future source's fetch fn returns it and joins the leg list below
- * (provider-architecture.md). */
+ * (the provider-architecture notes). */
 interface RegionFetchResult {
   events: Event[];
   skippedCount: number;
@@ -241,10 +241,10 @@ async function fetchProviderLeg(
  * felt regional event never surfaced while USGS was healthy. All catalogs
  * are now always consulted; each lower-authority catalog fills the
  * completeness gaps of the ones above it, and the highest-authority record
- * stays canonical where they overlap (event-pipeline-design.md §2, D4
+ * stays canonical where they overlap (the event-pipeline design §2, D4
  * order: USGS > EMSC > GEOFON — the leg-list order below IS the merge's
  * priority order; a future provider joins by adding a leg at its authority
- * position, see provider-architecture.md).
+ * position, see the provider-architecture notes).
  *
  * Semantics, per outcome — degraded modes stay truthful:
  * 1. ALL succeed → `mergeProviderEvents([usgs, emsc, geofon])`: USGS
@@ -306,7 +306,7 @@ export async function fetchRegionEventsMerged(): Promise<RegionFetchResult> {
   };
 }
 
-/** Region-scoped feed (Home, spec-v1.md §4.1) — refetches every 60s while
+/** Region-scoped feed (Home, the v1 spec §4.1) — refetches every 60s while
  * the app is foregrounded, treats data as fresh for 30s. Parallel
  * USGS+EMSC+GEOFON completeness merge via `fetchRegionEventsMerged` above;
  * `useEventsFeed`'s offline/error derivation is unaffected — it only cares
@@ -316,7 +316,7 @@ export function useRegionEvents(): UseEventsFeedResult {
   return useEventsFeed(eventsQueryKeys.region, fetchRegionEventsMerged);
 }
 
-/** Full world feed (World Catalog, spec-v1.md §4.2). */
+/** Full world feed (World Catalog, the v1 spec §4.2). */
 export function useWorldEvents(): UseEventsFeedResult {
   return useEventsFeed(eventsQueryKeys.world, fetchUsgsWorldEvents);
 }
@@ -354,7 +354,7 @@ export interface UseEventByIdResult {
 
 /**
  * Single-event lookup for Event Detail's cold-start deep-link case
- * (spec-v1.md §4.5) — only fires when `enabled` is true (the caller has
+ * (the v1 spec §4.5) — only fires when `enabled` is true (the caller has
  * already checked the region/world caches and come up empty) so a normal
  * in-app navigation never issues an extra network request for data it
  * already has.

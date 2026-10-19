@@ -10,7 +10,7 @@ import { useCallback, useState } from "react";
  * system Settings app after toggling it there), plus a `request()` action
  * that MUST be invoked from a `Pressable`'s `onPress` (never automatically)
  * so an OS permission prompt is always the direct result of a user tap, per
- * spec-v1.md §4.11's "ask only at the value moment" policy this app already
+ * the v1 spec §4.11's "ask only at the value moment" policy this app already
  * follows for notifications (`notification-settings.tsx`).
  */
 export type PermissionRowStatus = "granted" | "denied" | "undetermined";
@@ -68,7 +68,7 @@ export function usePermissionRow(
       const result = await requestPermission();
       setStatus(result);
     } catch {
-      // Never throw out of a tap handler (typescript-react-native rule: "no
+      // Never throw out of a tap handler (the project's TypeScript rule: "no
       // silent catches") — falling back to "undetermined" keeps the row
       // showing an actionable state (the request button stays visible)
       // rather than freezing on whatever it showed before the failed tap.

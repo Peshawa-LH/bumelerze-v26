@@ -102,7 +102,7 @@ export const OWN_LABELS_ATTRIBUTION =
  * imported here — `map.web.tsx` loads it via a lazy `import()`, mirroring
  * how that file already lazy-loads `maplibre-gl` itself, so a session that
  * never opens the Map tab never pays for either. `parseKurdishPlaces`
- * validates the shape at load (typescript-react-native.md's IO-boundary
+ * validates the shape at load (the project's TypeScript conventions' IO-boundary
  * rule) — a build-script/schema drift fails loudly here, at module load,
  * not as a silently blank label on the map. */
 export const KURDISH_PLACES_CORE: readonly KurdishPlace[] =
@@ -110,7 +110,7 @@ export const KURDISH_PLACES_CORE: readonly KurdishPlace[] =
 
 /** Minimum zoom each Kurdish-place tier starts rendering at (brief:
  * "zoom-tiered so cities appear early and villages only at close zoom").
- * Tunable engineering defaults (PROJECT.md D14: no science review needed):
+ * Tunable engineering defaults (D14: no science review needed):
  * tier 1 (city) matches the gazetteer's own always-visible treatment (0);
  * tier 2 (town/suburb) appears once a user has zoomed in enough to be
  * looking at a specific area, not the whole region; tier 3 (village/

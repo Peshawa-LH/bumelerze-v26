@@ -12,7 +12,7 @@ interface ProgressDotsProps {
  * Onboarding progress indicator (brief: "progress dots"). Plain `View`
  * dots, not an icon font — one less thing to translate/mirror, and the
  * active dot naturally reads in the right direction because RN mirrors
- * `flexDirection: "row"` for us once RTL is forced (design-language.md §5).
+ * `flexDirection: "row"` for us once RTL is forced (the design language §5).
  */
 export function ProgressDots({ totalSteps, currentIndex }: ProgressDotsProps) {
   const { colors, spacing } = useTheme();

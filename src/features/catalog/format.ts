@@ -18,7 +18,7 @@ type TranslateFn = TFunction;
  * of the same scientific-formatting primitives the live feed and event
  * detail already use (`features/events/format.ts`, `features/geo`), never
  * reimplementing digit localization or magnitude/coordinate rounding here
- * (PROJECT.md: "one module owns scientific formatting"). */
+ * (the project requirements: "one module owns scientific formatting"). */
 
 export function formatCatalogYear(year: number, locale: string): string {
   return localizeDigits(String(year), locale);

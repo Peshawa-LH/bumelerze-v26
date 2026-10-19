@@ -75,7 +75,7 @@ export function magnitudeToMarkerDiameterPx(magnitudeValue: number): number {
  * Derives the map's marker data straight from the already-loaded region
  * feed (`useRegionEvents` — no new fetching, brief). Color comes from
  * the shared `magnitudeTone` module (EventCard's own accent-stripe logic,
- * design-language.md §3.2: magnitude-only coarse tone, never a real
+ * the design language §3.2: magnitude-only coarse tone, never a real
  * intensity claim) — reused here rather than reinvented, same rule.
  *
  * Every event in `events` becomes exactly one marker (clustering was
@@ -117,7 +117,7 @@ export function regionBboxToLngLatBounds(
  * marker-build effect — "slight transparency in the fill with an opaque
  * core" so overlapping markers stay readable instead of turning into a
  * solid blob). Only ever fed this app's own theme `status.*` hex tokens
- * (`colors.status[marker.tone]`, design-language.md — never a raw literal
+ * (`colors.status[marker.tone]`, the design language — never a raw literal
  * or the EMS intensity ramp), so a full CSS-color-name/`rgb()`/`hsl()`
  * parser would be scope this doesn't need; falls back to the input
  * unchanged for anything it can't parse as `#rrggbb`/`#rgb` rather than

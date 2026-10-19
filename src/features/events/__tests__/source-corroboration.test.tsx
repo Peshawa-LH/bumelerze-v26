@@ -233,7 +233,7 @@ describe("SupabaseSourceCorroborationTransport.fetchCorroboration", () => {
 
     // Three DISTINCT agencies (NEIC, AFAD, ISN) — the repeated AFAD sighting
     // (relayed via EMSC, then again via the ISC bulletin) is ONE agency
-    // agreeing, not two (source-and-ingestion-plan.md §6.2 / this module's
+    // agreeing, not two (the ingestion plan §6.2 / this module's
     // own doc comment).
     expect(result["us7000abcd"]).toEqual<SourceCorroboration>({
       agencies: ["NEIC", "AFAD", "ISN"],

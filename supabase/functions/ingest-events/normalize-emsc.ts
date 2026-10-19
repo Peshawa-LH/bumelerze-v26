@@ -4,7 +4,7 @@
 // Verified live 2026-08-27 against
 // https://www.seismicportal.eu/fdsnws/event/1/query: `properties.auth`
 // really is present (`"auth": "EMSC"` on the sample fetched, matching
-// source-and-ingestion-plan.md §5.1's "EMSC's `auth` field shows the real
+// the ingestion plan §5.1's "EMSC's `auth` field shows the real
 // author is often not EMSC" — RSSC/NEIC/AFAD/IIEES/KOERI also appear there
 // over time). The client's own `emsc-schema.ts` already lists `auth` in its
 // zod shape (it just never carries it through `normalize.ts`'s `Event`) —
@@ -59,7 +59,7 @@ export function normalizeEmscFeature(feature: EmscRawFeature): RawSourceRecord |
     magnitudeAuthor: authorAgency,
     // EMSC's fdsnws response carries no review-lifecycle field analogous to
     // USGS's `status` — its feed is fundamentally a rapid/automatic system
-    // (teardown-lastquake.md), so every EMSC-sourced record is conservatively
+    // (the LastQuake teardown), so every EMSC-sourced record is conservatively
     // stamped 'automatic'. Revisit if EMSC ever documents a review flag.
     reviewStatus: "automatic",
     providerUpdatedAtMs,

@@ -65,7 +65,7 @@ export type KurdishPlace = z.infer<typeof kurdishPlaceSchema>;
 
 /**
  * Validates a loaded Kurdish-places JSON asset at the IO boundary
- * (typescript-react-native.md: "Validate ALL external data ... with zod at
+ * (the project's TypeScript conventions: "Validate ALL external data ... with zod at
  * the IO boundary"). These two JSON files are bundled build output, not a
  * network response, but a plain `import` of a `.json` file is only as
  * trustworthy as `scripts/build-kurdish-places.mjs` staying in sync with

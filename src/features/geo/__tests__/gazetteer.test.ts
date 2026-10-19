@@ -1,7 +1,7 @@
 import { GAZETTEER_CITIES, pickLocalizedName } from "../gazetteer";
 
 describe("GAZETTEER_CITIES", () => {
-  it("has between 35 and 45 entries (ui-backlog.md wave 5 item 3)", () => {
+  it("has between 35 and 45 entries (the UI backlog wave 5 item 3)", () => {
     expect(GAZETTEER_CITIES.length).toBeGreaterThanOrEqual(35);
     expect(GAZETTEER_CITIES.length).toBeLessThanOrEqual(45);
   });

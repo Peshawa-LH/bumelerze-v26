@@ -13,7 +13,7 @@ interface HistoricalEventRowProps {
 }
 
 /**
- * One row of the Historical View (lite) list (spec-v1.md §4.7): year,
+ * One row of the Historical View (lite) list (the v1 spec §4.7): year,
  * magnitude, localized place line, one-line factual note. Deliberately its
  * own small component rather than a reuse of `EventCard` — the curated
  * dataset has a different display contract (year instead of relative time,

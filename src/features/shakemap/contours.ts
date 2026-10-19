@@ -185,7 +185,7 @@ export function extractContourLevels(payload: unknown): ExtractedContourLevels {
     .sort((a, b) => a.value - b.value)
     .map(({ value, rings }) => ({
       value,
-      // Perf guard (PROJECT.md: low-end Android is the baseline device) —
+      // Perf guard (the project requirements: low-end Android is the baseline device) —
       // keep the rings covering the most map AREA, drop the rest,
       // biggest-first. Ranking by point count instead (which this
       // replaced) kept whichever rings were wiggliest, so a long thread

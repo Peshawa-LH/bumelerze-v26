@@ -1,7 +1,7 @@
 import type { FeltLocation, Tier2Answers } from "../types";
 
 /**
- * Offline queue (spec-v1.md §4.6 states; brief scope item 6: "queue
+ * Offline queue (the v1 spec §4.6 states; brief scope item 6: "queue
  * (persist -> retry -> survives restart via mocked AsyncStorage)"). Same
  * fresh-require-per-test discipline as `features/onboarding/__tests__/
  * store.test.ts` — `jest.resetModules()` clears both the module cache AND

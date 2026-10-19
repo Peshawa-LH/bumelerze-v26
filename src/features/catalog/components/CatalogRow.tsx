@@ -12,7 +12,7 @@ interface CatalogRowProps {
 
 /** One archival-catalog list row: date (UTC), magnitude, gazetteer place
  * line, source chip (provenance principle — every catalog value's origin is
- * always visible, PROJECT.md gotcha on never scattering unlabeled
+ * always visible, the project gotcha on never scattering unlabeled
  * feed-specific data through the UI). Tapping opens `CatalogDetailSheet`.
  * The row shows the full calendar date, not only the year (A-23): two
  * events in one year were indistinguishable in the list. */

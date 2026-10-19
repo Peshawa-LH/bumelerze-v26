@@ -14,7 +14,7 @@ import type {
 
 /**
  * Tier-2 question set — wording, order, and answer options are taken
- * VERBATIM from `felt-report-science-v1.md` PART 2 (Q1-Q11, confirmed D18),
+ * VERBATIM from the felt-report method PART 2 (Q1-Q11, confirmed D18),
  * MINUS Q10 (building damage): the 2026-08-15 flow-restructure (owner
  * directive) moved building damage to window 2's own typology/grade picker,
  * which supersedes Q10 as this answer set's damage-index source (science

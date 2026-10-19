@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 /**
  * Discriminated on `hasFix` so a caller narrowing on it gets real `number`
  * coordinates with no optional-chaining/casts — never a bare "?" fallback
- * is needed at the type level either (spec-v1.md §4.1, B10).
+ * is needed at the type level either (the v1 spec §4.1, B10).
  */
 export type UserDistanceAnchor =
   { hasFix: true; lat: number; lon: number } | { hasFix: false; lat: null; lon: null };
@@ -14,7 +14,7 @@ const NO_FIX: UserDistanceAnchor = { hasFix: false, lat: null, lon: null };
 /**
  * Read-only foreground-location check used by the feed/detail distance
  * display (brief point 3). Deliberately never *requests* permission —
- * the onboarding location screen owns that one-time ask (spec-v1.md §4.11
+ * the onboarding location screen owns that one-time ask (the v1 spec §4.11
  * step 3) — so this hook is safe to call from every screen that shows a
  * distance without ever surprising the user with a permission prompt
  * outside onboarding.
@@ -33,7 +33,7 @@ export function useUserDistanceAnchor(): UserDistanceAnchor {
         }
 
         // Last-known fix first — near-instant and battery-friendly
-        // (PROJECT.md: no aggressive background polling / wake-lock abuse).
+        // (the project requirements: no aggressive background polling / wake-lock abuse).
         // Only requests a fresh fix if nothing is cached yet.
         const cached = await Location.getLastKnownPositionAsync();
         const position =
@@ -52,7 +52,7 @@ export function useUserDistanceAnchor(): UserDistanceAnchor {
         });
       } catch {
         // Any platform/hardware failure just leaves the anchor fallback in
-        // place — never a blocking error state (spec-v1.md §4.1).
+        // place — never a blocking error state (the v1 spec §4.1).
       }
     }
 

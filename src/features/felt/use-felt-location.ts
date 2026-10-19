@@ -17,7 +17,7 @@ export interface UseFeltLocationResult {
 }
 
 /**
- * Resolves the location to attach to a felt report (spec-v1.md §4.6): a GPS
+ * Resolves the location to attach to a felt report (the v1 spec §4.6): a GPS
  * fix if permission is already granted (read-only check, reused from
  * `features/location` — never itself prompts, matching that hook's own
  * no-surprise-prompt contract), else a place the reader picks with the place

@@ -108,7 +108,7 @@ describe("parseGeofonText", () => {
 
   it("parses a strict 13-column FDSN text row (no EventType) — the reusable-for-SeisComP path", () => {
     // A future FDSN/SeisComP source (e.g. the Kurdistan/Iraq data center,
-    // provider-architecture.md) may emit only the 13 core columns.
+    // the provider-architecture notes) may emit only the 13 core columns.
     const thirteenColumns =
       "kur2026abcd|2026-08-02T05:00:00|35.5|45.5|12.0|||KUR|kur2026abcd|ml|3.9||Kurdistan Region, Iraq";
     const result = parseGeofonText(`${HEADER_LINE}\n${thirteenColumns}`, FETCHED_AT);

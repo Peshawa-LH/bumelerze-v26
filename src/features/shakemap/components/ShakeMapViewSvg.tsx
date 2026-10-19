@@ -125,7 +125,7 @@ export interface ShakeMapViewProps {
 }
 
 /**
- * MMI intensity-contour map for one event's shakemap product (spec-v1.md
+ * MMI intensity-contour map for one event's shakemap product (the v1 spec
  * §4.5): filled contour rings (theme intensity ramp, D7), epicenter
  * marker, up to ~5 gazetteer city dots, and a fixed I..XII intensity
  * legend strip. Renders nothing conditionally itself — callers
@@ -178,7 +178,7 @@ export function ShakeMapView({
   const borderPaths = projectBasemapLines(BASEMAP_BORDERS, bbox, projector);
   const coastlinePaths = projectBasemapLines(BASEMAP_COASTLINE, bbox, projector);
 
-  // Label decluttering (ui-backlog.md item 7): dots for every picked city
+  // Label decluttering (the UI backlog item 7): dots for every picked city
   // always render (position accuracy never depends on label space), but
   // the text labels go through a deterministic greedy layout pass that
   // skips/offsets anything that would collide with the epicenter marker or
@@ -226,7 +226,7 @@ export function ShakeMapView({
         spacing={spacing}
       />
 
-      {/* The map itself never mirrors under RTL (design-language.md §5
+      {/* The map itself never mirrors under RTL (the design language §5
        * "what does NOT mirror" — same rule `SeismogramChart` follows for
        * its waveform): a geographic projection has a real, fixed compass
        * orientation, and flipping it would misrepresent which side of the

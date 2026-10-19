@@ -4,9 +4,9 @@ import type { BuildingDamageGrade, DamageTypology } from "./types";
  * Window-2 damage-picker constants (2026-08-15 flow restructure, owner
  * directive). Two typology rows, each with the same 5 grades (DG1 = no
  * visible damage, DG5 = partial/full collapse) — see
- * `docs/research/felt-report-science-v1.md`'s 2026-08-15 addendum for the
+ * the felt-report method's 2026-08-15 addendum for the
  * per-grade damage descriptions this label set is drawn from, and
- * `docs/research/cartoon-artwork-brief.md`'s "Damage tiles" section for
+ * the artwork brief's "Damage tiles" section for
  * the matching artwork prompts.
  *
  * Renumbered DG0-DG4 -> DG1-DG5 in the 2026-08-17 update wave (owner

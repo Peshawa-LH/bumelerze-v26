@@ -326,7 +326,7 @@ function EventPreviewSheetImpl(
   const placeText = placeLine(currentEvent, locale, t);
   const { local: localTimeText } = formatAbsoluteDual(currentEvent.originTime, locale, t);
   // Same relative-time formatting `EventCard` uses for the feed (one module
-  // owns it — `format.ts` — per typescript-react-native.md's "units &
+  // owns it — `format.ts` — per the project's TypeScript conventions' "units &
   // science" rule), not a bespoke sheet-only phrasing.
   const relativeTime = getRelativeTime(currentEvent.originTime, now);
   const relativeTimeText =

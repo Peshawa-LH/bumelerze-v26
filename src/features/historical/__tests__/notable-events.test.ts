@@ -11,7 +11,7 @@ import {
 
 /**
  * Dataset integrity checks for the curated Historical View (lite) list
- * (spec-v1.md §4.7 brief, point 5). Every id in this dataset was
+ * (the v1 spec §4.7 brief, point 5). Every id in this dataset was
  * individually verified against a live USGS fdsnws `eventid` query during
  * this build — these tests guard the *shape* invariants (uniqueness,
  * roughly-regional coordinates, note-key i18n coverage), not the
@@ -95,7 +95,7 @@ describe("NOTABLE_HISTORICAL_EVENTS", () => {
     expect(new Set(catalogNoteKeys)).toEqual(noteKeysInDataset);
   });
 
-  it("has a localized event NAME (historical.eventNames.<noteKey>) in all four locale catalogs, for every event (update-plan-2026-08.md §1.4)", () => {
+  it("has a localized event NAME (historical.eventNames.<noteKey>) in all four locale catalogs, for every event (the August 2026 update plan §1.4)", () => {
     const catalogs = { en, ckb, kmr, ar } as const;
     for (const event of NOTABLE_HISTORICAL_EVENTS) {
       for (const catalog of Object.values(catalogs)) {

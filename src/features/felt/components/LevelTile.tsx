@@ -63,7 +63,7 @@ function LevelTileImpl({
       // A blind/low-vision user during a real earthquake needs to know a
       // single tap both selects AND submits this level immediately (no
       // separate confirm step) — the label alone (numeral + level name)
-      // doesn't convey that "submits now" behavior (design-language.md §8).
+      // doesn't convey that "submits now" behavior (the design language §8).
       accessibilityHint={t("felt.tier1.levelA11yHint")}
       onPress={() => onPress(level)}
       style={({ pressed }) => [
@@ -97,7 +97,7 @@ function LevelTileImpl({
             style={styles.artwork}
             // Decorative reinforcement only — the Pressable's own
             // accessibilityLabel (numeral + translated level name) already
-            // carries the tile's full meaning (cartoon-artwork-brief.md §5).
+            // carries the tile's full meaning (the artwork brief §5).
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           />
@@ -126,7 +126,7 @@ function LevelTileImpl({
         // meaning at 200% font scale if capped at 2 lines — the tile has no
         // fixed height (flexBasis/flexGrow only), so letting the label wrap
         // freely just grows the tile instead of losing safety-critical text
-        // (design-language.md §8 "never truncate ... at any scale").
+        // (the design language §8 "never truncate ... at any scale").
         style={{
           color: colors.text.primary,
           textAlign: "center",

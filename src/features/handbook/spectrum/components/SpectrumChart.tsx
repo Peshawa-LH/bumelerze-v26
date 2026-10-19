@@ -48,7 +48,7 @@ function niceMax(value: number): number {
  * RTL: the plot area is wrapped in `direction: "ltr"` — the established
  * non-mirroring pattern this codebase already uses three times
  * (`SeismogramChart`, `ShakeMapView`, `FeltMapView`; written policy in
- * design-language.md §5 "What does NOT mirror"). Period must always
+ * the design language §5 "What does NOT mirror"). Period must always
  * increase left-to-right: a spectrum read right-to-left is scientifically
  * wrong, not a stylistic RTL choice. The Y axis stays on the left in every
  * locale for the same reason (§8.2: moving it right while data still runs

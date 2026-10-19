@@ -15,7 +15,7 @@ type TranslateFn = TFunction;
 
 /** Row/screen formatting for the Engineer's Handbook — thin composition of
  * the same scientific-formatting primitives the rest of the app uses
- * (typescript-react-native.md "one module owns scientific formatting"),
+ * (the project's TypeScript conventions "one module owns scientific formatting"),
  * never reimplementing digit localization or rounding here. */
 
 export function formatHandbookResultsTitle(

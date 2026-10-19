@@ -22,7 +22,7 @@ export type { CartoonLevel, DamageLevel, Tier2Answers };
 // ---------------------------------------------------------------------------
 
 interface AggregationInputReportBase {
-  /** Dedup key (felt-report-science-v1.md §3.2 step 1: "one report per
+  /** Dedup key (the felt-report method §3.2 step 1: "one report per
    * device ID per event"). Opaque string — this module does not care how
    * it was derived (`device-id.ts`'s installation UUID upstream). */
   deviceId: string;
@@ -56,7 +56,7 @@ export type AggregationInputReport = Tier1InputReport | Tier2InputReport;
 // path only — see README "what is deliberately NOT here").
 // ---------------------------------------------------------------------------
 
-/** The 8 published DYFI/CDI indices (felt-report-science-v1.md §2.1) —
+/** The 8 published DYFI/CDI indices (the felt-report method §2.1) —
  * per-cell consensus MEAN over answering reports, `null` when zero reports
  * answered that question (never zero-counted; §3.2 step 1). */
 export interface IndexMeans {

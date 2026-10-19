@@ -11,7 +11,7 @@ import {
 
 /**
  * Regression coverage for the event-deeplink-hang bug
- * (docs/debug-log.md): `fdsnws/event/1/query?eventid=...` returns a bare
+ * (the debug log): `fdsnws/event/1/query?eventid=...` returns a bare
  * GeoJSON `Feature` (`type: "Feature"`), never a `FeatureCollection` — an
  * earlier version of `fetchUsgsEventById` parsed it with
  * `usgsFeatureCollectionSchema`/`parseFeatureCollection`, whose `.parse()`
@@ -90,7 +90,7 @@ describe("fetchUsgsEventById", () => {
   });
 });
 
-describe("region query window/floor (update-plan-2026-08.md §1.1 adaptive Home-feed policy)", () => {
+describe("region query window/floor (the August 2026 update plan §1.1 adaptive Home-feed policy)", () => {
   const originalFetch = global.fetch;
   let capturedUrl: string | undefined;
 

@@ -14,7 +14,7 @@ import { z } from "zod";
  * This is the standard FDSN WS-EVENT text format (13 core columns) plus
  * GEOFON's appended `EventType` — the same format any SeisComP-based fdsnws
  * emits, which is why the parser in geofon.ts is deliberately reusable for
- * a future SeisComP source (provider-architecture.md).
+ * a future SeisComP source (the provider-architecture notes).
  *
  * Columns we don't use (Author, Catalog, Contributor, ContributorID,
  * MagAuthor) are never lifted into this object at all. A row failing this

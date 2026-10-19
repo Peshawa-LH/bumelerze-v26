@@ -1,6 +1,6 @@
 /**
  * Map scope — Kurdistan (regional, default) vs. World (global) marker
- * source (update-plan-2026-08.md §4.1: "a switchable option, maybe
+ * source (the August 2026 update plan §4.1: "a switchable option, maybe
  * 'Kurdistan' and 'World'... when pressed switches between showing all
  * events in Kurdistan... and all events around the world"). Kurdistan stays
  * the default per the region-first principle (D11/D26).

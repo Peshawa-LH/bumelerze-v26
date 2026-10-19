@@ -387,7 +387,7 @@ export default function MapScreenWeb() {
   const sheetRef = useRef<EventPreviewSheetHandle>(null);
   const prefersReducedMotion = useReducedMotionPreference();
 
-  // Persisted basemap style pick (update-plan-2026-08.md §4.3/Part 3:
+  // Persisted basemap style pick (the August 2026 update plan §4.3/Part 3:
   // "Persist his choice locally so it survives reloads") — selectors, not
   // the whole store, matching this app's established zustand-consumption
   // convention (`usePrefsStore` call sites elsewhere).
@@ -1039,7 +1039,7 @@ export default function MapScreenWeb() {
       // several markers overlap, the halos blend softly instead of
       // stacking into a solid blob, while each core stays a crisp, fully-
       // opaque dot — still colored purely by `colors.magnitudeBand[tone]`
-      // (`magnitudeTone`, never the EMS intensity ramp — design-language.md
+      // (`magnitudeTone`, never the EMS intensity ramp — the design language
       // §3.2), the same five-band ramp the event cards use so a marker and
       // its card never disagree about how big an earthquake was. The single most-recent event in the current set gets a
       // distinct outline in `colors.action.felt` (this app's existing
@@ -1449,7 +1449,7 @@ const styles = StyleSheet.create({
   title: {
     // No explicit textAlign — the default already follows the active
     // writing direction (RTL locales right-align without forcing a
-    // physical side, per typescript-react-native.md's logical-properties
+    // physical side, per the project's TypeScript conventions' logical-properties
     // rule).
   },
   mapArea: {

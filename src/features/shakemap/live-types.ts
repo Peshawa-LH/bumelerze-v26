@@ -182,7 +182,7 @@ export interface EngineVersionSummary {
 }
 
 /**
- * Reads `data_used.engine_version` — data-architecture-v2.md §3.2's "carry
+ * Reads `data_used.engine_version` — the data-architecture notes §3.2's "carry
  * the engine-version block through instead of dropping it", finally
  * surfaced app-side for the live path (the bundled Atlas path does not
  * carry this yet; `bundle_atlas_for_app.py` still discards it at

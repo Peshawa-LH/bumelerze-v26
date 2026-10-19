@@ -176,7 +176,7 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     expect(mockPush).toHaveBeenCalledWith("/event/bml20170001");
   });
 
-  it("renders a sample historical event's Sorani name (update-plan-2026-08.md §1.4)", async () => {
+  it("renders a sample historical event's Sorani name (the August 2026 update plan §1.4)", async () => {
     await i18n.changeLanguage("ckb");
     await renderWithProviders(<HistoricalScreen />);
 
@@ -187,7 +187,7 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
   });
 
   it.each(["ckb", "kmr", "ar"] as const)(
-    "shows no English fallback string on the Historical screen in %s (update-plan-2026-08.md §1.4)",
+    "shows no English fallback string on the Historical screen in %s (the August 2026 update plan §1.4)",
     async (locale) => {
       await i18n.changeLanguage(locale);
       await renderWithProviders(<HistoricalScreen />);

@@ -1,12 +1,12 @@
 # Fixture: 2017 M7.3 Halabja/Sarpol-e Zahab (USGS `us2000bmcg`)
 
 Real USGS ShakeMap contour output, trimmed for test-fixture size. Chosen per
-the brief (spec-v1.md §4.7 already cites this event for Historical
+the brief (the v1 spec §4.7 already cites this event for Historical
 View seeding) and because it's the largest, most complete Kurdistan-region
 ShakeMap in USGS ComCat — a realistic "real product" case, not a synthetic
 one.
 
-**D21 update (`docs/decisions.md`):** the live USGS ShakeMap display
+**D21 update (the decision log):** the live USGS ShakeMap display
 path (`usgs-products.ts`, event-detail fetch, `fetchIntensityContours`) was
 REMOVED app-side — the app now only ever displays bundled
 `bumelerze-engine` products (`src/features/shakemap/atlas/`, see its

@@ -25,7 +25,7 @@ export interface DamageDist {
 export interface GroundEffectsDist {
   /** Count of tier-2 reports per `road_damage_level` answer (0-3), among
    * reports that answered it. Confirmed excluded from CDI/EMS intensity
-   * (felt-report-science-v1.md D18 R8) — descriptive only. */
+   * (the felt-report method D18 R8) — descriptive only. */
   byLevel: Record<string, number>;
 }
 

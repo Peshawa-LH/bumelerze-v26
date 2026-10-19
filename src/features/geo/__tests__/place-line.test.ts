@@ -168,7 +168,7 @@ describe("placeLine", () => {
     );
   });
 
-  it("uses a translated placeNameKey override instead of the raw English placeName, for a far-world event (update-plan-2026-08.md §1.4)", async () => {
+  it("uses a translated placeNameKey override instead of the raw English placeName, for a far-world event (the August 2026 update plan §1.4)", async () => {
     await i18n.changeLanguage("ckb");
     // Same Kahramanmaraş coordinates as the Historical View's 2023 doublet.
     const event = {

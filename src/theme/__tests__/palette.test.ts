@@ -58,7 +58,7 @@ const DARK_LIGHT_TEXT = "#F2F2F3"; // intensityOnFillDark's white option
 const DARK_SURFACE = "#141414"; // colors.surface.raised, dark theme
 const LIGHT_SURFACE = "#FFFFFF"; // colors.surface.base, light theme
 
-describe("intensity ramp — toolkit provenance (ui-backlog.md item 8)", () => {
+describe("intensity ramp — toolkit provenance (the UI backlog item 8)", () => {
   it("has exactly 13 entries (index 0 unused placeholder + I..XII)", () => {
     expect(intensityRamp).toHaveLength(13);
     expect(intensityOnFillLight).toHaveLength(13);
@@ -67,7 +67,7 @@ describe("intensity ramp — toolkit provenance (ui-backlog.md item 8)", () => {
   });
 
   it("matches the toolkit's ems_colors extraction verbatim for levels I-X", () => {
-    // SHAKEmaps-Toolkit-v26/modules/utils/SHAKEtools.py, contour_scale(...,
+    // The SHAKEmaps toolkit's modules/utils/SHAKEtools.py, contour_scale(...,
     // scale_type="ems"), the `ems_colors` list — see palette.ts's provenance
     // comment for the full citation. XI/XII are NOT toolkit-verbatim as of
     // the 2026-08-17 light/dark unification wave (see palette.ts's own
@@ -307,7 +307,7 @@ describe("magnitudeBandPalette", () => {
   });
 
   it("borrows no color from the EMS-98 intensity ramp", () => {
-    // design-language.md §3.2: magnitude must never be colored as
+    // The design language §3.2: magnitude must never be colored as
     // intensity. Sharing the cool-to-hot ORDER is the point; sharing a hex
     // would make a size hint look like a shaking measurement.
     const ems = new Set(intensityRamp.filter(Boolean));

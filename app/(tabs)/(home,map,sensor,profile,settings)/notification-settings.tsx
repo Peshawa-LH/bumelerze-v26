@@ -36,7 +36,7 @@ import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
-/** Fixed example event for the rehearsal buttons (spec-v1.md §4.10/B8) —
+/** Fixed example event for the rehearsal buttons (the v1 spec §4.10/B8) —
  * not a real event, never fetched, chosen only to be a realistic-looking
  * magnitude/place pair for the mock. */
 const REHEARSAL_EXAMPLE_MAGNITUDE = 4.8;
@@ -92,7 +92,7 @@ export default function NotificationSettingsScreen() {
   });
   const exampleBody = t("notificationSettings.rehearsal.exampleBody");
 
-  /** Permission primer per spec-v1.md §4.11: ask only at the value moment
+  /** Permission primer per the v1 spec §4.11: ask only at the value moment
    * — here, moving a tier away from "off" or tapping a rehearsal button
    * that fires a real notification. Never called on screen mount. */
   async function requestPermissionIfNeeded(): Promise<NotificationPermissionStatus> {

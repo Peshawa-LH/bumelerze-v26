@@ -58,7 +58,7 @@ async function requestDeviceFix(): Promise<{ lat: number; lon: number } | null> 
 }
 
 /**
- * Coordinate entry (spec-v1.md §7): decimal-degrees text inputs, a "use my
+ * Coordinate entry (the v1 spec §7): decimal-degrees text inputs, a "use my
  * location" button, an optional gazetteer town picker and the map picker.
  * Validation runs on submit, not on every keystroke, so a mid-typing
  * negative sign or partial decimal never flashes an error.

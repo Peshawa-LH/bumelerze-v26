@@ -10,12 +10,12 @@ import type { AggregationInputReport } from "./felt-aggregation/types.ts";
 import { computeDamageDist, computeGroundEffectsDist } from "./cell-extras.ts";
 import type { CellReport, FeltCellInsertRow, FeltReportDetailRow, FeltReportRow } from "./types.ts";
 
-/** felt-report-science-v1.md §3.1 (D18 R12): p6 city refinement is computed
+/** The felt-report method §3.1 (D18 R12): p6 city refinement is computed
  * ADDITIONALLY when a p5 cell holds >= 20 reports — it never replaces the
  * p5 row. */
 const P6_REFINEMENT_THRESHOLD = 20;
 
-/** felt-report-science-v1.md §3.2 step 5: recompute is debounced >= 60s per
+/** The felt-report method §3.2 step 5: recompute is debounced >= 60s per
  * event. Applied here as "skip the whole event this invocation if its
  * latest stored cell is younger than this" — cheap insurance against a
  * caller (e.g. a felt_reports INSERT webhook firing once per report during

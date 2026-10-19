@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — magnitude/date filters
- * (update-plan-2026-08.md §4.4). See `map-web-creation.test.tsx`'s doc
+ * (the August 2026 update plan §4.4). See `map-web-creation.test.tsx`'s doc
  * comment for the jsdom-environment/mocking rationale.
  *
  * The panel's two range pairs are raw DOM `<input type="range">` elements

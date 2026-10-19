@@ -1,5 +1,5 @@
 /**
- * Curated Historical View (lite) dataset — spec-v1.md §4.7: "list of seeded
+ * Curated Historical View (lite) dataset — the v1 spec §4.7: "list of seeded
  * historical + notable regional events... each linking to its (seeded)
  * shakemap in Event Detail." This is deliberately a small, hand-picked,
  * bundled list (not a live ComCat query) — the whole point of "lite" scope
@@ -25,7 +25,7 @@
  * every far-world event already uses elsewhere in the app).
  *
  * `noteKey` resolves to `historical.notes.<noteKey>` in the i18n catalogs —
- * one factual, non-dramatic line per event (PROJECT.md/vision.md trust
+ * one factual, non-dramatic line per event (the project vision trust
  * principle: no drama, no casualty numbers, just what/where/when context).
  */
 
@@ -73,7 +73,7 @@ export interface NotableHistoricalEvent {
    * (today: the 2023 Kahramanmaraş doublet, ~450-590 km away), where
    * `placeLine` would otherwise fall back to the raw English `placeName`
    * above. Suffix into `historical.places.*` in the i18n catalogs
-   * (update-plan-2026-08.md §1.4 — no English leakage on this screen). */
+   * (the August 2026 update plan §1.4 — no English leakage on this screen). */
   placeNameKey?: string;
   /** Pins this event to the top of the Historical list, above the
    * newest-first ordering. Exactly one entry carries it (asserted in the
@@ -88,7 +88,7 @@ export interface NotableHistoricalEvent {
 
 /**
  * Chronological (oldest-first) source order — purely for human readability
- * while curating; the screen re-sorts newest-first per spec-v1.md §4.7's
+ * while curating; the screen re-sorts newest-first per the v1 spec §4.7's
  * "list ordered newest-first" instruction (see app/historical.tsx).
  */
 export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
@@ -229,7 +229,7 @@ export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   },
 ] as const;
 
-/** The featured event first, then newest-first (spec-v1.md §4.7).
+/** The featured event first, then newest-first (the v1 spec §4.7).
  *
  * The name is kept because the ordering below the pin is unchanged and an
  * engine script and four call sites reference it. See `featured` on

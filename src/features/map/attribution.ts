@@ -1,5 +1,5 @@
 /**
- * MapTiler logo-attribution requirement (update-plan-2026-08.md Part 4):
+ * MapTiler logo-attribution requirement (the August 2026 update plan Part 4):
  * MapTiler's free-tier terms require their logo be shown on the map
  * whenever a MapTiler-served style is active — the existing
  * `AttributionControl` (`map.web.tsx`) already renders the correct TEXT

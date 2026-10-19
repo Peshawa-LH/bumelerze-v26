@@ -77,7 +77,7 @@ const NO_FONTS = {};
 // Created once per app instance (module scope, not per render) so the
 // persisted cache round-trips through the SAME client across re-renders —
 // creating a new QueryClient on every render would defeat the persister
-// (offline/cold-start requirement, PROJECT.md).
+// (offline/cold-start requirement, the project requirements).
 const eventsQueryClient = createEventsQueryClient();
 const eventsPersister = createEventsPersister();
 
@@ -172,7 +172,7 @@ export default function RootLayout() {
         }
         // The persisted language flips reading direction relative to the
         // device-detected one — I18nManager.forceRTL only takes effect
-        // after a JS reload (design-language.md §5 reload caveat).
+        // after a JS reload (the design language §5 reload caveat).
         setIsRestarting(true);
         return restartApp();
       })
@@ -221,7 +221,7 @@ export default function RootLayout() {
   }, [scheme]);
 
   useEffect(() => {
-    // Anonymous, coarse-location cold-start ping (spec-v1.md §5.5, D11/D13;
+    // Anonymous, coarse-location cold-start ping (the v1 spec §5.5, D11/D13;
     // disclosed in Settings). No-ops entirely when no Supabase project is
     // configured yet or when location permission/last-known fix isn't
     // already available — see `sendColdStartTelemetryPing`'s own doc for
@@ -272,7 +272,7 @@ export default function RootLayout() {
             bottomOffset={inTabs && !tabBarHidden ? TAB_BAR_CONTENT_HEIGHT : 0}
           >
             <Stack screenOptions={stackScreenOptions}>
-              {/* Onboarding-vs-tabs gate (spec-v1.md §4.11: "first-launch
+              {/* Onboarding-vs-tabs gate (the v1 spec §4.11: "first-launch
                * only, not reachable after"): registering only ONE of these
                * two screen sets — never both — means "/onboarding" and
                * "(tabs)" are each fully unreachable while the other is

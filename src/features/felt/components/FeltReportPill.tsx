@@ -82,7 +82,7 @@ export function FeltReportPill({ eventId = null, event = null }: FeltReportPillP
           backgroundColor: colors.action.felt,
           paddingHorizontal: spacing[5],
           // spacing[4] (not spacing[3]) — this is the primary panic-time CTA
-          // (design-language.md §8: "must sit inside the one-handed thumb
+          // (the design language §8: "must sit inside the one-handed thumb
           // zone"), so its tap target must clear 48dp with real margin, not
           // sit right at the 44pt floor (spacing[3] measured ~44pt with this
           // label's line height, before font-scaling even grows it).

@@ -14,7 +14,7 @@ describe("haversineDistanceKm", () => {
     expect(distance).toBeLessThan(200);
   });
 
-  it("is always non-negative and finite, even for far-apart points (spec-v1.md §4.1: never '?' or a blank value)", () => {
+  it("is always non-negative and finite, even for far-apart points (the v1 spec §4.1: never '?' or a blank value)", () => {
     const distance = haversineDistanceKm(34.0, 48.0, -33.87, 151.21); // Sydney
     expect(distance).toBeGreaterThan(0);
     expect(Number.isFinite(distance)).toBe(true);

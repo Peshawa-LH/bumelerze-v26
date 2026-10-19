@@ -1,13 +1,13 @@
 /**
  * Tunable engineering constants for the events pipeline (D14: engineering-owned
  * defaults, no science review needed). Kept in one config module, never
- * inlined in fetch/normalize code, per PROJECT.md's provider-normalization
- * gotcha and event-pipeline-design.md's own "stored in config, not code"
+ * inlined in fetch/normalize code, per the project's provider-normalization
+ * gotcha and the event-pipeline design's own "stored in config, not code"
  * instruction for the region bbox.
  */
 
 /**
- * "Region" bbox per event-pipeline-design.md §4: Kurdistan Region + border
+ * "Region" bbox per the event-pipeline design §4: Kurdistan Region + border
  * Zagros both sides + Mosul/Kirkuk, deliberately generous eastward (Iranian
  * events are felt in Slemani). Tunable.
  */
@@ -19,7 +19,7 @@ export const REGION_BBOX = {
 } as const;
 
 /**
- * Significance-score classification thresholds, event-pipeline-design.md §3.
+ * Significance-score classification thresholds, the event-pipeline design §3.
  * All tunable; region-significant deliberately aligns with the bumelerze-engine
  * M>=3.5 trigger band (D9).
  */
@@ -30,7 +30,7 @@ export const SIGNIFICANCE_THRESHOLDS = {
 
 /**
  * USGS PAGER alert-level bonus feeding the client-side `sig` approximation
- * (event-pipeline-design.md §3). USGS `properties.alert` is `null` for most
+ * (the event-pipeline design §3). USGS `properties.alert` is `null` for most
  * events (no PAGER product) — treated as the "green"/no-bonus case.
  */
 export const ALERT_BONUS: Record<string, number> = {
@@ -40,7 +40,7 @@ export const ALERT_BONUS: Record<string, number> = {
   red: 300,
 };
 
-/** USGS endpoints (teardown-usgs-dyfi.md §2). fdsnws for the region query
+/** USGS endpoints (the USGS DYFI teardown §2). fdsnws for the region query
  * (bbox/time filters), the CDN summary feed for a cheap world snapshot. */
 export const USGS_FEEDS = {
   fdsnQuery: "https://earthquake.usgs.gov/fdsnws/event/1/query",
@@ -50,7 +50,7 @@ export const USGS_FEEDS = {
   fdsnEvent: "https://earthquake.usgs.gov/fdsnws/event/1/query",
 } as const;
 
-/** EMSC endpoint (teardown-lastquake.md §2: "EMSC exposes the same FDSN
+/** EMSC endpoint (the LastQuake teardown §2: "EMSC exposes the same FDSN
  * standard as USGS" — same query params, same bbox/time filters). Queried
  * in parallel with USGS for the region feed's completeness merge (merge.ts:
  * EMSC catalogs regional events below USGS/NEIC's ~M4.5 completeness
@@ -73,7 +73,7 @@ export const GEOFON_FEEDS = {
 /**
  * Region feed FETCH window (what USGS+EMSC+GEOFON are actually queried
  * for, every poll — queries.ts's `fetchRegionEventsMerged`). Widened from
- * the original flat 30 days to 180 (owner 2026-08-17, update-plan-2026-08.md
+ * the original flat 30 days to 180 (owner 2026-08-17, the August 2026 update plan
  * §1.1: "what if there are lots of events, or not so much... should we show
  * the last 6 months or just 3 months") so the client always holds a
  * superset the ADAPTIVE HOME-FEED POLICY below (`home-feed-policy.ts`) can
@@ -84,7 +84,7 @@ export const GEOFON_FEEDS = {
  * so ONE pool serves both mechanisms.
  *
  * Bandwidth tradeoff, explicit: this is a 6x fetch-size increase over the
- * old 30-day window, still unfiltered by magnitude (PROJECT.md: no
+ * old 30-day window, still unfiltered by magnitude (the project requirements: no
  * aggressive background polling, but this is payload SIZE per poll, not
  * poll FREQUENCY — the 60s cadence in EVENTS_REFETCH_INTERVAL_MS is
  * unchanged). Accepted as the boring/simple option (one
@@ -111,7 +111,7 @@ export const REGION_FEED_WINDOW_DAYS = 180;
 export const HOME_FEED_MIN_MAGNITUDE = 3.0;
 
 /**
- * Adaptive Home-feed policy (owner 2026-08-17, update-plan-2026-08.md §1.1:
+ * Adaptive Home-feed policy (owner 2026-08-17, the August 2026 update plan §1.1:
  * "we should have a mechanism so it is not left empty and not overclogged").
  * Pure decision logic lives in `home-feed-policy.ts`'s `selectHomeFeedEvents`
  * — this module only holds the tunable thresholds (D14: engineering-owned
@@ -180,7 +180,7 @@ export interface HomeFeedNotableTier {
  * usgs.ts) rather than by further widening the hot 60s-cadence pool — M>=6
  * events in this region are rare enough that a small, rarely-refetched
  * single-provider query is the battery/bandwidth-appropriate way to cover
- * that last stretch, per PROJECT.md's "no aggressive background polling."
+ * that last stretch, per the project's "no aggressive background polling."
  */
 export const HOME_FEED_NOTABLE_TIERS: readonly HomeFeedNotableTier[] = [
   { minMagnitude: 5.0, retentionDays: 182 }, // ~6 months
@@ -208,7 +208,7 @@ export const NOTABLE_TAIL_WINDOW_DAYS = 365;
  * which changes on the order of years, not minutes. */
 export const NOTABLE_TAIL_STALE_TIME_MS = 12 * 60 * 60 * 1000; // 12h
 
-/** Polling cadence — deliberately gentle (PROJECT.md: no aggressive
+/** Polling cadence — deliberately gentle (the project requirements: no aggressive
  * background polling); pairs with the app-focus-aware refetch wiring in
  * queries.ts so this interval never fires while the app is backgrounded. */
 export const EVENTS_REFETCH_INTERVAL_MS = 60_000;
@@ -225,7 +225,7 @@ export const EMSC_REGION_TIMEOUT_MS = 8_000;
 export const GEOFON_REGION_TIMEOUT_MS = 8_000;
 
 /**
- * Cross-provider dedup thresholds, event-pipeline-design.md §2 step 3
+ * Cross-provider dedup thresholds, the event-pipeline design §2 step 3
  * (spatial-temporal match, all tunable): two provider records are the same
  * physical earthquake when |Δ origin time| <= 16 s AND epicentral distance
  * <= 50 km AND |ΔM| <= 1.5 (the magnitude guard applies only when both

@@ -4,7 +4,7 @@ import { OnboardingScreenShell, usePrefsStore } from "@/features/onboarding";
 import { useTourLaunchStore } from "@/features/tour/launch";
 
 /**
- * Screen 6 — "you're set" (spec-v1.md §4.11 step 6). Completing onboarding
+ * Screen 6 — "you're set" (the v1 spec §4.11 step 6). Completing onboarding
  * here flips `onboardingCompleted`, which the root layout reads to swap its
  * registered screens from the onboarding stack to the tab bar — no manual
  * navigation call needed, React Navigation resolves the new default screen

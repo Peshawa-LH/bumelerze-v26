@@ -26,7 +26,7 @@ export interface PlaceLineEvent {
    * gazetteer's near-field radius. Live provider feeds never set this — this
    * exists for small, APP-OWNED curated datasets (e.g. the Historical View's
    * 11 events, `features/historical/notable-events.ts`) that need a real
-   * Kurdish/Arabic name for a far-world place (update-plan-2026-08.md §1.4).
+   * Kurdish/Arabic name for a far-world place (the August 2026 update plan §1.4).
    * The provider's own place string is deliberately NOT an input: a place
    * line is always ours (owner directive 2026-09-02, D28). */
   placeNameKey?: string;
@@ -48,7 +48,7 @@ export function nearestCityLine(
 }
 
 /** Simple "{{distance}} from {{city}}" phrase (no compass direction) — used
- * by the event-detail multi-city distance list (ui-backlog.md wave 5 item
+ * by the event-detail multi-city distance list (the UI backlog wave 5 item
  * 5), which shows several of these in a row and doesn't need the fuller
  * `nearestCityLine` phrasing repeated each time. */
 export function nearestCityDistanceLine(
@@ -64,7 +64,7 @@ export function nearestCityDistanceLine(
 /**
  * The single naming rule for an event, used by every surface (Home, World,
  * Significant, Catalog, map sheet, event detail title) so one epicentre has
- * one name everywhere (D28 decision 1 and 2, `feedback-waves.md` "F6
+ * one name everywhere (D28 decision 1 and 2, the feedback notes "F6
  * resolved"):
  *
  * - **Near field** (a gazetteer town within

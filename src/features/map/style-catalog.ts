@@ -1,6 +1,6 @@
 /**
  * Curated basemap style catalog — the user-visible style picker
- * (update-plan-2026-08.md §4.3/Part 3: "maybe we can have a version where
+ * (the August 2026 update plan §4.3/Part 3: "maybe we can have a version where
  * different tunable options for the map are available... we can also keep
  * the final option toggleable between different map styles"). Shipped
  * VISIBLE to every user, not dev-gated (Part 3's explicit instruction) — a

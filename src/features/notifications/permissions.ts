@@ -94,7 +94,7 @@ export function useNotificationPermissionStatus(): NotificationPermissionStatus 
  * "denied" is only reversible from system Settings, which is exactly what
  * the settings-link row is for). Callers ONLY invoke this from a direct
  * user action (a rehearsal button, or moving a tier away from 'off') —
- * spec-v1.md §4.11's "ask at the value moment" philosophy, never on
+ * the v1 spec §4.11's "ask at the value moment" philosophy, never on
  * screen mount.
  */
 export async function ensureNotificationPermission(): Promise<NotificationPermissionStatus> {

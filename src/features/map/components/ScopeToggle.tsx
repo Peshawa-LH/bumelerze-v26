@@ -17,7 +17,7 @@ const SCOPE_LABEL_KEYS: Record<MapScope, string> = {
 };
 
 /**
- * Two-option Kurdistan/World segmented control (update-plan-2026-08.md §4.1)
+ * Two-option Kurdistan/World segmented control (the August 2026 update plan §4.1)
  * — a pill-shaped `radiogroup`, matching `TierSelector`'s established "pick
  * one of N" pattern for touch-target sizing and RTL correctness (no left/
  * right, `flexDirection: "row"` auto-mirrors under RTL — no manual

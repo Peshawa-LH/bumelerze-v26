@@ -154,7 +154,7 @@ describe("formatAbsoluteDual", () => {
     await i18n.changeLanguage("en");
     const { utc } = formatAbsoluteDual(originTimeMs, "en", i18n.t.bind(i18n));
 
-    // ui-backlog.md item 6's exact bug: month name + digits must both be
+    // The UI backlog item 6's exact bug: month name + digits must both be
     // correctly localized and never mixed with the wrong script.
     expect(utc).toBe("Aug 15, 2026, 12:00 PM UTC");
   });

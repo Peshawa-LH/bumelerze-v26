@@ -27,7 +27,7 @@ interface EventCardProps {
    * (`home-feed-policy.ts`) — i.e. it's older than the feed's normal
    * window. Renders a small "notable" tag in the tag row so an old, still-
    * significant event doesn't read as fresh or confusingly out of place
-   * next to yesterday's smaller ones (update-plan-2026-08.md §1.1).
+   * next to yesterday's smaller ones (the August 2026 update plan §1.1).
    * Defaults to `false` for every other list (World, Significant). */
   isNotable?: boolean;
   /** Distinct authoring agencies for this event from the corroboration
@@ -63,7 +63,7 @@ function EventCardImpl({
           value: formatRelativeTimeValue(relativeTime.value, locale),
         });
 
-  // Single place/distance line (ui-backlog.md wave 5 items 3 & 5): replaces
+  // Single place/distance line (the UI backlog wave 5 items 3 & 5): replaces
   // both the raw USGS place string AND the old separate anchor-distance
   // line with one localized "{distance} {direction} of {city}, {region}"
   // built from the gazetteer, and for far-field events the translated
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     // Tone accent stripe on the reading-start edge (logical property, per
-    // design-language.md §5: never hardcode left/right). Kept separate from
+    // the design language §5: never hardcode left/right). Kept separate from
     // MagnitudeChip's own always-neutral text color, per §3.2.
     borderStartWidth: 4,
     borderRadius: 12,

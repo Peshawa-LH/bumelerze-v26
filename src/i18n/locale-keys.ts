@@ -3,7 +3,7 @@
  * paths (e.g. "settings.languages.ckb"). Used to enforce that every locale
  * ships exactly the same keys as the English source of truth — a missing
  * key in a translated catalog silently falls back to English at runtime,
- * which is easy to miss without this check (PROJECT.md: "no hard-coded
+ * which is easy to miss without this check (the project requirements: "no hard-coded
  * strings, ever" implies no *silently missing* strings either).
  */
 export function flattenKeys(

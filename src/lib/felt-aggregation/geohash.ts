@@ -8,7 +8,7 @@
  * ranges alternately (lon first), 5 bits per output character, alphabet
  * excludes `a, i, l, o` to avoid confusion with `4, 1, 1, 0`.
  *
- * Precision (felt-report-science-v1.md §3.1, D18 R12): p4 ≈ 39×19.5 km rural
+ * Precision (the felt-report method §3.1, D18 R12): p4 ≈ 39×19.5 km rural
  * rollup, p5 ≈ 4.9×4.9 km base display/CDI cell, p6 ≈ 1.2×0.6 km city
  * refinement (computed additionally when a p5 cell holds ≥20 reports). The
  * function itself is general (any precision ≥1); the app only ever asks for

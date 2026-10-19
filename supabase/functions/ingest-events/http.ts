@@ -3,14 +3,14 @@
 // "Be polite to the agencies" (brief): this function's own cron wiring
 // already keeps outbound load low (one HTTP request per channel per tick —
 // four channels, three requests/minute plus one daily bulletin sweep total,
-// per source-and-ingestion-plan.md §5 vs. today's ~180,000/hour from every
+// per the ingestion plan §5 vs. today's ~180,000/hour from every
 // phone polling directly). The retry policy below is deliberately NOT an
 // exponential backoff state machine: a channel that fails now gets exactly
 // one immediate retry (transient DNS/TLS hiccups are the common case) and
 // then gives up cleanly — the NEXT scheduled cron tick (60s/5min/1 day
 // later, per channel) IS the backoff. Building persistent backoff state
 // for something that already self-heals on its own schedule would be
-// machinery this minimal-ops backend does not need (PROJECT.md: "if
+// machinery this minimal-ops backend does not need (the project requirements: "if
 // Supabase can do it, use Supabase" — here, "if pg_cron's own cadence
 // already provides backoff, don't build a second one").
 //

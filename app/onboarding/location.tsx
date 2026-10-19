@@ -11,7 +11,7 @@ import {
 } from "@/features/onboarding";
 
 /**
- * Screen 3 — location permission (spec-v1.md §4.11 step 3). Scientific-
+ * Screen 3 — location permission (the v1 spec §4.11 step 3). Scientific-
  * contribution framing (LastQuake pattern: your location makes your shared
  * experiences useful for mapping real shaking) comes before the real foreground
  * permission request. Whatever the user answers, the flow continues — a
@@ -44,7 +44,7 @@ export default function OnboardingLocationScreen() {
         void refreshReferencePlace();
       }
     } catch {
-      // Hardware/platform failure — never blocks the flow (spec-v1.md
+      // Hardware/platform failure — never blocks the flow (the v1 spec
       // §4.11 states).
     } finally {
       setIsRequesting(false);

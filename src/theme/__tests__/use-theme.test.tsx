@@ -22,7 +22,7 @@ describe("useTheme", () => {
     const { result } = await renderHook(() => useTheme());
 
     expect(result.current.scheme).toBe("dark");
-    // design-language.md §4: dark surfaces are true-black-leaning, not the
+    // The design language §4: dark surfaces are true-black-leaning, not the
     // "dark gray card" pattern.
     expect(result.current.colors.surface.base).toBe("#000000");
     expect(result.current.colors.text.primary).not.toBe(

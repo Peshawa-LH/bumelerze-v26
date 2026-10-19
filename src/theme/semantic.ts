@@ -2,8 +2,8 @@
  * Layer 2 — semantic tokens.
  *
  * Components/screens read ONLY from here (via `useTheme`), never from
- * `palette.ts` directly (design-language.md §3 "three layers, not one").
- * Light values follow design-language.md §3; dark values follow §4
+ * `palette.ts` directly (the design language §3 "three layers, not one").
+ * Light values follow the design language §3; dark values follow §4
  * ("dark is the primary theme... true-black-leaning").
  */
 import {

@@ -8,7 +8,7 @@ import {
 } from "./config";
 
 /**
- * Crowd-detected "possible event" (D26 item 3, felt-detection-design.md §3)
+ * Crowd-detected "possible event" (D26 item 3, the felt-detection design §3)
  * — a `public.events` row with `status = 'possible'`
  * (supabase/migrations/0012_crowd_detection.sql's `detect_possible_events`).
  * Deliberately NOT folded into the `Event` model (`./types.ts`): a possible
@@ -71,8 +71,8 @@ export interface ParsedPossibleEventRows {
   events: PossibleEvent[];
   /** Same tolerant-parsing bookkeeping convention as
    * `feltmap/types.ts`/`events/usgs.ts`: one malformed row is dropped and
-   * counted, never a reason to fail the whole read (typescript-react-
-   * native.md "no silent catches" is about swallowed errors, not about
+   * counted, never a reason to fail the whole read (the project's
+   * "no silent catches" rule is about swallowed errors, not about
    * discarding one bad row from an otherwise-good response). */
   skippedCount: number;
 }

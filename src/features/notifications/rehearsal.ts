@@ -4,7 +4,7 @@ import i18n from "@/i18n";
 
 import { loadNotifications } from "./permissions";
 
-/** Matches spec-v1.md §4.10's rehearsal requirement ("Play Alert Sound") —
+/** Matches the v1 spec §4.10's rehearsal requirement ("Play Alert Sound") —
  * long enough that a user who taps the button has time to read the
  * background-the-app hint and press the home button before it fires. */
 export const REHEARSAL_DELAY_SECONDS = 2;

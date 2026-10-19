@@ -7,11 +7,11 @@ import { DEFAULT_MAP_STYLE_CATALOG_ID, type MapStyleCatalogId } from "./style-ca
 
 /**
  * Map-tab client preferences — today just the basemap style pick
- * (update-plan-2026-08.md §4.3/Part 3: "Persist his choice locally so it
+ * (the August 2026 update plan §4.3/Part 3: "Persist his choice locally so it
  * survives reloads"). A small dedicated store rather than folding into
  * `onboarding/store.ts`'s `usePrefsStore` — that store's `partialize`/
  * `merge` are already tightly scoped to onboarding + notification-tier
- * fields (typescript-react-native.md: zustand for true client state, one
+ * fields (the project's TypeScript conventions: zustand for true client state, one
  * concern per store keeps each `persist` migration story simple).
  *
  * Same hydration-gate shape as `onboarding/store.ts`'s `hasHydrated`: the

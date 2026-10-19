@@ -1,5 +1,5 @@
 /**
- * On-map magnitude/date filters (update-plan-2026-08.md §4.4: "a slider to
+ * On-map magnitude/date filters (the August 2026 update plan §4.4: "a slider to
  * filter magnitudes and dates and so on"). Pure client-side narrowing of an
  * ALREADY-FETCHED event array — no new fetch is ever issued for a filter
  * change, matching the brief and the region/world feeds' own polling

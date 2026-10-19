@@ -10,7 +10,7 @@ import {
 } from "../attribution";
 
 /**
- * MapTiler's required logo-attribution mark (update-plan-2026-08.md Part 4)
+ * MapTiler's required logo-attribution mark (the August 2026 update plan Part 4)
  * — rendered ONLY while a MapTiler style is the active basemap (the caller,
  * `map.web.tsx`, gates this on the tracked active provider; OpenFreeMap
  * carries no such requirement and must never show this). See

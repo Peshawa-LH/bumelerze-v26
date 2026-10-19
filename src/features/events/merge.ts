@@ -8,7 +8,7 @@ import type { Event } from "./types";
 
 /**
  * Cross-provider completeness merge for the region feed
- * (event-pipeline-design.md §2, applied client-side).
+ * (the event-pipeline design §2, applied client-side).
  *
  * WHY THIS EXISTS — a real missed earthquake: 2026-08-13 22:28 UTC, M4.0 mb,
  * Iran–Iraq border region. Present in EMSC's fdsnws catalog, absent from
@@ -50,7 +50,7 @@ export function isSameEarthquake(a: Event, b: Event): boolean {
  * CANONICAL AUTHORITY ORDER (§2 "canonical parameter derivation" per D4 —
  * queries.ts passes [USGS, EMSC, GEOFON]; a future provider slots into the
  * list at its authority position, nothing here changes —
- * provider-architecture.md documents that contract):
+ * the provider-architecture notes documents that contract):
  *
  * - Every event in the FIRST list passes through unchanged — nothing
  *   outranks it.

@@ -1,5 +1,5 @@
 // ISC channel: the daily backfill/correction bulletin sweep
-// (source-and-ingestion-plan.md §5 channel 4). Verified live 2026-08-27
+// (the ingestion plan §5 channel 4). Verified live 2026-08-27
 // against `http://www.isc.ac.uk/fdsnws/event/1/query` — NOTE the literal
 // `http://` (not https): that is what ISC's own service serves and what the
 // design doc's own worked example (§3) queries; not a typo.
@@ -7,15 +7,15 @@
 // Long-form param names (minlatitude/maxlatitude/minlongitude/
 // maxlongitude/starttime/endtime), matching the design doc's own verified
 // example query — NOT the short aliases GEOFON/EMSC use. No `contributor=`
-// filter: source-and-ingestion-plan.md §5 wants everything ISC carries in
+// filter: the ingestion plan §5 wants everything ISC carries in
 // the region (ISN, SLUB, ISK, TEH, THR, AFAD, IDC), not one agency.
 //
 // `format=text` — same FDSN WS-EVENT text layout as GEOFON (verified live:
 // identical column header), so this channel reuses `fdsn-text-adapter.ts`
-// unchanged, exactly as provider-architecture.md §3 anticipated for "a
+// unchanged, exactly as the provider-architecture notes §3 anticipated for "a
 // second FDSN-text-speaking source". Every row from this channel is
 // stamped `review_status = 'reviewed'` — the ISC bulletin's whole nature is
-// a reviewed catalog (source-and-ingestion-plan.md §1), not a per-row flag.
+// a reviewed catalog (the ingestion plan §1), not a per-row flag.
 
 import { fetchFdsnTextChannel } from "./fdsn-text-adapter.ts";
 import type { ChannelFetchResult } from "./types.ts";

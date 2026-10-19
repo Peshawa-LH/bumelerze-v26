@@ -33,7 +33,7 @@ interface MapStylePickerProps {
 }
 
 /**
- * Collapsible basemap style picker (update-plan-2026-08.md §4.3/Part 3) —
+ * Collapsible basemap style picker (the August 2026 update plan §4.3/Part 3) —
  * shipped VISIBLE to every user (not dev-gated). Same collapsible-header
  * shape as `safety/components/AccessibilityDisclosure.tsx` (chevron toggle,
  * collapsed by default so it never competes with the map for space), body

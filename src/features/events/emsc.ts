@@ -60,7 +60,7 @@ async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
  * EMSC's fdsnws query documents its filters using the short param-name
  * aliases — `start`/`end`, `minlat`/`maxlat`/`minlon`/`maxlon` — rather than
  * the `starttime`/`minlatitude`-style long names the USGS query in usgs.ts
- * uses (teardown-lastquake.md §2's exact filter list). Same FDSN WS-EVENT
+ * uses (the LastQuake teardown §2's exact filter list). Same FDSN WS-EVENT
  * spec, different documented alias; kept literal to what was verified
  * against the primary source rather than assumed-interchangeable.
  */

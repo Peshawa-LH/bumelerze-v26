@@ -12,7 +12,7 @@ interface RehearsalAlertModalProps {
 }
 
 /**
- * "See the alert" (spec-v1.md §4.10/B8) — a faithful, pure-UI mock of the
+ * "See the alert" (the v1 spec §4.10/B8) — a faithful, pure-UI mock of the
  * future push notification banner (app icon placeholder + title/body +
  * "now" timestamp, big type). No expo-notifications call here at all: this
  * never fires a real notification, so it needs no permission and works

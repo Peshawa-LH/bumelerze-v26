@@ -1,10 +1,10 @@
 /**
- * Safety content model — spec-v1.md §4.9 (D11 "full feature"): PREPARE /
+ * Safety content model — the v1 spec §4.9 (D11 "full feature"): PREPARE /
  * SURVIVE / RECOVER tri-tab, cartoon-style do/don't pairs (LastQuake
  * pattern), accessibility variants on the core Drop-Cover-Hold-On card
  * (MyShake benchmark — wheelchair / cane-or-walker / bed users).
  *
- * This file is keys-only, on purpose (PROJECT.md "no hard-coded strings,
+ * This file is keys-only, on purpose (the project requirements "no hard-coded strings,
  * ever"): every piece of copy lives in `safety.cards.*` in the four locale
  * catalogs. The functions at the bottom (`safetyCardTitleKey` etc.) are the
  * single source of truth for how a card's fields map to i18n key paths —
@@ -12,7 +12,7 @@
  * keys through these functions rather than re-deriving the string shape
  * independently, so the key convention can only drift in one place.
  *
- * This is deliberately a fully static, bundled TypeScript module (spec-v1.md
+ * This is deliberately a fully static, bundled TypeScript module (the v1 spec
  * §4.9 "fully static content... works offline by definition") — no fetch,
  * no Supabase, no async loading state.
  */
@@ -43,7 +43,7 @@ export interface SafetyDoDontPair {
 }
 
 /**
- * One accessibility variant of a card's guidance (spec-v1.md §4.9 "e.g.
+ * One accessibility variant of a card's guidance (the v1 spec §4.9 "e.g.
  * cane/walker instructions, MyShake benchmark"). `id` is the suffix used to
  * build both the disclosure label and body text keys. `image` (owner-artwork
  * wave): each of the three Drop-Cover-Hold-On variants got its own
@@ -91,7 +91,7 @@ export const SAFETY_SECTION_IDS: readonly SafetySectionId[] = [
 
 /**
  * PREPARE / SURVIVE / RECOVER content, ~5 cards per section per the
- * brief. Regionally grounded per PROJECT.md + spec-v1.md §1 (Kurdish-first,
+ * brief. Regionally grounded per the project requirements + the v1 spec §1 (Kurdish-first,
  * scientifically correct, no drama): rooftop water tanks and gas cylinders
  * (both common in Kurdish homes) get their own mentions rather than generic
  * "secure your belongings" copy, and the RECOVER section's "reliable
@@ -124,9 +124,9 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
     id: "survive",
     cards: [
       {
-        // The core card (spec-v1.md §4.9) — Drop, Cover, and Hold On, with
+        // The core card (the v1 spec §4.9) — Drop, Cover, and Hold On, with
         // the three accessibility variants that are the MyShake/LastQuake
-        // benchmark (teardown-myshake.md §2-3, teardown-lastquake.md §3).
+        // benchmark (the MyShake teardown §2-3, the LastQuake teardown §3).
         id: "dropCoverHold",
         bodyParagraphCount: 2,
         // body1 (the table posture) + body2 (the no-table fallback posture).
@@ -163,7 +163,7 @@ export const SAFETY_SECTIONS: readonly SafetySection[] = [
       {
         // A dedicated myth-busting card for the two habits people reach for
         // out of instinct but that current guidance advises against — the
-        // doorway myth and the elevator (spec-v1.md §4.9's explicit list:
+        // doorway myth and the elevator (the v1 spec §4.9's explicit list:
         // "don't: doorway myth... don't: elevator").
         id: "commonMyths",
         bodyParagraphCount: 1,

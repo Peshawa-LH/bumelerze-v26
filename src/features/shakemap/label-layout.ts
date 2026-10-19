@@ -1,5 +1,5 @@
 /**
- * Deterministic city-label decluttering for `ShakeMapView` (ui-backlog.md
+ * Deterministic city-label decluttering for `ShakeMapView` (the UI backlog
  * item 7 — "city labels collide near the epicenter"). No physics engine,
  * no iterative relaxation: a single greedy pass over the already-priority-
  * ordered city list (`pickMapCities`'s main-towns-then-distance
@@ -41,7 +41,7 @@ export interface PlacedLabel {
   /** SVG `text-anchor`: "start" grows the text rightward from `anchor`
    * (dot was left-of-center, label pushed right stays wrong side — see
    * `resolveSide`), "end" grows it leftward. Always "start"/"end", never
-   * "middle" — this map never mirrors under RTL (design-language.md §5),
+   * "middle" — this map never mirrors under RTL (the design language §5),
    * so the anchor convention is locale-independent. */
   textAnchor: TextAnchor;
 }

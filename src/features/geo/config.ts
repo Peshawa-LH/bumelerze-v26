@@ -1,10 +1,10 @@
 /**
  * Tunable constants for the geo/gazetteer module (D14: engineering-owned
  * defaults). Kept separate from `events/config.ts`'s `REGION_BBOX` — that
- * one drives event significance classification (event-pipeline-design.md
+ * one drives event significance classification (the event-pipeline design
  * §4) and is deliberately generous; this bbox is the "is this point inside
  * the Kurdistan Region" check for place-line region labeling
- * (ui-backlog.md wave 5 item 4), so it's drawn tighter, roughly tracing the
+ * (the UI backlog wave 5 item 4), so it's drawn tighter, roughly tracing the
  * KRG-administered governorates (Duhok, Hawler, Sulaymaniyah incl. Halabja/
  * Garmian) rather than the whole greater-Kurdistan/Zagros catchment.
  *
@@ -31,6 +31,6 @@ export const KURDISTAN_REGION_BBOX = {
 export const NEAREST_CITY_FALLBACK_THRESHOLD_KM = 300;
 
 /** Default city count for the event-detail "nearest cities" list
- * (ui-backlog.md wave 5 item 5: "list of the 3 nearest gazetteer
+ * (the UI backlog wave 5 item 5: "list of the 3 nearest gazetteer
  * cities"). */
 export const DEFAULT_NEAREST_CITY_COUNT = 3;

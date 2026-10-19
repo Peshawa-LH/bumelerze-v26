@@ -6,7 +6,7 @@ basemap is not there, it's just the radial maps"). It supplies country
 border lines + coastline under the intensity contours, matching what the
 SHAKEmaps Toolkit's own `SHAKEmapper.create_basemap()` draws (Cartopy
 `coastlines()` + `cfeature.BORDERS`) — see
-`SHAKEmaps-Toolkit-v26/modules/viz/SHAKEmapper.py`.
+the SHAKEmaps toolkit's `modules/viz/SHAKEmapper.py`.
 
 ## Source
 

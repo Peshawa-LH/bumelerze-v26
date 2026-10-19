@@ -21,7 +21,7 @@ import { BeReadyCard } from "@/features/safety";
 import { useTheme } from "@/theme";
 
 /**
- * Home / region-first feed (spec-v1.md §4.1) — the default landing screen,
+ * Home / region-first feed (the v1 spec §4.1) — the default landing screen,
  * cached-first. Header row links to World, Significant, and Historical
  * (pushed routes, not tabs — D11 region-first inversion); Catalog was a
  * fourth header link until owner feedback (2026-08-21: "we don't remove the
@@ -35,7 +35,7 @@ import { useTheme } from "@/theme";
  * itself, so the pill component stays a dumb navigation trigger reusable on
  * Event Detail too. The displayed list itself is picked by the adaptive
  * Home-feed policy (`selectHomeFeedEvents`, `features/events/
- * home-feed-policy.ts`, update-plan-2026-08.md §1.1) — this screen stays
+ * home-feed-policy.ts`, the August 2026 update plan §1.1) — this screen stays
  * "dumb": it feeds the policy the region + notable-tail pools and renders
  * whatever it decides, all window/floor/notable-carve-out logic lives in
  * that one pure, unit-tested module. The title row and its three links are
@@ -69,7 +69,7 @@ export default function HomeScreen() {
     ? (events.find((event) => event.id === associatedEventId) ?? null)
     : null;
 
-  // Adaptive Home-feed policy (update-plan-2026-08.md §1.1) — a pure
+  // Adaptive Home-feed policy (the August 2026 update plan §1.1) — a pure
   // function over the region feed pool (already up to
   // REGION_FEED_WINDOW_DAYS, config.ts) UNION the rare M>=6/12-month
   // notable-tail pool, which reaches further back than the region pool

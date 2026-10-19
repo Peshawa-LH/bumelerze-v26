@@ -10,8 +10,8 @@ export interface CoordinateValidation {
 /**
  * Validates one decimal-degrees text field.
  *
- * The field WRITES Latin digits (typescript-react-native.md:
- * "digit-localized DISPLAY but accept Latin input", spec-v1.md §7), and
+ * The field WRITES Latin digits (the project's TypeScript conventions:
+ * "digit-localized DISPLAY but accept Latin input", the v1 spec §7), and
  * localized-digit rendering happens only on the read-back/results side via
  * `@/lib/format-numbers`, never here.
  *

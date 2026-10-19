@@ -65,7 +65,7 @@ const SKELETON_ROW_COUNT = 5;
  * list component"). FlatList, not FlashList — boring choice, deliberate:
  * these lists run in the low hundreds of rows at most (30-day regional
  * window / weekly M4.5+ world window), well under where FlashList's extra
- * setup earns its keep (typescript-react-native.md's FlashList guidance is
+ * setup earns its keep (the project's TypeScript conventions' FlashList guidance is
  * aimed at large/likely-growing feeds; revisit if list sizes grow).
  */
 export function EventListScreen({

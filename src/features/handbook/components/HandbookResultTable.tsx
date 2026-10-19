@@ -95,7 +95,7 @@ function EmptyRow({ label, message }: { label: string; message: string }) {
 }
 
 /**
- * The cited output table (spec-v1.md §7: "table of design values with a
+ * The cited output table (the v1 spec §7: "table of design values with a
  * citation on every number"). Every row that HAS a number carries its
  * source; a row with no data for this coordinate shows the honest
  * empty-state message instead of a fabricated/nearest-neighbor value

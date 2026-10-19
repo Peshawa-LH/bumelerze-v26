@@ -25,7 +25,7 @@ export const SHAKEMAP_VIEW_HEIGHT = 240;
  * in-bbox cities"). */
 export const SHAKEMAP_MAX_CITIES = 5;
 
-/** Perf guard for low-end Android (PROJECT.md "target 60 FPS on low-end
+/** Perf guard for low-end Android (the project requirements "target 60 FPS on low-end
  * Android... keep the JS bundle lean"): a single USGS MMI level can carry
  * dozens of contour rings (coastline-like detail at the outer, lowest
  * levels). Rendering every ring of every level as its own SVG `Polygon` is
@@ -107,7 +107,7 @@ export const SHAKEMAP_BASEMAP_LINE_OPACITY = 0.9;
  * NEW row, never an edit of an existing one), so there is nothing to gain
  * from polling it on a fixed interval the way a live-updating feed or a
  * densifying felt-report count needs. No `refetchInterval` is set at all
- * (PROJECT.md "battery-conscious... no aggressive background polling") —
+ * (the project requirements "battery-conscious... no aggressive background polling") —
  * this stale time only controls how long a cached "did this event have a
  * live product" answer is trusted before a normal mount/foreground/
  * reconnect refetch is allowed to check again (e.g. a first compute

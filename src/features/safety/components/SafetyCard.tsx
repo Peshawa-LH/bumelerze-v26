@@ -21,7 +21,7 @@ interface SafetyCardProps {
  * accessibility-variant block. Rendered full-list rather than
  * expand/collapse-per-card (brief's UX call) — this content is the
  * thing panic-time users are trying to read, so hiding it behind another
- * tap works against the panic-time priority (PROJECT.md). The one exception
+ * tap works against the panic-time priority (the project requirements). The one exception
  * is the accessibility block, which stays collapsed by default because it
  * doesn't apply to most readers of a given card.
  */

@@ -9,7 +9,7 @@
 // `usgs-schema.ts`/`normalize.ts` capture (that pair only needs `mag`,
 // `place`, `time`, `updated`, `magType`, `alert`, `url`, `sig`, `ids`). This
 // is the ONLY place USGS field names may appear in this function, mirroring
-// the client-side convention (PROJECT.md gotcha) even though this is a
+// the client-side convention (the project gotcha) even though this is a
 // separate, richer normalizer for a separate purpose.
 
 import type { RawSourceRecord } from "./types.ts";

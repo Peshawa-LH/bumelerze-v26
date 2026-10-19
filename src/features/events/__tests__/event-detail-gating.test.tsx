@@ -11,7 +11,7 @@ import { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from 
 
 /**
  * Regression coverage for the event-deeplink-hang bug
- * (docs/debug-log.md): a cold-start deep link to an event that isn't in
+ * (the debug log): a cold-start deep link to an event that isn't in
  * either cached feed (`app/event/[id].tsx`'s `shouldFetchById` gate) must
  * actually issue the byId fetch and resolve out of the loading state, both
  * with an empty persisted cache (fresh install) and with a warm one

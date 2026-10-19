@@ -6,11 +6,11 @@
 
 /**
  * OpenFreeMap (https://openfreemap.org) style URLs — free, no API key, no
- * signup, per PROJECT.md's "boring, well-documented" preference and the
+ * signup, per the project's "boring, well-documented" preference and the
  * brief's explicit basemap choice. Verified live (2026-08-16: both
  * URLs return `200 application/json` style documents) rather than assumed
  * from docs. Picked by the app's active color scheme (`useTheme().scheme`),
- * matching the app's own dark-is-primary convention (design-language.md
+ * matching the app's own dark-is-primary convention (the design language
  * §4) instead of always shipping one style.
  */
 export const MAP_STYLE_URLS = {
@@ -102,7 +102,7 @@ export const MARKER_MAX_DIAMETER_PX = 34;
 /** Magnitude clamp bounds feeding the linear diameter interpolation —
  * events below `MARKER_MAGNITUDE_FLOOR` all render at the minimum size,
  * events at/above `MARKER_MAGNITUDE_CEILING` all render at the maximum
- * (event-pipeline-design.md territory doesn't fix a display ceiling, so
+ * (the event-pipeline design territory doesn't fix a display ceiling, so
  * this is an engineering default, D14). */
 export const MARKER_MAGNITUDE_FLOOR = 0;
 export const MARKER_MAGNITUDE_CEILING = 7;

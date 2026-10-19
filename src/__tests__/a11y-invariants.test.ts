@@ -37,7 +37,7 @@ describe("a11y static invariants — repo-wide", () => {
     expect(sourceFiles.length).toBeGreaterThan(50);
   });
 
-  it("never disables font scaling (allowFontScaling={false}) anywhere — 200% Dynamic Type support is a hard requirement (PROJECT.md, design-language.md §8)", () => {
+  it("never disables font scaling (allowFontScaling={false}) anywhere — 200% Dynamic Type support is a hard requirement (the project requirements, the design language §8)", () => {
     const offenders: string[] = [];
     for (const file of sourceFiles) {
       const content = readFileSync(file, "utf8");
@@ -48,7 +48,7 @@ describe("a11y static invariants — repo-wide", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("never sets maxFontSizeMultiplier without an inline justification comment on the same or a nearby line (design-language.md §8: only \"with justification\")", () => {
+  it("never sets maxFontSizeMultiplier without an inline justification comment on the same or a nearby line (the design language §8: only \"with justification\")", () => {
     const offenders: string[] = [];
     for (const file of sourceFiles) {
       const lines = readFileSync(file, "utf8").split("\n");

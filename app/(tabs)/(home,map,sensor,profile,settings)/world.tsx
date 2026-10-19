@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { EventListScreen, useWorldEvents } from "@/features/events";
 
-/** World Catalog (spec-v1.md §4.2) — full unfiltered world feed, pushed
+/** World Catalog (the v1 spec §4.2) — full unfiltered world feed, pushed
  * from Home, secondary to the region-first Home screen (D11). */
 export default function WorldScreen() {
   const { t } = useTranslation();

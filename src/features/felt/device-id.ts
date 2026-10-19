@@ -2,13 +2,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from "expo-crypto";
 
 /**
- * Anonymous per-install device id (D8 identity model; spec-v1.md §5.2:
+ * Anonymous per-install device id (D8 identity model; the v1 spec §5.2:
  * "Identity: anonymous per-install device ID (required on every report)").
  * Generated once via `expo-crypto`'s cryptographically-random UUID v4,
  * persisted in AsyncStorage, and reused for the lifetime of the install.
  *
  * Deliberately NOT tied to any Supabase auth identity — felt reporting must
- * work with zero network round-trips to an auth endpoint (PROJECT.md offline
+ * work with zero network round-trips to an auth endpoint (the project requirements offline
  * requirement; D8: "must not require signup"). Uninstalling the app loses
  * this id by design: a fresh install is a fresh anonymous device, matching
  * D8's v1 stance (the schema's nullable `user_id` column is where a future

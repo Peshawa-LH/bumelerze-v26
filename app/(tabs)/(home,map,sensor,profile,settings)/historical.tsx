@@ -16,7 +16,7 @@ import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
- * Historical View (lite) — spec-v1.md §4.7: "earthquakes here since 1900"
+ * Historical View (lite) — the v1 spec §4.7: "earthquakes here since 1900"
  * context from a bundled, hand-curated list, not a live fetch. Fully
  * offline-tolerant by construction — the list itself is a compile-time
  * constant, so this screen never shows a loading/error/empty state; only

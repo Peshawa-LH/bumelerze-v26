@@ -11,10 +11,10 @@ interface OfflineBannerProps {
 
 /**
  * Shown above the feed when the latest background fetch failed but cached
- * data still renders (spec-v1.md §4.1 offline state: "cached feed shown
+ * data still renders (the v1 spec §4.1 offline state: "cached feed shown
  * with a clear 'last updated' timestamp and offline indicator"). Uses a
  * neutral surface + accent border rather than a full status-color fill —
- * design-language.md §1.7 ("calm, not clinical... no red/loud chrome on
+ * the design language §1.7 ("calm, not clinical... no red/loud chrome on
  * neutral screens") and status colors aren't theme-split (§3), so a solid
  * fill can't be guaranteed AA-contrast text in both themes the way the
  * theme's own surface/text tokens are.
@@ -41,7 +41,7 @@ export function OfflineBanner({ dataUpdatedAt }: OfflineBannerProps) {
       // Announces itself when it mounts/updates on Android TalkBack (the
       // offline/stale-data state is a material change users need to know
       // about without hunting for it — Phase 5 accessibility audit,
-      // PROJECT.md "works on weak networks"). iOS VoiceOver ignores this prop
+      // the project requirements "works on weak networks"). iOS VoiceOver ignores this prop
       // entirely, so `EventListScreen` separately calls
       // `AccessibilityInfo.announceForAccessibility` on the same
       // false->true transition to cover VoiceOver too.

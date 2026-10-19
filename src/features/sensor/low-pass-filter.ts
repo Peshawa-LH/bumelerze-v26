@@ -16,7 +16,7 @@ import type { AccelerometerVector, SensorSample } from "./types";
  * the phone's orientation changes) is tracked smoothly while faster shaking
  * mostly survives into the linear-acceleration remainder. It is a
  * well-documented default, not a value we've tuned against our own hardware
- * — "boring, well-documented" per PROJECT.md's gotcha about exotic signal
+ * — "boring, well-documented" per the project gotcha about exotic signal
  * processing the owner would have to debug blind.
  */
 export const GRAVITY_LOW_PASS_ALPHA = 0.8;

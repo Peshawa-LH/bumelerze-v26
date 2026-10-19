@@ -1,4 +1,4 @@
-// The channel registry — source-and-ingestion-plan.md §5: "Six channels...
+// The channel registry — the ingestion plan §5: "Six channels...
 // Every channel is a row in one registry, so adding one is a config change
 // and an adapter, never an app release."
 //
@@ -53,7 +53,7 @@ const LIVE_CHANNEL_LOOKBACK_HOURS = 72; // EMSC/USGS/GEOFON: 3 days.
 
 /**
  * ISC is "authoritative backfill and correction... a reviewed bulletin,
- * not a feed" (source-and-ingestion-plan.md §5) running roughly 13 months
+ * not a feed" (the ingestion plan §5) running roughly 13 months
  * behind (§1) — this channel's whole JOB is re-checking a wide historical
  * window daily for agency corrections/promotions our earlier live-channel
  * ingest couldn't have seen yet. 450 days covers the observed ~13-month lag

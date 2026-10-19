@@ -2,7 +2,7 @@ const EARTH_RADIUS_KM = 6371;
 
 /** Exported for reuse by `features/geo/bearing.ts` — bearing math needs the
  * same degrees→radians conversion, and this stays the one module that owns
- * geodesic distance/bearing primitives (typescript-react-native.md "one
+ * geodesic distance/bearing primitives (the project's TypeScript conventions "one
  * module owns scientific formatting" applied to the underlying math too,
  * not just the display strings). */
 export function toRadians(degrees: number): number {

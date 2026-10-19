@@ -45,7 +45,7 @@ function rampColor(colors: ReturnType<typeof useTheme>["colors"], level: number)
   return colors.intensity[level] ?? colors.intensity[1] ?? colors.status.warning;
 }
 
-/** CDI floor/cap (felt-report-science-v1.md §3.2 R11, migration 0004's own
+/** CDI floor/cap (the felt-report method §3.2 R11, migration 0004's own
  * `cdi numeric(3,1)` comment: "floor 2.0, cap 9.0") — the legend always
  * shows this full fixed range regardless of which values are actually
  * present in `cells`, so its meaning doesn't shift map-to-map. */
@@ -144,7 +144,7 @@ export function FeltMapView({
       </Text>
 
       {/* Never mirrors under RTL — same rule and same reasoning as
-       * `ShakeMapView`'s map container (design-language.md §5): a
+       * `ShakeMapView`'s map container (the design language §5): a
        * geographic projection has a fixed compass orientation. */}
       <View
         testID="feltmap-map-container"

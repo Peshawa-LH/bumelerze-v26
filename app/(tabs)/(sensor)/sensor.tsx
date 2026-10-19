@@ -28,7 +28,7 @@ import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
- * Sensor screen (spec-v1.md §4.8) — the MyShake-style "your phone is a
+ * Sensor screen (the v1 spec §4.8) — the MyShake-style "your phone is a
  * seismometer" wow-feature. Display-only in v1 (feature-matrix A6:
  * record/replay is v1.5, background triggering is v2+ research — neither
  * exists here). Client-only: no backend, no network dependency, no location.

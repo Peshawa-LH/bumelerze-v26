@@ -1,6 +1,6 @@
 /**
- * Locale-aware digit rendering (ui-backlog.md wave 5, item 1 — Peshawa's
- * native-speaker correction of the earlier design-language.md §2 "always
+ * Locale-aware digit rendering (the UI backlog wave 5, item 1 — Peshawa's
+ * native-speaker correction of the design language's earlier §2 "always
  * Latin digits" call). Sorani (`ckb`) and Iraqi/Gulf Arabic (`ar`) readers
  * expect Eastern Arabic-Indic digits (٠١٢٣٤٥٦٧٨٩) everywhere — magnitude,
  * distance, relative time, coordinates, depth, dates/times; Kurmanji

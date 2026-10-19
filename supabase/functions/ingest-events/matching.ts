@@ -20,7 +20,7 @@
 // spirit, not new debt. If a fourth copy is ever needed, that is the
 // moment to extract `fdsn-dedup.ts` into a package Metro, Jest AND Deno can
 // all resolve unmodified — not before (YAGNI, same as
-// provider-architecture.md §3's own "factor it out when the second real use
+// the provider-architecture notes §3's own "factor it out when the second real use
 // arrives" rule for `fdsn-text.ts`).
 //
 // KEEP IN SYNC: src/features/events/config.ts (DEDUP_MAX_TIME_DELTA_MS,
@@ -74,7 +74,7 @@ export function haversineDistanceKm(
  * unconditionally rejected — the client's own `Event` model never has this
  * case (its normalizers already drop magnitude-less features), but this
  * ingester's candidate set includes crowd events, which the design brief
- * (source-and-ingestion-plan.md §5.2) explicitly wants to be reconcilable
+ * (the ingestion plan §5.2) explicitly wants to be reconcilable
  * through the SAME dedup path.
  *
  * HONEST DIVERGENCE from the real SQL this is ported from: standard SQL

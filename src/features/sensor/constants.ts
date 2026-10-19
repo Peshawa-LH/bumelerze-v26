@@ -1,5 +1,5 @@
 /**
- * Requested accelerometer update interval (spec-v1.md §4.8 targets a live,
+ * Requested accelerometer update interval (the v1 spec §4.8 targets a live,
  * responsive trace — we ask for ~50 Hz). `setUpdateInterval` is a request,
  * not a guarantee:
  *  - Since Android 12 (API 31) the platform caps sensor delivery at 200 Hz
@@ -7,7 +7,7 @@
  *    at our 50 Hz ask.
  *  - Below that cap, Android still treats the interval as a *hint* to the
  *    OEM sensor HAL/batching layer, not a hard contract. Cheap Android
- *    chipsets — our baseline device profile (PROJECT.md) — commonly coalesce
+ *    chipsets — our baseline device profile (the project requirements) — commonly coalesce
  *    or throttle delivery to their own cadence (often ~20-30 Hz in practice)
  *    regardless of the 20 ms interval requested here. iOS's CMMotionManager
  *    honors the requested interval far more reliably.
@@ -19,7 +19,7 @@
  */
 export const ACCELEROMETER_UPDATE_INTERVAL_MS = 20; // ~50 Hz requested
 
-/** Scrolling plot window (spec-v1.md §4.8 brief: "last ~10 s"). */
+/** Scrolling plot window (the v1 spec §4.8 brief: "last ~10 s"). */
 export const PLOT_WINDOW_MS = 10_000;
 
 /**

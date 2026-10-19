@@ -2,7 +2,7 @@
 //
 // Scheduled (pg_cron + pg_net, same wiring as `aggregate-felt-cells` —
 // migration 0024) server-side poller for the four buildable channels
-// (source-and-ingestion-plan.md §5): EMSC/USGS every 60s, GEOFON every 5
+// (the ingestion plan §5): EMSC/USGS every 60s, GEOFON every 5
 // min, ISC once daily. Replaces every phone polling every agency directly
 // (~180,000 requests/hour at 1,000 users) with three requests/minute plus
 // one daily bulletin sweep, from one server — the client's own direct-fetch

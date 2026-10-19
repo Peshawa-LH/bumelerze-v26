@@ -25,12 +25,12 @@ export const FELTMAP_MAX_CITIES = 5;
 /** React Query cadence: same 60s/30s rhythm as the region event feed
  * (`EVENTS_REFETCH_INTERVAL_MS`/`EVENTS_STALE_TIME_MS`) so the felt map
  * densifies at roughly the same pace a user watching Event Detail already
- * expects from the rest of the screen (spec-v1.md §4.1 user journey: "watches
+ * expects from the rest of the screen (the v1 spec §4.1 user journey: "watches
  * the felt map densify in near-real-time"). Only polls while the screen is
  * mounted and the app is foregrounded (React Query's own
  * `refetchIntervalInBackground: false` plus the app-wide `focusManager`
  * wiring `events/queries.ts` already attaches once per app instance) — no
- * extra battery cost beyond what the feed already pays (PROJECT.md:
+ * extra battery cost beyond what the feed already pays (the project requirements:
  * "no aggressive background polling"). */
 export const FELTMAP_REFETCH_INTERVAL_MS = 60_000;
 export const FELTMAP_STALE_TIME_MS = 30_000;

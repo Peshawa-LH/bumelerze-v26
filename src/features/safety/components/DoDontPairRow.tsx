@@ -13,8 +13,8 @@ interface DoDontPairRowProps {
 }
 
 /**
- * One do/don't pair — LastQuake's cartoon do/don't pattern (teardown-
- * lastquake.md §3: "green ✓ / red ✗ framed"). The "do" and "dont" rows are
+ * One do/don't pair — LastQuake's cartoon do/don't pattern (the LastQuake
+ * teardown §3: "green ✓ / red ✗ framed"). The "do" and "dont" rows are
  * each their own accessible element with a localized "Do:"/"Don't:" prefix
  * baked into the accessibility label, so they read as distinct items to a
  * screen reader (not just distinct colors) — the brief's "distinct

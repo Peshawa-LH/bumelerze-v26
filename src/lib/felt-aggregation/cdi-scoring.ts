@@ -1,5 +1,5 @@
 /**
- * Per-report index extraction — felt-report-science-v1.md PART 2 answer→
+ * Per-report index extraction — the felt-report method PART 2 answer→
  * index-value tables, verbatim. Pure functions: one `Tier2Answers` object in,
  * one `IndexScores` object out (each of the 8 fields either a number or
  * `null` for "unanswered / excluded from this index's mean" — §3.2 step 1:
@@ -129,7 +129,7 @@ const BOOLEAN_INDEX: Record<PictureAnswer | FurnitureAnswer, number> = {
 // directive): window 2's two-typology 5-grade picker supersedes the old
 // Q10 questionnaire answer (which was 0/0.75/2/3, D18 R6) as this index's
 // source. PROPOSED mapping, [REVIEW — Peshawa] — see
-// `docs/research/felt-report-science-v1.md`'s 2026-08-15 addendum:
+// the felt-report method's 2026-08-15 addendum:
 // implemented pending that review, same "provisional but wired in" pattern
 // this pack already uses for other interpolated values (R1's shelf steps,
 // the old R6 itself). Keys renumbered DG0-DG4 -> DG1-DG5 in the 2026-08-17

@@ -83,8 +83,8 @@ describe("safety content-model integrity", () => {
 
 /**
  * Section-completeness (brief point 5): the tri-tab structure and the
- * SURVIVE accessibility-variant benchmark (MyShake/LastQuake, teardown-
- * myshake.md §2-3) are hard requirements from spec-v1.md §4.9 — assert them
+ * SURVIVE accessibility-variant benchmark (the MyShake and LastQuake
+ * teardowns) are hard requirements from the v1 spec §4.9 — assert them
  * directly against the data, not just indirectly through a screen render.
  */
 describe("safety content — section completeness", () => {

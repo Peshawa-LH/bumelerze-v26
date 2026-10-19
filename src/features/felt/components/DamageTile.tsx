@@ -94,7 +94,7 @@ function DamageTileImpl({
             style={styles.artwork}
             // Decorative reinforcement only — the Pressable's own
             // accessibilityLabel (typology + damage-state label) already
-            // carries the tile's full meaning (cartoon-artwork-brief.md §5).
+            // carries the tile's full meaning (the artwork brief §5).
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           />
@@ -121,7 +121,7 @@ function DamageTileImpl({
         // Body-meta size, not the caption size `LevelTile` uses: this tile
         // is twice as wide (two per row), and the picture is what a person
         // compares in a hurry — the caption only has to be readable at a
-        // glance. No numberOfLines cap (design-language.md §8: never
+        // glance. No numberOfLines cap (the design language §8: never
         // truncate at any font scale); the tile simply grows.
         style={{
           color: colors.text.primary,

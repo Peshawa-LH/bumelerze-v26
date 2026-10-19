@@ -10,7 +10,7 @@ import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
 type TranslateFn = TFunction;
 
 /**
- * Unicode directional isolate (design-language.md §5 "bidi handling"):
+ * Unicode directional isolate (the design language §5 "bidi handling"):
  * wraps a numeral+unit chunk (e.g. "120.0 km") so the bidi algorithm never
  * reorders its digits or misattaches the unit when it sits inside a
  * right-to-left sentence. Use this on every numeric string interpolated
@@ -24,9 +24,9 @@ export function isolateNumeric(text: string): string {
 }
 
 /**
- * Magnitude numeral only, one decimal, digit-localized (ui-backlog.md wave
+ * Magnitude numeral only, one decimal, digit-localized (the UI backlog wave
  * 5 item 1 — every numeral localizes, magnitude included; this reverses
- * design-language.md §3.2's earlier "always Latin" call for magnitude,
+ * the design language §3.2's earlier "always Latin" call for magnitude,
  * per Peshawa's direct native-speaker review). Split out from
  * `formatMagnitude` so the accessibility label (which shouldn't repeat the
  * "M" prefix — the label already says "Magnitude ...") can reuse the bare
@@ -41,7 +41,7 @@ export function formatMagnitudeValue(value: number, locale: string): string {
 // Sorani reader. The display string is therefore an i18n template
 // (`events.magnitudeDisplay`: en "M {{value}}", ckb "{{value}} پلە", …)
 // composed by callers with `formatMagnitudeValue`, exactly like the km
-// unit (ui-backlog wave 5 item 2). "پلە" chosen over "ڕێختەر" for
+// unit (the UI backlog wave 5 item 2). "پلە" chosen over "ڕێختەر" for
 // scientific correctness (modern magnitudes are Mw, not Richter); when
 // intensity ships it gets a visually distinct label + its own numerals
 // (`formatIntensity`: Roman in en/kmr, digits in ckb/ar) so
@@ -49,9 +49,9 @@ export function formatMagnitudeValue(value: number, locale: string): string {
 // The old `formatMagnitude` (hardcoded "M" prefix) was removed with it.
 
 /**
- * Distance numeral only, one decimal, digit-localized km (typescript-
- * react-native rule: "distances km (one decimal)"). Deliberately returns
- * just the numeral, no unit text — "km" is a localized string (ui-backlog
+ * Distance numeral only, one decimal, digit-localized km (the project's
+ * TypeScript rule: "distances km (one decimal)"). Deliberately returns
+ * just the numeral, no unit text — "km" is a localized string (the UI backlog
  * wave 5 item 2: "کم"/"كم"/"km") that lives in the i18n catalogs
  * (`units.km`), not in this scientific-formatting module. Callers compose
  * `${formatDistanceKm(...)} ${t("units.km")}` and wrap the whole chunk
@@ -192,7 +192,7 @@ function dateTimeOptions(
  * `dateStyle` string) specifically so the month renders as a bare number:
  * this module never asks `Intl` for a month NAME, because Hermes/ICU has no
  * real Sorani/Kurmanji month-name data and silently falls back to English
- * (ui-backlog.md item 6 — the bug this whole rewrite exists to fix). The
+ * (the UI backlog item 6 — the bug this whole rewrite exists to fix). The
  * month index is looked up in this app's own `months.short.<n>` i18n table
  * instead (see `formatAbsoluteOne`), the same "own explicit map, never
  * delegated to whatever ICU data shipped" policy `lib/format-numbers.ts`
@@ -335,7 +335,7 @@ export function formatDateOnly(
   });
 }
 
-/** Dual UTC + local absolute time display (spec-v1.md §4.5 event-detail
+/** Dual UTC + local absolute time display (the v1 spec §4.5 event-detail
  * header requirement). Falls back gracefully if `Intl` doesn't recognize a
  * locale tag (e.g. `ckb`/`kmr` on older ICU data) — `Intl.DateTimeFormat`
  * only throws on a syntactically invalid BCP-47 tag, never on an
@@ -343,7 +343,7 @@ export function formatDateOnly(
  * locales. Digits are localized via our own map (see `withLatinDigits`
  * comment above); month names via this app's own `months.short.<n>` i18n
  * table (see `dateComponents`' comment) — never via `Intl`'s month-name
- * data or the digit-localizer (ui-backlog.md item 6: the old
+ * data or the digit-localizer (the UI backlog item 6: the old
  * implementation ran the *whole* `Intl`-produced string, English month
  * abbreviation included, through the digit localizer, which only ever
  * touches digit characters — hence "Aug ٣:١٢ ,٢٠٢٦", an English month

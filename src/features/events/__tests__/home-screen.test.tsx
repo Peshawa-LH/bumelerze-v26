@@ -21,7 +21,7 @@ jest.mock("expo-router", () => ({
 // actual rendering/formatting pipeline against canned data.
 //
 // `usePossibleEvents` (D26 item 3) and `useNotableTailEvents` (adaptive
-// Home-feed policy, update-plan-2026-08.md §1.1) are mocked here for the
+// Home-feed policy, the August 2026 update plan §1.1) are mocked here for the
 // same reason `useRegionEvents` already is: they're real `useQuery` hooks
 // under the hood, and this file's `renderWithProviders` deliberately has no
 // `QueryClientProvider` in its tree (see that function below) — mocking
@@ -150,7 +150,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     expect(screen.getByText("ماڵەوە")).toBeTruthy();
 
     // The raw USGS place string is gone — replaced by our own gazetteer
-    // place line (ui-backlog.md wave 5 item 3). The event's coordinates are
+    // place line (the UI backlog wave 5 item 3). The event's coordinates are
     // Slemani's own, so the nearest-gazetteer-city phrase names Slemani in
     // Sorani and carries the Kurdistan (Iraq) region label.
     expect(screen.queryByText("32 km SE of Halabja, Iraq")).toBeNull();
@@ -158,7 +158,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     expect(screen.getByText(/کوردستان \(عێراق\)/)).toBeTruthy();
 
     // Magnitude digit-localizes to Eastern Arabic-Indic in Sorani
-    // (ui-backlog.md wave 5 item 1 — reverses design-language.md §3.2's
+    // (the UI backlog wave 5 item 1 — reverses the design language §3.2's
     // earlier "always Latin" call, per Peshawa's native-speaker review).
     expect(screen.getByText("٤.٦ پلە")).toBeTruthy();
 
@@ -291,7 +291,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     ).toBeTruthy();
   });
 
-  it("gives the persistent felt-report pill an accessibilityHint explaining what tapping it does (design-language.md §8, Phase 5 accessibility audit)", async () => {
+  it("gives the persistent felt-report pill an accessibilityHint explaining what tapping it does (the design language §8, Phase 5 accessibility audit)", async () => {
     await renderWithProviders(<HomeScreen />);
 
     const pill = screen.getByRole("button", { name: i18n.t("felt.pill.label") });

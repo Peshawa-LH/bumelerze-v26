@@ -48,7 +48,7 @@ const MAGNITUDE_STEP = 0.1;
  * hand-rolled PanResponder/Reanimated slider would have to reimplement from
  * scratch (and this app has no `@react-native-community/slider` dependency
  * to reach for instead — adding one for a web-only control isn't worth a
- * new native dependency the owner can't debug, per PROJECT.md's "boring,
+ * new native dependency the owner can't debug, per the project's "boring,
  * well-documented" preference).
  *
  * RTL note: `dir` is set explicitly from `isRTLLocale(locale)` rather than

@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 /**
  * Prefs store (brief point 2) — the app's first true client-state need,
- * so per typescript-react-native.md this is zustand, not React Query (that
+ * so per the project's TypeScript conventions this is zustand, not React Query (that
  * stays reserved for server state) and not Redux.
  */
 
@@ -15,7 +15,7 @@ export type OnboardingStepId =
  * still resumes (it routes to "done"): the town-picker step left the flow
  * (owner, 2026-10-04) and the whole concept left the UI (2026-10-06).
  *
- * Screen order per spec-v1.md §4.11 — also drives the progress dots and the
+ * Screen order per the v1 spec §4.11 — also drives the progress dots and the
  * resume-after-restart lookup (routes.ts), so it's the one place that order
  * is written down. */
 export const ONBOARDING_STEPS: readonly OnboardingStepId[] = [
@@ -40,7 +40,7 @@ export interface StoredPlace {
 export type ReferenceSource = "auto" | "manual";
 
 /**
- * Preset alert tiers (Phase 4, spec-v1.md §4.10/D11) — matches
+ * Preset alert tiers (Phase 4, the v1 spec §4.10/D11) — matches
  * `supabase/migrations/0005_notifications_and_telemetry.sql`'s
  * `near_me_tier`/`homebase_tier` check-constraint values exactly
  * ('off'|'all'|'m3'|'m4'|'m5'), so a future sync layer can write these
@@ -90,7 +90,7 @@ export interface PrefsState {
   referenceCheckedAt: number | null;
   /**
    * Alert preset tier for events near the user's current/last-known
-   * location (spec-v1.md §4.10). Default 'm3' — matches D16's
+   * location (the v1 spec §4.10). Default 'm3' — matches D16's
    * fatigue-aware stance of not paging everyone for M<3 background
    * seismicity while still catching everything locally felt-worthy.
    *
@@ -138,7 +138,7 @@ export interface PrefsState {
   setAnotherPlace: (place: StoredPlace | null) => void;
   setNearMeTier: (tier: NotificationTier) => void;
   setAnotherPlaceTier: (tier: NotificationTier) => void;
-  /** Settings' "replay onboarding" row — per spec-v1.md §4.11 ("not
+  /** Settings' "replay onboarding" row — per the v1 spec §4.11 ("not
    * reachable after") this is the *only* path back into onboarding once
    * it's been completed once. */
   resetOnboarding: () => void;

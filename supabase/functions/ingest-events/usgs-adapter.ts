@@ -3,7 +3,7 @@
 // call) — the validation (`usgsFeatureSchema`) and I/O (`fetchJsonWithRetry`)
 // live here specifically so `normalize-usgs.ts` stays a plain, zero-
 // dependency, Jest-testable function (see that file's own header comment
-// and provider-architecture.md's "same shape as the client's own
+// and the provider-architecture notes' "same shape as the client's own
 // <provider>.ts / <provider>-schema.ts / normalize<Provider>X split").
 
 import { fetchJsonWithRetry } from "./http.ts";

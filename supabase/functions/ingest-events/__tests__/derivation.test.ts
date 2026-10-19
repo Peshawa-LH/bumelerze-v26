@@ -91,7 +91,7 @@ describe("deriveCanonicalFields", () => {
     expect(result?.magnitudeSourceId).toBe(only.sourceRecordId);
   });
 
-  it("prefers the nearest-network agency's location over EMSC's, per source-and-ingestion-plan.md §5.1", () => {
+  it("prefers the nearest-network agency's location over EMSC's, per the ingestion plan §5.1", () => {
     const emscRecord = sourceRecord({
       sourceRecordId: "src-emsc",
       provider: "emsc",

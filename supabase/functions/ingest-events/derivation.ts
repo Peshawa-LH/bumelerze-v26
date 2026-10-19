@@ -1,4 +1,4 @@
-// Per-field canonical derivation — source-and-ingestion-plan.md §5.1: "D4/D23
+// Per-field canonical derivation — the ingestion plan §5.1: "D4/D23
 // ranked USGS > EMSC > GEOFON and picked one winner per event. Given [USGS
 // authors ~3% of this region's events], that is backwards... Replace it with
 // per-field derivation."
@@ -27,7 +27,7 @@
 import type { StoredSourceRecord } from "./types.ts";
 
 /**
- * Location/depth/origin-time preference (source-and-ingestion-plan.md §5.1):
+ * Location/depth/origin-time preference (the ingestion plan §5.1):
  * "nearest authoritative network first (ISN, ISK, TEH, THR, AFAD), then ISC,
  * then IDC, then NEIC." The five nearest-network agencies are given the SAME
  * rank — the plan states them as one group ("nearest authoritative
@@ -40,7 +40,7 @@ import type { StoredSourceRecord } from "./types.ts";
  * Unranked/unknown agencies (GEOFON's own automatic `'GFZ'` solutions, EMSC
  * self-authored `'EMSC'`, a relayed agency the plan's evidence didn't cover
  * — e.g. RSSC/IIEES/KOERI, all observed authoring EMSC-relayed records in
- * the region per source-and-ingestion-plan.md §1) fall to the lowest
+ * the region per the ingestion plan §1) fall to the lowest
  * priority rather than being rejected — an event seen by ONLY an unranked
  * agency must still get a location, just the least-preferred one available.
  */
@@ -77,7 +77,7 @@ function isMomentMagnitude(magType: string | null): boolean {
 }
 
 /**
- * Magnitude preference (source-and-ingestion-plan.md §5.1): "prefer a
+ * Magnitude preference (the ingestion plan §5.1): "prefer a
  * reviewed Mw ... where one exists, else the local ML ... recording the
  * type honestly rather than converting silently." Two explicit tiers from
  * the plan (rank 1, rank 2 below), plus two residual tiers so an event with
@@ -85,14 +85,14 @@ function isMomentMagnitude(magType: string | null): boolean {
  *
  *   1. Reviewed moment magnitude (any agency, not just GCMT/NEIC — the
  *      plan names those as the common real-world source of a reviewed Mw
- *      in this catalog per source-and-ingestion-plan.md §2's authorship
+ *      in this catalog per the ingestion plan §2's authorship
  *      table, not as an exhaustive allow-list; gating on the TYPE plus
  *      review status, not the agency name, is what stays correct as new
  *      contributors appear).
  *   2. A local ML/mb from the nearest-network tier (`locationAuthorityRank`
  *      rank 1: ISN/ISK/TEH/THR/AFAD) — "the local ML from the nearest
  *      network", regardless of review status: for many of these agencies
- *      (e.g. ISN down to ML 0.4, source-and-ingestion-plan.md §3) a
+ *      (e.g. ISN down to ML 0.4, the ingestion plan §3) a
  *      reviewed Mw will never exist at all, and an unreviewed local ML is
  *      still the right number to show, honestly typed.
  *   3. Any other reviewed magnitude (ISC's own preferred value, IDC, an

@@ -12,12 +12,12 @@ import { useTheme } from "@/theme";
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
 /**
- * 5-tab bottom navigation (spec-v1.md §4 "Navigation structure", re-cut by
+ * 5-tab bottom navigation (the v1 spec §4 "Navigation structure", re-cut by
  * D79 on 2026-10-08): Home is the panic-time landing screen, Map and Sensor
  * are always-reachable standalone screens, Profile is the one page for "me"
  * (the public profile plus what only I see), Settings holds preferences
  * including the language switcher and, at its top, the Safety guide. Uses expo-router's standard `Tabs` (not the experimental
- * native-tabs API) — boring and well-documented per PROJECT.md's gotcha
+ * native-tabs API) — boring and well-documented per the project gotcha
  * about exotic native modules.
  *
  * Each tab is a group with its own Stack (`(home)`, `(map)`, ...; see

@@ -1,14 +1,14 @@
 /**
- * Felt-report client types (spec-v1.md §4.6/§5.2; D8/D18).
+ * Felt-report client types (the v1 spec §4.6/§5.2; D8/D18).
  * Mirrors `supabase/migrations/0003_felt_reports.sql` field-for-field —
  * every column in `felt_reports`/`felt_report_details` has a matching field
  * here, and every tier-2 answer is stored as the RAW enumerated string the
- * science pack defines (`felt-report-science-v1.md` PART 2), never a
+ * science pack defines (the felt-report method PART 2), never a
  * precomputed CDI/EMS index — the schema's own comment says why: "so the
  * CWS/CDI math can be re-run/corrected later without re-asking users".
  */
 
-/** 1-of-12 EMS-98 cartoon pick (felt-report-science-v1.md PART 1). */
+/** 1-of-12 EMS-98 cartoon pick (the felt-report method PART 1). */
 export type CartoonLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 export const CARTOON_LEVELS: readonly CartoonLevel[] = [
@@ -57,7 +57,7 @@ export interface FeltLocation {
   quality: LocationQuality;
   /**
    * Local-only bookkeeping — NOT a migration column. When `quality` is
-   * "manual" via the inline place search (spec-v1.md §4.6 "never block the
+   * "manual" via the inline place search (the v1 spec §4.6 "never block the
    * one-tap promise on a permission grant"), this records which place
    * (gazetteer city or OSM-derived town/village) produced the lat/lon; the
    * server only ever sees lat/lon + quality. Reports queued by older
@@ -105,7 +105,7 @@ export interface Tier1Report {
 }
 
 // ---------------------------------------------------------------------------
-// Tier 2 — felt-report-science-v1.md PART 2, Q1-Q11. Every union below is
+// Tier 2 — the felt-report method PART 2, Q1-Q11. Every union below is
 // the exact answer-option set from the science pack; the CHECK constraint
 // values in 0003_felt_reports.sql are these same strings.
 // ---------------------------------------------------------------------------
@@ -161,7 +161,7 @@ export type DamageLevel = 0 | 1 | 2 | 3;
  * shared by both typology rows (`DamageTypology` below picks which row's
  * grade text/artwork applies). Replaces the old Q10 4-level
  * `buildingDamageLevel` answer; see
- * `docs/research/felt-report-science-v1.md`'s 2026-08-15 addendum for the
+ * the felt-report method's 2026-08-15 addendum for the
  * proposed damage-index mapping this feeds (grade → CDI `damage` index),
  * flagged [REVIEW — Peshawa] there like the pack's other interpolated
  * values (R1, R6) — implemented pending that review, not blocking on it.
@@ -178,7 +178,7 @@ export type DamageTypology = "highrise" | "lowrise";
 /**
  * The full Q1-Q9 + Q11 answer set (Q10 removed, 2026-08-15 flow restructure
  * — see `BuildingDamageGrade` above), every field independently skippable
- * (spec-v1 §4.6: "every question skippable") — `null` means "not answered",
+ * (the v1 spec §4.6: "every question skippable") — `null` means "not answered",
  * not "no". `comment` and `damageTypology`/`buildingDamageLevel` are all
  * collected earlier in the flow now (windows 2/3, not question-numbered)
  * but still live on this same answer set — they are stored via the exact

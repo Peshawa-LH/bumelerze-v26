@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — basemap style picker
- * (update-plan-2026-08.md §4.3/Part 3) and the MapTiler attribution logo
+ * (the August 2026 update plan §4.3/Part 3) and the MapTiler attribution logo
  * (Part 4). See `map-web-creation.test.tsx`'s doc comment for the
  * jsdom-environment/mocking rationale.
  *

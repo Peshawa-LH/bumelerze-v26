@@ -447,7 +447,7 @@ describe("EventPreviewSheet: accessibility", () => {
     }
   });
 
-  // Repo-wide font-scaling (design-language.md §8: 200% Dynamic Type is a
+  // Repo-wide font-scaling (the design language §8: 200% Dynamic Type is a
   // hard requirement) is already enforced statically, for every source
   // file including this one, by `src/__tests__/a11y-invariants.test.ts`'s
   // "never disables font scaling" scan — no need to duplicate it here.

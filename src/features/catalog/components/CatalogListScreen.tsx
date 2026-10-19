@@ -21,7 +21,7 @@ import { useTabBarScroll } from "@/features/tab-bar";
  * These are archival, bundled, offline-by-construction events (brief):
  * no refetch/retry affordance on error, since a local bundled-db read
  * failing once will fail identically on retry — the error state here exists
- * only so a failure is never silent (PROJECT.md rule), not because retrying
+ * only so a failure is never silent (a project rule), not because retrying
  * would plausibly help.
  */
 export function CatalogListScreen() {

@@ -49,7 +49,7 @@ export interface CatalogRow {
    * counter, e.g. `bml2017000s` = the 2017 Halabja mainshock), assigned
    * retroactively by the catalog build — scheme:
    * `bumelerze-engine/shake_service/event_id.py` /
-   * `docs/research/bumelerze-id-scheme.md`. Also the db's primary key
+   * the bml id scheme. Also the db's primary key
    * (`bumelerze_id`) since schema v3. Shown in the catalog detail sheet
    * (archival/internal context) and used as the list's row key —
    * deliberately not surfaced anywhere else in the app. */

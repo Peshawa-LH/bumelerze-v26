@@ -1,12 +1,12 @@
 /**
  * Type scale subset needed for the Phase-1 skeleton screens.
  * Full scale (magnitudeHero, body.large, etc.) is defined in
- * design-language.md §2 and will be added as the screens that need it are
+ * the design language §2 and will be added as the screens that need it are
  * built (event detail, felt-report flow — Phase 2+).
  *
  * Sizes are in sp (scale with the system font-size setting, per RN default).
  * Arabic-script text needs a taller line-height multiplier than Latin
- * (design-language.md §2 "Arabic-script line-height implication") — callers
+ * (the design language §2 "Arabic-script line-height implication") — callers
  * pass `isArabicScript` to pick the right line-height.
  */
 export interface TypeToken {
@@ -57,7 +57,7 @@ function scale(fontSize: number, latinMultiplier: number, arabicMultiplier: numb
 
 export function typography(isArabicScript: boolean) {
   return {
-    // Panic-mode emphasis tier (design-language.md §2): the single biggest
+    // Panic-mode emphasis tier (the design language §2): the single biggest
     // number on screen. Used only for the magnitude numeral, never for any
     // other content.
     magnitudeHero: scale(72, 1.15, 1.35, "800", isArabicScript),

@@ -395,7 +395,7 @@ let appStateListenerAttached = false;
  * Wires the app-foreground sync trigger — mirrors
  * `ensureFeltQueueForegroundSync`'s own doc (no NetInfo dependency; an
  * immediate attempt on enqueue plus every foreground transition covers
- * connectivity-regain without any background timer, PROJECT.md: "no
+ * connectivity-regain without any background timer, the project requirements: "no
  * aggressive background polling"). Call once from the root layout.
  * Idempotent — safe to call on every render.
  */

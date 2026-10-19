@@ -156,7 +156,7 @@ interface TagRowProps extends TagRowContentProps {
  * 2026-09-23.
  *
  * In `standalone` mode this is ONE accessible element with a combined label
- * (typescript-react-native.md: screen readers should hear a sentence, not
+ * (the project's TypeScript conventions: screen readers should hear a sentence, not
  * disconnected fragments) — the individual pill `Text`s are always hidden
  * from the accessibility tree, the same way `EventPreviewSheet`'s
  * grab-handle row already does (`accessibilityElementsHidden` +

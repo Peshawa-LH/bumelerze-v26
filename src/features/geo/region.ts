@@ -23,7 +23,7 @@ const COUNTRY_LABEL_KEYS: Record<GazetteerCountry, RegionLabelKey> = {
 };
 
 /**
- * Region label key for the place a line is ANCHORED to (ui-backlog.md wave 5
+ * Region label key for the place a line is ANCHORED to (the UI backlog wave 5
  * item 4): "Kurdistan (Iraq)" when the nearest gazetteer city is flagged
  * `inKurdistanRegion`, otherwise that city's own country. The label names
  * where the CITY is ("12 km N of Khanaqin, Iraq"), never where the epicentre

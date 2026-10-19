@@ -30,7 +30,7 @@ export interface UseLocaleSwitcherResult {
  * Shared language-switch logic (Settings and onboarding's language screen
  * both need it — brief: "extract shared logic, don't duplicate"). Owns
  * the `changeLocale` → `restartApp` → `isRestarting` sequence in one place
- * so the RTL-restart caveat (design-language.md §5) is implemented once,
+ * so the RTL-restart caveat (the design language §5) is implemented once,
  * not twice.
  */
 export function useLocaleSwitcher(

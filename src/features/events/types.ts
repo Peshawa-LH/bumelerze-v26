@@ -1,5 +1,5 @@
 /**
- * Internal event model (spec-v1.md §5.1, PROJECT.md gotcha: "normalize early
+ * Internal event model (the v1 spec §5.1, the project gotcha: "normalize early
  * through the internal event model, never scatter feed-specific parsing
  * through the UI"). Provider-agnostic in shape — a future EMSC (or GEOFON,
  * AFAD) provider must map into this exact same type, not a USGS-flavored
@@ -9,13 +9,13 @@
  */
 
 /** Providers this internal model can represent. USGS was the only one wired
- * in Phase 1 (spec-v1.md §9); EMSC joined as the region feed's fallback
- * provider (D4 second tier, event-pipeline-design.md §1) — a type-level
+ * in Phase 1 (the v1 spec §9); EMSC joined as the region feed's fallback
+ * provider (D4 second tier, the event-pipeline design §1) — a type-level
  * addition, not a shape change, exactly as designed. GEOFON (GFZ) joined as
  * the third catalog (D4 named it from the start: USGS > EMSC > GEOFON
  * authority order) the same way. Adding a provider is exactly this: extend
  * the union, add a normalize fn, plug into the merge list —
- * `docs/research/provider-architecture.md` documents the full contract
+ * the provider-architecture notes documents the full contract
  * (including the future Kurdistan/Iraq data center slot). */
 export type EventProvider = "usgs" | "emsc" | "geofon";
 
@@ -23,7 +23,7 @@ export interface EventProvenance {
   provider: EventProvider;
   /** The provider's own event ID (USGS: the `ids`/feature `id` field). Kept
    * distinct from our internal `Event.id` so a future dedup/merge step
-   * (event-pipeline-design.md §2) can attach multiple provenance records to
+   * (the event-pipeline design §2) can attach multiple provenance records to
    * one internal event without an ID collision. */
   providerId: string;
   /** When *we* fetched/parsed this record, client clock, UTC ms. */
@@ -45,15 +45,15 @@ export interface EventMagnitude {
 /**
  * One physical earthquake, normalized. Field-level provenance beyond
  * `provenance` itself (per-field source attribution across providers,
- * event-pipeline-design.md §2 "canonical parameter derivation") is a
+ * the event-pipeline design §2 "canonical parameter derivation") is a
  * multi-provider-era concern — out of scope while USGS is the only source
- * (spec-v1.md §9 "single provider, prove the normalized model first").
+ * (the v1 spec §9 "single provider, prove the normalized model first").
  */
 export interface Event {
   /** Provider-agnostic identity field — today this equals
    * `provenance.providerId` (USGS's event id), but the *field name* must
    * never imply "USGS id" so a future dedup/merge step can repoint it at an
-   * internal UUID without a rename (event-pipeline-design.md §1). */
+   * internal UUID without a rename (the event-pipeline design §1). */
   id: string;
   /** Canonical Bumelerze event id ("bml id" — `bml` + 4-digit origin year +
    * base-36 per-year counter, e.g. `bml20230002`, migration 0025/0026),
@@ -79,7 +79,7 @@ export interface Event {
    * e.g. "32 km SE of Halabja, Iraq"). */
   placeName: string;
   provenance: EventProvenance;
-  /** Client-side significance approximation, event-pipeline-design.md §3.
+  /** Client-side significance approximation, the event-pipeline design §3.
    * See normalize.ts for the formula and its Phase-1 felt-term=0 caveat. */
   sig: number;
   /** True when the epicenter falls inside `config.REGION_BBOX`. */

@@ -9,7 +9,7 @@ import type { Event } from "../types";
 
 /**
  * Hand-authored fixtures modeled on the real USGS GeoJSON feature shape
- * documented in teardown-usgs-dyfi.md §2 (field list: mag, place, time,
+ * documented in the USGS DYFI teardown §2 (field list: mag, place, time,
  * updated, url, alert, ids, magType, geometry.coordinates [lon, lat,
  * depth]) — not a live network fixture, since `normalizeUsgsFeature`
  * consumes the already-schema-validated `UsgsFeature` type, not raw JSON.
@@ -96,7 +96,7 @@ describe("normalizeUsgsFeature", () => {
 });
 
 describe("computeClientSig", () => {
-  it("is purely magnitude-driven when there is no PAGER alert (event-pipeline-design.md §3)", () => {
+  it("is purely magnitude-driven when there is no PAGER alert (the event-pipeline design §3)", () => {
     expect(computeClientSig(5.0, null)).toBe(500);
     expect(computeClientSig(3.2, undefined)).toBe(320);
   });
@@ -113,7 +113,7 @@ describe("computeClientSig", () => {
   });
 });
 
-describe("significance classification (event-pipeline-design.md §3 thresholds)", () => {
+describe("significance classification (the event-pipeline design §3 thresholds)", () => {
   function makeEvent(overrides: Partial<Event>): Event {
     return {
       id: "test-event",

@@ -17,7 +17,7 @@ import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
- * Safety guide — spec-v1.md §4.9 (D11 "full feature"): PREPARE / SURVIVE /
+ * Safety guide — the v1 spec §4.9 (D11 "full feature"): PREPARE / SURVIVE /
  * RECOVER tri-tab with zero dependency on any event existing, fully
  * static/bundled so it renders offline by construction (no query, no
  * loading/error state — this screen only has one state: rendered). Since
