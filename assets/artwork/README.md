@@ -5,15 +5,17 @@ The illustration files this app actually bundles, and nothing else.
 | Folder | What | Used by |
 | ------ | ---- | ------- |
 | `felt/` | 12 IMS-25 intensity cartoons (`level-01..12`) and 10 building-damage tiles (`damage-{lowrise,highrise}-01..05`) | the three-window felt-report flow, `src/features/felt/artwork.ts` |
-| `safety/` | 24 safety illustrations (18 from the original wave, 6 supplementary, 2026-08-29) | the safety guides, `src/features/safety/artwork.ts` |
+| `safety/` | 24 safety illustrations (18 from the original set, 6 supplementary, 2026-08-29) | the safety guides, `src/features/safety/artwork.ts` |
+| `building/` | 26 single-colour SVG pictograms (structure type, plan shape, photo slots); see its README | the "Tag my building" questionnaire, `src/features/building/pictograms.generated.ts` (`npm run generate:building-pictograms`) |
 
-All WebP-512: lossless, decoded natively by `expo-image` on both platforms,
-and roughly 30% smaller than the PNG set at the same resolution. That matters
-because a low-end Android phone is the baseline device.
+The `felt/` and `safety/` images are all WebP-512: lossless, decoded
+natively by `expo-image` on both platforms, and roughly 30% smaller than the
+PNG set at the same resolution. That matters because a low-end Android phone
+is the baseline device.
 
 ## Where the originals live
 
-These 46 files are a **subset**. The full commissioned package (character
+These files are a **subset**. The full commissioned package (character
 sheets, source PNGs, previews, reference material, validation reports and
 checksums) is internal design material and no longer lives in this
 repository. It sits in the project's working folder:

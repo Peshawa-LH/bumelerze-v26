@@ -156,7 +156,7 @@ pipeline deliberately keeps two palettes apart:
   `src/theme/palette.ts`) rather than switching to the logo's Signal Red,
   for the same reason: reusing near-danger-red as ordinary chrome would make
   routine interface elements (a link, the active tab) readable as alarms,
-  and would blunt the EMS intensity ramp's own use of red at its high end.
+  and would blunt the IMS-25 intensity ramp's own use of red at its high end.
   Zagros Blue already has audited WCAG contrast in both themes (see
   `src/theme/__tests__/palette.test.ts` and the doc comments on
   `brand.primaryDark`/`darkColors.brand.onPrimary` in `semantic.ts`) and
@@ -169,12 +169,11 @@ plugin) follows the same logic and stays Zagros Blue: an earthquake-alert
 notification tinted the logo's red would read as more severe than a routine
 "new earthquake near you" update warrants.
 
-## D5 caveat: the name may change
+## The name and the wordmark
 
-Per `docs/decisions.md` D5, "Bumelerze" is a working-title-final name that
-may change before release. The logo package's wordmark spells the name in
-plain Latin letters without the "û" circumflex (vector-outlined from Arial
-Rounded MT Bold, per the package's own `brand-guidelines.md`: "Do not
-retype or stretch the wordmark"); this pipeline does not alter it. The
+"Bumelerze" is the final name (2026-09-01). The logo package's wordmark
+spells it in plain Latin letters without the "û" circumflex (vector-outlined
+from Arial Rounded MT Bold, per the package's own `brand-guidelines.md`: "Do
+not retype or stretch the wordmark"); this pipeline does not alter it. The
 icon/adaptive-icon/splash/favicon assets this script generates carry no
-wordmark at all (symbol only), so they need no rework if the name changes.
+wordmark at all (symbol only).

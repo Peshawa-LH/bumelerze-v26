@@ -21,7 +21,10 @@ Commit `website-src/` and the regenerated `website/` together; the jest test
   (`scripts/build-app-web.sh`, served at the domain root). Site links to the
   app use `APP_URL` in `scripts/build-website.mjs`.
 - **Forwards on bumelerze.com.** `redirects.js` maps the app's old address
-  and the short links the app shares to the app, keeping query and hash:
+  and the old short links to the app, keeping query and hash (since D-1,
+  2026-10-14, the app shares `app.bumelerze.com/e/<id>`, `/u/<name>` and
+  `/home/join` links directly, `src/config/urls.ts`; these forwards keep
+  older links working):
   `/app`, `/app/<path>` → same path on the app; `/e/<id>` → `/event/<id>`;
   `/u/<name>` → `/u/<name>`; `/join?code&key` → `/home/join?code&key`. The
   build inlines it into `website/app/index.html` (answers `/app`) and

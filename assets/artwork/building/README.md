@@ -1,6 +1,6 @@
 # Building questionnaire pictograms
 
-24 single-colour line pictograms for the "Tag my building" questionnaire
+26 single-colour line pictograms for the "Tag my building" questionnaire
 (structure type, plan shape, photo slots). Hand-built SVG, no text or letters.
 
 Conventions: `viewBox="0 0 64 64"`, uniform `stroke-width="3"` with round caps
@@ -15,7 +15,7 @@ CSS-mask/inline SVG. Do not rely on `expo-image` `tintColor` for these.
 
 | Group | Files |
 | ----- | ----- |
-| Structure | `structure-frame`, `-block-walls`, `-brick-walls`, `-stone-walls`, `-mud-walls`, `-steel-frame`, `-wood`, `-corner-column`, `-dont-know` |
+| Structure | `structure-frame`, `-flat-slab`, `-shear-walls`, `-block-walls`, `-brick-walls`, `-stone-walls`, `-mud-walls`, `-steel-frame`, `-wood`, `-corner-column`, `-dont-know` |
 | Plan shape | `shape-rectangle`, `-wing`, `-overhang`, `-dont-know` |
 | Photo slots | `photo-front`, `-back`, `-left`, `-right`, `-ground-floor`, `-roof`, `-column-wall`, `-ceiling`, `-cracks`, `-basement`, `-add-more` |
 
