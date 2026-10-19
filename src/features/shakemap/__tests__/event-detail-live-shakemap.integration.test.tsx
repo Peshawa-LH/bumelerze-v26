@@ -15,13 +15,13 @@ import type { ReactNode } from "react";
 import React from "react";
 
 import i18n from "@/i18n";
-import { ATLAS_INDEX } from "../atlas";
-
-const BUNDLED_HALABJA_VERSION = String(ATLAS_INDEX["us2000bmcg"]?.version ?? "");
 import type { Event } from "@/features/events";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { ATLAS_INDEX } from "../atlas";
 import halabjaContours from "../__fixtures__/us2000bmcg/cont_mi.trimmed.json";
 import { ShakeMapSection } from "../components/ShakeMapSection";
+
+const BUNDLED_HALABJA_VERSION = String(ATLAS_INDEX["us2000bmcg"]?.version ?? "");
 
 jest.mock("@/lib/supabase", () => ({
   isSupabaseConfigured: jest.fn(),

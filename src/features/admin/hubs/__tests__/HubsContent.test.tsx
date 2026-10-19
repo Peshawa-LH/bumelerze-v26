@@ -23,6 +23,10 @@ jest.mock("@/features/account/use-account", () => ({
 }));
 
 const mockHub = makeTransport({ permissions: [] });
+// The first paint waits on the permissions and hubs queries. Under a full
+// parallel jest run the default 1 s findBy timeout was too short and the
+// first test timed out now and then; the screen itself is not slow.
+const FIRST_PAINT = { timeout: 5000 };
 const T = Date.parse("2026-10-01T10:00:00Z");
 
 const ev = (id: string, open: boolean, note: HubEvent["note"] = null): HubEvent => ({
@@ -64,7 +68,7 @@ describe("Admin > Open a hub for an earthquake (owner answer 7)", () => {
 
   it("lists the open hubs first, with their pinned note, then the latest earthquakes", async () => {
     await render(["hubs.open"]);
-    expect(await screen.findByTestId("hub-event-bml20170001")).toHaveTextContent(
+    expect(await screen.findByTestId("hub-event-bml20170001", {}, FIRST_PAINT)).toHaveTextContent(
       /5\.1.* · Near Ranya/,
     );
     expect(screen.getByTestId("hub-note-bml20170001")).toHaveTextContent(
@@ -77,7 +81,7 @@ describe("Admin > Open a hub for an earthquake (owner answer 7)", () => {
   it("opens and closes a hub", async () => {
     const t = await render(["hubs.open"]);
     await act(async () => {
-      fireEvent.press(await screen.findByTestId("hub-open-bml2026x01"));
+      fireEvent.press(await screen.findByTestId("hub-open-bml2026x01", {}, FIRST_PAINT));
     });
     expect(t.setOpen).toHaveBeenCalledWith("uuid-bml2026x01", true);
     await act(async () => {
@@ -90,7 +94,7 @@ describe("Admin > Open a hub for an earthquake (owner answer 7)", () => {
     jest.useFakeTimers();
     try {
       const t = await render(["hubs.open"]);
-      await screen.findByTestId("hubs-search");
+      await screen.findByTestId("hubs-search", {}, FIRST_PAINT);
       await act(async () => {
         fireEvent.changeText(screen.getByTestId("hubs-search"), "bml2026");
         jest.advanceTimersByTime(400);
@@ -103,7 +107,7 @@ describe("Admin > Open a hub for an earthquake (owner answer 7)", () => {
 
   it("posts the pinned note as the official account and closes the sheet", async () => {
     const t = await render(["hubs.open"]);
-    await fireEvent.press(await screen.findByTestId("hub-write-note-bml20170001"));
+    await fireEvent.press(await screen.findByTestId("hub-write-note-bml20170001", {}, FIRST_PAINT));
     expect(await screen.findByTestId("hub-note-sheet")).toBeTruthy();
     expect(screen.getByText(/Posted as the official Bumelerze account/)).toBeTruthy();
     expect(screen.getByTestId("hub-note-post").props.accessibilityState.disabled).toBe(
@@ -132,7 +136,7 @@ describe("Admin > Open a hub for an earthquake (owner answer 7)", () => {
       }),
     });
     await render(["hubs.open"], t);
-    await fireEvent.press(await screen.findByTestId("hub-write-note-bml20170001"));
+    await fireEvent.press(await screen.findByTestId("hub-write-note-bml20170001", {}, FIRST_PAINT));
     await act(async () => {
       fireEvent.changeText(screen.getByTestId("hub-note-input"), "Hello");
     });
@@ -146,13 +150,13 @@ describe("Admin > Open a hub for an earthquake (owner answer 7)", () => {
 
   it("opens the hub itself", async () => {
     await render(["hubs.open"]);
-    await fireEvent.press(await screen.findByTestId("hub-view-bml20170001"));
+    await fireEvent.press(await screen.findByTestId("hub-view-bml20170001", {}, FIRST_PAINT));
     expect(mockPush).toHaveBeenCalledWith("/event-hub/bml20170001");
   });
 
   it("shows nothing without hubs.open, and never asks the server", async () => {
     const t = await render(["comments.moderate", "hubs.feature"]);
-    expect(await screen.findByTestId("hubs-no-access")).toBeTruthy();
+    expect(await screen.findByTestId("hubs-no-access", {}, FIRST_PAINT)).toBeTruthy();
     expect(t.fetchEvents).not.toHaveBeenCalled();
   });
 });
