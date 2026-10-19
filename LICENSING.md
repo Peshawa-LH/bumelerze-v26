@@ -22,8 +22,11 @@ Copyright 2026 Peshawa L. Hasan, unless stated otherwise.
 ## 1. Application code: Apache License 2.0
 
 This covers the Expo/React Native app at the repository root (`app/`, `src/`,
-`store/`, `scripts/`, the build configuration), the `website/` directory, and
-the `supabase/` migrations and edge functions.
+`public/`, `store/`, `scripts/`, the build configuration), the website source
+in `website-src/` and the generated `website/` directory, and the `supabase/`
+migrations and edge functions. Third-party fonts and data shipped alongside
+the code (for example the map layers in `public/data/` and the Vazirmatn
+font) keep their own licences, listed in [`DATA-SOURCES.md`](DATA-SOURCES.md).
 
 Apache-2.0 is a permissive licence. In practice it means you may:
 
@@ -89,7 +92,7 @@ every copy of that same artwork generated from it: `assets/images/icon.png`,
 favicon, `assets/brand/adaptive-icon-mark.svg` and
 `assets/brand/adaptive-icon-mark-monochrome.svg`, the horizontal logo used
 in the website header (`website/brand/`), and the store listing artwork
-under `store/` once it exists.
+under `store/`.
 
 All of that is **copyright 2026 Peshawa L. Hasan, all rights reserved**. The
 Apache-2.0 licence on the code does not reach it. It lives in the public
@@ -109,7 +112,7 @@ region: <hello@bumelerze.com>. See
 
 Bumelerze displays earthquake data from public seismological agencies, map tiles
 from OpenStreetMap-derived services, and a compiled regional catalog built from
-five source catalogs. Each of those has its own terms, and several require
+six source catalogs. Each of those has its own terms, and several require
 attribution that the app already displays.
 
 The compiled Bumelerze regional catalog itself is offered under **CC BY 4.0**.
