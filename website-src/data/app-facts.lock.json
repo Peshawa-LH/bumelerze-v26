@@ -1,16 +1,16 @@
 {
   "feed-networks": {
-    "file:src/features/events/config.ts": "149823ed9d399243",
-    "file:src/features/events/merge.ts": "50c3cca31e292b34"
+    "file:src/features/events/config.ts": "356d06b5ef01887e",
+    "file:src/features/events/merge.ts": "7ab4406e33060ca4"
   },
   "live-card-region-rule": {
-    "file:src/features/events/config.ts": "149823ed9d399243",
-    "file:src/features/events/home-feed-policy.ts": "a3d122d3a198eaae"
+    "file:src/features/events/config.ts": "356d06b5ef01887e",
+    "file:src/features/events/home-feed-policy.ts": "baa4ed157827a15c"
   },
   "live-card-significant-rule": {
-    "file:src/features/events/normalize.ts": "f71790cac6bc0cb3",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/significant.tsx": "4cb666d63e6f0cf1",
-    "file:src/features/events/usgs.ts": "62a9f8272772b5ad"
+    "file:src/features/events/normalize.ts": "544af332172a92ba",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/significant.tsx": "6422cf463a4db958",
+    "file:src/features/events/usgs.ts": "b6fe64ef58dfd5d6"
   },
   "live-card-wording": {
     "key:events.magnitudeDisplay": "e3c49490d4140d9d",
@@ -19,15 +19,15 @@
     "key:events.relativeTime.minutes": "a622e9da85a00c1c",
     "key:events.relativeTime.hours": "803ccdbd2a917f8e",
     "key:events.relativeTime.days": "264e48724f535348",
-    "file:src/features/geo/gazetteer.ts": "e77bf4b211836b4c",
-    "file:src/features/geo/place-line.ts": "61e424a8e713161e",
+    "file:src/features/geo/gazetteer.ts": "1b3a4768d7a2ed13",
+    "file:src/features/geo/place-line.ts": "1a2679a400ccd6b1",
     "file:src/features/geo/data/fe-regions.generated.ts": "4f540524b2b6af1a",
     "file:src/features/geo/data/fe-region-translations.ts": "5563fb896d6aa9bf"
   },
   "event-route": {
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "5610593aed9966be",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "1b59b7cd6a80611c",
     "file:app/account/sign-in.tsx": "7a600cf336954af8",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "0679f6997a16f39e"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "07ce1243f86982c9"
   },
   "felt-levels": {
     "key:felt.tier1.title": "a9e21464bb9ea045",
@@ -35,7 +35,7 @@
     "key:felt.tier1.levels.6.label": "c949e213d85c3061",
     "key:felt.tier1.levels.12.label": "bd1a269165f25dea",
     "key:felt.done.title": "268bc1833e83306f",
-    "file:supabase/functions/aggregate-felt-cells/index.ts": "9c9fb3401f2bb203"
+    "file:supabase/functions/aggregate-felt-cells/index.ts": "a87f4109a5060090"
   },
   "felt-button": {
     "key:felt.pill.label": "5468735f0292b4d5"
@@ -61,8 +61,8 @@
     "key:eventDetail.shakemap.legendCaptionDamage": "9add1c44be4cd521"
   },
   "intensity-numerals": {
-    "file:src/features/shakemap/intensity-format.ts": "2c9c954cdb2b6aac",
-    "file:src/theme/palette.ts": "da4ada2f11624ec6"
+    "file:src/features/shakemap/intensity-format.ts": "3cbe36e3bea3f149",
+    "file:src/theme/palette.ts": "51c5cb50b1e378e0"
   },
   "report-reason": {
     "key:report.reasons.rumour_prediction": "db772db3f63064b7"
@@ -109,7 +109,7 @@
   "alerts-settings": {
     "key:notificationSettings.title": "07a063cab7ec227c",
     "key:settings.notificationsSectionTitle": "788011833a5a0f22",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "0679f6997a16f39e"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "07ce1243f86982c9"
   },
   "feedback": {
     "key:settings.feedbackSectionTitle": "aac77df347205252"
@@ -131,7 +131,7 @@
     "key:handbook.report.disclaimerTitle": "7b0e161eb0e85c62",
     "key:handbook.report.action": "71dd11ba21812d15",
     "key:handbook.spectrum.banner.vs30Proxy": "2b1c035f62d8e77e",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/handbook.tsx": "66a37a40d894c00a"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/handbook.tsx": "9a65a5f90b71c871"
   },
   "app-address": {
     "file:src/config/urls.ts": "0f93ffd0c1889e66",
