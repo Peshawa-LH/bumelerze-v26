@@ -58,7 +58,7 @@ and is not well served by the existing apps.
 
 ## Where it stands scientifically
 
-- Intensity uses **IMS-25** (which extends EMS-98), with the felt-report
+- Intensity uses **IMS-25**, with the felt-report
   artwork built on the IMS-25 illustrated scale, so what a user picks maps onto
   something a seismologist can actually use.
 - Felt reports are collected as **the project's own macroseismic data**, not

@@ -54,7 +54,7 @@ from somewhere else.
 **BUILT ON REAL SCIENCE**
 
 Bumelerze isn't a repost of a foreign feed. Its SHAKEmaps are computed by the team's
-own tools, its intensity scale is IMS-25, which extends the EMS-98 standard used by seismologists, its
+own tools, its intensity scale is IMS-25, its
 data sources are always cited, and every map shows whether it's still automatic or has
 been reviewed by a scientist. Built by a seismic-risk PhD researcher who works on
 Kurdistan and the wider Zagros region professionally.

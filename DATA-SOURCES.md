@@ -519,8 +519,7 @@ docstring records the provenance and any deliberate divergence.
 
 ### Intensity scales
 
-- **IMS-25** is the intensity scale used throughout. It extends **EMS-98**,
-  the European Macroseismic Scale 1998 (Grünthal, ed.), and the felt-report
+- **IMS-25** is the intensity scale used throughout, and the felt-report
   artwork follows its illustrated scale; the reference material is held with
   the commissioned artwork package outside this repository.
 - **[VERIFY]** Reproduction terms for the IMS-25 reference material itself have

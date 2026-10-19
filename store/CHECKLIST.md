@@ -126,7 +126,7 @@ name is still available in both stores.
       plainly and upfront in the review notes rather than waiting to be
       asked.
     - **"What's the scientific basis for the shakemaps/intensity claims?"** —
-      IMS-25 intensity scale (D22; it extends EMS-98), shakemaps computed
+      IMS-25 intensity scale (D22), shakemaps computed
       via the team's own GMPE-based engine (`bumelerze-engine`, D9/D19/D20,
       built on
       `openquake.hazardlib`), built and maintained by a seismic-risk PhD

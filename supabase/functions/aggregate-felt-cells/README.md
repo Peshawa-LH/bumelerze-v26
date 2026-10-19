@@ -73,7 +73,7 @@ Two independent mechanisms, so the function is idempotent per event:
 ## What's NOT here
 
 Same boundary as `src/lib/felt-aggregation/README.md`'s "What is
-deliberately NOT here": the EMS-98/IMS-25 diagnostic path (`ems_int`,
+deliberately NOT here": the IMS-25 diagnostic path (`ems_int`,
 `ems_range`, `ems_method` — always written `null`/omitted by this
 function), the Bumelerze-specific cartoon-correction table, and the
 report-to-event association job (this function only touches reports that
