@@ -2,3 +2,6 @@ node_modules
 dist
 .expo
 package-lock.json
+# Generated: website/ by scripts/build-website.mjs, dist-app/ by scripts/build-app-web.sh
+website/
+dist-app/
