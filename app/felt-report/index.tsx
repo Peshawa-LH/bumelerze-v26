@@ -36,7 +36,7 @@ import {
 /**
  * Window 1 of 3 — the panic-time tap (the v1 spec §4.6, D8; windows 2/3
  * added 2026-08-15 flow restructure, owner directive). Exactly the original
- * 12 EMS-98 cartoon grid, one tap selects — but where the old flow showed a
+ * 12 IMS-25 cartoon grid, one tap selects — but where the old flow showed a
  * confirmation state in place, it now IMMEDIATELY, durably queues a
  * tier-1-only report (the one-tap promise: never lost even if the user
  * quits right here) and moves on to window 2 (damage). Windows 2/3 then

@@ -12,7 +12,7 @@ import { CatalogRow } from "./CatalogRow";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
- * The Catalog browser's actual content — split out from `app/catalog.tsx`
+ * The Catalog browser's actual content — split out from `app/(tabs)/(home,map,sensor,profile,settings)/catalog.tsx`
  * (which only wraps this in `<SQLiteProvider>`) so it can be unit-tested by
  * mocking `../use-catalog` directly, the same "mock the data hook, test the
  * presentational component" pattern `ShakeMapSection.test.tsx` uses for

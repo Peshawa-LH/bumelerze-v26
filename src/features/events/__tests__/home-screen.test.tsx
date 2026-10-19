@@ -177,7 +177,7 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     expect(screen.getByRole("button", { name: "Significant" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Historical" })).toBeTruthy();
     // Catalog is reachable one tap further in, from Historical's own footer
-    // link (`app/historical.tsx`) — not from this header row anymore.
+    // link (`app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx`) — not from this header row anymore.
     expect(screen.queryByRole("button", { name: "Catalog" })).toBeNull();
   });
 

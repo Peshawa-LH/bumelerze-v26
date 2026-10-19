@@ -120,7 +120,7 @@ export function buildContourFeatureCollection(
  * (`colors.intensity`/`colors.damageGrade`) the SVG renderer's own
  * `rampColor` helper indexes into (`ShakeMapViewSvg.tsx`), so the two
  * renderers can never show a different color for the same level.
- * `maxLevel` is 12 for the MMI/EMS-98 ramp, 5 for the DG ramp — callers
+ * `maxLevel` is 12 for the MMI/IMS-25 ramp, 5 for the DG ramp — callers
  * pass their own ramp's real upper bound rather than this module guessing
  * it from array length (index 0 is always an unused placeholder,
  * `theme/palette.ts`'s own convention). The returned type is deliberately

@@ -5,7 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import i18n, { isRTLLocale } from "@/i18n";
 import { NOTABLE_HISTORICAL_EVENTS, sortNewestFirst } from "../notable-events";
 
-// app/historical.tsx calls `useRouter()` directly (pushed screen, like
+// app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx calls `useRouter()` directly (pushed screen, like
 // world.tsx/significant.tsx) — a stable no-op mock, same pattern as
 // home-screen.test.tsx. `Stack.Screen` is also mocked out: the real one
 // calls `useRoute()` internally, which throws outside a real navigator —

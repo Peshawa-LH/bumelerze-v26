@@ -16,7 +16,7 @@ export interface FeltMapSectionProps {
 /**
  * Event Detail's felt-map section (the v1 spec §4.5 "Felt map tab: our own
  * CDI-aggregated grid cells"), mounted as a sibling of `ShakeMapSection`
- * (`app/event/[id].tsx`, below it). Three states, matching the brief
+ * (`app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`, below it). Three states, matching the brief
  * exactly:
  *  - `"hidden"` (`useFeltMap`): renders nothing at all — no Supabase
  *    project configured yet, OR configured but this event has no

@@ -22,7 +22,7 @@ export { normalizeSupabaseEventRow };
 /**
  * Fetches an event by its canonical bml id straight from Supabase (the
  * `/event/[id]` cold-start fallback for a bml id no cached feed knows —
- * `app/event/[id].tsx`'s own routing doc comment). Two selects, same shape
+ * `app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`'s own routing doc comment). Two selects, same shape
  * as `resolveBumelerzeId`'s own two-step join, just walked in the other
  * direction:
  *  1. `events_with_sources` (migration 0023) by `bumelerze_id` — every

@@ -22,7 +22,7 @@ import type { FeltCellRow } from "../types";
  * doc comment, D9): SVG projection renderer, no MapLibre — same
  * `react-native-svg`-only constraint, same reasoning. This component reads
  * only `FeltCellRow[]` + lat/lon, never a Supabase-specific shape, so it
- * stays swappable the same way the ShakeMap renderer is.
+ * stays swappable the same way the SHAKEmap renderer is.
  *
  * The brief asks this section to "feel like a sibling" of
  * `ShakeMapView` — this file deliberately reuses that component's actual
@@ -231,7 +231,7 @@ export function FeltMapView({
 
       {/* Legend strip — same non-mirroring rule as the map itself, and the
        * same fixed-range convention `ShakeMapView`'s I..XII strip follows,
-       * except numbered 2-9 (CDI's own floor/cap, not the EMS-98 Roman-
+       * except numbered 2-9 (CDI's own floor/cap, not the IMS-25 Roman-
        * numeral convention that section uses) so the two legends read as
        * clearly different scales, not as the same one mislabeled. */}
       <View

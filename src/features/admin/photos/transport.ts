@@ -25,7 +25,7 @@ export interface QueuePhoto {
   createdAt: number;
   /** When the felt report was made, UTC ms. */
   reportedAt: number | null;
-  /** The EMS-98 level the person picked (1-12). */
+  /** The IMS-25 level the person picked (1-12). */
   intensity: number | null;
   /** Event hub route id (`bml...`), or null for a report with no event. */
   hubId: string | null;

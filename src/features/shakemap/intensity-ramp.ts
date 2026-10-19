@@ -1,5 +1,5 @@
 /**
- * MMI value -> EMS-98/MMI ramp index (D7: `theme.colors.intensity[1..12]`,
+ * MMI value -> IMS-25/MMI ramp index (D7: `theme.colors.intensity[1..12]`,
  * "swappable palette... never hardcoded hexes"). Shared by `contours.ts`
  * (assigns each contour level a ramp index) and `ShakeMapView`/the legend
  * (reads the same ramp by index) so the two never drift.

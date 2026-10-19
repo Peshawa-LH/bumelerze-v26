@@ -112,8 +112,9 @@ export const status = {
 } as const;
 
 /**
- * EMS-98 intensity ramp, indexed I..XII (array index 1..12, index 0 unused
- * so the Roman-numeral level reads directly as the array index).
+ * IMS-25 intensity ramp (IMS-25 extends EMS-98), indexed I..XII (array
+ * index 1..12, index 0 unused so the Roman-numeral level reads directly as
+ * the array index).
  *
  * PROVENANCE (the UI backlog item 8 / the decision log "toolkit palette
  * extraction", 2026-08-07): extracted verbatim from
@@ -126,7 +127,8 @@ export const status = {
  * one "off-scale" cap, found in the same file and duplicated in
  * `modules/viz/SHAKEmapper.py`) — that second list is the raw USGS
  * ShakeMap MMI convention, not what our app uses. Since Bumelerze displays
- * EMS-98 (D7), `ems_colors` is the correct, authoritative source, and it is
+ * IMS-25, which extends EMS-98 (D7, D22), `ems_colors` is the correct,
+ * authoritative source, and it is
  * NOT simply "the standard USGS MMI palette" — it is the toolkit's own
  * purpose-built EMS ramp (named CSS-style in its source comments:
  * whitesmoke, mediumslateblue, lightskyblue, seagreen, yellow, gold,

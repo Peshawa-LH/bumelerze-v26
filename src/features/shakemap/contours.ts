@@ -201,7 +201,7 @@ export function extractContourLevels(payload: unknown): ExtractedContourLevels {
 /**
  * Parses a `cont_mi.json` payload (already fetched) into the internal,
  * producer-agnostic `IntensityContourSet` (D9) — `extractContourLevels`
- * above plus the MMI/EMS-98 ramp-index assignment (`mmiValueToLevel`).
+ * above plus the MMI/IMS-25 ramp-index assignment (`mmiValueToLevel`).
  */
 /** The product's own `epicenter`, when it carries one and both numbers
  * are finite. Tolerant like every other read in this module: a malformed

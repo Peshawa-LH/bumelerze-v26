@@ -24,7 +24,7 @@
 // "VENDORED — hand-synced copy" to find this file if
 // `src/features/felt/types.ts` changes its Q1-Q11/damage answer unions.
 
-/** Mirrors `felt_reports.cartoon_level` (1-of-12 EMS-98 cartoon pick). */
+/** Mirrors `felt_reports.cartoon_level` (1-of-12 IMS-25 cartoon pick). */
 export type CartoonLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 /** Q1 — situation (context only, CDI weight 0). */

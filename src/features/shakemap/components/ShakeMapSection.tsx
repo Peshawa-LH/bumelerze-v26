@@ -25,10 +25,10 @@ const DATA_USED_I18N_KEY: Record<DataUsedSummaryKey, string> = {
 };
 
 /**
- * Event Detail's ShakeMap section (the v1 spec §4.5; D21 rewrite,
+ * Event Detail's SHAKEmap section (the v1 spec §4.5; D21 rewrite,
  * the decision log: "Displayed maps are ALWAYS
  * bumelerze-engine products ... interim display default: where our
- * product doesn't exist yet, the ShakeMap section shows nothing — absence
+ * product doesn't exist yet, the SHAKEmap section shows nothing — absence
  * over misattribution"). Mounted unconditionally by the screen (between
  * Distance and Source); renders nothing at all for the common
  * no-product-at-all case (brief point 3, unchanged).

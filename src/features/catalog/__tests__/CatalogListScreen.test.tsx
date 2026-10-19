@@ -10,7 +10,7 @@ import type { CatalogBounds, CatalogRow } from "../types";
 // "mock the data hook, test the presentational component" pattern
 // `ShakeMapSection.test.tsx` uses for `useShakeMap` — no real SQLite native
 // module needed in Jest, and this component doesn't need to be wrapped in
-// `<SQLiteProvider>` for the test (that wiring lives in app/catalog.tsx,
+// `<SQLiteProvider>` for the test (that wiring lives in app/(tabs)/(home,map,sensor,profile,settings)/catalog.tsx,
 // deliberately kept out of this component per its own doc comment).
 jest.mock("../use-catalog", () => ({
   useCatalogBounds: jest.fn(),

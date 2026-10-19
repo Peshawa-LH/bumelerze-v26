@@ -27,7 +27,7 @@ import type { BuildingDamageGrade, CartoonLevel, DamageTypology } from "./types"
  */
 
 /**
- * Window 1 (`app/felt-report/index.tsx`) — one artwork file per EMS-98
+ * Window 1 (`app/felt-report/index.tsx`) — one artwork file per IMS-25
  * cartoon level, `level-01.webp`..`level-12.webp` in the package matching
  * `CartoonLevel` 1..12 exactly (both already 1-indexed, no shift needed).
  */

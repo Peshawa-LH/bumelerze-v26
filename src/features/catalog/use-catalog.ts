@@ -25,7 +25,7 @@ export interface UseCatalogListResult {
  * Owns all SQLite access for the Catalog browser screen: the current page
  * of rows for `filters`, the total matching count, and `onEndReached`
  * pagination. Must be called from inside an `<SQLiteProvider>` (see
- * `app/catalog.tsx`). Kept as the single hook the screen imports so
+ * `app/(tabs)/(home,map,sensor,profile,settings)/catalog.tsx`). Kept as the single hook the screen imports so
  * screen-render tests can mock this one module (`jest.mock("../use-
  * catalog")`) instead of needing a real SQLite native module in Jest —
  * same pattern `features/shakemap/components/ShakeMapSection.test.tsx`

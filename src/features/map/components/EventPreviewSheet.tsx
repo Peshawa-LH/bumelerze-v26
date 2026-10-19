@@ -201,7 +201,7 @@ function EventPreviewSheetImpl(
     // resting position rather than wherever a drag happened to leave it.
     onDetentChange("peek");
     animateToDetent("peek");
-    // `origin: "map"` (read by `app/event/[id].tsx`) is what makes THIS
+    // `origin: "map"` (read by `app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`) is what makes THIS
     // specific navigation path add its own explicit "back to map" button on
     // top of the screen's normal header-back — see that screen's own doc
     // comment for why a plain `router.push` alone isn't quite enough

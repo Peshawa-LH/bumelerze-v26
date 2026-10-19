@@ -17,7 +17,7 @@ import {
  */
 
 /** True when the table says the shaking at this distance was probably felt at
- * EMS-98 V or more. */
+ * IMS-25 V or more. */
 export function expectedAtLeastV(magnitude: number, distanceKm: number): boolean {
   if (!Number.isFinite(magnitude) || !Number.isFinite(distanceKm) || distanceKm < 0) {
     return false;

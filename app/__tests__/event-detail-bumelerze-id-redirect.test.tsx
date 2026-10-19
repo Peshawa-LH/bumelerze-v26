@@ -11,7 +11,7 @@ import type { Event } from "@/features/events";
  * USGS-assigned name for events; we have to fix this... Example:
  * .../event/us6000jlqa uses the USGS id"). A visit via an old provider-id
  * url must `router.replace` to the bml-id url the moment one is known —
- * see `app/event/[id].tsx`'s own header doc comment for the two entry
+ * see `app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`'s own header doc comment for the two entry
  * shapes this proves.
  */
 const mockPush = jest.fn();

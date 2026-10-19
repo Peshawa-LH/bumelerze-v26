@@ -12,10 +12,10 @@ import { fetchUsgsEventById, fetchUsgsRegionEvents, fetchUsgsWorldEvents } from 
 /**
  * Regression coverage for the event-deeplink-hang bug
  * (the debug log): a cold-start deep link to an event that isn't in
- * either cached feed (`app/event/[id].tsx`'s `shouldFetchById` gate) must
+ * either cached feed (`app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`'s `shouldFetchById` gate) must
  * actually issue the byId fetch and resolve out of the loading state, both
  * with an empty persisted cache (fresh install) and with a warm one
- * (returning device). This mirrors `app/event/[id].tsx`'s own gating logic
+ * (returning device). This mirrors `app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`'s own gating logic
  * rather than rendering the full screen, so it stays focused on the
  * data-layer contract the screen depends on.
  */

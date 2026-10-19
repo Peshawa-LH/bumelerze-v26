@@ -122,7 +122,7 @@ function LevelTileImpl({
       <Text
         allowFontScaling
         // No numberOfLines cap: some locale labels (e.g. Sorani/Kurmanji
-        // levels 4/5) run 4-5 words and would truncate a real EMS-98 level
+        // levels 4/5) run 4-5 words and would truncate a real IMS-25 level
         // meaning at 200% font scale if capped at 2 lines — the tile has no
         // fixed height (flexBasis/flexGrow only), so letting the label wrap
         // freely just grows the tile instead of losing safety-critical text

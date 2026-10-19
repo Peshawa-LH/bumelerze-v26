@@ -8,7 +8,7 @@
  * CWS/CDI math can be re-run/corrected later without re-asking users".
  */
 
-/** 1-of-12 EMS-98 cartoon pick (the felt-report method PART 1). */
+/** 1-of-12 IMS-25 cartoon pick (the felt-report method PART 1). */
 export type CartoonLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 export const CARTOON_LEVELS: readonly CartoonLevel[] = [

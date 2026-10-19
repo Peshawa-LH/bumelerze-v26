@@ -8,7 +8,7 @@
  * the two is named as LastQuake's own card-design mistake. A magnitude is
  * one number for the whole earthquake; what a person feels depends on
  * distance and depth. So the stripe borrows the intuitive cool-to-hot
- * ORDER of a shaking scale without borrowing the EMS-98 ramp's colors
+ * ORDER of a shaking scale without borrowing the IMS-25 intensity ramp's colors
  * (`theme/palette.ts`'s `magnitudeBandPalette` documents the separation and
  * the contrast figures), and the numeral beside it stays neutral text.
  *

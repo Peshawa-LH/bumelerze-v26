@@ -89,7 +89,7 @@ export interface NotableHistoricalEvent {
 /**
  * Chronological (oldest-first) source order — purely for human readability
  * while curating; the screen re-sorts newest-first per the v1 spec §4.7's
- * "list ordered newest-first" instruction (see app/historical.tsx).
+ * "list ordered newest-first" instruction (see app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx).
  */
 export const NOTABLE_HISTORICAL_EVENTS: readonly NotableHistoricalEvent[] = [
   {
@@ -252,7 +252,7 @@ export function sortNewestFirst(
  * unavoidably still keyed by provider id) without a network round trip.
  * Built once, module scope — this dataset is a small compile-time constant,
  * never re-created per render. Also used, in reverse spirit, by
- * `app/event/[id].tsx`'s cache lookup ("find the event in the cached feeds
+ * `app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`'s cache lookup ("find the event in the cached feeds
  * by bumelerzeId or by alias").
  */
 export const NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID: ReadonlyMap<string, string> = new Map(

@@ -31,7 +31,7 @@ export const CATALOG_YEAR_STEP = 10;
  * primary key (surrogate `id` column dropped), `time` became epoch-seconds
  * `t`, and `author_agency` was added — a v2-schema query against a v2 file
  * cannot serve v3 rows, so this bump is required, not cosmetic. Old copies
- * are cleaned up in app/catalog.tsx (`cleanUpLegacyDatabases`). */
+ * are cleaned up in app/(tabs)/(home,map,sensor,profile,settings)/catalog.tsx (`cleanUpLegacyDatabases`). */
 /**
  * Bump this on EVERY change to the exported catalog schema, not merely
  * when the data changes. `assetSource` copies the bundled database out

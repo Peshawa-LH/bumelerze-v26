@@ -18,7 +18,7 @@ import {
 } from "@/features/feltmap/__fixtures__/chamchamal";
 
 /**
- * Integration test: `app/event/[id].tsx` (the real screen file, not a
+ * Integration test: `app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx` (the real screen file, not a
  * re-implementation of its gating logic — same "import the actual app/
  * screen" approach as `features/events/__tests__/home-screen.test.tsx` and
  * `features/historical/__tests__/historical-screen.test.tsx`) with a
@@ -213,7 +213,7 @@ describe("Event Detail: felt-map section (real screen, fixture transport)", () =
     );
   });
 
-  it("mounts below the ShakeMap section title (never above it) in document order", async () => {
+  it("mounts below the SHAKEmap section title (never above it) in document order", async () => {
     setSupabaseConfigured(true);
 
     await renderWithProviders(<EventDetailScreen />);
@@ -223,7 +223,7 @@ describe("Event Detail: felt-map section (real screen, fixture transport)", () =
     );
     const shakemapTitle = screen.queryByText(i18n.t("eventDetail.shakemap.sectionTitle"));
     // us-not-in-atlas fixture event has no bundled shakemap product, so the
-    // ShakeMap section itself renders nothing (D21) — this assertion only
+    // SHAKEmap section itself renders nothing (D21) — this assertion only
     // has to prove the felt map doesn't depend on it being present.
     expect(shakemapTitle).toBeNull();
   });

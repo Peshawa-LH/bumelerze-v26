@@ -562,20 +562,20 @@ function EventDetailHeader({
         </Pressable>
       ) : null}
 
-      {/* Lazy, self-contained (the v1 spec §4.5 ordering: Distance -> ShakeMap
+      {/* Lazy, self-contained (the v1 spec §4.5 ordering: Distance -> SHAKEmap
        * -> Source) — mounted unconditionally, but renders nothing for the
        * common no-shakemap-product event (no empty shell) and never blocks
        * this header, which is already fully rendered above from feed data. */}
       <ShakeMapSection event={event} />
 
       {/* Damage-estimate dashboard (D46 risk chain, `risk-dashboard`
-       * wave), directly below ShakeMap — mounted unconditionally too;
+       * wave), directly below the SHAKEmap section — mounted unconditionally too;
        * `RiskSection` itself renders nothing for the common no-risk-
        * product event (only 3 events carry one at launch). */}
       <RiskSection event={event} />
 
       {/* Felt map (the v1 spec §4.5 "Felt map tab: our own CDI-aggregated
-       * grid cells"), a sibling of ShakeMap directly below it — mounted
+       * grid cells"), a sibling of the SHAKEmap section directly below it — mounted
        * unconditionally too; `FeltMapSection` itself decides
        * hidden/offline/ready (no Supabase project configured yet ->
        * hidden, same graceful env-gating as the rest of the app). */}

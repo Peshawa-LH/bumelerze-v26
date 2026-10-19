@@ -22,9 +22,8 @@ import { FEEDBACK_PHOTO_MAX_COUNT, useFeedbackQueueStore } from "@/features/feed
  * `getDeviceId()`/queue write) — a bare synchronous `fireEvent.press`
  * followed by a fixed number of ticks outside `act()` left a state update
  * landing outside any act-tracked scope here, corrupting the shared
- * react-test-renderer root for whichever test ran next. Also mirrors
- * `app/__tests__/my-data-screen.test.tsx`'s `expo-router` mock shape
- * (`Stack.Screen` + `useRouter`) — this screen uses both.
+ * react-test-renderer root for whichever test ran next. The `expo-router`
+ * mock covers `Stack.Screen` + `useRouter` — this screen uses both.
  *
  * No Supabase env vars are set in this test environment
  * (`isSupabaseConfigured()` is false), so `enqueueFeedback` resolves through

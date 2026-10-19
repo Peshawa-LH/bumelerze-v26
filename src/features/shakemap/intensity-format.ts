@@ -3,7 +3,7 @@ import { localizeDigits } from "@/lib/format-numbers";
 import { INTENSITY_ROMAN_NUMERALS } from "./intensity-ramp";
 
 /**
- * The ONE place an intensity level (EMS-98 / MMI, 1..12) becomes text
+ * The ONE place an intensity level (IMS-25 / MMI, 1..12) becomes text
  * (owner note N15, 2026-10-07): English and Kurmanji read Roman numerals
  * (V, VI), Sorani and Arabic read the same Eastern Arabic digits as the rest
  * of those languages (٥, ٦). Every screen that prints an intensity (map

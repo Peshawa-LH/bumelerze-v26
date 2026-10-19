@@ -116,7 +116,7 @@ describe("Window 1 — tier-1 felt-report screen", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("renders all 12 EMS-98 level tiles, none disabled", async () => {
+  it("renders all 12 IMS-25 level tiles, none disabled", async () => {
     await renderWithProviders(<Tier1FeltReportScreen />);
     await flush();
 

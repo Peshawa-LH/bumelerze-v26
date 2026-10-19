@@ -306,7 +306,7 @@ describe("magnitudeBandPalette", () => {
     expect(contrastRatio(hex, LIGHT_SURFACE)).toBeGreaterThanOrEqual(3);
   });
 
-  it("borrows no color from the EMS-98 intensity ramp", () => {
+  it("borrows no color from the IMS-25 intensity ramp", () => {
     // The design language §3.2: magnitude must never be colored as
     // intensity. Sharing the cool-to-hot ORDER is the point; sharing a hex
     // would make a size hint look like a shaking measurement.

@@ -14,10 +14,10 @@ import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
  * Engineer's Handbook (the v1 spec §7, the design brief §9) — the whole
- * screen's content, split out from `app/handbook.tsx` (which only wraps
+ * screen's content, split out from `app/(tabs)/(home,map,sensor,profile,settings)/handbook.tsx` (which only wraps
  * this) so it's unit-testable without Expo Router's navigation context,
  * same "screen component vs. route file" split every other pushed screen
- * in this app uses (`CatalogListScreen`/`app/catalog.tsx`,
+ * in this app uses (`CatalogListScreen`/`app/(tabs)/(home,map,sensor,profile,settings)/catalog.tsx`,
  * `HistoricalScreen` inline pattern). Deliberately tucked away in Settings
  * only (brief) — this is a professional-audience side tool, not a
  * panic-time screen, so it intentionally does NOT get the big-type/one-tap

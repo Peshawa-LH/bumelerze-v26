@@ -1,6 +1,6 @@
 import type { RiskSummary } from "@/features/shakemap/types";
 
-/** EMS-98 vulnerability classes, A the most vulnerable. */
+/** IMS-25 vulnerability classes, A the most vulnerable. */
 export const VULNERABILITY_CLASSES = ["A", "B", "C", "D", "E", "F"] as const;
 export type VulnerabilityClassLetter = (typeof VULNERABILITY_CLASSES)[number];
 

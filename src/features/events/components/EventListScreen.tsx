@@ -255,7 +255,7 @@ export function EventListScreen({
             // (owner directive 2026-09-02) — most feed events don't carry
             // a `bumelerzeId` yet (`types.ts`'s own doc comment), so this
             // still commonly pushes the provider id today; Event Detail's
-            // own redirect (`app/event/[id].tsx`) closes that gap the
+            // own redirect (`app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`) closes that gap the
             // moment one resolves, without this list needing to wait for it.
             onPress={(event) => router.push(`/event/${event.bumelerzeId ?? event.id}`)}
             isNotable={notableEventIds?.has(item.id) ?? false}

@@ -56,7 +56,7 @@ export interface SemanticColors {
    * `magnitudeBandPalette`. Theme-independent: one ramp that clears the
    * 3:1 non-text floor on both surfaces. */
   magnitudeBand: typeof magnitudeBandPalette;
-  /** Index 1..12 = EMS-98 I..XII. Index 0 is an unused placeholder. */
+  /** Index 1..12 = IMS-25 I..XII. Index 0 is an unused placeholder. */
   intensity: readonly string[];
   intensityOnFill: readonly string[];
   /** Index 1..5 = DG1..DG5 building-damage grade. Index 0 is an unused

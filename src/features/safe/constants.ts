@@ -6,7 +6,7 @@
 /**
  * When does a strong earthquake ask "Are you safe?" on Home?
  *
- * Conservative "expected felt intensity at least EMS-98 V" by magnitude and
+ * Conservative "expected felt intensity at least IMS-25 V" by magnitude and
  * epicentral distance: an event qualifies when its magnitude reaches a row's
  * `minMagnitude` and the phone is within that row's `withinKm`. The test runs
  * ON THE DEVICE against the phone's own last fix; the location is never sent.
@@ -29,8 +29,8 @@ export const EXPECTED_INTENSITY_V_TABLE: readonly {
 ];
 
 /** After a felt report: level V and up gets the big "I'm safe" button; III-IV
- * a quiet "Let your family know" link; II and below nothing. EMS-98 levels
- * (the felt cartoons are the 12 EMS-98 degrees). */
+ * a quiet "Let your family know" link; II and below nothing. IMS-25 levels
+ * (the felt cartoons are the 12 IMS-25 degrees). */
 export const FELT_PRIMARY_MIN_LEVEL = 5;
 export const FELT_QUIET_MIN_LEVEL = 3;
 

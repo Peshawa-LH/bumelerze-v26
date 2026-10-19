@@ -112,7 +112,7 @@ jest.mock(
 import { DAMAGE_ARTWORK, LEVEL_ARTWORK } from "../artwork";
 
 describe("LEVEL_ARTWORK", () => {
-  it("has exactly the 12 EMS-98 cartoon levels, each resolving to its own numbered file", () => {
+  it("has exactly the 12 IMS-25 cartoon levels, each resolving to its own numbered file", () => {
     expect(Object.keys(LEVEL_ARTWORK)).toHaveLength(12);
 
     expect(LEVEL_ARTWORK[1]).toBe("asset:level-01.webp");

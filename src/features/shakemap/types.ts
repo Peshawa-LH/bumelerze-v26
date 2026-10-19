@@ -118,7 +118,7 @@ export interface IntensityContourLevel {
   /** Raw MMI value as reported by the product — may be fractional (USGS
    * `cont_mi.json` commonly emits half-integer levels like 4.5). */
   value: number;
-  /** `value` rounded and clamped to the EMS-98/MMI ramp's 1..12 index
+  /** `value` rounded and clamped to the IMS-25/MMI ramp's 1..12 index
    * range (D7) — the index into `theme.colors.intensity`. */
   level: number;
   rings: ContourRing[];

@@ -782,8 +782,8 @@ export function useOwnQueueItemForEvent(eventId: string | null): QueueItem | nul
  * hook) — any derived view (sorting, mapping to a screen's own view model)
  * belongs in the CALLING component's own `useMemo`, keyed off this stable
  * reference, never inside the selector itself. `sortQueueItemsNewestFirst`
- * below is the pure helper `app/my-data.tsx` composes with this hook that
- * way.
+ * below is the pure helper `src/features/mydata/use-my-reports.ts` composes
+ * with this hook that way.
  */
 export function useFeltQueueItems(): QueueItem[] {
   return useFeltQueueStore((state) => state.items);
