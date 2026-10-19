@@ -56,11 +56,15 @@ const cameraPermissionText =
 const config: ExpoConfig = {
   name: "Bumelerze",
   slug: "bumelerze",
-  // The app's own version, in the same 26.x generation as the engine
-  // (v26.1.2) but on its own cadence: this is the first state reviewed
-  // screen by screen with the owner (2026-09-27). Shown in the Settings
-  // footer and stamped on every feedback row.
-  version: "26.1.0",
+  // The app's own version (D90): year.release.fix, each part counted on its
+  // own. 26.1 = the state reviewed screen by screen with the owner
+  // (2026-09-27); 26.2 = the October rebuild; 26.3 = the review fix batch
+  // (D89) and the clean-up after it. The engine (bumelerze-engine) has its
+  // own versions (now 26.2.1), and every shakemap names the engine version
+  // that made it. Shown in the Settings footer and, with the web build id
+  // (src/lib/app-version.ts), stamped on feedback, presence and sensor
+  // exports.
+  version: "26.3.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "bumelerze",

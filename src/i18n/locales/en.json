@@ -632,6 +632,7 @@
     "footerData": "Earthquake data: USGS, EMSC and GEOFON.",
     "footerTrademark": "Bumelerze™ and its logo are trademarks of the project.",
     "footerVersion": "Version {{version}}",
+    "footerVersionBuild": "Version {{version}} ({{build}})",
     "footerLogoA11yLabel": "Bumelerze",
     "accountSectionTitle": "Account"
   },

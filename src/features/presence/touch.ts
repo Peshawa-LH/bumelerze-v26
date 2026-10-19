@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 import i18n, { SUPPORTED_LOCALES } from "@/i18n";
+import { appVersionStamp } from "@/lib/app-version";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 /**
@@ -62,7 +62,8 @@ export async function touchPresenceOnce(now: () => number = Date.now): Promise<v
     const language = i18n.language;
     const { error } = await client.rpc("touch_presence", {
       p_platform: platformOf(),
-      p_app_version: Constants.expoConfig?.version ?? null,
+      // "26.3.0+abc1234" fits the server's check (migration 0055).
+      p_app_version: appVersionStamp(),
       p_locale: (SUPPORTED_LOCALES as readonly string[]).includes(language) ? language : null,
     });
     if (!error) {

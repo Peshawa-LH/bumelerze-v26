@@ -1,7 +1,7 @@
-import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 import i18n, { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
+import { appVersionStamp } from "@/lib/app-version";
 
 import type { FeedbackContext, FeedbackPlatform } from "./types";
 
@@ -37,7 +37,7 @@ function normalizeLocale(): SupportedLocale | null {
  */
 export function buildFeedbackContext(): FeedbackContext {
   return {
-    appVersion: Constants.expoConfig?.version ?? null,
+    appVersion: appVersionStamp(),
     locale: normalizeLocale(),
     platform: normalizePlatform(),
   };

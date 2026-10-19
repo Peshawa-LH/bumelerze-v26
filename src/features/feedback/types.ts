@@ -42,8 +42,9 @@ export type FeedbackPlatform = "ios" | "android" | "web";
  * feature.
  */
 export interface FeedbackContext {
-  /** `Constants.expoConfig?.version` — the real build version string, never
-   * hand-typed (wave brief: "not hardcoded"). */
+  /** `appVersionStamp()` (src/lib/app-version.ts) — the real version string
+   * plus the web build id when there is one ("26.3.0+abc1234"), never
+   * hand-typed. */
   appVersion: string | null;
   locale: SupportedLocale | null;
   platform: FeedbackPlatform | null;

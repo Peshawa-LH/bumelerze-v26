@@ -632,6 +632,7 @@
     "footerData": "Daneyên erdhejê: USGS, EMSC û GEOFON.",
     "footerTrademark": "Bumelerze™ û logoya wê nîşanên bazirganî yên projeyê ne.",
     "footerVersion": "Guherto {{version}}",
+    "footerVersionBuild": "Guherto {{version}} ({{build}})",
     "footerLogoA11yLabel": "Bumelerze",
     "accountSectionTitle": "Hesab"
   },

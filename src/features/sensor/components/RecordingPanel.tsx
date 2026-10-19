@@ -1,8 +1,8 @@
-import Constants from "expo-constants";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { appVersionStamp } from "@/lib/app-version";
 import { useTheme } from "@/theme";
 
 import {
@@ -66,7 +66,7 @@ export function RecordingPanel({
     setSaveState("saving");
     try {
       const text = buildRecordingText(lastRecording, {
-        appVersion: Constants.expoConfig?.version ?? "dev",
+        appVersion: appVersionStamp() ?? "dev",
         platform: Platform.OS,
         device: deviceLabel(),
         locale: i18n.language,

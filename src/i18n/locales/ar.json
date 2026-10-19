@@ -636,6 +636,7 @@
     "footerData": "بيانات الزلازل: USGS وEMSC وGEOFON.",
     "footerTrademark": "⁦Bumelerze⁩™ وشعاره علامتان تجاريتان للمشروع.",
     "footerVersion": "الإصدار {{version, digits}}",
+    "footerVersionBuild": "الإصدار {{version, digits}} ({{build}})",
     "footerLogoA11yLabel": "Bumelerze",
     "accountSectionTitle": "الحساب"
   },
