@@ -1,11 +1,12 @@
 /**
  * Web-only self-heal for the SPA deploy trap (found live 2026-08-16, map
- * wave deploy): a browser holding a pre-deploy page in cache requests that
+ * deploy): a browser holding a pre-deploy page in cache requests that
  * build's content-hashed lazy chunks, which no longer exist after the next
- * deploy — Netlify's SPA fallback masks the 404 as HTML, the module loader
- * throws ("non-JavaScript MIME type" / "Failed to fetch dynamically
- * imported module"), and the affected screen hangs forever. netlify.toml's
- * no-cache rule on app HTML prevents the *common* path; this guard covers
+ * deploy — the host's SPA fallback (Cloudflare Pages) masks the 404 as
+ * HTML, the module loader throws ("non-JavaScript MIME type" / "Failed to
+ * fetch dynamically imported module"), and the affected screen hangs
+ * forever. Loading the page HTML fresh (network-first) prevents the
+ * *common* path; this guard covers
  * every remaining variant (memory/bfcache, mid-session deploys) by hard
  * reloading ONCE per session when a chunk-load failure is detected —
  * a reload fetches the fresh HTML + matching chunks and recovers.

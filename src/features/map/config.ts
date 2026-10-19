@@ -62,8 +62,9 @@ export const MAP_STYLE_URLS = {
  */
 /**
  * Build stamp on the URLs of the files MapLibre fetches from `public/`.
- * The Pages workflow sets `EXPO_PUBLIC_BUILD_ID` to the commit; without
- * it (2026-09-27) the RTL plugin's URL never changed, so phones kept the
+ * scripts/build-app-web.sh (Cloudflare Pages) sets `EXPO_PUBLIC_BUILD_ID`
+ * to the commit; without it (2026-09-27) the RTL plugin's URL never
+ * changed, so phones kept the
  * old plugin long after a deploy fixed it. `maplibre-gl-shared.mjs`,
  * imported by the worker itself, is not stamped — it only changes on a
  * MapLibre upgrade and the CDN's max-age heals that within minutes.

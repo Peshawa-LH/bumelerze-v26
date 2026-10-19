@@ -124,7 +124,7 @@ const config: ExpoConfig = {
       },
     ],
     [
-      // Sensor screen (spec-v1.md §4.8) uses expo-sensors' Accelerometer.
+      // The Sensor screen uses expo-sensors' Accelerometer.
       // Plain accelerometer access needs no runtime permission on either
       // platform, but the module's permission API is shared across all
       // expo-sensors types, and iOS requires NSMotionUsageDescription to be
@@ -141,8 +141,8 @@ const config: ExpoConfig = {
       },
     ],
     [
-      // Foreground-only location (onboarding §4.11 step 3 + the feed/detail
-      // "distance from you" upgrade, wave brief point 3). No background/
+      // Foreground-only location (the onboarding location step and the
+      // feed/detail "distance from you"). No background/
       // "always" permission is ever requested anywhere in this app —
       // deliberately omitting `isAndroidBackgroundLocationEnabled` and the
       // iOS "always" usage description keeps that off by construction, not
@@ -154,12 +154,11 @@ const config: ExpoConfig = {
       },
     ],
     [
-      // Phase 4 client-side notifications (spec-v1.md §4.10/§4.11 step 4).
-      // This wave is entirely local (rehearsal sound only, no push tokens,
-      // no server) — the plugin still needs to run so the notification
-      // permission strings/icon exist in the native build ahead of Phase 5's
-      // real Expo push wiring, per this wave brief's "only expo-notifications
-      // may be added" scope note.
+      // Notifications: the native permission strings and the Android
+      // notification icon. Earthquake alerts (migration 0062 and the
+      // send-alerts edge function; testers mode for now, D83) go out by web
+      // push on the web and through the Expo push API to native devices;
+      // this plugin is what lets a native build receive them.
       "expo-notifications",
       {
         // Android status-bar notification icons must be a pure white
@@ -174,14 +173,14 @@ const config: ExpoConfig = {
         color: "#1F4E5F",
       },
     ],
-    // Bundled Catalog browser (regional-catalog wave): `expo-sqlite` opens
+    // Bundled Catalog browser: `expo-sqlite` opens
     // the read-only `bumelerze-catalog.sqlite` asset copied into the
     // document directory on first launch (features/catalog/db.ts). The
     // plugin is required so the native SQLite build includes the extra
     // features (e.g. bundled-asset support) the CLI flags at install time —
     // no config options needed beyond enabling it.
     "expo-sqlite",
-    // Cartoon/damage tile artwork (tile-image-rendering wave): LevelTile and
+    // Cartoon/damage tile artwork: LevelTile and
     // DamageTile render artwork through expo-image's <Image>. No plugin
     // options needed — this just lets the config plugin wire the native
     // module the same way expo-sqlite's entry above does.

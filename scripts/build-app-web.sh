@@ -31,7 +31,7 @@ export EXPO_PUBLIC_BUILD_ID="${CF_PAGES_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/
 # off the worker deletes its caches and only handles alerts.
 OFFLINE_SW_MODE="${BUMELERZE_OFFLINE_SW:-on}"
 # Publishable client values: EXPO_PUBLIC_* ship inside every client bundle
-# by design (same values as .github/workflows/deploy-pages.yml).
+# by design (the dormant Netlify mirror in netlify.toml carries the same ones).
 export EXPO_PUBLIC_SUPABASE_URL=https://bcgyxepgruwardhozvfq.supabase.co
 export EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I
 export EXPO_PUBLIC_MAPTILER_KEY=u55zrEViEes3KunGwdnn

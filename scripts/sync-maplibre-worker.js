@@ -8,7 +8,9 @@
  *     verbatim, at the origin root);
  *   - the production export (public/ is copied byte-for-byte into the
  *     export output root, so it lands next to index.html under whatever
- *     base path the export is served from, e.g. Netlify's /app/).
+ *     base path the export is served from: the root of app.bumelerze.com
+ *     on Cloudflare Pages, or a subpath such as the dormant Netlify
+ *     mirror's /app/).
  *
  * Why this exists at all: maplibre-gl 6.x has no bundler-friendly
  * "workerClass"/CSP-worker option — that pattern existed in older
