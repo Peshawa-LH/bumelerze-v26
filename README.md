@@ -1,6 +1,6 @@
 # Bumelerze
 
-**Bumelerze** (Kurdish *bûmelerze*, earthquake) is a Kurdish-first earthquake
+**Bumelerze** (Kurdish _bûmelerze_, earthquake) is a Kurdish-first earthquake
 monitoring and felt-reporting app for the Kurdistan Region of Iraq. It shows
 what just shook, lets people say what they felt, and turns those reports back
 into usable intensity data. It is built for a region that gets shaken regularly
@@ -9,9 +9,8 @@ and is not well served by the existing apps.
 **Website:** <https://bumelerze.com> · **App:** <https://app.bumelerze.com> ·
 **Contact:** <hello@bumelerze.com>
 
-> **Status: in development.** This is not a finished release. The web build at
-> the link above is the current preview channel; native iOS and Android builds
-> are pending. Expect rough edges, and expect things to change.
+> **Status:** the 26.x web release is live at the link above. Native iOS and
+> Android builds are pending.
 
 ## What it does
 
@@ -30,15 +29,36 @@ and is not well served by the existing apps.
   may never arrive for a M4.5 in Iraq.
 - **Safety guidance.** What to do during and after an earthquake, written for
   the local building stock, not translated boilerplate.
-- **Offline regional catalog.** About 21,000 historical events for the region,
-  bundled with the app so it stays useful with no network.
+- **Offline regional catalog.** About 150,000 historical events (150,072) from
+  six catalogues (ISC 130,153 · KISC 8,130 · Onur 2017 7,364 · EMME 3,544 ·
+  USGS 764 · ISC-GEM 117), bundled with the app so it stays useful with no
+  network.
+- **Accounts and profiles.** Optional accounts with public or private
+  profiles, follows and mentions; the feed, felt reports, safety guide and
+  catalog work without one.
+- **Event hubs.** Regional earthquakes get a hub page where people share what
+  they felt, post and comment; moderated by the Bumelerze team.
+- **I'm safe.** A one-tap check-in after an earthquake, seen by the people you
+  choose (family, mutual follows or followers), never with your location.
+- **Tag my building / My home and family.** Describe your building and get an
+  automatic estimate of how it may behave in shaking on the IMS-25 scale; family
+  members can join the same home.
+- **Sensor and live stations.** The phone's accelerometer as a live
+  seismometer view (with recording), plus live waveforms from regional
+  seismic stations.
+- **Engineer's handbook.** Design spectra, site classes and code values for
+  engineers.
+- **Officials page.** Area-level building and "I'm safe" summaries for
+  government officials who are given access.
+- **Alerts.** Earthquake alerts are coming soon; they run today only for a
+  small group of testers.
 - **Four languages, properly.** Sorani Kurdish (Arabic script, right-to-left),
   Kurmanji Kurdish (Latin), Arabic, and English. RTL is a first-class layout
   requirement across every screen, not a translation afterthought.
 
 ## Where it stands scientifically
 
-- Intensity uses **EMS-98** as the underlying scale, with the felt-report
+- Intensity uses **IMS-25** (which extends EMS-98), with the felt-report
   artwork built on the IMS-25 illustrated scale, so what a user picks maps onto
   something a seismologist can actually use.
 - Felt reports are collected as **the project's own macroseismic data**, not
@@ -58,12 +78,16 @@ data for exactly that reason.
 
 ## Repository layout
 
-| Path                | What it is                                                            |
-| ------------------- | --------------------------------------------------------------------- |
-| `app/`, `src/`      | The Expo (React Native) + TypeScript app: routes, features, i18n, theme |
-| `supabase/`         | Postgres migrations, RLS policies, and edge functions                   |
-| `website/`          | The static site at bumelerze.com, including the privacy policy          |
-| `assets/`           | App icons, brand marks, and the commissioned illustration set           |
+| Path           | What it is                                                                |
+| -------------- | ------------------------------------------------------------------------- |
+| `app/`, `src/` | The Expo (React Native) + TypeScript app: routes, features, i18n, theme   |
+| `supabase/`    | Postgres migrations, RLS policies, and edge functions                     |
+| `website-src/` | The source of the website: page templates and strings in four languages   |
+| `website/`     | The static site at bumelerze.com, GENERATED from `website-src/`           |
+| `public/`      | Files served as-is with the web app: HTML shell, service worker, map data |
+| `scripts/`     | Build and data scripts (web build, website build, assets, datasets)       |
+| `store/`       | App Store and Google Play listing texts, checklist and screenshot plan    |
+| `assets/`      | App icons, brand marks, and the commissioned illustration set             |
 
 ## Running it
 
@@ -77,11 +101,14 @@ npm run lint
 npm test
 ```
 
-To produce the web build that gets deployed:
+To produce the web build that gets deployed (it needs a clean `npm ci`):
 
 ```bash
-npx expo export --platform web --output-dir pages-dist/app
+bash scripts/build-app-web.sh
 ```
+
+It writes `dist-app/`, which Cloudflare Pages (project `bumelerze-app`) builds
+and serves from `main` at <https://app.bumelerze.com>.
 
 The SHAKEmap engine and worker live in a separate repository,
 `bumelerze-engine`, with their own environment and README. Neither is needed
