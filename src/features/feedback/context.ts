@@ -24,7 +24,7 @@ function normalizeLocale(): SupportedLocale | null {
 
 /**
  * Builds the automatically-captured context for one feedback submission
- * (wave brief: "Capture the context automatically rather than asking" —
+ * (brief: "Capture the context automatically rather than asking" —
  * app version, locale, platform). Called once, at enqueue time
  * (`queue.ts`'s `enqueueFeedback`) — never re-derived later, so the
  * captured context reflects the app state at the moment the user actually

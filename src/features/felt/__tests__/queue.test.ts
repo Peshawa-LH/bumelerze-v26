@@ -1,7 +1,7 @@
 import type { FeltLocation, Tier2Answers } from "../types";
 
 /**
- * Offline queue (spec-v1.md §4.6 states; wave brief scope item 6: "queue
+ * Offline queue (spec-v1.md §4.6 states; brief scope item 6: "queue
  * (persist -> retry -> survives restart via mocked AsyncStorage)"). Same
  * fresh-require-per-test discipline as `features/onboarding/__tests__/
  * store.test.ts` — `jest.resetModules()` clears both the module cache AND
@@ -80,7 +80,7 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-describe("enqueueTier1Report + PendingTransport (no backend this wave)", () => {
+describe("enqueueTier1Report + PendingTransport (no backend configured)", () => {
   it("durably queues the report locally BEFORE any transport attempt resolves", async () => {
     const { enqueueTier1Report, useFeltQueueStore } = loadQueue();
 

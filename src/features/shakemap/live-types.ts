@@ -21,7 +21,7 @@ import type { AtlasBundleEntry, DataUsedSummaryKey } from "./types";
  * `FELT_CELL_ROW_COLUMNS`). Deliberately narrower than the full table: no
  * `product_id`/`event_id`/`producer`/`product_type` (already known/filtered
  * by the query itself) and no `bbox_*` (migration 0019 — indexing-only,
- * unused by the event-detail display path this wave scopes to; the map-tab
+ * unused by the event-detail display path; the map-tab
  * follow-up is where bbox earns its keep). */
 export const LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS = [
   "version",
@@ -97,7 +97,7 @@ export function parseLiveShakeMapProductRows(data: unknown): ParsedLiveShakeMapP
  * given that constraint; it is kept anyway as a defensive ordering rule so
  * a duplicate/legacy row can never silently displace a scientist-reviewed
  * one — "a reviewed product should win over a provisional one of the same
- * version generation" (wave brief), made literal.
+ * version generation" (brief), made literal.
  */
 export function selectLatestLiveProductRow(
   rows: readonly LiveShakeMapProductRow[],
@@ -186,7 +186,7 @@ export interface EngineVersionSummary {
  * the engine-version block through instead of dropping it", finally
  * surfaced app-side for the live path (the bundled Atlas path does not
  * carry this yet; `bundle_atlas_for_app.py` still discards it at
- * build-bundle time, unchanged this wave — see that script's own doc
+ * build-bundle time — see that script's own doc
  * comment, and `resolver.ts`, which normalizes a bundled product's
  * `engineVersion` to `null` for exactly this reason). Returns `null` when
  * absent/malformed (an older product published before this field existed,

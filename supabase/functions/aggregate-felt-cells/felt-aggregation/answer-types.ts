@@ -6,7 +6,7 @@
 // "@/features/felt/types"` — a Metro/TS path alias into the Expo app's
 // source tree. Deno (this Edge Function's runtime) has no equivalent alias
 // and cannot resolve into the RN app's module graph, so the source lib
-// cannot be imported unchanged. Per the wave brief's "prefer verbatim
+// cannot be imported unchanged. Per the brief's "prefer verbatim
 // vendoring with a sync note," this whole `felt-aggregation/` folder is a
 // verbatim copy of `src/lib/felt-aggregation/` with exactly one mechanical
 // change: the `@/features/felt/types` import is replaced by this file

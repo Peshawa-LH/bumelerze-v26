@@ -326,7 +326,7 @@ function useIsCompactMapControls(): boolean {
 }
 
 /**
- * Web Map tab — the real interactive map (wave brief: "web-first... the
+ * Web Map tab — the real interactive map (brief: "web-first... the
  * deployed web build (now at app.bumelerze.com) is the primary live
  * channel; the native MapLibre module waits for the dev-build workflow").
  *
@@ -584,7 +584,7 @@ export default function MapScreenWeb() {
   );
   const [retryTick, setRetryTick] = useState(0);
 
-  // "Map loads lazily when the tab is focused" (wave brief) — the mount
+  // "Map loads lazily when the tab is focused" (brief) — the mount
   // effect below only starts loading `maplibre-gl` once this becomes true.
   useFocusEffect(
     useCallback(() => {
@@ -598,7 +598,7 @@ export default function MapScreenWeb() {
   // `useMapPreferencesStore`'s doc comment: without this gate, a returning
   // user with a non-default style saved would briefly build the map with
   // the `outdoor` default before their real pick loads). Not re-run on
-  // scheme change — the style URL is only read at creation time this wave
+  // scheme change — the style URL is only read at creation time
   // (flipping OS theme mid-session won't hot-swap the basemap; a small,
   // deliberate scope cut, not a bug). Later user-driven style PICKS (the
   // `MapStylePicker` control) go through `handleStyleChange` below, which
@@ -778,13 +778,13 @@ export default function MapScreenWeb() {
             .catch(() => {
               // Villages are a progressive enhancement over the always-
               // present core dataset — a failed/offline lazy load leaves
-              // the map exactly as usable as before this wave, never an
+              // the map exactly as usable as without villages, never an
               // error state of its own.
             });
         });
         // Style/tile load failures (offline, DNS down, etc.) surface here —
         // "if tiles fail/offline show the standard offline state pattern"
-        // (wave brief) — UNLESS this is a MapTiler style that failed before
+        // (brief) — UNLESS this is a MapTiler style that failed before
         // ever loading, in which case we get one automatic, silent retry on
         // OpenFreeMap instead (`decideMapErrorAction`) so the map never
         // just goes blank over a bad/quota'd key.
@@ -1019,8 +1019,8 @@ export default function MapScreenWeb() {
       const label = [magnitudeLabel, placeText].filter(Boolean).join(". ");
 
       // Outer element: the tappable hit area (dot diameter + padding on
-      // every side, "big touch targets... extra hit radius" per the wave
-      // brief) — unchanged shape/attributes from before this wave, so
+      // every side, "big touch targets... extra hit radius" per the
+      // brief) — unchanged shape/attributes from before this change, so
       // every existing accessibility assertion against it still holds.
       const hitEl = document.createElement("div");
       hitEl.style.width = `${marker.diameterPx + MARKER_HIT_PADDING_PX * 2}px`;
@@ -1083,7 +1083,7 @@ export default function MapScreenWeb() {
           return;
         }
         selectEvent(sourceEvent);
-        // Subtle recenter (wave brief: "consider whether to nudge the map's
+        // Subtle recenter (brief: "consider whether to nudge the map's
         // centre so the selected marker is not hidden behind the sheet; if
         // you do, keep it subtle") — an `offset` shifts where the given
         // `center` ends up ON SCREEN rather than moving the actual map

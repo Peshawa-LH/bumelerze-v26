@@ -21,7 +21,7 @@ interface CatalogDetailSheetProps {
 }
 
 /** Full-detail modal for a tapped catalog row: date/time (UTC), coordinates,
- * depth, magnitude+type, source catalog + source id (wave brief's exact
+ * depth, magnitude+type, source catalog + source id (brief's exact
  * field list). Same `Modal` + backdrop + explicit "Close" pattern as
  * `RehearsalAlertModal` (screen-reader-accessible tap-outside-to-dismiss
  * without swallowing the content into one unreadable Pressable — see that

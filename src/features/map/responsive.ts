@@ -10,7 +10,7 @@
  */
 
 /** Comfortably above typical phone portrait widths (~360-430px, including
- * the ~375px viewport this wave was diagnosed against) and below small-
+ * the ~375px viewport the layout was diagnosed against) and below small-
  * tablet/landscape widths, so a tablet or a roomy desktop browser window
  * naturally gets the wider inline layout instead of being forced into
  * icon-only controls it doesn't need. */

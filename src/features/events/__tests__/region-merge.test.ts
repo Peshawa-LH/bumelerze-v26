@@ -224,7 +224,7 @@ describe("fetchRegionEventsMerged", () => {
 
   it("consults all THREE providers each poll and surfaces a GEOFON-only event (gfz2026oyxe)", async () => {
     const usgsEvent = makeEvent("usgs", "us7000abcd");
-    // The verified live GEOFON record this wave was built against:
+    // The verified live GEOFON record GEOFON support was built against:
     // mb 4.48 at 55 km under Iraq — nowhere in USGS or EMSC.
     const geofonOnly = makeEvent("geofon", "gfz2026oyxe", {
       originTime: Date.UTC(2026, 7, 1, 20, 27, 43, 70),

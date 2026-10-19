@@ -13,7 +13,7 @@ interface ContributionRowProps {
 }
 
 /**
- * One My Data list row (D26 item 7 wave brief): date, event (if the report
+ * One My Data list row (D26 item 7 brief): date, event (if the report
  * is attached to one), felt level with its artwork thumbnail, damage grade
  * with its own thumbnail when window 2 was answered, and sync status.
  * The one action on a past contribution is "Withdraw" (review note 10.1;

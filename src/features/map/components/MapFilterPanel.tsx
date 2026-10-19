@@ -94,7 +94,7 @@ export function MapFilterPanel({
 
   // The COMPACT collapsed icon button's accessible name — same base hint
   // text as the non-compact header (`expandA11yHint`, unchanged from
-  // before this wave) with the live summary appended when a filter is
+  // before the compact button) with the live summary appended when a filter is
   // actually active, so a screen-reader user gets the "active" state
   // that's otherwise only conveyed visually (`MapControlIconButton`'s
   // badge dot) without a whole second set of translated strings — reuses

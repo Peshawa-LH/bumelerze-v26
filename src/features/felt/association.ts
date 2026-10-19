@@ -1,6 +1,6 @@
 import type { Event } from "@/features/events";
 
-/** Home pill's event-association window (spec-v1.md §4.6 wave brief, point
+/** Home pill's event-association window (spec-v1.md §4.6 brief, point
  * 4): "associated to the most recent regional event within the last hour if
  * one exists, else stored unassociated". */
 const HOME_ASSOCIATION_WINDOW_MS = 60 * 60_000;

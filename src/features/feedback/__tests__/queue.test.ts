@@ -3,7 +3,7 @@
  * `src/features/felt/__tests__/queue.test.ts`'s own discipline (fresh
  * `require()` after `jest.resetModules()`, since `jest.resetModules()`
  * clears both the module cache AND the AsyncStorage mock's in-memory
- * backing store). Covers the wave brief's own stated acceptance criteria:
+ * backing store). Covers the brief's own stated acceptance criteria:
  * "the message must never be lost to a weak network" (durable local write
  * before any transport attempt, retry/backoff, survives restart) and "the
  * message must submit successfully even if the photo upload fails or is

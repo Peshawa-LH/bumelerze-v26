@@ -5,7 +5,7 @@ import i18n from "@/i18n";
 import { buildFeedbackContext } from "../context";
 
 /**
- * `buildFeedbackContext` — automatically-captured context (wave brief:
+ * `buildFeedbackContext` — automatically-captured context (brief:
  * "Capture the context automatically rather than asking: app version from
  * the real version string (not hardcoded), current locale, platform").
  * `expo-constants` is mocked explicitly (rather than relying on jest-expo's

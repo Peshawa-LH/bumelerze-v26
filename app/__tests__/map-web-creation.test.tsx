@@ -3,7 +3,7 @@
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — map creation + marker
  * construction from the region feed. `maplibre-gl` is mocked at the module
- * boundary (wave brief: "no jsdom WebGL"); the jsdom environment override
+ * boundary (brief: "no jsdom WebGL"); the jsdom environment override
  * is needed because the marker layer builds real DOM elements directly
  * (`document.createElement`), which the repo's default jest-expo/RN
  * environment doesn't provide a `document` for.

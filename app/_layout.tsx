@@ -245,7 +245,7 @@ export default function RootLayout() {
     // Brief blank frame while the reload takes over, or while we're still
     // reading `onboardingCompleted` from AsyncStorage — never render the
     // Stack before we know whether it should register the tab screens or
-    // the onboarding screen (wave brief: "no flicker — gate on store
+    // the onboarding screen (brief: "no flicker — gate on store
     // hydration").
     return null;
   }

@@ -12,7 +12,7 @@
  *   1. Brand blue / action red exact hex (owner-review item).
  * The intensity ramp below is no longer a placeholder — see provenance note.
  *
- * BRAND-LOGO INTEGRATION NOTE (visual-asset-generator, brand-logo task):
+ * BRAND-LOGO INTEGRATION NOTE (brand-logo task):
  * the owner's finished logo package
  * (`assets/brand/logo/`, tokens in `assets/brand/tokens/`) is now the
  * official visual identity for icon/splash/favicon/website/store surfaces —
@@ -38,7 +38,7 @@ export const neutral = {
   500: "#A6A6AA",
   600: "#85858A",
   /**
-   * WCAG-AA contrast fix (accessibility-tester Phase 5 audit,
+   * WCAG-AA contrast fix (Phase 5 accessibility audit,
    * `theme/__tests__/palette.test.ts`'s new "text.tertiary" describe
    * block): `text.tertiary` (light theme) previously pointed at
    * `neutral[500]`, which reads at only ~2.43:1 against white — a clear

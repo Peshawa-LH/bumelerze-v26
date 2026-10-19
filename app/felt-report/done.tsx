@@ -15,9 +15,8 @@ import { useTheme } from "@/theme";
  * `enqueueTier2Report` (`queue.ts`). Subscribes to the same queue item's
  * live state the old tier-1 confirmation screen used to (`useQueueItemState`)
  * so the queued-vs-sent wording stays accurate if a real transport resolves
- * while this screen is on-screen — this wave that's always "queued"
- * (`PendingTransport`, no Supabase project yet), but the reactive read costs
- * nothing and needs no future change once a transport exists.
+ * while this screen is on-screen — with `PendingTransport` (no Supabase
+ * configured) it stays "queued", and the reactive read costs nothing.
  */
 export default function FeltReportDoneScreen() {
   const { feltReportId } = useLocalSearchParams<{
@@ -66,9 +65,9 @@ export default function FeltReportDoneScreen() {
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
-          {/* PendingTransport always ends in "awaiting-backend" this wave
-           * (no Supabase project yet) — the message stays honest about that
-           * rather than implying a real server confirmation. */}
+          {/* PendingTransport (no Supabase configured) always ends in
+           * "awaiting-backend" — the message stays honest about that rather
+           * than implying a real server confirmation. */}
           {queueState === "submitted"
             ? t("felt.done.submittedMessage")
             : t("felt.done.queuedMessage")}

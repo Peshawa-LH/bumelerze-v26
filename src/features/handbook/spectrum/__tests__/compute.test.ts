@@ -4,9 +4,9 @@ import type { SpectrumInputs } from "../types";
 /**
  * ISC-2017 Appendix B — an Iraqi government building in Baghdad on stiff
  * soil. Every expected value below is `[P]`, read directly out of the
- * code's own worked example (`handbook-spectra-design.md` §3.3), cross-
- * checked against two independent secondary sources. This is the "free
- * regression test" §7.3 calls out: if this suite does not pass exactly,
+ * code's own worked example, cross-checked against two independent
+ * secondary sources. This is a free regression test: if this suite does
+ * not pass exactly,
  * the implementation is wrong, not the code.
  */
 const BAGHDAD_APPENDIX_B: SpectrumInputs = {

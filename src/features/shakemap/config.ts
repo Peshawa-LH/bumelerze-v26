@@ -21,7 +21,7 @@ export const SHAKEMAP_BBOX_MIN_PADDING_DEG = 0.25;
 export const SHAKEMAP_VIEW_WIDTH = 320;
 export const SHAKEMAP_VIEW_HEIGHT = 240;
 
-/** Max gazetteer city dots drawn on the map (wave brief point 2 — "max ~5
+/** Max gazetteer city dots drawn on the map (brief point 2 — "max ~5
  * in-bbox cities"). */
 export const SHAKEMAP_MAX_CITIES = 5;
 
@@ -70,7 +70,7 @@ export const SHAKEMAP_CITY_DOT_RADIUS = 1.75;
  * theme's near-black surface. Bumped to a real text-toned color
  * (`colors.text.secondary`, `ShakeMapViewSvg.tsx`) at near-full opacity;
  * the 60%-opacity contour fills painted on top still read clearly over it
- * (wave brief: "contours keep their opacity so boundaries read through").
+ * (brief: "contours keep their opacity so boundaries read through").
  */
 /**
  * Fill opacity of the intensity and damage bands, on both renderers.

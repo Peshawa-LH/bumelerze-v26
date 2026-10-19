@@ -1,6 +1,6 @@
 /**
  * `src/lib/supabase.ts` — no real network call anywhere in this file
- * (Supabase-ready wiring wave brief: "no real network calls in tests").
+ * (Supabase-ready wiring brief: "no real network calls in tests").
  * `@supabase/supabase-js` is mocked entirely; `jest.resetModules()` between
  * tests (same discipline as `features/felt/__tests__/queue.test.ts`) so
  * each test gets a fresh module-scope cache (`cachedClient`,

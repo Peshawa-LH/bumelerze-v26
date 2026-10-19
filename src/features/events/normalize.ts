@@ -56,7 +56,7 @@ export function isWorldSignificant(event: Event): boolean {
  * Returns `null` for a structurally-valid-but-unusable feature (e.g. a
  * placeholder magnitude of `null`, which USGS emits for not-yet-reviewed
  * events) rather than throwing — callers count and skip these, never crash
- * (tolerant-parsing requirement, wave brief).
+ * (tolerant-parsing requirement, brief).
  */
 export function normalizeUsgsFeature(
   feature: UsgsFeature,
@@ -115,7 +115,7 @@ export function normalizeUsgsFeature(
  * - EMSC has no PAGER-equivalent alert field, so the alert bonus is always
  *   0 for an EMSC-sourced event — EMSC events can never get the alert-bonus
  *   boost a USGS "orange"/"red" event gets. This is a real, accepted
- *   asymmetry (wave brief point 1), not a bug: it only matters while an
+ *   asymmetry (brief point 1), not a bug: it only matters while an
  *   event is EMSC-only, and USGS's own record (once it appears) supersedes
  *   it via the merge's USGS-canonical preference (merge.ts).
  * - EMSC also has no felt/CDI data of its own feeding this score — same as

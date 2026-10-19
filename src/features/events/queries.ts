@@ -38,7 +38,7 @@ import type { Event } from "./types";
  * but on React Native that only has an effect once `focusManager` is told
  * about app-foreground state — RN doesn't fire the DOM `visibilitychange`
  * event React Query listens to by default. No extra native dependency
- * needed (no NetInfo): `AppState` alone is enough for this wave.
+ * needed (no NetInfo): `AppState` alone is enough.
  */
 function onAppStateChange(status: AppStateStatus): void {
   focusManager.setFocused(status === "active");
@@ -127,7 +127,7 @@ export const eventsQueryKeys = {
 export interface UseEventsFeedResult {
   events: Event[];
   /** True once we have rendered cache but the latest background fetch
-   * failed — the "isOffline-ish" signal the wave brief asks for, derived
+   * failed — the "isOffline-ish" signal the brief asks for, derived
    * from query state rather than a NetInfo dependency: we only *have* stale
    * cached data with a failing latest fetch when the device can't reach
    * USGS, which for this app's purposes is offline enough to say so.

@@ -18,7 +18,7 @@ export interface UseFeltMapResult {
    *   but produced zero displayable cells (an event with no felt reports
    *   yet, or none that have cleared the >=3-report display threshold) —
    *   spec-v1.md §4.5's "never blank/error" rule applies to the OFFLINE
-   *   case, not to the ordinary "nothing to show yet" case, which the wave
+   *   case, not to the ordinary "nothing to show yet" case, which the
    *   brief calls out explicitly: "hidden entirely when no data (no
    *   empty-state noise on old events)". The initial in-flight fetch (no
    *   cached data yet) also reports "hidden" — the section simply pops in

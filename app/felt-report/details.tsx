@@ -65,10 +65,10 @@ export default function DetailsReportScreen() {
   }
 
   async function handleAddPhoto() {
-    // Aggressive JPEG compression (quality 0.4) is this wave's size-limit
+    // Aggressive JPEG compression (quality 0.4) is the size-limit
     // mechanism — keeps a typical phone photo well under ~2MB without
     // pulling in a second native module (expo-image-manipulator) just for
-    // dimension-based resizing (wave brief: "aggressive size limit ~2MB
+    // dimension-based resizing (brief: "aggressive size limit ~2MB
     // with resize"). Library first (most common path), no editing UI (a
     // felt report shouldn't ask the user to crop anything mid-aftershock).
     const result = await ImagePicker.launchImageLibraryAsync({

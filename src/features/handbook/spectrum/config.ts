@@ -2,8 +2,8 @@ import type { OccupancyCategory } from "./types";
 
 /**
  * ISC-2017 spectrum tunables (D14: engineering-owned defaults, same
- * convention as `handbook/config.ts`). Every numeric value here is
- * `[P]`-cited in `.claude/research/handbook-spectra-design.md` §3.3/§10.1.
+ * convention as `handbook/config.ts`). Every numeric value here is read
+ * from the text of ISC-2017 (Iraqi Seismic Code 2017, IQ.303).
  */
 
 /** ISC-2017 §2-2/5: "TL may be taken, for the conditions of Iraqi
@@ -21,10 +21,9 @@ export const IMPORTANCE_FACTOR: Record<OccupancyCategory, number> = {
 };
 
 /**
- * Response modification coefficient `R` — a short, VERIFIED list only, per
- * `handbook-spectra-design.md` §11 item 1: the full ISC-2017 Table 3-2/1
- * (R / Omega0 / Cd per structural system) sits on a page whose Arabic font
- * has the broken digit map diagnosed in that document's §0.2, extracts as
+ * Response modification coefficient `R` — a short, VERIFIED list only: the
+ * full ISC-2017 Table 3-2/1 (R / Omega0 / Cd per structural system) sits on
+ * a page whose Arabic font has a broken digit map, so its text extracts as
  * `2.2`, `1..2`, `2.22`, `4.2`, is not arithmetically checkable, and
  * disagrees with the ASCE 7 values it should resemble. Shipping that table
  * would be exactly the "plausible wrong number" failure mode this feature
@@ -69,8 +68,8 @@ export const BUILDING_HEIGHT_BOUND = { min: 1, max: 400 };
 /** Reasonable free-entry bounds for `R` — wide enough to cover every real
  * structural system (unreinforced masonry near 1.5 through ductile steel
  * frames near 8) without accepting a typo like `40`. Not a code citation,
- * just input sanity (`handbook-spectra-design.md` names no source for a
- * generic bound because none exists without the withheld table). */
+ * just input sanity (no source gives a generic bound without the withheld
+ * table). */
 export const R_INPUT_BOUND = { min: 1, max: 8 };
 
 /** `Ss`/`S1` free-entry bounds, g. ISC-2017's own tables only tabulate

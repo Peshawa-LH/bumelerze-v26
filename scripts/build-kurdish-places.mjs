@@ -121,7 +121,7 @@ function readRegionBbox() {
 /** Overpass QL, one HTTP request: nodes+ways for each of `PLACE_TYPES`
  * carrying at least one of the three Kurdish/Arabic name tags we care
  * about, unioned in a single query block (still one round trip — the
- * "one query" the wave brief asks for is about request COUNT, not
+ * "one query" the brief asks for is about request COUNT, not
  * statement count). `out center tags` resolves a `center` lat/lon for way
  * results (villages/suburbs are sometimes mapped as a boundary way, not a
  * point) alongside every tag, in one pass. */

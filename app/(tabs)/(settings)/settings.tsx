@@ -299,7 +299,7 @@ function permissionStatusText(
 }
 
 /**
- * Owner directive (wave brief Part 3): "ONE button ... location, sensor,
+ * Owner directive (brief Part 3): "ONE button ... location, sensor,
  * and other permissions. I don't want a separate option for Sensor,
  * Location." One button chains every non-notification permission from a
  * single tap (`useDevicePermissions`'s own doc comment covers why the two

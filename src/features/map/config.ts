@@ -1,13 +1,13 @@
 /**
- * Tunable constants for the web map (Map tab, web-first wave). Web only —
- * see `app/(tabs)/(map)/map.web.tsx`'s doc comment for why the interactive map is
- * gated to the web platform this wave.
+ * Tunable constants for the web map (Map tab). Web only — see
+ * `app/(tabs)/(map)/map.web.tsx`'s doc comment for why the interactive map is
+ * gated to the web platform.
  */
 
 /**
  * OpenFreeMap (https://openfreemap.org) style URLs — free, no API key, no
  * signup, per PROJECT.md's "boring, well-documented" preference and the
- * wave brief's explicit basemap choice. Verified live (2026-08-16: both
+ * brief's explicit basemap choice. Verified live (2026-08-16: both
  * URLs return `200 application/json` style documents) rather than assumed
  * from docs. Picked by the app's active color scheme (`useTheme().scheme`),
  * matching the app's own dark-is-primary convention (design-language.md
@@ -109,7 +109,7 @@ export const MARKER_MAGNITUDE_CEILING = 7;
 
 /** Extra invisible padding around each marker's visible dot, widening the
  * clickable/tappable area beyond what the small dot itself would give —
- * "big touch targets on markers (extra hit radius)" (wave brief,
+ * "big touch targets on markers (extra hit radius)" (brief,
  * panic-time UX). Applied symmetrically, so the hit target is always
  * `diameter + 2 * MARKER_HIT_PADDING_PX` on each side. */
 export const MARKER_HIT_PADDING_PX = 10;

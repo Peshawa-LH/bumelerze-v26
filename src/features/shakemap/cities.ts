@@ -22,7 +22,7 @@ function isInBbox(city: GazetteerCity, bbox: LonLatBoundingBox): boolean {
  * Up to `SHAKEMAP_MAX_CITIES` gazetteer cities to label on the map:
  * restricted to the map's own bounding box, main-town ("known
  * bigger town") cities ranked first, remaining slots filled nearest-to-
- * center first (wave brief point 2's fallback ordering).
+ * center first (brief point 2's fallback ordering).
  */
 export function pickMapCities(
   bbox: LonLatBoundingBox,

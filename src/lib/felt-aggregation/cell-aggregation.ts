@@ -110,7 +110,7 @@ function floorCapRound(x: number): number {
  * corroborating evidence of feeling" where there was none. Anything
  * strictly above 1.0 (mixed evidence) still floors normally at the 2.0
  * boundary. This is a documented reading, not a literal transcription — the
- * wave brief's one-line paraphrase ("floor 2.0 when 0<CDI<2") numerically
+ * brief's one-line paraphrase ("floor 2.0 when 0<CDI<2") numerically
  * includes 1.0, but the brief's own golden-test list ("single not-felt
  * report -> 1.0") requires 1.0 to survive untouched, which only the
  * open-interval reading satisfies.
@@ -166,7 +166,7 @@ export function trimmedMeanIntensity(
  * evidence, independent of the capped `intensity`), because (a) the brief
  * asks for it explicitly as a `displayIntensity` output field, and (b) the
  * gate's evidence-counting logic is exactly what a future uncapped
- * intensity value (most likely `ems_int`, §3.4, out of scope this wave)
+ * intensity value (most likely `ems_int`, §3.4, not built yet)
  * will need — this function is written to be reusable then, not just
  * decorative now. `highLevelReportCount` counts RAW per-report levels >= 8
  * (tier-1 `cartoonLevel`, or a tier-2 report's optional carried-over

@@ -2,7 +2,7 @@ import type { SupportedLocale } from "@/i18n";
 
 /**
  * In-app feedback client types (owner directive, see `queue.ts`'s own doc
- * for the full wave brief). Mirrors `supabase/migrations/0020_feedback.sql`
+ * for the full brief). Mirrors `supabase/migrations/0020_feedback.sql`
  * field-for-field, the same "one type per DB row" discipline
  * `src/features/felt/types.ts` already established for this repo.
  */
@@ -34,7 +34,7 @@ export interface FeedbackPhotoAttachment {
 export type FeedbackPlatform = "ios" | "android" | "web";
 
 /**
- * Automatically captured context (wave brief: "Capture the context
+ * Automatically captured context (brief: "Capture the context
  * automatically rather than asking"). Every field is nullable because a
  * capture failure must never block the message itself — same "never block
  * the user-facing action on a secondary concern" stance
@@ -64,7 +64,7 @@ export interface FeedbackSubmission {
   feedbackId: string;
   deviceId: string;
   message: string;
-  /** Optional "so a tester can be followed up with" (wave brief). */
+  /** Optional "so a tester can be followed up with" (brief). */
   contact: string | null;
   context: FeedbackContext;
   /** Zero or more selected screenshots, still local at capture time — see

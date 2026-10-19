@@ -8,7 +8,7 @@
  * This module only holds the pure scope identity + the world fit-viewport
  * bbox — WHICH event array backs each scope is decided by the caller
  * (`useRegionEvents`/`useWorldEvents`, both already-existing data sources,
- * no new fetching per the wave brief).
+ * no new fetching per the brief).
  */
 import type { RegionBbox } from "./marker-helpers";
 

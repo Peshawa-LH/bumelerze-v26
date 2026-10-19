@@ -35,7 +35,7 @@ export default function OnboardingLocationScreen() {
   async function handleAllow() {
     setIsRequesting(true);
     try {
-      // Foreground-only (wave brief) — no background/"always" location is
+      // Foreground-only (brief) — no background/"always" location is
       // ever requested anywhere in this app.
       const { granted } = await Location.requestForegroundPermissionsAsync();
       // Fill the background reference place from this first fix. The

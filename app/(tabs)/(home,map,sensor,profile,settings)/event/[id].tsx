@@ -128,7 +128,7 @@ export default function EventDetailScreen() {
     }
   }, [routeIsBumelerzeId, displayBumelerzeId, router]);
 
-  // Local-only lookup (D8, wave brief point 4): this device's own queued
+  // Local-only lookup (D8, brief point 4): this device's own queued
   // report for this event, if any — there is no backend to ask for a
   // felt-map/report count yet, so "your report" can only ever reflect what
   // THIS device itself already submitted (features/felt/queue.ts).
@@ -244,7 +244,7 @@ export default function EventDetailScreen() {
               onPress={() => {
                 if (ownReport.tier2) {
                   // Tier 2 already submitted — nothing further to reach from
-                  // here this wave (no edit flow yet); the row still confirms
+                  // here (no edit flow yet); the row still confirms
                   // detail was added.
                   return;
                 }

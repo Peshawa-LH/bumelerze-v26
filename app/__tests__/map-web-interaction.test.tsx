@@ -237,7 +237,7 @@ describe("MapScreenWeb interaction", () => {
     expect(mockMapRemove).not.toHaveBeenCalled();
     expect(mockMarkerConstructorOptions).toHaveLength(1);
 
-    // "clicking the map background should dismiss it" (wave brief point 5)
+    // "clicking the map background should dismiss it" (brief point 5)
     // is wired as a plain, map-wide "click" listener — invoking it here
     // directly, exactly as MapLibre itself would for a genuine background
     // click, confirms the listener is registered and safe to call (it

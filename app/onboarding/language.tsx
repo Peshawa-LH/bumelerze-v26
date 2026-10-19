@@ -13,7 +13,7 @@ import { useTheme } from "@/theme";
  * content". Reuses the exact same changeLocale/restart logic as Settings
  * (useLocaleSwitcher) — the only addition here is persisting the resume
  * step *before* a restart fires, so a forced reload lands back on the next
- * screen instead of the start of onboarding (wave brief).
+ * screen instead of the start of onboarding (brief).
  */
 export default function OnboardingLanguageScreen() {
   const { t } = useTranslation();

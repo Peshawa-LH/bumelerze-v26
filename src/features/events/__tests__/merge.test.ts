@@ -180,7 +180,7 @@ describe("mergeProviderEvents", () => {
   });
 
   /**
-   * REGRESSION — the real missed earthquake this wave exists for:
+   * REGRESSION — the real missed earthquake this test exists for:
    * 2026-08-13 22:28 UTC, M4.0 mb, "IRAN-IRAQ BORDER REGION". Present in
    * EMSC's fdsnws catalog, absent from USGS entirely (below NEIC's ~M4.5
    * regional completeness). Under the old failover semantics this event

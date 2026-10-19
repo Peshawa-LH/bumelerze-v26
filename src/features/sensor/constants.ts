@@ -19,7 +19,7 @@
  */
 export const ACCELEROMETER_UPDATE_INTERVAL_MS = 20; // ~50 Hz requested
 
-/** Scrolling plot window (spec-v1.md §4.8 wave brief: "last ~10 s"). */
+/** Scrolling plot window (spec-v1.md §4.8 brief: "last ~10 s"). */
 export const PLOT_WINDOW_MS = 10_000;
 
 /**

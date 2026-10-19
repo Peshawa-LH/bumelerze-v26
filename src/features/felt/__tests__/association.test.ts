@@ -2,7 +2,7 @@ import type { Event } from "@/features/events";
 import { resolveHomeFeltAssociation } from "../association";
 
 /**
- * Home-pill event-association rule (wave brief point 4 / scope item 6):
+ * Home-pill event-association rule (brief point 4 / scope item 6):
  * "associated to the most recent regional event within the last hour if one
  * exists, else stored unassociated".
  */

@@ -70,7 +70,7 @@ const SHEET_CLOSE_DURATION_MS = 220;
  * a real container height — generously larger than any real device's
  * height, so the sheet always starts fully hidden below the visible frame
  * regardless of the eventual real size, then animates up to "peek" the
- * moment layout resolves (the wave brief's expected slide-up entrance). */
+ * moment layout resolves (the brief's expected slide-up entrance). */
 const OFFSCREEN_TRANSLATE_Y_PX = 4000;
 
 export interface EventPreviewSheetHandle {
@@ -268,7 +268,7 @@ function EventPreviewSheetImpl(
 
   useImperativeHandle(ref, () => ({ requestClose: animateClose }), [animateClose]);
 
-  // Keyboard parity (wave brief point 5): Escape dismisses, matching the
+  // Keyboard parity (brief point 5): Escape dismisses, matching the
   // close button/background-click paths — web-only (`Platform.OS`, not a
   // feature flag): a physical Escape key is a desktop/web-input concern,
   // native has no equivalent to intercept here.
@@ -285,7 +285,7 @@ function EventPreviewSheetImpl(
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [animateClose]);
 
-  // Focus management (wave brief point 5): moves keyboard focus into the
+  // Focus management (brief point 5): moves keyboard focus into the
   // sheet the moment it mounts (screen readers announce the `role="dialog"`
   // + `aria-label` set below the instant focus lands on it), and restores
   // focus to whatever was focused before (the tapped marker, in the common

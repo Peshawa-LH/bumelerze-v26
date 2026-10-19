@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join, relative } from "path";
 
 /**
- * Repo-wide static accessibility invariants (accessibility-tester Phase 5
+ * Repo-wide static accessibility invariants (Phase 5 accessibility audit
  * audit) — the kind of thing a lint rule would catch in a larger codebase,
  * reimplemented as a plain filesystem scan since this project doesn't run
  * eslint-plugin-react-native-a11y yet. Scans `app/` and `src/` (skipping

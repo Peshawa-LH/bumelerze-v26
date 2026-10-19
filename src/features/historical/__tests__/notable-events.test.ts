@@ -11,7 +11,7 @@ import {
 
 /**
  * Dataset integrity checks for the curated Historical View (lite) list
- * (spec-v1.md §4.7 wave brief, point 5). Every id in this dataset was
+ * (spec-v1.md §4.7 brief, point 5). Every id in this dataset was
  * individually verified against a live USGS fdsnws `eventid` query during
  * this build — these tests guard the *shape* invariants (uniqueness,
  * roughly-regional coordinates, note-key i18n coverage), not the
@@ -142,7 +142,7 @@ describe("NOTABLE_HISTORICAL_EVENTS", () => {
  * Bumelerze identity (owner directive 2026-09-02: "we sometimes use the
  * USGS ids and the USGS-assigned name for events; we have to fix this...
  * we cannot replicate their id or event names"). Verified mapping against
- * the live database — see the task brief this wave shipped from.
+ * the live database when this mapping shipped.
  */
 describe("NOTABLE_HISTORICAL_EVENTS bumelerzeId mapping", () => {
   const EXPECTED_MAPPING: Readonly<Record<string, string>> = {

@@ -64,7 +64,7 @@ import { ensureMapTouchControlStyle } from "@/lib/map-touch-controls";
 const SHAKEMAP_WEB_HEIGHT_PHONE_PX = 320;
 const SHAKEMAP_WEB_HEIGHT_WIDE_PX = 420;
 
-/** DOM marker size (px) for the epicenter star — matches the wave brief
+/** DOM marker size (px) for the epicenter star — matches the brief
  * ("about 22 px"). */
 const EPICENTER_MARKER_SIZE_PX = 22;
 
@@ -175,7 +175,7 @@ export function ShakeMapView(props: ShakeMapViewProps) {
           zoom: 4,
           attributionControl: false,
           // "scroll-zoom only with ctrl/cmd... page scrolling is not
-          // hijacked" (wave brief) — a real maplibre-gl 6.x `Map` option,
+          // hijacked" (brief) — a real maplibre-gl 6.x `Map` option,
           // not a hand-rolled wheel-event guard.
           cooperativeGestures: true,
         });

@@ -30,7 +30,7 @@ import { FEEDBACK_PHOTO_MAX_COUNT, useFeedbackQueueStore } from "@/features/feed
  * (`isSupabaseConfigured()` is false), so `enqueueFeedback` resolves through
  * `PendingFeedbackTransport` — the queue item settles into
  * "awaiting-backend", never "submitted". This is exactly the env-gating
- * case the wave brief calls out: the confirmation screen must never claim
+ * case the brief calls out: the confirmation screen must never claim
  * the feedback was sent under that condition.
  *
  * Multi-photo (migration 0021 wave): the picker mock now returns however

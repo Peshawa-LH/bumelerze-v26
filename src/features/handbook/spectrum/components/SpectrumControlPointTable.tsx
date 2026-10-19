@@ -30,10 +30,9 @@ interface Row {
 }
 
 /**
- * The control-point table — `handbook-spectra-design.md` §7.3: "the table
- * is not secondary", it is the deliverable, the chart supports it. Every
- * row here mirrors that document's §7.3 example table exactly (Ss/S1
- * through governing Cs pieces), in the same order.
+ * The control-point table — the table is not secondary, it is the
+ * deliverable, and the chart supports it. Its rows run from Ss/S1
+ * through the governing Cs pieces, in that order.
  *
  * `Sa at T=1.0s` is included unconditionally because `S1` is anchored at
  * exactly 1 second — reading that value straight off the table lets an

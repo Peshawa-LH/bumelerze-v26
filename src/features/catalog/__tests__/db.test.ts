@@ -8,7 +8,7 @@ import type { CatalogRow } from "../types";
  * canned result, which is enough to prove `fetchCatalogPage`/
  * `fetchCatalogCount`/`fetchCatalogBounds` build and execute the right
  * query against whatever `CatalogDb` they're given ("db opens + query
- * helpers" test coverage, wave brief). */
+ * helpers" test coverage, brief). */
 function makeFakeDb(fixtureRows: CatalogRow[]): CatalogDb & {
   lastAllCall: { sql: string; params: (string | number)[] } | null;
   lastFirstCall: { sql: string; params: (string | number)[] } | null;

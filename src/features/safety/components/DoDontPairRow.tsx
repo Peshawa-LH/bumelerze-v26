@@ -17,7 +17,7 @@ interface DoDontPairRowProps {
  * lastquake.md §3: "green ✓ / red ✗ framed"). The "do" and "dont" rows are
  * each their own accessible element with a localized "Do:"/"Don't:" prefix
  * baked into the accessibility label, so they read as distinct items to a
- * screen reader (not just distinct colors) — the wave brief's "distinct
+ * screen reader (not just distinct colors) — the brief's "distinct
  * roles" requirement.
  *
  * `pair.doImage`/`pair.dontImage` (owner-artwork wave, 2026-08-17): a small

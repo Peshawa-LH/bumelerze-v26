@@ -37,7 +37,7 @@ export const HOLD_REPEAT_INTERVAL_MS = 90;
  * [min, max] and rounded to `decimals`. Anything that is not a number puts
  * the last good value back.
  *
- * A boring, big-touch-target −/value/+ control (wave brief: "boring RN
+ * A boring, big-touch-target −/value/+ control (brief: "boring RN
  * controls, big touch targets") shared by the magnitude and year range
  * filters.
  *

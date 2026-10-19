@@ -229,7 +229,7 @@ describe("damage-grade palette — own 5-color set, decoupled from the intensity
   });
 });
 
-describe("text.tertiary — WCAG-AA contrast against surface.base (accessibility-tester Phase 5)", () => {
+describe("text.tertiary — WCAG-AA contrast against surface.base (Phase 5 accessibility audit)", () => {
   // Real screen content uses this token at normal (not "large") text sizes
   // — notificationSettings.fatigueFooter,
   // sensor.gravityNote — plus the always-visible bottom-tab-bar inactive
@@ -257,7 +257,7 @@ describe("text.tertiary — WCAG-AA contrast against surface.base (accessibility
   });
 });
 
-describe("brand.onPrimary (dark theme) — WCAG-AA contrast against brand.primary (accessibility-tester Phase 5)", () => {
+describe("brand.onPrimary (dark theme) — WCAG-AA contrast against brand.primary (Phase 5 accessibility audit)", () => {
   // This pair is the primary CTA button text/fill combo used on nearly
   // every onboarding + felt-report screen — a real, high-traffic failure,
   // not an edge case.

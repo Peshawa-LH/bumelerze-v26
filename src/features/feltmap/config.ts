@@ -8,7 +8,7 @@
  * `SHAKEMAP_VIEW_WIDTH`/`HEIGHT` — kept as an intentionally duplicated
  * literal (not a cross-import) so the two features' sizing can be tuned
  * independently later without one silently dragging the other along; the
- * wave brief's "feel like a sibling" goal is about the two sections reading
+ * brief's "feel like a sibling" goal is about the two sections reading
  * the same, not about hard-coupling their config modules together. */
 export const FELTMAP_VIEW_WIDTH = 320;
 export const FELTMAP_VIEW_HEIGHT = 240;

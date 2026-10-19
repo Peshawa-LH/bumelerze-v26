@@ -1,6 +1,6 @@
 /**
  * Integration-style tests for the orchestration layer, against an in-memory
- * `Db` fake — no live Postgres involved (per the wave brief: prove idempotency
+ * `Db` fake — no live Postgres involved (per the brief: prove idempotency
  * and dedup as unit tests, not against a running Supabase project).
  *
  * `FakeDb.createSourceRecordViaEventRegistry` deliberately re-implements

@@ -182,7 +182,7 @@ function hasWebMotionPermissionApi(): boolean {
  *     (~30 fps), reads the buffer, applies the current time window +
  *     gravity toggle + point-count downsampling, and commits exactly one
  *     `setFrame` per tick. This is the "throttled state update" half of
- *     the wave brief's "do NOT setState at 50 Hz" requirement.
+ *     the brief's "do NOT setState at 50 Hz" requirement.
  *
  * Web needs an extra branch: iOS Safari gates `DeviceMotionEvent` behind a
  * permission that can only be requested from a user gesture, so the mount

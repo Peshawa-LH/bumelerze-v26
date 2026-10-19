@@ -17,7 +17,7 @@ describe("getRelativeTime", () => {
   const now = 1_700_000_000_000;
 
   it("clamps a future/negative-age origin time to 'just now' instead of a negative duration", () => {
-    // "Rasathane bug lesson" (wave brief) — a client clock a few seconds
+    // "Rasathane bug lesson" (brief) — a client clock a few seconds
     // behind the event's origin time (or a just-published event) must
     // never render as negative/future.
     const future = now + 5_000;

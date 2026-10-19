@@ -16,7 +16,7 @@ import {
 } from "../content";
 
 /**
- * Content-model integrity (wave brief point 5): every key the content
+ * Content-model integrity (brief point 5): every key the content
  * registry can produce must exist in all four locale catalogs. This is
  * `locales.test.ts`'s "every locale ships the same keys as English" check
  * turned around — it proves the *registry* and the *catalogs* agree with
@@ -82,7 +82,7 @@ describe("safety content-model integrity", () => {
 });
 
 /**
- * Section-completeness (wave brief point 5): the tri-tab structure and the
+ * Section-completeness (brief point 5): the tri-tab structure and the
  * SURVIVE accessibility-variant benchmark (MyShake/LastQuake, teardown-
  * myshake.md §2-3) are hard requirements from spec-v1.md §4.9 — assert them
  * directly against the data, not just indirectly through a screen render.
@@ -173,7 +173,7 @@ describe("safety content — artwork keys resolve", () => {
 });
 
 /**
- * Regression lock for the file-to-row mapping (the wave brief's explicit
+ * Regression lock for the file-to-row mapping (the brief's explicit
  * concern: "this is the exact place an off-by-one mapping would hide, and
  * the felt wave already got bitten by a numbering assumption once"). Pins
  * every card's `images` and every do/dont pair's `doImage`/`dontImage` to

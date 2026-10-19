@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 /**
- * Prefs store (wave brief point 2) — the app's first true client-state need,
+ * Prefs store (brief point 2) — the app's first true client-state need,
  * so per typescript-react-native.md this is zustand, not React Query (that
  * stays reserved for server state) and not Redux.
  */
@@ -66,7 +66,7 @@ export interface PrefsState {
   /** Furthest onboarding screen the user has reached. Exists so a forced
    * app reload mid-onboarding (the language screen's RTL-flip restart is
    * the only thing that triggers one) can resume exactly where the user
-   * left off instead of restarting the whole flow (wave brief: "must
+   * left off instead of restarting the whole flow (brief: "must
    * survive the restart and RESUME onboarding, not restart it"). */
   onboardingStep: OnboardingStepId;
   /**
@@ -116,7 +116,7 @@ export interface PrefsState {
   /** True once the persisted values have finished loading from
    * AsyncStorage. The root layout renders nothing until this flips, so it
    * never flashes Home before onboarding, or onboarding before Home
-   * (wave brief: "no flicker — gate on store hydration"). */
+   * (brief: "no flicker — gate on store hydration"). */
   hasHydrated: boolean;
   setOnboardingStep: (step: OnboardingStepId) => void;
   completeOnboarding: () => void;

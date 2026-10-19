@@ -13,9 +13,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * variables are inlined into the JS bundle by Metro at build/start time —
  * no `app.config.ts` `extra` plumbing needed, and the same `.env` works for
  * `expo start`, EAS builds, and EAS Update alike (docs.expo.dev
- * "Environment variables"). See `.env.example` at the repo root for the two
- * values the owner pastes in, and `supabase/README.md`'s "Wiring status"
- * section for the end-to-end unlock procedure.
+ * "Environment variables"). See `.env.example` at the repo root for the
+ * values, and `supabase/README.md`'s "How the app connects" section.
  *
  * **Auth model recap (supabase/README.md, migrations 0003/0005):**
  * `felt_reports`/`felt_report_details`/`telemetry_pings` accept anonymous
@@ -23,9 +22,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * identity at all — those never need a Supabase Auth session, just the anon
  * key. `notification_subscriptions` is the one table that needs a real
  * `auth.uid()` for its per-row RLS ownership, via Supabase Anonymous Auth —
- * that's what `signInAnonymously()` below is for (not used by anything in
- * this wave yet; notification-subscription sync is still future work, see
- * README).
+ * that's what `signInAnonymously()` below is for (felt-report, feedback,
+ * Event hub and web-push writes call it too, so they carry `auth.uid()`).
  */
 
 function normalizeEnvValue(value: string | undefined): string | null {
@@ -49,7 +47,7 @@ function readSupabaseAnonKey(): string | null {
   return normalizeEnvValue(process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-/** Guard every Supabase-touching call site with this — mirrors the wave
+/** Guard every Supabase-touching call site with this — mirrors the
  * brief's "isSupabaseConfigured() guard everywhere" requirement. */
 export function isSupabaseConfigured(): boolean {
   return readSupabaseUrl() !== null && readSupabaseAnonKey() !== null;

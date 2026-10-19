@@ -68,7 +68,7 @@ export interface FeltLocation {
 
 /**
  * Tier-1 record — mirrors `felt_reports` (migration 0003).
- * Three timestamps per the wave brief: `feltAt` (when the shaking/tap
+ * Three timestamps per the brief: `feltAt` (when the shaking/tap
  * happened, from the user's point of view), `createdAt` (when this record
  * was captured on-device — maps 1:1 to the migration's `created_at`, "may
  * be backdated by the offline queue"), and `submittedAt` (when it reached
@@ -247,10 +247,11 @@ export interface Tier2Report {
    * a LOCAL file path/URI from `expo-image-picker`, never a remote URL at
    * capture time. Not a `Tier2Answers` field on purpose: it is transport
    * metadata (destined for `felt_photos.storage_path` once a real upload
-   * exists), not a survey answer that belongs in `raw_answers`. No upload
-   * happens this wave — see `supabase-transport.ts`'s TODO — so this stays
-   * queued locally, same "never lost, just not yet sent" contract as every
-   * other field here.
+   * exists), not a survey answer that belongs in `raw_answers`. The queue
+   * uploads it in its own retry-tracked pass after the report has landed
+   * (`supabase-transport.ts`'s `uploadPhoto`); until then it stays queued
+   * locally, same "never lost, just not yet sent" contract as every other
+   * field here.
    */
   photoUri: string | null;
   createdAt: number;

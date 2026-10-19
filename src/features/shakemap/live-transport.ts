@@ -143,7 +143,7 @@ const RISK_ROW_COLUMNS = ["product_type", "storage_path"] as const;
 
 /** The risk-chain artifact types a version can publish alongside its
  * `contours` row (migrations 0027/0028/0030) — `risk_grid` (the opt-in
- * per-cell raster) is deliberately excluded, this wave's `RiskSection`
+ * per-cell raster) is deliberately excluded, `RiskSection`
  * never needs it. `report` (the downloadable PDF, migration 0028) is a
  * pointer only — its `storage_path` IS the artifact (a PDF URL), never
  * fetched-and-JSON-parsed the way the others are. `risk_areas` (migration

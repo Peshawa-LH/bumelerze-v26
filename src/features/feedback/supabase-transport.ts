@@ -16,7 +16,7 @@ import type { FeedbackPhotoAttachment, FeedbackSubmission } from "./types";
 /** Private Storage bucket created by migration 0020 — see that file for the
  * bucket config (5 MB limit, jpeg/png/webp) and the storage.objects RLS
  * policies this upload path depends on. Deliberately NOT `felt-photos`
- * (migration 0016) — the wave brief is explicit the two must stay separate
+ * (migration 0016) — the brief is explicit the two must stay separate
  * buckets so retention/deletion policies can differ later. */
 const FEEDBACK_PHOTOS_BUCKET = "feedback-photos";
 
@@ -177,8 +177,8 @@ async function readPhotoBody(uri: string): Promise<Blob | ArrayBuffer> {
  * keyed on `photo_id`. Never throws — every failure path returns
  * `{ outcome: "failed" }` so `queue.ts`'s per-photo retry pass can safely
  * re-attempt just THIS photo on the next drain without the surrounding
- * feedback message, or any sibling photo, ever being affected (wave
- * brief: "the message must submit successfully even if the photo upload
+ * feedback message, or any sibling photo, ever being affected
+ * (brief: "the message must submit successfully even if the photo upload
  * fails or is slow"; "each photo uploads independently ... one photo
  * failing must not prevent the others from uploading").
  */

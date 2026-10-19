@@ -108,7 +108,7 @@ export const OWN_LABELS_ATTRIBUTION =
 export const KURDISH_PLACES_CORE: readonly KurdishPlace[] =
   parseKurdishPlaces(kurdishPlacesCoreRaw);
 
-/** Minimum zoom each Kurdish-place tier starts rendering at (wave brief:
+/** Minimum zoom each Kurdish-place tier starts rendering at (brief:
  * "zoom-tiered so cities appear early and villages only at close zoom").
  * Tunable engineering defaults (PROJECT.md D14: no science review needed):
  * tier 1 (city) matches the gazetteer's own always-visible treatment (0);
@@ -126,7 +126,7 @@ export const KURDISH_PLACE_MIN_ZOOM: Record<KurdishPlaceTier, number> = {
 };
 
 /** Radius within which a Kurdish-places entry is treated as "the same
- * place" as a gazetteer city, and dropped (wave brief: "gazetteer names
+ * place" as a gazetteer city, and dropped (brief: "gazetteer names
  * winning on conflict since those are hand-checked"). 5km comfortably
  * covers the gap between the gazetteer's approximate town centroids
  * (`gazetteer.ts`'s own doc comment: "approximate town centroids, not
@@ -159,7 +159,7 @@ export interface OwnLabelProperties {
    * to render at all (`KURDISH_PLACE_MIN_ZOOM`, or 0 for gazetteer
    * cities/OSM tier-1 cities) — a per-FEATURE property rather than a
    * layer-level `minzoom` because tiers are mixed within one source/layer
-   * (wave brief: "cities appear early and villages only at close zoom",
+   * (brief: "cities appear early and villages only at close zoom",
    * all in the same label layer so they keep participating in the same
    * cross-layer collision index — see the module doc comment above). */
   minzoom: number;
@@ -194,7 +194,7 @@ function isPointWithinBbox(
 
 /**
  * Builds the GeoJSON feature collection for the own-labels source — one
- * Point feature per gazetteer city within `bbox` (the wave brief: "within/
+ * Point feature per gazetteer city within `bbox` (the brief: "within/
  * near REGION_BBOX... don't try to relabel the world"), labeled via the
  * SAME `pickLocalizedName` choke point every other gazetteer consumer uses
  * (`geo/nearest.ts`, `geo/place-line.ts`), so a locale switch here can never

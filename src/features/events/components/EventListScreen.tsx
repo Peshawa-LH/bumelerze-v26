@@ -61,7 +61,7 @@ const SKELETON_ROW_COUNT = 5;
 
 /**
  * Shared list rendering used by Home (region feed), World Catalog, and
- * Significant Events (wave brief point 3: "pushed routes reusing the same
+ * Significant Events (brief point 3: "pushed routes reusing the same
  * list component"). FlatList, not FlashList — boring choice, deliberate:
  * these lists run in the low hundreds of rows at most (30-day regional
  * window / weekly M4.5+ world window), well under where FlashList's extra
@@ -90,7 +90,7 @@ export function EventListScreen({
   const router = useRouter();
   // Relative-time math only needs a roughly-current instant (re-renders on
   // every fetch/pull-to-refresh keep it fresh) — no live ticking clock in
-  // Phase 1 (boring choice, wave brief). The react-hooks/purity rule flags
+  // Phase 1 (boring choice, brief). The react-hooks/purity rule flags
   // any `Date.now()` read during render on principle (it's aimed at making
   // components safe for the React Compiler's memoization); this read is
   // intentionally non-memoized so it never goes stale across re-renders.
@@ -108,7 +108,7 @@ export function EventListScreen({
   // iOS VoiceOver companion to `OfflineBanner`'s `accessibilityLiveRegion`
   // (Android-only) — announces the offline/stale-data state on the
   // false->true transition so it isn't silently visual-only on iOS
-  // (accessibility-tester Phase 5 audit). Guarded to fire once per
+  // (Phase 5 accessibility audit). Guarded to fire once per
   // "went offline" event, not on every re-render while still offline.
   const wasOfflineRef = useRef(false);
   useEffect(() => {

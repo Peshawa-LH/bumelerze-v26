@@ -2,7 +2,7 @@
  * On-map magnitude/date filters (update-plan-2026-08.md §4.4: "a slider to
  * filter magnitudes and dates and so on"). Pure client-side narrowing of an
  * ALREADY-FETCHED event array — no new fetch is ever issued for a filter
- * change, matching the wave brief and the region/world feeds' own polling
+ * change, matching the brief and the region/world feeds' own polling
  * cadence (`queries.ts`).
  *
  * Bounds are computed from whatever event set is actually on screen (per

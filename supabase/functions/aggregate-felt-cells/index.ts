@@ -38,14 +38,10 @@
 // outright if it was JUST recomputed. See `README.md` in this folder for
 // the fuller design notes (grouping, p6 trigger, pg_cron alternative).
 //
-// Trigger wiring (not this wave): the natural production trigger is a
-// Postgres webhook (Database Webhooks, Supabase's own pg_net-backed
-// feature) on `felt_reports`/`felt_report_details` INSERT, POSTing
-// `{ "eventId": NEW.event_id }` here — or a `pg_cron` schedule calling the
-// sweep mode every few minutes. Both are one-line Supabase dashboard/SQL
-// config once a project exists to configure them against; wiring either up
-// is explicitly left to the orchestrator (task brief: "the orchestrator
-// will schedule it later").
+// Trigger wiring: the `pg_cron` job `aggregate_felt_cells` (migration 0017)
+// calls the sweep mode every 5 minutes. The alternative, a Postgres webhook
+// (Database Webhooks) on `felt_reports`/`felt_report_details` INSERT POSTing
+// `{ "eventId": NEW.event_id }` here, was not needed.
 
 import { z } from "npm:zod@3.25.76";
 

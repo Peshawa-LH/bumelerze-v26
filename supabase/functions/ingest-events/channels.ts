@@ -68,8 +68,8 @@ const LIVE_CHANNEL_LOOKBACK_HOURS = 72; // EMSC/USGS/GEOFON: 3 days.
  * per-channel "last successful sweep endtime" cursor (a one-row state
  * table, or simply `max(fetched_at)` already on `event_source_records`)
  * and only widen the ISC window backward on a slower cadence (e.g. weekly)
- * while polling a narrow recent slice daily — not built now (this wave's
- * brief: measure and recommend, don't solve).
+ * while polling a narrow recent slice daily — not built (the brief:
+ * measure and recommend, don't solve).
  */
 const ISC_LOOKBACK_DAYS = 450;
 

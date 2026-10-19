@@ -4,7 +4,7 @@ import { EmptyStateScreen } from "@/components/EmptyStateScreen";
 
 /**
  * Native (iOS/Android) Map tab — the interactive MapLibre map is web-first
- * this wave (see `map.web.tsx`'s doc comment for the full reasoning): the
+ * (see `map.web.tsx`'s doc comment for the full reasoning): the
  * native MapLibre module needs a dev build, which needs the owner's Expo
  * account, which isn't set up yet. Metro's platform-extension resolution
  * (`map.web.tsx` vs. this bare `map.tsx`) means native never even sees, let

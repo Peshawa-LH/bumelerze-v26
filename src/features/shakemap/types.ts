@@ -5,7 +5,7 @@
  * `bumelerze-engine/scripts/bundle_atlas_for_app.py`) is the only module that
  * knows the bundle's on-disk JSON shape; everything past it reads
  * `AtlasBundleEntry`. There is deliberately no USGS-shaped product type
- * anymore — the live USGS ShakeMap display path was removed this wave (see
+ * anymore — the live USGS ShakeMap display path was removed (see
  * `queries.ts`'s doc comment).
  */
 
@@ -362,7 +362,7 @@ export interface RiskProduct {
    * `damageContours` already follows; unlike `damageContours`, an absent
    * `areas` never degrades anything else, `RiskSection` simply falls back
    * to the coarser `RiskProvinceList` (the `districts` product above) it
-   * already rendered before this wave. */
+   * already rendered before area statistics existed. */
   areas: RiskAreas | null;
   /** Absolute URL of this version's downloadable `report.pdf`
    * (`RiskProvenanceChips.tsx`'s "Download report" button, D46 follow-up).

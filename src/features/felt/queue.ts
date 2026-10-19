@@ -57,7 +57,7 @@ import type {
 
 export type TransportResult =
   | { outcome: "submitted"; serverReportId: string }
-  /** No backend exists to hand off to yet (this wave) — NOT a failure:
+  /** No backend is configured to hand off to — NOT a failure:
    * nothing was attempted, nothing was lost, nothing needs retrying until a
    * real transport replaces `PendingTransport`. */
   | { outcome: "awaiting-backend" }
@@ -325,7 +325,7 @@ export interface EnqueueTier2Input {
  * mechanism (2026-08-15 flow restructure, owner directive: "supersede
  * semantics like tier-2 today"). Throws if that item doesn't exist, which
  * would only happen from a programming error (this flow is only ever
- * reachable with a real tier-1 report id in hand, per the wave brief's
+ * reachable with a real tier-1 report id in hand, per the brief's
  * navigation rule).
  */
 export async function enqueueTier2Report(
@@ -507,7 +507,7 @@ export async function processQueue(
       // server-side — see `uploadFeltPhoto`'s own doc. Never fails or
       // retries the report itself: only `photoState` moves, `state` is
       // left untouched either way (photo upload success/failure is
-      // reported nowhere scary to the user, per the wave brief).
+      // reported nowhere scary to the user, per the brief).
       if (typeof transport.uploadPhoto === "function") {
         const uploadPhoto = transport.uploadPhoto;
         const { items: itemsAfterReports } = useFeltQueueStore.getState();
@@ -752,7 +752,7 @@ export function useQueueItemState(reportId: string | null): QueueItemState | nul
 }
 
 /** The device's own queued report for a given event, if any — powers Event
- * Detail's "your report / add more detail" row (wave brief point 4). Only
+ * Detail's "your report / add more detail" row (brief point 4). Only
  * ever finds LOCAL queue items (this device's own submissions), never a
  * server-side felt-map lookup — there is no backend to query yet. */
 export function useOwnQueueItemForEvent(eventId: string | null): QueueItem | null {

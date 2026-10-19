@@ -87,7 +87,7 @@ export const GEOFON_FEEDS = {
  * old 30-day window, still unfiltered by magnitude (PROJECT.md: no
  * aggressive background polling, but this is payload SIZE per poll, not
  * poll FREQUENCY — the 60s cadence in EVENTS_REFETCH_INTERVAL_MS is
- * unchanged). Accepted as the boring/simple option for this wave (one
+ * unchanged). Accepted as the boring/simple option (one
  * query, one cache key, no new plumbing); the M>=6 "12 months" notable
  * tier deliberately does NOT extend this hot-path window further — see
  * `NOTABLE_TAIL_*` below for how that tail is covered instead, at far
@@ -118,7 +118,7 @@ export const HOME_FEED_MIN_MAGNITUDE = 3.0;
  * defaults, no science review needed), so the policy stays testable via
  * fixtures without touching a live query.
  *
- * FUTURE (recorded, explicitly NOT built this wave): an operator-controlled
+ * FUTURE (recorded, explicitly NOT built): an operator-controlled
  * "crisis mode" override for aftershock sequences — owner: "in case a big
  * event happens in Kurdistan with aftershocks happening, then probably we
  * need a more manual entry or setting controlled from our side." Parked

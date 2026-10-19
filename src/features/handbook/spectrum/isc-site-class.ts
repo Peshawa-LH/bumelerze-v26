@@ -5,7 +5,7 @@ import type { IscSiteClass } from "./types";
  * DELIBERATELY separate from `handbook/site-class.ts`'s `ec8ClassFromVs30`
  * and `nehrpClassFromVs30` — this is not a reuse, and must not become one.
  *
- * `.claude/research/handbook-spectra-design.md` §3.6 is the reason: the
+ * The boundaries are the reason: the
  * app's existing EC8 function has its C/D-equivalent boundary at 360 m/s
  * (EN 1998-1 Table 3.1's B/C line, actually); this function's C/D boundary
  * is ISC-2017's own **370 m/s**, appearing four independent times in the
@@ -13,8 +13,8 @@ import type { IscSiteClass } from "./types";
  * tables under-predicts short-period site amplification by 33% and
  * 1-second amplification by 41% for the single most common Iraqi site
  * condition (median grid Vs30 ~291 m/s lands EC8 "C" but ISC "D") — a
- * plausible wrong number, not a crash. See that document's §3.6 table for
- * the full boundary comparison.
+ * plausible wrong number, not a crash. Compare ISC-2017 Table 7-1/1 with
+ * EN 1998-1 Table 3.1 for the full boundary comparison.
  *
  * Class F ("requires site-specific investigation" — liquefiable soils,
  * highly organic soils/peat, very high plasticity clays, thick soft/medium

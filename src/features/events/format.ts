@@ -121,7 +121,7 @@ export interface RelativeTimeResult {
 
 /**
  * Relative age of an event, clamped so it can never read as negative/
- * future ("Rasathane bug lesson", wave brief) — a client clock a few
+ * future ("Rasathane bug lesson", brief) — a client clock a few
  * seconds behind the event's origin time (or a just-published event) must
  * never render "in -3 seconds" or similar nonsense; it floors to "just now".
  */

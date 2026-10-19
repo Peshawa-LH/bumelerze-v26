@@ -7,7 +7,7 @@ import { computeTileWidth } from "../grid-layout";
  * inconsistent tile sizes across devices/rows. `computeTileWidth` replaces
  * that with an exact, container-width-derived pixel width shared by every
  * tile regardless of which row it lands in. These tests check the pure
- * math at exactly the viewport widths the wave brief calls out (320/375/
+ * math at exactly the viewport widths the brief calls out (320/375/
  * 414/768 + a desktop-ish width), for both grid shapes in the app
  * (DamageTile's 5-column typology rows, LevelTile's 3-column groups).
  */

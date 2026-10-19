@@ -9,7 +9,7 @@ import type { FeltLocation } from "../types";
 /**
  * Window 3 — comment + photo + "add more detail" + Submit (2026-08-15 flow
  * restructure, owner directive). Photo capture is mocked at the
- * `expo-image-picker` boundary (wave brief scope item 6: "photo attach
+ * `expo-image-picker` boundary (brief scope item 6: "photo attach
  * (mocked picker)") — no real native module or filesystem I/O in tests.
  */
 

@@ -174,7 +174,7 @@ export interface EventSheetController {
 /**
  * The sheet's state machine, factored out of `map.web.tsx` as a plain hook
  * so it's independently testable via `renderHook` — no map, no DOM, no
- * Reanimated/Gesture-Handler involved (wave brief: "Sheet state machine...
+ * Reanimated/Gesture-Handler involved (brief: "Sheet state machine...
  * opens on marker select, moves between detents, dismisses").
  */
 export function useEventSheetController(): EventSheetController {

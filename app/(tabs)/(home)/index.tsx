@@ -29,7 +29,7 @@ import { useTheme } from "@/theme";
  * — a direct Home link made the header crowded on a phone, so Catalog is
  * now reachable only one tap further in, from Historical's own footer link
  * (`app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx`). Also hosts the
- * persistent felt-report pill (D8, wave brief point 4) — association is
+ * persistent felt-report pill (D8, brief point 4) — association is
  * resolved HERE (most recent regional event within the last hour, else
  * unassociated) using the already-loaded region feed, not inside the pill
  * itself, so the pill component stays a dumb navigation trigger reusable on
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     // Three links share this row (World/Significant/Historical, Catalog
     // dropped 2026-08-21 — see this file's own top-of-file doc comment) —
-    // flexWrap is still the "small overflow pattern" the wave brief allows
+    // flexWrap is still the "small overflow pattern" the brief allows
     // for a crowded header row, letting the row grow to a second line on
     // narrow devices or longer-translation locales (e.g. Sorani) instead
     // of clipping or squeezing hit targets below the 44dp minimum.

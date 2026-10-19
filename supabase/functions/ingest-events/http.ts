@@ -1,6 +1,6 @@
 // Shared HTTP fetch helper: sane timeout + ONE bounded retry, never more.
 //
-// "Be polite to the agencies" (wave brief): this function's own cron wiring
+// "Be polite to the agencies" (brief): this function's own cron wiring
 // already keeps outbound load low (one HTTP request per channel per tick —
 // four channels, three requests/minute plus one daily bulletin sweep total,
 // per source-and-ingestion-plan.md §5 vs. today's ~180,000/hour from every

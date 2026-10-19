@@ -2,8 +2,8 @@ import { TIER2_QUESTIONS, TIER2_QUESTION_COUNT } from "../questions";
 import { EMPTY_TIER2_ANSWERS, type Tier2Answers } from "../types";
 
 /**
- * Tier-2 answers map to the RAW enum types the science pack defines (wave
- * brief scope item 6) — verbatim against `felt-report-science-v1.md` PART 2
+ * Tier-2 answers map to the RAW enum types the science pack defines (brief
+ * scope item 6) — verbatim against `felt-report-science-v1.md` PART 2
  * Q1-Q9/Q11 (Q10 removed, 2026-08-15 flow restructure — see
  * `questions.ts`'s own doc comment) and the CHECK constraints in
  * `supabase/migrations/0003_felt_reports.sql`/`0009_felt_damage_typology.sql`.

@@ -11,7 +11,7 @@ import type { FeltCellRow } from "../types";
  * felt-report data (Bumelerze had no backend live on 2026-08-13) — a
  * plausible synthetic decay pattern (CDI highest near the assumed
  * epicenter, falling off with distance) built for deterministic test/
- * preview coverage, per the wave brief's "realistic golden fixture"
+ * preview coverage, per the brief's "realistic golden fixture"
  * request.
  *
  * `event_id` is deliberately NOT shaped like a real USGS/EMSC id (compare
@@ -26,7 +26,7 @@ export const CHAMCHAMAL_CENTER = { lat: 35.53, lon: 44.83 };
 /** `[deltaLat, deltaLon, cdi, nReports]` — degree offsets from
  * `CHAMCHAMAL_CENTER`, roughly one p5 cell-width (~0.045°) apart, CDI
  * decaying outward from the assumed epicenter (mixed 2.2-6.0, within the
- * wave brief's "mixed CDI 2-6" request), report counts 3-40 (also per the
+ * brief's "mixed CDI 2-6" request), report counts 3-40 (also per the
  * brief). All p5 (base display precision) — the separate precision-nesting
  * behavior (p4/p6 superseding) already has dedicated coverage in
  * `__tests__/cell-selection.test.ts`, so this golden fixture stays single-

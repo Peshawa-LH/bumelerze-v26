@@ -2,9 +2,8 @@ import type { IscSiteClass } from "./types";
 
 /**
  * ISC-2017 Tables 2-2/1(a) and 2-2/1(b) — site coefficients `Fa` and `Fv`.
- * Transcribed verbatim from `.claude/research/handbook-spectra-design.md`
- * §3.3, which read them directly out of the code (Latin-headed tables,
- * clean extraction) and cross-checked every cell against ISC-2017's own
+ * Transcribed verbatim from the code itself (Latin-headed tables, clean
+ * text extraction) and cross-checked every cell against ISC-2017's own
  * Appendix B worked example (`Fa = 1.56` for `Ss = 0.3`, class D interpolates
  * exactly; `Fv = 2.4` for `S1 = 0.1`, class D matches the table row
  * directly) plus two independent secondary sources. These are ASCE

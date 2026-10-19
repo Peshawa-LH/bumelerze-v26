@@ -1,5 +1,5 @@
 /**
- * device-id stability (D8 identity model; wave brief scope item 6:
+ * device-id stability (D8 identity model; brief scope item 6:
  * "device-id stability"). Same fresh-require-per-test pattern as
  * `features/onboarding/__tests__/store.test.ts` — `jest.resetModules()`
  * clears BOTH the module cache and the AsyncStorage jest mock's in-memory

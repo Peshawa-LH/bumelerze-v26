@@ -17,7 +17,7 @@ export interface UseDevicePermissionsResult {
 }
 
 /**
- * Settings' single "Device permissions" control (owner request, wave brief
+ * Settings' single "Device permissions" control (owner request, brief
  * Part 3: "ONE button ... location, sensor, and other permissions", no
  * separate per-permission ask). Composes the two existing, already-tested
  * per-permission hooks rather than re-implementing status/focus-recheck

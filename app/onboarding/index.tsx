@@ -22,7 +22,7 @@ export default function OnboardingMissionScreen() {
   // is the only thing that triggers one) remounts the whole app back here,
   // the flow's first screen. If we already got further than this before the
   // reload, bounce straight to that step instead of making the user redo
-  // screens they already completed (wave brief: "must ... RESUME
+  // screens they already completed (brief: "must ... RESUME
   // onboarding, not restart it").
   if (onboardingStep !== "mission") {
     return <Redirect href={onboardingRouteForStep(onboardingStep)} />;

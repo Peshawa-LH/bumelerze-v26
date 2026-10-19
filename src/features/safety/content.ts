@@ -90,7 +90,7 @@ export const SAFETY_SECTION_IDS: readonly SafetySectionId[] = [
 ];
 
 /**
- * PREPARE / SURVIVE / RECOVER content, ~5 cards per section per the wave
+ * PREPARE / SURVIVE / RECOVER content, ~5 cards per section per the
  * brief. Regionally grounded per PROJECT.md + spec-v1.md §1 (Kurdish-first,
  * scientifically correct, no drama): rooftop water tanks and gas cylinders
  * (both common in Kurdish homes) get their own mentions rather than generic

@@ -8,7 +8,7 @@
  * national feed pending an agreement; `bumelerze-crowd`: written directly by
  * `detect_possible_events`, migration 0012, never by this function). Both
  * are already representable in `event_source_records.provider` (migration
- * 0012 / 0023) without a further schema change — the wave brief's "two
+ * 0012 / 0023) without a further schema change — the brief's "two
  * reserved slots" requirement. Adding a FIFTH buildable channel means: one
  * more value here, one more `ChannelDefinition` in `channels.ts`, one more
  * `cron.schedule(...)` call — never touching this file's callers.

@@ -9,7 +9,7 @@
  * `window.innerWidth` is set BELOW `MAP_CONTROLS_COMPACT_MAX_WIDTH_PX`
  * before each render in this file (jsdom's own default, 1024, is what
  * every OTHER map test file implicitly renders at — the existing "wide"
- * always-legible header bar, untouched by this wave, per that constant's
+ * always-legible header bar, untouched by these tests, per that constant's
  * own doc comment in `responsive.ts`).
  */
 import {

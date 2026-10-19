@@ -37,7 +37,7 @@ import { ShakeMapLegend, type ShakeMapLayer } from "./ShakeMapLegend";
 export type { ShakeMapLayer };
 
 /**
- * ARCHITECTURE NOTE (D9, decided — no MapLibre in this wave): MapLibre RN
+ * ARCHITECTURE NOTE (D9, decided — no MapLibre here): MapLibre RN
  * is a native module that runs in neither Expo Go nor web, and web is
  * currently this project's only verification medium. SHAKEmap display
  * therefore ships as a self-contained SVG projection renderer
@@ -119,8 +119,8 @@ export interface ShakeMapViewProps {
    * D46) — when present and non-empty, a small Intensity/Damage segmented
    * toggle appears above the map (default Intensity) and the Damage option
    * becomes selectable; `null`/`undefined`/empty means no risk product
-   * exists for this event, and the map behaves exactly as before this
-   * wave (no toggle at all). */
+   * exists for this event, and the map behaves exactly as it does without
+   * risk products (no toggle at all). */
   damageContours?: DamageContourSet | null;
 }
 
@@ -169,7 +169,7 @@ export function ShakeMapView({
   const highestLevel = contours.levels[contours.levels.length - 1];
   const highestDamageLevel = damageContours?.levels[damageContours.levels.length - 1];
 
-  // Static basemap layer (wave brief point 2 — "there should be a basemap
+  // Static basemap layer (brief point 2 — "there should be a basemap
   // similar to SHAKEmaps toolkit"): country border lines + coastline,
   // clipped to this product's own bbox and projected once per render, same
   // as the contour rings below. Computed here (not memoized) — the fixture
@@ -255,7 +255,7 @@ export function ShakeMapView({
              * `fill="none"` + a subtle theme border color + partial opacity
              * keeps this as context, not the map's own subject; the 60%-
              * opacity contour fills painted on top still let it read
-             * through (wave brief). */}
+             * through (brief). */}
             {coastlinePaths.map((points, index) => (
               <Polyline
                 key={`coastline-${index}`}
@@ -322,7 +322,7 @@ export function ShakeMapView({
               // Dots always render regardless of label placement — position
               // accuracy shouldn't depend on whether there was room for a
               // text label (see label-decluttering block above). Sized to
-              // match the smaller, lighter labels below (wave brief:
+              // match the smaller, lighter labels below (brief:
               // "dots smaller to match").
               return (
                 <Circle

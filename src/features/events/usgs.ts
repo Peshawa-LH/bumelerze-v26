@@ -13,7 +13,7 @@ export interface UsgsFetchResult {
   events: Event[];
   /** Count of features present in the response but skipped (failed schema
    * validation, or a null/unusable magnitude) — logged, never thrown, so a
-   * handful of malformed USGS records never crash the feed (wave brief:
+   * handful of malformed USGS records never crash the feed (brief:
    * "tolerant parsing... bad individual features skipped with a counted
    * warning, never a crash"). */
   skippedCount: number;

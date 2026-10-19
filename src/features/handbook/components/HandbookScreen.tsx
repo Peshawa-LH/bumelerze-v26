@@ -19,7 +19,7 @@ import { useTabBarScroll } from "@/features/tab-bar";
  * same "screen component vs. route file" split every other pushed screen
  * in this app uses (`CatalogListScreen`/`app/catalog.tsx`,
  * `HistoricalScreen` inline pattern). Deliberately tucked away in Settings
- * only (wave brief) — this is a professional-audience side tool, not a
+ * only (brief) — this is a professional-audience side tool, not a
  * panic-time screen, so it intentionally does NOT get the big-type/one-tap
  * treatment the felt-report flow gets.
  */

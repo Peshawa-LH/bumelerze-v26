@@ -33,7 +33,7 @@ export const liveShakeMapQueryKeys = {
  * for EVERY not-ready case alike: unconfigured, still fetching, no live row
  * published yet for this event, or the transport's own promise rejected
  * (network/DB failure resolving the row or fetching the artifact). This is
- * the deliberate "fail soft" behavior the wave brief asks for: this hook's
+ * the deliberate "fail soft" behavior the brief asks for: this hook's
  * only job is handing `resolveShakeMapProduct` a live candidate when one is
  * genuinely ready, or nothing — never to own a user-visible offline/error
  * state (unlike `useFeltMap`, which does own one). A slow or failed live
@@ -77,7 +77,7 @@ export function useLiveShakeMap(
         query.data.risk !== undefined ? parseRiskProduct(query.data.risk) : null;
       return { product: query.data, contours, risk };
     } catch {
-      // Malformed artifact (wave brief: "a malformed or unreachable
+      // Malformed artifact (brief: "a malformed or unreachable
       // product must never break the event screen") — degrades to "no
       // live candidate"; the resolver falls back to the bundled product or
       // to absence, same as any other not-ready case above.
@@ -103,7 +103,7 @@ export interface UseResolvedShakeMapResult {
  * had, so callers that only cared about that shape need no other change.
  */
 export function useResolvedShakeMap(event: Event, enabled: boolean): UseResolvedShakeMapResult {
-  // "resolve by either id" (wave brief): a bml id that names one of the 11
+  // "resolve by either id" (brief): a bml id that names one of the 11
   // curated Historical events resolves to its bundled provider-id key
   // first; every other event falls through to its own `id` unchanged —
   // see `resolveAtlasLookupId`'s own doc comment.

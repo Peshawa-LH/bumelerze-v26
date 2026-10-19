@@ -1,5 +1,5 @@
 /**
- * `getDefaultFeltTransport` — the actual selection switch the wave brief
+ * `getDefaultFeltTransport` — the actual selection switch the brief
  * asked for ("Wire transport selection in queue.ts: SupabaseTransport when
  * configured, else the existing PendingTransport"). No real network call:
  * `@supabase/supabase-js`'s `createClient` is never exercised beyond being

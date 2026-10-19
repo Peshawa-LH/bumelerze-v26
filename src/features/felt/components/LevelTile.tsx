@@ -13,11 +13,9 @@ interface LevelTileProps {
   locale: string;
   onPress: (level: CartoonLevel) => void;
   /**
-   * AI-generated cartoon artwork slot (felt-report-science-v1.md PART 1 —
-   * the `visual-asset-generator` pass, per D8's "redrawn for our context").
-   * Still undefined every wave until the 22-image commission
-   * (`cartoon-artwork-brief.md`) lands and `app/felt-report/index.tsx` wires
-   * a per-level `require()` map through this prop (brief §5) — until then
+   * The owner's commissioned intensity artwork for this level (D8: "redrawn
+   * for our context"), passed in by `app/felt-report/index.tsx` from the
+   * per-level `require()` map in `src/features/felt/artwork.ts`. Without it
    * the tile renders the plain intensity-ramp color swatch alone.
    *
    * Typed against `expo-image`'s real `ImageSource`. Resolution note for the

@@ -85,7 +85,7 @@ export interface CatalogRow {
   mergedCount: number;
   /** Reporting/originating agency for the canonical record, new in schema
    * v3. Nullable: not every source populates it. Not yet surfaced in the
-   * UI (no wave brief field for it); kept on the row type so a future
+   * UI (no brief field for it); kept on the row type so a future
    * detail-sheet field is a one-line addition, not a query change. */
   authorAgency: string | null;
   /** The locating agency's own place description, e.g. "13 km NNE of

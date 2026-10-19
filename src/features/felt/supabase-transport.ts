@@ -22,8 +22,8 @@ const FELT_PHOTOS_BUCKET = "felt-photos";
 
 /**
  * `SupabaseTransport` — the real `FeltTransport` (see `queue.ts`'s own
- * `FeltTransport` doc + TODO), wired in once a Supabase project exists
- * (Supabase-ready wiring wave). Column-for-column mapping against
+ * `FeltTransport` doc), used whenever Supabase is configured. Column-for-
+ * column mapping against
  * `supabase/migrations/0003_felt_reports.sql`; kept in two small pure
  * `build*Insert` functions specifically so a test can assert the exact
  * payload shape without touching the network (see
@@ -79,7 +79,7 @@ export interface FeltReportInsert {
  *                        with the calling device's `auth.uid()` whenever an
  *                        anonymous Supabase Auth session exists, which is
  *                        exactly what migration 0015's `felt_reports_
- *                        select_own` policy and this wave's felt-photos
+ *                        select_own` policy and the felt-photos
  *                        Storage path both need to become real. `null` is
  *                        still the correct, fully-supported value — see
  *                        `ensureAnonymousUserId` below, called by
@@ -177,7 +177,7 @@ export interface FeltReportDetailInsert {
  *                             migration has no discrete `comment` column on
  *                             `felt_report_details` (only the separate,
  *                             moderated `felt_comments` stream table, which
- *                             this wave does not write to), so `comment`
+ *                             this transport does not write to), so `comment`
  *                             would otherwise be silently dropped — flagging
  *                             this as a deliberate choice, not an oversight,
  *                             consistent with the migration's own stated
@@ -188,14 +188,11 @@ export interface FeltReportDetailInsert {
  * `felt_report_details` column) and `report.photoUri` (window 3's optional
  * photo). There is no `felt_report_details` column for a photo — it belongs
  * in the separate `felt_photos` table (`storage_path`, moderation-gated,
- * migration 0003), which requires an actual Supabase Storage upload this
- * transport does not attempt this wave (2026-08-15 flow restructure scope:
- * "do NOT attempt storage upload"). TODO(Phase 2 storage wave): once a real
- * upload path exists, add a `submitPhoto` step here (or a second transport
- * method) that uploads `report.photoUri` to Storage and inserts the
- * resulting `storage_path` into `felt_photos` — until then a queued photo
- * stays on the device only, same "never lost, just not yet sent" contract as
- * every other queued field.
+ * migration 0003). The photo goes up in its own step, after the report and
+ * detail rows have landed: `uploadPhoto` below (via `uploadFeltPhoto`,
+ * migration 0016's private `felt-photos` bucket), which the queue runs as a
+ * separate, retry-tracked pass, so a slow or failed photo never blocks the
+ * report itself.
  *
  * `raw_answers` DOES still include the verbatim `comment` string (jsonb, per
  * the column's own "authoritative source" comment in migration 0003) — that
@@ -294,7 +291,7 @@ function isRetryableInsertError(errorCode: string | undefined): boolean {
  * `auth.uid()`, or `null` on ANY failure — sign-in rejection, no network,
  * misconfigured project. Every caller in this file treats `null` as "degrade
  * gracefully", never as a reason to fail the surrounding report/comment/
- * photo write (2026-08-16 storage wave brief: "Reports must STILL submit
+ * photo write (2026-08-16 storage brief: "Reports must STILL submit
  * fine if the anonymous sign-in fails").
  *
  * `signInAnonymously()` (`src/lib/supabase.ts`) already memoizes the
@@ -321,7 +318,7 @@ async function ensureAnonymousUserId(client: SupabaseClient): Promise<string | n
 
 /** `image/jpeg` unless the local URI's own extension says otherwise — the
  * picker (`app/felt-report/details.tsx`) forces JPEG re-encoding at
- * quality 0.4 for the common case, but the storage path this wave writes to
+ * quality 0.4 for the common case, but the storage path written to
  * is always suffixed `.jpg` regardless (see `uploadFeltPhoto` below), so
  * this only affects the `Content-Type` header, not the object key; kept
  * narrow to the three mime types migration 0016's bucket actually allows. */
@@ -350,7 +347,7 @@ function inferPhotoContentType(uri: string): string {
  * Reads a LOCAL photo uri's bytes into whatever body shape `@supabase/
  * storage-js`'s `upload()` accepts directly — no manual base64 decoding,
  * on either platform. Two different reads because a single strategy can't
- * cover both (wave brief: "pick what works on BOTH native and web; the web
+ * cover both (brief: "pick what works on BOTH native and web; the web
  * build is the primary live channel right now, so WEB MUST WORK"):
  *  - **web**: `expo-image-picker`'s web implementation returns a `blob:`/
  *    `data:` uri, not a real filesystem path — `fetch(uri).blob()` is the
@@ -360,7 +357,7 @@ function inferPhotoContentType(uri: string): string {
  *    the deprecated `readAsStringAsync`/base64 pattern) exposes
  *    `arrayBuffer()` directly against a real `file://` uri — no base64
  *    round-trip, no extra dependency (`expo-file-system` is already an
- *    Expo-bundled package, added to `package.json` this wave to match every
+ *    Expo-bundled package, added to `package.json` explicitly to match every
  *    other `expo-*` module this repo declares explicitly rather than relying
  *    on it staying a transitive dependency of `expo` itself).
  */

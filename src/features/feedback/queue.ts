@@ -113,7 +113,7 @@ export type FeedbackQueueItemState =
  * subsequent drain. */
 export type FeedbackPhotoUploadState = "pending-upload" | "uploaded" | "failed";
 
-/** The cap this wave chose: 5 screenshots per submission. Enforced in the
+/** The cap: 5 screenshots per submission. Enforced in the
  * UI (`app/feedback.tsx`, non-scolding "you've reached the limit" copy
  * rather than a rejected submission) and defensively re-applied here in
  * `enqueueFeedback` in case a future caller ever bypasses that UI. Five

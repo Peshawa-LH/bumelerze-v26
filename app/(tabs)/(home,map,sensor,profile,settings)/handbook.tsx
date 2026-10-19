@@ -10,7 +10,7 @@ const HandbookScreen = lazyScreenContent(loadHandbookArea, (area) => area.Handbo
 
 /**
  * Engineer's Handbook route (spec-v1.md §7, design-brief.md §9) — pushed
- * from Settings only this wave (deliberately not linked from Event Detail
+ * from Settings only (deliberately not linked from Event Detail
  * or anywhere else: a professional-audience side tool, not a panic-time
  * surface).
  */

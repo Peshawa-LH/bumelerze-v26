@@ -31,7 +31,7 @@ const DATA_USED_I18N_KEY: Record<DataUsedSummaryKey, string> = {
  * product doesn't exist yet, the ShakeMap section shows nothing — absence
  * over misattribution"). Mounted unconditionally by the screen (between
  * Distance and Source); renders nothing at all for the common
- * no-product-at-all case (wave brief point 3, unchanged).
+ * no-product-at-all case (brief point 3, unchanged).
  *
  * "Closing the last gap" wave: reads `useResolvedShakeMap` (`../live-
  * queries`) rather than the bundled-only `useShakeMap` directly — that hook
@@ -94,7 +94,7 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
         version: localizeDigits(product.engineVersion.serviceVersion, i18n.language),
       })
     : null;
-  // Screen-reader place context (accessibility-tester Phase 5 pass): a
+  // Screen-reader place context (Phase 5 accessibility audit): a
   // sighted user sees the epicenter + nearby-city labels drawn on the SVG
   // map; the map's own accessibilityLabel is a blind user's ONLY way to get
   // that "where" information, so it must carry the same localized place

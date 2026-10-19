@@ -78,9 +78,9 @@ function toCodeValues(
 }
 
 /**
- * Wave 1 spectrum calculator (`handbook-spectra-design.md` §9) — lives
- * inside the handbook screen as a section below the existing coordinate
- * lookup result table (§8.5: "not a new tab, not a new route"). Renders
+ * The first spectrum calculator — lives inside the handbook screen as a
+ * section below the existing coordinate lookup result table (not a new
+ * tab, not a new route). Renders
  * nothing until the engineer has entered valid `Ss`/`S1` — this is a
  * professional deep-dive tool one step past the lookup table, not
  * something that competes with it for attention on first paint.

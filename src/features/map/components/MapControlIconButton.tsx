@@ -9,8 +9,8 @@ interface MapControlIconButtonProps {
   accessibilityLabel: string;
   /** Shows a small badge dot when the control it collapses has a
    * non-default selection (an active filter, a non-default basemap style)
-   * — "keep the currently active state legible when collapsed" (wave
-   * brief). Purely decorative; the same information is already carried in
+   * — "keep the currently active state legible when collapsed"
+   * (brief). Purely decorative; the same information is already carried in
    * `accessibilityLabel`. */
   isActive: boolean;
   onPress: () => void;

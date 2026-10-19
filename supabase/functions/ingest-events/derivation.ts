@@ -3,7 +3,7 @@
 // authors ~3% of this region's events], that is backwards... Replace it with
 // per-field derivation."
 //
-// THIS FILE IS THE ONE PLACE the preference order lives (wave brief: "so the
+// THIS FILE IS THE ONE PLACE the preference order lives (brief: "so the
 // science review can change it without a code hunt"). It is NOT duplicated
 // in SQL: `events.origin_time_source_id` / `location_source_id` /
 // `depth_source_id` / `magnitude_source_id` (migration 0002) are written by
@@ -16,13 +16,13 @@
 // share a runtime" choice `matching.ts` documents) rather than assuming they
 // already exist there.
 //
-// STATUS: PROVISIONAL pending owner (Peshawa) sign-off — source-and-
-// ingestion-plan.md §7 item 1 lists "per-field preference order" as an open
-// science decision, not yet a confirmed D-numbered decision. Ships now per
-// D14 (Claude decides with recommended defaults; science-critical items go
-// to the owner as a drafted confirm-review, never as an open question) —
-// exactly the same "provisional-but-implemented" posture migration 0012
-// already used for its own crowd-detection thresholds.
+// STATUS: PROVISIONAL pending owner (Peshawa) sign-off — the per-field
+// preference order is an open science decision, not yet a confirmed
+// D-numbered decision. Ships now per D14 (engineering decides with
+// recommended defaults; science-critical items go to the owner as a drafted
+// confirm-review, never as an open question) — exactly the same
+// "provisional-but-implemented" posture migration 0012 already used for its
+// own crowd-detection thresholds.
 
 import type { StoredSourceRecord } from "./types.ts";
 

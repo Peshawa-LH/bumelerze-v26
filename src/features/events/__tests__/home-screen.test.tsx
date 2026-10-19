@@ -291,14 +291,14 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     ).toBeTruthy();
   });
 
-  it("gives the persistent felt-report pill an accessibilityHint explaining what tapping it does (design-language.md §8, accessibility-tester Phase 5)", async () => {
+  it("gives the persistent felt-report pill an accessibilityHint explaining what tapping it does (design-language.md §8, Phase 5 accessibility audit)", async () => {
     await renderWithProviders(<HomeScreen />);
 
     const pill = screen.getByRole("button", { name: i18n.t("felt.pill.label") });
     expect(pill.props.accessibilityHint).toBe(i18n.t("felt.pill.hint"));
   });
 
-  it("marks the offline banner as an assertive/polite live region so a screen reader hears the stale-data state (accessibility-tester Phase 5)", async () => {
+  it("marks the offline banner as an assertive/polite live region so a screen reader hears the stale-data state (Phase 5 accessibility audit)", async () => {
     mockUseRegionEvents.mockReturnValue({
       events: [sampleEvent],
       isInitialLoading: false,

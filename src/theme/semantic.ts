@@ -77,7 +77,7 @@ export const lightColors: SemanticColors = {
     primary: neutral[1100],
     secondary: neutral[700],
     // neutral[650], not neutral[500] — see palette.ts's doc comment on
-    // neutral[650] (WCAG-AA contrast fix, accessibility-tester Phase 5).
+    // neutral[650] (WCAG-AA contrast fix, Phase 5 accessibility audit).
     tertiary: neutral[650],
     inverse: neutral[0],
     link: brand.primaryLight,
@@ -115,7 +115,7 @@ export const darkColors: SemanticColors = {
     // neutral[600], not neutral[700] — neutral[700] ("#5B5B5E") only reaches
     // ~3.1:1 against this theme's true-black surface.base, below the 4.5:1
     // normal-text floor; neutral[600] reaches ~5.72:1 (same WCAG-AA fix as
-    // the light theme's text.tertiary, accessibility-tester Phase 5).
+    // the light theme's text.tertiary, Phase 5 accessibility audit).
     tertiary: neutral[600],
     inverse: neutral[1100],
     link: brand.primaryDark,
@@ -126,7 +126,7 @@ export const darkColors: SemanticColors = {
   },
   brand: {
     primary: brand.primaryDark,
-    // WCAG-AA contrast fix (accessibility-tester Phase 5 audit): dark text
+    // WCAG-AA contrast fix (Phase 5 accessibility audit): dark text
     // (neutral[1100]) on `brand.primaryDark` ("#3E7C93") measures only
     // ~3.89:1 — a real fail of the 4.5:1 normal-text floor on the primary
     // CTA button text used on nearly every onboarding/felt-report screen.

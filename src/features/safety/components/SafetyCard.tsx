@@ -19,7 +19,7 @@ interface SafetyCardProps {
  * One PREPARE/SURVIVE/RECOVER topic card: title, body paragraph(s), any
  * do/don't pairs, and (today, only on `dropCoverHold`) the collapsible
  * accessibility-variant block. Rendered full-list rather than
- * expand/collapse-per-card (wave brief's UX call) — this content is the
+ * expand/collapse-per-card (brief's UX call) — this content is the
  * thing panic-time users are trying to read, so hiding it behind another
  * tap works against the panic-time priority (PROJECT.md). The one exception
  * is the accessibility block, which stays collapsed by default because it

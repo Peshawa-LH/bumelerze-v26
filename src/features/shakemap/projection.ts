@@ -126,7 +126,7 @@ function clipSegmentToBbox(
  * points) against `bbox` — the map's own contour bbox, always far smaller
  * than the whole basemap fixture's ~20-country coverage — so `ShakeMapView`
  * only ever projects and draws the handful of points actually inside its
- * current viewBox (wave brief point 2: "clip boundary lines to the
+ * current viewBox (brief point 2: "clip boundary lines to the
  * viewBox"). A line that exits and re-enters the box comes back as multiple
  * separate polylines rather than one that jumps across the gap; a line that
  * never touches the box at all comes back as an empty array.

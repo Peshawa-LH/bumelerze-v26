@@ -11,7 +11,7 @@ import type {
 
 /**
  * `SupabaseTransport` — no real network call anywhere in this file
- * (wave brief: "no real network calls in tests"). `getSupabaseClient` is
+ * (brief: "no real network calls in tests"). `getSupabaseClient` is
  * mocked at the `@/lib/supabase` seam (already unit-tested on its own in
  * `src/lib/__tests__/supabase.test.ts`), so this file only has to prove
  * `SupabaseTransport` calls it correctly and maps queue items to the exact
@@ -287,7 +287,7 @@ describe("buildFeltReportDetailInsert (pure mapping)", () => {
     }
   });
 
-  it("never sends photoUri to felt_report_details — no column exists for it yet (see the build function's own TODO)", () => {
+  it("never sends photoUri to felt_report_details — no column exists for it (the photo goes to felt_photos via uploadPhoto)", () => {
     const { buildFeltReportDetailInsert } = loadTransport();
     const withPhoto: Tier2Report = { ...SAMPLE_TIER2, photoUri: "file:///tmp/photo.jpg" };
 

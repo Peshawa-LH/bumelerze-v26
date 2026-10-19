@@ -2,7 +2,7 @@ import { faFromTable, fvFromTable } from "../tables";
 
 describe("faFromTable / fvFromTable", () => {
   it("reproduces ISC-2017 Appendix B exactly: Fa = 1.56 for Ss = 0.3, class D", () => {
-    // handbook-spectra-design.md §3.3: 1.6 + (0.05/0.25)(1.4-1.6) = 1.56
+    // ISC-2017 Appendix B: 1.6 + (0.05/0.25)(1.4-1.6) = 1.56
     expect(faFromTable(0.3, "D")).toBeCloseTo(1.56, 10);
   });
 

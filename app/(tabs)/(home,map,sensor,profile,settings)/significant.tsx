@@ -20,7 +20,7 @@ import {
  * already have cached — NOT the full cross-provider dedup/merge algorithm
  * from event-pipeline-design.md §2 (spatial-temporal matching across
  * providers). That's backend/Postgres work for when a second provider
- * (EMSC) joins; with USGS as the only source this wave, an event can only
+ * (EMSC) joins; with USGS as the only source when this was written, an event can only
  * ever appear once per feed, so a Map keyed by id is sufficient and exact.
  */
 export default function SignificantScreen() {

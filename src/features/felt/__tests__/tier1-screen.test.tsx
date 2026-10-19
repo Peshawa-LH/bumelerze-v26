@@ -126,8 +126,8 @@ describe("Window 1 — tier-1 felt-report screen", () => {
       expect(tile).toBeTruthy();
       expect(tile.props.accessibilityState?.disabled).not.toBe(true);
       // A blind user needs to know a tap durably records their report even
-      // though the screen is about to navigate away (accessibility-tester
-      // Phase 5 audit).
+      // though the screen is about to navigate away (Phase 5 accessibility
+      // audit).
       expect(tile.props.accessibilityHint).toBe(i18n.t("felt.tier1.levelA11yHint"));
     }
 

@@ -13,7 +13,7 @@ const NO_FIX: UserDistanceAnchor = { hasFix: false, lat: null, lon: null };
 
 /**
  * Read-only foreground-location check used by the feed/detail distance
- * display (wave brief point 3). Deliberately never *requests* permission —
+ * display (brief point 3). Deliberately never *requests* permission —
  * the onboarding location screen owns that one-time ask (spec-v1.md §4.11
  * step 3) — so this hook is safe to call from every screen that shows a
  * distance without ever surprising the user with a permission prompt

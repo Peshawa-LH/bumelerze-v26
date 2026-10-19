@@ -19,8 +19,8 @@ interface DamageTileProps {
    * one-word lines the five-per-row grid produced. */
   label: string;
   /** Full "<typology>. <damage state>." accessibility label — combines both
-   * pieces of context per the wave brief ("LevelTile-style: typology label
-   * + damage-state label"), since a screen-reader user tabbing through two
+   * pieces of context ("LevelTile-style: typology label + damage-state
+   * label"), since a screen-reader user tabbing through two
    * back-to-back rows needs the typology restated on every tile, not just
    * the row header. The parent passes the FULL damage description here
    * (`felt.damage.grades`), so the spoken name keeps every detail the short
@@ -28,10 +28,9 @@ interface DamageTileProps {
   accessibilityLabel: string;
   locale: string;
   onPress: (typology: DamageTypology, grade: BuildingDamageGrade) => void;
-  /** AI-generated damage-tile artwork slot (cartoon-artwork-brief.md
-   * "Damage tiles" section) — mirrors `LevelTile`'s own `imageSource` prop:
-   * still undefined every wave until the 10-image commission lands and gets
-   * wired through from `app/felt-report/damage.tsx` (brief §6.5). See
+  /** The owner's commissioned damage-tile artwork, passed in by
+   * `app/felt-report/damage.tsx` from `src/features/felt/artwork.ts` —
+   * mirrors `LevelTile`'s own `imageSource` prop. See
    * `LevelTile`'s doc comment for the `expo-image`/`jest-expo` compatibility
    * note this component shares (resolved via a test-only mock, not a real
    * version fix — `jest.setup.js`). */

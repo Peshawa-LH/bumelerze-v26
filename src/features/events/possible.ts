@@ -32,7 +32,7 @@ export interface PossibleEvent {
   lon: number;
   /** When the possible event was created server-side, UTC ms — used for
    * "how long has this been unconfirmed" bookkeeping, not shown as a
-   * headline number this wave. */
+   * headline number. */
   createdAt: number;
   /** Earliest report in the triggering cluster, UTC ms (migration 0034);
    * falls back to `originTime` for rows detected before it. The card's

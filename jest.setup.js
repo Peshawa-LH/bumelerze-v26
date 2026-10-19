@@ -20,7 +20,7 @@ jest.mock("react-native-reanimated", () => require("react-native-reanimated/mock
 // `expo-observe` package installed, and expo-image ships no such mock itself),
 // so it falls through to the real `expo-modules-core` implementation and
 // crashes with `TypeError: observe.getIntegrations is not a function`.
-// Confirmed still present on the newest available SDK 57 pair as of this wave
+// Confirmed still present on the newest available SDK 57 pair when written
 // (expo-image 57.0.3, jest-expo 57.0.4 — both latest 57.x releases; no
 // changelog fix exists). Standing in a plain react-native `Image` here is
 // sufficient for tests: components only need to render something and forward

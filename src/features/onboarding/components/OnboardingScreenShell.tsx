@@ -26,7 +26,7 @@ interface OnboardingScreenShellProps {
 
 /**
  * Shared layout for every onboarding screen (spec-v1.md §4.11: "one idea
- * per screen", wave brief: "progress dots, back navigation"). One shell so
+ * per screen", brief: "progress dots, back navigation"). One shell so
  * every screen gets the same header/footer chrome and RTL/safe-area
  * handling for free, matching how EventListScreen is shared across
  * Home/World/Significant.
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 48,
   },
-  // minHeight: 48 (accessibility-tester Phase 5 audit) — paddingVertical
+  // minHeight: 48 (Phase 5 accessibility audit) — paddingVertical
   // alone (spacing[3] = 12) measured right at the 44pt floor for this
   // button's labelButton text, not a comfortable 48dp; every onboarding
   // screen's primary CTA goes through this one style, so this single fix

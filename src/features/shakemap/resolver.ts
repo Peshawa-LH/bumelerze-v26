@@ -16,7 +16,7 @@ export type ShakeMapProductSource = "live" | "bundled";
  * considered "ready" at all. `resolveShakeMapProduct` below therefore never
  * needs to know how either candidate was produced. `risk` is optional
  * (`risk-dashboard` wave) — most events have no risk product at all, and
- * older test fixtures/candidates built before this wave never set it,
+ * older test fixtures/candidates built before risk products never set it,
  * which is exactly the same "absent, not fabricated" case as an event with
  * a real risk-less intensity product. */
 export interface ShakeMapCandidate<TProduct> {
@@ -28,7 +28,7 @@ export interface ShakeMapCandidate<TProduct> {
 /** Provenance fields `ShakeMapSection` renders, normalized across both
  * sources so the component never has to branch on which one produced them
  * (`source` is carried through only for tests/future diagnostics — nothing
- * in the wave brief asks the UI to tell the user WHICH source served their
+ * in the brief asks the UI to tell the user WHICH source served their
  * map, only whether it is reviewed or provisional, which `reviewStatus`
  * alone already covers). */
 export interface ResolvedShakeMapProduct {
@@ -53,7 +53,7 @@ export interface ResolvedShakeMap {
 }
 
 /**
- * The ONE precedence rule this wave's brief asks for, pulled out of
+ * The ONE precedence rule the brief asks for, pulled out of
  * `ShakeMapSection`/the query hooks into a single small pure function so it
  * is trivially unit-testable and can never silently re-diverge between call
  * sites:
@@ -70,7 +70,7 @@ export interface ResolvedShakeMap {
  *   2. **Otherwise BUNDLED wins** — the build-time Bumelerze Atlas bundle
  *      (`atlas/index.ts`, the 11 curated Historical events), unchanged from
  *      today's D21 behavior. This is what keeps those events working fully
- *      offline exactly as before this wave, for every event that has no
+ *      offline exactly as before live products, for every event that has no
  *      live product yet (which is still most events, until the worker's
  *      pre-launch compute campaign runs).
  *   3. **Otherwise nothing** — `null`, not an empty scaffold. "Absence over

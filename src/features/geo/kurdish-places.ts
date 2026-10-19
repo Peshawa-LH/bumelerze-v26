@@ -77,7 +77,7 @@ export function parseKurdishPlaces(data: unknown): KurdishPlace[] {
   return kurdishPlacesSchema.parse(data);
 }
 
-/** Fixed per-locale fallback chains (wave brief: "ckb locale prefers
+/** Fixed per-locale fallback chains (brief: "ckb locale prefers
  * name:ckb then name:ar then default; kmr prefers name:ku then default;
  * ar prefers name:ar"). Unlike the gazetteer's `pickLocalizedName` (every
  * city has a hand-checked name in all four app locales, so it's a single

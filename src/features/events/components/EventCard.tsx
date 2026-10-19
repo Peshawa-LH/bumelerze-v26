@@ -20,7 +20,7 @@ interface EventCardProps {
    * so every card in one render pass agrees on the same instant instead of
    * each computing `Date.now()` independently. Re-renders (query refetch,
    * pull-to-refresh) naturally refresh this — no internal ticking timer in
-   * Phase 1, matching the "boring choice" instruction for this wave. */
+   * Phase 1, matching the "boring choice" instruction. */
   now: number;
   /** True when this card is only on Home because of the adaptive
    * Home-feed policy's magnitude-tiered notable carve-out

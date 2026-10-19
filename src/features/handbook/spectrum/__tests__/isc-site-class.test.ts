@@ -28,7 +28,7 @@ describe("iscSiteClassFromVs30", () => {
   });
 
   it("does NOT use EC8's 360 m/s boundary — 365 m/s is ISC class D, not C", () => {
-    // handbook-spectra-design.md §3.6: this is the exact 360-370 disagreement
+    // ISC-2017 Table 7-1/1 vs EN 1998-1 Table 3.1: this is the exact 360-370 disagreement
     // band (2.4% of the bundled Vs30 grid) where EC8 says B/C and ISC says D.
     expect(iscSiteClassFromVs30(365)).toBe("D");
   });

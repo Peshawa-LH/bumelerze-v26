@@ -78,7 +78,7 @@ export default function Tier1FeltReportScreen() {
     });
 
     // Screen-reader announcement for the panic-time submission itself
-    // (accessibility-tester Phase 5 audit): a blind user needs to know a
+    // (Phase 5 accessibility audit): a blind user needs to know a
     // tap durably recorded their report even though the screen is about to
     // navigate away — `AccessibilityInfo.announceForAccessibility` works on
     // both TalkBack and VoiceOver (unlike `accessibilityLiveRegion`, which
@@ -157,7 +157,7 @@ export default function Tier1FeltReportScreen() {
             // a real action (manual-location fallback) — under GPS
             // location this row is read-only status text, so a screen
             // reader shouldn't announce it as a button with no effect
-            // (accessibility-tester Phase 5 audit).
+            // (Phase 5 accessibility audit).
             accessibilityRole={isGps ? "text" : "button"}
             onPress={isGps ? undefined : () => setIsLocationExpanded((v) => !v)}
             // 44 pt row (review B-12: "Location: Hawler · Change" measured

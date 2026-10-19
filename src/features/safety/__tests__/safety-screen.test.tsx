@@ -70,7 +70,7 @@ describe("Safety screen", () => {
     await renderWithProviders(<SafetyScreen />);
 
     // PREPARE is the default tab — its first card renders immediately, with
-    // no loading state (fully static/bundled content, per the wave brief).
+    // no loading state (fully static/bundled content, per the brief).
     expect(screen.getByText("پلانێک بۆ خێزانەکەت دابنێ")).toBeTruthy();
     expect(screen.queryByText("دابکەوە، خۆت بپارێزە، توندی بگرە")).toBeNull();
 

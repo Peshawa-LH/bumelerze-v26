@@ -7,7 +7,7 @@
 // (~180,000 requests/hour at 1,000 users) with three requests/minute plus
 // one daily bulletin sweep, from one server — the client's own direct-fetch
 // path (`src/features/events/`) is UNCHANGED and stays wired as the
-// fallback for when this backend is unreachable (wave brief: "a Supabase
+// fallback for when this backend is unreachable (brief: "a Supabase
 // outage does not leave people without earthquake data during an
 // earthquake").
 //

@@ -4,7 +4,7 @@ import * as path from "node:path";
 
 import { base36, formatBumelerzeId, InMemoryBumelerzeIdCounters } from "../bumelerze-id-reference";
 
-// The exact spread the wave brief calls out: 0, 35, 36, 1295, 1296, 46655
+// The exact spread the brief calls out: 0, 35, 36, 1295, 1296, 46655
 // (plus 1, the smallest valid counter for format_bumelerze_id, which
 // requires counter >= 1).
 const COUNTER_SPREAD = [0, 1, 35, 36, 1295, 1296, 46655];
@@ -66,8 +66,8 @@ describe("formatBumelerzeId (TS port of shake_service/event_id.py::format_bumele
 
 describe("cross-check against the live Python implementation (best-effort)", () => {
   // Mirrors this project's existing sibling-checkout-fallback convention
-  // (project CLAUDE.md: bumelerze-engine's own cross-repo sync tests "skip
-  // if it cannot" find the sibling checkout) — the hardcoded-value tests
+  // (bumelerze-engine's own cross-repo sync tests skip when they cannot
+  // find the sibling checkout) — the hardcoded-value tests
   // above are the ALWAYS-run regression guard for CI; this test additionally
   // proves live agreement with shake_service/event_id.py itself whenever
   // python3 and the sibling bumelerze-engine checkout are both available in

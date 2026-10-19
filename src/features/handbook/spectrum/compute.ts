@@ -4,8 +4,8 @@ import type { OccupancyCategory, SeismicDesignCategory, SpectrumInputs, Spectrum
 
 /**
  * ISC-2017 §2-2/3/§2-2/4 parameter chain and §2-4 seismic design category —
- * every equation number cited is `.claude/research/handbook-spectra-design.md`
- * §3.3 [P], verified against the code's own Appendix B worked example
+ * every equation number cited is the code's own (Iraqi Seismic Code 2017,
+ * IQ.303), verified against the code's Appendix B worked example
  * (`__tests__/compute.test.ts` reproduces it as a literal regression test).
  */
 
@@ -47,9 +47,9 @@ function seismicDesignCategory(sds: number, sd1: number, occupancy: OccupancyCat
  * inputs. Deliberately stops short of a governing base-shear coefficient:
  * eq. (3-9/3)'s `Cs <= SD1 / (T (R/I))` cap needs the structure's
  * fundamental period `T`, and this calculator collects no
- * period/height/weight input (`handbook-spectra-design.md` §7.4 lists
- * `Ss`, `S1`, site class, occupancy and `R` only — no `Ta`, no `hn`, no
- * `W`). That T-dependent cap is not invented here; it is exactly what the
+ * period/height/weight input (the calculator's inputs are `Ss`, `S1`,
+ * site class, occupancy and `R` only — no `Ta`, no `hn`, no `W`). That
+ * T-dependent cap is not invented here; it is exactly what the
  * reduced spectrum curve's own `Ts < T <= TL` branch already draws
  * (`curve.ts`), so an engineer reads it off the chart at their own
  * building's period rather than this module guessing one. `csUnreduced`

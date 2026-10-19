@@ -105,7 +105,7 @@ describe("ShakeMapView", () => {
     expect(screen.getByText(i18n.t("eventDetail.shakemap.legendCaption"))).toBeTruthy();
   });
 
-  it("folds the place line into the map's accessibilityLabel, not just the max-intensity numeral (accessibility-tester Phase 5: a blind user's only 'where' context for this map)", async () => {
+  it("folds the place line into the map's accessibilityLabel, not just the max-intensity numeral (Phase 5 accessibility audit: a blind user's only 'where' context for this map)", async () => {
     const contours = parseIntensityContours(halabjaContours);
     await render(
       <ShakeMapView
@@ -187,7 +187,7 @@ describe("ShakeMapView", () => {
     const borders = screen.getAllByTestId(BASEMAP_BORDER_TEST_ID_PATTERN);
     expect(borders.length).toBeGreaterThan(0);
     for (const border of borders) {
-      // Subtle by design (wave brief: keep it minimal like the toolkit's
+      // Subtle by design (brief: keep it minimal like the toolkit's
       // style) — a thin stroke, never the map's own subject.
       expect(border.props.strokeWidth).toBeLessThanOrEqual(1);
       expect(border.props.strokeOpacity).toBeLessThan(1);

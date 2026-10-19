@@ -9,7 +9,7 @@ interface ProgressDotsProps {
 }
 
 /**
- * Onboarding progress indicator (wave brief: "progress dots"). Plain `View`
+ * Onboarding progress indicator (brief: "progress dots"). Plain `View`
  * dots, not an icon font — one less thing to translate/mirror, and the
  * active dot naturally reads in the right direction because RN mirrors
  * `flexDirection: "row"` for us once RTL is forced (design-language.md §5).

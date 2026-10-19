@@ -1,11 +1,10 @@
 /**
  * ISC-2017 (Iraqi Seismic Code, IQ.303) design response spectrum — types.
- * Every quantity and equation number cited in these doc comments is
- * `.claude/research/handbook-spectra-design.md` §3.2/§3.3 (own copy of the
- * code, `pdftotext`-extracted and arithmetic-closure-checked — see that
- * document's §0.2). Nothing here is written from recall; where this module
- * disagrees with a stale mental model of ASCE 7, the research document and
- * the code text it quotes win.
+ * Every quantity and equation number cited in these doc comments is the
+ * code's own, ISC-2017 §2-2 and §3 (our copy of the code, `pdftotext`-
+ * extracted and arithmetic-closure-checked). Nothing here is written from
+ * recall; where this module disagrees with a stale mental model of ASCE 7,
+ * the code text wins.
  *
  * `Ss`/`S1` now arrive from the coordinate (`features/handbook/isc2025.ts`)
  * and remain overridable, which is the "wave 3" this module previously

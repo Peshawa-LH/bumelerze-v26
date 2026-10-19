@@ -75,7 +75,7 @@ describe("Shared done screen", () => {
     await i18n.changeLanguage(originalLanguage);
   });
 
-  it("shows the queued message while the report hasn't reached a real backend (PendingTransport, no Supabase project this wave)", async () => {
+  it("shows the queued message while the report hasn't reached a real backend (PendingTransport, no Supabase configured)", async () => {
     const tier1 = await enqueueTier1Report({
       cartoonLevel: 4,
       location: SAMPLE_LOCATION,

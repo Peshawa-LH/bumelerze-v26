@@ -8,7 +8,7 @@ import { usePrefsStore } from "@/features/onboarding";
 
 /**
  * Settings screen — the Safety guide / handbook / My location rows (D79) and
- * the consolidated "Device permissions" section (wave brief Part 3: "ONE
+ * the consolidated "Device permissions" section (brief Part 3: "ONE
  * button ... location, sensor, and other permissions", no separate
  * per-permission ask). Mirrors `notification-settings-screen.test.tsx`'s
  * `expo-router` mock shape (`useFocusEffect` stood in as a plain

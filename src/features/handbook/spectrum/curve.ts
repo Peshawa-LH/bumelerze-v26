@@ -4,7 +4,7 @@ import type { SpectrumCurve, SpectrumParameters, SpectrumPoint } from "./types";
 /**
  * ISC-2017 §2-2/5 Figure 2-2/2 — the four-branch design response spectrum,
  * plus the R/I-reduced curve an engineer actually puts in a model (§7.2).
- * Equation numbers per `.claude/research/handbook-spectra-design.md` §3.2:
+ * Equation numbers are the code's own (ISC-2017 §2-2/5):
  *
  *   T <  T0        : Sa = SDS (0.4 + 0.6 T/T0)     (2-2/5)
  *   T0 <= T <= Ts   : Sa = SDS                       (stated in prose)

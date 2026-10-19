@@ -40,7 +40,7 @@ export function OfflineBanner({ dataUpdatedAt }: OfflineBannerProps) {
       accessibilityRole="text"
       // Announces itself when it mounts/updates on Android TalkBack (the
       // offline/stale-data state is a material change users need to know
-      // about without hunting for it — accessibility-tester Phase 5 audit,
+      // about without hunting for it — Phase 5 accessibility audit,
       // PROJECT.md "works on weak networks"). iOS VoiceOver ignores this prop
       // entirely, so `EventListScreen` separately calls
       // `AccessibilityInfo.announceForAccessibility` on the same

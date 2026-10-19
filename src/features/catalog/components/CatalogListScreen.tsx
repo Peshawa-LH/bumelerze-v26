@@ -18,7 +18,7 @@ import { useTabBarScroll } from "@/features/tab-bar";
  * presentational component" pattern `ShakeMapSection.test.tsx` uses for
  * `useShakeMap` — no real SQLite native module needed in Jest.
  *
- * These are archival, bundled, offline-by-construction events (wave brief):
+ * These are archival, bundled, offline-by-construction events (brief):
  * no refetch/retry affordance on error, since a local bundled-db read
  * failing once will fail identically on retry — the error state here exists
  * only so a failure is never silent (PROJECT.md rule), not because retrying

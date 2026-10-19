@@ -30,7 +30,7 @@ interface CatalogFilterBarProps {
 }
 
 /**
- * The three filter groups the wave brief asked for: magnitude range, year
+ * The three filter groups the brief asked for: magnitude range, year
  * range, source-catalog chips. All "boring RN controls, big touch
  * targets" (steppers + toggle chips, no custom slider). An empty
  * `sources` selection means "all sources" (see `types.ts`'s

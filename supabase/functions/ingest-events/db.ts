@@ -8,13 +8,13 @@
 // its own for "find-or-create the canonical event". It reuses the EXISTING
 // `upsert_event_from_client` RPC (migrations 0011/0012) for that step —
 // which already gives this ingester, for free: an advisory-lock-serialized,
-// transactional dedup match (the same 16s/100km/1.5-mag thresholds this
-// wave's brief asks for), brand-new-event creation, AND the D26 crowd-event
+// transactional dedup match (the same 16s/50km/1.5-mag thresholds the
+// client uses, 50 km since migration 0029), brand-new-event creation, AND the D26 crowd-event
 // reconciliation (a genuinely new agency event absorbing a nearby
 // `status = 'possible'` crowd-detected event). Writing a second SQL
 // function that duplicated that logic would both violate "reuse where
 // possible" and risk drifting out of sync with the one the client's own
-// felt-report flow already depends on. The only NEW SQL this wave adds
+// felt-report flow already depends on. The only NEW SQL this function needed
 // (migration 0023) is columns, a CHECK widening, RLS, and a read view — no
 // new plpgsql.
 //

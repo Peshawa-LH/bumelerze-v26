@@ -2,7 +2,7 @@
  * Pure helpers for the web map's markers and initial viewport — deliberately
  * separated from `app/(tabs)/(map)/map.web.tsx`'s MapLibre wiring so the actual
  * magnitude→radius/color mapping and bbox→bounds math can be unit-tested
- * directly, with no DOM/WebGL involved (wave brief: "no jsdom WebGL").
+ * directly, with no DOM/WebGL involved (brief: "no jsdom WebGL").
  */
 import { magnitudeTone, type Event, type MagnitudeTone } from "@/features/events";
 import {
@@ -73,7 +73,7 @@ export function magnitudeToMarkerDiameterPx(magnitudeValue: number): number {
 
 /**
  * Derives the map's marker data straight from the already-loaded region
- * feed (`useRegionEvents` — no new fetching, wave brief). Color comes from
+ * feed (`useRegionEvents` — no new fetching, brief). Color comes from
  * the shared `magnitudeTone` module (EventCard's own accent-stripe logic,
  * design-language.md §3.2: magnitude-only coarse tone, never a real
  * intensity claim) — reused here rather than reinvented, same rule.

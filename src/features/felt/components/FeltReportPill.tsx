@@ -12,7 +12,7 @@ interface FeltReportPillProps {
   /** Null/omitted = Home usage (association resolved at tap time by the
    * caller via `resolveHomeFeltAssociation`, passed in as this prop so the
    * pill itself stays a dumb navigation trigger); a specific event id from
-   * Event Detail associates directly to that event (wave brief point 4). */
+   * Event Detail associates directly to that event (brief point 4). */
   eventId?: string | null;
   /**
    * The full already-cached `Event` behind `eventId`, when the caller has
@@ -41,9 +41,8 @@ export const FELT_PILL_CLEARANCE = 16 + 56 + 12;
 /**
  * The persistent one-tap felt-report entry point (D8: "persistent one-tap
  * entry point on every screen"; LastQuake pattern). Present on Home and
- * Event Detail this wave — Map gets it once Phase 3 builds the Map screen
- * (spec-v1.md §4.4 lists it as a felt-CTA host too; TODO left there, not
- * here, since the Map screen doesn't exist yet).
+ * Event Detail (`app/(tabs)/(home)/index.tsx`,
+ * `app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx`).
  */
 export function FeltReportPill({ eventId = null, event = null }: FeltReportPillProps) {
   const { t } = useTranslation();

@@ -44,7 +44,7 @@ export function HeaderBackButton() {
   function handlePress() {
     if (!router.canGoBack()) {
       // Deep-link / no-history entry — Home is always a sensible fallback,
-      // never leaving the back control absent or dead (wave brief).
+      // never leaving the back control absent or dead (brief).
       router.replace("/");
       return;
     }

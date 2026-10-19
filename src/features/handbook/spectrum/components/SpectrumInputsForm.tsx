@@ -44,8 +44,8 @@ interface SpectrumInputsFormProps {
 
 /**
  * Ss/S1 entry, ISC site-class override, importance-category picker and R
- * (verified value + free entry) — `handbook-spectra-design.md` §7.4's
- * input table, built as one form. No submit button: every valid keystroke
+ * (verified value + free entry) — the calculator's whole input table,
+ * built as one form. No submit button: every valid keystroke
  * recomputes the spectrum live (`SpectrumSection` reads `state.inputs`
  * directly), matching "quick tool" framing over a multi-step wizard.
  */

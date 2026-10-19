@@ -164,7 +164,7 @@ export function trimmedMeanIntensity(
  * this gate is inert on that value today. It is implemented faithfully to
  * the letter of R14 anyway, because the gate's evidence-counting logic is
  * exactly what a future uncapped intensity value (most likely `ems_int`,
- * §3.4, out of scope this wave) will need.
+ * §3.4, not built yet) will need.
  */
 export function applyCorroborationGate(
   intensity: number,

@@ -1,6 +1,6 @@
 // Orchestrates ingesting ONE channel's already-fetched records into the
 // database. Deliberately takes a `Db` interface (not a live Supabase
-// client) so this — the part of the pipeline the wave brief's tests
+// client) so this — the part of the pipeline the brief's tests
 // specifically ask for ("the per-agency source-record write, the
 // corroboration count, dedup across three sources producing one event with
 // three source records, and the per-field derivation choosing the expected

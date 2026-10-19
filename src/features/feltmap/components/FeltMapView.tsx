@@ -24,7 +24,7 @@ import type { FeltCellRow } from "../types";
  * only `FeltCellRow[]` + lat/lon, never a Supabase-specific shape, so it
  * stays swappable the same way the ShakeMap renderer is.
  *
- * The wave brief asks this section to "feel like a sibling" of
+ * The brief asks this section to "feel like a sibling" of
  * `ShakeMapView` — this file deliberately reuses that component's actual
  * projection/city-labeling helpers (`@/features/shakemap`'s
  * `computeContourBoundingBox`, `createEquirectangularProjector`,

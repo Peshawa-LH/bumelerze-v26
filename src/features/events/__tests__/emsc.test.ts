@@ -5,7 +5,7 @@ import { emscFeatureCollectionSchema, emscFeatureSchema } from "../emsc-schema";
  * Realistic EMSC seismicportal.eu fdsnws feature, hand-authored from the
  * exact property list documented in teardown-lastquake.md §2 (`unid, time,
  * lastupdate, lat, lon, depth, mag, magtype, evtype, auth, source_catalog,
- * source_id, flynn_region`) — this is the fixture the wave brief asks for,
+ * source_id, flynn_region`) — this is the fixture the brief asks for,
  * mirroring how normalize.test.ts's `buildFeature` fixture was built from
  * the USGS teardown.
  */

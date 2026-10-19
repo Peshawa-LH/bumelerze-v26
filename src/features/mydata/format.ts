@@ -41,7 +41,7 @@ export type ContributionSyncStatus = "submitted" | "on-device";
 
 /**
  * Collapses `QueueItemState`'s five values down to the two the My Data
- * screen shows (wave brief: "sync status (on-device / submitted)") — same
+ * screen shows (brief: "sync status (on-device / submitted)") — same
  * simplification `app/felt-report/done.tsx` already makes for its own
  * confirmation message ("queued"/"syncing"/"awaiting-backend"/"failed" all
  * read as "still on this device, not yet confirmed by a server" from the
@@ -93,7 +93,7 @@ export interface ContributionRowViewModel {
 
 /**
  * Builds one My Data list row's full view model from a local queue item —
- * the ONLY data source the screen needs (wave brief: "from the LOCAL queue
+ * the ONLY data source the screen needs (brief: "from the LOCAL queue
  * store first, which already holds everything this device submitted").
  * Pure/synchronous: every field it reads already lives on the queue item,
  * no fetch of any kind.

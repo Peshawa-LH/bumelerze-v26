@@ -110,8 +110,8 @@ const STAND_INDEX: Record<StandAnswer, number> = {
 };
 
 // Q7 — shelf, 0/0.5/0.75/1 (D18 R1: keep the drafted values, pending a
-// DYFI-form verification pass before backend freeze — out of scope for
-// this wave, implemented as specified).
+// DYFI-form verification pass before backend freeze — not done yet,
+// implemented as specified).
 const SHELF_INDEX: Record<ShelfAnswer, number> = {
   no: 0,
   rattled: 0.5,
