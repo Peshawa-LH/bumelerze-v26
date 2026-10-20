@@ -74,16 +74,22 @@ export default function HistoricalScreen() {
             // removed). A trailing chevron (mirrored for RTL below) plus
             // start-aligned text reads as a real navigation destination
             // rather than a plain button, matching the owner's ask for a
-            // clearer affordance now that it's carrying more weight.
+            // clearer affordance now that it's carrying more weight. A plain
+            // `row`: the layout already runs right to left in Sorani and
+            // Arabic (the page's `dir` on the web, the native layout on the
+            // phone), so the text sits at the right and the chevron at the
+            // end, the left. `row-reverse` picked by locale flipped it back
+            // and put the chevron first, on both.
             <Pressable
               accessibilityRole="button"
+              testID="historical-catalog-link"
               onPress={() => router.push("/catalog")}
               style={[
                 styles.catalogLink,
                 {
                   borderColor: colors.border.default,
                   padding: spacing[4],
-                  flexDirection: isRTL ? "row-reverse" : "row",
+                  flexDirection: "row",
                 },
               ]}
             >

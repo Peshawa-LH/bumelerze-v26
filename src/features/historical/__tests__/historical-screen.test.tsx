@@ -1,3 +1,4 @@
+import { StyleSheet } from "react-native";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -146,9 +147,9 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     await i18n.changeLanguage("en");
     await renderWithProviders(<HistoricalScreen />);
 
-    expect(
-      screen.getByTestId("historical-catalog-link-chevron").props.children,
-    ).toBe("chevron-forward");
+    expect(screen.getByTestId("historical-catalog-link-chevron").props.children).toBe(
+      "chevron-forward",
+    );
   });
 
   it("mirrors the catalog link's chevron for the Sorani (RTL) locale", async () => {
@@ -156,9 +157,20 @@ describe("Historical View (lite) under the Sorani (RTL) locale", () => {
     await i18n.changeLanguage("ckb");
     await renderWithProviders(<HistoricalScreen />);
 
+    expect(screen.getByTestId("historical-catalog-link-chevron").props.children).toBe(
+      "chevron-back",
+    );
+  });
+
+  it("[regression] lays the catalog link out as a plain row, so the chevron ends it in Sorani too", async () => {
+    // `row-reverse` picked by locale flipped the row twice (the layout is
+    // already right to left there): the chevron came first, on the right.
+    await i18n.changeLanguage("ckb");
+    await renderWithProviders(<HistoricalScreen />);
     expect(
-      screen.getByTestId("historical-catalog-link-chevron").props.children,
-    ).toBe("chevron-back");
+      StyleSheet.flatten(screen.getByTestId("historical-catalog-link").props.style)
+        .flexDirection,
+    ).toBe("row");
   });
 
   it("navigates to /event/[id] on row tap using the Bumelerze id, not the provider id (owner directive 2026-09-02)", async () => {

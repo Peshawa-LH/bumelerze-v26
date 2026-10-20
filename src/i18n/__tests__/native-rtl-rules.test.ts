@@ -11,8 +11,8 @@ import ts from "typescript";
  *    `directionStyle` or `ltrValueStyle` (`src/i18n/index.ts`). iOS and
  *    Android swap a bare `textAlign: "left"`/`"right"` under a right-to-left
  *    layout, and a side picked by locale ("right" for Sorani) flips twice.
- *    The sites below predate the rule and are fixed in the closing sweep of
- *    the iOS parity work (batch b, phase 2): the list may only shrink.
+ *    The sites that predated the rule were moved in the closing sweep of the
+ *    iOS parity work (batch b, phase 2): none is left.
  * 2. A `Text` styled inline with a size of its own (not the whole type
  *    token, which carries `READING_START`) states its alignment. Without
  *    one, iOS aligns it by the app's iOS language, which only follows a
@@ -65,21 +65,17 @@ function countMatches(pattern: RegExp): Record<string, number> {
   return counts;
 }
 
-/** Bare physical sides and sides picked by locale, per file, still to be
- * moved to the helpers (phase 2). Keep in step: remove an entry when its
- * file is fixed. */
-const PHYSICAL_ALIGN_PHASE_2: Record<string, number> = {
-  // The catalogue link row: `row-reverse` picked by locale flips twice on the
-  // web as well (fixed on both in its own commit).
-  "app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx": 1,
-};
+/** Bare physical sides and sides picked by locale. The closing sweep of the
+ * iOS parity work (2026-10-21) moved the last of them to the helpers: the
+ * list is empty and stays so. */
+const PHYSICAL_ALIGN_PHASE_2: Record<string, number> = {};
 
 describe("native direction and date rules (source scan)", () => {
   it("scans the app", () => {
     expect(FILES.length).toBeGreaterThan(300);
   });
 
-  it("[regression] physical textAlign only through the helpers (the known sites may only shrink)", () => {
+  it("[regression] physical textAlign only through the helpers (no site left)", () => {
     const literal = /textAlign:[^,}\n]*["'](?:left|right)["']/g;
     const pickedByLocale = /\?\s*["'](?:left|right)["']\s*:\s*["'](?:left|right)["']/g;
     const reverseByLocale =
