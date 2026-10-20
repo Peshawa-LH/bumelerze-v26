@@ -107,6 +107,9 @@ describe("native direction and date rules (source scan)", () => {
     // The helpers themselves, and the iOS reading start of the theme.
     delete counts["src/i18n/index.ts"];
     delete counts["src/theme/typography.ts"];
+    // The share card is a fixed picture: its container pins `direction: "ltr"`, so its
+    // physical sides are meant literally and iOS does not swap them.
+    delete counts["src/features/share/ShareCardSvg.tsx"];
     expect(counts).toEqual(PHYSICAL_ALIGN_PHASE_2);
   });
 
