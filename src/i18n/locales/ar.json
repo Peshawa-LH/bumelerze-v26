@@ -261,6 +261,10 @@
       "maptilerLogoA11yLabel": "MapTiler",
       "creditsA11yLabel": "مصادر الخريطة"
     },
+    "controls": {
+      "zoomIn": "تكبير",
+      "zoomOut": "تصغير"
+    },
     "eventSheet": {
       "closeButtonLabel": "إغلاق",
       "openFullButtonLabel": "فتح الحدث الكامل"

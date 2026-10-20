@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import Svg, { Rect, Text as SvgText } from "react-native-svg";
 
 import { pickLocalizedName, type TranslateFn } from "@/features/geo";
@@ -76,6 +76,11 @@ export function FeltMapView({
   placeText,
 }: FeltMapViewProps) {
   const { colors, typography, spacing } = useTheme();
+  // SVG text does not inherit the app's Arabic-script face on iOS and
+  // Android (the web document applies Vazirmatn to it), and the system
+  // fallback lacks the Kurdish letter forms: name it, Sorani/Arabic only.
+  const svgLabelFont =
+    Platform.OS === "web" ? undefined : typography.labelCaption.fontFamily;
   const [measuredWidth, setMeasuredWidth] = useState(0);
 
   function handleLayout(event: LayoutChangeEvent) {
@@ -201,6 +206,7 @@ export function FeltMapView({
                   y={y}
                   textAnchor={label.textAnchor}
                   fontSize={7}
+                  {...(svgLabelFont ? { fontFamily: svgLabelFont } : {})}
                   fontWeight="500"
                   fill="none"
                   stroke={colors.surface.base}
@@ -219,6 +225,7 @@ export function FeltMapView({
                 y={label.anchor.y + 3}
                 textAnchor={label.textAnchor}
                 fontSize={7}
+                {...(svgLabelFont ? { fontFamily: svgLabelFont } : {})}
                 fontWeight="500"
                 fill={colors.text.secondary}
               >

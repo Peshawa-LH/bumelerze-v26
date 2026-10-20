@@ -257,6 +257,10 @@
       "maptilerLogoA11yLabel": "MapTiler",
       "creditsA11yLabel": "Çavkaniyên nexşeyê"
     },
+    "controls": {
+      "zoomIn": "Mezin bike",
+      "zoomOut": "Biçûk bike"
+    },
     "eventSheet": {
       "closeButtonLabel": "Bigire",
       "openFullButtonLabel": "Bûyera tevahî veke"

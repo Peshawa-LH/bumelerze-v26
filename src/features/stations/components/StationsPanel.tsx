@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { loadNativeMapLibre } from "@/features/map/native-maplibre";
 import { useTheme } from "@/theme";
 import { findLiveStation, listLiveStations } from "../catalog";
 import { useStationFreshness, useStationTrace } from "../queries";
@@ -13,7 +14,7 @@ import { StationsMap } from "./StationsMap";
 
 /**
  * The live-stations half of the Sensor tab (owner, 2026-09-27: inside the
- * tab, bottom tabs staying put — not a pushed screen). Map (web) + legend,
+ * tab, bottom tabs staying put — not a pushed screen). Map + legend,
  * the selected station's ten minutes, and the list. Data come from the
  * stations' own public FDSN services, minutes behind real time.
  *
@@ -32,7 +33,9 @@ export function StationsPanel() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = selectedId ? (findLiveStation(selectedId) ?? null) : null;
   const trace = useStationTrace(selected);
-  const isWeb = Platform.OS === "web";
+  // The map shows on the web and wherever MapLibre's native code is in the
+  // build; Expo Go keeps the list-only note.
+  const [hasMap] = useState(() => Platform.OS === "web" || loadNativeMapLibre() !== null);
 
   const tiers = useMemo<Record<string, StationFreshness>>(() => {
     // "unknown" means the trace has not answered yet (idle/loading/error);
@@ -55,7 +58,7 @@ export function StationsPanel() {
         {t("stations.intro")}
       </Text>
 
-      {isWeb ? (
+      {hasMap ? (
         <StationsMap
           stations={stations}
           tiers={tiers}

@@ -257,6 +257,10 @@
       "maptilerLogoA11yLabel": "MapTiler",
       "creditsA11yLabel": "سەرچاوەکانی نەخشە"
     },
+    "controls": {
+      "zoomIn": "گەورەکردن",
+      "zoomOut": "بچووککردنەوە"
+    },
     "eventSheet": {
       "closeButtonLabel": "داخستن",
       "openFullButtonLabel": "کردنەوەی ڕووداوی تەواو"

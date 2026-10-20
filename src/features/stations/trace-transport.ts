@@ -1,6 +1,8 @@
 import { Platform } from "react-native";
 
 import { FDSN_SERVICE_BASE } from "./catalog";
+import type { DecodedSegment } from "./miniseed";
+import { decodeMiniSeedNative } from "./native-decoders";
 import type { LiveStation, StationTrace } from "./types";
 
 /** Window fetched per refresh. Ten minutes at 100 sps is ~40 KB of
@@ -35,21 +37,17 @@ export function buildDataselectUrl(
   return `${base}/dataselect/1/query?${q.toString()}`;
 }
 
-interface DecodedSegment {
-  sampleRate: number;
-  startMs: number;
-  y: ArrayLike<number>;
-}
-
 /**
- * miniSEED → segments, via `seisplotjs` loaded lazily and on web only:
- * the library registers a custom element at import, which native has no
- * DOM for, and it is large — the Sensor tab must not pay for it until a
- * station is opened.
+ * miniSEED → segments. On the web via `seisplotjs`, loaded lazily (it is
+ * large, and the Sensor tab must not pay for it until a station is
+ * opened). On iOS and Android via `./miniseed`: seisplotjs registers a
+ * custom element the moment it is imported, which Hermes has no DOM for;
+ * that decoder is a port of the parts used here, tested against
+ * seisplotjs's own output.
  */
 async function decodeMiniSeed(buffer: ArrayBuffer): Promise<DecodedSegment[]> {
   if (Platform.OS !== "web") {
-    return [];
+    return decodeMiniSeedNative(buffer);
   }
   const sp = await import("seisplotjs");
   const records = sp.miniseed.parseDataRecords(buffer);

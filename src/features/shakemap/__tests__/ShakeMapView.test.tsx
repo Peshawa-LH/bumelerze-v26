@@ -118,7 +118,9 @@ describe("ShakeMapView", () => {
     );
 
     const map = screen.getByTestId("shakemap-map-container");
-    expect(map.props.accessibilityLabel).toContain("12 km SE of Halabja, Kurdistan Region");
+    expect(map.props.accessibilityLabel).toContain(
+      "12 km SE of Halabja, Kurdistan Region",
+    );
     expect(map.props.accessibilityLabel).toMatch(/maximum intensity/i);
   });
 
@@ -310,15 +312,20 @@ describe("ShakeMapView", () => {
 
     await fireEvent.press(screen.getByTestId("shakemap-layer-toggle-damage"));
 
-    expect(screen.getByTestId("shakemap-layer-toggle-damage").props.accessibilityState.selected).toBe(
-      true,
-    );
+    expect(
+      screen.getByTestId("shakemap-layer-toggle-damage").props.accessibilityState
+        .selected,
+    ).toBe(true);
     const totalDamageRings =
       damageContours?.levels.reduce((sum, level) => sum + level.rings.length, 0) ?? 0;
     expect(totalDamageRings).toBeGreaterThan(0);
-    expect(screen.getAllByTestId(/^shakemap-damage-contour-/)).toHaveLength(totalDamageRings);
+    expect(screen.getAllByTestId(/^shakemap-damage-contour-/)).toHaveLength(
+      totalDamageRings,
+    );
     expect(screen.queryAllByTestId(CONTOUR_TEST_ID_PATTERN)).toHaveLength(0);
-    expect(screen.getByText(i18n.t("eventDetail.shakemap.legendCaptionDamage"))).toBeTruthy();
+    expect(
+      screen.getByText(i18n.t("eventDetail.shakemap.legendCaptionDamage")),
+    ).toBeTruthy();
     expect(screen.getByText("DG1", { includeHiddenElements: true })).toBeTruthy();
     expect(screen.getByText("DG5", { includeHiddenElements: true })).toBeTruthy();
     expect(screen.queryByText("I", { includeHiddenElements: true })).toBeNull();
@@ -342,7 +349,9 @@ describe("ShakeMapView", () => {
     await fireEvent.press(screen.getByTestId("shakemap-layer-toggle-damage"));
 
     const map = screen.getByTestId("shakemap-map-container");
-    expect(map.props.accessibilityLabel).toContain("12 km SE of Halabja, Kurdistan Region");
+    expect(map.props.accessibilityLabel).toContain(
+      "12 km SE of Halabja, Kurdistan Region",
+    );
     expect(map.props.accessibilityLabel).toMatch(/damage/i);
   });
 
@@ -361,5 +370,44 @@ describe("ShakeMapView", () => {
     await measureContainer();
 
     expect(screen.queryByTestId("shakemap-layer-toggle-damage")).toBeNull();
+  });
+  it("[regression] draws Sorani city labels in Vazirmatn on iOS/Android, not the system face", async () => {
+    // Item 45: SVG text does not inherit the app font natively, and the
+    // iOS fallback face lacks ە ڵ ێ ۆ ڕ (the owner's "the writing doesn't
+    // align").
+    await i18n.changeLanguage("ckb");
+    const contours = parseIntensityContours(halabjaContours);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="ckb"
+        t={i18n.t}
+        placeText="هەڵەبجە"
+      />,
+    );
+    await measureContainer();
+    const labels = screen.getAllByTestId(CITY_LABEL_TEST_ID_PATTERN);
+    expect(labels.length).toBeGreaterThan(0);
+    for (const label of labels) {
+      expect(label.props.font.fontFamily).toBe("Vazirmatn-Medium");
+    }
+  });
+
+  it("leaves Latin-script city labels in the platform face", async () => {
+    const contours = parseIntensityContours(halabjaContours);
+    await render(
+      <ShakeMapView
+        contours={contours}
+        epicenter={HALABJA_EPICENTER}
+        locale="en"
+        t={i18n.t}
+        placeText="Halabja"
+      />,
+    );
+    await measureContainer();
+    for (const label of screen.getAllByTestId(CITY_LABEL_TEST_ID_PATTERN)) {
+      expect(label.props.font.fontFamily).toBeUndefined();
+    }
   });
 });

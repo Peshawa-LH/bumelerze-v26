@@ -1,5 +1,12 @@
+import { readFileSync } from "fs";
+import { join } from "path";
+
 import { listLiveStations } from "../catalog";
-import { buildDataselectUrl, mergeSegments } from "../trace-transport";
+import {
+  buildDataselectUrl,
+  FdsnStationTraceTransport,
+  mergeSegments,
+} from "../trace-transport";
 
 describe("station trace transport", () => {
   it("builds an FDSN dataselect URL on the station's own service", () => {
@@ -32,5 +39,33 @@ describe("station trace transport", () => {
   it("returns null with no samples", () => {
     expect(mergeSegments([])).toBeNull();
     expect(mergeSegments([{ sampleRate: 10, startMs: 0, y: [] }])).toBeNull();
+  });
+
+  it("[regression] decodes the trace on iOS/Android instead of reporting no data", async () => {
+    // Off the web, decodeMiniSeed used to return [] (seisplotjs cannot load
+    // on Hermes), so every selected station read "No data".
+    const bytes = readFileSync(
+      join(__dirname, "..", "__fixtures__", "earthscope-MP-KIR1-HHZ.mseed"),
+    );
+    const body = bytes.buffer.slice(
+      bytes.byteOffset,
+      bytes.byteOffset + bytes.byteLength,
+    );
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      arrayBuffer: async () => body,
+    })) as unknown as typeof fetch;
+    try {
+      const station = listLiveStations().find((s) => s.id === "MP.KIR1")!;
+      const trace = await FdsnStationTraceTransport.fetchTrace(station, 1792529100000);
+      expect(trace?.stationId).toBe("MP.KIR1");
+      expect(trace?.sps).toBe(100);
+      expect(trace?.samples.length).toBe(3221);
+      expect(trace?.startMs).toBe(1792529014000);
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });
