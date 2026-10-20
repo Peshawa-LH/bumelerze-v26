@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, type Ref } from "react";
-import { Platform, StyleSheet, Text, View, type TextStyle } from "react-native";
+import { PixelRatio, Platform, StyleSheet, Text, View, type TextStyle } from "react-native";
 import Svg, {
   ClipPath,
   Circle,
@@ -354,6 +354,18 @@ export function nativeTextBox(
   return { left: item.x - boxWidth / 2, top, width: boxWidth, textAlign: "center" };
 }
 
+/** Card text never grows with the phone's text-size setting: the card is a
+ * fixed 1080-pixel picture (an image to share, mounted hidden, and its
+ * preview on the Event hub), and larger words would run off it. */
+const CARD_TEXT_SIZE_MULTIPLIER = 1;
+
+/** The factor that undoes a smaller-than-default system text size (which
+ * `maxFontSizeMultiplier` does not cap): 1 at the default size and above. */
+export function cardTextShrinkFactor(): number {
+  const fontScale = PixelRatio.getFontScale();
+  return fontScale > 0 && fontScale < 1 ? fontScale : 1;
+}
+
 /** Eight directions for the halo copies (map labels), unit length. */
 const HALO_DIRECTIONS: readonly (readonly [number, number])[] = [
   [1, 0],
@@ -386,6 +398,7 @@ interface NativeTextProps {
  */
 function NativeCardText({ item, scale, boxWidth, originX = 0, originY = 0 }: NativeTextProps) {
   const box = nativeTextBox(item, boxWidth);
+  const fontScale = scale / cardTextShrinkFactor();
   const left = (box.left - originX) * scale;
   const top = (box.top - originY) * scale;
   const style: TextStyle = {
@@ -395,7 +408,7 @@ function NativeCardText({ item, scale, boxWidth, originX = 0, originY = 0 }: Nat
     width: box.width * scale,
     textAlign: box.textAlign,
     fontFamily: fontFamilyFor(item),
-    fontSize: item.size * scale,
+    fontSize: item.size * fontScale,
     color: item.fill,
     includeFontPadding: false,
     ...(item.opacity === undefined ? {} : { opacity: item.opacity }),
@@ -403,7 +416,7 @@ function NativeCardText({ item, scale, boxWidth, originX = 0, originY = 0 }: Nat
   const last = item.runs ? item.runs.length - 1 : 0;
   const content = item.runs
     ? item.runs.map((run, index) => (
-        <Text key={index} style={{ fontSize: run.size * scale }}>
+        <Text key={index} style={{ fontSize: run.size * fontScale }}>
           {(item.rtl && index === 0 ? RIGHT_TO_LEFT_ISOLATE : "") +
             run.text +
             (item.rtl && index === last ? POP_DIRECTIONAL_ISOLATE : "")}
@@ -411,13 +424,18 @@ function NativeCardText({ item, scale, boxWidth, originX = 0, originY = 0 }: Nat
       ))
     : isolateForSvg(item.text, item.rtl);
   const halo = item.halo;
+  // The card is a picture with every string placed to the pixel, the same
+  // for everyone who receives it (the web's SVG text does not follow the
+  // browser's text size either), so its words keep the card's own size.
+  const fixedSize = CARD_TEXT_SIZE_MULTIPLIER;
   return (
     <>
       {halo
         ? HALO_DIRECTIONS.map(([dx, dy], index) => (
             <Text
               key={`halo${index}`}
-              allowFontScaling={false}
+              // A fixed picture: see CARD_TEXT_SIZE_MULTIPLIER.
+              maxFontSizeMultiplier={fixedSize}
               numberOfLines={1}
               style={[
                 style,
@@ -433,7 +451,12 @@ function NativeCardText({ item, scale, boxWidth, originX = 0, originY = 0 }: Nat
             </Text>
           ))
         : null}
-      <Text allowFontScaling={false} numberOfLines={1} style={style}>
+      <Text
+        // A fixed picture: see CARD_TEXT_SIZE_MULTIPLIER.
+        maxFontSizeMultiplier={fixedSize}
+        numberOfLines={1}
+        style={style}
+      >
         {content}
       </Text>
     </>

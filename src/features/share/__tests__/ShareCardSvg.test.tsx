@@ -125,7 +125,20 @@ describe("ShareCardSvg on the phone", () => {
     const style = StyleSheet.flatten(node.props.style);
     expect(style.fontFamily).toBe(place.weight === 700 ? "Vazirmatn-Bold" : "Vazirmatn-Regular");
     expect(style.fontSize).toBeCloseTo(place.size * 0.5);
-    expect(node.props.allowFontScaling).toBe(false);
+    // Capped at the card's own size (a picture), via the allowed, justified
+    // multiplier rather than switching scaling off.
+    expect(node.props.maxFontSizeMultiplier).toBe(1);
+  });
+
+  it("undoes a smaller-than-default text size, so the picture's words keep their size", async () => {
+    const fontScale = jest.spyOn(PixelRatio, "getFontScale").mockReturnValue(0.8);
+    const card = await model("en");
+    await render(<ShareCardSvg model={card} displayWidth={540} />);
+    const place = card.texts.find((item) => item.text.includes("Urmia"))!;
+    const style = StyleSheet.flatten(screen.getByText(place.text).props.style);
+    // The phone multiplies by 0.8 again: the drawn size is the card's own.
+    expect(style.fontSize * 0.8).toBeCloseTo(place.size * 0.5);
+    fontScale.mockRestore();
   });
 
   it("keeps its own left-to-right box under a right-to-left app layout", async () => {
