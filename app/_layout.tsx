@@ -163,7 +163,7 @@ export default function RootLayout() {
   // profile or family-join link) opens once it is. Before the tour below, so
   // the tour, when asked for, shows first and closes onto the link's screen.
   usePendingLink({
-    ready: hasHydrated && localeReady && launchLanguageChecked && !isRestarting,
+    ready: hasHydrated && localeReady && !isRestarting,
     onboardingCompleted,
   });
   // "Take a quick tour" on the last onboarding screen: open the tour once
