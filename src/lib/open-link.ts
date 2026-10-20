@@ -1,14 +1,13 @@
 import * as WebBrowser from "expo-web-browser";
-import { Linking, Platform } from "react-native";
+import { Linking } from "react-native";
 
 /**
  * Opens an outside web page (the privacy policy, an Atlas PDF report, the
  * MapTiler site) without losing the person's place in the app.
  *
- * Web: a new browser tab, as before (`Linking.openURL` in react-native-web
- * opens `_blank`). Phone: an in-app browser sheet (`SFSafariViewController`
- * on iOS, a Custom Tab on Android) with a Done button back to the same
- * screen, which is the phone's equivalent of that tab. Plain
+ * Phone: an in-app browser sheet (`SFSafariViewController` on iOS, a Custom
+ * Tab on Android) with a Done button back to the same screen, the phone's
+ * equivalent of the web's new tab (`open-link.web.ts`). Plain
  * `Linking.openURL` switched the iPhone over to Safari.
  *
  * Anything that is not an http(s) page (mailto:, tel:) goes to the system,
@@ -17,7 +16,7 @@ import { Linking, Platform } from "react-native";
  * their own "could not open" message.
  */
 export async function openLink(url: string): Promise<void> {
-  if (Platform.OS === "web" || !/^https?:\/\//i.test(url)) {
+  if (!/^https?:\/\//i.test(url)) {
     await Linking.openURL(url);
     return;
   }

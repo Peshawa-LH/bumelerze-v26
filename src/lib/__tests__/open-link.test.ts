@@ -1,4 +1,4 @@
-import { Linking, Platform } from "react-native";
+import { Linking } from "react-native";
 
 import { openLink } from "../open-link";
 
@@ -12,7 +12,6 @@ jest.mock("expo-web-browser", () => ({
  * opens a new tab and the app stays where it was; the phone's equivalent is
  * the in-app browser sheet. */
 describe("openLink", () => {
-  const originalOS = Platform.OS;
   let openURL: jest.SpyInstance;
 
   beforeEach(() => {
@@ -21,11 +20,9 @@ describe("openLink", () => {
   });
   afterEach(() => {
     openURL.mockRestore();
-    Object.defineProperty(Platform, "OS", { value: originalOS, configurable: true });
   });
 
   it("opens a web page in the in-app browser on a phone, never in Safari", async () => {
-    Object.defineProperty(Platform, "OS", { value: "ios", configurable: true });
     await openLink("https://bumelerze.com/privacy");
     expect(mockOpenBrowser).toHaveBeenCalledWith(
       "https://bumelerze.com/privacy",
@@ -34,29 +31,19 @@ describe("openLink", () => {
     expect(openURL).not.toHaveBeenCalled();
   });
 
-  it("keeps the web's new browser tab", async () => {
-    Object.defineProperty(Platform, "OS", { value: "web", configurable: true });
-    await openLink("https://bumelerze.com/privacy");
-    expect(openURL).toHaveBeenCalledWith("https://bumelerze.com/privacy");
-    expect(mockOpenBrowser).not.toHaveBeenCalled();
-  });
-
   it("hands a non-web link (mail) to the system", async () => {
-    Object.defineProperty(Platform, "OS", { value: "ios", configurable: true });
     await openLink("mailto:hello@bumelerze.com");
     expect(openURL).toHaveBeenCalledWith("mailto:hello@bumelerze.com");
     expect(mockOpenBrowser).not.toHaveBeenCalled();
   });
 
   it("falls back to the system when the in-app browser refuses", async () => {
-    Object.defineProperty(Platform, "OS", { value: "ios", configurable: true });
     mockOpenBrowser.mockRejectedValue(new Error("Another WebBrowser is already being presented."));
     await openLink("https://example.test/report.pdf");
     expect(openURL).toHaveBeenCalledWith("https://example.test/report.pdf");
   });
 
   it("rejects when nothing can open the link, so the caller can say so", async () => {
-    Object.defineProperty(Platform, "OS", { value: "ios", configurable: true });
     mockOpenBrowser.mockRejectedValue(new Error("refused"));
     openURL.mockRejectedValue(new Error("no handler"));
     await expect(openLink("https://example.test/report.pdf")).rejects.toThrow("no handler");
