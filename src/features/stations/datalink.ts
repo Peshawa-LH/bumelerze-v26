@@ -1,10 +1,12 @@
 import { Platform } from "react-native";
 
+import { openDataLinkStream } from "./datalink-native";
 import type { LiveStation, StationTrace } from "./types";
 
-/** EarthScope's public DataLink ring, reachable from a browser (verified
- * 2026-09-27). Stations served from `earthscope` are in it; KOERI and
- * GEOFON offer no WebSocket, so they stay on polling. */
+/** EarthScope's public DataLink ring, reachable from a browser and the
+ * apps (verified 2026-09-27, and from the iOS client 2026-10-21). Stations
+ * served from `earthscope` are in it; KOERI and GEOFON offer no WebSocket,
+ * so they stay on polling. */
 export const DATALINK_URL = "wss://rtserve.earthscope.org/datalink";
 
 export interface StreamedSegment {
@@ -14,7 +16,7 @@ export interface StreamedSegment {
 }
 
 export function canStream(station: LiveStation): boolean {
-  return Platform.OS === "web" && station.service === "earthscope";
+  return station.service === "earthscope";
 }
 
 /** DataLink stream ids read `NET_STA_LOC_CHAN/MSEED`; the location code
@@ -24,15 +26,39 @@ export function streamPattern(station: LiveStation): string {
 }
 
 /**
+ * The pattern the native client matches with. EarthScope's ring (RingServer
+ * 4.5, DataLink 1.1) names streams by FDSN source id, e.g.
+ * `FDSN:MP_KIR1_00_H_H_Z/MSEED` (checked 2026-10-21), which
+ * `streamPattern`'s older `NET_STA_LOC_CHAN` form does not match, so it
+ * selects no stream there. This one accepts both forms.
+ */
+export function nativeStreamPattern(station: LiveStation): string {
+  const chan = station.channel;
+  const fdsnChan = chan.split("").join("_");
+  return `^(FDSN:)?${station.net}_${station.sta}_[A-Z0-9]*_(${chan}|${fdsnChan})/MSEED$`;
+}
+
+/**
  * Opens a live stream for one station and hands every decoded packet to
  * `onSegment`. Returns a closer. Errors (network, a station not in the
  * ring) go to `onError`; the caller keeps polling either way.
+ *
+ * iOS and Android use `datalink-native.ts` (seisplotjs cannot load on
+ * Hermes); the web keeps seisplotjs's own client.
  */
 export function openStationStream(
   station: LiveStation,
   onSegment: (segment: StreamedSegment) => void,
   onError: (error: Error) => void,
 ): () => void {
+  if (Platform.OS !== "web") {
+    return openDataLinkStream(
+      DATALINK_URL,
+      nativeStreamPattern(station),
+      onSegment,
+      onError,
+    );
+  }
   let closed = false;
   let connection: { close(): void } | null = null;
   void (async () => {
