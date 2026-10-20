@@ -50,6 +50,17 @@ for hosting_file in _headers robots.txt; do
   fi
 done
 
+# iOS universal links and shared passwords: with the Apple Developer Team ID
+# in APPLE_TEAM_ID (the same value as EXPO_APPLE_TEAM_ID for the iOS build),
+# write .well-known/apple-app-site-association and add its JSON content type
+# to _headers, so links to the app's shareable pages open the installed
+# iPhone app and passwords saved for this site are offered in its sign-in.
+# Unset (until the Apple account exists), nothing is written and the output
+# is exactly what it was without this step.
+if [ -n "${APPLE_TEAM_ID:-}" ]; then
+  node scripts/write-apple-app-site-association.mjs dist-app "$APPLE_TEAM_ID"
+fi
+
 # Cloudflare Pages never uploads directories named node_modules, and its SPA
 # fallback then answers those URLs with index.html — which silently broke the
 # icon fonts (@expo/vector-icons), expo-router images and the wa-sqlite engine
