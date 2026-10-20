@@ -1,12 +1,13 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
-import type { ColorValue } from "react-native";
+import { Platform, Text, type ColorValue, type TextStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TAB_BAR_CONTENT_HEIGHT } from "@/components/Snackbar";
 import { ScrollAwareTabBar } from "@/features/tab-bar/ScrollAwareTabBar";
 import { tabBarButtonOptions } from "@/features/tab-bar/web-tab-button";
+import { ARABIC_SCRIPT_LOCALES, type SupportedLocale } from "@/i18n";
 import { useTheme } from "@/theme";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -27,12 +28,22 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
  * returns on scroll up (`ScrollAwareTabBar`).
  */
 export default function TabLayout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
-  const labelFontSize = typography.labelCaption.fontFamily
-    ? 11
-    : typography.labelCaption.fontSize;
+  // From the language, not from the font family: on iOS/Android the family
+  // is named only once Vazirmatn is registered (`useTheme`).
+  const isArabicScript = ARABIC_SCRIPT_LOCALES.includes(i18n.language as SupportedLocale);
+  const labelFontSize = isArabicScript ? 11 : typography.labelCaption.fontSize;
+  const labelStyle: TextStyle = {
+    fontSize: labelFontSize,
+    // A real line box, so descenders are drawn rather than clipped.
+    lineHeight: Math.round(labelFontSize * 1.35),
+    fontWeight: typography.labelCaption.fontWeight,
+    ...(typography.labelCaption.fontFamily
+      ? { fontFamily: typography.labelCaption.fontFamily }
+      : {}),
+  };
 
   function icon(name: IoniconName, outlineName?: IoniconName) {
     return function renderIcon({
@@ -96,40 +107,89 @@ export default function TabLayout() {
         // 2 px padding and 11 px for Arabic-script labels make it fit;
         // phone widths from 375 px never needed either.
         tabBarItemStyle: { paddingHorizontal: 2 },
-        tabBarLabelStyle: {
-          fontSize: labelFontSize,
-          // A real line box, so descenders are drawn rather than clipped.
-          lineHeight: Math.round(labelFontSize * 1.35),
-          fontWeight: typography.labelCaption.fontWeight,
-          ...(typography.labelCaption.fontFamily
-            ? { fontFamily: typography.labelCaption.fontFamily }
-            : {}),
-        },
+        tabBarLabelStyle: labelStyle,
+        ...(Platform.OS === "web" ? {} : nativeTabBarLabel(labelStyle)),
       }}
     >
       <Tabs.Screen
         name="(home)"
-        options={{ title: t("tabs.home"), tabBarIcon: icon("home") }}
+        options={{
+          ...nativeA11yLabel(t("tabs.home")),
+          title: t("tabs.home"),
+          tabBarIcon: icon("home"),
+        }}
       />
       <Tabs.Screen
         name="(map)"
-        options={{ title: t("tabs.map"), tabBarIcon: icon("map") }}
+        options={{
+          ...nativeA11yLabel(t("tabs.map")),
+          title: t("tabs.map"),
+          tabBarIcon: icon("map"),
+        }}
       />
       <Tabs.Screen
         name="(sensor)"
-        options={{ title: t("tabs.sensor"), tabBarIcon: icon("pulse") }}
+        options={{
+          ...nativeA11yLabel(t("tabs.sensor")),
+          title: t("tabs.sensor"),
+          tabBarIcon: icon("pulse"),
+        }}
       />
       <Tabs.Screen
         name="(profile)"
         options={{
+          ...nativeA11yLabel(t("tabs.profile")),
           title: t("tabs.profile"),
           tabBarIcon: icon("person-circle", "person-circle-outline"),
         }}
       />
       <Tabs.Screen
         name="(settings)"
-        options={{ title: t("tabs.settings"), tabBarIcon: icon("settings") }}
+        options={{
+          ...nativeA11yLabel(t("tabs.settings")),
+          title: t("tabs.settings"),
+          tabBarIcon: icon("settings"),
+        }}
       />
     </Tabs>
   );
+}
+
+/**
+ * iOS/Android: the tab label drawn by the app instead of React Navigation's,
+ * so it can shrink to fit. React Navigation's label is one line that iOS
+ * never scales; a label wider than its item (an iPhone SE gives each of the
+ * five 64 pt, and Vazirmatn's ڕێکخستنەکان needs about 59 at 11 pt) is cut
+ * with "…". This one shrinks to 80 % first. Same one-line, centred label
+ * otherwise. The web keeps React Navigation's label, measured and tuned at
+ * 320 px.
+ */
+function nativeTabBarLabel(style: TextStyle) {
+  // With a drawn label React Navigation no longer builds the tab's spoken
+  // name, and VoiceOver read the icon glyphs too (", , Home"). Each tab
+  // sets `tabBarAccessibilityLabel` to its title instead (`nativeA11yLabel`).
+  return {
+    tabBarLabel: ({ color, children }: { color: ColorValue; children: string }) => (
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+        // Justification: the bar is a fixed 58 pt (icon + one 15 pt line
+        // fill it), so a larger label would be cut at the bottom. As in
+        // UIKit's own tab bars, and as React Navigation's label did on iOS,
+        // the text-size setting reaches the label through the button's
+        // long-press Large Content Viewer instead.
+        maxFontSizeMultiplier={Platform.OS === "ios" ? 1 : null}
+        style={[{ textAlign: "center", backgroundColor: "transparent", color }, style]}
+      >
+        {children}
+      </Text>
+    ),
+  };
+}
+
+/** iOS/Android: the tab's spoken name is its title (see `nativeTabBarLabel`).
+ * The web keeps React Navigation's own. */
+function nativeA11yLabel(title: string) {
+  return Platform.OS === "web" ? {} : { tabBarAccessibilityLabel: title };
 }
