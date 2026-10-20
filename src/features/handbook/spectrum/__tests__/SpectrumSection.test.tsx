@@ -5,6 +5,14 @@ import i18n, { isRTLLocale } from "@/i18n";
 import type { Isc2025Result } from "../../types";
 import { SpectrumSection } from "../components/SpectrumSection";
 
+const mockDownloadReport = jest.fn(async () => undefined);
+const mockPrintReport = jest.fn();
+jest.mock("../print-report", () => ({
+  canPrintReport: true,
+  downloadReport: (...args: unknown[]) => mockDownloadReport(...(args as [])),
+  printReport: (...args: unknown[]) => mockPrintReport(...args),
+}));
+
 // Sulaimani-ish Vs30 that lands in the ISC D band (180-370 m/s) — matches
 // the median-grid case the design doc's §3.6 calls out.
 const VS30_D_BAND = 250;
@@ -241,5 +249,44 @@ describe("SpectrumSection pre-filled from the Iraqi Seismic Code 2025", () => {
 
     expect(screen.getByText(i18n.t("handbook.spectrum.table.title"))).toBeTruthy();
     expect(screen.getByText("SDS")).toBeTruthy();
+  });
+});
+
+/** iOS parity item 23: the phone hid both report buttons; it now makes the
+ * PDF itself (print-report.ts) and offers the system print panel. */
+describe("SpectrumSection report buttons on the phone", () => {
+  afterEach(() => i18n.changeLanguage("en"));
+
+  it("offers the PDF and \"Or print it\" (a 44 pt row), and passes the report data", async () => {
+    await i18n.changeLanguage("en");
+    await render(
+      <SpectrumSection vs30MS={VS30_D_BAND} ec8GroundType="C" isc2025={DERBENDIKHAN} lat={35.56} lon={45.43} locale="en" />,
+    );
+    const download = screen.getByText(i18n.t("handbook.report.action"));
+    const print = screen.getByText("Or print it");
+    // The web's line ("where the text stays selectable") stays web-only.
+    expect(screen.queryByText(i18n.t("handbook.report.print"))).toBeNull();
+    const printButton = screen.getByRole("button", { name: "Or print it" });
+    expect(printButton.props.style).toMatchObject({ minHeight: 44 });
+
+    await act(async () => {
+      fireEvent.press(download);
+    });
+    expect(mockDownloadReport).toHaveBeenCalledTimes(1);
+    const [report] = mockDownloadReport.mock.calls[0] as unknown as [{ lat: number; locale: string }];
+    expect(report).toMatchObject({ lat: 35.56, locale: "en" });
+
+    await act(async () => {
+      fireEvent.press(print);
+    });
+    expect(mockPrintReport).toHaveBeenCalledTimes(1);
+  });
+
+  it("words the print line in Sorani", async () => {
+    await i18n.changeLanguage("ckb");
+    await render(
+      <SpectrumSection vs30MS={VS30_D_BAND} ec8GroundType="C" isc2025={DERBENDIKHAN} lat={35.56} lon={45.43} locale="ckb" />,
+    );
+    expect(screen.getByText("یان چاپی بکە")).toBeTruthy();
   });
 });

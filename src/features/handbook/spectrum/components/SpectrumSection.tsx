@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
@@ -635,9 +635,9 @@ export function SpectrumSection({
             </Text>
           </Pressable>
 
-          {/* Printable report. Hidden where there is no print dialog to
-           * drive (native), rather than shown as a button that does
-           * nothing. */}
+          {/* Printable report: a PDF download and the print dialog on the
+           * web; on a phone the PDF goes to the share sheet and the print line
+           * opens the system print panel (print-report.ts). */}
           {canPrintReport ? (
             <Pressable
               accessibilityRole="button"
@@ -667,9 +667,18 @@ export function SpectrumSection({
           ) : null}
 
           {canPrintReport ? (
-            <Pressable accessibilityRole="button" onPress={handlePrintReport} hitSlop={8}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={handlePrintReport}
+              hitSlop={8}
+              // A 44 pt row on the phone; the web line is unchanged.
+              style={Platform.OS === "web" ? undefined : { minHeight: 44, justifyContent: "center" }}
+            >
+              {/* The web's line explains why to print rather than download
+               * (its PDF is a picture of the page); a phone's PDF keeps live
+               * text, so there it is simply "Or print it". */}
               <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, textAlign: "center" }}>
-                {t("handbook.report.print")}
+                {t(Platform.OS === "web" ? "handbook.report.print" : "handbook.report.printNative")}
               </Text>
             </Pressable>
           ) : null}
