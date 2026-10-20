@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { EarnedBadges } from "@/features/badges";
@@ -540,7 +541,9 @@ function RecentComment({ comment }: { comment: ProfileComment }) {
           {where}
         </Text>
       ) : null}
-      <Text
+      <UserText
+        text={comment.body}
+        locale={i18n.language}
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
@@ -548,9 +551,7 @@ function RecentComment({ comment }: { comment: ProfileComment }) {
           lineHeight: typography.bodyDefault.lineHeight,
           textAlign: "auto",
         }}
-      >
-        {comment.body}
-      </Text>
+      />
     </View>
   );
   const box = [

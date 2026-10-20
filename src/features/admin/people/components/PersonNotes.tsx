@@ -2,6 +2,7 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { communityErrorText } from "@/features/community/error-text";
 import { formatAbsoluteDual } from "@/features/events";
@@ -106,7 +107,11 @@ export function PersonNotes({
               },
             ]}
           >
-            <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>{note.body}</Text>
+            <UserText
+              text={note.body}
+              locale={i18n.language}
+              style={{ ...typography.bodyDefault, color: colors.text.primary }}
+            />
             <Text style={meta}>
               {[
                 note.authorName ? t("admin.activity.by", { name: note.authorName }) : null,

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { communityErrorText } from "@/features/community/error-text";
 import { profileShareUrl } from "@/features/community/components/ProfileShareSheet";
@@ -397,8 +398,9 @@ export function PostItem({
           </View>
         </View>
       ) : post.body !== "" ? (
-        <MentionText
+        <UserText
           text={post.body}
+          locale={i18n.language}
           testID={`post-body-${post.id}`}
           style={{
             color: colors.text.primary,
@@ -408,6 +410,13 @@ export function PostItem({
             // Follows the language of the post, not of the app.
             textAlign: "auto",
           }}
+          renderParagraph={(paragraph, paragraphStyle, paragraphTestID) => (
+            <MentionText
+              text={paragraph}
+              style={paragraphStyle}
+              {...(paragraphTestID ? { testID: paragraphTestID } : {})}
+            />
+          )}
         />
       ) : null}
 

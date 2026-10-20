@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { DirectionalChevron } from "@/components/DirectionalChevron";
 import { formatAbsoluteDual, formatMagnitudeValue } from "@/features/events/format";
 import { magnitudeTone } from "@/features/events/magnitude-tone";
@@ -109,7 +110,9 @@ export function EventPostCard({
       ) : null}
       <View style={styles.text}>
         {place ? (
-          <Text
+          <UserText
+            text={place}
+            locale={locale}
             testID={`${testID}-place`}
             numberOfLines={2}
             style={{
@@ -120,9 +123,7 @@ export function EventPostCard({
               fontWeight: "600",
               textAlign: "auto",
             }}
-          >
-            {place}
-          </Text>
+          />
         ) : (
           <Text style={[typography.bodyMeta, { color: colors.text.secondary }]}>
             {t("posts.event.label")}

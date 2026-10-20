@@ -115,7 +115,8 @@ describe("PostsSection", () => {
         makeFake([post("mix", 1, { body: "سڵاو hello زەوی" })]),
       );
       const body = await screen.findByTestId("post-body-mix");
-      expect(body.props.style.textAlign).toBe("auto");
+      // iOS: the direction of its first letter (the web keeps `textAlign: "auto"`).
+      expect(body.props.style.writingDirection).toBe("rtl");
     });
   });
 
@@ -433,7 +434,7 @@ describe("PostsSection", () => {
       expect(screen.getByTestId("post-composer-counter").props.children).toContain(
         "٠/٥٠٠",
       );
-      expect(screen.getByTestId("post-body-k").props.style.textAlign).toBe("auto");
+      expect(screen.getByTestId("post-body-k").props.style.writingDirection).toBe("rtl");
       await openPostMenu("k");
       expect(screen.getByText("سڕینەوە")).toBeTruthy();
       // no Latin brand name or placeholder leaks into the Arabic-script UI

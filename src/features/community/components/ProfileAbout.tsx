@@ -2,6 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { placeDisplayName } from "@/features/geo/place-search";
 import { usePlaceIndex } from "@/features/geo/use-place-index";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
@@ -32,7 +33,9 @@ export function ProfileAbout({ details }: { details: ProfileDetails }) {
   return (
     <View style={{ gap: spacing[1] }} testID="profile-about">
       {details.bio ? (
-        <Text
+        <UserText
+          text={details.bio}
+          locale={i18n.language}
           testID="profile-bio"
           style={{
             color: colors.text.primary,
@@ -42,9 +45,7 @@ export function ProfileAbout({ details }: { details: ProfileDetails }) {
             // follows the language it is written in
             textAlign: "auto",
           }}
-        >
-          {details.bio}
-        </Text>
+        />
       ) : null}
       {cityName ? (
         <View style={[styles.row, { gap: spacing[1] }]}>

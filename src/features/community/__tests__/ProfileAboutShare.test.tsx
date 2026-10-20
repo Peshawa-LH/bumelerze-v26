@@ -143,7 +143,9 @@ describe("bio, city label and pinned post on a profile (0058)", () => {
     expect(screen.getByTestId("profile-city")).toHaveTextContent(
       i18n.t("community.profile.livesIn", { place: "دهۆک" }),
     );
-    expect(screen.getByTestId("profile-bio").props.style.textAlign).toBe("auto");
+    // An English bio reads left to right in the Sorani app (iOS: its own
+    // direction per paragraph; the web keeps `textAlign: "auto"`).
+    expect(screen.getByTestId("profile-bio").props.style.writingDirection).toBe("ltr");
   });
 
   it("falls back to the stored name for a place not in the bundled list", async () => {

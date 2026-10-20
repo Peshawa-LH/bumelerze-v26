@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { UserText } from "@/components/UserText";
 import { useSnackbar } from "@/components/Snackbar";
 import { formatUsername } from "@/features/community/username";
 import { formatAbsoluteDual } from "@/features/events";
@@ -200,9 +201,13 @@ function DetailBody({
             .filter(Boolean)
             .join(" · ")}
         </Text>
-        <Text selectable style={[body, { textAlign: "auto" }]} testID="feedback-message">
-          {data.message}
-        </Text>
+        <UserText
+          text={data.message}
+          locale={language}
+          selectable
+          style={{ ...body, textAlign: "auto" }}
+          testID="feedback-message"
+        />
       </View>
 
       {/* who and from where */}
