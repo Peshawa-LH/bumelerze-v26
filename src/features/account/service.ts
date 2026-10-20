@@ -16,7 +16,7 @@ import { SupabaseGuidelinesTransport } from "@/features/guidelines/transport";
 import { isValidUsername, normalizeUsername } from "@/features/community/username";
 import { getDeviceId } from "@/features/felt/device-id";
 import { SUPPORTED_LOCALES } from "@/i18n";
-import { dataUriMimeType, toDurablePhotoUri } from "@/lib/durable-photo-uri";
+import { dataUriMimeType, releaseDurablePhoto, toDurablePhotoUri } from "@/lib/durable-photo-uri";
 import {
   getSupabaseClient,
   resetAnonymousSignIn,
@@ -603,6 +603,12 @@ export async function saveProfile(input: SaveProfileInput): Promise<void> {
       .from(AVATARS_BUCKET)
       .remove([previousAvatar])
       .catch(() => undefined);
+  }
+
+  // The whole profile is saved with the new photo: free the phone's copy of
+  // it (kept until now so that Save can be tried again after a failure).
+  if (input.avatar.kind === "new") {
+    releaseDurablePhoto(input.avatar.uri);
   }
 }
 

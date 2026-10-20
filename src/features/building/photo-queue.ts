@@ -4,6 +4,8 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+import { releaseDurablePhoto } from "@/lib/durable-photo-uri";
+
 import { HOME_PHOTO_MAX_COUNT, PHOTO_CAPTION_MAX } from "./constants";
 import {
   photoContentType,
@@ -132,6 +134,7 @@ export function dropQueuedHomePhotos(tagId: string): void {
   const store = useHomePhotoQueueStore.getState();
   for (const item of store.items.filter((entry) => entry.tagId === tagId)) {
     store._remove(item.id);
+    releaseDurablePhoto(item.uri);
   }
 }
 
@@ -200,13 +203,16 @@ export async function processHomePhotoQueue(
           // is lost (the table arrives with migration 0042).
         }
         store._remove(item.id);
+        releaseDurablePhoto(item.uri);
         uploaded += 1;
       } catch (error) {
         const network = isNetworkTrouble(error);
         const tooLarge = error instanceof HomeError && error.code === "photo_too_large";
         const failures = network ? item.failures : item.failures + 1;
         if (tooLarge || failures >= MAX_HARD_FAILURES) {
+          // Given up on: nothing will read the kept copy again.
           store._remove(item.id);
+          releaseDurablePhoto(item.uri);
         } else {
           const attempts = item.attempts + 1;
           store._patch(item.id, {

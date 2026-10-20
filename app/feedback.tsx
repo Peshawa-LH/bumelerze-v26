@@ -96,10 +96,9 @@ export default function FeedbackScreen() {
   const atPhotoLimit = photos.length >= FEEDBACK_PHOTO_MAX_COUNT;
 
   async function handleAddPhoto() {
-    // Aggressive JPEG compression (quality 0.4), library-only, no editing
-    // UI — identical policy to `app/felt-report/details.tsx`'s own photo
-    // picker (same size-limit rationale: well under the 5 MB bucket cap,
-    // migration 0020, without a second native module). Multi-select where
+    // Full quality (made small once, by `toDurablePhotoUri`), library-only,
+    // no editing UI — identical policy to `app/felt-report/details.tsx`'s own photo
+    // picker (well under the 5 MB bucket cap, migration 0020). Multi-select where
     // the platform supports it; a second (or third) tap on "Add more" lets
     // a user top up the set later, since a tester often remembers another
     // screenshot after the first pass — `photos` only ever grows via
@@ -110,7 +109,8 @@ export default function FeedbackScreen() {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.4,
+      // Full quality: `toDurablePhotoUri` below makes it small, once.
+      quality: 1,
       allowsEditing: false,
       allowsMultipleSelection: true,
       // iOS honors this directly; Android/web may still return more than

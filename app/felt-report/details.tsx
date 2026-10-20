@@ -66,15 +66,15 @@ export default function DetailsReportScreen() {
   }
 
   async function handleAddPhoto() {
-    // Aggressive JPEG compression (quality 0.4) is the size-limit
-    // mechanism — keeps a typical phone photo well under ~2MB without
-    // pulling in a second native module (expo-image-manipulator) just for
-    // dimension-based resizing (brief: "aggressive size limit ~2MB
-    // with resize"). Library first (most common path), no editing UI (a
-    // felt report shouldn't ask the user to crop anything mid-aftershock).
+    // The photo is taken at full quality and made small once, by
+    // `toDurablePhotoUri` (longest edge 1600 px, JPEG 0.72, on the phone and
+    // in the browser alike); a JPEG squeezed by the picker first and then
+    // re-encoded lost detail twice. Library first (most common path), no
+    // editing UI (a felt report shouldn't ask the user to crop anything
+    // mid-aftershock).
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.4,
+      quality: 1,
       allowsEditing: false,
       allowsMultipleSelection: false,
     });
