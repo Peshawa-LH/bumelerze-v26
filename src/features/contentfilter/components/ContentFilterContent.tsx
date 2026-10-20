@@ -8,6 +8,7 @@ import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatAbsoluteDual, formatMagnitudeValue } from "@/features/events";
+import { physicalTextAlign } from "@/i18n";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
@@ -479,7 +480,9 @@ function TermRow({ term, actions }: { term: FilterTerm; actions: ContentFilterAc
           typography.bodyDefault,
           {
             color: term.active ? colors.text.primary : colors.text.tertiary,
-            textAlign: term.isPattern ? "left" : "auto",
+            // A pattern reads left to right and sits on the left, also under
+            // Sorani and Arabic (`physicalTextAlign`: iOS swaps a bare "left").
+            textAlign: term.isPattern ? physicalTextAlign("left") : "auto",
             writingDirection: term.isPattern ? "ltr" : "auto",
           },
         ]}

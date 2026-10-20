@@ -5,6 +5,12 @@ import { initReactI18next } from "react-i18next";
 import { I18nManager, Platform } from "react-native";
 
 import { localizeDigits } from "@/lib/format-numbers";
+import {
+  appleLanguagePickedInSystemSettings,
+  currentAppleLanguage,
+  setAppleLanguage,
+} from "./apple-languages";
+import { appLanguageCode } from "./language-codes";
 import { initialTranslations, loadTranslation } from "./locale-resources";
 
 /**
@@ -73,22 +79,61 @@ export function directionProps(locale: string): { dir?: TextDirection } {
   return Platform.OS === "web" ? { dir: textDirectionFor(locale) } : {};
 }
 
+/**
+ * The `textAlign` value that puts a paragraph on the given PHYSICAL edge of
+ * the screen, on every platform.
+ *
+ * iOS and Android swap `"left"` and `"right"` while the native layout runs
+ * right to left (`RCTAttributedTextUtils.mm`, Android `TextAttributeProps`):
+ * there `"left"` means the reading start. The native layout direction is
+ * pinned to the app language (`pinNativeLayoutDirection`), so under Sorani
+ * and Arabic a bare `textAlign: "right"` landed on the LEFT on iOS while the
+ * web put it on the right (item 50 of the iOS parity inventory). The web
+ * never swaps (`I18nManager.isRTL` is always false in react-native-web), so
+ * it gets the side as asked.
+ */
+export function physicalTextAlign(side: "left" | "right"): "left" | "right" {
+  if (Platform.OS === "web" || !I18nManager.isRTL) {
+    return side;
+  }
+  return side === "left" ? "right" : "left";
+}
+
 /** The matching style fragment: the paragraph direction (native, and CSS
  * on web) plus reading-start alignment. RN's `textAlign` has no `start`, so
- * the logical start is expressed as the physical side it maps to. */
+ * the logical start is expressed as the physical side it maps to
+ * (`physicalTextAlign`: on iOS/Android that is "left" under a right-to-left
+ * layout as well). */
 export function directionStyle(locale: string): {
   writingDirection: TextDirection;
   textAlign: "left" | "right";
 } {
   const direction = textDirectionFor(locale);
-  return { writingDirection: direction, textAlign: direction === "rtl" ? "right" : "left" };
+  return {
+    writingDirection: direction,
+    textAlign: physicalTextAlign(direction === "rtl" ? "right" : "left"),
+  };
+}
+
+/**
+ * For a value that always reads left to right whatever the app language —
+ * an email address, a username, a code or id, a URL — and sits on the
+ * physical LEFT edge, as the web shows it under Sorani and Arabic too. A
+ * bare `textAlign: "left"` put these on the right on iOS under a
+ * right-to-left layout. On the web, pair it with `dir="ltr"` where
+ * react-native-web's `dir="auto"` would pick the wrong direction.
+ */
+export function ltrValueStyle(): { writingDirection: "ltr"; textAlign: "left" | "right" } {
+  return { writingDirection: "ltr", textAlign: physicalTextAlign("left") };
 }
 
 function detectDeviceLocale(): SupportedLocale {
   const deviceLocales = Localization.getLocales();
   for (const { languageCode } of deviceLocales) {
-    if (isSupportedLocale(languageCode)) {
-      return languageCode;
+    // A phone set to "ku" (the generic Kurdish code iOS uses) gets Kurmanji.
+    const code = appLanguageCode(languageCode);
+    if (isSupportedLocale(code)) {
+      return code;
     }
   }
   return "en";
@@ -367,9 +412,12 @@ export async function changeLocale(
   // but must still read as Kurmanji to assistive technology (B-9).
   applyDocumentLangWeb(locale);
   // iOS/Android: every change pins the direction to the new language, so a
-  // later launch keeps it whatever the phone language is.
+  // later launch keeps it whatever the phone language is. iOS also takes the
+  // language as the app's own system language (natural text alignment,
+  // system texts; `apple-languages.ios.ts`) from the next launch on.
   if (Platform.OS !== "web") {
     pinNativeLayoutDirection(nextIsRTL);
+    setAppleLanguage(locale);
   }
 
   if (requiresRestart) {
@@ -403,10 +451,25 @@ export async function changeLocale(
  * since the direction was pinned. A mismatch pins the direction and asks for
  * one restart; `allowLaunchDirectionRestart` keeps that from ever looping. */
 export async function applyPersistedLocaleOnLaunch(): Promise<ChangeLocaleResult> {
+  // iOS: a language picked for the app in the iOS Settings app (which
+  // restarts the app) counts as the person's choice, like a pick in the
+  // app's own Settings; otherwise the app would put its old one back.
+  const pickedInSystemSettings =
+    Platform.OS === "ios" ? appleLanguagePickedInSystemSettings() : null;
+  if (isSupportedLocale(pickedInSystemSettings)) {
+    const result = await changeLocale(pickedInSystemSettings);
+    return result.requiresRestart ? allowLaunchDirectionRestart() : result;
+  }
   const persisted = await getPersistedLocale();
   if (!persisted || persisted === i18n.language) {
     if (Platform.OS === "web") {
       return { requiresRestart: false };
+    }
+    // A chosen language that iOS does not know as the app's language yet
+    // (chosen before this was written, or the write was lost): from the
+    // next launch on.
+    if (persisted && currentAppleLanguage() !== persisted) {
+      setAppleLanguage(persisted);
     }
     const wantsRTL = isRTLLocale(i18n.language);
     if (wantsRTL === I18nManager.isRTL) {
