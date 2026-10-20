@@ -1,7 +1,14 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useState, type ReactNode } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type TextStyle,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Avatar, getAvatarUrl } from "@/features/account";
@@ -9,6 +16,8 @@ import { profileHref } from "@/features/community/routes";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import type { HubRole } from "@/features/eventhub/types";
 import { MentionText } from "@/features/mentions/components/MentionText";
+import { physicalTextAlign, textDirectionFor } from "@/i18n";
+import { firstStrongDirection } from "@/i18n/bidi";
 import { useTheme } from "@/theme";
 import { HeartButton, type HeartButtonProps } from "./HeartButton";
 import { MenuSheet, type MenuItem } from "./MenuSheet";
@@ -75,7 +84,7 @@ export function CommentRow({
   placeholder,
   footer,
 }: CommentRowProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { colors, typography, spacing } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -195,9 +204,11 @@ export function CommentRow({
             </View>
             {meta ? <Text style={metaStyle}>{meta}</Text> : null}
 
-            <MentionText
+            <CommentBody
               text={body}
+              locale={i18n.language}
               testID={`${testIDPrefix}-body-${id}`}
+              lineHeight={typography.bodyDefault.lineHeight}
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
@@ -289,6 +300,59 @@ export function CommentRow({
   );
 }
 
+/**
+ * A comment's text. Each paragraph reads in its own direction and starts at
+ * its own edge, as the web shows it (`unicode-bidi: plaintext` there): an
+ * English line in a Sorani thread sits on the left, a Sorani line in an
+ * English one on the right. iOS/Android have no such style, so each
+ * paragraph gets the direction of its first letter (the app language's when
+ * it has none) and its own `Text`; the web keeps one `Text` with the CSS.
+ */
+function CommentBody({
+  text,
+  locale,
+  testID,
+  lineHeight,
+  style,
+}: {
+  text: string;
+  locale: string;
+  testID: string;
+  lineHeight: number;
+  style: TextStyle;
+}) {
+  if (Platform.OS === "web") {
+    return <MentionText text={text} testID={testID} style={style} />;
+  }
+  const paragraphStyle = (paragraph: string): TextStyle => {
+    const direction = firstStrongDirection(paragraph) ?? textDirectionFor(locale);
+    return {
+      ...style,
+      writingDirection: direction,
+      textAlign: physicalTextAlign(direction === "rtl" ? "right" : "left"),
+    };
+  };
+  const paragraphs = text.split("\n");
+  if (paragraphs.length === 1) {
+    return <MentionText text={text} testID={testID} style={paragraphStyle(text)} />;
+  }
+  return (
+    <View testID={testID} style={styles.bodyParagraphs}>
+      {paragraphs.map((paragraph, index) =>
+        paragraph.trim().length === 0 ? (
+          <View key={index} style={{ height: lineHeight }} />
+        ) : (
+          <MentionText
+            key={index}
+            text={paragraph}
+            style={{ ...paragraphStyle(paragraph), marginTop: 0 }}
+          />
+        ),
+      )}
+    </View>
+  );
+}
+
 /** Long comments always wrap inside the column, also in browsers that size a
  * mixed-direction paragraph to its full line (owner screenshot, 2026-10-08):
  * each paragraph takes its own direction, and very long words break. */
@@ -320,5 +384,6 @@ const styles = StyleSheet.create({
   pinnedCard: { borderWidth: 1, borderRadius: 12 },
   placeholder: { minHeight: 32, justifyContent: "center" },
   previewRow: { flexDirection: "row", alignItems: "center" },
+  bodyParagraphs: { alignSelf: "stretch", marginTop: 2 },
   previewText: { flex: 1 },
 });
