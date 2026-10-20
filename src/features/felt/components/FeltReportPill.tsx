@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Event } from "@/features/events";
+import { useTabBarStore } from "@/features/tab-bar/store";
 import { useTheme } from "@/theme";
 
 import { encodeEventRegistrationParam, toEventRegistration } from "../event-registration";
@@ -49,6 +50,14 @@ export function FeltReportPill({ eventId = null, event = null }: FeltReportPillP
   const { colors, typography, spacing } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // The pill floats over a tab screen. While the tab bar takes its strip of
+  // the page, the screen already ends above the bar, and the bar's own
+  // height includes the home-indicator inset: adding the inset again lifted
+  // the pill 34 pt on iPhones, onto the text of the card above (seen on
+  // iOS, 2026-10-20; a browser tab has no inset, so the web never showed
+  // it). Once the bar has slid away, the page reaches the screen's bottom
+  // edge and the inset is needed.
+  const tabBarInLayout = useTabBarStore((state) => state.inLayout);
 
   return (
     <Pressable
@@ -78,7 +87,7 @@ export function FeltReportPill({ eventId = null, event = null }: FeltReportPillP
         styles.pill,
         {
           end: spacing[4],
-          bottom: insets.bottom + spacing[4],
+          bottom: (tabBarInLayout ? 0 : insets.bottom) + spacing[4],
           backgroundColor: colors.action.felt,
           paddingHorizontal: spacing[5],
           // spacing[4] (not spacing[3]) — this is the primary panic-time CTA

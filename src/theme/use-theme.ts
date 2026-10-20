@@ -2,6 +2,7 @@ import { Platform, useColorScheme } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { ARABIC_SCRIPT_LOCALES } from "@/i18n";
+import { useArabicScriptFaceReady } from "./arabic-script-face";
 import { useThemePreferencesStore } from "./preferences-store";
 import { darkColors, lightColors, type SemanticColors } from "./semantic";
 import { spacing, typography } from "./typography";
@@ -57,11 +58,14 @@ export function useTheme(): Theme {
   const isArabicScript = ARABIC_SCRIPT_LOCALES.includes(
     i18n.language as (typeof ARABIC_SCRIPT_LOCALES)[number],
   );
+  // iOS/Android: Vazirmatn is named only once its files are registered
+  // (`arabic-script-face.native.ts`). Always true on the web.
+  const faceReady = useArabicScriptFaceReady(isArabicScript);
 
   return {
     scheme,
     colors: scheme === "dark" ? darkColors : lightColors,
-    typography: typography(isArabicScript),
+    typography: typography(isArabicScript, faceReady),
     spacing,
   };
 }

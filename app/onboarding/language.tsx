@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
 import { OnboardingScreenShell, usePrefsStore } from "@/features/onboarding";
-import { useTheme } from "@/theme";
+import { READING_START, useTheme } from "@/theme";
 
 /**
  * Screen 2 — language selection (the v1 spec §4.11 step 2, D12): "the one
@@ -70,6 +70,7 @@ export default function OnboardingLanguageScreen() {
             >
               <Text
                 style={{
+                  ...READING_START,
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
                   fontWeight: isActive ? "700" : "400",

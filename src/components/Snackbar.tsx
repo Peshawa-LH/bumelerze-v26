@@ -12,7 +12,7 @@ import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-nati
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/theme";
+import { READING_START, useTheme } from "@/theme";
 
 /** How long a snackbar stays up. 8 s for a person's own delete, 10 s for an
  * admin's hide or remove (the research note's 5-10 s range). */
@@ -174,8 +174,9 @@ function SnackbarView({
             fontSize: typography.bodyMeta.fontSize,
             lineHeight: typography.bodyMeta.lineHeight,
             paddingVertical: spacing[2],
-            // Follows the language of the message, i.e. the app's.
-            textAlign: "auto",
+            // Follows the language of the message, i.e. the app's: its
+            // reading start on iOS (READING_START), "auto" elsewhere.
+            textAlign: READING_START.textAlign ?? "auto",
           }}
         >
           {item.message}
