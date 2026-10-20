@@ -133,6 +133,7 @@ export function prepareNativeMapStyle(
   }
 
   insertAnchorLayers(style, options.anchorLayerIds ?? []);
+  resolveHillshadeColorExpressions(style);
 
   return {
     style,
@@ -173,6 +174,144 @@ export function insertAnchorLayers(
     : -1;
   if (index >= 0) style.layers.splice(index, 0, ...anchors);
   else style.layers.push(...anchors);
+}
+
+// ---------------------------------------------------------------------------
+// Hillshade colours MapLibre Native cannot read
+// ---------------------------------------------------------------------------
+
+const HILLSHADE_COLOR_PROPERTIES = [
+  "hillshade-shadow-color",
+  "hillshade-highlight-color",
+  "hillshade-accent-color",
+] as const;
+
+/** The zoom a zoom-dependent hillshade colour is resolved at: between the
+ * Map tab's region view (about 5.5) and Home (about 8); the SHAKEmap opens
+ * near 6–7. */
+export const HILLSHADE_COLOR_ZOOM = 7;
+
+type Rgba = [number, number, number, number];
+
+/** `#rgb`, `#rrggbb`, `rgb()`, `rgba()`, `hsl()` and `hsla()` → RGBA. */
+export function parseCssColor(value: string): Rgba | null {
+  const text = value.trim().toLowerCase();
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/.exec(text);
+  if (hex) {
+    const h = hex[1] as string;
+    const full = h.length === 3 ? [...h].map((c) => c + c).join("") : h;
+    const n = Number.parseInt(full, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255, 1];
+  }
+  const fn = /^(rgba?|hsla?)\(([^)]*)\)$/.exec(text);
+  if (!fn) return null;
+  const parts = (fn[2] as string).split(/[\s,/]+/).filter(Boolean);
+  const num = (part: string | undefined) => Number.parseFloat(part ?? "");
+  const alpha =
+    parts[3] !== undefined ? num(parts[3]) * (parts[3].endsWith("%") ? 0.01 : 1) : 1;
+  if ((fn[1] as string).startsWith("rgb")) {
+    return [num(parts[0]), num(parts[1]), num(parts[2]), alpha];
+  }
+  const hue = (((num(parts[0]) % 360) + 360) % 360) / 360;
+  const sat = num(parts[1]) / 100;
+  const light = num(parts[2]) / 100;
+  if (![hue, sat, light, alpha].every(Number.isFinite)) return null;
+  const q = light < 0.5 ? light * (1 + sat) : light + sat - light * sat;
+  const p = 2 * light - q;
+  const channel = (t: number) => {
+    const u = t < 0 ? t + 1 : t > 1 ? t - 1 : t;
+    const v =
+      u < 1 / 6
+        ? p + (q - p) * 6 * u
+        : u < 1 / 2
+          ? q
+          : u < 2 / 3
+            ? p + (q - p) * (2 / 3 - u) * 6
+            : p;
+    return v * 255;
+  };
+  return [channel(hue + 1 / 3), channel(hue), channel(hue - 1 / 3), alpha];
+}
+
+function rgbaString([r, g, b, a]: Rgba): string {
+  const c = (v: number) => Math.round(Math.min(255, Math.max(0, v)));
+  return `rgba(${c(r)}, ${c(g)}, ${c(b)}, ${Math.round(a * 1000) / 1000})`;
+}
+
+/**
+ * A zoom-dependent colour (`interpolate` or `step` on `["zoom"]` with plain
+ * colour stops) evaluated at `zoom`, as MapLibre would draw it there
+ * (`interpolate` mixes in RGB); `null` for anything else.
+ */
+export function evaluateZoomColor(expression: unknown, zoom: number): string | null {
+  if (!Array.isArray(expression)) return null;
+  const [op, a, b] = expression as unknown[];
+  const isZoom = (v: unknown) => Array.isArray(v) && v[0] === "zoom";
+  if (op === "step" && isZoom(a)) {
+    let out = expression[2];
+    for (let i = 3; i + 1 < expression.length; i += 2) {
+      if (zoom >= (expression[i] as number)) out = expression[i + 1];
+    }
+    return typeof out === "string" && parseCssColor(out) ? out : null;
+  }
+  if (op !== "interpolate" || !isZoom(b)) return null;
+  const base =
+    Array.isArray(a) && a[0] === "exponential" && typeof a[1] === "number" ? a[1] : 1;
+  const stops: [number, Rgba][] = [];
+  for (let i = 3; i + 1 < expression.length; i += 2) {
+    const color =
+      typeof expression[i + 1] === "string"
+        ? parseCssColor(expression[i + 1] as string)
+        : null;
+    if (typeof expression[i] !== "number" || !color) return null;
+    stops.push([expression[i] as number, color]);
+  }
+  const first = stops[0];
+  const last = stops[stops.length - 1];
+  if (!first || !last) return null;
+  if (zoom <= first[0]) return rgbaString(first[1]);
+  if (zoom >= last[0]) return rgbaString(last[1]);
+  for (let i = 0; i + 1 < stops.length; i += 1) {
+    const [z0, c0] = stops[i] as [number, Rgba];
+    const [z1, c1] = stops[i + 1] as [number, Rgba];
+    if (zoom > z1) continue;
+    const span = z1 - z0;
+    const t =
+      span === 0
+        ? 0
+        : base === 1
+          ? (zoom - z0) / span
+          : (Math.pow(base, zoom - z0) - 1) / (Math.pow(base, span) - 1);
+    return rgbaString(c0.map((v, k) => v + ((c1[k] as number) - v) * t) as Rgba);
+  }
+  return rgbaString(last[1]);
+}
+
+/**
+ * MapLibre Native (11.x) reads the hillshade shadow, highlight and accent
+ * colours as a colour LIST (multi-directional hillshade) and rejects a
+ * zoom expression that yields single colours ("Expected array<color> but
+ * found string"), which drops the layer: MapTiler's light outdoor style
+ * zooms its shadow colour, so the light basemap lost all relief on iOS
+ * (simulator, 2026-10-21). A plain colour still reads fine, so such an
+ * expression becomes its colour at `HILLSHADE_COLOR_ZOOM`.
+ */
+export function resolveHillshadeColorExpressions(
+  style: StyleDocument,
+  zoom: number = HILLSHADE_COLOR_ZOOM,
+): void {
+  for (const layer of style.layers) {
+    if (layer.type !== "hillshade") continue;
+    const paint = (layer as { paint?: Record<string, unknown> }).paint;
+    if (!paint) continue;
+    for (const property of HILLSHADE_COLOR_PROPERTIES) {
+      const value = paint[property];
+      if (!Array.isArray(value)) continue;
+      const color = evaluateZoomColor(value, zoom);
+      if (color) paint[property] = color;
+      else delete paint[property];
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -1,7 +1,9 @@
 import {
   clearStyleSessionCache,
+  evaluateZoomColor,
   insertAnchorLayers,
   loadStyleDocument,
+  parseCssColor,
   parseStyleDocument,
   prepareNativeMapStyle,
   styleStorageKey,
@@ -236,5 +238,77 @@ describe("loadStyleDocument", () => {
     await expect(
       loadStyleDocument(URL, { fetchImpl: garbage as never, storage }),
     ).rejects.toThrow("wrong shape");
+  });
+});
+
+describe("hillshade colours MapLibre Native can read", () => {
+  it("parses the CSS colour forms MapTiler and our own layers use", () => {
+    expect(parseCssColor("#C3202B")).toEqual([195, 32, 43, 1]);
+    expect(parseCssColor("#fff")).toEqual([255, 255, 255, 1]);
+    expect(parseCssColor("rgba(0, 0, 0, 0.35)")).toEqual([0, 0, 0, 0.35]);
+    const grey = parseCssColor("hsl(0, 0%, 50%)");
+    expect(grey?.map(Math.round)).toEqual([128, 128, 128, 1]);
+    expect(parseCssColor("hsl(120, 100%, 25%)")?.map(Math.round)).toEqual([0, 128, 0, 1]);
+    expect(parseCssColor("not a colour")).toBeNull();
+  });
+
+  it("evaluates a zoom interpolation and a zoom step at a given zoom", () => {
+    const interpolate = [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      0,
+      "#000000",
+      10,
+      "#646464",
+    ];
+    expect(evaluateZoomColor(interpolate, 5)).toBe("rgba(50, 50, 50, 1)");
+    expect(evaluateZoomColor(interpolate, -1)).toBe("rgba(0, 0, 0, 1)");
+    expect(evaluateZoomColor(interpolate, 20)).toBe("rgba(100, 100, 100, 1)");
+    expect(evaluateZoomColor(["step", ["zoom"], "#000", 6, "#fff"], 7)).toBe("#fff");
+    expect(evaluateZoomColor(["get", "colour"], 7)).toBeNull();
+  });
+
+  it("[regression] turns MapTiler outdoor's zoomed shadow colour into one colour, keeping the relief", () => {
+    // MapLibre Native rejects this expression for the hillshade shadow
+    // colour and dropped the light basemap's relief (simulator, 2026-10-21).
+    const doc = styleDoc({
+      sources: { planet: { type: "vector" }, "terrain-rgb": { type: "raster-dem" } },
+      layers: [
+        {
+          id: "Hillshade",
+          type: "hillshade",
+          source: "terrain-rgb",
+          paint: {
+            "hillshade-accent-color": "hsl(107, 30%, 86%)",
+            "hillshade-shadow-color": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              0,
+              "hsl(9, 3%, 41%)",
+              13,
+              "hsl(17, 3%, 12%)",
+              15,
+              "hsl(17, 3%, 41%)",
+            ],
+            "hillshade-highlight-color": ["get", "unsupported"],
+          },
+        } as never,
+      ],
+    });
+    const { style } = prepareNativeMapStyle(doc, {
+      locale: "en",
+      scheme: "light",
+      terrain: true,
+    });
+    const paint = (style.layers[0] as unknown as { paint: Record<string, unknown> })
+      .paint;
+    expect(typeof paint["hillshade-shadow-color"]).toBe("string");
+    expect(paint["hillshade-shadow-color"]).toMatch(/^rgba\(6\d, 6\d, 6\d, 1\)$/);
+    expect(paint["hillshade-accent-color"]).toBe("hsl(107, 30%, 86%)");
+    expect(paint).not.toHaveProperty("hillshade-highlight-color");
+    // The style's own relief stays; no second hillshade is added.
+    expect(style.layers.filter((layer) => layer.type === "hillshade")).toHaveLength(1);
   });
 });
