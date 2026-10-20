@@ -3616,6 +3616,10 @@
       "remove": "Rake",
       "removeA11y": "{{device}} rake",
       "removeFailed": "Nehat rakirin. Girêdana xwe kontrol bike û dîsa biceribîne."
+    },
+    "channels": {
+      "alerts": "Hişyariyên erdhejê",
+      "quiet": "Kurteyên erdhejan"
     }
   },
   "social": {

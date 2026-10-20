@@ -3616,6 +3616,10 @@
       "remove": "Remove",
       "removeA11y": "Remove {{device}}",
       "removeFailed": "Could not remove it. Check your connection and try again."
+    },
+    "channels": {
+      "alerts": "Earthquake alerts",
+      "quiet": "Earthquake summaries"
     }
   },
   "social": {
