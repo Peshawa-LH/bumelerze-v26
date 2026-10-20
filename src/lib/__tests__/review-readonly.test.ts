@@ -82,7 +82,9 @@ describe("isAllowedInReviewReadonly", () => {
     const get = new Request(table);
     expect(isAllowedInReviewReadonly(post)).toBe(false);
     expect(isAllowedInReviewReadonly(get)).toBe(true);
-    expect(isAllowedInReviewReadonly(new URL(`${SUPABASE_URL}/auth/v1/user`))).toBe(false);
+    expect(isAllowedInReviewReadonly(new URL(`${SUPABASE_URL}/auth/v1/user`))).toBe(
+      false,
+    );
   });
 });
 

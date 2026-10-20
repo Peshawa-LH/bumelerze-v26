@@ -240,7 +240,11 @@ async function allowLaunchDirectionRestart(): Promise<ChangeLocaleResult> {
   try {
     const now = Date.now();
     const last = Number(await AsyncStorage.getItem(LAUNCH_DIRECTION_RESTART_KEY));
-    if (Number.isFinite(last) && last > 0 && now - last < LAUNCH_DIRECTION_RESTART_WINDOW_MS) {
+    if (
+      Number.isFinite(last) &&
+      last > 0 &&
+      now - last < LAUNCH_DIRECTION_RESTART_WINDOW_MS
+    ) {
       return { requiresRestart: false };
     }
     await AsyncStorage.setItem(LAUNCH_DIRECTION_RESTART_KEY, String(now));

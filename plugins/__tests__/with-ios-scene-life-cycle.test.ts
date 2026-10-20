@@ -50,7 +50,9 @@ describe("removeAppDelegateWindowStart", () => {
     expect(out).not.toContain("factory.startReactNative");
     // The factory is still built there, for the scene delegate to use.
     expect(out).toContain("reactNativeFactory = factory");
-    expect(out).toContain("return super.application(application, didFinishLaunchingWithOptions:");
+    expect(out).toContain(
+      "return super.application(application, didFinishLaunchingWithOptions:",
+    );
   });
 
   it("is idempotent", () => {

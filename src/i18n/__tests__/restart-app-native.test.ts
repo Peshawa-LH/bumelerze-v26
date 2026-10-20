@@ -18,7 +18,9 @@ jest.mock("react-native/Libraries/Utilities/DevSettings", () => ({
   default: { reload: jest.fn(), addMenuItem: jest.fn() },
 }));
 
-const reloadAsync = Updates.reloadAsync as jest.MockedFunction<typeof Updates.reloadAsync>;
+const reloadAsync = Updates.reloadAsync as jest.MockedFunction<
+  typeof Updates.reloadAsync
+>;
 const globalWithDev = globalThis as typeof globalThis & { __DEV__: boolean };
 const ORIGINAL_DEV = globalWithDev.__DEV__;
 

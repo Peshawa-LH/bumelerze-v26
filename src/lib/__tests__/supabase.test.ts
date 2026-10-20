@@ -159,7 +159,9 @@ describe("getSupabaseClient in a review-safe (read-only) build", () => {
       expect(realFetch).toHaveBeenCalledTimes(1);
 
       await expect(
-        guardedFetch("https://example.supabase.co/rest/v1/felt_reports", { method: "POST" }),
+        guardedFetch("https://example.supabase.co/rest/v1/felt_reports", {
+          method: "POST",
+        }),
       ).rejects.toThrow("Network request failed");
       await expect(
         guardedFetch("https://example.supabase.co/auth/v1/signup", { method: "POST" }),

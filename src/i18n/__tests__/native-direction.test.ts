@@ -174,7 +174,10 @@ describe("applyPersistedLocaleOnLaunch on iOS/Android", () => {
     const persisted = await storage.getItem("bumelerze.launchDirectionRestartAt");
     expect(persisted).not.toBeNull();
     jest.resetModules();
-    await freshAsyncStorage().setItem("bumelerze.launchDirectionRestartAt", persisted ?? "");
+    await freshAsyncStorage().setItem(
+      "bumelerze.launchDirectionRestartAt",
+      persisted ?? "",
+    );
     const second = loadNative("ckb", false);
 
     expect((await second.mod.applyPersistedLocaleOnLaunch()).requiresRestart).toBe(false);

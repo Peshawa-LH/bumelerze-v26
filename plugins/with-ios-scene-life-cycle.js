@@ -217,7 +217,9 @@ function addSceneManifest(infoPlist) {
 /** @type {import("expo/config-plugins").ConfigPlugin} */
 const withIosSceneLifeCycle = (config) => {
   config = withInfoPlist(config, (mod) => {
-    mod.modResults = /** @type {typeof mod.modResults} */ (addSceneManifest(mod.modResults));
+    mod.modResults = /** @type {typeof mod.modResults} */ (
+      addSceneManifest(mod.modResults)
+    );
     return mod;
   });
 
@@ -233,7 +235,11 @@ const withIosSceneLifeCycle = (config) => {
     "ios",
     async (mod) => {
       const projectName = IOSConfig.XcodeUtils.getProjectName(mod.modRequest.projectRoot);
-      const target = path.join(mod.modRequest.platformProjectRoot, projectName, SCENE_DELEGATE_FILE);
+      const target = path.join(
+        mod.modRequest.platformProjectRoot,
+        projectName,
+        SCENE_DELEGATE_FILE,
+      );
       await fs.promises.writeFile(target, SCENE_DELEGATE_SWIFT);
       return mod;
     },

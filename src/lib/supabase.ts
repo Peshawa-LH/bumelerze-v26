@@ -88,7 +88,11 @@ export function getSupabaseClient(): SupabaseClient | null {
       // (src/lib/review-readonly.ts). Without the flag the options are
       // exactly as before and supabase-js uses the global fetch.
       ...(isReviewReadonlyBuild()
-        ? { global: { fetch: createReviewReadonlyFetch((input, init) => fetch(input, init)) } }
+        ? {
+            global: {
+              fetch: createReviewReadonlyFetch((input, init) => fetch(input, init)),
+            },
+          }
         : {}),
     });
   }

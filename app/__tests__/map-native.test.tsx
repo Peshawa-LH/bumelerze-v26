@@ -56,7 +56,9 @@ jest.mock("@maplibre/maplibre-react-native", () => {
   return {
     Map: (props: MockMapProps) => {
       mockMapRenders.push(props);
-      React.useImperativeHandle(props.ref, () => ({ showAttribution: mockShowAttribution }));
+      React.useImperativeHandle(props.ref, () => ({
+        showAttribution: mockShowAttribution,
+      }));
       return React.createElement(View, { testID: "native-map" }, props.children);
     },
     Camera: (props: MockCameraProps) => {
@@ -178,7 +180,9 @@ describe("Native Map tab with MapLibre's native code", () => {
     setMapTilerKey(undefined);
     await renderWithProviders(<MapScreen />);
 
-    expect(lastMapProps().mapStyle).toMatch(/^https:\/\/tiles\.openfreemap\.org\/styles\//);
+    expect(lastMapProps().mapStyle).toMatch(
+      /^https:\/\/tiles\.openfreemap\.org\/styles\//,
+    );
   });
 
   it("covers the map with 'Loading map…' until the style has loaded", async () => {
