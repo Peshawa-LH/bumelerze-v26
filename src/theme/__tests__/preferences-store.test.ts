@@ -60,3 +60,51 @@ describe("useThemePreferencesStore", () => {
     expect(useThemePreferencesStore.getState().preference).toBe("light");
   });
 });
+
+describe("system appearance (iOS/Android)", () => {
+  function spyOnAppearance(os: "ios" | "web") {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- fresh require after resetModules
+    const rn = require("react-native") as typeof import("react-native");
+    rn.Platform.OS = os;
+    return jest.spyOn(rn.Appearance, "setColorScheme").mockImplementation(() => {});
+  }
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("[regression] alerts, keyboard and share sheet follow Settings > Appearance, not only the app", async () => {
+    const setColorScheme = spyOnAppearance("ios");
+    const { useThemePreferencesStore } = loadStore();
+    await waitForHydration(() => useThemePreferencesStore.getState().hasHydrated);
+    expect(setColorScheme).toHaveBeenLastCalledWith("unspecified");
+
+    useThemePreferencesStore.getState().setPreference("dark");
+    expect(setColorScheme).toHaveBeenLastCalledWith("dark");
+    useThemePreferencesStore.getState().setPreference("light");
+    expect(setColorScheme).toHaveBeenLastCalledWith("light");
+    useThemePreferencesStore.getState().setPreference("auto");
+    expect(setColorScheme).toHaveBeenLastCalledWith("unspecified");
+  });
+
+  it("applies a persisted choice at launch", async () => {
+    await loadAsyncStorage().setItem(
+      "bumelerze.theme-preferences",
+      JSON.stringify({ state: { preference: "dark" }, version: 0 }),
+    );
+    const setColorScheme = spyOnAppearance("ios");
+    const { useThemePreferencesStore } = loadStore();
+    await waitForHydration(() => useThemePreferencesStore.getState().hasHydrated);
+
+    expect(setColorScheme).toHaveBeenLastCalledWith("dark");
+  });
+
+  it("leaves the web to the document's color-scheme", async () => {
+    const setColorScheme = spyOnAppearance("web");
+    const { useThemePreferencesStore } = loadStore();
+    await waitForHydration(() => useThemePreferencesStore.getState().hasHydrated);
+    useThemePreferencesStore.getState().setPreference("dark");
+
+    expect(setColorScheme).not.toHaveBeenCalled();
+  });
+});

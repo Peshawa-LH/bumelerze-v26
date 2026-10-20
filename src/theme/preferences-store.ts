@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Appearance, Platform } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -40,7 +41,33 @@ export const useThemePreferencesStore = create<ThemePreferencesState>()(
       partialize: (state) => ({ preference: state.preference }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
+        applySystemAppearance(state?.preference ?? "auto");
       },
     },
   ),
 );
+
+/**
+ * iOS/Android: the system parts of the app (alerts, the keyboard, the share
+ * sheet, pickers, menus) follow Settings > Appearance as well, not only the
+ * app's own colours. `useColorScheme` then reports the chosen scheme, which
+ * `useTheme` resolves the same way. "auto" hands it back to the system. The
+ * web does this through the document's `color-scheme`
+ * (`applyDocumentColorSchemeWeb`).
+ */
+export function applySystemAppearance(preference: ThemePreference): void {
+  if (Platform.OS === "web") {
+    return;
+  }
+  try {
+    Appearance.setColorScheme(preference === "auto" ? "unspecified" : preference);
+  } catch {
+    // Older native modules without an override: the app colours still follow.
+  }
+}
+
+useThemePreferencesStore.subscribe((state, previous) => {
+  if (state.preference !== previous.preference) {
+    applySystemAppearance(state.preference);
+  }
+});
