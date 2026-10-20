@@ -1,4 +1,5 @@
 import { resolveIncomingLink } from "@/features/links/incoming";
+import { noteIncomingLink } from "@/features/links/pending-link";
 
 /**
  * iOS/Android: every address that opens the app passes through here first
@@ -8,6 +9,8 @@ import { resolveIncomingLink } from "@/features/links/incoming";
  *   website's old short links become the app path the web would show:
  *   `/e/<id>` goes straight to `/event/<id>`, `/u/<username>` and
  *   `/home/join?code=…&key=…` stay as they are (src/features/links/incoming.ts).
+ * - The link is noted, so one that arrives before onboarding is finished
+ *   opens right after it (src/features/links/pending-link.ts).
  * - Static files, the Google / Apple sign-in return (`bumelerze://auth/callback`,
  *   read by the sign-in session itself) and website pages open nothing: a
  *   link that starts the app lands on Home, one that arrives later leaves the
@@ -31,6 +34,7 @@ export function redirectSystemPath({
     if (link.kind === "ignore") {
       return initial ? "/" : null;
     }
+    noteIncomingLink(link.path);
     return link.path;
   } catch {
     return initial ? "/" : null;
