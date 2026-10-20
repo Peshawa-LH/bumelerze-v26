@@ -43,6 +43,8 @@ import {
 } from "@/features/felt/queue";
 import { useAlertPrefsAutoSync } from "@/features/alerts/prefs-sync";
 import { useReferencePlace } from "@/features/location/reference-place";
+import { installForegroundNotificationHandler } from "@/features/notifications/foreground-handler";
+import { useNotificationRouting } from "@/features/notifications/use-notification-routing";
 import { usePrefsStore } from "@/features/onboarding/store";
 import { touchPresenceOnce } from "@/features/presence/touch";
 import {
@@ -81,6 +83,8 @@ import { applyDocumentColorSchemeWeb, useTheme, useThemePreferencesStore } from 
 // iOS/Android: the splash screen stays up until the first screen can draw
 // (`useSplashScreenGate` below; src/lib/splash.ts). Nothing on the web.
 holdSplashScreen();
+// iOS/Android: how a notification arriving while the app is open is shown.
+installForegroundNotificationHandler();
 
 const VAZIRMATN_FACES = {
   "Vazirmatn-Regular": require("../assets/fonts/Vazirmatn-Regular.ttf"),
@@ -203,6 +207,11 @@ export default function RootLayout() {
   // "Take a quick tour" on the last onboarding screen: open the tour once
   // onboarding is complete and the main stack (which owns "tour") is active.
   useLaunchPendingTour(onboardingCompleted);
+  // iOS/Android: a tapped alert notification opens its screen once the main
+  // stack is there.
+  useNotificationRouting({
+    ready: hasHydrated && onboardingCompleted && !isRestarting,
+  });
 
   useEffect(() => {
     let cancelled = false;

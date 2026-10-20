@@ -1,7 +1,8 @@
 /**
- * How the root stack presents the full-screen flows on iOS
- * (`app/_layout.tsx`). Read from the source: the root layout itself needs
- * the whole app (stores, queues, fonts) to render.
+ * The root layout (`app/_layout.tsx`): how the root stack presents the
+ * full-screen flows on iOS, and what it mounts for the native app. Read
+ * from the source: the root layout itself needs the whole app (stores,
+ * queues, fonts) to render.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -22,4 +23,9 @@ it("presents the felt report full screen, never as a sheet a swipe can close mid
 
 it("keeps the edge swipe off on the swipeable tour", () => {
   expect(screenOptions("tour")).toMatch(/gestureEnabled:\s*false/);
+});
+
+it("mounts the notification hooks the native push work fills in", () => {
+  expect(source).toMatch(/^installForegroundNotificationHandler\(\);$/m);
+  expect(source).toMatch(/useNotificationRouting\(\{/);
 });
