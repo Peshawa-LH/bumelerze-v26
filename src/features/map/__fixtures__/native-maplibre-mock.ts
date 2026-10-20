@@ -115,7 +115,7 @@ export const TEST_STYLE: StyleDocument = {
   version: 8,
   sources: { planet: { type: "vector" } },
   layers: [
-    { id: "water", type: "fill" },
+    { id: "landcover", type: "fill" },
     { id: "place-city", type: "symbol", layout: { "text-field": ["get", "name"] } },
   ],
 };
