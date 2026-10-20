@@ -1,9 +1,10 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { TranslateFn } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
+import { openLink } from "@/lib/open-link";
 import type { Theme } from "@/theme";
 import type { ReviewStatus, RiskTimeOfDay } from "../types";
 
@@ -85,7 +86,8 @@ function Chip({ testID, label, colors, typography, spacing }: ChipProps) {
  * paragraph, plus the fixed casualties-not-published sentence, the "see
  * the Atlas for exact figures" pointer (no link out), and — when the
  * product published one — a "Download report (PDF)" button opening the
- * per-version Bumelerze Atlas PDF (`Linking.openURL`). A failed open
+ * per-version Bumelerze Atlas PDF (`openLink`: a new tab on the web, the
+ * in-app browser on a phone). A failed open
  * (offline, blocked) fails soft into an inline message, same "never a
  * crash, never a silent no-op" convention the rest of this app's offline
  * paths follow (`OfflineBanner`'s own icon+text treatment).
@@ -110,7 +112,7 @@ export function RiskProvenanceChips({
     }
     setDownloadFailed(false);
     try {
-      await Linking.openURL(reportUrl);
+      await openLink(reportUrl);
     } catch {
       // Fail soft (offline, blocked popup, unsupported URL) — never a
       // crash, never a silent no-op either: an inline message tells the

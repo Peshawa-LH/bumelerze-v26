@@ -51,12 +51,15 @@ export function isStoredSlot(value: string): value is StoredPhotoSlot {
   return value === "more" || (PHOTO_SLOTS as readonly string[]).includes(value);
 }
 
-/** Longest edge of a home photo on web; with the JPEG quality below it lands
- * near the 0.5 MB target (the bucket limit is 3 MB). */
-const HOME_PHOTO_MAX_EDGE_PX = 1280;
-const HOME_PHOTO_WEB_QUALITY = 0.6;
-/** Native: the picker re-encodes the JPEG at this quality. */
-const HOME_PHOTO_PICKER_QUALITY = 0.4;
+/** Longest edge of a home photo; with the JPEG quality below it lands near
+ * the 0.5 MB target (the bucket limit is 3 MB). Web and phone alike
+ * (`toDurablePhotoUri`). */
+export const HOME_PHOTO_MAX_EDGE_PX = 1280;
+export const HOME_PHOTO_JPEG_QUALITY = 0.6;
+/** The picker hands over the photo at full quality: `toDurablePhotoUri`
+ * downscales and encodes it once, rather than a second lossy pass over the
+ * picker's own low-quality JPEG. */
+const HOME_PHOTO_PICKER_QUALITY = 1;
 
 /** `<slot>-<time><random>.jpg`: the storage file name carries the slot, so a
  * photo still lands in the right place when its metadata row is missing. */
@@ -75,11 +78,11 @@ export function slotFromFileName(fileName: string): StoredPhotoSlot {
 
 /**
  * Picks (or takes) one photo and returns a uri safe to upload later, or null
- * when the user cancelled or the camera permission was refused. Same pattern
- * as the felt-report photo: aggressive JPEG quality instead of an image
- * manipulation module (no new native dependency), web downscaled in a canvas
- * (about 0.5 MB each; native depends on the camera's megapixels, and the
- * upload step refuses anything over the 3 MB bucket limit).
+ * when the user cancelled or the camera permission was refused. The photo is
+ * downscaled to 1280 px and saved as JPEG at 0.6 (about 0.5 MB): in a canvas
+ * on the web, with `expo-image-manipulator` on a phone, where it is also
+ * kept in the app's Documents folder so a queued upload still finds it. The
+ * upload step still refuses anything over the 3 MB bucket limit.
  */
 export async function pickHomePhoto(source: PhotoSource): Promise<string | null> {
   if (source === "camera" && Platform.OS !== "web") {
@@ -105,7 +108,7 @@ export async function pickHomePhoto(source: PhotoSource): Promise<string | null>
   }
   return await toDurablePhotoUri(result.assets[0], {
     maxEdgePx: HOME_PHOTO_MAX_EDGE_PX,
-    quality: HOME_PHOTO_WEB_QUALITY,
+    quality: HOME_PHOTO_JPEG_QUALITY,
   });
 }
 

@@ -1,26 +1,28 @@
-import { Platform, Share } from "react-native";
+import { File, Paths } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 /**
- * Hands a recording to the person as a file. Web: a download of a text
- * blob (the browser's own save sheet). Native: written to the cache
- * directory and offered through the system share sheet, so it can go to
- * Files, Mail or a computer without any extra module.
+ * Hands a recording to the person as a file. Phone: written to the app's
+ * cache folder as `bumelerze-accel-<time>Z.txt` and offered through the
+ * system share sheet (Save to Files, Mail, AirDrop to a computer), the same
+ * way "Download my data" hands over its file. Twin of `save-recording.web.ts`
+ * (a browser download).
+ *
+ * Before, the phone wrote the text without creating the file first and
+ * passed it to React Native's share sheet, which drops a file on Android.
+ * Rejects when the phone has no share sheet, so the panel says "Saving
+ * failed on this device".
  */
 export async function saveRecordingText(text: string, fileName: string): Promise<void> {
-  if (Platform.OS === "web") {
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = fileName;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 10_000);
-    return;
-  }
-  const { File, Paths } = await import("expo-file-system");
   const file = new File(Paths.cache, fileName);
+  file.create({ overwrite: true });
   file.write(text);
-  await Share.share({ url: file.uri, title: fileName, message: fileName });
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error("no share sheet on this device");
+  }
+  await Sharing.shareAsync(file.uri, {
+    mimeType: "text/plain",
+    UTI: "public.plain-text",
+    dialogTitle: fileName,
+  });
 }

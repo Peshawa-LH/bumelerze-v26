@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
-import { Linking, Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+
+import { openLink } from "@/lib/open-link";
 
 import {
   MAPTILER_LOGO_HEIGHT_PX,
@@ -29,8 +31,8 @@ export function MapTilerAttributionLogo() {
       accessibilityRole="link"
       accessibilityLabel={t("map.attribution.maptilerLogoA11yLabel")}
       onPress={() => {
-        Linking.openURL(MAPTILER_LOGO_LINK_URL).catch(() => {
-          // Swallowed: a failed `Linking.openURL` (no browser handler
+        openLink(MAPTILER_LOGO_LINK_URL).catch(() => {
+          // Swallowed: a failed open (no browser handler
           // available, offline) shouldn't crash the map — the attribution
           // mark itself still renders correctly either way.
         });
