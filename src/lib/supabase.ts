@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { AppState, Platform, type NativeEventSubscription } from "react-native";
 
 import { createReviewReadonlyFetch, isReviewReadonlyBuild } from "./review-readonly";
 
@@ -95,8 +96,33 @@ export function getSupabaseClient(): SupabaseClient | null {
           }
         : {}),
     });
+    followAppStateForTokenRefresh(cachedClient);
   }
   return cachedClient;
+}
+
+let appStateSubscription: NativeEventSubscription | null = null;
+
+/**
+ * iOS/Android: the sign-in token is renewed only while the app is in the
+ * foreground (Supabase's documented React Native pattern). A browser tab
+ * does this by itself; on a phone, supabase-js cannot tell the foreground
+ * from the background, and iOS pauses its timer in the background, so the
+ * first request after a long pause could go out with an expired token.
+ * `startAutoRefresh` checks the token at once and renews it if it is due.
+ * One listener per app, attached with the client.
+ */
+function followAppStateForTokenRefresh(client: SupabaseClient): void {
+  if (Platform.OS === "web" || appStateSubscription) {
+    return;
+  }
+  appStateSubscription = AppState.addEventListener("change", (state) => {
+    if (state === "active") {
+      void client.auth.startAutoRefresh();
+    } else {
+      void client.auth.stopAutoRefresh();
+    }
+  });
 }
 
 let anonymousSignInPromise: Promise<void> | null = null;
@@ -158,4 +184,6 @@ export function resetAnonymousSignIn(): void {
 export function __resetSupabaseForTests(): void {
   cachedClient = null;
   anonymousSignInPromise = null;
+  appStateSubscription?.remove();
+  appStateSubscription = null;
 }

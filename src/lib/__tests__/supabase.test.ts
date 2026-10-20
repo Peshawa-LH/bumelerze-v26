@@ -13,6 +13,8 @@ const ORIGINAL_ENV = { ...process.env };
 interface MockAuth {
   getSession: jest.Mock;
   signInAnonymously: jest.Mock;
+  startAutoRefresh: jest.Mock;
+  stopAutoRefresh: jest.Mock;
 }
 
 interface MockSupabaseClient {
@@ -24,6 +26,8 @@ jest.mock("@supabase/supabase-js", () => {
   const auth: MockAuth = {
     getSession: jest.fn(async () => ({ data: { session: null } })),
     signInAnonymously: jest.fn(async () => ({ data: {}, error: null })),
+    startAutoRefresh: jest.fn(async () => undefined),
+    stopAutoRefresh: jest.fn(async () => undefined),
   };
   const client: MockSupabaseClient = { auth, from: jest.fn() };
   const createClient = jest.fn(() => client);
@@ -169,6 +173,67 @@ describe("getSupabaseClient in a review-safe (read-only) build", () => {
       expect(realFetch).toHaveBeenCalledTimes(1);
     } finally {
       global.fetch = originalFetch;
+    }
+  });
+});
+
+describe("token refresh on iOS/Android follows the app's foreground", () => {
+  // Required fresh after resetModules, like the module under test, so both
+  // see the same react-native mocks.
+  function loadReactNative(): {
+    AppState: { addEventListener: jest.Mock };
+    Platform: { OS: string };
+  } {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- see loadLib
+    return require("react-native");
+  }
+
+  it("restarts the token refresh when the app returns to the foreground and stops it when it leaves", () => {
+    setEnv("https://example.supabase.co", "anon-key-value");
+    const { AppState } = loadReactNative();
+    const lib = loadLib();
+    const sdk = loadMockedSdk();
+    const { startAutoRefresh, stopAutoRefresh } = sdk.__mockClient.auth;
+
+    lib.getSupabaseClient();
+    lib.getSupabaseClient();
+
+    // One listener per app, however often the client is asked for.
+    expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
+    const [eventName, onChange] = AppState.addEventListener.mock.calls[0] as [
+      string,
+      (state: string) => void,
+    ];
+    expect(eventName).toBe("change");
+
+    onChange("background");
+    expect(stopAutoRefresh).toHaveBeenCalledTimes(1);
+    expect(startAutoRefresh).not.toHaveBeenCalled();
+
+    onChange("active");
+    expect(startAutoRefresh).toHaveBeenCalledTimes(1);
+
+    onChange("inactive");
+    expect(stopAutoRefresh).toHaveBeenCalledTimes(2);
+  });
+
+  it("adds no listener when Supabase is not configured", () => {
+    setEnv(undefined, undefined);
+    const { AppState } = loadReactNative();
+    loadLib().getSupabaseClient();
+    expect(AppState.addEventListener).not.toHaveBeenCalled();
+  });
+
+  it("leaves the web alone: a browser tab refreshes the token by itself", () => {
+    setEnv("https://example.supabase.co", "anon-key-value");
+    const { AppState, Platform } = loadReactNative();
+    const originalOS = Platform.OS;
+    Platform.OS = "web";
+    try {
+      loadLib().getSupabaseClient();
+      expect(AppState.addEventListener).not.toHaveBeenCalled();
+    } finally {
+      Platform.OS = originalOS;
     }
   });
 });

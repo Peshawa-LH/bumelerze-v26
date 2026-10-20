@@ -42,6 +42,7 @@ import {
   useFeltQueueStore,
 } from "@/features/felt/queue";
 import { useAlertPrefsAutoSync } from "@/features/alerts/prefs-sync";
+import { usePendingLink } from "@/features/links/pending-link";
 import { useReferencePlace } from "@/features/location/reference-place";
 import { installForegroundNotificationHandler } from "@/features/notifications/foreground-handler";
 import { useNotificationRouting } from "@/features/notifications/use-notification-routing";
@@ -204,6 +205,13 @@ export default function RootLayout() {
   // Alert places on the server follow "My location" while alerts are on on
   // this device (no request at all otherwise; migration 0062).
   useAlertPrefsAutoSync();
+  // A link that opened the app before onboarding was done (a shared event,
+  // profile or family-join link) opens once it is. Before the tour below, so
+  // the tour, when asked for, shows first and closes onto the link's screen.
+  usePendingLink({
+    ready: hasHydrated && localeReady && launchLanguageChecked && !isRestarting,
+    onboardingCompleted,
+  });
   // "Take a quick tour" on the last onboarding screen: open the tour once
   // onboarding is complete and the main stack (which owns "tour") is active.
   useLaunchPendingTour(onboardingCompleted);
