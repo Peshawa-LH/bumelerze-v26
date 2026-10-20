@@ -11,7 +11,7 @@ import {
   sortNewestFirst,
   type NotableHistoricalEvent,
 } from "@/features/historical";
-import { isRTLLocale } from "@/i18n";
+import { isRTLLocale, physicalTextAlign } from "@/i18n";
 import { useTheme, nativeFontFamily } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
@@ -94,7 +94,7 @@ export default function HistoricalScreen() {
                   fontSize: typography.labelButton.fontSize,
                   fontFamily: nativeFontFamily(typography.labelButton),
                   fontWeight: typography.labelButton.fontWeight,
-                  textAlign: isRTL ? "right" : "left",
+                  textAlign: physicalTextAlign(isRTL ? "right" : "left"),
                 }}
               >
                 {t("historical.catalogLink")}

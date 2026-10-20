@@ -10,7 +10,7 @@ import { EarnedBadges } from "@/features/badges";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { formatMagnitudeValue, useEventByBumelerzeId } from "@/features/events";
 import { isolateName, placeLine } from "@/features/geo";
-import { isRTLLocale } from "@/i18n";
+import { isRTLLocale, physicalTextAlign } from "@/i18n";
 import { useMuteActions, useMutedIds } from "@/features/mute/queries";
 import { PostsSection } from "@/features/posts/components/PostsSection";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
@@ -110,7 +110,7 @@ export function PublicProfileView({
   // Logical start for the Latin @username: RN's `textAlign` has no `start`,
   // and the physical "left" put the handle on the far side of a Sorani or
   // Arabic page (B-8).
-  const usernameAlign = isRTLLocale(i18n.language) ? "right" : "left";
+  const usernameAlign = physicalTextAlign(isRTLLocale(i18n.language) ? "right" : "left");
 
   async function run(action: () => Promise<unknown>): Promise<boolean> {
     setBusy(true);

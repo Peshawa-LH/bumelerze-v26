@@ -11,7 +11,7 @@ import { ShareCardSvg } from "@/features/share/ShareCardSvg";
 import type { CardModel } from "@/features/share/card-layout";
 import type { FeltTimeline, FeltTown } from "@/features/social/transport";
 import { formatIntensity } from "@/features/shakemap/intensity-format";
-import { isRTLLocale } from "@/i18n";
+import { isRTLLocale, physicalTextAlign } from "@/i18n";
 import { approximateParts, localizeDigits } from "@/lib/format-numbers";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { percentValue, runningTotal, type ClassDamageRow } from "./slide-data";
@@ -174,7 +174,7 @@ export function FeltTownsSlide({
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
   // The count cell hugs the row END (E-22): physical right in LTR, left in RTL.
-  const endAlign = isRTLLocale(locale) ? "left" : "right";
+  const endAlign = physicalTextAlign(isRTLLocale(locale) ? "left" : "right");
   const shown = towns.slice(0, 7);
   const max = Math.max(1, ...shown.map((town) => town.reports));
   const label = {
@@ -426,7 +426,7 @@ export function ClassDamageSlide({
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
   // The percent cells hug the row END (E-22): physical right in LTR, left in RTL.
-  const endAlign = isRTLLocale(locale) ? "left" : "right";
+  const endAlign = physicalTextAlign(isRTLLocale(locale) ? "left" : "right");
   const pct = (share: number) =>
     isolateNumeric(
       t("donut.percent", { value: localizeDigits(percentValue(share), locale) }),

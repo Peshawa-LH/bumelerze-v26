@@ -25,6 +25,7 @@ import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme, nativeFontFamily } from "@/theme";
+import { ltrValueStyle } from "@/i18n";
 
 /** Comments under profile posts to review (migration 0063): held by the word
  * filter or busy-time review (Approve, with the word that matched) and
@@ -152,7 +153,7 @@ function QueueItem({
           {name}
         </Text>
         {row.username ? (
-          <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+          <Text style={[meta, ltrValueStyle()]}>
             {formatUsername(row.username)}
           </Text>
         ) : null}

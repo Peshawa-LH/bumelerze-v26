@@ -17,6 +17,7 @@ import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminActions, useReportedProfiles } from "../queries";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { AdminTransport } from "../transport";
+import { ltrValueStyle } from "@/i18n";
 
 /** Profiles readers reported, grouped by person. Hidden when there are none. */
 export function ReportedProfilesSection({
@@ -88,7 +89,7 @@ export function ReportedProfilesSection({
               {row.displayName ?? t("eventHub.thread.anonymous")}
             </Text>
             {row.username ? (
-              <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+              <Text style={[meta, ltrValueStyle()]}>
                 {formatUsername(row.username)}
               </Text>
             ) : null}

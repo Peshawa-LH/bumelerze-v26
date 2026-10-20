@@ -9,6 +9,7 @@ import { useTheme, nativeFontFamily } from "@/theme";
 import { formatCount, personName } from "../format";
 import type { PersonRow } from "../types";
 import { StatusChip } from "./StatusChip";
+import { ltrValueStyle } from "@/i18n";
 
 /** One line of the directory. The whole card opens the person's page. Shows
  * counts only: never a location, a device id or a full email. */
@@ -80,7 +81,7 @@ export function PersonRowItem({ row }: { row: PersonRow }) {
           <StatusChip status={row.status} testID={`person-row-status-${row.userId}`} />
         </View>
         {row.username && row.displayName ? (
-          <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+          <Text style={[meta, ltrValueStyle()]}>
             @{row.username}
           </Text>
         ) : null}
@@ -89,7 +90,7 @@ export function PersonRowItem({ row }: { row: PersonRow }) {
         ) : null}
         {row.maskedEmail ? (
           <Text
-            style={[meta, { writingDirection: "ltr", textAlign: "left" }]}
+            style={[meta, ltrValueStyle()]}
             testID={`person-row-email-${row.userId}`}
           >
             {row.maskedEmail}

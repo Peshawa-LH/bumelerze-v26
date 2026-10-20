@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { ltrValueStyle } from "@/i18n";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { PASSWORD_MAX_LENGTH } from "../constants";
 
@@ -95,6 +96,9 @@ export function AuthField({
           {...hints}
           style={[
             styles.input,
+            // Email addresses and passwords are left-to-right runs in every
+            // locale, on the physical left.
+            ltrValueStyle(),
             {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
@@ -149,9 +153,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     minHeight: 50,
-    // Email addresses and passwords are left-to-right runs in every locale.
-    textAlign: "left",
-    writingDirection: "ltr",
   },
   toggle: {
     width: 48,

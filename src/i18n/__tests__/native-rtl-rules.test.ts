@@ -51,7 +51,7 @@ const FILES = SCAN_DIRS.flatMap((dir) => collect(join(ROOT, dir))).map((file) =>
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/(^|[^:])\/\/.*$/gm, "$1")
     // Sides handed to the helper are fine.
-    .replace(/physicalTextAlign\([^)]*\)/g, "physicalTextAlign()"),
+    .replace(/physicalTextAlign\((?:[^()]|\([^()]*\))*\)/g, "physicalTextAlign()"),
 }));
 
 function countMatches(pattern: RegExp): Record<string, number> {
@@ -69,29 +69,9 @@ function countMatches(pattern: RegExp): Record<string, number> {
  * moved to the helpers (phase 2). Keep in step: remove an entry when its
  * file is fixed. */
 const PHYSICAL_ALIGN_PHASE_2: Record<string, number> = {
-  "app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx": 3,
-  "src/features/account/components/AuthField.tsx": 1,
-  "src/features/account/components/ProfileForm.tsx": 1,
-  "src/features/account/components/ProfileHeader.tsx": 2,
-  "src/features/admin/components/ActivityContent.tsx": 1,
-  "src/features/admin/components/ActivityRow.tsx": 1,
-  "src/features/admin/components/HiddenRemovedContent.tsx": 1,
-  "src/features/admin/components/PostCommentQueueSection.tsx": 1,
-  "src/features/admin/components/ReportedPostsSection.tsx": 1,
-  "src/features/admin/components/ReportedProfilesSection.tsx": 1,
-  "src/features/admin/inbox/components/FeedbackDetailContent.tsx": 1,
-  "src/features/admin/people/components/PeopleContent.tsx": 1,
-  "src/features/admin/people/components/PeopleFilterSheet.tsx": 1,
-  "src/features/admin/people/components/PersonContent.tsx": 3,
-  "src/features/admin/people/components/PersonRowItem.tsx": 2,
-  "src/features/authority/components/OfficialsContent.tsx": 1,
-  "src/features/building/components/FamilyScreen.tsx": 1,
-  "src/features/building/components/ui.tsx": 1,
-  "src/features/community/components/PersonRow.tsx": 1,
-  "src/features/community/components/PublicProfileView.tsx": 1,
-  "src/features/eventhub/carousel/slides.tsx": 2,
-  "src/features/mentions/components/MentionSuggestions.tsx": 1,
-  "src/features/restrictions/components/LimitAccountSheet.tsx": 1,
+  // The catalogue link row: `row-reverse` picked by locale flips twice on the
+  // web as well (fixed on both in its own commit).
+  "app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx": 1,
 };
 
 describe("native direction and date rules (source scan)", () => {

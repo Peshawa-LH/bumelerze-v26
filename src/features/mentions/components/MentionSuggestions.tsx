@@ -6,6 +6,7 @@ import { formatUsername } from "@/features/community/username";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useMentionSuggestions } from "../queries";
 import type { MentionsTransport } from "../transport";
+import { ltrValueStyle } from "@/i18n";
 
 interface MentionSuggestionsProps {
   /** What follows the "@" being typed, or null. */
@@ -79,8 +80,7 @@ export function MentionSuggestions({
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
                   fontFamily: nativeFontFamily(typography.bodyMeta),
-                  writingDirection: "ltr",
-                  textAlign: "left",
+                  ...ltrValueStyle(),
                 }}
               >
                 {formatUsername(person.username)}

@@ -29,6 +29,7 @@ import {
   type UndoableAction,
 } from "../types";
 import { ActivityRow } from "./ActivityRow";
+import { ltrValueStyle } from "@/i18n";
 
 interface PersonFilter {
   userId: string;
@@ -209,8 +210,7 @@ export function ActivityContent({
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault),
                 paddingHorizontal: spacing[3],
-                writingDirection: "ltr",
-                textAlign: "left",
+                ...ltrValueStyle(),
               },
             ]}
             testID="activity-person-input"

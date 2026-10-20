@@ -12,6 +12,7 @@ import { formatUsername } from "@/features/community/username";
 import { isolateNumeric } from "@/features/events/format";
 import { FamilyStatusCard } from "@/features/safe/components/FamilyStatusCard";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
+import { ltrValueStyle } from "@/i18n";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme } from "@/theme";
 import { buildJoinLink } from "../constants";
@@ -170,7 +171,7 @@ export function Family({
             <Body>{memberName(member)}</Body>
             {username ? (
               <Meta>
-                <Text style={styles.username}>{formatUsername(username)}</Text>
+                <Text style={ltrValueStyle()}>{formatUsername(username)}</Text>
               </Meta>
             ) : null}
           </View>
@@ -327,7 +328,6 @@ const styles = StyleSheet.create({
   identityLink: { flex: 1 },
   identity: { flexDirection: "row", alignItems: "center", gap: 12 },
   identityText: { flex: 1 },
-  username: { writingDirection: "ltr", textAlign: "left" },
   memberRow: {
     flexDirection: "row",
     justifyContent: "space-between",

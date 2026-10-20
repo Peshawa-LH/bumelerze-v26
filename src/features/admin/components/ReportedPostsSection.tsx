@@ -25,6 +25,7 @@ import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminActions, useReportedPosts } from "../queries";
 import type { AdminTransport } from "../transport";
 import type { ReportedPost } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 /** Profile posts to review: posts held by the word filter or busy-time review
  * (migration 0059; Approve, with the word that matched) and posts readers
@@ -167,7 +168,7 @@ function ReportedPostItem({
           {row.displayName ?? t("eventHub.thread.anonymous")}
         </Text>
         {row.username ? (
-          <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+          <Text style={[meta, ltrValueStyle()]}>
             {formatUsername(row.username)}
           </Text>
         ) : null}

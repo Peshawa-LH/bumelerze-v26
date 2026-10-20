@@ -7,6 +7,7 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useTheme, nativeFontFamily } from "@/theme";
 import type { PictogramName } from "../pictograms.generated";
 import { Pictogram } from "./Pictogram";
+import { ltrValueStyle } from "@/i18n";
 
 /** Small presentational pieces shared by the Tag-my-building screens. Theme
  * tokens only; start/end (never left/right) so every layout mirrors in RTL. */
@@ -257,8 +258,7 @@ export function TextField({
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
-            textAlign: latin ? "left" : "auto",
-            writingDirection: latin ? "ltr" : "auto",
+            ...(latin ? ltrValueStyle() : { textAlign: "auto", writingDirection: "auto" }),
           },
         ]}
       />

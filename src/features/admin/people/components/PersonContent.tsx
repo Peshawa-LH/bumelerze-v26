@@ -38,6 +38,7 @@ import { PersonNotes } from "./PersonNotes";
 import { ResetFieldsSheet } from "./ResetFieldsSheet";
 import { StatusChip } from "./StatusChip";
 import { TempPasswordCard } from "./TempPasswordCard";
+import { ltrValueStyle } from "@/i18n";
 
 /**
  * One person's page (Admin > People > person). Opening it is logged on the
@@ -325,7 +326,7 @@ function PersonBody({
       <Text
         selectable
         testID={testID}
-        style={[body, styles.lineValue, ltr ? { writingDirection: "ltr", textAlign: "left" } : null]}
+        style={[body, styles.lineValue, ltr ? ltrValueStyle() : null]}
       >
         {value}
       </Text>
@@ -358,7 +359,7 @@ function PersonBody({
             <RoleMark roles={id.ranks} size={20} />
           </View>
           {id.username ? (
-            <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]} testID="person-username">
+            <Text style={[meta, ltrValueStyle()]} testID="person-username">
               @{id.username}
             </Text>
           ) : null}
@@ -607,7 +608,7 @@ function PersonBody({
         ) : (
           data.devices.map((d) => (
             <View key={d.fingerprint} testID={`person-device-${d.fingerprint}`} style={{ gap: 2 }}>
-              <Text style={[body, { writingDirection: "ltr", textAlign: "left", fontWeight: "600" }]}>
+              <Text style={[body, ltrValueStyle(), { fontWeight: "600" }]}>
                 {d.fingerprint}
               </Text>
               <Text style={meta}>

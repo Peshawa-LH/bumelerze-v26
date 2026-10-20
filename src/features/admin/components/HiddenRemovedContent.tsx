@@ -17,6 +17,7 @@ import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess, useAdminActions, useHiddenRemoved } from "../queries";
 import type { AdminTransport } from "../transport";
 import type { HiddenRemovedItem } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 /**
  * Admin > Hidden and removed (migration 0053): comments a moderator hid and
@@ -223,7 +224,7 @@ function HiddenRemovedRow({
           .join(" · ")}
       </Text>
       {item.kind === "comment" && (item.place || item.hubId) ? (
-        <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+        <Text style={[meta, ltrValueStyle()]}>
           {item.place ?? item.hubId}
         </Text>
       ) : null}

@@ -24,6 +24,7 @@ import {
   type FeedbackDetail,
   type FeedbackStatus,
 } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 /**
  * One feedback message (Admin > Feedback > message, migration 0060): the text,
@@ -215,7 +216,7 @@ function DetailBody({
         {data.contact ? (
           <Text
             selectable
-            style={[meta, { writingDirection: "ltr", textAlign: "left" }]}
+            style={[meta, ltrValueStyle()]}
             testID="feedback-contact"
           >
             {t("admin.feedback.contact", { contact: data.contact })}
