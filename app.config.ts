@@ -181,7 +181,9 @@ const config: ExpoConfig = {
   scheme: "bumelerze",
   userInterfaceStyle: "automatic",
   ios: {
-    supportsTablet: true,
+    // iPhone only for v1 (decided 2026-10-20): the layout is phone-first, as
+    // on the web. iPads still run it as an iPhone app.
+    supportsTablet: false,
     bundleIdentifier: "org.bumelerze.app",
     ...appleTeamConfig(process.env),
     // Export compliance: the app uses only the encryption built into iOS

@@ -71,6 +71,10 @@ describe("eas.json build profiles", () => {
 });
 
 describe("app.config iOS store and compliance settings", () => {
+  it("is an iPhone app in v1 (phone-first layout, no iPad build)", () => {
+    expect(config.ios?.supportsTablet).toBe(false);
+  });
+
   it("declares that the app uses only exempt encryption (HTTPS)", () => {
     expect(config.ios?.config?.usesNonExemptEncryption).toBe(false);
   });
