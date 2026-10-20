@@ -1,7 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import config, { appleTeamConfig, expoAccountConfig } from "../../app.config";
+import config, {
+  appleTeamConfig,
+  expoAccountConfig,
+  infoPlistPermissionStrings,
+  PERMISSION_TEXTS,
+} from "../../app.config";
 import { APP_ORIGIN } from "../config/urls";
 import { arabicScriptFontFor } from "../theme/typography";
 
@@ -210,5 +215,74 @@ describe("app.config built-in fonts (expo-font)", () => {
     const [ionicons] = options?.ios?.fonts ?? [];
     expect(ionicons).toMatch(/Ionicons\.ttf$/);
     expect(postScriptName(require.resolve(ionicons ?? ""))).toBe("Ionicons");
+  });
+});
+
+describe("app.config iOS permission texts in the app's languages", () => {
+  const locales = (config.locales ?? {}) as Record<
+    string,
+    { ios?: Record<string, string> }
+  >;
+  const english = infoPlistPermissionStrings(PERMISSION_TEXTS.en);
+
+  it("gives Sorani, Kurmanji and Arabic every permission text English has", () => {
+    const declared = (
+      pluginOptions("expo-localization")?.supportedLocales as { ios: string[] }
+    ).ios;
+    expect(Object.keys(locales).sort()).toEqual(
+      declared.filter((l) => l !== "en").sort(),
+    );
+    for (const lang of ["ckb", "kmr", "ar"]) {
+      const strings = locales[lang]?.ios ?? {};
+      expect(Object.keys(strings).sort()).toEqual(Object.keys(english).sort());
+      for (const [key, value] of Object.entries(strings)) {
+        expect([lang, key, value.trim().length > 20]).toEqual([lang, key, true]);
+        expect(value).not.toEqual(english[key]);
+      }
+    }
+  });
+
+  it("uses the English texts as the base in Info.plist", () => {
+    expect(pluginOptions("expo-image-picker")).toMatchObject({
+      photosPermission: PERMISSION_TEXTS.en.photos,
+      cameraPermission: PERMISSION_TEXTS.en.camera,
+    });
+    expect(pluginOptions("expo-camera")).toMatchObject({
+      cameraPermission: PERMISSION_TEXTS.en.camera,
+    });
+    expect(pluginOptions("expo-location")).toMatchObject({
+      locationWhenInUsePermission: PERMISSION_TEXTS.en.location,
+    });
+    expect(pluginOptions("expo-sensors")).toMatchObject({
+      motionPermission: PERMISSION_TEXTS.en.motion,
+    });
+  });
+
+  it("writes texts the .strings files can hold as they are (no quotes, backslashes or line breaks)", () => {
+    for (const texts of Object.values(PERMISSION_TEXTS)) {
+      for (const value of Object.values(texts)) {
+        expect(value).not.toMatch(/["\\\n]/);
+      }
+    }
+  });
+
+  it("follows the app's language rules for the brand and the script", () => {
+    for (const value of Object.values(PERMISSION_TEXTS.ckb)) {
+      expect(value.startsWith("بوومەلەرزە")).toBe(true);
+      // Arabic ي ك ة in Sorani means machine Arabic leaked in.
+      expect(value).not.toMatch(/[\u064A\u0643\u0629]/);
+    }
+    for (const value of Object.values(PERMISSION_TEXTS.ar)) {
+      expect(value).toContain("\u2066Bumelerze\u2069");
+      expect(value).not.toMatch(/[ێەڵڕۆ]/);
+    }
+    for (const value of Object.values(PERMISSION_TEXTS.kmr)) {
+      expect(value.startsWith("Bumelerze ")).toBe(true);
+    }
+    for (const texts of Object.values(PERMISSION_TEXTS)) {
+      for (const value of Object.values(texts)) {
+        expect(value).not.toMatch(/ShakeMap|\bfree\b/i);
+      }
+    }
   });
 });

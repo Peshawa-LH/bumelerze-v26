@@ -154,10 +154,76 @@ function logoColorHex(key: string): string {
 const signalRed = logoColorHex("signal-red");
 const approvedNavy = logoColorHex("approved-navy");
 
-// One sentence for the camera permission, shared by expo-image-picker (photos)
-// and expo-camera (QR scan): the OS shows it in English only.
-const cameraPermissionText =
-  "Bumelerze uses the camera so you can add photos of earthquake damage or of your building to a report, and scan a family invite QR code.";
+// iOS permission texts (Info.plist usage descriptions) in the app's four
+// languages. iOS shows the one for the phone's language, or the language set
+// for Bumelerze in iOS Settings; not the language picked inside the app.
+// English is the base (Info.plist, through the plugins below); ckb, kmr and
+// ar go to InfoPlist.strings (`locales`) and are drafts for the native
+// review, written like the app's own locale files (Sorani brand
+// "بوومەلەرزە"; "Bumelerze" in Latin, isolated in Arabic). One camera
+// sentence serves both expo-image-picker (photos) and expo-camera (QR scan).
+// No double quotes: Expo writes the .strings files without escaping them.
+export interface PermissionTexts {
+  camera: string;
+  photos: string;
+  location: string;
+  motion: string;
+}
+
+export const PERMISSION_TEXTS: Record<"en" | "ckb" | "kmr" | "ar", PermissionTexts> = {
+  en: {
+    camera:
+      "Bumelerze uses the camera so you can add photos of earthquake damage or of your building to a report, and scan a family invite QR code.",
+    photos:
+      "Bumelerze uses your photos so you can add pictures of earthquake damage or of your building to a report.",
+    location:
+      "Bumelerze uses your location to show accurate distances to earthquakes and to make the experiences you share useful for mapping real shaking. Only used while the app is open.",
+    motion:
+      "Bumelerze uses your phone's accelerometer to show you a live seismometer view. No location or personal data is collected.",
+  },
+  ckb: {
+    camera:
+      "بوومەلەرزە کامێرا بەکاردەهێنێت بۆ ئەوەی بتوانیت وێنەی زیانی بوومەلەرزە یان وێنەی بیناکەت بخەیتە ناو ڕاپۆرتێکەوە، و کۆدی QRی بانگهێشتی خێزان سکان بکەیت.",
+    photos:
+      "بوومەلەرزە وێنەکانت بەکاردەهێنێت بۆ ئەوەی بتوانیت وێنەی زیانی بوومەلەرزە یان وێنەی بیناکەت بخەیتە ناو ڕاپۆرتێکەوە.",
+    location:
+      "بوومەلەرزە شوێنەکەت بەکاردەهێنێت بۆ پیشاندانی دووری ڕاست لە نێوان تۆ و بوومەلەرزەکان، و بۆ ئەوەی ئەو ئەزموونانەی هاوبەشیان دەکەیت بەسوود بن بۆ نەخشەکێشانی لەرزینی ڕاستەقینە. تەنها کاتێک بەکاردێت کە ئەپەکە کراوەیە.",
+    motion:
+      "بوومەلەرزە هەستەوەری جوڵەی مۆبایلەکەت (ئیکسیلیرۆمەتەر) بەکاردەهێنێت بۆ ئەوەی دیمەنێکی ڕاستەوخۆی سەیسمۆمەترت پیشان بدات. هیچ شوێن یان زانیارییەکی کەسی کۆ ناکرێتەوە.",
+  },
+  kmr: {
+    camera:
+      "Bumelerze kamerayê bikar tîne da ku tu bikaribî wêneyên zirara erdhejê an yên avahiya xwe li raporekê zêde bikî, û koda QR ya vexwendina malbatê skan bikî.",
+    photos:
+      "Bumelerze wêneyên te bikar tîne da ku tu bikaribî wêneyên zirara erdhejê an yên avahiya xwe li raporekê zêde bikî.",
+    location:
+      "Bumelerze cihê te bikar tîne da ku dûrahiya rast a erdhejan ji te nîşan bide û serpêhatiyên ku tu parve dikî ji bo nexşekirina lerizîna rastîn bikêr bike. Tenê dema ku sepan vekirî be tê bikaranîn.",
+    motion:
+      "Bumelerze sensora tevgerê ya telefona te (akselerometre) bikar tîne da ku dîmeneke rasterast a seysmometreyê nîşanî te bide. Tu cih an daneyên kesane nayên berhevkirin.",
+  },
+  ar: {
+    camera:
+      "يستخدم ⁦Bumelerze⁩ الكاميرا لتتمكن من إضافة صور لأضرار الزلزال أو لمبناك إلى تقرير، ومسح رمز QR لدعوة العائلة.",
+    photos:
+      "يستخدم ⁦Bumelerze⁩ صورك لتتمكن من إضافة صور لأضرار الزلزال أو لمبناك إلى تقرير.",
+    location:
+      "يستخدم ⁦Bumelerze⁩ موقعك لعرض مسافات دقيقة بينك وبين الزلازل، ولجعل التجارب التي تشاركها مفيدة في رسم خرائط الاهتزاز الحقيقي. لا يُستخدم إلا أثناء فتح التطبيق.",
+    motion:
+      "يستخدم ⁦Bumelerze⁩ مستشعر الحركة في هاتفك (مقياس التسارع) ليعرض لك جهاز رصد زلازل مباشرًا. لا يُجمع أي موقع أو بيانات شخصية.",
+  },
+};
+
+/** The Info.plist keys for one language's permission texts. */
+export function infoPlistPermissionStrings(
+  texts: PermissionTexts,
+): Record<string, string> {
+  return {
+    NSCameraUsageDescription: texts.camera,
+    NSPhotoLibraryUsageDescription: texts.photos,
+    NSLocationWhenInUseUsageDescription: texts.location,
+    NSMotionUsageDescription: texts.motion,
+  };
+}
 
 const config: ExpoConfig = {
   name: "Bumelerze",
@@ -180,6 +246,14 @@ const config: ExpoConfig = {
   icon: "./assets/images/icon.png",
   scheme: "bumelerze",
   userInterfaceStyle: "automatic",
+  // iOS: the permission texts in Sorani, Kurmanji and Arabic
+  // (InfoPlist.strings; `PERMISSION_TEXTS`). Nothing for Android, which has
+  // no such texts.
+  locales: {
+    ckb: { ios: infoPlistPermissionStrings(PERMISSION_TEXTS.ckb) },
+    kmr: { ios: infoPlistPermissionStrings(PERMISSION_TEXTS.kmr) },
+    ar: { ios: infoPlistPermissionStrings(PERMISSION_TEXTS.ar) },
+  },
   ios: {
     // iPhone only for v1 (decided 2026-10-20): the layout is phone-first, as
     // on the web. iPads still run it as an iPhone app.
@@ -281,8 +355,7 @@ const config: ExpoConfig = {
       // crash on iOS.
       "expo-sensors",
       {
-        motionPermission:
-          "Bumelerze uses your phone's accelerometer to show you a live seismometer view. No location or personal data is collected.",
+        motionPermission: PERMISSION_TEXTS.en.motion,
       },
     ],
     [
@@ -295,8 +368,7 @@ const config: ExpoConfig = {
       // construction, not just by convention.
       "expo-location",
       {
-        locationWhenInUsePermission:
-          "Bumelerze uses your location to show accurate distances to earthquakes and to make the experiences you share useful for mapping real shaking. Only used while the app is open.",
+        locationWhenInUsePermission: PERMISSION_TEXTS.en.location,
         locationAlwaysAndWhenInUsePermission: false,
         locationAlwaysPermission: false,
       },
@@ -337,13 +409,13 @@ const config: ExpoConfig = {
       // Photos on felt reports (damage) and on a tagged building. Both the
       // camera and photo-library permission strings are needed since the
       // picker offers both entry points. These strings are the iOS
-      // NSCameraUsageDescription / NSPhotoLibraryUsageDescription; the OS
-      // shows them in English only, so they cover every use in one sentence.
+      // NSCameraUsageDescription / NSPhotoLibraryUsageDescription (English;
+      // the other languages: `locales`), each covering every use in one
+      // sentence.
       "expo-image-picker",
       {
-        photosPermission:
-          "Bumelerze uses your photos so you can add pictures of earthquake damage or of your building to a report.",
-        cameraPermission: cameraPermissionText,
+        photosPermission: PERMISSION_TEXTS.en.photos,
+        cameraPermission: PERMISSION_TEXTS.en.camera,
         // Photos only, never video: no microphone (the plugin would add a
         // generic English microphone text otherwise).
         microphonePermission: false,
@@ -356,7 +428,7 @@ const config: ExpoConfig = {
       // read a QR code.
       "expo-camera",
       {
-        cameraPermission: cameraPermissionText,
+        cameraPermission: PERMISSION_TEXTS.en.camera,
         microphonePermission: false,
         recordAudioAndroid: false,
       },
