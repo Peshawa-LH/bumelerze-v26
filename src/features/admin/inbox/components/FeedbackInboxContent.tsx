@@ -8,7 +8,7 @@ import { formatUsername } from "@/features/community/username";
 import { formatAbsoluteDual } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { formatCount } from "../../people/format";
 import { useDebounced } from "../../people/queries";
 import { useAdminAccess } from "../../queries";
@@ -58,6 +58,7 @@ export function FeedbackInboxContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -121,6 +122,7 @@ export function FeedbackInboxContent({
             borderColor: colors.border.default,
             backgroundColor: colors.surface.raised,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
             textAlign: "auto",
           },
@@ -221,6 +223,7 @@ function FeedbackRowItem({ row }: { row: FeedbackRow }) {
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const sender =
@@ -273,6 +276,7 @@ function FeedbackRowItem({ row }: { row: FeedbackRow }) {
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
           lineHeight: typography.bodyMeta.lineHeight,
           fontWeight: "600",
         }}
@@ -285,6 +289,7 @@ function FeedbackRowItem({ row }: { row: FeedbackRow }) {
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           textAlign: "auto",
         }}

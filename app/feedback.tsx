@@ -24,7 +24,7 @@ import {
 } from "@/features/feedback";
 import { isRequestableRank } from "@/features/badges";
 import { a11yState } from "@/lib/a11y-state";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 const MESSAGE_MAX_LENGTH = 4000; // matches feedback.message's CHECK constraint, migration 0020
 const CONTACT_MAX_LENGTH = 320; // matches feedback.contact's CHECK constraint, migration 0020
@@ -205,6 +205,7 @@ export default function FeedbackScreen() {
             style={{
               color: colors.text.primary,
               fontSize: typography.h1.fontSize,
+              fontFamily: nativeFontFamily(typography.h1),
               lineHeight: typography.h1.lineHeight,
               fontWeight: typography.h1.fontWeight,
             }}
@@ -215,6 +216,7 @@ export default function FeedbackScreen() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >
@@ -234,6 +236,7 @@ export default function FeedbackScreen() {
               style={{
                 color: colors.brand.onPrimary,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >
@@ -271,6 +274,7 @@ export default function FeedbackScreen() {
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           marginTop: spacing[1],
         }}
@@ -319,6 +323,7 @@ export default function FeedbackScreen() {
               flex: 1,
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
             }}
           >
             {t("feedback.badgeRequest.label")}
@@ -329,6 +334,7 @@ export default function FeedbackScreen() {
             style={{
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
               fontWeight: "600",
             }}
           >
@@ -353,6 +359,7 @@ export default function FeedbackScreen() {
                 borderColor: colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 padding: spacing[3],
               },
             ]}
@@ -364,6 +371,7 @@ export default function FeedbackScreen() {
             style={{
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
               fontWeight: "600",
             }}
           >
@@ -385,6 +393,7 @@ export default function FeedbackScreen() {
                 borderColor: colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 paddingHorizontal: spacing[3],
               },
             ]}
@@ -396,6 +405,7 @@ export default function FeedbackScreen() {
             style={{
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
               fontWeight: "600",
             }}
           >
@@ -434,6 +444,7 @@ export default function FeedbackScreen() {
                       style={{
                         color: colors.text.primary,
                         fontSize: typography.labelCaption.fontSize,
+                        fontFamily: nativeFontFamily(typography.labelCaption, "400"),
                       }}
                       accessibilityElementsHidden
                       importantForAccessibility="no-hide-descendants"
@@ -452,6 +463,7 @@ export default function FeedbackScreen() {
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta),
                 lineHeight: typography.bodyMeta.lineHeight,
               }}
             >
@@ -465,6 +477,7 @@ export default function FeedbackScreen() {
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta),
                 lineHeight: typography.bodyMeta.lineHeight,
               }}
             >
@@ -483,6 +496,7 @@ export default function FeedbackScreen() {
                 style={{
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelButton),
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -501,6 +515,7 @@ export default function FeedbackScreen() {
           style={{
             color: colors.status.danger,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -525,6 +540,7 @@ export default function FeedbackScreen() {
           style={{
             color: canSubmit ? colors.brand.onPrimary : colors.text.tertiary,
             fontSize: typography.labelButton.fontSize,
+            fontFamily: nativeFontFamily(typography.labelButton),
             fontWeight: typography.labelButton.fontWeight,
           }}
         >

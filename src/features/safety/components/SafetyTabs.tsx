@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import {
   SAFETY_SECTION_IDS,
   safetySectionTabKey,
@@ -66,6 +66,10 @@ export function SafetyTabs({ activeSection, onSelectSection }: SafetyTabsProps) 
                 textAlign: "center",
                 color: isActive ? colors.text.primary : colors.text.secondary,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(
+                  typography.labelButton,
+                  isActive ? "700" : "500",
+                ),
                 fontWeight: isActive ? "700" : "500",
               }}
             >

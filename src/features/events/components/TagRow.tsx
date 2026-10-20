@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { agencyDisplayLabel } from "../agency-labels";
 import type { EventProvider } from "../types";
 
@@ -259,6 +259,7 @@ function Tag({
         style={{
           color: textColor,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption),
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}

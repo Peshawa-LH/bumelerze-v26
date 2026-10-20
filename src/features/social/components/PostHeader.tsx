@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatMagnitudeValue } from "@/features/events/format";
 import { magnitudeTone } from "@/features/events/magnitude-tone";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { MenuSheet, type MenuItem } from "./MenuSheet";
 
 /**
@@ -49,7 +49,12 @@ export function PostHeader({
               numberOfLines={2}
               style={[
                 styles.title,
-                { color: colors.text.primary, fontSize: 16, lineHeight: 22 },
+                {
+                  color: colors.text.primary,
+                  fontSize: 16,
+                  fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+                  lineHeight: 22,
+                },
               ]}
               testID={`${testID}-title`}
             >
@@ -103,7 +108,7 @@ export function EventMark({
   size?: number;
 }) {
   const { i18n } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   return (
     <View
       accessibilityElementsHidden
@@ -121,7 +126,12 @@ export function EventMark({
       testID="event-mark"
     >
       <Text
-        style={{ color: colors.text.primary, fontWeight: "700", fontSize: size * 0.32 }}
+        style={{
+          color: colors.text.primary,
+          fontWeight: "700",
+          fontSize: size * 0.32,
+          fontFamily: nativeFontFamily(typography.h1),
+        }}
         numberOfLines={1}
       >
         {formatMagnitudeValue(magnitude, i18n.language)}

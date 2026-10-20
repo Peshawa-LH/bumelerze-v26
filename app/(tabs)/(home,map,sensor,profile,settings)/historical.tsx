@@ -12,7 +12,7 @@ import {
   type NotableHistoricalEvent,
 } from "@/features/historical";
 import { isRTLLocale } from "@/i18n";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
@@ -92,6 +92,7 @@ export default function HistoricalScreen() {
                   flex: 1,
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelButton),
                   fontWeight: typography.labelButton.fontWeight,
                   textAlign: isRTL ? "right" : "left",
                 }}

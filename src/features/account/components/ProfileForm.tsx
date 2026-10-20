@@ -17,7 +17,7 @@ import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { placeDisplayName, type Place } from "@/features/geo/place-search";
 import { localizeDigits } from "@/lib/format-numbers";
 import { openLink } from "@/lib/open-link";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import {
   BIO_MAX_LENGTH,
   normalizeBio,
@@ -201,11 +201,13 @@ export function ProfileForm({
   const label = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault, "600" as const),
     fontWeight: "600" as const,
   };
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   };
 
@@ -231,6 +233,7 @@ export function ProfileForm({
                 : colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               paddingHorizontal: spacing[3],
               // Names follow the writing direction of what is typed.
               textAlign: "auto",
@@ -285,6 +288,7 @@ export function ProfileForm({
                     : colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 paddingHorizontal: spacing[3],
                 // Handles are always Latin: left to right in every language.
                 writingDirection: "ltr",
@@ -357,6 +361,7 @@ export function ProfileForm({
                 borderColor: bioProblem ? colors.status.danger : colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 padding: spacing[3],
                 textAlign: "auto",
               },
@@ -389,6 +394,7 @@ export function ProfileForm({
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
               }}
               testID="profile-city-value"
             >
@@ -510,7 +516,11 @@ export function ProfileForm({
           testID="profile-privacy-link"
         >
           <Text
-            style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}
+            style={{
+              color: colors.text.link,
+              fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
+            }}
           >
             {t("account.profile.privacyLink")}
           </Text>
@@ -522,7 +532,11 @@ export function ProfileForm({
           testID="profile-guidelines-link"
         >
           <Text
-            style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}
+            style={{
+              color: colors.text.link,
+              fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
+            }}
           >
             {t("account.profile.guidelinesLink")}
           </Text>
@@ -541,6 +555,7 @@ export function ProfileForm({
           style={{
             color: colors.status.danger,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -600,6 +615,7 @@ function Chip({
         style={{
           color: selected ? colors.brand.onPrimary : colors.text.primary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
           fontWeight: "600",
         }}
       >
@@ -652,6 +668,7 @@ function Checkbox({
           flex: 1,
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >

@@ -8,7 +8,7 @@ import { VC_COLORS } from "@/features/building/components/VcBadge";
 import type { VulnerabilityClass } from "@/features/building/ims25";
 import { isolateNumeric } from "@/features/events/format";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useTextDir } from "../ui/text-dir";
 
 /** "14 Sep" from "2026-09-14", digits in the reader's script. */
@@ -76,6 +76,7 @@ export function TimeChart({
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
   };
 
   return (
@@ -155,6 +156,7 @@ function Legend({ series }: { series: readonly ChartSeries[] }) {
               {
                 color: colors.text.secondary,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption, "400"),
               },
             ]}
           >

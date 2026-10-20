@@ -10,7 +10,7 @@ import { useMyPermissions } from "@/features/eventhub/queries";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { useMyRestriction } from "@/features/restrictions/queries";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useCanRemovePosts, usePinnedPost, usePostActions, usePosts } from "../queries";
 import type { PostsTransport } from "../transport";
 import type { CommentsViewer } from "../comments/components/PostCommentsSection";
@@ -51,6 +51,7 @@ export function PostsSection({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -114,6 +115,7 @@ function PostsList({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 

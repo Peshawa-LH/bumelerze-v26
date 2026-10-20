@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 /**
  * Any address the app has no screen for (a mistyped link, an old path):
@@ -42,6 +42,7 @@ export default function NotFoundScreen() {
           {
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,
+            fontFamily: nativeFontFamily(typography.h1),
             lineHeight: typography.h1.lineHeight,
             fontWeight: typography.h1.fontWeight,
           },
@@ -55,6 +56,7 @@ export default function NotFoundScreen() {
           {
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
           },
         ]}
@@ -78,6 +80,7 @@ export default function NotFoundScreen() {
           style={{
             color: colors.brand.onPrimary,
             fontSize: typography.labelButton.fontSize,
+            fontFamily: nativeFontFamily(typography.labelButton),
             fontWeight: typography.labelButton.fontWeight,
           }}
         >

@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import {
   useCloseFeltFlow,
   BUILDING_DAMAGE_GRADES,
@@ -102,6 +102,7 @@ export default function DamageReportScreen() {
           style={{
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,
+            fontFamily: nativeFontFamily(typography.h1),
             lineHeight: typography.h1.lineHeight,
             fontWeight: typography.h1.fontWeight,
           }}
@@ -118,6 +119,7 @@ export default function DamageReportScreen() {
             style={{
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -131,6 +133,7 @@ export default function DamageReportScreen() {
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -156,6 +159,7 @@ export default function DamageReportScreen() {
             style={{
               color: colors.brand.onPrimary,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -170,6 +174,7 @@ export default function DamageReportScreen() {
               style={{
                 color: colors.text.primary,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption),
                 fontWeight: typography.labelCaption.fontWeight,
                 textTransform: "uppercase",
               }}

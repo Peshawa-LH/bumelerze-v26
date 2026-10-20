@@ -1,4 +1,4 @@
-import { Platform } from "react-native";
+import { Platform, type TextStyle } from "react-native";
 
 /**
  * Type scale subset needed for the Phase-1 skeleton screens.
@@ -49,6 +49,50 @@ export function arabicScriptFontFor(fontWeight: TypeToken["fontWeight"]): string
   if (fontWeight === "600") return `${ARABIC_SCRIPT_FONT}-SemiBold`;
   if (fontWeight === "500") return `${ARABIC_SCRIPT_FONT}-Medium`;
   return `${ARABIC_SCRIPT_FONT}-Regular`;
+}
+
+/** Any React Native `fontWeight` as one of the token weights that have a
+ * Vazirmatn face. */
+function tokenWeight(fontWeight: TextStyle["fontWeight"]): TypeToken["fontWeight"] {
+  const value = String(fontWeight ?? "400");
+  if (value === "bold" || value === "heavy" || value === "black" || value === "condensedBold") {
+    return "700";
+  }
+  if (value === "semibold") return "600";
+  if (value === "medium") return "500";
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric < 500) return "400";
+  if (numeric < 600) return "500";
+  if (numeric < 700) return "600";
+  return numeric < 800 ? "700" : "800";
+}
+
+/**
+ * iOS/Android: the font family for text styled inline with a token's size
+ * (`fontSize: typography.bodyMeta.fontSize`) instead of the whole token, so
+ * Sorani and Arabic draw in Vazirmatn there too (item 44 of the iOS parity
+ * inventory). Without it such text fell to the system face, which lacks the
+ * Kurdish letter forms and swaps them in mid-word.
+ *
+ * `fontWeight` is the weight the text is drawn in when it differs from the
+ * token's (an inline `fontWeight: "700"`, or `"400"` for a heading-sized
+ * text with no weight of its own): the face has to match it, since iOS
+ * picks the named face itself when the weight is regular.
+ *
+ * Undefined for Latin-script languages, while the faces are still loading
+ * (the token has no family then), and always on the web: the web draws
+ * every right-to-left page in Vazirmatn through one document rule
+ * (`src/i18n/index.ts`), and naming a face inline there would change how
+ * the web looks today.
+ */
+export function nativeFontFamily(
+  token: TypeToken,
+  fontWeight?: TextStyle["fontWeight"],
+): string | undefined {
+  if (Platform.OS === "web" || !token.fontFamily) {
+    return undefined;
+  }
+  return arabicScriptFontFor(fontWeight === undefined ? token.fontWeight : tokenWeight(fontWeight));
 }
 
 /**

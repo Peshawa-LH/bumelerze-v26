@@ -1,6 +1,6 @@
 import { Text } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 /** The one red line under an auth form. Renders nothing without a message. */
 export function AuthErrorText({
@@ -21,6 +21,7 @@ export function AuthErrorText({
       style={{
         color: colors.status.danger,
         fontSize: typography.bodyDefault.fontSize,
+        fontFamily: nativeFontFamily(typography.bodyDefault),
         lineHeight: typography.bodyDefault.lineHeight,
       }}
     >

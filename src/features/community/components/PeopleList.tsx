@@ -1,7 +1,7 @@
 import { ActivityIndicator, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import type { Person } from "../types";
 import { PersonRow } from "./PersonRow";
 
@@ -26,6 +26,7 @@ export function PeopleList({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 

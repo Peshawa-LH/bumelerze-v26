@@ -7,7 +7,7 @@ import { Sheet } from "@/features/admin/people/components/Sheet";
 import { SHARE_PROFILE_URL_BASE } from "@/features/share/config";
 import { LinkQr } from "@/features/share/LinkQr";
 import { copyText, shareText } from "@/features/share/share-text";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { formatUsername } from "../username";
 
 /** The public link of a profile: the web app's `/u/<username>` page. */
@@ -38,6 +38,7 @@ export function ProfileShareSheet({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -77,6 +78,7 @@ export function ProfileShareSheet({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
           // a link always reads left to right, also inside Sorani/Arabic
           writingDirection: "ltr",
           textAlign: "center",

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/events";
 import { placeLine } from "@/features/geo";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useFeltMap } from "../queries";
 import { useEventUuid } from "../use-event-uuid";
 import { FeltMapView } from "./FeltMapView";
@@ -42,12 +42,14 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
   const titleStyle = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption),
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
   } as const;
   const bodyStyle = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -81,6 +83,7 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
               style={{
                 color: colors.text.link,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
                 fontWeight: "600",
               }}
             >

@@ -7,7 +7,7 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useAccount } from "@/features/account/use-account";
 import { useBlockedPeople, useFollowRequests } from "@/features/community/queries";
 import { useMutedPeople } from "@/features/mute";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 import { lazyScreenContent } from "@/components/LazyScreenContent";
 import { loadProfileArea } from "@/features/profile/area-loader";
@@ -64,6 +64,7 @@ export default function PeopleSettingsScreen() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >

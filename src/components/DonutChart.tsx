@@ -5,7 +5,7 @@ import Svg, { Circle } from "react-native-svg";
 import { isolateNumeric } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
 import { roundToWhole100 } from "@/lib/percent";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 export interface DonutSlice {
   key: string;
@@ -137,6 +137,7 @@ export function DonutChart({
   const captionStyle = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
     lineHeight: typography.labelCaption.lineHeight,
   } as const;
 
@@ -188,6 +189,7 @@ export function DonutChart({
               style={{
                 color: colors.text.primary,
                 fontSize: fitFontSize(centerText, hole, typography.bodyMeta.fontSize),
+                fontFamily: nativeFontFamily(typography.bodyMeta, "700"),
                 fontWeight: "700",
                 textAlign: "center",
               }}
@@ -203,6 +205,7 @@ export function DonutChart({
                 style={{
                   color: colors.text.secondary,
                   fontSize: fitFontSize(centerUnit, hole, typography.labelCaption.fontSize),
+                  fontFamily: nativeFontFamily(typography.labelCaption, "400"),
                   textAlign: "center",
                 }}
               >

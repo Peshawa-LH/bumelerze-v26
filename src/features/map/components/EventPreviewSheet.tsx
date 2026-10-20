@@ -44,7 +44,7 @@ import {
 import { encodeEventRegistrationParam, toEventRegistration } from "@/features/felt";
 import { placeLine } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import {
   resolveSheetSnapOutcome,
@@ -442,6 +442,7 @@ function EventPreviewSheetImpl(
               style={{
                 color: colors.text.primary,
                 fontSize: typography.magnitudeCompact.fontSize,
+                fontFamily: nativeFontFamily(typography.magnitudeCompact),
                 lineHeight: typography.magnitudeCompact.lineHeight,
                 fontWeight: typography.magnitudeCompact.fontWeight,
                 fontVariant: ["tabular-nums"],
@@ -464,6 +465,7 @@ function EventPreviewSheetImpl(
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >
@@ -476,6 +478,7 @@ function EventPreviewSheetImpl(
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyMeta),
                   lineHeight: typography.bodyMeta.lineHeight,
                 }}
               >
@@ -487,6 +490,7 @@ function EventPreviewSheetImpl(
                   style={{
                     color: colors.text.secondary,
                     fontSize: typography.bodyMeta.fontSize,
+                    fontFamily: nativeFontFamily(typography.bodyMeta),
                     lineHeight: typography.bodyMeta.lineHeight,
                   }}
                 >
@@ -501,6 +505,7 @@ function EventPreviewSheetImpl(
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyMeta),
                   lineHeight: typography.bodyMeta.lineHeight,
                 }}
               >
@@ -511,6 +516,7 @@ function EventPreviewSheetImpl(
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyMeta),
                   lineHeight: typography.bodyMeta.lineHeight,
                 }}
               >
@@ -539,6 +545,7 @@ function EventPreviewSheetImpl(
                   style={{
                     color: colors.action.feltOnFill,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >
@@ -563,6 +570,7 @@ function EventPreviewSheetImpl(
                   style={{
                     color: colors.text.primary,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >

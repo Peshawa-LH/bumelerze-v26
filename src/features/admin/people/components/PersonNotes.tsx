@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { communityErrorText } from "@/features/community/error-text";
 import { formatAbsoluteDual } from "@/features/events";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { usePeopleActions, usePersonNotes } from "../queries";
 import type { PeopleTransport } from "../transport";
 import { NOTE_MAX_LENGTH } from "../types";
@@ -28,6 +28,7 @@ export function PersonNotes({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -65,6 +66,7 @@ export function PersonNotes({
             borderColor: colors.border.default,
             backgroundColor: colors.surface.raised,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
             paddingVertical: spacing[2],
             textAlign: "auto",

@@ -23,7 +23,7 @@ import { ProfileStats } from "@/features/profile/components/ProfileStats";
 import { ProfileTabs, type ProfileTab } from "@/features/profile/components/ProfileTabs";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { profileBadgeEntries } from "../badges";
 import { communityErrorText } from "../error-text";
 import type { CommunityActions } from "../queries";
@@ -104,6 +104,7 @@ export function PublicProfileView({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   // Logical start for the Latin @username: RN's `textAlign` has no `start`,
@@ -531,6 +532,7 @@ function RecentComment({ comment }: { comment: ProfileComment }) {
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -541,6 +543,7 @@ function RecentComment({ comment }: { comment: ProfileComment }) {
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           textAlign: "auto",
         }}

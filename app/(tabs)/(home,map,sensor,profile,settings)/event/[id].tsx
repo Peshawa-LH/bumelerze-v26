@@ -34,7 +34,7 @@ import { ShareButton, shareIdFor } from "@/features/share";
 import { RiskSection, ShakeMapSection } from "@/features/shakemap";
 import { directionProps, directionStyle } from "@/i18n";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
@@ -180,6 +180,7 @@ export default function EventDetailScreen() {
                 style={{
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelButton),
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -193,6 +194,7 @@ export default function EventDetailScreen() {
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >
@@ -207,6 +209,7 @@ export default function EventDetailScreen() {
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.h2.fontSize,
+                  fontFamily: nativeFontFamily(typography.h2),
                   lineHeight: typography.h2.lineHeight,
                   fontWeight: typography.h2.fontWeight,
                 }}
@@ -217,6 +220,7 @@ export default function EventDetailScreen() {
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault),
                   lineHeight: typography.bodyDefault.lineHeight,
                 }}
               >
@@ -275,6 +279,7 @@ export default function EventDetailScreen() {
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
                   lineHeight: typography.bodyDefault.lineHeight,
                   fontWeight: "600",
                 }}
@@ -291,6 +296,7 @@ export default function EventDetailScreen() {
                   style={{
                     color: colors.text.link,
                     fontSize: typography.bodyMeta.fontSize,
+                    fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
                     fontWeight: "600",
                   }}
                 >
@@ -301,6 +307,7 @@ export default function EventDetailScreen() {
                   style={{
                     color: colors.text.secondary,
                     fontSize: typography.bodyMeta.fontSize,
+                    fontFamily: nativeFontFamily(typography.bodyMeta),
                   }}
                 >
                   {t("eventDetail.myReportRow.detailAdded")}
@@ -391,6 +398,7 @@ function EventDetailHeader({
           style={{
             color: colors.text.primary,
             fontSize: typography.magnitudeHero.fontSize,
+            fontFamily: nativeFontFamily(typography.magnitudeHero),
             lineHeight: typography.magnitudeHero.lineHeight,
             fontWeight: typography.magnitudeHero.fontWeight,
             fontVariant: ["tabular-nums"],
@@ -405,6 +413,7 @@ function EventDetailHeader({
           style={{
             color: colors.text.primary,
             fontSize: typography.h3.fontSize,
+            fontFamily: nativeFontFamily(typography.h3),
             lineHeight: typography.h3.lineHeight,
             fontWeight: typography.h3.fontWeight,
           }}
@@ -429,6 +438,7 @@ function EventDetailHeader({
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
               lineHeight: typography.bodyMeta.lineHeight,
               fontVariant: ["tabular-nums"],
             }}
@@ -479,6 +489,7 @@ function EventDetailHeader({
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             fontVariant: ["tabular-nums"],
             ...directionStyle(locale),
@@ -500,6 +511,7 @@ function EventDetailHeader({
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             fontVariant: ["tabular-nums"],
             ...directionStyle(locale),
@@ -522,6 +534,7 @@ function EventDetailHeader({
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >
@@ -533,6 +546,7 @@ function EventDetailHeader({
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >
@@ -554,6 +568,7 @@ function EventDetailHeader({
             style={{
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -591,6 +606,7 @@ function EventDetailHeader({
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -608,6 +624,7 @@ function EventDetailHeader({
             marginTop: spacing[2],
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -630,6 +647,7 @@ function EventDetailHeader({
               marginTop: spacing[2],
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >
@@ -665,6 +683,7 @@ function DetailSection({
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption),
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}
@@ -704,6 +723,7 @@ function DetailRow({ label, value, locale, colors, typography }: DetailRowProps)
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >
@@ -715,6 +735,7 @@ function DetailRow({ label, value, locale, colors, typography }: DetailRowProps)
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           fontVariant: ["tabular-nums"],
           ...directionStyle(locale),

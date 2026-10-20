@@ -7,7 +7,7 @@ import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SettingsRow } from "@/features/account/components/SettingsRow";
 import { communityErrorText } from "@/features/community/error-text";
 import { CommunityError } from "@/features/community/types";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { deliverJsonFile } from "../deliver";
 import {
   SupabaseDataExportTransport,
@@ -111,6 +111,7 @@ export function DownloadMyDataRow({
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >
@@ -122,6 +123,7 @@ export function DownloadMyDataRow({
           style={{
             color: colors.status.danger,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
             lineHeight: typography.bodyMeta.lineHeight,
           }}
           testID="data-export-error"

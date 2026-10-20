@@ -15,7 +15,7 @@ import type { PostsTransport } from "@/features/posts/transport";
 import { validateEventPostText } from "@/features/posts/validation";
 import { localizeDigits } from "@/lib/format-numbers";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import { ShareActionButton } from "./ShareActionButton";
 
@@ -89,6 +89,7 @@ function PostToProfileInner({
 
   const meta = {
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
     lineHeight: typography.labelCaption.lineHeight,
   } as const;
 

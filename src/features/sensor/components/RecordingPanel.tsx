@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import {
   buildRecordingText,
@@ -92,6 +92,7 @@ export function RecordingPanel({
   const label = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const button = (pressed: boolean, filled: boolean) => [
@@ -107,6 +108,7 @@ export function RecordingPanel({
   const buttonText = (filled: boolean) => ({
     color: filled ? colors.brand.onPrimary : colors.brand.primary,
     fontSize: typography.labelButton.fontSize,
+    fontFamily: nativeFontFamily(typography.labelButton),
     fontWeight: typography.labelButton.fontWeight,
   });
 
@@ -121,6 +123,7 @@ export function RecordingPanel({
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3),
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -136,6 +139,7 @@ export function RecordingPanel({
             style={{
               color: colors.status.danger,
               fontSize: typography.h3.fontSize,
+              fontFamily: nativeFontFamily(typography.h3, "700"),
               fontWeight: "700",
             }}
           >
@@ -217,6 +221,7 @@ export function RecordingPanel({
                     style={{
                       color: selected ? colors.brand.onPrimary : colors.text.primary,
                       fontSize: typography.labelCaption.fontSize,
+                      fontFamily: nativeFontFamily(typography.labelCaption, "600"),
                       fontWeight: "600",
                     }}
                   >

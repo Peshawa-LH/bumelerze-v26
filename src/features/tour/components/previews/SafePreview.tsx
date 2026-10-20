@@ -4,7 +4,7 @@ import { Text, View } from "react-native";
 
 import { SafeButton } from "@/features/safe/components/SafeButton";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 const noop = () => undefined;
 
@@ -33,12 +33,13 @@ export function SafePreview() {
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
             fontWeight: "600",
           }}
         >
           {t("imSafe.family.title")}
         </Text>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
           {t("imSafe.family.summary", {
             n: localizeDigits(String(checkedIn), i18n.language),
             total: localizeDigits(String(SAMPLE_MEMBERS.length), i18n.language),

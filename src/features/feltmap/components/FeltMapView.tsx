@@ -12,7 +12,7 @@ import { pickMapCities } from "@/features/shakemap/cities";
 import { mmiValueToLevel } from "@/features/shakemap/intensity-ramp";
 import { layoutCityLabels, type LabelCandidate } from "@/features/shakemap/label-layout";
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { FELTMAP_MAX_CITIES, FELTMAP_VIEW_HEIGHT, FELTMAP_VIEW_WIDTH } from "../config";
 import { decodeGeohashBounds } from "../geohash-bounds";
 import type { FeltCellRow } from "../types";
@@ -141,6 +141,7 @@ export function FeltMapView({
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption),
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}
@@ -255,6 +256,7 @@ export function FeltMapView({
               style={{
                 color: colors.text.secondary,
                 fontSize: 9,
+                fontFamily: nativeFontFamily(typography.labelCaption, "600"),
                 fontWeight: "600",
               }}
             >
@@ -268,6 +270,7 @@ export function FeltMapView({
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >

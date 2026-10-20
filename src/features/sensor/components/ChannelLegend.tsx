@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { axisColor } from "../colors";
 import type { PhonePose } from "../projection";
 import type { AxisKey } from "../types";
@@ -28,6 +28,7 @@ export function ChannelLegend({ pose, onTogglePose }: ChannelLegendProps = {}) {
   const labelStyle = {
     color: colors.text.secondary,
     fontSize: typography.labelButton.fontSize,
+    fontFamily: nativeFontFamily(typography.labelButton),
     fontWeight: typography.labelButton.fontWeight,
   } as const;
 

@@ -18,7 +18,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { parseEndDate } from "../date-input";
 import { useRestrictionActions } from "../queries";
 import type { RestrictionsTransport } from "../transport";
@@ -103,6 +103,7 @@ export function LimitAccountSheet({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const input = [
@@ -112,6 +113,7 @@ export function LimitAccountSheet({
       borderColor: colors.border.default,
       backgroundColor: colors.surface.base,
       fontSize: typography.bodyDefault.fontSize,
+      fontFamily: nativeFontFamily(typography.bodyDefault),
       paddingHorizontal: spacing[3],
       paddingVertical: spacing[2],
       textAlign: "auto" as const,

@@ -17,7 +17,7 @@ import { useSnackbar } from "@/components/Snackbar";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { restoreErrorText } from "@/features/undo/error-text";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminAccess, useAdminActions, useAdminActivity } from "../queries";
 import type { AdminTransport } from "../transport";
 import {
@@ -71,6 +71,7 @@ export function ActivityContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const name = normalizeUsername(username);
@@ -205,6 +206,7 @@ export function ActivityContent({
                 borderColor: colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 paddingHorizontal: spacing[3],
                 writingDirection: "ltr",
                 textAlign: "left",

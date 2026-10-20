@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAccount } from "@/features/account/use-account";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 import { lazyScreenContent } from "@/components/LazyScreenContent";
 import { loadProfileArea } from "@/features/profile/area-loader";
@@ -64,6 +64,7 @@ export default function ProfileScreen() {
             {
               color: colors.text.primary,
               fontSize: typography.h2.fontSize,
+              fontFamily: nativeFontFamily(typography.h2),
               lineHeight: typography.h2.lineHeight,
               fontWeight: typography.h2.fontWeight,
             },

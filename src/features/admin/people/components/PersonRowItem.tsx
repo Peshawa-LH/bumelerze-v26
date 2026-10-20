@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { formatAbsoluteDual } from "@/features/events";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { formatCount, personName } from "../format";
 import type { PersonRow } from "../types";
 import { StatusChip } from "./StatusChip";
@@ -21,6 +21,7 @@ export function PersonRowItem({ row }: { row: PersonRow }) {
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const date = (value: number) => formatAbsoluteDual(value, language, t).local;

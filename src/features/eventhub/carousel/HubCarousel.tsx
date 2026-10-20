@@ -15,7 +15,7 @@ import { isolateNumeric } from "@/features/events/format";
 import { isRTLLocale } from "@/i18n";
 import { a11yState } from "@/lib/a11y-state";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import { useHorizontalSwipeLock } from "./swipe-lock";
 
@@ -176,6 +176,7 @@ export function HubCarousel({
               style={{
                 color: COUNTER_TEXT,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption, "600"),
                 fontWeight: "600",
               }}
             >

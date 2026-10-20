@@ -7,7 +7,7 @@ import { GAZETTEER_CITIES, pickLocalizedName } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
 import { directionProps, directionStyle } from "@/i18n";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import {
   type CoordinateFieldError,
   validateLatitude,
@@ -142,6 +142,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
       color: colors.text.primary,
       backgroundColor: colors.surface.raised,
       fontSize: typography.bodyDefault.fontSize,
+      fontFamily: nativeFontFamily(typography.bodyDefault),
       padding: spacing[3],
       ...dirStyle,
     },
@@ -154,6 +155,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3),
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -162,7 +164,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
       </Text>
 
       <View style={{ gap: spacing[2] }}>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
           {t("handbook.coordinates.latLabel")}
         </Text>
         <TextInput
@@ -184,14 +186,14 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
           ]}
         />
         {latError ? (
-          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
             {t(fieldErrorKey(latError))}
           </Text>
         ) : null}
       </View>
 
       <View style={{ gap: spacing[2] }}>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
           {t("handbook.coordinates.lonLabel")}
         </Text>
         <TextInput
@@ -213,7 +215,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
           ]}
         />
         {lonError ? (
-          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
             {t(fieldErrorKey(lonError))}
           </Text>
         ) : null}
@@ -231,6 +233,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
             style={{
               color: locationRequest === "asking" ? colors.text.tertiary : colors.text.link,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -247,6 +250,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
             style={{
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -263,7 +267,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
         <Text
           accessibilityLiveRegion="polite"
           testID="handbook-location-denied"
-          style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}
+          style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}
         >
           {t("handbook.coordinates.locationUnavailable")}
         </Text>
@@ -278,7 +282,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
               onPress={() => handleSelectTown(city.lat, city.lon)}
               style={[styles.townRow, { borderColor: colors.border.default }]}
             >
-              <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize }}>
+              <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault) }}>
                 {pickLocalizedName(city.names, i18n.language)}
               </Text>
             </Pressable>
@@ -295,6 +299,7 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
           style={{
             color: colors.brand.onPrimary,
             fontSize: typography.labelButton.fontSize,
+            fontFamily: nativeFontFamily(typography.labelButton),
             fontWeight: typography.labelButton.fontWeight,
           }}
         >

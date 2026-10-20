@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 /** Three of the handbook's result rows; their values are drawn, not real. */
 const SAMPLE_ROWS = ["isc2025", "pga", "siteClass"] as const;
@@ -19,6 +19,7 @@ export function HandbookPreview() {
           style={{
             color: colors.text.primary,
             fontSize: typography.h3.fontSize,
+            fontFamily: nativeFontFamily(typography.h3, "700"),
             fontWeight: "700",
           }}
         >
@@ -50,6 +51,7 @@ export function HandbookPreview() {
                 flex: 1,
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta),
               }}
             >
               {t(`handbook.rows.${row}.label`)}

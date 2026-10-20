@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import type { PersonStatus } from "../types";
 
 /** Active / Restricted / Suspended as a small text chip (never colour alone). */
@@ -29,6 +29,7 @@ export function StatusChip({
         style={{
           color: tone,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
           fontWeight: "600",
         }}
       >

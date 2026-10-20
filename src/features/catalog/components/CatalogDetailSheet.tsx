@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { isolateNumeric } from "@/features/events";
 import { directionProps, directionStyle } from "@/i18n";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { PUBLISHED_ID_BY_CATALOG_ID } from "../published-crosswalk";
 import {
   formatCatalogCoordinates,
@@ -69,6 +69,7 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.h3.fontSize,
+                  fontFamily: nativeFontFamily(typography.h3),
                   lineHeight: typography.h3.lineHeight,
                   fontWeight: typography.h3.fontWeight,
                 }}
@@ -86,6 +87,7 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                   style={{
                     color: colors.text.link,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >
@@ -183,6 +185,7 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                       style={{
                         color: colors.text.link,
                         fontSize: typography.labelButton.fontSize,
+                        fontFamily: nativeFontFamily(typography.labelButton),
                         fontWeight: typography.labelButton.fontWeight,
                       }}
                     >
@@ -220,6 +223,7 @@ function DetailField({ label, value, locale, colors, typography }: DetailFieldPr
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption, "400"),
           lineHeight: typography.labelCaption.lineHeight,
         }}
       >
@@ -231,6 +235,7 @@ function DetailField({ label, value, locale, colors, typography }: DetailFieldPr
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           ...directionStyle(locale),
         }}

@@ -6,6 +6,7 @@ import type { Theme } from "@/theme";
 import { classifyDamageBand } from "../risk-alert";
 import type { RiskDistrict } from "../types";
 import { damageBandColor } from "./RiskDamageBandTag";
+import { nativeFontFamily } from "@/theme";
 
 export interface RiskProvinceRowProps {
   district: RiskDistrict;
@@ -86,6 +87,7 @@ export function RiskProvinceRow({
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             flexShrink: 1,
           }}
@@ -99,7 +101,14 @@ export function RiskProvinceRow({
               testID="risk-province-row-coverage-tag"
               style={[styles.tag, { backgroundColor: colors.surface.sunken }]}
             >
-              <Text style={{ color: colors.text.tertiary, fontSize: 10, fontWeight: "600" }}>
+              <Text
+                style={{
+                  color: colors.text.tertiary,
+                  fontSize: 10,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                  fontWeight: "600",
+                }}
+              >
                 {t("eventDetail.risk.partlyInsideMap")}
               </Text>
             </View>
@@ -108,7 +117,14 @@ export function RiskProvinceRow({
             testID="risk-province-row-band-tag"
             style={[styles.tag, { backgroundColor: damageBandColor(band, colors) }]}
           >
-            <Text style={{ color: colors.text.inverse, fontSize: 10, fontWeight: "700" }}>
+            <Text
+              style={{
+                color: colors.text.inverse,
+                fontSize: 10,
+                fontFamily: nativeFontFamily(typography.labelCaption, "700"),
+                fontWeight: "700",
+              }}
+            >
               {t(`eventDetail.risk.band.${band}.title`)}
             </Text>
           </View>
@@ -136,6 +152,7 @@ export function RiskProvinceRow({
         style={{
           color: colors.text.tertiary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption, "400"),
           lineHeight: typography.labelCaption.lineHeight,
         }}
       >

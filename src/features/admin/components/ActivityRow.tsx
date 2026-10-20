@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { formatUsername } from "@/features/community/username";
 import { formatAbsoluteDual } from "@/features/events";
 import { FLAG_REASONS } from "@/features/eventhub/types";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import type { ActivityEntry } from "../types";
 
 /** One line of the activity log: what was done, by whom, to whom, when, why.
@@ -26,6 +26,7 @@ export function ActivityRow({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -61,6 +62,7 @@ export function ActivityRow({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}

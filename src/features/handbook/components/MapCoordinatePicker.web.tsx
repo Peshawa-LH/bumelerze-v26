@@ -17,7 +17,7 @@ import { regionBboxToLngLatBounds } from "@/features/map/marker-helpers";
 import { shouldRequestRTLTextPlugin } from "@/features/map/rtl-plugin";
 import { resolveMapStyle, type MapStyleProviderId } from "@/features/map/style-provider";
 import { formatFixedLocalized } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { ensureMapTouchControlStyle } from "@/lib/map-touch-controls";
 
 export interface MapCoordinatePickerProps {
@@ -236,6 +236,7 @@ export function MapCoordinatePicker({
           style={{
             color: colors.text.link,
             fontSize: typography.labelButton.fontSize,
+            fontFamily: nativeFontFamily(typography.labelButton),
             fontWeight: typography.labelButton.fontWeight,
           }}
         >
@@ -262,6 +263,7 @@ export function MapCoordinatePicker({
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.h3.fontSize,
+                  fontFamily: nativeFontFamily(typography.h3),
                   lineHeight: typography.h3.lineHeight,
                   fontWeight: typography.h3.fontWeight,
                 }}
@@ -279,6 +281,7 @@ export function MapCoordinatePicker({
                   style={{
                     color: colors.text.link,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >
@@ -291,6 +294,7 @@ export function MapCoordinatePicker({
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta),
                 lineHeight: typography.bodyMeta.lineHeight,
                 paddingHorizontal: spacing[4],
                 paddingBottom: spacing[2],
@@ -325,6 +329,7 @@ export function MapCoordinatePicker({
                 style={{
                   color: selected ? colors.text.primary : colors.text.tertiary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault),
                 }}
               >
                 {selected
@@ -353,6 +358,7 @@ export function MapCoordinatePicker({
                   style={{
                     color: selected ? colors.brand.onPrimary : colors.text.tertiary,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >

@@ -26,7 +26,7 @@ import type { SocialTransport } from "@/features/social/transport";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { EVENT_POST_MAX_LENGTH, POST_MAX_LENGTH } from "../constants";
 import type { PostActions } from "../queries";
 import type { ProfilePost } from "../types";
@@ -128,6 +128,7 @@ export function PostItem({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -319,7 +320,11 @@ export function PostItem({
             numberOfLines={1}
             style={[
               styles.name,
-              { color: colors.text.primary, fontSize: typography.bodyDefault.fontSize },
+              {
+                color: colors.text.primary,
+                fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
+              },
             ]}
           >
             {author.displayName}
@@ -355,6 +360,7 @@ export function PostItem({
                     : colors.border.default,
                 backgroundColor: colors.surface.base,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 padding: spacing[3],
                 textAlign: "auto",
               },
@@ -395,6 +401,7 @@ export function PostItem({
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             // Follows the language of the post, not of the app.
             textAlign: "auto",

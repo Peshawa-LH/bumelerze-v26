@@ -12,7 +12,7 @@ import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatIntensity } from "@/features/shakemap/intensity-format";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminAccess } from "../../queries";
 import { inboxErrorText } from "../../inbox/error-text";
 import { usePhotoActions, usePhotoQueue, useSignedPhotos } from "../queries";
@@ -53,6 +53,7 @@ export function FeltPhotoQueueContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -161,6 +162,7 @@ function PhotoCard({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const when = (value: number) => formatAbsoluteDual(value, language, t).local;
@@ -273,6 +275,7 @@ function PhotoCard({
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
             lineHeight: typography.bodyDefault.lineHeight,
             fontWeight: "600",
           }}

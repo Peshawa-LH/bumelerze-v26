@@ -4,7 +4,7 @@ import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Polyline, Text as SvgText } from "react-native-svg";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { formatCoefficient, formatPeriodSeconds } from "../format";
 import type { SpectrumCurve, SpectrumParameters } from "../types";
 
@@ -68,7 +68,11 @@ export function SpectrumChart({
   comparison,
 }: SpectrumChartProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
+  // iOS/Android: the axis numbers and the legend in Vazirmatn under Sorani
+  // and Arabic (undefined on the web, which inherits the page's font).
+  const captionFont = nativeFontFamily(typography.labelCaption, "400");
+  const svgFont = captionFont ? { fontFamily: captionFont } : {};
   // Seeded from the window rather than 0. The chart draws only once it has
   // a width, and `onLayout` is not guaranteed to arrive: in a hidden or
   // zero-width container it fires with 0 and may never fire again, which
@@ -171,6 +175,7 @@ export function SpectrumChart({
                   x={CHART_PADDING_LEFT - 6}
                   y={toY(tick) + 4}
                   fontSize={10}
+                  {...svgFont}
                   fill={colors.text.tertiary}
                   textAnchor="end"
                 >
@@ -186,6 +191,7 @@ export function SpectrumChart({
                 x={toX(tick)}
                 y={CHART_PADDING_TOP + plotHeight + 16}
                 fontSize={10}
+                {...svgFont}
                 fill={colors.text.tertiary}
                 textAnchor="middle"
               >
@@ -277,23 +283,23 @@ export function SpectrumChart({
       <View style={[styles.legendRow, { direction: "ltr" }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <View style={styles.legendItem}>
           <View style={[styles.swatch, { backgroundColor: colors.brand.primary }]} />
-          <Text style={{ color: colors.text.secondary, fontSize: 11 }}>{t("handbook.spectrum.legend.code")}</Text>
+          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont }}>{t("handbook.spectrum.legend.code")}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.swatch, { backgroundColor: colors.status.success }]} />
-          <Text style={{ color: colors.text.secondary, fontSize: 11 }}>
+          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont }}>
             {t("handbook.spectrum.legend.reduced")}
           </Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.swatch, { backgroundColor: colors.status.info }]} />
-          <Text style={{ color: colors.text.secondary, fontSize: 11 }}>
+          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont }}>
             {t("handbook.spectrum.legend.csPlateau")}
           </Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.swatch, { backgroundColor: colors.status.warning }]} />
-          <Text style={{ color: colors.text.secondary, fontSize: 11 }}>{t("handbook.spectrum.legend.csFloor")}</Text>
+          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont }}>{t("handbook.spectrum.legend.csFloor")}</Text>
         </View>
       </View>
     </View>

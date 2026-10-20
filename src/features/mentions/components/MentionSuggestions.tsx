@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { formatUsername } from "@/features/community/username";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useMentionSuggestions } from "../queries";
 import type { MentionsTransport } from "../transport";
 
@@ -66,6 +66,7 @@ export function MentionSuggestions({
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
                   fontWeight: "600",
                 }}
               >
@@ -76,6 +77,7 @@ export function MentionSuggestions({
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyMeta),
                   writingDirection: "ltr",
                   textAlign: "left",
                 }}
@@ -88,6 +90,7 @@ export function MentionSuggestions({
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyMeta),
                 }}
               >
                 {t(`mentions.relation.${person.relation}`)}

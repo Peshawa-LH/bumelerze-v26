@@ -22,7 +22,7 @@ import type { RestrictionsTransport } from "@/features/restrictions/transport";
 import { LimitAccountSheet } from "@/features/restrictions/components/LimitAccountSheet";
 import type { RestrictionLevel } from "@/features/restrictions/types";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminAccess, useAdminActions } from "../../queries";
 import { SupabaseAdminTransport, type AdminTransport } from "../../transport";
 import { formatCount, personName, shortId } from "../format";
@@ -78,6 +78,7 @@ export function PersonContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -195,11 +196,13 @@ function PersonBody({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const body = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 

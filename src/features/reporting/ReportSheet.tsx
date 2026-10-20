@@ -6,7 +6,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { Sheet } from "@/features/admin/people/components/Sheet";
 import { isolateNumeric } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import {
   REPORT_NOTE_MAX,
   cleanNote,
@@ -53,6 +53,7 @@ export function ReportSheet({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -123,6 +124,10 @@ export function ReportSheet({
                   flex: 1,
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(
+                    typography.bodyDefault,
+                    selected ? "600" : "400",
+                  ),
                   lineHeight: typography.bodyDefault.lineHeight,
                   fontWeight: selected ? "600" : "400",
                 }}
@@ -154,6 +159,7 @@ export function ReportSheet({
               borderColor: colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               padding: spacing[3],
               textAlign: "auto",
             },
@@ -167,7 +173,11 @@ export function ReportSheet({
       {error ? (
         <Text
           accessibilityRole="alert"
-          style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}
+          style={{
+            color: colors.status.danger,
+            fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+          }}
           testID={`${testID}-error`}
         >
           {error}

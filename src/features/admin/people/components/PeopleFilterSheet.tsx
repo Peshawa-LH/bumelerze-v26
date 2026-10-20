@@ -6,7 +6,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { HUB_ROLE_KINDS, type HubRoleKind } from "@/features/eventhub/types";
 import { toAsciiDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import {
   NO_FILTERS,
   PEOPLE_PLATFORMS,
@@ -74,6 +74,7 @@ export function PeopleFilterSheet({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const input = [
@@ -83,6 +84,7 @@ export function PeopleFilterSheet({
       borderColor: colors.border.default,
       backgroundColor: colors.surface.base,
       fontSize: typography.bodyDefault.fontSize,
+      fontFamily: nativeFontFamily(typography.bodyDefault),
       paddingHorizontal: spacing[3],
       writingDirection: "ltr" as const,
       textAlign: "left" as const,

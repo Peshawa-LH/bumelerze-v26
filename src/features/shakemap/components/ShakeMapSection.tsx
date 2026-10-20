@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/events";
 import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useResolvedShakeMap } from "../live-queries";
 import type { DataUsedSummaryKey } from "../types";
 import { ShakeMapView } from "./ShakeMapView";
@@ -67,12 +67,14 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   const titleStyle = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption),
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
   } as const;
   const bodyStyle = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 

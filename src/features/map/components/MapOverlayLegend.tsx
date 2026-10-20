@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { isRTLLocale } from "@/i18n";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import {
   FAULT_COLORS,
@@ -40,6 +40,7 @@ export function MapOverlayLegend({ active, compact }: MapOverlayLegendProps) {
   const label = {
     color: colors.text.primary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
     lineHeight: typography.labelCaption.fontSize * 1.35,
   } as const;
   const note = { ...label, color: colors.text.secondary } as const;

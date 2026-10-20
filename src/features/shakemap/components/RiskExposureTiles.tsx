@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import type { TranslateFn } from "@/features/geo";
 import { formatApproximate } from "@/lib/format-numbers";
 import type { Theme } from "@/theme";
+import { nativeFontFamily } from "@/theme";
 
 export interface RiskExposureTilesProps {
   /** `null` when the product can break population down by shaking level
@@ -45,6 +46,7 @@ function Tile({ testID, icon, title, value, colors, typography, spacing }: TileP
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption, "400"),
           lineHeight: typography.labelCaption.lineHeight,
         }}
       >
@@ -54,6 +56,7 @@ function Tile({ testID, icon, title, value, colors, typography, spacing }: TileP
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3),
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}

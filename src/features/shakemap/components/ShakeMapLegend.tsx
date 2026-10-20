@@ -4,6 +4,7 @@ import type { TranslateFn } from "@/features/geo";
 import type { Theme } from "@/theme";
 import { DAMAGE_GRADE_LABELS } from "../damage-ramp";
 import { intensityLegendLabels } from "../intensity-format";
+import { nativeFontFamily } from "@/theme";
 
 /** Which contour layer the map is currently painting — a small toggle
  * above the map switches between the two when a damage product exists
@@ -59,6 +60,7 @@ export function ShakeMapLegend({
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption),
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}
@@ -90,6 +92,7 @@ export function ShakeMapLegend({
                     style={{
                       color: colors.text.secondary,
                       fontSize: 9,
+                      fontFamily: nativeFontFamily(typography.labelCaption, "600"),
                       fontWeight: "600",
                     }}
                   >
@@ -112,6 +115,7 @@ export function ShakeMapLegend({
                     style={{
                       color: colors.text.secondary,
                       fontSize: 9,
+                      fontFamily: nativeFontFamily(typography.labelCaption, "600"),
                       fontWeight: "600",
                     }}
                   >

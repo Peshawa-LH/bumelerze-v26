@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 interface AvatarProps {
   /** Image uri (remote public URL or a freshly picked local file). */
@@ -59,6 +59,7 @@ export function Avatar({
           style={{
             color: colors.text.secondary,
             fontSize: size * 0.42,
+            fontFamily: nativeFontFamily(typography.h2),
             fontWeight: typography.h2.fontWeight,
           }}
         >

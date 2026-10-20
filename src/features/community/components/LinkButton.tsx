@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 /** Text-style action, at least 44 px tall. */
 export function LinkButton({
@@ -38,6 +38,10 @@ export function LinkButton({
               ? colors.text.tertiary
               : colors.text.link,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(
+            typography.bodyMeta,
+            typography.labelButton.fontWeight,
+          ),
           fontWeight: typography.labelButton.fontWeight,
         }}
       >

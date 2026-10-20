@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 /** The "I'm safe" button: the largest control on its screen (at least 64 dp
  * tall, full width, 18 sp+ label, a check icon so colour is never the only
@@ -48,6 +48,7 @@ export function SafeButton({
         style={{
           color: disabled ? colors.text.tertiary : colors.brand.onPrimary,
           fontSize: Math.max(20, typography.h3.fontSize),
+          fontFamily: nativeFontFamily(typography.h3, "700"),
           lineHeight: Math.max(26, typography.h3.lineHeight),
           fontWeight: "700",
           textAlign: "center",

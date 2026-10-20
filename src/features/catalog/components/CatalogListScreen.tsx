@@ -3,7 +3,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-nativ
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useCatalogBounds, useCatalogList } from "../use-catalog";
 import type { CatalogFilters, CatalogRow as CatalogRowData } from "../types";
 import { CatalogDetailSheet } from "./CatalogDetailSheet";
@@ -86,6 +86,7 @@ export function CatalogListScreen() {
           style={{
             color: colors.status.danger,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             textAlign: "center",
           }}
@@ -136,6 +137,7 @@ export function CatalogListScreen() {
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 lineHeight: typography.bodyDefault.lineHeight,
                 textAlign: "center",
               }}

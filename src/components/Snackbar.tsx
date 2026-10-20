@@ -12,7 +12,7 @@ import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-nati
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { READING_START, useTheme } from "@/theme";
+import { READING_START, useTheme, nativeFontFamily } from "@/theme";
 
 /** How long a snackbar stays up. 8 s for a person's own delete, 10 s for an
  * admin's hide or remove (the research note's 5-10 s range). */
@@ -172,6 +172,7 @@ function SnackbarView({
             flex: 1,
             color: colors.text.inverse,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
             lineHeight: typography.bodyMeta.lineHeight,
             paddingVertical: spacing[2],
             // Follows the language of the message, i.e. the app's: its
@@ -194,6 +195,7 @@ function SnackbarView({
               style={{
                 color: colors.text.inverse,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta, "700"),
                 fontWeight: "700",
                 textDecorationLine: "underline",
               }}

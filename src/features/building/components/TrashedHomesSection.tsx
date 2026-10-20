@@ -6,7 +6,7 @@ import { useSnackbar } from "@/components/Snackbar";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { formatAbsoluteDual } from "@/features/events";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { homeErrorText } from "../error-text";
 import { useHomeActions, useTrashedHomes } from "../queries";
 import type { HomeTransport } from "../transport";
@@ -37,6 +37,7 @@ export function TrashedHomesSection({ transport }: { transport?: HomeTransport }
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >
@@ -69,6 +70,7 @@ function TrashedHomeRow({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const name = home.label || home.code;
@@ -104,6 +106,7 @@ function TrashedHomeRow({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           textAlign: "auto",
         }}

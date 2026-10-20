@@ -25,6 +25,7 @@ import {
   useTheme,
   useThemePreferencesStore,
   type ThemePreference,
+  nativeFontFamily,
 } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
@@ -85,6 +86,7 @@ export default function SettingsScreen() {
         style={{
           color: colors.text.primary,
           fontSize: typography.h1.fontSize,
+          fontFamily: nativeFontFamily(typography.h1),
           lineHeight: typography.h1.lineHeight,
           fontWeight: typography.h1.fontWeight,
         }}
@@ -239,6 +241,7 @@ function LanguageBody({
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -325,6 +328,7 @@ function DevicePermissionsBody() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
             }}
           >
             {t("settings.devicePermissionsLocationLabel")}
@@ -333,6 +337,7 @@ function DevicePermissionsBody() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
             }}
           >
             {permissionStatusText(locationStatus, t)}
@@ -343,6 +348,7 @@ function DevicePermissionsBody() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
             }}
           >
             {t("settings.devicePermissionsMotionLabel")}
@@ -351,6 +357,7 @@ function DevicePermissionsBody() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
             }}
           >
             {permissionStatusText(motionStatus, t)}
@@ -378,6 +385,7 @@ function DevicePermissionsBody() {
             style={{
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
             }}
           >
             {isRequesting
@@ -393,6 +401,7 @@ function DevicePermissionsBody() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >
@@ -413,6 +422,7 @@ function DevicePermissionsBody() {
                 style={{
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelButton),
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -439,6 +449,7 @@ function FooterSection() {
   const meta = {
     color: colors.text.tertiary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   };
 
@@ -464,6 +475,7 @@ function FooterSection() {
           style={{
             color: colors.text.link,
             fontSize: typography.labelButton.fontSize,
+            fontFamily: nativeFontFamily(typography.labelButton),
             fontWeight: typography.labelButton.fontWeight,
           }}
         >

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { isolateNumeric } from "@/features/events";
 import { isolateName } from "@/features/geo";
 import { directionProps, directionStyle } from "@/i18n";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import type { UseStationTraceResult } from "../queries";
 import type { LiveStation } from "../types";
 import { freshnessColor } from "./colors";
@@ -43,6 +43,7 @@ export function StationDetails({ station, trace }: StationDetailsProps) {
             flexShrink: 1,
             color: colors.text.primary,
             fontSize: typography.h3.fontSize,
+            fontFamily: nativeFontFamily(typography.h3),
             lineHeight: typography.h3.lineHeight,
             fontWeight: typography.h3.fontWeight,
             ...dirStyle,
@@ -61,6 +62,7 @@ export function StationDetails({ station, trace }: StationDetailsProps) {
             style={{
               color: "#FFFFFF",
               fontSize: typography.labelCaption.fontSize,
+              fontFamily: nativeFontFamily(typography.labelCaption, "700"),
               fontWeight: "700",
             }}
           >
@@ -78,6 +80,7 @@ export function StationDetails({ station, trace }: StationDetailsProps) {
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
           lineHeight: typography.bodyMeta.lineHeight,
           ...dirStyle,
         }}
@@ -100,6 +103,7 @@ export function StationDetails({ station, trace }: StationDetailsProps) {
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
           lineHeight: typography.bodyMeta.lineHeight,
           ...dirStyle,
         }}
@@ -127,6 +131,7 @@ export function StationDetails({ station, trace }: StationDetailsProps) {
         style={{
           color: colors.text.tertiary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption, "400"),
           lineHeight: typography.labelCaption.lineHeight,
           ...dirStyle,
         }}

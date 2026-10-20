@@ -80,7 +80,7 @@ import {
   type MapStyleProviderId,
 } from "@/features/map";
 import { useUserDistanceAnchor } from "@/features/location/use-user-distance-anchor";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 /** Fixed, deliberately modest pixel nudge applied to the map's viewport
  * center when a marker is selected (`easeTo`'s `offset`, in the marker
@@ -1198,6 +1198,7 @@ export default function MapScreenWeb() {
           {
             color: colors.text.primary,
             fontSize: typography.h2.fontSize,
+            fontFamily: nativeFontFamily(typography.h2),
             lineHeight: typography.h2.lineHeight,
             fontWeight: typography.h2.fontWeight,
             paddingHorizontal: spacing[4],
@@ -1315,6 +1316,7 @@ export default function MapScreenWeb() {
                   style={{
                     color: colors.text.primary,
                     fontSize: typography.bodyDefault.fontSize,
+                    fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
                     lineHeight: typography.bodyDefault.lineHeight,
                     fontWeight: "600",
                   }}
@@ -1326,6 +1328,7 @@ export default function MapScreenWeb() {
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyMeta),
                   lineHeight: typography.bodyMeta.lineHeight,
                 }}
               >
@@ -1336,6 +1339,7 @@ export default function MapScreenWeb() {
                   style={{
                     color: colors.text.link,
                     fontSize: typography.bodyMeta.fontSize,
+                    fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
                     fontWeight: "600",
                   }}
                 >
@@ -1360,6 +1364,7 @@ export default function MapScreenWeb() {
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta),
                 lineHeight: typography.bodyMeta.lineHeight,
                 marginTop: spacing[2],
               }}

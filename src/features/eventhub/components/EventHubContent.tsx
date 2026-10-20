@@ -46,7 +46,7 @@ import type { SocialTransport } from "@/features/social/transport";
 import { useTabBarScroll } from "@/features/tab-bar";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import { HubCarousel } from "../carousel/HubCarousel";
 import { useHubSlides } from "../carousel/use-hub-slides";
@@ -222,11 +222,13 @@ export function EventHubContent({
   const bodyText = {
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -293,7 +295,13 @@ export function EventHubContent({
           <Text
             accessibilityRole="header"
             numberOfLines={2}
-            style={[styles.title, { color: colors.text.primary }]}
+            style={[
+              styles.title,
+              {
+                color: colors.text.primary,
+                fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+              },
+            ]}
             testID="hub-subtitle"
           >
             {title}
@@ -370,6 +378,7 @@ export function EventHubContent({
             style={{
               color: colors.text.link,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
               fontWeight: "600",
             }}
           >
@@ -440,6 +449,7 @@ export function EventHubContent({
               style={{
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >

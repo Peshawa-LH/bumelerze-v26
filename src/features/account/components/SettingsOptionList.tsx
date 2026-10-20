@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { a11yState } from "@/lib/a11y-state";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 export interface SettingsOption<T extends string> {
   value: T;
@@ -56,6 +56,10 @@ export function SettingsOptionList<T extends string>({
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(
+                  typography.bodyDefault,
+                  isActive ? "700" : "400",
+                ),
                 fontWeight: isActive ? "700" : "400",
               }}
             >

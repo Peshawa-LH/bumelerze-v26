@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useAccount } from "@/features/account/use-account";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import { reachWho } from "../format";
 import { useSafeAudience, useSetSafeAudience } from "../hooks";
@@ -62,6 +62,7 @@ export function SafeAudienceSection({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -72,6 +73,7 @@ export function SafeAudienceSection({
         style={{
           color: colors.text.primary,
           fontSize: typography.h2.fontSize,
+          fontFamily: nativeFontFamily(typography.h2),
           lineHeight: typography.h2.lineHeight,
           fontWeight: typography.h2.fontWeight,
         }}
@@ -82,6 +84,7 @@ export function SafeAudienceSection({
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
@@ -118,6 +121,10 @@ export function SafeAudienceSection({
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(
+                    typography.bodyDefault,
+                    active ? "700" : "400",
+                  ),
                   lineHeight: typography.bodyDefault.lineHeight,
                   fontWeight: active ? "700" : "400",
                 }}

@@ -6,6 +6,7 @@ import type { Theme } from "@/theme";
 
 import { formatIntensity } from "../intensity-format";
 import type { RiskPopulationByIntensity } from "../types";
+import { nativeFontFamily } from "@/theme";
 
 export interface RiskShakingLevelsProps {
   populationByIntensity: RiskPopulationByIntensity;
@@ -67,6 +68,7 @@ export function RiskShakingLevels({
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption),
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}
@@ -96,6 +98,7 @@ export function RiskShakingLevels({
                 {
                   color: colors.text.primary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "600"),
                   fontWeight: "600",
                 },
               ]}
@@ -118,6 +121,7 @@ export function RiskShakingLevels({
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption, "400"),
                 lineHeight: typography.labelCaption.lineHeight,
               }}
             >

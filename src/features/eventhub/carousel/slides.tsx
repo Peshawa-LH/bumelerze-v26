@@ -13,7 +13,7 @@ import type { FeltTimeline, FeltTown } from "@/features/social/transport";
 import { formatIntensity } from "@/features/shakemap/intensity-format";
 import { isRTLLocale } from "@/i18n";
 import { approximateParts, localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { percentValue, runningTotal, type ClassDamageRow } from "./slide-data";
 
 /** The frame every chart slide shares: a raised square card, a title, a
@@ -107,6 +107,7 @@ export function ImpactSlide({
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
     lineHeight: typography.labelCaption.lineHeight,
     textAlign: "center",
   } as const;
@@ -179,6 +180,7 @@ export function FeltTownsSlide({
   const label = {
     color: colors.text.primary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
     lineHeight: typography.labelCaption.lineHeight,
   } as const;
   return (
@@ -235,6 +237,7 @@ export function FeltTownsSlide({
                 <Text
                   style={{
                     fontSize: typography.labelCaption.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelCaption, "700"),
                     fontWeight: "700",
                     color:
                       levelText && town.level !== null
@@ -319,6 +322,7 @@ export function TimelineSlide({
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
   };
   return (
     <SlideFrame
@@ -429,6 +433,7 @@ export function ClassDamageSlide({
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
   };
   return (
     <SlideFrame

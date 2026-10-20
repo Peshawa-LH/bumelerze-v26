@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { placeDisplayName } from "@/features/geo/place-search";
 import { usePlaceIndex } from "@/features/geo/use-place-index";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import type { ProfileDetails } from "../types";
 
 /**
@@ -37,6 +37,7 @@ export function ProfileAbout({ details }: { details: ProfileDetails }) {
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             // follows the language it is written in
             textAlign: "auto",
@@ -53,6 +54,7 @@ export function ProfileAbout({ details }: { details: ProfileDetails }) {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >

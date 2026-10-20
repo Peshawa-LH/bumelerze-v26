@@ -3,7 +3,7 @@ import { Platform, Pressable, Text, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { directionProps, directionStyle } from "@/i18n";
 import type { Isc2025Result } from "../../types";
@@ -251,6 +251,7 @@ export function SpectrumSection({
         style={{
           color: colors.text.primary,
           fontSize: typography.h2.fontSize,
+          fontFamily: nativeFontFamily(typography.h2),
           lineHeight: typography.h2.lineHeight,
           fontWeight: typography.h2.fontWeight,
         }}
@@ -264,7 +265,7 @@ export function SpectrumSection({
        * above the method selector because it decides the inputs the method
        * then operates on. */}
       <View style={{ gap: spacing[2] }}>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
           {t("handbook.spectrum.sourceLabel")}
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing[2] }}>
@@ -291,6 +292,7 @@ export function SpectrumSection({
                   style={{
                     color: selected ? colors.brand.onPrimary : colors.text.primary,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >
@@ -300,7 +302,7 @@ export function SpectrumSection({
             );
           })}
         </View>
-        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
           {t(`handbook.spectrum.sourceNote.${sourceId}`)}
         </Text>
       </View>
@@ -308,7 +310,7 @@ export function SpectrumSection({
       {/* Method selector: whose EQUATIONS turn those mapped values into a
        * spectrum. Orthogonal to the source above. */}
       <View style={{ gap: spacing[2] }}>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
           {t("handbook.spectrum.methodLabel")}
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing[2] }}>
@@ -338,6 +340,7 @@ export function SpectrumSection({
                   style={{
                     color: selected ? colors.brand.onPrimary : colors.text.primary,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >
@@ -347,7 +350,7 @@ export function SpectrumSection({
             );
           })}
         </View>
-        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
           {t("handbook.spectrum.methodReturnPeriod", {
             // Localized, not interpolated raw: a bare 2475 renders in Latin
             // digits inside an otherwise Eastern Arabic-Indic Sorani or
@@ -356,12 +359,12 @@ export function SpectrumSection({
           })}
         </Text>
         {methodDuplicatesIsc(state.method) ? (
-          <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+          <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
             {t("handbook.spectrum.methodNote.asce710")}
           </Text>
         ) : null}
         {isEc8 && reading.ec8Ag ? (
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
             {t("handbook.spectrum.methodNote.ec8Ag", {
               years: formatCodeCoefficient(reading.ec8Ag.returnPeriodYears, locale),
             })}
@@ -386,6 +389,7 @@ export function SpectrumSection({
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
             fontWeight: "600",
           }}
         >
@@ -393,17 +397,17 @@ export function SpectrumSection({
         </Text>
         {bannerOpen ? (
           <>
-            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
               {t("handbook.spectrum.banner.notOfRecord")}
             </Text>
-            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
               {t(
                 state.codeValues
                   ? "handbook.spectrum.banner.ssS1FromCode"
                   : "handbook.spectrum.banner.ssS1Source",
               )}
             </Text>
-            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+            <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
               {t("handbook.spectrum.banner.vs30Proxy")}
             </Text>
           </>
@@ -414,7 +418,7 @@ export function SpectrumSection({
           onPress={() => setBannerOpen((open) => !open)}
           hitSlop={8}
         >
-          <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+          <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
             {t(bannerOpen ? "handbook.spectrum.banner.hide" : "handbook.spectrum.banner.show")}
           </Text>
         </Pressable>
@@ -450,7 +454,7 @@ export function SpectrumSection({
               {state.system ? (
                 <Text
                   {...dirProps}
-                  style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600", ...dirStyle }}
+                  style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta, "600"), fontWeight: "600", ...dirStyle }}
                 >
                   {t("handbook.spectrum.systemCoefficients", {
                     r: formatCodeCoefficient(state.system.r, locale),
@@ -465,6 +469,7 @@ export function SpectrumSection({
                   style={{
                     color: blocked ? colors.status.danger : colors.text.secondary,
                     fontSize: typography.bodyMeta.fontSize,
+                    fontFamily: nativeFontFamily(typography.bodyMeta),
                   }}
                 >
                   {check.status === "notPermitted"
@@ -499,20 +504,20 @@ export function SpectrumSection({
                   const cs = governingCs(params, state.inputs.r, period.ta);
                   return (
                     <View style={{ gap: spacing[1] }}>
-                      <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                      <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
                         {t("handbook.spectrum.period.ta", {
                           ta: formatPeriodSeconds(period.ta, locale),
                           ct: formatCodeCoefficient(period.ct, locale),
                           x: formatCodeCoefficient(period.x, locale),
                         })}
                       </Text>
-                      <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+                      <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
                         {t("handbook.spectrum.period.cuTa", {
                           cuTa: formatPeriodSeconds(period.cuTa, locale),
                           cu: formatCodeCoefficient(period.cu, locale),
                         })}
                       </Text>
-                      <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
+                      <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta, "600"), fontWeight: "600" }}>
                         {t("handbook.spectrum.period.cs", {
                           cs: formatCoefficient(cs.cs, locale),
                           governedBy: t(`handbook.spectrum.period.governedBy.${cs.governedBy}`),
@@ -522,12 +527,12 @@ export function SpectrumSection({
                   );
                 })()
               ) : (
-                <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+                <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
                   {t("handbook.spectrum.period.needsHeight")}
                 </Text>
               )}
 
-              <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize }}>
+              <Text style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
                 {t("handbook.spectrum.driftLimit", {
                   ratio: formatCodeCoefficient(
                     allowableDrift(state.system, state.occupancy).ratio,
@@ -536,7 +541,7 @@ export function SpectrumSection({
                 })}
               </Text>
 
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontStyle: "italic" }}>
+              <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), fontStyle: "italic" }}>
                 {t("handbook.spectrum.systemCitation")}
               </Text>
             </View>
@@ -548,7 +553,7 @@ export function SpectrumSection({
         <View style={{ gap: spacing[4] }}>
           <ErrorBoundary
             fallback={() => (
-              <Text style={{ color: colors.status.danger, fontSize: typography.bodyDefault.fontSize }}>
+              <Text style={{ color: colors.status.danger, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault) }}>
                 {t("handbook.spectrum.chartError")}
               </Text>
             )}
@@ -568,7 +573,7 @@ export function SpectrumSection({
             />
           </ErrorBoundary>
 
-          <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+          <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
             {t(`handbook.spectrum.methodNote.${state.method}`, {
               groundType: ec8GroundType ?? "-",
               // The ISC note names the maps the values came off, which is
@@ -583,7 +588,7 @@ export function SpectrumSection({
             onPress={() => setShowFullRange((value) => !value)}
             hitSlop={8}
           >
-            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
               {t(
                 showFullRange
                   ? "handbook.spectrum.rangeToggle.showDefault"
@@ -594,10 +599,10 @@ export function SpectrumSection({
 
           {isEc8 && ec8GroundType && state.agValue !== null ? (
             <View style={{ gap: spacing[1] }}>
-              <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontWeight: "600" }}>
+              <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta, "600"), fontWeight: "600" }}>
                 {t("handbook.spectrum.ec8.paramsTitle")}
               </Text>
-              <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+              <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
                 {t("handbook.spectrum.ec8.params", {
                   ag: formatCoefficient(state.agValue, locale),
                   groundType: ec8GroundType,
@@ -630,7 +635,7 @@ export function SpectrumSection({
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: colors.text.link, fontSize: typography.bodyDefault.fontSize }}>
+            <Text style={{ color: colors.text.link, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault) }}>
               {t(sheetCopied ? "handbook.sheet.copied" : "handbook.sheet.copy")}
             </Text>
           </Pressable>
@@ -658,6 +663,7 @@ export function SpectrumSection({
                 style={{
                   color: colors.brand.onPrimary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
                   fontWeight: "600",
                 }}
               >
@@ -677,7 +683,7 @@ export function SpectrumSection({
               {/* The web's line explains why to print rather than download
                * (its PDF is a picture of the page); a phone's PDF keeps live
                * text, so there it is simply "Or print it". */}
-              <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, textAlign: "center" }}>
+              <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), textAlign: "center" }}>
                 {t(Platform.OS === "web" ? "handbook.report.print" : "handbook.report.printNative")}
               </Text>
             </Pressable>

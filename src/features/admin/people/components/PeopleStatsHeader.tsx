@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { formatAbsoluteDual } from "@/features/events";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { formatCount } from "../format";
 import { usePeopleStats } from "../queries";
 import type { PeopleTransport } from "../transport";
@@ -26,6 +26,7 @@ export function PeopleStatsHeader({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -96,6 +97,7 @@ export function PeopleStatsHeader({
               style={{
                 color: colors.text.primary,
                 fontSize: typography.h3.fontSize,
+                fontFamily: nativeFontFamily(typography.h3, "700"),
                 fontWeight: "700",
               }}
               testID={`people-stat-value-${tile.id}`}

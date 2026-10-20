@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { formatCatalogDate, formatCatalogMagnitude, formatCatalogPlace } from "../format";
 import type { CatalogRow as CatalogRowData } from "../types";
 
@@ -49,6 +49,7 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
           style={{
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption, "400"),
             lineHeight: typography.labelCaption.lineHeight,
             fontVariant: ["tabular-nums"],
           }}
@@ -60,6 +61,7 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
           style={{
             color: colors.text.primary,
             fontSize: typography.magnitudeCompact.fontSize,
+            fontFamily: nativeFontFamily(typography.magnitudeCompact),
             lineHeight: typography.magnitudeCompact.lineHeight,
             fontWeight: typography.magnitudeCompact.fontWeight,
             fontVariant: ["tabular-nums"],
@@ -73,6 +75,7 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
@@ -89,6 +92,7 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
           style={{
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption),
             fontWeight: typography.labelCaption.fontWeight,
           }}
         >

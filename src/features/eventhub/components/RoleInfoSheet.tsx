@@ -11,7 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import type { HubRole } from "../types";
 
@@ -66,6 +66,7 @@ export function RoleInfoSheet({
   const body = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 
@@ -132,6 +133,7 @@ export function RoleInfoSheet({
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta),
                 lineHeight: typography.bodyMeta.lineHeight,
               }}
               testID="role-info-note"

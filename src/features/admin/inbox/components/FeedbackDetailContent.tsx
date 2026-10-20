@@ -11,7 +11,7 @@ import { formatAbsoluteDual } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { levelText, reasonText, untilText } from "@/features/restrictions/labels";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminAccess } from "../../queries";
 import { GRANTABLE_RANKS, type GrantableRank } from "../../types";
 import { inboxErrorText } from "../error-text";
@@ -50,6 +50,7 @@ export function FeedbackDetailContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -148,11 +149,13 @@ function DetailBody({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const body = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
   const when = (value: number) => formatAbsoluteDual(value, language, t).local;
@@ -338,6 +341,7 @@ function DetailBody({
                   borderColor: colors.border.default,
                   backgroundColor: colors.surface.raised,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault),
                   paddingHorizontal: spacing[3],
                   textAlign: "auto",
                 },
@@ -415,6 +419,7 @@ function DetailBody({
               borderColor: colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               padding: spacing[2],
               textAlign: "auto",
             },
@@ -478,6 +483,7 @@ function Block({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}

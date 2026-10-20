@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { communityErrorText } from "@/features/community/error-text";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 export const REVIEW_MESSAGE_MAX = 1000;
 
@@ -121,6 +121,7 @@ export function ReviewSheet({
                 borderColor: colors.border.default,
                 backgroundColor: colors.surface.base,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 padding: spacing[3],
                 textAlign: "auto",
               },
@@ -133,6 +134,7 @@ export function ReviewSheet({
               style={{
                 color: colors.status.danger,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta),
                 lineHeight: typography.bodyMeta.lineHeight,
               }}
               testID="review-sheet-error"

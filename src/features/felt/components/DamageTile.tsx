@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import type { BuildingDamageGrade, DamageTypology } from "../types";
 
 interface DamageTileProps {
@@ -107,6 +107,7 @@ function DamageTileImpl({
             style={{
               color: onAccentColor,
               fontSize: typography.h3.fontSize,
+              fontFamily: nativeFontFamily(typography.h3, "800"),
               fontWeight: "800",
               fontVariant: ["tabular-nums"],
             }}
@@ -127,6 +128,7 @@ function DamageTileImpl({
           color: colors.text.primary,
           textAlign: "center",
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta, "500"),
           lineHeight: typography.bodyMeta.lineHeight,
           fontWeight: "500",
         }}

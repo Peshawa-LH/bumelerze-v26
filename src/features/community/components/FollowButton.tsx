@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { useAccount } from "@/features/account/use-account";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { communityErrorText } from "../error-text";
 import type { CommunityActions } from "../queries";
 import type { PublicProfile } from "../types";
@@ -90,6 +90,7 @@ export function FollowButton({
           style={{
             color: colors.status.danger,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
