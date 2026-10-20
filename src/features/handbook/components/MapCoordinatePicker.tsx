@@ -20,7 +20,7 @@ import { MAP_FIT_BOUNDS_PADDING_PX } from "@/features/map/config";
 import { loadNativeMapLibre, type MapLibreModule } from "@/features/map/native-maplibre";
 import { useNativeBasemap } from "@/features/map/use-native-basemap";
 import { formatFixedLocalized } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, READING_START } from "@/theme";
 
 export interface MapCoordinatePickerProps {
   /** Current coordinate parsed from the form's own text fields, or `null`
@@ -104,6 +104,7 @@ function NativeMapCoordinatePicker({
             fontSize: typography.labelButton.fontSize,
             fontWeight: typography.labelButton.fontWeight,
             fontFamily: typography.labelButton.fontFamily,
+            ...READING_START,
           }}
         >
           {t("handbook.coordinates.pickOnMap")}
@@ -138,6 +139,7 @@ function NativeMapCoordinatePicker({
                   lineHeight: typography.h3.lineHeight,
                   fontWeight: typography.h3.fontWeight,
                   fontFamily: typography.h3.fontFamily,
+                  ...READING_START,
                 }}
               >
                 {t("handbook.coordinates.mapPickerTitle")}
@@ -154,6 +156,7 @@ function NativeMapCoordinatePicker({
                     fontSize: typography.labelButton.fontSize,
                     fontWeight: typography.labelButton.fontWeight,
                     fontFamily: typography.labelButton.fontFamily,
+                    ...READING_START,
                   }}
                 >
                   {t("handbook.coordinates.mapPickerClose")}
@@ -167,6 +170,7 @@ function NativeMapCoordinatePicker({
                 fontSize: typography.bodyMeta.fontSize,
                 lineHeight: typography.bodyMeta.lineHeight,
                 fontFamily: typography.bodyMeta.fontFamily,
+                ...READING_START,
                 paddingHorizontal: spacing[4],
                 paddingBottom: spacing[2],
               }}
@@ -200,6 +204,7 @@ function NativeMapCoordinatePicker({
                   color: selected ? colors.text.primary : colors.text.tertiary,
                   fontSize: typography.bodyDefault.fontSize,
                   fontFamily: typography.bodyDefault.fontFamily,
+                  ...READING_START,
                 }}
               >
                 {selected
@@ -230,6 +235,7 @@ function NativeMapCoordinatePicker({
                     fontSize: typography.labelButton.fontSize,
                     fontWeight: typography.labelButton.fontWeight,
                     fontFamily: typography.labelButton.fontFamily,
+                    ...READING_START,
                   }}
                 >
                   {t("handbook.coordinates.mapPickerConfirm")}

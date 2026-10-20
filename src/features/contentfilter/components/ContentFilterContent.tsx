@@ -10,7 +10,7 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatAbsoluteDual, formatMagnitudeValue } from "@/features/events";
 import { physicalTextAlign } from "@/i18n";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import {
   useContentFilterActions,
@@ -173,6 +173,7 @@ function ErrorLine({ text }: { text: string | null }) {
         color: colors.status.danger,
         fontSize: typography.bodyMeta.fontSize,
         fontFamily: nativeFontFamily(typography.bodyMeta),
+        ...READING_START,
         lineHeight: typography.bodyMeta.lineHeight,
       }}
     >
@@ -197,6 +198,7 @@ function SurgeCard({
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
     fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
   const meta = {

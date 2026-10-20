@@ -23,7 +23,7 @@ import { ProfileStats } from "@/features/profile/components/ProfileStats";
 import { ProfileTabs, type ProfileTab } from "@/features/profile/components/ProfileTabs";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { profileBadgeEntries } from "../badges";
 import { communityErrorText } from "../error-text";
 import type { CommunityActions } from "../queries";
@@ -533,6 +533,7 @@ function RecentComment({ comment }: { comment: ProfileComment }) {
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >

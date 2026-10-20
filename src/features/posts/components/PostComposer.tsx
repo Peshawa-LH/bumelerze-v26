@@ -13,7 +13,7 @@ import { MentionSuggestions } from "@/features/mentions/components/MentionSugges
 import type { MentionsTransport } from "@/features/mentions/transport";
 import { useMentionInput } from "@/features/mentions/use-mention-input";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { POST_MAX_LENGTH } from "../constants";
 import { validatePostBody } from "../validation";
 
@@ -60,6 +60,7 @@ export function PostComposer({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -150,6 +151,7 @@ export function PostComposer({
               color: canPost ? colors.brand.onPrimary : colors.text.tertiary,
               fontSize: typography.labelButton.fontSize,
               fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >

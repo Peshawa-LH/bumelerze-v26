@@ -24,7 +24,7 @@ import {
 } from "@/features/feedback";
 import { isRequestableRank } from "@/features/badges";
 import { a11yState } from "@/lib/a11y-state";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 const MESSAGE_MAX_LENGTH = 4000; // matches feedback.message's CHECK constraint, migration 0020
 const CONTACT_MAX_LENGTH = 320; // matches feedback.contact's CHECK constraint, migration 0020
@@ -206,6 +206,7 @@ export default function FeedbackScreen() {
               color: colors.text.primary,
               fontSize: typography.h1.fontSize,
               fontFamily: nativeFontFamily(typography.h1),
+              ...READING_START,
               lineHeight: typography.h1.lineHeight,
               fontWeight: typography.h1.fontWeight,
             }}
@@ -217,6 +218,7 @@ export default function FeedbackScreen() {
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >
@@ -237,6 +239,7 @@ export default function FeedbackScreen() {
                 color: colors.brand.onPrimary,
                 fontSize: typography.labelButton.fontSize,
                 fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >
@@ -275,6 +278,7 @@ export default function FeedbackScreen() {
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           marginTop: spacing[1],
         }}
@@ -312,7 +316,12 @@ export default function FeedbackScreen() {
           >
             {badgeRequest ? (
               <Text
-                style={{ color: colors.brand.onPrimary, fontSize: 16, fontWeight: "700" }}
+                style={{
+                  color: colors.brand.onPrimary,
+                  fontSize: 16,
+                  ...READING_START,
+                  fontWeight: "700",
+                }}
               >
                 {"✓"}
               </Text>
@@ -324,6 +333,7 @@ export default function FeedbackScreen() {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
             }}
           >
             {t("feedback.badgeRequest.label")}
@@ -335,6 +345,7 @@ export default function FeedbackScreen() {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+              ...READING_START,
               fontWeight: "600",
             }}
           >
@@ -372,6 +383,7 @@ export default function FeedbackScreen() {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+              ...READING_START,
               fontWeight: "600",
             }}
           >
@@ -406,6 +418,7 @@ export default function FeedbackScreen() {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+              ...READING_START,
               fontWeight: "600",
             }}
           >
@@ -445,6 +458,7 @@ export default function FeedbackScreen() {
                         color: colors.text.primary,
                         fontSize: typography.labelCaption.fontSize,
                         fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+                        ...READING_START,
                       }}
                       accessibilityElementsHidden
                       importantForAccessibility="no-hide-descendants"
@@ -464,6 +478,7 @@ export default function FeedbackScreen() {
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta),
+                ...READING_START,
                 lineHeight: typography.bodyMeta.lineHeight,
               }}
             >
@@ -478,6 +493,7 @@ export default function FeedbackScreen() {
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta),
+                ...READING_START,
                 lineHeight: typography.bodyMeta.lineHeight,
               }}
             >
@@ -497,6 +513,7 @@ export default function FeedbackScreen() {
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
                   fontFamily: nativeFontFamily(typography.labelButton),
+                  ...READING_START,
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -516,6 +533,7 @@ export default function FeedbackScreen() {
             color: colors.status.danger,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -541,6 +559,7 @@ export default function FeedbackScreen() {
             color: canSubmit ? colors.brand.onPrimary : colors.text.tertiary,
             fontSize: typography.labelButton.fontSize,
             fontFamily: nativeFontFamily(typography.labelButton),
+            ...READING_START,
             fontWeight: typography.labelButton.fontWeight,
           }}
         >

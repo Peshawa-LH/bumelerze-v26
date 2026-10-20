@@ -4,7 +4,7 @@ import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Polyline, Text as SvgText } from "react-native-svg";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { formatCoefficient, formatPeriodSeconds } from "../format";
 import type { SpectrumCurve, SpectrumParameters } from "../types";
 
@@ -283,23 +283,23 @@ export function SpectrumChart({
       <View style={[styles.legendRow, { direction: "ltr" }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <View style={styles.legendItem}>
           <View style={[styles.swatch, { backgroundColor: colors.brand.primary }]} />
-          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont }}>{t("handbook.spectrum.legend.code")}</Text>
+          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont, ...READING_START }}>{t("handbook.spectrum.legend.code")}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.swatch, { backgroundColor: colors.status.success }]} />
-          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont }}>
+          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont, ...READING_START }}>
             {t("handbook.spectrum.legend.reduced")}
           </Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.swatch, { backgroundColor: colors.status.info }]} />
-          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont }}>
+          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont, ...READING_START }}>
             {t("handbook.spectrum.legend.csPlateau")}
           </Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.swatch, { backgroundColor: colors.status.warning }]} />
-          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont }}>{t("handbook.spectrum.legend.csFloor")}</Text>
+          <Text style={{ color: colors.text.secondary, fontSize: 11, fontFamily: captionFont, ...READING_START }}>{t("handbook.spectrum.legend.csFloor")}</Text>
         </View>
       </View>
     </View>

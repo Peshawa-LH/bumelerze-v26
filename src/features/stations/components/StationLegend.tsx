@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { StationFreshness } from "../types";
 import { freshnessColor } from "./colors";
 
@@ -22,6 +22,7 @@ export function StationLegend() {
               color: colors.text.secondary,
               fontSize: typography.labelCaption.fontSize,
               fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+              ...READING_START,
               lineHeight: typography.labelCaption.lineHeight,
             }}
           >

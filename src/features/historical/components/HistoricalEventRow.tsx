@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { formatMagnitudeValue } from "@/features/events";
 import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { NotableHistoricalEvent } from "../notable-events";
 
 interface HistoricalEventRowProps {
@@ -80,6 +80,7 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
             fontFamily: nativeFontFamily(typography.labelCaption),
+            ...READING_START,
             lineHeight: typography.labelCaption.lineHeight,
             fontWeight: typography.labelCaption.fontWeight,
             fontVariant: ["tabular-nums"],
@@ -93,6 +94,7 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
             color: colors.text.primary,
             fontSize: typography.magnitudeCompact.fontSize,
             fontFamily: nativeFontFamily(typography.magnitudeCompact),
+            ...READING_START,
             lineHeight: typography.magnitudeCompact.lineHeight,
             fontWeight: typography.magnitudeCompact.fontWeight,
             fontVariant: ["tabular-nums"],
@@ -107,6 +109,7 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
           fontFamily: nativeFontFamily(typography.h3),
+          ...READING_START,
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -119,6 +122,7 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
@@ -130,6 +134,7 @@ export function HistoricalEventRow({ event, onPress }: HistoricalEventRowProps) 
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >

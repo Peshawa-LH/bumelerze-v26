@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ProgressDots } from "@/features/onboarding";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 interface Tier2ScreenShellProps {
   currentIndex: number;
@@ -67,6 +67,7 @@ export function Tier2ScreenShell({
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
               fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -88,6 +89,7 @@ export function Tier2ScreenShell({
             color: colors.text.primary,
             fontSize: typography.h2.fontSize,
             fontFamily: nativeFontFamily(typography.h2),
+            ...READING_START,
             lineHeight: typography.h2.lineHeight,
             fontWeight: typography.h2.fontWeight,
           }}
@@ -100,6 +102,7 @@ export function Tier2ScreenShell({
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >
@@ -116,6 +119,7 @@ export function Tier2ScreenShell({
               color: colors.text.secondary,
               fontSize: typography.labelButton.fontSize,
               fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >

@@ -8,7 +8,7 @@ import type { GuidelinesTransport } from "@/features/guidelines";
 import { MentionSuggestions } from "@/features/mentions/components/MentionSuggestions";
 import type { MentionsTransport } from "@/features/mentions/transport";
 import { useMentionInput } from "@/features/mentions/use-mention-input";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { toHubError } from "../transport";
 import type { HubErrorCode } from "../types";
@@ -130,6 +130,7 @@ export function CommentComposer({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -186,6 +187,7 @@ export function CommentComposer({
                     typography.bodyMeta,
                     typography.labelButton.fontWeight,
                   ),
+                  ...READING_START,
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -239,6 +241,7 @@ export function CommentComposer({
                 color: canPost ? colors.text.link : colors.text.tertiary,
                 fontSize: typography.labelButton.fontSize,
                 fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >
@@ -307,6 +310,7 @@ export function CommentComposer({
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
                 fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >
@@ -353,6 +357,7 @@ export function CommentComposer({
               color: canPost ? colors.brand.onPrimary : colors.text.tertiary,
               fontSize: typography.labelButton.fontSize,
               fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -370,6 +375,7 @@ export function CommentComposer({
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
                 fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >

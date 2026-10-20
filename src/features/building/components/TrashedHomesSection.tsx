@@ -6,7 +6,7 @@ import { useSnackbar } from "@/components/Snackbar";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { formatAbsoluteDual } from "@/features/events";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { homeErrorText } from "../error-text";
 import { useHomeActions, useTrashedHomes } from "../queries";
 import type { HomeTransport } from "../transport";
@@ -38,6 +38,7 @@ export function TrashedHomesSection({ transport }: { transport?: HomeTransport }
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >
@@ -71,6 +72,7 @@ function TrashedHomeRow({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const name = home.label || home.code;

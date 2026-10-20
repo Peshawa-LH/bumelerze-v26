@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useAccount } from "@/features/account/use-account";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { reachWho } from "../format";
 import { useSafeAudience, useSetSafeAudience } from "../hooks";
@@ -63,6 +63,7 @@ export function SafeAudienceSection({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -74,6 +75,7 @@ export function SafeAudienceSection({
           color: colors.text.primary,
           fontSize: typography.h2.fontSize,
           fontFamily: nativeFontFamily(typography.h2),
+          ...READING_START,
           lineHeight: typography.h2.lineHeight,
           fontWeight: typography.h2.fontWeight,
         }}
@@ -85,6 +87,7 @@ export function SafeAudienceSection({
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
@@ -125,6 +128,7 @@ export function SafeAudienceSection({
                     typography.bodyDefault,
                     active ? "700" : "400",
                   ),
+                  ...READING_START,
                   lineHeight: typography.bodyDefault.lineHeight,
                   fontWeight: active ? "700" : "400",
                 }}

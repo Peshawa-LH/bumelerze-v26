@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { useTranslation } from "react-i18next";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { useTheme } from "@/theme";
+import { useTheme, READING_START } from "@/theme";
 
 /**
  * A screen part whose code the web app downloads the first time it is
@@ -135,6 +135,7 @@ function LoadFailed({ onRetry }: { onRetry: () => void }) {
             fontSize: typography.labelButton.fontSize,
             fontWeight: typography.labelButton.fontWeight,
             fontFamily: typography.labelButton.fontFamily,
+            ...READING_START,
           }}
         >
           {t("nav.retry")}

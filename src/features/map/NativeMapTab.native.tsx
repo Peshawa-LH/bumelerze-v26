@@ -85,7 +85,7 @@ import { isCompactMapControlsWidth } from "@/features/map/responsive";
 import { DEFAULT_MAP_SCOPE, WORLD_VIEW_BBOX, type MapScope } from "@/features/map/scope";
 import type { MapStyleCatalogId } from "@/features/map/style-catalog";
 import { useNativeBasemap } from "@/features/map/use-native-basemap";
-import { useTheme } from "@/theme";
+import { useTheme, READING_START } from "@/theme";
 
 /**
  * Native (iOS/Android) Map tab on MapLibre Native, built to match the web's
@@ -506,6 +506,7 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
           lineHeight: typography.h2.lineHeight,
           fontWeight: typography.h2.fontWeight,
           fontFamily: typography.h2.fontFamily,
+          ...READING_START,
           paddingHorizontal: spacing[4],
           paddingBottom: spacing[2],
         }}
@@ -647,6 +648,7 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
                     fontSize: typography.bodyDefault.fontSize,
                     lineHeight: typography.bodyDefault.lineHeight,
                     fontFamily: typography.bodyDefault.fontFamily,
+                    ...READING_START,
                     fontWeight: "600",
                   }}
                 >
@@ -659,6 +661,7 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
                   fontSize: typography.bodyMeta.fontSize,
                   lineHeight: typography.bodyMeta.lineHeight,
                   fontFamily: typography.bodyMeta.fontFamily,
+                  ...READING_START,
                 }}
               >
                 {t("map.offlineDescription")}
@@ -673,6 +676,7 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
                     color: colors.text.link,
                     fontSize: typography.bodyMeta.fontSize,
                     fontFamily: typography.bodyMeta.fontFamily,
+                    ...READING_START,
                     fontWeight: "600",
                   }}
                 >
@@ -699,6 +703,7 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
                 fontSize: typography.bodyMeta.fontSize,
                 lineHeight: typography.bodyMeta.lineHeight,
                 fontFamily: typography.bodyMeta.fontFamily,
+                ...READING_START,
                 marginTop: spacing[2],
               }}
             >

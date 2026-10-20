@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { deleteAccount } from "../service";
 import { useAccountAction } from "../use-account-action";
 import { AccountButton } from "./AccountButton";
@@ -145,6 +145,7 @@ function ConsequenceList({
               color: colors.text.primary,
               fontSize: typography.bodyMeta.fontSize,
               fontFamily: nativeFontFamily(typography.bodyMeta),
+              ...READING_START,
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >

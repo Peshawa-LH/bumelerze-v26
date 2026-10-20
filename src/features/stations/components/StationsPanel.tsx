@@ -3,7 +3,7 @@ import { Platform, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { loadNativeMapLibre } from "@/features/map/native-maplibre";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { findLiveStation, listLiveStations } from "../catalog";
 import { useStationFreshness, useStationTrace } from "../queries";
 import type { StationFreshness } from "../types";
@@ -53,6 +53,7 @@ export function StationsPanel() {
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
@@ -73,6 +74,7 @@ export function StationsPanel() {
             color: colors.text.tertiary,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -90,6 +92,7 @@ export function StationsPanel() {
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
             fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+            ...READING_START,
             lineHeight: typography.labelCaption.lineHeight,
             fontWeight: "600",
           }}

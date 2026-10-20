@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Event } from "@/features/events";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { useEventHubSummary } from "../queries";
 import { shouldShowHubPill } from "../visibility";
@@ -82,6 +82,7 @@ export function EventHubPill({ event, routeId }: EventHubPillProps) {
           color: colors.brand.onPrimary,
           fontSize: typography.labelButton.fontSize,
           fontFamily: nativeFontFamily(typography.labelButton),
+          ...READING_START,
           fontWeight: typography.labelButton.fontWeight,
         }}
       >

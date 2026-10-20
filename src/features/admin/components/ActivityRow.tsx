@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { formatUsername } from "@/features/community/username";
 import { formatAbsoluteDual } from "@/features/events";
 import { FLAG_REASONS } from "@/features/eventhub/types";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { ActivityEntry } from "../types";
 
 /** One line of the activity log: what was done, by whom, to whom, when, why.
@@ -63,6 +63,7 @@ export function ActivityRow({
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}

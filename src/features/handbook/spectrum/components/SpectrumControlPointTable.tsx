@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { isolateNumeric } from "@/features/events";
 import { directionProps, directionStyle } from "@/i18n";
 import { spectralAcceleration } from "../curve";
@@ -117,6 +117,7 @@ export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumCo
             color: colors.text.primary,
             fontSize: typography.h3.fontSize,
             fontFamily: nativeFontFamily(typography.h3),
+            ...READING_START,
             lineHeight: typography.h3.lineHeight,
             fontWeight: typography.h3.fontWeight,
           }}
@@ -129,7 +130,7 @@ export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumCo
           hitSlop={8}
           style={[styles.copyButton, { borderColor: colors.border.default }]}
         >
-          <Text style={{ color: colors.text.link, fontSize: typography.labelButton.fontSize, fontFamily: nativeFontFamily(typography.labelButton, "400") }}>
+          <Text style={{ color: colors.text.link, fontSize: typography.labelButton.fontSize, fontFamily: nativeFontFamily(typography.labelButton, "400"), ...READING_START }}>
             {t(copyState === "copied" ? "handbook.spectrum.table.copied" : "handbook.spectrum.table.copy")}
           </Text>
         </Pressable>

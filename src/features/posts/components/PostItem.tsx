@@ -26,7 +26,7 @@ import type { SocialTransport } from "@/features/social/transport";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { EVENT_POST_MAX_LENGTH, POST_MAX_LENGTH } from "../constants";
 import type { PostActions } from "../queries";
 import type { ProfilePost } from "../types";
@@ -129,6 +129,7 @@ export function PostItem({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -324,6 +325,7 @@ export function PostItem({
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
               },
             ]}
           >

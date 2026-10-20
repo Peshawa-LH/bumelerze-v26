@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /** One full-width action of the share sheet (link, image, post, copy). */
 export function ShareActionButton({
@@ -55,6 +55,7 @@ export function ShareActionButton({
           color: foreground,
           fontSize: typography.labelButton.fontSize,
           fontFamily: nativeFontFamily(typography.labelButton),
+          ...READING_START,
           lineHeight: typography.labelButton.lineHeight,
           fontWeight: typography.labelButton.fontWeight,
         }}

@@ -13,7 +13,7 @@ import type { MenuItem } from "@/features/social/components/MenuSheet";
 import type { LikeState } from "@/features/social/transport";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { PostCommentActions } from "../queries";
 import { isDeletedAccountPostComment } from "../threads";
 import type { PostComment } from "../types";
@@ -78,6 +78,7 @@ export function PostCommentItem({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 

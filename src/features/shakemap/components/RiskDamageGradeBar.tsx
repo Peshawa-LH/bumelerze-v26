@@ -4,7 +4,7 @@ import type { TranslateFn } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
 import { roundToWhole100 } from "@/lib/percent";
 import type { Theme } from "@/theme";
-import { nativeFontFamily } from "@/theme";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface RiskDamageGradeBarProps {
   buildingsInGrid: number;
@@ -135,6 +135,7 @@ export function RiskDamageGradeBar({
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
           fontFamily: nativeFontFamily(typography.labelCaption),
+          ...READING_START,
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}
@@ -169,6 +170,7 @@ export function RiskDamageGradeBar({
                 color: colors.text.secondary,
                 fontSize: typography.labelCaption.fontSize,
                 fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+                ...READING_START,
                 lineHeight: typography.labelCaption.lineHeight,
               }}
             >

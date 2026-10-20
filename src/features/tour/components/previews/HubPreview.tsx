@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 
 import { DonutChart, type DonutSlice } from "@/components/DonutChart";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { StaticPill } from "../StaticPill";
 
@@ -65,6 +65,7 @@ export function HubPreview() {
                 color: colors.text.primary,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta, "700"),
+                ...READING_START,
                 fontWeight: "700",
               }}
             >

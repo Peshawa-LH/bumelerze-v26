@@ -13,7 +13,7 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import { FLAG_REASONS } from "@/features/eventhub/types";
 import type { PostsTransport } from "@/features/posts/transport";
 import { restoreErrorText } from "@/features/undo/error-text";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess, useAdminActions, useHiddenRemoved } from "../queries";
 import type { AdminTransport } from "../transport";
 import type { HiddenRemovedItem } from "../types";
@@ -205,6 +205,7 @@ function HiddenRemovedRow({
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}

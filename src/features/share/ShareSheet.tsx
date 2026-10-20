@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Event } from "@/features/events";
 import type { GuidelinesTransport } from "@/features/guidelines";
 import type { PostsTransport } from "@/features/posts/transport";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import type { CardModel } from "./card-layout";
 import { buildShareCaption, buildShareUrl, ensureLinkInText } from "./caption";
@@ -223,6 +223,7 @@ export function ShareSheet({
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
     fontFamily: nativeFontFamily(typography.labelCaption),
+    ...READING_START,
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
   } as const;

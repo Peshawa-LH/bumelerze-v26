@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { EventRegistration } from "@/features/felt";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { eventLineText, reachWho } from "../format";
 import {
@@ -142,6 +142,7 @@ export function CheckInPanel({
           color: colors.text.primary,
           fontSize: titleToken.fontSize,
           fontFamily: nativeFontFamily(titleToken),
+          ...READING_START,
           lineHeight: titleToken.lineHeight,
           fontWeight: titleToken.fontWeight,
         }}

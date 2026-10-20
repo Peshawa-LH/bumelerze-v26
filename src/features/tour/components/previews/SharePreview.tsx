@@ -5,7 +5,7 @@ import { Text, View, type LayoutChangeEvent } from "react-native";
 
 import { formatMagnitudeValue } from "@/features/events";
 import { isRTLLocale } from "@/i18n";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { lightColors } from "@/theme/semantic";
 
 import { MiniShakingMap } from "../MiniShakingMap";
@@ -97,6 +97,7 @@ export function SharePreview() {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
             }}
           >
             {label}

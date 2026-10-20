@@ -6,7 +6,7 @@ import { formatApproximate, localizeDigits } from "@/lib/format-numbers";
 import type { Theme } from "@/theme";
 
 import type { RiskBuildingTypeDamage, RiskTypeCatalog } from "../types";
-import { nativeFontFamily } from "@/theme";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface RiskBuildingTypesProps {
   types: readonly RiskBuildingTypeDamage[];
@@ -76,6 +76,7 @@ export function RiskBuildingTypes({
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
     fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+    ...READING_START,
     lineHeight: typography.labelCaption.lineHeight,
   } as const;
 

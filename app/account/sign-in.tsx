@@ -10,7 +10,7 @@ import { CreateAccountForm } from "@/features/account/components/CreateAccountFo
 import { SignInForm } from "@/features/account/components/SignInForm";
 import { syncAccountNow, useAccountStore } from "@/features/account/store";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 type Step = "create" | "signin" | "welcome";
 
@@ -81,6 +81,7 @@ export default function SignInScreen() {
                 color: colors.text.secondary,
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >

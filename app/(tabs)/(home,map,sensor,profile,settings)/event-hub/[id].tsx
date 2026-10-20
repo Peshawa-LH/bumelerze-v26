@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { isBumelerzeId } from "@/features/events";
 import { EventHubContent, useRouteEvent } from "@/features/eventhub";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
  * Event hub: the earthquake as a post, with who felt it and what they said.
@@ -24,6 +24,7 @@ export default function EventHubScreen() {
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
     fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 

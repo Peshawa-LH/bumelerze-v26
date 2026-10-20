@@ -6,7 +6,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { Sheet } from "@/features/admin/people/components/Sheet";
 import { isolateNumeric } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   REPORT_NOTE_MAX,
   cleanNote,
@@ -54,6 +54,7 @@ export function ReportSheet({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -128,6 +129,7 @@ export function ReportSheet({
                     typography.bodyDefault,
                     selected ? "600" : "400",
                   ),
+                  ...READING_START,
                   lineHeight: typography.bodyDefault.lineHeight,
                   fontWeight: selected ? "600" : "400",
                 }}
@@ -177,6 +179,7 @@ export function ReportSheet({
             color: colors.status.danger,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
           }}
           testID={`${testID}-error`}
         >

@@ -196,6 +196,7 @@ function SnackbarView({
                 color: colors.text.inverse,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta, "700"),
+                ...READING_START,
                 fontWeight: "700",
                 textDecorationLine: "underline",
               }}

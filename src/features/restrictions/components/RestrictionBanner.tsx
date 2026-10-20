@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { bannerMessage } from "../labels";
 import { useMyRestriction, useRequestReview } from "../queries";
 import type { RestrictionsTransport } from "../transport";
@@ -34,6 +34,7 @@ export function RestrictionBanner({ transport }: { transport?: RestrictionsTrans
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 

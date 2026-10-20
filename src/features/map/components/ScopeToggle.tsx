@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { MAP_SCOPES, type MapScope } from "../scope";
 
 interface ScopeToggleProps {
@@ -66,6 +66,7 @@ export function ScopeToggle({ value, onChange }: ScopeToggleProps) {
                   typography.bodyMeta,
                   isActive ? "700" : "500",
                 ),
+                ...READING_START,
                 lineHeight: typography.bodyMeta.lineHeight,
                 fontWeight: isActive ? "700" : "500",
               }}

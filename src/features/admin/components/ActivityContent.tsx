@@ -17,7 +17,7 @@ import { useSnackbar } from "@/components/Snackbar";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { restoreErrorText } from "@/features/undo/error-text";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess, useAdminActions, useAdminActivity } from "../queries";
 import type { AdminTransport } from "../transport";
 import {
@@ -72,6 +72,7 @@ export function ActivityContent({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const name = normalizeUsername(username);

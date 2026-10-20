@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatDateOnly, formatMagnitudeValue, isolateNumeric } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, READING_START } from "@/theme";
 import {
   isDateRangeNarrowed,
   isMagnitudeRangeNarrowed,
@@ -124,6 +124,7 @@ export function NativeMapFilterPanel({
             fontSize: typography.bodyMeta.fontSize,
             lineHeight: typography.bodyMeta.lineHeight,
             fontFamily: typography.bodyMeta.fontFamily,
+            ...READING_START,
             fontWeight: "600",
           }}
         >
@@ -209,6 +210,7 @@ export function NativeMapFilterPanel({
                 color: colors.text.link,
                 fontSize: typography.labelCaption.fontSize,
                 fontFamily: typography.labelCaption.fontFamily,
+                ...READING_START,
                 fontWeight: "600",
               }}
             >

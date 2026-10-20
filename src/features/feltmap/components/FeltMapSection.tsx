@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/events";
 import { placeLine } from "@/features/geo";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useFeltMap } from "../queries";
 import { useEventUuid } from "../use-event-uuid";
 import { FeltMapView } from "./FeltMapView";
@@ -43,6 +43,7 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
     fontFamily: nativeFontFamily(typography.labelCaption),
+    ...READING_START,
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
   } as const;
@@ -50,6 +51,7 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -84,6 +86,7 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
                 color: colors.text.link,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+                ...READING_START,
                 fontWeight: "600",
               }}
             >

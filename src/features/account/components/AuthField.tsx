@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { PASSWORD_MAX_LENGTH } from "../constants";
 
 export type AuthFieldKind = "email" | "newPassword" | "currentPassword";
@@ -61,6 +61,7 @@ export function AuthField({
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+          ...READING_START,
           fontWeight: "600",
         }}
       >
@@ -126,6 +127,7 @@ export function AuthField({
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >

@@ -6,7 +6,7 @@ import { communityErrorText } from "@/features/community/error-text";
 import { LinkButton } from "@/features/community/components/LinkButton";
 import { PeopleList } from "@/features/community/components/PeopleList";
 import type { Person } from "@/features/community/types";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useMuteActions, useMutedPeople } from "../queries";
 import type { MuteTransport } from "../transport";
 
@@ -43,6 +43,7 @@ export function MutedSection({ transport }: { transport?: MuteTransport }) {
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >

@@ -3,7 +3,7 @@ import { Text, View, type LayoutChangeEvent } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { formatIntensity } from "@/features/shakemap/intensity-format";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { MiniShakingMap } from "../MiniShakingMap";
 
@@ -55,6 +55,7 @@ export function MapPreview() {
                 color: colors.intensityOnFill[level] ?? colors.text.primary,
                 fontSize: typography.labelCaption.fontSize,
                 fontFamily: nativeFontFamily(typography.labelCaption, "700"),
+                ...READING_START,
                 fontWeight: "700",
               }}
             >

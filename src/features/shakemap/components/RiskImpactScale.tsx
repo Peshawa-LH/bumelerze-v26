@@ -6,7 +6,7 @@ import type { Theme } from "@/theme";
 import { classifyDamageBand } from "../risk-alert";
 import { IMPACT_SCALE_MAX, IMPACT_SCALE_TICKS, logPositionPercent, logSpanPercent } from "../risk-scale";
 import { damageBandColor } from "./RiskDamageBandTag";
-import { nativeFontFamily } from "@/theme";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface RiskImpactScaleProps {
   p05: number;
@@ -69,6 +69,7 @@ export function RiskImpactScale({
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
           fontFamily: nativeFontFamily(typography.labelCaption),
+          ...READING_START,
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}
@@ -141,6 +142,7 @@ export function RiskImpactScale({
                 color: colors.text.tertiary,
                 fontSize: 9,
                 fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                ...READING_START,
                 fontWeight: "600",
               }}
             >

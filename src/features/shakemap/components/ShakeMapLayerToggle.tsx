@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { TranslateFn } from "@/features/geo";
 import type { Theme } from "@/theme";
 import type { ShakeMapLayer } from "./ShakeMapLegend";
-import { nativeFontFamily } from "@/theme";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface ShakeMapLayerToggleProps {
   /** Only rendered at all when `true` — no real damage product means
@@ -67,6 +67,7 @@ export function ShakeMapLayerToggle({
                 color: selected ? colors.brand.onPrimary : colors.text.secondary,
                 fontSize: typography.labelCaption.fontSize,
                 fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                ...READING_START,
                 lineHeight: typography.labelCaption.lineHeight,
                 fontWeight: "600",
               }}

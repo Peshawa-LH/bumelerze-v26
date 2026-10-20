@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { useAccount } from "@/features/account/use-account";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useActivityUnread } from "../queries";
 import type { ActivityTransport } from "../transport";
 
@@ -54,6 +54,7 @@ export function ActivityBell({ transport }: { transport?: ActivityTransport }) {
               color: colors.text.inverse,
               fontSize: typography.labelCaption.fontSize,
               fontFamily: nativeFontFamily(typography.labelCaption, "700"),
+              ...READING_START,
               fontWeight: "700",
             }}
           >

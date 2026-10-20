@@ -18,7 +18,7 @@ import {
 } from "@/features/felt";
 import { HomeSafeBanner, useSafePrompt } from "@/features/safe";
 import { BeReadyCard } from "@/features/safety";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
  * Home / region-first feed (the v1 spec §4.1) — the default landing screen,
@@ -121,6 +121,7 @@ export default function HomeScreen() {
                   color: colors.text.primary,
                   fontSize: typography.h1.fontSize,
                   fontFamily: nativeFontFamily(typography.h1),
+                  ...READING_START,
                   lineHeight: typography.h1.lineHeight,
                   fontWeight: typography.h1.fontWeight,
                 }}
@@ -143,6 +144,7 @@ export default function HomeScreen() {
                       color: colors.text.link,
                       fontSize: typography.labelButton.fontSize,
                       fontFamily: nativeFontFamily(typography.labelButton),
+                      ...READING_START,
                       fontWeight: typography.labelButton.fontWeight,
                     }}
                   >
@@ -159,6 +161,7 @@ export default function HomeScreen() {
                       color: colors.text.link,
                       fontSize: typography.labelButton.fontSize,
                       fontFamily: nativeFontFamily(typography.labelButton),
+                      ...READING_START,
                       fontWeight: typography.labelButton.fontWeight,
                     }}
                   >
@@ -175,6 +178,7 @@ export default function HomeScreen() {
                       color: colors.text.link,
                       fontSize: typography.labelButton.fontSize,
                       fontFamily: nativeFontFamily(typography.labelButton),
+                      ...READING_START,
                       fontWeight: typography.labelButton.fontWeight,
                     }}
                   >

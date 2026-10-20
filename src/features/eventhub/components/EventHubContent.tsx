@@ -46,7 +46,7 @@ import type { SocialTransport } from "@/features/social/transport";
 import { useTabBarScroll } from "@/features/tab-bar";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { HubCarousel } from "../carousel/HubCarousel";
 import { useHubSlides } from "../carousel/use-hub-slides";
@@ -223,12 +223,14 @@ export function EventHubContent({
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
     fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -379,6 +381,7 @@ export function EventHubContent({
               color: colors.text.link,
               fontSize: typography.bodyMeta.fontSize,
               fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+              ...READING_START,
               fontWeight: "600",
             }}
           >
@@ -450,6 +453,7 @@ export function EventHubContent({
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
                 fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >

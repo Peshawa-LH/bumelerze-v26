@@ -6,7 +6,7 @@ import type { Theme } from "@/theme";
 import { classifyDamageBand } from "../risk-alert";
 import type { RiskDistrict } from "../types";
 import { damageBandColor } from "./RiskDamageBandTag";
-import { nativeFontFamily } from "@/theme";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface RiskProvinceRowProps {
   district: RiskDistrict;
@@ -88,6 +88,7 @@ export function RiskProvinceRow({
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
             flexShrink: 1,
           }}
@@ -106,6 +107,7 @@ export function RiskProvinceRow({
                   color: colors.text.tertiary,
                   fontSize: 10,
                   fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                  ...READING_START,
                   fontWeight: "600",
                 }}
               >
@@ -122,6 +124,7 @@ export function RiskProvinceRow({
                 color: colors.text.inverse,
                 fontSize: 10,
                 fontFamily: nativeFontFamily(typography.labelCaption, "700"),
+                ...READING_START,
                 fontWeight: "700",
               }}
             >
@@ -153,6 +156,7 @@ export function RiskProvinceRow({
           color: colors.text.tertiary,
           fontSize: typography.labelCaption.fontSize,
           fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+          ...READING_START,
           lineHeight: typography.labelCaption.lineHeight,
         }}
       >

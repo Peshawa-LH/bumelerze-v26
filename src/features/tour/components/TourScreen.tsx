@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { isRTLLocale } from "@/i18n";
 import { ProgressDots } from "@/features/onboarding";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { TOUR_STOP_IDS, tourStopBodyKey, tourStopTitleKey } from "../stops";
 import { useReduceMotion } from "../use-reduce-motion";
@@ -131,6 +131,7 @@ export function TourScreen() {
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
               fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -160,6 +161,7 @@ export function TourScreen() {
                 color: colors.text.primary,
                 fontSize: typography.h1.fontSize,
                 fontFamily: nativeFontFamily(typography.h1),
+                ...READING_START,
                 lineHeight: typography.h1.lineHeight,
                 fontWeight: typography.h1.fontWeight,
               }}
@@ -171,6 +173,7 @@ export function TourScreen() {
                 color: colors.text.secondary,
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >
@@ -197,6 +200,7 @@ export function TourScreen() {
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
                 fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >

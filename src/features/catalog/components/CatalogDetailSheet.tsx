@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { isolateNumeric } from "@/features/events";
 import { directionProps, directionStyle } from "@/i18n";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { PUBLISHED_ID_BY_CATALOG_ID } from "../published-crosswalk";
 import {
   formatCatalogCoordinates,
@@ -70,6 +70,7 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                   color: colors.text.primary,
                   fontSize: typography.h3.fontSize,
                   fontFamily: nativeFontFamily(typography.h3),
+                  ...READING_START,
                   lineHeight: typography.h3.lineHeight,
                   fontWeight: typography.h3.fontWeight,
                 }}
@@ -88,6 +89,7 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                     color: colors.text.link,
                     fontSize: typography.labelButton.fontSize,
                     fontFamily: nativeFontFamily(typography.labelButton),
+                    ...READING_START,
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >
@@ -186,6 +188,7 @@ export function CatalogDetailSheet({ row, onClose }: CatalogDetailSheetProps) {
                         color: colors.text.link,
                         fontSize: typography.labelButton.fontSize,
                         fontFamily: nativeFontFamily(typography.labelButton),
+                        ...READING_START,
                         fontWeight: typography.labelButton.fontWeight,
                       }}
                     >
@@ -224,6 +227,7 @@ function DetailField({ label, value, locale, colors, typography }: DetailFieldPr
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
           fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+          ...READING_START,
           lineHeight: typography.labelCaption.lineHeight,
         }}
       >

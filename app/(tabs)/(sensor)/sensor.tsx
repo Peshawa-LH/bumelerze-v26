@@ -24,7 +24,7 @@ import {
   type PhonePose,
 } from "@/features/sensor";
 import { StationsPanel } from "@/features/stations";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
@@ -77,6 +77,7 @@ export default function SensorScreen() {
           color: colors.text.primary,
           fontSize: typography.h1.fontSize,
           fontFamily: nativeFontFamily(typography.h1),
+          ...READING_START,
           lineHeight: typography.h1.lineHeight,
           fontWeight: typography.h1.fontWeight,
         }}
@@ -116,6 +117,7 @@ export default function SensorScreen() {
                   color: fg,
                   fontSize: typography.labelButton.fontSize,
                   fontFamily: nativeFontFamily(typography.labelButton),
+                  ...READING_START,
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -134,6 +136,7 @@ export default function SensorScreen() {
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -149,6 +152,7 @@ export default function SensorScreen() {
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
               lineHeight: typography.bodyDefault.lineHeight,
               flexShrink: 1,
             }}
@@ -165,6 +169,7 @@ export default function SensorScreen() {
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -180,6 +185,7 @@ export default function SensorScreen() {
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -200,6 +206,7 @@ export default function SensorScreen() {
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >
@@ -222,6 +229,7 @@ export default function SensorScreen() {
                 color: colors.brand.onPrimary,
                 fontSize: typography.h3.fontSize,
                 fontFamily: nativeFontFamily(typography.h3, typography.labelButton.fontWeight),
+                ...READING_START,
                 lineHeight: typography.h3.lineHeight,
                 fontWeight: typography.labelButton.fontWeight,
               }}

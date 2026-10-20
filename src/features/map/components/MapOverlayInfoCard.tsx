@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { formatDepthKm, formatMagnitudeValue, isolateNumeric } from "@/features/events";
 import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import type { FaultInfo, OverlayInfo, QuakeInfo } from "../overlay-info";
 
@@ -23,6 +23,7 @@ export function MapOverlayInfoCard({ info, onClose }: MapOverlayInfoCardProps) {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const title = {

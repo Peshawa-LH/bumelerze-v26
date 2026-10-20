@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { a11yState } from "@/lib/a11y-state";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 export interface SettingsOption<T extends string> {
   value: T;
@@ -60,6 +60,7 @@ export function SettingsOptionList<T extends string>({
                   typography.bodyDefault,
                   isActive ? "700" : "400",
                 ),
+                ...READING_START,
                 fontWeight: isActive ? "700" : "400",
               }}
             >

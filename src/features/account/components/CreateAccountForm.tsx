@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { isAppleAuthEnabled, isGoogleAuthEnabled } from "../constants";
 import { accountErrorText } from "../error-text";
 import { createAccountWithPassword, startOAuth, type OAuthProvider } from "../service";
@@ -78,6 +78,7 @@ export function CreateAccountForm({
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >

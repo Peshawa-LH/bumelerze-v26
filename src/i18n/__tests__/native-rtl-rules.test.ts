@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join, relative } from "path";
+import ts from "typescript";
 
 /**
  * Static rules for direction and dates that only fail on a phone (iOS
@@ -12,7 +13,12 @@ import { join, relative } from "path";
  *    layout, and a side picked by locale ("right" for Sorani) flips twice.
  *    The sites below predate the rule and are fixed in the closing sweep of
  *    the iOS parity work (batch b, phase 2): the list may only shrink.
- * 2. Dates and times go through `src/features/events/format.ts`. Hermes on
+ * 2. A `Text` styled inline with a size of its own (not the whole type
+ *    token, which carries `READING_START`) states its alignment. Without
+ *    one, iOS aligns it by the app's iOS language, which only follows a
+ *    language picked in the app after the next cold start: right after the
+ *    switch, Sorani paragraphs sat on the left under right-aligned headings.
+ * 3. Dates and times go through `src/features/events/format.ts`. Hermes on
  *    iOS answers `Intl` in the locale's own digits whatever `-u-nu-latn`
  *    says (Sorani dates read "NaN months.short.NaN") and has no Sorani or
  *    Kurmanji month names, so `toLocaleString(locale)` and friends, and
@@ -111,6 +117,81 @@ describe("native direction and date rules (source scan)", () => {
     // physical sides are meant literally and iOS does not swap them.
     delete counts["src/features/share/ShareCardSvg.tsx"];
     expect(counts).toEqual(PHYSICAL_ALIGN_PHASE_2);
+  });
+
+  it("[regression] a Text styled inline with its own size states its alignment (READING_START)", () => {
+    // Files the notifications batch owns: a follow-up sweep after it merges.
+    const pending =
+      /^(src\/features\/(alerts|notifications)\/|app\/onboarding\/notifications\.tsx$|app\/\(tabs\)\/[^/]+\/notification-settings\.tsx$)/;
+    const isText = (tag: string) => tag === "Text" || tag === "Animated.Text";
+    const offenders: string[] = [];
+    for (const { path } of FILES) {
+      if (!path.endsWith(".tsx") || pending.test(path)) {
+        continue;
+      }
+      const source = readFileSync(join(ROOT, path), "utf8");
+      const file = ts.createSourceFile(
+        path,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TSX,
+      );
+      const insideText = (element: ts.Node): boolean => {
+        for (let node = element.parent; node; node = node.parent) {
+          if (
+            ts.isJsxElement(node) &&
+            node !== element.parent &&
+            isText(node.openingElement.tagName.getText(file))
+          ) {
+            return true;
+          }
+          if (!(
+            ts.isJsxElement(node) ||
+            ts.isJsxFragment(node) ||
+            ts.isJsxExpression(node) ||
+            ts.isParenthesizedExpression(node) ||
+            ts.isConditionalExpression(node) ||
+            ts.isBinaryExpression(node)
+          )) {
+            return false;
+          }
+        }
+        return false;
+      };
+      const visit = (node: ts.Node): void => {
+        if (
+          ts.isJsxAttribute(node) &&
+          node.name.getText(file) === "style" &&
+          node.initializer &&
+          ts.isJsxExpression(node.initializer) &&
+          node.initializer.expression &&
+          ts.isObjectLiteralExpression(node.initializer.expression)
+        ) {
+          const element = node.parent.parent;
+          const names = node.initializer.expression.properties.map((property) =>
+            ts.isSpreadAssignment(property)
+              ? "..."
+              : (property.name?.getText(file) ?? ""),
+          );
+          if (
+            isText(element.tagName.getText(file)) &&
+            names.includes("fontSize") &&
+            !names.some(
+              (name) =>
+                name === "textAlign" || name === "writingDirection" || name === "...",
+            ) &&
+            !insideText(element)
+          ) {
+            const { line } = file.getLineAndCharacterOfPosition(node.getStart(file));
+            offenders.push(`${path}:${line + 1}`);
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(file);
+    }
+    expect(offenders).toEqual([]);
   });
 
   it("[regression] no locale-dependent toLocaleString / toLocaleDateString / toLocaleTimeString", () => {

@@ -6,7 +6,7 @@ import { localizeDigits } from "@/lib/format-numbers";
 import type { Theme } from "@/theme";
 import type { RiskAreaLevel, RiskAreas } from "../types";
 import { RiskAreaRow } from "./RiskAreaRow";
-import { nativeFontFamily } from "@/theme";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface RiskAreaListProps {
   areas: RiskAreas;
@@ -116,6 +116,7 @@ export function RiskAreaList({ areas, locale, t, colors, typography, spacing }: 
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
           fontFamily: nativeFontFamily(typography.labelCaption),
+          ...READING_START,
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}
@@ -153,6 +154,7 @@ export function RiskAreaList({ areas, locale, t, colors, typography, spacing }: 
                     color: selected ? colors.brand.onPrimary : colors.text.secondary,
                     fontSize: typography.labelCaption.fontSize,
                     fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                    ...READING_START,
                     lineHeight: typography.labelCaption.lineHeight,
                     fontWeight: "600",
                   }}
@@ -193,6 +195,7 @@ export function RiskAreaList({ areas, locale, t, colors, typography, spacing }: 
               color: colors.text.link,
               fontSize: typography.bodyMeta.fontSize,
               fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+              ...READING_START,
               fontWeight: "600",
             }}
           >

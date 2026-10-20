@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { placeLine } from "@/features/geo";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   formatMagnitudeValue,
   formatRelativeTimeValue,
@@ -120,6 +120,7 @@ function EventCardImpl({
           color: colors.text.primary,
           fontSize: typography.magnitudeCompact.fontSize,
           fontFamily: nativeFontFamily(typography.magnitudeCompact),
+          ...READING_START,
           lineHeight: typography.magnitudeCompact.lineHeight,
           fontWeight: typography.magnitudeCompact.fontWeight,
           fontVariant: ["tabular-nums"],
@@ -153,6 +154,7 @@ function EventCardImpl({
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
@@ -165,6 +167,7 @@ function EventCardImpl({
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >

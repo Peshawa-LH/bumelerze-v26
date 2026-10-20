@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { SAFETY_ARTWORK } from "../artwork";
 import { safetyDoDontKeys, type SafetyDoDontPair } from "../content";
 
@@ -69,6 +69,7 @@ export function DoDontPairRow({ cardId, pair }: DoDontPairRowProps) {
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -105,6 +106,7 @@ export function DoDontPairRow({ cardId, pair }: DoDontPairRowProps) {
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >

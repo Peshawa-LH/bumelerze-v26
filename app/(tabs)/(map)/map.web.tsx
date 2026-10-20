@@ -80,7 +80,7 @@ import {
   type MapStyleProviderId,
 } from "@/features/map";
 import { useUserDistanceAnchor } from "@/features/location/use-user-distance-anchor";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /** Fixed, deliberately modest pixel nudge applied to the map's viewport
  * center when a marker is selected (`easeTo`'s `offset`, in the marker
@@ -1317,6 +1317,7 @@ export default function MapScreenWeb() {
                     color: colors.text.primary,
                     fontSize: typography.bodyDefault.fontSize,
                     fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+                    ...READING_START,
                     lineHeight: typography.bodyDefault.lineHeight,
                     fontWeight: "600",
                   }}
@@ -1329,6 +1330,7 @@ export default function MapScreenWeb() {
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
                   fontFamily: nativeFontFamily(typography.bodyMeta),
+                  ...READING_START,
                   lineHeight: typography.bodyMeta.lineHeight,
                 }}
               >
@@ -1340,6 +1342,7 @@ export default function MapScreenWeb() {
                     color: colors.text.link,
                     fontSize: typography.bodyMeta.fontSize,
                     fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+                    ...READING_START,
                     fontWeight: "600",
                   }}
                 >
@@ -1365,6 +1368,7 @@ export default function MapScreenWeb() {
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta),
+                ...READING_START,
                 lineHeight: typography.bodyMeta.lineHeight,
                 marginTop: spacing[2],
               }}

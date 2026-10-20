@@ -8,7 +8,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { formatRelativeTimeValue, getRelativeTime } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { ReviewSheet } from "@/features/restrictions/components/ReviewSheet";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useActivity, useActivityActions } from "../queries";
 import { activityDetail, activityHref, activityMessage } from "../text";
 import type { ActivityTransport } from "../transport";
@@ -63,6 +63,7 @@ export function ActivityContent({ transport }: { transport?: ActivityTransport }
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
     fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 
@@ -103,6 +104,7 @@ export function ActivityContent({ transport }: { transport?: ActivityTransport }
           {
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
           },
         ]}
       >
@@ -184,6 +186,7 @@ function ActivityRow({
               typography.bodyDefault,
               item.read ? "400" : "600",
             ),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
             fontWeight: item.read ? "400" : "600",
           }}
@@ -209,6 +212,7 @@ function ActivityRow({
             color: colors.text.tertiary,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -221,6 +225,7 @@ function ActivityRow({
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta),
+                ...READING_START,
                 lineHeight: typography.bodyMeta.lineHeight,
               }}
               testID={`activity-review-sent-${item.id}`}

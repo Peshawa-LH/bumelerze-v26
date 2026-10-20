@@ -21,6 +21,7 @@ import type { CardModel, CardRect, CardText } from "./card-layout";
 import { POP_DIRECTIONAL_ISOLATE, RIGHT_TO_LEFT_ISOLATE } from "./config";
 import { SHARE_FONT_BOLD, SHARE_FONT_REGULAR } from "./share-font-names";
 import { ensureShareFontsLoaded } from "./share-fonts";
+import { READING_START } from "@/theme";
 
 export interface ShareCardSvgProps {
   model: CardModel;
@@ -416,7 +417,7 @@ function NativeCardText({ item, scale, boxWidth, originX = 0, originY = 0 }: Nat
   const last = item.runs ? item.runs.length - 1 : 0;
   const content = item.runs
     ? item.runs.map((run, index) => (
-        <Text key={index} style={{ fontSize: run.size * fontScale }}>
+        <Text key={index} style={{ fontSize: run.size * fontScale, ...READING_START }}>
           {(item.rtl && index === 0 ? RIGHT_TO_LEFT_ISOLATE : "") +
             run.text +
             (item.rtl && index === last ? POP_DIRECTIONAL_ISOLATE : "")}

@@ -12,7 +12,7 @@ import { restoreErrorText } from "@/features/undo/error-text";
 import { useRecentlyDeleted, useRestoreDeleted } from "@/features/undo/queries";
 import type { UndoTransport } from "@/features/undo/transport";
 import type { RecentlyDeletedItem } from "@/features/undo/types";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
  * "Recently deleted" (migration 0053, owner-only part of the Profile page):
@@ -52,6 +52,7 @@ export function RecentlyDeletedSection({
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >
@@ -90,6 +91,7 @@ function DeletedItem({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 

@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { CartoonLevel } from "../types";
 
 interface LevelTileProps {
@@ -112,6 +112,7 @@ function LevelTileImpl({
               color: onAccentColor,
               fontSize: compact ? typography.h3.fontSize : typography.h2.fontSize,
               fontFamily: nativeFontFamily(typography.h2, "800"),
+              ...READING_START,
               fontWeight: "800",
               fontVariant: ["tabular-nums"],
             }}

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { Sheet } from "@/features/admin/people/components/Sheet";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { GUIDELINE_RULES, type GuidelinesSource } from "../constants";
 import { SupabaseGuidelinesTransport, type GuidelinesTransport } from "../transport";
 
@@ -44,6 +44,7 @@ export function GuidelinesSheet({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -77,6 +78,7 @@ export function GuidelinesSheet({
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault, "700"),
+                ...READING_START,
                 lineHeight: typography.bodyDefault.lineHeight,
                 fontWeight: "700",
               }}
@@ -88,6 +90,7 @@ export function GuidelinesSheet({
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >
@@ -128,6 +131,7 @@ export function GuidelinesSheet({
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >
@@ -142,6 +146,7 @@ export function GuidelinesSheet({
                 color: colors.status.danger,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta),
+                ...READING_START,
               }}
               testID={`${testID}-error`}
             >

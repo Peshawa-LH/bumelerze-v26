@@ -13,7 +13,7 @@ import type { FeltTimeline, FeltTown } from "@/features/social/transport";
 import { formatIntensity } from "@/features/shakemap/intensity-format";
 import { isRTLLocale } from "@/i18n";
 import { approximateParts, localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { percentValue, runningTotal, type ClassDamageRow } from "./slide-data";
 
 /** The frame every chart slide shares: a raised square card, a title, a
@@ -238,6 +238,7 @@ export function FeltTownsSlide({
                   style={{
                     fontSize: typography.labelCaption.fontSize,
                     fontFamily: nativeFontFamily(typography.labelCaption, "700"),
+                    ...READING_START,
                     fontWeight: "700",
                     color:
                       levelText && town.level !== null

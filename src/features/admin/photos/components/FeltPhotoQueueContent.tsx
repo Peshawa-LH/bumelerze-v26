@@ -12,7 +12,7 @@ import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatIntensity } from "@/features/shakemap/intensity-format";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess } from "../../queries";
 import { inboxErrorText } from "../../inbox/error-text";
 import { usePhotoActions, usePhotoQueue, useSignedPhotos } from "../queries";
@@ -276,6 +276,7 @@ function PhotoCard({
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
             fontWeight: "600",
           }}

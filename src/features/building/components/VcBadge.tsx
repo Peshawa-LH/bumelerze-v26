@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, READING_START } from "@/theme";
 import type { VulnerabilityClass } from "../ims25";
 
 /** Vulnerability class colours from the owner's building-stock surveys
@@ -57,6 +57,7 @@ export function VcBadge({
           lineHeight: Math.round(size * 0.62),
           fontWeight: "800",
           fontFamily: typography.h1.fontFamily,
+          ...READING_START,
         }}
       >
         {vc}

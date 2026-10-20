@@ -6,7 +6,7 @@ import { DirectionalChevron } from "@/components/DirectionalChevron";
 import { formatAbsoluteDual, formatMagnitudeValue } from "@/features/events/format";
 import { magnitudeTone } from "@/features/events/magnitude-tone";
 import { placeLine } from "@/features/geo/place-line";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { PostEvent } from "../types";
 
 interface EventPostCardProps {
@@ -51,6 +51,7 @@ export function EventPostCard({
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
             fontStyle: "italic",
           }}
@@ -98,6 +99,7 @@ export function EventPostCard({
             color: colors.text.primary,
             fontSize: typography.h2.fontSize,
             fontFamily: nativeFontFamily(typography.h2, "700"),
+            ...READING_START,
             lineHeight: typography.h2.lineHeight,
             fontWeight: "700",
           }}
@@ -133,6 +135,7 @@ export function EventPostCard({
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
               fontFamily: nativeFontFamily(typography.bodyMeta),
+              ...READING_START,
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >

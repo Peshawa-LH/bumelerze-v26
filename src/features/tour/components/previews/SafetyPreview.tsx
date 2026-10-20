@@ -11,7 +11,7 @@ import {
   type SafetyImageId,
   type SafetySectionId,
 } from "@/features/safety";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /** One guide from before and one from during an earthquake. */
 const SAMPLE_GUIDES: readonly {
@@ -60,6 +60,7 @@ export function SafetyPreview() {
                 color: colors.text.secondary,
                 fontSize: typography.labelCaption.fontSize,
                 fontFamily: nativeFontFamily(typography.labelCaption),
+                ...READING_START,
                 fontWeight: typography.labelCaption.fontWeight,
               }}
             >
@@ -70,6 +71,7 @@ export function SafetyPreview() {
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+                ...READING_START,
                 fontWeight: "600",
               }}
             >

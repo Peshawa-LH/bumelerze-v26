@@ -8,7 +8,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { useAccount } from "@/features/account/use-account";
 import { withAlpha } from "@/features/badges/tones";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   USING_APP_EXAMPLE_HUB_ID,
   USING_APP_EXAMPLE_KEY,
@@ -41,6 +41,7 @@ export function UsingAppSection() {
           color: colors.text.primary,
           fontSize: typography.h2.fontSize,
           fontFamily: nativeFontFamily(typography.h2),
+          ...READING_START,
           lineHeight: typography.h2.lineHeight,
           fontWeight: typography.h2.fontWeight,
         }}
@@ -154,6 +155,7 @@ function UsingAppGuideCard({ guide }: { guide: UsingAppGuide }) {
             color: colors.text.primary,
             fontSize: typography.h3.fontSize,
             fontFamily: nativeFontFamily(typography.h3),
+            ...READING_START,
             lineHeight: typography.h3.lineHeight,
             fontWeight: typography.h3.fontWeight,
           }}
@@ -181,6 +183,7 @@ function UsingAppGuideCard({ guide }: { guide: UsingAppGuide }) {
                     color: colors.text.secondary,
                     fontSize: typography.bodyMeta.fontSize,
                     fontFamily: nativeFontFamily(typography.bodyMeta, "700"),
+                    ...READING_START,
                     fontWeight: "700",
                   }}
                 >
@@ -194,6 +197,7 @@ function UsingAppGuideCard({ guide }: { guide: UsingAppGuide }) {
                   color: colors.text.secondary,
                   fontSize: typography.bodyDefault.fontSize,
                   fontFamily: nativeFontFamily(typography.bodyDefault),
+                  ...READING_START,
                   lineHeight: typography.bodyDefault.lineHeight,
                 }}
               >

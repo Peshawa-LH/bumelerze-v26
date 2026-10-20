@@ -8,7 +8,7 @@ import { formatUsername } from "@/features/community/username";
 import { formatAbsoluteDual } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { formatCount } from "../../people/format";
 import { useDebounced } from "../../people/queries";
 import { useAdminAccess } from "../../queries";
@@ -277,6 +277,7 @@ function FeedbackRowItem({ row }: { row: FeedbackRow }) {
           color: colors.text.primary,
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
           fontWeight: "600",
         }}

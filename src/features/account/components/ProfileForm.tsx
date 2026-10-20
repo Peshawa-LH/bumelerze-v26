@@ -17,7 +17,7 @@ import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { placeDisplayName, type Place } from "@/features/geo/place-search";
 import { localizeDigits } from "@/lib/format-numbers";
 import { openLink } from "@/lib/open-link";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   BIO_MAX_LENGTH,
   normalizeBio,
@@ -208,6 +208,7 @@ export function ProfileForm({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   };
 
@@ -395,6 +396,7 @@ export function ProfileForm({
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
               }}
               testID="profile-city-value"
             >
@@ -520,6 +522,7 @@ export function ProfileForm({
               color: colors.text.link,
               fontSize: typography.bodyMeta.fontSize,
               fontFamily: nativeFontFamily(typography.bodyMeta),
+              ...READING_START,
             }}
           >
             {t("account.profile.privacyLink")}
@@ -536,6 +539,7 @@ export function ProfileForm({
               color: colors.text.link,
               fontSize: typography.bodyMeta.fontSize,
               fontFamily: nativeFontFamily(typography.bodyMeta),
+              ...READING_START,
             }}
           >
             {t("account.profile.guidelinesLink")}
@@ -556,6 +560,7 @@ export function ProfileForm({
             color: colors.status.danger,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -616,6 +621,7 @@ function Chip({
           color: selected ? colors.brand.onPrimary : colors.text.primary,
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+          ...READING_START,
           fontWeight: "600",
         }}
       >
@@ -657,7 +663,12 @@ function Checkbox({
       >
         {checked ? (
           <Text
-            style={{ color: colors.brand.onPrimary, fontSize: 16, fontWeight: "700" }}
+            style={{
+              color: colors.brand.onPrimary,
+              fontSize: 16,
+              ...READING_START,
+              fontWeight: "700",
+            }}
           >
             {"✓"}
           </Text>
@@ -669,6 +680,7 @@ function Checkbox({
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >

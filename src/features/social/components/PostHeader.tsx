@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatMagnitudeValue } from "@/features/events/format";
 import { magnitudeTone } from "@/features/events/magnitude-tone";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { MenuSheet, type MenuItem } from "./MenuSheet";
 
 /**
@@ -53,6 +53,7 @@ export function PostHeader({
                   color: colors.text.primary,
                   fontSize: 16,
                   fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+                  ...READING_START,
                   lineHeight: 22,
                 },
               ]}
@@ -131,6 +132,7 @@ export function EventMark({
           fontWeight: "700",
           fontSize: size * 0.32,
           fontFamily: nativeFontFamily(typography.h1),
+          ...READING_START,
         }}
         numberOfLines={1}
       >

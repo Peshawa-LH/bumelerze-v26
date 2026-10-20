@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   CATALOG_DATABASE_NAME,
   CatalogListScreen,
@@ -154,6 +154,7 @@ function CatalogUnavailable({ onRetry }: { onRetry: () => void }) {
             color: colors.brand.onPrimary,
             fontSize: typography.labelButton.fontSize,
             fontFamily: nativeFontFamily(typography.labelButton),
+            ...READING_START,
             fontWeight: typography.labelButton.fontWeight,
           }}
         >

@@ -18,7 +18,7 @@ import type { HubRole } from "@/features/eventhub/types";
 import { MentionText } from "@/features/mentions/components/MentionText";
 import { physicalTextAlign, textDirectionFor } from "@/i18n";
 import { firstStrongDirection } from "@/i18n/bidi";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { HeartButton, type HeartButtonProps } from "./HeartButton";
 import { MenuSheet, type MenuItem } from "./MenuSheet";
 import { Indented } from "./ReplyToggle";
@@ -92,6 +92,7 @@ export function CommentRow({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -127,6 +128,7 @@ export function CommentRow({
         color: colors.text.primary,
         fontSize: typography.bodyDefault.fontSize,
         fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+        ...READING_START,
         lineHeight: typography.bodyDefault.lineHeight,
         fontWeight: "600",
       }}

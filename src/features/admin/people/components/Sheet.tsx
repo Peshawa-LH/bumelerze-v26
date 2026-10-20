@@ -13,7 +13,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /** The bottom sheet every People dialog uses: a scrim, a title row with a
  * close button, and a scrolling body. Same look as the Limit account sheet. */
@@ -82,6 +82,7 @@ export function Sheet({
                       color: colors.text.secondary,
                       fontSize: typography.bodyMeta.fontSize,
                       fontFamily: nativeFontFamily(typography.bodyMeta),
+                      ...READING_START,
                     }}
                   >
                     {subtitle}

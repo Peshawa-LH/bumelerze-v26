@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAccount } from "@/features/account/use-account";
 import { useCommunityActions, usePublicProfile } from "@/features/community/queries";
 import { RestrictionBanner } from "@/features/restrictions/components/RestrictionBanner";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { GuestProfile } from "./GuestProfile";
 import { OwnProfile } from "./OwnProfile";
 
@@ -37,6 +37,7 @@ function ProfileTabBody() {
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
           fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >

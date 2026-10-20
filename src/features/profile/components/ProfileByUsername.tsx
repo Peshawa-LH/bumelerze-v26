@@ -6,7 +6,7 @@ import { CommunityError } from "@/features/community";
 import { PublicProfileView } from "@/features/community/components/PublicProfileView";
 import { useCommunityActions, usePublicProfile } from "@/features/community/queries";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { OwnProfile } from "./OwnProfile";
 
 /**
@@ -27,6 +27,7 @@ export function ProfileByUsername({ username }: { username: string | undefined }
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
     fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 

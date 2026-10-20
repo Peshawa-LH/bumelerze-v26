@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { formatAbsoluteDual, isolateNumeric } from "../format";
 
 interface OfflineBannerProps {
@@ -53,6 +53,7 @@ export function OfflineBanner({ dataUpdatedAt }: OfflineBannerProps) {
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
           flexShrink: 1,
         }}

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import {
   buildRecordingText,
@@ -124,6 +124,7 @@ export function RecordingPanel({
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
           fontFamily: nativeFontFamily(typography.h3),
+          ...READING_START,
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -140,6 +141,7 @@ export function RecordingPanel({
               color: colors.status.danger,
               fontSize: typography.h3.fontSize,
               fontFamily: nativeFontFamily(typography.h3, "700"),
+              ...READING_START,
               fontWeight: "700",
             }}
           >
@@ -222,6 +224,7 @@ export function RecordingPanel({
                       color: selected ? colors.brand.onPrimary : colors.text.primary,
                       fontSize: typography.labelCaption.fontSize,
                       fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                      ...READING_START,
                       fontWeight: "600",
                     }}
                   >

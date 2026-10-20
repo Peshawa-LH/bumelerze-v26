@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   DEFAULT_MAP_STYLE_CATALOG_ID,
   MAP_STYLE_CATALOG_IDS,
@@ -101,6 +101,7 @@ export function MapStylePicker({
             color: colors.text.primary,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
             fontWeight: "600",
           }}
@@ -148,6 +149,7 @@ export function MapStylePicker({
                       typography.labelCaption,
                       isActive ? "700" : "500",
                     ),
+                    ...READING_START,
                     lineHeight: typography.labelCaption.lineHeight,
                     fontWeight: isActive ? "700" : "500",
                   }}
@@ -177,6 +179,7 @@ export function MapStylePicker({
               color: colors.text.secondary,
               fontSize: typography.labelCaption.fontSize,
               fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+              ...READING_START,
               lineHeight: typography.labelCaption.lineHeight,
               fontWeight: "600",
             }}
@@ -210,6 +213,7 @@ export function MapStylePicker({
                         typography.bodyMeta,
                         on ? "600" : "400",
                       ),
+                      ...READING_START,
                       lineHeight: typography.bodyMeta.lineHeight,
                       fontWeight: on ? "600" : "400",
                     }}

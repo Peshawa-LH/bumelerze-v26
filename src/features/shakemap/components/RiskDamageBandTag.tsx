@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import type { TranslateFn } from "@/features/geo";
 import type { Theme } from "@/theme";
 import type { DamageBand } from "../risk-alert";
-import { nativeFontFamily } from "@/theme";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface RiskDamageBandTagProps {
   band: DamageBand;
@@ -66,6 +66,7 @@ export function RiskDamageBandTag({ band, t, colors, typography, spacing }: Risk
             color: colors.text.primary,
             fontSize: typography.h3.fontSize,
             fontFamily: nativeFontFamily(typography.h3),
+            ...READING_START,
             lineHeight: typography.h3.lineHeight,
             fontWeight: typography.h3.fontWeight,
           }}
@@ -77,6 +78,7 @@ export function RiskDamageBandTag({ band, t, colors, typography, spacing }: Risk
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
             fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >

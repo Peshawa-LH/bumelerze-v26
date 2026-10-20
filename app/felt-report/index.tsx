@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { placeDisplayName } from "@/features/geo";
 import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   useCloseFeltFlow,
   CARTOON_LEVELS,
@@ -117,6 +117,7 @@ export default function Tier1FeltReportScreen() {
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,
             fontFamily: nativeFontFamily(typography.h1),
+            ...READING_START,
             lineHeight: typography.h1.lineHeight,
             fontWeight: typography.h1.fontWeight,
           }}
@@ -134,6 +135,7 @@ export default function Tier1FeltReportScreen() {
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
               fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -148,6 +150,7 @@ export default function Tier1FeltReportScreen() {
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -172,6 +175,7 @@ export default function Tier1FeltReportScreen() {
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta),
+                ...READING_START,
               }}
             >
               {isGps
@@ -184,6 +188,7 @@ export default function Tier1FeltReportScreen() {
                   color: colors.text.link,
                   fontSize: typography.bodyMeta.fontSize,
                   fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+                  ...READING_START,
                   fontWeight: "600",
                 }}
               >
@@ -224,6 +229,7 @@ export default function Tier1FeltReportScreen() {
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
             fontFamily: nativeFontFamily(typography.labelCaption),
+            ...READING_START,
             fontWeight: typography.labelCaption.fontWeight,
             textTransform: "uppercase",
           }}
