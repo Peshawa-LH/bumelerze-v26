@@ -122,6 +122,55 @@ describe("getSupabaseClient", () => {
   });
 });
 
+describe("getSupabaseClient in a review-safe (read-only) build", () => {
+  it("passes no fetch of its own when the flag is off, so supabase-js uses the global fetch", () => {
+    setEnv("https://example.supabase.co", "anon-key-value");
+    delete process.env.EXPO_PUBLIC_REVIEW_READONLY;
+    const lib = loadLib();
+    const sdk = loadMockedSdk();
+
+    lib.getSupabaseClient();
+
+    const options = sdk.createClient.mock.calls[0][2] as Record<string, unknown>;
+    expect(options).not.toHaveProperty("global");
+  });
+
+  it("hands supabase-js a fetch that refuses writes and auth calls when EXPO_PUBLIC_REVIEW_READONLY=1", async () => {
+    setEnv("https://example.supabase.co", "anon-key-value");
+    process.env.EXPO_PUBLIC_REVIEW_READONLY = "1";
+    const lib = loadLib();
+    const sdk = loadMockedSdk();
+    const realFetch = jest.fn(async () => new Response("[]", { status: 200 }));
+    const originalFetch = global.fetch;
+    global.fetch = realFetch as unknown as typeof fetch;
+
+    try {
+      lib.getSupabaseClient();
+      const options = sdk.createClient.mock.calls[0][2] as {
+        global?: { fetch?: typeof fetch };
+      };
+      const guardedFetch = options.global?.fetch;
+      expect(guardedFetch).toBeDefined();
+      if (!guardedFetch) {
+        return;
+      }
+
+      await guardedFetch("https://example.supabase.co/rest/v1/events?select=*");
+      expect(realFetch).toHaveBeenCalledTimes(1);
+
+      await expect(
+        guardedFetch("https://example.supabase.co/rest/v1/felt_reports", { method: "POST" }),
+      ).rejects.toThrow("Network request failed");
+      await expect(
+        guardedFetch("https://example.supabase.co/auth/v1/signup", { method: "POST" }),
+      ).rejects.toThrow("Network request failed");
+      expect(realFetch).toHaveBeenCalledTimes(1);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+});
+
 describe("signInAnonymously", () => {
   it("throws without calling the SDK when unconfigured", async () => {
     setEnv(undefined, undefined);

@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { createReviewReadonlyFetch, isReviewReadonlyBuild } from "./review-readonly";
+
 /**
  * Supabase client wiring — env-gated, ready before any Supabase project
  * exists (Supabase-ready wiring wave, 2026-08). NO live project is assumed
@@ -81,6 +83,13 @@ export function getSupabaseClient(): SupabaseClient | null {
         // URL. Turn this back on for web when Google / Apple sign-in ships.
         detectSessionInUrl: false,
       },
+      // Review-safe builds (EXPO_PUBLIC_REVIEW_READONLY=1, never the web
+      // build): reads only, every write and auth call fails as if offline
+      // (src/lib/review-readonly.ts). Without the flag the options are
+      // exactly as before and supabase-js uses the global fetch.
+      ...(isReviewReadonlyBuild()
+        ? { global: { fetch: createReviewReadonlyFetch((input, init) => fetch(input, init)) } }
+        : {}),
     });
   }
   return cachedClient;
