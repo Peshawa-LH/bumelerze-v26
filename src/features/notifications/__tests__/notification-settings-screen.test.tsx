@@ -285,6 +285,42 @@ describe("Notification Settings screen", () => {
     alertSpy.mockRestore();
   });
 
+  it("changing a tier or choosing a place never asks for the permission (the alert controls ask, as on the web)", async () => {
+    // Never answered: the old screen asked the phone's one-time question here.
+    mockGetPermissionsAsync.mockResolvedValue({ status: "undetermined" });
+    usePrefsStore.setState({ nearMeTier: "off" });
+    await renderWithProviders(<NotificationSettingsScreen />);
+    await flush();
+
+    await fireEvent.press(screen.getAllByRole("radio", { name: "M4.0 and above" })[0]!);
+    await fireEvent.press(screen.getByTestId("another-place-choose"));
+    await flush();
+    await fireEvent.changeText(screen.getByLabelText("Search for a place"), "Duhok");
+    await fireEvent.press(screen.getByTestId("another-place-search-result-duhok"));
+    await flush();
+    await fireEvent.press(screen.getAllByRole("radio", { name: "M5.0 and above" })[1]!);
+    await flush();
+
+    expect(usePrefsStore.getState()).toMatchObject({ nearMeTier: "m4", anotherPlaceTier: "m5" });
+    expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
+  });
+
+  it("'Play the alert sound' is where the screen itself asks, when never answered", async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: "undetermined" });
+    mockRequestPermissionsAsync.mockResolvedValue({ status: "denied" });
+    await renderWithProviders(<NotificationSettingsScreen />);
+    await flush();
+
+    await fireEvent.press(screen.getByRole("button", { name: "Play the alert sound" }));
+    await flush();
+
+    expect(mockRequestPermissionsAsync).toHaveBeenCalledTimes(1);
+    expect(mockScheduleNotificationAsync).not.toHaveBeenCalled();
+    // Denied: the settings-link row appears, with a 44 pt Open Settings.
+    expect(screen.getByText("Notifications are blocked for Bumelerze on this device.")).toBeTruthy();
+    expect(screen.getByTestId("notification-permission-open-settings")).toHaveStyle({ minHeight: 44 });
+  });
+
   it("shows the settings-link row once notification permission is denied", async () => {
     mockGetPermissionsAsync.mockResolvedValue({ status: "denied" });
 

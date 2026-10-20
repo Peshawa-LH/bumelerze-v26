@@ -35,6 +35,8 @@ export function PermissionDeniedRow() {
         accessibilityRole="button"
         onPress={() => void Linking.openSettings()}
         hitSlop={12}
+        style={styles.target}
+        testID="notification-permission-open-settings"
       >
         <Text
           style={{
@@ -57,4 +59,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  // 44 pt in the real layout, not only through hitSlop.
+  target: { minHeight: 44, minWidth: 44, justifyContent: "center" },
 });
