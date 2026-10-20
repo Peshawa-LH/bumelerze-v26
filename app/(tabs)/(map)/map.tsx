@@ -1,8 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  I18nManager,
   Pressable,
   StyleSheet,
   Text,
@@ -39,6 +38,7 @@ import { useTheme } from "@/theme";
  */
 
 type MapLibreModule = typeof import("@maplibre/maplibre-react-native");
+type MapLibreMapRef = import("@maplibre/maplibre-react-native").MapRef;
 
 /** MapLibre's map module as registered by a build with its native code. */
 const MAPLIBRE_NATIVE_MODULE_NAME = "MLRNMapViewModule";
@@ -79,6 +79,8 @@ const INITIAL_VIEW = {
 type LoadState = "loading" | "ready" | "error";
 
 const ORNAMENT_INSET_PX = 8;
+/** The map credits button: a full 44 pt touch target. */
+const CREDITS_BUTTON_SIZE = 44;
 
 export default function MapScreen() {
   const { t } = useTranslation();
@@ -96,6 +98,7 @@ export default function MapScreen() {
 
 function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
   const { Map, Camera } = mapLibre;
+  const mapRef = useRef<MapLibreMapRef>(null);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { colors, scheme, spacing, typography } = useTheme();
@@ -141,11 +144,17 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
     setMapKey((key) => key + 1);
   }, []);
 
-  // MapLibre places its ornaments by physical side: the attribution button
-  // sits at the reading start, the MapTiler logo at the reading end.
-  const attributionPosition = I18nManager.isRTL
-    ? { bottom: ORNAMENT_INSET_PX, right: ORNAMENT_INSET_PX }
-    : { bottom: ORNAMENT_INSET_PX, left: ORNAMENT_INSET_PX };
+  // MapLibre's credits panel (OpenStreetMap, MapTiler), opened from our own
+  // button: MapLibre's built-in (i) is 26 pt and follows the PHONE's
+  // direction, so in Sorani picked on an English phone (or the reverse) it
+  // landed under the MapTiler logo. Ours sits at the reading start in React
+  // Native's own layout, opposite the logo.
+  const handleShowCredits = useCallback(() => {
+    mapRef.current?.showAttribution().catch(() => {
+      // Only fails when the native map is gone (tab torn down mid-tap):
+      // nothing to show then, and the next tap tries again.
+    });
+  }, []);
 
   return (
     <View
@@ -169,17 +178,31 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
         {hasStyleHydrated && loadState !== "error" ? (
           <Map
             key={mapKey}
+            ref={mapRef}
             testID="native-map"
             style={styles.map}
             mapStyle={style.url}
             logo={false}
-            attribution
-            attributionPosition={attributionPosition}
+            attribution={false}
             onDidFinishLoadingMap={handleLoaded}
             onDidFailLoadingMap={handleFailed}
           >
             <Camera initialViewState={INITIAL_VIEW} />
           </Map>
+        ) : null}
+
+        {loadState === "ready" ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("map.attribution.creditsA11yLabel")}
+            onPress={handleShowCredits}
+            style={[
+              styles.creditsButton,
+              { backgroundColor: colors.surface.base, borderColor: colors.border.default },
+            ]}
+          >
+            <Ionicons name="information-circle-outline" size={24} color={colors.text.secondary} />
+          </Pressable>
         ) : null}
 
         {loadState === "ready" && style.provider === "maptiler" ? (
@@ -307,5 +330,16 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: ORNAMENT_INSET_PX,
     end: ORNAMENT_INSET_PX,
+  },
+  creditsButton: {
+    position: "absolute",
+    bottom: ORNAMENT_INSET_PX,
+    start: ORNAMENT_INSET_PX,
+    width: CREDITS_BUTTON_SIZE,
+    height: CREDITS_BUTTON_SIZE,
+    borderRadius: CREDITS_BUTTON_SIZE / 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

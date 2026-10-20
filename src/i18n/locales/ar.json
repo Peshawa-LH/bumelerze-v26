@@ -258,7 +258,8 @@
       "openfreemap": "OpenFreeMap"
     },
     "attribution": {
-      "maptilerLogoA11yLabel": "MapTiler"
+      "maptilerLogoA11yLabel": "MapTiler",
+      "creditsA11yLabel": "مصادر الخريطة"
     },
     "eventSheet": {
       "closeButtonLabel": "إغلاق",

@@ -33,6 +33,7 @@ interface MockMapProps {
   mapStyle: string;
   logo?: boolean;
   attribution?: boolean;
+  ref?: import("react").Ref<{ showAttribution: () => Promise<void> }>;
   onDidFinishLoadingMap?: () => void;
   onDidFailLoadingMap?: () => void;
   children?: ReactNode;
@@ -47,6 +48,7 @@ interface MockCameraProps {
 
 const mockMapRenders: MockMapProps[] = [];
 const mockCameraRenders: MockCameraProps[] = [];
+const mockShowAttribution = jest.fn(async () => undefined);
 
 jest.mock("@maplibre/maplibre-react-native", () => {
   const React = jest.requireActual<typeof import("react")>("react");
@@ -54,6 +56,7 @@ jest.mock("@maplibre/maplibre-react-native", () => {
   return {
     Map: (props: MockMapProps) => {
       mockMapRenders.push(props);
+      React.useImperativeHandle(props.ref, () => ({ showAttribution: mockShowAttribution }));
       return React.createElement(View, { testID: "native-map" }, props.children);
     },
     Camera: (props: MockCameraProps) => {
@@ -144,11 +147,31 @@ describe("Native Map tab with MapLibre's native code", () => {
     expect(lastMapProps().mapStyle).toMatch(
       /^https:\/\/api\.maptiler\.com\/maps\/outdoor-v4(-dark)?\/style\.json\?key=test-key$/,
     );
-    expect(lastMapProps().attribution).toBe(true);
+    expect(lastMapProps().logo).toBe(false);
     expect(mockCameraRenders[mockCameraRenders.length - 1]?.initialViewState).toEqual({
       bounds: [41, 33, 48.5, 38.5],
       padding: { top: 32, right: 32, bottom: 32, left: 32 },
     });
+  });
+
+  it("[regression] opens the map credits from its own 44 pt button instead of MapLibre's 26 pt (i)", async () => {
+    setMapTilerKey("test-key");
+    await renderWithProviders(<MapScreen />);
+    // MapLibre's own button followed the phone's direction and ended up
+    // under the MapTiler logo on a Sorani phone.
+    expect(lastMapProps().attribution).toBe(false);
+    expect(screen.queryByLabelText("Map credits")).toBeNull();
+
+    await act(async () => {
+      lastMapProps().onDidFinishLoadingMap?.();
+    });
+    const credits = screen.getByLabelText("Map credits");
+    expect(credits).toHaveStyle({ width: 44, height: 44 });
+
+    await act(async () => {
+      fireEvent.press(credits);
+    });
+    expect(mockShowAttribution).toHaveBeenCalledTimes(1);
   });
 
   it("uses OpenFreeMap when no MapTiler key is configured", async () => {
