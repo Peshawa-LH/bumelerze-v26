@@ -1,7 +1,8 @@
 import { Platform } from "react-native";
 
 import { FDSN_SERVICE_BASE } from "./catalog";
-import { decodeMiniSeed as decodeMiniSeedNative, type DecodedSegment } from "./miniseed";
+import type { DecodedSegment } from "./miniseed";
+import { decodeMiniSeedNative } from "./native-decoders";
 import type { LiveStation, StationTrace } from "./types";
 
 /** Window fetched per refresh. Ten minutes at 100 sps is ~40 KB of

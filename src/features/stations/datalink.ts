@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 
-import { openDataLinkStream } from "./datalink-native";
+import { openDataLinkStream } from "./native-decoders";
 import type { LiveStation, StationTrace } from "./types";
 
 /** EarthScope's public DataLink ring, reachable from a browser and the
