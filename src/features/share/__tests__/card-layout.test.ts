@@ -11,6 +11,7 @@ import {
   findGridBox,
   labelBox,
   placePill,
+  placeScaleBar,
   selectCardBands,
   type CardInput,
   type CardModel,
@@ -160,25 +161,33 @@ describe("buildCardModel: the automatic-estimate pill and the town dots (review 
     ["en", "story"],
     ["ckb", "square"],
     ["ckb", "story"],
-  ] as const)("%s %s: the pill covers no town's name and not the star", async (locale, size) => {
-    const model = buildCardModel(await input({ locale, size, reviewStatus: "automatic" }));
-    const pill = model.overlay.find(
-      (rect) => rect.stroke?.color === lightColors.status.warning,
-    )!;
-    const pillBox = {
-      left: pill.x,
-      top: pill.y,
-      right: pill.x + pill.width,
-      bottom: pill.y + pill.height,
-    };
-    for (const label of model.map.labels) {
-      expect(overlaps(pillBox, labelBox(label))).toBe(false);
-    }
-    const [sx, sy] = model.map.star.points.split(" ")[0]!.split(",").map(Number);
-    expect(
-      pillBox.left <= sx! && sx! <= pillBox.right && pillBox.top <= sy! && sy! <= pillBox.bottom,
-    ).toBe(false);
-  });
+  ] as const)(
+    "%s %s: the pill covers no town's name and not the star",
+    async (locale, size) => {
+      const model = buildCardModel(
+        await input({ locale, size, reviewStatus: "automatic" }),
+      );
+      const pill = model.overlay.find(
+        (rect) => rect.stroke?.color === lightColors.status.warning,
+      )!;
+      const pillBox = {
+        left: pill.x,
+        top: pill.y,
+        right: pill.x + pill.width,
+        bottom: pill.y + pill.height,
+      };
+      for (const label of model.map.labels) {
+        expect(overlaps(pillBox, labelBox(label))).toBe(false);
+      }
+      const [sx, sy] = model.map.star.points.split(" ")[0]!.split(",").map(Number);
+      expect(
+        pillBox.left <= sx! &&
+          sx! <= pillBox.right &&
+          pillBox.top <= sy! &&
+          sy! <= pillBox.bottom,
+      ).toBe(false);
+    },
+  );
 
   it("draws a town only with its name: no nameless dots", async () => {
     for (const locale of ["en", "ckb"]) {
@@ -244,7 +253,10 @@ describe("placePill", () => {
 
   it("then to the bottom start corner (the bottom end holds the scale bar)", () => {
     const names = [name(100, 445), name(topEnd.x + 10, 445)];
-    expect(placePill(size, frame, false, names, [])).toEqual({ ...bottomStart, covered: [] });
+    expect(placePill(size, frame, false, names, [])).toEqual({
+      ...bottomStart,
+      covered: [],
+    });
   });
 
   it("a town dot or the star under a corner counts as taken too", () => {
@@ -259,11 +271,115 @@ describe("placePill", () => {
   });
 
   it("with every corner taken, keeps the top start corner and names what it covers", () => {
-    const names = [name(100, 445), name(topEnd.x + 10, 445), name(100, bottomStart.y + 30)];
+    const names = [
+      name(100, 445),
+      name(topEnd.x + 10, 445),
+      name(100, bottomStart.y + 30),
+    ];
     const placed = placePill(size, frame, false, names, []);
     expect({ x: placed.x, y: placed.y }).toEqual(topStart);
     expect(placed.covered).toEqual([names[0]]);
   });
+});
+
+describe("placeScaleBar", () => {
+  const frame = { x: 56, y: 400, width: 968, height: 600 };
+  const barWidth = 150;
+  const areaAt = (left: number) => ({
+    left,
+    right: left + barWidth,
+    top: 940,
+    bottom: 978,
+  });
+  const name = (x: number, y: number): CardText => ({
+    text: "Hakkari",
+    x,
+    y,
+    size: 40,
+    weight: 700,
+    fill: "#000",
+    anchor: "start",
+    rtl: false,
+  });
+  const endLtr = 56 + 968 - 24 - barWidth;
+  const startLtr = 56 + 24;
+
+  it("sits in the bottom end corner when it is free (bottom right left to right, bottom left right to left)", () => {
+    expect(placeScaleBar(barWidth, frame, false, areaAt, [], [], [])).toEqual({
+      left: endLtr,
+      covered: [],
+    });
+    expect(placeScaleBar(barWidth, frame, true, areaAt, [], [], [])).toEqual({
+      left: startLtr,
+      covered: [],
+    });
+  });
+
+  it("[regression] moves to the start corner when a town's name is in the end corner", () => {
+    // Right to left: the end corner is the bottom left, where "هەکاری" was.
+    expect(placeScaleBar(barWidth, frame, true, areaAt, [name(90, 960)], [], [])).toEqual(
+      {
+        left: endLtr,
+        covered: [],
+      },
+    );
+  });
+
+  it("a town dot, the star or the estimate pill counts as taken too", () => {
+    const dot = { x: endLtr + 20, y: 960, radius: 7 };
+    expect(placeScaleBar(barWidth, frame, false, areaAt, [], [dot], []).left).toBe(
+      startLtr,
+    );
+    const pill = { left: startLtr, right: startLtr + 300, top: 930, bottom: 976 };
+    const names = [name(endLtr, 960)];
+    expect(placeScaleBar(barWidth, frame, false, areaAt, names, [], [pill])).toEqual({
+      left: endLtr,
+      covered: names,
+    });
+  });
+});
+
+describe("buildCardModel: the scale bar keeps clear of town names", () => {
+  afterAll(() => i18n.changeLanguage("en"));
+
+  it.each(["en", "ckb", "kmr", "ar"])(
+    "[regression] %s: no town name under the scale bar's distance (هەکاری over ٥٠ کم, Urmia over 25 km)",
+    async (locale) => {
+      for (const size of ["square", "story"] as const) {
+        // Banded Urmia, Sulaimani without bands, and Urmia without bands (the
+        // live hub card: "Urmia" sat on "25 km" in English).
+        const variants = [
+          { withMap: true },
+          { withMap: false },
+          { withMap: false, epicenter: { lat: URMIA_EVENT.lat, lon: URMIA_EVENT.lon } },
+        ];
+        for (const variant of variants) {
+          const withMap = variant.withMap;
+          const model = buildCardModel(await input({ locale, size, ...variant }));
+          const scale = model.texts.filter((item) => item.size === 24 && !item.rtl);
+          const townNames = model.map.labels.filter((item) => item.size !== 24);
+          for (const distance of scale) {
+            const a = labelBox(distance);
+            for (const town of townNames) {
+              const b = labelBox(town);
+              const overlap =
+                a.left < b.right &&
+                b.left < a.right &&
+                a.top < b.bottom &&
+                b.top < a.bottom;
+              expect({ locale, size, withMap, town: town.text, overlap }).toEqual({
+                locale,
+                size,
+                withMap,
+                town: town.text,
+                overlap: false,
+              });
+            }
+          }
+        }
+      }
+    },
+  );
 });
 
 describe("buildCardModel: the intensity legend", () => {

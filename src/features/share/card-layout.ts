@@ -530,8 +530,12 @@ export function placePill(
   labels: readonly CardText[],
   dots: readonly { x: number; y: number; radius: number }[],
 ): PillPlacement {
-  const startX = rtl ? frame.x + frame.width - PILL_INSET - size.width : frame.x + PILL_INSET;
-  const endX = rtl ? frame.x + PILL_INSET : frame.x + frame.width - PILL_INSET - size.width;
+  const startX = rtl
+    ? frame.x + frame.width - PILL_INSET - size.width
+    : frame.x + PILL_INSET;
+  const endX = rtl
+    ? frame.x + PILL_INSET
+    : frame.x + frame.width - PILL_INSET - size.width;
   const topY = frame.y + PILL_INSET;
   const bottomY = frame.y + frame.height - PILL_INSET - size.height;
   const corners = [
@@ -568,6 +572,59 @@ export function placePill(
   }
   const fallback = corners[0]!;
   return { ...fallback, covered: coveredLabels(boxOf(fallback)) };
+}
+
+export interface ScaleBarPlacement {
+  /** The bar's left edge. */
+  left: number;
+  /** Labels the bar and its distance still cover (only when no corner was clear). */
+  covered: CardText[];
+}
+
+/**
+ * Where the scale bar goes along the bottom of the map: the end corner,
+ * where a map reader looks for it, or the start corner when a town's name
+ * or dot, the star or the estimate pill is there: "هەکاری" sat on "٥٠ کم" on
+ * a Sorani card (whose end corner is the bottom left) and "Urmia" on
+ * "25 km" on the English hub card (iOS parity sweep, 2026-10-21). With both
+ * corners taken, the end corner, with the
+ * labels it covers listed so the caller can drop them, as for the pill.
+ * `areaAt` gives the bar and its distance label as one box for a left edge.
+ */
+export function placeScaleBar(
+  barWidth: number,
+  frame: { x: number; y: number; width: number; height: number },
+  rtl: boolean,
+  areaAt: (left: number) => Box,
+  labels: readonly CardText[],
+  dots: readonly { x: number; y: number; radius: number }[],
+  obstacles: readonly Box[],
+): ScaleBarPlacement {
+  const startLeft = rtl ? frame.x + frame.width - 24 - barWidth : frame.x + 24;
+  const endLeft = rtl ? frame.x + 24 : frame.x + frame.width - 24 - barWidth;
+  const coveredLabels = (box: Box) =>
+    labels.filter((label) => boxesOverlap(box, labelBox(label), 6));
+  const blocked = (box: Box) =>
+    coveredLabels(box).length > 0 ||
+    obstacles.some((obstacle) => boxesOverlap(box, obstacle, 6)) ||
+    dots.some((dot) =>
+      boxesOverlap(
+        box,
+        {
+          left: dot.x - dot.radius,
+          right: dot.x + dot.radius,
+          top: dot.y - dot.radius,
+          bottom: dot.y + dot.radius,
+        },
+        4,
+      ),
+    );
+  for (const left of [endLeft, startLeft]) {
+    if (!blocked(areaAt(left))) {
+      return { left, covered: [] };
+    }
+  }
+  return { left: endLeft, covered: coveredLabels(areaAt(endLeft)) };
 }
 
 export function buildCardModel(input: CardInput): CardModel {
@@ -1014,9 +1071,59 @@ export function buildCardModel(input: CardInput): CardModel {
   const scaleKm = [...NICE_KM].reverse().find((km) => km * pxPerKm <= frame.width / 5);
   if (scaleKm !== undefined) {
     const barWidth = scaleKm * pxPerKm;
-    const barLeft = rtl ? frame.x + 24 : frame.x + frame.width - 24 - barWidth;
     const barY = frame.y + frame.height - 26;
     const barColor = colors.text.secondary;
+    const scaleLabelAt = (barLeft: number) =>
+      textItem(rtl, {
+        text: kmLabel(scaleKm),
+        x: r1(barLeft + barWidth / 2),
+        y: r1(barY - 18),
+        size: SCALE_LABEL_SIZE,
+        weight: 400,
+        fill: barColor,
+        anchor: "middle",
+        rtl: false,
+        halo: { stroke: "#FFFFFF", width: 7 },
+      });
+    const scaleAreaAt = (barLeft: number): Box => {
+      const label = labelBox(scaleLabelAt(barLeft));
+      return {
+        left: Math.min(barLeft, label.left),
+        right: Math.max(barLeft + barWidth, label.right),
+        top: label.top,
+        bottom: barY + 4,
+      };
+    };
+    // The estimate pill, when there is one, is the first overlay rect.
+    const pillBox: Box[] = overlay[0]
+      ? [
+          {
+            left: overlay[0].x,
+            top: overlay[0].y,
+            right: overlay[0].x + overlay[0].width,
+            bottom: overlay[0].y + overlay[0].height,
+          },
+        ]
+      : [];
+    const placement = placeScaleBar(
+      barWidth,
+      frame,
+      rtl,
+      scaleAreaAt,
+      map.labels,
+      [...map.towns, { x: epicenterPoint.x, y: epicenterPoint.y, radius: STAR_RADIUS }],
+      pillBox,
+    );
+    if (placement.covered.length > 0) {
+      // The name goes with its dot, as under the pill.
+      const dropped = new Set(placement.covered);
+      const kept = map.labels
+        .map((label, index) => ({ label, town: map.towns[index] }))
+        .filter(({ label }) => !dropped.has(label));
+      map.labels = kept.map(({ label }) => label);
+      map.towns = kept.flatMap(({ town }) => (town ? [town] : []));
+    }
+    const barLeft = placement.left;
     overlay.push(
       { x: barLeft, y: barY, width: barWidth, height: 4, radius: 2, fill: barColor },
       { x: barLeft, y: barY - 10, width: 4, height: 14, radius: 2, fill: barColor },
@@ -1029,19 +1136,7 @@ export function buildCardModel(input: CardInput): CardModel {
         fill: barColor,
       },
     );
-    texts.push(
-      textItem(rtl, {
-        text: kmLabel(scaleKm),
-        x: r1(barLeft + barWidth / 2),
-        y: r1(barY - 18),
-        size: SCALE_LABEL_SIZE,
-        weight: 400,
-        fill: barColor,
-        anchor: "middle",
-        rtl: false,
-        halo: { stroke: "#FFFFFF", width: 7 },
-      }),
-    );
+    texts.push(scaleLabelAt(barLeft));
   }
 
   // --- footer --------------------------------------------------------------
