@@ -210,6 +210,24 @@ const config: ExpoConfig = {
         recordAudioAndroid: false,
       },
     ],
+    // The native map engine for iOS and Android (the Map tab's `map.tsx`).
+    // The web keeps maplibre-gl (`map.web.tsx`); this package is only ever
+    // imported from native-only files, so it never reaches the web bundle.
+    // The plugin adds its CocoaPods post-install step.
+    "@maplibre/maplibre-react-native",
+    [
+      // iOS: declare the app's four languages (CFBundleLocalizations), so
+      // iOS treats Sorani and Arabic as languages of this app (right to
+      // left from the first frame when the phone is set to one of them) and
+      // offers the per-app language setting. Deliberately NOT `supportsRTL`:
+      // on iOS that option re-sets React Native's RTL flag from the PHONE
+      // language on every launch, which would undo the language picked in
+      // the app (Sorani on an English phone, English on a Sorani phone) and
+      // restart the app in a loop. The direction follows the app language
+      // instead (`pinNativeLayoutDirection` in src/i18n/index.ts).
+      "expo-localization",
+      { supportedLocales: { ios: ["en", "ckb", "kmr", "ar"] } },
+    ],
   ],
   experiments: {
     typedRoutes: true,
