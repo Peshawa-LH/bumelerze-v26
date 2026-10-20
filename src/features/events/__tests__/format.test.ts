@@ -234,6 +234,71 @@ describe("formatDateOnly", () => {
   });
 });
 
+describe("dates on an engine whose Intl ignores -u-nu-latn (Hermes on iOS)", () => {
+  // Hermes on iOS answers `Intl.DateTimeFormat("ckb-u-nu-latn")` in the
+  // locale's own digits ("٢٠") and resolves Kurmanji to the phone's
+  // language; `Number("٢٠")` is NaN, so every Sorani and Kurmanji event date
+  // read "NaN months.short.NaN" on the iOS Simulator (2026-10-20). Node and
+  // browsers honour the extension, so this fake reproduces Hermes.
+  const RealDateTimeFormat = Intl.DateTimeFormat;
+  const originTimeMs = Date.UTC(2026, 9, 20, 14, 5, 0);
+  const originalLanguage = i18n.language;
+  const easternDigits = (text: string) =>
+    text.replace(/[0-9]/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)] ?? digit);
+
+  beforeEach(() => {
+    const hermesLike = function (
+      locales?: string | string[],
+      options?: Intl.DateTimeFormatOptions,
+    ) {
+      const real = new RealDateTimeFormat(locales, options);
+      return {
+        resolvedOptions: () => real.resolvedOptions(),
+        format: (date?: Date | number) => easternDigits(real.format(date)),
+        formatToParts: (date?: Date | number) =>
+          real
+            .formatToParts(date)
+            .map((part) => ({ ...part, value: easternDigits(part.value) })),
+      };
+    };
+    jest
+      .spyOn(Intl, "DateTimeFormat")
+      .mockImplementation(hermesLike as unknown as typeof Intl.DateTimeFormat);
+  });
+
+  afterEach(async () => {
+    jest.restoreAllMocks();
+    await i18n.changeLanguage(originalLanguage);
+  });
+
+  it.each(["en", "ckb", "kmr", "ar"])(
+    "renders a real UTC date and time in %s",
+    async (locale) => {
+      await i18n.changeLanguage(locale);
+      const t = i18n.t.bind(i18n);
+      const { utc, local } = formatAbsoluteDual(originTimeMs, locale, t);
+      for (const text of [utc, local, formatDateOnly(originTimeMs, locale, t, "UTC")]) {
+        expect(text).not.toMatch(/NaN|months\.short|undefined/);
+      }
+      expect(utc).toContain(t("months.short.10"));
+      const digits = (value: string) =>
+        locale === "ckb" || locale === "ar" ? easternDigits(value) : value;
+      expect(utc).toContain(digits("20"));
+      expect(utc).toContain(digits("2026"));
+      expect(utc).toContain(digits("2:05"));
+      expect(utc).toContain(t("time.pm"));
+    },
+  );
+
+  it("folds the digits of any other time zone back to numbers", async () => {
+    await i18n.changeLanguage("ckb");
+    const result = formatDateOnly(originTimeMs, "ckb", i18n.t.bind(i18n), "Asia/Baghdad");
+    expect(result).not.toMatch(/NaN|months\.short/);
+    expect(result).toContain("٢٠");
+    expect(result).toContain(i18n.t("months.short.10"));
+  });
+});
+
 describe("isolateNumeric", () => {
   it("wraps the text in a left-to-right isolate pair", () => {
     const wrapped = isolateNumeric("120.0 km");

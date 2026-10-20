@@ -7,7 +7,7 @@ import { useAdminAccess } from "@/features/admin/queries";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
-import { formatMagnitudeValue } from "@/features/events";
+import { formatAbsoluteDual, formatMagnitudeValue } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 
@@ -228,11 +228,10 @@ function SurgeCard({
   const until =
     status?.until !== null && status?.until !== undefined
       ? t("contentFilter.surge.until", {
-          time: new Date(status.until).toLocaleString(locale, {
-            weekday: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          // The app's own date line (month names and digits from the
+          // catalog): `toLocaleString` gave English names for Sorani and
+          // Kurmanji on iOS, where Hermes has no data for them.
+          time: formatAbsoluteDual(status.until, locale, t).local,
         })
       : null;
 

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAdminAccess } from "@/features/admin/queries";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
+import { formatAbsoluteDual } from "@/features/events/format";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
@@ -212,12 +213,7 @@ export function AlertsAdminContent({
               <View key={r.runId} testID="alerts-admin-run">
                 <Text style={[meta, { color: colors.text.primary }]}>
                   {Number.isFinite(r.startedAt)
-                    ? new Date(r.startedAt).toLocaleString(locale, {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                    ? formatAbsoluteDual(r.startedAt, locale, t).local
                     : ""}
                 </Text>
                 <Text style={meta}>

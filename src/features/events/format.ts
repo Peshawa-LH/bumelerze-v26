@@ -1,6 +1,10 @@
 import type { TFunction } from "i18next";
 
-import { formatFixedLocalized, localizeDigits } from "@/lib/format-numbers";
+import {
+  formatFixedLocalized,
+  localizeDigits,
+  toAsciiDigits,
+} from "@/lib/format-numbers";
 
 /** react-i18next's own `t` type — see `@/features/geo/place-line.ts`'s
  * identical `TranslateFn` alias doc comment for why this is imported
@@ -160,101 +164,85 @@ export interface DualTime {
   local: string;
 }
 
-/** Forces Western/Latin digits out of `Intl.DateTimeFormat` regardless of
- * locale, via the `-u-nu-latn` Unicode locale extension. This is only a
- * baseline — Latin digits are the one numbering system every ICU build
- * (lite or full) reliably honors — never the final rendering: callers below
- * still run the result through `localizeDigits` for `ckb`/`ar`.
- * Two-step approach exists specifically because the wave-5 brief forbids
- * relying on Intl/ICU's own numbering-system locale extension for the
- * *localized* digits (Hermes ICU support for `-u-nu-arab` is inconsistent
- * across build variants), while `Intl` is still perfectly fine for the
- * calendar/date structure itself. */
-function withLatinDigits(locale: string): string {
-  return `${locale}-u-nu-latn`;
+/** Calendar and clock fields of one moment, as plain numbers. */
+interface ZonedFields {
+  year: number;
+  /** 1-12 */
+  month: number;
+  day: number;
+  /** 0-23 */
+  hour24: number;
+  minute: number;
 }
 
-/** Builds `Intl.DateTimeFormatOptions` with an optional IANA time zone,
- * never assigning `timeZone: undefined` explicitly (the project's
- * `exactOptionalPropertyTypes: true` tsconfig setting forbids that) —
- * `undefined` means "use the device's local zone", same as omitting the key
- * entirely. */
-function dateTimeOptions(
-  timeZone: string | undefined,
-  extra: Intl.DateTimeFormatOptions,
-): Intl.DateTimeFormatOptions {
-  return timeZone === undefined ? extra : { ...extra, timeZone };
-}
-
-/** Day/month/year as plain numbers, read via `Intl.DateTimeFormat` so the
- * given time zone (UTC vs. device-local) is respected without doing
- * calendar math by hand — `formatToParts` is used (not the combined
- * `dateStyle` string) specifically so the month renders as a bare number:
- * this module never asks `Intl` for a month NAME, because Hermes/ICU has no
- * real Sorani/Kurmanji month-name data and silently falls back to English
- * (the UI backlog item 6 — the bug this whole rewrite exists to fix). The
- * month index is looked up in this app's own `months.short.<n>` i18n table
- * instead (see `formatAbsoluteOne`), the same "own explicit map, never
- * delegated to whatever ICU data shipped" policy `lib/format-numbers.ts`
- * already uses for digits. */
-function dateComponents(
-  date: Date,
-  timeZone: string | undefined,
-  locale: string,
-): { day: number; month: number; year: number } {
-  const parts = new Intl.DateTimeFormat(
-    withLatinDigits(locale),
-    dateTimeOptions(timeZone, { day: "numeric", month: "numeric", year: "numeric" }),
-  ).formatToParts(date);
-
-  const day = parts.find((part) => part.type === "day")?.value;
-  const month = parts.find((part) => part.type === "month")?.value;
-  const year = parts.find((part) => part.type === "year")?.value;
-
-  // `formatToParts` always includes day/month/year when all three were
-  // requested — the `?? "1"`/`?? "1970"` fallbacks exist only to satisfy
-  // strict typing, never expected to trigger in practice.
-  return {
-    day: Number(day ?? "1"),
-    month: Number(month ?? "1"),
-    year: Number(year ?? "1970"),
+/**
+ * The calendar date and clock time of `date` in `timeZone`, read WITHOUT
+ * any locale: the device's own zone (`undefined`) and UTC come straight
+ * from `Date`'s getters, which every engine implements the same way.
+ *
+ * Never from `Intl` with the reader's locale. Hermes on iOS ignores the
+ * `-u-nu-latn` extension and answers in the locale's own digits ("٢٠" for
+ * Sorani), and it resolves Kurmanji, which it has no data for, to the
+ * PHONE's language: on a Sorani phone `Number("٢٠")` gave NaN and every
+ * event date read "NaN months.short.NaN" in Sorani and Kurmanji (seen on
+ * the iOS Simulator, 2026-10-20). Browsers and Node honour the extension,
+ * so the web and the tests never showed it. Any other IANA zone goes
+ * through `Intl` with the fixed `en-US` locale, and its digits are folded
+ * back to ASCII whatever the engine returns.
+ */
+function zonedFields(date: Date, timeZone: string | undefined): ZonedFields {
+  if (timeZone === undefined) {
+    return {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      hour24: date.getHours(),
+      minute: date.getMinutes(),
+    };
+  }
+  if (timeZone === "UTC" || timeZone === "Etc/UTC") {
+    return {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      day: date.getUTCDate(),
+      hour24: date.getUTCHours(),
+      minute: date.getUTCMinutes(),
+    };
+  }
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const read = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number(toAsciiDigits(parts.find((part) => part.type === type)?.value ?? ""));
+  const fields: ZonedFields = {
+    year: read("year"),
+    month: read("month"),
+    day: read("day"),
+    // Some engines write midnight as "24" under h23.
+    hour24: read("hour") % 24,
+    minute: read("minute"),
   };
-}
-
-/** Hour (0-23) + minute, read via a FIXED `hourCycle: "h23"` request —
- * deliberately NOT locale-dependent (D22 "Kurdish AM/PM"): this is a pure
- * numeral read-out (no month/dayPeriod NAME involved), so unlike
- * `dateComponents`'s day/month/year split this doesn't need the "own
- * explicit map" workaround — it exists so `formatTimeOfDay` below can build
- * the 12-hour display value + AM/PM classification itself from a single
- * locale-INDEPENDENT source of truth, rather than trusting `Intl`'s own
- * per-locale `dayPeriod` part (see that function's doc comment for why). */
-function hour24AndMinute(
-  date: Date,
-  timeZone: string | undefined,
-  locale: string,
-): { hour24: number; minute: number } {
-  const parts = new Intl.DateTimeFormat(
-    withLatinDigits(locale),
-    dateTimeOptions(timeZone, { hour: "numeric", minute: "numeric", hourCycle: "h23" }),
-  ).formatToParts(date);
-
-  const hourStr = parts.find((part) => part.type === "hour")?.value;
-  const minuteStr = parts.find((part) => part.type === "minute")?.value;
-
-  return { hour24: Number(hourStr ?? "0"), minute: Number(minuteStr ?? "0") };
+  // An engine that still answered with something unreadable: the UTC
+  // reading is a real date, NaN never is.
+  return Object.values(fields).every(Number.isFinite) ? fields : zonedFields(date, "UTC");
 }
 
 /** Hour:minute + a translated AM/PM-equivalent token (D22 "Kurdish
  * AM/PM": ckb MUST read پێش نیوەڕۆ/دوای نیوەڕۆ — before/after noon, owner
  * 2026-10-08, replacing ڕۆژانە/شەوانە "by day/at night" — never Latin "AM"/"PM"). Deliberately
- * does NOT read `Intl`'s own `dayPeriod` formatToParts value — same
- * "Hermes/ICU has no real Sorani/Kurmanji data" gap `dateComponents`'s doc
- * comment already documents for month names (confirmed for dayPeriod too:
+ * does NOT read `Intl`'s own `dayPeriod` formatToParts value — Hermes/ICU
+ * has no real Sorani/Kurmanji data for month names or day periods
+ * (confirmed for dayPeriod too:
  * a device build without the real translation silently falls back to
  * Latin "AM"/"PM", which is exactly the bug this function exists to
  * prevent). Instead, the AM/PM CLASSIFICATION is derived purely from the
- * locale-independent 24-hour value (`hour24AndMinute`) and the display
+ * locale-independent 24-hour value (`zonedFields`) and the display
  * text comes entirely from this app's own `time.am`/`time.pm` i18n keys —
  * the same "own explicit map, never delegated to whatever ICU data shipped"
  * policy this module already applies to digits and month names. The
@@ -267,7 +255,7 @@ function formatTimeOfDay(
   locale: string,
   t: TranslateFn,
 ): string {
-  const { hour24, minute } = hour24AndMinute(date, timeZone, locale);
+  const { hour24, minute } = zonedFields(date, timeZone);
   const period: "am" | "pm" = hour24 < 12 ? "am" : "pm";
   const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
   const minuteStr = String(minute).padStart(2, "0");
@@ -297,7 +285,7 @@ function formatAbsoluteOne(
   locale: string,
   t: TranslateFn,
 ): string {
-  const { day, month, year } = dateComponents(date, timeZone, locale);
+  const { day, month, year } = zonedFields(date, timeZone);
 
   return t("events.dateTemplate", {
     day: localizeDigits(String(day), locale),
@@ -326,7 +314,7 @@ export function formatDateOnly(
    * zone, so the one unambiguous calendar date is the UTC one. */
   timeZone?: string,
 ): string {
-  const { day, month, year } = dateComponents(new Date(originTimeMs), timeZone, locale);
+  const { day, month, year } = zonedFields(new Date(originTimeMs), timeZone);
 
   return t("events.dateOnlyTemplate", {
     day: localizeDigits(String(day), locale),
@@ -336,13 +324,10 @@ export function formatDateOnly(
 }
 
 /** Dual UTC + local absolute time display (the v1 spec §4.5 event-detail
- * header requirement). Falls back gracefully if `Intl` doesn't recognize a
- * locale tag (e.g. `ckb`/`kmr` on older ICU data) — `Intl.DateTimeFormat`
- * only throws on a syntactically invalid BCP-47 tag, never on an
- * unrecognized-but-valid one, so this never crashes across our four
- * locales. Digits are localized via our own map (see `withLatinDigits`
- * comment above); month names via this app's own `months.short.<n>` i18n
- * table (see `dateComponents`' comment) — never via `Intl`'s month-name
+ * header requirement). The numbers come from `zonedFields` (no locale
+ * involved, so no engine's locale data can break them); digits are
+ * localized via our own map; month names via this app's own
+ * `months.short.<n>` i18n table — never via `Intl`'s month-name
  * data or the digit-localizer (the UI backlog item 6: the old
  * implementation ran the *whole* `Intl`-produced string, English month
  * abbreviation included, through the digit localizer, which only ever
