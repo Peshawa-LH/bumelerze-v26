@@ -365,7 +365,15 @@ export default function RootLayout() {
                 <Stack.Screen name="home/join" />
                 <Stack.Screen name="home/[tagId]/report" />
                 <Stack.Screen name="home/[tagId]/family" />
-                <Stack.Screen name="felt-report" options={{ presentation: "modal" }} />
+                {/* The felt report covers the whole screen, as on the web: an
+                 * iOS page sheet ("modal") closed with a downward swipe in
+                 * the middle of a report, and its screens' safe-area top
+                 * padding was added twice below the sheet's own top gap.
+                 * Leaving it goes through the flow's own buttons. */}
+                <Stack.Screen
+                  name="felt-report"
+                  options={{ presentation: "fullScreenModal" }}
+                />
                 <Stack.Screen name="im-safe" />
                 {/* The swipeable tour owns its horizontal swipes, so the iOS
                  * edge-swipe-back is off; Skip and the last button leave it. */}
