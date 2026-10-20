@@ -256,6 +256,19 @@ describe("app.config iOS permission texts in the app's languages", () => {
     expect(pluginOptions("expo-sensors")).toMatchObject({
       motionPermission: PERMISSION_TEXTS.en.motion,
     });
+    expect(config.ios?.infoPlist?.NSPhotoLibraryAddUsageDescription).toBe(
+      PERMISSION_TEXTS.en.savePhotos,
+    );
+  });
+
+  it("can save a shared earthquake image to Photos without iOS closing the app", () => {
+    // The share sheet's "Save Image" needs this key in Info.plist.
+    expect(infoPlistPermissionStrings(PERMISSION_TEXTS.en)).toHaveProperty(
+      "NSPhotoLibraryAddUsageDescription",
+    );
+    expect(config.ios?.infoPlist?.NSPhotoLibraryAddUsageDescription).toEqual(
+      expect.stringContaining("photos"),
+    );
   });
 
   it("writes texts the .strings files can hold as they are (no quotes, backslashes or line breaks)", () => {

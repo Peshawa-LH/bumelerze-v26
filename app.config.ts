@@ -166,6 +166,9 @@ const approvedNavy = logoColorHex("approved-navy");
 export interface PermissionTexts {
   camera: string;
   photos: string;
+  /** Saving a shared earthquake image from the iOS share sheet ("Save
+   * Image"): without this text iOS closes the app at that tap. */
+  savePhotos: string;
   location: string;
   motion: string;
 }
@@ -176,6 +179,8 @@ export const PERMISSION_TEXTS: Record<"en" | "ckb" | "kmr" | "ar", PermissionTex
       "Bumelerze uses the camera so you can add photos of earthquake damage or of your building to a report, and scan a family invite QR code.",
     photos:
       "Bumelerze uses your photos so you can add pictures of earthquake damage or of your building to a report.",
+    savePhotos:
+      "Bumelerze saves an earthquake image to your photos only when you choose to save it while sharing.",
     location:
       "Bumelerze uses your location to show accurate distances to earthquakes and to make the experiences you share useful for mapping real shaking. Only used while the app is open.",
     motion:
@@ -186,6 +191,8 @@ export const PERMISSION_TEXTS: Record<"en" | "ckb" | "kmr" | "ar", PermissionTex
       "بوومەلەرزە کامێرا بەکاردەهێنێت بۆ ئەوەی بتوانیت وێنەی زیانی بوومەلەرزە یان وێنەی بیناکەت بخەیتە ناو ڕاپۆرتێکەوە، و کۆدی QRی بانگهێشتی خێزان سکان بکەیت.",
     photos:
       "بوومەلەرزە وێنەکانت بەکاردەهێنێت بۆ ئەوەی بتوانیت وێنەی زیانی بوومەلەرزە یان وێنەی بیناکەت بخەیتە ناو ڕاپۆرتێکەوە.",
+    savePhotos:
+      "بوومەلەرزە وێنەی بوومەلەرزەیەک تەنها ئەو کاتە لە وێنەکانتدا پاشەکەوت دەکات کە لە کاتی هاوبەشکردندا خۆت پاشەکەوتکردنی هەڵدەبژێریت.",
     location:
       "بوومەلەرزە شوێنەکەت بەکاردەهێنێت بۆ پیشاندانی دووری ڕاست لە نێوان تۆ و بوومەلەرزەکان، و بۆ ئەوەی ئەو ئەزموونانەی هاوبەشیان دەکەیت بەسوود بن بۆ نەخشەکێشانی لەرزینی ڕاستەقینە. تەنها کاتێک بەکاردێت کە ئەپەکە کراوەیە.",
     motion:
@@ -196,6 +203,8 @@ export const PERMISSION_TEXTS: Record<"en" | "ckb" | "kmr" | "ar", PermissionTex
       "Bumelerze kamerayê bikar tîne da ku tu bikaribî wêneyên zirara erdhejê an yên avahiya xwe li raporekê zêde bikî, û koda QR ya vexwendina malbatê skan bikî.",
     photos:
       "Bumelerze wêneyên te bikar tîne da ku tu bikaribî wêneyên zirara erdhejê an yên avahiya xwe li raporekê zêde bikî.",
+    savePhotos:
+      "Bumelerze wêneyeke erdhejê tenê gava ku tu di dema parvekirinê de tomarkirina wê hilbijêrî, di wêneyên te de tomar dike.",
     location:
       "Bumelerze cihê te bikar tîne da ku dûrahiya rast a erdhejan ji te nîşan bide û serpêhatiyên ku tu parve dikî ji bo nexşekirina lerizîna rastîn bikêr bike. Tenê dema ku sepan vekirî be tê bikaranîn.",
     motion:
@@ -206,6 +215,8 @@ export const PERMISSION_TEXTS: Record<"en" | "ckb" | "kmr" | "ar", PermissionTex
       "يستخدم ⁦Bumelerze⁩ الكاميرا لتتمكن من إضافة صور لأضرار الزلزال أو لمبناك إلى تقرير، ومسح رمز QR لدعوة العائلة.",
     photos:
       "يستخدم ⁦Bumelerze⁩ صورك لتتمكن من إضافة صور لأضرار الزلزال أو لمبناك إلى تقرير.",
+    savePhotos:
+      "يحفظ ⁦Bumelerze⁩ صورة الزلزال في صورك فقط عندما تختار حفظها أثناء المشاركة.",
     location:
       "يستخدم ⁦Bumelerze⁩ موقعك لعرض مسافات دقيقة بينك وبين الزلازل، ولجعل التجارب التي تشاركها مفيدة في رسم خرائط الاهتزاز الحقيقي. لا يُستخدم إلا أثناء فتح التطبيق.",
     motion:
@@ -220,6 +231,7 @@ export function infoPlistPermissionStrings(
   return {
     NSCameraUsageDescription: texts.camera,
     NSPhotoLibraryUsageDescription: texts.photos,
+    NSPhotoLibraryAddUsageDescription: texts.savePhotos,
     NSLocationWhenInUseUsageDescription: texts.location,
     NSMotionUsageDescription: texts.motion,
   };
@@ -263,6 +275,11 @@ const config: ExpoConfig = {
     // Export compliance: the app uses only the encryption built into iOS
     // (HTTPS), which is exempt, so App Store Connect asks nothing per build.
     config: { usesNonExemptEncryption: false },
+    // Saving a shared earthquake image from the share sheet (no plugin
+    // writes this key; `PERMISSION_TEXTS.savePhotos`).
+    infoPlist: {
+      NSPhotoLibraryAddUsageDescription: PERMISSION_TEXTS.en.savePhotos,
+    },
     privacyManifests,
   },
   android: {
