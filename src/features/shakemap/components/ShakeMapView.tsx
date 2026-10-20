@@ -1,21 +1,32 @@
+import { useMemo } from "react";
+
+import { loadNativeMapLibre } from "@/features/map/native-maplibre";
+import { ShakeMapViewNative } from "./ShakeMapViewNative";
+import {
+  ShakeMapView as ShakeMapViewSvg,
+  type ShakeMapViewProps,
+} from "./ShakeMapViewSvg";
+
+export type { ShakeMapLayer, ShakeMapViewProps } from "./ShakeMapViewSvg";
+
 /**
- * Native (iOS/Android) entry point — the SVG projection renderer
- * (`ShakeMapViewSvg.tsx`) is still the only implementation available off
- * web (MapLibre React Native needs a dev build, not set up yet — same
- * reasoning `app/(tabs)/(map)/map.tsx`'s own doc comment gives for the Map tab).
+ * Native (iOS/Android) entry point of the event page's SHAKEmap: the
+ * interactive MapLibre Native map (`ShakeMapViewNative.tsx`, the same map
+ * the web draws with maplibre-gl in `ShakeMapView.web.tsx`), or the SVG
+ * map (`ShakeMapViewSvg.tsx`) where MapLibre's native code is not in the
+ * build (Expo Go, and Jest unless a test says otherwise) or no map can be
+ * shown at all.
  *
- * This file is what `./ShakeMapView` resolves to under Jest (no "web"
- * platform in this repo's default preset — see `ShakeMapView.web.tsx`'s
- * own doc comment) and on native builds; Metro's platform-extension
- * resolution swaps in the sibling `ShakeMapView.web.tsx` automatically for
- * real web builds, exactly like the Map tab's `map.tsx`/`map.web.tsx`
- * pair. `ShakeMapSection.tsx` imports `./ShakeMapView` with no extension
- * either way and never needs to know which one it got.
- *
- * A thin re-export, not a copy — `ShakeMapView.web.tsx` also imports
- * `ShakeMapViewSvg` directly (under an unambiguous name, never
- * `./ShakeMapView`, which would resolve back to itself under Metro's own
- * platform resolution) as its own "MapLibre failed to load" fallback, so
- * there is exactly one SVG implementation on disk either way.
+ * Metro resolves this file for native builds and Jest; the web build takes
+ * `ShakeMapView.web.tsx`. `ShakeMapSection.tsx` imports `./ShakeMapView`
+ * and never needs to know which one it got. `ShakeMapView.web.tsx` imports
+ * `ShakeMapViewSvg` directly for its own fall-back, so there is exactly one
+ * SVG implementation on disk.
  */
-export { ShakeMapView, type ShakeMapLayer, type ShakeMapViewProps } from "./ShakeMapViewSvg";
+export function ShakeMapView(props: ShakeMapViewProps) {
+  const mapLibre = useMemo(() => loadNativeMapLibre(), []);
+  if (!mapLibre) {
+    return <ShakeMapViewSvg {...props} />;
+  }
+  return <ShakeMapViewNative mapLibre={mapLibre} {...props} />;
+}

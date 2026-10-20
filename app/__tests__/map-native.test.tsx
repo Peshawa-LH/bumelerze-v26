@@ -159,7 +159,10 @@ function lastMapProps(): Recorded {
   return props;
 }
 
-function mapStyleLayers(): { id: string; layout?: Record<string, unknown> }[] {
+function mapStyleLayers(): {
+  id: string;
+  layout?: Record<string, unknown> | undefined;
+}[] {
   return (lastMapProps().mapStyle as StyleDocument).layers;
 }
 

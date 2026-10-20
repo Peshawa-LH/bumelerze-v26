@@ -257,6 +257,10 @@
       "maptilerLogoA11yLabel": "MapTiler",
       "creditsA11yLabel": "Map credits"
     },
+    "controls": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out"
+    },
     "eventSheet": {
       "closeButtonLabel": "Close",
       "openFullButtonLabel": "Open full event"

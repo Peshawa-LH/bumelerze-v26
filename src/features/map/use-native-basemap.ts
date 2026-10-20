@@ -42,6 +42,8 @@ export interface NativeBasemapOptions {
   terrain: boolean;
   /** Placeholder layers for the caller's own layers (`insertAnchorLayers`). */
   anchorLayerIds?: readonly string[];
+  /** See `NativeStyleOptions.localizeLabels` (default true). */
+  localizeLabels?: boolean;
   /** `false` holds everything back (the saved style choice is still
    * loading from storage). */
   enabled?: boolean;
@@ -77,6 +79,7 @@ export function useNativeBasemap({
   locale,
   terrain,
   anchorLayerIds,
+  localizeLabels = true,
   enabled = true,
 }: NativeBasemapOptions): NativeBasemap {
   const [fellBack, setFellBack] = useState(false);
@@ -116,6 +119,7 @@ export function useNativeBasemap({
           locale,
           scheme,
           terrain,
+          localizeLabels,
           ...(anchorLayerIds ? { anchorLayerIds } : {}),
         });
         setShown({
@@ -152,7 +156,7 @@ export function useNativeBasemap({
     };
     // `anchorLayerIds` is a module constant at every call site.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, resolved, locale, scheme, terrain, fellBack, attempt]);
+  }, [enabled, resolved, locale, scheme, terrain, localizeLabels, fellBack, attempt]);
 
   const onDidFinishLoadingMap = useCallback(() => setPhase("ready"), []);
 

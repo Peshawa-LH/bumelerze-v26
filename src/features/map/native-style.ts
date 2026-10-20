@@ -69,6 +69,10 @@ export interface NativeStyleOptions {
   /** Invisible placeholder layers to add under the first label layer,
    * bottom to top (`insertAnchorLayers`). */
   anchorLayerIds?: readonly string[];
+  /** Arabic-script basemap names for ckb/ar (default). The web localises
+   * the Map tab only; its SHAKEmap and small maps keep the style's own
+   * names, so those pass `false`. */
+  localizeLabels?: boolean;
 }
 
 export interface PreparedNativeStyle {
@@ -109,7 +113,7 @@ export function prepareNativeMapStyle(
   const firstNameLabel = style.layers.find((layer) => nameLabelLayerIds.has(layer.id));
   const ownLabelsFont = fontOf(firstNameLabel);
 
-  if (shouldLocalizeToArabicScript(options.locale)) {
+  if (options.localizeLabels !== false && shouldLocalizeToArabicScript(options.locale)) {
     for (const layer of style.layers) {
       if (nameLabelLayerIds.has(layer.id)) {
         layer.layout = { ...layer.layout, "text-field": buildArabicNameTextField() };
