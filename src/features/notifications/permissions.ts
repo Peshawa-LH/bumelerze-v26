@@ -2,24 +2,25 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Platform } from "react-native";
 
+import { requireNotifications, type NotificationsModule } from "./notifications-module";
+
 export type NotificationPermissionStatus = "granted" | "denied" | "undetermined";
 
-type NotificationsModule = typeof import("expo-notifications");
-
 /**
- * expo-notifications, loaded on first use and never on the web. Merely
- * importing the module subscribes to push-token changes (its
- * DevicePushTokenAutoRegistration side effect), which on the web only prints
- * "[expo-notifications] Listening to push token changes is not yet fully
- * supported on web" on every visit (review B-22); web alerts are web push
- * (features/alerts), and the browser's own Notification API answers the
- * permission questions below.
+ * expo-notifications on iOS/Android, never on the web (null there; the
+ * module is resolved per platform, notifications-module(.native).ts).
+ * Merely importing it subscribes to push-token changes (its
+ * DevicePushTokenAutoRegistration side effect), which on the web only
+ * printed "[expo-notifications] Listening to push token changes is not yet
+ * fully supported on web" on every visit (review B-22); web alerts are web
+ * push (features/alerts), and the browser's own Notification API answers
+ * the permission questions below.
  */
 export async function loadNotifications(): Promise<NotificationsModule | null> {
   if (Platform.OS === "web") {
     return null;
   }
-  return import("expo-notifications");
+  return requireNotifications();
 }
 
 /** The permission as expo-notifications and the browser both spell it. */

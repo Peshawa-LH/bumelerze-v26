@@ -10,6 +10,7 @@ import {
   AlertsLanguageNote,
   AlertsNearMePlace,
   AlertsTesterPanel,
+  phoneAlertsAvailable,
   useAlertAccess,
 } from "@/features/alerts";
 import {
@@ -51,10 +52,18 @@ const REHEARSAL_EXAMPLE_MAGNITUDE = 4.8;
  * Account holders also choose who sees their "I'm safe" check-ins (review
  * note 3.3): family only, family and mutual follows, or all followers.
  *
- * On the web the browser's permission belongs to the tester panel alone
- * (review note 11.3): no prompt from a tier change, no "Open Settings" row
- * (a web page cannot open the phone's settings) and no local "play the
- * sound" rehearsal (scheduled notifications do not exist on the web).
+ * The notification permission belongs to the alert controls (review note
+ * 11.3), on the web and in the phone app alike: the question comes when a
+ * person turns alerts on for this device, never from a tier or place change
+ * (alerts are "coming soon" for the public, D83; asking then would spend the
+ * phone's one-time question on nothing). The phone app also asks before
+ * "Play the alert sound", which shows a real notification.
+ *
+ * On the web there is no "Open Settings" row (a web page cannot open the
+ * phone's settings) and no local "play the sound" rehearsal (scheduled
+ * notifications do not exist on the web). In the phone app the row shows
+ * while notifications are blocked, except where the alert controls already
+ * show the same thing with their own Open Settings button.
  */
 export default function NotificationSettingsScreen() {
   const tabBarScroll = useTabBarScroll();
@@ -93,8 +102,8 @@ export default function NotificationSettingsScreen() {
   const exampleBody = t("notificationSettings.rehearsal.exampleBody");
 
   /** Permission primer per the v1 spec §4.11: ask only at the value moment
-   * — here, moving a tier away from "off" or tapping a rehearsal button
-   * that fires a real notification. Never called on screen mount. */
+   * — here, the rehearsal button that fires a real notification (turning
+   * alerts on asks inside the alert controls). Never on screen mount. */
   async function requestPermissionIfNeeded(): Promise<NotificationPermissionStatus> {
     if (isWeb) {
       return permissionStatus;
@@ -104,25 +113,17 @@ export default function NotificationSettingsScreen() {
     return result;
   }
 
-  async function handleNearMeTierChange(tier: NotificationTier) {
+  function handleNearMeTierChange(tier: NotificationTier) {
     setNearMeTier(tier);
-    if (tier !== "off") {
-      await requestPermissionIfNeeded();
-    }
   }
 
-  async function handleAnotherPlaceTierChange(tier: NotificationTier) {
+  function handleAnotherPlaceTierChange(tier: NotificationTier) {
     setAnotherPlaceTier(tier);
-    if (tier !== "off") {
-      await requestPermissionIfNeeded();
-    }
   }
 
-  async function handleSelectPlace(place: Place) {
+  function handleSelectPlace(place: Place) {
     setAnotherPlace({ placeId: place.id, lat: place.lat, lon: place.lon });
     setIsPickingPlace(false);
-    // A new place starts at "all": the value moment for the permission ask.
-    await requestPermissionIfNeeded();
   }
 
   function handleRemovePlace() {
@@ -187,7 +188,11 @@ export default function NotificationSettingsScreen() {
           <AlertsComingSoonNote />
         )}
 
-        {!isWeb && permissionStatus === "denied" ? <PermissionDeniedRow /> : null}
+        {!isWeb &&
+        permissionStatus === "denied" &&
+        !(access.enabled && phoneAlertsAvailable()) ? (
+          <PermissionDeniedRow />
+        ) : null}
 
         {/* Near Me section */}
         <View style={{ gap: spacing[2] }}>
@@ -214,7 +219,7 @@ export default function NotificationSettingsScreen() {
           {access.enabled ? <AlertsNearMePlace /> : null}
           <TierSelector
             value={nearMeTier}
-            onChange={(tier) => void handleNearMeTierChange(tier)}
+            onChange={handleNearMeTierChange}
           />
         </View>
 
@@ -304,20 +309,17 @@ export default function NotificationSettingsScreen() {
               {isPickingPlace ? (
                 <PlaceSearch
                   selectedPlaceId={anotherPlace?.placeId ?? null}
-                  onSelect={(place) => void handleSelectPlace(place)}
+                  onSelect={handleSelectPlace}
                   testID="another-place-search"
                 />
               ) : null}
               <TierSelector
                 value={anotherPlaceTier}
-                onChange={(tier) => void handleAnotherPlaceTierChange(tier)}
+                onChange={handleAnotherPlaceTierChange}
               />
             </>
           ) : isPickingPlace ? (
-            <PlaceSearch
-              onSelect={(place) => void handleSelectPlace(place)}
-              testID="another-place-search"
-            />
+            <PlaceSearch onSelect={handleSelectPlace} testID="another-place-search" />
           ) : (
             <Pressable
               accessibilityRole="button"

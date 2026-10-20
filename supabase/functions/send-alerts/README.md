@@ -9,8 +9,20 @@ Supabase Edge Function (Deno) that delivers earthquake alerts (migration
   tiers, near me / another place, one alert per event per device, the D16
   aftershock guard and 3-an-hour cap, 12 h summaries) and hands back a batch.
 - The batch goes out by web push (VAPID, `npm:web-push`) or the Expo push API;
-  `alert_record_results()` stores sent / gone / retry / failed. 404/410 and
-  Expo `DeviceNotRegistered` switch the device off.
+  `alert_record_results()` stores sent / gone / retry / failed, and the Expo
+  ticket id of an accepted phone push (migration 0068). 404/410 and Expo
+  `DeviceNotRegistered` switch the device off.
+- Expo receipts (migration 0068): after sending, each call asks Expo for the
+  receipts that are due (`alert_receipts_due()`, 15 minutes after the send,
+  held 5 minutes while being checked, given up after 23 hours) and stores
+  them with `alert_record_receipts()`: `DeviceNotRegistered` switches the
+  phone off, other receipt errors mark the delivery failed without blaming
+  the phone, a missing receipt is asked again later. `alert_work_pending()`
+  wakes the cron job for due receipts. Before 0068 is applied the answer
+  says `receipts: "unavailable"` and sending works as before.
+- iOS: an alert or update for an earthquake of magnitude 5.0 or more goes out
+  with `interruptionLevel: "time-sensitive"` (needs the app's Time Sensitive
+  Notifications entitlement to take effect).
 - It takes no targeting input, so calling it can only drain the queue sooner.
 
 ## Health and the key self-check
@@ -34,7 +46,7 @@ supabase functions deploy send-alerts --no-verify-jwt
 ```
 
 Entrypoint: `index.ts` (Deno wiring only). It imports `handler.ts`,
-`run.ts`, `plan.ts`, `senders.ts`, `message.ts`, `strings.ts`,
+`run.ts`, `plan.ts`, `senders.ts`, `receipts.ts`, `message.ts`, `strings.ts`,
 `gazetteer-data.ts`, `vapid-check.ts` and `app-key.ts`, all by relative path,
 so a wrapper that imports `index.ts` from a pinned commit needs nothing else.
 
@@ -54,6 +66,6 @@ Kurdistan (Iraq)"), never a provider's.
 ## Tests
 
 `npx jest supabase/functions/send-alerts`: message text in four languages,
-status mapping, endpoint allowlist, Expo tickets, batching, malformed plans,
+status mapping, endpoint allowlist, Expo tickets and receipts, batching, malformed plans,
 the key self-check against Node's own P-256 derivation, the health answer and
 the refusal on mismatch, and a testers-mode dry run of a regional event.

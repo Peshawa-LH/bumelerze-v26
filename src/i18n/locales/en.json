@@ -3581,6 +3581,7 @@
       "iosUpdate": "Alerts need iOS 16.4 or newer. Update this iPhone or iPad in Settings, General, Software Update, then come back here.",
       "deniedBrowser": "Notifications are blocked for app.bumelerze.com in this browser. To allow them, tap the icon next to the web address, open the site settings, set Notifications to Allow, then reload this page.",
       "deniedIos": "Notifications are off for Bumelerze. Open the Settings app, tap Notifications, then Bumelerze, and turn on Allow Notifications. Then come back here.",
+      "deniedApp": "Notifications are off for Bumelerze on this phone. Tap Open Settings, then Notifications, and allow them. Then come back here.",
       "dismissed": "You closed the question without choosing. Tap the button again and choose Allow.",
       "network": "No internet connection. Connect and try again.",
       "browserFailed": "This browser could not set up alerts. Reload the page and try again.",
@@ -3619,9 +3620,14 @@
       "added": "Added {{date}}",
       "lastDelivered": "Last notification delivered {{date}}",
       "stopped": "Stopped: this browser no longer accepts alerts. Remove it, then turn alerts on again on that device.",
+      "stoppedPhone": "Stopped: this phone no longer accepts alerts. Turn alerts on again in the app on that phone.",
       "remove": "Remove",
       "removeA11y": "Remove {{device}}",
       "removeFailed": "Could not remove it. Check your connection and try again."
+    },
+    "channels": {
+      "alerts": "Earthquake alerts",
+      "quiet": "Earthquake summaries"
     }
   },
   "social": {

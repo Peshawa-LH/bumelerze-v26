@@ -27,7 +27,7 @@
   "event-route": {
     "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "1b59b7cd6a80611c",
     "file:app/account/sign-in.tsx": "7a600cf336954af8",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "07ce1243f86982c9"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "19a646c75ebe50ea"
   },
   "felt-levels": {
     "key:felt.tier1.title": "a9e21464bb9ea045",
@@ -109,7 +109,7 @@
   "alerts-settings": {
     "key:notificationSettings.title": "07a063cab7ec227c",
     "key:settings.notificationsSectionTitle": "788011833a5a0f22",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "07ce1243f86982c9"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "19a646c75ebe50ea"
   },
   "feedback": {
     "key:settings.feedbackSectionTitle": "aac77df347205252"

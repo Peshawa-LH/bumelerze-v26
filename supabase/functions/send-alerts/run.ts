@@ -4,6 +4,13 @@
 // whether at all: migration 0062); this only delivers.
 
 import { parsePlan } from "./plan.ts";
+import {
+  parseDueReceipts,
+  summarizeReceipts,
+  type DueReceipt,
+  type ReceiptResult,
+  type ReceiptSummary,
+} from "./receipts.ts";
 import { deliverBatch, type DeliveryResult, type Senders } from "./senders.ts";
 
 export interface RunPorts {
@@ -11,7 +18,14 @@ export interface RunPorts {
   plan(limit: number): Promise<unknown>;
   /** public.alert_record_results(p_run_id, p_results) */
   record(runId: string, results: DeliveryResult[]): Promise<void>;
+  /** public.alert_receipts_due(p_limit), migration 0068. */
+  receiptsDue?(limit: number): Promise<unknown>;
+  /** public.alert_record_receipts(p_results), migration 0068. */
+  recordReceipts?(results: ReceiptResult[]): Promise<void>;
 }
+
+/** Asks Expo for the receipts of earlier sends (receipts.ts). */
+export type ReceiptChecker = (due: readonly DueReceipt[]) => Promise<ReceiptResult[]>;
 
 export interface RunSummary {
   rounds: number;
@@ -21,12 +35,23 @@ export interface RunSummary {
   gone: number;
   retry: number;
   failed: number;
+  /** Expo receipts checked in this call; "unavailable" when they could not
+   * be read or stored (migration 0068 not applied yet): the sending above
+   * is not affected. Absent when there is no checker. */
+  receipts?: ReceiptSummary | "unavailable";
 }
 
 export async function runSendAlerts(
   ports: RunPorts,
   senders: Senders,
-  options: { limit?: number; maxRounds?: number; budgetMs?: number; now?: () => number } = {},
+  options: {
+    limit?: number;
+    maxRounds?: number;
+    budgetMs?: number;
+    now?: () => number;
+    checkReceipts?: ReceiptChecker;
+    receiptLimit?: number;
+  } = {},
 ): Promise<RunSummary> {
   const limit = options.limit ?? 200;
   const maxRounds = options.maxRounds ?? 5;
@@ -53,6 +78,22 @@ export async function runSendAlerts(
     }
     if (claimed < limit) {
       break;
+    }
+  }
+  if (options.checkReceipts && ports.receiptsDue && ports.recordReceipts && now() < deadline) {
+    // After the sending, never instead of it: a failure here is reported
+    // and the alerts above stand.
+    try {
+      const due = parseDueReceipts(await ports.receiptsDue(options.receiptLimit ?? 300));
+      if (due.length > 0) {
+        const results = await options.checkReceipts(due);
+        await ports.recordReceipts(results);
+        summary.receipts = summarizeReceipts(results);
+      } else {
+        summary.receipts = summarizeReceipts([]);
+      }
+    } catch {
+      summary.receipts = "unavailable";
     }
   }
   return summary;

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { usePrefsStore, type StoredPlace } from "@/features/onboarding";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
+import { usePhoneAlertSync } from "./phone-sync";
 import { useAlertDeviceStore } from "./store";
 import { SupabaseAlertsTransport, type AlertsTransport } from "./transport";
 import type { AlertPreferencesPayload } from "./types";
@@ -82,12 +83,19 @@ export function useAlertPreferencesPayload(): AlertPreferencesPayload {
  * tier or place change, and when the daily location check moves "My
  * location" to another town. Does nothing at all (no request) otherwise.
  * A failed save is simply retried on the next change or launch.
+ *
+ * iOS/Android: also keeps the phone's own registration in step (its push
+ * token, the app language, the signed-in account; phone-sync.ts). Nothing
+ * of that runs on the web, where the browser subscription is repaired by
+ * the alert controls (use-web-push-device.ts).
  */
 export function useAlertPrefsAutoSync(transport: AlertsTransport = SupabaseAlertsTransport): void {
   const payload = useAlertPreferencesPayload();
   const key = payloadKey(payload);
   const deviceOn = useAlertDeviceStore((s) => s.deviceOn);
   const syncedKey = useAlertDeviceStore((s) => s.syncedKey);
+
+  usePhoneAlertSync(payload.language, transport);
 
   useEffect(() => {
     if (!deviceOn || key === syncedKey || !isSupabaseConfigured()) {

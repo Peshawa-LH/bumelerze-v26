@@ -12,7 +12,12 @@
 //   GET or POST {"health": true}  -> { data: { requestId, mode, keys } }
 //                                    keys = "ok" | "mismatch" | "missing"
 //   POST {} or { "limit": 1..500 } -> { data: { requestId, keys, rounds, mode,
-//                                    claimed, sent, gone, retry, failed } }
+//                                    claimed, sent, gone, retry, failed,
+//                                    receipts } }
+// After sending, the receipts of earlier Expo pushes that are due are
+// checked (receipts.ts, migration 0068): a phone that no longer exists is
+// switched off. receipts = { checked, ok, gone, failed, pending }, or
+// "unavailable" before 0068 is applied (sending is not affected).
 // or { "error": { code, message, requestId } }. Before sending, the public key
 // is derived from VAPID_PRIVATE_KEY and compared with VAPID_PUBLIC_KEY and the
 // app's key (app-key.ts, vapid-check.ts); on any difference nothing is sent.
@@ -32,6 +37,7 @@ import webpush from "npm:web-push@3.6.7";
 
 import { APP_VAPID_PUBLIC_KEY } from "./app-key.ts";
 import { handleRequest, type HandlerDeps } from "./handler.ts";
+import { createReceiptChecker, type ReceiptResult } from "./receipts.ts";
 import { runSendAlerts } from "./run.ts";
 import {
   createExpoSender,
@@ -84,13 +90,14 @@ function deps(requestId: string): HandlerDeps {
     async run(limit, vapid) {
       const db = client();
       const doFetch = fetch as unknown as FetchLike;
+      const expoAccessToken = Deno.env.get("EXPO_ACCESS_TOKEN") ?? null;
       const senders = {
         web: createWebSender({
           generate: webpush.generateRequestDetails as unknown as GenerateRequestDetails,
           fetch: doFetch,
           vapid,
         }),
-        expo: createExpoSender({ fetch: doFetch, accessToken: Deno.env.get("EXPO_ACCESS_TOKEN") ?? null }),
+        expo: createExpoSender({ fetch: doFetch, accessToken: expoAccessToken }),
       };
       return runSendAlerts(
         {
@@ -113,9 +120,26 @@ function deps(requestId: string): HandlerDeps {
               });
             }
           },
+          // Migration 0068. Before it is applied these calls fail, the run
+          // reports receipts "unavailable" and sending is not affected.
+          async receiptsDue(batch: number) {
+            const { data, error } = await db.rpc("alert_receipts_due", { p_limit: batch });
+            if (error) throw new Error(`alert_receipts_due: ${error.message}`);
+            return data;
+          },
+          async recordReceipts(results: ReceiptResult[]) {
+            const { error } = await db.rpc("alert_record_receipts", { p_results: results });
+            if (error) throw new Error(`alert_record_receipts: ${error.message}`);
+            const bad = results.filter((r) => r.outcome === "gone" || r.outcome === "failed");
+            if (bad.length > 0) {
+              log("info", requestId, "receipts", {
+                results: bad.slice(0, 20).map((r) => ({ id: r.delivery_id, outcome: r.outcome, error: r.error })),
+              });
+            }
+          },
         },
         senders,
-        { limit },
+        { limit, checkReceipts: createReceiptChecker({ fetch: doFetch, accessToken: expoAccessToken }) },
       );
     },
   };

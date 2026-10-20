@@ -14,13 +14,22 @@ import {
 } from "./types";
 
 /**
- * Alert RPCs (migration 0062). Every table behind them is closed to the app;
+ * Alert RPCs (migrations 0062 and 0068). Every table behind them is closed to the app;
  * these functions are the only way in. Tests inject a fake `AlertsTransport`.
  */
 export interface AlertsTransport {
   fetchAccess(): Promise<AlertAccess>;
   registerWebPush(keys: WebPushKeys, locale: string): Promise<void>;
   unregisterWebPush(endpoint: string): Promise<void>;
+  /** The phone app's Expo push token (alerts_register_expo_push). Returns
+   * the server's id for this phone, so the device list can mark it. */
+  registerExpoPush(token: string, locale: string): Promise<string | null>;
+  /** Removes this phone from my devices (alerts_unregister_push). */
+  unregisterExpoPush(token: string): Promise<void>;
+  /** Removes this phone from whichever account registered it, as anyone
+   * signed in on it (alerts_release_expo_push, migration 0068): after a
+   * sign-out the old account's session is gone, the token is not. */
+  releaseExpoPush(token: string): Promise<void>;
   /** This account's browsers and phones (alerts_my_devices). */
   fetchMyDevices(): Promise<AlertDevice[]>;
   savePreferences(payload: AlertPreferencesPayload): Promise<void>;
@@ -103,6 +112,15 @@ export function parseDevices(data: unknown): AlertDevice[] {
     lastOkAt: d.last_ok_at ? Date.parse(d.last_ok_at) : null,
     disabled: d.disabled,
   }));
+}
+
+const subscriptionIdSchema = z.string().uuid();
+
+/** The push_subscriptions id alerts_register_expo_push returns (null if the
+ * answer is not one: the phone is registered all the same). */
+export function parseSubscriptionId(data: unknown): string | null {
+  const parsed = subscriptionIdSchema.safeParse(data);
+  return parsed.success ? parsed.data : null;
 }
 
 export function parseAccess(data: unknown): AlertAccess {
@@ -222,6 +240,17 @@ export const SupabaseAlertsTransport: AlertsTransport = {
   },
   async unregisterWebPush(endpoint) {
     await call("alerts_unregister_push", { p_endpoint: endpoint, p_expo_token: null });
+  },
+  async registerExpoPush(token, locale) {
+    return parseSubscriptionId(
+      await call("alerts_register_expo_push", { p_token: token, p_locale: locale }),
+    );
+  },
+  async unregisterExpoPush(token) {
+    await call("alerts_unregister_push", { p_endpoint: null, p_expo_token: token });
+  },
+  async releaseExpoPush(token) {
+    await call("alerts_release_expo_push", { p_token: token });
   },
   async fetchMyDevices() {
     return parseDevices(await call("alerts_my_devices"));

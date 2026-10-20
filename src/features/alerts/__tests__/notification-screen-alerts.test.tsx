@@ -57,6 +57,19 @@ jest.mock("expo-notifications", () => ({
   setNotificationChannelAsync: jest.fn(),
 }));
 
+// The EAS project id of the build: none today (before the Expo account);
+// set per test to play a build made with it.
+let mockProjectId: string | null = null;
+jest.mock("expo-constants", () => ({
+  __esModule: true,
+  default: {
+    get expoConfig() {
+      return { version: "26.3.0", extra: mockProjectId ? { eas: { projectId: mockProjectId } } : {} };
+    },
+    easConfig: null,
+  },
+}));
+
 // eslint-disable-next-line import/first -- imported after the mocks above
 import NotificationSettingsScreen from "../../../../app/(tabs)/(home,map,sensor,profile,settings)/notification-settings";
 
@@ -191,6 +204,42 @@ describe("Notification Settings under the alert rollout", () => {
       await renderScreen();
       await new Promise((resolve) => setTimeout(resolve, 0));
       expect(screen.getByText("Open Settings")).toBeTruthy();
+    });
+  });
+
+  describe("in a phone build made with the Expo project id", () => {
+    afterEach(() => {
+      mockProjectId = null;
+      mockPermission = "undetermined";
+    });
+
+    it("blocked notifications: the tester's controls say so with ONE Open Settings button, not the row as well", async () => {
+      mockProjectId = "project-1";
+      mockPermission = "denied";
+      access({ tester: true, enabled: true });
+      await renderScreen();
+      expect(await screen.findByTestId("alerts-device-open-settings")).toBeTruthy();
+      expect(screen.getAllByText("Open Settings")).toHaveLength(1);
+      expect(screen.queryByText("Notifications are blocked for Bumelerze on this device.")).toBeNull();
+    });
+
+    it("the public (coming soon) still gets the settings-link row", async () => {
+      mockProjectId = "project-1";
+      mockPermission = "denied";
+      access({});
+      await renderScreen();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(screen.getByText("Notifications are blocked for Bumelerze on this device.")).toBeTruthy();
+      expect(screen.getAllByText("Open Settings")).toHaveLength(1);
+    });
+
+    it("a tester with notifications allowed gets the real Turn on button, no 'next version' words", async () => {
+      mockProjectId = "project-1";
+      mockPermission = "granted";
+      access({ tester: true, enabled: true });
+      await renderScreen();
+      expect(await screen.findByTestId("alerts-device-on")).toBeTruthy();
+      expect(screen.queryByTestId("alerts-device-native")).toBeNull();
     });
   });
 

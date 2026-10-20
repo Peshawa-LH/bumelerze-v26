@@ -151,6 +151,32 @@ describe("buildMessage", () => {
     expect(m.quiet).toBe(false);
   });
 
+  it("time-sensitive on iOS from magnitude 5.0 (alerts and updates only), never for tests or summaries", () => {
+    const strong = { ...EVENT, magnitude: 5.0 };
+    expect(buildMessage(item({ event: strong })).timeSensitive).toBe(true);
+    expect(buildMessage(item({ event: { ...EVENT, magnitude: 4.9 } })).timeSensitive).toBe(false);
+    expect(buildMessage(item({ kind: "upgrade", event: { ...EVENT, magnitude: 5.3 }, previousMagnitude: 4.8 })).timeSensitive).toBe(true);
+    expect(buildMessage(item({ kind: "summary", event: strong, summaryCount: 4 })).timeSensitive).toBe(false);
+    expect(buildMessage(item({ kind: "test", event: null })).timeSensitive).toBe(false);
+  });
+
+  it("the web payload is the same as before for a strong earthquake (no iOS-only field)", () => {
+    const strong = buildMessage(item({ event: { ...EVENT, magnitude: 6.1 } }));
+    expect(webPayload(strong, 123)).toBe(
+      JSON.stringify({
+        title: "M 6.1 earthquake",
+        body: "⁦20 km⁩ SE of Hawler, Kurdistan (Iraq)",
+        tag: "ev-bml2026abcd",
+        path: "event/bml2026abcd",
+        quiet: false,
+        renotify: false,
+        lang: "en",
+        dir: "ltr",
+        ts: 123,
+      }),
+    );
+  });
+
   it("the service worker payload carries only what it shows", () => {
     const payload = JSON.parse(webPayload(buildMessage(item()), 123));
     expect(Object.keys(payload).sort()).toEqual(

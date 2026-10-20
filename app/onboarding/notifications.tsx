@@ -4,12 +4,13 @@ import { useTranslation } from "react-i18next";
 import { OnboardingScreenShell, usePrefsStore } from "@/features/onboarding";
 
 /**
- * Screen 4 — notification explainer (the v1 spec §4.11 step 4). v1 scope:
- * explain near-me alerts are coming — notifications themselves are
- * Phase 4 work, so this screen deliberately makes **no** real permission
- * request (no expo-notifications import at all). Keeping the screen in the
- * sequence now means the eventual real ask lands right after this same
- * value explanation, once Phase 4 wires it in.
+ * Screen 4 — notification explainer (the v1 spec §4.11 step 4): alerts are
+ * coming (D83: public alerts stay "coming soon"; testers turn them on in
+ * Notification Settings). The same screen on the web and in the phone app,
+ * and on both it deliberately asks for NO permission (no expo-notifications
+ * import at all): the phone's one-time question comes from the alert
+ * controls, when a person turns alerts on for the device, and this text
+ * promises exactly that ("We'll ask ... when that feature launches").
  */
 export default function OnboardingNotificationsScreen() {
   const { t } = useTranslation();
