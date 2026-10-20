@@ -74,6 +74,18 @@ describe("the Android alert rehearsal channel (review E-8, E-11)", () => {
   });
 });
 
+describe("a phone that refuses to schedule it", () => {
+  it("resolves false instead of an unhandled rejection (iOS 27 Simulator, 2026-10-21)", async () => {
+    setOS("ios");
+    mockScheduleNotificationAsync.mockRejectedValueOnce(
+      new Error("ERR_NOTIFICATIONS_FAILED_TO_SCHEDULE: undefined reason"),
+    );
+    await expect(fireRehearsalNotification("t", "b")).resolves.toBe(false);
+    mockScheduleNotificationAsync.mockResolvedValueOnce("id");
+    await expect(fireRehearsalNotification("t", "b")).resolves.toBe(true);
+  });
+});
+
 describe("on the web expo-notifications is never loaded (review B-22)", () => {
   beforeEach(() => setOS("web"));
 

@@ -26,31 +26,40 @@ export const REHEARSAL_VIBRATION_PATTERN: readonly number[] = [0, 250, 250, 250]
  *
  * The web has no scheduled notifications (and `loadNotifications` returns
  * nothing there); the screen does not offer this button on the web.
+ *
+ * Resolves false, never rejects, when the phone refuses to schedule it (an
+ * iOS 27 Simulator answered ERR_NOTIFICATIONS_FAILED_TO_SCHEDULE, 2026-10-21):
+ * the button simply does nothing, instead of an unhandled error.
  */
 export async function fireRehearsalNotification(
   title: string,
   body: string,
-): Promise<void> {
+): Promise<boolean> {
   const Notifications = await loadNotifications();
   if (!Notifications) {
-    return;
+    return false;
   }
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync(REHEARSAL_CHANNEL_ID, {
-      name: i18n.t("notificationSettings.rehearsal.channelName"),
-      importance: Notifications.AndroidImportance.HIGH,
-      sound: "default",
-      enableVibrate: true,
-      vibrationPattern: [...REHEARSAL_VIBRATION_PATTERN],
-    });
-  }
+  try {
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync(REHEARSAL_CHANNEL_ID, {
+        name: i18n.t("notificationSettings.rehearsal.channelName"),
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: "default",
+        enableVibrate: true,
+        vibrationPattern: [...REHEARSAL_VIBRATION_PATTERN],
+      });
+    }
 
-  await Notifications.scheduleNotificationAsync({
-    content: { title, body, sound: "default" },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: REHEARSAL_DELAY_SECONDS,
-      channelId: REHEARSAL_CHANNEL_ID,
-    },
-  });
+    await Notifications.scheduleNotificationAsync({
+      content: { title, body, sound: "default" },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: REHEARSAL_DELAY_SECONDS,
+        channelId: REHEARSAL_CHANNEL_ID,
+      },
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
