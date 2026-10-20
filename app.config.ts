@@ -243,6 +243,32 @@ const config: ExpoConfig = {
       },
     ],
     [
+      // Fonts built into the iOS/Android app, so they are on the device
+      // before the first frame instead of being registered from the
+      // JavaScript bundle at start: the four Vazirmatn faces (Sorani and
+      // Arabic text; the PostScript names match the face names
+      // `arabicScriptFontFor` uses) and, on iOS, the Ionicons icon font.
+      // `app/_layout.tsx` keeps the splash screen up until both are
+      // registered under the names the app asks for (the icon component
+      // asks for "ionicons"). The web is unchanged: Vazirmatn loads only
+      // for Sorani and Arabic, and icons use the cut-down web font
+      // (src/lib/web-icon-font.web.ts).
+      "expo-font",
+      {
+        fonts: [
+          "./assets/fonts/Vazirmatn-Regular.ttf",
+          "./assets/fonts/Vazirmatn-Medium.ttf",
+          "./assets/fonts/Vazirmatn-SemiBold.ttf",
+          "./assets/fonts/Vazirmatn-Bold.ttf",
+        ],
+        ios: {
+          fonts: [
+            "@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf",
+          ],
+        },
+      },
+    ],
+    [
       // The Sensor screen uses expo-sensors' Accelerometer.
       // Plain accelerometer access needs no runtime permission on either
       // platform, but the module's permission API is shared across all

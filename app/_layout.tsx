@@ -4,6 +4,7 @@ import "@/lib/web-chunk-reload";
 // Side-effect import, web only: the cut-down icon font (see the module).
 import "@/lib/web-icon-font";
 
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Stack, usePathname, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
@@ -77,6 +78,10 @@ const VAZIRMATN_FACES = {
   "Vazirmatn-Bold": require("../assets/fonts/Vazirmatn-Bold.ttf"),
 };
 const NO_FONTS = {};
+// iOS/Android: Vazirmatn and the icon font are built into the app
+// (app.config.ts, expo-font), so registering them under the names the app
+// asks for ("ionicons" for the icons) is quick and needs no network.
+const NATIVE_FONTS = { ...VAZIRMATN_FACES, ...Ionicons.font };
 
 // Created once per app instance (module scope, not per render) so the
 // persisted cache round-trips through the SAME client across re-renders —
@@ -106,18 +111,22 @@ export default function RootLayout() {
   const { scheme } = useTheme();
   const stackScreenOptions = useStackScreenOptions();
   // Vazirmatn for Arabic-script locales (`src/theme/typography.ts`'s
-  // `ARABIC_SCRIPT_FONT`). Not awaited: text renders in the fallback face
-  // until the file is in, then re-renders — better than a blank first
-  // paint on a weak connection.
-  // On the web the four faces (about 270 KB) are downloaded only while
-  // Sorani or Arabic is the language: English and Kurmanji never use them,
-  // and switching into an Arabic-script language reloads the page anyway
-  // (reading direction changes). iOS/Android have them on the device.
+  // `ARABIC_SCRIPT_FONT`). Web: not awaited: text renders in the fallback
+  // face until the file is in, then re-renders — better than a blank first
+  // paint on a weak connection. The four faces (about 270 KB) are
+  // downloaded only while Sorani or Arabic is the language: English and
+  // Kurmanji never use them, and switching into an Arabic-script language
+  // reloads the page anyway (reading direction changes); the icons come
+  // from src/lib/web-icon-font.web.ts. iOS/Android: built into the app, with
+  // the icon font (`NATIVE_FONTS`).
   const { i18n } = useTranslation();
-  const needsArabicScriptFont =
-    Platform.OS !== "web" ||
-    ARABIC_SCRIPT_LOCALES.includes(i18n.language as SupportedLocale);
-  useFonts(needsArabicScriptFont ? VAZIRMATN_FACES : NO_FONTS);
+  const fontMap =
+    Platform.OS !== "web"
+      ? NATIVE_FONTS
+      : ARABIC_SCRIPT_LOCALES.includes(i18n.language as SupportedLocale)
+        ? VAZIRMATN_FACES
+        : NO_FONTS;
+  useFonts(fontMap);
   // The web build downloads the language file in use before the first
   // screen (src/i18n/locale-resources.web.ts); immediate on iOS/Android.
   const [localeReady, setLocaleReady] = useState(isInitialLocaleReady);

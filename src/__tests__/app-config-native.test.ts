@@ -3,6 +3,7 @@ import path from "node:path";
 
 import config, { appleTeamConfig, expoAccountConfig } from "../../app.config";
 import { APP_ORIGIN } from "../config/urls";
+import { arabicScriptFontFor } from "../theme/typography";
 
 const ROOT = path.join(__dirname, "../..");
 
@@ -151,5 +152,63 @@ describe("app.config iOS store and compliance settings", () => {
       microphonePermission: false,
     });
     expect(pluginOptions("expo-camera")).toMatchObject({ microphonePermission: false });
+  });
+});
+
+/** The PostScript name in a TrueType file's `name` table (name id 6). */
+function postScriptName(file: string): string | null {
+  const data = fs.readFileSync(file);
+  const numTables = data.readUInt16BE(4);
+  for (let i = 0; i < numTables; i++) {
+    const record = 12 + 16 * i;
+    if (data.toString("latin1", record, record + 4) !== "name") continue;
+    const table = data.readUInt32BE(record + 8);
+    const count = data.readUInt16BE(table + 2);
+    const strings = table + data.readUInt16BE(table + 4);
+    for (let j = 0; j < count; j++) {
+      const entry = table + 6 + 12 * j;
+      const platformId = data.readUInt16BE(entry);
+      const nameId = data.readUInt16BE(entry + 6);
+      if (nameId !== 6) continue;
+      const length = data.readUInt16BE(entry + 8);
+      const offset = strings + data.readUInt16BE(entry + 10);
+      const raw = data.subarray(offset, offset + length);
+      return platformId === 1
+        ? raw.toString("latin1")
+        : Buffer.from(raw).swap16().toString("utf16le");
+    }
+  }
+  return null;
+}
+
+describe("app.config built-in fonts (expo-font)", () => {
+  const options = pluginOptions("expo-font") as
+    { fonts?: string[]; ios?: { fonts?: string[] } } | undefined;
+
+  it("builds the four Vazirmatn faces into the app", () => {
+    expect(options?.fonts).toEqual([
+      "./assets/fonts/Vazirmatn-Regular.ttf",
+      "./assets/fonts/Vazirmatn-Medium.ttf",
+      "./assets/fonts/Vazirmatn-SemiBold.ttf",
+      "./assets/fonts/Vazirmatn-Bold.ttf",
+    ]);
+  });
+
+  it("names each face the way the styles ask for it (iOS finds fonts by PostScript name)", () => {
+    const asked = new Set(
+      (["400", "500", "600", "700"] as const).map((weight) =>
+        arabicScriptFontFor(weight),
+      ),
+    );
+    const embedded = new Set(
+      (options?.fonts ?? []).map((file) => postScriptName(path.join(ROOT, file))),
+    );
+    expect(embedded).toEqual(asked);
+  });
+
+  it("builds the Ionicons icon font into the iOS app", () => {
+    const [ionicons] = options?.ios?.fonts ?? [];
+    expect(ionicons).toMatch(/Ionicons\.ttf$/);
+    expect(postScriptName(require.resolve(ionicons ?? ""))).toBe("Ionicons");
   });
 });
