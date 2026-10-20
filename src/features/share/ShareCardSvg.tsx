@@ -1,5 +1,12 @@
 import { forwardRef, useEffect, type Ref } from "react";
-import { PixelRatio, Platform, StyleSheet, Text, View, type TextStyle } from "react-native";
+import {
+  PixelRatio,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  type TextStyle,
+} from "react-native";
 import Svg, {
   ClipPath,
   Circle,
@@ -21,7 +28,6 @@ import type { CardModel, CardRect, CardText } from "./card-layout";
 import { POP_DIRECTIONAL_ISOLATE, RIGHT_TO_LEFT_ISOLATE } from "./config";
 import { SHARE_FONT_BOLD, SHARE_FONT_REGULAR } from "./share-font-names";
 import { ensureShareFontsLoaded } from "./share-fonts";
-import { READING_START } from "@/theme";
 
 export interface ShareCardSvgProps {
   model: CardModel;
@@ -397,7 +403,13 @@ interface NativeTextProps {
  * the phone the card's words are real text laid over the drawing, at the
  * same place, size and face.
  */
-function NativeCardText({ item, scale, boxWidth, originX = 0, originY = 0 }: NativeTextProps) {
+function NativeCardText({
+  item,
+  scale,
+  boxWidth,
+  originX = 0,
+  originY = 0,
+}: NativeTextProps) {
   const box = nativeTextBox(item, boxWidth);
   const fontScale = scale / cardTextShrinkFactor();
   const left = (box.left - originX) * scale;
@@ -417,7 +429,9 @@ function NativeCardText({ item, scale, boxWidth, originX = 0, originY = 0 }: Nat
   const last = item.runs ? item.runs.length - 1 : 0;
   const content = item.runs
     ? item.runs.map((run, index) => (
-        <Text key={index} style={{ fontSize: run.size * fontScale, ...READING_START }}>
+        // A run inside the card string's own Text (below): the paragraph
+        // alignment is the parent's, so no alignment of its own here.
+        <Text key={index} style={{ fontSize: run.size * fontScale }}>
           {(item.rtl && index === 0 ? RIGHT_TO_LEFT_ISOLATE : "") +
             run.text +
             (item.rtl && index === last ? POP_DIRECTIONAL_ISOLATE : "")}
@@ -563,7 +577,12 @@ const NativeCard = forwardRef<View, ShareCardSvgProps>(function NativeCard(
         />
       ))}
       {model.texts.map((item, index) => (
-        <NativeCardText key={`t${index}`} item={item} scale={scale} boxWidth={model.width} />
+        <NativeCardText
+          key={`t${index}`}
+          item={item}
+          scale={scale}
+          boxWidth={model.width}
+        />
       ))}
     </View>
   );
@@ -580,18 +599,17 @@ const NativeCard = forwardRef<View, ShareCardSvgProps>(function NativeCard(
  * share sheet while an image is being made. Its one side effect: on the web
  * it fetches its two faces the first time a card renders (`share-fonts.ts`).
  */
-export const ShareCardSvg = forwardRef<ShareCardRef, ShareCardSvgProps>(function ShareCardSvg(
-  props,
-  ref,
-) {
-  useEffect(() => {
-    void ensureShareFontsLoaded();
-  }, []);
-  if (Platform.OS === "web") {
-    return <WebCard ref={ref as Ref<Svg>} {...props} />;
-  }
-  return <NativeCard ref={ref as Ref<View>} {...props} />;
-});
+export const ShareCardSvg = forwardRef<ShareCardRef, ShareCardSvgProps>(
+  function ShareCardSvg(props, ref) {
+    useEffect(() => {
+      void ensureShareFontsLoaded();
+    }, []);
+    if (Platform.OS === "web") {
+      return <WebCard ref={ref as Ref<Svg>} {...props} />;
+    }
+    return <NativeCard ref={ref as Ref<View>} {...props} />;
+  },
+);
 
 const styles = StyleSheet.create({
   card: { direction: "ltr", overflow: "hidden" },
