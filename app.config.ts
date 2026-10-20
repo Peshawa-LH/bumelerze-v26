@@ -34,13 +34,28 @@ function nonEmpty(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-/** `owner` and `extra.eas.projectId`, when the environment names them. */
-export function expoAccountConfig(env: BuildEnv): Pick<ExpoConfig, "owner" | "extra"> {
+/** `owner`, `extra.eas.projectId` and the EAS Update address, when the
+ * environment names them. */
+export function expoAccountConfig(
+  env: BuildEnv,
+): Pick<ExpoConfig, "owner" | "extra" | "updates"> {
   const owner = nonEmpty(env.EXPO_OWNER);
   const projectId = nonEmpty(env.EAS_PROJECT_ID);
   return {
     ...(owner ? { owner } : {}),
     ...(projectId ? { extra: { eas: { projectId } } } : {}),
+    updates: {
+      // A launch never waits for the network (panic-time: the app opens at
+      // once on a weak connection). A new update downloads in the
+      // background and applies at the next safe moment
+      // (src/lib/native-update-on-resume.ts) or at the next launch.
+      fallbackToCacheTimeout: 0,
+      checkAutomatically: "ON_LOAD",
+      // expo-updates is on only with an address, so only once the project
+      // id exists. The channel (eas.json, one per build profile) is written
+      // into the app by EAS Build.
+      ...(projectId ? { url: `https://u.expo.dev/${projectId}` } : {}),
+    },
   };
 }
 

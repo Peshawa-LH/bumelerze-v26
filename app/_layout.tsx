@@ -52,7 +52,11 @@ import { sendColdStartTelemetryPing } from "@/features/telemetry/ping";
 import { useTabBarStore } from "@/features/tab-bar/store";
 import { useLaunchPendingTour } from "@/features/tour/launch";
 import { useDocumentTitle } from "@/lib/document-title";
-import { isTabRootPath, startOfflineShell, startUpdateOnResume } from "@/lib/offline-shell";
+import {
+  isTabRootPath,
+  startOfflineShell,
+  startUpdateOnResume,
+} from "@/lib/offline-shell";
 import { shouldPersistQuery } from "@/lib/persist-filter";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
@@ -82,10 +86,10 @@ const eventsQueryClient = createEventsQueryClient();
 const eventsPersister = createEventsPersister();
 
 /**
- * Web, update on resume: whether reloading to a newer deploy right now would
- * cost the person anything. Only on a tab root (never inside a felt report,
- * a check-in, a form or an event page), and never while a report, check-in
- * or feedback is being sent.
+ * Update on resume (web: a newer deploy; iOS/Android: a downloaded EAS
+ * Update): whether reloading right now would cost the person anything. Only
+ * on a tab root (never inside a felt report, a check-in, a form or an event
+ * page), and never while a report, check-in or feedback is being sent.
  */
 function isReloadSafe(pathname: string): boolean {
   if (!isTabRootPath(pathname)) {
@@ -137,15 +141,17 @@ export default function RootLayout() {
   const inTabs = (segments as string[])[0] === "(tabs)";
   // Web: the browser tab's title follows the screen (nothing on iOS/Android).
   useDocumentTitle();
-  // Web: a newer deploy is picked up when the page comes back into view, but
-  // only at a moment that costs nothing (`isReloadSafe`, read at that moment).
+  // A newer version is picked up when the app comes back into view (web: the
+  // page; iOS/Android: the foreground, through EAS Update), but only at a
+  // moment that costs nothing (`isReloadSafe`, read at that moment).
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   useEffect(() => {
     pathnameRef.current = pathname;
   }, [pathname]);
   useEffect(
-    () => startUpdateOnResume({ isSafeToReload: () => isReloadSafe(pathnameRef.current) }),
+    () =>
+      startUpdateOnResume({ isSafeToReload: () => isReloadSafe(pathnameRef.current) }),
     [],
   );
   // The scroll-aware tab bar takes its strip with it when it slides away.
