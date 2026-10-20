@@ -40,12 +40,19 @@ describe("app.config native build identity", () => {
 
 describe("eas.json build profiles", () => {
   const eas = require("../../eas.json") as {
-    build: Record<string, { channel?: string }>;
+    build: Record<string, { channel?: string; extends?: string }>;
   };
 
   it("gives every build profile its own EAS Update channel", () => {
     expect(eas.build.development?.channel).toBe("development");
     expect(eas.build.preview?.channel).toBe("preview");
     expect(eas.build.production?.channel).toBe("production");
+  });
+
+  it("has a development build for the iOS Simulator (no Apple account needed)", () => {
+    expect(eas.build["development-simulator"]).toEqual({
+      extends: "development",
+      ios: { simulator: true },
+    });
   });
 });
