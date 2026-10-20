@@ -353,7 +353,9 @@ export function buildVs30Layer(scheme: "light" | "dark"): RasterLayerSpecificati
 
 interface OverlaySpec {
   sourceId: string;
-  source: () => GeoJSONSourceSpecification | ImageSourceSpecification;
+  /** `url` replaces the web build's own `/data/` address (the native app
+   * has no web origin of its own); omitted, the web URL applies. */
+  source: (url?: string) => GeoJSONSourceSpecification | ImageSourceSpecification;
   /** Bottom to top within this overlay. */
   layers: (scheme: "light" | "dark") => LayerSpecification[];
 }
@@ -361,12 +363,12 @@ interface OverlaySpec {
 const OVERLAY_SPECS: Record<OverlayLayerId, OverlaySpec> = {
   "site-vs30": {
     sourceId: VS30_SOURCE_ID,
-    source: () => buildVs30Source(),
+    source: (url) => buildVs30Source(url),
     layers: (scheme) => [buildVs30Layer(scheme)],
   },
   "faults-gem": {
     sourceId: FAULTS_SOURCE_ID,
-    source: () => buildFaultsSource(),
+    source: (url) => buildFaultsSource(url),
     layers: (scheme) => [
       buildFaultsLayer(scheme),
       buildHitLayer(FAULTS_HIT_LAYER_ID, FAULTS_SOURCE_ID),
@@ -374,7 +376,7 @@ const OVERLAY_SPECS: Record<OverlayLayerId, OverlaySpec> = {
   },
   "faults-afead": {
     sourceId: AFEAD_SOURCE_ID,
-    source: () => buildFaultsSource(AFEAD_GEOJSON_URL),
+    source: (url) => buildFaultsSource(url ?? AFEAD_GEOJSON_URL),
     layers: (scheme) => [
       buildAfeadLayer(scheme),
       buildHitLayer(AFEAD_HIT_LAYER_ID, AFEAD_SOURCE_ID),
@@ -382,10 +384,45 @@ const OVERLAY_SPECS: Record<OverlayLayerId, OverlaySpec> = {
   },
   "historical-quakes": {
     sourceId: HISTORICAL_SOURCE_ID,
-    source: () => buildFaultsSource(HISTORICAL_GEOJSON_URL),
+    source: (url) => buildFaultsSource(url ?? HISTORICAL_GEOJSON_URL),
     layers: (scheme) => [buildHistoricalLayer(scheme)],
   },
 };
+
+/** The file each overlay reads from the web build's `public/data/`. */
+export const OVERLAY_DATA_FILES: Record<OverlayLayerId, string> = {
+  "site-vs30": "vs30-site-class.png",
+  "faults-gem": "gem-active-faults-region.geojson",
+  "faults-afead": "afead-faults-region.geojson",
+  "historical-quakes": "historical-earthquakes.geojson",
+};
+
+/** An overlay file on a given origin (the native app reads the files the
+ * web app serves, `APP_ORIGIN`), stamped like the web build's own URLs. */
+export function overlayDataUrl(id: OverlayLayerId, origin: string): string {
+  return `${origin}/data/${OVERLAY_DATA_FILES[id]}?v=${MAP_ASSET_REVISION}`;
+}
+
+/** One overlay as plain style JSON: its source id, its source read from
+ * `url` (the web's own address when omitted) and its layers, bottom to
+ * top. The native map declares the same specs as elements instead of
+ * adding them imperatively (`native-layers.ts`). */
+export function buildOverlaySpec(
+  id: OverlayLayerId,
+  scheme: "light" | "dark",
+  url?: string,
+): {
+  sourceId: string;
+  source: GeoJSONSourceSpecification | ImageSourceSpecification;
+  layers: LayerSpecification[];
+} {
+  const spec = OVERLAY_SPECS[id];
+  return {
+    sourceId: spec.sourceId,
+    source: spec.source(url),
+    layers: spec.layers(scheme),
+  };
+}
 
 /** Paint order of the overlays, bottom to top; all of them sit under the
  * basemap's labels. The ground layer is a backdrop, faults draw over it,
