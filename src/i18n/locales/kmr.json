@@ -3575,6 +3575,7 @@
       "iosUpdate": "Hişyarî hewceyî iOS 16.4 an nûtir in. Vê iPhone an iPad di Settings, General, Software Update de nû bike, paşê vegere vir.",
       "deniedBrowser": "Agahdarî ji bo app.bumelerze.com di vê gerokê de hatine astengkirin. Ji bo destûrdanê, îkona li kêleka navnîşana malperê bitikîne, sazkariyên malperê veke, Notifications bike Allow, paşê vê rûpelê nû bike.",
       "deniedIos": "Agahdarî ji bo Bumelerze girtî ne. Sepana Settings veke, Notifications bitikîne, paşê Bumelerze, û Allow Notifications veke. Paşê vegere vir.",
+      "deniedApp": "Agahdarî ji bo Bumelerze li ser vê telefonê girtî ne. «Sazkariyan Veke» bitikîne, paşê Notifications, û destûrê bide wan. Paşê vegere vir.",
       "dismissed": "Te pirs bêyî hilbijartinê girt. Dîsa bişkokê bitikîne û Allow hilbijêre.",
       "network": "Girêdana înternetê tune. Girê bide û dîsa biceribîne.",
       "browserFailed": "Vê gerokê nekarî hişyariyan saz bike. Rûpelê nû bike û dîsa biceribîne.",
@@ -3613,6 +3614,7 @@
       "added": "Hat zêdekirin {{date}}",
       "lastDelivered": "Agahdariya dawî gihîşt {{date}}",
       "stopped": "Rawestiya: ev gerok êdî hişyariyan qebûl nake. Wê rake, paşê li ser wê cîhazê dîsa hişyariyan veke.",
+      "stoppedPhone": "Rawestiya: ev telefon êdî hişyariyan qebûl nake. Di sepana li ser wê telefonê de dîsa hişyariyan veke.",
       "remove": "Rake",
       "removeA11y": "{{device}} rake",
       "removeFailed": "Nehat rakirin. Girêdana xwe kontrol bike û dîsa biceribîne."

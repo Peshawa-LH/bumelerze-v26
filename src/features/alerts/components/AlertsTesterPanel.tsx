@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import * as Linking from "expo-linking";
 import type { TFunction } from "i18next";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from "react-native";
@@ -11,7 +12,8 @@ import { useTheme } from "@/theme";
 import { useMyAlertDevices } from "../queries";
 import { SupabaseAlertsTransport, toAlertsError, type AlertsTransport } from "../transport";
 import type { AlertAccess, AlertDevice, AlertsErrorCode } from "../types";
-import { useWebPushDevice, type WebPushDevice } from "../use-web-push-device";
+import { useExpoPushDevice, type PhoneDeviceOptions, type PushDevice } from "../use-expo-push-device";
+import { useWebPushDevice } from "../use-web-push-device";
 import {
   browserEnv,
   ensureWebAppManifest,
@@ -26,20 +28,30 @@ import {
  * hurry can read at a glance (on / off / not possible here, and why), ONE
  * primary action, then the test alert and the list of this account's
  * devices. The tiers and places stay in the screen below.
+ *
+ * The web app registers this browser (web push); the iOS/Android app
+ * registers the phone (Expo push, use-expo-push-device.ts). Each hook does
+ * nothing on the other platform.
  */
 export function AlertsTesterPanel({
   access,
   transport = SupabaseAlertsTransport,
   env,
+  phone,
 }: {
   access: AlertAccess;
   transport?: AlertsTransport;
   /** Test seam: the browser objects (null = no browser). */
   env?: BrowserEnv | null;
+  /** Test seam: the phone's project id and native calls. */
+  phone?: PhoneDeviceOptions;
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
-  const device = useWebPushDevice(transport, env);
+  const webDevice = useWebPushDevice(transport, env);
+  const phoneDevice = useExpoPushDevice(transport, phone);
+  const isWeb = Platform.OS === "web";
+  const device: PushDevice = isWeb ? { ...webDevice, subscriptionId: null } : phoneDevice;
 
   const resolvedEnv = useMemo(() => (env === undefined ? browserEnv() : env), [env]);
   const ios = resolvedEnv ? isIosDevice(resolvedEnv.navigator) : false;
@@ -90,7 +102,7 @@ export function AlertsTesterPanel({
       ) : null}
 
       <Card testID="alerts-device">
-        <DeviceStatus device={device} ios={ios} />
+        <DeviceStatus device={device} ios={ios} phoneApp={!isWeb} />
       </Card>
 
       <TestAlert transport={transport} />
@@ -202,7 +214,16 @@ export function deviceErrorText(code: AlertsErrorCode, t: TFunction, ios: boolea
   }
 }
 
-function DeviceStatus({ device, ios }: { device: WebPushDevice; ios: boolean }) {
+function DeviceStatus({
+  device,
+  ios,
+  phoneApp,
+}: {
+  device: PushDevice;
+  ios: boolean;
+  /** The iOS/Android app (Expo push), not a browser. */
+  phoneApp: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
 
@@ -243,7 +264,7 @@ function DeviceStatus({ device, ios }: { device: WebPushDevice; ios: boolean }) 
   }
 
   if (device.support !== "supported") {
-    const reason: Record<Exclude<WebPushDevice["support"], "supported" | "ios-browser">, string> = {
+    const reason: Record<Exclude<PushDevice["support"], "supported" | "ios-browser">, string> = {
       native: t("alerts.device.native"),
       "not-configured": t("alerts.device.notConfigured"),
       unsupported: t("alerts.device.unsupported"),
@@ -262,6 +283,22 @@ function DeviceStatus({ device, ios }: { device: WebPushDevice; ios: boolean }) 
   }
 
   const on = device.status === "on";
+  if (!on && device.permission === "denied" && phoneApp) {
+    // The phone will not ask again either, but the app can open its page in
+    // Settings: one button that does that.
+    return (
+      <View style={{ gap: spacing[3] }} testID="alerts-device-denied">
+        <StatusLine tone="warning" text={t("alerts.device.blocked")} testID="alerts-device-status" />
+        <Body>{t("alerts.device.deniedApp")}</Body>
+        <ActionButton
+          primary
+          label={t("notificationSettings.permission.openSettings")}
+          onPress={() => void Linking.openSettings()}
+          testID="alerts-device-open-settings"
+        />
+      </View>
+    );
+  }
   if (!on && device.permission === "denied") {
     // No button: the browser will not ask again; only its settings can.
     return (
@@ -383,7 +420,7 @@ function DeviceList({
 }: {
   allowed: boolean;
   transport: AlertsTransport;
-  device: WebPushDevice;
+  device: PushDevice;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -437,7 +474,11 @@ function DeviceList({
         </Text>
       ) : null}
       {list.map((item) => {
-        const isThis = item.endpoint !== null && item.endpoint === device.endpoint;
+        // A browser by its endpoint; the phone app by the id the server
+        // gave it (a phone has no endpoint).
+        const isThis =
+          (item.endpoint !== null && item.endpoint === device.endpoint) ||
+          (device.subscriptionId !== null && item.id === device.subscriptionId);
         const name = deviceKindLabel(item, t);
         return (
           <View
@@ -467,10 +508,12 @@ function DeviceList({
                 </Text>
               ) : null}
               {item.disabled ? (
-                <Text style={[meta, { color: colors.status.warning }]}>{t("alerts.devices.stopped")}</Text>
+                <Text style={[meta, { color: colors.status.warning }]}>
+                  {item.kind === "expo" ? t("alerts.devices.stoppedPhone") : t("alerts.devices.stopped")}
+                </Text>
               ) : null}
             </View>
-            {item.endpoint ? (
+            {item.endpoint || isThis ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t("alerts.devices.removeA11y", { device: name })}
