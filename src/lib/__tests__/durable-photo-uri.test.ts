@@ -2,6 +2,12 @@ import { Platform } from "react-native";
 
 import { blobToDataUrl, dataUriMimeType, toDurablePhotoUri } from "../durable-photo-uri";
 
+const mockWriteFile = jest.fn();
+jest.mock("../durable-photo-file", () => ({
+  writeDurablePhotoFile: (...args: unknown[]) => mockWriteFile(...args),
+  releaseDurablePhoto: jest.fn(),
+}));
+
 /** Eleven feedback screenshots died on 2026-09-27 because a web `blob:`
  * uri was persisted and fetched later; this helper reads the bytes at pick
  * time instead. */
@@ -29,9 +35,16 @@ describe("toDurablePhotoUri", () => {
     delete (globalThis as { createImageBitmap?: unknown }).createImageBitmap;
   });
 
-  it("passes a native file:// uri straight through", async () => {
+  it("on a phone, keeps a downscaled copy at the web's size and quality, never the picker's cache file", async () => {
+    // iOS parity item 14: the picker's file was passed straight through,
+    // from a cache folder the system may empty before a queued upload.
     Object.defineProperty(Platform, "OS", { value: "ios", configurable: true });
-    await expect(toDurablePhotoUri({ uri: "file:///tmp/p.jpg" })).resolves.toBe("file:///tmp/p.jpg");
+    mockWriteFile.mockResolvedValue("file:///docs/photos/a.jpg");
+    const asset = { uri: "file:///cache/p.jpg", width: 4032, height: 3024 };
+    await expect(toDurablePhotoUri(asset)).resolves.toBe("file:///docs/photos/a.jpg");
+    expect(mockWriteFile).toHaveBeenCalledWith(asset, 1600, 0.72);
+    await toDurablePhotoUri(asset, { maxEdgePx: 256, quality: 0.8 });
+    expect(mockWriteFile).toHaveBeenLastCalledWith(asset, 256, 0.8);
   });
 
   it("on web, falls back to a full data uri of the picked file when the canvas path is unavailable", async () => {

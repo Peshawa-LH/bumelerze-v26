@@ -1,5 +1,9 @@
 import { Platform } from "react-native";
 
+import { writeDurablePhotoFile } from "./durable-photo-file";
+
+export { releaseDurablePhoto } from "./durable-photo-file";
+
 /**
  * A picked photo's uri, made safe to persist and upload LATER.
  *
@@ -17,14 +21,23 @@ import { Platform } from "react-native";
  * re-encoded as JPEG before encoding. A phone screenshot lands well under
  * 300 KB; the picker's own `quality: 0.4` is not applied on web at all.
  *
- * Native returns the `file://` uri unchanged: the file outlives the
- * document, and the transports already read it with `expo-file-system`.
+ * Phone (iOS, Android): the picker's file lives in the app's cache folder,
+ * which the system may empty while an upload is still queued, and its size
+ * rested on the picker's JPEG quality alone (a large camera photo could
+ * pass the 3 MB home and 1 MB avatar limits and then be refused at upload).
+ * So the photo gets the web's treatment, the same longest edge and the
+ * same JPEG quality, and is kept in the app's Documents folder, which the
+ * system never empties (`durable-photo-file.ts`). The transports read that
+ * `file://` uri with `expo-file-system` as before.
  */
 export interface PickedAsset {
   uri: string;
   /** Present on web (`expo-image-picker`'s own asset shape). */
   file?: Blob;
   mimeType?: string;
+  /** Pixel size as the picker reports it (phone); read from the image when absent. */
+  width?: number;
+  height?: number;
 }
 
 export const DURABLE_PHOTO_MAX_EDGE_PX = 1600;
@@ -35,7 +48,7 @@ export async function toDurablePhotoUri(
   { maxEdgePx = DURABLE_PHOTO_MAX_EDGE_PX, quality = DURABLE_PHOTO_JPEG_QUALITY } = {},
 ): Promise<string> {
   if (Platform.OS !== "web") {
-    return asset.uri;
+    return await writeDurablePhotoFile(asset, maxEdgePx, quality);
   }
   const blob: Blob = asset.file ?? (await fetch(asset.uri).then((r) => r.blob()));
   try {
