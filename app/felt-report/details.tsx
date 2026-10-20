@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { toDurablePhotoUri } from "@/lib/durable-photo-uri";
 import {
   Image,
@@ -163,7 +164,7 @@ export default function DetailsReportScreen() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={{ gap: spacing[3], paddingTop: spacing[3] }}>
+      <ScrollView {...KEYBOARD_AWARE_SCROLL} contentContainerStyle={{ gap: spacing[3], paddingTop: spacing[3] }}>
         <Text
           style={{
             color: colors.text.secondary,

@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { lookupHandbookData } from "../lookup";
 import { SpectrumSection } from "../spectrum";
@@ -37,6 +38,7 @@ export function HandbookScreen() {
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       {...tabBarScroll}
       style={{ backgroundColor: colors.surface.base }}
       contentContainerStyle={{

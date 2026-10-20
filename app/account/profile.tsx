@@ -9,6 +9,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { ProfileForm } from "@/features/account/components/ProfileForm";
 import { useAccount } from "@/features/account/use-account";
 import { useProfileAbout } from "@/features/account/use-profile-about";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /** Create / edit the account profile. Needs a signed-in account. */
@@ -75,6 +76,7 @@ export default function ProfileScreen() {
         }}
       />
       <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           gap: spacing[4],

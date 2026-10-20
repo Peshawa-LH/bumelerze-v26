@@ -26,7 +26,7 @@
   },
   "event-route": {
     "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "c3f344020781fe88",
-    "file:app/account/sign-in.tsx": "ae56c054e3480a2e",
+    "file:app/account/sign-in.tsx": "0f95d8e2067443f9",
     "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "07ce1243f86982c9"
   },
   "felt-levels": {
@@ -136,6 +136,6 @@
   "app-address": {
     "file:src/config/urls.ts": "0f93ffd0c1889e66",
     "file:app/home/join.tsx": "3c7470d0cbb4bb90",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index.tsx": "52b6cc2f2b53f6ff"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index.tsx": "c11fa159c5aaf043"
   }
 }

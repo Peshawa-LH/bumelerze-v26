@@ -8,6 +8,7 @@ import { formatUsername } from "@/features/community/username";
 import { formatAbsoluteDual } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { formatCount } from "../../people/format";
 import { useDebounced } from "../../people/queries";
@@ -88,6 +89,7 @@ export function FeedbackInboxContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       testID="admin-inbox"
       contentContainerStyle={[

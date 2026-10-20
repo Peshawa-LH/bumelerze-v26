@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess } from "../../queries";
 import { formatCount } from "../format";
@@ -85,6 +86,7 @@ export function PeopleContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       testID="admin-people"
       contentContainerStyle={[

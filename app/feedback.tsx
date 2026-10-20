@@ -3,6 +3,7 @@ import { useState } from "react";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
 
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { toDurablePhotoUri } from "@/lib/durable-photo-uri";
 import {
   Image,
@@ -286,7 +287,10 @@ export default function FeedbackScreen() {
         {t("feedback.description")}
       </Text>
 
-      <ScrollView contentContainerStyle={{ gap: spacing[3], paddingTop: spacing[4] }}>
+      <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
+        contentContainerStyle={{ gap: spacing[3], paddingTop: spacing[4] }}
+      >
         <Pressable
           accessibilityRole="checkbox"
           {...a11yState({ checked: badgeRequest })}

@@ -17,6 +17,7 @@ import { useSnackbar } from "@/components/Snackbar";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { restoreErrorText } from "@/features/undo/error-text";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess, useAdminActions, useAdminActivity } from "../queries";
 import type { AdminTransport } from "../transport";
@@ -147,6 +148,7 @@ export function ActivityContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       testID="admin-activity"
       contentContainerStyle={[

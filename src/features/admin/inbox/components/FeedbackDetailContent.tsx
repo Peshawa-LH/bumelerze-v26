@@ -12,6 +12,7 @@ import { formatAbsoluteDual } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { levelText, reasonText, untilText } from "@/features/restrictions/labels";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess } from "../../queries";
 import { GRANTABLE_RANKS, type GrantableRank } from "../../types";
@@ -95,6 +96,7 @@ export function FeedbackDetailContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       testID="admin-feedback-detail"
       contentContainerStyle={[
@@ -219,11 +221,7 @@ function DetailBody({
             : ""}
         </Text>
         {data.contact ? (
-          <Text
-            selectable
-            style={[meta, ltrValueStyle()]}
-            testID="feedback-contact"
-          >
+          <Text selectable style={[meta, ltrValueStyle()]} testID="feedback-contact">
             {t("admin.feedback.contact", { contact: data.contact })}
           </Text>
         ) : null}

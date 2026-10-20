@@ -21,6 +21,7 @@ import { useRestrictionActions } from "@/features/restrictions/queries";
 import type { RestrictionsTransport } from "@/features/restrictions/transport";
 import { LimitAccountSheet } from "@/features/restrictions/components/LimitAccountSheet";
 import type { RestrictionLevel } from "@/features/restrictions/types";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminAccess, useAdminActions } from "../../queries";
@@ -123,6 +124,7 @@ export function PersonContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       ref={scroll}
       keyboardShouldPersistTaps="handled"
       testID="admin-person"

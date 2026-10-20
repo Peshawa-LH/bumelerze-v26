@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAccount } from "@/features/account/use-account";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 import { lazyScreenContent } from "@/components/LazyScreenContent";
@@ -42,6 +43,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       {...tabBarScroll}
       style={{ backgroundColor: colors.surface.base }}
       contentContainerStyle={[

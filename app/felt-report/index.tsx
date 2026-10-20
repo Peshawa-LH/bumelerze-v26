@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { placeDisplayName } from "@/features/geo";
 import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   useCloseFeltFlow,
@@ -144,7 +145,10 @@ export default function Tier1FeltReportScreen() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={{ gap: spacing[4], paddingTop: spacing[3] }}>
+      <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
+        contentContainerStyle={{ gap: spacing[4], paddingTop: spacing[3] }}
+      >
         <Text
           style={{
             color: colors.text.secondary,

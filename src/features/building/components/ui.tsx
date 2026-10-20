@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily } from "@/theme";
 import type { PictogramName } from "../pictograms.generated";
 import { Pictogram } from "./Pictogram";
@@ -258,7 +259,9 @@ export function TextField({
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
-            ...(latin ? ltrValueStyle() : { textAlign: "auto", writingDirection: "auto" }),
+            ...(latin
+              ? ltrValueStyle()
+              : { textAlign: "auto", writingDirection: "auto" }),
           },
         ]}
       />
@@ -321,6 +324,7 @@ export function ScreenFrame({
         }}
       />
       <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           gap: spacing[4],

@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-nativ
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily } from "@/theme";
 import { useCatalogBounds, useCatalogList } from "../use-catalog";
 import type { CatalogFilters, CatalogRow as CatalogRowData } from "../types";
@@ -108,6 +109,7 @@ export function CatalogListScreen() {
   return (
     <View style={[styles.flex, { backgroundColor: colors.surface.base }]}>
       <FlatList
+        {...KEYBOARD_AWARE_SCROLL}
         {...tabBarScroll}
         data={rows}
         keyExtractor={(row) => row.bumelerzeId}

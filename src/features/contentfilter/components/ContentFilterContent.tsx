@@ -9,6 +9,7 @@ import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatAbsoluteDual, formatMagnitudeValue } from "@/features/events";
 import { physicalTextAlign } from "@/i18n";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
@@ -80,6 +81,7 @@ export function ContentFilterContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[
         styles.content,

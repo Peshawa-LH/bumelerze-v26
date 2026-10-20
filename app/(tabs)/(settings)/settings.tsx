@@ -16,6 +16,7 @@ import { SettingsRow, SettingsRowBody } from "@/features/account/components/Sett
 import { GuidelinesRow } from "@/features/guidelines";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { confirmDialog, messageDialog } from "@/lib/dialogs";
 import { openLink } from "@/lib/open-link";
 import { usePrefsStore } from "@/features/onboarding";
@@ -69,6 +70,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       {...tabBarScroll}
       style={{ backgroundColor: colors.surface.base }}
       contentContainerStyle={[

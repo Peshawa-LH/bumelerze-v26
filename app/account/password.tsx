@@ -7,6 +7,7 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { PasswordForm } from "@/features/account/components/PasswordForm";
 import { useAccount } from "@/features/account/use-account";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme } from "@/theme";
 
 /** Set or change the password. Needs a signed-in account; accounts made
@@ -28,6 +29,7 @@ export default function PasswordScreen() {
         }}
       />
       <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           gap: spacing[4],
