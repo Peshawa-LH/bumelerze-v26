@@ -26,6 +26,13 @@ describe("I'm safe share message", () => {
     expect(text).toContain("Bumelerze");
   });
 
+  it("[regression] ckb: the time keeps its own direction (first-strong isolate)", async () => {
+    await i18n.changeLanguage("ckb");
+    const text = buildSafeShareMessage(i18n.t, "ckb", ORIGIN);
+    expect(text).toContain("\u2068");
+    expect(text).not.toContain("\u2066");
+  });
+
   it.each(["en", "ckb", "kmr", "ar"])(
     "%s: no link, no coordinates, no place",
     async (locale) => {

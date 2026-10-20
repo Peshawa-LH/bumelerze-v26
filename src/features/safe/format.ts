@@ -5,13 +5,15 @@ import {
   formatMagnitudeValue,
   formatRelativeTimeValue,
   getRelativeTime,
+  isolateLocalizedTime,
   isolateNumeric,
 } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
 
-/** "2:21 PM", isolated so it never flips inside Sorani/Arabic text. */
+/** "2:21 PM", isolated in its own direction so it never flips inside
+ * Sorani/Arabic text (`isolateLocalizedTime`). */
 export function clockText(t: TFunction, locale: string, timeMs: number): string {
-  return isolateNumeric(formatClockTime(timeMs, locale, t));
+  return isolateLocalizedTime(formatClockTime(timeMs, locale, t));
 }
 
 /** "2h ago" with the app's own digits. */

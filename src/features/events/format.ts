@@ -27,6 +27,24 @@ export function isolateNumeric(text: string): string {
   return `${LEFT_TO_RIGHT_ISOLATE}${text}${POP_DIRECTIONAL_ISOLATE}`;
 }
 
+const FIRST_STRONG_ISOLATE = "\u2068";
+
+/**
+ * First-strong isolate (U+2068 ... U+2069) for a LOCALIZED date or time
+ * ("١٢ی تشرینی دووەمی ٢٠١٧، ٦:١٨ دوای نیوەڕۆ", "6:18 PM") interpolated into
+ * a sentence: the chunk takes the direction of its own first letter.
+ * `isolateNumeric` forces it left to right. For a date written wholly in
+ * Sorani or Arabic script both render the same (the bidi algorithm still
+ * orders its letters right to left), but a Latin run inside it then lands
+ * at the wrong end: "کات: UTC ١٢ی تشرینی..." instead of "... دوای نیوەڕۆ UTC"
+ * (checked in Chromium, 2026-10-21). A chunk with no letter at all (digits
+ * and separators only) is isolated left to right, exactly as
+ * `isolateNumeric` does it, so its digits never flip.
+ */
+export function isolateLocalizedTime(text: string): string {
+  return `${FIRST_STRONG_ISOLATE}${text}${POP_DIRECTIONAL_ISOLATE}`;
+}
+
 /**
  * Magnitude numeral only, one decimal, digit-localized (the UI backlog wave
  * 5 item 1 — every numeral localizes, magnitude included; this reverses

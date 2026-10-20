@@ -36,6 +36,7 @@ import {
   formatMagnitudeValue,
   formatRelativeTimeValue,
   getRelativeTime,
+  isolateLocalizedTime,
   isolateNumeric,
   TagRow,
   useEventSourceAgencies,
@@ -514,7 +515,7 @@ function EventPreviewSheetImpl(
                   lineHeight: typography.bodyMeta.lineHeight,
                 }}
               >
-                {t("eventDetail.localTimeLabel")}: {isolateNumeric(localTimeText)}
+                {t("eventDetail.localTimeLabel")}: {isolateLocalizedTime(localTimeText)}
               </Text>
               <Text
                 allowFontScaling

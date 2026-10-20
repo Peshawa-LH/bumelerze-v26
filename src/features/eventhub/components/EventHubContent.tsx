@@ -24,6 +24,7 @@ import {
   formatAbsoluteDual,
   formatDepthKm,
   formatMagnitudeValue,
+  isolateLocalizedTime,
   isolateNumeric,
   type Event,
 } from "@/features/events";
@@ -244,7 +245,7 @@ export function EventHubContent({
       : placeLine(event, locale, t);
   const title = `${magnitudeText} · ${where}`;
   const when = t("eventHub.post.when", {
-    time: isolateNumeric(formatAbsoluteDual(event.originTime, locale, t).local),
+    time: isolateLocalizedTime(formatAbsoluteDual(event.originTime, locale, t).local),
   });
   const facts = [
     t("eventHub.post.depth", {

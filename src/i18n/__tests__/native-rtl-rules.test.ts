@@ -174,6 +174,14 @@ describe("native direction and date rules (source scan)", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("[regression] a localized date or time is isolated in its own direction (isolateLocalizedTime), never forced left to right", () => {
+    // U+2066 (isolateNumeric) lays a date out left to right: a Latin run in a
+    // Sorani or Arabic date ("UTC") then lands at the wrong end of it.
+    const forced =
+      /isolateNumeric\(\s*(?:formatClockTime|formatAbsoluteDual|formatAbsoluteOne|formatDateOnly|[A-Za-z]*(?:Local|TimeText)\b)/g;
+    expect(countMatches(forced)).toEqual({});
+  });
+
   it("[regression] no locale-dependent toLocaleString / toLocaleDateString / toLocaleTimeString", () => {
     const offenders = Object.keys(
       countMatches(/\.toLocale(?:Date|Time)?String\(\s*(?!["']en-US["']\s*\))[^)]/g),

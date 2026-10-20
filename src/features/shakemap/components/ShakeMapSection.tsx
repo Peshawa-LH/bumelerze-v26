@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/events";
+import { formatAbsoluteDual, isolateLocalizedTime, type Event } from "@/features/events";
 import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
@@ -128,7 +128,7 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
       />
       <View style={{ gap: spacing[1] }}>
         <Text style={bodyStyle}>
-          {t("eventDetail.shakemap.updated", { time: isolateNumeric(generatedLocal) })}
+          {t("eventDetail.shakemap.updated", { time: isolateLocalizedTime(generatedLocal) })}
         </Text>
         {/* Citation only, same "cite, never link out" owner rule as the
          * event Source section below this one — producer is ALWAYS

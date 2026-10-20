@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/events";
+import { formatAbsoluteDual, isolateLocalizedTime, type Event } from "@/features/events";
 import { placeLine } from "@/features/geo";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useFeltMap } from "../queries";
@@ -117,7 +117,7 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
       />
       <View style={{ gap: spacing[1] }}>
         <Text style={bodyStyle}>
-          {t("eventDetail.feltMap.updated", { time: isolateNumeric(updatedLocal) })}
+          {t("eventDetail.feltMap.updated", { time: isolateLocalizedTime(updatedLocal) })}
         </Text>
         <Text style={bodyStyle}>{t("eventDetail.feltMap.citation")}</Text>
       </View>

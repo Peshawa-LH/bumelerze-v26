@@ -2,7 +2,7 @@ import * as Clipboard from "expo-clipboard";
 import type { TFunction } from "i18next";
 import { Share } from "react-native";
 
-import { formatClockTime, isolateNumeric } from "@/features/events";
+import { formatClockTime, isolateLocalizedTime } from "@/features/events";
 
 /**
  * The "I'm safe" message for relatives without the app (WhatsApp, Viber,
@@ -20,7 +20,7 @@ export function buildSafeShareMessage(
     return t("imSafe.share.messageNoTime");
   }
   return t("imSafe.share.message", {
-    time: isolateNumeric(formatClockTime(eventOriginTime, locale, t)),
+    time: isolateLocalizedTime(formatClockTime(eventOriginTime, locale, t)),
   });
 }
 

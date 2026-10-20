@@ -12,6 +12,7 @@ import {
   formatDepthKm,
   formatIsolatedDistance,
   formatMagnitudeValue,
+  isolateLocalizedTime,
   isolateNumeric,
   MAX_NAMED_SOURCE_TAGS_FULL,
   TagRow,
@@ -624,7 +625,7 @@ function EventDetailHeader({
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
-          {t("eventDetail.sourceUpdated", { time: isolateNumeric(sourceUpdatedLocal) })}
+          {t("eventDetail.sourceUpdated", { time: isolateLocalizedTime(sourceUpdatedLocal) })}
         </Text>
         {/* Citation only — deliberately NO outbound link to the provider
          * (owner call 2026-08-06): we cite the source network per the

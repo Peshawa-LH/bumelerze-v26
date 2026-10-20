@@ -10,6 +10,7 @@ import {
   formatMagnitudeValue,
   formatRelativeTimeValue,
   getRelativeTime,
+  isolateLocalizedTime,
   isolateNumeric,
 } from "../format";
 
@@ -305,5 +306,20 @@ describe("isolateNumeric", () => {
     expect(wrapped.startsWith("⁦")).toBe(true);
     expect(wrapped.endsWith("⁩")).toBe(true);
     expect(wrapped).toContain("120.0 km");
+  });
+});
+
+describe("isolateLocalizedTime", () => {
+  it("[regression] wraps a localized date in a first-strong isolate, so a Latin run in a Sorani date stays at its end", () => {
+    const sorani = "١٢ی تشرینی دووەمی ٢٠١٧، ٦:١٨ دوای نیوەڕۆ UTC";
+    const wrapped = isolateLocalizedTime(sorani);
+    // U+2068 FSI: the chunk takes the direction of its first letter (right
+    // to left here); inside U+2066 (LRI) "UTC" was drawn before the date.
+    expect(wrapped).toBe(`\u2068${sorani}\u2069`);
+    expect(wrapped).not.toContain("\u2066");
+  });
+
+  it("isolates an English time the same way (its first letter is Latin)", () => {
+    expect(isolateLocalizedTime("6:18 PM")).toBe("\u20686:18 PM\u2069");
   });
 });
