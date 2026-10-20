@@ -1,9 +1,13 @@
 import { fireEvent, render, renderHook, screen } from "@testing-library/react-native";
-import { Linking } from "react-native";
 
 import i18n from "@/i18n";
 import { useTheme } from "@/theme";
 import { RiskProvenanceChips } from "../components/RiskProvenanceChips";
+
+const mockOpenLink = jest.fn();
+jest.mock("@/lib/open-link", () => ({
+  openLink: (url: string) => mockOpenLink(url),
+}));
 
 async function themeArgs() {
   const { result } = await renderHook(() => useTheme());
@@ -65,7 +69,7 @@ describe("RiskProvenanceChips", () => {
   });
 
   it("opens the report URL when the download button is pressed", async () => {
-    const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+    const openURL = mockOpenLink.mockReset().mockResolvedValue(undefined);
     const { colors, typography, spacing } = await themeArgs();
     const reportUrl = "https://example.test/events/us6000jllz/v5/report.pdf";
     await render(
@@ -75,14 +79,12 @@ describe("RiskProvenanceChips", () => {
     await fireEvent.press(screen.getByTestId("risk-download-report"));
     await Promise.resolve();
 
+    // The in-app browser on a phone, a new tab on the web (`openLink`).
     expect(openURL).toHaveBeenCalledWith(reportUrl);
-    openURL.mockRestore();
   });
 
   it("fails soft into an inline offline message when opening the report URL rejects (never a crash)", async () => {
-    const openURL = jest
-      .spyOn(Linking, "openURL")
-      .mockRejectedValue(new Error("no network"));
+    mockOpenLink.mockReset().mockRejectedValue(new Error("no network"));
     const { colors, typography, spacing } = await themeArgs();
     const reportUrl = "https://example.test/events/us6000jllz/v5/report.pdf";
     await render(
@@ -96,7 +98,6 @@ describe("RiskProvenanceChips", () => {
     expect(
       await screen.findByText(i18n.t("eventDetail.risk.downloadReportOffline")),
     ).toBeTruthy();
-    openURL.mockRestore();
   });
 
   it("shows the reviewed chip for a scientist-reviewed product", async () => {

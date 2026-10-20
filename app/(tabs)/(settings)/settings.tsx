@@ -17,6 +17,7 @@ import { GuidelinesRow } from "@/features/guidelines";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n";
 import { useLocaleSwitcher } from "@/i18n/use-locale-switcher";
 import { confirmDialog, messageDialog } from "@/lib/dialogs";
+import { openLink } from "@/lib/open-link";
 import { usePrefsStore } from "@/features/onboarding";
 import { useDevicePermissions } from "@/features/permissions";
 import {
@@ -449,7 +450,13 @@ function FooterSection() {
       </Text>
       <Pressable
         accessibilityRole="link"
-        onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
+        // Phone: the in-app browser, so Settings stays where it was. The web
+        // keeps its existing behaviour (expo-linking opens it in this tab).
+        onPress={() =>
+          void (Platform.OS === "web"
+            ? Linking.openURL(PRIVACY_POLICY_URL)
+            : openLink(PRIVACY_POLICY_URL).catch(() => undefined))
+        }
         // 44 pt row (review B-12: the link measured 105 x 18).
         style={styles.footerLink}
       >

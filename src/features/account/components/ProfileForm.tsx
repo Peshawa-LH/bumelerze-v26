@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { SupabaseCommunityTransport } from "@/features/community/transport";
@@ -16,6 +16,7 @@ import { formatDateOnly, isolateNumeric } from "@/features/events/format";
 import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { placeDisplayName, type Place } from "@/features/geo/place-search";
 import { localizeDigits } from "@/lib/format-numbers";
+import { openLink } from "@/lib/open-link";
 import { useTheme } from "@/theme";
 import {
   BIO_MAX_LENGTH,
@@ -504,7 +505,7 @@ export function ProfileForm({
         />
         <Pressable
           accessibilityRole="link"
-          onPress={() => void Linking.openURL(PRIVACY_URL).catch(() => undefined)}
+          onPress={() => void openLink(PRIVACY_URL).catch(() => undefined)}
           style={styles.linkRow}
           testID="profile-privacy-link"
         >
