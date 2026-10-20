@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+
 /**
  * Type scale subset needed for the Phase-1 skeleton screens.
  * Full scale (magnitudeHero, body.large, etc.) is defined in
@@ -15,6 +17,9 @@ export interface TypeToken {
   /** Set for Arabic-script locales (Vazirmatn, see `ARABIC_SCRIPT_FONT`);
    * undefined otherwise so Latin text keeps the platform font. */
   fontFamily?: string;
+  /** iOS only: the reading start, stated explicitly (see
+   * `READING_START`). Absent on the web and Android. */
+  textAlign?: "left";
   fontWeight:
     | "400"
     | "500"
@@ -46,29 +51,67 @@ export function arabicScriptFontFor(fontWeight: TypeToken["fontWeight"]): string
   return `${ARABIC_SCRIPT_FONT}-Regular`;
 }
 
-function scale(fontSize: number, latinMultiplier: number, arabicMultiplier: number, fontWeight: TypeToken["fontWeight"], isArabicScript: boolean): TypeToken {
+/**
+ * iOS: every token states the reading start as its alignment. Under a
+ * right-to-left layout iOS swaps a physical `textAlign` (`"left"` is drawn
+ * on the right, `RCTAttributedTextUtils.mm`), so `"left"` IS the reading
+ * start in both directions. Without an alignment UIKit uses the "natural"
+ * one, which follows the app's iOS language rather than the language
+ * chosen in the app: Sorani picked in the app on an English phone put
+ * paragraphs on the left under right-aligned headings, and English on an
+ * Arabic phone put them on the right, until the next cold start applied the
+ * app's iOS language (`src/i18n/apple-languages.ios.ts`). An explicit
+ * alignment later in a style array still wins. The web and Android are left
+ * as they were (react-native-web aligns to each paragraph's own start;
+ * Android's natural alignment follows the text). Text styled inline
+ * without a token spreads `READING_START` for the same result.
+ */
+export const READING_START: Pick<TypeToken, "textAlign"> =
+  Platform.OS === "ios" ? { textAlign: "left" } : {};
+
+function scale(
+  fontSize: number,
+  latinMultiplier: number,
+  arabicMultiplier: number,
+  fontWeight: TypeToken["fontWeight"],
+  isArabicScript: boolean,
+  withFace: boolean,
+): TypeToken {
   return {
     fontSize,
     lineHeight: Math.round(fontSize * (isArabicScript ? arabicMultiplier : latinMultiplier)),
     fontWeight,
-    ...(isArabicScript ? { fontFamily: arabicScriptFontFor(fontWeight) } : {}),
+    ...(isArabicScript && withFace ? { fontFamily: arabicScriptFontFor(fontWeight) } : {}),
+    ...READING_START,
   };
 }
 
-export function typography(isArabicScript: boolean) {
+/**
+ * The type scale for a script. `faceReady` (default true) is false on
+ * iOS/Android while the Vazirmatn files are still being registered: the
+ * family is named only once it can be drawn (see
+ * `arabic-script-face.native.ts` for why naming it early cut labels short).
+ */
+export function typography(isArabicScript: boolean, faceReady = true) {
+  const token = (
+    fontSize: number,
+    latinMultiplier: number,
+    arabicMultiplier: number,
+    fontWeight: TypeToken["fontWeight"],
+  ) => scale(fontSize, latinMultiplier, arabicMultiplier, fontWeight, isArabicScript, faceReady);
   return {
     // Panic-mode emphasis tier (the design language §2): the single biggest
     // number on screen. Used only for the magnitude numeral, never for any
     // other content.
-    magnitudeHero: scale(72, 1.15, 1.35, "800", isArabicScript),
-    magnitudeCompact: scale(32, 1.2, 1.4, "700", isArabicScript),
-    h1: scale(28, 1.25, 1.4, "700", isArabicScript),
-    h2: scale(22, 1.3, 1.4, "600", isArabicScript),
-    h3: scale(18, 1.35, 1.45, "600", isArabicScript),
-    bodyDefault: scale(16, 1.5, 1.6, "400", isArabicScript),
-    bodyMeta: scale(14, 1.4, 1.5, "400", isArabicScript),
-    labelButton: scale(16, 1.2, 1.3, "600", isArabicScript),
-    labelCaption: scale(12, 1.35, 1.45, "500", isArabicScript),
+    magnitudeHero: token(72, 1.15, 1.35, "800"),
+    magnitudeCompact: token(32, 1.2, 1.4, "700"),
+    h1: token(28, 1.25, 1.4, "700"),
+    h2: token(22, 1.3, 1.4, "600"),
+    h3: token(18, 1.35, 1.45, "600"),
+    bodyDefault: token(16, 1.5, 1.6, "400"),
+    bodyMeta: token(14, 1.4, 1.5, "400"),
+    labelButton: token(16, 1.2, 1.3, "600"),
+    labelCaption: token(12, 1.35, 1.45, "500"),
   };
 }
 
