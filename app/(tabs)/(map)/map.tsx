@@ -1,64 +1,171 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  type NativeSyntheticEvent,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyStateScreen } from "@/components/EmptyStateScreen";
-import { REGION_BBOX } from "@/features/events/config";
-import { MapTilerAttributionLogo } from "@/features/map/components/MapTilerAttributionLogo";
-import { MAP_FIT_BOUNDS_PADDING_PX } from "@/features/map/config";
-import { loadNativeMapLibre, type MapLibreModule } from "@/features/map/native-maplibre";
-import { useMapPreferencesStore } from "@/features/map/preferences-store";
-import { resolveCatalogMapStyle } from "@/features/map/style-catalog";
+import { APP_ORIGIN } from "@/config/urls";
 import {
-  decideMapErrorAction,
-  getConfiguredMapTilerKey,
-} from "@/features/map/style-provider";
+  formatMagnitudeValue,
+  REGION_BBOX,
+  useRegionEvents,
+  useWorldEvents,
+  type Event,
+} from "@/features/events";
+import { parseKurdishPlaces, placeLine, type KurdishPlace } from "@/features/geo";
+import { useUserDistanceAnchor } from "@/features/location/use-user-distance-anchor";
+// Deep imports only: the `@/features/map` index also exports the web's
+// maplibre-gl loader, which must never reach the native bundle.
+import {
+  EventPreviewSheet,
+  type EventPreviewSheetHandle,
+} from "@/features/map/components/EventPreviewSheet";
+import { MapOverlayInfoCard } from "@/features/map/components/MapOverlayInfoCard";
+import { MapOverlayLegend } from "@/features/map/components/MapOverlayLegend";
+import { MapStylePicker } from "@/features/map/components/MapStylePicker";
+import { NativeMapCredits } from "@/features/map/components/NativeMapCredits";
+import { NativeMapFilterPanel } from "@/features/map/components/NativeMapFilterPanel";
+import { ScopeToggle } from "@/features/map/components/ScopeToggle";
+import { MAP_FIT_BOUNDS_PADDING_PX } from "@/features/map/config";
+import { useEventSheetController } from "@/features/map/event-sheet";
+import {
+  computeDateBoundsMs,
+  computeMagnitudeBounds,
+  filterEventsByMagnitudeAndDate,
+  type DateRangeMs,
+  type MagnitudeRange,
+} from "@/features/map/filters";
+import { homeBboxAround } from "@/features/map/home-view";
+import {
+  activeOverlayIds,
+  AFEAD_HIT_LAYER_ID,
+  AFEAD_SOURCE_ID,
+  FAULTS_HIT_LAYER_ID,
+  FAULTS_SOURCE_ID,
+  HISTORICAL_LAYER_ID,
+  HISTORICAL_SOURCE_ID,
+  type MapLayerId,
+} from "@/features/map/layer-registry";
+import { buildRegionMarkers, type RegionBbox } from "@/features/map/marker-helpers";
+import { loadNativeMapLibre, type MapLibreModule } from "@/features/map/native-maplibre";
+import {
+  buildEventMarkerFeatureCollection,
+  buildEventMarkerLayers,
+  buildNativeOverlays,
+  EVENT_MARKER_HITBOX_HALF_PT,
+  EVENT_MARKERS_SOURCE_ID,
+  NATIVE_OVERLAY_ANCHOR_IDS,
+  pickPressedEventId,
+  toNativeLayerProps,
+  toNativeOwnLabels,
+  type NativeLayerProps,
+  type NativeSourceProps,
+} from "@/features/map/native-layers";
+import { describeOverlayFeature, type OverlayInfo } from "@/features/map/overlay-info";
+import {
+  buildMergedOwnLabelFeatureCollection,
+  buildOwnLabelsLayer,
+  KURDISH_PLACES_CORE,
+  OWN_LABELS_SOURCE_ID,
+} from "@/features/map/own-labels";
+import { useMapPreferencesStore } from "@/features/map/preferences-store";
+import { useReducedMotionPreference } from "@/features/map/reduced-motion";
+import { isCompactMapControlsWidth } from "@/features/map/responsive";
+import { DEFAULT_MAP_SCOPE, WORLD_VIEW_BBOX, type MapScope } from "@/features/map/scope";
+import type { MapStyleCatalogId } from "@/features/map/style-catalog";
+import { useNativeBasemap } from "@/features/map/use-native-basemap";
 import { useTheme } from "@/theme";
 
 /**
- * Native (iOS/Android) Map tab: a MapLibre Native map. The web shows
- * `map.web.tsx` (maplibre-gl) instead.
+ * Native (iOS/Android) Map tab on MapLibre Native, built to match the web's
+ * `map.web.tsx` (maplibre-gl) feature for feature:
  *
- * First slice of the native map: the basemap only, from the SAME style
- * logic as the web (`resolveCatalogMapStyle` with the saved style choice and
- * the colour scheme, MapTiler with the configured key, the one-time
- * OpenFreeMap fallback of `decideMapErrorAction`), opening on the same view
- * (the region bounds with the same padding). No layers, markers or controls
- * yet.
+ * - the same basemap and style choice (`useNativeBasemap`: MapTiler, the
+ *   one-time OpenFreeMap fall-back, the offline state with Retry);
+ * - Home/World scope, magnitude and date filters, the style and Layers
+ *   picker, the legend and the tapped-feature card;
+ * - every event as a dot sized and coloured by magnitude, in ONE GeoJSON
+ *   source drawn by circle layers (`native-layers.ts`), tap → the same
+ *   preview sheet → the event page with "Back to map";
+ * - the context overlays, the own Kurdish place labels and the hillshade.
  *
- * Expo Go and any other build without MapLibre's native code keep the
- * translated "needs a full app installation" state instead of crashing.
- * The package itself is loaded only by `src/features/map/native-maplibre.native.ts`:
- * Expo Router bundles this file on the web too (every route file is), so
- * nothing here may refer to it at runtime.
+ * Expo Go and any build without MapLibre's native code keep the translated
+ * "needs a full app installation" state. The package itself is loaded only
+ * by `src/features/map/native-maplibre.native.ts`: Expo Router bundles this
+ * file on the web too, so nothing here may refer to it at runtime.
  */
 
-type MapLibreMapRef = import("@maplibre/maplibre-react-native").MapRef;
+type MapRef = import("@maplibre/maplibre-react-native").MapRef;
+type CameraRef = import("@maplibre/maplibre-react-native").CameraRef;
+type PressEvent = import("@maplibre/maplibre-react-native").PressEvent;
+type PressEventWithFeatures =
+  import("@maplibre/maplibre-react-native").PressEventWithFeatures;
 
-/** The web map's first view: the region bounds (west, south, east, north)
- * with `MAP_FIT_BOUNDS_PADDING_PX` on every side. */
-const INITIAL_VIEW = {
-  bounds: [
-    REGION_BBOX.minLon,
-    REGION_BBOX.minLat,
-    REGION_BBOX.maxLon,
-    REGION_BBOX.maxLat,
-  ] as [number, number, number, number],
-  padding: {
-    top: MAP_FIT_BOUNDS_PADDING_PX,
-    right: MAP_FIT_BOUNDS_PADDING_PX,
-    bottom: MAP_FIT_BOUNDS_PADDING_PX,
-    left: MAP_FIT_BOUNDS_PADDING_PX,
-  },
+/** How far above the centre a selected event settles, so the preview
+ * sheet does not cover it (the web's `MAP_SHEET_SELECT_OFFSET_PX`). */
+const SHEET_SELECT_OFFSET_PT = 90;
+
+const FIT_PADDING = {
+  top: MAP_FIT_BOUNDS_PADDING_PX,
+  right: MAP_FIT_BOUNDS_PADDING_PX,
+  bottom: MAP_FIT_BOUNDS_PADDING_PX,
+  left: MAP_FIT_BOUNDS_PADDING_PX,
 };
 
-type LoadState = "loading" | "ready" | "error";
+function toCameraBounds(bbox: RegionBbox): [number, number, number, number] {
+  return [bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat];
+}
 
-const ORNAMENT_INSET_PX = 8;
-/** The map credits button: a full 44 pt touch target. */
-const CREDITS_BUTTON_SIZE = 44;
+/** The web map's first view: the region bounds with the usual padding. */
+const INITIAL_VIEW = { bounds: toCameraBounds(REGION_BBOX), padding: FIT_PADDING };
+
+/** Which tap layer a press on an overlay source stands for
+ * (`describeOverlayFeature` reads by layer id, as on the web). */
+const OVERLAY_TAP_LAYER_BY_SOURCE: Record<string, string> = {
+  [HISTORICAL_SOURCE_ID]: HISTORICAL_LAYER_ID,
+  [AFEAD_SOURCE_ID]: AFEAD_HIT_LAYER_ID,
+  [FAULTS_SOURCE_ID]: FAULTS_HIT_LAYER_ID,
+};
+
+/** `NativeLayerProps` is the style-spec JSON `<Layer>` takes; its own
+ * prop type is a union TypeScript cannot match a plain object against. */
+function asLayerProps(
+  layer: NativeLayerProps,
+): import("@maplibre/maplibre-react-native").LayerProps {
+  return layer as unknown as import("@maplibre/maplibre-react-native").LayerProps;
+}
+
+const EVENT_HITBOX = {
+  top: EVENT_MARKER_HITBOX_HALF_PT,
+  right: EVENT_MARKER_HITBOX_HALF_PT,
+  bottom: EVENT_MARKER_HITBOX_HALF_PT,
+  left: EVENT_MARKER_HITBOX_HALF_PT,
+};
+
+/**
+ * The tier-3 (village) Kurdish places, loaded once when the map first
+ * shows, as on the web (`map.web.tsx`'s `loadKurdishVillagePlaces`).
+ */
+let kurdishVillagesPromise: Promise<KurdishPlace[]> | null = null;
+function loadKurdishVillagePlaces(): Promise<KurdishPlace[]> {
+  kurdishVillagesPromise ??=
+    import("@/features/geo/data/kurdish-places-villages.json").then((mod: unknown) => {
+      const raw = Array.isArray(mod) ? mod : (mod as { default?: unknown }).default;
+      return parseKurdishPlaces(raw);
+    });
+  return kurdishVillagesPromise;
+}
 
 export default function MapScreen() {
   const { t } = useTranslation();
@@ -71,68 +178,314 @@ export default function MapScreen() {
       />
     );
   }
-  return <NativeMap mapLibre={mapLibre} />;
+  return <NativeMapScreen mapLibre={mapLibre} />;
 }
 
-function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
-  const { Map, Camera } = mapLibre;
-  const mapRef = useRef<MapLibreMapRef>(null);
-  const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
+type MapControlId = "filters" | "style";
+
+function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const { colors, scheme, spacing, typography } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const isCompactControls = isCompactMapControlsWidth(windowWidth);
+  const prefersReducedMotion = useReducedMotionPreference();
+
+  const { events: regionEvents, dataUpdatedAt: regionDataUpdatedAt } = useRegionEvents();
+  const { events: worldEvents, dataUpdatedAt: worldDataUpdatedAt } = useWorldEvents();
+
+  const eventSheet = useEventSheetController();
+  const selectEvent = eventSheet.select;
+  const sheetRef = useRef<EventPreviewSheetHandle>(null);
+
   const styleId = useMapPreferencesStore((state) => state.styleId);
+  const setStyleId = useMapPreferencesStore((state) => state.setStyleId);
+  const overlays = useMapPreferencesStore((state) => state.overlays);
+  const setOverlay = useMapPreferencesStore((state) => state.setOverlay);
   const hasStyleHydrated = useMapPreferencesStore((state) => state.hasHydrated);
 
-  const [loadState, setLoadState] = useState<LoadState>("loading");
-  const [fellBack, setFellBack] = useState(false);
-  // A new value re-creates the native map (Retry, and the fallback swap).
-  const [mapKey, setMapKey] = useState(0);
-
-  const style = useMemo(
-    () =>
-      resolveCatalogMapStyle(
-        styleId,
-        scheme,
-        getConfiguredMapTilerKey(),
-        fellBack ? "openfreemap" : undefined,
-      ),
-    [styleId, scheme, fellBack],
+  // "Map loads lazily when the tab is focused", as on the web: nothing
+  // (style download, MapLibre view) starts before the first visit, and the
+  // map then stays alive like the web's single map instance.
+  const [hasFocused, setHasFocused] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setHasFocused(true);
+    }, []),
   );
 
-  const handleLoaded = useCallback(() => setLoadState("ready"), []);
+  const basemap = useNativeBasemap({
+    styleId,
+    scheme,
+    locale,
+    terrain: true,
+    anchorLayerIds: NATIVE_OVERLAY_ANCHOR_IDS,
+    enabled: hasFocused && hasStyleHydrated,
+  });
 
-  const handleFailed = useCallback(() => {
-    const action = decideMapErrorAction({
-      provider: style.provider,
-      hasReachedReady: loadState === "ready",
-      alreadyFellBack: fellBack,
-    });
-    if (action === "fallback-to-openfreemap") {
-      setFellBack(true);
-      setLoadState("loading");
-      setMapKey((key) => key + 1);
-      return;
-    }
-    setLoadState("error");
-  }, [style.provider, loadState, fellBack]);
-
-  const handleRetry = useCallback(() => {
-    setFellBack(false);
-    setLoadState("loading");
-    setMapKey((key) => key + 1);
+  const [scope, setScope] = useState<MapScope>(DEFAULT_MAP_SCOPE);
+  const [magnitudeRange, setMagnitudeRange] = useState<MagnitudeRange | null>(null);
+  const [dateRange, setDateRange] = useState<DateRangeMs | null>(null);
+  const [openControl, setOpenControl] = useState<MapControlId | null>(null);
+  const [overlayInfo, setOverlayInfo] = useState<OverlayInfo | null>(null);
+  const closeOpenControl = useCallback(() => setOpenControl(null), []);
+  const toggleControl = useCallback((id: MapControlId) => {
+    setOpenControl((current) => (current === id ? null : id));
   }, []);
 
-  // MapLibre's credits panel (OpenStreetMap, MapTiler), opened from our own
-  // button: MapLibre's built-in (i) is 26 pt and follows the PHONE's
-  // direction, so in Sorani picked on an English phone (or the reverse) it
-  // landed under the MapTiler logo. Ours sits at the reading start in React
-  // Native's own layout, opposite the logo.
+  const handleScopeChange = useCallback((nextScope: MapScope) => {
+    setScope(nextScope);
+    setMagnitudeRange(null);
+    setDateRange(null);
+  }, []);
+  const handleResetFilters = useCallback(() => {
+    setMagnitudeRange(null);
+    setDateRange(null);
+  }, []);
+
+  const scopedEvents = scope === "world" ? worldEvents : regionEvents;
+  const scopedDataUpdatedAt =
+    scope === "world" ? worldDataUpdatedAt : regionDataUpdatedAt;
+  const magnitudeBounds = useMemo(
+    () => computeMagnitudeBounds(scopedEvents),
+    [scopedEvents],
+  );
+  const dateBounds = useMemo(
+    () => computeDateBoundsMs(scopedEvents, scopedDataUpdatedAt),
+    [scopedEvents, scopedDataUpdatedAt],
+  );
+  const effectiveMagnitudeRange = magnitudeRange ?? magnitudeBounds;
+  const effectiveDateRange = dateRange ?? dateBounds;
+  const filteredEvents = useMemo(
+    () =>
+      filterEventsByMagnitudeAndDate(
+        scopedEvents,
+        effectiveMagnitudeRange,
+        effectiveDateRange,
+      ),
+    [scopedEvents, effectiveMagnitudeRange, effectiveDateRange],
+  );
+  const eventById = useMemo(
+    () => new Map<string, Event>(filteredEvents.map((event) => [event.id, event])),
+    [filteredEvents],
+  );
+  const markerData = useMemo(
+    () => buildEventMarkerFeatureCollection(buildRegionMarkers(filteredEvents)),
+    [filteredEvents],
+  );
+  const markerLayers = useMemo(
+    () =>
+      buildEventMarkerLayers({
+        magnitudeBand: colors.magnitudeBand,
+        felt: colors.action.felt,
+        ring: colors.surface.raised,
+      }),
+    [colors],
+  );
+
+  // Own Kurdish place labels: core places now, villages once loaded.
+  const [kurdishPlaces, setKurdishPlaces] =
+    useState<readonly KurdishPlace[]>(KURDISH_PLACES_CORE);
+  const isReady = basemap.phase === "ready";
+  useEffect(() => {
+    if (!isReady) return;
+    let cancelled = false;
+    loadKurdishVillagePlaces()
+      .then((villages) => {
+        if (!cancelled) setKurdishPlaces([...KURDISH_PLACES_CORE, ...villages]);
+      })
+      .catch(() => {
+        // Villages are an enhancement over the always-present core set.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady]);
+  const ownLabelsData = useMemo(
+    () =>
+      toNativeOwnLabels(
+        buildMergedOwnLabelFeatureCollection(
+          locale,
+          REGION_BBOX,
+          undefined,
+          kurdishPlaces,
+        ),
+      ),
+    [locale, kurdishPlaces],
+  );
+  const ownLabelsLayer = useMemo(
+    () => toNativeLayerProps(buildOwnLabelsLayer(scheme, basemap.ownLabelsFont)),
+    [scheme, basemap.ownLabelsFont],
+  );
+
+  const nativeOverlays = useMemo(
+    () => buildNativeOverlays(overlays, scheme, { origin: APP_ORIGIN }),
+    [overlays, scheme],
+  );
+
+  // "Home": the reader's own area when a fix is already known, else the
+  // region (the anchor never prompts for permission).
+  const { hasFix: hasUserFix, lat: userLat, lon: userLon } = useUserDistanceAnchor();
+  const homeBounds = useMemo(
+    () =>
+      hasUserFix && userLat !== null && userLon !== null
+        ? toCameraBounds(homeBboxAround(userLat, userLon))
+        : toCameraBounds(REGION_BBOX),
+    [hasUserFix, userLat, userLon],
+  );
+
+  const mapRef = useRef<MapRef>(null);
+  const cameraRef = useRef<CameraRef>(null);
+
+  // Re-frames on a scope switch, and once when the map first shows with a
+  // location fix or a fix arrives later (the web's scope/home effect; the
+  // web's map is created after the fix in most sessions, the native map
+  // opens on the region and moves there).
+  const previousScopeRef = useRef<MapScope>(scope);
+  const framedHomeRef = useRef<readonly number[] | null>(null);
+  useEffect(() => {
+    if (!isReady) return;
+    const scopeChanged = previousScopeRef.current !== scope;
+    previousScopeRef.current = scope;
+    const homeMoved =
+      scope === "kurdistan" && hasUserFix && framedHomeRef.current !== homeBounds;
+    if (!scopeChanged && !homeMoved) return;
+    if (scope === "kurdistan") framedHomeRef.current = homeBounds;
+    const bounds = scope === "world" ? toCameraBounds(WORLD_VIEW_BBOX) : homeBounds;
+    cameraRef.current?.fitBounds(bounds, {
+      padding: FIT_PADDING,
+      duration: prefersReducedMotion ? 0 : 600,
+    });
+  }, [scope, isReady, homeBounds, hasUserFix, prefersReducedMotion]);
+
+  /** Settles the selected event above the centre (the web's `easeTo` with
+   * an offset): the new centre is the point 90 pt below the event. */
+  const centreAboveSheet = useCallback(
+    async (event: Event) => {
+      const map = mapRef.current;
+      const camera = cameraRef.current;
+      if (!map || !camera) return;
+      try {
+        const [x, y] = await map.project([event.lon, event.lat]);
+        const center = await map.unproject([x, y + SHEET_SELECT_OFFSET_PT]);
+        camera.easeTo({ center, duration: prefersReducedMotion ? 0 : 300 });
+      } catch {
+        // The map went away mid-tap; nothing to move.
+      }
+    },
+    [prefersReducedMotion],
+  );
+
+  const handleEventPress = useCallback(
+    (pressEvent: NativeSyntheticEvent<PressEventWithFeatures>) => {
+      pressEvent.stopPropagation();
+      const { features, lngLat } = pressEvent.nativeEvent;
+      const id = pickPressedEventId(features, lngLat);
+      const event = id ? eventById.get(id) : undefined;
+      if (!event) return;
+      setOpenControl(null);
+      setOverlayInfo(null);
+      selectEvent(event);
+      AccessibilityInfo.announceForAccessibility(
+        [
+          t("events.magnitudeA11yLabel", {
+            value: formatMagnitudeValue(event.magnitude.value, locale),
+          }),
+          placeLine(event, locale, t),
+        ]
+          .filter(Boolean)
+          .join(". "),
+      );
+      void centreAboveSheet(event);
+    },
+    [eventById, selectEvent, t, locale, centreAboveSheet],
+  );
+
+  const handleOverlayPress = useCallback(
+    (sourceId: string, pressEvent: NativeSyntheticEvent<PressEventWithFeatures>) => {
+      pressEvent.stopPropagation();
+      sheetRef.current?.requestClose();
+      setOpenControl(null);
+      const layerId = OVERLAY_TAP_LAYER_BY_SOURCE[sourceId];
+      const first = pressEvent.nativeEvent.features[0];
+      setOverlayInfo(
+        layerId && first
+          ? describeOverlayFeature(
+              layerId,
+              first.properties as Record<string, unknown> | null,
+            )
+          : null,
+      );
+    },
+    [],
+  );
+
+  // A tap anywhere else closes the sheet and the card (the web's map-wide
+  // "click" listener).
+  const handleMapPress = useCallback((_event: NativeSyntheticEvent<PressEvent>) => {
+    sheetRef.current?.requestClose();
+    setOverlayInfo(null);
+    setOpenControl(null);
+  }, []);
+
+  const handleStyleChange = useCallback(
+    (nextStyleId: MapStyleCatalogId) => setStyleId(nextStyleId),
+    [setStyleId],
+  );
+  const handleToggleOverlay = useCallback(
+    (id: MapLayerId, on: boolean) => {
+      setOverlay(id, on);
+      if (!on) setOverlayInfo(null);
+    },
+    [setOverlay],
+  );
+
   const handleShowCredits = useCallback(() => {
     mapRef.current?.showAttribution().catch(() => {
-      // Only fails when the native map is gone (tab torn down mid-tap):
-      // nothing to show then, and the next tap tries again.
+      // Only fails when the native map is gone; the next tap tries again.
     });
   }, []);
+
+  const { Map: MapView, Camera, GeoJSONSource, ImageSource, Layer } = mapLibre;
+
+  const renderLayers = (layers: readonly NativeLayerProps[]) =>
+    layers.map((layer) => <Layer key={layer.id} {...asLayerProps(layer)} />);
+
+  const renderOverlaySource = (source: NativeSourceProps, layers: NativeLayerProps[]) => {
+    if (source.kind === "image") {
+      return (
+        <ImageSource
+          key={source.id}
+          id={source.id}
+          url={source.url}
+          coordinates={source.coordinates}
+        >
+          {renderLayers(layers)}
+        </ImageSource>
+      );
+    }
+    if (source.kind !== "geojson") return null;
+    const tappable = OVERLAY_TAP_LAYER_BY_SOURCE[source.id] !== undefined;
+    return (
+      <GeoJSONSource
+        key={source.id}
+        id={source.id}
+        data={source.data as string}
+        {...(tappable
+          ? {
+              onPress: (event: NativeSyntheticEvent<PressEventWithFeatures>) =>
+                handleOverlayPress(source.id, event),
+            }
+          : {})}
+      >
+        {renderLayers(layers)}
+      </GeoJSONSource>
+    );
+  };
+
+  const showMap = basemap.mapStyle !== null && basemap.phase !== "error";
+  const showLoading = basemap.phase === "resolving" || basemap.phase === "loading";
 
   return (
     <View
@@ -148,6 +501,7 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
           fontSize: typography.h2.fontSize,
           lineHeight: typography.h2.lineHeight,
           fontWeight: typography.h2.fontWeight,
+          fontFamily: typography.h2.fontFamily,
           paddingHorizontal: spacing[4],
           paddingBottom: spacing[2],
         }}
@@ -156,50 +510,109 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
       </Text>
 
       <View style={styles.mapArea}>
-        {hasStyleHydrated && loadState !== "error" ? (
-          <Map
-            key={mapKey}
+        {showMap ? (
+          <MapView
+            key={basemap.mapKey}
             ref={mapRef}
             testID="native-map"
             style={styles.map}
-            mapStyle={style.url}
+            mapStyle={basemap.mapStyle as string}
             logo={false}
             attribution={false}
-            onDidFinishLoadingMap={handleLoaded}
-            onDidFailLoadingMap={handleFailed}
+            compass={false}
+            onPress={handleMapPress}
+            onDidFinishLoadingMap={basemap.onDidFinishLoadingMap}
+            onDidFailLoadingMap={basemap.onDidFailLoadingMap}
           >
-            <Camera initialViewState={INITIAL_VIEW} />
-          </Map>
+            <Camera ref={cameraRef} initialViewState={INITIAL_VIEW} />
+            {nativeOverlays.map((overlay) =>
+              renderOverlaySource(overlay.source, overlay.layers),
+            )}
+            <GeoJSONSource id={OWN_LABELS_SOURCE_ID} data={ownLabelsData}>
+              {renderLayers([ownLabelsLayer])}
+            </GeoJSONSource>
+            <GeoJSONSource
+              id={EVENT_MARKERS_SOURCE_ID}
+              data={markerData}
+              hitbox={EVENT_HITBOX}
+              onPress={handleEventPress}
+            >
+              {renderLayers(markerLayers)}
+            </GeoJSONSource>
+          </MapView>
         ) : null}
 
-        {loadState === "ready" ? (
+        {isReady && openControl ? (
           <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("map.attribution.creditsA11yLabel")}
-            onPress={handleShowCredits}
-            style={[
-              styles.creditsButton,
-              {
-                backgroundColor: colors.surface.base,
-                borderColor: colors.border.default,
-              },
-            ]}
-          >
-            <Ionicons
-              name="information-circle-outline"
-              size={24}
-              color={colors.text.secondary}
-            />
-          </Pressable>
+            testID="map-controls-backdrop"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={styles.overlay}
+            onPress={closeOpenControl}
+          />
         ) : null}
 
-        {loadState === "ready" && style.provider === "maptiler" ? (
-          <View style={styles.attributionLogo} pointerEvents="box-none">
-            <MapTilerAttributionLogo />
+        {isReady ? (
+          <View
+            style={[styles.controlsRow, { padding: spacing[3] }]}
+            pointerEvents="box-none"
+          >
+            <ScopeToggle value={scope} onChange={handleScopeChange} />
+            <View
+              style={[
+                styles.controlsColumn,
+                { gap: spacing[2] },
+                isCompactControls && styles.controlsColumnCompact,
+              ]}
+            >
+              <NativeMapFilterPanel
+                magnitudeBounds={magnitudeBounds}
+                magnitudeRange={effectiveMagnitudeRange}
+                onMagnitudeRangeChange={setMagnitudeRange}
+                dateBounds={dateBounds}
+                dateRange={effectiveDateRange}
+                onDateRangeChange={setDateRange}
+                onReset={handleResetFilters}
+                expanded={openControl === "filters"}
+                onToggleExpanded={() => toggleControl("filters")}
+                compact={isCompactControls}
+              />
+              <View style={isCompactControls ? styles.popoverAnchor : undefined}>
+                <MapStylePicker
+                  value={styleId}
+                  onChange={handleStyleChange}
+                  expanded={openControl === "style"}
+                  onToggleExpanded={() => toggleControl("style")}
+                  compact={isCompactControls}
+                  overlays={overlays}
+                  onToggleOverlay={handleToggleOverlay}
+                />
+              </View>
+            </View>
           </View>
         ) : null}
 
-        {loadState === "error" ? (
+        {isReady ? (
+          <NativeMapCredits
+            provider={basemap.provider}
+            onShowCredits={handleShowCredits}
+          />
+        ) : null}
+
+        {isReady && !openControl && overlayInfo ? (
+          <MapOverlayInfoCard info={overlayInfo} onClose={() => setOverlayInfo(null)} />
+        ) : null}
+        {isReady && !openControl && !overlayInfo ? (
+          // Lifted clear of the 44 pt credits button at the reading start.
+          <View style={styles.legendFrame} pointerEvents="box-none">
+            <MapOverlayLegend
+              active={activeOverlayIds(overlays)}
+              compact={isCompactControls}
+            />
+          </View>
+        ) : null}
+
+        {basemap.phase === "error" ? (
           <View
             style={[
               styles.overlay,
@@ -229,6 +642,7 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
                     color: colors.text.primary,
                     fontSize: typography.bodyDefault.fontSize,
                     lineHeight: typography.bodyDefault.lineHeight,
+                    fontFamily: typography.bodyDefault.fontFamily,
                     fontWeight: "600",
                   }}
                 >
@@ -240,19 +654,21 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
                   lineHeight: typography.bodyMeta.lineHeight,
+                  fontFamily: typography.bodyMeta.fontFamily,
                 }}
               >
                 {t("map.offlineDescription")}
               </Text>
               <Pressable
                 accessibilityRole="button"
-                onPress={handleRetry}
+                onPress={basemap.retry}
                 style={styles.retry}
               >
                 <Text
                   style={{
                     color: colors.text.link,
                     fontSize: typography.bodyMeta.fontSize,
+                    fontFamily: typography.bodyMeta.fontFamily,
                     fontWeight: "600",
                   }}
                 >
@@ -263,7 +679,7 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
           </View>
         ) : null}
 
-        {loadState === "loading" ? (
+        {showLoading ? (
           <View
             style={[
               styles.overlay,
@@ -278,12 +694,23 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
                 lineHeight: typography.bodyMeta.lineHeight,
+                fontFamily: typography.bodyMeta.fontFamily,
                 marginTop: spacing[2],
               }}
             >
               {t("map.loading")}
             </Text>
           </View>
+        ) : null}
+
+        {isReady && eventSheet.content ? (
+          <EventPreviewSheet
+            ref={sheetRef}
+            content={eventSheet.content}
+            detent={eventSheet.detent}
+            onDetentChange={eventSheet.setDetent}
+            onDismiss={eventSheet.dismiss}
+          />
         ) : null}
       </View>
     </View>
@@ -326,20 +753,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "flex-start",
   },
-  attributionLogo: {
+  controlsRow: {
     position: "absolute",
-    bottom: ORNAMENT_INSET_PX,
-    end: ORNAMENT_INSET_PX,
+    top: 0,
+    start: 0,
+    end: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
-  creditsButton: {
-    position: "absolute",
-    bottom: ORNAMENT_INSET_PX,
-    start: ORNAMENT_INSET_PX,
-    width: CREDITS_BUTTON_SIZE,
-    height: CREDITS_BUTTON_SIZE,
-    borderRadius: CREDITS_BUTTON_SIZE / 2,
-    borderWidth: StyleSheet.hairlineWidth,
+  controlsColumn: {
+    alignItems: "flex-end",
+  },
+  controlsColumnCompact: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+  },
+  popoverAnchor: {
+    width: 44,
+    height: 44,
+  },
+  legendFrame: {
+    position: "absolute",
+    top: 0,
+    start: 0,
+    end: 0,
+    bottom: 52,
   },
 });
