@@ -21,19 +21,15 @@ const mockGetPresented = jest.fn((): Promise<Notification[]> => Promise.resolve(
 const mockDismiss = jest.fn((_id: string) => Promise.resolve());
 let mockLoads = 0;
 
-jest.mock("../permissions", () => ({
-  loadNotifications: () => {
+jest.mock("../notifications-module", () => ({
+  requireNotifications: () => {
     mockLoads += 1;
-    const { Platform: P } = jest.requireActual("react-native");
-    if (P.OS === "web") {
-      return Promise.resolve(null);
-    }
-    return Promise.resolve({
+    return {
       setNotificationHandler: mockSetNotificationHandler,
       addNotificationReceivedListener: mockAddReceived,
       getPresentedNotificationsAsync: mockGetPresented,
       dismissNotificationAsync: mockDismiss,
-    });
+    };
   },
 }));
 
@@ -96,20 +92,18 @@ describe("foregroundBehavior", () => {
 });
 
 describe("installForegroundNotificationHandler", () => {
-  it("sets the handler once, on iOS", async () => {
+  it("sets the handler at once (before anything renders), and only once, on iOS", () => {
     Platform.OS = "ios";
     installForegroundNotificationHandler();
+    expect(mockSetNotificationHandler).toHaveBeenCalledTimes(1);
     installForegroundNotificationHandler();
-    await flush();
     expect(mockSetNotificationHandler).toHaveBeenCalledTimes(1);
     const handler = mockSetNotificationHandler.mock.calls[0]?.[0] as {
       handleNotification: (n: Notification) => Promise<unknown>;
     };
-    await expect(handler.handleNotification(notification("a", 1, { tag: "ev-x" }))).resolves.toMatchObject({
-      shouldShowBanner: true,
-      shouldPlaySound: true,
-    });
-    expect(mockAddReceived).toHaveBeenCalledTimes(1);
+    return expect(handler.handleNotification(notification("a", 1, { tag: "ev-x" })))
+      .resolves.toMatchObject({ shouldShowBanner: true, shouldPlaySound: true })
+      .then(() => expect(mockAddReceived).toHaveBeenCalledTimes(1));
   });
 
   it("never loads expo-notifications on the web", async () => {

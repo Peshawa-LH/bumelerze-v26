@@ -2,9 +2,7 @@ import type { Notification, NotificationBehavior } from "expo-notifications";
 import { AppState, Platform } from "react-native";
 
 import { readAlertData } from "./alert-data";
-import { loadNotifications } from "./permissions";
-
-type NotificationsModule = NonNullable<Awaited<ReturnType<typeof loadNotifications>>>;
+import { requireNotifications, type NotificationsModule } from "./notifications-module";
 
 /**
  * iOS/Android: how a notification that arrives while the app is open is
@@ -60,7 +58,8 @@ export async function dismissOlderWithSameTag(
 let installed = false;
 
 /**
- * Called once when app/_layout.tsx loads, before anything renders. Loads
+ * Called once when app/_layout.tsx loads, before anything renders, so the
+ * handler is in place before the first notification can arrive. Loads
  * expo-notifications only on iOS/Android (never on the web: importing it
  * there starts its push-token listener, review B-22).
  */
@@ -68,31 +67,32 @@ export function installForegroundNotificationHandler(): void {
   if (Platform.OS === "web" || installed) {
     return;
   }
+  let Notifications: NotificationsModule | null;
+  try {
+    Notifications = requireNotifications();
+  } catch {
+    // The module could not load (not expected in a built app): alerts still
+    // show while the app is closed; the next launch tries again.
+    return;
+  }
+  if (!Notifications) {
+    return;
+  }
   installed = true;
-  void loadNotifications()
-    .then((Notifications) => {
-      if (!Notifications) {
-        return;
-      }
-      Notifications.setNotificationHandler({
-        handleNotification: async (notification) => foregroundBehavior(notification),
-      });
-      const tidy = (newest?: Notification) => {
-        void dismissOlderWithSameTag(Notifications, newest).catch(() => undefined);
-      };
-      Notifications.addNotificationReceivedListener((notification) => tidy(notification));
-      AppState.addEventListener("change", (state) => {
-        if (state === "active") {
-          tidy();
-        }
-      });
+  const api = Notifications;
+  api.setNotificationHandler({
+    handleNotification: async (notification) => foregroundBehavior(notification),
+  });
+  const tidy = (newest?: Notification) => {
+    void dismissOlderWithSameTag(api, newest).catch(() => undefined);
+  };
+  api.addNotificationReceivedListener((notification) => tidy(notification));
+  AppState.addEventListener("change", (state) => {
+    if (state === "active") {
       tidy();
-    })
-    .catch(() => {
-      // The module could not load (not expected in a built app): the next
-      // launch tries again. Alerts still show while the app is closed.
-      installed = false;
-    });
+    }
+  });
+  tidy();
 }
 
 /** Test-only: forget that the handler was installed. */
