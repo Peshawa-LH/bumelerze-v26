@@ -59,6 +59,11 @@ import {
   startUpdateOnResume,
 } from "@/lib/offline-shell";
 import { shouldPersistQuery } from "@/lib/persist-filter";
+import {
+  holdSplashScreen,
+  useSplashScreenGate,
+  useSystemBackgroundColor,
+} from "@/lib/splash";
 // Side effect: initializes i18next before the first render, in addition to
 // the named import below.
 import {
@@ -69,7 +74,11 @@ import {
   type SupportedLocale,
 } from "@/i18n";
 import { restartApp } from "@/i18n/restart-app";
-import { applyDocumentColorSchemeWeb, useTheme } from "@/theme";
+import { applyDocumentColorSchemeWeb, useTheme, useThemePreferencesStore } from "@/theme";
+
+// iOS/Android: the splash screen stays up until the first screen can draw
+// (`useSplashScreenGate` below; src/lib/splash.ts). Nothing on the web.
+holdSplashScreen();
 
 const VAZIRMATN_FACES = {
   "Vazirmatn-Regular": require("../assets/fonts/Vazirmatn-Regular.ttf"),
@@ -108,7 +117,7 @@ function isReloadSafe(pathname: string): boolean {
 }
 
 export default function RootLayout() {
-  const { scheme } = useTheme();
+  const { scheme, colors } = useTheme();
   const stackScreenOptions = useStackScreenOptions();
   // Vazirmatn for Arabic-script locales (`src/theme/typography.ts`'s
   // `ARABIC_SCRIPT_FONT`). Web: not awaited: text renders in the fallback
@@ -126,7 +135,7 @@ export default function RootLayout() {
       : ARABIC_SCRIPT_LOCALES.includes(i18n.language as SupportedLocale)
         ? VAZIRMATN_FACES
         : NO_FONTS;
-  useFonts(fontMap);
+  const [fontsLoaded, fontError] = useFonts(fontMap);
   // The web build downloads the language file in use before the first
   // screen (src/i18n/locale-resources.web.ts); immediate on iOS/Android.
   const [localeReady, setLocaleReady] = useState(isInitialLocaleReady);
@@ -167,6 +176,9 @@ export default function RootLayout() {
   const tabBarHidden = useTabBarStore((state) => state.hidden);
   const [isRestarting, setIsRestarting] = useState(false);
   const hasHydrated = usePrefsStore((state) => state.hasHydrated);
+  const themeHydrated = useThemePreferencesStore((state) => state.hasHydrated);
+  // The saved language is applied (or a restart into it has begun).
+  const [launchLanguageChecked, setLaunchLanguageChecked] = useState(false);
   const onboardingCompleted = usePrefsStore((state) => state.onboardingCompleted);
   // Background reference place: the nearest main town to the device, else Hawler.
   useReferencePlace();
@@ -182,7 +194,11 @@ export default function RootLayout() {
 
     applyPersistedLocaleOnLaunch()
       .then(({ requiresRestart }) => {
-        if (cancelled || !requiresRestart) {
+        if (cancelled) {
+          return;
+        }
+        if (!requiresRestart) {
+          setLaunchLanguageChecked(true);
           return;
         }
         // The persisted language flips reading direction relative to the
@@ -197,6 +213,7 @@ export default function RootLayout() {
         // user's next manual relaunch — nothing else to do here.
         if (!cancelled) {
           setIsRestarting(false);
+          setLaunchLanguageChecked(true);
         }
       });
 
@@ -227,6 +244,22 @@ export default function RootLayout() {
     ensureCheckInForegroundSync();
     void processCheckInQueue();
   }, []);
+
+  // iOS/Android: the splash screen goes once the first screen can draw in
+  // its final form: settings and the Appearance choice read from the phone,
+  // the language ready and applied, Vazirmatn and the icons registered (a
+  // font that fails to register must not hold the app back). No blank or
+  // white frame between the splash and the first screen, also in dark mode.
+  const firstScreenReady =
+    !isRestarting &&
+    hasHydrated &&
+    themeHydrated &&
+    localeReady &&
+    launchLanguageChecked &&
+    (fontsLoaded || fontError !== null);
+  useSplashScreenGate(firstScreenReady);
+  // iOS/Android: the window behind the screens takes the app's background.
+  useSystemBackgroundColor(colors.surface.base);
 
   useEffect(() => {
     // Web-only DOM mirror of the resolved scheme (Settings > Appearance) —
@@ -261,7 +294,7 @@ export default function RootLayout() {
     // reading `onboardingCompleted` from AsyncStorage — never render the
     // Stack before we know whether it should register the tab screens or
     // the onboarding screen (brief: "no flicker — gate on store
-    // hydration").
+    // hydration"). iOS/Android show the splash screen meanwhile.
     return null;
   }
 
