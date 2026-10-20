@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { I18nManager, Platform } from "react-native";
 
-import { changeLocale, type SupportedLocale } from "./index";
+import { changeLocale, isRTLLocale, type SupportedLocale } from "./index";
 import { restartApp } from "./restart-app";
 
 export interface SelectLocaleResult {
@@ -42,7 +43,12 @@ export function useLocaleSwitcher(
 
   const selectLocale = useCallback(
     async (locale: SupportedLocale): Promise<SelectLocaleResult> => {
-      if (isRestarting || locale === i18n.language) {
+      // iOS/Android: picking the language already shown still goes through
+      // when the layout runs the wrong way for it (a Sorani phone whose app
+      // started left to right), so the pick itself repairs the direction.
+      const directionIsWrong =
+        Platform.OS !== "web" && isRTLLocale(locale) !== I18nManager.isRTL;
+      if (isRestarting || (locale === i18n.language && !directionIsWrong)) {
         return { requiresRestart: false, restartFailed: false };
       }
 

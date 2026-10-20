@@ -203,8 +203,53 @@ function applyDocumentFontWeb(): void {
   document.head.appendChild(style);
 }
 
-// Always allowed; forceRTL (below) is what actually flips layout direction.
-I18nManager.allowRTL(true);
+// Web: always allowed; forceRTL (below) is what actually flips layout
+// direction. iOS and Android keep BOTH native flags pinned to the app
+// language instead (`pinNativeLayoutDirection`): an unconditional
+// allowRTL(true) on every start would let a Sorani or Arabic PHONE language
+// turn the layout right to left again on the next launch after the user
+// picked English or Kurmanji in the app.
+if (Platform.OS === "web") {
+  I18nManager.allowRTL(true);
+}
+
+/**
+ * iOS/Android: makes every later JS start lay out in `isRTL`'s direction,
+ * whatever the phone language is. React Native keeps both flags natively
+ * (iOS user defaults, Android shared preferences) and reads them once, when
+ * the app's JS starts, so the change shows after a restart. With both off,
+ * the layout is left to right even on an Arabic-script phone; with both on,
+ * right to left even on an English one.
+ */
+function pinNativeLayoutDirection(isRTL: boolean): void {
+  I18nManager.allowRTL(isRTL);
+  I18nManager.forceRTL(isRTL);
+}
+
+const LAUNCH_DIRECTION_RESTART_KEY = "bumelerze.launchDirectionRestartAt";
+const LAUNCH_DIRECTION_RESTART_WINDOW_MS = 60_000;
+
+/**
+ * iOS/Android: a launch may restart the app to put the layout direction
+ * right, but only once a minute. If the app comes back up still in the
+ * wrong direction (something reset the native flag before the JS started),
+ * it carries on as it is rather than restarting forever: the web's reload
+ * loop (the P0 bug described below) must never happen on a phone either.
+ */
+async function allowLaunchDirectionRestart(): Promise<ChangeLocaleResult> {
+  try {
+    const now = Date.now();
+    const last = Number(await AsyncStorage.getItem(LAUNCH_DIRECTION_RESTART_KEY));
+    if (Number.isFinite(last) && last > 0 && now - last < LAUNCH_DIRECTION_RESTART_WINDOW_MS) {
+      return { requiresRestart: false };
+    }
+    await AsyncStorage.setItem(LAUNCH_DIRECTION_RESTART_KEY, String(now));
+  } catch {
+    // Without a record a loop cannot be ruled out: no restart.
+    return { requiresRestart: false };
+  }
+  return { requiresRestart: true };
+}
 
 // Web has no native persistence for `I18nManager.forceRTL` (it's in-memory
 // only and never survives a reload — unlike native, where the flag is
@@ -317,6 +362,11 @@ export async function changeLocale(
   // Every change, not only a direction flip: en -> kmr keeps `dir="ltr"`
   // but must still read as Kurmanji to assistive technology (B-9).
   applyDocumentLangWeb(locale);
+  // iOS/Android: every change pins the direction to the new language, so a
+  // later launch keeps it whatever the phone language is.
+  if (Platform.OS !== "web") {
+    pinNativeLayoutDirection(nextIsRTL);
+  }
 
   if (requiresRestart) {
     I18nManager.forceRTL(nextIsRTL);
@@ -341,19 +391,31 @@ export async function changeLocale(
  * left to reconcile. `I18nManager.isRTL` on web is in-memory-only and never
  * survives a reload, so if this function ever asked for one here, every
  * boot would ask for another — the P0 infinite-reload bug. The guard below
- * is belt-and-suspenders on top of that already-true invariant. Native is
- * untouched: its `I18nManager.forceRTL` flag *does* persist natively, so
- * this same early-return guard was already sufficient there. */
+ * is belt-and-suspenders on top of that already-true invariant.
+ *
+ * iOS/Android persist `I18nManager.forceRTL` natively. There the launch also
+ * checks the direction when the language itself is already right: a first
+ * launch on a Sorani or Arabic phone, or a phone whose language changed
+ * since the direction was pinned. A mismatch pins the direction and asks for
+ * one restart; `allowLaunchDirectionRestart` keeps that from ever looping. */
 export async function applyPersistedLocaleOnLaunch(): Promise<ChangeLocaleResult> {
   const persisted = await getPersistedLocale();
   if (!persisted || persisted === i18n.language) {
-    return { requiresRestart: false };
+    if (Platform.OS === "web") {
+      return { requiresRestart: false };
+    }
+    const wantsRTL = isRTLLocale(i18n.language);
+    if (wantsRTL === I18nManager.isRTL) {
+      return { requiresRestart: false };
+    }
+    pinNativeLayoutDirection(wantsRTL);
+    return allowLaunchDirectionRestart();
   }
   const result = await changeLocale(persisted);
   if (Platform.OS === "web") {
     return { requiresRestart: false };
   }
-  return result;
+  return result.requiresRestart ? allowLaunchDirectionRestart() : result;
 }
 
 export default i18n;
