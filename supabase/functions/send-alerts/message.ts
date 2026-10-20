@@ -63,9 +63,23 @@ export interface PushMessage {
   urgency: "high" | "normal";
   /** How long a push service may hold it for an offline device. */
   ttlSeconds: number;
+  /** iOS: delivered as "time-sensitive" (through Focus and scheduled
+   * summaries, when the app has that entitlement): an alert or update for
+   * a strong earthquake. Not part of the web payload. */
+  timeSensitive: boolean;
   lang: AlertLocale;
   dir: "rtl" | "ltr";
 }
+
+/**
+ * From this magnitude an alert is "time-sensitive" on iOS: the line the
+ * planner already draws for a strong earthquake (alert_rules()
+ * mainshock_min_magnitude, migration 0062; the app's "After a strong
+ * earthquake (magnitude 5 or more)"). The planner only sends an alert
+ * where the shaking is expected to be felt, so such an alert means strong
+ * shaking nearby. Tests, summaries and smaller earthquakes stay ordinary.
+ */
+export const TIME_SENSITIVE_MIN_MAGNITUDE = 5.0;
 
 const EASTERN = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
 const LRI = "⁦";
@@ -193,6 +207,7 @@ export function buildMessage(item: AlertItem): PushMessage {
       renotify: true,
       urgency: "high",
       ttlSeconds: 600,
+      timeSensitive: false,
     };
   }
 
@@ -217,11 +232,13 @@ export function buildMessage(item: AlertItem): PushMessage {
       renotify: false,
       urgency: "normal",
       ttlSeconds: 6 * 3600,
+      timeSensitive: false,
     };
   }
 
   const title = fill(str.alertTitle, { magnitude });
   const tag = `ev-${event.id}`;
+  const timeSensitive = event.magnitude >= TIME_SENSITIVE_MIN_MAGNITUDE;
   if (item.kind === "upgrade" && item.previousMagnitude !== null) {
     return {
       ...base,
@@ -237,6 +254,7 @@ export function buildMessage(item: AlertItem): PushMessage {
       renotify: true,
       urgency: "high",
       ttlSeconds: 1800,
+      timeSensitive,
     };
   }
   return {
@@ -250,6 +268,7 @@ export function buildMessage(item: AlertItem): PushMessage {
     renotify: false,
     urgency: "high",
     ttlSeconds: 1800,
+    timeSensitive,
   };
 }
 

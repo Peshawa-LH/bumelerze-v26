@@ -11,6 +11,7 @@ import {
   createWebSender,
   deliverBatch,
   EXPO_PUSH_URL,
+  expoMessage,
   isAllowedEndpoint,
   type FetchLike,
   type GenerateRequestDetails,
@@ -184,6 +185,21 @@ describe("expo sender", () => {
     expect(posts).toBe(2);
     expect(results.filter((r) => r.outcome === "sent")).toHaveLength(100);
     expect(results.filter((r) => r.outcome === "retry")).toHaveLength(50);
+  });
+
+  it("a strong earthquake goes out time-sensitive for iOS; a smaller one and a test as ordinary alerts", () => {
+    const strong = { ...expoItem(), event: { ...EVENT, magnitude: 5.4 } };
+    expect(expoMessage(strong, buildMessage(strong))).toMatchObject({
+      interruptionLevel: "time-sensitive",
+      data: { path: "event/bml2026abcd", tag: "ev-bml2026abcd" },
+      sound: "default",
+      priority: "high",
+    });
+    const small = expoItem();
+    expect(expoMessage(small, buildMessage(small))).not.toHaveProperty("interruptionLevel");
+    const test = { ...expoItem(), kind: "test" as const, event: null };
+    expect(expoMessage(test, buildMessage(test))).not.toHaveProperty("interruptionLevel");
+    expect(expoMessage(test, buildMessage(test)).data).toEqual({ path: "notification-settings", tag: "bml-test" });
   });
 
   it("a quiet summary has no sound", async () => {

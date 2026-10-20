@@ -135,6 +135,14 @@ export function createWebSender(deps: {
 export const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 const EXPO_BATCH = 100;
 
+/**
+ * One Expo push message. `data` reaches the app as the notification's data
+ * (on iOS under the APNs payload's `body` key): the app opens `path` when
+ * the alert is tapped and replaces an earlier alert with the same `tag`
+ * (src/features/notifications). `interruptionLevel` (iOS) only for a
+ * strong earthquake; it takes effect once the app has the Time Sensitive
+ * Notifications entitlement, and is an ordinary alert without it.
+ */
 export function expoMessage(item: AlertItem, message: PushMessage) {
   return {
     to: item.target.kind === "expo" ? item.target.token : "",
@@ -145,6 +153,7 @@ export function expoMessage(item: AlertItem, message: PushMessage) {
     priority: message.urgency === "high" ? "high" : "normal",
     ttl: message.ttlSeconds,
     channelId: message.quiet ? "alerts-quiet" : "alerts",
+    ...(message.timeSensitive ? { interruptionLevel: "time-sensitive" as const } : {}),
   };
 }
 
