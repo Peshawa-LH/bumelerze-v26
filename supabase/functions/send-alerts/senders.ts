@@ -17,6 +17,10 @@ export interface DeliveryResult {
   delivery_id: string;
   outcome: Outcome;
   error?: string;
+  /** Expo only: the push ticket id of an accepted message; its receipt is
+   * checked later (receipts.ts, migration 0068). Before 0068 the database
+   * ignores it. */
+  ticket?: string;
 }
 
 export type FetchLike = (
@@ -193,10 +197,11 @@ export function createExpoSender(deps: { fetch: FetchLike; accessToken?: string 
         const tickets = Array.isArray(body?.data) ? body.data : [];
         chunk.forEach(({ item }, index) => {
           const ticket = tickets[index] as
-            | { status?: string; message?: string; details?: { error?: string } }
+            | { status?: string; id?: unknown; message?: string; details?: { error?: string } }
             | undefined;
           if (ticket?.status === "ok") {
-            results.push({ delivery_id: item.id, outcome: "sent" });
+            const id = typeof ticket.id === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(ticket.id) ? ticket.id : null;
+            results.push(id ? { delivery_id: item.id, outcome: "sent", ticket: id } : { delivery_id: item.id, outcome: "sent" });
             return;
           }
           const code = ticket?.details?.error ?? "";
