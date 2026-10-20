@@ -59,6 +59,71 @@ export function expoAccountConfig(
   };
 }
 
+// The web app's host (src/config/urls.ts, APP_ORIGIN): shared links and QR
+// codes point here.
+const APP_HOST = "app.bumelerze.com";
+
+/**
+ * Apple team (iOS): EXPO_APPLE_TEAM_ID, the 10-character Team ID of the
+ * Apple Developer account. With it, links to app.bumelerze.com open in the
+ * app when it is installed (universal links), and passwords saved for the
+ * web app are offered in the app's sign-in. Both also need
+ * `.well-known/apple-app-site-association` on that host. Without the team
+ * (today), neither entitlement is requested, so builds without an Apple
+ * account keep working.
+ */
+export function appleTeamConfig(
+  env: BuildEnv,
+): Pick<NonNullable<ExpoConfig["ios"]>, "appleTeamId" | "associatedDomains"> {
+  const appleTeamId = nonEmpty(env.EXPO_APPLE_TEAM_ID);
+  if (!appleTeamId) {
+    return {};
+  }
+  return {
+    appleTeamId,
+    associatedDomains: [`applinks:${APP_HOST}`, `webcredentials:${APP_HOST}`],
+  };
+}
+
+/**
+ * iOS privacy manifest (PrivacyInfo.xcprivacy): why the app's code uses
+ * the APIs Apple asks a reason for. The app's own code calls none of them;
+ * the libraries compiled into it do (React Native and its parts, MapLibre,
+ * AsyncStorage, expo-file-system, expo-device, expo-system-ui,
+ * expo-localization, expo-notifications), each for these standard reasons:
+ * - UserDefaults CA92.1: settings the app itself stores (the reading
+ *   direction, the screen colour, the notification state).
+ * - FileTimestamp C617.1: dates of files inside the app's own storage
+ *   (saved data, the bundled catalogue, map tiles).
+ * - SystemBootTime 35F9.1: time since the phone started, to measure how
+ *   long things take inside the app.
+ * - DiskSpace E174.1: checking there is room before writing files.
+ * No tracking and no tracking domains. The App Store privacy answers (what
+ * data is collected) are given separately in App Store Connect.
+ */
+const privacyManifests: NonNullable<ExpoConfig["ios"]>["privacyManifests"] = {
+  NSPrivacyTracking: false,
+  NSPrivacyTrackingDomains: [],
+  NSPrivacyAccessedAPITypes: [
+    {
+      NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryUserDefaults",
+      NSPrivacyAccessedAPITypeReasons: ["CA92.1"],
+    },
+    {
+      NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryFileTimestamp",
+      NSPrivacyAccessedAPITypeReasons: ["C617.1"],
+    },
+    {
+      NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategorySystemBootTime",
+      NSPrivacyAccessedAPITypeReasons: ["35F9.1"],
+    },
+    {
+      NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryDiskSpace",
+      NSPrivacyAccessedAPITypeReasons: ["E174.1"],
+    },
+  ],
+};
+
 // Brand colors for icon/splash chrome come straight from the logo
 // package's own machine-readable tokens (not hand-copied hex) — the same
 // file `scripts/generate-assets.js` reads to rasterize icon.png/
@@ -118,6 +183,11 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "org.bumelerze.app",
+    ...appleTeamConfig(process.env),
+    // Export compliance: the app uses only the encryption built into iOS
+    // (HTTPS), which is exempt, so App Store Connect asks nothing per build.
+    config: { usesNonExemptEncryption: false },
+    privacyManifests,
   },
   android: {
     adaptiveIcon: {
@@ -191,13 +261,16 @@ const config: ExpoConfig = {
       // Foreground-only location (the onboarding location step and the
       // feed/detail "distance from you"). No background/
       // "always" permission is ever requested anywhere in this app —
-      // deliberately omitting `isAndroidBackgroundLocationEnabled` and the
-      // iOS "always" usage description keeps that off by construction, not
-      // just by convention.
+      // deliberately omitting `isAndroidBackgroundLocationEnabled`, and
+      // removing the two iOS "always" usage descriptions the plugin would
+      // otherwise add with a generic English text, keeps that off by
+      // construction, not just by convention.
       "expo-location",
       {
         locationWhenInUsePermission:
           "Bumelerze uses your location to show accurate distances to earthquakes and to make the experiences you share useful for mapping real shaking. Only used while the app is open.",
+        locationAlwaysAndWhenInUsePermission: false,
+        locationAlwaysPermission: false,
       },
     ],
     [
@@ -243,6 +316,9 @@ const config: ExpoConfig = {
         photosPermission:
           "Bumelerze uses your photos so you can add pictures of earthquake damage or of your building to a report.",
         cameraPermission: cameraPermissionText,
+        // Photos only, never video: no microphone (the plugin would add a
+        // generic English microphone text otherwise).
+        microphonePermission: false,
       },
     ],
     [
