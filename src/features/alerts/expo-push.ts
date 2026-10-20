@@ -70,21 +70,43 @@ export async function readPhonePermission(): Promise<BrowserPermission | null> {
   return "default";
 }
 
+/** How long the token may take: Apple's (or Google's) registration, then a
+ * request to Expo's servers. */
+export const PUSH_TOKEN_TIMEOUT_MS = 20_000;
+
 /**
  * This phone's Expo push token (a request to Expo's servers, which needs
  * the APNs/FCM registration underneath). Throws when there is no project
- * id, no connection, or the build cannot register for push.
+ * id, no connection, or the build cannot register for push, and after
+ * `PUSH_TOKEN_TIMEOUT_MS` without an answer: the iOS registration can stay
+ * silent for good (an iOS 27 Simulator never answered, 2026-10-21), and
+ * neither the alert controls ("One moment...") nor the root sync may wait
+ * forever.
  */
-export async function fetchExpoPushToken(projectId: string): Promise<string> {
+export async function fetchExpoPushToken(
+  projectId: string,
+  timeoutMs: number = PUSH_TOKEN_TIMEOUT_MS,
+): Promise<string> {
   const Notifications = await loadNotifications();
   if (!Notifications) {
     throw new Error("expo-notifications is not available here");
   }
-  const result = await Notifications.getExpoPushTokenAsync({ projectId });
-  if (!isExpoPushToken(result.data)) {
-    throw new Error("unexpected Expo push token");
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error("push token: no answer from the phone's push registration")),
+      timeoutMs,
+    );
+  });
+  try {
+    const result = await Promise.race([Notifications.getExpoPushTokenAsync({ projectId }), timeout]);
+    if (!isExpoPushToken(result.data)) {
+      throw new Error("unexpected Expo push token");
+    }
+    return result.data;
+  } finally {
+    clearTimeout(timer);
   }
-  return result.data;
 }
 
 /** The Android channels send-alerts names (senders.ts `channelId`). */
