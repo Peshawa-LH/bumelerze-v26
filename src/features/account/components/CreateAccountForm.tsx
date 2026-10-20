@@ -17,7 +17,7 @@ import { AuthField } from "./AuthField";
  * by mail yet, so typing it twice is the typo guard) and a password. The
  * guest user is upgraded in place by `createAccountWithPassword`, so
  * everything made as a guest stays. Google / Apple buttons exist but stay
- * hidden until their env flags are "1".
+ * hidden until their env flags are "1" (service.ts `startOAuth`).
  */
 export function CreateAccountForm({
   onCreated,
@@ -60,7 +60,12 @@ export function CreateAccountForm({
   async function oauth(provider: OAuthProvider) {
     setErrorText(null);
     try {
-      await startOAuth(provider);
+      // The web leaves the page here; the iOS/Android app comes back from
+      // the sign-in sheet signed in (or with the sheet closed: no message).
+      const result = await startOAuth(provider);
+      if (result === "signedIn") {
+        await onCreated();
+      }
     } catch (error) {
       setErrorText(accountErrorText(t, error));
     }

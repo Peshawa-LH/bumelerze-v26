@@ -22,6 +22,7 @@ import {
   resetAnonymousSignIn,
   signInAnonymously,
 } from "@/lib/supabase";
+import { runNativeOAuth, type NativeOAuthOutcome } from "./oauth-native";
 import {
   AVATARS_BUCKET,
   AVATAR_MAX_BYTES,
@@ -322,28 +323,48 @@ export function getWebRedirectUrl(): string {
   return `${origin}${baseUrl}`;
 }
 
+/** What a Google / Apple sign-in did: the web leaves the page for the
+ * provider ("redirecting"); the iOS/Android app comes back signed in, or
+ * the person closed the sign-in sheet ("cancelled", no message). */
+export type OAuthResult = "redirecting" | "signedIn" | "cancelled";
+
 /**
  * Anonymous user -> `linkIdentity` (keeps the user id; needs "manual
- * linking" enabled in Supabase). Otherwise -> `signInWithOAuth`. Web only
- * for now: native needs the in-app browser flow of the dev build.
- * TODO(providers): after redirect the session arrives in the URL, which the
- * client ignores today (`detectSessionInUrl: false`) — enable that on web
- * and call `claimThisDevicesReports` on return when Google is configured.
+ * linking" enabled in Supabase). Otherwise -> `signInWithOAuth`, and on
+ * iOS/Android this device's guest reports are then moved into the account,
+ * as after an email sign-in. Off on every platform until the provider flags
+ * are on (constants.ts).
+ * - Web: the provider sends the browser back to the app's origin.
+ *   TODO(providers): the session then arrives in the URL, which the client
+ *   ignores today (`detectSessionInUrl: false`) — enable that on web and
+ *   call `claimThisDevicesReports` on return when Google is configured.
+ * - iOS/Android: the in-app sign-in sheet returns to
+ *   `bumelerze://auth/callback` (oauth-native.ts). Not yet run live.
  */
-export async function startOAuth(provider: OAuthProvider): Promise<void> {
+export async function startOAuth(provider: OAuthProvider): Promise<OAuthResult> {
   const client = requireClient();
+  const user = await currentUser(client);
+  const upgradeGuest = !!user && user.is_anonymous === true;
   if (Platform.OS !== "web") {
-    throw new AccountError("oauth_unavailable");
+    let outcome: NativeOAuthOutcome;
+    try {
+      outcome = await runNativeOAuth(client, provider, upgradeGuest);
+    } catch (error) {
+      throw toAccountError(error);
+    }
+    if (outcome === "signedIn" && !upgradeGuest) {
+      await claimThisDevicesReports(client);
+    }
+    return outcome;
   }
   const redirectTo = getWebRedirectUrl();
-  const user = await currentUser(client);
-  const { error } =
-    user && user.is_anonymous === true
-      ? await client.auth.linkIdentity({ provider, options: { redirectTo } })
-      : await client.auth.signInWithOAuth({ provider, options: { redirectTo } });
+  const { error } = upgradeGuest
+    ? await client.auth.linkIdentity({ provider, options: { redirectTo } })
+    : await client.auth.signInWithOAuth({ provider, options: { redirectTo } });
   if (error) {
     throw toAccountError(error);
   }
+  return "redirecting";
 }
 
 // ---------------------------------------------------------------------------
