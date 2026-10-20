@@ -1,13 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  TurboModuleRegistry,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -15,16 +8,18 @@ import { EmptyStateScreen } from "@/components/EmptyStateScreen";
 import { REGION_BBOX } from "@/features/events/config";
 import { MapTilerAttributionLogo } from "@/features/map/components/MapTilerAttributionLogo";
 import { MAP_FIT_BOUNDS_PADDING_PX } from "@/features/map/config";
+import { loadNativeMapLibre, type MapLibreModule } from "@/features/map/native-maplibre";
 import { useMapPreferencesStore } from "@/features/map/preferences-store";
 import { resolveCatalogMapStyle } from "@/features/map/style-catalog";
-import { decideMapErrorAction, getConfiguredMapTilerKey } from "@/features/map/style-provider";
+import {
+  decideMapErrorAction,
+  getConfiguredMapTilerKey,
+} from "@/features/map/style-provider";
 import { useTheme } from "@/theme";
 
 /**
- * Native (iOS/Android) Map tab: a MapLibre Native map. Metro's platform
- * extensions keep the two maps apart: the web bundles `map.web.tsx`
- * (maplibre-gl) and never sees this file, so `@maplibre/maplibre-react-native`
- * never reaches the web bundle.
+ * Native (iOS/Android) Map tab: a MapLibre Native map. The web shows
+ * `map.web.tsx` (maplibre-gl) instead.
  *
  * First slice of the native map: the basemap only, from the SAME style
  * logic as the web (`resolveCatalogMapStyle` with the saved style choice and
@@ -35,39 +30,22 @@ import { useTheme } from "@/theme";
  *
  * Expo Go and any other build without MapLibre's native code keep the
  * translated "needs a full app installation" state instead of crashing.
+ * The package itself is loaded only by `src/features/map/native-maplibre.native.ts`:
+ * Expo Router bundles this file on the web too (every route file is), so
+ * nothing here may refer to it at runtime.
  */
 
-type MapLibreModule = typeof import("@maplibre/maplibre-react-native");
 type MapLibreMapRef = import("@maplibre/maplibre-react-native").MapRef;
-
-/** MapLibre's map module as registered by a build with its native code. */
-const MAPLIBRE_NATIVE_MODULE_NAME = "MLRNMapViewModule";
-
-/** `@maplibre/maplibre-react-native`, or null where its native code is not in
- * this build (Expo Go). Its modules look themselves up with `getEnforcing`
- * the moment they are imported, which throws where the native side is
- * missing, so the import has to stay behind this check. */
-function loadNativeMapLibre(): MapLibreModule | null {
-  try {
-    if (TurboModuleRegistry.get(MAPLIBRE_NATIVE_MODULE_NAME) == null) {
-      return null;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-require-imports -- must stay behind the native-module check above
-    return require("@maplibre/maplibre-react-native") as MapLibreModule;
-  } catch {
-    return null;
-  }
-}
 
 /** The web map's first view: the region bounds (west, south, east, north)
  * with `MAP_FIT_BOUNDS_PADDING_PX` on every side. */
 const INITIAL_VIEW = {
-  bounds: [REGION_BBOX.minLon, REGION_BBOX.minLat, REGION_BBOX.maxLon, REGION_BBOX.maxLat] as [
-    number,
-    number,
-    number,
-    number,
-  ],
+  bounds: [
+    REGION_BBOX.minLon,
+    REGION_BBOX.minLat,
+    REGION_BBOX.maxLon,
+    REGION_BBOX.maxLat,
+  ] as [number, number, number, number],
   padding: {
     top: MAP_FIT_BOUNDS_PADDING_PX,
     right: MAP_FIT_BOUNDS_PADDING_PX,
@@ -158,7 +136,10 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: colors.surface.base, paddingTop: insets.top }]}
+      style={[
+        styles.container,
+        { backgroundColor: colors.surface.base, paddingTop: insets.top },
+      ]}
     >
       <Text
         accessibilityRole="header"
@@ -198,10 +179,17 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
             onPress={handleShowCredits}
             style={[
               styles.creditsButton,
-              { backgroundColor: colors.surface.base, borderColor: colors.border.default },
+              {
+                backgroundColor: colors.surface.base,
+                borderColor: colors.border.default,
+              },
             ]}
           >
-            <Ionicons name="information-circle-outline" size={24} color={colors.text.secondary} />
+            <Ionicons
+              name="information-circle-outline"
+              size={24}
+              color={colors.text.secondary}
+            />
           </Pressable>
         ) : null}
 
@@ -231,7 +219,11 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
               ]}
             >
               <View style={[styles.offlineRow, { gap: spacing[2] }]}>
-                <Ionicons name="cloud-offline-outline" size={16} color={colors.text.secondary} />
+                <Ionicons
+                  name="cloud-offline-outline"
+                  size={16}
+                  color={colors.text.secondary}
+                />
                 <Text
                   style={{
                     color: colors.text.primary,
@@ -252,7 +244,11 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
               >
                 {t("map.offlineDescription")}
               </Text>
-              <Pressable accessibilityRole="button" onPress={handleRetry} style={styles.retry}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={handleRetry}
+                style={styles.retry}
+              >
                 <Text
                   style={{
                     color: colors.text.link,
@@ -269,7 +265,11 @@ function NativeMap({ mapLibre }: { mapLibre: MapLibreModule }) {
 
         {loadState === "loading" ? (
           <View
-            style={[styles.overlay, styles.centered, { backgroundColor: colors.surface.base }]}
+            style={[
+              styles.overlay,
+              styles.centered,
+              { backgroundColor: colors.surface.base },
+            ]}
             pointerEvents="none"
           >
             <ActivityIndicator color={colors.brand.primary} />
