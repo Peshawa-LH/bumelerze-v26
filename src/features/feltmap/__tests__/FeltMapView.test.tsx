@@ -133,7 +133,9 @@ describe("FeltMapView (golden: Chamchamal fixture)", () => {
     await render(
       <FeltMapView
         cells={cells}
-        epicenter={CHAMCHAMAL_CENTER}
+        // An epicentre away from the cells widens the frame to take in
+        // towns with labels (the cells alone frame none).
+        epicenter={{ lat: 35.56, lon: 45.43 }}
         locale="ckb"
         t={i18n.t}
         placeText="چەمچەماڵ"
@@ -183,5 +185,25 @@ describe("FeltMapView (golden: Chamchamal fixture)", () => {
     const totalReports = cells.reduce((sum, cell) => sum + cell.n_reports, 0);
     expect(map.props.accessibilityLabel).toContain(String(totalReports));
     expect(map.props.accessibilityLabel).toContain("Chamchamal, Kurdistan Region");
+  });
+  it("[regression] draws Sorani city labels in Vazirmatn on iOS/Android, not the system face", async () => {
+    await i18n.changeLanguage("ckb");
+    await render(
+      <FeltMapView
+        cells={cells}
+        // An epicentre away from the cells widens the frame to take in
+        // towns with labels (the cells alone frame none).
+        epicenter={{ lat: 35.56, lon: 45.43 }}
+        locale="ckb"
+        t={i18n.t}
+        placeText="چەمچەماڵ"
+      />,
+    );
+    await measureContainer();
+    const labels = screen.getAllByTestId(/^feltmap-label-/);
+    expect(labels.length).toBeGreaterThan(0);
+    for (const label of labels) {
+      expect(label.props.font.fontFamily).toBe("Vazirmatn-Medium");
+    }
   });
 });
