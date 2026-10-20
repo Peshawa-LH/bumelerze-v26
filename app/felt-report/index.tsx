@@ -115,6 +115,9 @@ export default function Tier1FeltReportScreen() {
         <Text
           accessibilityRole="header"
           style={{
+            // Wraps beside "Close" as in the browser (Yoga does not shrink
+            // a text by default; a long Sorani title ran into the link).
+            flexShrink: 1,
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,
             fontFamily: nativeFontFamily(typography.h1),
