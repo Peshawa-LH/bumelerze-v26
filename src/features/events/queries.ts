@@ -12,6 +12,10 @@ import type { PersistedClient, Persister } from "@tanstack/react-query-persist-c
 import { useSyncExternalStore } from "react";
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
+// Type only: the NetInfo adapter itself is handed in by app/_layout.tsx, so
+// importing this module never loads a native module (tests, web).
+import type { DeviceConnectivitySubscribe } from "@/lib/device-connectivity";
+
 import {
   EMSC_REGION_TIMEOUT_MS,
   EVENTS_REFETCH_INTERVAL_MS,
@@ -37,8 +41,8 @@ import type { Event } from "./types";
  * abuse"). React Query's `refetchIntervalInBackground` defaults to `false`,
  * but on React Native that only has an effect once `focusManager` is told
  * about app-foreground state — RN doesn't fire the DOM `visibilitychange`
- * event React Query listens to by default. No extra native dependency
- * needed (no NetInfo): `AppState` alone is enough.
+ * event React Query listens to by default. `AppState` alone is enough for
+ * that; the connection itself is `followDeviceConnectivity`'s job.
  */
 function onAppStateChange(status: AppStateStatus): void {
   focusManager.setFocused(status === "active");
@@ -65,8 +69,8 @@ export const PERSISTED_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
  * out assuming "online". A page opened without signal (the offline copy,
  * public/push-sw.js) would then try the feed, wait for the retries to fail
  * and only then say so. `navigator.onLine === false` is reliable (it is
- * `true` that can be wrong), so start from it. iOS/Android: React Query has
- * no connectivity signal here (no NetInfo) and keeps assuming online.
+ * `true` that can be wrong), so start from it. iOS/Android follow the
+ * phone's connection instead (`followDeviceConnectivity`).
  */
 function seedOnlineStateWeb(): void {
   if (
@@ -78,8 +82,39 @@ function seedOnlineStateWeb(): void {
   }
 }
 
+/**
+ * iOS/Android: React Query follows the phone's connection (NetInfo,
+ * `src/lib/device-connectivity.ts`), as the web follows the browser's.
+ * Before this, an app opened without signal assumed "online": the feed
+ * tried, waited for its retries to fail and only then said so, and nothing
+ * refetched when the signal came back. Now, offline, queries pause (the
+ * saved feed shows at once with the offline note) and resume when the
+ * connection returns (`refetchOnReconnect`). Not yet known counts as
+ * online, so a slow first answer never blocks the first fetch.
+ */
+export function followDeviceConnectivity(subscribe: DeviceConnectivitySubscribe): void {
+  onlineManager.setEventListener((setOnline) =>
+    subscribe((isConnected) => setOnline(isConnected !== false)),
+  );
+}
+
+/**
+ * Calls `onReconnect` each time the connection comes back after React Query
+ * saw it lost (not on start, not while it stays online). Returns the
+ * function that stops listening.
+ */
+export function onConnectionRegained(onReconnect: () => void): () => void {
+  let wasOnline = onlineManager.isOnline();
+  return onlineManager.subscribe((isOnline) => {
+    if (isOnline && !wasOnline) {
+      onReconnect();
+    }
+    wasOnline = isOnline;
+  });
+}
+
 /** Whether React Query believes the device is online (web: the browser's
- * online/offline events; iOS/Android: always true). */
+ * online/offline events; iOS/Android: the phone's connection, NetInfo). */
 export function useIsOnline(): boolean {
   return useSyncExternalStore(
     (onChange) => onlineManager.subscribe(onChange),
@@ -88,9 +123,19 @@ export function useIsOnline(): boolean {
   );
 }
 
-export function createEventsQueryClient(): QueryClient {
+export interface EventsQueryClientOptions {
+  /** iOS/Android: the phone's connection signal (NetInfo); none on the web. */
+  deviceConnectivity?: DeviceConnectivitySubscribe | null;
+}
+
+export function createEventsQueryClient(
+  options: EventsQueryClientOptions = {},
+): QueryClient {
   ensureAppStateListenerAttached();
   seedOnlineStateWeb();
+  if (Platform.OS !== "web" && options.deviceConnectivity) {
+    followDeviceConnectivity(options.deviceConnectivity);
+  }
 
   return new QueryClient({
     defaultOptions: {
@@ -166,9 +211,10 @@ function useEventsFeed(
     refetchInterval: EVENTS_REFETCH_INTERVAL_MS,
     refetchIntervalInBackground: false,
   });
-  // Web: when the browser goes offline React Query PAUSES the feed instead of
-  // failing it, so `isError` alone never turned true and the offline banner
-  // never showed (found 2026-10-13). Offline is now said straight away.
+  // When the browser (web) or the phone (iOS/Android) goes offline React
+  // Query PAUSES the feed instead of failing it, so `isError` alone never
+  // turned true and the offline banner never showed (found 2026-10-13).
+  // Offline is now said straight away.
   const isOnline = useIsOnline();
   // While the saved feed is still being read back, nothing is decided yet.
   const isRestoring = useIsRestoring();

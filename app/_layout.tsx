@@ -20,6 +20,7 @@ import { useStackScreenOptions } from "@/components/use-stack-screen-options";
 import {
   createEventsPersister,
   createEventsQueryClient,
+  onConnectionRegained,
   PERSISTED_CACHE_MAX_AGE_MS,
 } from "@/features/events/queries";
 import {
@@ -52,6 +53,7 @@ import {
 import { sendColdStartTelemetryPing } from "@/features/telemetry/ping";
 import { useTabBarStore } from "@/features/tab-bar/store";
 import { useLaunchPendingTour } from "@/features/tour/launch";
+import { subscribeToDeviceConnectivity } from "@/lib/device-connectivity";
 import { useDocumentTitle } from "@/lib/document-title";
 import {
   isTabRootPath,
@@ -95,8 +97,21 @@ const NATIVE_FONTS = { ...VAZIRMATN_FACES, ...Ionicons.font };
 // Created once per app instance (module scope, not per render) so the
 // persisted cache round-trips through the SAME client across re-renders —
 // creating a new QueryClient on every render would defeat the persister
-// (offline/cold-start requirement, the project requirements).
-const eventsQueryClient = createEventsQueryClient();
+// (offline/cold-start requirement, the project requirements). iOS/Android:
+// it follows the phone's connection (NetInfo); the web, the browser's.
+const eventsQueryClient = createEventsQueryClient({
+  deviceConnectivity: subscribeToDeviceConnectivity,
+});
+
+/** Sends whatever waits on the phone: felt reports (then reconciles the
+ * ones already sent), feedback, home photos and "I'm safe" check-ins. Each
+ * queue skips a call while it is already sending. */
+function drainOfflineQueues(): void {
+  void processQueue().then(() => reconcileSubmittedReports());
+  void processFeedbackQueue();
+  void processHomePhotoQueue();
+  void processCheckInQueue();
+}
 const eventsPersister = createEventsPersister();
 
 /**
@@ -223,26 +238,32 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    // Wire the offline felt-report queue's sync triggers once per app
-    // instance: an immediate cold-start attempt (catches "queued while the
-    // app was closed"), plus every subsequent foreground transition
-    // (features/felt/queue.ts's own doc comment explains why this covers
-    // connectivity-regain without a NetInfo dependency).
+    // Wire the offline queues' sync triggers once per app instance: an
+    // immediate cold-start attempt (catches "queued while the app was
+    // closed"), plus every subsequent foreground transition
+    // (features/felt/queue.ts's own doc comment explains why the foreground
+    // covers most connectivity regains).
+    // - Felt reports (then reconciling the ones already sent).
+    // - Feedback: the same two triggers were defined but never wired
+    //   (2026-09-27): a submission whose first attempt failed stayed on the
+    //   phone until the next feedback was sent.
+    // - Photos of a tagged home, from their own on-device queue.
+    // - "I'm safe" check-ins.
     ensureFeltQueueForegroundSync();
-    void processQueue().then(() => reconcileSubmittedReports());
-    // The feedback queue had the same two triggers defined but never wired
-    // (2026-09-27): a submission whose first attempt failed stayed on the
-    // phone until the next feedback was sent. Same cold-start drain plus
-    // foreground retry as the felt-report queue above.
     ensureFeedbackQueueForegroundSync();
-    void processFeedbackQueue();
-    // Photos of a tagged home upload from their own on-device queue, with the
-    // same two triggers (cold start, foreground).
     ensureHomePhotoQueueForegroundSync();
-    void processHomePhotoQueue();
-    // "I'm safe" check-ins wait on the phone until sent, same two triggers.
     ensureCheckInForegroundSync();
-    void processCheckInQueue();
+    drainOfflineQueues();
+  }, []);
+
+  // iOS/Android: also the moment the phone's connection comes back (NetInfo),
+  // with the app open, instead of waiting for the next return to the
+  // foreground. The web keeps its two triggers.
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      return;
+    }
+    return onConnectionRegained(drainOfflineQueues);
   }, []);
 
   // iOS/Android: the splash screen goes once the first screen can draw in
