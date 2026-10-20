@@ -228,6 +228,9 @@ const config: ExpoConfig = {
       "expo-localization",
       { supportedLocales: { ios: ["en", "ckb", "kmr", "ar"] } },
     ],
+    // iOS: the UIScene life cycle the iOS 27 SDK requires (Expo SDK 57's
+    // template predates it). Remove on Expo SDK 58 or later.
+    "./plugins/with-ios-scene-life-cycle",
   ],
   experiments: {
     typedRoutes: true,
