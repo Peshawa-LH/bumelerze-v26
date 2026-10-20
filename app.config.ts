@@ -18,6 +18,32 @@ import type { ExpoConfig } from "expo/config";
 // needs per-dynamic-segment rewrites instead.
 const webBaseUrl = process.env.BUMELERZE_WEB_BASE_URL;
 
+// Expo account identity (iOS/Android builds, push tokens, EAS Update). Read
+// from the environment, so the config needs no edit when the account
+// exists: after `eas init`, put the owner and the project id it prints into
+// `.env` (local builds) and into the project's EAS environment variables
+// (EAS builds). Unset (today), the app has no owner and no project id, and
+// local `npx expo prebuild` builds work as before. See .env.example.
+//
+// - EXPO_OWNER: the Expo account or organisation that owns the project.
+// - EAS_PROJECT_ID: the EAS project id `eas init` prints.
+type BuildEnv = Readonly<Record<string, string | undefined>>;
+
+function nonEmpty(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+/** `owner` and `extra.eas.projectId`, when the environment names them. */
+export function expoAccountConfig(env: BuildEnv): Pick<ExpoConfig, "owner" | "extra"> {
+  const owner = nonEmpty(env.EXPO_OWNER);
+  const projectId = nonEmpty(env.EAS_PROJECT_ID);
+  return {
+    ...(owner ? { owner } : {}),
+    ...(projectId ? { extra: { eas: { projectId } } } : {}),
+  };
+}
+
 // Brand colors for icon/splash chrome come straight from the logo
 // package's own machine-readable tokens (not hand-copied hex) — the same
 // file `scripts/generate-assets.js` reads to rasterize icon.png/
@@ -65,6 +91,11 @@ const config: ExpoConfig = {
   // (src/lib/app-version.ts), stamped on feedback, presence and sensor
   // exports.
   version: "26.3.0",
+  // An EAS Update reaches only builds with the same app version: a release
+  // that changes native code gets a new version, so older installs never
+  // receive JavaScript written for native modules they do not have.
+  runtimeVersion: { policy: "appVersion" },
+  ...expoAccountConfig(process.env),
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "bumelerze",
@@ -88,7 +119,8 @@ const config: ExpoConfig = {
   web: {
     // "single" (SPA) for hosted web builds: at the subdomain root
     // (app.bumelerze.com, scripts/build-app-web.sh) or under a base path.
-    output: webBaseUrl || process.env.BUMELERZE_WEB_OUTPUT === "single" ? "single" : "static",
+    output:
+      webBaseUrl || process.env.BUMELERZE_WEB_OUTPUT === "single" ? "single" : "static",
     favicon: "./assets/images/favicon.png",
   },
   plugins: [
