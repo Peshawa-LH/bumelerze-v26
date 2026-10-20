@@ -6,17 +6,24 @@ import {
   useRef,
   useState,
 } from "react";
-import { StyleSheet, View } from "react-native";
-import type Svg from "react-native-svg";
+import { PixelRatio, Platform, StyleSheet, View } from "react-native";
 
 import type { CardModel } from "./card-layout";
+import { SHARE_IMAGE_WIDTH } from "./config";
 import { rasterizeCard } from "./image-export";
-import { ShareCardSvg } from "./ShareCardSvg";
+import { ShareCardSvg, type ShareCardRef } from "./ShareCardSvg";
 import type { ShareCardSize, ShareImage } from "./types";
 
-/** The card is mounted tiny and exported large: vectors scale crisply and the
- * only full-size bitmap is the 1080-wide result. */
-const HOST_WIDTH = 270;
+/** Web: the card is mounted tiny and exported large (the exporter draws the
+ * SVG at 1080 wide), so the only full-size bitmap is the result. */
+const WEB_HOST_WIDTH = 270;
+
+/** Phone: the export is a capture of the mounted view at the screen's own
+ * pixel density, so the card is mounted at the size that captures as exactly
+ * 1080 pixels wide (360 points on a 3x iPhone). */
+export function shareCardHostWidth(): number {
+  return Platform.OS === "web" ? WEB_HOST_WIDTH : SHARE_IMAGE_WIDTH / PixelRatio.get();
+}
 
 export interface CardRendererHandle {
   /** Mounts the card for `size`, rasterises it, unmounts it. Calls queue. */
@@ -51,7 +58,7 @@ export const CardRenderer = forwardRef<
   { buildModel: (size: ShareCardSize) => CardModel }
 >(function CardRenderer({ buildModel }, ref) {
   const [job, setJob] = useState<Job | null>(null);
-  const svgRef = useRef<Svg | null>(null);
+  const cardRef = useRef<ShareCardRef | null>(null);
   const jobRef = useRef<Job | null>(null);
   jobRef.current = job;
   const tail = useRef<Promise<unknown>>(Promise.resolve());
@@ -82,7 +89,7 @@ export const CardRenderer = forwardRef<
         // Two frames: the card is committed and laid out before it is read.
         await nextFrame();
         await nextFrame();
-        const image = await rasterizeCard(svgRef.current, job.size);
+        const image = await rasterizeCard(cardRef.current, job.size);
         job.resolve(image);
       } catch (error) {
         job.reject(error);
@@ -109,6 +116,7 @@ export const CardRenderer = forwardRef<
   if (!model) {
     return null;
   }
+  const width = shareCardHostWidth();
   return (
     <View
       testID="share-card-host"
@@ -116,9 +124,9 @@ export const CardRenderer = forwardRef<
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       // Pin the box's own direction: the card handles RTL itself.
-      style={[styles.host, { direction: "ltr" }]}
+      style={[styles.host, { direction: "ltr", width }]}
     >
-      <ShareCardSvg ref={svgRef} model={model} displayWidth={HOST_WIDTH} />
+      <ShareCardSvg ref={cardRef} model={model} displayWidth={width} />
     </View>
   );
 });
@@ -128,7 +136,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: -4000,
-    width: HOST_WIDTH,
     opacity: 0,
   },
 });
