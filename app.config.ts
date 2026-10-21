@@ -245,10 +245,9 @@ const config: ExpoConfig = {
   // (2026-09-27); 26.2 = the October rebuild; 26.3 = the review fix batch
   // (D89) and the clean-up after it. The engine (bumelerze-engine) has its
   // own versions (now 26.2.1), and every shakemap names the engine version
-  // that made it. Shown in the Settings footer and, with the web build id
-  // (src/lib/app-version.ts), stamped on feedback, presence and sensor
-  // exports.
-  version: "26.3.0",
+  // that made it. Shown in the Settings footer and stamped on feedback,
+  // presence and sensor exports.
+  version: "26.3.1",
   // An EAS Update reaches only builds with the same app version: a release
   // that changes native code gets a new version, so older installs never
   // receive JavaScript written for native modules they do not have.
