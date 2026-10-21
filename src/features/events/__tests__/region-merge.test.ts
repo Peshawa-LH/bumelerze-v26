@@ -304,3 +304,117 @@ describe("fetchRegionEventsMerged", () => {
     expect(result.fetchedAt).toBe(3);
   });
 });
+
+/**
+ * First-load grace (2026-10-21: GEOFON stopped answering and every first
+ * visit waited out its full 8 s budget before Home showed anything). With
+ * `firstAnswerGraceMs`, the sources still out a short grace after the first
+ * one answers are cut from THIS fetch, and the result says so (`partial`) so
+ * the hook can ask again at once with every source's full budget.
+ */
+describe("fetchRegionEventsMerged with a first-answer grace", () => {
+  const GRACE_MS = 2_000;
+
+  /** `fetch` under AbortController: never settles on its own, rejects on abort. */
+  function hangUntilAborted(signal?: AbortSignal): Promise<never> {
+    return new Promise((_resolve, reject) => {
+      signal?.addEventListener("abort", () => reject(new Error("AbortError")));
+    });
+  }
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockFetchUsgsRegionEvents.mockReset();
+    mockFetchEmscRegionEvents.mockReset();
+    mockFetchGeofonRegionEvents.mockReset();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("serves the sources that answered once the grace ends, without waiting out a hanging source's budget", async () => {
+    const usgsEvent = makeEvent("usgs", "us7000abcd");
+    const emscEvent = makeEvent("emsc", "20261021_0000001", { originTime: 1_700_100_000_000 });
+    mockFetchUsgsRegionEvents.mockResolvedValue(okResult([usgsEvent]));
+    mockFetchEmscRegionEvents.mockResolvedValue(okResult([emscEvent]));
+    mockFetchGeofonRegionEvents.mockImplementation(hangUntilAborted);
+
+    let settled = false;
+    const resultPromise = fetchRegionEventsMerged({ firstAnswerGraceMs: GRACE_MS }).then(
+      (result) => {
+        settled = true;
+        return result;
+      },
+    );
+    await jest.advanceTimersByTimeAsync(GRACE_MS);
+
+    expect(settled).toBe(true);
+    const result = await resultPromise;
+    expect(result.events.map((event) => event.id).sort()).toEqual(
+      [emscEvent.id, usgsEvent.id].sort(),
+    );
+    expect(result.partial).toBe(true);
+    const [signalArg] = mockFetchGeofonRegionEvents.mock.calls[0] as [AbortSignal];
+    expect(signalArg.aborted).toBe(true);
+  });
+
+  it("keeps a source that answers inside the grace, and the result is complete", async () => {
+    const usgsEvent = makeEvent("usgs", "us7000abcd");
+    const geofonEvent = makeEvent("geofon", "gfz2026uvwx", {
+      originTime: 1_700_200_000_000,
+      lat: 37.1,
+      lon: 44.2,
+    });
+    mockFetchUsgsRegionEvents.mockResolvedValue(okResult([usgsEvent]));
+    mockFetchEmscRegionEvents.mockResolvedValue(okResult([]));
+    mockFetchGeofonRegionEvents.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => resolve(okResult([geofonEvent])), GRACE_MS - 500);
+        }),
+    );
+
+    const resultPromise = fetchRegionEventsMerged({ firstAnswerGraceMs: GRACE_MS });
+    await jest.advanceTimersByTimeAsync(GRACE_MS);
+    const result = await resultPromise;
+
+    expect(result.events.map((event) => event.id)).toContain(geofonEvent.id);
+    expect(result.partial).toBeFalsy();
+  });
+
+  it("does not call the result partial when a source failed on its own (asking again would not help)", async () => {
+    mockFetchUsgsRegionEvents.mockResolvedValue(okResult([makeEvent("usgs", "us7000abcd")]));
+    mockFetchEmscRegionEvents.mockResolvedValue(okResult([]));
+    mockFetchGeofonRegionEvents.mockRejectedValue(new Error("HTTP 503"));
+
+    const resultPromise = fetchRegionEventsMerged({ firstAnswerGraceMs: GRACE_MS });
+    await jest.advanceTimersByTimeAsync(GRACE_MS);
+    const result = await resultPromise;
+
+    expect(result.partial).toBeFalsy();
+  });
+
+  it("without a grace (a background poll with a list already on screen) still waits for a slow source inside its budget", async () => {
+    const geofonEvent = makeEvent("geofon", "gfz2026uvwx", {
+      originTime: 1_700_200_000_000,
+      lat: 37.1,
+      lon: 44.2,
+    });
+    mockFetchUsgsRegionEvents.mockResolvedValue(okResult([]));
+    mockFetchEmscRegionEvents.mockResolvedValue(okResult([]));
+    mockFetchGeofonRegionEvents.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => resolve(okResult([geofonEvent])), 5_000);
+        }),
+    );
+
+    const resultPromise = fetchRegionEventsMerged();
+    await jest.advanceTimersByTimeAsync(5_000);
+    const result = await resultPromise;
+
+    expect(result.events).toEqual([geofonEvent]);
+    expect(result.partial).toBeFalsy();
+  });
+});

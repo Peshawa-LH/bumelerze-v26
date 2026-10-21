@@ -6,10 +6,11 @@ import {
   onlineManager,
   useIsRestoring,
   useQuery,
+  useQueryClient,
   type UseQueryResult,
 } from "@tanstack/react-query";
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
-import { useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
 // Type only: the NetInfo adapter itself is handed in by app/_layout.tsx, so
@@ -23,6 +24,7 @@ import {
   EVENTS_STALE_TIME_MS,
   GEOFON_REGION_TIMEOUT_MS,
   NOTABLE_TAIL_STALE_TIME_MS,
+  REGION_FIRST_LOAD_GRACE_MS,
   USGS_REGION_TIMEOUT_MS,
 } from "./config";
 import { fetchEmscRegionEvents } from "./emsc";
@@ -211,7 +213,7 @@ export interface UseEventsFeedResult {
 
 function useEventsFeed(
   queryKey: readonly string[],
-  queryFn: () => ReturnType<typeof fetchUsgsRegionEvents>,
+  queryFn: () => Promise<RegionFetchResult>,
 ): UseEventsFeedResult {
   const query = useQuery({
     queryKey,
@@ -219,6 +221,17 @@ function useEventsFeed(
     refetchInterval: EVENTS_REFETCH_INTERVAL_MS,
     refetchIntervalInBackground: false,
   });
+  // A first load that cut a slow source (`partial`) is followed at once by a
+  // full fetch, so that source's events don't wait for the next poll.
+  // `cancelRefetch: false` — every screen using the feed runs this effect;
+  // they share one fetch instead of restarting it.
+  const { refetch } = query;
+  const isPartial = query.data?.partial === true;
+  useEffect(() => {
+    if (isPartial) {
+      void refetch({ cancelRefetch: false });
+    }
+  }, [isPartial, query.dataUpdatedAt, refetch]);
   // When the browser (web) or the phone (iOS/Android) goes offline React
   // Query PAUSES the feed instead of failing it, so `isError` alone never
   // turned true and the offline banner never showed (found 2026-10-13).
@@ -252,6 +265,10 @@ interface RegionFetchResult {
   events: Event[];
   skippedCount: number;
   fetchedAt: number;
+  /** True when a first-answer grace cut a source that was still answering
+   * — `useEventsFeed` then asks again at once, with every source's full
+   * budget (`fetchRegionEventsMerged`'s `firstAnswerGraceMs`). */
+  partial?: boolean;
 }
 
 /** One provider's leg of the parallel region fetch: its own AbortController
@@ -263,12 +280,18 @@ async function fetchProviderLeg(
   fetchFn: (signal: AbortSignal) => Promise<RegionFetchResult>,
   timeoutMs: number,
   providerLabel: string,
-): Promise<{ result?: RegionFetchResult; error?: unknown }> {
+  graceSignal: AbortSignal,
+): Promise<{ result?: RegionFetchResult; error?: unknown; cutByGrace?: boolean }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const cutShort = () => controller.abort();
+  graceSignal.addEventListener("abort", cutShort);
   try {
     return { result: await fetchFn(controller.signal) };
   } catch (error) {
+    if (graceSignal.aborted) {
+      return { error, cutByGrace: true };
+    }
     if (__DEV__) {
       console.warn(
         `[events/queries] ${providerLabel} region fetch failed or timed out — serving the other provider's list alone this poll`,
@@ -278,6 +301,7 @@ async function fetchProviderLeg(
     return { error };
   } finally {
     clearTimeout(timeoutId);
+    graceSignal.removeEventListener("abort", cutShort);
   }
 }
 
@@ -322,8 +346,29 @@ async function fetchProviderLeg(
  * This remains a plain `queryFn` under the single `eventsQueryKeys.region`
  * key: each poll's merged list wholesale-replaces the previous one, so
  * provider recovery needs no cache surgery.
+ *
+ * `firstAnswerGraceMs` (first load only — `useRegionEvents` passes it while
+ * there is no list on screen yet): once the first source answers, the ones
+ * still out get this much longer, then are cut from THIS fetch and the
+ * result is marked `partial`, so `useEventsFeed` asks again straight away
+ * with the full budgets. A hanging source then costs a first-time visitor
+ * the grace, not its whole timeout (GEOFON, 2026-10-21: ~8 s blank Home).
+ * Background polls pass nothing: the list is already showing, and a slow
+ * source keeps its full budget — during a big earthquake EMSC is often the
+ * slow one AND the one with the felt regional event.
  */
-export async function fetchRegionEventsMerged(): Promise<RegionFetchResult> {
+export async function fetchRegionEventsMerged({
+  firstAnswerGraceMs,
+}: { firstAnswerGraceMs?: number } = {}): Promise<RegionFetchResult> {
+  const grace = new AbortController();
+  let graceTimer: ReturnType<typeof setTimeout> | undefined;
+  const startGraceOnFirstAnswer = (leg: Awaited<ReturnType<typeof fetchProviderLeg>>) => {
+    if (leg.result && firstAnswerGraceMs !== undefined && graceTimer === undefined) {
+      graceTimer = setTimeout(() => grace.abort(), firstAnswerGraceMs);
+    }
+    return leg;
+  };
+
   // Leg order = canonical authority order (doc comment above) — it is the
   // priority order `mergeProviderEvents` applies.
   const legs = await Promise.all([
@@ -331,18 +376,22 @@ export async function fetchRegionEventsMerged(): Promise<RegionFetchResult> {
       (signal) => fetchUsgsRegionEvents(signal),
       USGS_REGION_TIMEOUT_MS,
       "USGS",
-    ),
+      grace.signal,
+    ).then(startGraceOnFirstAnswer),
     fetchProviderLeg(
       (signal) => fetchEmscRegionEvents(signal),
       EMSC_REGION_TIMEOUT_MS,
       "EMSC",
-    ),
+      grace.signal,
+    ).then(startGraceOnFirstAnswer),
     fetchProviderLeg(
       (signal) => fetchGeofonRegionEvents(signal),
       GEOFON_REGION_TIMEOUT_MS,
       "GEOFON",
-    ),
+      grace.signal,
+    ).then(startGraceOnFirstAnswer),
   ]);
+  clearTimeout(graceTimer);
 
   if (legs.every((leg) => !leg.result)) {
     // All-fail path (outcome 3): rethrow rather than fabricate an empty
@@ -353,10 +402,12 @@ export async function fetchRegionEventsMerged(): Promise<RegionFetchResult> {
     );
   }
 
+  const partial = legs.some((leg) => leg.cutByGrace === true);
   return {
     events: mergeProviderEvents(legs.map((leg) => leg.result?.events ?? [])),
     skippedCount: legs.reduce((sum, leg) => sum + (leg.result?.skippedCount ?? 0), 0),
     fetchedAt: Math.max(...legs.map((leg) => leg.result?.fetchedAt ?? 0)),
+    ...(partial ? { partial } : {}),
   };
 }
 
@@ -367,7 +418,19 @@ export async function fetchRegionEventsMerged(): Promise<RegionFetchResult> {
  * whether the combined fetch succeeded or failed, not which provider(s)
  * answered. */
 export function useRegionEvents(): UseEventsFeedResult {
-  return useEventsFeed(eventsQueryKeys.region, fetchRegionEventsMerged);
+  const client = useQueryClient();
+  // Read at fetch time, not render time: the grace is for a fetch that
+  // starts with nothing to show (fresh install, cleared storage).
+  const queryFn = useCallback(
+    () =>
+      fetchRegionEventsMerged(
+        client.getQueryData(eventsQueryKeys.region) === undefined
+          ? { firstAnswerGraceMs: REGION_FIRST_LOAD_GRACE_MS }
+          : {},
+      ),
+    [client],
+  );
+  return useEventsFeed(eventsQueryKeys.region, queryFn);
 }
 
 /** Full world feed (World Catalog, the v1 spec §4.2). */

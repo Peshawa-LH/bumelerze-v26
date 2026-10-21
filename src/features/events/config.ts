@@ -224,6 +224,13 @@ export const USGS_REGION_TIMEOUT_MS = 8_000;
 export const EMSC_REGION_TIMEOUT_MS = 8_000;
 export const GEOFON_REGION_TIMEOUT_MS = 8_000;
 
+/** First load only (no list on screen yet): once one source has answered,
+ * the others get this much longer before Home shows what it has — then the
+ * feed asks again at once with the full budgets above. Keeps a hanging
+ * source from blanking a first visit for its whole timeout (GEOFON down,
+ * 2026-10-21). Background polls never use it. */
+export const REGION_FIRST_LOAD_GRACE_MS = 2_000;
+
 /**
  * Cross-provider dedup thresholds, the event-pipeline design §2 step 3
  * (spatial-temporal match, all tunable): two provider records are the same

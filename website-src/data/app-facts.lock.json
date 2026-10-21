@@ -1,10 +1,10 @@
 {
   "feed-networks": {
-    "file:src/features/events/config.ts": "356d06b5ef01887e",
+    "file:src/features/events/config.ts": "53941556bcb476ec",
     "file:src/features/events/merge.ts": "7ab4406e33060ca4"
   },
   "live-card-region-rule": {
-    "file:src/features/events/config.ts": "356d06b5ef01887e",
+    "file:src/features/events/config.ts": "53941556bcb476ec",
     "file:src/features/events/home-feed-policy.ts": "baa4ed157827a15c"
   },
   "live-card-significant-rule": {
