@@ -1,10 +1,13 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import { useState } from "react";
+import { Platform, StyleSheet } from "react-native";
 
 import {
   HOLD_REPEAT_INTERVAL_MS,
   HOLD_REPEAT_START_DELAY_MS,
+  nativeStepperWidths,
   NumericStepper,
+  WEB_TEXT_BOX_EMS,
 } from "../components/NumericStepper";
 
 /**
@@ -81,7 +84,9 @@ describe("NumericStepper taps and holds", () => {
     // One step per repeat tick after the start delay (the exact count
     // depends on where the test renderer's own ticks fall, so a tick of
     // slack is allowed), and NOT one step per tick plus one for the release.
-    const expected = Math.floor((2000 - HOLD_REPEAT_START_DELAY_MS) / HOLD_REPEAT_INTERVAL_MS);
+    const expected = Math.floor(
+      (2000 - HOLD_REPEAT_START_DELAY_MS) / HOLD_REPEAT_INTERVAL_MS,
+    );
     const repeats = onChange.mock.calls.length;
     expect(repeats).toBeGreaterThanOrEqual(expected - 1);
     expect(repeats).toBeLessThanOrEqual(expected);
@@ -102,7 +107,10 @@ describe("NumericStepper taps and holds", () => {
   it("the decrement side holds too, downwards", async () => {
     const onChange = jest.fn();
     await render(<Harness onChange={onChange} start={2} />);
-    await touch("Decrease", HOLD_REPEAT_START_DELAY_MS + HOLD_REPEAT_INTERVAL_MS * 2 + 10);
+    await touch(
+      "Decrease",
+      HOLD_REPEAT_START_DELAY_MS + HOLD_REPEAT_INTERVAL_MS * 2 + 10,
+    );
     expect(onChange.mock.calls.map(([v]) => v)).toEqual([1.5, 1]);
   });
 
@@ -111,5 +119,35 @@ describe("NumericStepper taps and holds", () => {
     await render(<Harness onChange={onChange} />);
     await touch("Increase", HOLD_REPEAT_START_DELAY_MS - 50);
     expect(onChange).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("NumericStepper width on iOS and Android (parity review S5, GAP 4)", () => {
+  afterEach(cleanup);
+
+  it("gives the number box the web's default width, so the stepper is as wide as on the web", async () => {
+    // React Native sized the box to its 56 pt minimum (a 170 pt stepper);
+    // a browser's text box has room for 20 characters (175 px at 16 px).
+    await render(<Harness onChange={jest.fn()} />);
+    const input = StyleSheet.flatten(screen.getByTestId("stepper").props.style);
+    expect(input.width).toBe(16 * WEB_TEXT_BOX_EMS);
+    expect(input.width).toBeGreaterThanOrEqual(175);
+    // It can still give way on a narrow phone.
+    expect(input.flexShrink).toBe(1);
+    expect(input.minWidth).toBe(56);
+  });
+
+  it("never lets the stepper outgrow its row", () => {
+    expect(nativeStepperWidths(16).container).toEqual({ maxWidth: "100%" });
+  });
+
+  it("leaves the web as it was: the browser sizes the box", () => {
+    const original = Platform.OS;
+    Platform.OS = "web";
+    try {
+      expect(nativeStepperWidths(16)).toEqual({ container: null, input: null });
+    } finally {
+      Platform.OS = original;
+    }
   });
 });

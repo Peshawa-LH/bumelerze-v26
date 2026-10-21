@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
@@ -29,6 +29,32 @@ interface NumericStepperProps {
  * apart) in a few seconds of holding rather than requiring 100+ taps. */
 export const HOLD_REPEAT_START_DELAY_MS = 400;
 export const HOLD_REPEAT_INTERVAL_MS = 90;
+
+/** The width of a browser's default text box (room for 20 average
+ * characters, `<input size=20>`) in em: 175 px at the box's 16 px. */
+export const WEB_TEXT_BOX_EMS = 11;
+
+/**
+ * iOS/Android: the number box takes the width the web's has by default, so
+ * the stepper is as wide as on the web (289 pt, not 170). The web never sets
+ * a width: the browser gives the box its room for 20 characters, while
+ * React Native sized it to its 56 pt minimum (parity review S5, GAP 4). The
+ * box still shrinks (`flexShrink`) and the stepper never outgrows its row
+ * (`maxWidth`), so a narrow phone keeps the whole control on screen.
+ * Exported for tests.
+ */
+export function nativeStepperWidths(fontSize: number): {
+  container: { maxWidth: "100%" } | null;
+  input: { width: number } | null;
+} {
+  if (Platform.OS === "web") {
+    return { container: null, input: null };
+  }
+  return {
+    container: { maxWidth: "100%" },
+    input: { width: fontSize * WEB_TEXT_BOX_EMS },
+  };
+}
 
 /**
  * The value in the middle is also a text box (review note 9.1): type a
@@ -64,6 +90,7 @@ export function NumericStepper({
   testID,
 }: NumericStepperProps) {
   const { colors, typography, spacing } = useTheme();
+  const nativeWidths = nativeStepperWidths(typography.bodyDefault.fontSize);
   // Text being typed; null while the box is not being edited (then it shows
   // the formatted value).
   const [draft, setDraft] = useState<string | null>(null);
@@ -148,7 +175,7 @@ export function NumericStepper({
   }
 
   return (
-    <View style={[styles.container, { gap: spacing[1] }]}>
+    <View style={[styles.container, { gap: spacing[1] }, nativeWidths.container]}>
       <Text
         style={{
           color: colors.text.secondary,
@@ -160,12 +187,7 @@ export function NumericStepper({
       >
         {label}
       </Text>
-      <View
-        style={[
-          styles.row,
-          { borderColor: colors.border.default, gap: spacing[2] },
-        ]}
-      >
+      <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[2] }]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={decrementA11yLabel}
@@ -175,7 +197,14 @@ export function NumericStepper({
           onPress={() => tap(-1)}
           style={[styles.button, { opacity: value <= min ? 0.4 : 1 }]}
         >
-          <Text style={{ color: colors.text.primary, fontSize: typography.h3.fontSize, fontFamily: nativeFontFamily(typography.h3, "400"), ...READING_START }}>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.h3.fontSize,
+              fontFamily: nativeFontFamily(typography.h3, "400"),
+              ...READING_START,
+            }}
+          >
             −
           </Text>
         </Pressable>
@@ -196,6 +225,7 @@ export function NumericStepper({
           maxLength={8}
           style={[
             styles.input,
+            nativeWidths.input,
             {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
@@ -212,7 +242,14 @@ export function NumericStepper({
           onPress={() => tap(1)}
           style={[styles.button, { opacity: value >= max ? 0.4 : 1 }]}
         >
-          <Text style={{ color: colors.text.primary, fontSize: typography.h3.fontSize, fontFamily: nativeFontFamily(typography.h3, "400"), ...READING_START }}>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.h3.fontSize,
+              fontFamily: nativeFontFamily(typography.h3, "400"),
+              ...READING_START,
+            }}
+          >
             +
           </Text>
         </Pressable>
