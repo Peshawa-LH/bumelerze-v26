@@ -9,7 +9,7 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatAbsoluteDual } from "@/features/events/format";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { useAlertsAdminActions, useAlertsOverview } from "../queries";
 import { SupabaseAlertsTransport, toAlertsError, type AlertsTransport } from "../transport";
@@ -44,12 +44,14 @@ export function AlertsAdminContent({
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
     fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const body = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
     fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 
@@ -233,7 +235,7 @@ export function AlertsAdminContent({
       ) : null}
 
       {errorText ? (
-        <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
+        <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
           {errorText}
         </Text>
       ) : null}

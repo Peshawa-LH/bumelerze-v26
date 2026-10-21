@@ -96,9 +96,6 @@ describe("native direction and date rules (source scan)", () => {
   });
 
   it("[regression] a Text styled inline with its own size states its alignment (READING_START)", () => {
-    // Files the notifications batch owns: a follow-up sweep after it merges.
-    const pending =
-      /^(src\/features\/(alerts|notifications)\/|app\/onboarding\/notifications\.tsx$|app\/\(tabs\)\/[^/]+\/notification-settings\.tsx$)/;
     // Runs of a share-card string, built in a variable and rendered inside
     // that string's own Text: an alignment on a run overrode the parent's
     // (the hub card's "٣.٢ پلە" lost its side and its unit word).
@@ -106,11 +103,7 @@ describe("native direction and date rules (source scan)", () => {
     const isText = (tag: string) => tag === "Text" || tag === "Animated.Text";
     const offenders: string[] = [];
     for (const { path } of FILES) {
-      if (
-        !path.endsWith(".tsx") ||
-        pending.test(path) ||
-        nestedElsewhere.includes(path)
-      ) {
+      if (!path.endsWith(".tsx") || nestedElsewhere.includes(path)) {
         continue;
       }
       const source = readFileSync(join(ROOT, path), "utf8");

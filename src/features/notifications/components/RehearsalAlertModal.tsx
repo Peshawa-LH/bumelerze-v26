@@ -2,7 +2,7 @@ import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 interface RehearsalAlertModalProps {
   visible: boolean;
@@ -85,6 +85,7 @@ export function RehearsalAlertModal({
                 color: colors.text.secondary,
                 fontSize: typography.labelCaption.fontSize,
                 fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+                ...READING_START,
                 flex: 1,
               }}
             >
@@ -95,6 +96,7 @@ export function RehearsalAlertModal({
                 color: colors.text.tertiary,
                 fontSize: typography.labelCaption.fontSize,
                 fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+                ...READING_START,
               }}
             >
               {t("events.relativeTime.justNow")}
@@ -111,6 +113,7 @@ export function RehearsalAlertModal({
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
                   fontFamily: nativeFontFamily(typography.labelButton),
+                  ...READING_START,
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -125,6 +128,7 @@ export function RehearsalAlertModal({
               color: colors.text.primary,
               fontSize: typography.h3.fontSize,
               fontFamily: nativeFontFamily(typography.h3, "700"),
+              ...READING_START,
               lineHeight: typography.h3.lineHeight,
               fontWeight: "700",
             }}
@@ -137,6 +141,7 @@ export function RehearsalAlertModal({
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
               fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >

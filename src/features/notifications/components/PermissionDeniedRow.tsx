@@ -2,7 +2,7 @@ import * as Linking from "expo-linking";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
  * Settings-link row shown only while notification permission is denied —
@@ -26,6 +26,7 @@ export function PermissionDeniedRow() {
           color: colors.text.primary,
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
           flex: 1,
         }}
@@ -44,6 +45,7 @@ export function PermissionDeniedRow() {
             color: colors.text.link,
             fontSize: typography.labelButton.fontSize,
             fontFamily: nativeFontFamily(typography.labelButton),
+            ...READING_START,
             fontWeight: typography.labelButton.fontWeight,
           }}
         >

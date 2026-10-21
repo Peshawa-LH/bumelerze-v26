@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { NotificationTier } from "@/features/onboarding";
 import { NOTIFICATION_TIERS } from "@/features/onboarding";
 import { a11yState } from "@/lib/a11y-state";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 interface TierSelectorProps {
   value: NotificationTier;
@@ -64,6 +64,7 @@ export function TierSelector({ value, onChange, disabled = false }: TierSelector
                   typography.bodyDefault,
                   isActive ? "700" : "400",
                 ),
+                ...READING_START,
                 lineHeight: typography.bodyDefault.lineHeight,
                 fontWeight: isActive ? "700" : "400",
               }}

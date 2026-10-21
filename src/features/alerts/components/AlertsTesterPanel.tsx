@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatDateOnly } from "@/features/events";
 import { formatIntegerLocalized } from "@/lib/format-numbers";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { useMyAlertDevices } from "../queries";
 import { SupabaseAlertsTransport, toAlertsError, type AlertsTransport } from "../transport";
@@ -87,6 +87,7 @@ export function AlertsTesterPanel({
                   color: colors.brand.primary,
                   fontSize: typography.labelCaption.fontSize,
                   fontFamily: nativeFontFamily(typography.labelCaption, "700"),
+                  ...READING_START,
                   fontWeight: "700",
                 }}
               >
@@ -153,6 +154,7 @@ function StatusLine({ tone, text, testID }: { tone: Tone; text: string; testID: 
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
           fontFamily: nativeFontFamily(typography.h3, "700"),
+          ...READING_START,
           lineHeight: typography.h3.lineHeight,
           fontWeight: "700",
         }}
@@ -172,6 +174,7 @@ function Body({ children, testID }: { children: React.ReactNode; testID?: string
         color: colors.text.secondary,
         fontSize: typography.bodyDefault.fontSize,
         fontFamily: nativeFontFamily(typography.bodyDefault),
+        ...READING_START,
         lineHeight: typography.bodyDefault.lineHeight,
       }}
     >
@@ -190,6 +193,7 @@ function ErrorText({ text }: { text: string }) {
         color: colors.status.danger,
         fontSize: typography.bodyDefault.fontSize,
         fontFamily: nativeFontFamily(typography.bodyDefault),
+        ...READING_START,
         lineHeight: typography.bodyDefault.lineHeight,
       }}
       testID="alerts-device-error"
@@ -247,7 +251,7 @@ function DeviceStatus({
           {steps.map((step, index) => (
             <View key={step} style={[styles.stepRow, { gap: spacing[2] }]}>
               <View style={[styles.stepNumber, { backgroundColor: colors.brand.primary }]}>
-                <Text style={{ color: colors.brand.onPrimary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta, "700"), fontWeight: "700" }}>
+                <Text style={{ color: colors.brand.onPrimary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta, "700"), ...READING_START, fontWeight: "700" }}>
                   {formatIntegerLocalized(index + 1, i18n.language)}
                 </Text>
               </View>
@@ -257,6 +261,7 @@ function DeviceStatus({
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
                   fontFamily: nativeFontFamily(typography.bodyDefault),
+                  ...READING_START,
                   lineHeight: typography.bodyDefault.lineHeight,
                 }}
               >
@@ -372,6 +377,7 @@ function TestAlert({ transport }: { transport: AlertsTransport }) {
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
           fontFamily: nativeFontFamily(typography.h3),
+          ...READING_START,
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -393,6 +399,7 @@ function TestAlert({ transport }: { transport: AlertsTransport }) {
             color: state === "sent" ? colors.text.primary : colors.status.danger,
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -470,6 +477,7 @@ function DeviceList({
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
           fontFamily: nativeFontFamily(typography.h3),
+          ...READING_START,
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -498,12 +506,12 @@ function DeviceList({
           >
             <View style={{ flex: 1, gap: spacing[1] }}>
               <View style={[styles.row, { gap: spacing[2] }]}>
-                <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault, "600"), fontWeight: "600" }}>
+                <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault, "600"), ...READING_START, fontWeight: "600" }}>
                   {name}
                 </Text>
                 {isThis ? (
                   <View style={[styles.chip, { borderColor: colors.status.success, paddingHorizontal: spacing[2] }]}>
-                    <Text style={{ color: colors.text.primary, fontSize: typography.labelCaption.fontSize, fontFamily: nativeFontFamily(typography.labelCaption, "700"), fontWeight: "700" }}>
+                    <Text style={{ color: colors.text.primary, fontSize: typography.labelCaption.fontSize, fontFamily: nativeFontFamily(typography.labelCaption, "700"), ...READING_START, fontWeight: "700" }}>
                       {t("alerts.devices.thisDevice")}
                     </Text>
                   </View>
@@ -539,6 +547,7 @@ function DeviceList({
                     color: colors.text.link,
                     fontSize: typography.labelButton.fontSize,
                     fontFamily: nativeFontFamily(typography.labelButton),
+                    ...READING_START,
                     fontWeight: typography.labelButton.fontWeight,
                     opacity: removing === item.id ? 0.5 : 1,
                   }}
