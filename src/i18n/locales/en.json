@@ -809,7 +809,9 @@
         "damage": "Damage"
       },
       "legendCaptionDamage": "Expected damage grade (IMS-25)",
-      "mapA11yLabelDamage": "SHAKEmap damage map, expected damage grade {{level}}, near {{place}}"
+      "mapA11yLabelDamage": "SHAKEmap damage map, expected damage grade {{level}}, near {{place}}",
+      "unavailableOffline": "SHAKEmap unavailable offline",
+      "retry": "Retry"
     },
     "risk": {
       "sectionTitle": "Damage estimate",

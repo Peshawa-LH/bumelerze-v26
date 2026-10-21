@@ -809,7 +809,9 @@
         "damage": "Zerar"
       },
       "legendCaptionDamage": "Asta zerara pêşbînîkirî (IMS-25)",
-      "mapA11yLabelDamage": "Nexşeya zererê, asta zerarê ya herî zêde {{level}}, nêzî {{place}}"
+      "mapA11yLabelDamage": "Nexşeya zererê, asta zerarê ya herî zêde {{level}}, nêzî {{place}}",
+      "unavailableOffline": "SHAKEmap offline ne berdest e",
+      "retry": "Dîsa biceribîne"
     },
     "risk": {
       "sectionTitle": "Texmîna zererê",

@@ -1,11 +1,17 @@
-import { Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { formatAbsoluteDual, isolateLocalizedTime, type Event } from "@/features/events";
+import {
+  formatAbsoluteDual,
+  isolateLocalizedTime,
+  useCachedHasShakemap,
+  type Event,
+} from "@/features/events";
 import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
-import { useResolvedShakeMap } from "../live-queries";
+import { useLiveShakeMapUnavailable, useResolvedShakeMap } from "../live-queries";
 import type { DataUsedSummaryKey } from "../types";
 import { ShakeMapView } from "./ShakeMapView";
 
@@ -24,6 +30,12 @@ const DATA_USED_I18N_KEY: Record<DataUsedSummaryKey, string> = {
   stationAndDyfiConditioned: "eventDetail.shakemap.dataUsed.stationAndDyfiConditioned",
 };
 
+/** iOS/Android say "unavailable offline"; the web keeps dropping the
+ * section silently until the same note is approved there. */
+function saysWhenUnavailable(): boolean {
+  return Platform.OS !== "web";
+}
+
 /**
  * Event Detail's SHAKEmap section (the v1 spec §4.5; D21 rewrite,
  * the decision log: "Displayed maps are ALWAYS
@@ -38,10 +50,19 @@ const DATA_USED_I18N_KEY: Record<DataUsedSummaryKey, string> = {
  * prefers a LIVE `shakemap_products` product when one exists and loaded,
  * falls back to the build-time bundled Atlas (the 11 curated Historical
  * events) otherwise, and shows nothing when neither exists
- * (`resolver.ts`'s precedence). No loading/offline state is rendered here
- * either way: a slow or failed live fetch silently falls back rather than
- * ever blocking or erroring this section (see that hook's own doc
- * comment).
+ * (`resolver.ts`'s precedence). No loading state is rendered here: a slow
+ * live fetch never blocks this section (see that hook's own doc comment).
+ *
+ * Offline (iOS/Android): when a list on this device marked the event with
+ * the SHAKEmap tag (`useCachedHasShakemap`) and the live map could not be
+ * had (`useLiveShakeMapUnavailable`: no connection, or the lookup failed,
+ * and nothing saved from an earlier visit), the section says "SHAKEmap
+ * unavailable offline" with a Retry, the felt map's own offline box
+ * (the v1 spec §4.5: "shakemap/felt-map/comments show 'unavailable
+ * offline' rather than blank/error"). Before, it vanished without a word
+ * while the card above still showed the tag (owner, iOS simulator,
+ * 2026-10-21). The web keeps its current behaviour (`saysWhenUnavailable`)
+ * until the same note is approved there.
  *
  * The citation line still names OUR OWN producer ("Bumelerze", never
  * "USGS", regardless of source) plus the D21 provenance-as-UI trio: a
@@ -55,14 +76,8 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const shakeMap = useResolvedShakeMap(event, true);
-
-  // TypeScript can't narrow `product`/`contours` off `status` alone
-  // (queries.ts's return type keeps them as siblings, not a discriminated
-  // union), so guard explicitly rather than asserting.
-  if (shakeMap.status === "absent" || !shakeMap.product || !shakeMap.contours) {
-    return null;
-  }
-  const { product, contours } = shakeMap;
+  const knownToHaveMap = useCachedHasShakemap(event.id);
+  const live = useLiveShakeMapUnavailable(event, true);
 
   const titleStyle = {
     color: colors.text.secondary,
@@ -79,6 +94,60 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
     ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
+
+  // TypeScript can't narrow `product`/`contours` off `status` alone
+  // (queries.ts's return type keeps them as siblings, not a discriminated
+  // union), so guard explicitly rather than asserting.
+  if (shakeMap.status === "absent" || !shakeMap.product || !shakeMap.contours) {
+    if (saysWhenUnavailable() && knownToHaveMap && live.unavailable) {
+      return (
+        <View style={{ gap: spacing[2] }} testID="shakemap-unavailable">
+          <Text style={titleStyle}>{t("eventDetail.shakemap.sectionTitle")}</Text>
+          <View
+            style={[
+              styles.offlineBox,
+              {
+                backgroundColor: colors.surface.sunken,
+                borderColor: colors.border.default,
+                padding: spacing[4],
+                gap: spacing[2],
+              },
+            ]}
+          >
+            <View style={[styles.offlineRow, { gap: spacing[2] }]}>
+              <Ionicons
+                name="cloud-offline-outline"
+                size={16}
+                color={colors.text.secondary}
+              />
+              <Text style={[bodyStyle, styles.offlineText]}>
+                {t("eventDetail.shakemap.unavailableOffline")}
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={live.retry}
+              style={styles.retry}
+            >
+              <Text
+                style={{
+                  color: colors.text.link,
+                  fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+                  ...READING_START,
+                  fontWeight: "600",
+                }}
+              >
+                {t("eventDetail.shakemap.retry")}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+    return null;
+  }
+  const { product, contours } = shakeMap;
 
   const { local: generatedLocal } = formatAbsoluteDual(
     Date.parse(product.generatedAt),
@@ -153,3 +222,23 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  offlineBox: {
+    borderWidth: 1,
+    borderRadius: 12,
+  },
+  offlineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  offlineText: {
+    flexShrink: 1,
+  },
+  // A 44 pt target in real layout, not through hitSlop.
+  retry: {
+    minHeight: 44,
+    justifyContent: "center",
+    alignSelf: "flex-start",
+  },
+});

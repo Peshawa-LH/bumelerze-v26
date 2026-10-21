@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { z } from "zod";
 
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
@@ -269,6 +269,9 @@ export type SourceCorroborationByEventId = Record<string, SourceCorroboration>;
 
 const EMPTY_CORROBORATION_MAP: ReadonlyMap<string, SourceCorroboration> = new Map();
 
+/** Every `useEventSourceAgencies` query key starts with this. */
+const SOURCE_CORROBORATION_QUERY_PREFIX = ["events", "sourceCorroboration"] as const;
+
 /**
  * Batched hook for a screen's worth of on-screen events — call it once per
  * list (or once with a single-element array for the map preview sheet /
@@ -297,7 +300,7 @@ export function useEventSourceAgencies(
     .sort();
 
   const query = useQuery({
-    queryKey: ["events", "sourceCorroboration", idsKey],
+    queryKey: [...SOURCE_CORROBORATION_QUERY_PREFIX, idsKey],
     queryFn: () => transport.fetchCorroboration(events),
     enabled: configured,
     staleTime: 60_000,
@@ -313,4 +316,31 @@ export function useEventSourceAgencies(
     // assume a Map.
     return new Map(Object.entries(data));
   }, [data]);
+}
+
+/**
+ * Whether any list already on this device marked `eventId` with the
+ * SHAKEmap tag: reads every saved `useEventSourceAgencies` answer (the
+ * Home list, the catalogue, an event page's own), with no request of its
+ * own. The event page uses it offline, where its own lookup cannot run,
+ * to know that the card the person just tapped promised a map.
+ */
+export function useCachedHasShakemap(eventId: string): boolean {
+  const client = useQueryClient();
+  const read = useCallback(
+    () =>
+      client
+        .getQueriesData<SourceCorroborationByEventId>({
+          queryKey: SOURCE_CORROBORATION_QUERY_PREFIX,
+        })
+        .some(([, data]) =>
+          Boolean(data && typeof data === "object" && data[eventId]?.hasShakemap),
+        ),
+    [client, eventId],
+  );
+  const subscribe = useCallback(
+    (onChange: () => void) => client.getQueryCache().subscribe(onChange),
+    [client],
+  );
+  return useSyncExternalStore(subscribe, read, read);
 }

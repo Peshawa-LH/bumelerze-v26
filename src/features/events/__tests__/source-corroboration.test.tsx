@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import React from "react";
 
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import {
   SupabaseSourceCorroborationTransport,
+  useCachedHasShakemap,
   useEventSourceAgencies,
   type SourceCorroboration,
   type SourceCorroborationByEventId,
@@ -458,3 +459,59 @@ describe("useEventSourceAgencies", () => {
     });
   });
 });
+
+describe("useCachedHasShakemap", () => {
+  async function setUp(eventId: string) {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+    });
+    function wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+    }
+    const hook = await renderHook(() => useCachedHasShakemap(eventId), { wrapper });
+    return { client, hook };
+  }
+
+  const tagged: SourceCorroborationByEventId = {
+    "us7000teva": { agencies: ["GFZ", "EMSC"], hasShakemap: true },
+    "us7000other": { agencies: ["USGS"], hasShakemap: false },
+  };
+
+  it("is true when a saved list answer marked the event with the SHAKEmap tag", async () => {
+    const { client, hook } = await setUp("us7000teva");
+    expect(hook.result.current).toBe(false);
+
+    // The Home list's answer, saved under its own key (never this page's).
+    await act(async () => {
+      client.setQueryData(["events", "sourceCorroboration", ["usgs:us7000teva"]], tagged);
+    });
+
+    expect(hook.result.current).toBe(true);
+  });
+
+  it("is false for an event the saved answers list without a map", async () => {
+    const { client, hook } = await setUp("us7000other");
+    await act(async () => {
+      client.setQueryData(["events", "sourceCorroboration", ["usgs:us7000other"]], tagged);
+    });
+    expect(hook.result.current).toBe(false);
+  });
+
+  it("is false when nothing is saved, and never asks the network", async () => {
+    const { client, hook } = await setUp("us7000teva");
+    expect(hook.result.current).toBe(false);
+    expect(client.getQueryCache().getAll()).toHaveLength(0);
+  });
+
+  it("reads the plain-object shape a restored cache comes back with", async () => {
+    const { client, hook } = await setUp("us7000teva");
+    await act(async () => {
+      client.setQueryData(
+        ["events", "sourceCorroboration", ["geofon:gfz2026rnqy"]],
+        JSON.parse(JSON.stringify(tagged)),
+      );
+    });
+    expect(hook.result.current).toBe(true);
+  });
+});
+

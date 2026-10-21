@@ -73,6 +73,7 @@ export {
 export { PossibleEventCard } from "./components/PossibleEventCard";
 export {
   SupabaseSourceCorroborationTransport,
+  useCachedHasShakemap,
   useEventSourceAgencies,
   type SourceCorroboration,
   type SourceCorroborationTransport,

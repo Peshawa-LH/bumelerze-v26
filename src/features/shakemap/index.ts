@@ -84,7 +84,9 @@ export {
 export {
   liveShakeMapQueryKeys,
   useLiveShakeMap,
+  useLiveShakeMapUnavailable,
   useResolvedShakeMap,
+  type LiveShakeMapAvailability,
   type UseResolvedShakeMapResult,
 } from "./live-queries";
 export {

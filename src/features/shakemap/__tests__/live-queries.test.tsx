@@ -1,10 +1,14 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import React from "react";
 
 import type { Event } from "@/features/events";
-import { useLiveShakeMap } from "../live-queries";
+import {
+  liveShakeMapQueryKeys,
+  useLiveShakeMap,
+  useLiveShakeMapUnavailable,
+} from "../live-queries";
 import type { LiveShakeMapTransport } from "../live-transport";
 import type { LiveShakeMapProduct } from "../live-types";
 
@@ -218,3 +222,102 @@ describe("useLiveShakeMap", () => {
     expect(result.current?.risk).toBeNull();
   });
 });
+
+describe("useLiveShakeMapUnavailable", () => {
+  function setUp(transport: LiveShakeMapTransport, saved?: { product: LiveShakeMapProduct; updatedAt: number }) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    if (saved) {
+      client.setQueryData(liveShakeMapQueryKeys.event(EVENT.id), saved.product, {
+        updatedAt: saved.updatedAt,
+      });
+    }
+    function wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+    }
+    return renderHook(
+      () => ({
+        availability: useLiveShakeMapUnavailable(EVENT, true, transport),
+        candidate: useLiveShakeMap(EVENT, true, transport),
+      }),
+      { wrapper },
+    );
+  }
+
+  beforeEach(() => {
+    setSupabaseConfigured(true);
+  });
+
+  afterEach(() => {
+    setSupabaseConfigured(false);
+    onlineManager.setOnline(true);
+  });
+
+  it("is false while the lookup runs, and true once it has failed (after its one retry)", async () => {
+    const transport = throwingTransport(new TypeError("Network request failed"));
+    const { result } = await setUp(transport);
+
+    expect(result.current.availability.unavailable).toBe(false);
+    await waitFor(() => expect(result.current.availability.unavailable).toBe(true), {
+      timeout: 4000,
+    });
+    expect(transport.fetchLiveProduct).toHaveBeenCalledTimes(2);
+  });
+
+  it("is false once the lookup answered that this event has no map", async () => {
+    const transport = fixtureTransport(null);
+    const { result } = await setUp(transport);
+
+    await waitFor(() => expect(transport.fetchLiveProduct).toHaveBeenCalled());
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(result.current.availability.unavailable).toBe(false);
+  });
+
+  it("is true offline when nothing was saved, and the lookup waits for the connection", async () => {
+    onlineManager.setOnline(false);
+    const transport = fixtureTransport(fixtureProduct());
+    const { result } = await setUp(transport);
+
+    await waitFor(() => expect(result.current.availability.unavailable).toBe(true));
+    expect(transport.fetchLiveProduct).not.toHaveBeenCalled();
+
+    // The connection comes back: the waiting lookup runs and the map arrives.
+    await act(async () => {
+      onlineManager.setOnline(true);
+    });
+    await waitFor(() => expect(result.current.candidate).not.toBeNull());
+    expect(result.current.availability.unavailable).toBe(false);
+  });
+
+  it("is false offline when a map was saved from an earlier visit, which still shows", async () => {
+    onlineManager.setOnline(false);
+    const transport = fixtureTransport(fixtureProduct());
+    const { result } = await setUp(transport, {
+      product: fixtureProduct(),
+      updatedAt: Date.now() - 60 * 60 * 1000,
+    });
+
+    expect(result.current.availability.unavailable).toBe(false);
+    expect(result.current.candidate?.product.version).toBe(2);
+  });
+
+  it("keeps showing a saved map when a later refresh fails", async () => {
+    const transport = throwingTransport(new TypeError("Network request failed"));
+    const { result } = await setUp(transport, {
+      product: fixtureProduct(),
+      // Older than the 15-minute freshness window, so the page asks again.
+      updatedAt: Date.now() - 60 * 60 * 1000,
+    });
+
+    await waitFor(() => expect(transport.fetchLiveProduct).toHaveBeenCalledTimes(2), {
+      timeout: 4000,
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(result.current.candidate?.product.version).toBe(2);
+    expect(result.current.availability.unavailable).toBe(false);
+  });
+});
+

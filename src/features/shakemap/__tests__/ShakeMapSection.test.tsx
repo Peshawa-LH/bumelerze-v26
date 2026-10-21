@@ -1,15 +1,24 @@
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
+import { Platform } from "react-native";
 
 import i18n from "@/i18n";
 import type { Event } from "@/features/events";
 import halabjaContours from "../__fixtures__/us2000bmcg/cont_mi.trimmed.json";
 import { parseIntensityContours } from "../contours";
 import { ShakeMapSection } from "../components/ShakeMapSection";
-import { useResolvedShakeMap } from "../live-queries";
+import { useLiveShakeMapUnavailable, useResolvedShakeMap } from "../live-queries";
 import type { ResolvedShakeMapProduct } from "../resolver";
 
 jest.mock("../live-queries", () => ({
   useResolvedShakeMap: jest.fn(),
+  useLiveShakeMapUnavailable: jest.fn(),
+}));
+
+// Whether a list on this device marked the event with the SHAKEmap tag.
+let mockCardHasShakemap = false;
+jest.mock("@/features/events", () => ({
+  ...jest.requireActual("@/features/events"),
+  useCachedHasShakemap: () => mockCardHasShakemap,
 }));
 
 // The star's position is a prop on the (real) map view, so capture it
@@ -25,6 +34,16 @@ jest.mock("../components/ShakeMapView", () => ({
 const mockedUseResolvedShakeMap = useResolvedShakeMap as jest.MockedFunction<
   typeof useResolvedShakeMap
 >;
+const mockedUseLiveShakeMapUnavailable = useLiveShakeMapUnavailable as jest.MockedFunction<
+  typeof useLiveShakeMapUnavailable
+>;
+const mockRetry = jest.fn();
+
+beforeEach(() => {
+  mockCardHasShakemap = false;
+  mockRetry.mockClear();
+  mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: false, retry: mockRetry });
+});
 
 const HALABJA_EVENT: Event = {
   id: "us2000bmcg",
@@ -251,3 +270,86 @@ describe("ShakeMapSection epicenter", () => {
     });
   });
 });
+
+describe("ShakeMapSection when the map cannot be had", () => {
+  const ABSENT = { status: "absent" as const, product: null, contours: null, risk: null };
+
+  beforeEach(() => {
+    mockedUseResolvedShakeMap.mockReturnValue(ABSENT);
+  });
+
+  afterEach(async () => {
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+
+  // The owner's case (iOS simulator, 2026-10-21): offline, the Home card
+  // showed the SHAKEmap tag and the event page dropped the section without
+  // a word.
+  it("says 'SHAKEmap unavailable offline' with a Retry when the card promised a map", async () => {
+    mockCardHasShakemap = true;
+    mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: true, retry: mockRetry });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    expect(screen.getByText("SHAKEmap")).toBeTruthy();
+    expect(screen.getByText("SHAKEmap unavailable offline")).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Retry" }));
+    expect(mockRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives Retry a 44 pt target in real layout", async () => {
+    mockCardHasShakemap = true;
+    mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: true, retry: mockRetry });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    const retry = screen.getByRole("button", { name: "Retry" });
+    const style = Array.isArray(retry.props.style)
+      ? Object.assign({}, ...retry.props.style)
+      : retry.props.style;
+    expect(style.minHeight).toBeGreaterThanOrEqual(44);
+  });
+
+  it("says it in Sorani", async () => {
+    await i18n.changeLanguage("ckb");
+    mockCardHasShakemap = true;
+    mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: true, retry: mockRetry });
+
+    await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+    expect(screen.getByText("نەخشەی لەرزین لە دۆخی ئۆفلاین بەردەست نییە")).toBeTruthy();
+  });
+
+  it("stays silent for an event no list marked with the tag (absence over misattribution)", async () => {
+    mockCardHasShakemap = false;
+    mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: true, retry: mockRetry });
+
+    const { toJSON } = await render(<ShakeMapSection event={HALABJA_EVENT} />);
+    expect(toJSON()).toBeNull();
+  });
+
+  it("stays silent while the lookup runs or once it answered 'no map'", async () => {
+    mockCardHasShakemap = true;
+    mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: false, retry: mockRetry });
+
+    const { toJSON } = await render(<ShakeMapSection event={HALABJA_EVENT} />);
+    expect(toJSON()).toBeNull();
+  });
+
+  it("leaves the web as it is: no note there", async () => {
+    const original = Platform.OS;
+    Platform.OS = "web";
+    try {
+      mockCardHasShakemap = true;
+      mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: true, retry: mockRetry });
+
+      const { toJSON } = await render(<ShakeMapSection event={HALABJA_EVENT} />);
+      expect(toJSON()).toBeNull();
+    } finally {
+      Platform.OS = original;
+    }
+  });
+});
+

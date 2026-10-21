@@ -813,7 +813,9 @@
         "damage": "الضرر"
       },
       "legendCaptionDamage": "درجة الضرر المتوقعة (IMS-25)",
-      "mapA11yLabelDamage": "خريطة الضرر، أقصى درجة ضرر {{level}}، بالقرب من {{place}}"
+      "mapA11yLabelDamage": "خريطة الضرر، أقصى درجة ضرر {{level}}، بالقرب من {{place}}",
+      "unavailableOffline": "خريطة الاهتزاز (SHAKEmap) غير متاحة دون اتصال",
+      "retry": "إعادة المحاولة"
     },
     "risk": {
       "sectionTitle": "تقدير الأضرار",

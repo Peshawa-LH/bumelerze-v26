@@ -809,7 +809,9 @@
         "damage": "زیان"
       },
       "legendCaptionDamage": "ئاستی زیانی چاوەڕوانکراو (IMS-25)",
-      "mapA11yLabelDamage": "نەخشەی زیان، بەرزترین ئاستی زیان {{level}}، نزیک {{place}}"
+      "mapA11yLabelDamage": "نەخشەی زیان، بەرزترین ئاستی زیان {{level}}، نزیک {{place}}",
+      "unavailableOffline": "نەخشەی لەرزین لە دۆخی ئۆفلاین بەردەست نییە",
+      "retry": "دووبارە هەوڵبدەوە"
     },
     "risk": {
       "sectionTitle": "خەمڵاندنی زیان",

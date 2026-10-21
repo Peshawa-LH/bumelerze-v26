@@ -46,16 +46,7 @@ export function useLiveShakeMap(
   enabled: boolean,
   transport: LiveShakeMapTransport = SupabaseLiveShakeMapTransport,
 ): ShakeMapCandidate<LiveShakeMapProduct> | null {
-  const configured = isSupabaseConfigured();
-
-  const query = useQuery({
-    queryKey: liveShakeMapQueryKeys.event(event.id),
-    queryFn: () => transport.fetchLiveProduct(event),
-    enabled: configured && enabled && Boolean(event.id),
-    staleTime: SHAKEMAP_LIVE_STALE_TIME_MS,
-    gcTime: SHAKEMAP_LIVE_GC_TIME_MS,
-    retry: 1,
-  });
+  const query = useLiveShakeMapQuery(event, enabled, transport);
 
   return useMemo(() => {
     if (!query.data) {
@@ -84,6 +75,57 @@ export function useLiveShakeMap(
       return null;
     }
   }, [query.data]);
+}
+
+/** The one live lookup query; `useLiveShakeMap` and
+ * `useLiveShakeMapUnavailable` observe the same cache entry. */
+function useLiveShakeMapQuery(
+  event: Event,
+  enabled: boolean,
+  transport: LiveShakeMapTransport,
+) {
+  const configured = isSupabaseConfigured();
+  return useQuery({
+    queryKey: liveShakeMapQueryKeys.event(event.id),
+    queryFn: () => transport.fetchLiveProduct(event),
+    enabled: configured && enabled && Boolean(event.id),
+    staleTime: SHAKEMAP_LIVE_STALE_TIME_MS,
+    gcTime: SHAKEMAP_LIVE_GC_TIME_MS,
+    retry: 1,
+  });
+}
+
+export interface LiveShakeMapAvailability {
+  /** True when this event's live map could not be had and none was saved
+   * from an earlier visit: the lookup failed (after its one retry) or waits
+   * for a connection. False while it is still loading, once it has
+   * answered (a map, or "none for this event"), and when it never runs. */
+  unavailable: boolean;
+  /** Asks again (waits for the connection when offline). */
+  retry: () => void;
+}
+
+/**
+ * Whether the live lookup behind `useLiveShakeMap` came back empty-handed,
+ * as opposed to answering "no map for this event". `useLiveShakeMap`
+ * folds both into `null` on purpose (it only hands the resolver a
+ * candidate); `ShakeMapSection` needs the difference to say "unavailable
+ * offline" for an event known to have a map instead of dropping the
+ * section without a word.
+ */
+export function useLiveShakeMapUnavailable(
+  event: Event,
+  enabled: boolean,
+  transport: LiveShakeMapTransport = SupabaseLiveShakeMapTransport,
+): LiveShakeMapAvailability {
+  const query = useLiveShakeMapQuery(event, enabled, transport);
+  const { refetch } = query;
+  return {
+    unavailable: query.data === undefined && (query.isError || query.isPaused),
+    retry: () => {
+      void refetch();
+    },
+  };
 }
 
 export interface UseResolvedShakeMapResult {
