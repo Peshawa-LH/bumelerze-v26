@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
 import type { Event } from "@/features/events";
 import { toEventRegistration, type EventRegistration } from "@/features/felt";
+import { isReviewReadonlyBuild } from "@/lib/review-readonly";
 import { getSupabaseClient } from "@/lib/supabase";
 
 import { ATLAS_BASE_URL } from "./config";
@@ -47,8 +49,9 @@ export interface LiveShakeMapTransport {
  * Map rather than a cross-feature import of felt's cache — same "duplicate
  * the small thing, don't couple two features' internals together"
  * precedent `feltmap/config.ts`'s own doc comment sets for this repo; the
- * one-time cost of a cache miss here (an extra idempotent RPC round trip)
- * is cheap and never user-visible (this whole path is a background
+ * one-time cost of a cache miss here (an extra registry read, or an
+ * idempotent RPC for an event the registry does not know yet) is cheap
+ * and never user-visible (this whole path is a background
  * best-effort fetch, not the panic-time felt-report submit path that cache
  * was built for).
  */
@@ -58,25 +61,69 @@ function eventCacheKey(event: Event): string {
   return `${event.provenance.provider}:${event.provenance.providerId}`;
 }
 
+/** One `event_source_records` row as the registry read selects it. */
+const registryRowSchema = z.object({ event_id: z.string().min(1) });
+
+/**
+ * The registry id of an event the registry already knows, by a READ: the
+ * event's source record, matched by provider + provider event id (unique,
+ * migration 0002), whose `event_id` is exactly what
+ * `upsert_event_from_client` answers for a known record (migration 0033).
+ * Public read for anon and authenticated since migration 0023
+ * (`event_source_records_public_select`; 0067 kept SELECT when it revoked
+ * the write grants), the same read `events/bumelerze-id.ts` makes. A record
+ * an operator marked `deleted` is hidden by that policy; the RPC still
+ * answers for it, so it falls through to the RPC.
+ *
+ * `null` when the registry does not know the event (or the row is not one
+ * we can read); THROWS when the read fails, like the RPC. supabase-js
+ * retries a failed read three times (1, 2 and 4 s) by itself; that is off
+ * here, so a failed read fails at once like the RPC did and the queries'
+ * own single retry stays the only one.
+ */
+async function readRegisteredEventUuid(
+  client: SupabaseClient,
+  event: Event,
+): Promise<string | null> {
+  const { data, error } = await client
+    .from("event_source_records")
+    .select("event_id")
+    .eq("provider", event.provenance.provider)
+    .eq("provider_event_id", event.provenance.providerId)
+    .maybeSingle()
+    .retry(false);
+  if (error) {
+    throw error;
+  }
+  const parsed = registryRowSchema.safeParse(data);
+  return parsed.success ? parsed.data.event_id : null;
+}
+
 /**
  * Resolves `event` (the client's own already-normalized feed record) to
- * the canonical server `events.event_id` uuid via `upsert_event_from_client`
- * (migration 0011) — the SAME RPC the bumelerze-engine worker's own uploader
+ * the canonical server `events.event_id` uuid. READ first
+ * (`readRegisteredEventUuid`, a GET); only an event the registry does not
+ * know yet is registered through `upsert_event_from_client` (migration
+ * 0011, a POST) — the SAME RPC the bumelerze-engine worker's own uploader
  * calls server-side to register the event a product is published against
  * (`shake_service/worker/uploader.py`'s module docstring, "event_id
  * mapping"), so by the time a live product actually exists for this event
- * the underlying row is already there for this call to find; in the
- * common case this is a pure lookup, not a fresh registration.
+ * the read finds it. Before, every event view made the POST: read-only
+ * review builds (`EXPO_PUBLIC_REVIEW_READONLY=1`), which refuse every
+ * POST, could then show no live SHAKEmap, felt map or hub pill at all
+ * (2026-10-22). A read-only build never registers: an event the read does
+ * not find answers `null` ("no id"), which the queries ask again later.
  *
  * THROWS when the registry cannot be asked (no connection, a refused or
- * failed request); `null` only when it answered without an id. The live
- * shakemap lookup needs that difference: before, a failed lookup came back
- * as `null`, the query recorded "this event has no SHAKEmap" as a success,
- * kept it 15 minutes as fresh and saved it to the device for a day, so one
- * attempt on a bad connection hid an event's map, even one already saved
- * from an earlier visit (seen on the iOS simulator, 2026-10-21). The felt
- * map and the Event hub had the same fault for longer (their lookup is kept
- * for good) and use this contract too (`lookUpEventUuidForEvent`).
+ * failed request, the read or the RPC); `null` only when it answered
+ * without an id. The live shakemap lookup needs that difference: before, a
+ * failed lookup came back as `null`, the query recorded "this event has no
+ * SHAKEmap" as a success, kept it 15 minutes as fresh and saved it to the
+ * device for a day, so one attempt on a bad connection hid an event's map,
+ * even one already saved from an earlier visit (seen on the iOS simulator,
+ * 2026-10-21). The felt map and the Event hub had the same fault for longer
+ * (their lookup is kept for good) and use this contract too
+ * (`lookUpEventUuidForEvent`).
  */
 async function lookUpEventUuid(
   client: SupabaseClient,
@@ -86,6 +133,15 @@ async function lookUpEventUuid(
   const cached = eventUuidCache.get(cacheKey);
   if (cached) {
     return cached;
+  }
+
+  const registered = await readRegisteredEventUuid(client, event);
+  if (registered) {
+    eventUuidCache.set(cacheKey, registered);
+    return registered;
+  }
+  if (isReviewReadonlyBuild()) {
+    return null;
   }
 
   const registration: EventRegistration = toEventRegistration(event);
@@ -271,8 +327,9 @@ export async function lookUpEventUuidForEvent(event: Event): Promise<string | nu
  * public artifact URL. Read-only end to end — this never writes a
  * `shakemap_products` row itself (only the bumelerze-engine worker's own
  * uploader does that); the one write this transport can trigger is
- * `upsert_event_from_client`'s idempotent event registration, identical to
- * what `features/felt`'s own resolver already does for the same event.
+ * `upsert_event_from_client`'s idempotent event registration, for an event
+ * the registry does not know yet (`lookUpEventUuid`), identical to what
+ * `features/felt`'s own resolver already does for the same event.
  */
 export const SupabaseLiveShakeMapTransport: LiveShakeMapTransport = {
   async fetchLiveProduct(event: Event): Promise<LiveShakeMapProduct | null> {

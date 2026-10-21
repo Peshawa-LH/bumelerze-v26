@@ -84,6 +84,15 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
   ) {
     const rpc = jest.fn().mockResolvedValue({ data: INTERNAL_UUID, error: null });
     const from = jest.fn((table: string) => {
+      if (table === "event_source_records") {
+        // The registry read: this event is known.
+        const known = {
+          maybeSingle: () => ({
+            retry: async () => ({ data: { event_id: INTERNAL_UUID }, error: null }),
+          }),
+        };
+        return { select: jest.fn(() => ({ eq: () => ({ eq: () => known }) })) };
+      }
       expect(table).toBe("shakemap_products");
       return {
         select: jest.fn((columns: string) =>

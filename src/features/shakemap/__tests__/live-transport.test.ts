@@ -14,7 +14,20 @@ const mockEq3 = jest.fn();
 const mockEq2 = jest.fn(() => ({ eq: mockEq3 }));
 const mockEq1 = jest.fn(() => ({ eq: mockEq2 }));
 const mockSelect = jest.fn(() => ({ eq: mockEq1 }));
-const mockFrom = jest.fn(() => ({ select: mockSelect }));
+// The registry read (`event_source_records` by provider + provider event
+// id) the lookup makes before it ever registers the event. Answers "not
+// known yet" by default, so the registration RPC answers in these tests;
+// `live-transport-registry-read.test.ts` covers the read itself.
+const mockRegistryRead = jest.fn();
+const mockRegistryEq2 = jest.fn(() => ({
+  maybeSingle: () => ({ retry: () => mockRegistryRead() }),
+}));
+const mockRegistryEq1 = jest.fn(() => ({ eq: mockRegistryEq2 }));
+const mockFrom = jest.fn((table: string) =>
+  table === "event_source_records"
+    ? { select: () => ({ eq: mockRegistryEq1 }) }
+    : { select: mockSelect },
+);
 
 jest.mock("@/lib/supabase", () => ({
   getSupabaseClient: jest.fn(() => ({ rpc: mockRpc, from: mockFrom })),
@@ -76,6 +89,8 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     mockEq1.mockClear();
     mockEq2.mockClear();
     mockEq3.mockReset();
+    mockRegistryRead.mockReset();
+    mockRegistryRead.mockResolvedValue({ data: null, error: null });
     mockedGetSupabaseClient.mockReturnValue({ rpc: mockRpc, from: mockFrom } as never);
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -138,6 +153,39 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     expect(product?.contours).toEqual(CONTOURS_PAYLOAD);
   });
 
+  it("reads a known event's uuid from the registry and never registers it", async () => {
+    mockRegistryRead.mockResolvedValue({ data: { event_id: INTERNAL_UUID }, error: null });
+    mockEq3.mockResolvedValue({ data: [validRow()], error: null });
+
+    const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct({
+      ...HALABJA_EVENT,
+      provenance: { ...HALABJA_EVENT.provenance, providerId: "us_registry_read" },
+    });
+
+    expect(mockFrom).toHaveBeenCalledWith("event_source_records");
+    expect(mockRegistryEq1).toHaveBeenCalledWith("provider", "usgs");
+    expect(mockRegistryEq2).toHaveBeenCalledWith("provider_event_id", "us_registry_read");
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockEq1).toHaveBeenCalledWith("event_id", INTERNAL_UUID);
+    expect(product?.version).toBe(2);
+  });
+
+  it("throws, without registering, when the registry read fails", async () => {
+    mockRegistryRead.mockResolvedValue({
+      data: null,
+      error: { message: "TypeError: Network request failed" },
+    });
+
+    await expect(
+      SupabaseLiveShakeMapTransport.fetchLiveProduct({
+        ...HALABJA_EVENT,
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_registry_read_fails" },
+      }),
+    ).rejects.toEqual(expect.objectContaining({ message: "TypeError: Network request failed" }));
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalledWith("shakemap_products");
+  });
+
   it("caches the resolved event uuid across repeated calls for the same event (one RPC call)", async () => {
     // Deliberately a providerId unused by any other test in this file — the
     // uuid cache is module-level state that outlives a single `it()` block
@@ -172,7 +220,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
         provenance: { ...HALABJA_EVENT.provenance, providerId: "us_resolution_fails" },
       }),
     ).rejects.toEqual(expect.objectContaining({ message: "TypeError: Network request failed" }));
-    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalledWith("shakemap_products");
   });
 
   it("throws when the registry call itself rejects (no connection)", async () => {
@@ -195,7 +243,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     });
 
     expect(product).toBeNull();
-    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalledWith("shakemap_products");
   });
 
   // The felt map and the Event hub: answered as "no id", a failed lookup

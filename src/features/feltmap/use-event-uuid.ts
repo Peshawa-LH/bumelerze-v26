@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { Event } from "@/features/events";
 import { lookUpEventUuidForEvent } from "@/features/shakemap/live-transport";
 
+import { eventUuidQueryKey } from "./event-uuid-query";
+
 /** How long an answer of "no id" counts as current before the registry is
  * asked again. A found id never changes and is kept for good. */
 const NO_ID_RECHECK_MS = 15 * 60 * 1000;
@@ -22,7 +24,8 @@ const NO_ID_RECHECK_MS = 15 * 60 * 1000;
  * id", one attempt on a bad connection was kept for good and saved on the
  * device, turning the felt map and the Event hub off for days (2026-10-21).
  * "No id" is also asked again after `NO_ID_RECHECK_MS`, which clears such
- * an answer saved by an earlier version.
+ * an answer saved by an earlier version. A refresh or Retry asks again at
+ * once while no id is known (`refetchEventUuidIfMissing`).
  */
 export function useEventUuidResult(event: Event): {
   uuid: string | null;
@@ -30,11 +33,7 @@ export function useEventUuidResult(event: Event): {
   isPending: boolean;
 } {
   const query = useQuery({
-    queryKey: [
-      "event-uuid",
-      event.provenance.provider,
-      event.provenance.providerId,
-    ] as const,
+    queryKey: eventUuidQueryKey(event),
     queryFn: () => lookUpEventUuidForEvent(event),
     staleTime: (cached) =>
       typeof cached.state.data === "string" ? Infinity : NO_ID_RECHECK_MS,
