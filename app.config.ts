@@ -243,11 +243,12 @@ const config: ExpoConfig = {
   // The app's own version (D90): year.release.fix, each part counted on its
   // own. 26.1 = the state reviewed screen by screen with the owner
   // (2026-09-27); 26.2 = the October rebuild; 26.3 = the review fix batch
-  // (D89) and the clean-up after it. The engine (bumelerze-engine) has its
+  // (D89) and the clean-up after it; 26.4 = the iOS app at parity with the
+  // web, the offline fixes and the KESO station. The engine (bumelerze-engine) has its
   // own versions (now 26.2.1), and every shakemap names the engine version
   // that made it. Shown in the Settings footer and stamped on feedback,
   // presence and sensor exports.
-  version: "26.3.1",
+  version: "26.4.0",
   // An EAS Update reaches only builds with the same app version: a release
   // that changes native code gets a new version, so older installs never
   // receive JavaScript written for native modules they do not have.
