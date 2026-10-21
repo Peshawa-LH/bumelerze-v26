@@ -25,7 +25,7 @@ import {
 import { PeopleFilterSheet } from "./PeopleFilterSheet";
 import { PeopleStatsHeader } from "./PeopleStatsHeader";
 import { PersonRowItem } from "./PersonRowItem";
-import { ltrValueStyle } from "@/i18n";
+import { ltrValueInputStyle } from "@/i18n";
 
 const DEBOUNCE_MS = 350;
 
@@ -121,7 +121,7 @@ export function PeopleContent({
             fontSize: typography.bodyDefault.fontSize,
             fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
-            ...ltrValueStyle(),
+            ...ltrValueInputStyle(),
           },
         ]}
         testID="people-search-input"

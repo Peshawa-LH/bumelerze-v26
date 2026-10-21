@@ -146,6 +146,48 @@ describe("ltrValueStyle (emails, usernames, ids)", () => {
   });
 });
 
+describe("text boxes (TextInput): physicalInputAlign, inputDirectionStyle, ltrValueInputStyle", () => {
+  // iOS and Android take a text box's "left"/"right" literally: the paragraph
+  // helpers' swap put the handbook's Sorani coordinates on the left and the
+  // sign-in email on the right (parity re-check N1).
+  it("[regression] never swaps a box's side, under a right-to-left layout either", () => {
+    const { mod } = load({ isRTL: true });
+    expect(mod.physicalInputAlign("left")).toBe("left");
+    expect(mod.physicalInputAlign("right")).toBe("right");
+  });
+
+  it("[regression] puts a Sorani or Arabic box at its reading start (right) on iOS", () => {
+    const { mod } = load({ isRTL: true });
+    expect(mod.inputDirectionStyle("ckb")).toEqual({
+      writingDirection: "rtl",
+      textAlign: "right",
+    });
+    expect(mod.inputDirectionStyle("ar")).toEqual({
+      writingDirection: "rtl",
+      textAlign: "right",
+    });
+    expect(mod.inputDirectionStyle("en")).toEqual({
+      writingDirection: "ltr",
+      textAlign: "left",
+    });
+  });
+
+  it("[regression] keeps an email or username box on the physical left under Sorani on iOS", () => {
+    expect(load({ isRTL: true }).mod.ltrValueInputStyle()).toEqual({
+      writingDirection: "ltr",
+      textAlign: "left",
+    });
+  });
+
+  it("gives the web exactly what the paragraph helpers give it", () => {
+    const { mod } = load({ os: "web", isRTL: false });
+    for (const locale of ["en", "ckb", "kmr", "ar"]) {
+      expect(mod.inputDirectionStyle(locale)).toEqual(mod.directionStyle(locale));
+    }
+    expect(mod.ltrValueInputStyle()).toEqual(mod.ltrValueStyle());
+  });
+});
+
 describe("the app's iOS language", () => {
   it("[regression] follows a language picked in the app", async () => {
     const { mod, settingsSet } = load({ isRTL: false, deviceLanguage: "en" });

@@ -24,6 +24,14 @@ import ts from "typescript";
  *    Kurmanji month names, so `toLocaleString(locale)` and friends, and
  *    `Intl.DateTimeFormat` with the reader's locale, are not used anywhere
  *    else.
+ * 4. A text box (`TextInput`) takes "left" and "right" literally on every
+ *    platform, so it never gets a paragraph's alignment: not
+ *    `physicalTextAlign`, `directionStyle`, `ltrValueStyle` or
+ *    `READING_START`, and a whole type token (which carries
+ *    `READING_START`) only with an alignment of its own. Boxes use
+ *    `physicalInputAlign`, `inputDirectionStyle` and `ltrValueInputStyle`
+ *    (parity re-check N1: Sorani coordinates on the left, the sign-in
+ *    email on the right).
  */
 
 const ROOT = join(__dirname, "..", "..", "..");
@@ -230,6 +238,88 @@ describe("native direction and date rules (source scan)", () => {
               const { line } = file.getLineAndCharacterOfPosition(
                 attribute.getStart(file),
               );
+              offenders.push(`${path}:${line + 1}`);
+            }
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(file);
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("[regression] a text box never takes a paragraph's alignment (physicalInputAlign, inputDirectionStyle, ltrValueInputStyle)", () => {
+    const paragraphSide =
+      /\b(?:physicalTextAlign|directionStyle|ltrValueStyle)\(|\bREADING_START\b/;
+    // A whole token in a style list or spread (not `typography.x.fontSize`).
+    const wholeToken = /(?:\[\s*|,\s*|\.\.\.)typography\.\w+\s*(?=[,\]}])/;
+    const ownAlignment = /\btextAlign\s*:|\b(?:inputDirectionStyle|ltrValueInputStyle)\(/;
+    const offenders: string[] = [];
+    for (const { path } of FILES) {
+      if (!path.endsWith(".tsx")) {
+        continue;
+      }
+      const source = readFileSync(join(ROOT, path), "utf8");
+      if (!/<(?:\w+\.)?TextInput\b/.test(source)) {
+        continue;
+      }
+      const file = ts.createSourceFile(
+        path,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TSX,
+      );
+      // A style is often built in a local variable (`inputStyle`,
+      // `dirStyle`): follow those, a few levels deep.
+      const declarations = new Map<string, string>();
+      const collectDeclarations = (node: ts.Node): void => {
+        if (
+          ts.isVariableDeclaration(node) &&
+          ts.isIdentifier(node.name) &&
+          node.initializer
+        ) {
+          declarations.set(node.name.text, node.initializer.getText(file));
+        }
+        ts.forEachChild(node, collectDeclarations);
+      };
+      collectDeclarations(file);
+      const expand = (text: string, depth: number): string => {
+        if (depth === 0) {
+          return text;
+        }
+        let expanded = text;
+        for (const word of new Set(text.match(/\b[A-Za-z_]\w*\b/g) ?? [])) {
+          const initializer = declarations.get(word);
+          if (
+            initializer !== undefined &&
+            !["styles", "colors", "typography", "spacing", "t"].includes(word)
+          ) {
+            expanded += `\n${expand(initializer, depth - 1)}`;
+          }
+        }
+        return expanded;
+      };
+      const visit = (node: ts.Node): void => {
+        if (
+          (ts.isJsxSelfClosingElement(node) || ts.isJsxOpeningElement(node)) &&
+          /TextInput$/.test(node.tagName.getText(file))
+        ) {
+          for (const attribute of node.attributes.properties) {
+            if (
+              !ts.isJsxAttribute(attribute) ||
+              attribute.name.getText(file) !== "style" ||
+              !attribute.initializer
+            ) {
+              continue;
+            }
+            const style = expand(attribute.initializer.getText(file), 3);
+            if (
+              paragraphSide.test(style) ||
+              (wholeToken.test(style) && !ownAlignment.test(style))
+            ) {
+              const { line } = file.getLineAndCharacterOfPosition(node.getStart(file));
               offenders.push(`${path}:${line + 1}`);
             }
           }

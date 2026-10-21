@@ -31,7 +31,7 @@ import {
   type ReasonPreset,
   type RestrictionLevel,
 } from "../types";
-import { ltrValueStyle } from "@/i18n";
+import { ltrValueInputStyle } from "@/i18n";
 
 export interface LimitTarget {
   userId: string;
@@ -270,7 +270,7 @@ export function LimitAccountSheet({
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="numbers-and-punctuation"
-                  style={[input, ltrValueStyle()]}
+                  style={[input, ltrValueInputStyle()]}
                   testID="limit-date-input"
                 />
                 {customDate.trim() !== "" && dateProblem ? (

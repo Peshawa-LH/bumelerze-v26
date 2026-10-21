@@ -14,7 +14,7 @@ import {
   type PeopleFilters,
 } from "../types";
 import { Sheet } from "./Sheet";
-import { ltrValueStyle } from "@/i18n";
+import { ltrValueInputStyle } from "@/i18n";
 
 /** "2026-09-30" (Latin or Eastern Arabic-Indic digits) -> the start or end of
  * that local day as an ISO timestamp, or null when it is not a real date. */
@@ -88,7 +88,7 @@ export function PeopleFilterSheet({
       fontSize: typography.bodyDefault.fontSize,
       fontFamily: nativeFontFamily(typography.bodyDefault),
       paddingHorizontal: spacing[3],
-      ...ltrValueStyle(),
+      ...ltrValueInputStyle(),
     },
   ];
   const set = <K extends keyof PeopleFilters>(key: K, value: PeopleFilters[K]) =>

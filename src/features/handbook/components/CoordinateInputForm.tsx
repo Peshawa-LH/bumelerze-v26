@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { GAZETTEER_CITIES, pickLocalizedName } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
-import { directionProps, directionStyle } from "@/i18n";
+import { directionProps, inputDirectionStyle } from "@/i18n";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
@@ -82,7 +82,9 @@ export function CoordinateInputForm({ onSubmit }: CoordinateInputFormProps) {
   const anchor = useUserDistanceAnchor();
   const locale = i18n.language;
   const dirProps = directionProps(locale);
-  const dirStyle = directionStyle(locale);
+  // The two boxes: text boxes take their side literally
+  // (`physicalInputAlign`), unlike the paragraph helper `directionStyle`.
+  const dirStyle = inputDirectionStyle(locale);
 
   const [latText, setLatText] = useState("");
   const [lonText, setLonText] = useState("");

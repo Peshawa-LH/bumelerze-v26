@@ -313,6 +313,11 @@ export function ShareSheet({
                     borderColor: colors.border.default,
                     padding: captionPadding,
                     height: Math.max(CAPTION_MIN_HEIGHT, captionBoxHeight),
+                    // The caption reads in its own direction, as the web's box
+                    // does (`dir="auto"`). The type token's reading start is
+                    // a literal "left" in a text box on iOS (see
+                    // `physicalInputAlign`): a Sorani caption sat on the left.
+                    textAlign: "auto",
                   },
                 ]}
               />

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { formatDistanceKm, isolateNumeric } from "@/features/events";
-import { directionProps, directionStyle } from "@/i18n";
+import { directionProps, directionStyle, inputDirectionStyle } from "@/i18n";
 import { STRUCTURAL_SYSTEMS, type StructuralSystemCategory } from "../structural-systems";
 import { formatCodeCoefficient, occupancyLabelKey } from "../format";
 import type { IscSiteClass, OccupancyCategory } from "../types";
@@ -62,6 +62,8 @@ export function SpectrumInputsForm({
   // engineer types otherwise flip a Sorani form to left-anchored LTR (B-7).
   const dirProps = directionProps(locale);
   const dirStyle = directionStyle(locale);
+  // Text boxes take their side literally (see `physicalInputAlign`).
+  const inputDirStyle = inputDirectionStyle(locale);
   // Collapsed by default. Listing all 16 systems inline cost 1103 px, a
   // third more than a phone screen, on a page already 7.6 screens long —
   // and an engineer picks a system once, then never looks at the list
@@ -134,7 +136,7 @@ export function SpectrumInputsForm({
             style={[
               styles.input,
               {
-                ...dirStyle,
+                ...inputDirStyle,
                 color: colors.text.primary,
                 borderColor: state.agError ? colors.status.danger : colors.border.default,
                 backgroundColor: colors.surface.raised,
@@ -170,7 +172,7 @@ export function SpectrumInputsForm({
           style={[
             styles.input,
             {
-              ...dirStyle,
+              ...inputDirStyle,
               color: colors.text.primary,
               borderColor: state.ssError ? colors.status.danger : colors.border.default,
               backgroundColor: colors.surface.raised,
@@ -206,7 +208,7 @@ export function SpectrumInputsForm({
           style={[
             styles.input,
             {
-              ...dirStyle,
+              ...inputDirStyle,
               color: colors.text.primary,
               borderColor: state.s1Error ? colors.status.danger : colors.border.default,
               backgroundColor: colors.surface.raised,
@@ -448,7 +450,7 @@ export function SpectrumInputsForm({
             style={[
               styles.input,
               {
-                ...dirStyle,
+                ...inputDirStyle,
                 color: colors.text.primary,
                 borderColor: state.rError ? colors.status.danger : colors.border.default,
                 backgroundColor: colors.surface.raised,
@@ -483,7 +485,7 @@ export function SpectrumInputsForm({
           style={[
             styles.input,
             {
-              ...dirStyle,
+              ...inputDirStyle,
               color: colors.text.primary,
               borderColor: state.heightError ? colors.status.danger : colors.border.default,
               backgroundColor: colors.surface.raised,

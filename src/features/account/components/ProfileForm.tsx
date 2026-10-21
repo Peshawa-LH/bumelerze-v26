@@ -40,7 +40,7 @@ import type { AvatarChange, PrivateProfile, Profile } from "../types";
 import { validateProfileForm } from "../validation";
 import { AccountButton } from "./AccountButton";
 import { Avatar } from "./Avatar";
-import { ltrValueStyle } from "@/i18n";
+import { ltrValueInputStyle } from "@/i18n";
 
 interface ProfileFormProps {
   profile: Profile | null;
@@ -293,7 +293,7 @@ export function ProfileForm({
                 fontFamily: nativeFontFamily(typography.bodyDefault),
                 paddingHorizontal: spacing[3],
                 // Handles are always Latin: left to right in every language.
-                ...ltrValueStyle(),
+                ...ltrValueInputStyle(),
               },
             ]}
             testID="profile-username-input"

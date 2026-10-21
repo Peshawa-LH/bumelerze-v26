@@ -127,6 +127,46 @@ export function ltrValueStyle(): { writingDirection: "ltr"; textAlign: "left" | 
   return { writingDirection: "ltr", textAlign: physicalTextAlign("left") };
 }
 
+/**
+ * The `textAlign` that puts a TEXT BOX's text (`TextInput`: its placeholder
+ * and what is typed) on the given physical side, on every platform.
+ *
+ * Not `physicalTextAlign`: that one is for paragraphs (`Text`), which iOS
+ * and Android draw through React Native's text layout and swap under a
+ * right-to-left layout. A text box's alignment never goes through it. iOS
+ * puts it straight into the box's text attributes, Android maps it to the
+ * absolute `Gravity.LEFT`/`Gravity.RIGHT` (`ReactTextInputManager`), and the
+ * web never swaps. A box given the paragraph helpers' answer therefore sat on
+ * the wrong side in Sorani and Arabic on iOS: the handbook's coordinate and
+ * spectrum boxes on the left, the sign-in email on the right (parity
+ * re-check N1, 2026-10-21). On the web both helpers give the same value.
+ */
+export function physicalInputAlign(side: "left" | "right"): "left" | "right" {
+  return side;
+}
+
+/** `directionStyle` for a text box: the language's direction, with the
+ * text at its reading start (right for Sorani and Arabic, left otherwise). */
+export function inputDirectionStyle(locale: string): {
+  writingDirection: TextDirection;
+  textAlign: "left" | "right";
+} {
+  const direction = textDirectionFor(locale);
+  return {
+    writingDirection: direction,
+    textAlign: physicalInputAlign(direction === "rtl" ? "right" : "left"),
+  };
+}
+
+/** `ltrValueStyle` for a text box: an email address, username, code or URL
+ * typed left to right on the physical left, in every language. */
+export function ltrValueInputStyle(): {
+  writingDirection: "ltr";
+  textAlign: "left" | "right";
+} {
+  return { writingDirection: "ltr", textAlign: physicalInputAlign("left") };
+}
+
 function detectDeviceLocale(): SupportedLocale {
   const deviceLocales = Localization.getLocales();
   for (const { languageCode } of deviceLocales) {
