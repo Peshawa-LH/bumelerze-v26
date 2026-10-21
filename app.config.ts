@@ -64,7 +64,7 @@ const config: ExpoConfig = {
   // that made it. Shown in the Settings footer and, with the web build id
   // (src/lib/app-version.ts), stamped on feedback, presence and sensor
   // exports.
-  version: "26.3.0",
+  version: "26.3.1",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "bumelerze",
