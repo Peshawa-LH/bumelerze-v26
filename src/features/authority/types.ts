@@ -4,6 +4,10 @@ import type { VulnerabilityClass } from "@/features/building/ims25";
  * the server sends `null` for anything smaller (migration 0066). */
 export const AUTHORITY_MIN_COUNT = 5;
 
+/** People per look at the list of account holders (the server allows up to
+ * 500, migration 0069); the page says when the list stops there. */
+export const PEOPLE_LIMIT = 200;
+
 /** A count the server may hide: null = "fewer than 5". */
 export type Protected = number | null;
 
@@ -67,10 +71,4 @@ export interface SharedPerson {
     /** UTC ms of the earthquake, or null. */
     originTime: number | null;
   } | null;
-}
-
-export interface SharingState {
-  enabled: boolean;
-  /** UTC ms of the last change, or null when never set. */
-  changedAt: number | null;
 }

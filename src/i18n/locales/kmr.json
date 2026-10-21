@@ -2618,7 +2618,7 @@
         "hub_close": "Hubek girt",
         "hub_note": "Notek sabitkirî di hubê de weşand",
         "authority_view": "Karbidestê hikûmetê li hejmarên herêman nêrî",
-        "authority_people_view": "Karbidestê hikûmetê li kesên ku parve dikin nêrî"
+        "authority_people_view": "Karbidestê hikûmetê li lîsteya kesan nêrî"
       },
       "undo": "Vegerîne"
     },
@@ -2755,7 +2755,7 @@
         "allHeld": "Hemû nîşan hene",
         "noteLabel": "Nota taybet (tenê rêveber dibînin)",
         "describe": {
-          "authority": "Tenê hejmarên giştî li gorî herêmê dibîne, qet nav an navnîşan na, heta ku kesek bi xwe razî nebe.",
+          "authority": "Hejmarên giştî li gorî herêmê dibîne, û pola avahiyê û «Ez ewle me»ya dawî ya her xwedî hesabekî. Qet navnîşan na.",
           "moderator": "Alîkarî dike ku şîrove û post ewle bimînin.",
           "partner": "Navê rêxistinê dipirse."
         }
@@ -3692,10 +3692,11 @@
     "safeOf": "{{safe}} ji {{people}} ewle ne ({{percent}}%)",
     "safeFew": "ji {{people}} kesan kêmtirî 5 ewle ne",
     "feltMap": "Nexşeya hestkirinê veke",
-    "peopleTitle": "Kesên ku parvekirin hilbijartine",
-    "peopleHint": "Tenê kesên ku ev di Mîhengan de vekirine. Ew dikarin her dem bigirin. Vekirina lîsteyê bi kesên hatine nîşandan re tê tomarkirin.",
+    "peopleTitle": "Kesên xwedî hesab",
+    "peopleHint": "Hemû kesên xwedî hesabê Bumelerze, li gorî navan rêzkirî. Vekirina lîsteyê bi kesên hatine nîşandan re tê tomarkirin.",
     "peopleShow": "Lîsteyê nîşan bide",
-    "peopleEmpty": "Hîn kesî parvekirin hilnebijartiye.",
+    "peopleEmpty": "Hîn tu hesab tune ne.",
+    "peopleFirst": "Tenê {{number}} kesên pêşîn têne nîşandan, li gorî navan.",
     "noName": "Bê nav",
     "noHome": "Tu malê tomarkirî tune.",
     "homeClass": "Pola {{vc}}, {{name}}",
@@ -3703,10 +3704,6 @@
     "homeNoClass": "Hîn nehatiye nirxandin",
     "homeArea": "Herêma {{area}}",
     "safeAt": "Ez ewle me: {{time}} · {{event}}",
-    "noSafe": "Di 30 rojên dawî de «Ez ewle me» tune.",
-    "sharing": {
-      "label": "Bihêle karbidestên hikûmetê texmîna ewlehiya avahiya min û rewşa min a «Ez ewle me» bibînin",
-      "hint": "Girtî ye heta tu vekî. Wê demê karbidestên bi rola Bumelerze ya piştrastkirî pola avahiya te, herêma wê (qet navnîşan na) û «Ez ewle me» ya te ya dawî dibînin."
-    }
+    "noSafe": "Di 30 rojên dawî de «Ez ewle me» tune."
   }
 }

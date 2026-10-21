@@ -2618,7 +2618,7 @@
         "hub_close": "Closed a hub",
         "hub_note": "Posted a pinned hub note",
         "authority_view": "Government official looked at area totals",
-        "authority_people_view": "Government official looked at people who share"
+        "authority_people_view": "Government official looked at the list of people"
       },
       "undo": "Undo"
     },
@@ -2755,7 +2755,7 @@
         "allHeld": "Has every badge",
         "noteLabel": "Private note (only admins see it)",
         "describe": {
-          "authority": "Sees totals by area only, never names or addresses, unless a person opts in.",
+          "authority": "Sees totals by area, and each account holder's building class and latest I'm safe. Never addresses.",
           "moderator": "Helps keep comments and posts safe.",
           "partner": "Asks for the organisation name."
         }
@@ -3692,10 +3692,11 @@
     "safeOf": "{{safe}} of {{people}} safe ({{percent}}%)",
     "safeFew": "fewer than 5 of {{people}} safe",
     "feltMap": "Open the felt map",
-    "peopleTitle": "People who chose to share",
-    "peopleHint": "Only people who switched this on in Settings. They can switch it off at any time. Opening the list is recorded with who was shown.",
+    "peopleTitle": "People with an account",
+    "peopleHint": "Everyone with a Bumelerze account, sorted by name. Opening the list is recorded with who was shown.",
     "peopleShow": "Show the list",
-    "peopleEmpty": "Nobody has chosen to share yet.",
+    "peopleEmpty": "No accounts yet.",
+    "peopleFirst": "Showing the first {{number}}, by name.",
     "noName": "No name",
     "noHome": "No tagged home.",
     "homeClass": "Class {{vc}}, {{name}}",
@@ -3703,10 +3704,6 @@
     "homeNoClass": "Not assessed yet",
     "homeArea": "{{area}} area",
     "safeAt": "I'm safe: {{time}} · {{event}}",
-    "noSafe": "No I'm safe in the last 30 days.",
-    "sharing": {
-      "label": "Let government officials see my building's safety estimate and my 'I'm safe' status",
-      "hint": "Off unless you switch it on. Officials with a verified Bumelerze role then see your building's class, its area (never the address) and your latest I'm safe."
-    }
+    "noSafe": "No I'm safe in the last 30 days."
   }
 }

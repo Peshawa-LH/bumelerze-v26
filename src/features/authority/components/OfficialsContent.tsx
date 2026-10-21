@@ -29,17 +29,21 @@ import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme } from "@/theme";
 import { useAuthorityOverview, useEventSafety, useSharedPeople } from "../queries";
 import type { AuthorityTransport } from "../transport";
-import type { AreaClasses, CheckinEvent, SharedPerson } from "../types";
+import {
+  PEOPLE_LIMIT,
+  type AreaClasses,
+  type CheckinEvent,
+  type SharedPerson,
+} from "../types";
 import { ltrValueStyle } from "@/i18n";
 
 /**
  * The Officials page (owner decision 2026-10-13): for holders of the
  * Government official rank only. Aggregates first (tagged homes by
  * vulnerability class, by area; who checked in safe after an earthquake, by
- * area), the people who chose to share second, and only after a tap. Every
- * number under 5 is hidden by the server; every read is recorded in the
- * activity log. Never a name without the person's own switch, never a
- * coordinate or an address.
+ * area), then every account holder (owner decision D98, migration 0069), and
+ * only after a tap. Every number under 5 is hidden by the server; every read
+ * is recorded in the activity log. Never a coordinate or an address.
  */
 export function OfficialsContent({
   transport,
@@ -303,14 +307,16 @@ function SafetyCard({
   );
 }
 
-/** The opted-in people: loaded only when the official asks (each look is
- * recorded with who was shown). */
+/** Every account holder, by name: loaded only when the official asks (each
+ * look is recorded with who was shown). The list stops at PEOPLE_LIMIT and
+ * says so. */
 function PeopleSection({ transport }: { transport: AuthorityTransport | undefined }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const dir = useTextDir();
   const [show, setShow] = useState(false);
   const people = useSharedPeople(show, transport);
+  const num = useNumber();
   const meta = [typography.bodyMeta, dir, { color: colors.text.secondary }];
   return (
     <View style={{ gap: spacing[3] }} testID="officials-people">
@@ -333,7 +339,16 @@ function PeopleSection({ transport }: { transport: AuthorityTransport | undefine
           {t("officials.peopleEmpty")}
         </Text>
       ) : (
-        people.data.map((person) => <PersonCard key={person.userId} person={person} />)
+        <>
+          {people.data.map((person) => (
+            <PersonCard key={person.userId} person={person} />
+          ))}
+          {people.data.length >= PEOPLE_LIMIT ? (
+            <Text style={meta} testID="officials-people-first">
+              {t("officials.peopleFirst", { number: num(PEOPLE_LIMIT) })}
+            </Text>
+          ) : null}
+        </>
       )}
     </View>
   );

@@ -174,6 +174,19 @@ describe("Settings > Account and My home", () => {
       expect(mockPush).toHaveBeenLastCalledWith("/account/password");
     });
 
+    it("has no switch for government officials: they always see it (D98)", async () => {
+      await renderWithProviders(<AccountSettingsGroup />);
+      await flush();
+      await press("account-privacy-row");
+      await flush();
+      expect(screen.queryByTestId("authority-sharing-row")).toBeNull();
+      expect(screen.queryByTestId("authority-sharing-switch")).toBeNull();
+      expect(screen.queryByText(/government officials/i)).toBeNull();
+      expect(mockRpc.mock.calls.map(([name]) => name)).not.toContain(
+        "my_authority_sharing",
+      );
+    });
+
     it("signs out in one tap and has Delete as its own card, last", async () => {
       await renderWithProviders(<AccountSettingsGroup />);
       await press("account-sign-out");

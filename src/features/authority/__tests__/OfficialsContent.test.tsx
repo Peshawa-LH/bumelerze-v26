@@ -14,6 +14,7 @@ import {
   parsePeople,
   type AuthorityTransport,
 } from "../transport";
+import { PEOPLE_LIMIT } from "../types";
 
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
@@ -71,8 +72,6 @@ function transport(overrides: Partial<AuthorityTransport> = {}) {
         ],
       }),
     ),
-    fetchSharing: jest.fn(),
-    setSharing: jest.fn(),
     ...overrides,
   } as jest.Mocked<AuthorityTransport>;
 }
@@ -97,12 +96,14 @@ describe("Officials page (owner decision 2026-10-13)", () => {
       /A.*Most vulnerable.*7/,
     );
     expect(screen.getByTestId("officials-area-halabja-C")).toHaveTextContent(/C.*5/);
-    expect(screen.getByTestId("officials-area-halabja-A")).toHaveTextContent(/A\u2066<5\u2069/);
+    expect(screen.getByTestId("officials-area-halabja-A")).toHaveTextContent(
+      /A\u2066<5\u2069/,
+    );
     expect(screen.getByTestId("officials-area-halabja-A").props.accessibilityLabel).toBe(
       "Class A, Most vulnerable: fewer than 5",
     );
     expect(screen.getByTestId("officials-area-other")).toHaveTextContent(/Other areas/);
-    // the opted-in list is NOT loaded until asked for
+    // the list of people is NOT loaded until asked for
     expect(t.fetchPeople).not.toHaveBeenCalled();
   });
 
@@ -119,8 +120,14 @@ describe("Officials page (owner decision 2026-10-13)", () => {
     expect(mockPush).toHaveBeenCalledWith("/event/bml2026x01");
   });
 
-  it("lists the people who chose to share only after a tap: area and class, never an address", async () => {
+  it("lists every account holder only after a tap: area and class, never an address (D98)", async () => {
     const t = await render(["authority.view"]);
+    const section = await screen.findByTestId("officials-people");
+    expect(section).toHaveTextContent(/People with an account/);
+    expect(section).toHaveTextContent(/Everyone with a Bumelerze account/);
+    expect(section).not.toHaveTextContent(
+      /chose to share|switched this on|switch it off/,
+    );
     await act(async () => {
       fireEvent.press(await screen.findByTestId("officials-people-show"));
     });
@@ -134,12 +141,35 @@ describe("Officials page (owner decision 2026-10-13)", () => {
     );
   });
 
-  it("says when nobody has chosen to share", async () => {
+  it("says when there is nobody to list", async () => {
     await render(["authority.view"], transport({ fetchPeople: jest.fn(async () => []) }));
     await act(async () => {
       fireEvent.press(await screen.findByTestId("officials-people-show"));
     });
-    expect(await screen.findByTestId("officials-people-empty")).toBeTruthy();
+    expect(await screen.findByTestId("officials-people-empty")).toHaveTextContent(
+      "No accounts yet.",
+    );
+    expect(screen.queryByTestId("officials-people-first")).toBeNull();
+  });
+
+  it("says when the list stops at the first 200 by name", async () => {
+    const many = Array.from({ length: PEOPLE_LIMIT }, (_, i) => ({
+      user_id: `u${i}`,
+      username: `p${i}`,
+      display_name: null,
+      homes: [],
+      safe: null,
+    }));
+    const t = transport({
+      fetchPeople: jest.fn(async () => parsePeople({ people: many })),
+    });
+    await render(["authority.view"], t);
+    await act(async () => {
+      fireEvent.press(await screen.findByTestId("officials-people-show"));
+    });
+    expect(await screen.findByTestId("officials-people-first")).toHaveTextContent(
+      /Showing the first .*200.*, by name\./,
+    );
   });
 
   it("is closed to admins and everyone else, and never asks the server", async () => {

@@ -7,7 +7,7 @@ import { OfficialsContent } from "@/features/authority";
 import { useTheme } from "@/theme";
 
 /** The Officials page, for the Government official rank only (`authority.view`,
- * migration 0066): area totals first, then the people who chose to share.
+ * migration 0066): area totals first, then every account holder (D98, 0069).
  * Opened from Profile > Only you see this; a stray link shows nothing. */
 export default function OfficialsScreen() {
   const { t } = useTranslation();

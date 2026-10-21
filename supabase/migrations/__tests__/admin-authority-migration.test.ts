@@ -140,7 +140,7 @@ describe("what officials see", () => {
     }
   });
 
-  it("lists a person only after they switched sharing on", () => {
+  it("listed a person only after they switched sharing on (0069 lists every account holder)", () => {
     const body = fn("authority_people");
     expect(body).toContain("from public.authority_sharing s");
     expect(body).toContain("where s.enabled");

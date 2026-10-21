@@ -3,13 +3,13 @@ import { z } from "zod";
 import { VULNERABILITY_CLASSES } from "@/features/building/ims25";
 import { CommunityError } from "@/features/community/types";
 import { call } from "@/features/admin/transport";
-import type {
-  AreaClasses,
-  AuthorityOverview,
-  CheckinEvent,
-  EventSafety,
-  SharedPerson,
-  SharingState,
+import {
+  PEOPLE_LIMIT,
+  type AreaClasses,
+  type AuthorityOverview,
+  type CheckinEvent,
+  type EventSafety,
+  type SharedPerson,
 } from "./types";
 
 const count = z.coerce.number().int().nonnegative().catch(0);
@@ -171,19 +171,12 @@ export function parsePeople(data: unknown): SharedPerson[] {
   });
 }
 
-export function parseSharing(data: unknown): SharingState {
-  const obj = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
-  const at = typeof obj.changed_at === "string" ? Date.parse(obj.changed_at) : NaN;
-  return { enabled: obj.enabled === true, changedAt: Number.isNaN(at) ? null : at };
-}
-
-/** Migration 0066. Every authority read is checked and logged on the server. */
+/** Migrations 0066 and 0069. Every authority read is checked and logged on
+ * the server. */
 export interface AuthorityTransport {
   fetchOverview(): Promise<AuthorityOverview>;
   fetchEventSafety(eventId: string): Promise<EventSafety>;
   fetchPeople(): Promise<SharedPerson[]>;
-  fetchSharing(): Promise<SharingState>;
-  setSharing(enabled: boolean): Promise<SharingState>;
 }
 
 export const SupabaseAuthorityTransport: AuthorityTransport = {
@@ -196,12 +189,6 @@ export const SupabaseAuthorityTransport: AuthorityTransport = {
     );
   },
   async fetchPeople() {
-    return parsePeople(await call("authority_people", { p_limit: 200 }));
-  },
-  async fetchSharing() {
-    return parseSharing(await call("my_authority_sharing"));
-  },
-  async setSharing(enabled) {
-    return parseSharing(await call("set_authority_sharing", { p_enabled: enabled }));
+    return parsePeople(await call("authority_people", { p_limit: PEOPLE_LIMIT }));
   },
 };

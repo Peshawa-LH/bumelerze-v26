@@ -1,6 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-import { useAccount } from "@/features/account/use-account";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SupabaseAuthorityTransport, type AuthorityTransport } from "./transport";
 
@@ -11,7 +10,6 @@ export const authorityKeys = {
   overview: ["authority", "overview"] as const,
   event: (eventId: string) => ["authority", "event", eventId] as const,
   people: ["authority", "people"] as const,
-  sharing: (userId: string | null) => ["authority", "sharing", userId] as const,
 };
 
 // Officials' reads are logged on the server, so they are fetched on purpose
@@ -56,35 +54,5 @@ export function useSharedPeople(
     queryFn: () => transport.fetchPeople(),
     enabled: enabled && isSupabaseConfigured(),
     ...OFFICIAL_READ,
-  });
-}
-
-/** The account holder's own switch. Only for signed-in accounts. */
-export function useAuthoritySharing(
-  transport: AuthorityTransport = SupabaseAuthorityTransport,
-) {
-  const account = useAccount();
-  const userId = account.status === "account" ? account.userId : null;
-  return useQuery({
-    queryKey: authorityKeys.sharing(userId),
-    queryFn: () => transport.fetchSharing(),
-    enabled: userId !== null && isSupabaseConfigured(),
-    staleTime: 5 * 60_000,
-    retry: 0,
-    meta: NOT_PERSISTED,
-  });
-}
-
-export function useSetAuthoritySharing(
-  transport: AuthorityTransport = SupabaseAuthorityTransport,
-) {
-  const queryClient = useQueryClient();
-  const account = useAccount();
-  const userId = account.status === "account" ? account.userId : null;
-  return useMutation({
-    mutationFn: (enabled: boolean) => transport.setSharing(enabled),
-    onSuccess: (state) => {
-      queryClient.setQueryData(authorityKeys.sharing(userId), state);
-    },
   });
 }
