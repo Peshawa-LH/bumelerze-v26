@@ -7,14 +7,48 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { Settings } from "react-native";
+
 import { useArrivedLinkStore } from "@/features/links/pending-link";
+import { rememberRestartResume } from "@/i18n/restart-resume";
 import { redirectSystemPath } from "../+native-intent";
+
+// The app's user defaults, behind React Native's own `Settings` (iOS).
+jest.mock("react-native/Libraries/Settings/NativeSettingsManager", () => ({
+  __esModule: true,
+  default: {
+    getConstants: () => ({ settings: {} }),
+    setValues: jest.fn(),
+    deleteValues: jest.fn(),
+  },
+}));
 
 beforeEach(() => {
   useArrivedLinkStore.setState({ arrived: null });
 });
 
 describe("redirectSystemPath", () => {
+  it("[regression] opens the screen a language switch was made on after its restart, not the last link (parity re-check K1)", () => {
+    rememberRestartResume("/settings");
+    // iOS hands the app the last link it opened, long before the switch.
+    expect(
+      redirectSystemPath({ path: "bumelerze://event/bml20170001", initial: true }),
+    ).toBe("/settings");
+    expect(useArrivedLinkStore.getState().arrived).toBeNull();
+    // Once only: the next start opens what it is given.
+    expect(
+      redirectSystemPath({ path: "bumelerze://event/bml20170001", initial: true }),
+    ).toBe("/event/bml20170001");
+  });
+
+  it("leaves a link that arrives while the app runs alone, even with a note waiting", () => {
+    rememberRestartResume("/settings");
+    expect(
+      redirectSystemPath({ path: "bumelerze://event/bml20170001", initial: false }),
+    ).toBe("/event/bml20170001");
+    Settings.set({ "bumelerze.resumeAfterRestart": null });
+  });
+
   it.each([
     ["https://app.bumelerze.com/e/bml20170001", "/event/bml20170001"],
     ["https://app.bumelerze.com/u/peshawa", "/u/peshawa"],
@@ -58,5 +92,20 @@ describe("the root layout", () => {
     const tourAt = source.search(/\buseLaunchPendingTour\(onboardingCompleted\)/);
     expect(linkAt).toBeGreaterThan(-1);
     expect(tourAt).toBeGreaterThan(linkAt);
+  });
+});
+
+describe("language switches that restart the app (parity re-check K1)", () => {
+  const read = (file: string) =>
+    fs.readFileSync(path.join(__dirname, "..", file), "utf8");
+
+  it("Settings comes back to Settings, as the web's reload does", () => {
+    expect(read("(tabs)/(settings)/settings.tsx")).toMatch(
+      /useLocaleSwitcher\(\{\s*resumePath:\s*"\/settings"/,
+    );
+  });
+
+  it("onboarding comes back to its own start, which opens the saved step", () => {
+    expect(read("onboarding/language.tsx")).toMatch(/resumePath:\s*"\/onboarding"/);
   });
 });

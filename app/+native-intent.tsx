@@ -1,5 +1,6 @@
 import { resolveIncomingLink } from "@/features/links/incoming";
 import { noteIncomingLink } from "@/features/links/pending-link";
+import { takeRestartResume } from "@/i18n/restart-resume";
 
 /**
  * iOS/Android: every address that opens the app passes through here first
@@ -16,6 +17,9 @@ import { noteIncomingLink } from "@/features/links/pending-link";
  *   link that starts the app lands on Home, one that arrives later leaves the
  *   app where it is.
  * - The development build's own links pass through untouched.
+ * - Right after a restart the app made itself (a language switch that flips
+ *   the reading direction), the first address is the screen the switch was
+ *   made on, not the last link the app opened (src/i18n/restart-resume.ts).
  *
  * Must never throw (a throw here can crash the app on launch).
  */
@@ -27,6 +31,12 @@ export function redirectSystemPath({
   initial: boolean;
 }): string | null {
   try {
+    if (initial) {
+      const resume = takeRestartResume();
+      if (resume !== null) {
+        return resume;
+      }
+    }
     const link = resolveIncomingLink(path);
     if (link.kind === "passthrough") {
       return path;

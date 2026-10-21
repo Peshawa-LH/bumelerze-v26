@@ -42,7 +42,11 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [openRow, setOpenRow] = useState<OpenRow | null>(null);
 
-  const { isRestarting, selectLocale, currentLocale } = useLocaleSwitcher();
+  // A switch that restarts the app comes back to Settings, as the web's
+  // reload does (parity re-check K1).
+  const { isRestarting, selectLocale, currentLocale } = useLocaleSwitcher({
+    resumePath: "/settings",
+  });
   const themePreference = useThemePreferencesStore((state) => state.preference);
   const setThemePreference = useThemePreferencesStore((state) => state.setPreference);
   const resetOnboarding = usePrefsStore((state) => state.resetOnboarding);

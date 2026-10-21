@@ -2,6 +2,8 @@ import { onlineManager } from "@tanstack/react-query";
 import * as Updates from "expo-updates";
 import { AppState, type AppStateStatus } from "react-native";
 
+import { forgetOpenedLink } from "@/i18n/restart-resume";
+
 /**
  * iOS/Android, update on resume: the installed app's half of the web's
  * "newer deploy on resume" check (`offline-shell.web.ts`), through EAS Update.
@@ -131,7 +133,11 @@ export function expoUpdatesEnvironment(): NativeUpdateEnvironment {
       const result = await Updates.fetchUpdateAsync();
       return result.isNew || result.isRollBackToEmbedded;
     },
-    reload: () => Updates.reloadAsync(),
+    reload: () => {
+      // Restarted at a tab root: not on the last link the app opened.
+      forgetOpenedLink();
+      return Updates.reloadAsync();
+    },
     // The connection as React Query sees it.
     isOnline: () => onlineManager.isOnline(),
     now: () => Date.now(),

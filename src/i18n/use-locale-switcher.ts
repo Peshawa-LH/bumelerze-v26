@@ -4,6 +4,7 @@ import { I18nManager, Platform } from "react-native";
 
 import { changeLocale, isRTLLocale, type SupportedLocale } from "./index";
 import { restartApp } from "./restart-app";
+import { forgetOpenedLink, rememberRestartResume } from "./restart-resume";
 
 export interface SelectLocaleResult {
   requiresRestart: boolean;
@@ -19,6 +20,10 @@ export interface UseLocaleSwitcherOptions {
    * resume step, see src/features/onboarding/store.ts) before the app
    * tears down. Never called when no restart is needed. */
   onBeforeRestart?: () => void;
+  /** The app path to come back to after the restart (the screen the switch
+   * was made on), instead of Home or the last link the app opened (iOS;
+   * `restart-resume.ts`). */
+  resumePath?: string;
 }
 
 export interface UseLocaleSwitcherResult {
@@ -39,7 +44,7 @@ export function useLocaleSwitcher(
 ): UseLocaleSwitcherResult {
   const { i18n } = useTranslation();
   const [isRestarting, setIsRestarting] = useState(false);
-  const { onBeforeRestart } = options;
+  const { onBeforeRestart, resumePath } = options;
 
   const selectLocale = useCallback(
     async (locale: SupportedLocale): Promise<SelectLocaleResult> => {
@@ -57,6 +62,11 @@ export function useLocaleSwitcher(
         return { requiresRestart: false, restartFailed: false };
       }
 
+      // The restart must not open the last link again, and comes back here.
+      forgetOpenedLink();
+      if (resumePath !== undefined) {
+        rememberRestartResume(resumePath);
+      }
       onBeforeRestart?.();
       setIsRestarting(true);
       try {
@@ -67,7 +77,7 @@ export function useLocaleSwitcher(
         return { requiresRestart: true, restartFailed: true };
       }
     },
-    [i18n, isRestarting, onBeforeRestart],
+    [i18n, isRestarting, onBeforeRestart, resumePath],
   );
 
   return { isRestarting, selectLocale, currentLocale: i18n.language as SupportedLocale };

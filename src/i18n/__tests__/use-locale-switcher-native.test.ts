@@ -14,6 +14,11 @@ import { restartApp } from "../restart-app";
 import { useLocaleSwitcher } from "../use-locale-switcher";
 
 jest.mock("../restart-app", () => ({ restartApp: jest.fn(async () => undefined) }));
+const mockCalls: string[] = [];
+jest.mock("../restart-resume", () => ({
+  forgetOpenedLink: () => mockCalls.push("forgetOpenedLink"),
+  rememberRestartResume: (path: string) => mockCalls.push(`remember ${path}`),
+}));
 
 const mockedRestart = restartApp as jest.MockedFunction<typeof restartApp>;
 const ORIGINAL_IS_RTL = I18nManager.isRTL;
@@ -25,6 +30,7 @@ function setIsRTL(value: boolean): void {
 
 beforeEach(() => {
   mockedRestart.mockClear();
+  mockCalls.length = 0;
 });
 
 afterEach(async () => {
@@ -73,5 +79,37 @@ it("keeps the web's same-language no-op unchanged", async () => {
   });
 
   expect(outcome).toEqual({ requiresRestart: false, restartFailed: false });
+  expect(mockedRestart).not.toHaveBeenCalled();
+});
+
+it("[regression] comes back to the screen the switch was made on, and never to the last opened link (parity re-check K1)", async () => {
+  await i18n.changeLanguage("en");
+  setIsRTL(false);
+  mockedRestart.mockImplementation(async () => {
+    mockCalls.push("restart");
+  });
+  const { result } = await renderHook(() =>
+    useLocaleSwitcher({ resumePath: "/settings" }),
+  );
+
+  await act(async () => {
+    await result.current.selectLocale("ckb");
+  });
+
+  expect(mockCalls).toEqual(["forgetOpenedLink", "remember /settings", "restart"]);
+});
+
+it("notes nothing when the switch needs no restart", async () => {
+  await i18n.changeLanguage("en");
+  setIsRTL(false);
+  const { result } = await renderHook(() =>
+    useLocaleSwitcher({ resumePath: "/settings" }),
+  );
+
+  await act(async () => {
+    await result.current.selectLocale("kmr");
+  });
+
+  expect(mockCalls).toEqual([]);
   expect(mockedRestart).not.toHaveBeenCalled();
 });

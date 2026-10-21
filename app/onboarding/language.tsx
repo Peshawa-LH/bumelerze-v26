@@ -23,6 +23,8 @@ export default function OnboardingLanguageScreen() {
 
   const { isRestarting, selectLocale, currentLocale } = useLocaleSwitcher({
     onBeforeRestart: () => setOnboardingStep("location"),
+    // The onboarding's start forwards to the saved step (location).
+    resumePath: "/onboarding",
   });
 
   async function handleSelectLocale(locale: SupportedLocale) {
