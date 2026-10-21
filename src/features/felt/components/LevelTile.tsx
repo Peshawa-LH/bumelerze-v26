@@ -39,6 +39,10 @@ interface LevelTileProps {
    * writeup). Both the 1-9 and 10-12 groups use the same 3-column layout,
    * so `compact` doesn't change this math, only the swatch's aspect ratio. */
   width?: number | undefined;
+  /** The widest the artwork gets, centred in the tile. Set when the grid is
+   * down to one card per row at the accessibility text sizes, so the words
+   * fit whole without the picture filling the screen. */
+  artworkMaxWidth?: number | undefined;
 }
 
 function LevelTileImpl({
@@ -49,6 +53,7 @@ function LevelTileImpl({
   imageSource,
   compact = false,
   width,
+  artworkMaxWidth,
 }: LevelTileProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -86,6 +91,7 @@ function LevelTileImpl({
         style={[
           styles.swatch,
           compact && styles.swatchCompact,
+          artworkMaxWidth != null ? { maxWidth: artworkMaxWidth } : null,
           { backgroundColor: accentColor },
         ]}
       >

@@ -71,3 +71,55 @@ export function useTileGridLayout(columns: number, gap: number): TileGridLayout 
     onLayout,
   };
 }
+
+/** iOS's accessibility text sizes (Settings > Accessibility > Larger Text)
+ * start at a font scale of about 1.79 (AX-M); XXXL, the largest ordinary
+ * size, is about 1.35. The web is always 1. */
+export const ACCESSIBILITY_FONT_SCALE = 1.7;
+
+/** A word's width per character, in em: a little over the average of a
+ * Latin or Arabic-script letter, so the estimate errs towards fewer
+ * columns. */
+const WORD_CHARACTER_EM = 0.5;
+
+/**
+ * The most columns, up to `maxColumns`, at which the longest word of every
+ * label still fits on one line inside a tile. iOS breaks a word in the
+ * middle only when it is wider than its line: at the accessibility text
+ * sizes the felt report's three-column cards read "3 - Weak shakin" / "g"
+ * (parity re-check N2). At the ordinary sizes, XXXL included, and always on
+ * the web (font scale 1), every language keeps `maxColumns`.
+ */
+export function columnsForWholeWords({
+  containerWidth,
+  maxColumns,
+  gap,
+  tilePadding,
+  labels,
+  textSize,
+  fontScale,
+}: {
+  containerWidth: number;
+  maxColumns: number;
+  gap: number;
+  /** Horizontal padding inside a tile, on each side. */
+  tilePadding: number;
+  labels: readonly string[];
+  /** The labels' font size before the system text size applies. */
+  textSize: number;
+  fontScale: number;
+}): number {
+  const longestWord = Math.max(
+    0,
+    ...labels
+      .flatMap((label) => label.split(/\s+/))
+      .map((word) => Array.from(word).length),
+  );
+  const wordWidth = longestWord * WORD_CHARACTER_EM * textSize * Math.max(1, fontScale);
+  for (let columns = maxColumns; columns > 1; columns -= 1) {
+    if (wordWidth <= computeTileWidth(containerWidth, columns, gap) - 2 * tilePadding) {
+      return columns;
+    }
+  }
+  return 1;
+}

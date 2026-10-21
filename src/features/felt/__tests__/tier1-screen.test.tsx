@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
-import { AccessibilityInfo, StyleSheet } from "react-native";
+import { AccessibilityInfo, Dimensions, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -283,6 +283,51 @@ describe("Window 1 — tier-1 felt-report screen", () => {
     // "Change" itself never shrinks, and keeps a gap from the wrapped place.
     expect(StyleSheet.flatten(changeText.props.style).flexShrink).toBeUndefined();
     expect(StyleSheet.flatten(row?.props.style).columnGap).toBeGreaterThan(0);
+  });
+
+  describe("iOS accessibility text sizes (parity re-check N2: words wrap whole)", () => {
+    const setFontScale = (fontScale: number) =>
+      Dimensions.set({
+        window: { width: 402, height: 874, scale: 3, fontScale },
+        screen: { width: 402, height: 874, scale: 3, fontScale },
+      });
+    afterEach(() => setFontScale(1));
+
+    it("keeps the title beside Close and three cards per row at the ordinary sizes", async () => {
+      setFontScale(1.353); // XXXL
+      await renderWithProviders(<Tier1FeltReportScreen />);
+      const title = screen.getByRole("header", { name: i18n.t("felt.tier1.title") });
+      const close = screen.getByRole("button", { name: i18n.t("felt.tier1.close") });
+      expect(title.parent).toBe(close.parent);
+      const change = await screen.findByText(i18n.t("felt.tier1.changeLocation"));
+      expect(StyleSheet.flatten(change.parent?.props.style).flexDirection).toBe("row");
+      for (const artwork of screen.getAllByTestId("level-tile-artwork", {
+        includeHiddenElements: true,
+      })) {
+        expect(StyleSheet.flatten(artwork.parent?.props.style).maxWidth).toBeUndefined();
+      }
+    });
+
+    it("[regression] at Accessibility XL gives the title the full width under Close, and one card per row in English", async () => {
+      setFontScale(2.643);
+      await renderWithProviders(<Tier1FeltReportScreen />);
+      const title = screen.getByRole("header", { name: i18n.t("felt.tier1.title") });
+      const close = screen.getByRole("button", { name: i18n.t("felt.tier1.close") });
+      // Close sits alone in its row; the title scrolls with the levels.
+      expect(close.parent?.children).toHaveLength(1);
+      expect(title.parent).not.toBe(close.parent);
+      // "Change" under the place, not squeezing it ("Locatio" / "n:" at AX5).
+      const change = await screen.findByText(i18n.t("felt.tier1.changeLocation"));
+      expect(StyleSheet.flatten(change.parent?.props.style).flexDirection).toBe("column");
+      // One card per row ("shaking" no longer splits), the artwork capped.
+      const artworks = screen.getAllByTestId("level-tile-artwork", {
+        includeHiddenElements: true,
+      });
+      expect(artworks).toHaveLength(12);
+      for (const artwork of artworks) {
+        expect(StyleSheet.flatten(artwork.parent?.props.style).maxWidth).toBe(200);
+      }
+    });
   });
 
   describe("eventReg route param (migration 0011: FeltReportPill's registration snapshot)", () => {

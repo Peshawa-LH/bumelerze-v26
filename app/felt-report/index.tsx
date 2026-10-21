@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -16,6 +17,8 @@ import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
+  ACCESSIBILITY_FONT_SCALE,
+  columnsForWholeWords,
   useCloseFeltFlow,
   CARTOON_LEVELS,
   decodeEventRegistrationParam,
@@ -59,13 +62,30 @@ export default function Tier1FeltReportScreen() {
 
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
   const { location, isGps, manualPlace, setManualPlace } = useFeltLocation();
-  // Both the 1-9 and 10-12 (severe, `compact`) groups are 3-column grids at
-  // the same gap (`styles.grid` below) and the same horizontal padding —
+  // iOS accessibility text sizes (parity re-check N2): words must wrap
+  // whole. The title then gets the full width below "Close" and scrolls with
+  // the levels, and the cards drop to two columns or one when the longest
+  // word of a level name would not fit a card. Ordinary sizes, XXXL and the
+  // web (font scale 1) keep the title beside "Close" and three columns.
+  const { width: windowWidth, fontScale } = useWindowDimensions();
+  const largeText = fontScale >= ACCESSIBILITY_FONT_SCALE;
+  const levelColumns = columnsForWholeWords({
+    containerWidth: windowWidth - 2 * spacing[5],
+    maxColumns: LEVEL_TILE_COLUMNS,
+    gap: LEVEL_TILE_GAP,
+    tilePadding: spacing[2],
+    labels: CARTOON_LEVELS.map((level) => t(`felt.tier1.levels.${level}.label`)),
+    textSize: typography.labelCaption.fontSize,
+    fontScale,
+  });
+  // Both the 1-9 and 10-12 (severe, `compact`) groups use the same columns
+  // at the same gap (`styles.grid` below) and the same horizontal padding —
   // see `grid-layout.ts`'s doc comment on sharing one measurement.
   const { tileWidth, onLayout: onGridLayout } = useTileGridLayout(
-    LEVEL_TILE_COLUMNS,
+    levelColumns,
     LEVEL_TILE_GAP,
   );
+  const artworkMaxWidth = levelColumns === 1 ? SINGLE_COLUMN_ARTWORK_MAX : undefined;
 
   const associatedEventId = eventId ?? null;
   const eventRegistration = decodeEventRegistrationParam(eventReg);
@@ -98,6 +118,45 @@ export default function Tier1FeltReportScreen() {
 
   const manualPlaceName = placeDisplayName(manualPlace, i18n.language);
 
+  const title = (
+    <Text
+      accessibilityRole="header"
+      style={{
+        // Wraps beside "Close" as in the browser (Yoga does not shrink
+        // a text by default; a long Sorani title ran into the link).
+        flexShrink: 1,
+        color: colors.text.primary,
+        fontSize: typography.h1.fontSize,
+        fontFamily: nativeFontFamily(typography.h1),
+        ...READING_START,
+        lineHeight: typography.h1.lineHeight,
+        fontWeight: typography.h1.fontWeight,
+      }}
+    >
+      {t("felt.tier1.title")}
+    </Text>
+  );
+  const closeButton = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t("felt.tier1.close")}
+      onPress={handleClose}
+      style={styles.closeButton}
+    >
+      <Text
+        style={{
+          color: colors.text.link,
+          fontSize: typography.labelButton.fontSize,
+          fontFamily: nativeFontFamily(typography.labelButton),
+          ...READING_START,
+          fontWeight: typography.labelButton.fontWeight,
+        }}
+      >
+        {t("felt.tier1.close")}
+      </Text>
+    </Pressable>
+  );
+
   return (
     <View
       style={[
@@ -111,47 +170,22 @@ export default function Tier1FeltReportScreen() {
         },
       ]}
     >
-      <View style={styles.topRow}>
-        <Text
-          accessibilityRole="header"
-          style={{
-            // Wraps beside "Close" as in the browser (Yoga does not shrink
-            // a text by default; a long Sorani title ran into the link).
-            flexShrink: 1,
-            color: colors.text.primary,
-            fontSize: typography.h1.fontSize,
-            fontFamily: nativeFontFamily(typography.h1),
-            ...READING_START,
-            lineHeight: typography.h1.lineHeight,
-            fontWeight: typography.h1.fontWeight,
-          }}
-        >
-          {t("felt.tier1.title")}
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("felt.tier1.close")}
-          onPress={handleClose}
-          style={styles.closeButton}
-        >
-          <Text
-            style={{
-              color: colors.text.link,
-              fontSize: typography.labelButton.fontSize,
-              fontFamily: nativeFontFamily(typography.labelButton),
-              ...READING_START,
-              fontWeight: typography.labelButton.fontWeight,
-            }}
-          >
-            {t("felt.tier1.close")}
-          </Text>
-        </Pressable>
-      </View>
+      {largeText ? (
+        // "Close" on its own line at the reading end; the title moves into
+        // the scroll view below, at the full width.
+        <View style={styles.closeRow}>{closeButton}</View>
+      ) : (
+        <View style={styles.topRow}>
+          {title}
+          {closeButton}
+        </View>
+      )}
 
       <ScrollView
         {...KEYBOARD_AWARE_SCROLL}
         contentContainerStyle={{ gap: spacing[4], paddingTop: spacing[3] }}
       >
+        {largeText ? title : null}
         <Text
           style={{
             color: colors.text.secondary,
@@ -175,7 +209,7 @@ export default function Tier1FeltReportScreen() {
             onPress={isGps ? undefined : () => setIsLocationExpanded((v) => !v)}
             // 44 pt row (review B-12: "Location: Hawler · Change" measured
             // 350 x 17).
-            style={styles.locationRow}
+            style={[styles.locationRow, largeText && styles.locationRowStacked]}
           >
             <Text
               style={{
@@ -230,6 +264,7 @@ export default function Tier1FeltReportScreen() {
                 onPress={(selected) => void handleSelectLevel(selected)}
                 imageSource={LEVEL_ARTWORK[level]}
                 width={tileWidth}
+                artworkMaxWidth={artworkMaxWidth}
               />
             ),
           )}
@@ -259,6 +294,7 @@ export default function Tier1FeltReportScreen() {
                 imageSource={LEVEL_ARTWORK[level]}
                 compact
                 width={tileWidth}
+                artworkMaxWidth={artworkMaxWidth}
               />
             ),
           )}
@@ -273,6 +309,8 @@ export default function Tier1FeltReportScreen() {
 // can never drift apart silently).
 const LEVEL_TILE_COLUMNS = 3;
 const LEVEL_TILE_GAP = 10;
+/** One card per row (the largest text sizes): the artwork's widest. */
+const SINGLE_COLUMN_ARTWORK_MAX = 200;
 
 const styles = StyleSheet.create({
   container: {
@@ -282,6 +320,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  closeRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
   // 44 pt box for the text link (review A-9/B-12: "Close" measured 43 x 18
   // with a hitSlop that stopped at 42). The text keeps its place at the end
@@ -299,6 +341,12 @@ const styles = StyleSheet.create({
     minHeight: 44,
     // Keeps "Change" clear of a place name that wraps beside it.
     columnGap: 12,
+  },
+  // Accessibility text sizes: "Change" under the place, so neither word is
+  // squeezed into breaking ("Locatio" / "n:" at the largest size).
+  locationRowStacked: {
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   grid: {
     flexDirection: "row",
