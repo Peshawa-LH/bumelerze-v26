@@ -8,6 +8,8 @@ export {
   classifyFreshness,
   freshnessFromCatalog,
   LIVE_MAX_AGE_MS,
+  liveMaxAgeMs,
+  RASPBERRY_SHAKE_LIVE_MAX_AGE_MS,
   RECENT_MAX_AGE_MS,
 } from "./freshness";
 export {
@@ -19,9 +21,12 @@ export {
 } from "./queries";
 export {
   buildDataselectUrl,
+  DELAYED_PROBE_SLICE_MS,
   FdsnStationTraceTransport,
   mergeSegments,
   TRACE_WINDOW_MS,
+  traceLookbackMs,
+  trimTraceToWindow,
   type StationTraceTransport,
 } from "./trace-transport";
 export type {

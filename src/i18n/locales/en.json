@@ -1806,10 +1806,14 @@
     },
     "lastSample": "Last sample {{minutes}} min ago · refreshes every 30 s",
     "noData": "No data from this station in the last 10 minutes.",
+    "noDataLastHour": "No data from this station in the last hour.",
     "loading": "Loading the last ten minutes…",
     "error": "Could not load this station right now.",
     "distanceFromReference": "{{km}} km from Hawler",
     "credit": "Data: {{credit}}",
+    "hostedBy": {
+      "tiu": "Hosted by Tishk International University"
+    },
     "channel": "{{channel}} · {{sps}} samples/s",
     "mapA11yLabel": "Map of seismic stations around Kurdistan",
     "chartA11yLabel": "Last ten minutes of ground motion at {{name}}",

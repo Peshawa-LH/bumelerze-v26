@@ -1806,10 +1806,14 @@
     },
     "lastSample": "Nimûneya dawî berî {{minutes}} deqîqeyan · her 30 çirkeyan nû dibe",
     "noData": "Di 10 deqeyên borî de ti dane ji vê stasyonê nehat.",
+    "noDataLastHour": "Di saeta borî de ti dane ji vê stasyonê nehat.",
     "loading": "Deh deqîqeyên dawî tên barkirin…",
     "error": "Niha ev stasyon nayê barkirin.",
     "distanceFromReference": "{{km}} km ji Hewlêrê",
     "credit": "Dane: {{credit}}",
+    "hostedBy": {
+      "tiu": "Bi mazûvaniya Zanîngeha Navneteweyî ya Tishk"
+    },
     "channel": "{{channel}} · {{sps}} nimûne/çirke",
     "mapA11yLabel": "Nexşeya stasyonên erdhejê li dora Kurdistanê",
     "chartA11yLabel": "Deh deqîqeyên dawî yên livîna erdê li {{name}}",

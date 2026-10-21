@@ -403,7 +403,7 @@ under each toggle. All are off by default.
 
 ## 6. Live seismic stations and waveforms
 
-- **What it is:** the Sensor tab's "Live stations" view shows 37 open
+- **What it is:** the Sensor tab's "Live stations" view shows 38 open
   seismic stations around the region and streams their recent waveforms.
   The station list is `assets/stations/live-stations.json`, built by
   `scripts/build-live-stations.mjs` from the FDSN station services below.
@@ -417,12 +417,26 @@ under each toggle. All are off by default.
   - **KOERI**, Kandilli Observatory, via EIDA
     (<https://eida.koeri.boun.edu.tr/fdsnws>): network KO (16 stations).
   - **GEOFON**, GFZ (<https://geofon.gfz.de/fdsnws>): GE.ARPR (1 station).
+  - **Raspberry Shake** (<https://data.raspberryshake.org/fdsnws>): AM.R079D
+    (1 station), the Kurdistan Educational Seismic Observatory's Raspberry
+    Shake 4D, hosted by Tishk International University in Hawler. Network
+    AM, operated by Raspberry Shake, S.A.; DOI
+    <https://doi.org/10.7914/SN/AM>. Its public archive serves data 30
+    minutes old and older, so the app counts it as live for an hour and
+    shows the delay ("Last sample 30 min ago").
 - **Terms:** only open (unrestricted) channels are requested
   (`includerestricted=false`). Each network sets its own terms and citation;
   network DOIs and citations are listed at <https://www.fdsn.org/networks/>.
+- **Raspberry Shake terms:** <https://raspberryshake.org/license/>. AM.R079D
+  is the Kurdistan Educational Seismic Observatory's own Raspberry Shake.
+  Only this one Shake is shown, and nothing is redistributed: each browser
+  or phone fetches its data from Raspberry Shake directly, and nothing is
+  stored on Bumelerze's servers.
 - **Displayed in-app:** every station shows its credit ("Data: Iraqi Seismic
   Observatory via EarthScope", "Data: Kandilli Observatory (KOERI) via EIDA",
-  "Data: GEOFON (GFZ)", ...).
+  "Data: GEOFON (GFZ)", "Data: Kurdistan Educational Seismic Observatory via
+  Raspberry Shake, S.A.", ...); the Raspberry Shake also shows "Hosted by
+  Tishk International University".
 
 ## 7. Engineer's handbook data
 
