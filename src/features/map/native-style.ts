@@ -340,6 +340,13 @@ export interface LoadStyleDeps {
 
 const sessionCache = new Map<string, StyleDocument>();
 
+/** The style server said no (a bad key, a used-up monthly quota). Unlike a
+ * failed connection, the saved copy cannot help: its tile URLs need the same
+ * refused key, so it would open as an empty basemap. */
+class StyleRefusedError extends Error {}
+
+const REFUSED_STATUSES = new Set([401, 403, 429]);
+
 /** Forgets the documents fetched this session (tests). */
 export function clearStyleSessionCache(): void {
   sessionCache.clear();
@@ -350,7 +357,12 @@ async function fetchStyle(url: string, fetchImpl: typeof fetch, timeoutMs: numbe
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetchImpl(url, { signal: controller.signal });
-    if (!response.ok) throw new Error(`style ${response.status}`);
+    if (!response.ok) {
+      const message = `style ${response.status}`;
+      throw REFUSED_STATUSES.has(response.status)
+        ? new StyleRefusedError(message)
+        : new Error(message);
+    }
     const doc = parseStyleDocument(await response.json());
     if (!doc) throw new Error("style document has the wrong shape");
     return doc;
@@ -362,8 +374,10 @@ async function fetchStyle(url: string, fetchImpl: typeof fetch, timeoutMs: numbe
 /**
  * The style document behind `url`: from this session's memory, else the
  * network (then saved on the device), else the copy saved on an earlier
- * run. Rejects only when none of the three has it, which the caller treats
- * like the web treats a style that fails to load.
+ * run. Rejects when none of the three has it, and when the server refused
+ * the request (`StyleRefusedError`): the caller treats both like the web
+ * treats a style that fails to load, so a MapTiler map whose monthly quota
+ * ran out falls back to OpenFreeMap instead of opening an empty saved copy.
  */
 export async function loadStyleDocument(
   url: string,
@@ -382,6 +396,7 @@ export async function loadStyleDocument(
     });
     return doc;
   } catch (networkError) {
+    if (networkError instanceof StyleRefusedError) throw networkError;
     const saved = await storage.getItem(key).catch(() => null);
     const doc = saved ? parseStyleDocument(safeJson(saved)) : null;
     if (doc) {

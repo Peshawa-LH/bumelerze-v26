@@ -228,6 +228,26 @@ describe("loadStyleDocument", () => {
     expect(doc.name).toBe("test");
   });
 
+  it.each([401, 403, 429])(
+    "rejects a %s refusal even with a saved copy, so the map falls back to OpenFreeMap",
+    async (status) => {
+      // The saved copy's tile URLs need the same refused key (a used-up
+      // monthly quota): opening it would show an empty basemap.
+      const storage = memoryStorage({ [styleStorageKey(URL)]: JSON.stringify(styleDoc()) });
+      const refused = jest.fn(async () => ({ ok: false, status }) as Response);
+      await expect(
+        loadStyleDocument(URL, { fetchImpl: refused as never, storage }),
+      ).rejects.toThrow(`style ${status}`);
+    },
+  );
+
+  it("still opens the saved copy when the server has trouble (5xx), not a refusal", async () => {
+    const storage = memoryStorage({ [styleStorageKey(URL)]: JSON.stringify(styleDoc()) });
+    const broken = jest.fn(async () => ({ ok: false, status: 503 }) as Response);
+    const doc = await loadStyleDocument(URL, { fetchImpl: broken as never, storage });
+    expect(doc.name).toBe("test");
+  });
+
   it("rejects when neither the network nor the device has it (a bad key, first run offline)", async () => {
     const storage = memoryStorage();
     const forbidden = jest.fn(async () => ({ ok: false, status: 403 }) as Response);
