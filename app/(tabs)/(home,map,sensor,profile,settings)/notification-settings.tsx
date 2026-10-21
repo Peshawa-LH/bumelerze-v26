@@ -33,7 +33,6 @@ import {
 } from "@/features/notifications";
 import { usePrefsStore, type NotificationTier } from "@/features/onboarding";
 import { SafeAudienceSection } from "@/features/safe";
-import { confirmDialog } from "@/lib/dialogs";
 import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
@@ -139,14 +138,9 @@ export default function NotificationSettingsScreen() {
       // visible once `permissionStatus` flips — nothing further to do here.
       return;
     }
-    confirmDialog({
-      title: t("notificationSettings.rehearsal.playSoundHintTitle"),
-      message: t("notificationSettings.rehearsal.playSoundHintMessage"),
-      confirmLabel: t("notificationSettings.rehearsal.playSoundHintConfirm"),
-      onConfirm: () => {
-        void fireRehearsalNotification(exampleTitle, exampleBody);
-      },
-    });
+    // No "put the app in the background" hint first: an alert also shows,
+    // with its sound, while the app is open (foreground-handler.ts).
+    void fireRehearsalNotification(exampleTitle, exampleBody);
   }
 
   const currentPlace: Place | null = anotherPlace

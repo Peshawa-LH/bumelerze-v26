@@ -255,12 +255,10 @@ describe("Notification Settings screen", () => {
     expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
   });
 
-  it("'Play the alert sound' requests permission if needed, then schedules a real local notification after the hint alert", async () => {
-    const alertSpy = jest
-      .spyOn(Alert, "alert")
-      .mockImplementation((_title, _msg, buttons) => {
-        buttons?.[0]?.onPress?.();
-      });
+  // Decision 7a (2026-10-21): an alert shows with the app open, so the
+  // phone no longer asks the person to put the app in the background first.
+  it("'Play the alert sound' requests permission if needed, then schedules a real local notification straight away, with no hint", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert");
 
     await renderWithProviders(<NotificationSettingsScreen />);
     await flush();
@@ -268,11 +266,8 @@ describe("Notification Settings screen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Play the alert sound" }));
     await flush();
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "Play the alert sound",
-      expect.stringContaining("background"),
-      expect.any(Array),
-    );
+    expect(alertSpy).not.toHaveBeenCalled();
+    expect(screen.queryByText(/background/i)).toBeNull();
     expect(mockScheduleNotificationAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.objectContaining({
