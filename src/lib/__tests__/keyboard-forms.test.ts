@@ -88,6 +88,9 @@ const FORM_HOSTS: Record<string, string[]> = {
   "src/features/handbook/spectrum/components/SpectrumInputsForm.tsx": [
     "src/features/handbook/components/HandbookScreen.tsx",
   ],
+  "src/features/people-search/components/PeopleSearch.tsx": [
+    "app/(tabs)/(profile)/profile.tsx",
+  ],
   "src/features/posts/components/PostComposer.tsx": PROFILE_HOSTS,
   "src/features/posts/components/PostItem.tsx": PROFILE_HOSTS,
   "src/features/reporting/ReportSheet.tsx": [SHEET],

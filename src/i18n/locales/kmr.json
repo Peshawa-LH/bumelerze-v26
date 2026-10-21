@@ -3710,5 +3710,16 @@
     "homeArea": "Herêma {{area}}",
     "safeAt": "Ez ewle me: {{time}} · {{event}}",
     "noSafe": "Di 30 rojên dawî de «Ez ewle me» tune."
+  },
+  "peopleSearch": {
+    "open": "Kesan bibîne",
+    "label": "Li kesan bigere bi nav an @navê bikarhêner",
+    "placeholder": "Nav an @navê bikarhêner",
+    "hint": "Herî kêm {{min}} tîpan binivîse.",
+    "searching": "Tê gerandin…",
+    "none": "Kes nehat dîtin.",
+    "error": "Lêgerîn nebû. Girêdana xwe kontrol bike û dîsa biceribîne.",
+    "more": "Tenê {{number}} kesên pêşîn têne nîşandan. Zêdetir binivîse da ku lêgerînê teng bikî.",
+    "close": "Lêgerînê bigire"
   }
 }

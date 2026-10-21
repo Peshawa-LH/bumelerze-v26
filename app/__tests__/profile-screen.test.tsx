@@ -357,10 +357,29 @@ describe("Profile tab", () => {
       expect(mockRpc).not.toHaveBeenCalled();
     });
 
+    it("has Find people in the header, which opens and closes the search (guests too)", async () => {
+      await renderWithProviders(<ProfileScreen />);
+      const open = screen.getByTestId("profile-find-people");
+      expect(open.props.accessibilityLabel).toBe("Find people");
+      expect(screen.queryByTestId("people-search")).toBeNull();
+      await press("profile-find-people");
+      expect(screen.getByTestId("people-search")).toBeTruthy();
+      expect(screen.getByTestId("profile-find-people").props.accessibilityState).toEqual(
+        expect.objectContaining({ expanded: true }),
+      );
+      await press("people-search-close");
+      expect(screen.queryByTestId("people-search")).toBeNull();
+      // nothing is searched until two letters are typed
+      expect(mockRpc.mock.calls.map(([name]) => name)).not.toContain(
+        "mention_suggestions",
+      );
+    });
+
     it("unconfigured: no invitation, no home card, the page still works", async () => {
       mockConfigured = false;
       mockAccount = account({ status: "unconfigured" });
       await renderWithProviders(<ProfileScreen />);
+      expect(screen.queryByTestId("profile-find-people")).toBeNull();
       expect(screen.queryByTestId("account-create")).toBeNull();
       expect(screen.queryByTestId("home-section")).toBeNull();
       expect(screen.getByText("Guest")).toBeTruthy();

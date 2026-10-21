@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAccount } from "@/features/account/use-account";
+import { a11yState } from "@/lib/a11y-state";
 import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
@@ -21,6 +22,7 @@ const ProfileShareSheet = lazyScreenContent(
   { inline: true },
 );
 const ProfileTab = lazyScreenContent(loadProfileArea, (area) => area.ProfileTab);
+const PeopleSearch = lazyScreenContent(loadProfileArea, (area) => area.PeopleSearch);
 
 /**
  * The Profile tab (D79, redesigned in review note 5.1): one page for "me".
@@ -28,7 +30,8 @@ const ProfileTab = lazyScreenContent(loadProfileArea, (area) => area.ProfileTab)
  * profile link (mockup 3a). For a signed-in account the public profile comes
  * first (what other people see), then, below "Only you see this", the
  * owner's tools, then Posts and Comments. A guest sees "Profile", the sign-up
- * invitation and what is on the device. Sits directly in the tab navigator
+ * invitation and what is on the device. The magnifier opens Find people
+ * above the page (accounts and guests). Sits directly in the tab navigator
  * (no stack header), so it owns its top safe-area padding like Settings does.
  */
 export default function ProfileScreen() {
@@ -38,6 +41,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const account = useAccount();
   const [showQr, setShowQr] = useState(false);
+  const [searching, setSearching] = useState(false);
+  // Find people needs the server; an install without one has nobody to find.
+  const canSearch = account.status !== "unconfigured";
   const username =
     account.status === "account" ? (account.profile?.username ?? null) : null;
 
@@ -77,6 +83,22 @@ export default function ProfileScreen() {
         >
           {username ?? t("tabs.profile")}
         </Text>
+        {canSearch ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("peopleSearch.open")}
+            {...a11yState({ expanded: searching })}
+            onPress={() => setSearching((open) => !open)}
+            style={styles.icon}
+            testID="profile-find-people"
+          >
+            <Ionicons
+              name={searching ? "search" : "search-outline"}
+              size={24}
+              color={colors.text.primary}
+            />
+          </Pressable>
+        ) : null}
         {/* Activity (0061): follows, replies, hearts, reviews, family check-ins. */}
         <ActivityBell />
         {username ? (
@@ -92,6 +114,9 @@ export default function ProfileScreen() {
           </Pressable>
         ) : null}
       </View>
+      {searching && canSearch ? (
+        <PeopleSearch onClose={() => setSearching(false)} />
+      ) : null}
       <ProfileTab />
       {showQr && username ? (
         <ProfileShareSheet

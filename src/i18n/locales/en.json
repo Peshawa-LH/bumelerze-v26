@@ -3710,5 +3710,16 @@
     "homeArea": "{{area}} area",
     "safeAt": "I'm safe: {{time}} · {{event}}",
     "noSafe": "No I'm safe in the last 30 days."
+  },
+  "peopleSearch": {
+    "open": "Find people",
+    "label": "Search people by name or @username",
+    "placeholder": "Name or @username",
+    "hint": "Type at least {{min}} letters.",
+    "searching": "Searching…",
+    "none": "No one found.",
+    "error": "Couldn't search. Check your connection and try again.",
+    "more": "Showing the first {{number}}. Type more to narrow it down.",
+    "close": "Close search"
   }
 }

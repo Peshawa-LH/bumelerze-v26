@@ -1,6 +1,6 @@
 /**
  * People and homes: the one entry module for the Profile tab, public
- * profiles, badges, activity, follow lists and the "Tag my building"
+ * profiles, badges, activity, follow lists, Find people and the "Tag my building"
  * screens. They load their content from here through `loadProfileArea`
  * (`area-loader.ts`), so on the web this part of the app is one download of
  * its own, fetched the first time one of these screens opens, and is not in
@@ -23,3 +23,4 @@ export { FollowRequestsSection } from "@/features/community/components/FollowReq
 export { PeopleList } from "@/features/community/components/PeopleList";
 export { ProfileShareSheet } from "@/features/community/components/ProfileShareSheet";
 export { MutedSection } from "@/features/mute/components/MutedSection";
+export { PeopleSearch } from "@/features/people-search/components/PeopleSearch";
