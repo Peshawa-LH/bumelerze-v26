@@ -7,7 +7,7 @@
  */
 import { getSupabaseClient } from "@/lib/supabase";
 import type { Event } from "@/features/events";
-import { SupabaseLiveShakeMapTransport } from "../live-transport";
+import { resolveEventUuidForEvent, SupabaseLiveShakeMapTransport } from "../live-transport";
 
 const mockRpc = jest.fn();
 const mockEq3 = jest.fn();
@@ -156,16 +156,57 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     expect(mockRpc).toHaveBeenCalledTimes(1);
   });
 
-  it("returns null (never throws) when resolution fails — degrades to no live product", async () => {
-    mockRpc.mockResolvedValue({ data: null, error: { message: "boom" } });
+  // A failed registry lookup is a failure, not "this event has no map":
+  // answered as `null`, the query stored "no SHAKEmap" as a success, kept it
+  // fresh 15 minutes and saved it for a day, hiding a map the card promised
+  // (iOS simulator, 2026-10-21).
+  it("throws when the registry lookup fails, so the query never records 'no map'", async () => {
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { message: "TypeError: Network request failed" },
+    });
+
+    await expect(
+      SupabaseLiveShakeMapTransport.fetchLiveProduct({
+        ...HALABJA_EVENT,
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_resolution_fails" },
+      }),
+    ).rejects.toEqual(expect.objectContaining({ message: "TypeError: Network request failed" }));
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it("throws when the registry call itself rejects (no connection)", async () => {
+    mockRpc.mockRejectedValue(new TypeError("Network request failed"));
+
+    await expect(
+      SupabaseLiveShakeMapTransport.fetchLiveProduct({
+        ...HALABJA_EVENT,
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_resolution_rejects" },
+      }),
+    ).rejects.toThrow("Network request failed");
+  });
+
+  it("returns null when the registry answers without an id", async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null });
 
     const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct({
       ...HALABJA_EVENT,
-      provenance: { ...HALABJA_EVENT.provenance, providerId: "us_resolution_fails" },
+      provenance: { ...HALABJA_EVENT.provenance, providerId: "us_registry_no_id" },
     });
 
     expect(product).toBeNull();
     expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it("keeps resolveEventUuidForEvent fail-soft for the felt map and the hub", async () => {
+    mockRpc.mockRejectedValue(new TypeError("Network request failed"));
+
+    await expect(
+      resolveEventUuidForEvent({
+        ...HALABJA_EVENT,
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_soft_lookup" },
+      }),
+    ).resolves.toBeNull();
   });
 
   it("returns null when no shakemap_products row exists yet for this event", async () => {

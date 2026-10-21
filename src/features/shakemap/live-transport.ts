@@ -26,8 +26,8 @@ export interface LiveShakeMapTransport {
   /** Resolves to `null` for every "no live product to show" case — no
    * Supabase project configured, the event isn't registered/known yet, no
    * `shakemap_products` row exists for it — and THROWS for a genuine
-   * data-layer failure (a `shakemap_products` query error, an unreachable/
-   * non-2xx artifact URL) — same "no silent catches, `null` is a real
+   * data-layer failure (the registry lookup failing, a `shakemap_products`
+   * query error, an unreachable/non-2xx artifact URL) — same "no silent catches, `null` is a real
    * answer, a throw is a real failure" split `SupabaseFeltMapTransport`
    * already uses. `useLiveShakeMap` (`live-queries.ts`) is the layer that
    * decides to treat a thrown failure the SAME as `null` for this
@@ -66,16 +66,19 @@ function eventCacheKey(event: Event): string {
  * (`shake_service/worker/uploader.py`'s module docstring, "event_id
  * mapping"), so by the time a live product actually exists for this event
  * the underlying row is already there for this call to find; in the
- * common case this is a pure lookup, not a fresh registration. Mirrors
- * `features/felt/supabase-transport.ts`'s own `resolveEventUuid` behavior
- * exactly ("never throws... a resolution failure must never block, only
- * degrade") — here a resolution failure degrades to "no live product for
- * this event" (the resolver then falls back to the bundled Atlas or to
- * absence), never a felt-report submission, but the same fail-soft
- * contract applies for the same reason: a background provenance lookup
- * must never be allowed to surface as a user-visible error.
+ * common case this is a pure lookup, not a fresh registration.
+ *
+ * THROWS when the registry cannot be asked (no connection, a refused or
+ * failed request); `null` only when it answered without an id. The live
+ * shakemap lookup needs that difference: before, a failed lookup came back
+ * as `null`, the query recorded "this event has no SHAKEmap" as a success,
+ * kept it 15 minutes as fresh and saved it to the device for a day, so one
+ * attempt on a bad connection hid an event's map, even one already saved
+ * from an earlier visit (seen on the iOS simulator, 2026-10-21).
+ * `resolveEventUuid` below keeps the old never-throwing contract for the
+ * felt map and the Event hub.
  */
-async function resolveEventUuid(
+async function lookUpEventUuid(
   client: SupabaseClient,
   event: Event,
 ): Promise<string | null> {
@@ -86,29 +89,46 @@ async function resolveEventUuid(
   }
 
   const registration: EventRegistration = toEventRegistration(event);
+  // Param names MUST carry the `p_` prefix — PostgREST resolves rpc args
+  // by name against migration 0011's own PL/pgSQL parameter names (see
+  // `features/felt/supabase-transport.ts`'s identical call for the
+  // verified-live note on this).
+  const { data, error } = await client.rpc("upsert_event_from_client", {
+    p_provider: registration.provider,
+    p_provider_event_id: registration.providerId,
+    p_origin_time: new Date(registration.originTime).toISOString(),
+    p_lat: registration.lat,
+    p_lon: registration.lon,
+    p_depth_km: registration.depthKm,
+    p_magnitude: registration.magnitude,
+    p_mag_type: registration.magType,
+    p_place_name: registration.placeName,
+  });
+
+  if (error) {
+    throw error;
+  }
+  if (typeof data !== "string" || data.length === 0) {
+    return null;
+  }
+
+  eventUuidCache.set(cacheKey, data);
+  return data;
+}
+
+/**
+ * `lookUpEventUuid` that never throws: a resolution failure degrades to
+ * `null`. Mirrors `features/felt/supabase-transport.ts`'s own
+ * `resolveEventUuid` ("never throws... a resolution failure must never
+ * block, only degrade"): a background provenance lookup must never surface
+ * as a user-visible error.
+ */
+async function resolveEventUuid(
+  client: SupabaseClient,
+  event: Event,
+): Promise<string | null> {
   try {
-    // Param names MUST carry the `p_` prefix — PostgREST resolves rpc args
-    // by name against migration 0011's own PL/pgSQL parameter names (see
-    // `features/felt/supabase-transport.ts`'s identical call for the
-    // verified-live note on this).
-    const { data, error } = await client.rpc("upsert_event_from_client", {
-      p_provider: registration.provider,
-      p_provider_event_id: registration.providerId,
-      p_origin_time: new Date(registration.originTime).toISOString(),
-      p_lat: registration.lat,
-      p_lon: registration.lon,
-      p_depth_km: registration.depthKm,
-      p_magnitude: registration.magnitude,
-      p_mag_type: registration.magType,
-      p_place_name: registration.placeName,
-    });
-
-    if (error || typeof data !== "string" || data.length === 0) {
-      return null;
-    }
-
-    eventUuidCache.set(cacheKey, data);
-    return data;
+    return await lookUpEventUuid(client, event);
   } catch {
     return null;
   }
@@ -278,7 +298,9 @@ export const SupabaseLiveShakeMapTransport: LiveShakeMapTransport = {
       return null;
     }
 
-    const internalEventId = await resolveEventUuid(client, event);
+    // A failed lookup throws (the query fails and keeps any map it already
+    // had); only a registry that answered without an id means "no map".
+    const internalEventId = await lookUpEventUuid(client, event);
     if (!internalEventId) {
       return null;
     }
