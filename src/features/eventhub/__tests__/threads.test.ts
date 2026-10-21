@@ -114,22 +114,63 @@ describe("removed comments and followed authors", () => {
     expect(threads[0]?.replies).toEqual([]);
   });
 
-  it("still shows moderators every removed placeholder", () => {
+  const removedRows = [
+    comment({ id: "gone", status: "removed", body: "" }),
+    comment({
+      id: "gone-reply",
+      parentId: "gone",
+      status: "removed",
+      body: "",
+      createdAt: 2_000,
+    }),
+    comment({ id: "kept", createdAt: 3_000 }),
+    comment({
+      id: "kept-removed-reply",
+      parentId: "kept",
+      status: "removed",
+      body: "",
+      createdAt: 4_000,
+    }),
+  ];
+
+  it("gives a moderator who cannot undo a removal the readers' view", () => {
+    const threads = buildThreads(removedRows, { userId: "mod", isModerator: true });
+    expect(threads.map((t) => t.root.id)).toEqual(["kept"]);
+    expect(threads[0]?.replies).toEqual([]);
+  });
+
+  it("shows whoever can undo a removal (content.restore) every removed comment, reply or not", () => {
+    const threads = buildThreads(removedRows, {
+      userId: "off",
+      isModerator: true,
+      canRestore: true,
+    });
+    expect(threads.map((t) => t.root.id)).toEqual(["kept", "gone"]);
+    expect(threads[0]?.replies.map((r) => r.id)).toEqual(["kept-removed-reply"]);
+    expect(threads[1]?.replies.map((r) => r.id)).toEqual(["gone-reply"]);
+  });
+
+  it("keeps a removed comment above a reply only a moderator may see (held for review)", () => {
     const threads = buildThreads(
       [
         comment({ id: "gone", status: "removed", body: "" }),
         comment({
-          id: "gone-reply",
+          id: "held",
           parentId: "gone",
-          status: "removed",
-          body: "",
+          status: "pending",
           createdAt: 2_000,
         }),
       ],
       { userId: "mod", isModerator: true },
     );
     expect(threads.map((t) => t.root.id)).toEqual(["gone"]);
-    expect(threads[0]?.replies.map((r) => r.id)).toEqual(["gone-reply"]);
+    expect(threads[0]?.replies.map((r) => r.id)).toEqual(["held"]);
+    expect(
+      buildThreads(
+        threads.flatMap((t) => [t.root, ...t.replies]),
+        anon,
+      ),
+    ).toEqual([]);
   });
 
   it("puts threads by followed people first, each group newest first", () => {

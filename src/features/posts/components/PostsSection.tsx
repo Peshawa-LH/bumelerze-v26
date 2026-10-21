@@ -136,6 +136,7 @@ function PostsList({
     // only a real answer from the server counts (as for the admin tools)
     isModerator: !perms.legacy && perms.has("comments.moderate"),
     canRemove: !perms.legacy && perms.has("comments.delete"),
+    canRestore: !perms.legacy && perms.has("content.restore"),
   };
   const author: PostAuthor = {
     displayName: profile.displayName,

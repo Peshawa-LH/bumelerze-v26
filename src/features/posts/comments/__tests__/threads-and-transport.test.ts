@@ -58,6 +58,28 @@ describe("buildPostThreads (the Event hub's order)", () => {
     expect(threads.map((t) => t.root.id)).toEqual(["removed-head"]);
     expect(countShown(threads)).toBe(1);
   });
+
+  it("shows whoever can undo a removal every removed comment, never counted", () => {
+    const threads = buildPostThreads(
+      [
+        comment("removed-alone", 40, { status: "removed", userId: null, body: "" }),
+        comment("live", 30),
+        comment("removed-reply", 20, {
+          parentId: "live",
+          status: "removed",
+          userId: null,
+          body: "",
+        }),
+        comment("ghost", 10, { userId: null, username: null, body: "" }),
+      ],
+      { userId: "off", canRestore: true },
+    );
+    expect(threads.map((t) => t.root.id)).toEqual(["live", "removed-alone"]);
+    expect(threads[0]?.replies.map((r) => r.id)).toEqual(["removed-reply"]);
+    // a deleted account's blank is still dropped: nothing to bring back
+    expect(threads.some((t) => t.root.id === "ghost")).toBe(false);
+    expect(countShown(threads)).toBe(1);
+  });
 });
 
 describe("parsing", () => {

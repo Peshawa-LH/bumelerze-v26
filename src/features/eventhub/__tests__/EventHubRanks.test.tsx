@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import i18n from "@/i18n";
 
@@ -180,6 +181,107 @@ describe("Event hub: ranks, removal, profiles and follows", () => {
       expect(screen.queryByText("Bad Actor")).toBeNull();
       // a placeholder has no actions
       expect(screen.queryByTestId("comment-more-root")).toBeNull();
+      expect(screen.queryByTestId("comment-undo-remove-root")).toBeNull();
+      // a quiet row shaped like a comment (a blank photo), dimmed
+      expect(screen.getByTestId("comment-placeholder-avatar-root")).toBeTruthy();
+      expect(
+        StyleSheet.flatten(screen.getByTestId("comment-dimmed-root").props.style),
+      ).toEqual(expect.objectContaining({ opacity: expect.any(Number) }));
+    });
+
+    const ALONE = buildComment({
+      id: "alone",
+      status: "removed",
+      body: "",
+      userId: "u-bad",
+    });
+    const LIVE = buildComment({ id: "live", userId: "u-ok", body: "Still here" });
+
+    it("shows nothing for a removed comment with no replies, also to a moderator who cannot undo it", async () => {
+      mockAccount = { status: "account", userId: "mod-1" };
+      await renderHub(
+        makeTransport({
+          comments: [ALONE, LIVE],
+          permissions: ["comments.moderate", "comments.delete"],
+        }),
+      );
+      expect(await screen.findByText("Still here")).toBeTruthy();
+      expect(screen.queryByTestId("comment-alone")).toBeNull();
+      expect(screen.queryByText("Comment removed")).toBeNull();
+    });
+
+    it("gives whoever can undo a removal a dimmed row: 'Removed', 'Removed by a moderator' and Undo", async () => {
+      mockAccount = { status: "account", userId: "off-1" };
+      const transport = makeTransport({
+        comments: [ALONE, LIVE],
+        permissions: ["comments.moderate", "comments.delete", "content.restore"],
+      });
+      await renderHub(transport);
+      expect(await screen.findByTestId("comment-removed-label-alone")).toHaveTextContent(
+        "Removed",
+      );
+      expect(screen.getByText("Removed by a moderator")).toBeTruthy();
+      const undo = screen.getByTestId("comment-undo-remove-alone");
+      expect(undo.props.accessibilityLabel).toBe("Bring this comment back");
+      expect(StyleSheet.flatten(undo.props.style)).toEqual(
+        expect.objectContaining({ minHeight: 44, minWidth: 44 }),
+      );
+      const reads = transport.fetchComments.mock.calls.length;
+      await fireEvent.press(screen.getByText("Undo"));
+      await waitFor(() =>
+        expect(transport.adminRestoreComment).toHaveBeenCalledWith("alone"),
+      );
+      // and the thread is read again
+      await waitFor(() =>
+        expect(transport.fetchComments.mock.calls.length).toBeGreaterThan(reads),
+      );
+    });
+
+    it("says so when Undo fails (too late, or already gone)", async () => {
+      mockAccount = { status: "account", userId: "off-1" };
+      const transport = makeTransport({
+        comments: [ALONE],
+        permissions: ["comments.moderate", "comments.delete", "content.restore"],
+      });
+      transport.adminRestoreComment.mockRejectedValueOnce(new Error("expired"));
+      await renderHub(transport);
+      await fireEvent.press(await screen.findByTestId("comment-undo-remove-alone"));
+      expect(await screen.findByTestId("comment-undo-error-alone")).toHaveTextContent(
+        "Couldn't undo. It may be too late.",
+      );
+    });
+
+    // The server wipes the text on removal; even if a row ever came with
+    // text, it is not drawn.
+    const LEAKED = buildComment({
+      id: "leak",
+      status: "removed",
+      body: "Secret words",
+      userId: "u-bad",
+    });
+    const LEAK_REPLY = buildComment({
+      id: "leak-reply",
+      parentId: "leak",
+      userId: "u-ok",
+      body: "Answer",
+    });
+
+    it("never shows the text of a removed comment to readers", async () => {
+      await renderHub(makeTransport({ comments: [LEAKED, LEAK_REPLY], permissions: [] }));
+      expect(await screen.findByText("Comment removed")).toBeTruthy();
+      expect(screen.queryByText("Secret words")).toBeNull();
+    });
+
+    it("never shows the text of a removed comment to whoever can undo it", async () => {
+      mockAccount = { status: "account", userId: "off-1" };
+      await renderHub(
+        makeTransport({
+          comments: [LEAKED, LEAK_REPLY],
+          permissions: ["comments.moderate", "comments.delete", "content.restore"],
+        }),
+      );
+      expect(await screen.findByText("Removed by a moderator")).toBeTruthy();
+      expect(screen.queryByText("Secret words")).toBeNull();
     });
   });
 

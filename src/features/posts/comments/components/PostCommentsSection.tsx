@@ -94,8 +94,13 @@ export function PostCommentsSection({
   const mutedIds = useMutedIds();
 
   const threads = useMemo(
-    () => buildPostThreads(list.comments, { userId: viewer.userId, mutedIds }),
-    [list.comments, viewer.userId, mutedIds],
+    () =>
+      buildPostThreads(list.comments, {
+        userId: viewer.userId,
+        mutedIds,
+        canRestore: viewer.canRestore === true,
+      }),
+    [list.comments, viewer.userId, viewer.canRestore, mutedIds],
   );
 
   const meta = {

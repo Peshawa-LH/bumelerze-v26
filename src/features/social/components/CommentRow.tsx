@@ -17,6 +17,7 @@ import { profileHref } from "@/features/community/routes";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import type { HubRole } from "@/features/eventhub/types";
 import { MentionText } from "@/features/mentions/components/MentionText";
+import { a11yState } from "@/lib/a11y-state";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { HeartButton, type HeartButtonProps } from "./HeartButton";
 import { MenuSheet, type MenuItem } from "./MenuSheet";
@@ -29,6 +30,23 @@ export interface CommentRowAuthor {
   username: string | null;
   avatarPath: string | null;
   roles: readonly HubRole[] | undefined;
+}
+
+/** A comment that is not there any more, drawn as a quiet, dimmed row in
+ * the comment's shape (a blank photo, one line of text) so the replies under
+ * it still have a parent. */
+export interface CommentPlaceholder {
+  text: string;
+  testID: string;
+  /** A small tag before the text ("Removed"), for admins. */
+  label?: string | null;
+  /** One action at the end of the row ("Undo"), for admins. */
+  action?: {
+    label: string;
+    accessibilityLabel: string;
+    onPress: () => void;
+    disabled?: boolean;
+  } | null;
 }
 
 export interface CommentRowProps {
@@ -52,8 +70,9 @@ export interface CommentRowProps {
   onReply?: (() => void) | undefined;
   /** The "..." menu rows, in order (destructive last). Empty: no "...". */
   menuItems?: readonly MenuItem[];
-  /** In place of the comment: "Comment removed", "Deleted account". */
-  placeholder?: { text: string; testID: string } | null;
+  /** In place of the comment: "Comment removed", "Deleted account", or for
+   * whoever can undo a removal "Removed by a moderator" with Undo. */
+  placeholder?: CommentPlaceholder | null;
   /** Inline things under the actions: a reason picker, a note, an error. */
   footer?: ReactNode;
 }
@@ -96,12 +115,79 @@ export function CommentRow({
   } as const;
 
   if (placeholder) {
+    const size = isReply ? 28 : 36;
+    const action = placeholder.action ?? null;
     return (
       <Indented on={isReply} testID={`${testIDPrefix}-indent-${id}`}>
-        <View testID={`${testIDPrefix}-${id}`} style={styles.placeholder}>
-          <Text style={[metaStyle, { fontStyle: "italic" }]} testID={placeholder.testID}>
-            {placeholder.text}
-          </Text>
+        <View
+          testID={`${testIDPrefix}-${id}`}
+          style={[styles.row, styles.placeholder, { gap: spacing[3] }]}
+        >
+          <View
+            testID={`${testIDPrefix}-placeholder-avatar-${id}`}
+            style={[
+              styles.dimmed,
+              {
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                backgroundColor: colors.surface.sunken,
+              },
+            ]}
+          />
+          <View style={[styles.content, styles.placeholderBody]}>
+            <View
+              testID={`${testIDPrefix}-dimmed-${id}`}
+              style={[styles.placeholderLine, styles.dimmed, { gap: spacing[2] }]}
+            >
+              {placeholder.label ? (
+                <Text
+                  testID={`${testIDPrefix}-removed-label-${id}`}
+                  style={[
+                    metaStyle,
+                    styles.tag,
+                    {
+                      borderColor: colors.border.default,
+                      fontWeight: "600",
+                      fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+                    },
+                  ]}
+                >
+                  {placeholder.label}
+                </Text>
+              ) : null}
+              <Text
+                style={[metaStyle, styles.placeholderText, { fontStyle: "italic" }]}
+                testID={placeholder.testID}
+              >
+                {placeholder.text}
+              </Text>
+            </View>
+            {footer}
+          </View>
+          {action ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={action.accessibilityLabel}
+              {...a11yState({ disabled: action.disabled === true })}
+              disabled={action.disabled === true}
+              onPress={action.onPress}
+              style={styles.placeholderAction}
+              testID={`${testIDPrefix}-undo-remove-${id}`}
+            >
+              <Text
+                style={{
+                  color: colors.text.link,
+                  fontSize: typography.labelButton.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelButton),
+                  ...READING_START,
+                  fontWeight: typography.labelButton.fontWeight,
+                }}
+              >
+                {action.label}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </Indented>
     );
@@ -370,7 +456,25 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   pinnedCard: { borderWidth: 1, borderRadius: 12 },
-  placeholder: { minHeight: 32, justifyContent: "center" },
+  placeholder: { minHeight: 44, alignItems: "center" },
+  placeholderBody: { justifyContent: "center" },
+  placeholderLine: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
+  placeholderText: { flexShrink: 1 },
+  // Quiet: the row is there for the replies, not to be read.
+  dimmed: { opacity: 0.6 },
+  tag: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    overflow: "hidden",
+  },
+  placeholderAction: {
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   previewRow: { flexDirection: "row", alignItems: "center" },
   bodyParagraphs: { alignSelf: "stretch", marginTop: 2 },
   previewText: { flex: 1 },

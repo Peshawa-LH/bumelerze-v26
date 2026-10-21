@@ -28,6 +28,9 @@ export interface PostCommentViewer {
   canRemove: boolean;
   /** A real account: may give hearts (migration 0065). */
   isAccount?: boolean;
+  /** `content.restore` (the official account): sees a removed comment
+   * dimmed, with Undo. */
+  canRestore?: boolean;
 }
 
 interface PostCommentItemProps {
@@ -71,6 +74,7 @@ export function PostCommentItem({
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [reported, setReported] = useState(false);
+  const [undoFailed, setUndoFailed] = useState(false);
   const showUndo = useUndoToast();
   const muteActions = useMuteActions();
 
@@ -83,7 +87,21 @@ export function PostCommentItem({
   } as const;
 
   if (comment.status === "removed" || isDeletedAccountPostComment(comment)) {
-    // Keeps the slot so the replies under it still read in order.
+    // Keeps the slot so the replies under it still read in order. A removed
+    // comment's text is wiped by the server and never shown; whoever can
+    // undo a removal gets the row marked "Removed", with Undo.
+    const removed = comment.status === "removed";
+    const undoRemoval = async () => {
+      setBusy(true);
+      setUndoFailed(false);
+      try {
+        await actions.adminRestore(comment.id);
+      } catch {
+        setUndoFailed(true);
+      } finally {
+        setBusy(false);
+      }
+    };
     return (
       <CommentRow
         id={comment.id}
@@ -92,13 +110,37 @@ export function PostCommentItem({
         body=""
         timeText=""
         isReply={isReply}
-        placeholder={{
-          text:
-            comment.status === "removed"
-              ? t("eventHub.thread.removed")
-              : t("eventHub.thread.deletedAccount"),
-          testID: `post-comment-placeholder-${comment.id}`,
-        }}
+        placeholder={
+          removed && viewer.canRestore
+            ? {
+                text: t("eventHub.thread.removedByModerator"),
+                testID: `post-comment-placeholder-${comment.id}`,
+                label: t("eventHub.thread.removedLabel"),
+                action: {
+                  label: t("eventHub.thread.undoRemove"),
+                  accessibilityLabel: t("eventHub.thread.undoRemoveA11y"),
+                  onPress: () => void undoRemoval(),
+                  disabled: busy,
+                },
+              }
+            : {
+                text: removed
+                  ? t("eventHub.thread.removed")
+                  : t("eventHub.thread.deletedAccount"),
+                testID: `post-comment-placeholder-${comment.id}`,
+              }
+        }
+        footer={
+          undoFailed ? (
+            <Text
+              accessibilityRole="alert"
+              style={[meta, { color: colors.status.danger }]}
+              testID={`post-comment-undo-error-${comment.id}`}
+            >
+              {t("snackbar.undoFailed")}
+            </Text>
+          ) : null
+        }
       />
     );
   }

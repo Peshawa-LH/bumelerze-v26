@@ -301,6 +301,50 @@ describe("PostCommentsSection", () => {
     expect(screen.queryByTestId("post-comment-ghost")).toBeNull();
   });
 
+  it("shows a moderator who cannot undo a removal no removed comment on its own", async () => {
+    const fake = makeFakeComments([
+      comment("gone", 50, {
+        status: "removed",
+        userId: null,
+        body: "",
+        displayName: null,
+      }),
+      comment("live", 40),
+    ]);
+    await renderSection(fake, {
+      viewer: { ...ACCOUNT, isModerator: true, canRemove: true },
+    });
+    await open();
+    expect(await screen.findByTestId("post-comment-live")).toBeTruthy();
+    expect(screen.queryByTestId("post-comment-gone")).toBeNull();
+  });
+
+  it("whoever can undo a removal sees it dimmed with 'Removed' and Undo, which restores and re-reads", async () => {
+    const fake = makeFakeComments([
+      comment("gone", 50, {
+        status: "removed",
+        userId: null,
+        body: "",
+        displayName: null,
+      }),
+      comment("live", 40),
+    ]);
+    await renderSection(fake, {
+      viewer: { ...ACCOUNT, isModerator: true, canRemove: true, canRestore: true },
+    });
+    await open();
+    expect(
+      await screen.findByTestId("post-comment-removed-label-gone"),
+    ).toHaveTextContent("Removed");
+    expect(screen.getByText("Removed by a moderator")).toBeTruthy();
+    const reads = fake.fetchComments.mock.calls.length;
+    await fireEvent.press(screen.getByTestId("post-comment-undo-remove-gone"));
+    await waitFor(() => expect(fake.adminRestore).toHaveBeenCalledWith("gone"));
+    await waitFor(() =>
+      expect(fake.fetchComments.mock.calls.length).toBeGreaterThan(reads),
+    );
+  });
+
   it("reads in Sorani (RTL) with the count in Kurdish digits", async () => {
     await i18n.changeLanguage("ckb");
     const fake = makeFakeComments([]);

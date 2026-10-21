@@ -10,6 +10,9 @@ export function isDeletedAccountPostComment(
 
 export interface PostThreadViewer {
   userId: string | null;
+  /** May bring back a removed comment (`content.restore`): sees every
+   * removed comment, with Undo. */
+  canRestore?: boolean | undefined;
   /** People the viewer muted (migration 0061): left out for this viewer. */
   mutedIds?: ReadonlySet<string> | undefined;
 }
@@ -20,8 +23,10 @@ export interface PostThreadViewer {
  * not shown is dropped rather than shown without its context; a muted
  * person's comments go (with the replies under them); a removed comment or a
  * deleted account's blank stays only as the head of a conversation that still
- * has replies, and never as a reply. The server already left out what the
- * viewer may not see (blocks, suspensions, other people's held comments).
+ * has replies, and never as a reply. Whoever can undo a removal
+ * (`canRestore`) sees every removed comment instead, to bring it back. The
+ * server already left out what the viewer may not see (blocks, suspensions,
+ * other people's held comments).
  */
 export function buildPostThreads(
   comments: readonly PostComment[],
@@ -45,7 +50,8 @@ export function buildPostThreads(
     replies.set(comment.parentId, list);
   }
   const placeholder = (comment: PostComment) =>
-    comment.status === "removed" || isDeletedAccountPostComment(comment);
+    (comment.status === "removed" && !viewer.canRestore) ||
+    isDeletedAccountPostComment(comment);
   return shown
     .filter((comment) => comment.parentId === null)
     .sort((a, b) => b.createdAt - a.createdAt)
@@ -58,14 +64,17 @@ export function buildPostThreads(
     .filter((thread) => !placeholder(thread.root) || thread.replies.length > 0);
 }
 
-/** How many comments a thread list shows (placeholders do not count). */
+/** How many comments a thread list shows (placeholders and removed comments
+ * do not count). */
 export function countShown(threads: readonly PostCommentThread[]): number {
+  const counts = (comment: PostComment) =>
+    comment.status !== "removed" && !isDeletedAccountPostComment(comment);
   let n = 0;
   for (const thread of threads) {
-    if (thread.root.status !== "removed" && !isDeletedAccountPostComment(thread.root)) {
+    if (counts(thread.root)) {
       n += 1;
     }
-    n += thread.replies.length;
+    n += thread.replies.filter(counts).length;
   }
   return n;
 }

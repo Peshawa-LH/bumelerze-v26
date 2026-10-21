@@ -6,8 +6,10 @@ import type { HubComment, HubThread } from "./types";
  * repeats the rule for the client's own view so a moderator (who is allowed
  * to read hidden rows too) never sees a hidden comment in the thread:
  *  - visible: everyone
- *  - removed: moderators always; readers only as a "Comment removed"
- *    placeholder above replies that are still readable (see buildThreads)
+ *  - removed: whoever can undo a removal (`content.restore`), always, with
+ *    Undo; everyone else only as a quiet "Comment removed" row above replies
+ *    that are still readable (see buildThreads). Its text is never shown:
+ *    the server wipes it on removal.
  *  - pending: its author, and moderators (to approve or hide it)
  *  - hidden: nobody
  */
@@ -40,6 +42,9 @@ export function isPinnedNote(comment: HubComment): boolean {
 export interface ThreadViewer {
   userId: string | null;
   isModerator: boolean;
+  /** May bring back a removed comment (`content.restore`, migration 0053):
+   * sees every removed comment, with Undo. */
+  canRestore?: boolean | undefined;
   /** People the viewer follows: their threads come first. */
   followingIds?: ReadonlySet<string> | undefined;
   /** People the viewer muted (migration 0061): their comments are left out
@@ -105,12 +110,13 @@ export function buildThreads(
     .filter(
       (thread) => !isDeletedAccountComment(thread.root) || thread.replies.length > 0,
     );
-  if (viewer.isModerator) {
+  if (viewer.canRestore) {
     return threads;
   }
-  // Readers see no trace of removed comments (owner, 2026-10-08): a removed
-  // reply disappears, and a removed comment stays as a "Comment removed"
-  // placeholder only while replies under it are still readable.
+  // Nobody else sees a trace of removed comments (owner, 2026-10-08 and
+  // 2026-10-22), moderators who cannot undo a removal included: a removed
+  // reply disappears, and a removed comment stays as a quiet "Comment
+  // removed" row only while replies under it are still readable.
   return threads.flatMap((thread) => {
     const replies = thread.replies.filter((reply) => reply.status !== "removed");
     if (

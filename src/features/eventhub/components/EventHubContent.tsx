@@ -127,6 +127,8 @@ export function EventHubContent({
   const canRestrict = !permissions.legacy && permissions.has("accounts.restrict");
   const canSuspend = !permissions.legacy && permissions.has("accounts.suspend");
   const canPin = !permissions.legacy && permissions.has("hubs.feature");
+  // Bringing back a removed comment (0053): the official rank only.
+  const canRestore = !permissions.legacy && permissions.has("content.restore");
   const filterActions = useContentFilterActions(filterTransport);
   const pinActions: PinActions = {
     pin: filterActions.pinComment,
@@ -196,8 +198,18 @@ export function EventHubContent({
       canRestrict,
       canSuspend,
       canPin,
+      canRestore,
     }),
-    [viewerId, isAccount, isModerator, canDelete, canRestrict, canSuspend, canPin],
+    [
+      viewerId,
+      isAccount,
+      isModerator,
+      canDelete,
+      canRestrict,
+      canSuspend,
+      canPin,
+      canRestore,
+    ],
   );
   const threads = useMemo(
     () =>
@@ -205,11 +217,12 @@ export function EventHubContent({
         ? buildThreads(thread.data.comments, {
             userId: viewerId,
             isModerator,
+            canRestore,
             followingIds: new Set(thread.data.followingIds),
             mutedIds,
           })
         : [],
-    [thread.data, viewerId, isModerator, mutedIds],
+    [thread.data, viewerId, isModerator, canRestore, mutedIds],
   );
 
   function handleRefresh() {

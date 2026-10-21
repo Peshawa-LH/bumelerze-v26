@@ -33,6 +33,9 @@ export interface CommentViewer {
   canSuspend?: boolean;
   /** May pin one comment to the top of the hub (`hubs.feature`, 0059). */
   canPin?: boolean;
+  /** May bring back a removed comment (`content.restore`, 0053): sees it
+   * dimmed, with Undo. */
+  canRestore?: boolean;
 }
 
 /** Pin and unpin (migration 0059), for viewers with `canPin`. */
@@ -95,6 +98,7 @@ export function CommentItem({
   >(null);
   const [reported, setReported] = useState(false);
   const [withdrawn, setWithdrawn] = useState(false);
+  const [undoFailed, setUndoFailed] = useState(false);
   const showUndo = useUndoToast();
   const muteActions = useMuteActions();
 
@@ -122,8 +126,21 @@ export function CommentItem({
     );
   }
   if (comment.status === "removed") {
-    // An admin took the text down. Keep the slot so the replies under it
-    // still read in order; no author, no text, no actions.
+    // An admin took the text down (the server wiped it; it is never shown).
+    // Readers: a quiet row that keeps the slot so the replies under it still
+    // read in order; no author, no actions. Whoever can undo a removal: the
+    // same row marked "Removed", with Undo.
+    const undoRemoval = async () => {
+      setBusy(true);
+      setUndoFailed(false);
+      try {
+        await actions.adminRestore(comment.id);
+      } catch {
+        setUndoFailed(true);
+      } finally {
+        setBusy(false);
+      }
+    };
     return (
       <CommentRow
         id={comment.id}
@@ -131,10 +148,35 @@ export function CommentItem({
         body=""
         timeText=""
         isReply={isReply}
-        placeholder={{
-          text: t("eventHub.thread.removed"),
-          testID: `comment-removed-${comment.id}`,
-        }}
+        placeholder={
+          viewer.canRestore
+            ? {
+                text: t("eventHub.thread.removedByModerator"),
+                testID: `comment-removed-${comment.id}`,
+                label: t("eventHub.thread.removedLabel"),
+                action: {
+                  label: t("eventHub.thread.undoRemove"),
+                  accessibilityLabel: t("eventHub.thread.undoRemoveA11y"),
+                  onPress: () => void undoRemoval(),
+                  disabled: busy,
+                },
+              }
+            : {
+                text: t("eventHub.thread.removed"),
+                testID: `comment-removed-${comment.id}`,
+              }
+        }
+        footer={
+          undoFailed ? (
+            <Text
+              style={[meta, { color: colors.status.danger }]}
+              accessibilityLiveRegion="polite"
+              testID={`comment-undo-error-${comment.id}`}
+            >
+              {t("snackbar.undoFailed")}
+            </Text>
+          ) : null
+        }
       />
     );
   }
