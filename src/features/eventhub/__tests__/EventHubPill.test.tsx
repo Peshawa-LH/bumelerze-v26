@@ -1,6 +1,10 @@
-import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { FeltReportPill } from "@/features/felt";
+import { useTabBarStore } from "@/features/tab-bar/store";
 import i18n from "@/i18n";
 import { lightColors } from "@/theme/semantic";
 
@@ -129,5 +133,63 @@ describe("EventHubPill", () => {
       <EventHubPill event={buildEvent()} routeId="bml20260042" />,
     );
     expect(screen.getByRole("button", { name: label })).toBeTruthy();
+  });
+
+  describe("height above the bottom edge, on an iPhone with a home indicator", () => {
+    const withHomeIndicator = {
+      frame: { x: 0, y: 0, width: 402, height: 874 },
+      insets: { top: 0, left: 0, right: 0, bottom: 34 },
+    };
+
+    function renderOnIphone(ui: React.ReactElement) {
+      const client = new QueryClient({
+        defaultOptions: { queries: { retry: false, gcTime: 0 } },
+      });
+      return render(
+        <QueryClientProvider client={client}>
+          <SafeAreaProvider initialMetrics={withHomeIndicator}>{ui}</SafeAreaProvider>
+        </QueryClientProvider>,
+      );
+    }
+
+    const bottomOf = (testID: string) =>
+      StyleSheet.flatten(screen.getByTestId(testID).props.style).bottom;
+
+    afterEach(() => {
+      cleanup();
+      useTabBarStore.setState({ hidden: false, inLayout: true });
+    });
+
+    it("sits 16 pt above the tab bar, without the inset the bar already holds", async () => {
+      useTabBarStore.setState({ hidden: false, inLayout: true });
+      await renderOnIphone(<EventHubPill event={buildEvent()} routeId="bml20260042" />);
+      expect(bottomOf("event-hub-pill")).toBe(16);
+    });
+
+    it("clears the home indicator once the tab bar has slid away", async () => {
+      useTabBarStore.setState({ hidden: true, inLayout: false });
+      await renderOnIphone(<EventHubPill event={buildEvent()} routeId="bml20260042" />);
+      expect(bottomOf("event-hub-pill")).toBe(34 + 16);
+    });
+
+    // The event page's two pills, as the owner saw them on the iOS
+    // simulator (2026-10-21): "Who felt it?" sat 34 pt above "I felt it!".
+    it.each([
+      ["shown", { hidden: false, inLayout: true }],
+      ["slid away", { hidden: true, inLayout: false }],
+    ])("shares one bottom line with the felt pill, tab bar %s", async (_state, tabBar) => {
+      useTabBarStore.setState(tabBar);
+      const event = buildEvent();
+      await renderOnIphone(
+        <>
+          <FeltReportPill eventId={event.id} event={event} />
+          <EventHubPill event={event} routeId="bml20260042" />
+        </>,
+      );
+      const feltBottom = StyleSheet.flatten(
+        screen.getByRole("button", { name: "I felt it!" }).props.style,
+      ).bottom;
+      expect(bottomOf("event-hub-pill")).toBe(feltBottom);
+    });
   });
 });

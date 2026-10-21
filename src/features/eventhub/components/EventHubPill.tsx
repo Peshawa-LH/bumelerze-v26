@@ -2,9 +2,9 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Event } from "@/features/events";
+import { useFloatingBottomOffset } from "@/features/tab-bar/use-floating-bottom";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
@@ -32,7 +32,10 @@ export function EventHubPill({ event, routeId }: EventHubPillProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  // Same line as "I felt it!" at the other corner: the home-indicator inset
+  // counts only while the tab bar has slid away (it sat 34 pt higher on
+  // iPhones before, 2026-10-21).
+  const bottom = useFloatingBottomOffset(spacing[4]);
   const { summary } = useEventHubSummary(event);
   // One reading of the clock per mount: the rule works in days, so a pill
   // that stays up a little past its window until the page is reopened is fine.
@@ -61,7 +64,7 @@ export function EventHubPill({ event, routeId }: EventHubPillProps) {
         styles.pill,
         {
           start: spacing[4],
-          bottom: insets.bottom + spacing[4],
+          bottom,
           backgroundColor: colors.brand.primary,
           paddingHorizontal: spacing[5],
           // Same vertical padding and minimum height as the felt pill.

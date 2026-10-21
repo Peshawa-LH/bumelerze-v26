@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react-native";
+import { cleanup, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -30,6 +30,7 @@ describe("FeltReportPill", () => {
     const withHomeIndicator = { ...metrics, insets: { ...metrics.insets, bottom: 34 } };
 
     afterEach(() => {
+      cleanup();
       useTabBarStore.setState({ hidden: false, inLayout: true });
     });
 
