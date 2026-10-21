@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -30,12 +30,6 @@ const DATA_USED_I18N_KEY: Record<DataUsedSummaryKey, string> = {
   stationAndDyfiConditioned: "eventDetail.shakemap.dataUsed.stationAndDyfiConditioned",
 };
 
-/** iOS/Android say "unavailable offline"; the web keeps dropping the
- * section silently until the same note is approved there. */
-function saysWhenUnavailable(): boolean {
-  return Platform.OS !== "web";
-}
-
 /**
  * Event Detail's SHAKEmap section (the v1 spec §4.5; D21 rewrite,
  * the decision log: "Displayed maps are ALWAYS
@@ -53,16 +47,18 @@ function saysWhenUnavailable(): boolean {
  * (`resolver.ts`'s precedence). No loading state is rendered here: a slow
  * live fetch never blocks this section (see that hook's own doc comment).
  *
- * Offline (iOS/Android): when a list on this device marked the event with
- * the SHAKEmap tag (`useCachedHasShakemap`) and the live map could not be
- * had (`useLiveShakeMapUnavailable`: no connection, or the lookup failed,
- * and nothing saved from an earlier visit), the section says "SHAKEmap
+ * Offline: when a list on this device marked the event with the SHAKEmap
+ * tag (`useCachedHasShakemap`) and the live map could not be had
+ * (`useLiveShakeMapUnavailable`: no connection, or the lookup failed, and
+ * nothing saved from an earlier visit), the section says "SHAKEmap
  * unavailable offline" with a Retry, the felt map's own offline box
  * (the v1 spec §4.5: "shakemap/felt-map/comments show 'unavailable
  * offline' rather than blank/error"). Before, it vanished without a word
  * while the card above still showed the tag (owner, iOS simulator,
- * 2026-10-21). The web keeps its current behaviour (`saysWhenUnavailable`)
- * until the same note is approved there.
+ * 2026-10-21); the web did so until 2026-10-22. Retry asks again at once
+ * when the device is online and, offline, as soon as the connection is
+ * back (the web follows the browser's online/offline events,
+ * `events/queries.ts`).
  *
  * The citation line still names OUR OWN producer ("Bumelerze", never
  * "USGS", regardless of source) plus the D21 provenance-as-UI trio: a
@@ -99,7 +95,7 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   // (queries.ts's return type keeps them as siblings, not a discriminated
   // union), so guard explicitly rather than asserting.
   if (shakeMap.status === "absent" || !shakeMap.product || !shakeMap.contours) {
-    if (saysWhenUnavailable() && knownToHaveMap && live.unavailable) {
+    if (knownToHaveMap && live.unavailable) {
       return (
         <View style={{ gap: spacing[2] }} testID="shakemap-unavailable">
           <Text style={titleStyle}>{t("eventDetail.shakemap.sectionTitle")}</Text>
@@ -235,9 +231,11 @@ const styles = StyleSheet.create({
   offlineText: {
     flexShrink: 1,
   },
-  // A 44 pt target in real layout, not through hitSlop.
+  // A 44 pt target in real layout, not through hitSlop (the web ignores
+  // it); "Retry" alone is narrower than 44.
   retry: {
     minHeight: 44,
+    minWidth: 44,
     justifyContent: "center",
     alignSelf: "flex-start",
   },

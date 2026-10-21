@@ -299,6 +299,8 @@ describe("ShakeMapSection when the map cannot be had", () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
+  // Both ways: the web ignores hitSlop, and "Retry" alone is narrower than
+  // 44 px.
   it("gives Retry a 44 pt target in real layout", async () => {
     mockCardHasShakemap = true;
     mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: true, retry: mockRetry });
@@ -310,6 +312,7 @@ describe("ShakeMapSection when the map cannot be had", () => {
       ? Object.assign({}, ...retry.props.style)
       : retry.props.style;
     expect(style.minHeight).toBeGreaterThanOrEqual(44);
+    expect(style.minWidth).toBeGreaterThanOrEqual(44);
   });
 
   it("says it in Sorani", async () => {
@@ -338,11 +341,32 @@ describe("ShakeMapSection when the map cannot be had", () => {
     expect(toJSON()).toBeNull();
   });
 
-  it("leaves the web as it is: no note there", async () => {
+  // The web dropped the section without a word (the v1 spec §4.5:
+  // "shakemap/felt-map/comments show 'unavailable offline' rather than
+  // blank/error"); it now says so as iOS and Android do.
+  it("says it on the web too, with a Retry that asks again", async () => {
     const original = Platform.OS;
     Platform.OS = "web";
     try {
       mockCardHasShakemap = true;
+      mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: true, retry: mockRetry });
+
+      await render(<ShakeMapSection event={HALABJA_EVENT} />);
+
+      expect(screen.getByTestId("shakemap-unavailable")).toBeTruthy();
+      expect(screen.getByText("SHAKEmap unavailable offline")).toBeTruthy();
+      fireEvent.press(screen.getByRole("button", { name: "Retry" }));
+      expect(mockRetry).toHaveBeenCalledTimes(1);
+    } finally {
+      Platform.OS = original;
+    }
+  });
+
+  it("stays silent on the web too for an event no list marked with the tag", async () => {
+    const original = Platform.OS;
+    Platform.OS = "web";
+    try {
+      mockCardHasShakemap = false;
       mockedUseLiveShakeMapUnavailable.mockReturnValue({ unavailable: true, retry: mockRetry });
 
       const { toJSON } = await render(<ShakeMapSection event={HALABJA_EVENT} />);
