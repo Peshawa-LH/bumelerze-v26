@@ -1,8 +1,16 @@
 import { cleanup, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import i18n from "@/i18n";
 
-import { capSlices, DonutChart, fitFontSize, type DonutSlice } from "../DonutChart";
+import {
+  capSlices,
+  chartColumnCap,
+  DonutChart,
+  fitFontSize,
+  legendLabelFlex,
+  type DonutSlice,
+} from "../DonutChart";
 
 function slice(key: string, value: number, extra: Partial<DonutSlice> = {}): DonutSlice {
   return { key, value, color: "#123456", label: `Label ${key}`, ...extra };
@@ -18,7 +26,10 @@ describe("DonutChart", () => {
 
   it("draws one ring segment per non-empty slice and drops zero slices", async () => {
     await render(
-      <DonutChart slices={[slice("a", 3), slice("b", 1), slice("c", 0)]} centerText="4" />,
+      <DonutChart
+        slices={[slice("a", 3), slice("b", 1), slice("c", 0)]}
+        centerText="4"
+      />,
     );
     expect(screen.getByTestId("donut-slice-a")).toBeTruthy();
     expect(screen.getByTestId("donut-slice-b")).toBeTruthy();
@@ -27,9 +38,7 @@ describe("DonutChart", () => {
   });
 
   it("shows whole-number percents that add up to 100 in the legend", async () => {
-    await render(
-      <DonutChart slices={[slice("a", 1), slice("b", 1), slice("c", 1)]} />,
-    );
+    await render(<DonutChart slices={[slice("a", 1), slice("b", 1), slice("c", 1)]} />);
     // 33.33 each rounds to 33/33/33; the largest is nudged to make 100.
     expect(screen.getByText(/34%/)).toBeTruthy();
     expect(screen.getAllByText(/33%/)).toHaveLength(2);
@@ -119,5 +128,34 @@ describe("donut centre fits the hole on the web (no adjustsFontSizeToFit there)"
 
   it("ignores the invisible direction marks around numbers", () => {
     expect(fitFontSize("⁦7.8⁩", 48, 14)).toBe(fitFontSize("7.8", 48, 14));
+  });
+});
+
+describe("legend width on iOS and Android (parity review S5, GAP 1)", () => {
+  afterEach(cleanup);
+
+  it("lets a label start from its own text width, never from zero, so the legend is as wide as its column", async () => {
+    // `flex: 1` is a zero starting width in React Native's layout: the
+    // label added nothing to the centred chart's width, the legend shrank
+    // to the ring, and every label wrapped and was cut on iOS.
+    await render(<DonutChart slices={[slice("a", 3), slice("b", 1)]} />);
+    const label = StyleSheet.flatten(screen.getByText("Label a").props.style);
+    expect(label.flex).toBeUndefined();
+    expect(label.flexBasis).toBeUndefined();
+    expect(label.flexGrow).toBe(1);
+    expect(label.flexShrink).toBe(1);
+  });
+
+  it("never grows wider than the column it is centred in", async () => {
+    await render(<DonutChart slices={[slice("a", 3), slice("b", 1)]} />);
+    const chart = StyleSheet.flatten(screen.getByRole("image").props.style);
+    expect(chart.maxWidth).toBe("100%");
+  });
+
+  it("leaves the web's styles as they were", () => {
+    expect(legendLabelFlex("web")).toEqual({ flex: 1 });
+    expect(chartColumnCap("web")).toBeNull();
+    expect(legendLabelFlex("android")).toEqual({ flexGrow: 1, flexShrink: 1 });
+    expect(chartColumnCap("android")).toEqual({ maxWidth: "100%" });
   });
 });

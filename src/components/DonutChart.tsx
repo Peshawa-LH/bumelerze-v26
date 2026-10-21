@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle } from "react-native-svg";
 
@@ -111,7 +111,8 @@ export function DonutChart({
     const valueText =
       slice.valueText ??
       t("donut.percent", {
-        value: percent === 0 ? t("donut.underOne") : localizeDigits(String(percent), locale),
+        value:
+          percent === 0 ? t("donut.underOne") : localizeDigits(String(percent), locale),
       });
     return { ...slice, valueText };
   });
@@ -148,7 +149,7 @@ export function DonutChart({
       accessible
       accessibilityRole="image"
       accessibilityLabel={accessibilityLabel}
-      style={{ gap: spacing[3], alignItems: "center" }}
+      style={[{ gap: spacing[3], alignItems: "center" }, CHART_FITS_ITS_COLUMN]}
     >
       <View style={[styles.ring, { width: size, height: size, direction: "ltr" }]}>
         <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -205,7 +206,11 @@ export function DonutChart({
                 minimumFontScale={0.6}
                 style={{
                   color: colors.text.secondary,
-                  fontSize: fitFontSize(centerUnit, hole, typography.labelCaption.fontSize),
+                  fontSize: fitFontSize(
+                    centerUnit,
+                    hole,
+                    typography.labelCaption.fontSize,
+                  ),
                   fontFamily: nativeFontFamily(typography.labelCaption, "400"),
                   textAlign: "center",
                 }}
@@ -255,6 +260,38 @@ export function fitFontSize(text: string, width: number, base: number): number {
   return Math.max(8, Math.min(base, Math.floor(width / (length * 0.62))));
 }
 
+/**
+ * How a legend label takes the row's width. The chart sits centred in its
+ * column, so it is as wide as its widest child. A browser counts a label's
+ * full text towards that width, so the legend widens up to the column and
+ * long labels wrap there. React Native's layout reads `flex: 1` as a zero
+ * starting width instead: the label added nothing, the legend shrank to the
+ * ring's width, and on iOS every label wrapped and was cut ("Little or / no
+ * dam…"), pushing the Event hub's fourth row onto its source note (parity
+ * review S5, GAP 1). On iOS and Android the label therefore starts from its
+ * own text width and only shrinks when the row runs out of room; the web
+ * keeps `flex: 1`, which already lays out that way there. Exported for tests.
+ */
+export function legendLabelFlex(
+  os: typeof Platform.OS,
+): { flex: number } | { flexGrow: number; flexShrink: number } {
+  return os === "web" ? { flex: 1 } : { flexGrow: 1, flexShrink: 1 };
+}
+
+/**
+ * iOS/Android: the chart is never wider than the column it is centred in.
+ * A browser caps a centred box at its container by itself; React Native lets
+ * a row of text grow past it, so a long label (Arabic "Very heavy damage or
+ * collapse") pushed the legend over the card's edge instead of wrapping.
+ * Capping the chart makes the legend take exactly the column and the label
+ * wrap there, as on the web. Nothing on the web. Exported for tests.
+ */
+export function chartColumnCap(os: typeof Platform.OS): { maxWidth: "100%" } | null {
+  return os === "web" ? null : { maxWidth: "100%" };
+}
+
+const CHART_FITS_ITS_COLUMN = chartColumnCap(Platform.OS);
+
 const styles = StyleSheet.create({
   ring: {
     alignItems: "center",
@@ -282,7 +319,5 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  legendLabel: {
-    flex: 1,
-  },
+  legendLabel: legendLabelFlex(Platform.OS),
 });
