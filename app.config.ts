@@ -280,6 +280,14 @@ const config: ExpoConfig = {
     infoPlist: {
       NSPhotoLibraryAddUsageDescription: PERMISSION_TEXTS.en.savePhotos,
     },
+    // Time Sensitive Notifications: alerts from M 5.0 are sent with
+    // `interruptionLevel: "time-sensitive"` (supabase/functions/send-alerts),
+    // which iOS honours only with this entitlement, so they break through a
+    // Focus and the scheduled summary. The App ID needs the matching
+    // capability in the Apple Developer account (EAS syncs it on build).
+    entitlements: {
+      "com.apple.developer.usernotifications.time-sensitive": true,
+    },
     privacyManifests,
   },
   android: {

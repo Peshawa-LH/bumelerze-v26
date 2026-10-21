@@ -135,6 +135,14 @@ describe("app.config iOS store and compliance settings", () => {
     expect(missing).toEqual([]);
   });
 
+  it("may deliver alerts as time-sensitive, so M 5.0+ alerts break through a Focus", () => {
+    // send-alerts marks those alerts `interruptionLevel: "time-sensitive"`;
+    // iOS ignores that without this entitlement.
+    expect(config.ios?.entitlements).toMatchObject({
+      "com.apple.developer.usernotifications.time-sensitive": true,
+    });
+  });
+
   it("asks for no universal links or saved passwords until the Apple team exists", () => {
     expect(appleTeamConfig({})).toEqual({});
     expect(appleTeamConfig({ EXPO_APPLE_TEAM_ID: " " })).toEqual({});
