@@ -77,20 +77,14 @@ export function useRouteEvent(id: string | undefined): RouteEvent {
 
   // A provider-id route only ever fetches via the USGS `byId` fdsnws lookup;
   // a bml-id route (no cache hit, and no static curated alias to have
-  // already matched above) falls back to Supabase directly.
-  const shouldFetchById =
-    !cachedEvent &&
-    !routeIsBumelerzeId &&
-    routeId !== "" &&
-    !region.isInitialLoading &&
-    !world.isInitialLoading;
+  // already matched above) falls back to Supabase directly. Neither waits
+  // for the feeds to finish loading: a link opened with no saved list would
+  // otherwise sit behind the slowest feed source (up to its 8 s timeout —
+  // GEOFON, 2026-10-21). A cache hit still costs no request.
+  const shouldFetchById = !cachedEvent && !routeIsBumelerzeId && routeId !== "";
   const byId = useEventById(routeIsBumelerzeId ? undefined : routeId, shouldFetchById);
 
-  const shouldFetchByBumelerzeId =
-    !cachedEvent &&
-    routeIsBumelerzeId &&
-    !region.isInitialLoading &&
-    !world.isInitialLoading;
+  const shouldFetchByBumelerzeId = !cachedEvent && routeIsBumelerzeId;
   const byBumelerzeId = useEventByBumelerzeId(
     routeIsBumelerzeId ? routeId : undefined,
     shouldFetchByBumelerzeId,

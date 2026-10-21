@@ -42,8 +42,9 @@ function useEventDetailGating(id: string) {
     region.events.find((e) => e.id === id) ??
     world.events.find((e) => e.id === id) ??
     null;
-  const shouldFetchById =
-    !cachedEvent && Boolean(id) && !region.isInitialLoading && !world.isInitialLoading;
+  // Since 2026-10-21 the lookup no longer waits for the feeds to load
+  // (`use-route-event.ts`): only a cache hit skips it.
+  const shouldFetchById = !cachedEvent && Boolean(id);
   const byId = useEventById(id, shouldFetchById);
   const event = cachedEvent ?? byId.event;
   const isLoading =
