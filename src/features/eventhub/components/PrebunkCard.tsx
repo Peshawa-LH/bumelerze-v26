@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
  * A short, calm reminder on every Event hub: earthquakes cannot be predicted,
@@ -40,7 +40,13 @@ export function PrebunkCard() {
           fontSize: typography.bodyMeta.fontSize,
           fontFamily: nativeFontFamily(typography.bodyMeta),
           lineHeight: typography.bodyMeta.lineHeight,
+          // App text, not a person's: it starts at the app language's
+          // reading start. "auto" is the web's own start, but on iOS it is
+          // UIKit's "natural" side, which follows the language the app
+          // process started in: after a switch from Sorani to English in
+          // the app the notice sat on the right until the next cold start.
           textAlign: "auto",
+          ...READING_START,
         }}
       >
         {t("eventHub.prebunk")}

@@ -171,6 +171,76 @@ describe("native direction and date rules (source scan)", () => {
     expect(offenders).toEqual([]);
   });
 
+  it('[regression] app text never takes UIKit\'s natural side: a Text showing a translation with textAlign "auto" also spreads READING_START', () => {
+    // `textAlign: "auto"` is the web's own start, but on iOS it is UIKit's
+    // "natural" side, which follows the language the app process started in,
+    // not the one chosen in the app: after a switch from Sorani to English
+    // the hub's prediction notice sat on the right until the next cold start.
+    // It stays right for what people write (posts, notes, feedback), whose
+    // direction is their own; app strings (`t(...)`) start at the reading start.
+    const offenders: string[] = [];
+    for (const { path } of FILES) {
+      if (!path.endsWith(".tsx")) {
+        continue;
+      }
+      const source = readFileSync(join(ROOT, path), "utf8");
+      if (!source.includes('"auto"')) {
+        continue;
+      }
+      const file = ts.createSourceFile(
+        path,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TSX,
+      );
+      const showsTranslation = (element: ts.JsxElement): boolean =>
+        element.children.some(
+          (child) =>
+            ts.isJsxExpression(child) &&
+            child.expression !== undefined &&
+            ts.isCallExpression(child.expression) &&
+            child.expression.expression.getText(file) === "t",
+        );
+      const visit = (node: ts.Node): void => {
+        if (
+          ts.isJsxElement(node) &&
+          node.openingElement.tagName.getText(file) === "Text"
+        ) {
+          for (const attribute of node.openingElement.attributes.properties) {
+            if (
+              !ts.isJsxAttribute(attribute) ||
+              attribute.name.getText(file) !== "style" ||
+              !attribute.initializer ||
+              !ts.isJsxExpression(attribute.initializer) ||
+              !attribute.initializer.expression ||
+              !ts.isObjectLiteralExpression(attribute.initializer.expression)
+            ) {
+              continue;
+            }
+            const properties = attribute.initializer.expression.properties;
+            const natural = properties.some(
+              (property) =>
+                ts.isPropertyAssignment(property) &&
+                property.name.getText(file) === "textAlign" &&
+                property.initializer.getText(file) === '"auto"',
+            );
+            const spread = properties.some((property) => ts.isSpreadAssignment(property));
+            if (natural && !spread && showsTranslation(node)) {
+              const { line } = file.getLineAndCharacterOfPosition(
+                attribute.getStart(file),
+              );
+              offenders.push(`${path}:${line + 1}`);
+            }
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(file);
+    }
+    expect(offenders).toEqual([]);
+  });
+
   it("[regression] a localized date or time is isolated in its own direction (isolateLocalizedTime), never forced left to right", () => {
     // U+2066 (isolateNumeric) lays a date out left to right: a Latin run in a
     // Sorani or Arabic date ("UTC") then lands at the wrong end of it.
