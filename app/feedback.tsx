@@ -57,6 +57,10 @@ interface PickedPhoto {
 export default function FeedbackScreen() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
+  // Only the bottom inset: the stack header (shown on both views) already
+  // sits below the status bar, so adding the top inset again left an empty
+  // band of about 60 pt under it on iPhones (parity review S5, GAP 2). The
+  // web's top inset is 0, so it keeps the same 16 px.
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -184,7 +188,7 @@ export default function FeedbackScreen() {
           styles.container,
           {
             backgroundColor: colors.surface.base,
-            paddingTop: insets.top + spacing[4],
+            paddingTop: spacing[4],
             paddingBottom: insets.bottom + spacing[5],
             paddingStart: spacing[5],
             paddingEnd: spacing[5],
@@ -258,7 +262,7 @@ export default function FeedbackScreen() {
         styles.container,
         {
           backgroundColor: colors.surface.base,
-          paddingTop: insets.top + spacing[4],
+          paddingTop: spacing[4],
           paddingBottom: insets.bottom + spacing[5],
           paddingStart: spacing[5],
           paddingEnd: spacing[5],

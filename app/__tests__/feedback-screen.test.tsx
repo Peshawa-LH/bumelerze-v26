@@ -7,6 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { StyleSheet, type ViewStyle } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -479,6 +480,26 @@ describe("Feedback screen", () => {
       ).toBeTruthy(),
     );
     expect(screen.queryByText(i18n.t("feedback.confirmation.sentMessage"))).toBeNull();
+  });
+
+  it("starts right under the stack header: no second status-bar inset on top (parity S5, GAP 2)", async () => {
+    // An iPhone with a notch: the header already sits below the 59 pt status
+    // bar, so the form must not add it again (it left an empty band).
+    await render(
+      <SafeAreaProvider
+        initialMetrics={{
+          ...testSafeAreaMetrics,
+          insets: { top: 59, left: 0, right: 0, bottom: 34 },
+        }}
+      >
+        <FeedbackScreen />
+      </SafeAreaProvider>,
+    );
+    const container = screen.getByText(i18n.t("feedback.description")).parent;
+    const style = StyleSheet.flatten(container?.props.style) as ViewStyle;
+    expect(style.paddingTop).toBe(16);
+    // The home indicator still gets its room at the bottom.
+    expect(style.paddingBottom).toBe(34 + 20);
   });
 
   it("Close on the confirmation screen dismisses (or goes back)", async () => {
