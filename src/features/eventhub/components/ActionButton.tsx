@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 export interface ActionButtonProps {
   label: string;
@@ -39,6 +39,11 @@ export function ActionButton({
               ? colors.text.tertiary
               : colors.text.link,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(
+            typography.bodyMeta,
+            selected ? "700" : typography.labelButton.fontWeight,
+          ),
+          ...READING_START,
           fontWeight: selected ? "700" : typography.labelButton.fontWeight,
           textDecorationLine: selected ? "underline" : "none",
         }}

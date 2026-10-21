@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 interface EmptyStateScreenProps {
   title: string;
@@ -37,6 +37,7 @@ export function EmptyStateScreen({ title, description }: EmptyStateScreenProps) 
           {
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,
+            fontFamily: nativeFontFamily(typography.h1),
             lineHeight: typography.h1.lineHeight,
             fontWeight: typography.h1.fontWeight,
           },
@@ -50,6 +51,7 @@ export function EmptyStateScreen({ title, description }: EmptyStateScreenProps) 
           {
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             fontWeight: typography.bodyDefault.fontWeight,
           },

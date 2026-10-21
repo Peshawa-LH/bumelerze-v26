@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ScrollView, StyleSheet, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme } from "@/theme";
 import { useTextDir } from "./text-dir";
 
@@ -28,6 +29,7 @@ export function ToolPage({
   const meta = [typography.bodyMeta, dir, { color: colors.text.secondary }];
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       testID={testID}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[

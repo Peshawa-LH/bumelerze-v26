@@ -15,7 +15,7 @@ import {
   formatVs30Value,
 } from "../format";
 import type { HandbookLookupResult } from "../types";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 interface HandbookResultTableProps {
   result: HandbookLookupResult;
@@ -44,11 +44,11 @@ function RowShell({ label, value, citation, sublabel }: RowShellProps) {
   const dirStyle = directionStyle(i18n.language);
   return (
     <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[1], padding: spacing[3] }]}>
-      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
         {label}
       </Text>
       {sublabel ? (
-        <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        <Text {...dirProps} style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
           {sublabel}
         </Text>
       ) : null}
@@ -58,6 +58,7 @@ function RowShell({ label, value, citation, sublabel }: RowShellProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3),
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
           ...dirStyle,
@@ -67,7 +68,7 @@ function RowShell({ label, value, citation, sublabel }: RowShellProps) {
       </Text>
       <Text
         {...dirProps}
-        style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontStyle: "italic", ...dirStyle }}
+        style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), fontStyle: "italic", ...dirStyle }}
       >
         {citation}
       </Text>
@@ -84,10 +85,10 @@ function EmptyRow({ label, message }: { label: string; message: string }) {
   const dirStyle = directionStyle(i18n.language);
   return (
     <View style={[styles.row, { borderColor: colors.border.default, gap: spacing[1], padding: spacing[3] }]}>
-      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
         {label}
       </Text>
-      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize, ...dirStyle }}>
+      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault), ...dirStyle }}>
         {message}
       </Text>
     </View>
@@ -132,6 +133,7 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.h2.fontSize,
+          fontFamily: nativeFontFamily(typography.h2),
           lineHeight: typography.h2.lineHeight,
           fontWeight: typography.h2.fontWeight,
           ...dirStyle,
@@ -144,7 +146,7 @@ export function HandbookResultTable({ result }: HandbookResultTableProps) {
         <Text
           accessibilityRole="alert"
           {...dirProps}
-          style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize, ...dirStyle }}
+          style={{ color: colors.text.secondary, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault), ...dirStyle }}
         >
           {t("handbook.outOfCoverage")}
         </Text>

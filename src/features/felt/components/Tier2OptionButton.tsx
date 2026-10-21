@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 interface Tier2OptionButtonProps {
   label: string;
@@ -36,6 +36,8 @@ export function Tier2OptionButton({ label, onPress }: Tier2OptionButtonProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >

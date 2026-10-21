@@ -346,7 +346,7 @@ describe("profile posts P2", () => {
     expect(heart("p").props.accessibilityLabel).toBe(
       i18n.t("social.heart.label", { number: isolateNumeric("٢") }),
     );
-    expect(screen.getByTestId("post-body-p").props.style.textAlign).toBe("auto");
+    expect(screen.getByTestId("post-body-p").props.style.writingDirection).toBe("rtl");
     await i18n.changeLanguage("en");
   });
 });

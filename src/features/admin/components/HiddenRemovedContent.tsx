@@ -13,10 +13,11 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import { FLAG_REASONS } from "@/features/eventhub/types";
 import type { PostsTransport } from "@/features/posts/transport";
 import { restoreErrorText } from "@/features/undo/error-text";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess, useAdminActions, useHiddenRemoved } from "../queries";
 import type { AdminTransport } from "../transport";
 import type { HiddenRemovedItem } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 /**
  * Admin > Hidden and removed (migration 0053): comments a moderator hid and
@@ -44,6 +45,7 @@ export function HiddenRemovedContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -144,6 +146,7 @@ function HiddenRemovedRow({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -202,6 +205,8 @@ function HiddenRemovedRow({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}
@@ -219,7 +224,7 @@ function HiddenRemovedRow({
           .join(" · ")}
       </Text>
       {item.kind === "comment" && (item.place || item.hubId) ? (
-        <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+        <Text style={[meta, ltrValueStyle()]}>
           {item.place ?? item.hubId}
         </Text>
       ) : null}
@@ -229,6 +234,7 @@ function HiddenRemovedRow({
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             textAlign: "auto",
           }}

@@ -4,9 +4,11 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
-import { useTheme } from "@/theme";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
+import { useTheme, nativeFontFamily } from "@/theme";
 import type { PictogramName } from "../pictograms.generated";
 import { Pictogram } from "./Pictogram";
+import { ltrValueStyle } from "@/i18n";
 
 /** Small presentational pieces shared by the Tag-my-building screens. Theme
  * tokens only; start/end (never left/right) so every layout mirrors in RTL. */
@@ -255,9 +257,11 @@ export function TextField({
             borderColor: colors.border.default,
             backgroundColor: colors.surface.raised,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
-            textAlign: latin ? "left" : "auto",
-            writingDirection: latin ? "ltr" : "auto",
+            ...(latin
+              ? ltrValueStyle()
+              : { textAlign: "auto", writingDirection: "auto" }),
           },
         ]}
       />
@@ -320,6 +324,7 @@ export function ScreenFrame({
         }}
       />
       <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           gap: spacing[4],

@@ -24,7 +24,8 @@ import { reasonLabel } from "@/features/reporting/reasons";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
+import { ltrValueStyle } from "@/i18n";
 
 /** Comments under profile posts to review (migration 0063): held by the word
  * filter or busy-time review (Approve, with the word that matched) and
@@ -95,6 +96,7 @@ function QueueItem({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const name = row.displayName ?? t("eventHub.thread.anonymous");
@@ -151,7 +153,7 @@ function QueueItem({
           {name}
         </Text>
         {row.username ? (
-          <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+          <Text style={[meta, ltrValueStyle()]}>
             {formatUsername(row.username)}
           </Text>
         ) : null}
@@ -178,6 +180,7 @@ function QueueItem({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           textAlign: "auto",
         }}

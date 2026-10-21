@@ -83,7 +83,7 @@ jest.mock(
 // (native) platform by default, so a suffix-less import would silently
 // resolve `map.tsx`, not this file.
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/(map)/map.web";
+import MapScreenWeb from "@/features/map/WebMapTab.web";
 
 async function renderWithProviders(ui: ReactElement): Promise<RenderResult> {
   // `render` is async in this installed `@testing-library/react-native`

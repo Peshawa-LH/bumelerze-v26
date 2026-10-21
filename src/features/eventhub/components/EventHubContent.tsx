@@ -24,6 +24,7 @@ import {
   formatAbsoluteDual,
   formatDepthKm,
   formatMagnitudeValue,
+  isolateLocalizedTime,
   isolateNumeric,
   type Event,
 } from "@/features/events";
@@ -46,7 +47,7 @@ import type { SocialTransport } from "@/features/social/transport";
 import { useTabBarScroll } from "@/features/tab-bar";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { HubCarousel } from "../carousel/HubCarousel";
 import { useHubSlides } from "../carousel/use-hub-slides";
@@ -222,11 +223,15 @@ export function EventHubContent({
   const bodyText = {
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -240,7 +245,7 @@ export function EventHubContent({
       : placeLine(event, locale, t);
   const title = `${magnitudeText} · ${where}`;
   const when = t("eventHub.post.when", {
-    time: isolateNumeric(formatAbsoluteDual(event.originTime, locale, t).local),
+    time: isolateLocalizedTime(formatAbsoluteDual(event.originTime, locale, t).local),
   });
   const facts = [
     t("eventHub.post.depth", {
@@ -293,7 +298,13 @@ export function EventHubContent({
           <Text
             accessibilityRole="header"
             numberOfLines={2}
-            style={[styles.title, { color: colors.text.primary }]}
+            style={[
+              styles.title,
+              {
+                color: colors.text.primary,
+                fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+              },
+            ]}
             testID="hub-subtitle"
           >
             {title}
@@ -370,6 +381,8 @@ export function EventHubContent({
             style={{
               color: colors.text.link,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+              ...READING_START,
               fontWeight: "600",
             }}
           >
@@ -440,6 +453,8 @@ export function EventHubContent({
               style={{
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >

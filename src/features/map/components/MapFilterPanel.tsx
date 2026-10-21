@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { formatDateOnly, formatMagnitudeValue, isolateNumeric } from "@/features/events";
 import { isRTLLocale } from "@/i18n";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   isDateRangeNarrowed,
   isMagnitudeRangeNarrowed,
@@ -168,6 +168,8 @@ export function MapFilterPanel({
             flexShrink: 1,
             color: colors.text.primary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
             fontWeight: "600",
           }}
@@ -189,6 +191,8 @@ export function MapFilterPanel({
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+                  ...READING_START,
                   lineHeight: typography.labelCaption.lineHeight,
                 }}
               >
@@ -198,6 +202,8 @@ export function MapFilterPanel({
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                  ...READING_START,
                   lineHeight: typography.labelCaption.lineHeight,
                   fontWeight: "600",
                 }}
@@ -240,6 +246,8 @@ export function MapFilterPanel({
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+                  ...READING_START,
                   lineHeight: typography.labelCaption.lineHeight,
                 }}
               >
@@ -250,6 +258,8 @@ export function MapFilterPanel({
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                  ...READING_START,
                   lineHeight: typography.labelCaption.lineHeight,
                   fontWeight: "600",
                 }}
@@ -307,6 +317,8 @@ export function MapFilterPanel({
               style={{
                 color: colors.text.link,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+                ...READING_START,
                 fontWeight: "600",
               }}
             >

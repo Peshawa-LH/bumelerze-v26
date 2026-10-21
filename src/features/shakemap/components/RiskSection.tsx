@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Event } from "@/features/events";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useResolvedShakeMap } from "../live-queries";
 import { classifyDamageBand } from "../risk-alert";
 import { RiskAreaList } from "./RiskAreaList";
@@ -65,6 +65,7 @@ export function RiskSection({ event }: RiskSectionProps) {
   const titleStyle = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption),
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
   } as const;

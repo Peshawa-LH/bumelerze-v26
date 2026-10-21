@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { formatCatalogDate, formatCatalogMagnitude, formatCatalogPlace } from "../format";
 import type { CatalogRow as CatalogRowData } from "../types";
 
@@ -49,6 +49,8 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
           style={{
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+            ...READING_START,
             lineHeight: typography.labelCaption.lineHeight,
             fontVariant: ["tabular-nums"],
           }}
@@ -60,6 +62,8 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
           style={{
             color: colors.text.primary,
             fontSize: typography.magnitudeCompact.fontSize,
+            fontFamily: nativeFontFamily(typography.magnitudeCompact),
+            ...READING_START,
             lineHeight: typography.magnitudeCompact.lineHeight,
             fontWeight: typography.magnitudeCompact.fontWeight,
             fontVariant: ["tabular-nums"],
@@ -73,6 +77,8 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
@@ -89,6 +95,8 @@ export function CatalogRow({ row, onPress }: CatalogRowProps) {
           style={{
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption),
+            ...READING_START,
             fontWeight: typography.labelCaption.fontWeight,
           }}
         >

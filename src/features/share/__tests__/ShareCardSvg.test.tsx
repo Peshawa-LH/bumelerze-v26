@@ -12,7 +12,10 @@ import { shareCardHostWidth } from "../CardRenderer";
 import { POP_DIRECTIONAL_ISOLATE, RIGHT_TO_LEFT_ISOLATE } from "../config";
 import { SHARE_FONT_ASCENT, ShareCardSvg, nativeTextBox } from "../ShareCardSvg";
 
-async function model(locale: string, size: "square" | "story" = "square"): Promise<CardModel> {
+async function model(
+  locale: string,
+  size: "square" | "story" = "square",
+): Promise<CardModel> {
   await i18n.changeLanguage(locale);
   return buildCardModel({
     size,
@@ -29,7 +32,8 @@ async function model(locale: string, size: "square" | "story" = "square"): Promi
     contours: URMIA_CONTOURS,
     url: "https://app.bumelerze.com/e/bml202602ia",
     colors: lightColors,
-    magnitudeBandColor: lightColors.magnitudeBand[magnitudeTone(URMIA_EVENT.magnitude.value)],
+    magnitudeBandColor:
+      lightColors.magnitudeBand[magnitudeTone(URMIA_EVENT.magnitude.value)],
   });
 }
 
@@ -75,7 +79,12 @@ const ITEM: CardText = {
 describe("nativeTextBox: an SVG text position as a phone text box", () => {
   it("hangs the box from the anchor edge, a full ascent above the baseline", () => {
     const top = 500 - SHARE_FONT_ASCENT * 40;
-    expect(nativeTextBox(ITEM, 1080)).toEqual({ left: 300, top, width: 1080, textAlign: "left" });
+    expect(nativeTextBox(ITEM, 1080)).toEqual({
+      left: 300,
+      top,
+      width: 1080,
+      textAlign: "left",
+    });
     expect(nativeTextBox({ ...ITEM, anchor: "end" }, 1080)).toEqual({
       left: 300 - 1080,
       top,
@@ -92,7 +101,13 @@ describe("nativeTextBox: an SVG text position as a phone text box", () => {
 
   it("measures a mixed-size line from its tallest run (the big magnitude)", () => {
     const box = nativeTextBox(
-      { ...ITEM, runs: [{ text: "M ", size: 60 }, { text: "3.2", size: 176 }] },
+      {
+        ...ITEM,
+        runs: [
+          { text: "M ", size: 60 },
+          { text: "3.2", size: 176 },
+        ],
+      },
       1080,
     );
     expect(box.top).toBeCloseTo(500 - SHARE_FONT_ASCENT * 176);
@@ -113,8 +128,36 @@ describe("ShareCardSvg on the phone", () => {
     expect(place).toBeDefined();
     // Right-to-left strings keep their bidi isolate, as in the SVG.
     expect(
-      screen.getByText(`${RIGHT_TO_LEFT_ISOLATE}${place!.text}${POP_DIRECTIONAL_ISOLATE}`),
+      screen.getByText(
+        `${RIGHT_TO_LEFT_ISOLATE}${place!.text}${POP_DIRECTIONAL_ISOLATE}`,
+      ),
     ).toBeTruthy();
+  });
+
+  it("[regression] leaves the paragraph alignment to the string: its size runs (the magnitude) set none", async () => {
+    // A run with its own alignment overrode the string's: on iOS the hub's
+    // Sorani card put "٣.٢" at the far left and lost "پلە" (2026-10-21).
+    const card = await model("ckb");
+    await render(<ShareCardSvg model={card} displayWidth={360} />);
+    const magnitude = card.texts.find((item) => item.runs && item.runs.length > 1);
+    expect(magnitude).toBeDefined();
+    const runNodes = hostNodes().filter(
+      (node) =>
+        node.type === "Text" &&
+        typeof node.children?.[0] === "string" &&
+        magnitude!.runs!.some((run) =>
+          (node.children![0] as string).includes(run.text),
+        ) &&
+        !(node.children![0] as string).includes(
+          magnitude!.runs!.map((run) => run.text).join(""),
+        ),
+    );
+    expect(runNodes.length).toBeGreaterThan(0);
+    for (const node of runNodes) {
+      expect(StyleSheet.flatten(node.props.style as object)).not.toHaveProperty(
+        "textAlign",
+      );
+    }
   });
 
   it("uses the card's Vazirmatn faces at the card's scale, never the phone's text size setting", async () => {
@@ -123,7 +166,9 @@ describe("ShareCardSvg on the phone", () => {
     const place = card.texts.find((item) => item.text.includes("Urmia"))!;
     const node = screen.getByText(place.text);
     const style = StyleSheet.flatten(node.props.style);
-    expect(style.fontFamily).toBe(place.weight === 700 ? "Vazirmatn-Bold" : "Vazirmatn-Regular");
+    expect(style.fontFamily).toBe(
+      place.weight === 700 ? "Vazirmatn-Bold" : "Vazirmatn-Regular",
+    );
     expect(style.fontSize).toBeCloseTo(place.size * 0.5);
     // Capped at the card's own size (a picture), via the allowed, justified
     // multiplier rather than switching scaling off.
@@ -165,12 +210,16 @@ describe("ShareCardSvg on the phone", () => {
   it("draws the story card's QR code and prompt", async () => {
     const card = await model("en", "story");
     await render(<ShareCardSvg model={card} displayWidth={360} />);
-    const prompt = card.texts.filter((item) => i18n.t("share.card.prompt").includes(item.text));
+    const prompt = card.texts.filter((item) =>
+      i18n.t("share.card.prompt").includes(item.text),
+    );
     expect(prompt.length).toBeGreaterThan(0);
     for (const line of prompt) {
       expect(screen.getByText(line.text)).toBeTruthy();
     }
-    expect(StyleSheet.flatten(screen.getByTestId("share-card-native").props.style).height).toBe(640);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("share-card-native").props.style).height,
+    ).toBe(640);
   });
 });
 

@@ -8,7 +8,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { formatRelativeTimeValue, getRelativeTime } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { ReviewSheet } from "@/features/restrictions/components/ReviewSheet";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useActivity, useActivityActions } from "../queries";
 import { activityDetail, activityHref, activityMessage } from "../text";
 import type { ActivityTransport } from "../transport";
@@ -62,6 +62,8 @@ export function ActivityContent({ transport }: { transport?: ActivityTransport }
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 
@@ -96,7 +98,16 @@ export function ActivityContent({ transport }: { transport?: ActivityTransport }
 
   return (
     <View style={{ gap: spacing[3] }} testID="activity-list">
-      <Text style={[meta, { fontSize: typography.bodyMeta.fontSize }]}>
+      <Text
+        style={[
+          meta,
+          {
+            fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
+          },
+        ]}
+      >
         {t("activity.hint")}
       </Text>
       {list.items.length === 0 ? (
@@ -171,6 +182,11 @@ function ActivityRow({
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(
+              typography.bodyDefault,
+              item.read ? "400" : "600",
+            ),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
             fontWeight: item.read ? "400" : "600",
           }}
@@ -183,6 +199,7 @@ function ActivityRow({
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
               lineHeight: typography.bodyMeta.lineHeight,
               textAlign: "auto",
             }}
@@ -194,6 +211,8 @@ function ActivityRow({
           style={{
             color: colors.text.tertiary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -205,6 +224,8 @@ function ActivityRow({
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta),
+                ...READING_START,
                 lineHeight: typography.bodyMeta.lineHeight,
               }}
               testID={`activity-review-sent-${item.id}`}

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { communityErrorText } from "@/features/community/error-text";
 import { profileShareUrl } from "@/features/community/components/ProfileShareSheet";
@@ -26,7 +27,7 @@ import type { SocialTransport } from "@/features/social/transport";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { EVENT_POST_MAX_LENGTH, POST_MAX_LENGTH } from "../constants";
 import type { PostActions } from "../queries";
 import type { ProfilePost } from "../types";
@@ -128,6 +129,8 @@ export function PostItem({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -319,7 +322,12 @@ export function PostItem({
             numberOfLines={1}
             style={[
               styles.name,
-              { color: colors.text.primary, fontSize: typography.bodyDefault.fontSize },
+              {
+                color: colors.text.primary,
+                fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
+              },
             ]}
           >
             {author.displayName}
@@ -355,6 +363,7 @@ export function PostItem({
                     : colors.border.default,
                 backgroundColor: colors.surface.base,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 padding: spacing[3],
                 textAlign: "auto",
               },
@@ -389,16 +398,25 @@ export function PostItem({
           </View>
         </View>
       ) : post.body !== "" ? (
-        <MentionText
+        <UserText
           text={post.body}
+          locale={i18n.language}
           testID={`post-body-${post.id}`}
           style={{
             color: colors.text.primary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
             // Follows the language of the post, not of the app.
             textAlign: "auto",
           }}
+          renderParagraph={(paragraph, paragraphStyle, paragraphTestID) => (
+            <MentionText
+              text={paragraph}
+              style={paragraphStyle}
+              {...(paragraphTestID ? { testID: paragraphTestID } : {})}
+            />
+          )}
         />
       ) : null}
 

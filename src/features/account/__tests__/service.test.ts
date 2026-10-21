@@ -21,6 +21,20 @@ jest.mock("@/lib/supabase", () => ({
   resetAnonymousSignIn: () => mockResetAnonymousSignIn(),
 }));
 
+// A new avatar's kept copy on the phone is freed once the profile is saved.
+const mockReleaseDurablePhoto = jest.fn();
+jest.mock("@/lib/durable-photo-uri", () => ({
+  ...jest.requireActual("@/lib/durable-photo-uri"),
+  releaseDurablePhoto: (uri: string) => mockReleaseDurablePhoto(uri),
+}));
+jest.mock("expo-file-system", () => ({
+  File: jest
+    .fn()
+    .mockImplementation(() => ({ arrayBuffer: async () => new ArrayBuffer(8) })),
+  Directory: jest.fn(),
+  Paths: {},
+}));
+
 jest.mock("@/features/felt/device-id", () => ({
   getDeviceId: async () => "device-1234-abcd",
 }));
@@ -519,6 +533,33 @@ describe("saveProfile", () => {
       code: "terms_required",
     });
     expect(mockClient?.from).not.toHaveBeenCalled();
+  });
+
+  it("frees the phone's copy of a new photo only once the whole profile is saved", async () => {
+    const client = mockClient!;
+    const upload = jest.fn(async () => ({ error: null }));
+    client.storage.from = jest.fn(() => ({
+      remove: client.remove,
+      list: client.list,
+      upload,
+      getPublicUrl: jest.fn(),
+    }));
+    const withPhoto = {
+      ...base,
+      avatar: { kind: "new", uri: "file:///Documents/photos/a.jpg" } as const,
+    };
+    client.upsert
+      .mockResolvedValueOnce({ error: null })
+      .mockResolvedValueOnce({ error: { message: "offline" } });
+    await expect(saveProfile(withPhoto)).rejects.toBeTruthy();
+    // Save can be tried again: the photo is still there to upload.
+    expect(mockReleaseDurablePhoto).not.toHaveBeenCalled();
+
+    await saveProfile(withPhoto);
+    expect(upload).toHaveBeenCalledTimes(2);
+    expect(mockReleaseDurablePhoto).toHaveBeenCalledWith(
+      "file:///Documents/photos/a.jpg",
+    );
   });
 
   it("removes the avatar path and deletes the old file when asked", async () => {

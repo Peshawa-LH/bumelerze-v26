@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   safetyCardBodyKeys,
   safetyCardTitleKey,
@@ -48,6 +48,8 @@ export function SafetyCard({ card }: SafetyCardProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3),
+          ...READING_START,
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -66,6 +68,8 @@ export function SafetyCard({ card }: SafetyCardProps) {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >

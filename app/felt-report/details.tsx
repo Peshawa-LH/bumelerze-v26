@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { toDurablePhotoUri } from "@/lib/durable-photo-uri";
 import {
   Image,
@@ -16,7 +17,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { enqueueTier2Report, useCloseFeltFlow, useTier2DraftStore } from "@/features/felt";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
  * Window 3 of 3 — optional comment + photo, then Submit (2026-08-15 flow
@@ -65,15 +66,15 @@ export default function DetailsReportScreen() {
   }
 
   async function handleAddPhoto() {
-    // Aggressive JPEG compression (quality 0.4) is the size-limit
-    // mechanism — keeps a typical phone photo well under ~2MB without
-    // pulling in a second native module (expo-image-manipulator) just for
-    // dimension-based resizing (brief: "aggressive size limit ~2MB
-    // with resize"). Library first (most common path), no editing UI (a
-    // felt report shouldn't ask the user to crop anything mid-aftershock).
+    // The photo is taken at full quality and made small once, by
+    // `toDurablePhotoUri` (longest edge 1600 px, JPEG 0.72, on the phone and
+    // in the browser alike); a JPEG squeezed by the picker first and then
+    // re-encoded lost detail twice. Library first (most common path), no
+    // editing UI (a felt report shouldn't ask the user to crop anything
+    // mid-aftershock).
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.4,
+      quality: 1,
       allowsEditing: false,
       allowsMultipleSelection: false,
     });
@@ -133,8 +134,13 @@ export default function DetailsReportScreen() {
         <Text
           accessibilityRole="header"
           style={{
+            // Wraps beside "Close" as in the browser (Yoga does not shrink
+            // a text by default; a long Sorani title ran into the link).
+            flexShrink: 1,
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,
+            fontFamily: nativeFontFamily(typography.h1),
+            ...READING_START,
             lineHeight: typography.h1.lineHeight,
             fontWeight: typography.h1.fontWeight,
           }}
@@ -151,6 +157,8 @@ export default function DetailsReportScreen() {
             style={{
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -159,11 +167,13 @@ export default function DetailsReportScreen() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={{ gap: spacing[3], paddingTop: spacing[3] }}>
+      <ScrollView {...KEYBOARD_AWARE_SCROLL} contentContainerStyle={{ gap: spacing[3], paddingTop: spacing[3] }}>
         <Text
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -184,6 +194,7 @@ export default function DetailsReportScreen() {
               borderColor: colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               padding: spacing[3],
             },
           ]}
@@ -206,6 +217,8 @@ export default function DetailsReportScreen() {
                 style={{
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelButton),
+                  ...READING_START,
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -224,6 +237,8 @@ export default function DetailsReportScreen() {
               style={{
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >
@@ -241,6 +256,8 @@ export default function DetailsReportScreen() {
             style={{
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -261,6 +278,8 @@ export default function DetailsReportScreen() {
           style={{
             color: colors.brand.onPrimary,
             fontSize: typography.labelButton.fontSize,
+            fontFamily: nativeFontFamily(typography.labelButton),
+            ...READING_START,
             fontWeight: typography.labelButton.fontWeight,
           }}
         >

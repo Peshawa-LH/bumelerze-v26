@@ -18,6 +18,11 @@ jest.mock("@/lib/supabase", () => ({
   getSupabaseClient: () => null,
   isSupabaseConfigured: () => true,
 }));
+const mockReleaseDurablePhoto = jest.fn();
+jest.mock("@/lib/durable-photo-uri", () => ({
+  ...jest.requireActual("@/lib/durable-photo-uri"),
+  releaseDurablePhoto: (uri: string) => mockReleaseDurablePhoto(uri),
+}));
 const mockReadPhoto = jest.fn();
 jest.mock("../photos", () => ({
   ...jest.requireActual("../photos"),
@@ -31,6 +36,7 @@ beforeEach(() => {
   useHomePhotoQueueStore.getState()._clear();
   resetMockTransport();
   mockReadPhoto.mockReset();
+  mockReleaseDurablePhoto.mockReset();
   mockReadPhoto.mockResolvedValue(new ArrayBuffer(4));
   mockTransport.savePhotoMeta.mockResolvedValue(undefined);
 });
@@ -110,6 +116,11 @@ describe("processHomePhotoQueue", () => {
       slot: "more",
       caption: "cracks",
     });
+    // Uploaded: the phone's kept copies are freed.
+    expect(mockReleaseDurablePhoto.mock.calls).toEqual([
+      ["file://a.jpg"],
+      ["file://b.png"],
+    ]);
   });
 
   it("a missing photo table (migration not applied) loses only the caption", async () => {
@@ -147,6 +158,8 @@ describe("processHomePhotoQueue", () => {
     expect(items()).toHaveLength(1);
     expect(items()[0]?.attempts).toBe(8);
     expect(items()[0]?.failures).toBe(0);
+    // still queued: its file is kept
+    expect(mockReleaseDurablePhoto).not.toHaveBeenCalled();
   });
 
   it("a signed-out phone keeps the photos until the account is back", async () => {
@@ -181,6 +194,9 @@ describe("processHomePhotoQueue", () => {
     expect(await processHomePhotoQueue({ transport })).toBe(1);
     expect(items()).toHaveLength(0);
     expect(mockTransport.uploadPhoto).toHaveBeenCalledTimes(1);
+    // the dropped photo's file goes too, not only the uploaded one's
+    expect(mockReleaseDurablePhoto).toHaveBeenCalledWith("file://big.jpg");
+    expect(mockReleaseDurablePhoto).toHaveBeenCalledWith("file://ok.jpg");
   });
 
   it("only one drain runs at a time", async () => {

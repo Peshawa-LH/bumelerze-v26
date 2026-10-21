@@ -21,8 +21,9 @@ import { useRestrictionActions } from "@/features/restrictions/queries";
 import type { RestrictionsTransport } from "@/features/restrictions/transport";
 import { LimitAccountSheet } from "@/features/restrictions/components/LimitAccountSheet";
 import type { RestrictionLevel } from "@/features/restrictions/types";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminAccess, useAdminActions } from "../../queries";
 import { SupabaseAdminTransport, type AdminTransport } from "../../transport";
 import { formatCount, personName, shortId } from "../format";
@@ -38,6 +39,7 @@ import { PersonNotes } from "./PersonNotes";
 import { ResetFieldsSheet } from "./ResetFieldsSheet";
 import { StatusChip } from "./StatusChip";
 import { TempPasswordCard } from "./TempPasswordCard";
+import { ltrValueStyle } from "@/i18n";
 
 /**
  * One person's page (Admin > People > person). Opening it is logged on the
@@ -78,6 +80,7 @@ export function PersonContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -121,6 +124,7 @@ export function PersonContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       ref={scroll}
       keyboardShouldPersistTaps="handled"
       testID="admin-person"
@@ -195,11 +199,13 @@ function PersonBody({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const body = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 
@@ -322,7 +328,7 @@ function PersonBody({
       <Text
         selectable
         testID={testID}
-        style={[body, styles.lineValue, ltr ? { writingDirection: "ltr", textAlign: "left" } : null]}
+        style={[body, styles.lineValue, ltr ? ltrValueStyle() : null]}
       >
         {value}
       </Text>
@@ -355,7 +361,7 @@ function PersonBody({
             <RoleMark roles={id.ranks} size={20} />
           </View>
           {id.username ? (
-            <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]} testID="person-username">
+            <Text style={[meta, ltrValueStyle()]} testID="person-username">
               @{id.username}
             </Text>
           ) : null}
@@ -604,7 +610,7 @@ function PersonBody({
         ) : (
           data.devices.map((d) => (
             <View key={d.fingerprint} testID={`person-device-${d.fingerprint}`} style={{ gap: 2 }}>
-              <Text style={[body, { writingDirection: "ltr", textAlign: "left", fontWeight: "600" }]}>
+              <Text style={[body, ltrValueStyle(), { fontWeight: "600" }]}>
                 {d.fingerprint}
               </Text>
               <Text style={meta}>

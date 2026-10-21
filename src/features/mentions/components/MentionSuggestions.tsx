@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { formatUsername } from "@/features/community/username";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useMentionSuggestions } from "../queries";
 import type { MentionsTransport } from "../transport";
+import { ltrValueStyle } from "@/i18n";
 
 interface MentionSuggestionsProps {
   /** What follows the "@" being typed, or null. */
@@ -66,6 +67,8 @@ export function MentionSuggestions({
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+                  ...READING_START,
                   fontWeight: "600",
                 }}
               >
@@ -76,8 +79,8 @@ export function MentionSuggestions({
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
-                  writingDirection: "ltr",
-                  textAlign: "left",
+                  fontFamily: nativeFontFamily(typography.bodyMeta),
+                  ...ltrValueStyle(),
                 }}
               >
                 {formatUsername(person.username)}
@@ -88,6 +91,8 @@ export function MentionSuggestions({
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyMeta),
+                  ...READING_START,
                 }}
               >
                 {t(`mentions.relation.${person.relation}`)}

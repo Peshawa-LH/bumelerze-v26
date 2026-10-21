@@ -9,8 +9,9 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { CreateAccountForm } from "@/features/account/components/CreateAccountForm";
 import { SignInForm } from "@/features/account/components/SignInForm";
 import { syncAccountNow, useAccountStore } from "@/features/account/store";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 type Step = "create" | "signin" | "welcome";
 
@@ -60,6 +61,7 @@ export default function SignInScreen() {
         }}
       />
       <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           gap: spacing[4],
@@ -80,6 +82,8 @@ export default function SignInScreen() {
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
                 lineHeight: typography.bodyDefault.lineHeight,
               }}
             >

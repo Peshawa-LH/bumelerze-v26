@@ -5,10 +5,11 @@ import { useTranslation } from "react-i18next";
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { formatAbsoluteDual } from "@/features/events";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { formatCount, personName } from "../format";
 import type { PersonRow } from "../types";
 import { StatusChip } from "./StatusChip";
+import { ltrValueStyle } from "@/i18n";
 
 /** One line of the directory. The whole card opens the person's page. Shows
  * counts only: never a location, a device id or a full email. */
@@ -21,6 +22,7 @@ export function PersonRowItem({ row }: { row: PersonRow }) {
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const date = (value: number) => formatAbsoluteDual(value, language, t).local;
@@ -79,7 +81,7 @@ export function PersonRowItem({ row }: { row: PersonRow }) {
           <StatusChip status={row.status} testID={`person-row-status-${row.userId}`} />
         </View>
         {row.username && row.displayName ? (
-          <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+          <Text style={[meta, ltrValueStyle()]}>
             @{row.username}
           </Text>
         ) : null}
@@ -88,7 +90,7 @@ export function PersonRowItem({ row }: { row: PersonRow }) {
         ) : null}
         {row.maskedEmail ? (
           <Text
-            style={[meta, { writingDirection: "ltr", textAlign: "left" }]}
+            style={[meta, ltrValueStyle()]}
             testID={`person-row-email-${row.userId}`}
           >
             {row.maskedEmail}

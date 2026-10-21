@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { SensorView } from "../types";
 
 interface ViewSwitchProps {
@@ -56,6 +56,8 @@ export function ViewSwitch({ value, onChange }: ViewSwitchProps) {
               style={{
                 color: fg,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >

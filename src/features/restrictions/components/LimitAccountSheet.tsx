@@ -18,7 +18,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { parseEndDate } from "../date-input";
 import { useRestrictionActions } from "../queries";
 import type { RestrictionsTransport } from "../transport";
@@ -31,6 +31,7 @@ import {
   type ReasonPreset,
   type RestrictionLevel,
 } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 export interface LimitTarget {
   userId: string;
@@ -103,6 +104,8 @@ export function LimitAccountSheet({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const input = [
@@ -112,6 +115,7 @@ export function LimitAccountSheet({
       borderColor: colors.border.default,
       backgroundColor: colors.surface.base,
       fontSize: typography.bodyDefault.fontSize,
+      fontFamily: nativeFontFamily(typography.bodyDefault),
       paddingHorizontal: spacing[3],
       paddingVertical: spacing[2],
       textAlign: "auto" as const,
@@ -266,7 +270,7 @@ export function LimitAccountSheet({
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="numbers-and-punctuation"
-                  style={[input, { writingDirection: "ltr", textAlign: "left" }]}
+                  style={[input, ltrValueStyle()]}
                   testID="limit-date-input"
                 />
                 {customDate.trim() !== "" && dateProblem ? (

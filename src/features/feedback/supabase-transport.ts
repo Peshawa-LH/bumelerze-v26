@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { File } from "expo-file-system";
 import { Platform } from "react-native";
 
-import { dataUriMimeType } from "@/lib/durable-photo-uri";
+import { dataUriMimeType, releaseDurablePhoto } from "@/lib/durable-photo-uri";
 
 import { getSupabaseClient, signInAnonymously } from "@/lib/supabase";
 
@@ -222,6 +222,9 @@ export async function uploadFeedbackPhoto(
       return { outcome: "failed" };
     }
 
+    // On the server with its row: the phone's own copy is no longer needed
+    // (a failed step above keeps it for the next retry).
+    releaseDurablePhoto(photo.uri);
     return { outcome: "uploaded" };
   } catch {
     return { outcome: "failed" };

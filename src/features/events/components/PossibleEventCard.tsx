@@ -7,7 +7,7 @@ import {
   pickLocalizedName,
 } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { POSSIBLE_EVENT_FRESH_MINUTES } from "../config";
 import { formatRelativeTimeValue, getRelativeTime, isolateNumeric } from "../format";
@@ -95,6 +95,8 @@ export function PossibleEventCard({ event }: PossibleEventCardProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault, fresh ? "600" : "400"),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: fresh ? "600" : "400",
         }}
@@ -106,6 +108,8 @@ export function PossibleEventCard({ event }: PossibleEventCardProps) {
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -116,6 +120,8 @@ export function PossibleEventCard({ event }: PossibleEventCardProps) {
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >

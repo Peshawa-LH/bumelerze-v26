@@ -16,7 +16,7 @@ import { Indented, ReplyToggle } from "@/features/social/components/ReplyToggle"
 import { usePostCommentLikes } from "@/features/social/queries";
 import type { SocialTransport } from "@/features/social/transport";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { usePostCommentActions, usePostComments } from "../queries";
 import { buildPostThreads } from "../threads";
 import type { PostCommentsTransport } from "../transport";
@@ -101,6 +101,8 @@ export function PostCommentsSection({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -182,6 +184,8 @@ export function PostCommentsSection({
                   style={{
                     color: colors.text.link,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton, "400"),
+                    ...READING_START,
                   }}
                 >
                   {t("eventHub.composer.createAccount")}

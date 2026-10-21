@@ -30,6 +30,7 @@ import { useTheme } from "@/theme";
 import { useAuthorityOverview, useEventSafety, useSharedPeople } from "../queries";
 import type { AuthorityTransport } from "../transport";
 import type { AreaClasses, CheckinEvent, SharedPerson } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 /**
  * The Officials page (owner decision 2026-10-13): for holders of the
@@ -365,8 +366,7 @@ function PersonCard({ person }: { person: SharedPerson }) {
               typography.bodyMeta,
               {
                 color: colors.text.secondary,
-                writingDirection: "ltr",
-                textAlign: "left",
+                ...ltrValueStyle(),
               },
             ]}
           >

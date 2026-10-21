@@ -10,7 +10,7 @@ import {
   type FeltTransport,
 } from "@/features/felt";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import type { ContributionRowViewModel } from "../format";
 
@@ -61,6 +61,8 @@ export function WithdrawReportSheet({
   const body = {
     color: colors.text.secondary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 

@@ -2,10 +2,11 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { communityErrorText } from "@/features/community/error-text";
 import { formatAbsoluteDual } from "@/features/events";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { usePeopleActions, usePersonNotes } from "../queries";
 import type { PeopleTransport } from "../transport";
 import { NOTE_MAX_LENGTH } from "../types";
@@ -28,6 +29,8 @@ export function PersonNotes({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -65,6 +68,7 @@ export function PersonNotes({
             borderColor: colors.border.default,
             backgroundColor: colors.surface.raised,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
             paddingVertical: spacing[2],
             textAlign: "auto",
@@ -103,7 +107,11 @@ export function PersonNotes({
               },
             ]}
           >
-            <Text style={[typography.bodyDefault, { color: colors.text.primary }]}>{note.body}</Text>
+            <UserText
+              text={note.body}
+              locale={i18n.language}
+              style={{ ...typography.bodyDefault, color: colors.text.primary }}
+            />
             <Text style={meta}>
               {[
                 note.authorName ? t("admin.activity.by", { name: note.authorName }) : null,

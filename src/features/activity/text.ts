@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { profileHref } from "@/features/community/routes";
-import { formatClockTime, isolateNumeric } from "@/features/events";
+import { formatClockTime, isolateLocalizedTime } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
 import { normalizeReason, reasonLabel } from "@/features/reporting/reasons";
 import type { ActivityItem } from "./types";
@@ -71,7 +71,7 @@ export function activityMessage(
       return item.eventTime !== null
         ? t("activity.kinds.safe_checkin", {
             name,
-            time: isolateNumeric(formatClockTime(item.eventTime, locale, t)),
+            time: isolateLocalizedTime(formatClockTime(item.eventTime, locale, t)),
           })
         : t("activity.kinds.safe_checkin_noTime", { name });
     default:

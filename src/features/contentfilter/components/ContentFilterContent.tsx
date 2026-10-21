@@ -9,8 +9,9 @@ import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatAbsoluteDual, formatMagnitudeValue } from "@/features/events";
 import { physicalTextAlign } from "@/i18n";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import {
   useContentFilterActions,
@@ -62,6 +63,7 @@ export function ContentFilterContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -79,6 +81,7 @@ export function ContentFilterContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[
         styles.content,
@@ -171,6 +174,8 @@ function ErrorLine({ text }: { text: string | null }) {
       style={{
         color: colors.status.danger,
         fontSize: typography.bodyMeta.fontSize,
+        fontFamily: nativeFontFamily(typography.bodyMeta),
+        ...READING_START,
         lineHeight: typography.bodyMeta.lineHeight,
       }}
     >
@@ -194,11 +199,14 @@ function SurgeCard({
   const body = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
+    ...READING_START,
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -277,6 +285,7 @@ function TestBox({ transport }: { transport: ContentFilterTransport }) {
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   return (
@@ -307,6 +316,7 @@ function TestBox({ transport }: { transport: ContentFilterTransport }) {
             borderColor: colors.border.default,
             backgroundColor: colors.surface.base,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             padding: spacing[3],
             textAlign: "auto",
           },
@@ -366,6 +376,7 @@ function AddTermForm({ actions }: { actions: ContentFilterActions }) {
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const trimmed = term.trim();
@@ -398,6 +409,7 @@ function AddTermForm({ actions }: { actions: ContentFilterActions }) {
             borderColor: colors.border.default,
             backgroundColor: colors.surface.base,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
             textAlign: "auto",
           },
@@ -459,6 +471,7 @@ function TermRow({ term, actions }: { term: FilterTerm; actions: ContentFilterAc
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const details = [

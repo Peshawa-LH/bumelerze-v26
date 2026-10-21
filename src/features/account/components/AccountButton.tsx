@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 export type AccountButtonTone = "primary" | "secondary" | "destructive" | "destructiveSolid";
 
@@ -70,6 +70,7 @@ export function AccountButton({
         style={{
           color: textColor,
           fontSize: typography.labelButton.fontSize,
+          fontFamily: nativeFontFamily(typography.labelButton),
           lineHeight: typography.labelButton.lineHeight,
           fontWeight: typography.labelButton.fontWeight,
           textAlign: "center",

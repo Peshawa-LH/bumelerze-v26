@@ -3,7 +3,8 @@ import { ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/theme";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { lookupHandbookData } from "../lookup";
 import { SpectrumSection } from "../spectrum";
 import type { Ec8GroundType } from "../spectrum/ec8";
@@ -37,6 +38,7 @@ export function HandbookScreen() {
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       {...tabBarScroll}
       style={{ backgroundColor: colors.surface.base }}
       contentContainerStyle={{
@@ -49,6 +51,8 @@ export function HandbookScreen() {
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >
@@ -88,6 +92,8 @@ export function HandbookScreen() {
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >

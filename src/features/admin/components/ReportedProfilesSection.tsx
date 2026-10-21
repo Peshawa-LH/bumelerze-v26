@@ -13,10 +13,11 @@ import { ReportNote } from "@/features/reporting/ReportNote";
 import { reasonLabel } from "@/features/reporting/reasons";
 import { LimitAccountButton } from "@/features/restrictions/components/LimitAccountButton";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminActions, useReportedProfiles } from "../queries";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { AdminTransport } from "../transport";
+import { ltrValueStyle } from "@/i18n";
 
 /** Profiles readers reported, grouped by person. Hidden when there are none. */
 export function ReportedProfilesSection({
@@ -53,6 +54,7 @@ export function ReportedProfilesSection({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -87,7 +89,7 @@ export function ReportedProfilesSection({
               {row.displayName ?? t("eventHub.thread.anonymous")}
             </Text>
             {row.username ? (
-              <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+              <Text style={[meta, ltrValueStyle()]}>
                 {formatUsername(row.username)}
               </Text>
             ) : null}

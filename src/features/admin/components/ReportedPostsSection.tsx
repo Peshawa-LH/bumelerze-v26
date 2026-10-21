@@ -21,10 +21,11 @@ import { reasonLabel } from "@/features/reporting/reasons";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminActions, useReportedPosts } from "../queries";
 import type { AdminTransport } from "../transport";
 import type { ReportedPost } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 /** Profile posts to review: posts held by the word filter or busy-time review
  * (migration 0059; Approve, with the word that matched) and posts readers
@@ -116,6 +117,7 @@ function ReportedPostItem({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -166,7 +168,7 @@ function ReportedPostItem({
           {row.displayName ?? t("eventHub.thread.anonymous")}
         </Text>
         {row.username ? (
-          <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+          <Text style={[meta, ltrValueStyle()]}>
             {formatUsername(row.username)}
           </Text>
         ) : null}
@@ -190,6 +192,7 @@ function ReportedPostItem({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           textAlign: "auto",
         }}

@@ -7,7 +7,7 @@ import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { restoreErrorText } from "@/features/undo/error-text";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess, useAdminActions, useAdminActivity } from "../../queries";
 import type { AdminTransport } from "../../transport";
 import { UNDOABLE_ACTIONS, type ActivityEntry, type UndoableAction } from "../../types";
@@ -42,6 +42,8 @@ export function PersonHistory({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 

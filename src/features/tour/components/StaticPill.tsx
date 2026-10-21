@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 interface StaticPillProps {
   label: string;
@@ -32,6 +32,8 @@ export function StaticPill({ label, tone, minWidth }: StaticPillProps) {
         style={{
           color: foreground,
           fontSize: typography.labelButton.fontSize,
+          fontFamily: nativeFontFamily(typography.labelButton),
+          ...READING_START,
           fontWeight: typography.labelButton.fontWeight,
         }}
       >

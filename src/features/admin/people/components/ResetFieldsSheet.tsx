@@ -7,7 +7,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminActions } from "../../queries";
 import type { AdminTransport } from "../../transport";
 import { usePeopleActions } from "../queries";
@@ -81,6 +81,8 @@ export function ResetFieldsSheet({
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >
@@ -105,7 +107,12 @@ export function ResetFieldsSheet({
       {errorText ? (
         <Text
           accessibilityRole="alert"
-          style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}
+          style={{
+            color: colors.status.danger,
+            fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
+          }}
           testID="reset-error"
         >
           {errorText}

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { isolateNumeric } from "@/features/events/format";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 export interface HeartButtonProps {
   count: number;
@@ -55,6 +55,8 @@ export function HeartButton({
             {
               color: colors.text.secondary,
               fontSize: textStyle.fontSize,
+              fontFamily: nativeFontFamily(textStyle, size === "large" ? "600" : "400"),
+              ...READING_START,
               fontWeight: size === "large" ? "600" : "400",
             },
           ]}

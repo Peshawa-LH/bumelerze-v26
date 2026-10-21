@@ -4,13 +4,14 @@ import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { EarnedBadges } from "@/features/badges";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import { formatMagnitudeValue, useEventByBumelerzeId } from "@/features/events";
 import { isolateName, placeLine } from "@/features/geo";
-import { isRTLLocale } from "@/i18n";
+import { isRTLLocale, physicalTextAlign } from "@/i18n";
 import { useMuteActions, useMutedIds } from "@/features/mute/queries";
 import { PostsSection } from "@/features/posts/components/PostsSection";
 import { ReportSheet } from "@/features/reporting/ReportSheet";
@@ -23,7 +24,7 @@ import { ProfileStats } from "@/features/profile/components/ProfileStats";
 import { ProfileTabs, type ProfileTab } from "@/features/profile/components/ProfileTabs";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { profileBadgeEntries } from "../badges";
 import { communityErrorText } from "../error-text";
 import type { CommunityActions } from "../queries";
@@ -104,12 +105,13 @@ export function PublicProfileView({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   // Logical start for the Latin @username: RN's `textAlign` has no `start`,
   // and the physical "left" put the handle on the far side of a Sorani or
   // Arabic page (B-8).
-  const usernameAlign = isRTLLocale(i18n.language) ? "right" : "left";
+  const usernameAlign = physicalTextAlign(isRTLLocale(i18n.language) ? "right" : "left");
 
   async function run(action: () => Promise<unknown>): Promise<boolean> {
     setBusy(true);
@@ -531,22 +533,25 @@ function RecentComment({ comment }: { comment: ProfileComment }) {
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
           {where}
         </Text>
       ) : null}
-      <Text
+      <UserText
+        text={comment.body}
+        locale={i18n.language}
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           textAlign: "auto",
         }}
-      >
-        {comment.body}
-      </Text>
+      />
     </View>
   );
   const box = [

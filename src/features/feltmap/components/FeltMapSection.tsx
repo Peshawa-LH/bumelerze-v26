@@ -2,9 +2,9 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/events";
+import { formatAbsoluteDual, isolateLocalizedTime, type Event } from "@/features/events";
 import { placeLine } from "@/features/geo";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useFeltMap } from "../queries";
 import { useEventUuid } from "../use-event-uuid";
 import { FeltMapView } from "./FeltMapView";
@@ -42,12 +42,16 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
   const titleStyle = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption),
+    ...READING_START,
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
   } as const;
   const bodyStyle = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -81,6 +85,8 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
               style={{
                 color: colors.text.link,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+                ...READING_START,
                 fontWeight: "600",
               }}
             >
@@ -111,7 +117,7 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
       />
       <View style={{ gap: spacing[1] }}>
         <Text style={bodyStyle}>
-          {t("eventDetail.feltMap.updated", { time: isolateNumeric(updatedLocal) })}
+          {t("eventDetail.feltMap.updated", { time: isolateLocalizedTime(updatedLocal) })}
         </Text>
         <Text style={bodyStyle}>{t("eventDetail.feltMap.citation")}</Text>
       </View>

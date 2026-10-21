@@ -102,6 +102,14 @@ jest.mock("@/lib/supabase", () => ({
   signInAnonymously: jest.fn(() => Promise.resolve()),
 }));
 
+// The kept copy of a photo is freed once it is on the server (iOS parity
+// sweep): watched here, the rest of the module stays real.
+const mockReleaseDurablePhoto = jest.fn();
+jest.mock("@/lib/durable-photo-uri", () => ({
+  ...jest.requireActual("@/lib/durable-photo-uri"),
+  releaseDurablePhoto: (uri: string) => mockReleaseDurablePhoto(uri),
+}));
+
 function loadTransport(): typeof import("../supabase-transport") {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- fresh require after resetModules, matches queue.test.ts's own discipline
   return require("../supabase-transport");
@@ -777,6 +785,23 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
     expect(result).toEqual({ outcome: "uploaded" });
   });
 
+  it("frees the phone's kept copy only once the photo and its row are on the server", async () => {
+    mockReleaseDurablePhoto.mockClear();
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.getSupabaseClient.mockReturnValue(
+      mockStorageClient({ insertError: { message: "rls", code: "42501" } }),
+    );
+    await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+    expect(mockReleaseDurablePhoto).not.toHaveBeenCalled();
+
+    supabaseLib.getSupabaseClient.mockReturnValue(mockStorageClient({}));
+    await SupabaseTransport.uploadPhoto?.(SAMPLE_TIER2_WITH_PHOTO);
+    expect(mockReleaseDurablePhoto).toHaveBeenCalledWith(
+      SAMPLE_TIER2_WITH_PHOTO.photoUri,
+    );
+  });
+
   it("never upserts into felt_photos: the live SELECT policy (approved and live) is applied to an upsert's new row and refuses a pending photo", async () => {
     const { SupabaseTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
@@ -799,7 +824,10 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
     const { SupabaseTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({
-      insertError: { message: "duplicate key value violates unique constraint", code: "23505" },
+      insertError: {
+        message: "duplicate key value violates unique constraint",
+        code: "23505",
+      },
     });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 
@@ -836,7 +864,10 @@ describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
     const { SupabaseTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({
-      insertError: { message: "new row violates row-level security policy", code: "42501" },
+      insertError: {
+        message: "new row violates row-level security policy",
+        code: "42501",
+      },
     });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 

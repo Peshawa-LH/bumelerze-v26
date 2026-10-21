@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { accountErrorText } from "../error-text";
 import { setAccountPassword } from "../service";
 import { validateNewPassword } from "../validation";
@@ -71,6 +71,8 @@ export function PasswordForm({ onDone }: { onDone: () => void }) {
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >

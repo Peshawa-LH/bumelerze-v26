@@ -11,7 +11,7 @@ import { profileHref } from "@/features/community/routes";
 import { formatUsername } from "@/features/community/username";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { levelText, reasonText, untilText } from "../labels";
 import { useAdminRestrictions, useRestrictionActions } from "../queries";
 import type { RestrictionsTransport } from "../transport";
@@ -38,6 +38,7 @@ export function LimitedAccountsContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -121,6 +122,7 @@ function LimitedRow({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -171,6 +173,8 @@ function LimitedRow({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}

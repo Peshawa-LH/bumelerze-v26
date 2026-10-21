@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { DAMAGE_ARTWORK, LEVEL_ARTWORK } from "@/features/felt";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { ContributionRowViewModel } from "../format";
 
 interface ContributionRowProps {
@@ -41,6 +41,8 @@ export function ContributionRow({ row, onWithdraw }: ContributionRowProps) {
           style={{
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+            ...READING_START,
             lineHeight: typography.labelCaption.lineHeight,
           }}
         >
@@ -51,6 +53,8 @@ export function ContributionRow({ row, onWithdraw }: ContributionRowProps) {
             color:
               row.syncStatus === "submitted" ? colors.status.success : colors.text.tertiary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+            ...READING_START,
             lineHeight: typography.labelCaption.lineHeight,
             fontWeight: "600",
           }}
@@ -63,6 +67,8 @@ export function ContributionRow({ row, onWithdraw }: ContributionRowProps) {
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}
@@ -85,6 +91,8 @@ export function ContributionRow({ row, onWithdraw }: ContributionRowProps) {
             flex: 1,
             color: colors.text.primary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -108,6 +116,8 @@ export function ContributionRow({ row, onWithdraw }: ContributionRowProps) {
               flex: 1,
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
+              ...READING_START,
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >
@@ -124,6 +134,8 @@ export function ContributionRow({ row, onWithdraw }: ContributionRowProps) {
           style={{
             color: colors.text.tertiary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+            ...READING_START,
             lineHeight: typography.labelCaption.lineHeight,
           }}
         >
@@ -144,6 +156,8 @@ export function ContributionRow({ row, onWithdraw }: ContributionRowProps) {
             style={{
               color: colors.text.link,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               lineHeight: typography.labelButton.lineHeight,
               fontWeight: typography.labelButton.fontWeight,
             }}

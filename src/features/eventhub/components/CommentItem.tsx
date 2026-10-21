@@ -11,7 +11,7 @@ import { CommentRow } from "@/features/social/components/CommentRow";
 import type { MenuItem } from "@/features/social/components/MenuSheet";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import { areaCityName } from "../area";
 import { isDeletedAccountComment } from "../deleted-account";
@@ -101,6 +101,7 @@ export function CommentItem({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 

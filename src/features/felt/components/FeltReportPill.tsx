@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Event } from "@/features/events";
 import { useTabBarStore } from "@/features/tab-bar/store";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { encodeEventRegistrationParam, toEventRegistration } from "../event-registration";
 
@@ -112,6 +112,8 @@ export function FeltReportPill({ eventId = null, event = null }: FeltReportPillP
         style={{
           color: colors.action.feltOnFill,
           fontSize: typography.labelButton.fontSize,
+          fontFamily: nativeFontFamily(typography.labelButton),
+          ...READING_START,
           fontWeight: typography.labelButton.fontWeight,
         }}
       >

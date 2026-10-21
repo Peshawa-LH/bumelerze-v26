@@ -5,13 +5,15 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { UserText } from "@/components/UserText";
 import { useSnackbar } from "@/components/Snackbar";
 import { formatUsername } from "@/features/community/username";
 import { formatAbsoluteDual } from "@/features/events";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { levelText, reasonText, untilText } from "@/features/restrictions/labels";
-import { useTheme } from "@/theme";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess } from "../../queries";
 import { GRANTABLE_RANKS, type GrantableRank } from "../../types";
 import { inboxErrorText } from "../error-text";
@@ -24,6 +26,7 @@ import {
   type FeedbackDetail,
   type FeedbackStatus,
 } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 /**
  * One feedback message (Admin > Feedback > message, migration 0060): the text,
@@ -50,6 +53,7 @@ export function FeedbackDetailContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -92,6 +96,7 @@ export function FeedbackDetailContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       testID="admin-feedback-detail"
       contentContainerStyle={[
@@ -148,11 +153,13 @@ function DetailBody({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const body = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
   const when = (value: number) => formatAbsoluteDual(value, language, t).local;
@@ -196,9 +203,13 @@ function DetailBody({
             .filter(Boolean)
             .join(" · ")}
         </Text>
-        <Text selectable style={[body, { textAlign: "auto" }]} testID="feedback-message">
-          {data.message}
-        </Text>
+        <UserText
+          text={data.message}
+          locale={language}
+          selectable
+          style={{ ...body, textAlign: "auto" }}
+          testID="feedback-message"
+        />
       </View>
 
       {/* who and from where */}
@@ -210,11 +221,7 @@ function DetailBody({
             : ""}
         </Text>
         {data.contact ? (
-          <Text
-            selectable
-            style={[meta, { writingDirection: "ltr", textAlign: "left" }]}
-            testID="feedback-contact"
-          >
+          <Text selectable style={[meta, ltrValueStyle()]} testID="feedback-contact">
             {t("admin.feedback.contact", { contact: data.contact })}
           </Text>
         ) : null}
@@ -338,6 +345,7 @@ function DetailBody({
                   borderColor: colors.border.default,
                   backgroundColor: colors.surface.raised,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault),
                   paddingHorizontal: spacing[3],
                   textAlign: "auto",
                 },
@@ -415,6 +423,7 @@ function DetailBody({
               borderColor: colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               padding: spacing[2],
               textAlign: "auto",
             },
@@ -478,6 +487,8 @@ function Block({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}

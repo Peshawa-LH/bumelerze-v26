@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeaderBackButton } from "@/components/HeaderBackButton";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 import { lazyScreenContent } from "@/components/LazyScreenContent";
@@ -41,6 +42,7 @@ export default function PublicProfileScreen() {
         }}
       />
       <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
         {...tabBarScroll}
         contentContainerStyle={[
           styles.content,

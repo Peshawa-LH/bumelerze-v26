@@ -7,6 +7,7 @@ import { localizeDigits } from "@/lib/format-numbers";
 import { openLink } from "@/lib/open-link";
 import type { Theme } from "@/theme";
 import type { ReviewStatus, RiskTimeOfDay } from "../types";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface RiskProvenanceChipsProps {
   stage: string;
@@ -70,6 +71,8 @@ function Chip({ testID, label, colors, typography, spacing }: ChipProps) {
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption, "600"),
+          ...READING_START,
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: "600",
         }}
@@ -161,6 +164,8 @@ export function RiskProvenanceChips({
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             lineHeight: typography.bodyMeta.lineHeight,
           }}
         >
@@ -170,6 +175,8 @@ export function RiskProvenanceChips({
           style={{
             color: colors.text.tertiary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+            ...READING_START,
             lineHeight: typography.labelCaption.lineHeight,
           }}
         >
@@ -200,6 +207,8 @@ export function RiskProvenanceChips({
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyMeta.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+                ...READING_START,
                 fontWeight: "600",
               }}
             >
@@ -213,6 +222,8 @@ export function RiskProvenanceChips({
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+                  ...READING_START,
                   lineHeight: typography.labelCaption.lineHeight,
                 }}
               >

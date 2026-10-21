@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useEventSourceAgencies } from "../source-corroboration";
 import type { Event } from "../types";
 import { EventCard } from "./EventCard";
@@ -170,6 +170,7 @@ export function EventListScreen({
             style={{
               color: colors.text.primary,
               fontSize: typography.h3.fontSize,
+              fontFamily: nativeFontFamily(typography.h3),
               lineHeight: typography.h3.lineHeight,
               fontWeight: typography.h3.fontWeight,
               textAlign: "center",
@@ -194,6 +195,8 @@ export function EventListScreen({
               style={{
                 color: colors.brand.onPrimary,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >
@@ -285,6 +288,7 @@ export function EventListScreen({
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 lineHeight: typography.bodyDefault.lineHeight,
                 textAlign: "center",
               }}

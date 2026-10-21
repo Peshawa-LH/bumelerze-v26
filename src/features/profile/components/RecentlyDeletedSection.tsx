@@ -12,7 +12,7 @@ import { restoreErrorText } from "@/features/undo/error-text";
 import { useRecentlyDeleted, useRestoreDeleted } from "@/features/undo/queries";
 import type { UndoTransport } from "@/features/undo/transport";
 import type { RecentlyDeletedItem } from "@/features/undo/types";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
  * "Recently deleted" (migration 0053, owner-only part of the Profile page):
@@ -51,6 +51,8 @@ export function RecentlyDeletedSection({
         style={{
           color: colors.text.secondary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta),
+          ...READING_START,
           lineHeight: typography.bodyMeta.lineHeight,
         }}
       >
@@ -88,6 +90,8 @@ function DeletedItem({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -130,6 +134,7 @@ function DeletedItem({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           // Follows the language of the text, not of the app.
           textAlign: "auto",

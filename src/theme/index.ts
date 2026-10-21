@@ -2,6 +2,9 @@ export { applyDocumentColorSchemeWeb, useTheme } from "./use-theme";
 // iOS: the reading start as an explicit `textAlign` (empty elsewhere), for
 // text styled inline rather than with a whole typography token.
 export { READING_START } from "./typography";
+// iOS/Android: the Vazirmatn face for text styled inline with a token's size
+// (undefined on the web and for Latin-script languages).
+export { nativeFontFamily } from "./typography";
 export type { Theme } from "./use-theme";
 export type { SemanticColors } from "./semantic";
 // Appearance preference (Settings > Appearance: Automatic/Light/Dark) —

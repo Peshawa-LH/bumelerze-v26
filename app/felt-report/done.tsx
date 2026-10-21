@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useCloseFeltFlow, useQueueItemState } from "@/features/felt";
 import { FeltSafeCard } from "@/features/safe/components/FeltSafeCard";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
  * Shared completion screen (2026-08-15 flow restructure, owner directive)
@@ -52,6 +52,8 @@ export default function FeltReportDoneScreen() {
           style={{
             color: colors.text.primary,
             fontSize: typography.h1.fontSize,
+            fontFamily: nativeFontFamily(typography.h1),
+            ...READING_START,
             lineHeight: typography.h1.lineHeight,
             fontWeight: typography.h1.fontWeight,
           }}
@@ -62,6 +64,8 @@ export default function FeltReportDoneScreen() {
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -84,6 +88,8 @@ export default function FeltReportDoneScreen() {
             style={{
               color: colors.brand.onPrimary,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >

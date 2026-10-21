@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { a11yState } from "@/lib/a11y-state";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { CATALOG_MAG_STEP, CATALOG_YEAR_STEP } from "../config";
 import { CATALOG_FIRST_YEAR, catalogCurrentYear } from "../filter-input";
 import { formatCatalogYear } from "../format";
@@ -162,6 +162,8 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
             style={{
               color: isUnionSelected ? colors.brand.onPrimary : colors.text.primary,
               fontSize: typography.labelCaption.fontSize,
+              fontFamily: nativeFontFamily(typography.labelCaption),
+              ...READING_START,
               fontWeight: typography.labelCaption.fontWeight,
             }}
           >
@@ -190,6 +192,8 @@ export function CatalogFilterBar({ bounds, values, onChange }: CatalogFilterBarP
                 style={{
                   color: isSelected ? colors.brand.onPrimary : colors.text.primary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption),
+                  ...READING_START,
                   fontWeight: typography.labelCaption.fontWeight,
                 }}
               >

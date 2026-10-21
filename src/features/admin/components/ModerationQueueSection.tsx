@@ -15,7 +15,7 @@ import { reasonLabel } from "@/features/reporting/reasons";
 import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { localizeDigits } from "@/lib/format-numbers";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminActions, useModerationQueue, type AdminActions } from "../queries";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import type { AdminTransport } from "../transport";
@@ -46,6 +46,7 @@ export function ModerationQueueSection({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -101,6 +102,7 @@ function QueueItem({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -166,6 +168,7 @@ function QueueItem({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
           lineHeight: typography.bodyDefault.lineHeight,
           textAlign: "auto",
         }}

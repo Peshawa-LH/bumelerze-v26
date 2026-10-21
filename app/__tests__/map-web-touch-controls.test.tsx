@@ -64,7 +64,7 @@ jest.mock(
 );
 
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/(map)/map.web";
+import MapScreenWeb from "@/features/map/WebMapTab.web";
 
 const CONTAINER_CLASS = "bml-map-touch-controls";
 const STYLE_ID = "bml-map-touch-controls-css";

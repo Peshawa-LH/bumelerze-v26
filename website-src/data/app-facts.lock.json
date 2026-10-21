@@ -25,8 +25,8 @@
     "file:src/features/geo/data/fe-region-translations.ts": "5563fb896d6aa9bf"
   },
   "event-route": {
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "1b59b7cd6a80611c",
-    "file:app/account/sign-in.tsx": "7a600cf336954af8",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "8d546057b689675f",
+    "file:app/account/sign-in.tsx": "0f95d8e2067443f9",
     "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "19a646c75ebe50ea"
   },
   "felt-levels": {
@@ -136,6 +136,6 @@
   "app-address": {
     "file:src/config/urls.ts": "0f93ffd0c1889e66",
     "file:app/home/join.tsx": "3c7470d0cbb4bb90",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index.tsx": "52b6cc2f2b53f6ff"
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/u/[username]/index.tsx": "c11fa159c5aaf043"
   }
 }

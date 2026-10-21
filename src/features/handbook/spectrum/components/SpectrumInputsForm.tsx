@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { formatDistanceKm, isolateNumeric } from "@/features/events";
 import { directionProps, directionStyle } from "@/i18n";
 import { STRUCTURAL_SYSTEMS, type StructuralSystemCategory } from "../structural-systems";
@@ -75,6 +75,8 @@ export function SpectrumInputsForm({
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3),
+          ...READING_START,
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -82,7 +84,7 @@ export function SpectrumInputsForm({
         {t("handbook.spectrum.formTitle")}
       </Text>
 
-      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
         {t(codeValues ? "handbook.spectrum.ssS1NoteFromCode" : "handbook.spectrum.ssS1Note")}
       </Text>
 
@@ -92,7 +94,7 @@ export function SpectrumInputsForm({
        * different claims and must not read the same. */}
       {codeValues ? (
         <View style={{ gap: spacing[1] }}>
-          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
             {t(
               state.isOverriddenFromCode
                 ? "handbook.spectrum.codeValues.overridden"
@@ -105,7 +107,7 @@ export function SpectrumInputsForm({
           </Text>
           {state.isOverriddenFromCode ? (
             <Pressable accessibilityRole="button" onPress={state.resetToCodeValues} hitSlop={8}>
-              <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+              <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
                 {t("handbook.spectrum.codeValues.reset")}
               </Text>
             </Pressable>
@@ -117,7 +119,7 @@ export function SpectrumInputsForm({
        * equations take different mapped inputs. */}
       {state.method === "ec8" ? (
         <View style={{ gap: spacing[2] }}>
-          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
             {t("handbook.spectrum.agLabel")}
           </Text>
           <TextInput
@@ -137,12 +139,13 @@ export function SpectrumInputsForm({
                 borderColor: state.agError ? colors.status.danger : colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 padding: spacing[3],
               },
             ]}
           />
           {state.agError ? (
-            <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+            <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
               {t(fieldErrorKey(state.agError))}
             </Text>
           ) : null}
@@ -152,7 +155,7 @@ export function SpectrumInputsForm({
       {/* --- Ss --- */}
       {state.method !== "ec8" ? (
       <View style={{ gap: spacing[2] }}>
-        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
           {t("handbook.spectrum.ssLabel")}
         </Text>
         <TextInput
@@ -172,12 +175,13 @@ export function SpectrumInputsForm({
               borderColor: state.ssError ? colors.status.danger : colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               padding: spacing[3],
             },
           ]}
         />
         {state.ssError ? (
-          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
             {t(fieldErrorKey(state.ssError))}
           </Text>
         ) : null}
@@ -187,7 +191,7 @@ export function SpectrumInputsForm({
       {/* --- S1 --- */}
       {state.method !== "ec8" ? (
       <View style={{ gap: spacing[2] }}>
-        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
           {t("handbook.spectrum.s1Label")}
         </Text>
         <TextInput
@@ -207,12 +211,13 @@ export function SpectrumInputsForm({
               borderColor: state.s1Error ? colors.status.danger : colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               padding: spacing[3],
             },
           ]}
         />
         {state.s1Error ? (
-          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
             {t(fieldErrorKey(state.s1Error))}
           </Text>
         ) : null}
@@ -221,10 +226,10 @@ export function SpectrumInputsForm({
 
       {/* --- Site class override --- */}
       <View style={{ gap: spacing[2] }}>
-        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
           {t("handbook.spectrum.siteClassLabel")}
         </Text>
-        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
           {derivedSiteClass
             ? t("handbook.spectrum.siteClassDerivedNote", { siteClass: derivedSiteClass })
             : t("handbook.spectrum.siteClassNoDerivedNote")}
@@ -251,6 +256,8 @@ export function SpectrumInputsForm({
                   style={{
                     color: isActive ? colors.brand.onPrimary : colors.text.primary,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
+                    ...READING_START,
                     fontWeight: typography.labelButton.fontWeight,
                   }}
                 >
@@ -262,7 +269,7 @@ export function SpectrumInputsForm({
         </View>
         {state.isSiteClassOverridden && derivedSiteClass ? (
           <Pressable accessibilityRole="button" onPress={state.resetSiteClassToDerived} hitSlop={8}>
-            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
               {t("handbook.spectrum.resetSiteClass", { siteClass: derivedSiteClass })}
             </Text>
           </Pressable>
@@ -271,7 +278,7 @@ export function SpectrumInputsForm({
 
       {/* --- Importance category --- */}
       <View style={{ gap: spacing[2] }}>
-        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
           {t("handbook.spectrum.occupancyLabel")}
         </Text>
         <View style={{ gap: spacing[2] }} accessibilityRole="radiogroup">
@@ -299,6 +306,8 @@ export function SpectrumInputsForm({
                   style={{
                     color: colors.text.primary,
                     fontSize: typography.bodyDefault.fontSize,
+                    fontFamily: nativeFontFamily(typography.bodyDefault, isActive ? "700" : "400"),
+                    ...READING_START,
                     lineHeight: typography.bodyDefault.lineHeight,
                     fontWeight: isActive ? "700" : "400",
                   }}
@@ -317,7 +326,7 @@ export function SpectrumInputsForm({
        * engineer needs downstream, plus the height limit the app can check
        * against this site's design category. */}
       <View style={{ gap: spacing[2] }}>
-        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
           {t(state.system ? "handbook.spectrum.systemLabel" : "handbook.spectrum.systemOptional")}
         </Text>
         {state.system ? (
@@ -327,10 +336,10 @@ export function SpectrumInputsForm({
             onPress={() => setSystemListOpen((open) => !open)}
             style={[styles.systemRow, { borderColor: colors.border.default, padding: spacing[3] }]}
           >
-            <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize }}>
+            <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault), ...READING_START }}>
               {t(`handbook.spectrum.systems.${state.system.id}`)}
             </Text>
-            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
               {t(systemListOpen ? "handbook.spectrum.systemHideList" : "handbook.spectrum.systemChange")}
             </Text>
           </Pressable>
@@ -341,7 +350,7 @@ export function SpectrumInputsForm({
             onPress={() => setSystemListOpen((open) => !open)}
             hitSlop={8}
           >
-            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}>
+            <Text style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
               {t(systemListOpen ? "handbook.spectrum.systemHideList" : "handbook.spectrum.systemLookup")}
             </Text>
           </Pressable>
@@ -351,7 +360,7 @@ export function SpectrumInputsForm({
           <View style={{ gap: spacing[2] }}>
             {CATEGORY_ORDER.map((category) => (
               <View key={category} style={{ gap: spacing[1] }}>
-                <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+                <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
                   {t(`handbook.spectrum.systemCategories.${category}`)}
                 </Text>
                 {STRUCTURAL_SYSTEMS.filter((sys) => sys.category === category).map((sys) => {
@@ -374,10 +383,10 @@ export function SpectrumInputsForm({
                         },
                       ]}
                     >
-                      <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize }}>
+                      <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
                         {t(`handbook.spectrum.systems.${sys.id}`)}
                       </Text>
-                      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+                      <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
                         {t("handbook.spectrum.systemCoefficients", {
                           r: formatCodeCoefficient(sys.r, locale),
                           omega0: formatCodeCoefficient(sys.omega0, locale),
@@ -406,12 +415,12 @@ export function SpectrumInputsForm({
                 },
               ]}
             >
-              <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize }}>
+              <Text style={{ color: colors.text.primary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
                 {t("handbook.spectrum.systemOther")}
               </Text>
             </Pressable>
 
-                        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+                        <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
               {t("handbook.spectrum.systemSubsetNote")}
             </Text>
           </View>
@@ -421,10 +430,10 @@ export function SpectrumInputsForm({
       {/* --- R, only when no system is chosen --- */}
       {state.systemId === null ? (
         <View style={{ gap: spacing[2] }}>
-          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
             {t("handbook.spectrum.rLabel")}
           </Text>
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize }}>
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
             {t("handbook.spectrum.rNoteFree")}
           </Text>
           <TextInput
@@ -444,12 +453,13 @@ export function SpectrumInputsForm({
                 borderColor: state.rError ? colors.status.danger : colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 padding: spacing[3],
               },
             ]}
           />
           {state.rError ? (
-            <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+            <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
               {t(fieldErrorKey(state.rError))}
             </Text>
           ) : null}
@@ -458,7 +468,7 @@ export function SpectrumInputsForm({
 
       {/* --- Building height (optional) --- */}
       <View style={{ gap: spacing[2] }}>
-        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+        <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
           {t("handbook.spectrum.heightLabel")}
         </Text>
         <TextInput
@@ -478,12 +488,13 @@ export function SpectrumInputsForm({
               borderColor: state.heightError ? colors.status.danger : colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               padding: spacing[3],
             },
           ]}
         />
         {state.heightError ? (
-          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+          <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...READING_START }}>
             {t(fieldErrorKey(state.heightError))}
           </Text>
         ) : null}

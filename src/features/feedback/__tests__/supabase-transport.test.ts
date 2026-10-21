@@ -96,6 +96,14 @@ jest.mock("@/lib/supabase", () => ({
   signInAnonymously: jest.fn(() => Promise.resolve()),
 }));
 
+// The kept copy of a photo is freed once it is on the server (iOS parity
+// sweep): watched here, the rest of the module stays real.
+const mockReleaseDurablePhoto = jest.fn();
+jest.mock("@/lib/durable-photo-uri", () => ({
+  ...jest.requireActual("@/lib/durable-photo-uri"),
+  releaseDurablePhoto: (uri: string) => mockReleaseDurablePhoto(uri),
+}));
+
 function loadTransport(): typeof import("../supabase-transport") {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- fresh require after resetModules
   return require("../supabase-transport");
@@ -455,6 +463,27 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
       { onConflict: "photo_id" },
     );
     expect(result).toEqual({ outcome: "uploaded" });
+  });
+
+  it("frees the phone's kept copy only once the photo and its row are on the server", async () => {
+    mockReleaseDurablePhoto.mockClear();
+    const { SupabaseFeedbackTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.getSupabaseClient.mockReturnValue(
+      mockStorageClient({ upsertError: { message: "rls" } }),
+    );
+    await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
+    expect(mockReleaseDurablePhoto).not.toHaveBeenCalled();
+
+    supabaseLib.getSupabaseClient.mockReturnValue(mockStorageClient({}));
+    await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
+    expect(mockReleaseDurablePhoto).toHaveBeenCalledWith(SAMPLE_PHOTO.uri);
   });
 
   it("uploads two photos on the same submission to two DISTINCT, non-colliding storage paths", async () => {

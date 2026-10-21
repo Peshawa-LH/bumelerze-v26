@@ -5,7 +5,7 @@ import Svg, { Polyline } from "react-native-svg";
 
 import { axisColor, AXIS_CHIP_ON_FILL_TEXT } from "@/features/sensor/colors";
 import type { AxisKey } from "@/features/sensor/types";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 const AXES: readonly AxisKey[] = ["x", "y", "z"];
 const VIEW_WIDTH = 240;
@@ -82,6 +82,11 @@ export function SensorPreview() {
                 style={{
                   color: selected ? colors.brand.onPrimary : colors.text.secondary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(
+                    typography.labelCaption,
+                    typography.labelButton.fontWeight,
+                  ),
+                  ...READING_START,
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -152,6 +157,8 @@ export function SensorPreview() {
               style={{
                 color: AXIS_CHIP_ON_FILL_TEXT,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption, "700"),
+                ...READING_START,
                 fontWeight: "700",
               }}
             >

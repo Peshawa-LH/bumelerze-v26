@@ -8,7 +8,7 @@ import type { GuidelinesTransport } from "@/features/guidelines";
 import { MentionSuggestions } from "@/features/mentions/components/MentionSuggestions";
 import type { MentionsTransport } from "@/features/mentions/transport";
 import { useMentionInput } from "@/features/mentions/use-mention-input";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { toHubError } from "../transport";
 import type { HubErrorCode } from "../types";
@@ -129,6 +129,8 @@ export function CommentComposer({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -181,6 +183,11 @@ export function CommentComposer({
                 style={{
                   color: colors.text.link,
                   fontSize: typography.bodyMeta.fontSize,
+                  fontFamily: nativeFontFamily(
+                    typography.bodyMeta,
+                    typography.labelButton.fontWeight,
+                  ),
+                  ...READING_START,
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -212,6 +219,7 @@ export function CommentComposer({
                 borderColor: colors.border.default,
                 backgroundColor: colors.surface.sunken,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 paddingHorizontal: spacing[4],
                 paddingVertical: spacing[2],
                 textAlign: "auto",
@@ -232,6 +240,8 @@ export function CommentComposer({
               style={{
                 color: canPost ? colors.text.link : colors.text.tertiary,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >
@@ -264,6 +274,7 @@ export function CommentComposer({
             borderColor: colors.border.default,
             backgroundColor: colors.surface.raised,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             padding: spacing[3],
             // Follows the writing direction of what is typed.
             textAlign: "auto",
@@ -298,6 +309,8 @@ export function CommentComposer({
               style={{
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >
@@ -343,6 +356,8 @@ export function CommentComposer({
             style={{
               color: canPost ? colors.brand.onPrimary : colors.text.tertiary,
               fontSize: typography.labelButton.fontSize,
+              fontFamily: nativeFontFamily(typography.labelButton),
+              ...READING_START,
               fontWeight: typography.labelButton.fontWeight,
             }}
           >
@@ -359,6 +374,8 @@ export function CommentComposer({
               style={{
                 color: colors.text.link,
                 fontSize: typography.labelButton.fontSize,
+                fontFamily: nativeFontFamily(typography.labelButton),
+                ...READING_START,
                 fontWeight: typography.labelButton.fontWeight,
               }}
             >

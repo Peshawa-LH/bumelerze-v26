@@ -1,4 +1,11 @@
-import { act, cleanup, fireEvent, screen, within } from "@testing-library/react-native";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 import * as Clipboard from "expo-clipboard";
 import { Share } from "react-native";
 
@@ -335,8 +342,19 @@ describe("Family screen", () => {
     loadAs("u-owner", "owner");
     await i18n.changeLanguage("ar");
     await renderWithProviders(<FamilyScreen tagId="tag-1" />);
-    expect(await screen.findByText("المفتاح السري")).toBeTruthy();
-    expect(screen.getByText("بانتظار الموافقة")).toBeTruthy();
+    // The key and the pending requests come from separate queries: wait for
+    // the whole screen (under a loaded test run the second one used to land
+    // after the first was found), then look for raw keys once nothing is
+    // still loading.
+    await waitFor(
+      () => {
+        expect(screen.getByText("المفتاح السري")).toBeTruthy();
+        expect(screen.getByText("بانتظار الموافقة")).toBeTruthy();
+        expect(screen.getByText("Dilan")).toBeTruthy();
+        expect(screen.getByText(/ABCD2345/)).toBeTruthy();
+      },
+      { timeout: 4000 },
+    );
     expect(screen.queryByText(/building\.[a-z]/i)).toBeNull();
   });
 });

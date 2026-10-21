@@ -6,8 +6,9 @@ import { useTranslation } from "react-i18next";
 import { formatUsername } from "@/features/community/username";
 import { formatAbsoluteDual } from "@/features/events";
 import { FLAG_REASONS } from "@/features/eventhub/types";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { ActivityEntry } from "../types";
+import { ltrValueStyle } from "@/i18n";
 
 /** One line of the activity log: what was done, by whom, to whom, when, why.
  * `renderAction` is where the next batch puts its Undo / Restore button. */
@@ -26,6 +27,7 @@ export function ActivityRow({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -61,6 +63,8 @@ export function ActivityRow({
         style={{
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
           fontWeight: "600",
         }}
@@ -94,7 +98,7 @@ export function ActivityRow({
         </Pressable>
       ) : null}
       {entry.targetSummary && entry.targetType === "comment" ? (
-        <Text style={[meta, { writingDirection: "ltr", textAlign: "left" }]}>
+        <Text style={[meta, ltrValueStyle()]}>
           {entry.targetSummary}
         </Text>
       ) : null}

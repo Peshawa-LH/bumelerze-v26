@@ -17,7 +17,7 @@ import { PlaceSearch } from "@/features/geo/components/PlaceSearch";
 import { placeDisplayName, type Place } from "@/features/geo/place-search";
 import { localizeDigits } from "@/lib/format-numbers";
 import { openLink } from "@/lib/open-link";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   BIO_MAX_LENGTH,
   normalizeBio,
@@ -40,6 +40,7 @@ import type { AvatarChange, PrivateProfile, Profile } from "../types";
 import { validateProfileForm } from "../validation";
 import { AccountButton } from "./AccountButton";
 import { Avatar } from "./Avatar";
+import { ltrValueStyle } from "@/i18n";
 
 interface ProfileFormProps {
   profile: Profile | null;
@@ -201,11 +202,14 @@ export function ProfileForm({
   const label = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault, "600" as const),
     fontWeight: "600" as const,
   };
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   };
 
@@ -231,6 +235,7 @@ export function ProfileForm({
                 : colors.border.default,
               backgroundColor: colors.surface.raised,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               paddingHorizontal: spacing[3],
               // Names follow the writing direction of what is typed.
               textAlign: "auto",
@@ -285,10 +290,10 @@ export function ProfileForm({
                     : colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 paddingHorizontal: spacing[3],
                 // Handles are always Latin: left to right in every language.
-                writingDirection: "ltr",
-                textAlign: "left",
+                ...ltrValueStyle(),
               },
             ]}
             testID="profile-username-input"
@@ -357,6 +362,7 @@ export function ProfileForm({
                 borderColor: bioProblem ? colors.status.danger : colors.border.default,
                 backgroundColor: colors.surface.raised,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 padding: spacing[3],
                 textAlign: "auto",
               },
@@ -389,6 +395,8 @@ export function ProfileForm({
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
               }}
               testID="profile-city-value"
             >
@@ -510,7 +518,12 @@ export function ProfileForm({
           testID="profile-privacy-link"
         >
           <Text
-            style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}
+            style={{
+              color: colors.text.link,
+              fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
+              ...READING_START,
+            }}
           >
             {t("account.profile.privacyLink")}
           </Text>
@@ -522,7 +535,12 @@ export function ProfileForm({
           testID="profile-guidelines-link"
         >
           <Text
-            style={{ color: colors.text.link, fontSize: typography.bodyMeta.fontSize }}
+            style={{
+              color: colors.text.link,
+              fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
+              ...READING_START,
+            }}
           >
             {t("account.profile.guidelinesLink")}
           </Text>
@@ -541,6 +559,8 @@ export function ProfileForm({
           style={{
             color: colors.status.danger,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
+            ...READING_START,
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -600,6 +620,8 @@ function Chip({
         style={{
           color: selected ? colors.brand.onPrimary : colors.text.primary,
           fontSize: typography.bodyMeta.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+          ...READING_START,
           fontWeight: "600",
         }}
       >
@@ -641,7 +663,12 @@ function Checkbox({
       >
         {checked ? (
           <Text
-            style={{ color: colors.brand.onPrimary, fontSize: 16, fontWeight: "700" }}
+            style={{
+              color: colors.brand.onPrimary,
+              fontSize: 16,
+              ...READING_START,
+              fontWeight: "700",
+            }}
           >
             {"✓"}
           </Text>
@@ -652,6 +679,8 @@ function Checkbox({
           flex: 1,
           color: colors.text.primary,
           fontSize: typography.bodyDefault.fontSize,
+          fontFamily: nativeFontFamily(typography.bodyDefault),
+          ...READING_START,
           lineHeight: typography.bodyDefault.lineHeight,
         }}
       >

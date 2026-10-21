@@ -11,14 +11,13 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { UserText } from "@/components/UserText";
 import { Avatar, getAvatarUrl } from "@/features/account";
 import { profileHref } from "@/features/community/routes";
 import { RoleMark } from "@/features/eventhub/components/RoleMark";
 import type { HubRole } from "@/features/eventhub/types";
 import { MentionText } from "@/features/mentions/components/MentionText";
-import { physicalTextAlign, textDirectionFor } from "@/i18n";
-import { firstStrongDirection } from "@/i18n/bidi";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { HeartButton, type HeartButtonProps } from "./HeartButton";
 import { MenuSheet, type MenuItem } from "./MenuSheet";
 import { Indented } from "./ReplyToggle";
@@ -91,6 +90,8 @@ export function CommentRow({
   const metaStyle = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -125,6 +126,8 @@ export function CommentRow({
       style={{
         color: colors.text.primary,
         fontSize: typography.bodyDefault.fontSize,
+        fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
+        ...READING_START,
         lineHeight: typography.bodyDefault.lineHeight,
         fontWeight: "600",
       }}
@@ -212,6 +215,7 @@ export function CommentRow({
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
                 lineHeight: typography.bodyDefault.lineHeight,
                 textAlign: "auto",
                 alignSelf: "stretch",
@@ -301,12 +305,9 @@ export function CommentRow({
 }
 
 /**
- * A comment's text. Each paragraph reads in its own direction and starts at
- * its own edge, as the web shows it (`unicode-bidi: plaintext` there): an
- * English line in a Sorani thread sits on the left, a Sorani line in an
- * English one on the right. iOS/Android have no such style, so each
- * paragraph gets the direction of its first letter (the app language's when
- * it has none) and its own `Text`; the web keeps one `Text` with the CSS.
+ * A comment's text, with @mention links. Each paragraph reads in its own
+ * direction (`UserText`): the web does it with `unicode-bidi: plaintext`
+ * (`WRAP_ANYWHERE`), iOS/Android with a `Text` per paragraph.
  */
 function CommentBody({
   text,
@@ -321,35 +322,22 @@ function CommentBody({
   lineHeight: number;
   style: TextStyle;
 }) {
-  if (Platform.OS === "web") {
-    return <MentionText text={text} testID={testID} style={style} />;
-  }
-  const paragraphStyle = (paragraph: string): TextStyle => {
-    const direction = firstStrongDirection(paragraph) ?? textDirectionFor(locale);
-    return {
-      ...style,
-      writingDirection: direction,
-      textAlign: physicalTextAlign(direction === "rtl" ? "right" : "left"),
-    };
-  };
-  const paragraphs = text.split("\n");
-  if (paragraphs.length === 1) {
-    return <MentionText text={text} testID={testID} style={paragraphStyle(text)} />;
-  }
   return (
-    <View testID={testID} style={styles.bodyParagraphs}>
-      {paragraphs.map((paragraph, index) =>
-        paragraph.trim().length === 0 ? (
-          <View key={index} style={{ height: lineHeight }} />
-        ) : (
-          <MentionText
-            key={index}
-            text={paragraph}
-            style={{ ...paragraphStyle(paragraph), marginTop: 0 }}
-          />
-        ),
+    <UserText
+      text={text}
+      locale={locale}
+      testID={testID}
+      lineHeight={lineHeight}
+      style={style}
+      paragraphsStyle={styles.bodyParagraphs}
+      renderParagraph={(paragraph, paragraphStyle, paragraphTestID) => (
+        <MentionText
+          text={paragraph}
+          style={paragraphStyle}
+          {...(paragraphTestID ? { testID: paragraphTestID } : {})}
+        />
       )}
-    </View>
+    />
   );
 }
 

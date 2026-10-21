@@ -1,7 +1,8 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -12,7 +13,9 @@ import {
   View,
   useWindowDimensions,
   type NativeSyntheticEvent,
+  type StyleProp,
   type TextInputContentSizeChangeEventData,
+  type ViewStyle,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Event } from "@/features/events";
 import type { GuidelinesTransport } from "@/features/guidelines";
 import type { PostsTransport } from "@/features/posts/transport";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import type { CardModel } from "./card-layout";
 import { buildShareCaption, buildShareUrl, ensureLinkInText } from "./caption";
@@ -222,6 +225,8 @@ export function ShareSheet({
   const labelStyle = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption),
+    ...READING_START,
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
   } as const;
@@ -244,7 +249,7 @@ export function ShareSheet({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View style={[styles.root, centered ? styles.rootWeb : styles.rootNative]}>
+      <SheetRoot style={[styles.root, centered ? styles.rootWeb : styles.rootNative]}>
         <Pressable
           testID="share-sheet-scrim"
           accessibilityRole="button"
@@ -365,8 +370,33 @@ export function ShareSheet({
           </ScrollView>
         </View>
         <CardRenderer ref={rendererRef} buildModel={buildModel} />
-      </View>
+      </SheetRoot>
     </Modal>
+  );
+}
+
+/**
+ * iOS/Android: the sheet rises with the keyboard, so the caption field stays
+ * in sight while it is edited. The web keeps its plain View: the browser
+ * moves the page for the keyboard itself.
+ */
+function SheetRoot({
+  style,
+  children,
+}: {
+  style: StyleProp<ViewStyle>;
+  children: ReactNode;
+}) {
+  if (Platform.OS === "web") {
+    return <View style={style}>{children}</View>;
+  }
+  return (
+    <KeyboardAvoidingView
+      style={style}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      {children}
+    </KeyboardAvoidingView>
   );
 }
 

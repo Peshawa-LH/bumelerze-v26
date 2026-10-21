@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 // Concrete module, not the `@/features/location` barrel: the barrel pulls in
 // the prefs store, which imports geo (a require cycle).
 import { useUserDistanceAnchor } from "@/features/location/use-user-distance-anchor";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { MAIN_TOWNS } from "../main-towns";
 import { placeDetailLine, isolateName } from "../place-detail";
 import {
@@ -103,6 +103,7 @@ export function PlaceSearch({
             {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               textAlign: "auto",
               writingDirection: "auto",
             },
@@ -121,6 +122,8 @@ export function PlaceSearch({
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault),
+                ...READING_START,
               }}
             >
               ×
@@ -135,6 +138,8 @@ export function PlaceSearch({
           style={{
             color: colors.text.secondary,
             fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption),
+            ...READING_START,
             fontWeight: typography.labelCaption.fontWeight,
           }}
         >
@@ -148,6 +153,8 @@ export function PlaceSearch({
           style={{
             color: colors.text.secondary,
             fontSize: typography.bodyMeta.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyMeta),
+            ...READING_START,
             paddingVertical: spacing[2],
           }}
         >
@@ -185,6 +192,11 @@ export function PlaceSearch({
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(
+                  typography.bodyDefault,
+                  isActive ? "700" : "400",
+                ),
+                ...READING_START,
                 fontWeight: isActive ? "700" : "400",
               }}
             >
@@ -195,6 +207,8 @@ export function PlaceSearch({
               style={{
                 color: colors.text.tertiary,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+                ...READING_START,
               }}
             >
               {detail}

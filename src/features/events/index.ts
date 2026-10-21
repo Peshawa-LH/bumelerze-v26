@@ -57,6 +57,7 @@ export {
   formatMagnitudeValue,
   formatRelativeTimeValue,
   getRelativeTime,
+  isolateLocalizedTime,
   isolateNumeric,
 } from "./format";
 export { magnitudeTone, type MagnitudeTone } from "./magnitude-tone";

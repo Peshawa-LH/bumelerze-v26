@@ -11,9 +11,9 @@ import { ShareCardSvg } from "@/features/share/ShareCardSvg";
 import type { CardModel } from "@/features/share/card-layout";
 import type { FeltTimeline, FeltTown } from "@/features/social/transport";
 import { formatIntensity } from "@/features/shakemap/intensity-format";
-import { isRTLLocale } from "@/i18n";
+import { isRTLLocale, physicalTextAlign } from "@/i18n";
 import { approximateParts, localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { percentValue, runningTotal, type ClassDamageRow } from "./slide-data";
 
 /** The frame every chart slide shares: a raised square card, a title, a
@@ -107,6 +107,7 @@ export function ImpactSlide({
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
     lineHeight: typography.labelCaption.lineHeight,
     textAlign: "center",
   } as const;
@@ -173,12 +174,13 @@ export function FeltTownsSlide({
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
   // The count cell hugs the row END (E-22): physical right in LTR, left in RTL.
-  const endAlign = isRTLLocale(locale) ? "left" : "right";
+  const endAlign = physicalTextAlign(isRTLLocale(locale) ? "left" : "right");
   const shown = towns.slice(0, 7);
   const max = Math.max(1, ...shown.map((town) => town.reports));
   const label = {
     color: colors.text.primary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
     lineHeight: typography.labelCaption.lineHeight,
   } as const;
   return (
@@ -235,6 +237,8 @@ export function FeltTownsSlide({
                 <Text
                   style={{
                     fontSize: typography.labelCaption.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelCaption, "700"),
+                    ...READING_START,
                     fontWeight: "700",
                     color:
                       levelText && town.level !== null
@@ -319,6 +323,7 @@ export function TimelineSlide({
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
   };
   return (
     <SlideFrame
@@ -421,7 +426,7 @@ export function ClassDamageSlide({
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
   // The percent cells hug the row END (E-22): physical right in LTR, left in RTL.
-  const endAlign = isRTLLocale(locale) ? "left" : "right";
+  const endAlign = physicalTextAlign(isRTLLocale(locale) ? "left" : "right");
   const pct = (share: number) =>
     isolateNumeric(
       t("donut.percent", { value: localizeDigits(percentValue(share), locale) }),
@@ -429,6 +434,7 @@ export function ClassDamageSlide({
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
   };
   return (
     <SlideFrame

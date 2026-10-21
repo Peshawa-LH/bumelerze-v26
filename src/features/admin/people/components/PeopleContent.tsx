@@ -6,7 +6,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { communityErrorText } from "@/features/community/error-text";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
-import { useTheme } from "@/theme";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useAdminAccess } from "../../queries";
 import { formatCount } from "../format";
 import { useDebounced, usePeopleSearch } from "../queries";
@@ -24,6 +25,7 @@ import {
 import { PeopleFilterSheet } from "./PeopleFilterSheet";
 import { PeopleStatsHeader } from "./PeopleStatsHeader";
 import { PersonRowItem } from "./PersonRowItem";
+import { ltrValueStyle } from "@/i18n";
 
 const DEBOUNCE_MS = 350;
 
@@ -63,6 +65,8 @@ export function PeopleContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -82,6 +86,7 @@ export function PeopleContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       testID="admin-people"
       contentContainerStyle={[
@@ -114,9 +119,9 @@ export function PeopleContent({
             borderColor: colors.border.default,
             backgroundColor: colors.surface.raised,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
-            writingDirection: "ltr",
-            textAlign: "left",
+            ...ltrValueStyle(),
           },
         ]}
         testID="people-search-input"

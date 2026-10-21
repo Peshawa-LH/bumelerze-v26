@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { isolateNumeric } from "@/features/events";
 import { directionProps, directionStyle } from "@/i18n";
 import { spectralAcceleration } from "../curve";
@@ -116,6 +116,8 @@ export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumCo
           style={{
             color: colors.text.primary,
             fontSize: typography.h3.fontSize,
+            fontFamily: nativeFontFamily(typography.h3),
+            ...READING_START,
             lineHeight: typography.h3.lineHeight,
             fontWeight: typography.h3.fontWeight,
           }}
@@ -128,7 +130,7 @@ export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumCo
           hitSlop={8}
           style={[styles.copyButton, { borderColor: colors.border.default }]}
         >
-          <Text style={{ color: colors.text.link, fontSize: typography.labelButton.fontSize }}>
+          <Text style={{ color: colors.text.link, fontSize: typography.labelButton.fontSize, fontFamily: nativeFontFamily(typography.labelButton, "400"), ...READING_START }}>
             {t(copyState === "copied" ? "handbook.spectrum.table.copied" : "handbook.spectrum.table.copy")}
           </Text>
         </Pressable>
@@ -140,7 +142,7 @@ export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumCo
        * flipping LTR on its first letter (B-7). */}
       {rows.map((row) => (
         <View key={row.labelKey} style={[styles.row, { borderColor: colors.border.default, padding: spacing[3], gap: spacing[1] }]}>
-          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, ...dirStyle }}>
+          <Text {...dirProps} style={{ color: colors.text.secondary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta), ...dirStyle }}>
             {t(row.labelKey)}
           </Text>
           <Text
@@ -148,6 +150,7 @@ export function SpectrumControlPointTable({ inputs, params, locale }: SpectrumCo
             style={{
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
               lineHeight: typography.bodyDefault.lineHeight,
               fontWeight: "600",
               ...dirStyle,

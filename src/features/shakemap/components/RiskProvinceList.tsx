@@ -6,6 +6,7 @@ import { localizeDigits } from "@/lib/format-numbers";
 import type { Theme } from "@/theme";
 import type { RiskDistrict } from "../types";
 import { RiskProvinceRow } from "./RiskProvinceRow";
+import { nativeFontFamily, READING_START } from "@/theme";
 
 export interface RiskProvinceListProps {
   districts: readonly RiskDistrict[];
@@ -49,6 +50,8 @@ export function RiskProvinceList({
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption),
+          ...READING_START,
           lineHeight: typography.labelCaption.lineHeight,
           fontWeight: typography.labelCaption.fontWeight,
         }}
@@ -81,6 +84,8 @@ export function RiskProvinceList({
             style={{
               color: colors.text.link,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta, "600"),
+              ...READING_START,
               fontWeight: "600",
             }}
           >

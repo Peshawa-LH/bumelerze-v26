@@ -5,7 +5,7 @@ import { Text, View, type LayoutChangeEvent } from "react-native";
 
 import { formatMagnitudeValue } from "@/features/events";
 import { isRTLLocale } from "@/i18n";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { lightColors } from "@/theme/semantic";
 
 import { MiniShakingMap } from "../MiniShakingMap";
@@ -55,6 +55,7 @@ export function SharePreview() {
             style={{
               color: lightColors.text.primary,
               fontSize: typography.h2.fontSize,
+              fontFamily: nativeFontFamily(typography.h2, "800"),
               fontWeight: "800",
               fontVariant: ["tabular-nums"],
               writingDirection: rtl ? "rtl" : "ltr",
@@ -95,6 +96,8 @@ export function SharePreview() {
               flex: 1,
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
+              ...READING_START,
             }}
           >
             {label}

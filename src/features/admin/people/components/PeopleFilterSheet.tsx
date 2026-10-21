@@ -6,7 +6,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import { HUB_ROLE_KINDS, type HubRoleKind } from "@/features/eventhub/types";
 import { toAsciiDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
   NO_FILTERS,
   PEOPLE_PLATFORMS,
@@ -14,6 +14,7 @@ import {
   type PeopleFilters,
 } from "../types";
 import { Sheet } from "./Sheet";
+import { ltrValueStyle } from "@/i18n";
 
 /** "2026-09-30" (Latin or Eastern Arabic-Indic digits) -> the start or end of
  * that local day as an ISO timestamp, or null when it is not a real date. */
@@ -74,6 +75,8 @@ export function PeopleFilterSheet({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const input = [
@@ -83,9 +86,9 @@ export function PeopleFilterSheet({
       borderColor: colors.border.default,
       backgroundColor: colors.surface.base,
       fontSize: typography.bodyDefault.fontSize,
+      fontFamily: nativeFontFamily(typography.bodyDefault),
       paddingHorizontal: spacing[3],
-      writingDirection: "ltr" as const,
-      textAlign: "left" as const,
+      ...ltrValueStyle(),
     },
   ];
   const set = <K extends keyof PeopleFilters>(key: K, value: PeopleFilters[K]) =>

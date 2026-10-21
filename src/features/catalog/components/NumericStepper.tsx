@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { parseFilterInput } from "../filter-input";
 
@@ -153,6 +153,8 @@ export function NumericStepper({
         style={{
           color: colors.text.secondary,
           fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+          ...READING_START,
           lineHeight: typography.labelCaption.lineHeight,
         }}
       >
@@ -173,7 +175,7 @@ export function NumericStepper({
           onPress={() => tap(-1)}
           style={[styles.button, { opacity: value <= min ? 0.4 : 1 }]}
         >
-          <Text style={{ color: colors.text.primary, fontSize: typography.h3.fontSize }}>
+          <Text style={{ color: colors.text.primary, fontSize: typography.h3.fontSize, fontFamily: nativeFontFamily(typography.h3, "400"), ...READING_START }}>
             −
           </Text>
         </Pressable>
@@ -197,6 +199,7 @@ export function NumericStepper({
             {
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
             },
           ]}
         />
@@ -209,7 +212,7 @@ export function NumericStepper({
           onPress={() => tap(1)}
           style={[styles.button, { opacity: value >= max ? 0.4 : 1 }]}
         >
-          <Text style={{ color: colors.text.primary, fontSize: typography.h3.fontSize }}>
+          <Text style={{ color: colors.text.primary, fontSize: typography.h3.fontSize, fontFamily: nativeFontFamily(typography.h3, "400"), ...READING_START }}>
             +
           </Text>
         </Pressable>

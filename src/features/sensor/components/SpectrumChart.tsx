@@ -3,7 +3,7 @@ import type { LayoutChangeEvent } from "react-native";
 import { StyleSheet, View } from "react-native";
 import Svg, { Line, Polyline, Text as SvgText } from "react-native-svg";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { axisColor } from "../colors";
 import type { ResponseSpectrum } from "../response-spectrum";
 import type { AxisKey } from "../types";
@@ -63,7 +63,14 @@ export function SpectrumChart({
       .join(" ");
   }
 
-  const tick = { fill: colors.text.tertiary, fontSize: typography.labelCaption.fontSize };
+  // react-native-svg: no `fontFamily` prop at all on the web and in
+  // Latin-script languages.
+  const tickFont = nativeFontFamily(typography.labelCaption, "400");
+  const tick = {
+    fill: colors.text.tertiary,
+    fontSize: typography.labelCaption.fontSize,
+    ...(tickFont ? { fontFamily: tickFont } : {}),
+  };
 
   return (
     <View

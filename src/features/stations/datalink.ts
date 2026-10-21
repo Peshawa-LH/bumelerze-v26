@@ -26,11 +26,12 @@ export function streamPattern(station: LiveStation): string {
 }
 
 /**
- * The pattern the native client matches with. EarthScope's ring (RingServer
- * 4.5, DataLink 1.1) names streams by FDSN source id, e.g.
- * `FDSN:MP_KIR1_00_H_H_Z/MSEED` (checked 2026-10-21), which
- * `streamPattern`'s older `NET_STA_LOC_CHAN` form does not match, so it
- * selects no stream there. This one accepts both forms.
+ * The pattern both clients match with (the name is from when only the
+ * native client used it). EarthScope's ring (RingServer 4.5, DataLink 1.1)
+ * names streams by FDSN source id, e.g. `FDSN:MP_KIR1_00_H_H_Z/MSEED`
+ * (checked 2026-10-21), which `streamPattern`'s older `NET_STA_LOC_CHAN`
+ * form does not match, so it selects no stream there: the web's live trace
+ * fell back to polling without a word. This one accepts both forms.
  */
 export function nativeStreamPattern(station: LiveStation): string {
   const chan = station.channel;
@@ -89,7 +90,7 @@ export function openStationStream(
         conn.close();
         return;
       }
-      await conn.match(streamPattern(station));
+      await conn.match(nativeStreamPattern(station));
       await conn.stream();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { isolateNumeric } from "@/features/events";
 import { isolateName } from "@/features/geo";
 import { directionProps, directionStyle } from "@/i18n";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import type { LiveStation, StationFreshness } from "../types";
 import { freshnessColor } from "./colors";
 
@@ -67,6 +67,7 @@ export function StationList({ stations, tiers, selectedId, onSelect }: StationLi
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault, selected ? "700" : "500"),
                   lineHeight: typography.bodyDefault.lineHeight,
                   fontWeight: selected ? "700" : "500",
                   ...dirStyle,
@@ -80,6 +81,7 @@ export function StationList({ stations, tiers, selectedId, onSelect }: StationLi
                 style={{
                   color: colors.text.secondary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "400"),
                   lineHeight: typography.labelCaption.lineHeight,
                   ...dirStyle,
                 }}

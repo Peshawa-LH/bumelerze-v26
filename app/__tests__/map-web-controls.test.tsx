@@ -77,7 +77,7 @@ jest.mock(
 );
 
 // eslint-disable-next-line import/first -- see comment above
-import MapScreenWeb from "../(tabs)/(map)/map.web";
+import MapScreenWeb from "@/features/map/WebMapTab.web";
 
 const ORIGINAL_INNER_WIDTH = window.innerWidth;
 

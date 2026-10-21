@@ -1,10 +1,10 @@
 import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { formatAbsoluteDual, isolateNumeric, type Event } from "@/features/events";
+import { formatAbsoluteDual, isolateLocalizedTime, type Event } from "@/features/events";
 import { placeLine } from "@/features/geo";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useResolvedShakeMap } from "../live-queries";
 import type { DataUsedSummaryKey } from "../types";
 import { ShakeMapView } from "./ShakeMapView";
@@ -67,12 +67,16 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
   const titleStyle = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption),
+    ...READING_START,
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
   } as const;
   const bodyStyle = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
+    ...READING_START,
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -124,7 +128,7 @@ export function ShakeMapSection({ event }: ShakeMapSectionProps) {
       />
       <View style={{ gap: spacing[1] }}>
         <Text style={bodyStyle}>
-          {t("eventDetail.shakemap.updated", { time: isolateNumeric(generatedLocal) })}
+          {t("eventDetail.shakemap.updated", { time: isolateLocalizedTime(generatedLocal) })}
         </Text>
         {/* Citation only, same "cite, never link out" owner rule as the
          * event Source section below this one — producer is ALWAYS

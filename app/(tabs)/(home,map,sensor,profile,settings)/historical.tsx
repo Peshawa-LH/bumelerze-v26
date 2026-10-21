@@ -11,8 +11,8 @@ import {
   sortNewestFirst,
   type NotableHistoricalEvent,
 } from "@/features/historical";
-import { isRTLLocale } from "@/i18n";
-import { useTheme } from "@/theme";
+import { isRTLLocale, physicalTextAlign } from "@/i18n";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /**
@@ -74,16 +74,22 @@ export default function HistoricalScreen() {
             // removed). A trailing chevron (mirrored for RTL below) plus
             // start-aligned text reads as a real navigation destination
             // rather than a plain button, matching the owner's ask for a
-            // clearer affordance now that it's carrying more weight.
+            // clearer affordance now that it's carrying more weight. A plain
+            // `row`: the layout already runs right to left in Sorani and
+            // Arabic (the page's `dir` on the web, the native layout on the
+            // phone), so the text sits at the right and the chevron at the
+            // end, the left. `row-reverse` picked by locale flipped it back
+            // and put the chevron first, on both.
             <Pressable
               accessibilityRole="button"
+              testID="historical-catalog-link"
               onPress={() => router.push("/catalog")}
               style={[
                 styles.catalogLink,
                 {
                   borderColor: colors.border.default,
                   padding: spacing[4],
-                  flexDirection: isRTL ? "row-reverse" : "row",
+                  flexDirection: "row",
                 },
               ]}
             >
@@ -92,8 +98,9 @@ export default function HistoricalScreen() {
                   flex: 1,
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelButton),
                   fontWeight: typography.labelButton.fontWeight,
-                  textAlign: isRTL ? "right" : "left",
+                  textAlign: physicalTextAlign(isRTL ? "right" : "left"),
                 }}
               >
                 {t("historical.catalogLink")}

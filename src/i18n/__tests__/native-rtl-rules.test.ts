@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join, relative } from "path";
+import ts from "typescript";
 
 /**
  * Static rules for direction and dates that only fail on a phone (iOS
@@ -10,9 +11,14 @@ import { join, relative } from "path";
  *    `directionStyle` or `ltrValueStyle` (`src/i18n/index.ts`). iOS and
  *    Android swap a bare `textAlign: "left"`/`"right"` under a right-to-left
  *    layout, and a side picked by locale ("right" for Sorani) flips twice.
- *    The sites below predate the rule and are fixed in the closing sweep of
- *    the iOS parity work (batch b, phase 2): the list may only shrink.
- * 2. Dates and times go through `src/features/events/format.ts`. Hermes on
+ *    The sites that predated the rule were moved in the closing sweep of the
+ *    iOS parity work (batch b, phase 2): none is left.
+ * 2. A `Text` styled inline with a size of its own (not the whole type
+ *    token, which carries `READING_START`) states its alignment. Without
+ *    one, iOS aligns it by the app's iOS language, which only follows a
+ *    language picked in the app after the next cold start: right after the
+ *    switch, Sorani paragraphs sat on the left under right-aligned headings.
+ * 3. Dates and times go through `src/features/events/format.ts`. Hermes on
  *    iOS answers `Intl` in the locale's own digits whatever `-u-nu-latn`
  *    says (Sorani dates read "NaN months.short.NaN") and has no Sorani or
  *    Kurmanji month names, so `toLocaleString(locale)` and friends, and
@@ -45,7 +51,7 @@ const FILES = SCAN_DIRS.flatMap((dir) => collect(join(ROOT, dir))).map((file) =>
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/(^|[^:])\/\/.*$/gm, "$1")
     // Sides handed to the helper are fine.
-    .replace(/physicalTextAlign\([^)]*\)/g, "physicalTextAlign()"),
+    .replace(/physicalTextAlign\((?:[^()]|\([^()]*\))*\)/g, "physicalTextAlign()"),
 }));
 
 function countMatches(pattern: RegExp): Record<string, number> {
@@ -59,41 +65,17 @@ function countMatches(pattern: RegExp): Record<string, number> {
   return counts;
 }
 
-/** Bare physical sides and sides picked by locale, per file, still to be
- * moved to the helpers (phase 2). Keep in step: remove an entry when its
- * file is fixed. */
-const PHYSICAL_ALIGN_PHASE_2: Record<string, number> = {
-  "app/(tabs)/(home,map,sensor,profile,settings)/historical.tsx": 3,
-  "src/features/account/components/AuthField.tsx": 1,
-  "src/features/account/components/ProfileForm.tsx": 1,
-  "src/features/account/components/ProfileHeader.tsx": 2,
-  "src/features/admin/components/ActivityContent.tsx": 1,
-  "src/features/admin/components/ActivityRow.tsx": 1,
-  "src/features/admin/components/HiddenRemovedContent.tsx": 1,
-  "src/features/admin/components/PostCommentQueueSection.tsx": 1,
-  "src/features/admin/components/ReportedPostsSection.tsx": 1,
-  "src/features/admin/components/ReportedProfilesSection.tsx": 1,
-  "src/features/admin/inbox/components/FeedbackDetailContent.tsx": 1,
-  "src/features/admin/people/components/PeopleContent.tsx": 1,
-  "src/features/admin/people/components/PeopleFilterSheet.tsx": 1,
-  "src/features/admin/people/components/PersonContent.tsx": 3,
-  "src/features/admin/people/components/PersonRowItem.tsx": 2,
-  "src/features/authority/components/OfficialsContent.tsx": 1,
-  "src/features/building/components/FamilyScreen.tsx": 1,
-  "src/features/building/components/ui.tsx": 1,
-  "src/features/community/components/PersonRow.tsx": 1,
-  "src/features/community/components/PublicProfileView.tsx": 1,
-  "src/features/eventhub/carousel/slides.tsx": 2,
-  "src/features/mentions/components/MentionSuggestions.tsx": 1,
-  "src/features/restrictions/components/LimitAccountSheet.tsx": 1,
-};
+/** Bare physical sides and sides picked by locale. The closing sweep of the
+ * iOS parity work (2026-10-21) moved the last of them to the helpers: the
+ * list is empty and stays so. */
+const PHYSICAL_ALIGN_PHASE_2: Record<string, number> = {};
 
 describe("native direction and date rules (source scan)", () => {
   it("scans the app", () => {
     expect(FILES.length).toBeGreaterThan(300);
   });
 
-  it("[regression] physical textAlign only through the helpers (the known sites may only shrink)", () => {
+  it("[regression] physical textAlign only through the helpers (no site left)", () => {
     const literal = /textAlign:[^,}\n]*["'](?:left|right)["']/g;
     const pickedByLocale = /\?\s*["'](?:left|right)["']\s*:\s*["'](?:left|right)["']/g;
     const reverseByLocale =
@@ -111,6 +93,97 @@ describe("native direction and date rules (source scan)", () => {
     // physical sides are meant literally and iOS does not swap them.
     delete counts["src/features/share/ShareCardSvg.tsx"];
     expect(counts).toEqual(PHYSICAL_ALIGN_PHASE_2);
+  });
+
+  it("[regression] a Text styled inline with its own size states its alignment (READING_START)", () => {
+    // Files the notifications batch owns: a follow-up sweep after it merges.
+    const pending =
+      /^(src\/features\/(alerts|notifications)\/|app\/onboarding\/notifications\.tsx$|app\/\(tabs\)\/[^/]+\/notification-settings\.tsx$)/;
+    // Runs of a share-card string, built in a variable and rendered inside
+    // that string's own Text: an alignment on a run overrode the parent's
+    // (the hub card's "٣.٢ پلە" lost its side and its unit word).
+    const nestedElsewhere = ["src/features/share/ShareCardSvg.tsx"];
+    const isText = (tag: string) => tag === "Text" || tag === "Animated.Text";
+    const offenders: string[] = [];
+    for (const { path } of FILES) {
+      if (
+        !path.endsWith(".tsx") ||
+        pending.test(path) ||
+        nestedElsewhere.includes(path)
+      ) {
+        continue;
+      }
+      const source = readFileSync(join(ROOT, path), "utf8");
+      const file = ts.createSourceFile(
+        path,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TSX,
+      );
+      const insideText = (element: ts.Node): boolean => {
+        for (let node = element.parent; node; node = node.parent) {
+          if (
+            ts.isJsxElement(node) &&
+            node !== element.parent &&
+            isText(node.openingElement.tagName.getText(file))
+          ) {
+            return true;
+          }
+          if (!(
+            ts.isJsxElement(node) ||
+            ts.isJsxFragment(node) ||
+            ts.isJsxExpression(node) ||
+            ts.isParenthesizedExpression(node) ||
+            ts.isConditionalExpression(node) ||
+            ts.isBinaryExpression(node)
+          )) {
+            return false;
+          }
+        }
+        return false;
+      };
+      const visit = (node: ts.Node): void => {
+        if (
+          ts.isJsxAttribute(node) &&
+          node.name.getText(file) === "style" &&
+          node.initializer &&
+          ts.isJsxExpression(node.initializer) &&
+          node.initializer.expression &&
+          ts.isObjectLiteralExpression(node.initializer.expression)
+        ) {
+          const element = node.parent.parent;
+          const names = node.initializer.expression.properties.map((property) =>
+            ts.isSpreadAssignment(property)
+              ? "..."
+              : (property.name?.getText(file) ?? ""),
+          );
+          if (
+            isText(element.tagName.getText(file)) &&
+            names.includes("fontSize") &&
+            !names.some(
+              (name) =>
+                name === "textAlign" || name === "writingDirection" || name === "...",
+            ) &&
+            !insideText(element)
+          ) {
+            const { line } = file.getLineAndCharacterOfPosition(node.getStart(file));
+            offenders.push(`${path}:${line + 1}`);
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(file);
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("[regression] a localized date or time is isolated in its own direction (isolateLocalizedTime), never forced left to right", () => {
+    // U+2066 (isolateNumeric) lays a date out left to right: a Latin run in a
+    // Sorani or Arabic date ("UTC") then lands at the wrong end of it.
+    const forced =
+      /isolateNumeric\(\s*(?:formatClockTime|formatAbsoluteDual|formatAbsoluteOne|formatDateOnly|[A-Za-z]*(?:Local|TimeText)\b)/g;
+    expect(countMatches(forced)).toEqual({});
   });
 
   it("[regression] no locale-dependent toLocaleString / toLocaleDateString / toLocaleTimeString", () => {
