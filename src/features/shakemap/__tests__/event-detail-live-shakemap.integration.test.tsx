@@ -43,7 +43,16 @@ function buildFakeSupabaseClient(row: Record<string, unknown> | null) {
   const eq2 = jest.fn(() => ({ eq: eq3 }));
   const eq1 = jest.fn(() => ({ eq: eq2 }));
   const select = jest.fn(() => ({ eq: eq1 }));
-  const from = jest.fn(() => ({ select }));
+  // The registry read the lookup makes first: this event is known.
+  const known = {
+    maybeSingle: () => ({
+      retry: async () => ({ data: { event_id: INTERNAL_UUID }, error: null }),
+    }),
+  };
+  const registry = { eq: () => ({ eq: () => known }) };
+  const from = jest.fn((table: string) =>
+    table === "event_source_records" ? { select: () => registry } : { select },
+  );
   const rpc = jest.fn().mockResolvedValue({ data: INTERNAL_UUID, error: null });
   return { rpc, from };
 }

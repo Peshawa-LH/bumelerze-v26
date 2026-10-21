@@ -30,11 +30,20 @@ import { shouldPersistQuery } from "@/lib/persist-filter";
 
 import { useEventUuidResult } from "../use-event-uuid";
 
+/** The registry as the lookup asks it: a read of the event's source record
+ * (`event_source_records`), and the registration RPC for an event it does
+ * not know yet. */
+const mockRegistryRead = jest.fn();
 const mockRpc = jest.fn();
+const mockRegistryQuery = {
+  select: () => mockRegistryQuery,
+  eq: () => mockRegistryQuery,
+  maybeSingle: () => ({ retry: () => mockRegistryRead() }),
+};
 
 jest.mock("@/lib/supabase", () => ({
   ...jest.requireActual("@/lib/supabase"),
-  getSupabaseClient: () => ({ rpc: mockRpc }),
+  getSupabaseClient: () => ({ rpc: mockRpc, from: () => mockRegistryQuery }),
 }));
 
 /** The key `createEventsPersister` saves under (events/queries.ts). */
@@ -68,13 +77,14 @@ function event(providerId: string): Event {
 
 /** What supabase-js answers when the request never reaches the server. */
 function registryUnreachable(): void {
-  mockRpc.mockResolvedValue({
-    data: null,
-    error: { message: "TypeError: Network request failed" },
-  });
+  const offline = { data: null, error: { message: "TypeError: Network request failed" } };
+  mockRegistryRead.mockResolvedValue(offline);
+  mockRpc.mockResolvedValue(offline);
 }
 
+/** The registry knows the event: the read finds its id. */
 function registryAnswers(id: string): void {
+  mockRegistryRead.mockResolvedValue({ data: { event_id: id }, error: null });
   mockRpc.mockResolvedValue({ data: id, error: null });
 }
 
@@ -174,6 +184,7 @@ async function seedSavedLookup(
 beforeEach(async () => {
   await AsyncStorage.clear();
   onlineManager.setOnline(true);
+  mockRegistryRead.mockReset();
   mockRpc.mockReset();
 });
 
@@ -224,7 +235,7 @@ describe("useEventUuidResult after a failed lookup", () => {
       wrapper: persistedWrapper(secondStart),
     });
     await waitFor(() => expect(second.result.current.uuid).toBe(REGISTRY_ID));
-    expect(mockRpc).toHaveBeenCalled();
+    expect(mockRegistryRead).toHaveBeenCalled();
     await second.unmount();
   });
 
@@ -253,9 +264,9 @@ describe("useEventUuidResult after a failed lookup", () => {
     });
     await waitFor(() => expect(result.current.uuid).toBe(REGISTRY_ID));
     // A found id is never looked up again by itself; ask anyway.
-    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockRegistryRead).not.toHaveBeenCalled();
     await client.invalidateQueries({ queryKey: ["event-uuid"] });
-    expect(mockRpc).toHaveBeenCalled();
+    expect(mockRegistryRead).toHaveBeenCalled();
 
     expect(client.getQueryState(["event-uuid", "usgs", "us_saved_id"])).toEqual(
       expect.objectContaining({ status: "error", data: REGISTRY_ID }),
