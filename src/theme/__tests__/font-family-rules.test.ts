@@ -35,21 +35,6 @@ function collect(dir: string, files: string[] = []): string[] {
   return files;
 }
 
-/** Files the notifications batch owns: it runs in parallel with this rule's
- * sweep, and a short follow-up sweep adds their families after it merges
- * (whole files, so that batch's own edits cannot make this test fail on a
- * count). The list may only shrink. */
-const PENDING_NOTIFICATIONS_BATCH = [
-  "app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx",
-  "src/features/alerts/components/AlertsAdminContent.tsx",
-  "src/features/alerts/components/AlertsComingSoonNote.tsx",
-  "src/features/alerts/components/AlertsPreferenceNotes.tsx",
-  "src/features/alerts/components/AlertsTesterPanel.tsx",
-  "src/features/notifications/components/PermissionDeniedRow.tsx",
-  "src/features/notifications/components/RehearsalAlertModal.tsx",
-  "src/features/notifications/components/TierSelector.tsx",
-];
-
 function stylesWithoutFamily(): Record<string, number> {
   const counts: Record<string, number> = {};
   const files = ["app", "src"].flatMap((dir) => collect(join(ROOT, dir)));
@@ -98,11 +83,7 @@ function stylesWithoutFamily(): Record<string, number> {
 
 describe("font family rules", () => {
   it("[regression] every fontSize taken from a type token names its font family (Vazirmatn on iOS/Android)", () => {
-    const missing = stylesWithoutFamily();
-    for (const path of PENDING_NOTIFICATIONS_BATCH) {
-      delete missing[path];
-    }
-    expect(missing).toEqual({});
+    expect(stylesWithoutFamily()).toEqual({});
   });
 });
 

@@ -34,7 +34,7 @@ import {
 import { usePrefsStore, type NotificationTier } from "@/features/onboarding";
 import { SafeAudienceSection } from "@/features/safe";
 import { confirmDialog } from "@/lib/dialogs";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
 /** Fixed example event for the rehearsal buttons (the v1 spec §4.10/B8) —
@@ -201,6 +201,7 @@ export default function NotificationSettingsScreen() {
             style={{
               color: colors.text.primary,
               fontSize: typography.h2.fontSize,
+              fontFamily: nativeFontFamily(typography.h2),
               lineHeight: typography.h2.lineHeight,
               fontWeight: typography.h2.fontWeight,
             }}
@@ -211,6 +212,7 @@ export default function NotificationSettingsScreen() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >
@@ -230,6 +232,7 @@ export default function NotificationSettingsScreen() {
             style={{
               color: colors.text.primary,
               fontSize: typography.h2.fontSize,
+              fontFamily: nativeFontFamily(typography.h2),
               lineHeight: typography.h2.lineHeight,
               fontWeight: typography.h2.fontWeight,
             }}
@@ -240,6 +243,7 @@ export default function NotificationSettingsScreen() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >
@@ -255,6 +259,7 @@ export default function NotificationSettingsScreen() {
                     style={{
                       color: colors.text.primary,
                       fontSize: typography.bodyDefault.fontSize,
+                      fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
                       fontWeight: "600",
                     }}
                   >
@@ -264,6 +269,7 @@ export default function NotificationSettingsScreen() {
                     style={{
                       color: colors.text.tertiary,
                       fontSize: typography.labelCaption.fontSize,
+                      fontFamily: nativeFontFamily(typography.labelCaption, "400"),
                     }}
                   >
                     {placeDetailLine(currentPlace, i18n.language, t)}
@@ -281,6 +287,7 @@ export default function NotificationSettingsScreen() {
                       style={{
                         color: colors.text.link,
                         fontSize: typography.labelButton.fontSize,
+                        fontFamily: nativeFontFamily(typography.labelButton),
                         fontWeight: typography.labelButton.fontWeight,
                       }}
                     >
@@ -298,6 +305,7 @@ export default function NotificationSettingsScreen() {
                       style={{
                         color: colors.text.link,
                         fontSize: typography.labelButton.fontSize,
+                        fontFamily: nativeFontFamily(typography.labelButton),
                         fontWeight: typography.labelButton.fontWeight,
                       }}
                     >
@@ -334,6 +342,7 @@ export default function NotificationSettingsScreen() {
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
                   fontWeight: "600",
                 }}
               >
@@ -355,6 +364,7 @@ export default function NotificationSettingsScreen() {
             style={{
               color: colors.text.primary,
               fontSize: typography.h2.fontSize,
+              fontFamily: nativeFontFamily(typography.h2),
               lineHeight: typography.h2.lineHeight,
               fontWeight: typography.h2.fontWeight,
             }}
@@ -365,6 +375,7 @@ export default function NotificationSettingsScreen() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >
@@ -383,6 +394,7 @@ export default function NotificationSettingsScreen() {
               style={{
                 color: colors.text.primary,
                 fontSize: typography.bodyDefault.fontSize,
+                fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
                 fontWeight: "600",
               }}
             >
@@ -403,6 +415,7 @@ export default function NotificationSettingsScreen() {
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault, "600"),
                   fontWeight: "600",
                 }}
               >
@@ -420,6 +433,7 @@ export default function NotificationSettingsScreen() {
             style={{
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault, "700"),
               lineHeight: typography.bodyDefault.lineHeight,
               fontWeight: "700",
             }}
@@ -430,6 +444,7 @@ export default function NotificationSettingsScreen() {
             style={{
               color: colors.text.secondary,
               fontSize: typography.bodyMeta.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyMeta),
               lineHeight: typography.bodyMeta.lineHeight,
             }}
           >

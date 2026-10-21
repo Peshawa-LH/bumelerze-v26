@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { gazetteerPlaceById, placeDisplayName, usePlaceIndex } from "@/features/geo";
 import { isolateName } from "@/features/geo/place-detail";
 import { usePrefsStore } from "@/features/onboarding";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import { useAlertPreferencesPayload } from "../prefs-sync";
 
@@ -13,6 +13,7 @@ function useMetaStyle() {
   return {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 }

@@ -2,7 +2,7 @@ import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 interface RehearsalAlertModalProps {
   visible: boolean;
@@ -84,6 +84,7 @@ export function RehearsalAlertModal({
               style={{
                 color: colors.text.secondary,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption, "400"),
                 flex: 1,
               }}
             >
@@ -93,6 +94,7 @@ export function RehearsalAlertModal({
               style={{
                 color: colors.text.tertiary,
                 fontSize: typography.labelCaption.fontSize,
+                fontFamily: nativeFontFamily(typography.labelCaption, "400"),
               }}
             >
               {t("events.relativeTime.justNow")}
@@ -108,6 +110,7 @@ export function RehearsalAlertModal({
                 style={{
                   color: colors.text.link,
                   fontSize: typography.labelButton.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelButton),
                   fontWeight: typography.labelButton.fontWeight,
                 }}
               >
@@ -121,6 +124,7 @@ export function RehearsalAlertModal({
             style={{
               color: colors.text.primary,
               fontSize: typography.h3.fontSize,
+              fontFamily: nativeFontFamily(typography.h3, "700"),
               lineHeight: typography.h3.lineHeight,
               fontWeight: "700",
             }}
@@ -132,6 +136,7 @@ export function RehearsalAlertModal({
             style={{
               color: colors.text.primary,
               fontSize: typography.bodyDefault.fontSize,
+              fontFamily: nativeFontFamily(typography.bodyDefault),
               lineHeight: typography.bodyDefault.lineHeight,
             }}
           >

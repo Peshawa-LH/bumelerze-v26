@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatDateOnly } from "@/features/events";
 import { formatIntegerLocalized } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import { useMyAlertDevices } from "../queries";
 import { SupabaseAlertsTransport, toAlertsError, type AlertsTransport } from "../transport";
@@ -69,6 +69,7 @@ export function AlertsTesterPanel({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -85,6 +86,7 @@ export function AlertsTesterPanel({
                 style={{
                   color: colors.brand.primary,
                   fontSize: typography.labelCaption.fontSize,
+                  fontFamily: nativeFontFamily(typography.labelCaption, "700"),
                   fontWeight: "700",
                 }}
               >
@@ -150,6 +152,7 @@ function StatusLine({ tone, text, testID }: { tone: Tone; text: string; testID: 
           flex: 1,
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3, "700"),
           lineHeight: typography.h3.lineHeight,
           fontWeight: "700",
         }}
@@ -168,6 +171,7 @@ function Body({ children, testID }: { children: React.ReactNode; testID?: string
       style={{
         color: colors.text.secondary,
         fontSize: typography.bodyDefault.fontSize,
+        fontFamily: nativeFontFamily(typography.bodyDefault),
         lineHeight: typography.bodyDefault.lineHeight,
       }}
     >
@@ -185,6 +189,7 @@ function ErrorText({ text }: { text: string }) {
       style={{
         color: colors.status.danger,
         fontSize: typography.bodyDefault.fontSize,
+        fontFamily: nativeFontFamily(typography.bodyDefault),
         lineHeight: typography.bodyDefault.lineHeight,
       }}
       testID="alerts-device-error"
@@ -242,7 +247,7 @@ function DeviceStatus({
           {steps.map((step, index) => (
             <View key={step} style={[styles.stepRow, { gap: spacing[2] }]}>
               <View style={[styles.stepNumber, { backgroundColor: colors.brand.primary }]}>
-                <Text style={{ color: colors.brand.onPrimary, fontSize: typography.bodyMeta.fontSize, fontWeight: "700" }}>
+                <Text style={{ color: colors.brand.onPrimary, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta, "700"), fontWeight: "700" }}>
                   {formatIntegerLocalized(index + 1, i18n.language)}
                 </Text>
               </View>
@@ -251,6 +256,7 @@ function DeviceStatus({
                   flex: 1,
                   color: colors.text.primary,
                   fontSize: typography.bodyDefault.fontSize,
+                  fontFamily: nativeFontFamily(typography.bodyDefault),
                   lineHeight: typography.bodyDefault.lineHeight,
                 }}
               >
@@ -365,6 +371,7 @@ function TestAlert({ transport }: { transport: AlertsTransport }) {
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3),
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -385,6 +392,7 @@ function TestAlert({ transport }: { transport: AlertsTransport }) {
           style={{
             color: state === "sent" ? colors.text.primary : colors.status.danger,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             lineHeight: typography.bodyDefault.lineHeight,
           }}
         >
@@ -432,6 +440,7 @@ function DeviceList({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
 
@@ -460,6 +469,7 @@ function DeviceList({
         style={{
           color: colors.text.primary,
           fontSize: typography.h3.fontSize,
+          fontFamily: nativeFontFamily(typography.h3),
           lineHeight: typography.h3.lineHeight,
           fontWeight: typography.h3.fontWeight,
         }}
@@ -488,12 +498,12 @@ function DeviceList({
           >
             <View style={{ flex: 1, gap: spacing[1] }}>
               <View style={[styles.row, { gap: spacing[2] }]}>
-                <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize, fontWeight: "600" }}>
+                <Text style={{ color: colors.text.primary, fontSize: typography.bodyDefault.fontSize, fontFamily: nativeFontFamily(typography.bodyDefault, "600"), fontWeight: "600" }}>
                   {name}
                 </Text>
                 {isThis ? (
                   <View style={[styles.chip, { borderColor: colors.status.success, paddingHorizontal: spacing[2] }]}>
-                    <Text style={{ color: colors.text.primary, fontSize: typography.labelCaption.fontSize, fontWeight: "700" }}>
+                    <Text style={{ color: colors.text.primary, fontSize: typography.labelCaption.fontSize, fontFamily: nativeFontFamily(typography.labelCaption, "700"), fontWeight: "700" }}>
                       {t("alerts.devices.thisDevice")}
                     </Text>
                   </View>
@@ -528,6 +538,7 @@ function DeviceList({
                   style={{
                     color: colors.text.link,
                     fontSize: typography.labelButton.fontSize,
+                    fontFamily: nativeFontFamily(typography.labelButton),
                     fontWeight: typography.labelButton.fontWeight,
                     opacity: removing === item.id ? 0.5 : 1,
                   }}
@@ -579,6 +590,7 @@ function ActionButton({
         style={{
           color: primary ? colors.brand.onPrimary : colors.text.primary,
           fontSize: typography.labelButton.fontSize,
+          fontFamily: nativeFontFamily(typography.labelButton, "700"),
           fontWeight: "700",
           textAlign: "center",
         }}

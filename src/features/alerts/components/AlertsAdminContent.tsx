@@ -9,7 +9,7 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatAbsoluteDual } from "@/features/events/format";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
-import { useTheme } from "@/theme";
+import { useTheme, nativeFontFamily } from "@/theme";
 
 import { useAlertsAdminActions, useAlertsOverview } from "../queries";
 import { SupabaseAlertsTransport, toAlertsError, type AlertsTransport } from "../transport";
@@ -43,11 +43,13 @@ export function AlertsAdminContent({
   const meta = {
     color: colors.text.secondary,
     fontSize: typography.bodyMeta.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyMeta),
     lineHeight: typography.bodyMeta.lineHeight,
   } as const;
   const body = {
     color: colors.text.primary,
     fontSize: typography.bodyDefault.fontSize,
+    fontFamily: nativeFontFamily(typography.bodyDefault),
     lineHeight: typography.bodyDefault.lineHeight,
   } as const;
 
@@ -231,7 +233,7 @@ export function AlertsAdminContent({
       ) : null}
 
       {errorText ? (
-        <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize }}>
+        <Text accessibilityRole="alert" style={{ color: colors.status.danger, fontSize: typography.bodyMeta.fontSize, fontFamily: nativeFontFamily(typography.bodyMeta) }}>
           {errorText}
         </Text>
       ) : null}
@@ -262,6 +264,7 @@ function AddTester({ busy, onAdd }: { busy: boolean; onAdd: (username: string) =
             borderColor: colors.border.default,
             backgroundColor: colors.surface.base,
             fontSize: typography.bodyDefault.fontSize,
+            fontFamily: nativeFontFamily(typography.bodyDefault),
             paddingHorizontal: spacing[3],
           },
         ]}
