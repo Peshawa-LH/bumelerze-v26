@@ -139,7 +139,7 @@ const caucasus = [...earth.values()].filter((st) => ["A2", "A0", "AB", "GO"].inc
 // page of other people's Shakes.
 {
   const keso = await raspberryShake("AM", "R079D", "00", "EHZ");
-  picked.push({ ...keso, name: "Hawler, TIU", distanceKmFromErbil: Math.round(km(ERBIL, keso)), country: "IQ", operator: "Kurdistan Educational Seismic Observatory, Tishk International University", credit: "Kurdistan Educational Seismic Observatory via Raspberry Shake", host: "tiu" });
+  picked.push({ ...keso, name: "Hawler, TIU", distanceKmFromErbil: Math.round(km(ERBIL, keso)), country: "IQ", operator: "Kurdistan Educational Seismic Observatory, Tishk International University", credit: "Kurdistan Educational Seismic Observatory via Raspberry Shake, S.A.", host: "tiu" });
 }
 for (const st of caucasus) picked.push({ ...withName(st), country: st.net === "AB" ? "AZ" : st.net === "GO" ? "GE" : "AM", operator: st.net === "AB" ? "RSSC Azerbaijan" : st.net === "GO" ? "NSMC Georgia" : "NSSP Armenia", credit: "via EarthScope" });
 

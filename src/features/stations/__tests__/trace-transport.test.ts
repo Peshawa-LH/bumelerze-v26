@@ -92,7 +92,7 @@ describe("Raspberry Shake (delayed archive) transport", () => {
     service: "raspberryshake",
     country: "IQ",
     operator: "Kurdistan Educational Seismic Observatory, Tishk International University",
-    credit: "Kurdistan Educational Seismic Observatory via Raspberry Shake",
+    credit: "Kurdistan Educational Seismic Observatory via Raspberry Shake, S.A.",
     distanceKmFromErbil: 7,
     lastSeenAt: null,
   };

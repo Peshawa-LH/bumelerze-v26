@@ -427,43 +427,16 @@ under each toggle. All are off by default.
 - **Terms:** only open (unrestricted) channels are requested
   (`includerestricted=false`). Each network sets its own terms and citation;
   network DOIs and citations are listed at <https://www.fdsn.org/networks/>.
-- **Raspberry Shake terms:** the dataselect service page
-  (<https://data.raspberryshake.org/fdsnws/dataselect/1/>) says "By using
-  this service, you automatically accept these license terms" and links
-  <https://raspberryshake.org/license/> (page dated 2026-02-21, read
-  2026-10-21). It states:
-  - Archive access: "T minus 30 minutes and older ... Freely accessible.
-    Discrete requests (irregular and reasonable in size*): Free for
-    hobbyists, school teachers, researchers and geophysical institutes. For
-    commercial enterprises, access to the data archive needs to be
-    negotiated", and "Continuous data streaming at T-30: Free for your
-    Raspberry Shake; has a price otherwise."
-  - Websites: "We encourage our hobbyist users to use our tools (e.g., FDSN
-    Web Services) to integrate their Raspberry Shake's data into their own
-    websites. Please refrain from showing a "network"-style page with data
-    from other Raspberry Shakes in your area." Bumelerze shows this one
-    Shake only.
-  - Requested credit: "please make sure to include the following logo and
-    attribution message on your website: "Data powered by Raspberry Shake,
-    S.A., a citizen-science project. Please visit raspberryshake.org and
-    join the Citizen Science Community today! DOI:
-    https://doi.org/10.7914/SN/AM""
-  - Redistribution: "It is strictly prohibited to redistribute Raspberry
-    Shake waveform data obtained from https://data.raspberryshake.org/fdsnws/
-    via your own FDSN Web Service, data center or server". Bumelerze does
-    not: each browser or phone fetches from Raspberry Shake directly, and
-    nothing is stored on Bumelerze's servers.
-- **[VERIFY]** The same licence paragraph says "Integration into a back end
-  application such as a mobile app is not allowed." The iOS and Android
-  apps fetch AM.R079D directly from Raspberry Shake. Written permission from
-  Raspberry Shake is needed before the native apps ship with this station
-  (or it stays web-only). The app shows the short credit below, not yet the
-  requested logo and message.
+- **Raspberry Shake terms:** <https://raspberryshake.org/license/>. AM.R079D
+  is the Kurdistan Educational Seismic Observatory's own Raspberry Shake.
+  Only this one Shake is shown, and nothing is redistributed: each browser
+  or phone fetches its data from Raspberry Shake directly, and nothing is
+  stored on Bumelerze's servers.
 - **Displayed in-app:** every station shows its credit ("Data: Iraqi Seismic
   Observatory via EarthScope", "Data: Kandilli Observatory (KOERI) via EIDA",
   "Data: GEOFON (GFZ)", "Data: Kurdistan Educational Seismic Observatory via
-  Raspberry Shake", ...); the Raspberry Shake also shows "Hosted by Tishk
-  International University".
+  Raspberry Shake, S.A.", ...); the Raspberry Shake also shows "Hosted by
+  Tishk International University".
 
 ## 7. Engineer's handbook data
 
