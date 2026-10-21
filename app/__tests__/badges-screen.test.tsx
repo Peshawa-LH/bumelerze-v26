@@ -78,6 +78,10 @@ describe("All badges screen", () => {
     expect(screen.getByText("Engineer", { includeHiddenElements: true })).toBeTruthy();
     expect(screen.getByText("Home tagged", { includeHiddenElements: true })).toBeTruthy();
     expect(screen.getByLabelText("Engineer, locked")).toBeTruthy();
+    expect(
+      screen.getByText("Government official", { includeHiddenElements: true }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText("Government official, locked")).toBeTruthy();
     expect(screen.getByLabelText("Home tagged, locked, 0 of 1")).toBeTruthy();
     expect(screen.queryByTestId("badge-role-official")).toBeNull();
     expect(screen.queryByTestId("badge-role-moderator")).toBeNull();

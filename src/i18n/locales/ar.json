@@ -1656,6 +1656,7 @@
       "close": "إغلاق",
       "roleRule": "يمنحها فريق ⁦Bumelerze⁩.",
       "requestRule": "تمنحها ⁦Bumelerze⁩ للخبراء الموثّقين.",
+      "requestRuleAuthority": "تمنحها ⁦Bumelerze⁩ لموظفي الحكومة الموثّقين.",
       "request": "اطلب هذه الشارة",
       "a11yLockedRank": "{{name}}، مقفلة",
       "a11yEarned": "{{name}}، تم الحصول عليها",

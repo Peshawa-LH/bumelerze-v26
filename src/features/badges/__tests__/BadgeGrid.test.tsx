@@ -163,18 +163,47 @@ describe("BadgeGrid: requestable ranks (own account page)", () => {
   });
   afterEach(cleanup);
 
-  it("shows the four requestable ranks locked in the same grid, with no separate Ranks heading", async () => {
+  it("shows the five requestable ranks locked in the same grid, with no separate Ranks heading", async () => {
     await renderGrid({}, [], true);
     await showAll();
     expect(screen.queryByText("Ranks")).toBeNull();
-    for (const role of ["seismologist", "professor", "researcher", "engineer"]) {
+    for (const role of [
+      "seismologist",
+      "professor",
+      "researcher",
+      "engineer",
+      "authority",
+    ]) {
       expect(screen.getByTestId(`badge-role-${role}`)).toBeTruthy();
     }
     expect(screen.getByLabelText("Seismologist, locked")).toBeTruthy();
-    // 9 milestones (all locked) + 4 ranks, each with a lock dot.
+    expect(screen.getByLabelText("Government official, locked")).toBeTruthy();
+    // 9 milestones (all locked) + 5 ranks, each with a lock dot.
     expect(
       screen.getAllByTestId("badge-lock", { includeHiddenElements: true }),
-    ).toHaveLength(13);
+    ).toHaveLength(14);
+  });
+
+  it("Government official: locked and grey until held, with its own rule, then earned like the others", async () => {
+    await renderGrid({}, [], true);
+    await showAll();
+    await fireEvent.press(screen.getByTestId("badge-role-authority"));
+    expect(screen.getByTestId("badge-sheet-locked")).toBeTruthy();
+    expect(
+      screen.getByText("Given by Bumelerze to verified government staff."),
+    ).toBeTruthy();
+    await fireEvent.press(screen.getByTestId("badge-sheet-request"));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/feedback",
+      params: { badgeRequest: "1", rank: "authority" },
+    });
+    await cleanup();
+    await renderGrid({}, [{ role: "authority", orgName: null }], true);
+    expect(screen.getAllByRole("button")[0]?.props.testID).toBe("badge-role-authority");
+    expect(screen.getByLabelText("Government official, earned")).toBeTruthy();
+    expect(screen.queryByLabelText("Government official, locked")).toBeNull();
+    await fireEvent.press(screen.getByTestId("badge-role-authority"));
+    expect(screen.getByText("Given by the Bumelerze team.")).toBeTruthy();
   });
 
   it("hides official, moderator and partner unless held", async () => {
@@ -257,7 +286,9 @@ describe("BadgeGrid: the full collection page (review B-21)", () => {
 
   it("shows every badge at once with no Show all / Show less control", async () => {
     await renderFull();
-    expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet|name)/)).toHaveLength(13);
+    expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet|name)/)).toHaveLength(
+      14,
+    );
     expect(screen.queryByTestId("badges-toggle")).toBeNull();
     expect(screen.queryByText("Show less")).toBeNull();
     expect(screen.queryByText(/^Show all/)).toBeNull();
@@ -265,7 +296,12 @@ describe("BadgeGrid: the full collection page (review B-21)", () => {
 
   it("names each tile under its icon (the sheet keeps the rule), four to a row", async () => {
     await renderFull([{ role: "partner", orgName: "Kurdistan Seismology" }]);
-    for (const name of ["First report", "Photographer", "Seismologist", "Kurdistan Seismology"]) {
+    for (const name of [
+      "First report",
+      "Photographer",
+      "Seismologist",
+      "Kurdistan Seismology",
+    ]) {
       expect(screen.getByText(name, { includeHiddenElements: true })).toBeTruthy();
     }
     const cell = screen.getByTestId("badge-name-photo", { includeHiddenElements: true })
@@ -281,7 +317,9 @@ describe("BadgeGrid: the full collection page (review B-21)", () => {
 
   it("the profile grid stays five to a row and unnamed", async () => {
     await renderGrid({ reports: 1 });
-    expect(screen.queryByText("Photographer", { includeHiddenElements: true })).toBeNull();
+    expect(
+      screen.queryByText("Photographer", { includeHiddenElements: true }),
+    ).toBeNull();
     const cell = screen.getByTestId("badge-photo").parent;
     expect(cell?.props.style).toEqual(
       expect.arrayContaining([expect.objectContaining({ width: "20%" })]),
@@ -294,7 +332,9 @@ describe("BadgeGrid: the full collection page (review B-21)", () => {
     });
     await renderFull();
     expect(
-      screen.getByText(i18n.t("myData.badges.photo.name"), { includeHiddenElements: true }),
+      screen.getByText(i18n.t("myData.badges.photo.name"), {
+        includeHiddenElements: true,
+      }),
     ).toBeTruthy();
     await act(async () => {
       await i18n.changeLanguage("en");
@@ -331,20 +371,20 @@ describe("BadgesSection", () => {
         <BadgesSection entries={entries} earned={earned} total={total} />
       </SafeAreaProvider>,
     );
-    expect(screen.getByTestId("badges-counter").props.children).toBe("1/13");
+    expect(screen.getByTestId("badges-counter").props.children).toBe("1/14");
   });
 });
 
 describe("BadgeGrid: two rows until Show all", () => {
   afterEach(cleanup);
 
-  it("shows two rows (10 badges) and a 'Show all (13)' button, then everything, then fewer again", async () => {
+  it("shows two rows (10 badges) and a 'Show all (14)' button, then everything, then fewer again", async () => {
     await renderGrid({}, [], true);
     expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet)/)).toHaveLength(10);
-    expect(screen.getByText("Show all (13)")).toBeTruthy();
+    expect(screen.getByText("Show all (14)")).toBeTruthy();
     expect(screen.queryByTestId("badge-role-engineer")).toBeNull();
     await showAll();
-    expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet)/)).toHaveLength(13);
+    expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet)/)).toHaveLength(14);
     expect(screen.getByTestId("badge-role-engineer")).toBeTruthy();
     await fireEvent.press(screen.getByText("Show less"));
     expect(screen.getAllByTestId(/^badge-(?!grid|lock|toggle|sheet)/)).toHaveLength(10);
@@ -373,7 +413,7 @@ describe("BadgeGrid: two rows until Show all", () => {
       await i18n.changeLanguage("ckb");
     });
     await renderGrid({}, [], true);
-    expect(screen.getByText("هەمووی پیشان بدە (١٣)")).toBeTruthy();
+    expect(screen.getByText("هەمووی پیشان بدە (١٤)")).toBeTruthy();
     await act(async () => {
       await i18n.changeLanguage("en");
     });

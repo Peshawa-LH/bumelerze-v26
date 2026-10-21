@@ -1648,6 +1648,7 @@
       "close": "Bigire",
       "roleRule": "Ji aliyê tîma Bumelerze ve hatiye dayîn.",
       "requestRule": "Bumelerze ji pisporên erêkirî re dide.",
+      "requestRuleAuthority": "Bumelerze ji karmendên hikûmetê yên erêkirî re dide.",
       "request": "Vê nîşanê bixwaze",
       "a11yLockedRank": "{{name}}, girtî",
       "a11yEarned": "{{name}}, hatiye stendin",

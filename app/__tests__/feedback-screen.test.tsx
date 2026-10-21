@@ -424,6 +424,14 @@ describe("Feedback screen", () => {
     );
   });
 
+  it("names the Government official rank from its badge (D88)", async () => {
+    mockSearchParams = { badgeRequest: "1", rank: "authority" };
+    await renderWithProviders(<FeedbackScreen />);
+    expect(screen.getByLabelText(i18n.t("feedback.messageLabel")).props.value).toBe(
+      "Badge request: Government official",
+    );
+  });
+
   it("ignores a rank param that is not a requestable rank", async () => {
     mockSearchParams = { rank: "official" };
     await renderWithProviders(<FeedbackScreen />);

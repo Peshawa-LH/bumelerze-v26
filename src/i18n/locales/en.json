@@ -1648,6 +1648,7 @@
       "close": "Close",
       "roleRule": "Given by the Bumelerze team.",
       "requestRule": "Given by Bumelerze to verified experts.",
+      "requestRuleAuthority": "Given by Bumelerze to verified government staff.",
       "request": "Request this badge",
       "a11yLockedRank": "{{name}}, locked",
       "a11yEarned": "{{name}}, earned",

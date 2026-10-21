@@ -18,7 +18,11 @@ export function badgeLabels(
         : t(`eventHub.roles.${entry.role}`);
     return {
       name,
-      rule: entry.earned ? t("myData.badges.roleRule") : t("myData.badges.requestRule"),
+      rule: entry.earned
+        ? t("myData.badges.roleRule")
+        : entry.role === "authority"
+          ? t("myData.badges.requestRuleAuthority")
+          : t("myData.badges.requestRule"),
     };
   }
   const { badge } = entry;

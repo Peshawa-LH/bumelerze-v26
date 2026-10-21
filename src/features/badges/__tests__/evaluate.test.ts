@@ -130,9 +130,23 @@ describe("evaluateBadges: requestable ranks", () => {
   const roleEntries = (entries: ReturnType<typeof evaluateBadges>) =>
     entries.filter((entry) => entry.kind === "role");
 
-  it("adds the four requestable ranks as locked entries for someone with no roles", () => {
+  it("adds the five requestable ranks as locked entries for someone with no roles", () => {
     const ranks = roleEntries(withRanks([]));
     expect(ranks.map((entry) => [entry.key, entry.earned])).toEqual([
+      ["role-seismologist", false],
+      ["role-professor", false],
+      ["role-researcher", false],
+      ["role-engineer", false],
+      ["role-authority", false],
+    ]);
+  });
+
+  it("shows Government official locked until held, then earned, first and only once", () => {
+    const entries = withRanks([{ role: "authority", orgName: null }]);
+    expect(entries[0]).toMatchObject({ key: "role-authority", earned: true });
+    expect(entries.filter((entry) => entry.key === "role-authority")).toHaveLength(1);
+    expect(roleEntries(entries).map((entry) => [entry.key, entry.earned])).toEqual([
+      ["role-authority", true],
       ["role-seismologist", false],
       ["role-professor", false],
       ["role-researcher", false],
@@ -146,6 +160,7 @@ describe("evaluateBadges: requestable ranks", () => {
     expect(entries.filter((entry) => entry.key === "role-seismologist")).toHaveLength(1);
     expect(roleEntries(entries).map((entry) => entry.earned)).toEqual([
       true,
+      false,
       false,
       false,
       false,
@@ -183,13 +198,13 @@ describe("countBadges", () => {
     const none = evaluateBadges({ ...EMPTY_BADGE_INPUTS, reports: 1 }, [], {
       includeRequestableRanks: true,
     });
-    expect(countBadges(none)).toEqual({ earned: 1, total: 13 });
+    expect(countBadges(none)).toEqual({ earned: 1, total: 14 });
     const engineer = evaluateBadges(
       { ...EMPTY_BADGE_INPUTS, reports: 1 },
       [{ role: "engineer", orgName: null }],
       { includeRequestableRanks: true },
     );
     // The held engineer badge is earned and not repeated as a locked one.
-    expect(countBadges(engineer)).toEqual({ earned: 2, total: 13 });
+    expect(countBadges(engineer)).toEqual({ earned: 2, total: 14 });
   });
 });
