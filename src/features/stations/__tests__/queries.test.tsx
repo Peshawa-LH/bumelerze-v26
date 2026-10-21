@@ -59,6 +59,7 @@ describe("useStationFreshness", () => {
     );
     cleanups.unshift(unmount);
     await waitFor(() => expect(result.current["MP.KIR1"]).toBe("live"));
+    await waitFor(() => expect(client.isFetching()).toBe(0));
     expect(result.current["MP.DHK1"]).toBe("silent");
     expect(result.current["KO.AKDM"]).toBe("recent");
   });
@@ -103,6 +104,7 @@ describe("useStationTrace with a delayed-archive station", () => {
     );
     cleanups.unshift(unmount);
     await waitFor(() => expect(result.current.status).toBe("ready"));
+    await waitFor(() => expect(client.isFetching()).toBe(0));
     expect(result.current.freshness).toBe("live");
     expect(Math.round((result.current.lagMs ?? 0) / 60_000)).toBe(30);
   });
@@ -121,6 +123,7 @@ describe("useStationTrace with a delayed-archive station", () => {
     });
     cleanups.unshift(unmount);
     await waitFor(() => expect(result.current.status).toBe("ready"));
+    await waitFor(() => expect(client.isFetching()).toBe(0));
     expect(result.current.freshness).toBe("recent");
   });
 
@@ -143,6 +146,7 @@ describe("useStationTrace with a delayed-archive station", () => {
     );
     cleanups.unshift(unmount);
     await waitFor(() => expect(result.current.status).toBe("ready"));
+    await waitFor(() => expect(client.isFetching()).toBe(0));
     expect(fetchTrace.mock.calls[0]?.[2]).toBeNull();
     await act(async () => {
       await client.refetchQueries({ queryKey: ["station-trace", "AM.R079D"] });
