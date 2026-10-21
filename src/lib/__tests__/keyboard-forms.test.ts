@@ -58,6 +58,9 @@ const FORM_HOSTS: Record<string, string[]> = {
     "src/features/admin/people/components/PeopleContent.tsx",
   ],
   "src/features/admin/people/components/PeopleFilterSheet.tsx": [SHEET],
+  "src/features/alerts/components/AlertsAdminContent.tsx": [
+    "src/features/alerts/components/AlertsAdminContent.tsx",
+  ],
   "src/features/admin/people/components/PersonNotes.tsx": [
     "src/features/admin/people/components/PersonContent.tsx",
   ],
@@ -75,6 +78,7 @@ const FORM_HOSTS: Record<string, string[]> = {
   "src/features/geo/components/PlaceSearch.tsx": [
     "app/felt-report/index.tsx",
     "app/(tabs)/(settings)/settings.tsx",
+    "app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx",
     "app/account/profile.tsx",
     "src/features/building/components/ui.tsx",
   ],
@@ -96,18 +100,12 @@ const FORM_HOSTS: Record<string, string[]> = {
   "src/features/share/ShareSheet.tsx": ["src/features/share/ShareSheet.tsx"],
 };
 
-/** Owned by the notifications batch; checked in the follow-up sweep. */
-const PENDING_NOTIFICATIONS_BATCH = [
-  "src/features/alerts/components/AlertsAdminContent.tsx",
-];
-
 describe("keyboard and text fields (source scan)", () => {
   it("[regression] every file with a TextInput names the screen or sheet that holds it", () => {
     const withInput = ["app", "src"]
       .flatMap((dir) => collect(join(ROOT, dir)))
       .filter((file) => /<TextInput\b/.test(readFileSync(file, "utf8")))
       .map((file) => relative(ROOT, file))
-      .filter((path) => !PENDING_NOTIFICATIONS_BATCH.includes(path))
       .sort();
     expect(withInput).toEqual(Object.keys(FORM_HOSTS).sort());
   });

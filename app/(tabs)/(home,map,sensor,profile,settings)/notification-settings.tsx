@@ -34,6 +34,7 @@ import {
 import { usePrefsStore, type NotificationTier } from "@/features/onboarding";
 import { SafeAudienceSection } from "@/features/safe";
 import { confirmDialog } from "@/lib/dialogs";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useTabBarScroll } from "@/features/tab-bar";
 
@@ -169,6 +170,7 @@ export default function NotificationSettingsScreen() {
         }}
       />
       <ScrollView
+        {...KEYBOARD_AWARE_SCROLL}
         {...tabBarScroll}
         style={{ backgroundColor: colors.surface.base }}
         contentContainerStyle={[

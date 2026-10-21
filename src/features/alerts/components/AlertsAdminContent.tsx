@@ -9,6 +9,7 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import { formatAbsoluteDual } from "@/features/events/format";
 import { confirmDialog } from "@/lib/dialogs";
 import { localizeDigits } from "@/lib/format-numbers";
+import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 import { useAlertsAdminActions, useAlertsOverview } from "../queries";
@@ -119,6 +120,7 @@ export function AlertsAdminContent({
 
   return (
     <ScrollView
+      {...KEYBOARD_AWARE_SCROLL}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[
         styles.content,
