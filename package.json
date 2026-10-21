@@ -1,7 +1,7 @@
 {
   "name": "bumelerze",
   "main": "index.js",
-  "version": "26.4.2",
+  "version": "26.4.3",
   "description": "Bumelerze: earthquake app for Kurdistan and Iraq (web, iOS, Android)",
   "license": "Apache-2.0",
   "repository": {
