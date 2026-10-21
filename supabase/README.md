@@ -2,7 +2,7 @@
 
 The backend is one live Supabase project (`bcgyxepgruwardhozvfq`): Postgres
 with row-level security, auth (anonymous sessions and optional accounts),
-Storage, `pg_cron` and four edge functions. Migrations **0001 to 0067** are
+Storage, `pg_cron` and four edge functions. Migrations **0001 to 0069** are
 applied, except **0041**, which is parked and not applied. The files in this
 folder are the record of what is live.
 
@@ -53,8 +53,8 @@ tracker if the CLI is ever adopted again.
 | Event hubs and moderation                    | 0036, 0038, 0043, 0044, 0052 to 0054, 0056, 0059, 0065       |
 | Tag my building, homes and family            | 0037, 0042, 0049, 0061                                       |
 | I'm safe                                     | 0057, 0064                                                   |
-| Admin tools, roles, Government official      | 0046, 0051, 0055, 0060, 0061, 0066                           |
-| Alerts (testers mode) and telemetry          | 0005, 0062                                                   |
+| Admin tools, roles, Government official      | 0046, 0051, 0055, 0060, 0061, 0066, 0069                     |
+| Alerts (testers mode) and telemetry          | 0005, 0062, 0068                                             |
 | Security and operations                      | 0001, 0010, 0033, 0067                                       |
 
 Each migration's header says what it changes and why.
