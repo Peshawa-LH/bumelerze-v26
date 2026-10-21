@@ -96,4 +96,4 @@ export {
   type ShakeMapCandidate,
   type ShakeMapProductSource,
 } from "./resolver";
-export { resolveEventUuidForEvent } from "./live-transport";
+export { lookUpEventUuidForEvent } from "./live-transport";

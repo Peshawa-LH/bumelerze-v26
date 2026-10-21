@@ -74,9 +74,9 @@ function eventCacheKey(event: Event): string {
  * as `null`, the query recorded "this event has no SHAKEmap" as a success,
  * kept it 15 minutes as fresh and saved it to the device for a day, so one
  * attempt on a bad connection hid an event's map, even one already saved
- * from an earlier visit (seen on the iOS simulator, 2026-10-21).
- * `resolveEventUuid` below keeps the old never-throwing contract for the
- * felt map and the Event hub.
+ * from an earlier visit (seen on the iOS simulator, 2026-10-21). The felt
+ * map and the Event hub had the same fault for longer (their lookup is kept
+ * for good) and use this contract too (`lookUpEventUuidForEvent`).
  */
 async function lookUpEventUuid(
   client: SupabaseClient,
@@ -114,24 +114,6 @@ async function lookUpEventUuid(
 
   eventUuidCache.set(cacheKey, data);
   return data;
-}
-
-/**
- * `lookUpEventUuid` that never throws: a resolution failure degrades to
- * `null`. Mirrors `features/felt/supabase-transport.ts`'s own
- * `resolveEventUuid` ("never throws... a resolution failure must never
- * block, only degrade"): a background provenance lookup must never surface
- * as a user-visible error.
- */
-async function resolveEventUuid(
-  client: SupabaseClient,
-  event: Event,
-): Promise<string | null> {
-  try {
-    return await lookUpEventUuid(client, event);
-  } catch {
-    return null;
-  }
 }
 
 async function fetchArtifactJson(url: string): Promise<unknown> {
@@ -262,6 +244,24 @@ async function fetchRiskBundle(
 }
 
 /**
+ * The registry's `events.event_id` for `event`, through the same idempotent
+ * registration and session cache the live shakemap lookup uses — for any
+ * reader keyed by that uuid (the felt map: `felt_cells_public.event_id`;
+ * the Event hub). Null without a configured client or when the registry
+ * answered without an id; THROWS when the registry cannot be asked, so the
+ * query fails, keeps an id it already had and asks again later. Answered
+ * as "no id" instead, the lookup was kept for good and saved on the device,
+ * turning the felt map and the hub off for days (2026-10-21).
+ */
+export async function lookUpEventUuidForEvent(event: Event): Promise<string | null> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return null;
+  }
+  return lookUpEventUuid(client, event);
+}
+
+/**
  * The real `LiveShakeMapTransport`, wired the moment a Supabase project
  * exists (`isSupabaseConfigured()` gate lives in `live-queries.ts`, same
  * layering as `feltmap`). For one event: resolve its internal uuid, read
@@ -274,20 +274,6 @@ async function fetchRiskBundle(
  * `upsert_event_from_client`'s idempotent event registration, identical to
  * what `features/felt`'s own resolver already does for the same event.
  */
-/**
- * The registry's `events.event_id` for `event`, through the same idempotent
- * registration and session cache the live shakemap lookup uses — for any
- * reader keyed by that uuid (the felt map: `felt_cells_public.event_id`).
- * Null without a configured client or when the registry cannot answer.
- */
-export async function resolveEventUuidForEvent(event: Event): Promise<string | null> {
-  const client = getSupabaseClient();
-  if (!client) {
-    return null;
-  }
-  return resolveEventUuid(client, event);
-}
-
 export const SupabaseLiveShakeMapTransport: LiveShakeMapTransport = {
   async fetchLiveProduct(event: Event): Promise<LiveShakeMapProduct | null> {
     const client = getSupabaseClient();

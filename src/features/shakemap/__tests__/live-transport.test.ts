@@ -7,7 +7,7 @@
  */
 import { getSupabaseClient } from "@/lib/supabase";
 import type { Event } from "@/features/events";
-import { resolveEventUuidForEvent, SupabaseLiveShakeMapTransport } from "../live-transport";
+import { lookUpEventUuidForEvent, SupabaseLiveShakeMapTransport } from "../live-transport";
 
 const mockRpc = jest.fn();
 const mockEq3 = jest.fn();
@@ -198,13 +198,53 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     expect(mockFrom).not.toHaveBeenCalled();
   });
 
-  it("keeps resolveEventUuidForEvent fail-soft for the felt map and the hub", async () => {
+  // The felt map and the Event hub: answered as "no id", a failed lookup
+  // was kept for good and saved on the device (2026-10-21).
+  it("lookUpEventUuidForEvent throws when the registry cannot be asked", async () => {
     mockRpc.mockRejectedValue(new TypeError("Network request failed"));
-
     await expect(
-      resolveEventUuidForEvent({
+      lookUpEventUuidForEvent({
         ...HALABJA_EVENT,
-        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_soft_lookup" },
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_lookup_rejects" },
+      }),
+    ).rejects.toThrow("Network request failed");
+
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { message: "TypeError: Network request failed" },
+    });
+    await expect(
+      lookUpEventUuidForEvent({
+        ...HALABJA_EVENT,
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_lookup_fails" },
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({ message: "TypeError: Network request failed" }),
+    );
+  });
+
+  it("lookUpEventUuidForEvent answers the id, or null when there is none or no registry", async () => {
+    mockRpc.mockResolvedValue({ data: INTERNAL_UUID, error: null });
+    await expect(
+      lookUpEventUuidForEvent({
+        ...HALABJA_EVENT,
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_lookup_found" },
+      }),
+    ).resolves.toBe(INTERNAL_UUID);
+
+    mockRpc.mockResolvedValue({ data: null, error: null });
+    await expect(
+      lookUpEventUuidForEvent({
+        ...HALABJA_EVENT,
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_lookup_no_id" },
+      }),
+    ).resolves.toBeNull();
+
+    mockedGetSupabaseClient.mockReturnValue(null);
+    await expect(
+      lookUpEventUuidForEvent({
+        ...HALABJA_EVENT,
+        provenance: { ...HALABJA_EVENT.provenance, providerId: "us_lookup_unconfigured" },
       }),
     ).resolves.toBeNull();
   });
