@@ -15,6 +15,7 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 // Type only: the NetInfo adapter itself is handed in by app/_layout.tsx, so
 // importing this module never loads a native module (tests, web).
 import type { DeviceConnectivitySubscribe } from "@/lib/device-connectivity";
+import { persistLastGoodData } from "@/lib/persist-filter";
 
 import {
   EMSC_REGION_TIMEOUT_MS,
@@ -152,11 +153,18 @@ export function createEventsQueryClient(
   });
 }
 
+/**
+ * The device copy of the React Query cache. A query whose latest refresh
+ * failed is written as its last good result (`persistLastGoodData`), so a
+ * failed refresh never removes or replaces the saved feed or maps.
+ */
 export function createEventsPersister(): Persister {
-  return createAsyncStoragePersister({
-    storage: AsyncStorage,
-    key: QUERY_CACHE_KEY,
-  }) as Persister;
+  return persistLastGoodData(
+    createAsyncStoragePersister({
+      storage: AsyncStorage,
+      key: QUERY_CACHE_KEY,
+    }) as Persister,
+  );
 }
 
 // Re-exported so app/_layout.tsx doesn't need to know the persisted-client

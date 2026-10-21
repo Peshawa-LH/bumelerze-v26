@@ -347,6 +347,8 @@ export default function RootLayout() {
             maxAge: PERSISTED_CACHE_MAX_AGE_MS,
             // Private data (home tags: exact locations, join keys) is marked
             // `meta: { persist: false }` and never written to the device cache.
+            // A query whose latest refresh failed is still written, with its
+            // last good data (src/lib/persist-filter.ts).
             dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
             // Bump this if the cached `Event` shape ever changes in a way
             // older persisted data can't satisfy — invalidates old caches
