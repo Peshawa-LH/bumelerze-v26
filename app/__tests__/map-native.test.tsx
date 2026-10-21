@@ -467,6 +467,95 @@ describe("Native Map tab on MapLibre Native", () => {
     expect(bounds).toEqual([45.43 - 0.9, 35.56 - 0.7, 45.43 + 0.9, 35.56 + 0.7]);
   });
 
+  describe("the first view (parity review S5, C1: once opened over Saudi Arabia with no markers)", () => {
+    const REGION = [41, 33, 48.5, 38.5];
+    const STILL = { padding: { top: 32, right: 32, bottom: 32, left: 32 }, duration: 0 };
+    const layout = (width: number, height: number) => ({
+      nativeEvent: { layout: { x: 0, y: 0, width, height } },
+    });
+    const region = (userInteraction: boolean) => ({
+      nativeEvent: { center: [44, 36], zoom: 5, animated: false, userInteraction },
+    });
+
+    it.each(["en", "ckb"])(
+      "frames Home again, without animation, as soon as the map has loaded (%s)",
+      async (language) => {
+        await i18n.changeLanguage(language);
+        await renderMap();
+        await waitFor(() => expect(mockMapRenders.length).toBeGreaterThan(0));
+        // `initialViewState` alone: MapLibre applies it on the view's first
+        // native layout, whatever size the view has at that moment.
+        expect(mockFitBounds).not.toHaveBeenCalled();
+        await act(async () => {
+          (lastMapProps().onDidFinishLoadingMap as () => void)();
+        });
+        expect(mockFitBounds).toHaveBeenCalledTimes(1);
+        expect(mockFitBounds).toHaveBeenCalledWith(REGION, STILL);
+      },
+    );
+
+    it("frames Home again when the map's size changes before the reader has moved it", async () => {
+      await loadMap();
+      mockFitBounds.mockClear();
+      await act(async () => {
+        (lastMapProps().onLayout as (event: unknown) => void)(layout(402, 300));
+      });
+      // A size seen for the first time is not a change.
+      expect(mockFitBounds).not.toHaveBeenCalled();
+      await act(async () => {
+        // The camera's own moves are not the reader's.
+        (lastMapProps().onRegionDidChange as (event: unknown) => void)(region(false));
+        (lastMapProps().onLayout as (event: unknown) => void)(layout(402, 681));
+      });
+      expect(mockFitBounds).toHaveBeenCalledTimes(1);
+      expect(mockFitBounds).toHaveBeenCalledWith(REGION, STILL);
+    });
+
+    it("leaves the camera to the reader once they have moved the map", async () => {
+      await loadMap();
+      await act(async () => {
+        (lastMapProps().onLayout as (event: unknown) => void)(layout(402, 681));
+        (lastMapProps().onRegionWillChange as (event: unknown) => void)(region(true));
+      });
+      mockFitBounds.mockClear();
+      await act(async () => {
+        (lastMapProps().onLayout as (event: unknown) => void)(layout(402, 640));
+      });
+      expect(mockFitBounds).not.toHaveBeenCalled();
+      // Home in the switch still frames it, and the framing is back in charge.
+      await act(async () => {
+        fireEvent.press(screen.getByText("World"));
+      });
+      await act(async () => {
+        fireEvent.press(screen.getByText("Home"));
+      });
+      expect(mockFitBounds).toHaveBeenLastCalledWith(REGION, expect.any(Object));
+      mockFitBounds.mockClear();
+      await act(async () => {
+        (lastMapProps().onLayout as (event: unknown) => void)(layout(402, 681));
+      });
+      expect(mockFitBounds).toHaveBeenCalledWith(REGION, STILL);
+    });
+
+    it("frames a map rebuilt after a failed style load once it has loaded", async () => {
+      await loadMap();
+      mockFitBounds.mockClear();
+      await act(async () => {
+        (lastMapProps().onDidFailLoadingMap as () => void)();
+      });
+      expect(screen.queryByTestId("native-map")).toBeNull();
+      expect(mockFitBounds).not.toHaveBeenCalled();
+      await act(async () => {
+        fireEvent.press(screen.getByText("Retry"));
+      });
+      await waitFor(() => expect(screen.getByTestId("native-map")).toBeTruthy());
+      await act(async () => {
+        (lastMapProps().onDidFinishLoadingMap as () => void)();
+      });
+      expect(mockFitBounds).toHaveBeenCalledWith(REGION, STILL);
+    });
+  });
+
   it("declares the switched-on overlays from the web app's files, each under its own placeholder", async () => {
     useMapPreferencesStore.setState({
       overlays: { "faults-gem": true, "historical-quakes": true, "site-vs30": true },

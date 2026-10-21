@@ -9,6 +9,7 @@ import {
   Text,
   useWindowDimensions,
   View,
+  type LayoutChangeEvent,
   type NativeSyntheticEvent,
 } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -115,6 +116,8 @@ type CameraRef = import("@maplibre/maplibre-react-native").CameraRef;
 type PressEvent = import("@maplibre/maplibre-react-native").PressEvent;
 type PressEventWithFeatures =
   import("@maplibre/maplibre-react-native").PressEventWithFeatures;
+type ViewStateChangeEvent =
+  import("@maplibre/maplibre-react-native").ViewStateChangeEvent;
 
 /** How far above the centre a selected event settles, so the preview
  * sheet does not cover it (the web's `MAP_SHEET_SELECT_OFFSET_PX`). */
@@ -342,26 +345,77 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef>(null);
 
-  // Re-frames on a scope switch, and once when the map first shows with a
-  // location fix or a fix arrives later (the web's scope/home effect; the
-  // web's map is created after the fix in most sessions, the native map
-  // opens on the region and moves there).
   const previousScopeRef = useRef<MapScope>(scope);
   const framedHomeRef = useRef<readonly number[] | null>(null);
+  /** The reader has panned, zoomed or picked an event since the last
+   * framing: from then on the camera is theirs. */
+  const readerMovedMapRef = useRef(false);
+  /** This map (a rebuilt one after a fall-back or Retry counts as new) has
+   * been framed once it loaded. */
+  const framedOnLoadRef = useRef(false);
+  const frameScope = useCallback(
+    (duration: number) => {
+      if (scope === "kurdistan") framedHomeRef.current = homeBounds;
+      const bounds = scope === "world" ? toCameraBounds(WORLD_VIEW_BBOX) : homeBounds;
+      cameraRef.current?.fitBounds(bounds, { padding: FIT_PADDING, duration });
+    },
+    [scope, homeBounds],
+  );
+
+  // Re-frames on a scope switch, and when a location fix arrives (the web's
+  // scope/home effect; the web's map is created after the fix in most
+  // sessions, the native map opens on the region and moves there).
+  //
+  // It also frames the map again, without animation, once it has loaded
+  // (parity review S5, C1). MapLibre applies `initialViewState` once, on the
+  // map view's first native layout, against the size and safe-area insets
+  // the view has at that moment. The first Map-tab open after a relaunch
+  // can lay the view out before its final size, and the region then landed
+  // off screen (over Saudi Arabia, no markers in sight) with nothing to put
+  // it back, because this effect only moved the camera on a scope switch or
+  // a location fix. Framing again on load (and on any later size change,
+  // `handleMapLayout`) makes the first view right whichever order the style
+  // load, the location and the layout arrive in.
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady) {
+      framedOnLoadRef.current = false;
+      return;
+    }
     const scopeChanged = previousScopeRef.current !== scope;
     previousScopeRef.current = scope;
+    const justLoaded = !framedOnLoadRef.current;
+    framedOnLoadRef.current = true;
+    if (scopeChanged) readerMovedMapRef.current = false;
     const homeMoved =
       scope === "kurdistan" && hasUserFix && framedHomeRef.current !== homeBounds;
-    if (!scopeChanged && !homeMoved) return;
-    if (scope === "kurdistan") framedHomeRef.current = homeBounds;
-    const bounds = scope === "world" ? toCameraBounds(WORLD_VIEW_BBOX) : homeBounds;
-    cameraRef.current?.fitBounds(bounds, {
-      padding: FIT_PADDING,
-      duration: prefersReducedMotion ? 0 : 600,
-    });
-  }, [scope, isReady, homeBounds, hasUserFix, prefersReducedMotion]);
+    if (scopeChanged || homeMoved) {
+      frameScope(prefersReducedMotion ? 0 : 600);
+    } else if (justLoaded && !readerMovedMapRef.current) {
+      frameScope(0);
+    }
+  }, [scope, isReady, homeBounds, hasUserFix, prefersReducedMotion, frameScope]);
+
+  // A new map size before the reader has touched the map: the same framing
+  // again, at the new size (see the effect above).
+  const mapSizeRef = useRef<{ width: number; height: number } | null>(null);
+  const handleMapLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { width, height } = event.nativeEvent.layout;
+      const previous = mapSizeRef.current;
+      mapSizeRef.current = { width, height };
+      if (!previous || (previous.width === width && previous.height === height)) return;
+      if (!isReady || readerMovedMapRef.current) return;
+      frameScope(0);
+    },
+    [isReady, frameScope],
+  );
+
+  const handleRegionChange = useCallback(
+    (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
+      if (event.nativeEvent.userInteraction) readerMovedMapRef.current = true;
+    },
+    [],
+  );
 
   /** Settles the selected event above the centre (the web's `easeTo` with
    * an offset): the new centre is the point 90 pt below the event. */
@@ -390,6 +444,8 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
       if (!event) return;
       setOpenControl(null);
       setOverlayInfo(null);
+      // The camera now follows the picked event, not the framing.
+      readerMovedMapRef.current = true;
       selectEvent(event);
       AccessibilityInfo.announceForAccessibility(
         [
@@ -528,6 +584,9 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
             onPress={handleMapPress}
             onDidFinishLoadingMap={basemap.onDidFinishLoadingMap}
             onDidFailLoadingMap={basemap.onDidFailLoadingMap}
+            onLayout={handleMapLayout}
+            onRegionWillChange={handleRegionChange}
+            onRegionDidChange={handleRegionChange}
           >
             <Camera ref={cameraRef} initialViewState={INITIAL_VIEW} />
             {nativeOverlays.map((overlay) =>
