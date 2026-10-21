@@ -32,6 +32,7 @@ import {
   encodeEventRegistrationParam,
   toEventRegistration,
 } from "@/features/felt/event-registration";
+import { useRefetchEventUuidIfMissing } from "@/features/feltmap/event-uuid-query";
 import { useEventUuidResult } from "@/features/feltmap/use-event-uuid";
 import { nearestCities, pickLocalizedName, placeLine } from "@/features/geo";
 import { useMutedIds } from "@/features/mute/queries";
@@ -94,6 +95,14 @@ const OFFICIAL: readonly HubRole[] = [{ role: "official", orgName: null }];
  * the team's pinned note first. "Add a comment..." stays docked at the
  * bottom with the reader's photo. Reads refresh every 30 s while the screen
  * is in front, and on pull-to-refresh.
+ *
+ * Everything here is keyed by the event's registry id. When its lookup
+ * failed (offline), the hub says "Not available right now." with a Retry,
+ * and a refresh (the pull, or that Retry: the web has no pull-to-refresh)
+ * asks for the id first; the hub's reads start by themselves once it
+ * arrives. Before, a refresh re-read the hub but never the lookup, so the
+ * hub, its pill and the felt map stayed missing until a restart
+ * (2026-10-22).
  */
 export function EventHubContent({
   event,
@@ -139,6 +148,7 @@ export function EventHubContent({
   const limited = mine.isLimited;
 
   const uuidState = useEventUuidResult(event);
+  const askForEventUuid = useRefetchEventUuidIfMissing(event);
   const summary = useEventHubSummary(event, {
     polling: focused,
     ...(transport ? { transport } : {}),
@@ -214,9 +224,13 @@ export function EventHubContent({
 
   function handleRefresh() {
     setRefreshing(true);
-    void Promise.all([thread.refetch(), summary.refetch(), likes.refetch()]).finally(() =>
-      setRefreshing(false),
-    );
+    // Without an id the hub's reads have nothing to read with: ask for the
+    // id; they start by themselves once it is in.
+    const reads =
+      eventUuid === null
+        ? [askForEventUuid()]
+        : [thread.refetch(), summary.refetch(), likes.refetch()];
+    void Promise.all(reads).finally(() => setRefreshing(false));
   }
 
   const number = (value: number) => isolateNumeric(localizeDigits(String(value), locale));
@@ -395,7 +409,13 @@ export function EventHubContent({
       <PrebunkCard />
 
       {unavailable ? (
-        <Text style={bodyText}>{t("eventHub.unavailable")}</Text>
+        <View style={{ gap: spacing[2] }}>
+          <Text style={bodyText}>{t("eventHub.unavailable")}</Text>
+          {/* Configured, so the lookup failed or found no id: ask again. */}
+          {isSupabaseConfigured() ? (
+            <RetryLink onPress={handleRefresh} testID="hub-unavailable-retry" />
+          ) : null}
+        </View>
       ) : (
         <>
           <RestrictionBanner />
@@ -444,23 +464,7 @@ export function EventHubContent({
       empty = (
         <View style={{ gap: spacing[2] }}>
           <Text style={bodyText}>{t("eventHub.loadError")}</Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => void thread.refetch()}
-            style={styles.retry}
-          >
-            <Text
-              style={{
-                color: colors.text.link,
-                fontSize: typography.labelButton.fontSize,
-                fontFamily: nativeFontFamily(typography.labelButton),
-                ...READING_START,
-                fontWeight: typography.labelButton.fontWeight,
-              }}
-            >
-              {t("events.retry")}
-            </Text>
-          </Pressable>
+          <RetryLink onPress={() => void thread.refetch()} />
         </View>
       );
     } else {
@@ -588,6 +592,32 @@ export function EventHubContent({
   );
 }
 
+/** "Retry" as a link-coloured button with a 44 pt target in real layout. */
+function RetryLink({ onPress, testID }: { onPress: () => void; testID?: string }) {
+  const { t } = useTranslation();
+  const { colors, typography } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={styles.retry}
+      testID={testID}
+    >
+      <Text
+        style={{
+          color: colors.text.link,
+          fontSize: typography.labelButton.fontSize,
+          fontFamily: nativeFontFamily(typography.labelButton),
+          ...READING_START,
+          fontWeight: typography.labelButton.fontWeight,
+        }}
+      >
+        {t("events.retry")}
+      </Text>
+    </Pressable>
+  );
+}
+
 interface ThreadViewProps {
   thread: HubThread;
   data: HubThreadData | null;
@@ -680,6 +710,7 @@ const styles = StyleSheet.create({
   commentsHeading: { flexDirection: "row", alignItems: "baseline", marginTop: 4 },
   retry: {
     minHeight: 44,
+    minWidth: 44,
     justifyContent: "center",
     alignSelf: "flex-start",
   },

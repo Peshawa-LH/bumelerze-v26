@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import type { Event } from "@/features/events";
+import { useRefetchEventUuidIfMissing } from "@/features/feltmap/event-uuid-query";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 import { resolveAtlasLookupId } from "./atlas-lookup";
@@ -101,7 +102,8 @@ export interface LiveShakeMapAvailability {
    * for a connection. False while it is still loading, once it has
    * answered (a map, or "none for this event"), and when it never runs. */
   unavailable: boolean;
-  /** Asks again (waits for the connection when offline). */
+  /** Asks again (waits for the connection when offline), and asks for the
+   * event's registry id too while none is known. */
   retry: () => void;
 }
 
@@ -112,6 +114,12 @@ export interface LiveShakeMapAvailability {
  * candidate); `ShakeMapSection` needs the difference to say "unavailable
  * offline" for an event known to have a map instead of dropping the
  * section without a word.
+ *
+ * Its Retry is the event page's one "try again" (the page has no
+ * pull-to-refresh), so it also asks for the registry id the felt map and
+ * the Event hub pill are keyed by when that lookup failed too
+ * (`refetchEventUuidIfMissing`); before, they stayed missing after the map
+ * came back (2026-10-22).
  */
 export function useLiveShakeMapUnavailable(
   event: Event,
@@ -119,11 +127,13 @@ export function useLiveShakeMapUnavailable(
   transport: LiveShakeMapTransport = SupabaseLiveShakeMapTransport,
 ): LiveShakeMapAvailability {
   const query = useLiveShakeMapQuery(event, enabled, transport);
+  const askForEventUuid = useRefetchEventUuidIfMissing(event);
   const { refetch } = query;
   return {
     unavailable: query.data === undefined && (query.isError || query.isPaused),
     retry: () => {
       void refetch();
+      void askForEventUuid();
     },
   };
 }

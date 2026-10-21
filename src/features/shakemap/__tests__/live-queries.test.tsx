@@ -1,9 +1,15 @@
-import { onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  onlineManager,
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import React from "react";
 
 import type { Event } from "@/features/events";
+import { eventUuidQueryKey } from "@/features/feltmap/event-uuid-query";
 import {
   liveShakeMapQueryKeys,
   useLiveShakeMap,
@@ -321,3 +327,84 @@ describe("useLiveShakeMapUnavailable", () => {
   });
 });
 
+// The event page has no pull-to-refresh; its SHAKEmap Retry is the one
+// "try again" there. The felt map and the Event hub pill on the same page
+// are keyed by the registry id, whose lookup failed for the same reason.
+// Retry asked for the map only, so they stayed missing (2026-10-22).
+describe("useLiveShakeMapUnavailable's Retry and the registry id", () => {
+  const REGISTRY_ID = "11111111-1111-4111-8111-111111111111";
+
+  function setUp(transport: LiveShakeMapTransport, lookUp: jest.Mock) {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, retryDelay: 0, gcTime: 0 } },
+    });
+    function wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+    }
+    // What the felt map and the hub pill observe on the event page.
+    const useRegistryQuery = () =>
+      useQuery({
+        queryKey: eventUuidQueryKey(EVENT),
+        queryFn: () => lookUp() as Promise<string | null>,
+      });
+    return renderHook(
+      () => ({
+        availability: useLiveShakeMapUnavailable(EVENT, true, transport),
+        registry: useRegistryQuery(),
+      }),
+      { wrapper },
+    );
+  }
+
+  beforeEach(() => {
+    setSupabaseConfigured(true);
+  });
+
+  afterEach(() => {
+    setSupabaseConfigured(false);
+  });
+
+  it("asks for the registry id again when it is missing", async () => {
+    const lookUp = jest.fn().mockRejectedValue(new TypeError("Network request failed"));
+    const transport = throwingTransport(new TypeError("Network request failed"));
+    const { result } = await setUp(transport, lookUp);
+    await waitFor(() => expect(result.current.availability.unavailable).toBe(true), {
+      timeout: 4000,
+    });
+    await waitFor(() => expect(result.current.registry.isError).toBe(true));
+    const askedBefore = lookUp.mock.calls.length;
+
+    lookUp.mockResolvedValue(REGISTRY_ID);
+    await act(async () => {
+      result.current.availability.retry();
+    });
+
+    await waitFor(() => expect(result.current.registry.data).toBe(REGISTRY_ID));
+    expect(lookUp.mock.calls.length).toBeGreaterThan(askedBefore);
+    // The map is asked again too (and fails again here, after its retry).
+    await waitFor(() => expect(transport.fetchLiveProduct).toHaveBeenCalledTimes(4), {
+      timeout: 4000,
+    });
+    await waitFor(() => expect(result.current.availability.unavailable).toBe(true));
+  });
+
+  it("leaves a known registry id alone", async () => {
+    const lookUp = jest.fn().mockResolvedValue(REGISTRY_ID);
+    const transport = throwingTransport(new TypeError("Network request failed"));
+    const { result } = await setUp(transport, lookUp);
+    await waitFor(() => expect(result.current.availability.unavailable).toBe(true), {
+      timeout: 4000,
+    });
+    expect(result.current.registry.data).toBe(REGISTRY_ID);
+
+    await act(async () => {
+      result.current.availability.retry();
+    });
+
+    await waitFor(() => expect(transport.fetchLiveProduct).toHaveBeenCalledTimes(4), {
+      timeout: 4000,
+    });
+    await waitFor(() => expect(result.current.availability.unavailable).toBe(true));
+    expect(lookUp).toHaveBeenCalledTimes(1);
+  });
+});
