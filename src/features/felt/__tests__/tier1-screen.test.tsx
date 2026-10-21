@@ -270,6 +270,21 @@ describe("Window 1 — tier-1 felt-report screen", () => {
     expect(StyleSheet.flatten(row?.props.style).minHeight).toBeGreaterThanOrEqual(44);
   });
 
+  it("lets the place wrap beside 'Change' so large text never pushes 'Change' off the screen (parity S5, GAP 3)", async () => {
+    await renderWithProviders(<Tier1FeltReportScreen />);
+
+    const changeText = await screen.findByText(i18n.t("felt.tier1.changeLocation"));
+    const row = changeText.parent;
+    const [place] = row?.children ?? [];
+    if (!place || typeof place === "string") {
+      throw new Error("the place text is not an element");
+    }
+    expect(StyleSheet.flatten(place.props.style).flexShrink).toBe(1);
+    // "Change" itself never shrinks, and keeps a gap from the wrapped place.
+    expect(StyleSheet.flatten(changeText.props.style).flexShrink).toBeUndefined();
+    expect(StyleSheet.flatten(row?.props.style).columnGap).toBeGreaterThan(0);
+  });
+
   describe("eventReg route param (migration 0011: FeltReportPill's registration snapshot)", () => {
     it("decodes a valid eventReg param (base64url codec — raw JSON does not survive expo-router URL serialization) onto the queued item's eventRegistration", async () => {
       mockSearchParams = {

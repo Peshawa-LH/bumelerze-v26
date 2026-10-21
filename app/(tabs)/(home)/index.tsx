@@ -229,6 +229,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    // At iOS's largest text sizes the title and the three links no longer
+    // fit one line: the links then move under the title instead of running
+    // off the screen ("World Sig…", parity review S5, GAP 3). At ordinary
+    // sizes, and always on the web, they stay beside it.
+    flexWrap: "wrap",
   },
   headerLink: {
     minHeight: 44,
@@ -236,6 +241,10 @@ const styles = StyleSheet.create({
   },
   links: {
     flexDirection: "row",
+    // Never wider than the header: React Native does not shrink a box by
+    // default, so the links kept their one-line width and were cut at the
+    // screen edge instead of wrapping (parity review S5, GAP 3).
+    flexShrink: 1,
     // Three links share this row (World/Significant/Historical, Catalog
     // dropped 2026-08-21 — see this file's own top-of-file doc comment) —
     // flexWrap is still the "small overflow pattern" the brief allows

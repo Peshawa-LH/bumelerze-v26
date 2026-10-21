@@ -179,6 +179,10 @@ export default function Tier1FeltReportScreen() {
           >
             <Text
               style={{
+                // Wraps beside "Change" as in the browser: React Native
+                // does not shrink a text by default, so at large text sizes
+                // the place pushed "Change" off the screen (parity S5, GAP 3).
+                flexShrink: 1,
                 color: colors.text.secondary,
                 fontSize: typography.bodyMeta.fontSize,
                 fontFamily: nativeFontFamily(typography.bodyMeta),
@@ -293,6 +297,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     minHeight: 44,
+    // Keeps "Change" clear of a place name that wraps beside it.
+    columnGap: 12,
   },
   grid: {
     flexDirection: "row",

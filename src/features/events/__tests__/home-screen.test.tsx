@@ -191,6 +191,21 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     }
   });
 
+  it("lets the three links move under the title and wrap at large text sizes instead of running off the screen (parity S5, GAP 3)", async () => {
+    await renderWithProviders(<HomeScreen />);
+
+    // React Native does not shrink a box by default: at iOS's accessibility
+    // text sizes the links kept their one-line width and were cut
+    // ("World Sig…") instead of wrapping.
+    const links = screen.getByRole("button", { name: "World" }).parent;
+    expect(StyleSheet.flatten(links?.props.style)).toMatchObject({
+      flexShrink: 1,
+      flexWrap: "wrap",
+    });
+    const header = links?.parent;
+    expect(StyleSheet.flatten(header?.props.style).flexWrap).toBe("wrap");
+  });
+
   it("pushes /world from the World header link", async () => {
     await renderWithProviders(<HomeScreen />);
 
@@ -473,7 +488,10 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
   it("lets the 'Be ready' and possible-event cards scroll with the feed while the title row and links stay fixed (review A-19)", async () => {
     await i18n.changeLanguage("en");
     usePrefsStore.setState({ beReadyHidden: false });
-    mockUsePossibleEvents.mockReturnValue({ events: [samplePossibleEvent], isReady: true });
+    mockUsePossibleEvents.mockReturnValue({
+      events: [samplePossibleEvent],
+      isReady: true,
+    });
 
     await renderWithProviders(<HomeScreen />);
 
