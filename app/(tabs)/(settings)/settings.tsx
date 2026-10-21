@@ -478,13 +478,11 @@ function FooterSection() {
       </Text>
       <Pressable
         accessibilityRole="link"
-        // Phone: the in-app browser, so Settings stays where it was. The web
-        // keeps its existing behaviour (expo-linking opens it in this tab).
-        onPress={() =>
-          void (Platform.OS === "web"
-            ? Linking.openURL(PRIVACY_POLICY_URL)
-            : openLink(PRIVACY_POLICY_URL).catch(() => undefined))
-        }
+        // Opens beside the app, never instead of it: the phone's in-app
+        // browser, a new tab on the web (`open-link.web.ts`). expo-linking
+        // opened it in the app's own tab, so the iPhone Home Screen web app
+        // had no way back (decision 7b, 2026-10-21).
+        onPress={() => void openLink(PRIVACY_POLICY_URL).catch(() => undefined)}
         // 44 pt row (review B-12: the link measured 105 x 18).
         style={styles.footerLink}
       >

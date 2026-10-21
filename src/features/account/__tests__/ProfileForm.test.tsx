@@ -21,6 +21,11 @@ const mockRefresh = jest.fn();
 jest.mock("../store", () => ({
   refreshProfile: () => mockRefresh(),
 }));
+// The shared link opener: the phone's in-app browser, a new tab on the web.
+const mockOpenLink = jest.fn((_url: string) => Promise.resolve());
+jest.mock("@/lib/open-link", () => ({
+  openLink: (url: string) => mockOpenLink(url),
+}));
 
 async function press(testID: string) {
   await act(async () => {
@@ -85,6 +90,14 @@ describe("ProfileForm", () => {
     expect(screen.queryByTestId("profile-guidelines-agree")).toBeNull();
     await press("profile-guidelines-close-button");
     expect(screen.queryByTestId("profile-guidelines")).toBeNull();
+  });
+
+  // Decision 7b (2026-10-21): the policy opens beside the app (a new tab on
+  // the web), so the iPhone Home Screen web app keeps its way back.
+  it("opens the privacy policy through the shared link opener, never in the app's own tab", async () => {
+    await render(<ProfileForm profile={null} privateProfile={null} />);
+    await press("profile-privacy-link");
+    expect(mockOpenLink).toHaveBeenCalledWith("https://bumelerze.com/privacy.html");
   });
 
   it("lists every profession plus prefer-not-to-say, and research consent is optional", async () => {

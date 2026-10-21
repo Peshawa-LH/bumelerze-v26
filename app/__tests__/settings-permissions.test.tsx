@@ -15,7 +15,8 @@ import { usePrefsStore } from "@/features/onboarding";
  * `useEffect`, matching `use-permission-row.ts`'s own re-check-on-focus
  * wiring) plus mocks for `expo-location`/`expo-sensors` (the two native
  * permission APIs the combined button chains) and `expo-linking` (the
- * "open system settings" action and the footer's privacy-policy link).
+ * "open system settings" action); the footer's privacy-policy link goes
+ * through the shared `openLink`.
  */
 
 const mockPush = jest.fn();
@@ -40,6 +41,13 @@ const mockOpenURL = jest.fn();
 jest.mock("expo-linking", () => ({
   openSettings: () => mockOpenSettings(),
   openURL: (url: string) => mockOpenURL(url),
+}));
+
+// The shared link opener: the phone's in-app browser, a new tab on the web
+// (`open-link.web.ts`).
+const mockOpenLink = jest.fn((_url: string) => Promise.resolve());
+jest.mock("@/lib/open-link", () => ({
+  openLink: (url: string) => mockOpenLink(url),
 }));
 
 const mockGetForegroundPermissionsAsync = jest.fn();
@@ -223,6 +231,11 @@ describe("Settings screen — grouped rows + Device permissions", () => {
     expect(privacyLink).toBeTruthy();
     // A 44 pt row (review B-12: the link measured 105 x 18).
     expect(StyleSheet.flatten(privacyLink.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    // Phone: the in-app browser sheet, Settings stays underneath.
+    mockOpenLink.mockClear();
+    await fireEvent.press(privacyLink);
+    expect(mockOpenLink).toHaveBeenCalledWith("https://bumelerze.com/privacy.html");
+    expect(mockOpenURL).not.toHaveBeenCalled();
     expect(screen.getByText("Earthquake data: USGS, EMSC and GEOFON.")).toBeTruthy();
     expect(screen.getByText("Version 26.1.0")).toBeTruthy();
     expect(screen.getByText(/trademarks of the project/)).toBeTruthy();
@@ -321,6 +334,20 @@ describe("Settings screen — grouped rows + Device permissions", () => {
   describe("on web", () => {
     beforeEach(() => {
       Platform.OS = "web";
+    });
+
+    // Decision 7b (2026-10-21): expo-linking opened the policy in the app's
+    // own tab, and the iPhone Home Screen web app then had no way back.
+    it("opens the privacy policy in a new tab, never in the app's own tab", async () => {
+      mockOpenURL.mockClear();
+      mockOpenLink.mockClear();
+      await renderWithProviders(<SettingsScreen />);
+      await flush();
+
+      await fireEvent.press(screen.getByRole("link", { name: "Privacy policy" }));
+
+      expect(mockOpenLink).toHaveBeenCalledWith("https://bumelerze.com/privacy.html");
+      expect(mockOpenURL).not.toHaveBeenCalled();
     });
 
     it("shows the web denied hint instead of a system-settings deep link when a permission is denied", async () => {
