@@ -2,6 +2,8 @@ import { Stack, useNavigation, useSegments } from "expo-router";
 import { useLayoutEffect } from "react";
 import { Platform } from "react-native";
 
+import { StackDirection } from "@/components/StackDirection";
+
 /** The flow's screens after the first tap: the tier-1 report is already
  * queued and the person is adding to it (`useTier2DraftStore`). */
 const MID_REPORT_SCREENS: ReadonlySet<string> = new Set(["damage", "details", "step"]);
@@ -35,12 +37,14 @@ export default function FeltReportLayout() {
   }, [navigation, midReport]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="damage" />
-      <Stack.Screen name="details" />
-      <Stack.Screen name="step/[step]" />
-      <Stack.Screen name="done" />
-    </Stack>
+    <StackDirection>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="damage" />
+        <Stack.Screen name="details" />
+        <Stack.Screen name="step/[step]" />
+        <Stack.Screen name="done" />
+      </Stack>
+    </StackDirection>
   );
 }

@@ -1,5 +1,7 @@
 import { Stack } from "expo-router";
 
+import { StackDirection } from "@/components/StackDirection";
+
 /**
  * First-launch-only stack (the v1 spec §4.11), mounted outside the tab bar —
  * see app/_layout.tsx for the onboarding-vs-tabs switch. Every screen
@@ -8,12 +10,14 @@ import { Stack } from "expo-router";
  */
 export default function OnboardingLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="language" />
-      <Stack.Screen name="location" />
-      <Stack.Screen name="notifications" />
-      <Stack.Screen name="done" />
-    </Stack>
+    <StackDirection>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="language" />
+        <Stack.Screen name="location" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="done" />
+      </Stack>
+    </StackDirection>
   );
 }

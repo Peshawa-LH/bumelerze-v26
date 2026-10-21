@@ -16,6 +16,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AppRoot } from "@/components/AppRoot";
 import { SnackbarProvider, TAB_BAR_CONTENT_HEIGHT } from "@/components/Snackbar";
+import { StackDirection } from "@/components/StackDirection";
 import { useStackScreenOptions } from "@/components/use-stack-screen-options";
 import {
   createEventsPersister,
@@ -357,70 +358,72 @@ export default function RootLayout() {
           <SnackbarProvider
             bottomOffset={inTabs && !tabBarHidden ? TAB_BAR_CONTENT_HEIGHT : 0}
           >
-            <Stack screenOptions={stackScreenOptions}>
-              {/* Onboarding-vs-tabs gate (the v1 spec §4.11: "first-launch
-               * only, not reachable after"): registering only ONE of these
-               * two screen sets — never both — means "/onboarding" and
-               * "(tabs)" are each fully unreachable while the other is
-               * active, with no separate redirect logic needed. React
-               * Navigation resolves the new default screen itself the
-               * instant `onboardingCompleted` flips (the same
-               * conditional-screens pattern React Navigation's own
-               * "Authentication flows" guide recommends for auth gating).
-               * Expressed with `Stack.Protected`: a bare Fragment child of
-               * `<Stack>` makes expo-router 57 throw "Cannot convert a Symbol
-               * value to a string" and the app renders blank for every
-               * returning user (found 2026-10-04). */}
-              <Stack.Protected guard={onboardingCompleted}>
-                <Stack.Screen name="(tabs)" />
-                {/* Only the FULL-SCREEN flows are declared here; they cover
-                 * the tab bar. Everything people browse (event, hub, catalogue,
-                 * profiles, safety, handbook, settings pages...) lives inside
-                 * the tabs, under `(tabs)/(home,map,...)`,
-                 * so the bar stays. Each of these screens owns its
-                 * `headerShown`/`title`/`headerLeft` via its own inline
-                 * `<Stack.Screen options>` (a static `options` here was found
-                 * to be silently ineffective). */}
-                <Stack.Screen name="feedback" />
-                <Stack.Screen name="account/sign-in" />
-                <Stack.Screen name="account/profile" />
-                <Stack.Screen name="account/password" />
-                <Stack.Screen name="admin/index" />
-                <Stack.Screen name="admin/activity" />
-                <Stack.Screen name="admin/filter" />
-                <Stack.Screen name="admin/hidden" />
-                <Stack.Screen name="admin/limited" />
-                <Stack.Screen name="admin/people" />
-                <Stack.Screen name="admin/person/[id]" />
-                <Stack.Screen name="admin/feedback/index" />
-                <Stack.Screen name="admin/feedback/[id]" />
-                <Stack.Screen name="admin/photos" />
-                <Stack.Screen name="admin/moderation" />
-                <Stack.Screen name="admin/stats" />
-                <Stack.Screen name="admin/hubs" />
-                <Stack.Screen name="officials" />
-                <Stack.Screen name="home/new" />
-                <Stack.Screen name="home/join" />
-                <Stack.Screen name="home/[tagId]/report" />
-                <Stack.Screen name="home/[tagId]/family" />
-                {/* The felt report covers the whole screen, as on the web: an
-                 * iOS page sheet ("modal") closed with a downward swipe in
-                 * the middle of a report, and its screens' safe-area top
-                 * padding was added twice below the sheet's own top gap.
-                 * Leaving it goes through the flow's own buttons. */}
-                <Stack.Screen
-                  name="felt-report"
-                  options={{ presentation: "fullScreenModal" }}
-                />
-                <Stack.Screen name="im-safe" />
-                {/* The swipeable tour owns its horizontal swipes, so the iOS
-                 * edge-swipe-back is off; Skip and the last button leave it. */}
-                <Stack.Screen name="tour" options={{ gestureEnabled: false }} />
-              </Stack.Protected>
-              <Stack.Protected guard={!onboardingCompleted}>
-                <Stack.Screen name="onboarding" />
-              </Stack.Protected>
-            </Stack>
+            <StackDirection>
+              <Stack screenOptions={stackScreenOptions}>
+                {/* Onboarding-vs-tabs gate (the v1 spec §4.11: "first-launch
+                 * only, not reachable after"): registering only ONE of these
+                 * two screen sets — never both — means "/onboarding" and
+                 * "(tabs)" are each fully unreachable while the other is
+                 * active, with no separate redirect logic needed. React
+                 * Navigation resolves the new default screen itself the
+                 * instant `onboardingCompleted` flips (the same
+                 * conditional-screens pattern React Navigation's own
+                 * "Authentication flows" guide recommends for auth gating).
+                 * Expressed with `Stack.Protected`: a bare Fragment child of
+                 * `<Stack>` makes expo-router 57 throw "Cannot convert a Symbol
+                 * value to a string" and the app renders blank for every
+                 * returning user (found 2026-10-04). */}
+                <Stack.Protected guard={onboardingCompleted}>
+                  <Stack.Screen name="(tabs)" />
+                  {/* Only the FULL-SCREEN flows are declared here; they cover
+                   * the tab bar. Everything people browse (event, hub, catalogue,
+                   * profiles, safety, handbook, settings pages...) lives inside
+                   * the tabs, under `(tabs)/(home,map,...)`,
+                   * so the bar stays. Each of these screens owns its
+                   * `headerShown`/`title`/`headerLeft` via its own inline
+                   * `<Stack.Screen options>` (a static `options` here was found
+                   * to be silently ineffective). */}
+                  <Stack.Screen name="feedback" />
+                  <Stack.Screen name="account/sign-in" />
+                  <Stack.Screen name="account/profile" />
+                  <Stack.Screen name="account/password" />
+                  <Stack.Screen name="admin/index" />
+                  <Stack.Screen name="admin/activity" />
+                  <Stack.Screen name="admin/filter" />
+                  <Stack.Screen name="admin/hidden" />
+                  <Stack.Screen name="admin/limited" />
+                  <Stack.Screen name="admin/people" />
+                  <Stack.Screen name="admin/person/[id]" />
+                  <Stack.Screen name="admin/feedback/index" />
+                  <Stack.Screen name="admin/feedback/[id]" />
+                  <Stack.Screen name="admin/photos" />
+                  <Stack.Screen name="admin/moderation" />
+                  <Stack.Screen name="admin/stats" />
+                  <Stack.Screen name="admin/hubs" />
+                  <Stack.Screen name="officials" />
+                  <Stack.Screen name="home/new" />
+                  <Stack.Screen name="home/join" />
+                  <Stack.Screen name="home/[tagId]/report" />
+                  <Stack.Screen name="home/[tagId]/family" />
+                  {/* The felt report covers the whole screen, as on the web: an
+                   * iOS page sheet ("modal") closed with a downward swipe in
+                   * the middle of a report, and its screens' safe-area top
+                   * padding was added twice below the sheet's own top gap.
+                   * Leaving it goes through the flow's own buttons. */}
+                  <Stack.Screen
+                    name="felt-report"
+                    options={{ presentation: "fullScreenModal" }}
+                  />
+                  <Stack.Screen name="im-safe" />
+                  {/* The swipeable tour owns its horizontal swipes, so the iOS
+                   * edge-swipe-back is off; Skip and the last button leave it. */}
+                  <Stack.Screen name="tour" options={{ gestureEnabled: false }} />
+                </Stack.Protected>
+                <Stack.Protected guard={!onboardingCompleted}>
+                  <Stack.Screen name="onboarding" />
+                </Stack.Protected>
+              </Stack>
+            </StackDirection>
           </SnackbarProvider>
         </PersistQueryClientProvider>
       </SafeAreaProvider>

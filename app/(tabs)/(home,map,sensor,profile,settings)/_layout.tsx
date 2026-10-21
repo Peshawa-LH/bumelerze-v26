@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 
+import { StackDirection } from "@/components/StackDirection";
 import { useStackScreenOptions } from "@/components/use-stack-screen-options";
 
 /**
@@ -17,7 +18,11 @@ import { useStackScreenOptions } from "@/components/use-stack-screen-options";
  * the tabs.
  */
 export default function TabStackLayout() {
-  return <Stack screenOptions={useStackScreenOptions()} />;
+  return (
+    <StackDirection>
+      <Stack screenOptions={useStackScreenOptions()} />
+    </StackDirection>
+  );
 }
 
 /**
