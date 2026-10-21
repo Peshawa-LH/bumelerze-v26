@@ -20,7 +20,8 @@ interface StationDetailsProps {
 }
 
 /** One station: identity, distance, freshness badge, the last ten
- * minutes, and the data credit. Polling lives in the panel (queries.ts). */
+ * minutes, the data credit and, where credited, the host. Polling lives in
+ * the panel (queries.ts). */
 export function StationDetails({ station, trace }: StationDetailsProps) {
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -145,6 +146,22 @@ export function StationDetails({ station, trace }: StationDetailsProps) {
       >
         {t("stations.credit", { credit: isolateName(station.credit) })}
       </Text>
+      {/* The instrument's host, where it is credited too (Hawler, TIU). */}
+      {station.host ? (
+        <Text
+          testID="station-details-host"
+          {...dirProps}
+          style={{
+            color: colors.text.tertiary,
+            fontSize: typography.labelCaption.fontSize,
+            fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+            lineHeight: typography.labelCaption.lineHeight,
+            ...dirStyle,
+          }}
+        >
+          {t(`stations.hostedBy.${station.host}`)}
+        </Text>
+      ) : null}
     </View>
   );
 }

@@ -8,7 +8,9 @@
  * Curation (owner, 2026-09-27: ~40 stations, every Iraqi one even when
  * silent): all of the Iraqi Seismic Observatory (MP); KOERI's KO stations
  * within KO_MAX_KM of Hawler; GE.ARPR and IU.GNI; the nearest few Caucasus
- * stations. Each station is probed for data in the last hour so the map
+ * stations; and the one Raspberry Shake of the Kurdistan Educational Seismic
+ * Observatory, at Tishk International University in Hawler (owner,
+ * 2026-10-21). Each station is probed for data in the last hour so the map
  * can grey the silent ones at first paint; the app re-checks on tap.
  *
  *   node scripts/build-live-stations.mjs
@@ -25,6 +27,7 @@ const SERVICES = {
   earthscope: "https://service.earthscope.org/fdsnws",
   koeri: "https://eida.koeri.boun.edu.tr/fdsnws",
   geofon: "https://geofon.gfz.de/fdsnws",
+  raspberryshake: "https://data.raspberryshake.org/fdsnws",
 };
 const BBOX = "minlatitude=28&maxlatitude=42&minlongitude=36&maxlongitude=52";
 
@@ -72,10 +75,34 @@ async function names(service, net) {
   return out;
 }
 
+/** Raspberry Shake's server answers only the long parameter names (`net=`
+ * gives 404) and is asked for the location code too; the app builds the
+ * same URLs (src/features/stations/trace-transport.ts). */
+function dataselectUrl(st, start, end) {
+  const t = (d) => d.toISOString().slice(0, 19);
+  if (st.service === "raspberryshake") {
+    return `${SERVICES[st.service]}/dataselect/1/query?network=${st.net}&station=${st.sta}&location=${st.loc}&channel=${st.channel}&starttime=${t(start)}&endtime=${t(end)}`;
+  }
+  return `${SERVICES[st.service]}/dataselect/1/query?net=${st.net}&sta=${st.sta}&cha=${st.channel}&start=${t(start)}&end=${t(end)}`;
+}
+
+/** One Raspberry Shake channel's current epoch (the metadata line with no
+ * end time), coordinates rounded to 5 decimals (~1 m; the service reports
+ * float noise such as 36.16216216216216). */
+async function raspberryShake(net, sta, loc, cha) {
+  const body = await text(`${SERVICES.raspberryshake}/station/1/query?network=${net}&station=${sta}&location=${loc}&channel=${cha}&level=channel&format=text`);
+  const lines = body.split("\n").filter((line) => line && !line.startsWith("#"));
+  const current = lines.find((line) => line.split("|")[16] === "") ?? lines[lines.length - 1];
+  if (!current) throw new Error(`no metadata for ${net}.${sta}`);
+  const f = current.split("|");
+  const round5 = (v) => Math.round(Number(v) * 1e5) / 1e5;
+  return { id: `${net}.${sta}`, net, sta, loc, channel: cha, lat: round5(f[4]), lon: round5(f[5]), elevM: Number(f[6]), sps: Number(f[14]), service: "raspberryshake" };
+}
+
 async function lastSeen(st) {
   const end = new Date();
   const start = new Date(end.getTime() - 60 * 60 * 1000);
-  const url = `${SERVICES[st.service]}/dataselect/1/query?net=${st.net}&sta=${st.sta}&cha=${st.channel}&start=${start.toISOString().slice(0, 19)}&end=${end.toISOString().slice(0, 19)}`;
+  const url = dataselectUrl(st, start, end);
   try {
     const r = await fetch(url, { method: "GET", redirect: "follow" });
     if (r.status === 204) return null;
@@ -104,6 +131,16 @@ const geofon = await channels("geofon", `${BBOX}&network=GE`);
 nameMaps.set("geofon:GE", await names("geofon", "GE"));
 { const arpr = geofon.get("GE.ARPR"); if (arpr) picked.push({ ...withName(arpr), country: "TR", operator: "GEOFON", credit: "GEOFON (GFZ)" }); }
 const caucasus = [...earth.values()].filter((st) => ["A2", "A0", "AB", "GO"].includes(st.net)).sort((a, b) => km(ERBIL, a) - km(ERBIL, b)).slice(0, CAUCASUS_TAKE);
+// KESO: the Kurdistan Educational Seismic Observatory's Raspberry Shake 4D,
+// hosted by Tishk International University (owner, 2026-10-21). EHZ is its
+// velocity geophone (ENE/ENN/ENZ are the accelerometer). Its public archive
+// runs ~30 min behind real time. Only this one Raspberry Shake: the data
+// licence (https://raspberryshake.org/license/) asks for no "network"-style
+// page of other people's Shakes.
+{
+  const keso = await raspberryShake("AM", "R079D", "00", "EHZ");
+  picked.push({ ...keso, name: "Hawler, TIU", distanceKmFromErbil: Math.round(km(ERBIL, keso)), country: "IQ", operator: "Kurdistan Educational Seismic Observatory, Tishk International University", credit: "Kurdistan Educational Seismic Observatory via Raspberry Shake", host: "tiu" });
+}
 for (const st of caucasus) picked.push({ ...withName(st), country: st.net === "AB" ? "AZ" : st.net === "GO" ? "GE" : "AM", operator: st.net === "AB" ? "RSSC Azerbaijan" : st.net === "GO" ? "NSMC Georgia" : "NSSP Armenia", credit: "via EarthScope" });
 
 for (const st of picked) st.lastSeenAt = await lastSeen(st);

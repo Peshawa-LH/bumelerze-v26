@@ -21,6 +21,9 @@ export interface LiveStation {
   operator: string;
   /** Verbatim credit line shown with the trace. */
   credit: string;
+  /** Who hosts the instrument, when that is credited too: the key of a
+   * localised line under `stations.hostedBy` (e.g. "tiu"). */
+  host?: string;
   distanceKmFromErbil: number;
   /** When the catalogue build last found data (24 h probe), or null. */
   lastSeenAt: string | null;

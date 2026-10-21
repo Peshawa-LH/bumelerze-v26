@@ -6,6 +6,25 @@
   },
   "stations": [
     {
+      "id": "AM.R079D",
+      "net": "AM",
+      "sta": "R079D",
+      "loc": "00",
+      "channel": "EHZ",
+      "lat": 36.16216,
+      "lon": 43.9461,
+      "elevM": 390,
+      "sps": 100,
+      "service": "raspberryshake",
+      "name": "Hawler, TIU",
+      "distanceKmFromErbil": 7,
+      "country": "IQ",
+      "operator": "Kurdistan Educational Seismic Observatory, Tishk International University",
+      "credit": "Kurdistan Educational Seismic Observatory via Raspberry Shake",
+      "host": "tiu",
+      "lastSeenAt": "2026-10-21T14:04:56.758Z"
+    },
+    {
       "id": "MP.KIR1",
       "net": "MP",
       "sta": "KIR1",
