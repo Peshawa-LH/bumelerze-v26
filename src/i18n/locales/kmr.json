@@ -1806,6 +1806,7 @@
     },
     "lastSample": "Nimûneya dawî berî {{minutes}} deqîqeyan · her 30 çirkeyan nû dibe",
     "noData": "Di 10 deqeyên borî de ti dane ji vê stasyonê nehat.",
+    "noDataLastHour": "Di saeta borî de ti dane ji vê stasyonê nehat.",
     "loading": "Deh deqîqeyên dawî tên barkirin…",
     "error": "Niha ev stasyon nayê barkirin.",
     "distanceFromReference": "{{km}} km ji Hewlêrê",

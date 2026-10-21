@@ -20,4 +20,5 @@ export const FDSN_SERVICE_BASE: Record<LiveStation["service"], string> = {
   earthscope: "https://service.earthscope.org/fdsnws",
   koeri: "https://eida.koeri.boun.edu.tr/fdsnws",
   geofon: "https://geofon.gfz.de/fdsnws",
+  raspberryshake: "https://data.raspberryshake.org/fdsnws",
 };

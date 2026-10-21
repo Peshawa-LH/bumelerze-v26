@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import { appendSegment, canStream, openStationStream } from "./datalink";
 
-import { classifyFreshness, freshnessFromCatalog } from "./freshness";
+import { classifyFreshness, freshnessFromCatalog, liveMaxAgeMs } from "./freshness";
 import {
   FdsnStationTraceTransport,
   TRACE_WINDOW_MS,
@@ -13,8 +13,10 @@ import type { LiveStation, StationFreshness, StationTrace } from "./types";
 
 /** Refresh cadence for the one station on screen: half a minute for a
  * station that publishes in blocks (KOERI: five-minute blocks, measured
- * 2026-09-27), fifteen seconds for one within a minute of real time
- * (EarthScope's ring: Kirkuk 4 s behind) so the trace visibly moves. */
+ * 2026-09-27) or runs behind (Raspberry Shake's archive, ~30 min, asked
+ * only for what is new each time), fifteen seconds for one within a minute
+ * of real time (EarthScope's ring: Kirkuk 4 s behind) so the trace visibly
+ * moves. */
 export const STATION_TRACE_REFETCH_MS = 30_000;
 export const STATION_TRACE_REFETCH_LIVE_MS = 15_000;
 const NEAR_REAL_TIME_MS = 60_000;
@@ -34,9 +36,20 @@ export function useStationTrace(
   station: LiveStation | null,
   transport: StationTraceTransport = FdsnStationTraceTransport,
 ): UseStationTraceResult {
+  const queryClient = useQueryClient();
+  const queryKey = ["station-trace", station?.id ?? null] as const;
   const query = useQuery({
-    queryKey: ["station-trace", station?.id ?? null],
-    queryFn: () => (station ? transport.fetchTrace(station) : Promise.resolve(null)),
+    queryKey,
+    // The previous answer lets a delayed-archive station ask only for what
+    // is new (trace-transport.ts); the others ignore it.
+    queryFn: () =>
+      station
+        ? transport.fetchTrace(
+            station,
+            Date.now(),
+            queryClient.getQueryData<StationTrace | null>(queryKey) ?? null,
+          )
+        : Promise.resolve(null),
     enabled: station !== null,
     refetchInterval: (q) => {
       const data = q.state.data;
@@ -122,7 +135,7 @@ export function useStationTrace(
   return {
     status: "ready",
     trace,
-    freshness: classifyFreshness(trace.endMs, fetchedAt),
+    freshness: classifyFreshness(trace.endMs, fetchedAt, liveMaxAgeMs(station.service)),
     lagMs: fetchedAt - trace.endMs,
     streaming: useLive,
   };
@@ -134,7 +147,8 @@ const PROBE_CONCURRENCY = 4;
 
 /**
  * Freshness of every station: probed live (a ten-minute request each, a
- * few at a time) on top of the catalogue's day-old sighting. Until the
+ * few at a time; a five-minute slice an hour back for a Raspberry Shake)
+ * on top of the catalogue's day-old sighting. Until the
  * probe answers, the catalogue tier stands, so the map never shows a
  * station as live on a guess.
  */

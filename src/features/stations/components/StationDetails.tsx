@@ -6,6 +6,7 @@ import { isolateName } from "@/features/geo";
 import { directionProps, directionStyle } from "@/i18n";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import type { UseStationTraceResult } from "../queries";
+import { TRACE_WINDOW_MS, traceLookbackMs } from "../trace-transport";
 import type { LiveStation } from "../types";
 import { freshnessColor } from "./colors";
 import { StationTraceChart } from "./StationTraceChart";
@@ -114,7 +115,12 @@ export function StationDetails({ station, trace }: StationDetailsProps) {
           : status === "error"
             ? t("stations.error")
             : status === "empty"
-              ? t("stations.noData")
+              ? t(
+                  // A delayed-archive station is asked for its last hour.
+                  traceLookbackMs(station.service) > TRACE_WINDOW_MS
+                    ? "stations.noDataLastHour"
+                    : "stations.noData",
+                )
               : streaming
                 ? t("stations.streaming", {
                     seconds: Math.max(0, Math.round((lagMs ?? 0) / 1000)),
