@@ -3107,6 +3107,35 @@
         "officialNotReady": "The official Bumelerze account has not accepted the community guidelines yet. Sign in as it once and accept them.",
         "officialMissing": "The official Bumelerze account (@bumelerze) was not found."
       }
+    },
+    "sources": {
+      "title": "Source status",
+      "allFine": "All sources are working",
+      "needAttention": "Need attention: {{number}}",
+      "loading": "Checking the sources…",
+      "unavailable": "The source status could not be loaded.",
+      "providers": {
+        "usgs": "USGS",
+        "emsc": "EMSC",
+        "geofon": "GEOFON",
+        "isc": "ISC (daily bulletin)"
+      },
+      "noData": "No data yet",
+      "lastData": "Last data: {{ago}}",
+      "late": "Late. Last data: {{ago}}",
+      "alertOpened": "Alert opened: {{ago}}",
+      "lastError": "Last error: {{error}}",
+      "worker": {
+        "name": "SHAKEmap worker",
+        "noToken": "Not set up: no GitHub token yet. The schedule still runs.",
+        "ready": "Ready: starts with the next earthquake",
+        "started": "Last started: {{ago}}",
+        "starting": "Started: {{ago}}. Waiting for GitHub's answer",
+        "queued": "A new start is waiting",
+        "failing": "Failed starts in a row: {{number}}",
+        "lastAnswer": "Last answer: {{answer}}",
+        "noAnswer": "no answer"
+      }
     }
   },
   "restrictions": {
@@ -3611,7 +3640,9 @@
       "summaryTitle": "More earthquakes in the area",
       "summaryBody": "Smaller earthquakes since your last alert: {{count}}. Largest: {{magnitude}}, {{place}}.",
       "testTitle": "Test alert",
-      "testBody": "This is a test from Bumelerze. No earthquake happened."
+      "testBody": "This is a test from Bumelerze. No earthquake happened.",
+      "opsTitle": "A data source needs attention",
+      "opsBody": "An earthquake feed or the SHAKEmap worker has stopped working. Open Admin to see which one."
     },
     "language": "Alerts come in the app's language: {{language}}. To change it, go to Settings, Language.",
     "devices": {

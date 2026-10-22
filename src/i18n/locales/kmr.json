@@ -3107,6 +3107,35 @@
         "officialNotReady": "Hesabê fermî yê Bumelerze hîn rêbazên civakê qebûl nekiriye. Carekê pê têkeve û wan qebûl bike.",
         "officialMissing": "Hesabê fermî yê Bumelerze (@bumelerze) nehat dîtin."
       }
+    },
+    "sources": {
+      "title": "Rewşa çavkaniyan",
+      "allFine": "Hemû çavkanî dixebitin",
+      "needAttention": "Baldarî dixwazin: {{number}}",
+      "loading": "Çavkanî têne kontrolkirin…",
+      "unavailable": "Rewşa çavkaniyan nehat barkirin.",
+      "providers": {
+        "usgs": "USGS",
+        "emsc": "EMSC",
+        "geofon": "GEOFON",
+        "isc": "ISC (bultena rojane)"
+      },
+      "noData": "Hîn dane tune ne",
+      "lastData": "Daneya dawî: {{ago}}",
+      "late": "Dereng. Daneya dawî: {{ago}}",
+      "alertOpened": "Hişyarî vebû: {{ago}}",
+      "lastError": "Xeletiya dawî: {{error}}",
+      "worker": {
+        "name": "Xebatkarê SHAKEmap",
+        "noToken": "Nehatiye sazkirin: hîn tokena GitHub tune. Bernameya demê hîn dixebite.",
+        "ready": "Amade ye: bi erdheja din re dest pê dike",
+        "started": "Destpêkirina dawî: {{ago}}",
+        "starting": "Dest pê kir: {{ago}}. Li benda bersiva GitHub e",
+        "queued": "Destpêkirineke nû li bendê ye",
+        "failing": "Destpêkirinên têkçûyî li pey hev: {{number}}",
+        "lastAnswer": "Bersiva dawî: {{answer}}",
+        "noAnswer": "bersiv tune"
+      }
     }
   },
   "restrictions": {
@@ -3611,7 +3640,9 @@
       "summaryTitle": "Bêtir erdhej li herêmê",
       "summaryBody": "Erdhejên piçûktir piştî hişyariya te ya dawî: {{count}}. Ya herî mezin: {{magnitude}}, {{place}}.",
       "testTitle": "Hişyariya ceribandinê",
-      "testBody": "Ev ceribandinek ji Bumelerze ye. Tu erdhej çênebû."
+      "testBody": "Ev ceribandinek ji Bumelerze ye. Tu erdhej çênebû.",
+      "opsTitle": "Çavkaniyeke daneyan baldariyê dixwaze",
+      "opsBody": "Çavkaniyeke daneyên erdhejê an jî xebatkarê SHAKEmap ji kar sekiniye. Rêvebir veke da ku bibînî kîjan e."
     },
     "language": "Hişyarî bi zimanê sepanê tên: {{language}}. Ji bo guhertinê, here Sazkarî, Ziman.",
     "devices": {

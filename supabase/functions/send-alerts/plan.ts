@@ -14,7 +14,7 @@ export interface ParsedPlan {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BML = /^bml\d{4}[0-9a-z]{4,}$/;
-const KINDS: readonly DeliveryKind[] = ["alert", "upgrade", "summary", "test"];
+const KINDS: readonly DeliveryKind[] = ["alert", "upgrade", "summary", "test", "ops"];
 
 type Row = Record<string, unknown>;
 
@@ -85,7 +85,9 @@ function parseItem(raw: Row): AlertItem | null {
       depthKm: num(e.depth_km),
     };
   }
-  if (kind !== "test" && event === null) return null;
+  // Only the earthquake kinds need an event; a test alert and an operations
+  // notice to the admins (migration 0070) carry none.
+  if (kind !== "test" && kind !== "ops" && event === null) return null;
 
   const context = raw.context;
   return {

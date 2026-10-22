@@ -151,6 +151,34 @@ describe("buildMessage", () => {
     expect(m.quiet).toBe(false);
   });
 
+  it("ops (migration 0070): a fixed notice for the admins, no event, opens the admin home", () => {
+    const m = buildMessage(item({ kind: "ops", event: null, context: null }));
+    expect(m.title).toBe("A data source needs attention");
+    expect(m.body).toBe(
+      "An earthquake feed or the SHAKEmap worker has stopped working. Open Admin to see which one.",
+    );
+    expect(m.path).toBe("admin");
+    expect(m.tag).toBe("bml-ops");
+    expect(m.topic).toBe("bml-ops");
+    expect(m.renotify).toBe(true);
+    expect(m.urgency).toBe("normal");
+    expect(m.timeSensitive).toBe(false);
+    // even if an event were attached, an ops notice never reads as an earthquake
+    expect(buildMessage(item({ kind: "ops" })).title).toBe("A data source needs attention");
+  });
+
+  it("ops in every locale, right-to-left for ckb and ar", () => {
+    const ckb = buildMessage(item({ kind: "ops", event: null, locale: "ckb" }));
+    expect(ckb.dir).toBe("rtl");
+    expect(ckb.title).toBe("سەرچاوەیەکی زانیاری پێویستی بە سەرنجە");
+    const ar = buildMessage(item({ kind: "ops", event: null, locale: "ar" }));
+    expect(ar.dir).toBe("rtl");
+    expect(ar.body).toContain("SHAKEmap");
+    const kmr = buildMessage(item({ kind: "ops", event: null, locale: "kmr" }));
+    expect(kmr.dir).toBe("ltr");
+    expect(kmr.title).toBe("Çavkaniyeke daneyan baldariyê dixwaze");
+  });
+
   it("time-sensitive on iOS from magnitude 5.0 (alerts and updates only), never for tests or summaries", () => {
     const strong = { ...EVENT, magnitude: 5.0 };
     expect(buildMessage(item({ event: strong })).timeSensitive).toBe(true);

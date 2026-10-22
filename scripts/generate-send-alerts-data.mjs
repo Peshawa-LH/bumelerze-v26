@@ -42,6 +42,8 @@ export const STRING_KEYS = [
   ["summaryBody", "alerts.push.summaryBody"],
   ["testTitle", "alerts.push.testTitle"],
   ["testBody", "alerts.push.testBody"],
+  ["opsTitle", "alerts.push.opsTitle"],
+  ["opsBody", "alerts.push.opsBody"],
 ];
 
 function pick(obj, dotted) {
