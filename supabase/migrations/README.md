@@ -6,7 +6,7 @@ Numbered SQL files, applied in order. The repo is the record of what is live.
 
 - 0001 to 0033 went through the Supabase CLI and are listed in
   `supabase_migrations.schema_migrations`.
-- 0034 onwards (except 0041, which is parked and not applied) are applied by
+- 0034 onwards (except 0041, superseded by 0072 and never applied) are applied by
   hand in the dashboard's SQL editor, as one line: full-line `--` comments
   dropped, whitespace collapsed. That is why every file keeps the rules
   pinned by the `__tests__` here: full-line comments only (a `--` inside a

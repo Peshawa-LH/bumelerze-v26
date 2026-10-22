@@ -2,7 +2,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 /**
- * Static checks of migration 0041: the registry starts the SHAKEmap worker
+ * Static checks of migration 0041 (parked, superseded by 0072, never
+ * applied; kept as the design record): the registry starts the SHAKEmap worker
  * through GitHub's workflow_dispatch when an event is new or materially
  * revised — with the worker's own revision thresholds, a 3-minute throttle,
  * the token read from Vault (never written in SQL), and nothing callable by
@@ -15,6 +16,13 @@ const code = sql
   .join("\n");
 
 describe("0041_shake_worker_dispatch.sql", () => {
+  it("says in its header that 0072 supersedes it and that it must never be applied", () => {
+    expect(sql.split("\n")[0]).toContain(
+      "STATUS: SUPERSEDED by 0072_shake_worker_dispatch.sql",
+    );
+    expect(sql).toContain("NEVER\n-- APPLY THIS FILE.");
+  });
+
   it("uses the worker's revision thresholds", () => {
     expect(code).toMatch(
       /abs\(coalesce\(new\.magnitude, 0\) - coalesce\(old\.magnitude, 0\)\) >= 0\.1/,

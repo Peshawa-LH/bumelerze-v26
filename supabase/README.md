@@ -2,9 +2,9 @@
 
 The backend is one live Supabase project (`bcgyxepgruwardhozvfq`): Postgres
 with row-level security, auth (anonymous sessions and optional accounts),
-Storage, `pg_cron` and four edge functions. Migrations **0001 to 0069** are
-applied, except **0041**, which is parked and not applied. The files in this
-folder are the record of what is live.
+Storage, `pg_cron` and four edge functions. Migrations **0001 to 0072** are
+applied, except **0041**, which 0072 supersedes and which is never applied.
+The files in this folder are the record of what is live.
 
 ## Where to read
 
@@ -41,21 +41,21 @@ tracker if the CLI is ever adopted again.
 
 ## What the schema covers
 
-| Area                                         | Main migrations                                                    |
-| -------------------------------------------- | ------------------------------------------------------------------ |
-| Events, sources, merges, ids                 | 0002, 0008, 0011, 0023, 0025, 0026, 0029, 0032                     |
-| Felt reports, photos, comments, cells        | 0003, 0004, 0009, 0015, 0016, 0018, 0039, 0064, 0071               |
-| Crowd detection (possible events)            | 0012, 0013, 0014, 0034                                             |
-| Scheduled jobs (`pg_cron`)                   | 0013, 0017, 0024, 0034, 0052, 0053, 0057, 0061 to 0063, 0067, 0071 |
-| SHAKEmap product index                       | 0006, 0007, 0019, 0027, 0028, 0030, 0031                           |
-| Feedback                                     | 0020, 0021, 0022, 0048                                             |
-| Accounts, profiles, follows, posts, mentions | 0035, 0040, 0045, 0047, 0050, 0058, 0063, 0065                     |
-| Event hubs and moderation                    | 0036, 0038, 0043, 0044, 0052 to 0054, 0056, 0059, 0065             |
-| Tag my building, homes and family            | 0037, 0042, 0049, 0061                                             |
-| I'm safe                                     | 0057, 0064                                                         |
-| Admin tools, roles, Government official      | 0046, 0051, 0055, 0060, 0061, 0066, 0069                           |
-| Alerts (testers mode) and telemetry          | 0005, 0062, 0068                                                   |
-| Security and operations                      | 0001, 0010, 0033, 0067, 0070                                       |
+| Area                                         | Main migrations                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------ |
+| Events, sources, merges, ids                 | 0002, 0008, 0011, 0023, 0025, 0026, 0029, 0032                           |
+| Felt reports, photos, comments, cells        | 0003, 0004, 0009, 0015, 0016, 0018, 0039, 0064, 0071                     |
+| Crowd detection (possible events)            | 0012, 0013, 0014, 0034                                                   |
+| Scheduled jobs (`pg_cron`)                   | 0013, 0017, 0024, 0034, 0052, 0053, 0057, 0061 to 0063, 0067, 0071, 0072 |
+| SHAKEmap product index and worker start      | 0006, 0007, 0019, 0027, 0028, 0030, 0031, 0072                           |
+| Feedback                                     | 0020, 0021, 0022, 0048                                                   |
+| Accounts, profiles, follows, posts, mentions | 0035, 0040, 0045, 0047, 0050, 0058, 0063, 0065                           |
+| Event hubs and moderation                    | 0036, 0038, 0043, 0044, 0052 to 0054, 0056, 0059, 0065                   |
+| Tag my building, homes and family            | 0037, 0042, 0049, 0061                                                   |
+| I'm safe                                     | 0057, 0064                                                               |
+| Admin tools, roles, Government official      | 0046, 0051, 0055, 0060, 0061, 0066, 0069                                 |
+| Alerts (testers mode) and telemetry          | 0005, 0062, 0068                                                         |
+| Security and operations                      | 0001, 0010, 0033, 0067, 0070                                             |
 
 Each migration's header says what it changes and why.
 
