@@ -57,7 +57,12 @@ describe("0070 can be pasted into the SQL editor as one line", () => {
   it("creates no table and exactly these functions, each security definer with a fixed path", () => {
     expect(createdTables(sql)).toEqual([]);
     expect(createdFunctions(sql).sort()).toEqual(
-      ["admin_source_status", "ops_check_feeds", "ops_feed_threshold", "ops_notify_admins"].sort(),
+      [
+        "admin_source_status",
+        "ops_check_feeds",
+        "ops_feed_threshold",
+        "ops_notify_admins",
+      ].sort(),
     );
     for (const name of ["admin_source_status", "ops_check_feeds", "ops_notify_admins"]) {
       expect(fn(name)).toContain("security definer");
@@ -75,7 +80,9 @@ describe("every ingest channel is watched", () => {
 
   it("watches usgs, emsc, geofon and isc, opens once and closes on recovery", () => {
     const body = fn("ops_check_feeds");
-    expect(body).toContain("foreach v_provider in array array['usgs', 'emsc', 'geofon', 'isc'] loop");
+    expect(body).toContain(
+      "foreach v_provider in array array['usgs', 'emsc', 'geofon', 'isc'] loop",
+    );
     expect(body).toContain("v_threshold := public.ops_feed_threshold(v_provider);");
     expect(body).toContain("v_stale := v_last is null or v_last < now() - v_threshold;");
     expect(body).toContain("if v_stale and v_open is null then");
@@ -134,7 +141,9 @@ describe("admin_source_status", () => {
     expect(body).toContain(
       "raise exception 'admin_source_status: not_allowed' using errcode = '42501';",
     );
-    expect(sql).toContain("revoke all on function public.admin_source_status() from public, anon;");
+    expect(sql).toContain(
+      "revoke all on function public.admin_source_status() from public, anon;",
+    );
     expect(sql).toContain(
       "grant execute on function public.admin_source_status() to authenticated;",
     );

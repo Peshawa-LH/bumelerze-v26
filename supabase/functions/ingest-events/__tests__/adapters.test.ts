@@ -210,7 +210,9 @@ const ISC_ERROR_PAGE = [
 
 describe("ISC channel (FDSN text, daily bulletin)", () => {
   it("asks with a start time ISC accepts: UTC, no zone letter, no fraction", () => {
-    expect(fdsnUtcTime(Date.parse("2025-07-29T09:52:52.642Z"))).toBe("2025-07-29T09:52:52");
+    expect(fdsnUtcTime(Date.parse("2025-07-29T09:52:52.642Z"))).toBe(
+      "2025-07-29T09:52:52",
+    );
     const url = new URL(buildIscUrl(BBOX, Date.parse("2025-07-29T09:52:52.642Z")));
     expect(url.searchParams.get("starttime")).toBe("2025-07-29T09:52:52");
     expect(url.searchParams.get("format")).toBe("text");
@@ -225,7 +227,9 @@ describe("ISC channel (FDSN text, daily bulletin)", () => {
 
     expect(result.channel).toBe("isc");
     expect(result.skippedCount).toBe(0);
-    expect(result.records.map((r) => [r.providerEventId, r.authorAgency, r.reviewStatus])).toEqual([
+    expect(
+      result.records.map((r) => [r.providerEventId, r.authorAgency, r.reviewStatus]),
+    ).toEqual([
       ["646583552", "TEH", "reviewed"],
       ["643913511", "ISN", "reviewed"],
     ]);
@@ -256,7 +260,9 @@ describe("FDSN text answers that are not a bulletin", () => {
   it("GEOFON: an HTML page with a 2xx status fails the channel too", async () => {
     respond(200, "<html><head><title>Processing Failed</title></head></html>");
 
-    await expect(fetchGeofonChannel(BBOX, SINCE)).rejects.toThrow("not an FDSN text answer: <html>");
+    await expect(fetchGeofonChannel(BBOX, SINCE)).rejects.toThrow(
+      "not an FDSN text answer: <html>",
+    );
   });
 
   it("GEOFON: a header with no rows is zero events, not an error", async () => {

@@ -24,7 +24,12 @@ import {
 const raw = readMigration("0071_anonymous_write_limits.sql");
 const sql = readCode("0071_anonymous_write_limits.sql");
 const fn = (name: string) => functionSource(sql, name);
-const FELT_TABLES = ["felt_reports", "felt_report_details", "felt_comments", "felt_photos"];
+const FELT_TABLES = [
+  "felt_reports",
+  "felt_report_details",
+  "felt_comments",
+  "felt_photos",
+];
 
 describe("0071 can be pasted into the SQL editor as one line", () => {
   it("has no transaction statements", () => {
@@ -65,8 +70,12 @@ describe("0071 can be pasted into the SQL editor as one line", () => {
 describe("the counters", () => {
   it("one table, closed: RLS on, no client grant, no policy", () => {
     expect(createdTables(sql)).toEqual(["write_rate_counters"]);
-    expect(sql).toContain("alter table public.write_rate_counters enable row level security;");
-    expect(sql).toContain("revoke all on public.write_rate_counters from public, anon, authenticated;");
+    expect(sql).toContain(
+      "alter table public.write_rate_counters enable row level security;",
+    );
+    expect(sql).toContain(
+      "revoke all on public.write_rate_counters from public, anon, authenticated;",
+    );
     expect(sql).not.toMatch(/create policy/);
     expect(sql).not.toMatch(/grant [a-z, ]+ on public\.write_rate_counters/);
   });
@@ -75,13 +84,19 @@ describe("the counters", () => {
     const body = fn("write_rate_take");
     expect(body).toContain("values (p_bucket, 'minute', date_trunc('minute', now()), 1)");
     expect(body).toContain("values (p_bucket, 'hour', date_trunc('hour', now()), 1)");
-    expect(body).toContain("on conflict (bucket, window_kind, window_start) do update set hits = c.hits + 1");
+    expect(body).toContain(
+      "on conflict (bucket, window_kind, window_start) do update set hits = c.hits + 1",
+    );
     expect(body).toContain("return v_minute <= p_per_minute and v_hour <= p_per_hour;");
   });
 
   it("only the server functions are defined, none callable by the app", () => {
     expect(createdFunctions(sql).sort()).toEqual(
-      ["event_registration_rate_limit", "felt_writes_rate_limit", "write_rate_take"].sort(),
+      [
+        "event_registration_rate_limit",
+        "felt_writes_rate_limit",
+        "write_rate_take",
+      ].sort(),
     );
     for (const name of createdFunctions(sql)) {
       expect(fn(name)).toContain("security definer");
@@ -114,13 +129,17 @@ describe("the felt flow", () => {
     expect(body).toContain("if not public.request_is_client() then\n    return new;");
     expect(body).toContain("v_caller := 'u:' || md5(v_uid::text);");
     expect(body).toContain("v_device := v_row ->> 'device_id';");
-    expect(body).toContain("v_report := coalesce(v_row ->> 'felt_report_id', v_row ->> 'report_id');");
+    expect(body).toContain(
+      "v_report := coalesce(v_row ->> 'felt_report_id', v_row ->> 'report_id');",
+    );
     expect(body).toContain("'d:' || md5(v_device)");
   });
 
   it("20 a minute and 60 an hour per caller and table, no global cap", () => {
     const body = fn("felt_writes_rate_limit");
-    expect(body).toContain("public.write_rate_take(tg_table_name || ':' || v_caller, 20, 60)");
+    expect(body).toContain(
+      "public.write_rate_take(tg_table_name || ':' || v_caller, 20, 60)",
+    );
     expect(body).not.toContain(":all");
   });
 
@@ -142,7 +161,10 @@ describe("event registration by the app", () => {
       "create trigger source_records_client_rate_limit\n  before insert on public.event_source_records\n  for each row execute function public.event_registration_rate_limit();",
     );
     // upsert_event_from_client (0033) returns a known record before any insert
-    const rpc = functionSource(readCode("0033_security_hardening.sql"), "upsert_event_from_client");
+    const rpc = functionSource(
+      readCode("0033_security_hardening.sql"),
+      "upsert_event_from_client",
+    );
     const lookup = rpc.indexOf("if v_event_id is not null then");
     const firstInsert = rpc.indexOf("insert into public.event_source_records");
     expect(lookup).toBeGreaterThan(0);
@@ -182,7 +204,10 @@ describe("the app copes without a change", () => {
   });
 
   it("the queue's pause between retries is capped at 10 minutes", () => {
-    const queue = readFileSync(join(__dirname, "../../../src/features/felt/queue.ts"), "utf8");
+    const queue = readFileSync(
+      join(__dirname, "../../../src/features/felt/queue.ts"),
+      "utf8",
+    );
     expect(queue).toContain("const MAX_BACKOFF_MS = 10 * 60_000;");
   });
 });
