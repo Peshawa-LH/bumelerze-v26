@@ -7,6 +7,7 @@
 
 import { fetchEmscChannel } from "../emsc-adapter";
 import { fetchGeofonChannel } from "../geofon-adapter";
+import { buildIscUrl, fetchIscChannel, fdsnUtcTime } from "../isc-adapter";
 import { fetchUsgsChannel } from "../usgs-adapter";
 
 const BBOX = { minLat: 33.0, maxLat: 38.5, minLon: 41.0, maxLon: 48.5 };
@@ -184,5 +185,87 @@ describe("GEOFON channel (FDSN text)", () => {
       skippedCount: 0,
       emptyBody: true,
     });
+  });
+});
+
+// Real lines of the ISC bulletin, verified live 2026-10-22 (the header, two
+// rows and the trailing agency key ISC appends).
+const ISC_TEXT = [
+  "#EventID|Time|Latitude|Longitude|Depth/km|Author|Catalog|Contributor|ContributorID|MagType|Magnitude|MagAuthor|EventLocationName|EventType",
+  "646583552|2025-07-29T12:03:11.600|34.2000|48.1380|5.0|TEH|TEH|TEH|640089845|ML|2.30|TEH|Western Iran|earthquake",
+  "643913511|2025-07-30T21:43:51.100|36.4790|45.6540|33.1|ISN|ISN|ISN|638344921|ML|2.10|ISN|Iran-Iraq border region|earthquake",
+  "",
+  "# Agencies whose data contributed to this bulletin",
+  "# ISN       Iraqi Seismic Network                                                            Iraq",
+].join("\n");
+
+// What ISC answered every day from 2026-09-27 to 2026-10-22: an error page
+// with HTTP 200, because the start time ended in "Z".
+const ISC_ERROR_PAGE = [
+  "Error 400: Bad Request:",
+  "The value 2025-07-29 09:52:52.642Z for starttime is invalid.",
+  "",
+  "YYYY-MM-DDThh:mm:ss[.ssssss] ex. 1997-01-31T12:04:32.123",
+].join("\n");
+
+describe("ISC channel (FDSN text, daily bulletin)", () => {
+  it("asks with a start time ISC accepts: UTC, no zone letter, no fraction", () => {
+    expect(fdsnUtcTime(Date.parse("2025-07-29T09:52:52.642Z"))).toBe("2025-07-29T09:52:52");
+    const url = new URL(buildIscUrl(BBOX, Date.parse("2025-07-29T09:52:52.642Z")));
+    expect(url.searchParams.get("starttime")).toBe("2025-07-29T09:52:52");
+    expect(url.searchParams.get("format")).toBe("text");
+    expect(url.searchParams.get("minlatitude")).toBe("33");
+    expect(url.searchParams.get("maxlongitude")).toBe("48.5");
+  });
+
+  it("reads the bulletin, skipping the header and the agency key", async () => {
+    respond(200, ISC_TEXT);
+
+    const result = await fetchIscChannel(BBOX, SINCE);
+
+    expect(result.channel).toBe("isc");
+    expect(result.skippedCount).toBe(0);
+    expect(result.records.map((r) => [r.providerEventId, r.authorAgency, r.reviewStatus])).toEqual([
+      ["646583552", "TEH", "reviewed"],
+      ["643913511", "ISN", "reviewed"],
+    ]);
+    expect(result.records[0]?.originTimeMs).toBe(Date.parse("2025-07-29T12:03:11.600Z"));
+  });
+
+  it("fails the channel on an error page sent with HTTP 200, instead of reporting zero events", async () => {
+    respond(200, ISC_ERROR_PAGE);
+
+    await expect(fetchIscChannel(BBOX, SINCE)).rejects.toThrow(
+      "not an FDSN text answer: Error 400: Bad Request:",
+    );
+  });
+
+  it("still reads 204 No Content as zero events", async () => {
+    respond(204, "");
+
+    await expect(fetchIscChannel(BBOX, SINCE)).resolves.toEqual({
+      channel: "isc",
+      records: [],
+      skippedCount: 0,
+      emptyBody: true,
+    });
+  });
+});
+
+describe("FDSN text answers that are not a bulletin", () => {
+  it("GEOFON: an HTML page with a 2xx status fails the channel too", async () => {
+    respond(200, "<html><head><title>Processing Failed</title></head></html>");
+
+    await expect(fetchGeofonChannel(BBOX, SINCE)).rejects.toThrow("not an FDSN text answer: <html>");
+  });
+
+  it("GEOFON: a header with no rows is zero events, not an error", async () => {
+    respond(200, `${GEOFON_TEXT.split("\n")[0]}\n`);
+
+    const result = await fetchGeofonChannel(BBOX, SINCE);
+
+    expect(result.records).toEqual([]);
+    expect(result.skippedCount).toBe(0);
+    expect(result.emptyBody).toBe(false);
   });
 });

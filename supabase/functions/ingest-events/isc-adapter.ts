@@ -24,10 +24,22 @@ import type { RegionBbox } from "./usgs-adapter.ts";
 const ISC_URL = "http://www.isc.ac.uk/fdsnws/event/1/query";
 const TIMEOUT_MS = 20_000; // ISC is a bulletin query over a wide window; generous budget.
 
+/**
+ * `YYYY-MM-DDThh:mm:ss`, UTC (FDSN times carry no zone; UTC by spec). ISC
+ * refuses the `Z` that `toISOString()` appends: since 2026-09-27 every daily
+ * run got "Error 400: Bad Request: The value ...Z for starttime is invalid"
+ * as a 200 text page (19 lines, all skipped), so the channel fetched nothing
+ * while its heartbeat said ok (verified live 2026-10-22; without the `Z` the
+ * same query returns the bulletin, 496 rows over 450 days).
+ */
+export function fdsnUtcTime(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 19);
+}
+
 export function buildIscUrl(bbox: RegionBbox, sinceMs: number): string {
   const params = new URLSearchParams({
     format: "text",
-    starttime: new Date(sinceMs).toISOString(),
+    starttime: fdsnUtcTime(sinceMs),
     minlatitude: String(bbox.minLat),
     maxlatitude: String(bbox.maxLat),
     minlongitude: String(bbox.minLon),
