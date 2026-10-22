@@ -177,7 +177,7 @@
     },
     {
       "id": "im-safe",
-      "statement": "\"I'm safe\": family-only, setting and share-message labels, cannot send help.",
+      "statement": "\"I'm safe\": shared with the family home (while the home setting is on) and by default with mutual follows (Settings > Notifications); no claim that nobody else sees it (D98); setting and share-message labels; cannot send help.",
       "usedIn": {
         "pages": ["index.html", "support.html"],
         "keys": [
@@ -185,6 +185,7 @@
           "safe.line",
           "support.family.q1",
           "support.family.a1",
+          "support.family.q2",
           "support.family.a2",
           "support.family.a3"
         ]
@@ -195,6 +196,12 @@
         },
         {
           "key": "imSafe.family.setting"
+        },
+        {
+          "key": "imSafe.family.settingHint"
+        },
+        {
+          "key": "notificationSettings.safe.options.mutual"
         },
         {
           "key": "imSafe.action.shareMessage"

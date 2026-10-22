@@ -46,6 +46,19 @@ export function isolateLocalizedTime(text: string): string {
 }
 
 /**
+ * First-strong isolate for a value cell that is either a number or a short
+ * phrase: "99%", "٩٩٪", "%<1", or the words Sorani and Arabic use for less
+ * than one percent ("کەمتر لە ١٪", "أقل من ١٪"). `isolateNumeric` forced
+ * the phrases left to right, which drew the ٪ at the wrong end
+ * ("٪کەمتر لە ١"); a first-strong isolate lets a phrase keep the direction
+ * of its first letter, while digits and signs alone (no letter) still run
+ * left to right, exactly as `isolateNumeric` sets them.
+ */
+export function isolateValue(text: string): string {
+  return `${FIRST_STRONG_ISOLATE}${text}${POP_DIRECTIONAL_ISOLATE}`;
+}
+
+/**
  * Magnitude numeral only, one decimal, digit-localized (the UI backlog wave
  * 5 item 1 — every numeral localizes, magnitude included; this reverses
  * the design language §3.2's earlier "always Latin" call for magnitude,

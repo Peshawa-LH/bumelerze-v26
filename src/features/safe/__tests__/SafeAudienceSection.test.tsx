@@ -74,8 +74,8 @@ afterEach(() => {
 describe("Settings > Notifications: who sees my I'm safe (review note 3.3)", () => {
   it("offers the three choices, mutual follows selected by default, and says who that reaches", async () => {
     await renderSection(fake());
-    expect(screen.getByText("Who sees my “I'm safe”")).toBeTruthy();
-    expect(screen.getByTestId("safe-audience-family")).toHaveTextContent("Family only");
+    expect(screen.getByText("Who gets my “I'm safe”")).toBeTruthy();
+    expect(screen.getByTestId("safe-audience-family")).toHaveTextContent("Family");
     expect(screen.getByTestId("safe-audience-mutual")).toHaveTextContent(
       "Family + mutual follows",
     );
@@ -124,7 +124,7 @@ describe("Settings > Notifications: who sees my I'm safe (review note 3.3)", () 
     ).toBe(true);
   });
 
-  it("explains when nobody would see it", async () => {
+  it("explains when none of the family or friends would see it", async () => {
     await renderSection(
       fake({
         fetchAudience: jest.fn(async () => ({
@@ -136,7 +136,7 @@ describe("Settings > Notifications: who sees my I'm safe (review note 3.3)", () 
       }),
     );
     expect(screen.getByTestId("safe-audience-reach")).toHaveTextContent(
-      /Right now nobody would see it/,
+      /Right now none of your family or friends would see it/,
     );
   });
 

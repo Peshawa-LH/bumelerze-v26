@@ -246,6 +246,26 @@ describe("RiskSection", () => {
     expect(screen.getByText(i18n.t("eventDetail.risk.detailedFigures"))).toBeTruthy();
   });
 
+  it("credits the building data the counts come from (OpenBuildingMap, © OpenStreetMap contributors, ODbL)", async () => {
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.getByTestId("risk-building-credit")).toHaveTextContent(
+      "Building data: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)",
+    );
+  });
+
+  it("credits the population data the people figures come from (WorldPop, JRC GHS, CC BY 4.0)", async () => {
+    mockReady();
+
+    await render(<RiskSection event={EVENT} />);
+
+    expect(screen.getByTestId("risk-population-credit")).toHaveTextContent(
+      "Population: WorldPop and JRC GHS (CC BY 4.0)",
+    );
+  });
+
   it("shows the download-report button when the risk product carries a reportUrl", async () => {
     mockReady({ reportUrl: "https://example.test/events/us6000jllz/v5/report.pdf" });
 

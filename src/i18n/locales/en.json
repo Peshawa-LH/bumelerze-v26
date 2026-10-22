@@ -659,7 +659,7 @@
     },
     "notifications": {
       "title": "Alerts are coming",
-      "description": "Soon, Bumelerze will notify you the moment an earthquake happens near you or near a place you care about. We'll ask for notification permission when that feature launches."
+      "description": "Soon, Bumelerze will notify you when an earthquake is recorded near you or near a place you care about. We'll ask for notification permission when that feature launches."
     },
     "done": {
       "title": "You're all set",
@@ -755,14 +755,14 @@
     },
     "fatigueTitle": "How many alerts you get",
     "safe": {
-      "title": "Who sees my “I'm safe”",
+      "title": "Who gets my “I'm safe”",
       "explainer": "When you tap “I'm safe”, these people see it in their Activity list in Bumelerze. Never your location.",
       "options": {
-        "family": "Family only",
+        "family": "Family",
         "mutual": "Family + mutual follows",
         "followers": "Family + all followers"
       },
-      "nobody": "Right now nobody would see it. Join your family's home or follow each other with friends.",
+      "nobody": "Right now none of your family or friends would see it. Join your family's home or follow each other with friends.",
       "saveFailed": "Couldn't save. Please try again."
     }
   },
@@ -909,7 +909,9 @@
         "hide": "Hide the detail"
       },
       "provinceCaption_one": "About {{value}} building",
-      "provinceCaption_other": "About {{value}} buildings"
+      "provinceCaption_other": "About {{value}} buildings",
+      "buildingCredit": "Building data: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)",
+      "populationCredit": "Population: WorldPop and JRC GHS (CC BY 4.0)"
     },
     "feltMap": {
       "sectionTitle": "Felt map",
@@ -1021,7 +1023,8 @@
       "unit": {
         "thousand": "thousand",
         "million": "million"
-      }
+      },
+      "dataCredit": "Data: OpenBuildingMap, © OpenStreetMap contributors (ODbL); WorldPop, JRC GHS (CC BY 4.0)"
     },
     "pin": {
       "pinned": "Pinned by Bumelerze",
@@ -3275,7 +3278,7 @@
     }
   },
   "profile": {
-    "onlyYou": "Only you see this",
+    "onlyYou": "Not shown on your public profile",
     "recentlyDeleted": {
       "title": "Recently deleted",
       "hint": "You can bring these back for 24 hours.",
@@ -3403,7 +3406,7 @@
       "queued": "Saved on your phone. It will be sent when there is signal.",
       "sent": "Sent. The people you chose can see that you are safe.",
       "failed": "Not sent. You can send a message instead.",
-      "sentNobody": "Saved, but nobody in Bumelerze can see it yet. You can send a message instead."
+      "sentNobody": "Saved, but none of your family or friends in Bumelerze can see it yet. You can send a message instead."
     },
     "action": {
       "shareMessage": "Send a message instead",
@@ -3444,7 +3447,7 @@
       "empty": "No check-ins in the last day.",
       "alone": "When others join this home, their check-ins show here.",
       "setting": "Show my check-ins to this home",
-      "settingHint": "Only approved members of this home see them. Never your location."
+      "settingHint": "Shared with the approved members of this home. Never your location."
     },
     "banner": {
       "a11y": "Are you safe? A strong earthquake happened near you."
@@ -3459,7 +3462,7 @@
     "reach": {
       "before": "{{who}} will see this.",
       "after": "Sent. {{who}} can see that you are safe.",
-      "nobody": "Nobody in Bumelerze would see this yet. Join your family's home or follow each other with friends. You can send a message instead."
+      "nobody": "None of your family or friends in Bumelerze would see this yet. Join your family's home or follow each other with friends. You can send a message instead."
     }
   },
   "activity": {

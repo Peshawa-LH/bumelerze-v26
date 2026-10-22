@@ -201,11 +201,80 @@ describe("website build", () => {
       )
       .join("\n");
     expect(aims).toMatch(/early warning/i);
-    // the shared goals say where early warning stands, and what it is not
-    expect(read("how-it-works.html")).toMatch(
-      /early warning[^<]*is in testing\. It is not prediction\./i,
+    // The shared goals say plainly that there is no early warning (D6): it
+    // is a long-term aim, while alerts after an earthquake are coming soon.
+    // It says only what Bumelerze does: other systems (Android's earthquake
+    // alerts) may warn some phones, so no sentence about what other apps can do.
+    const sentence =
+      "Bumelerze does not give early warning, a warning seconds before strong shaking arrives.";
+    expect(read("how-it-works.html")).toContain(sentence);
+    expect(read("index.html")).toMatch(
+      /Early warning is not offered; it is a long-term aim\./,
     );
-    expect(read("index.html")).toMatch(/early warning models in testing/);
+    expect(read("support.html")).toContain(`No. ${sentence}`);
+  });
+
+  it("makes no claim about what other apps can do, in any language", () => {
+    // "and no app can promise one" (26.4.4 draft) and its translations.
+    const otherApps = /no app can|هیچ ئەپێک ناتوانێت|tu sepan nikare|لا يستطيع أي تطبيق/i;
+    for (const rel of pageFiles()) {
+      expect({ rel, match: read(rel).match(otherApps)?.[0] ?? null }).toEqual({
+        rel,
+        match: null,
+      });
+    }
+  });
+
+  it("never says early warning is in testing, in any language (D6: no early warning, no test)", () => {
+    // Until 26.4.3 the goals and the support answer said "early warning
+    // models in testing" / "is in testing", which no decision backs.
+    const inTesting = /in testing|being tested|تاقیکردنەوەدا|ceribandinê|قيد الاختبار/i;
+    for (const rel of pageFiles()) {
+      expect({ rel, match: read(rel).match(inTesting)?.[0] ?? null }).toEqual({
+        rel,
+        match: null,
+      });
+    }
+  });
+
+  it("says who “I'm safe” and a home are shared with, never that only the family sees them (D98)", () => {
+    // Verified officials can see each account's latest "I'm safe" and
+    // building class (D98), so "Only approved members of your family home"
+    // and "Only you and the family members you approve" stopped being true.
+    // The answers name who it is shared with and make no exclusivity claim.
+    const only: Record<string, RegExp> = {
+      en: /\bonly\b/i,
+      ckb: /تەنها|تەنیا/,
+      kmr: /(?<!\p{L})tenê(?!\p{L})/iu,
+      ar: /فقط|وحدك/,
+    };
+    for (const lang of LANGS) {
+      const strings = JSON.parse(
+        fs.readFileSync(
+          path.join(ROOT, "website-src", "strings", `${lang}.json`),
+          "utf8",
+        ),
+      ) as Record<string, string>;
+      for (const key of [
+        "support.family.q2",
+        "support.family.a2",
+        "support.family.q7",
+        "support.family.a7",
+      ]) {
+        expect({
+          lang,
+          key,
+          match: strings[key]!.match(only[lang]!)?.[0] ?? null,
+        }).toEqual({
+          lang,
+          key,
+          match: null,
+        });
+      }
+    }
+    const support = read("support.html");
+    expect(support).not.toMatch(/Only approved members|Only you and the family/);
+    expect(support).toContain("Who is my “I’m safe” shared with?");
   });
 
   it("how it works explains the method with its own figures, not Home's", () => {

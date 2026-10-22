@@ -659,7 +659,7 @@
     },
     "notifications": {
       "title": "Hişyarî tên",
-      "description": "Di demeke nêz de, Bumelerze dê karibe te agahdar bike gava erdhejek li nêzî te an li cihek ji bo te girîng çêbibe. Dema ev taybetmendî derkeve holê emê destûra hişyariyê bixwazin."
+      "description": "Di demeke nêz de, Bumelerze dê karibe te agahdar bike gava erdhejek li nêzî te an li cihek ji bo te girîng were tomarkirin. Dema ev taybetmendî derkeve holê emê destûra hişyariyê bixwazin."
     },
     "done": {
       "title": "Her tişt amade ye",
@@ -755,14 +755,14 @@
     },
     "fatigueTitle": "Tu çend hişyariyan distînî",
     "safe": {
-      "title": "Kî «Ez ewle me» ya min dibîne",
+      "title": "«Ez ewle me» ya min digihîje kê",
       "explainer": "Dema tu «Ez ewle me» dikî, ev kes wê di lîsteya Çalakiyan a xwe ya li Bumelerze de dibînin. Qet cihê te na.",
       "options": {
-        "family": "Tenê malbat",
+        "family": "Malbat",
         "mutual": "Malbat + şopînerên hevpar",
         "followers": "Malbat + hemû şopîner"
       },
-      "nobody": "Niha kes wê nabîne. Tevlî mala malbata xwe bibe an bi hevalan re hevdu bişopînin.",
+      "nobody": "Niha kes ji malbat û hevalên te wê nabîne. Tevlî mala malbata xwe bibe an bi hevalan re hevdu bişopînin.",
       "saveFailed": "Nehat tomarkirin. Ji kerema xwe dîsa biceribîne."
     }
   },
@@ -909,7 +909,9 @@
         "hide": "Hûrgiliyan veşêre"
       },
       "provinceCaption_one": "Nêzîkî {{value}} avahî",
-      "provinceCaption_other": "Nêzîkî {{value}} avahî"
+      "provinceCaption_other": "Nêzîkî {{value}} avahî",
+      "buildingCredit": "Daneyên avahiyan: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)",
+      "populationCredit": "Nifûs: WorldPop û JRC GHS (CC BY 4.0)"
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",
@@ -1021,7 +1023,8 @@
       "unit": {
         "thousand": "hezar",
         "million": "mîlyon"
-      }
+      },
+      "dataCredit": "Dane: OpenBuildingMap, © OpenStreetMap contributors (ODbL); WorldPop, JRC GHS (CC BY 4.0)"
     },
     "pin": {
       "pinned": "Ji aliyê Bumelerze ve li serî",
@@ -3275,7 +3278,7 @@
     }
   },
   "profile": {
-    "onlyYou": "Tenê tu vê dibînî",
+    "onlyYou": "Li ser profîla te ya giştî nayê nîşandan",
     "recentlyDeleted": {
       "title": "Nû hatine jêbirin",
       "hint": "Tu dikarî heta 24 demjimêran wan vegerînî.",
@@ -3403,7 +3406,7 @@
       "queued": "Li ser cîhaza te hate tomarkirin. Gava şebeke hebe dê were şandin.",
       "sent": "Hat şandin. Kesên ku te hilbijartine dikarin bibînin ku tu ewle yî.",
       "failed": "Nehat şandin. Tu dikarî li şûna wê peyamekê bişînî.",
-      "sentNobody": "Hat tomarkirin, lê hê kes di Bumelerze de wê nabîne. Tu dikarî li şûna wê peyamekê bişînî."
+      "sentNobody": "Hat tomarkirin, lê hê kes ji malbat û hevalên te di Bumelerze de wê nabîne. Tu dikarî li şûna wê peyamekê bişînî."
     },
     "action": {
       "shareMessage": "Li şûna wê peyamekê bişîne",
@@ -3444,7 +3447,7 @@
       "empty": "Di roja dawî de kesî agahdar nekiriye.",
       "alone": "Gava kesên din tevlî vê malê bibin, agahdariyên wan li vir xuya dibin.",
       "setting": "Agahdariyên min nîşanî vê malê bide",
-      "settingHint": "Tenê endamên pejirandî yên vê malê wan dibînin. Qet cihê te nayê nîşandan."
+      "settingHint": "Bi endamên pejirandî yên vê malê re tên parvekirin. Qet cihê te nayê nîşandan."
     },
     "banner": {
       "a11y": "Tu ewle yî? Li nêzî te erdhejeke xurt çêbû."
@@ -3459,7 +3462,7 @@
     "reach": {
       "before": "{{who}} dê vê bibînin.",
       "after": "Hat şandin. {{who}} dikarin bibînin ku tu ewle yî.",
-      "nobody": "Hê kes di Bumelerze de vê nabîne. Tevlî mala malbata xwe bibe an bi hevalan re hevdu bişopînin. Tu dikarî li şûna wê peyamekê bişînî."
+      "nobody": "Hê kes ji malbat û hevalên te di Bumelerze de vê nabîne. Tevlî mala malbata xwe bibe an bi hevalan re hevdu bişopînin. Tu dikarî li şûna wê peyamekê bişînî."
     }
   },
   "activity": {

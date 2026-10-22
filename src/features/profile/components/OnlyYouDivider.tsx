@@ -4,9 +4,10 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/theme";
 
-/** The line between the public part of the Profile page and what only the
- * owner sees: a hairline each side of an eye and "Only you see this"
- * (mockup 3a). */
+/** The line between the public part of the Profile page and the owner's own
+ * list: a hairline each side of an eye and "Not shown on your public
+ * profile" (mockup 3a said "Only you see this"; since D98 officials can see
+ * a home's building class, so the label states only what is true). */
 export function OnlyYouDivider() {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();

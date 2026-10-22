@@ -17,12 +17,14 @@ import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { percentValue, runningTotal, type ClassDamageRow } from "./slide-data";
 
 /** The frame every chart slide shares: a raised square card, a title, a
- * one-line subtitle, the chart, and a small source note at the bottom. */
+ * one-line subtitle, the chart, a small source note at the bottom and, on
+ * the damage slides, the building-data credit under it. */
 function SlideFrame({
   size,
   title,
   subtitle,
   note,
+  credit,
   children,
   testID,
 }: {
@@ -30,6 +32,9 @@ function SlideFrame({
   title: string;
   subtitle?: string;
   note?: string;
+  /** Data credit a licence asks for (OpenBuildingMap / OpenStreetMap,
+   * ODbL), drawn on the slide itself so it travels with a screenshot. */
+  credit?: string;
   children: ReactNode;
   testID: string;
 }) {
@@ -63,16 +68,77 @@ function SlideFrame({
         ) : null}
       </View>
       <View style={styles.body}>{children}</View>
-      {note ? (
-        <Text
-          style={[typography.labelCaption, { color: colors.text.tertiary }]}
-          numberOfLines={2}
-        >
-          {note}
-        </Text>
+      {note || credit ? (
+        // Note and credit read as one footer, set close together so the
+        // credit costs the chart as little height as possible.
+        <View style={{ gap: 2 }}>
+          {note ? (
+            <Text
+              style={[typography.labelCaption, { color: colors.text.tertiary }]}
+              numberOfLines={2}
+            >
+              {note}
+            </Text>
+          ) : null}
+          {credit ? (
+            // Never clamped: a licence credit must not end in "…".
+            <Text
+              testID={`${testID}-credit`}
+              style={[typography.labelCaption, { color: colors.text.tertiary }]}
+            >
+              {credit}
+            </Text>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
+}
+
+/** The data credit Impact at a glance carries: the building damage donut
+ * counts OpenBuildingMap footprints (ODbL), the people donut WorldPop and
+ * JRC GHS population (CC BY 4.0). */
+export type ImpactCredit = "buildings" | "population" | "both";
+
+/** The credit for the donuts the slide shows, or null for none. */
+export function impactCredit(
+  hasDamage: boolean,
+  hasPeople: boolean,
+): ImpactCredit | null {
+  if (hasDamage && hasPeople) {
+    return "both";
+  }
+  if (hasDamage) {
+    return "buildings";
+  }
+  return hasPeople ? "population" : null;
+}
+
+const IMPACT_CREDIT_KEYS: Record<ImpactCredit, string> = {
+  buildings: "eventDetail.risk.buildingCredit",
+  population: "eventDetail.risk.populationCredit",
+  // One short "Data: …" credit for both. Measured on a 358 px slide (Chromium
+  // and WebKit) it fills 79-88 % of two lines in the four languages; the
+  // two credits one under the other take three lines everywhere.
+  both: "eventHub.impact.dataCredit",
+};
+
+/** How much the Impact donuts shrink for each credit, with the close-set
+ * footer, so every language's legend stays clear of the note on a 358 px
+ * slide (checked in en, ckb, kmr and ar). The one-line population credit
+ * needs none: without the damage column the people donut has room. */
+const CREDIT_ROOM: Record<ImpactCredit, number> = {
+  population: 0,
+  buildings: 28,
+  both: 44,
+};
+
+/** Donut diameter on Impact at a glance: the donuts give up the credit's
+ * height (76 px stays the smallest, as on narrow phones before).
+ * Exported for tests. */
+export function impactDonutSize(size: number, credit: ImpactCredit | null): number {
+  const fit = Math.floor((size - 72) / 2.6) - (credit ? CREDIT_ROOM[credit] : 0);
+  return Math.max(76, Math.min(110, fit));
 }
 
 /** Slide 1: the square share image, exactly as the share sheet makes it. */
@@ -103,7 +169,8 @@ export function ImpactSlide({
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
-  const donut = Math.max(76, Math.min(110, Math.floor((size - 72) / 2.6)));
+  const credit = impactCredit(damage !== null, people !== null);
+  const donut = impactDonutSize(size, credit);
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
@@ -116,6 +183,7 @@ export function ImpactSlide({
       size={size}
       title={t("eventHub.impact.title")}
       note={reviewed ? t("eventHub.impact.noteReviewed") : t("eventHub.impact.note")}
+      {...(credit ? { credit: t(IMPACT_CREDIT_KEYS[credit]) } : {})}
       testID="slide-impact"
     >
       <View style={[styles.donuts, { gap: spacing[3] }]}>
@@ -446,9 +514,11 @@ export function ClassDamageSlide({
           ? t("eventHub.slides.classes.noteReviewed")
           : t("eventHub.slides.classes.note")
       }
+      credit={t("eventDetail.risk.buildingCredit")}
       testID="slide-classes"
     >
-      <View style={{ gap: spacing[2] }}>
+      {/* Six classes (A to F) and the credit fill the square: rows close up. */}
+      <View style={{ gap: rows.length > 5 ? spacing[1] : spacing[2] }}>
         <View style={[styles.classRow, { gap: spacing[2] }]}>
           <Text style={[caption, styles.classLetterCol]}>
             {t("eventHub.slides.classes.class")}

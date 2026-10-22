@@ -494,7 +494,7 @@ describe("Profile tab", () => {
       expect(mockPush).toHaveBeenCalledWith("/my-home");
     });
 
-    it("the 'Only you see this' list has My reports, My home, People and requests and Download my data", async () => {
+    it("the owner-only list has My reports, My home, People and requests and Download my data", async () => {
       await renderWithProviders(<ProfileScreen />);
       await flush();
       for (const id of [

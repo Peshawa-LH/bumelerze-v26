@@ -479,6 +479,47 @@ the surveys do not reach.
   Exposure Model for Earthquake Risk Assessment. _Earthquake Spectra_ 39(4).
   <https://doi.org/10.1177/87552930231194048>.
 
+### GFZ OpenBuildingMap (building footprints)
+
+- **What it is:** the building footprints the damage estimates count and
+  classify ("Buildings in the shaken area", the damage-grade bar, damage by
+  building class). `bumelerze-engine` reads the Iraq tiles of the 2025
+  release, which merge OpenStreetMap buildings with machine-learned
+  footprints.
+- **Citation:** Schorlemmer D. et al. (2025). OpenBuildingMap building
+  footprints. GFZ Data Services. <https://doi.org/10.5880/GFZ.LKUT.2025.002>.
+- **Terms:** **Open Database License (ODbL) 1.0**, share-alike; contains
+  OpenStreetMap data © OpenStreetMap contributors.
+- **Required attribution:** © OpenStreetMap contributors, and OpenBuildingMap.
+- **Displayed in-app:** one line under the damage estimate on Event Detail
+  (`RiskSection`) and on the two Event hub damage slides (Impact at a glance,
+  when it shows building damage, and Damage by building class):
+  "Building data: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)"
+  (`eventDetail.risk.buildingCredit`). It sits on the slide itself, so a
+  screenshot keeps it. The Atlas PDF report carries the full source list.
+
+### WorldPop and JRC Global Human Settlement Layer (population)
+
+- **What it is:** the people counts shown with a damage estimate ("People by
+  shaking level", or "People in the shaken area" on older products).
+  `bumelerze-engine` takes the number of people per ~100 m grid square from
+  WorldPop (Iraq 2025, scaled to the 2024 census) and places them in
+  buildings with the JRC Global Human Settlement Layer (settlement classes
+  GHS-SMOD and built-up surface GHS-BUILT-S).
+- **Citations:** Bondarenko M. et al. (2025). Constrained estimates of
+  2015-2030 total number of people per grid square, R2025A v1. WorldPop,
+  University of Southampton. <https://doi.org/10.5258/SOTON/WP00839>.
+  Schiavina M., Melchiorri M., Pesaresi M. (2023). GHS-SMOD R2023A.
+  European Commission, Joint Research Centre.
+  <https://doi.org/10.2905/A0DF7A6F-49DE-46EA-9BDE-563437A6E2BA>.
+- **Terms:** both **CC BY 4.0**.
+- **Displayed in-app:** "Population: WorldPop and JRC GHS (CC BY 4.0)"
+  (`eventDetail.risk.populationCredit`) under the damage estimate on Event
+  Detail, and on the Event hub's Impact at a glance when it shows people
+  only. When that slide shows both donuts it carries one line for both
+  sources instead (`eventHub.impact.dataCredit`): "Data: OpenBuildingMap,
+  © OpenStreetMap contributors (ODbL); WorldPop, JRC GHS (CC BY 4.0)".
+
 ## 9. Scientific models and software
 
 ### OpenQuake Engine

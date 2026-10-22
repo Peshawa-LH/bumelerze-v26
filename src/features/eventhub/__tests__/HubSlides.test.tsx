@@ -28,6 +28,7 @@ import {
 
 import { claimsSwipe, HubCarousel, swipeStep } from "../carousel/HubCarousel";
 import { buildClassDamage, percentValue, runningTotal } from "../carousel/slide-data";
+import { impactCredit, impactDonutSize } from "../carousel/slides";
 import { useHubSlides } from "../carousel/use-hub-slides";
 import type { HubSummary } from "../types";
 import { buildEvent, EMPTY_SUMMARY, renderWithProviders } from "../__fixtures__/testing";
@@ -294,6 +295,42 @@ describe("Event hub slides (review note 4.3)", () => {
     );
   });
 
+  it("credits the building and population data on the damage slides", async () => {
+    mockRisk(risk());
+    await renderSlides(EMPTY_SUMMARY);
+    // Both donuts: one "Data:" line naming OpenBuildingMap / OpenStreetMap
+    // (ODbL) for the buildings and WorldPop / JRC GHS (CC BY 4.0) for people.
+    fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
+    expect((await screen.findByTestId("slide-impact-credit")).props.children).toBe(
+      "Data: OpenBuildingMap, © OpenStreetMap contributors (ODbL); WorldPop, JRC GHS (CC BY 4.0)",
+    );
+    fireEvent.press(await screen.findByTestId("hub-carousel-dot-classes"));
+    expect((await screen.findByTestId("slide-classes-credit")).props.children).toBe(
+      "Building data: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)",
+    );
+  });
+
+  it("credits only the population on an Impact slide that shows people only", async () => {
+    mockRisk(risk({ buildings_by_grade: undefined }));
+    await renderSlides(EMPTY_SUMMARY);
+    fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
+    expect(await screen.findByTestId("hub-impact-people")).toBeTruthy();
+    expect(screen.getByTestId("slide-impact-credit").props.children).toBe(
+      "Population: WorldPop and JRC GHS (CC BY 4.0)",
+    );
+  });
+
+  it("credits only the building data on an Impact slide that shows damage only", async () => {
+    mockRisk(risk({ population_by_intensity_band: undefined }));
+    await renderSlides(EMPTY_SUMMARY);
+    fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
+    expect(await screen.findByTestId("hub-impact-damage")).toBeTruthy();
+    expect(screen.queryByTestId("hub-impact-people")).toBeNull();
+    expect(screen.getByTestId("slide-impact-credit").props.children).toBe(
+      "Building data: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)",
+    );
+  });
+
   it("carries no casualty wording", async () => {
     mockRisk(risk());
     await renderSlides(FELT_SUMMARY, { towns: TOWNS, timeline: TIMELINE });
@@ -322,6 +359,19 @@ describe("Event hub slides (review note 4.3)", () => {
         const texts = [...collectText(tree), ...collectLabels(tree)];
         expect(texts.filter((text) => ROMAN_NUMERAL.test(text))).toEqual([]);
       }
+    });
+
+    it("keeps the ٪ after the number in the damage donut's 'less than 1' rows", async () => {
+      await i18n.changeLanguage("ckb");
+      mockRisk(risk());
+      await renderSlides(EMPTY_SUMMARY);
+      fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
+      const damage = await screen.findByTestId("hub-impact-damage");
+      // A first-strong isolate (U+2068): the phrase reads right to left with
+      // ٪ after ١. The left-to-right isolate (U+2066) drew it as "٪کەمتر لە ١".
+      // The 2017 estimate has two such rows (heavy, very heavy).
+      expect(within(damage).getAllByText("\u2068کەمتر لە ١٪\u2069")).toHaveLength(2);
+      expect(within(damage).queryAllByText(/\u2066کەمتر لە/)).toHaveLength(0);
     });
   });
 });
@@ -352,6 +402,31 @@ describe("claimsSwipe", () => {
     expect(claimsSwipe(20, 40)).toBe(false);
     expect(claimsSwipe(25, 25)).toBe(false);
     expect(claimsSwipe(8, 0)).toBe(false);
+  });
+});
+
+describe("impactDonutSize", () => {
+  it("gives the credit's height back from the donuts, never below 76 px", () => {
+    // A 358 px slide fitted 110 px donuts exactly; the two-line building
+    // credit pushed the damage legend into the note until the donuts shrank,
+    // and the three-line "Data:" credit for both donuts takes more.
+    expect(impactDonutSize(358, null)).toBe(110);
+    expect(impactDonutSize(358, "population")).toBe(110);
+    expect(impactDonutSize(358, "buildings")).toBe(82);
+    expect(impactDonutSize(358, "both")).toBe(76);
+    expect(impactDonutSize(420, "buildings")).toBe(105);
+    expect(impactDonutSize(420, "both")).toBe(89);
+    expect(impactDonutSize(280, "buildings")).toBe(76);
+    expect(impactDonutSize(280, null)).toBe(80);
+  });
+});
+
+describe("impactCredit", () => {
+  it("names the data behind the donuts the slide shows", () => {
+    expect(impactCredit(true, true)).toBe("both");
+    expect(impactCredit(true, false)).toBe("buildings");
+    expect(impactCredit(false, true)).toBe("population");
+    expect(impactCredit(false, false)).toBeNull();
   });
 });
 

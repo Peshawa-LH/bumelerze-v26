@@ -166,6 +166,55 @@ describe("app.config iOS store and compliance settings", () => {
     });
     expect(pluginOptions("expo-camera")).toMatchObject({ microphonePermission: false });
   });
+
+  it("removes Android's Physical activity permission, which only sensors the app never uses ask for", () => {
+    // expo-sensors' own AndroidManifest.xml declares ACTIVITY_RECOGNITION
+    // for its Pedometer and DeviceMotion modules.
+    const sensorsManifest = fs.readFileSync(
+      path.join(ROOT, "node_modules/expo-sensors/android/src/main/AndroidManifest.xml"),
+      "utf8",
+    );
+    expect(sensorsManifest).toContain("android.permission.ACTIVITY_RECOGNITION");
+    expect(config.android?.blockedPermissions).toContain(
+      "android.permission.ACTIVITY_RECOGNITION",
+    );
+
+    // The block is safe only while the app reads nothing but the
+    // accelerometer (no permission on Android) from expo-sensors.
+    const imported = new Set<string>();
+    const walk = (dir: string) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== "__tests__" && entry.name !== "__fixtures__") walk(full);
+        } else if (/\.tsx?$/.test(entry.name)) {
+          const source = fs.readFileSync(full, "utf8");
+          for (const match of source.matchAll(
+            /import\s*(?:type\s*)?\{([^}]*)\}\s*from\s*["']expo-sensors["']/g,
+          )) {
+            for (const name of (match[1] ?? "").split(",")) {
+              const bare = name
+                .trim()
+                .replace(/^type\s+/, "")
+                .split(/\s+as\s+/)[0];
+              if (bare) imported.add(bare);
+            }
+          }
+          // A whole-module import could reach any sensor: listed as "*".
+          if (
+            /import\s+\*\s+as\s+\w+\s+from\s*["']expo-sensors["']|require\(\s*["']expo-sensors["']\s*\)/.test(
+              source,
+            )
+          ) {
+            imported.add("*");
+          }
+        }
+      }
+    };
+    walk(path.join(ROOT, "app"));
+    walk(path.join(ROOT, "src"));
+    expect([...imported].sort()).toEqual(["Accelerometer"]);
+  });
 });
 
 /** The PostScript name in a TrueType file's `name` table (name id 6). */
