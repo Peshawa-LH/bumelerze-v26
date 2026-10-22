@@ -39,10 +39,14 @@ const EXCLUSIVE: Record<string, RegExp> = {
 
 const CATALOGS = { en, ckb, kmr, ar } as const;
 
-/** Every key that says who sees an "I'm safe" check-in. */
+/** Every key that says who sees an "I'm safe" check-in, and the Profile
+ * divider above My home (it said "Only you see this"). */
 function sharingKeys(catalog: Catalog): [string, string][] {
   return entries(catalog).filter(
-    ([key]) => key.startsWith("imSafe.") || key.startsWith("notificationSettings.safe."),
+    ([key]) =>
+      key.startsWith("imSafe.") ||
+      key.startsWith("notificationSettings.safe.") ||
+      key === "profile.onlyYou",
   );
 }
 
@@ -67,6 +71,7 @@ describe("I'm safe wording never promises that nobody else can see it (D98)", ()
       "Only approved members of this home see them. Never your location.",
       "Saved, but nobody in Bumelerze can see it yet. You can send a message instead.",
       "Family only",
+      "Only you see this",
     ]) {
       expect(EXCLUSIVE.en!.test(old)).toBe(true);
     }

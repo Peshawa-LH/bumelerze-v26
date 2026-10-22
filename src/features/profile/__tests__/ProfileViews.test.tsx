@@ -252,13 +252,15 @@ describe("Profile page (D79)", () => {
   });
 
   describe("the owner's Profile tab", () => {
-    it("shows the public part first, then the posts, then 'Only you see this' with the owner-only sections in order", async () => {
+    it("shows the public part first, then the posts, then the owner-only divider and sections in order", async () => {
       await renderWithProviders(<ProfileScreen />);
       await screen.findByTestId("public-profile-name");
       await flush();
       // Mockup 3a, reordered by the owner on 2026-10-14: photo and counts,
       // name, @username, Edit / Share profile, the badges row, the Posts /
-      // Comments tabs, then "Only you see this" as one list.
+      // Comments tabs, then the owner-only divider ("Not shown on your public
+      // profile"; it said "Only you see this" until D98 made that untrue for
+      // My home) and one list.
       const order = [
         "profile-stats",
         "public-profile-name",
@@ -275,7 +277,8 @@ describe("Profile page (D79)", () => {
         "data-export-row",
       ].map(position);
       expect(order).toEqual([...order].sort((a, b) => a - b));
-      expect(screen.getByText("Only you see this")).toBeTruthy();
+      expect(screen.getByText("Not shown on your public profile")).toBeTruthy();
+      expect(screen.queryByText("Only you see this")).toBeNull();
       expect(screen.getByText("People and requests")).toBeTruthy();
       // Password, Privacy, Sign out and Delete account live in Settings now.
       for (const id of [
@@ -334,7 +337,10 @@ describe("Profile page (D79)", () => {
       await act(async () => {
         fireEvent.press(screen.getByTestId("profile-share-sheet-share"));
       });
-      expect(mockShare).toHaveBeenCalledWith("https://app.bumelerze.com/u/shilan", "Shilan");
+      expect(mockShare).toHaveBeenCalledWith(
+        "https://app.bumelerze.com/u/shilan",
+        "Shilan",
+      );
     });
 
     it("says 'Link copied' where the share sheet falls back to the clipboard", async () => {
@@ -431,7 +437,7 @@ describe("Profile page (D79)", () => {
           shown: false,
         });
       }
-      expect(screen.queryByText("Only you see this")).toBeNull();
+      expect(screen.queryByText("Not shown on your public profile")).toBeNull();
       expect(screen.queryByText("Request this badge")).toBeNull();
     });
 
@@ -502,7 +508,7 @@ describe("Profile page (D79)", () => {
       await renderWithProviders(<ProfileScreen />);
       await screen.findByTestId("public-profile-name");
       await flush();
-      expect(screen.getByText("تەنها تۆ ئەمە دەبینیت")).toBeTruthy();
+      expect(screen.getByText("لە هەژمارە گشتییەکەتدا پیشان نادرێت")).toBeTruthy();
       expect(screen.getByLabelText("شوێنکەوتووان: ٣")).toBeTruthy();
       expect(screen.getByText("پۆستەکان")).toBeTruthy();
     });

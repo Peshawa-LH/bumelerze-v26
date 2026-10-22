@@ -3246,7 +3246,7 @@
     }
   },
   "profile": {
-    "onlyYou": "Only you see this",
+    "onlyYou": "Not shown on your public profile",
     "recentlyDeleted": {
       "title": "Recently deleted",
       "hint": "You can bring these back for 24 hours.",
