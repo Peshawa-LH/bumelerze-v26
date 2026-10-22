@@ -909,7 +909,8 @@
         "hide": "Hûrgiliyan veşêre"
       },
       "provinceCaption_one": "Nêzîkî {{value}} avahî",
-      "provinceCaption_other": "Nêzîkî {{value}} avahî"
+      "provinceCaption_other": "Nêzîkî {{value}} avahî",
+      "buildingCredit": "Daneyên avahiyan: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)"
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",

@@ -28,6 +28,7 @@ import {
 
 import { claimsSwipe, HubCarousel, swipeStep } from "../carousel/HubCarousel";
 import { buildClassDamage, percentValue, runningTotal } from "../carousel/slide-data";
+import { impactDonutSize } from "../carousel/slides";
 import { useHubSlides } from "../carousel/use-hub-slides";
 import type { HubSummary } from "../types";
 import { buildEvent, EMPTY_SUMMARY, renderWithProviders } from "../__fixtures__/testing";
@@ -294,6 +295,29 @@ describe("Event hub slides (review note 4.3)", () => {
     );
   });
 
+  it("credits the building data on both damage slides (OpenBuildingMap, OpenStreetMap, ODbL)", async () => {
+    mockRisk(risk());
+    await renderSlides(EMPTY_SUMMARY);
+    const credit =
+      "Building data: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)";
+    fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
+    expect((await screen.findByTestId("slide-impact-credit")).props.children).toBe(
+      credit,
+    );
+    fireEvent.press(await screen.findByTestId("hub-carousel-dot-classes"));
+    expect((await screen.findByTestId("slide-classes-credit")).props.children).toBe(
+      credit,
+    );
+  });
+
+  it("leaves the building credit off an Impact slide that shows people only", async () => {
+    mockRisk(risk({ buildings_by_grade: undefined }));
+    await renderSlides(EMPTY_SUMMARY);
+    fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
+    expect(await screen.findByTestId("hub-impact-people")).toBeTruthy();
+    expect(screen.queryByTestId("slide-impact-credit")).toBeNull();
+  });
+
   it("carries no casualty wording", async () => {
     mockRisk(risk());
     await renderSlides(FELT_SUMMARY, { towns: TOWNS, timeline: TIMELINE });
@@ -352,6 +376,18 @@ describe("claimsSwipe", () => {
     expect(claimsSwipe(20, 40)).toBe(false);
     expect(claimsSwipe(25, 25)).toBe(false);
     expect(claimsSwipe(8, 0)).toBe(false);
+  });
+});
+
+describe("impactDonutSize", () => {
+  it("gives the building credit's height back from the donuts, never below 76 px", () => {
+    // A 358 px slide fitted 110 px donuts exactly; the two-line credit
+    // pushed the damage legend into the note until the donuts shrank.
+    expect(impactDonutSize(358, false)).toBe(110);
+    expect(impactDonutSize(358, true)).toBe(82);
+    expect(impactDonutSize(420, true)).toBe(105);
+    expect(impactDonutSize(280, true)).toBe(76);
+    expect(impactDonutSize(280, false)).toBe(80);
   });
 });
 

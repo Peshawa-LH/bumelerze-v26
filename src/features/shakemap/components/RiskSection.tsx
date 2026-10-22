@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Event } from "@/features/events";
-import { useTheme, nativeFontFamily } from "@/theme";
+import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { useResolvedShakeMap } from "../live-queries";
 import { classifyDamageBand } from "../risk-alert";
 import { RiskAreaList } from "./RiskAreaList";
@@ -32,8 +32,9 @@ export interface RiskSectionProps {
  * four-level, switchable `areas.json` product, `risk-areas` wave) when the
  * resolved risk product carries one, else the older single-level
  * `RiskProvinceList` (`districts.json`) so a bundled/older event with no
- * `areas` product still shows something — and the provenance chip strip +
- * report download (`RiskProvenanceChips`).
+ * `areas` product still shows something — the provenance chip strip +
+ * report download (`RiskProvenanceChips`), and the building-data credit
+ * (OpenBuildingMap, © OpenStreetMap contributors, ODbL).
  *
  * Visually drawn in Bumelerze's own language (rounded theme-token cards,
  * chips, gradient rail — never PAGER's colored-banner/histogram look; see
@@ -200,6 +201,22 @@ export function RiskSection({ event }: RiskSectionProps) {
         typography={typography}
         spacing={spacing}
       />
+
+      {/* The building counts come from OpenBuildingMap footprints, which
+          are OpenStreetMap data under ODbL: the licence asks for this
+          credit wherever the figures are shown. */}
+      <Text
+        testID="risk-building-credit"
+        style={{
+          color: colors.text.tertiary,
+          fontSize: typography.labelCaption.fontSize,
+          fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+          ...READING_START,
+          lineHeight: typography.labelCaption.lineHeight,
+        }}
+      >
+        {t("eventDetail.risk.buildingCredit")}
+      </Text>
     </View>
   );
 }

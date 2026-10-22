@@ -909,7 +909,8 @@
         "hide": "شاردنەوەی وردەکاری"
       },
       "provinceCaption_one": "نزیکەی {{value}} خانوو",
-      "provinceCaption_other": "نزیکەی {{value}} خانوو"
+      "provinceCaption_other": "نزیکەی {{value}} خانوو",
+      "buildingCredit": "داتای بینا: ⁦GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)⁩"
     },
     "feltMap": {
       "sectionTitle": "نەخشەی هەستکراو",

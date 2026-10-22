@@ -917,7 +917,8 @@
       "provinceCaption_zero": "لا مبانٍ",
       "provinceCaption_two": "نحو مبنيين",
       "provinceCaption_few": "نحو {{value}} مبانٍ",
-      "provinceCaption_many": "نحو {{value}} مبنى"
+      "provinceCaption_many": "نحو {{value}} مبنى",
+      "buildingCredit": "بيانات المباني: ⁦GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)⁩"
     },
     "feltMap": {
       "sectionTitle": "خريطة الشعور بالزلزال",

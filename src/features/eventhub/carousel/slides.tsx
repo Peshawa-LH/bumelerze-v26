@@ -17,12 +17,14 @@ import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { percentValue, runningTotal, type ClassDamageRow } from "./slide-data";
 
 /** The frame every chart slide shares: a raised square card, a title, a
- * one-line subtitle, the chart, and a small source note at the bottom. */
+ * one-line subtitle, the chart, a small source note at the bottom and, on
+ * the damage slides, the building-data credit under it. */
 function SlideFrame({
   size,
   title,
   subtitle,
   note,
+  credit,
   children,
   testID,
 }: {
@@ -30,6 +32,9 @@ function SlideFrame({
   title: string;
   subtitle?: string;
   note?: string;
+  /** Data credit a licence asks for (OpenBuildingMap / OpenStreetMap,
+   * ODbL), drawn on the slide itself so it travels with a screenshot. */
+  credit?: string;
   children: ReactNode;
   testID: string;
 }) {
@@ -63,16 +68,45 @@ function SlideFrame({
         ) : null}
       </View>
       <View style={styles.body}>{children}</View>
-      {note ? (
-        <Text
-          style={[typography.labelCaption, { color: colors.text.tertiary }]}
-          numberOfLines={2}
-        >
-          {note}
-        </Text>
+      {note || credit ? (
+        // Note and credit read as one footer, set close together so the
+        // credit costs the chart as little height as possible.
+        <View style={{ gap: 2 }}>
+          {note ? (
+            <Text
+              style={[typography.labelCaption, { color: colors.text.tertiary }]}
+              numberOfLines={2}
+            >
+              {note}
+            </Text>
+          ) : null}
+          {credit ? (
+            <Text
+              testID={`${testID}-credit`}
+              style={[typography.labelCaption, { color: colors.text.tertiary }]}
+              numberOfLines={2}
+            >
+              {credit}
+            </Text>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
+}
+
+/** How much the Impact donuts shrink for the two-line building credit; with
+ * the close-set footer that keeps every language's legend clear of the note
+ * on a 358 px slide (checked in en, ckb, kmr and ar). */
+const CREDIT_ROOM = 28;
+
+/** Donut diameter on Impact at a glance. With the building credit under the
+ * note the donuts give up its height, so the legends never run into the
+ * footer (76 px stays the smallest, as on narrow phones before).
+ * Exported for tests. */
+export function impactDonutSize(size: number, withCredit: boolean): number {
+  const fit = Math.floor((size - 72) / 2.6) - (withCredit ? CREDIT_ROOM : 0);
+  return Math.max(76, Math.min(110, fit));
 }
 
 /** Slide 1: the square share image, exactly as the share sheet makes it. */
@@ -103,7 +137,7 @@ export function ImpactSlide({
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
-  const donut = Math.max(76, Math.min(110, Math.floor((size - 72) / 2.6)));
+  const donut = impactDonutSize(size, damage !== null);
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
@@ -116,6 +150,9 @@ export function ImpactSlide({
       size={size}
       title={t("eventHub.impact.title")}
       note={reviewed ? t("eventHub.impact.noteReviewed") : t("eventHub.impact.note")}
+      // The building damage donut counts OpenBuildingMap footprints; the
+      // people donut alone uses no building data.
+      {...(damage ? { credit: t("eventDetail.risk.buildingCredit") } : {})}
       testID="slide-impact"
     >
       <View style={[styles.donuts, { gap: spacing[3] }]}>
@@ -446,9 +483,11 @@ export function ClassDamageSlide({
           ? t("eventHub.slides.classes.noteReviewed")
           : t("eventHub.slides.classes.note")
       }
+      credit={t("eventDetail.risk.buildingCredit")}
       testID="slide-classes"
     >
-      <View style={{ gap: spacing[2] }}>
+      {/* Six classes (A to F) and the credit fill the square: rows close up. */}
+      <View style={{ gap: rows.length > 5 ? spacing[1] : spacing[2] }}>
         <View style={[styles.classRow, { gap: spacing[2] }]}>
           <Text style={[caption, styles.classLetterCol]}>
             {t("eventHub.slides.classes.class")}

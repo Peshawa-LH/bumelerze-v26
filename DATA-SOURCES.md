@@ -479,6 +479,25 @@ the surveys do not reach.
   Exposure Model for Earthquake Risk Assessment. _Earthquake Spectra_ 39(4).
   <https://doi.org/10.1177/87552930231194048>.
 
+### GFZ OpenBuildingMap (building footprints)
+
+- **What it is:** the building footprints the damage estimates count and
+  classify ("Buildings in the shaken area", the damage-grade bar, damage by
+  building class). `bumelerze-engine` reads the Iraq tiles of the 2025
+  release, which merge OpenStreetMap buildings with machine-learned
+  footprints.
+- **Citation:** Schorlemmer D. et al. (2025). OpenBuildingMap building
+  footprints. GFZ Data Services. <https://doi.org/10.5880/GFZ.LKUT.2025.002>.
+- **Terms:** **Open Database License (ODbL) 1.0**, share-alike; contains
+  OpenStreetMap data © OpenStreetMap contributors.
+- **Required attribution:** © OpenStreetMap contributors, and OpenBuildingMap.
+- **Displayed in-app:** one line under the damage estimate on Event Detail
+  (`RiskSection`) and on the two Event hub damage slides (Impact at a glance,
+  when it shows building damage, and Damage by building class):
+  "Building data: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)"
+  (`eventDetail.risk.buildingCredit`). It sits on the slide itself, so a
+  screenshot keeps it. The Atlas PDF report carries the full source list.
+
 ## 9. Scientific models and software
 
 ### OpenQuake Engine

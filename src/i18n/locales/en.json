@@ -909,7 +909,8 @@
         "hide": "Hide the detail"
       },
       "provinceCaption_one": "About {{value}} building",
-      "provinceCaption_other": "About {{value}} buildings"
+      "provinceCaption_other": "About {{value}} buildings",
+      "buildingCredit": "Building data: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)"
     },
     "feltMap": {
       "sectionTitle": "Felt map",
