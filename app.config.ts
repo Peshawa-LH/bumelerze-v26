@@ -301,6 +301,12 @@ const config: ExpoConfig = {
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
     package: "org.bumelerze.app",
+    // expo-sensors' library manifest asks for Physical activity
+    // (ACTIVITY_RECOGNITION) for its step counter and device-motion
+    // modules. The app reads only the accelerometer, which needs no
+    // permission, so the request is removed from the merged manifest: no
+    // "Physical activity" permission on the phone or in the Play listing.
+    blockedPermissions: ["android.permission.ACTIVITY_RECOGNITION"],
   },
   web: {
     // "single" (SPA) for hosted web builds: at the subdomain root
