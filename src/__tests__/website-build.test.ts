@@ -203,11 +203,26 @@ describe("website build", () => {
     expect(aims).toMatch(/early warning/i);
     // The shared goals say plainly that there is no early warning (D6): it
     // is a long-term aim, while alerts after an earthquake are coming soon.
-    expect(read("how-it-works.html")).toMatch(/Bumelerze does not give early warning/);
+    // It says only what Bumelerze does: other systems (Android's earthquake
+    // alerts) may warn some phones, so no sentence about what other apps can do.
+    const sentence =
+      "Bumelerze does not give early warning, a warning seconds before strong shaking arrives.";
+    expect(read("how-it-works.html")).toContain(sentence);
     expect(read("index.html")).toMatch(
       /Early warning is not offered; it is a long-term aim\./,
     );
-    expect(read("support.html")).toMatch(/No\. Bumelerze does not give early warning/);
+    expect(read("support.html")).toContain(`No. ${sentence}`);
+  });
+
+  it("makes no claim about what other apps can do, in any language", () => {
+    // "and no app can promise one" (26.4.4 draft) and its translations.
+    const otherApps = /no app can|هیچ ئەپێک ناتوانێت|tu sepan nikare|لا يستطيع أي تطبيق/i;
+    for (const rel of pageFiles()) {
+      expect({ rel, match: read(rel).match(otherApps)?.[0] ?? null }).toEqual({
+        rel,
+        match: null,
+      });
+    }
   });
 
   it("never says early warning is in testing, in any language (D6: no early warning, no test)", () => {
