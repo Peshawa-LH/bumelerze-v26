@@ -659,7 +659,7 @@
     },
     "notifications": {
       "title": "Alerts are coming",
-      "description": "Soon, Bumelerze will notify you the moment an earthquake happens near you or near a place you care about. We'll ask for notification permission when that feature launches."
+      "description": "Soon, Bumelerze will notify you when an earthquake is recorded near you or near a place you care about. We'll ask for notification permission when that feature launches."
     },
     "done": {
       "title": "You're all set",

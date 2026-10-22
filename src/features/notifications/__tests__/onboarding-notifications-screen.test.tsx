@@ -17,7 +17,12 @@ import { usePrefsStore } from "@/features/onboarding";
 
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: mockPush, replace: jest.fn(), back: jest.fn(), canGoBack: () => true }),
+  useRouter: () => ({
+    push: mockPush,
+    replace: jest.fn(),
+    back: jest.fn(),
+    canGoBack: () => true,
+  }),
 }));
 
 const mockRequestPermissions = jest.fn();
@@ -32,7 +37,10 @@ import OnboardingNotificationsScreen from "../../../../app/onboarding/notificati
 
 /** The screen's code, without its comments (which explain the rule). */
 const CODE = fs
-  .readFileSync(path.join(__dirname, "../../../../app/onboarding/notifications.tsx"), "utf8")
+  .readFileSync(
+    path.join(__dirname, "../../../../app/onboarding/notifications.tsx"),
+    "utf8",
+  )
   .replace(/\/\*[\s\S]*?\*\//g, "")
   .replace(/^\s*\/\/.*$/gm, "");
 
@@ -56,7 +64,11 @@ beforeEach(async () => {
   mockPush.mockClear();
   mockRequestPermissions.mockClear();
   mockGetPermissions.mockClear();
-  usePrefsStore.setState({ onboardingCompleted: false, onboardingStep: "notifications", hasHydrated: true });
+  usePrefsStore.setState({
+    onboardingCompleted: false,
+    onboardingStep: "notifications",
+    hasHydrated: true,
+  });
 });
 
 afterEach(async () => {
@@ -78,9 +90,21 @@ it.each(["ios", "android", "web"] as const)(
   },
 );
 
+it("promises alerts after an earthquake is recorded, never at the moment it happens (D6)", async () => {
+  // "notify you the moment an earthquake happens" read like early warning,
+  // which Bumelerze does not give (D6); alerts follow a recorded earthquake.
+  await renderScreen();
+  expect(
+    screen.getByText(/notify you when an earthquake is recorded near you/),
+  ).toBeTruthy();
+  expect(screen.queryByText(/the moment an earthquake happens/)).toBeNull();
+});
+
 it("does not even load the notifications module", () => {
   expect(CODE).toContain("OnboardingScreenShell");
-  expect(CODE).not.toMatch(/expo-notifications|features\/notifications|ensureNotificationPermission/);
+  expect(CODE).not.toMatch(
+    /expo-notifications|features\/notifications|ensureNotificationPermission/,
+  );
 });
 
 it("Sorani: the same words in Sorani", async () => {

@@ -201,11 +201,25 @@ describe("website build", () => {
       )
       .join("\n");
     expect(aims).toMatch(/early warning/i);
-    // the shared goals say where early warning stands, and what it is not
-    expect(read("how-it-works.html")).toMatch(
-      /early warning[^<]*is in testing\. It is not prediction\./i,
+    // The shared goals say plainly that there is no early warning (D6): it
+    // is a long-term aim, while alerts after an earthquake are coming soon.
+    expect(read("how-it-works.html")).toMatch(/Bumelerze does not give early warning/);
+    expect(read("index.html")).toMatch(
+      /Early warning is not offered; it is a long-term aim\./,
     );
-    expect(read("index.html")).toMatch(/early warning models in testing/);
+    expect(read("support.html")).toMatch(/No\. Bumelerze does not give early warning/);
+  });
+
+  it("never says early warning is in testing, in any language (D6: no early warning, no test)", () => {
+    // Until 26.4.3 the goals and the support answer said "early warning
+    // models in testing" / "is in testing", which no decision backs.
+    const inTesting = /in testing|being tested|تاقیکردنەوەدا|ceribandinê|قيد الاختبار/i;
+    for (const rel of pageFiles()) {
+      expect({ rel, match: read(rel).match(inTesting)?.[0] ?? null }).toEqual({
+        rel,
+        match: null,
+      });
+    }
   });
 
   it("says who “I'm safe” and a home are shared with, never that only the family sees them (D98)", () => {
