@@ -7,6 +7,8 @@ import type { EventHubTransport } from "@/features/eventhub/transport";
 import { useTheme } from "@/theme";
 import { formatCount } from "../people/format";
 import { useAdminAccess } from "../queries";
+import { SourceStatusCard } from "../sources/SourceStatusCard";
+import type { SourceStatusTransport } from "../sources/transport";
 import { useToolCounts } from "../tools/queries";
 import type { ToolCountsTransport } from "../tools/transport";
 import { ToolPage, ToolTile, ToolTileGrid } from "../ui";
@@ -28,15 +30,20 @@ interface Tile {
  * `alerts.test`, `stats.read`, `hubs.open`, `feedback.manage`, `audit.read`),
  * and everything is hidden for people without any, so a stray link shows
  * nothing. Felt photos and limited accounts live inside the Moderation queue;
- * badges are given from People > person.
+ * badges are given from People > person. Above the tiles, the statistics ranks
+ * see the read-only Source status card (migrations 0070 and 0072): the feeds
+ * and the SHAKEmap worker, the page the watchdog's push opens.
  */
 export function AdminContent({
   hubTransport,
   countsTransport,
+  sourcesTransport,
 }: {
   hubTransport?: EventHubTransport;
   /** Test seam for `admin_tool_counts()` (migration 0066). */
   countsTransport?: ToolCountsTransport;
+  /** Test seam for `admin_source_status()` (migrations 0070, 0072). */
+  sourcesTransport?: SourceStatusTransport;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography } = useTheme();
@@ -171,6 +178,9 @@ export function AdminContent({
           {t("community.errors.forbidden")}
         </Text>
       )}
+      {access.has("stats.read") ? (
+        <SourceStatusCard transport={sourcesTransport} />
+      ) : null}
       {tiles.length > 0 ? (
         <ToolTileGrid testID="admin-tiles">
           {tiles.map((tile) => (

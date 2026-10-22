@@ -3119,6 +3119,35 @@
         "officialNotReady": "لم يقبل حساب ⁦Bumelerze⁩ الرسمي إرشادات المجتمع بعد. سجّل الدخول به مرة واقبلها.",
         "officialMissing": "لم يُعثر على حساب ⁦Bumelerze⁩ الرسمي (@bumelerze)."
       }
+    },
+    "sources": {
+      "title": "حالة المصادر",
+      "allFine": "كل المصادر تعمل",
+      "needAttention": "تحتاج إلى انتباه: {{number}}",
+      "loading": "جارٍ فحص المصادر…",
+      "unavailable": "تعذّر تحميل حالة المصادر.",
+      "providers": {
+        "usgs": "USGS",
+        "emsc": "EMSC",
+        "geofon": "GEOFON",
+        "isc": "ISC (النشرة اليومية)"
+      },
+      "noData": "لا توجد بيانات بعد",
+      "lastData": "آخر بيانات: {{ago}}",
+      "late": "متأخر. آخر بيانات: {{ago}}",
+      "alertOpened": "فُتح التنبيه: {{ago}}",
+      "lastError": "آخر خطأ: {{error}}",
+      "worker": {
+        "name": "مشغّل خريطة الاهتزاز",
+        "noToken": "غير مُعدّ: لا يوجد رمز GitHub بعد. التشغيل المجدول ما زال يعمل.",
+        "ready": "جاهز: يبدأ مع الزلزال القادم",
+        "started": "آخر تشغيل: {{ago}}",
+        "starting": "بدأ: {{ago}}. بانتظار رد GitHub",
+        "queued": "تشغيل جديد في الانتظار",
+        "failing": "محاولات تشغيل فاشلة متتالية: {{number}}",
+        "lastAnswer": "آخر رد: {{answer}}",
+        "noAnswer": "لا رد"
+      }
     }
   },
   "restrictions": {
