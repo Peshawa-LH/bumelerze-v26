@@ -248,7 +248,7 @@ const config: ExpoConfig = {
   // own versions (now 26.2.1), and every shakemap names the engine version
   // that made it. Shown in the Settings footer and stamped on feedback,
   // presence and sensor exports.
-  version: "26.4.3",
+  version: "26.4.4",
   // An EAS Update reaches only builds with the same app version: a release
   // that changes native code gets a new version, so older installs never
   // receive JavaScript written for native modules they do not have.
