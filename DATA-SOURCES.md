@@ -498,6 +498,28 @@ the surveys do not reach.
   (`eventDetail.risk.buildingCredit`). It sits on the slide itself, so a
   screenshot keeps it. The Atlas PDF report carries the full source list.
 
+### WorldPop and JRC Global Human Settlement Layer (population)
+
+- **What it is:** the people counts shown with a damage estimate ("People by
+  shaking level", or "People in the shaken area" on older products).
+  `bumelerze-engine` takes the number of people per ~100 m grid square from
+  WorldPop (Iraq 2025, scaled to the 2024 census) and places them in
+  buildings with the JRC Global Human Settlement Layer (settlement classes
+  GHS-SMOD and built-up surface GHS-BUILT-S).
+- **Citations:** Bondarenko M. et al. (2025). Constrained estimates of
+  2015-2030 total number of people per grid square, R2025A v1. WorldPop,
+  University of Southampton. <https://doi.org/10.5258/SOTON/WP00839>.
+  Schiavina M., Melchiorri M., Pesaresi M. (2023). GHS-SMOD R2023A.
+  European Commission, Joint Research Centre.
+  <https://doi.org/10.2905/A0DF7A6F-49DE-46EA-9BDE-563437A6E2BA>.
+- **Terms:** both **CC BY 4.0**.
+- **Displayed in-app:** "Population: WorldPop and JRC GHS (CC BY 4.0)"
+  (`eventDetail.risk.populationCredit`) under the damage estimate on Event
+  Detail, and on the Event hub's Impact at a glance when it shows people
+  only. When that slide shows both donuts it carries one line for both
+  sources instead (`eventHub.impact.dataCredit`): "Data: OpenBuildingMap,
+  © OpenStreetMap contributors (ODbL); WorldPop, JRC GHS (CC BY 4.0)".
+
 ## 9. Scientific models and software
 
 ### OpenQuake Engine

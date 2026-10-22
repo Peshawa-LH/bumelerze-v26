@@ -36,7 +36,7 @@ const ALL = { en, ckb, kmr, ar } as const;
 /** Latin tokens that legitimately carry ASCII digits in any locale:
  * standard codes, model names, parameter symbols, ids and URLs. */
 const ASCII_DIGIT_TOKENS =
-  /\{\{[^}]*\}\}|https?:\/\/\S+|app\.bumelerze\.com|bumelerze\.com|bml\d*|EN 1998-1|ASCE 7-\d\d|ISC-20\d\d|IMS-25|EC8|Vs30|Vs5\b|\bS1\b|\bSM1\b|\bSD1\b|\bT0\b|Ω0|DG\d|CY14|ASB14|BSSA14|Kale15(?:-Iran)?|SRTM30|srtm30_plus|Fa\b|Fv\b/g;
+  /\{\{[^}]*\}\}|https?:\/\/\S+|app\.bumelerze\.com|bumelerze\.com|bml\d*|EN 1998-1|ASCE 7-\d\d|ISC-20\d\d|IMS-25|EC8|Vs30|Vs5\b|\bS1\b|\bSM1\b|\bSD1\b|\bT0\b|Ω0|DG\d|CY14|ASB14|BSSA14|Kale15(?:-Iran)?|SRTM30|srtm30_plus|Fa\b|Fv\b|CC BY 4\.0/g;
 
 /** Strings whose remaining ASCII digits are a formula or an input format the
  * reader must type back, kept ASCII on purpose (E-5/E-6 decision list). */

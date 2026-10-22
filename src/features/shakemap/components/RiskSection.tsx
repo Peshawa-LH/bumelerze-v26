@@ -33,8 +33,9 @@ export interface RiskSectionProps {
  * resolved risk product carries one, else the older single-level
  * `RiskProvinceList` (`districts.json`) so a bundled/older event with no
  * `areas` product still shows something — the provenance chip strip +
- * report download (`RiskProvenanceChips`), and the building-data credit
- * (OpenBuildingMap, © OpenStreetMap contributors, ODbL).
+ * report download (`RiskProvenanceChips`), and the data credits
+ * (OpenBuildingMap, © OpenStreetMap contributors, ODbL; WorldPop and JRC
+ * GHS, CC BY 4.0).
  *
  * Visually drawn in Bumelerze's own language (rounded theme-token cards,
  * chips, gradient rail — never PAGER's colored-banner/histogram look; see
@@ -69,6 +70,14 @@ export function RiskSection({ event }: RiskSectionProps) {
     fontFamily: nativeFontFamily(typography.labelCaption),
     lineHeight: typography.labelCaption.lineHeight,
     fontWeight: typography.labelCaption.fontWeight,
+  } as const;
+
+  const creditStyle = {
+    color: colors.text.tertiary,
+    fontSize: typography.labelCaption.fontSize,
+    fontFamily: nativeFontFamily(typography.labelCaption, "400"),
+    ...READING_START,
+    lineHeight: typography.labelCaption.lineHeight,
   } as const;
 
   return (
@@ -203,20 +212,18 @@ export function RiskSection({ event }: RiskSectionProps) {
       />
 
       {/* The building counts come from OpenBuildingMap footprints, which
-          are OpenStreetMap data under ODbL: the licence asks for this
-          credit wherever the figures are shown. */}
-      <Text
-        testID="risk-building-credit"
-        style={{
-          color: colors.text.tertiary,
-          fontSize: typography.labelCaption.fontSize,
-          fontFamily: nativeFontFamily(typography.labelCaption, "400"),
-          ...READING_START,
-          lineHeight: typography.labelCaption.lineHeight,
-        }}
-      >
-        {t("eventDetail.risk.buildingCredit")}
-      </Text>
+          are OpenStreetMap data under ODbL, and the people counts (shaking
+          levels or the people tile, always one of them) from WorldPop and
+          JRC GHS under CC BY 4.0: the licences ask for these credits
+          wherever the figures are shown. */}
+      <View style={{ gap: spacing[1] }}>
+        <Text testID="risk-building-credit" style={creditStyle}>
+          {t("eventDetail.risk.buildingCredit")}
+        </Text>
+        <Text testID="risk-population-credit" style={creditStyle}>
+          {t("eventDetail.risk.populationCredit")}
+        </Text>
+      </View>
     </View>
   );
 }

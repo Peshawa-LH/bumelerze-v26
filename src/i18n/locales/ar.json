@@ -918,7 +918,8 @@
       "provinceCaption_two": "نحو مبنيين",
       "provinceCaption_few": "نحو {{value}} مبانٍ",
       "provinceCaption_many": "نحو {{value}} مبنى",
-      "buildingCredit": "بيانات المباني: ⁦GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)⁩"
+      "buildingCredit": "بيانات المباني: ⁦GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)⁩",
+      "populationCredit": "السكان: ⁦WorldPop⁩ و⁦JRC GHS⁩ (⁦CC BY 4.0⁩)"
     },
     "feltMap": {
       "sectionTitle": "خريطة الشعور بالزلزال",
@@ -1030,7 +1031,8 @@
       "unit": {
         "thousand": "ألف",
         "million": "مليون"
-      }
+      },
+      "dataCredit": "البيانات: ⁦OpenBuildingMap, © OpenStreetMap contributors (ODbL)⁩؛ ⁦WorldPop, JRC GHS (CC BY 4.0)⁩"
     },
     "pin": {
       "pinned": "مثبَّت من ⁦Bumelerze⁩",

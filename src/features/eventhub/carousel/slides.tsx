@@ -81,10 +81,10 @@ function SlideFrame({
             </Text>
           ) : null}
           {credit ? (
+            // Never clamped: a licence credit must not end in "…".
             <Text
               testID={`${testID}-credit`}
               style={[typography.labelCaption, { color: colors.text.tertiary }]}
-              numberOfLines={2}
             >
               {credit}
             </Text>
@@ -95,17 +95,49 @@ function SlideFrame({
   );
 }
 
-/** How much the Impact donuts shrink for the two-line building credit; with
- * the close-set footer that keeps every language's legend clear of the note
- * on a 358 px slide (checked in en, ckb, kmr and ar). */
-const CREDIT_ROOM = 28;
+/** The data credit Impact at a glance carries: the building damage donut
+ * counts OpenBuildingMap footprints (ODbL), the people donut WorldPop and
+ * JRC GHS population (CC BY 4.0). */
+export type ImpactCredit = "buildings" | "population" | "both";
 
-/** Donut diameter on Impact at a glance. With the building credit under the
- * note the donuts give up its height, so the legends never run into the
- * footer (76 px stays the smallest, as on narrow phones before).
+/** The credit for the donuts the slide shows, or null for none. */
+export function impactCredit(
+  hasDamage: boolean,
+  hasPeople: boolean,
+): ImpactCredit | null {
+  if (hasDamage && hasPeople) {
+    return "both";
+  }
+  if (hasDamage) {
+    return "buildings";
+  }
+  return hasPeople ? "population" : null;
+}
+
+const IMPACT_CREDIT_KEYS: Record<ImpactCredit, string> = {
+  buildings: "eventDetail.risk.buildingCredit",
+  population: "eventDetail.risk.populationCredit",
+  // One short "Data: …" credit for both. Measured on a 358 px slide (Chromium
+  // and WebKit) it fills 79-88 % of two lines in the four languages; the
+  // two credits one under the other take three lines everywhere.
+  both: "eventHub.impact.dataCredit",
+};
+
+/** How much the Impact donuts shrink for each credit, with the close-set
+ * footer, so every language's legend stays clear of the note on a 358 px
+ * slide (checked in en, ckb, kmr and ar). The one-line population credit
+ * needs none: without the damage column the people donut has room. */
+const CREDIT_ROOM: Record<ImpactCredit, number> = {
+  population: 0,
+  buildings: 28,
+  both: 44,
+};
+
+/** Donut diameter on Impact at a glance: the donuts give up the credit's
+ * height (76 px stays the smallest, as on narrow phones before).
  * Exported for tests. */
-export function impactDonutSize(size: number, withCredit: boolean): number {
-  const fit = Math.floor((size - 72) / 2.6) - (withCredit ? CREDIT_ROOM : 0);
+export function impactDonutSize(size: number, credit: ImpactCredit | null): number {
+  const fit = Math.floor((size - 72) / 2.6) - (credit ? CREDIT_ROOM[credit] : 0);
   return Math.max(76, Math.min(110, fit));
 }
 
@@ -137,7 +169,8 @@ export function ImpactSlide({
   const { t, i18n } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const locale = i18n.language;
-  const donut = impactDonutSize(size, damage !== null);
+  const credit = impactCredit(damage !== null, people !== null);
+  const donut = impactDonutSize(size, credit);
   const caption = {
     color: colors.text.secondary,
     fontSize: typography.labelCaption.fontSize,
@@ -150,9 +183,7 @@ export function ImpactSlide({
       size={size}
       title={t("eventHub.impact.title")}
       note={reviewed ? t("eventHub.impact.noteReviewed") : t("eventHub.impact.note")}
-      // The building damage donut counts OpenBuildingMap footprints; the
-      // people donut alone uses no building data.
-      {...(damage ? { credit: t("eventDetail.risk.buildingCredit") } : {})}
+      {...(credit ? { credit: t(IMPACT_CREDIT_KEYS[credit]) } : {})}
       testID="slide-impact"
     >
       <View style={[styles.donuts, { gap: spacing[3] }]}>

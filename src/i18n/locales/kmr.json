@@ -910,7 +910,8 @@
       },
       "provinceCaption_one": "Nêzîkî {{value}} avahî",
       "provinceCaption_other": "Nêzîkî {{value}} avahî",
-      "buildingCredit": "Daneyên avahiyan: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)"
+      "buildingCredit": "Daneyên avahiyan: GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)",
+      "populationCredit": "Nifûs: WorldPop û JRC GHS (CC BY 4.0)"
     },
     "feltMap": {
       "sectionTitle": "Nexşeya hîskirinê",
@@ -1022,7 +1023,8 @@
       "unit": {
         "thousand": "hezar",
         "million": "mîlyon"
-      }
+      },
+      "dataCredit": "Dane: OpenBuildingMap, © OpenStreetMap contributors (ODbL); WorldPop, JRC GHS (CC BY 4.0)"
     },
     "pin": {
       "pinned": "Ji aliyê Bumelerze ve li serî",

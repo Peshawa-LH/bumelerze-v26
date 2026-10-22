@@ -910,7 +910,8 @@
       },
       "provinceCaption_one": "نزیکەی {{value}} خانوو",
       "provinceCaption_other": "نزیکەی {{value}} خانوو",
-      "buildingCredit": "داتای بینا: ⁦GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)⁩"
+      "buildingCredit": "داتای بینا: ⁦GFZ OpenBuildingMap, © OpenStreetMap contributors (ODbL)⁩",
+      "populationCredit": "دانیشتووان: ⁦WorldPop⁩ و ⁦JRC GHS⁩ (⁦CC BY 4.0⁩)"
     },
     "feltMap": {
       "sectionTitle": "نەخشەی هەستکراو",
@@ -1022,7 +1023,8 @@
       "unit": {
         "thousand": "هەزار",
         "million": "ملیۆن"
-      }
+      },
+      "dataCredit": "داتا: ⁦OpenBuildingMap, © OpenStreetMap contributors (ODbL)⁩؛ ⁦WorldPop, JRC GHS (CC BY 4.0)⁩"
     },
     "pin": {
       "pinned": "جێگیرکراو لەلایەن تۆڕی بوومەلەرزە",
