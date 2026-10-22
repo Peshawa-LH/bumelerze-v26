@@ -59,6 +59,7 @@ export {
   getRelativeTime,
   isolateLocalizedTime,
   isolateNumeric,
+  isolateValue,
 } from "./format";
 export { magnitudeTone, type MagnitudeTone } from "./magnitude-tone";
 export { EventCard } from "./components/EventCard";

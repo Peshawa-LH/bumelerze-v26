@@ -2,7 +2,7 @@ import { Platform, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle } from "react-native-svg";
 
-import { isolateNumeric } from "@/features/events";
+import { isolateValue } from "@/features/events";
 import { localizeDigits } from "@/lib/format-numbers";
 import { roundToWhole100 } from "@/lib/percent";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
@@ -235,7 +235,7 @@ export function DonutChart({
               {row.label}
             </Text>
             <Text style={[captionStyle, { color: colors.text.primary }]}>
-              {isolateNumeric(row.valueText)}
+              {isolateValue(row.valueText)}
             </Text>
           </View>
         ))}

@@ -360,6 +360,19 @@ describe("Event hub slides (review note 4.3)", () => {
         expect(texts.filter((text) => ROMAN_NUMERAL.test(text))).toEqual([]);
       }
     });
+
+    it("keeps the ٪ after the number in the damage donut's 'less than 1' rows", async () => {
+      await i18n.changeLanguage("ckb");
+      mockRisk(risk());
+      await renderSlides(EMPTY_SUMMARY);
+      fireEvent.press(await screen.findByTestId("hub-carousel-dot-impact"));
+      const damage = await screen.findByTestId("hub-impact-damage");
+      // A first-strong isolate (U+2068): the phrase reads right to left with
+      // ٪ after ١. The left-to-right isolate (U+2066) drew it as "٪کەمتر لە ١".
+      // The 2017 estimate has two such rows (heavy, very heavy).
+      expect(within(damage).getAllByText("\u2068کەمتر لە ١٪\u2069")).toHaveLength(2);
+      expect(within(damage).queryAllByText(/\u2066کەمتر لە/)).toHaveLength(0);
+    });
   });
 });
 

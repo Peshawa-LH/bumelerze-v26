@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 
 import i18n from "@/i18n";
+import { firstStrongDirection } from "@/i18n/bidi";
 
 import {
   capSlices,
@@ -93,6 +94,29 @@ describe("DonutChart", () => {
     await render(<DonutChart slices={[slice("a", 1), slice("b", 1)]} />);
     // "٥٠٪" (U+066A after the digits), never "%٥٠" or "٥٠%" (A-22).
     expect(screen.getAllByText(/٥٠٪/)).toHaveLength(2);
+  });
+
+  it.each([
+    ["ckb", "کەمتر لە ١٪"],
+    ["ar", "أقل من ١٪"],
+  ])(
+    "%s: sets 'less than 1 %%' in a first-strong isolate, so the ٪ stays after the number",
+    async (lang, phrase) => {
+      await i18n.changeLanguage(lang);
+      await render(<DonutChart slices={[slice("a", 1000), slice("b", 1)]} />);
+      // The left-to-right isolate (U+2066) forced the right-to-left phrase
+      // into a left-to-right run and drew it as "٪کەمتر لە ١" / "٪أقل من ١".
+      expect(screen.getByText(`\u2068${phrase}\u2069`)).toBeTruthy();
+      expect(screen.queryByText(`\u2066${phrase}\u2069`)).toBeNull();
+    },
+  );
+
+  it("keeps plain numbers left to right: no letter, so the first-strong isolate resolves as before", async () => {
+    await render(<DonutChart slices={[slice("a", 1000), slice("b", 1)]} />);
+    expect(screen.getByText("\u2068<1%\u2069")).toBeTruthy();
+    expect(firstStrongDirection("<1%")).toBeNull();
+    expect(firstStrongDirection("٩٩٪")).toBeNull();
+    expect(firstStrongDirection("کەمتر لە ١٪")).toBe("rtl");
   });
 });
 
