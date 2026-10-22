@@ -9,7 +9,9 @@
 import { CITIES, type AlertCity } from "./gazetteer-data.ts";
 import { STRINGS, type AlertLocale } from "./strings.ts";
 
-export type DeliveryKind = "alert" | "upgrade" | "summary" | "test";
+/** "ops" (migration 0070): a feed or the SHAKEmap worker needs attention;
+ * sent only to accounts that read statistics (admins), never an earthquake. */
+export type DeliveryKind = "alert" | "upgrade" | "summary" | "test" | "ops";
 
 export interface AlertEvent {
   /** Bumelerze id ("bml2026abcd"): the app route is /event/<id>. */
@@ -194,6 +196,23 @@ export function buildMessage(item: AlertItem): PushMessage {
   const str = s(locale);
   const dir = locale === "ckb" || locale === "ar" ? "rtl" : "ltr";
   const base = { lang: locale, dir } as const;
+
+  if (item.kind === "ops") {
+    // A fixed text: the admin home says which source and since when.
+    return {
+      ...base,
+      title: str.opsTitle,
+      body: str.opsBody,
+      tag: "bml-ops",
+      topic: "bml-ops",
+      path: "admin",
+      quiet: false,
+      renotify: true,
+      urgency: "normal",
+      ttlSeconds: 6 * 3600,
+      timeSensitive: false,
+    };
+  }
 
   if (item.kind === "test" || item.event === null) {
     return {

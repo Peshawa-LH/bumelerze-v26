@@ -23,6 +23,14 @@ Supabase Edge Function (Deno) that delivers earthquake alerts (migration
 - iOS: an alert or update for an earthquake of magnitude 5.0 or more goes out
   with `interruptionLevel: "time-sensitive"` (needs the app's Time Sensitive
   Notifications entitlement to take effect).
+- Operations notices (migration 0070): when the feed watchdog opens an alert
+  (or starting the SHAKEmap worker keeps failing, 0072), the database queues
+  a delivery of kind `ops` to every active device of an account that reads
+  statistics (official and admin), at most one per device per hour. It
+  carries no event; the text is fixed ("A data source needs attention") and
+  opens the admin home, whose Source status card says which source. Deploy
+  this function before applying 0070: an older one records an `ops`
+  delivery as malformed (failed).
 - It takes no targeting input, so calling it can only drain the queue sooner.
 
 ## Health and the key self-check

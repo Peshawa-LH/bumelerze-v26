@@ -289,6 +289,24 @@ describe("parsePlan", () => {
     ]);
   });
 
+  it("an ops delivery (migration 0070) needs no event; an earthquake kind still does", () => {
+    const plan = parsePlan({
+      run_id: "22222222-2222-4222-8222-222222222222",
+      mode: "testers",
+      deliveries: [
+        { ...good, kind: "ops", event: null, context: null },
+        { ...good, id: "66666666-6666-4666-8666-666666666666", kind: "upgrade", event: null },
+        { ...good, id: "77777777-7777-4777-8777-777777777777", kind: "nonsense" },
+      ],
+    });
+    expect(plan.items).toHaveLength(1);
+    expect(plan.items[0]).toMatchObject({ kind: "ops", event: null, context: null });
+    expect(plan.invalid).toEqual([
+      "66666666-6666-4666-8666-666666666666",
+      "77777777-7777-4777-8777-777777777777",
+    ]);
+  });
+
   it("refuses a non-object", () => {
     expect(() => parsePlan(null)).toThrow();
   });

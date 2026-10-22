@@ -27,7 +27,9 @@ export const STRINGS = {
     "summaryTitle": "More earthquakes in the area",
     "summaryBody": "Smaller earthquakes since your last alert: {{count}}. Largest: {{magnitude}}, {{place}}.",
     "testTitle": "Test alert",
-    "testBody": "This is a test from Bumelerze. No earthquake happened."
+    "testBody": "This is a test from Bumelerze. No earthquake happened.",
+    "opsTitle": "A data source needs attention",
+    "opsBody": "An earthquake feed or the SHAKEmap worker has stopped working. Open Admin to see which one."
   },
   "ckb": {
     "magnitude": "{{value}} پلە",
@@ -54,7 +56,9 @@ export const STRINGS = {
     "summaryTitle": "بوومەلەرزەی زیاتر لە ناوچەکەدا",
     "summaryBody": "بوومەلەرزەی بچووکتر لە دوای دوایین ئاگادارکردنەوەتەوە: {{count}}. گەورەترینیان: {{magnitude}}، {{place}}.",
     "testTitle": "ئاگادارکردنەوەی تاقیکردنەوە",
-    "testBody": "ئەمە تاقیکردنەوەیەکە لە بوومەلەرزەوە. هیچ بوومەلەرزەیەک ڕووی نەداوە."
+    "testBody": "ئەمە تاقیکردنەوەیەکە لە بوومەلەرزەوە. هیچ بوومەلەرزەیەک ڕووی نەداوە.",
+    "opsTitle": "سەرچاوەیەکی زانیاری پێویستی بە سەرنجە",
+    "opsBody": "سەرچاوەیەکی زانیاری بوومەلەرزە یان کارپێکەری نەخشەی لەرزین لە کار وەستاوە. بەشی بەڕێوەبەر بکەرەوە بۆ ئەوەی بزانیت کامەیە."
   },
   "kmr": {
     "magnitude": "{{value}} pîle",
@@ -81,7 +85,9 @@ export const STRINGS = {
     "summaryTitle": "Bêtir erdhej li herêmê",
     "summaryBody": "Erdhejên piçûktir piştî hişyariya te ya dawî: {{count}}. Ya herî mezin: {{magnitude}}, {{place}}.",
     "testTitle": "Hişyariya ceribandinê",
-    "testBody": "Ev ceribandinek ji Bumelerze ye. Tu erdhej çênebû."
+    "testBody": "Ev ceribandinek ji Bumelerze ye. Tu erdhej çênebû.",
+    "opsTitle": "Çavkaniyeke daneyan baldariyê dixwaze",
+    "opsBody": "Çavkaniyeke daneyên erdhejê an jî xebatkarê SHAKEmap ji kar sekiniye. Rêvebir veke da ku bibînî kîjan e."
   },
   "ar": {
     "magnitude": "{{value}} درجة",
@@ -108,7 +114,9 @@ export const STRINGS = {
     "summaryTitle": "مزيد من الزلازل في المنطقة",
     "summaryBody": "زلازل أصغر منذ آخر تنبيه لك: {{count}}. أقواها: {{magnitude}}، {{place}}.",
     "testTitle": "تنبيه تجريبي",
-    "testBody": "هذا اختبار من ⁦Bumelerze⁩. لم يقع أي زلزال."
+    "testBody": "هذا اختبار من ⁦Bumelerze⁩. لم يقع أي زلزال.",
+    "opsTitle": "مصدر بيانات يحتاج إلى انتباه",
+    "opsBody": "توقّف مصدر لبيانات الزلازل أو مشغّل خريطة الاهتزاز (SHAKEmap) عن العمل. افتح الإدارة لمعرفة أيّهما."
   }
 } as const;
 

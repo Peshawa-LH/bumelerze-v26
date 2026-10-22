@@ -41,6 +41,8 @@ const KEYS: [string, string][] = [
   ["summaryBody", "alerts.push.summaryBody"],
   ["testTitle", "alerts.push.testTitle"],
   ["testBody", "alerts.push.testBody"],
+  ["opsTitle", "alerts.push.opsTitle"],
+  ["opsBody", "alerts.push.opsBody"],
 ];
 
 function pick(obj: unknown, dotted: string): unknown {

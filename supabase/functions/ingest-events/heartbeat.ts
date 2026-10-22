@@ -1,9 +1,11 @@
 // The run heartbeat (migration 0067, `public.feed_heartbeats`): one row per
 // channel, upserted by `db.ts`'s `recordFeedHeartbeat` after every run. The
 // watchdog `ops_check_feeds()` (pg_cron, every 15 minutes) opens an
-// operations alert when usgs or emsc has had no successful run for an hour
-// (review finding D-2: pg_cron only sees that the HTTP call was queued, so
-// hours of 502s never showed anywhere). Pure, no imports, so the row shape
+// operations alert when a channel has had no successful run for its
+// threshold (migration 0070: an hour for usgs, emsc and geofon, 49 hours for
+// the daily isc run), pushes it to the admins and shows it on the admin
+// home (review finding D-2: pg_cron only sees that the HTTP call was queued,
+// so hours of 502s never showed anywhere). Pure, no imports, so the row shape
 // is pinned under Jest against the migration's own column list
 // (`__tests__/heartbeat.test.ts`) the way the felt transport pins its
 // inserts against 0003.

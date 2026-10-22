@@ -3611,7 +3611,9 @@
       "summaryTitle": "More earthquakes in the area",
       "summaryBody": "Smaller earthquakes since your last alert: {{count}}. Largest: {{magnitude}}, {{place}}.",
       "testTitle": "Test alert",
-      "testBody": "This is a test from Bumelerze. No earthquake happened."
+      "testBody": "This is a test from Bumelerze. No earthquake happened.",
+      "opsTitle": "A data source needs attention",
+      "opsBody": "An earthquake feed or the SHAKEmap worker has stopped working. Open Admin to see which one."
     },
     "language": "Alerts come in the app's language: {{language}}. To change it, go to Settings, Language.",
     "devices": {

@@ -3611,7 +3611,9 @@
       "summaryTitle": "Bêtir erdhej li herêmê",
       "summaryBody": "Erdhejên piçûktir piştî hişyariya te ya dawî: {{count}}. Ya herî mezin: {{magnitude}}, {{place}}.",
       "testTitle": "Hişyariya ceribandinê",
-      "testBody": "Ev ceribandinek ji Bumelerze ye. Tu erdhej çênebû."
+      "testBody": "Ev ceribandinek ji Bumelerze ye. Tu erdhej çênebû.",
+      "opsTitle": "Çavkaniyeke daneyan baldariyê dixwaze",
+      "opsBody": "Çavkaniyeke daneyên erdhejê an jî xebatkarê SHAKEmap ji kar sekiniye. Rêvebir veke da ku bibînî kîjan e."
     },
     "language": "Hişyarî bi zimanê sepanê tên: {{language}}. Ji bo guhertinê, here Sazkarî, Ziman.",
     "devices": {

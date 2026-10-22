@@ -55,7 +55,7 @@ tracker if the CLI is ever adopted again.
 | I'm safe                                     | 0057, 0064                                                   |
 | Admin tools, roles, Government official      | 0046, 0051, 0055, 0060, 0061, 0066, 0069                     |
 | Alerts (testers mode) and telemetry          | 0005, 0062, 0068                                             |
-| Security and operations                      | 0001, 0010, 0033, 0067                                       |
+| Security and operations                      | 0001, 0010, 0033, 0067, 0070                                 |
 
 Each migration's header says what it changes and why.
 
