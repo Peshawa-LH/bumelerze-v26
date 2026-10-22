@@ -198,7 +198,7 @@ describe("CheckInPanel", () => {
       .mockResolvedValue({ action: "sharedAction" });
     await renderPanel();
     expect(screen.getByTestId("im-safe-nobody")).toHaveTextContent(
-      /Nobody in Bumelerze would see this yet/,
+      /None of your family or friends in Bumelerze would see this yet/,
     );
     expect(screen.queryByTestId("im-safe-reach")).toBeNull();
     await press("im-safe-button");

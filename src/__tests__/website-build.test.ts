@@ -208,6 +208,46 @@ describe("website build", () => {
     expect(read("index.html")).toMatch(/early warning models in testing/);
   });
 
+  it("says who “I'm safe” and a home are shared with, never that only the family sees them (D98)", () => {
+    // Verified officials can see each account's latest "I'm safe" and
+    // building class (D98), so "Only approved members of your family home"
+    // and "Only you and the family members you approve" stopped being true.
+    // The answers name who it is shared with and make no exclusivity claim.
+    const only: Record<string, RegExp> = {
+      en: /\bonly\b/i,
+      ckb: /تەنها|تەنیا/,
+      kmr: /(?<!\p{L})tenê(?!\p{L})/iu,
+      ar: /فقط|وحدك/,
+    };
+    for (const lang of LANGS) {
+      const strings = JSON.parse(
+        fs.readFileSync(
+          path.join(ROOT, "website-src", "strings", `${lang}.json`),
+          "utf8",
+        ),
+      ) as Record<string, string>;
+      for (const key of [
+        "support.family.q2",
+        "support.family.a2",
+        "support.family.q7",
+        "support.family.a7",
+      ]) {
+        expect({
+          lang,
+          key,
+          match: strings[key]!.match(only[lang]!)?.[0] ?? null,
+        }).toEqual({
+          lang,
+          key,
+          match: null,
+        });
+      }
+    }
+    const support = read("support.html");
+    expect(support).not.toMatch(/Only approved members|Only you and the family/);
+    expect(support).toContain("Who is my “I’m safe” shared with?");
+  });
+
   it("how it works explains the method with its own figures, not Home's", () => {
     for (const lang of LANGS) {
       const html = read(

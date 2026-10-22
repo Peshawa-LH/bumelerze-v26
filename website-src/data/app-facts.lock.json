@@ -43,6 +43,8 @@
   "im-safe": {
     "key:imSafe.button.safe": "7fe9695467ab0778",
     "key:imSafe.family.setting": "4958f25197f48446",
+    "key:imSafe.family.settingHint": "f0c02ea64406bfdf",
+    "key:notificationSettings.safe.options.mutual": "281d20f207673ed4",
     "key:imSafe.action.shareMessage": "aacb4e9c737ddfa1",
     "key:imSafe.noHelp": "7a500320ec45d582"
   },
