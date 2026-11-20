@@ -64,6 +64,13 @@ client benefit.
 | GEOFON / GFZ | `geofon` | 5 min | `geofon-adapter.ts` (shares `fdsn-text-adapter.ts`) |
 | ISC bulletin | `isc` | daily | `isc-adapter.ts` (shares `fdsn-text-adapter.ts`) |
 
+ISC runs from 2026-11-21 on only (owner decision 2026-11-20: no backfill).
+Its window starts at `max(ISC_START, now - 450 days)` (`channels.ts`,
+`iscWindowStartMs`), so it never asks for anything older than 2026-11-21;
+the 450-day limit takes over from about February 2028. The bulletin runs
+months behind, so ISC answers "no events" for a long while, which is a
+successful run.
+
 Two RESERVED provider values already exist in `event_source_records`'s
 CHECK constraint without needing a further migration (migration 0023): `kur`
 (a future direct Kurdistan/Iraq national feed) and `bumelerze-crowd` (written
@@ -188,5 +195,6 @@ Events this function creates get their `bml` id from
 - **Channel 5 (direct Kurdistan/Iraq feed) and IDC-direct** — both open
   questions; `kur` is schema-ready (migration 0023) but has no adapter.
 - **A per-channel fetch cursor / `updatedafter` optimization** for the ISC
-  channel's wide, largely-unchanging daily re-fetch window — see
+  channel's daily re-fetch window (narrow until 2028, then up to 450 days)
+  — see
   `channels.ts`'s `ISC_LOOKBACK_DAYS` comment for the concrete TODO.

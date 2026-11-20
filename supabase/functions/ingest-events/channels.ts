@@ -73,6 +73,25 @@ const LIVE_CHANNEL_LOOKBACK_HOURS = 72; // EMSC/USGS/GEOFON: 3 days.
  */
 const ISC_LOOKBACK_DAYS = 450;
 
+/**
+ * ISC from now on only: the owner decided on 2026-11-20 that the ISC
+ * channel takes no backfill. It asks for nothing that happened before
+ * ISC_START; the 450-day window above only limits the sweep once
+ * ISC_START is that far behind (about February 2028). The bulletin runs
+ * months behind (about 13, the ingestion plan §1), so for a long while ISC
+ * may answer "no events" (204 or a bare header); that is a successful run,
+ * so the feed watchdog stays quiet. The window never starts in the future
+ * (a run before ISC_START asks from now).
+ */
+export const ISC_START_MS = Date.parse("2026-11-21T00:00:00Z");
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Start of the ISC window: max(ISC_START, now - 450 days), never after now. */
+export function iscWindowStartMs(nowMs: number): number {
+  return Math.min(nowMs, Math.max(ISC_START_MS, nowMs - ISC_LOOKBACK_DAYS * DAY_MS));
+}
+
 export interface ChannelDefinition {
   id: ChannelId;
   provider: ChannelId;
@@ -111,8 +130,8 @@ export const CHANNELS: Record<ChannelId, ChannelDefinition> = {
     id: "isc",
     provider: "isc",
     cadence: { kind: "bulletin", times: "daily" },
-    label: "ISC bulletin (backfill/correction sweep)",
-    fetch: (nowMs) => fetchIscChannel(REGION_BBOX, nowMs - ISC_LOOKBACK_DAYS * 24 * 60 * 60 * 1000),
+    label: "ISC bulletin (correction sweep from 2026-11-21)",
+    fetch: (nowMs) => fetchIscChannel(REGION_BBOX, iscWindowStartMs(nowMs)),
   },
 };
 
