@@ -9,7 +9,15 @@ import type { IndexMeans } from "./felt-aggregation/types.ts";
 
 export interface CellReportBase {
   reportId: string;
+  /** The REPORTER key: `felt_reports.user_id` when the report has one (every
+   * report since migration 0073, which requires a session), else the legacy
+   * `device_id`. Kept under this name because the vendored `aggregateCell`
+   * dedupes on `deviceId`; one person with several device ids is one
+   * reporter (`onePerReporter` in `aggregate-event.ts`). */
   deviceId: string;
+  /** `felt_reports.created_at` (server-clamped since migration 0073): the
+   * "latest report wins" order of `onePerReporter`. */
+  createdAt: string;
   lat: number;
   lon: number;
   /** `felt_reports.geohash_p5` — read straight off the row (it's a
@@ -45,7 +53,10 @@ export type CellReport = Tier1CellReport | Tier2CellReport;
 export interface FeltReportRow {
   report_id: string;
   device_id: string;
+  /** Null only on reports sent without a session, before migration 0073. */
+  user_id: string | null;
   event_id: string;
+  created_at: string;
   cartoon_level: CartoonLevel;
   lat: number;
   lon: number;

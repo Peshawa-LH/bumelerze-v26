@@ -45,7 +45,9 @@ export async function fetchReportsForEvent(
 ): Promise<FeltReportRow[]> {
   const { data, error } = await client
     .from("felt_reports")
-    .select("report_id, device_id, event_id, cartoon_level, lat, lon, geohash_p5")
+    // user_id and created_at (migration 0073): one report per reporter per
+    // event, the latest, before the cells are built (aggregate-event.ts).
+    .select("report_id, device_id, user_id, event_id, created_at, cartoon_level, lat, lon, geohash_p5")
     .eq("event_id", eventId)
     // Migration 0064: a withdrawn report no longer counts anywhere public.
     .is("withdrawn_at", null);

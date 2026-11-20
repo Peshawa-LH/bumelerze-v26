@@ -61,6 +61,7 @@ import {
   groupIntoCells,
   isDebounced,
   joinReportsAndDetails,
+  onePerReporter,
   pickLatestPerGeohash,
 } from "./aggregate-event.ts";
 import { classifyAggregateRequest } from "./event-key.ts";
@@ -114,7 +115,8 @@ async function aggregateOneEvent(
     client,
     reports.map((r) => r.report_id),
   );
-  const cellReports = joinReportsAndDetails(reports, details);
+  // One report per reporter per event (migration 0073) before any cell.
+  const cellReports = onePerReporter(joinReportsAndDetails(reports, details));
   const groups = groupIntoCells(cellReports);
 
   let written = 0;

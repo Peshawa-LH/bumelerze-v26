@@ -23,6 +23,14 @@ aggregates the felt-map (`src/features/feltmap/`, reading
   the CDI module deliberately doesn't own (`damage_dist`, `ground_effects`
   — plain frequency counts, no CDI/EMS weighting), and the idempotent
   version-write path.
+- **One report per reporter per event** (migration 0073), before any cell
+  is built: the reporter is the report's account (`user_id`, present on
+  every report since 0073 requires a session), else its legacy device id. A
+  tier-2 report (with details) beats a tier-1 one; within a tier the latest
+  `created_at` wins (`aggregate-event.ts`'s `onePerReporter`). The vendored
+  `aggregateCell` still dedupes inside a cell, but only there; without this
+  step one person with several device ids counted once in every cell they
+  reported into.
 - **Minimal-ops, HTTP-invoked.** No queue, no dedicated scheduler process —
   just a POST endpoint. The `pg_cron` job `aggregate_felt_cells` (migration
   0017) calls it every 5 minutes in sweep mode (empty body); the debounce and

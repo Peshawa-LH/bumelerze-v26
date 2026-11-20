@@ -26,7 +26,9 @@ const DEBOUNCE_MS = 60_000;
 /**
  * Joins `felt_reports` + `felt_report_details` rows into the per-report
  * shape the rest of this module (and the vendored `aggregateCell`) works
- * with. A report with no matching detail row is tier-1-only.
+ * with. A report with no matching detail row is tier-1-only. `deviceId`
+ * carries the reporter key: the account (`user_id`) when the report has
+ * one, else the legacy device id (migration 0073).
  */
 export function joinReportsAndDetails(
   reports: readonly FeltReportRow[],
@@ -37,7 +39,8 @@ export function joinReportsAndDetails(
     const detail = detailsByReportId.get(report.report_id);
     const base = {
       reportId: report.report_id,
-      deviceId: report.device_id,
+      deviceId: report.user_id ?? report.device_id,
+      createdAt: report.created_at,
       lat: report.lat,
       lon: report.lon,
       geohashP5: report.geohash_p5,
@@ -68,6 +71,48 @@ export function joinReportsAndDetails(
   });
 }
 
+/** Milliseconds of a `created_at`; an unreadable value sorts first. */
+function reportTime(createdAt: string): number {
+  const ms = Date.parse(createdAt);
+  return Number.isNaN(ms) ? Number.NEGATIVE_INFINITY : ms;
+}
+
+/** True when `candidate` should replace `current` as the reporter's one
+ * report: a tier-2 report (it has details) beats a tier-1 one; within the
+ * same tier the later `created_at` wins, then the larger report id (only so
+ * the choice never depends on row order). */
+function replacesReport(candidate: CellReport, current: CellReport): boolean {
+  if (candidate.tier !== current.tier) {
+    return candidate.tier === "tier2";
+  }
+  const a = reportTime(candidate.createdAt);
+  const b = reportTime(current.createdAt);
+  if (a !== b) {
+    return a > b;
+  }
+  return candidate.reportId > current.reportId;
+}
+
+/**
+ * One report per reporter per EVENT (migration 0073), applied before
+ * `groupIntoCells`. The vendored `aggregateCell` dedupes only inside one
+ * cell, so a person with several device ids (or reports placed in several
+ * cells) used to count once per cell, in every cell, and could lift a cell
+ * past the SHAKEmap trust gate (n_reports >= 3) alone. The reporter is
+ * `deviceId` as set by `joinReportsAndDetails` (the account, else the
+ * device); `replacesReport` decides which report stays.
+ */
+export function onePerReporter(reports: readonly CellReport[]): CellReport[] {
+  const chosen = new Map<string, CellReport>();
+  for (const report of reports) {
+    const current = chosen.get(report.deviceId);
+    if (!current || replacesReport(report, current)) {
+      chosen.set(report.deviceId, report);
+    }
+  }
+  return Array.from(chosen.values());
+}
+
 function toAggregationInput(report: CellReport): AggregationInputReport {
   if (report.tier === "tier1") {
     return { tier: "tier1", deviceId: report.deviceId, cartoonLevel: report.cartoonLevel };
@@ -93,8 +138,8 @@ export interface CellGroup {
  * Groups an event's reports into every cell that needs a `felt_cells` row:
  * one p4 rollup per 4-char geohash prefix, one p5 row per 5-char geohash
  * (the base display/CDI cell), and p6 refinement rows for any p5 cell whose
- * REPORT COUNT (pre-dedup, matching how `aggregateCell` itself dedupes
- * internally — see its own `dedupeByDevice` doc) reaches the >=20 trigger.
+ * REPORT COUNT reaches the >=20 trigger. The caller passes one report per
+ * reporter (`onePerReporter`), so that count is a count of people.
  */
 export function groupIntoCells(reports: readonly CellReport[]): CellGroup[] {
   const byP5 = new Map<string, CellReport[]>();
