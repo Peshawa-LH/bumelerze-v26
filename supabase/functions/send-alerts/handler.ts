@@ -3,7 +3,8 @@
 // real database and push senders in through `deps`, and Jest drives this file
 // directly (__tests__/handler.test.ts).
 //
-// Calls:
+// Calls (index.ts has already checked the shared secret, migration 0074; a
+// call without it never gets here, the health answer included):
 //   GET, or POST {"health": true}
 //       -> 200 { data: { requestId, mode, keys } }, no side effect at all.
 //          mode: the rollout (off | testers | public | unknown);

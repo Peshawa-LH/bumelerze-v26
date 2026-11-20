@@ -14,6 +14,11 @@
 // Invocation (HTTP POST):
 //   POST /functions/v1/ingest-events
 //   { "channel": "emsc" | "usgs" | "geofon" | "isc" }
+// with the shared secret in the header x-bumelerze-function-secret
+// (migration 0074; the cron jobs send it through
+// public.call_edge_function()). It is checked first, before the method or
+// the body: missing or wrong -> 401 {"error":"unauthorized"}, unreadable ->
+// 503 {"error":"unavailable"} (_shared/function-secret.ts).
 //
 // Response: `{ "data": { "requestId", "summary": ChannelIngestSummary } }`
 // on success, `{ "error": { "code", "message", "requestId", "details"? } }`
@@ -30,6 +35,11 @@
 
 import { z } from "npm:zod@3.25.76";
 
+import {
+  createFunctionSecretCheck,
+  refusalResponse,
+  rpcSecretLoader,
+} from "../_shared/function-secret.ts";
 import { CHANNELS, isChannelId } from "./channels.ts";
 import {
   applyDerivedFields,
@@ -96,7 +106,15 @@ async function heartbeat(
   }
 }
 
+// Once per isolate: the shared secret (migration 0074), read through the
+// service-role client.
+const checkSecret = createFunctionSecretCheck(rpcSecretLoader(createServiceRoleClient), {
+  onLoadError: (message) => log("error", "function-secret", message),
+});
+
 Deno.serve(async (req: Request) => {
+  const refused = await checkSecret(req.headers);
+  if (refused) return refusalResponse(refused);
   const requestId = crypto.randomUUID();
 
   if (req.method !== "POST") {

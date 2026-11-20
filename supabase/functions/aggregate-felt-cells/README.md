@@ -38,6 +38,12 @@ aggregates the felt-map (`src/features/feltmap/`, reading
 
 ## Request / response
 
+Every call carries the shared secret in the header
+`x-bumelerze-function-secret` (migration 0074; the cron job sends it through
+`public.call_edge_function`). It is checked before the body is read: missing
+or wrong gets 401 `{"error":"unauthorized"}`, an unreadable secret 503
+(`../_shared/function-secret.ts`).
+
 ```
 POST /functions/v1/aggregate-felt-cells
 { "eventId": "<uuid>" }              -- recompute one event now

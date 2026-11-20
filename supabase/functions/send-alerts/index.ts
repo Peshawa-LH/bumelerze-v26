@@ -22,9 +22,15 @@
 // is derived from VAPID_PRIVATE_KEY and compared with VAPID_PUBLIC_KEY and the
 // app's key (app-key.ts, vapid-check.ts); on any difference nothing is sent.
 //
-// It takes NO targeting input (no event, no person, no device), so anyone
-// calling it can only make it drain the queue sooner. Deploy with verify_jwt
-// off, like purge-home-photos:
+// Every call, the health answer included, must carry the shared secret
+// (header x-bumelerze-function-secret, migration 0074): it is checked first,
+// before the method or the body, and a missing or wrong one gets 401
+// {"error":"unauthorized"} (_shared/function-secret.ts). The cron job sends
+// it through public.call_edge_function(); a health check by hand:
+//   select public.call_edge_function('send-alerts', '{"health":true}'::jsonb);
+// It takes NO targeting input (no event, no person, no device), so even a
+// caller with the secret can only make it drain the queue sooner. Deploy with
+// verify_jwt off, like purge-home-photos:
 //   supabase functions deploy send-alerts --no-verify-jwt
 //
 // Secrets (Edge Function secrets, never in the repo):
@@ -35,6 +41,11 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.112.2";
 import webpush from "npm:web-push@3.6.7";
 
+import {
+  createFunctionSecretCheck,
+  refusalResponse,
+  rpcSecretLoader,
+} from "../_shared/function-secret.ts";
 import { APP_VAPID_PUBLIC_KEY } from "./app-key.ts";
 import { handleRequest, type HandlerDeps } from "./handler.ts";
 import { createReceiptChecker, type ReceiptResult } from "./receipts.ts";
@@ -71,6 +82,12 @@ function client(): SupabaseClient {
   }
   return cachedClient;
 }
+
+// Once per isolate: the shared secret (migration 0074), read through the
+// service-role client; 401 or 503 before anything else happens.
+const checkSecret = createFunctionSecretCheck(rpcSecretLoader(client), {
+  onLoadError: (message) => log("error", "function-secret", message),
+});
 
 function deps(requestId: string): HandlerDeps {
   return {
@@ -146,6 +163,8 @@ function deps(requestId: string): HandlerDeps {
 }
 
 Deno.serve(async (req: Request) => {
+  const refused = await checkSecret(req.headers);
+  if (refused) return refusalResponse(refused);
   const requestId = crypto.randomUUID();
   const text = req.method === "POST" ? await req.text() : "";
   const result = await handleRequest(req.method, text, deps(requestId));

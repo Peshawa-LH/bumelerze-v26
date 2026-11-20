@@ -5,7 +5,10 @@ EMSC, GEOFON, ISC) server-side, dedups across them, and writes one
 `event_source_records` row per agency that saw an event — the corroboration
 model `events`/`event_source_records` (migration 0002) was designed for.
 `pg_cron` calls it per channel (migration 0024), and every run writes a
-`feed_heartbeats` row.
+`feed_heartbeats` row. Every call carries the shared secret in the header
+`x-bumelerze-function-secret` (migration 0074; the jobs send it through
+`public.call_edge_function`); without it the function answers 401 before
+reading the body (`../_shared/function-secret.ts`).
 
 ## Why this shape
 

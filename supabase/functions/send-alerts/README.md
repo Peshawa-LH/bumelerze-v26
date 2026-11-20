@@ -31,12 +31,20 @@ Supabase Edge Function (Deno) that delivers earthquake alerts (migration
   opens the admin home, whose Source status card says which source. Deploy
   this function before applying 0070: an older one records an `ops`
   delivery as malformed (failed).
-- It takes no targeting input, so calling it can only drain the queue sooner.
+- It answers only calls that carry the shared secret (header
+  `x-bumelerze-function-secret`, migration 0074, checked first in `index.ts`
+  by `../_shared/function-secret.ts`): anything else gets 401
+  `{"error":"unauthorized"}`, or 503 when the secret cannot be read. It takes
+  no targeting input either, so even a caller with the secret can only drain
+  the queue sooner.
 
 ## Health and the key self-check
 
 `GET` (or `POST {"health": true}`) answers
-`{"data": {"requestId", "mode", "keys"}}` and does nothing else. `mode` is the
+`{"data": {"requestId", "mode", "keys"}}` and does nothing else. Like every
+call it needs the shared secret; from the SQL editor:
+`select public.call_edge_function('send-alerts', '{"health":true}'::jsonb);`
+and then read `net._http_response` with the id it returns. `mode` is the
 rollout (`off` | `testers` | `public`); `keys` is `ok`, `mismatch` or
 `missing`, never a key value:
 
@@ -55,8 +63,9 @@ supabase functions deploy send-alerts --no-verify-jwt
 
 Entrypoint: `index.ts` (Deno wiring only). It imports `handler.ts`,
 `run.ts`, `plan.ts`, `senders.ts`, `receipts.ts`, `message.ts`, `strings.ts`,
-`gazetteer-data.ts`, `vapid-check.ts` and `app-key.ts`, all by relative path,
-so a wrapper that imports `index.ts` from a pinned commit needs nothing else.
+`gazetteer-data.ts`, `vapid-check.ts`, `app-key.ts` and
+`../_shared/function-secret.ts`, all by relative path, so a wrapper that
+imports `index.ts` from a pinned commit needs nothing else.
 
 Secrets: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
 (`mailto:dev@bumelerze.com`); optional `EXPO_ACCESS_TOKEN`. Without the VAPID

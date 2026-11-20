@@ -39,6 +39,30 @@ tracker if the CLI is ever adopted again.
   it. The service-role key is used only by edge functions and the engine's
   worker, never by the app.
 
+## Calling an edge function
+
+The four edge functions answer only calls that carry the shared secret
+(migration 0074): the header `x-bumelerze-function-secret` must equal the
+Vault secret `edge_function_secret`, which the database generated and nobody
+needs to copy. The `pg_cron` jobs call them through
+`public.call_edge_function(name, body, timeout_ms)` (database owner and
+service role only), which adds it. The same works by hand in the SQL editor:
+
+```sql
+select public.call_edge_function('send-alerts', '{"health":true}'::jsonb);
+-- then, with the id it returned:
+select status_code, content from net._http_response where id = 123;
+```
+
+Without the header, or with a wrong one, a function answers 401
+`{"error":"unauthorized"}` before reading the body; when it cannot read the
+secret it answers 503 and does nothing. To rotate the secret, replace its value
+in Vault (same name): the jobs use it at once and a running function reloads
+it within a minute, no redeploy. The check is
+`functions/_shared/function-secret.ts`; each function is deployed as a thin
+wrapper that imports its `index.ts` from a pinned commit, so the shared file
+comes from the same commit by relative path.
+
 ## What the schema covers
 
 | Area                                         | Main migrations                                                          |

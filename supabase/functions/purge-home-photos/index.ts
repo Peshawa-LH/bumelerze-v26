@@ -12,14 +12,27 @@
 // Response: `{ "data": { requestId, removed, done, failed, folders } }`, or
 // `{ "error": { code, message, requestId } }`.
 //
-// Safe for anyone to call: it takes no ids from the caller, only drains the
-// queue, and re-running it does nothing new. Deploy like aggregate-felt-cells
-// (`supabase functions deploy purge-home-photos --no-verify-jwt`), because the
-// cron job sends the publishable key, which is not a JWT.
+// Every call carries the shared secret in the header
+// x-bumelerze-function-secret (migration 0074; the cron job sends it through
+// public.call_edge_function()). It is checked first, before the method or
+// the body: missing or wrong -> 401 {"error":"unauthorized"}, unreadable ->
+// 503 {"error":"unavailable"} (_shared/function-secret.ts). Even with the
+// secret it takes no ids from the caller, only drains the queue, and
+// re-running it does nothing new. Deployed with verify_jwt off
+// (`supabase functions deploy purge-home-photos --no-verify-jwt`), because
+// the cron job sends the publishable key, which is not a JWT; live it is a
+// thin wrapper importing this file from a pinned commit, like the other
+// three, so `./purge.ts` and `../_shared/function-secret.ts` come from the
+// same commit.
 
 import { createClient } from "npm:@supabase/supabase-js@2.112.2";
 import { z } from "npm:zod@3.25.76";
 
+import {
+  createFunctionSecretCheck,
+  refusalResponse,
+  rpcSecretLoader,
+} from "../_shared/function-secret.ts";
 import { purgeHomePhotos, type PurgePorts } from "./purge.ts";
 
 const BUCKET = "home-photos";
@@ -64,7 +77,24 @@ function log(
   }
 }
 
+function serviceRoleClient() {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) {
+    throw new Error("missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  }
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+
+// Once per isolate: the shared secret (migration 0074), read through the
+// service-role client.
+const checkSecret = createFunctionSecretCheck(rpcSecretLoader(serviceRoleClient), {
+  onLoadError: (message) => log("error", "function-secret", message),
+});
+
 Deno.serve(async (req: Request) => {
+  const refused = await checkSecret(req.headers);
+  if (refused) return refusalResponse(refused);
   const requestId = crypto.randomUUID();
   if (req.method !== "POST") {
     return jsonError(405, "method_not_allowed", "Only POST is supported.", requestId);

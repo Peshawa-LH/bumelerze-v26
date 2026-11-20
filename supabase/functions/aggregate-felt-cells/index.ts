@@ -7,6 +7,12 @@
 // math — this file's own job is I/O, request validation, cell grouping,
 // and the idempotent skip-if-unchanged write path (`aggregate-event.ts`).
 //
+// Every call carries the shared secret in the header
+// x-bumelerze-function-secret (migration 0074; the cron job sends it through
+// public.call_edge_function()). It is checked first, before the method or
+// the body: missing or wrong -> 401 {"error":"unauthorized"}, unreadable ->
+// 503 {"error":"unavailable"} (_shared/function-secret.ts).
+//
 // Invocation (HTTP POST, service-role auth internal to the function — see
 // `db.ts`'s `createServiceRoleClient`):
 //   POST /functions/v1/aggregate-felt-cells
@@ -45,6 +51,11 @@
 
 import { z } from "npm:zod@3.25.76";
 
+import {
+  createFunctionSecretCheck,
+  refusalResponse,
+  rpcSecretLoader,
+} from "../_shared/function-secret.ts";
 import {
   createServiceRoleClient,
   fetchAllCellVersionsForEvent,
@@ -173,7 +184,15 @@ function log(level: "info" | "error", requestId: string, msg: string, extra?: un
   }
 }
 
+// Once per isolate: the shared secret (migration 0074), read through the
+// service-role client.
+const checkSecret = createFunctionSecretCheck(rpcSecretLoader(createServiceRoleClient), {
+  onLoadError: (message) => log("error", "function-secret", message),
+});
+
 Deno.serve(async (req: Request) => {
+  const refused = await checkSecret(req.headers);
+  if (refused) return refusalResponse(refused);
   const requestId = crypto.randomUUID();
 
   if (req.method !== "POST") {
