@@ -1,0 +1,17 @@
+# Dependabot. npm: security updates only (a PR when an advisory affects a
+# dependency); routine version bumps stay a deliberate, tested batch.
+# GitHub Actions: pinned commits kept current, one grouped PR a month.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
