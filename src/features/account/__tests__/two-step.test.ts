@@ -1,7 +1,6 @@
 import {
   abandonTwoStepSetup,
   confirmTwoStepSetup,
-  fetchTwoStepEnabled,
   isCompleteTwoStepCode,
   normalizeTwoStepCode,
   readTwoStepEnabledOnDevice,
@@ -348,13 +347,6 @@ describe("twoStepCodeNeeded", () => {
 });
 
 describe("status", () => {
-  it("fetchTwoStepEnabled asks the server", async () => {
-    mockClient = makeClient({ factors: [VERIFIED] });
-    expect(await fetchTwoStepEnabled()).toBe(true);
-    mockClient = makeClient({ factors: [LEFTOVER] });
-    expect(await fetchTwoStepEnabled()).toBe(false);
-  });
-
   it("readTwoStepEnabledOnDevice reads the stored session only, and never throws", async () => {
     mockClient = makeClient({ sessionFactors: [VERIFIED] });
     expect(await readTwoStepEnabledOnDevice()).toBe(true);

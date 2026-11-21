@@ -133,15 +133,6 @@ async function challengeAndVerify(
 // Status
 // ---------------------------------------------------------------------------
 
-/** Whether two-step sign-in is on, from the server. Throws (no_session,
- * network, ...) so the setup screen can offer Retry. */
-export async function fetchTwoStepEnabled(): Promise<boolean> {
-  const client = requireClient();
-  await requireAccountUser(client);
-  const factors = await listTotpFactors(client);
-  return factors.verified.length > 0;
-}
-
 /** Whether two-step sign-in is on, from the session stored on this device
  * (no network): for the My account row. It follows this device's own
  * changes at once (turning on stores the verified factor with the new
