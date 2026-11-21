@@ -587,6 +587,12 @@ export const SupabaseTransport: FeltTransport = {
       return { outcome: "awaiting-backend" };
     }
 
+    // Since migration 0073 a felt write without a session is refused (anon
+    // lost INSERT), so make sure this install is signed in (anonymously)
+    // BEFORE the details insert, as submitTier1 does. A failed sign-in still
+    // sends the row; the refusal is retried by the queue like any error.
+    const userId = await ensureAnonymousUserId(client);
+
     const { error } = await client
       .from("felt_report_details")
       .insert(buildFeltReportDetailInsert(report));
@@ -600,10 +606,7 @@ export const SupabaseTransport: FeltTransport = {
     // raw_answers jsonb blob above. A queue retry re-runs this whole
     // function, so both inserts must independently tolerate hitting an
     // already-succeeded unique key (see each build function's own doc).
-    const commentInsert = buildFeltCommentInsert(
-      report,
-      await ensureAnonymousUserId(client),
-    );
+    const commentInsert = buildFeltCommentInsert(report, userId);
     if (commentInsert) {
       const { error: commentError } = await client
         .from("felt_comments")

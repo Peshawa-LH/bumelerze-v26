@@ -700,6 +700,57 @@ describe("SupabaseTransport.submitTier2", () => {
 
     expect(result).toEqual({ outcome: "awaiting-backend" });
   });
+
+  // Migration 0073: anon lost INSERT on felt_report_details, so the details
+  // of a report sent from a fresh install (no session yet) were refused
+  // until something else signed it in. The sign-in must come FIRST.
+  it("signs in (anonymously) before inserting the details, even without a comment", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithPerTableResults({});
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    await SupabaseTransport.submitTier2(SAMPLE_TIER2_NO_COMMENT);
+
+    expect(supabaseLib.signInAnonymously).toHaveBeenCalledTimes(1);
+    const signInOrder = supabaseLib.signInAnonymously.mock.invocationCallOrder[0];
+    const insertOrder =
+      client.insertsByTable.felt_report_details?.mock.invocationCallOrder[0];
+    expect(signInOrder).toBeDefined();
+    expect(insertOrder).toBeDefined();
+    expect(signInOrder as number).toBeLessThan(insertOrder as number);
+  });
+
+  it("signs in once and gives the comment the session's user id", async () => {
+    const { SupabaseTransport, buildFeltCommentInsert } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithPerTableResults({});
+    client.auth.getSession = jest.fn(async () => ({
+      data: { session: { user: { id: "anon-uid-2" } } },
+      error: null,
+    }));
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    await SupabaseTransport.submitTier2(SAMPLE_TIER2);
+
+    expect(supabaseLib.signInAnonymously).toHaveBeenCalledTimes(1);
+    expect(client.insertsByTable.felt_comments).toHaveBeenCalledWith(
+      buildFeltCommentInsert(SAMPLE_TIER2, "anon-uid-2"),
+    );
+  });
+
+  it("still sends the details when the anonymous sign-in fails (the queue retries a refusal)", async () => {
+    const { SupabaseTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.signInAnonymously.mockRejectedValueOnce(new Error("offline"));
+    const client = mockClientWithPerTableResults({});
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    const result = await SupabaseTransport.submitTier2(SAMPLE_TIER2_NO_COMMENT);
+
+    expect(client.insertsByTable.felt_report_details).toHaveBeenCalledTimes(1);
+    expect(result.outcome).toBe("submitted");
+  });
 });
 
 describe("SupabaseTransport.uploadPhoto (2026-08-16 storage wave)", () => {
