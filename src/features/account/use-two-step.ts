@@ -3,6 +3,7 @@ import { useCallback } from "react";
 
 import { useAdminAccess } from "@/features/admin/queries";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { accountHasPassword } from "./service";
 import { fetchTwoStepEnabled, readTwoStepEnabledOnDevice } from "./two-step";
 import { useAccount } from "./use-account";
 
@@ -13,6 +14,7 @@ export const twoStepKeys = {
   all: ["account", "twoStep"] as const,
   onDevice: (userId: string) => ["account", "twoStep", "onDevice", userId] as const,
   server: (userId: string) => ["account", "twoStep", "fromServer", userId] as const,
+  hasPassword: (userId: string) => ["account", "hasPassword", userId] as const,
 };
 
 export interface TwoStepOffer {
@@ -51,6 +53,20 @@ export function useTwoStepStatus(userId: string | null) {
   return useQuery({
     queryKey: twoStepKeys.server(userId ?? ""),
     queryFn: fetchTwoStepEnabled,
+    enabled: isSupabaseConfigured() && userId !== null,
+    meta: NOT_PERSISTED,
+    staleTime: 0,
+    gcTime: 0,
+    retry: 1,
+  });
+}
+
+/** Whether the account has a password yet (the Password screen); `null`
+ * before migration 0075 is on the server. */
+export function useAccountHasPassword(userId: string | null) {
+  return useQuery({
+    queryKey: twoStepKeys.hasPassword(userId ?? ""),
+    queryFn: accountHasPassword,
     enabled: isSupabaseConfigured() && userId !== null,
     meta: NOT_PERSISTED,
     staleTime: 0,

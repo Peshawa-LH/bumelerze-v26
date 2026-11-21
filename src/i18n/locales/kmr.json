@@ -1861,6 +1861,8 @@
     "password": {
       "title": "Şîfre",
       "intro": "Ji bo têketina li cîhazên din şîfreyekê hilbijêre. Heke berê te hebe, ev wê diguherîne.",
+      "introChange": "Şîfreya ku tu pê têkevî biguherîne. Pêşî şîfreya xwe ya niha binivîse.",
+      "currentLabel": "Şîfreya niha",
       "newLabel": "Şîfreya nû",
       "confirmLabel": "Şîfreya nû dîsa",
       "save": "Şîfreyê tomar bike",
@@ -1976,6 +1978,7 @@
       "username_change_limit": "Tu dikarî @navê bikarhêner her 30 rojan carekê biguherînî.",
       "name_change_limit": "Te navê xwe di 30 rojan de 5 caran guhert. Paşê dîsa biceribîne.",
       "restricted": "Hesabê te niha sînordar e.",
+      "current_password_wrong": "Şîfreya te ya niha ne rast e.",
       "wrong_code": "Ew kod nexebitî. Kontrol bike ku dema telefona te rast e û koda herî nû biceribîne.",
       "code_needed": "Sepana xwe ya piştrastkirinê veke û koda 6-reqemî ya Bumelerze binivîse."
     }

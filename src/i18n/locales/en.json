@@ -1861,6 +1861,8 @@
     "password": {
       "title": "Password",
       "intro": "Choose a password for signing in on other devices. If you already have one, this replaces it.",
+      "introChange": "Change the password you use to sign in. Enter your current password first.",
+      "currentLabel": "Current password",
       "newLabel": "New password",
       "confirmLabel": "New password again",
       "save": "Save password",
@@ -1976,6 +1978,7 @@
       "username_change_limit": "You can change your @username once every 30 days.",
       "name_change_limit": "You have changed your name 5 times in 30 days. Try again later.",
       "restricted": "Your account is limited right now.",
+      "current_password_wrong": "Your current password isn't right.",
       "wrong_code": "That code didn't work. Check that your phone's time is right and try the newest code.",
       "code_needed": "Open your authenticator app and enter the 6-digit code for Bumelerze."
     }

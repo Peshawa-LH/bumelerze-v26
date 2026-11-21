@@ -73,6 +73,8 @@ export type AccountErrorCode =
   | "name_change_limit"
   /** The account is restricted or suspended (0054). */
   | "restricted"
+  /** Password change: the current password given is not the account's. */
+  | "current_password_wrong"
   /** Two-step sign-in: the 6-digit code was wrong, stale or expired. */
   | "wrong_code"
   /** Two-step sign-in is on and this session must give a code first

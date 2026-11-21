@@ -208,6 +208,25 @@ export async function signInWithPassword(
   return { userId, claimed, needsCode: false };
 }
 
+/** Whether the signed-in account already has a password (migration 0075,
+ * `my_account_has_password()`): the Password screen then asks for it before
+ * a change. `null` when the server does not have the function yet (before
+ * 0075 is applied): the screen then keeps its old behaviour. Throws on a
+ * network or other failure so the screen can offer Retry. */
+export async function accountHasPassword(): Promise<boolean | null> {
+  const client = requireClient();
+  await requireAccountUser(client);
+  const { data, error } = await client.rpc("my_account_has_password");
+  if (error) {
+    const e = asAuthLike(error);
+    if (e.code === "PGRST202" || e.code === "42883") {
+      return null;
+    }
+    throw toAccountError(error);
+  }
+  return data === true;
+}
+
 /** Sets or changes the signed-in account's password (accounts made by email
  * link have none yet). `auth.updateUser({ password })` sends no email while
  * "Secure password change" is off. With two-step sign-in on, Supabase
@@ -223,6 +242,55 @@ export async function setAccountPassword(password: string): Promise<void> {
   if (error) {
     throw toAccountError(error);
   }
+}
+
+/**
+ * Changes the password of an account that has one (security checklist
+ * A0.1): the current password is checked first by signing in again with
+ * it, as this same account - a wrong one changes nothing and leaves this
+ * device's session as it was. That new session has given no 6-digit code,
+ * so with two-step sign-in on the change stops with "code_needed": the
+ * screen asks for the code (`verifyTwoStepCode`) and then calls
+ * `setAccountPassword`. Accounts without a password yet call
+ * `setAccountPassword` directly.
+ */
+export async function changeAccountPassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const client = requireClient();
+  if (!isAcceptablePassword(newPassword)) {
+    throw new AccountError("weak_password");
+  }
+  if (currentPassword.length === 0) {
+    throw new AccountError("current_password_wrong");
+  }
+  const user = await requireAccountUser(client);
+  const email = user.email ?? "";
+  if (email === "") {
+    throw new AccountError("unknown");
+  }
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password: currentPassword,
+  });
+  if (error) {
+    const mapped = toAccountError(error);
+    throw mapped.code === "invalid_credentials"
+      ? new AccountError("current_password_wrong", mapped.message)
+      : mapped;
+  }
+  const signedInAs = data?.user?.id ?? data?.session?.user?.id ?? null;
+  if (signedInAs !== user.id) {
+    // Cannot happen with the account's own email; if it ever did, this
+    // device must not stay signed in to a different account.
+    await returnToAnonymous(client);
+    throw new AccountError("unknown");
+  }
+  if (await twoStepCodeNeeded()) {
+    throw new AccountError("code_needed");
+  }
+  await setAccountPassword(newPassword);
 }
 
 /** Moves this install's anonymous reports/comments/feedback into the
