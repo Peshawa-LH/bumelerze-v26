@@ -29,3 +29,9 @@ it("mounts the notification hooks the native push work fills in", () => {
   expect(source).toMatch(/^installForegroundNotificationHandler\(\);$/m);
   expect(source).toMatch(/useNotificationRouting\(\{/);
 });
+
+it("mounts the two-step sign-in check and declares its two screens in the root stack", () => {
+  expect(source).toMatch(/^\s*useTwoStepGate\(/m);
+  expect(source).toContain('<Stack.Screen name="account/two-step" />');
+  expect(source).toContain('<Stack.Screen name="account/two-step-code" />');
+});

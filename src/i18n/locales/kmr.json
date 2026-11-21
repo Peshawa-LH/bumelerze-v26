@@ -1868,6 +1868,32 @@
       "done": "Qediya",
       "needsAccount": "Pêşî hesabekî çêke, paşê tu dikarî şîfreyekê saz bikî."
     },
+    "twoStep": {
+      "row": "Têketina du-gavî",
+      "on": "Vekirî",
+      "off": "Girtî",
+      "title": "Têketina du-gavî",
+      "intro": "Dema tu têkevî, kontrolek duyem lê zêde dike: kodek 6-reqemî ji sepaneke piştrastkirinê li ser telefona te. Heke kesek şîfreya te hîn bibe, ew amûrên rêveberiyê diparêze.",
+      "step1": "Sepaneke piştrastkirinê veke (wek nimûne Google Authenticator, Microsoft Authenticator an Apple Passwords) û vê kodê skan bike.",
+      "qrLabel": "Koda QR ji bo sepana te ya piştrastkirinê",
+      "cantScan": "Nikarî skan bikî? Li şûna wê vê mifteyê binivîse:",
+      "copyKey": "Mifteyê kopî bike",
+      "step2": "Koda 6-reqemî ya ku sepan nîşan dide binivîse.",
+      "codeLabel": "Koda 6-reqemî",
+      "turnOn": "Veke",
+      "turnedOn": "Têketina du-gavî vekirî ye. Dema tu têkevî, dê kodek ji te were xwestin.",
+      "isOn": "Têketina du-gavî vekirî ye.",
+      "turnOff": "Bigire",
+      "turnOffPrompt": "Ji bo girtina wê, kodek ji sepana xwe ya piştrastkirinê binivîse.",
+      "isOff": "Têketina du-gavî girtî ye.",
+      "lostPhone": "Te telefona xwe winda kir? Bi riya «Nêrîn»ê bi me re têkilî dayne. Em ê piştrast bikin ku tu yî û koda kevn rakin.",
+      "challenge": {
+        "title": "Koda xwe binivîse",
+        "body": "Sepana xwe ya piştrastkirinê veke û koda 6-reqemî ya Bumelerze binivîse.",
+        "verify": "Piştrast bike",
+        "otherAccount": "Hesabekî din bi kar bîne"
+      }
+    },
     "profile": {
       "title": "Profîla te",
       "nameLabel": "Nav",
@@ -1949,7 +1975,9 @@
       "city_invalid": "Cihekî ji lîsteyê hilbijêre.",
       "username_change_limit": "Tu dikarî @navê bikarhêner her 30 rojan carekê biguherînî.",
       "name_change_limit": "Te navê xwe di 30 rojan de 5 caran guhert. Paşê dîsa biceribîne.",
-      "restricted": "Hesabê te niha sînordar e."
+      "restricted": "Hesabê te niha sînordar e.",
+      "wrong_code": "Ew kod nexebitî. Kontrol bike ku dema telefona te rast e û koda herî nû biceribîne.",
+      "code_needed": "Sepana xwe ya piştrastkirinê veke û koda 6-reqemî ya Bumelerze binivîse."
     }
   },
   "building": {

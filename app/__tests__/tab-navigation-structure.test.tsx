@@ -88,6 +88,8 @@ const FULL_SCREEN = [
   "/account/sign-in",
   "/account/profile",
   "/account/password",
+  "/account/two-step",
+  "/account/two-step-code",
   "/admin",
   "/admin/activity",
   "/admin/filter",

@@ -16,11 +16,21 @@ jest.mock("expo-router", () => ({
 
 const mockCreate = jest.fn();
 const mockSignIn = jest.fn();
+const mockClaim = jest.fn();
+const mockSignOut = jest.fn();
 jest.mock("@/features/account/service", () => ({
   createAccountWithPassword: (email: string, password: string) =>
     mockCreate(email, password),
   signInWithPassword: (email: string, password: string) => mockSignIn(email, password),
+  claimThisDevicesReports: () => mockClaim(),
+  signOutAccount: () => mockSignOut(),
   startOAuth: jest.fn(),
+}));
+
+const mockVerifyCode = jest.fn();
+jest.mock("@/features/account/two-step", () => ({
+  ...jest.requireActual("@/features/account/two-step"),
+  verifyTwoStepCode: (code: string) => mockVerifyCode(code),
 }));
 
 let mockProfile: unknown = null;
@@ -280,5 +290,91 @@ describe("Sign in (sign-in screen, mode=signin)", () => {
       pathname: "/feedback",
       params: { passwordReset: "1" },
     });
+  });
+});
+
+describe("Sign in with two-step sign-in on (security checklist A0.1)", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    mockParams = { mode: "signin" };
+    mockProfile = { displayName: "Shilan" };
+    mockSignIn.mockResolvedValue({ userId: "u1", claimed: 0, needsCode: true });
+    mockVerifyCode.mockResolvedValue(undefined);
+    mockClaim.mockResolvedValue(0);
+    mockSignOut.mockResolvedValue(undefined);
+    mockSync.mockResolvedValue(undefined);
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(cleanup);
+
+  async function signIn() {
+    await renderScreen(<SignInScreen />);
+    await type("account-email-input", "a@b.co");
+    await type("account-password-input", "secret pass");
+    await press("account-signin-submit");
+  }
+
+  it("asks for the code after the password, with the approved words", async () => {
+    await signIn();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("account-signin-submit")).toBeNull();
+    expect(screen.queryByTestId("account-switch-mode")).toBeNull();
+    expect(
+      screen.getByText("Open your authenticator app and enter the 6-digit code for Bumelerze."),
+    ).toBeTruthy();
+    expect(screen.getByText("6-digit code")).toBeTruthy();
+    expect(screen.getByText("Verify")).toBeTruthy();
+    expect(screen.getByText("Use a different account")).toBeTruthy();
+    const input = screen.getByTestId("two-step-code-input").props;
+    expect(input.autoComplete).toBe("one-time-code");
+    expect(input.textContentType).toBe("oneTimeCode");
+    expect(input.keyboardType).toBe("number-pad");
+  });
+
+  it("verifies the code, THEN moves this device's reports and finishes like a sign-in", async () => {
+    mockClaim.mockResolvedValue(3);
+    await signIn();
+    expect(disabled("two-step-verify")).toBe(true);
+    await type("two-step-code-input", "123456");
+    await press("two-step-verify");
+    expect(mockVerifyCode).toHaveBeenCalledWith("123456");
+    expect(mockClaim).toHaveBeenCalledTimes(1);
+    expect(mockVerifyCode.mock.invocationCallOrder[0] as number).toBeLessThan(
+      mockClaim.mock.invocationCallOrder[0] as number,
+    );
+    expect(screen.getByText("Welcome back")).toBeTruthy();
+    expect(screen.getByText(/added to your account: 3/)).toBeTruthy();
+  });
+
+  it("a wrong code keeps the screen and moves nothing", async () => {
+    const { AccountError } = jest.requireActual("@/features/account/types");
+    mockVerifyCode.mockRejectedValueOnce(new AccountError("wrong_code"));
+    await signIn();
+    await type("two-step-code-input", "000000");
+    await press("two-step-verify");
+    expect(
+      screen.getByText(
+        "That code didn't work. Check that your phone's time is right and try the newest code.",
+      ),
+    ).toBeTruthy();
+    expect(mockClaim).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it("'Use a different account' signs out and goes back to the sign-in form", async () => {
+    await signIn();
+    await press("two-step-other-account");
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("account-signin-submit")).toBeTruthy();
+    expect(mockClaim).not.toHaveBeenCalled();
+  });
+
+  it("an account without two-step sign-in never sees the code", async () => {
+    mockSignIn.mockResolvedValue({ userId: "u1", claimed: 0, needsCode: false });
+    await signIn();
+    expect(screen.queryByTestId("two-step-code-form")).toBeNull();
+    expect(mockBack).toHaveBeenCalled();
   });
 });

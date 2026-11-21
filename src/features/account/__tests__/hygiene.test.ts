@@ -65,6 +65,18 @@ const NEW_FILES = [
   "src/features/mydata/components/ReportsEmpty.tsx",
   "src/features/mydata/use-my-reports.ts",
   "src/features/eventhub/components/RoleMark.tsx",
+  // two-step sign-in and the safer password change (security checklist A0.1)
+  "app/account/two-step.tsx",
+  "app/account/two-step-code.tsx",
+  "src/features/account/auth-errors.ts",
+  "src/features/account/two-step.ts",
+  "src/features/account/use-two-step.ts",
+  "src/features/account/use-two-step-gate.ts",
+  "src/features/account/components/CodeField.tsx",
+  "src/features/account/components/LostPhoneNote.tsx",
+  "src/features/account/components/TwoStepCodeForm.tsx",
+  "src/features/account/components/TwoStepRow.tsx",
+  "src/features/account/components/TwoStepSetupContent.tsx",
 ];
 
 function listFiles(dir: string, extensions: string[]): string[] {

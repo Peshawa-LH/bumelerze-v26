@@ -221,7 +221,7 @@ describe("signInWithPassword", () => {
     expect(mockClient?.rpc).toHaveBeenCalledWith("claim_device_reports", {
       p_device_id: "device-1234-abcd",
     });
-    expect(result).toEqual({ userId: "uid-1", claimed: 3 });
+    expect(result).toEqual({ userId: "uid-1", claimed: 3, needsCode: false });
   });
 
   it("still signs in when claiming fails", async () => {

@@ -8,18 +8,22 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { CreateAccountForm } from "@/features/account/components/CreateAccountForm";
 import { SignInForm } from "@/features/account/components/SignInForm";
+import { TwoStepCodeForm } from "@/features/account/components/TwoStepCodeForm";
+import { claimThisDevicesReports, signOutAccount } from "@/features/account/service";
 import { syncAccountNow, useAccountStore } from "@/features/account/store";
 import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
-type Step = "create" | "signin" | "welcome";
+type Step = "create" | "signin" | "code" | "welcome";
 
 /**
  * Create an account / sign in, with email and password (no emails are sent).
  * Creating upgrades this install's guest user in place, so reports keep their
  * owner; signing in to an existing account moves this device's reports over.
  * `?mode=signin` opens the sign-in form first ("I already have an account").
+ * An account with two-step sign-in on asks for the 6-digit code after the
+ * password ("code"); this device's reports move into it only after the code.
  */
 export default function SignInScreen() {
   const { t, i18n } = useTranslation();
@@ -46,8 +50,18 @@ export default function SignInScreen() {
     }
   }
 
+  /** After the code: move this device's reports, then as after a password. */
+  async function afterCode() {
+    const moved = await claimThisDevicesReports().catch(() => 0);
+    await afterAuth(moved);
+  }
+
   const title =
-    step === "signin" ? t("account.signIn.signInTitle") : t("account.signIn.title");
+    step === "code"
+      ? t("account.twoStep.challenge.title")
+      : step === "signin"
+        ? t("account.signIn.signInTitle")
+        : t("account.signIn.title");
   const switchLabel =
     step === "signin" ? t("account.signIn.newHere") : t("account.signIn.haveAccount");
 
@@ -98,6 +112,15 @@ export default function SignInScreen() {
               testID="account-done"
             />
           </>
+        ) : step === "code" ? (
+          <TwoStepCodeForm
+            onVerified={afterCode}
+            onUseDifferentAccount={async () => {
+              await signOutAccount();
+              setStep("signin");
+            }}
+            onContactUs={() => router.push("/feedback")}
+          />
         ) : (
           <>
             {/* The title is the stack header's (review B-27: it was repeated
@@ -107,7 +130,9 @@ export default function SignInScreen() {
               <CreateAccountForm onCreated={() => afterAuth(0)} />
             ) : (
               <SignInForm
-                onSignedIn={(result) => afterAuth(result.claimed)}
+                onSignedIn={(result) =>
+                  result.needsCode ? setStep("code") : afterAuth(result.claimed)
+                }
                 onContactUs={() =>
                   router.push({ pathname: "/feedback", params: { passwordReset: "1" } })
                 }

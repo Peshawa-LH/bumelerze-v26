@@ -38,9 +38,22 @@ jest.mock("expo-crypto", () => ({
 
 let mockConfigured = true;
 const mockRpc = jest.fn();
+// The stored session's factors: what the Two-step sign-in row reads (no network).
+let mockSessionFactors: { factor_type: string; status: string }[] = [];
 jest.mock("@/lib/supabase", () => ({
   isSupabaseConfigured: () => mockConfigured,
-  getSupabaseClient: () => (mockConfigured ? { rpc: mockRpc } : null),
+  getSupabaseClient: () =>
+    mockConfigured
+      ? {
+          rpc: mockRpc,
+          auth: {
+            getSession: async () => ({
+              data: { session: { user: { id: "u-owner", factors: mockSessionFactors } } },
+              error: null,
+            }),
+          },
+        }
+      : null,
 }));
 
 let mockAccount: UseAccountResult;
@@ -49,10 +62,12 @@ jest.mock("@/features/account/use-account", () => ({
 }));
 
 const mockFetchRoles = jest.fn();
+const mockFetchMyPermissions = jest.fn();
 jest.mock("@/features/eventhub/transport", () => ({
   ...jest.requireActual("@/features/eventhub/transport"),
   SupabaseEventHubTransport: {
     fetchRoles: (...args: unknown[]) => mockFetchRoles(...args),
+    fetchMyPermissions: () => mockFetchMyPermissions(),
   },
 }));
 
@@ -138,6 +153,8 @@ describe("Settings > Account and My home", () => {
     mockAccount = ACCOUNT;
     mockRpc.mockResolvedValue({ data: [STATS_ROW], error: null });
     mockFetchRoles.mockResolvedValue({});
+    mockFetchMyPermissions.mockResolvedValue([]);
+    mockSessionFactors = [];
     mockSignOut.mockResolvedValue(undefined);
     mockDelete.mockResolvedValue(undefined);
     useFeltQueueStore.setState({ items: [], hasHydrated: true });
@@ -172,6 +189,53 @@ describe("Settings > Account and My home", () => {
       await renderWithProviders(<AccountSettingsGroup />);
       await press("account-password-row");
       expect(mockPush).toHaveBeenLastCalledWith("/account/password");
+    });
+
+    describe("Two-step sign-in row (security checklist A0.1)", () => {
+      it("is not there for an account without admin tools", async () => {
+        await renderWithProviders(<AccountSettingsGroup />);
+        await flush();
+        await flush();
+        expect(screen.getByTestId("account-password-row")).toBeTruthy();
+        expect(screen.queryByTestId("account-two-step-row")).toBeNull();
+        expect(screen.queryByText("Two-step sign-in")).toBeNull();
+      });
+
+      it("is offered to an account with admin tools, Off until set up, and opens its screen", async () => {
+        mockFetchMyPermissions.mockResolvedValue(["comments.moderate"]);
+        await renderWithProviders(<AccountSettingsGroup />);
+        await flush();
+        await flush();
+        expect(screen.getByText("Two-step sign-in")).toBeTruthy();
+        expect(screen.getByText("Off")).toBeTruthy();
+        await press("account-two-step-row");
+        expect(mockPush).toHaveBeenLastCalledWith("/account/two-step");
+      });
+
+      it("says On when this device's session has a verified authenticator", async () => {
+        mockFetchMyPermissions.mockResolvedValue(["comments.moderate"]);
+        mockSessionFactors = [{ factor_type: "totp", status: "verified" }];
+        await renderWithProviders(<AccountSettingsGroup />);
+        await flush();
+        await flush();
+        expect(screen.getByText("On")).toBeTruthy();
+      });
+
+      it("stays for an account that has it on without admin tools (so it can be turned off)", async () => {
+        mockSessionFactors = [{ factor_type: "totp", status: "verified" }];
+        await renderWithProviders(<AccountSettingsGroup />);
+        await flush();
+        await flush();
+        expect(screen.getByTestId("account-two-step-row")).toBeTruthy();
+      });
+
+      it("an unverified (abandoned) setup is not On", async () => {
+        mockSessionFactors = [{ factor_type: "totp", status: "unverified" }];
+        await renderWithProviders(<AccountSettingsGroup />);
+        await flush();
+        await flush();
+        expect(screen.queryByTestId("account-two-step-row")).toBeNull();
+      });
     });
 
     it("has no switch for government officials: they always see it (D98)", async () => {

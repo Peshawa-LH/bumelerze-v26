@@ -42,6 +42,7 @@ import {
   reconcileSubmittedReports,
   useFeltQueueStore,
 } from "@/features/felt/queue";
+import { useTwoStepGate } from "@/features/account/use-two-step-gate";
 import { useAlertPrefsAutoSync } from "@/features/alerts/prefs-sync";
 import { usePendingLink } from "@/features/links/pending-link";
 import { useReferencePlace } from "@/features/location/reference-place";
@@ -221,6 +222,12 @@ export default function RootLayout() {
   useNotificationRouting({
     ready: hasHydrated && onboardingCompleted && !isRestarting,
   });
+  // An account with two-step sign-in on, signed in on this device without a
+  // code in this session: "Enter your code" at start and on return to the
+  // app (never for guests; never blocks the app).
+  useTwoStepGate(
+    hasHydrated && localeReady && launchLanguageChecked && onboardingCompleted && !isRestarting,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -389,6 +396,8 @@ export default function RootLayout() {
                   <Stack.Screen name="account/sign-in" />
                   <Stack.Screen name="account/profile" />
                   <Stack.Screen name="account/password" />
+                  <Stack.Screen name="account/two-step" />
+                  <Stack.Screen name="account/two-step-code" />
                   <Stack.Screen name="admin/index" />
                   <Stack.Screen name="admin/activity" />
                   <Stack.Screen name="admin/filter" />

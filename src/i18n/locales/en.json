@@ -1868,6 +1868,32 @@
       "done": "Done",
       "needsAccount": "Create an account first, then you can set a password."
     },
+    "twoStep": {
+      "row": "Two-step sign-in",
+      "on": "On",
+      "off": "Off",
+      "title": "Two-step sign-in",
+      "intro": "Adds a second check when you sign in: a 6-digit code from an authenticator app on your phone. It protects the admin tools if someone learns your password.",
+      "step1": "Open an authenticator app (for example Google Authenticator, Microsoft Authenticator or Apple Passwords) and scan this code.",
+      "qrLabel": "QR code for your authenticator app",
+      "cantScan": "Can't scan it? Enter this key instead:",
+      "copyKey": "Copy key",
+      "step2": "Enter the 6-digit code the app shows.",
+      "codeLabel": "6-digit code",
+      "turnOn": "Turn on",
+      "turnedOn": "Two-step sign-in is on. You'll be asked for a code when you sign in.",
+      "isOn": "Two-step sign-in is on.",
+      "turnOff": "Turn off",
+      "turnOffPrompt": "Enter a code from your authenticator app to turn it off.",
+      "isOff": "Two-step sign-in is off.",
+      "lostPhone": "Lost your phone? Contact us through Feedback. We'll check it's you and remove the old code.",
+      "challenge": {
+        "title": "Enter your code",
+        "body": "Open your authenticator app and enter the 6-digit code for Bumelerze.",
+        "verify": "Verify",
+        "otherAccount": "Use a different account"
+      }
+    },
     "profile": {
       "title": "Your profile",
       "nameLabel": "Name",
@@ -1949,7 +1975,9 @@
       "city_invalid": "Choose a place from the list.",
       "username_change_limit": "You can change your @username once every 30 days.",
       "name_change_limit": "You have changed your name 5 times in 30 days. Try again later.",
-      "restricted": "Your account is limited right now."
+      "restricted": "Your account is limited right now.",
+      "wrong_code": "That code didn't work. Check that your phone's time is right and try the newest code.",
+      "code_needed": "Open your authenticator app and enter the 6-digit code for Bumelerze."
     }
   },
   "building": {

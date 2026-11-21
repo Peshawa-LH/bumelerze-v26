@@ -36,14 +36,16 @@ import {
 } from "./constants";
 import {
   AccountError,
-  type AccountErrorCode,
   type AvatarChange,
   type PrivateProfile,
   type Profile,
 } from "./types";
 import { isAcceptablePassword, isPlausibleEmail } from "./validation";
+import { asAuthLike, isEmailTakenError, toAccountError } from "./auth-errors";
+import { twoStepCodeNeeded } from "./two-step";
 
 export { isAcceptablePassword, isPlausibleEmail };
+export { isEmailTakenError, toAccountError };
 
 /**
  * Accounts phase 1 service. Screens never call Supabase directly; they call
@@ -62,83 +64,8 @@ function requireClient(): SupabaseClient {
 }
 
 // ---------------------------------------------------------------------------
-// Error mapping
+// Error mapping (auth-errors.ts)
 // ---------------------------------------------------------------------------
-
-interface AuthLikeError {
-  message?: string;
-  status?: number;
-  code?: string;
-  name?: string;
-}
-
-function asAuthLike(error: unknown): AuthLikeError {
-  return typeof error === "object" && error !== null ? (error as AuthLikeError) : {};
-}
-
-/** The email already belongs to another user (Supabase `email_exists`, 422). */
-export function isEmailTakenError(error: unknown): boolean {
-  const e = asAuthLike(error);
-  if (e.code === "email_exists" || e.code === "identity_already_exists") {
-    return true;
-  }
-  return /already (been )?registered|already exists|email_exists/i.test(e.message ?? "");
-}
-
-export function toAccountError(
-  error: unknown,
-  fallback: AccountErrorCode = "unknown",
-): AccountError {
-  if (error instanceof AccountError) {
-    return error;
-  }
-  const e = asAuthLike(error);
-  const message = e.message ?? "";
-  if (isEmailTakenError(error)) {
-    return new AccountError("email_taken", message);
-  }
-  if (e.code === "same_password" || /different from the old password/i.test(message)) {
-    return new AccountError("same_password", message);
-  }
-  if (
-    e.code === "weak_password" ||
-    /password should be at least|weak password/i.test(message)
-  ) {
-    return new AccountError("weak_password", message);
-  }
-  if (e.code === "invalid_credentials" || /invalid login credentials/i.test(message)) {
-    return new AccountError("invalid_credentials", message);
-  }
-  if (
-    e.code === "reauthentication_needed" ||
-    e.code === "reauthentication_not_valid" ||
-    /reauthentication/i.test(message)
-  ) {
-    return new AccountError("reauth_needed", message);
-  }
-  if (
-    e.status === 429 ||
-    e.code === "over_email_send_rate_limit" ||
-    e.code === "over_request_rate_limit" ||
-    /rate limit|too many requests|security purposes/i.test(message)
-  ) {
-    return new AccountError("rate_limited", message);
-  }
-  if (
-    e.code === "email_address_invalid" ||
-    /invalid.*email|email.*invalid/i.test(message)
-  ) {
-    return new AccountError("invalid_email", message);
-  }
-  if (
-    e.name === "AuthRetryableFetchError" ||
-    e.status === 0 ||
-    /network|failed to fetch|fetch failed/i.test(message)
-  ) {
-    return new AccountError("network", message);
-  }
-  return new AccountError(fallback, message);
-}
 
 /** The profile write can fail on the username rules: unique index (taken),
  * the reserved-name guard, or the format check. */
@@ -243,12 +170,17 @@ export interface SignInResult {
   userId: string | null;
   /** Items moved from this device's anonymous identity into the account. */
   claimed: number;
+  /** The account has two-step sign-in on: the 6-digit code comes next
+   * (`verifyTwoStepCode`), and this device's reports are moved only after
+   * it (`claimThisDevicesReports`). */
+  needsCode?: boolean;
 }
 
 /**
  * Signs in to an existing account on this device. The device's guest session
  * is replaced (as the old email-code sign-in did), then reports made from
- * this install are moved into the account via `claim_device_reports`.
+ * this install are moved into the account via `claim_device_reports` -
+ * unless the account has two-step sign-in on, when the code comes first.
  */
 export async function signInWithPassword(
   rawEmail: string,
@@ -267,13 +199,20 @@ export async function signInWithPassword(
     throw toAccountError(error);
   }
   const userId = data?.user?.id ?? data?.session?.user?.id ?? null;
+  // The new session's user lists its factors: aal1 with a verified factor
+  // means the code is still to come (no network needed to tell).
+  if (await twoStepCodeNeeded()) {
+    return { userId, claimed: 0, needsCode: true };
+  }
   const claimed = await claimThisDevicesReports(client);
-  return { userId, claimed };
+  return { userId, claimed, needsCode: false };
 }
 
 /** Sets or changes the signed-in account's password (accounts made by email
  * link have none yet). `auth.updateUser({ password })` sends no email while
- * "Secure password change" is off. */
+ * "Secure password change" is off. With two-step sign-in on, Supabase
+ * refuses the change from a session that has not given a code
+ * (`insufficient_aal` -> AccountError "code_needed"). */
 export async function setAccountPassword(password: string): Promise<void> {
   const client = requireClient();
   if (!isAcceptablePassword(password)) {

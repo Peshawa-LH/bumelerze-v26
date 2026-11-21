@@ -42,6 +42,13 @@ const FORM_HOSTS: Record<string, string[]> = {
     "app/account/sign-in.tsx",
     "app/account/password.tsx",
   ],
+  // The 6-digit code of two-step sign-in (security checklist A0.1).
+  "src/features/account/components/CodeField.tsx": [
+    "app/account/sign-in.tsx",
+    "app/account/password.tsx",
+    "app/account/two-step.tsx",
+    "app/account/two-step-code.tsx",
+  ],
   "src/features/account/components/ProfileForm.tsx": ["app/account/profile.tsx"],
   "src/features/admin/components/ActivityContent.tsx": [
     "src/features/admin/components/ActivityContent.tsx",
