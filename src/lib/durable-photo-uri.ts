@@ -2,7 +2,7 @@ import { Platform } from "react-native";
 
 import { writeDurablePhotoFile } from "./durable-photo-file";
 
-export { releaseDurablePhoto } from "./durable-photo-file";
+export { releaseAllDurablePhotos, releaseDurablePhoto } from "./durable-photo-file";
 
 /**
  * A picked photo's uri, made safe to persist and upload LATER.

@@ -24,3 +24,8 @@ export async function writeDurablePhotoFile(
 export function releaseDurablePhoto(_uri: string): void {
   // Nothing on disk to free in the browser.
 }
+
+export function releaseAllDurablePhotos(): void {
+  // The browser keeps photos inside the queues themselves (`data:` uris),
+  // which a sign-out clears; there is no folder to empty.
+}

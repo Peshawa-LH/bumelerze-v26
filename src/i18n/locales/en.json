@@ -1738,6 +1738,11 @@
       "finishProfile": "Finish your profile",
       "editProfile": "Edit profile",
       "signOut": "Sign out",
+      "signOutUnsent": {
+        "title": "Not sent yet",
+        "body": "Some of your reports or messages haven't been sent yet. If you sign out now, they will be deleted from this device.",
+        "confirm": "Sign out anyway"
+      },
       "delete": "Delete account",
       "deleteWarning": "This permanently deletes your account. It cannot be undone.",
       "deleteConfirm": "Delete permanently",

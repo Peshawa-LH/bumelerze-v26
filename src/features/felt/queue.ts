@@ -520,6 +520,14 @@ export async function processQueue(
 
         for (const item of photoEligible) {
           const reportId = item.tier1.reportId;
+          // Cleared by a sign-out while an earlier photo was uploading
+          // (security audit APP-04): never sent under the next identity.
+          const stillQueued = useFeltQueueStore
+            .getState()
+            .items.some((entry) => entry.tier1.reportId === reportId);
+          if (!stillQueued) {
+            continue;
+          }
           // `item.tier2` is narrowed non-null by the filter above, but the
           // filter predicate itself doesn't survive into this block's own
           // type narrowing (a fresh closure over a different `item`
@@ -712,6 +720,51 @@ export async function restoreWithdrawnReport(
     // It was never sent: send it as before.
     void processQueue(transport);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Sign-out (security audit APP-04)
+// ---------------------------------------------------------------------------
+
+/** Not on the server yet: the report or its details still to send, or its
+ * photo still to upload. A withdrawn report never counts (it is never sent). */
+export function isUnsentReport(item: QueueItem): boolean {
+  if (item.withdrawnAt) {
+    return false;
+  }
+  if (item.state !== "submitted") {
+    return true;
+  }
+  return item.photoState === "pending-upload" || item.photoState === "failed";
+}
+
+/** How many reports on this device are not (completely) on the server. */
+export function countUnsentReports(): number {
+  return useFeltQueueStore.getState().items.filter(isUnsentReport).length;
+}
+
+/** True while a send pass is running (it may go round again by itself). */
+export function isFeltQueueSending(): boolean {
+  return isProcessing;
+}
+
+/** Every report waiting out a retry delay becomes due now: before a
+ * sign-out the app tries once more while the person is still signed in. */
+export function makeWaitingReportsDueNow(now: number = Date.now()): void {
+  const { items, _patchItem } = useFeltQueueStore.getState();
+  for (const item of items) {
+    if (item.nextRetryAt !== null && item.nextRetryAt > now) {
+      _patchItem(item.tier1.reportId, { nextRetryAt: now });
+    }
+  }
+}
+
+/** Forgets every report on this device, sent or not (so "My reports" too):
+ * a sign-out leaves nothing of the previous person. The kept photo files
+ * are the caller's to delete (`releaseAllDurablePhotos`). A send still in
+ * flight finishes against an empty list and changes nothing. */
+export function clearFeltQueue(): void {
+  useFeltQueueStore.setState({ items: [] });
 }
 
 let appStateListenerAttached = false;

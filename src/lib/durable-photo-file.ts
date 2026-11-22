@@ -122,3 +122,20 @@ export function releaseDurablePhoto(uri: string): void {
     // Already gone, or the folder is unreadable: nothing to free.
   }
 }
+
+/**
+ * Deletes every photo kept in `Documents/photos/` (security audit APP-04): a
+ * sign-out leaves no picture of the previous person on the phone (queued
+ * report, feedback and home photos, an avatar that was never saved). The
+ * folder comes back with the next picked photo. Never throws.
+ */
+export function releaseAllDurablePhotos(): void {
+  try {
+    const folder = new Directory(Paths.document, DURABLE_PHOTO_FOLDER);
+    if (folder.exists) {
+      folder.delete();
+    }
+  } catch {
+    // Unreadable or already gone: nothing left to free.
+  }
+}

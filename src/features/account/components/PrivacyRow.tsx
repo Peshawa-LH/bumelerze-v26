@@ -14,15 +14,18 @@ const COPIED_MS = 2000;
 
 /** "Privacy & data", collapsed by default. Open: the contributor ID (plumbing,
  * so it lives here, not in the header) with a copy button and one line, plus
- * the account's email when signed in. */
+ * the account's email when signed in. The contributor ID is the device's
+ * fingerprint (a short hash, security audit DB-03), never the device id: it
+ * can be read out or copied to support, who find the same 8 characters on
+ * the admin People pages. */
 export function PrivacyRow({ email }: { email: string | null }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
-  const deviceId = useContributorId();
+  const fingerprint = useContributorId();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const idText = deviceId ? formatContributorId(deviceId) : null;
+  const idText = fingerprint ? formatContributorId(fingerprint) : null;
 
   useEffect(
     () => () => {

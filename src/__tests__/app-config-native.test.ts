@@ -167,6 +167,12 @@ describe("app.config iOS store and compliance settings", () => {
     expect(pluginOptions("expo-camera")).toMatchObject({ microphonePermission: false });
   });
 
+  it("turns Android auto-backup off, so the session, queues and photos never leave the phone in a backup (APP-02)", () => {
+    // Expo writes android:allowBackup="true" into the manifest unless the
+    // config says otherwise.
+    expect(config.android?.allowBackup).toBe(false);
+  });
+
   it("removes Android's Physical activity permission, which only sensors the app never uses ask for", () => {
     // expo-sensors' own AndroidManifest.xml declares ACTIVITY_RECOGNITION
     // for its Pedometer and DeviceMotion modules.

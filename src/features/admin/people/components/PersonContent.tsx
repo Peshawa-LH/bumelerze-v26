@@ -23,6 +23,7 @@ import { LimitAccountSheet } from "@/features/restrictions/components/LimitAccou
 import type { RestrictionLevel } from "@/features/restrictions/types";
 import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { confirmDialog } from "@/lib/dialogs";
+import { formatDeviceFingerprint } from "@/lib/device-fingerprint";
 import { useTheme, nativeFontFamily } from "@/theme";
 import { useAdminAccess, useAdminActions } from "../../queries";
 import { SupabaseAdminTransport, type AdminTransport } from "../../transport";
@@ -610,8 +611,9 @@ function PersonBody({
         ) : (
           data.devices.map((d) => (
             <View key={d.fingerprint} testID={`person-device-${d.fingerprint}`} style={{ gap: 2 }}>
+              {/* Upper case, as Privacy & data shows a person's contributor ID. */}
               <Text style={[body, ltrValueStyle(), { fontWeight: "600" }]}>
-                {d.fingerprint}
+                {formatDeviceFingerprint(d.fingerprint)}
               </Text>
               <Text style={meta}>
                 {[
@@ -632,7 +634,7 @@ function PersonBody({
             {data.sameDeviceUsers.map((s) => (
               <ActionButton
                 key={s.userId}
-                label={`${personName(t, s)} · ${s.fingerprint}`}
+                label={`${personName(t, s)} · ${formatDeviceFingerprint(s.fingerprint)}`}
                 onPress={() => router.push(`/admin/person/${s.userId}`)}
                 testID={`person-same-${s.userId}`}
               />

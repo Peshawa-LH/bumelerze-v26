@@ -10,6 +10,7 @@ import { CreateAccountForm } from "@/features/account/components/CreateAccountFo
 import { SignInForm } from "@/features/account/components/SignInForm";
 import { TwoStepCodeForm } from "@/features/account/components/TwoStepCodeForm";
 import { claimThisDevicesReports, signOutAccount } from "@/features/account/service";
+import { readyToSignOut } from "@/features/account/sign-out-check";
 import { syncAccountNow, useAccountStore } from "@/features/account/store";
 import { useRefreshTwoStep } from "@/features/account/use-two-step";
 import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
@@ -121,7 +122,11 @@ export default function SignInScreen() {
           <TwoStepCodeForm
             onVerified={afterCode}
             onUseDifferentAccount={async () => {
-              await signOutAccount();
+              // Sends what waits first; asks before deleting anything unsent.
+              if (!(await readyToSignOut(t))) {
+                return;
+              }
+              await signOutAccount({ sendFirst: false });
               refreshTwoStep();
               setStep("signin");
             }}

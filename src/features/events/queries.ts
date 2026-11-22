@@ -16,7 +16,8 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 // Type only: the NetInfo adapter itself is handed in by app/_layout.tsx, so
 // importing this module never loads a native module (tests, web).
 import type { DeviceConnectivitySubscribe } from "@/lib/device-connectivity";
-import { persistLastGoodData } from "@/lib/persist-filter";
+import { keepLastGoodData, persistLastGoodData } from "@/lib/persist-filter";
+import { trackPersisterSaves, type TrackedPersister } from "@/lib/session-query-cache";
 
 import {
   EMSC_REGION_TIMEOUT_MS,
@@ -66,6 +67,11 @@ const QUERY_CACHE_KEY = "bumelerze.react-query-cache";
  * "fresh" — a week is generous for an earthquake feed cache and matches the
  * region feed's own 30-day query window loosely (stale-but-plausible). */
 export const PERSISTED_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+/** Bump this if the cached `Event` shape ever changes in a way older
+ * persisted data can't satisfy — invalidates old caches on upgrade instead of
+ * feeding stale-shaped data to new code. Every save uses it: the root
+ * layout's and the one a sign-out makes (src/lib/session-query-cache.ts). */
+export const PERSISTED_CACHE_BUSTER = "events-v1";
 
 /**
  * Web: React Query follows the browser's online/offline events, but starts
@@ -158,15 +164,28 @@ export function createEventsQueryClient(
 /**
  * The device copy of the React Query cache. A query whose latest refresh
  * failed is written as its last good result (`persistLastGoodData`), so a
- * failed refresh never removes or replaces the saved feed or maps.
+ * failed refresh never removes or replaces the saved feed or maps. Its saves
+ * are tracked so a sign-out can wait for them (src/lib/session-query-cache.ts).
  */
-export function createEventsPersister(): Persister {
-  return persistLastGoodData(
-    createAsyncStoragePersister({
-      storage: AsyncStorage,
-      key: QUERY_CACHE_KEY,
-    }) as Persister,
+export function createEventsPersister(): TrackedPersister {
+  return trackPersisterSaves(
+    persistLastGoodData(
+      createAsyncStoragePersister({
+        storage: AsyncStorage,
+        key: QUERY_CACHE_KEY,
+      }) as Persister,
+    ),
   );
+}
+
+/**
+ * Writes `client` as the device copy AT ONCE, as `createEventsPersister`
+ * would but without its one-second throttle: the sign-out clean-up must know
+ * the copy is clean before the next guest session starts
+ * (src/lib/session-query-cache.ts).
+ */
+export async function saveEventsCacheNow(client: PersistedClient): Promise<void> {
+  await AsyncStorage.setItem(QUERY_CACHE_KEY, JSON.stringify(keepLastGoodData(client)));
 }
 
 // Re-exported so app/_layout.tsx doesn't need to know the persisted-client

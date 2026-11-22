@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { Alert, type AlertButton } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -26,9 +27,12 @@ jest.mock("expo-router", () => ({
 
 const mockClaim = jest.fn();
 const mockSignOut = jest.fn();
+/** Items still unsent after the try to send them first (0: all went). */
+const mockSendWaiting = jest.fn(async () => 0);
 jest.mock("@/features/account/service", () => ({
   claimThisDevicesReports: () => mockClaim(),
-  signOutAccount: () => mockSignOut(),
+  signOutAccount: (...args: unknown[]) => mockSignOut(...args),
+  sendWaitingItemsBeforeSignOut: () => mockSendWaiting(),
 }));
 
 const mockVerifyCode = jest.fn();
@@ -105,12 +109,54 @@ describe("Enter your code (device signed in without its code)", () => {
   it("'Use a different account' signs out and opens the sign-in form", async () => {
     await renderScreen(<TwoStepCodeScreen />);
     await press("two-step-other-account");
+    expect(mockSendWaiting).toHaveBeenCalledTimes(1);
     expect(mockSignOut).toHaveBeenCalledTimes(1);
+    expect(mockSignOut).toHaveBeenCalledWith({ sendFirst: false });
     expect(mockReplace).toHaveBeenCalledWith({
       pathname: "/account/sign-in",
       params: { mode: "signin" },
     });
     expect(mockVerifyCode).not.toHaveBeenCalled();
+  });
+
+  describe("[APP-04] with something still unsent", () => {
+    let alertSpy: jest.SpyInstance;
+    beforeEach(() => {
+      mockSendWaiting.mockResolvedValueOnce(2);
+      alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    });
+    afterEach(() => alertSpy.mockRestore());
+
+    function buttons(): AlertButton[] {
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+      expect(alertSpy.mock.calls[0]?.[0]).toBe("Not sent yet");
+      return (alertSpy.mock.calls[0]?.[2] ?? []) as AlertButton[];
+    }
+
+    it("asks first; 'Sign out anyway' signs out and opens the sign-in form", async () => {
+      await renderScreen(<TwoStepCodeScreen />);
+      await press("two-step-other-account");
+      expect(mockSignOut).not.toHaveBeenCalled();
+      await act(async () => {
+        buttons()[1]?.onPress?.();
+      });
+      expect(mockSignOut).toHaveBeenCalledWith({ sendFirst: false });
+      expect(mockReplace).toHaveBeenCalledWith({
+        pathname: "/account/sign-in",
+        params: { mode: "signin" },
+      });
+    });
+
+    it("Cancel keeps the session and the screen", async () => {
+      await renderScreen(<TwoStepCodeScreen />);
+      await press("two-step-other-account");
+      await act(async () => {
+        buttons()[0]?.onPress?.();
+      });
+      expect(mockSignOut).not.toHaveBeenCalled();
+      expect(mockReplace).not.toHaveBeenCalled();
+      expect(screen.getByTestId("two-step-other-account")).toBeTruthy();
+    });
   });
 
   it("'Lost your phone?' opens Feedback", async () => {

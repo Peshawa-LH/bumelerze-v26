@@ -1,4 +1,5 @@
 import { setAccountPassword, signInWithPassword, toAccountError } from "../service";
+import { __resetHandoverForTests } from "../handover";
 
 /**
  * The account service with two-step sign-in on (security checklist A0.1),
@@ -51,6 +52,7 @@ function makeClient(user: { id: string; is_anonymous: boolean; email?: string } 
 
 beforeEach(() => {
   jest.clearAllMocks();
+  __resetHandoverForTests();
   mockSignInAnonymously.mockResolvedValue(undefined);
   mockClient = makeClient(ACCOUNT);
 });
@@ -64,10 +66,18 @@ describe("signInWithPassword with two-step sign-in on", () => {
     });
     const result = await signInWithPassword("a@b.co", "correct horse");
     expect(result).toEqual({ userId: "uid-1", claimed: 0, needsCode: true });
-    expect(mockClient.rpc).not.toHaveBeenCalled();
+    // Only the guest's handover token was asked for; nothing is claimed yet.
+    expect(mockClient.rpc.mock.calls.map(([name]) => name)).toEqual([
+      "prepare_device_handover",
+    ]);
   });
 
-  it("an account without it signs in and moves the reports as before", async () => {
+  it("an account without it signs in and moves the reports as before (server before 0079)", async () => {
+    mockClient!.rpc.mockImplementation(async (name: unknown) =>
+      name === "claim_device_reports"
+        ? { data: 2, error: null }
+        : { data: null, error: { code: "PGRST202", message: "not found" } },
+    );
     const result = await signInWithPassword("a@b.co", "correct horse");
     expect(result).toEqual({ userId: "uid-1", claimed: 2, needsCode: false });
     expect(mockClient!.rpc).toHaveBeenCalledWith("claim_device_reports", {

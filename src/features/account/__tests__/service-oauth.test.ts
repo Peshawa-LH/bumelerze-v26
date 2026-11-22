@@ -6,6 +6,7 @@
 import { Platform } from "react-native";
 
 import { startOAuth } from "../service";
+import { __resetHandoverForTests } from "../handover";
 import { AccountError } from "../types";
 
 let mockClient: ReturnType<typeof makeClient> | null = null;
@@ -42,6 +43,9 @@ function makeClient(user: { id: string; is_anonymous: boolean } | null) {
 }
 
 const originalOS = Platform.OS;
+beforeEach(() => {
+  __resetHandoverForTests();
+});
 afterEach(() => {
   Platform.OS = originalOS;
   mockRunNativeOAuth.mockReset();
@@ -63,8 +67,13 @@ describe("startOAuth on iOS/Android", () => {
     expect(mockClient.rpc).not.toHaveBeenCalled();
   });
 
-  it("moves this device's reports into the account after a plain sign-in, like email sign-in", async () => {
+  it("moves this device's reports into the account after a plain sign-in, like email sign-in (server before 0079)", async () => {
     mockClient = makeClient(null);
+    mockClient.rpc.mockImplementation(async (name: unknown) =>
+      name === "claim_device_reports"
+        ? { data: 2, error: null }
+        : { data: null, error: { code: "PGRST202", message: "not found" } },
+    );
     mockRunNativeOAuth.mockResolvedValueOnce("signedIn");
 
     await expect(startOAuth("apple")).resolves.toBe("signedIn");

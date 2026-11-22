@@ -6,6 +6,7 @@ import {
   screen,
   within,
 } from "@testing-library/react-native";
+import { Alert, type AlertButton } from "react-native";
 
 import i18n from "@/i18n";
 import type { UseAccountResult } from "../use-account";
@@ -36,8 +37,11 @@ jest.mock("../use-two-step", () => ({
 
 const mockSignOut = jest.fn();
 const mockDelete = jest.fn();
+/** How many items are still unsent after the try to send them first. */
+const mockSendWaiting = jest.fn();
 jest.mock("../service", () => ({
-  signOutAccount: () => mockSignOut(),
+  signOutAccount: (...args: unknown[]) => mockSignOut(...args),
+  sendWaitingItemsBeforeSignOut: () => mockSendWaiting(),
   deleteAccount: () => mockDelete(),
   getAvatarUrl: () => null,
 }));
@@ -81,6 +85,7 @@ describe("account blocks", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockSignOut.mockResolvedValue(undefined);
+    mockSendWaiting.mockResolvedValue(0);
     mockDelete.mockResolvedValue(undefined);
     if (i18n.language !== "en") {
       await i18n.changeLanguage("en");
@@ -155,11 +160,122 @@ describe("account blocks", () => {
   });
 
   describe("SignOutRow", () => {
-    it("signs out in one tap, with no confirmation or note", async () => {
+    let alertSpy: jest.SpyInstance;
+    beforeEach(() => {
+      alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    });
+    afterEach(() => {
+      alertSpy.mockRestore();
+    });
+
+    /** The buttons of the one system dialog shown (iOS/Android). */
+    function dialogButtons(): AlertButton[] {
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+      return (alertSpy.mock.calls[0]?.[2] ?? []) as AlertButton[];
+    }
+
+    it("signs out in one tap, with no confirmation or note, when everything was sent", async () => {
       await render(<SignOutRow />);
       await press("account-sign-out");
+      expect(mockSendWaiting).toHaveBeenCalledTimes(1);
       expect(mockSignOut).toHaveBeenCalledTimes(1);
+      // Already sent (or tried): the service does not try again.
+      expect(mockSignOut).toHaveBeenCalledWith({ sendFirst: false });
+      expect(mockSendWaiting.mock.invocationCallOrder[0] as number).toBeLessThan(
+        mockSignOut.mock.invocationCallOrder[0] as number,
+      );
+      expect(alertSpy).not.toHaveBeenCalled();
       expect(screen.queryByText("This device gets a new anonymous ID.")).toBeNull();
+    });
+
+    it("[APP-04] asks first when something is still unsent, and signs out only on 'Sign out anyway'", async () => {
+      mockSendWaiting.mockResolvedValueOnce(2);
+      await render(<SignOutRow />);
+      await press("account-sign-out");
+      expect(mockSignOut).not.toHaveBeenCalled();
+      expect(alertSpy.mock.calls[0]?.[0]).toBe("Not sent yet");
+      expect(alertSpy.mock.calls[0]?.[1]).toBe(
+        "Some of your reports or messages haven't been sent yet. If you sign out now, they will be deleted from this device.",
+      );
+      const buttons = dialogButtons();
+      expect(buttons.map((b) => [b.text, b.style])).toEqual([
+        ["Cancel", "cancel"],
+        ["Sign out anyway", "destructive"],
+      ]);
+      await act(async () => {
+        buttons[1]?.onPress?.();
+      });
+      expect(mockSignOut).toHaveBeenCalledTimes(1);
+      expect(mockSignOut).toHaveBeenCalledWith({ sendFirst: false });
+      expect(mockRefreshTwoStep).toHaveBeenCalledTimes(1);
+    });
+
+    it("[APP-04] Cancel in that question changes nothing", async () => {
+      mockSendWaiting.mockResolvedValueOnce(1);
+      await render(<SignOutRow />);
+      await press("account-sign-out");
+      const cancel = dialogButtons()[0];
+      expect(cancel?.style).toBe("cancel");
+      await act(async () => {
+        cancel?.onPress?.();
+      });
+      expect(mockSignOut).not.toHaveBeenCalled();
+      expect(mockRefreshTwoStep).not.toHaveBeenCalled();
+      expect(screen.getByTestId("account-sign-out").props.accessibilityState.disabled).toBe(
+        false,
+      );
+    });
+
+    it("asks rather than deletes when it cannot tell what is unsent", async () => {
+      mockSendWaiting.mockRejectedValueOnce(new Error("boom"));
+      await render(<SignOutRow />);
+      await press("account-sign-out");
+      expect(dialogButtons()).toHaveLength(2);
+      expect(mockSignOut).not.toHaveBeenCalled();
+    });
+
+    it("on the web asks with the browser's confirm: Cancel keeps the session, OK signs out", async () => {
+      const { Platform } = jest.requireActual<typeof import("react-native")>("react-native");
+      const originalOS = Platform.OS;
+      const confirmSpy = jest.fn();
+      const hadConfirm = "confirm" in globalThis;
+      const original = (globalThis as { confirm?: unknown }).confirm;
+      (globalThis as { confirm?: unknown }).confirm = confirmSpy;
+      Platform.OS = "web";
+      try {
+        mockSendWaiting.mockResolvedValue(1);
+        await render(<SignOutRow />);
+        confirmSpy.mockReturnValueOnce(false);
+        await press("account-sign-out");
+        expect(confirmSpy).toHaveBeenCalledWith(
+          "Not sent yet\n\nSome of your reports or messages haven't been sent yet. If you sign out now, they will be deleted from this device.",
+        );
+        expect(mockSignOut).not.toHaveBeenCalled();
+
+        confirmSpy.mockReturnValueOnce(true);
+        await press("account-sign-out");
+        expect(mockSignOut).toHaveBeenCalledTimes(1);
+        expect(alertSpy).not.toHaveBeenCalled();
+      } finally {
+        Platform.OS = originalOS;
+        if (hadConfirm) {
+          (globalThis as { confirm?: unknown }).confirm = original;
+        } else {
+          delete (globalThis as { confirm?: unknown }).confirm;
+        }
+      }
+    });
+
+    it("shows the question in Sorani too", async () => {
+      await i18n.changeLanguage("ckb");
+      mockSendWaiting.mockResolvedValueOnce(1);
+      await render(<SignOutRow />);
+      await press("account-sign-out");
+      expect(alertSpy.mock.calls[0]?.[0]).toBe("هێشتا نەنێردراوە");
+      expect(dialogButtons().map((b) => b.text)).toEqual([
+        "پاشگەزبوونەوە",
+        "لەگەڵ ئەوەشدا بچۆ دەرەوە",
+      ]);
     });
 
     it("[A1.1] re-reads the permissions after signing out, so admin tools go at once", async () => {

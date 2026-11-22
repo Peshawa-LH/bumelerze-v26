@@ -300,6 +300,50 @@ export async function processCheckInQueue(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Sign-out (security audit APP-04)
+// ---------------------------------------------------------------------------
+
+/** Still owed to the server: a check-in not sent yet (or retrying), or an
+ * Undo the server has not taken yet. A check-in the server refused for
+ * good ("failed", no retry) is not waiting for anything. */
+export function isUnsentCheckIn(item: CheckInItem): boolean {
+  if (item.undone) {
+    return true;
+  }
+  if (item.state === "queued" || item.state === "syncing") {
+    return true;
+  }
+  return item.state === "failed" && item.nextRetryAt !== null;
+}
+
+/** How many check-ins (or Undos) on this device the server does not have. */
+export function countUnsentCheckIns(): number {
+  return useCheckInStore.getState().items.filter(isUnsentCheckIn).length;
+}
+
+/** True while a send pass is running (it may go round again by itself). */
+export function isCheckInQueueSending(): boolean {
+  return isProcessing;
+}
+
+/** Every check-in waiting out a retry delay becomes due now (before a
+ * sign-out). One refused for good stays as it is. */
+export function makeWaitingCheckInsDueNow(now: number = Date.now()): void {
+  const { items, _patch } = useCheckInStore.getState();
+  for (const item of items) {
+    if (item.nextRetryAt !== null && item.nextRetryAt > now) {
+      _patch(item.clientId, { nextRetryAt: now });
+    }
+  }
+}
+
+/** Forgets every check-in on this device and which prompts were answered:
+ * a sign-out leaves nothing of the previous person. */
+export function clearCheckIns(): void {
+  useCheckInStore.setState({ items: [], handled: {}, lastAction: null });
+}
+
 let foregroundAttached = false;
 
 /** Retry on every app foreground. Call once from the root layout. */

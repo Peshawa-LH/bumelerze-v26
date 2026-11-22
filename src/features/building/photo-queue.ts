@@ -183,6 +183,11 @@ export async function processHomePhotoQueue(
       );
     for (const item of due) {
       const store = useHomePhotoQueueStore.getState();
+      // Cleared by a sign-out while an earlier photo was uploading
+      // (security audit APP-04): never sent under the next identity.
+      if (!store.items.some((entry) => entry.id === item.id)) {
+        continue;
+      }
       try {
         const body = await readHomePhoto(item.uri);
         await transport.uploadPhoto({
@@ -227,6 +232,24 @@ export async function processHomePhotoQueue(
     isProcessing = false;
   }
   return uploaded;
+}
+
+/** How many home photos on this device still wait to upload (a sign-out
+ * asks before it deletes them). */
+export function countQueuedHomePhotos(): number {
+  return useHomePhotoQueueStore.getState().items.length;
+}
+
+/** True while an upload pass is running. */
+export function isHomePhotoQueueSending(): boolean {
+  return isProcessing;
+}
+
+/** Forgets every queued home photo (security audit APP-04: they belong to
+ * the homes of the person signing out). The kept files are the caller's to
+ * delete (`releaseAllDurablePhotos`). */
+export function clearHomePhotoQueue(): void {
+  useHomePhotoQueueStore.getState()._clear();
 }
 
 let appStateListenerAttached = false;

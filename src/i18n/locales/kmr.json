@@ -1738,6 +1738,11 @@
       "finishProfile": "Profîla xwe temam bike",
       "editProfile": "Profîlê biguherîne",
       "signOut": "Derkeve",
+      "signOutUnsent": {
+        "title": "Hîn nehatiye şandin",
+        "body": "Hin raporên te an peyamên te hîn nehatine şandin. Heke tu niha derkevî, ew ê ji vê cîhazê bên jêbirin.",
+        "confirm": "Dîsa jî derkeve"
+      },
       "delete": "Hesabê jê bibe",
       "deleteWarning": "Ev hesabê te bi temamî jê dibe. Venagere.",
       "deleteConfirm": "Bi temamî jê bibe",

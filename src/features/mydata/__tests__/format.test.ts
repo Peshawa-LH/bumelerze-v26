@@ -80,11 +80,12 @@ const SAMPLE_TIER2: Tier2Report = {
 };
 
 describe("formatContributorId", () => {
-  it("returns the first 8 characters of the device id, uppercased", () => {
+  it("shows the device fingerprint upper-cased, 8 characters", () => {
+    expect(formatContributorId("ee5be487")).toBe("EE5BE487");
     expect(formatContributorId("abcdef1234567890")).toBe("ABCDEF12");
   });
 
-  it("never returns the full device id, even for a short one", () => {
+  it("keeps a short value as it is", () => {
     expect(formatContributorId("abc")).toBe("ABC");
   });
 });

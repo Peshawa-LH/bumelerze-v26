@@ -303,8 +303,18 @@ export async function processFeedbackQueue(
             (item.nextRetryAt === null || item.nextRetryAt <= now)),
       );
 
-      for (const item of eligible) {
-        const feedbackId = item.submission.feedbackId;
+      for (const snapshot of eligible) {
+        const feedbackId = snapshot.submission.feedbackId;
+        // Re-read right before sending: a sign-out may have cleared the
+        // queue while an earlier message was in flight (security audit
+        // APP-04). A message no longer on the phone is never sent, so it
+        // cannot go out under the next person's identity.
+        const item = useFeedbackQueueStore
+          .getState()
+          .items.find((entry) => entry.submission.feedbackId === feedbackId);
+        if (!item) {
+          continue;
+        }
         _patchItem(feedbackId, { state: "syncing", lastAttemptAt: Date.now() });
 
         try {
@@ -368,6 +378,13 @@ export async function processFeedbackQueue(
         }
 
         for (const { submission: photoSubmission, photo } of photoEligible) {
+          // Cleared by a sign-out meanwhile: not sent (see above).
+          const stillQueued = useFeedbackQueueStore
+            .getState()
+            .items.some((entry) => entry.submission.feedbackId === photoSubmission.feedbackId);
+          if (!stillQueued) {
+            continue;
+          }
           try {
             const result = await uploadPhoto(photoSubmission, photo);
             _patchPhotoState(
@@ -387,6 +404,47 @@ export async function processFeedbackQueue(
   } finally {
     isProcessing = false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Sign-out (security audit APP-04)
+// ---------------------------------------------------------------------------
+
+/** Not on the server yet: the message, or one of its screenshots. */
+export function isUnsentFeedback(item: FeedbackQueueItem): boolean {
+  if (item.state !== "submitted") {
+    return true;
+  }
+  return Object.values(item.photoStates).some(
+    (state) => state === "pending-upload" || state === "failed",
+  );
+}
+
+/** How many messages on this device are not (completely) on the server. */
+export function countUnsentFeedback(): number {
+  return useFeedbackQueueStore.getState().items.filter(isUnsentFeedback).length;
+}
+
+/** True while a send pass is running (it may go round again by itself). */
+export function isFeedbackQueueSending(): boolean {
+  return isProcessing;
+}
+
+/** Every message waiting out a retry delay becomes due now (before a
+ * sign-out, see `makeWaitingReportsDueNow`). */
+export function makeWaitingFeedbackDueNow(now: number = Date.now()): void {
+  const { items, _patchItem } = useFeedbackQueueStore.getState();
+  for (const item of items) {
+    if (item.nextRetryAt !== null && item.nextRetryAt > now) {
+      _patchItem(item.submission.feedbackId, { nextRetryAt: now });
+    }
+  }
+}
+
+/** Forgets every message on this device, sent or not (it may hold a
+ * contact address): a sign-out leaves nothing of the previous person. */
+export function clearFeedbackQueue(): void {
+  useFeedbackQueueStore.setState({ items: [] });
 }
 
 let appStateListenerAttached = false;

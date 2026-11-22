@@ -99,3 +99,45 @@ describe("getDeviceId", () => {
     expect(second).toBe("manually-overwritten-id");
   });
 });
+
+describe("resetDeviceId (sign-out, security audit APP-04)", () => {
+  it("makes a new id, stores it, and every later getDeviceId returns it at once", async () => {
+    const AsyncStorage = loadAsyncStorage();
+    await AsyncStorage.setItem("bumelerze.device-id", "previous-person-id");
+    const { getDeviceId, resetDeviceId, __resetDeviceIdCacheForTests } = loadDeviceId();
+    expect(await getDeviceId()).toBe("previous-person-id");
+
+    const next = await resetDeviceId();
+
+    expect(next).not.toBe("previous-person-id");
+    expect(await getDeviceId()).toBe(next);
+    expect(await AsyncStorage.getItem("bumelerze.device-id")).toBe(next);
+    // After a restart too.
+    __resetDeviceIdCacheForTests();
+    expect(await getDeviceId()).toBe(next);
+  });
+
+  it("leaves no moment in which the old id could be read back", async () => {
+    const AsyncStorage = loadAsyncStorage();
+    await AsyncStorage.setItem("bumelerze.device-id", "previous-person-id");
+    const { getDeviceId, resetDeviceId } = loadDeviceId();
+    await getDeviceId();
+
+    const resetting = resetDeviceId();
+    // Asked while the new id is still being written.
+    const during = await getDeviceId();
+    const next = await resetting;
+    expect(during).toBe(next);
+  });
+
+  it("tells subscribers (the contributor ID on screen), until they unsubscribe", async () => {
+    const { resetDeviceId, subscribeToDeviceIdReset } = loadDeviceId();
+    const listener = jest.fn();
+    const unsubscribe = subscribeToDeviceIdReset(listener);
+    await resetDeviceId();
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
+    await resetDeviceId();
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+});

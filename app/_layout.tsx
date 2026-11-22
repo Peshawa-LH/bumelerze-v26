@@ -22,7 +22,9 @@ import {
   createEventsPersister,
   createEventsQueryClient,
   onConnectionRegained,
+  PERSISTED_CACHE_BUSTER,
   PERSISTED_CACHE_MAX_AGE_MS,
+  saveEventsCacheNow,
 } from "@/features/events/queries";
 import {
   ensureHomePhotoQueueForegroundSync,
@@ -67,6 +69,7 @@ import {
   startUpdateOnResume,
 } from "@/lib/offline-shell";
 import { shouldPersistQuery } from "@/lib/persist-filter";
+import { registerSessionQueryCache } from "@/lib/session-query-cache";
 import {
   holdSplashScreen,
   useSplashScreenGate,
@@ -121,6 +124,13 @@ function drainOfflineQueues(): void {
   void processCheckInQueue();
 }
 const eventsPersister = createEventsPersister();
+// A sign-out removes the previous person's answers from both and keeps the
+// public ones, so the feed still opens offline (src/lib/session-query-cache.ts).
+registerSessionQueryCache(eventsQueryClient, eventsPersister, {
+  buster: PERSISTED_CACHE_BUSTER,
+  shouldDehydrateQuery: shouldPersistQuery,
+  saveNow: saveEventsCacheNow,
+});
 
 /**
  * Update on resume (web: a newer deploy; iOS/Android: a downloaded EAS
@@ -358,10 +368,8 @@ export default function RootLayout() {
             // A query whose latest refresh failed is still written, with its
             // last good data (src/lib/persist-filter.ts).
             dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
-            // Bump this if the cached `Event` shape ever changes in a way
-            // older persisted data can't satisfy — invalidates old caches
-            // on upgrade instead of feeding stale-shaped data to new code.
-            buster: "events-v1",
+            // See PERSISTED_CACHE_BUSTER (bump it when the cached shapes change).
+            buster: PERSISTED_CACHE_BUSTER,
           }}
         >
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />

@@ -144,8 +144,10 @@ describe("Admin > People > person", () => {
       expect(screen.getByTestId("person-userid")).toHaveTextContent(ID);
       expect(screen.getByTestId("person-email")).toHaveTextContent("a***@x.org");
 
-      // devices by fingerprint only
+      // devices by fingerprint only, shown as a person reads their
+      // contributor ID out of Privacy & data (upper case)
       expect(screen.getByTestId("person-device-1f2e3d4c")).toBeTruthy();
+      expect(screen.getByText("1F2E3D4C")).toBeTruthy();
       expect(screen.getByText(/Full device IDs are never shown/)).toBeTruthy();
 
       // counts
@@ -227,6 +229,7 @@ describe("Admin > People > person", () => {
         }),
       });
       await render(OFFICIAL, people);
+      expect(await screen.findByTestId(`person-same-${GUEST_ID}`)).toHaveTextContent(/1F2E3D4C/);
       await fireEvent.press(await screen.findByTestId(`person-same-${GUEST_ID}`));
       expect(mockPush).toHaveBeenCalledWith(`/admin/person/${GUEST_ID}`);
     });

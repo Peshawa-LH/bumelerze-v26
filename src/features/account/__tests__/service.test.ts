@@ -10,6 +10,7 @@ import {
 } from "../service";
 import { AccountError } from "../types";
 import { RESEARCH_CONSENT_VERSION, TERMS_VERSION } from "../constants";
+import { __resetHandoverForTests } from "../handover";
 
 const mockSignInAnonymously = jest.fn();
 const mockResetAnonymousSignIn = jest.fn();
@@ -39,6 +40,14 @@ jest.mock("@/features/felt/device-id", () => ({
   getDeviceId: async () => "device-1234-abcd",
 }));
 
+// What a sign-out does on the device (sign-out-data.ts, tested on its own).
+const mockSendWaitingItems = jest.fn();
+const mockClearPersonalData = jest.fn();
+jest.mock("../sign-out-data", () => ({
+  sendWaitingItems: () => mockSendWaitingItems(),
+  clearPersonalDataOnDevice: () => mockClearPersonalData(),
+}));
+
 type Anyfn = jest.Mock;
 type Res = { data?: unknown; error?: unknown };
 const ok = async (..._args: unknown[]): Promise<Res> => ({ data: {}, error: null });
@@ -66,7 +75,7 @@ function makeClient(user: { id: string; is_anonymous: boolean } | null) {
       })),
       signInWithOtp: jest.fn(ok),
       verifyOtp: jest.fn(ok),
-      signOut: jest.fn(async () => ({ error: null })),
+      signOut: jest.fn(async (..._a: unknown[]): Promise<{ error: unknown }> => ({ error: null })),
     },
     rpc: jest.fn(async (..._a: unknown[]): Promise<Res> => ({ data: 3, error: null })),
     from,
@@ -81,9 +90,17 @@ function makeClient(user: { id: string; is_anonymous: boolean } | null) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  __resetHandoverForTests();
   mockSignInAnonymously.mockResolvedValue(undefined);
+  mockSendWaitingItems.mockResolvedValue(0);
+  mockClearPersonalData.mockResolvedValue(undefined);
   mockClient = makeClient({ id: "uid-1", is_anonymous: true });
 });
+
+/** The order in which the mocks were first called. */
+function order(...mocks: jest.Mock[]): number[] {
+  return mocks.map((mock) => mock.mock.invocationCallOrder[0] ?? -1);
+}
 
 describe("createAccountWithPassword", () => {
   it("upgrades the anonymous user in place with one updateUser call (email + password)", async () => {
@@ -216,7 +233,11 @@ describe("signInWithPassword", () => {
     expect(mockClient?.auth.signInWithOtp).not.toHaveBeenCalled();
   });
 
-  it("then claims this device's reports into the account", async () => {
+  it("then claims this device's reports into the account (old server: by device id)", async () => {
+    const missing = { data: null, error: { code: "PGRST202", message: "not found" } };
+    mockClient?.rpc.mockImplementation(async (name: unknown) =>
+      name === "claim_device_reports" ? { data: 3, error: null } : missing,
+    );
     const result = await signInWithPassword("a@b.co", "correct horse");
     expect(mockClient?.rpc).toHaveBeenCalledWith("claim_device_reports", {
       p_device_id: "device-1234-abcd",
@@ -224,8 +245,21 @@ describe("signInWithPassword", () => {
     expect(result).toEqual({ userId: "uid-1", claimed: 3, needsCode: false });
   });
 
+  it("then claims with the guest's handover token (server with migration 0079)", async () => {
+    const token = "0f".repeat(32);
+    mockClient?.rpc.mockImplementation(async (name: unknown) =>
+      name === "prepare_device_handover"
+        ? { data: token, error: null }
+        : { data: 3, error: null },
+    );
+    const result = await signInWithPassword("a@b.co", "correct horse");
+    expect(mockClient?.rpc).toHaveBeenCalledWith("claim_device_handover", { p_token: token });
+    expect(mockClient?.rpc).not.toHaveBeenCalledWith("claim_device_reports", expect.anything());
+    expect(result).toEqual({ userId: "uid-1", claimed: 3, needsCode: false });
+  });
+
   it("still signs in when claiming fails", async () => {
-    mockClient?.rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
+    mockClient?.rpc.mockResolvedValue({ data: null, error: { message: "boom" } });
     const result = await signInWithPassword("a@b.co", "correct horse");
     expect(result.claimed).toBe(0);
   });
@@ -242,7 +276,10 @@ describe("signInWithPassword", () => {
     await expect(signInWithPassword("a@b.co", "nope nope")).rejects.toMatchObject({
       code: "invalid_credentials",
     });
-    expect(mockClient?.rpc).not.toHaveBeenCalled();
+    // Only the guest's token was asked for (and is forgotten again).
+    expect(mockClient?.rpc.mock.calls.map(([name]) => name)).toEqual([
+      "prepare_device_handover",
+    ]);
   });
 
   it("maps rate limiting and being offline", async () => {
@@ -339,18 +376,53 @@ describe("claimThisDevicesReports", () => {
 });
 
 describe("signOutAccount", () => {
-  it("signs out locally, resets the memo and signs in anonymously again", async () => {
+  it("[APP-04] sends what waits, signs out everywhere, clears the device, THEN becomes a new guest", async () => {
+    mockClient = makeClient({ id: "uid-1", is_anonymous: false });
     await signOutAccount();
-    expect(mockClient?.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(mockClient.auth.signOut).toHaveBeenCalledTimes(1);
+    expect(mockClient.auth.signOut).toHaveBeenCalledWith({ scope: "global" });
+    expect(mockClearPersonalData).toHaveBeenCalledTimes(1);
     expect(mockResetAnonymousSignIn).toHaveBeenCalledTimes(1);
     expect(mockSignInAnonymously).toHaveBeenCalledTimes(1);
-    const signOutOrder = mockClient?.auth.signOut.mock.invocationCallOrder[0] ?? 0;
-    expect(mockResetAnonymousSignIn.mock.invocationCallOrder[0]).toBeGreaterThan(
-      signOutOrder,
+    const [send, signOut, clear, reset, signIn] = order(
+      mockSendWaitingItems,
+      mockClient.auth.signOut,
+      mockClearPersonalData,
+      mockResetAnonymousSignIn,
+      mockSignInAnonymously,
     );
-    expect(mockSignInAnonymously.mock.invocationCallOrder[0]).toBeGreaterThan(
-      mockResetAnonymousSignIn.mock.invocationCallOrder[0] ?? 0,
-    );
+    // Sent while still signed in; nothing of the person left when the new
+    // anonymous user starts.
+    expect(send).toBeLessThan(signOut as number);
+    expect(signOut).toBeLessThan(clear as number);
+    expect(clear).toBeLessThan(reset as number);
+    expect(reset).toBeLessThan(signIn as number);
+  });
+
+  it("does not send again when the Sign out row already did (sendFirst: false)", async () => {
+    await signOutAccount({ sendFirst: false });
+    expect(mockSendWaitingItems).not.toHaveBeenCalled();
+    expect(mockClearPersonalData).toHaveBeenCalledTimes(1);
+  });
+
+  it("[APP-04] falls back to this device only when the server cannot be reached", async () => {
+    mockClient?.auth.signOut.mockResolvedValueOnce({
+      error: { name: "AuthRetryableFetchError", status: 0, message: "Failed to fetch" },
+    });
+    await signOutAccount();
+    expect(mockClient?.auth.signOut.mock.calls).toEqual([
+      [{ scope: "global" }],
+      [{ scope: "local" }],
+    ]);
+    expect(mockClearPersonalData).toHaveBeenCalledTimes(1);
+    expect(mockSignInAnonymously).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to this device when the global sign-out throws", async () => {
+    mockClient?.auth.signOut.mockRejectedValueOnce(new Error("offline"));
+    await expect(signOutAccount()).resolves.toBeUndefined();
+    expect(mockClient?.auth.signOut).toHaveBeenLastCalledWith({ scope: "local" });
+    expect(mockClearPersonalData).toHaveBeenCalledTimes(1);
   });
 
   it("survives being offline for the anonymous sign-in", async () => {
@@ -369,6 +441,38 @@ describe("deleteAccount", () => {
     expect(mockClient.auth.signOut).toHaveBeenCalled();
     expect(mockResetAnonymousSignIn).toHaveBeenCalled();
     expect(mockSignInAnonymously).toHaveBeenCalled();
+  });
+
+  it("[APP-04] goes through the same clean sign-out: sends first, then deletes, signs out, clears the device", async () => {
+    mockClient = makeClient({ id: "uid-1", is_anonymous: false });
+    await deleteAccount();
+    const [send, rpc, signOut, clear, signIn] = order(
+      mockSendWaitingItems,
+      mockClient.rpc,
+      mockClient.auth.signOut,
+      mockClearPersonalData,
+      mockSignInAnonymously,
+    );
+    // Queued reports and feedback reach the server before the account goes
+    // (the deletion screen says they stay).
+    expect(send).toBeLessThan(rpc as number);
+    expect(rpc).toBeLessThan(signOut as number);
+    expect(signOut).toBeLessThan(clear as number);
+    expect(clear).toBeLessThan(signIn as number);
+    expect(mockClient.auth.signOut).toHaveBeenCalledWith({ scope: "global" });
+  });
+
+  it("still signs out on this device when the deleted user is no longer known to the server", async () => {
+    mockClient = makeClient({ id: "uid-1", is_anonymous: false });
+    mockClient.auth.signOut.mockResolvedValueOnce({
+      error: { name: "AuthApiError", status: 500, message: "user not found" },
+    });
+    await deleteAccount();
+    expect(mockClient.auth.signOut.mock.calls).toEqual([
+      [{ scope: "global" }],
+      [{ scope: "local" }],
+    ]);
+    expect(mockClearPersonalData).toHaveBeenCalledTimes(1);
   });
 
   it("removes the photo files of the homes this person owns before the RPC (SQL cannot delete storage objects)", async () => {
@@ -411,6 +515,7 @@ describe("deleteAccount", () => {
     mockClient.rpc.mockResolvedValueOnce({ data: null, error: { message: "denied" } });
     await expect(deleteAccount()).rejects.toBeInstanceOf(AccountError);
     expect(mockClient.auth.signOut).not.toHaveBeenCalled();
+    expect(mockClearPersonalData).not.toHaveBeenCalled();
   });
 
   it("refuses for an anonymous user", async () => {

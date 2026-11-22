@@ -7,6 +7,7 @@ import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { AccountButton } from "@/features/account/components/AccountButton";
 import { TwoStepCodeForm } from "@/features/account/components/TwoStepCodeForm";
 import { claimThisDevicesReports, signOutAccount } from "@/features/account/service";
+import { readyToSignOut } from "@/features/account/sign-out-check";
 import { useAccount } from "@/features/account/use-account";
 import { useRefreshTwoStep } from "@/features/account/use-two-step";
 import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
@@ -73,7 +74,11 @@ export default function TwoStepCodeScreen() {
               leave();
             }}
             onUseDifferentAccount={async () => {
-              await signOutAccount();
+              // Sends what waits first; asks before deleting anything unsent.
+              if (!(await readyToSignOut(t))) {
+                return;
+              }
+              await signOutAccount({ sendFirst: false });
               refresh();
               router.replace({ pathname: "/account/sign-in", params: { mode: "signin" } });
             }}

@@ -35,3 +35,12 @@ it("mounts the two-step sign-in check and declares its two screens in the root s
   expect(source).toContain('<Stack.Screen name="account/two-step" />');
   expect(source).toContain('<Stack.Screen name="account/two-step-code" />');
 });
+
+it("[APP-04] registers the query cache, its device copy and the provider's save settings for the sign-out clean-up", () => {
+  expect(source).toMatch(
+    /^registerSessionQueryCache\(eventsQueryClient, eventsPersister, \{\n\s+buster: PERSISTED_CACHE_BUSTER,\n\s+shouldDehydrateQuery: shouldPersistQuery,\n\s+saveNow: saveEventsCacheNow,\n\}\);$/m,
+  );
+  // The clean-up's save must match the provider's, or the restore drops it.
+  expect(source).toMatch(/buster: PERSISTED_CACHE_BUSTER,/);
+  expect(source).toMatch(/dehydrateOptions: \{ shouldDehydrateQuery: shouldPersistQuery \}/);
+});

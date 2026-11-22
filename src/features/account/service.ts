@@ -14,7 +14,6 @@ import {
 } from "./about";
 import { SupabaseGuidelinesTransport } from "@/features/guidelines/transport";
 import { isValidUsername, normalizeUsername } from "@/features/community/username";
-import { getDeviceId } from "@/features/felt/device-id";
 import { SUPPORTED_LOCALES } from "@/i18n";
 import { dataUriMimeType, releaseDurablePhoto, toDurablePhotoUri } from "@/lib/durable-photo-uri";
 import {
@@ -44,6 +43,8 @@ import { isAcceptablePassword, isPlausibleEmail } from "./validation";
 import { signInWithPasswordWithCaptcha } from "@/features/captcha/auth";
 import { asAuthLike, isEmailTakenError, toAccountError } from "./auth-errors";
 import { twoStepCodeNeeded } from "./two-step";
+import { claimHandover, discardHandover, prepareHandover } from "./handover";
+import { clearPersonalDataOnDevice, sendWaitingItems } from "./sign-out-data";
 
 export { isAcceptablePassword, isPlausibleEmail };
 export { isEmailTakenError, toAccountError };
@@ -179,9 +180,12 @@ export interface SignInResult {
 
 /**
  * Signs in to an existing account on this device. The device's guest session
- * is replaced (as the old email-code sign-in did), then reports made from
- * this install are moved into the account via `claim_device_reports` -
- * unless the account has two-step sign-in on, when the code comes first.
+ * is replaced (as the old email-code sign-in did), then the guest's reports
+ * are moved into the account - unless the account has two-step sign-in on,
+ * when the code comes first. The move goes by session (handover.ts): while
+ * still a guest the device asks for a one-time token, which the claim then
+ * presents; a failed sign-in forgets it. The token is kept in memory across
+ * the code screen.
  */
 export async function signInWithPassword(
   rawEmail: string,
@@ -195,11 +199,22 @@ export async function signInWithPassword(
   if (password.length === 0) {
     throw new AccountError("invalid_credentials");
   }
+  // Still a guest: the handover token for this guest's reports (best
+  // effort, a few seconds at most; never stops the sign-in).
+  await prepareHandover(client);
   // A fresh Turnstile token goes with it when a site key is configured
   // (A1.4); a sign-in refused for want of one reads "No connection. Try
   // again." (auth-errors.ts), like any other failure to reach the server.
-  const { data, error } = await signInWithPasswordWithCaptcha(client, { email, password });
+  let signIn: Awaited<ReturnType<typeof signInWithPasswordWithCaptcha>>;
+  try {
+    signIn = await signInWithPasswordWithCaptcha(client, { email, password });
+  } catch (error) {
+    discardHandover();
+    throw toAccountError(error);
+  }
+  const { data, error } = signIn;
   if (error) {
+    discardHandover();
     throw toAccountError(error);
   }
   const userId = data?.user?.id ?? data?.session?.user?.id ?? null;
@@ -297,24 +312,15 @@ export async function changeAccountPassword(
   await setAccountPassword(newPassword);
 }
 
-/** Moves this install's anonymous reports/comments/feedback into the
- * signed-in account. Never throws: failing to move must not undo a
- * successful sign-in (the rows simply stay anonymous). */
+/** Moves the guest's anonymous reports/comments/feedback into the
+ * signed-in account: with the handover token asked for before the sign-in
+ * (`claim_device_handover`, migration 0079), or by device id on a server
+ * that does not have 0079 yet (handover.ts). Never throws: failing to move
+ * must not undo a successful sign-in (the rows simply stay anonymous). */
 export async function claimThisDevicesReports(
   client: SupabaseClient = requireClient(),
 ): Promise<number> {
-  try {
-    const deviceId = await getDeviceId();
-    const { data, error } = await client.rpc("claim_device_reports", {
-      p_device_id: deviceId,
-    });
-    if (error) {
-      return 0;
-    }
-    return typeof data === "number" ? data : 0;
-  } catch {
-    return 0;
-  }
+  return await claimHandover(client);
 }
 
 // ---------------------------------------------------------------------------
@@ -348,7 +354,9 @@ export type OAuthResult = "redirecting" | "signedIn" | "cancelled";
  * - Web: the provider sends the browser back to the app's origin.
  *   TODO(providers): the session then arrives in the URL, which the client
  *   ignores today (`detectSessionInUrl: false`) — enable that on web and
- *   call `claimThisDevicesReports` on return when Google is configured.
+ *   call `claimThisDevicesReports` on return when Google is configured. The
+ *   handover token (handover.ts) lives in memory, which the redirect
+ *   reloads: keep it in sessionStorage for that round trip.
  * - iOS/Android: the in-app sign-in sheet returns to
  *   `bumelerze://auth/callback` (oauth-native.ts). Not yet run live.
  */
@@ -357,14 +365,21 @@ export async function startOAuth(provider: OAuthProvider): Promise<OAuthResult> 
   const user = await currentUser(client);
   const upgradeGuest = !!user && user.is_anonymous === true;
   if (Platform.OS !== "web") {
+    if (!upgradeGuest) {
+      // As before an email sign-in (does nothing unless this is a guest).
+      await prepareHandover(client);
+    }
     let outcome: NativeOAuthOutcome;
     try {
       outcome = await runNativeOAuth(client, provider, upgradeGuest);
     } catch (error) {
+      discardHandover();
       throw toAccountError(error);
     }
     if (outcome === "signedIn" && !upgradeGuest) {
       await claimThisDevicesReports(client);
+    } else {
+      discardHandover();
     }
     return outcome;
   }
@@ -714,10 +729,8 @@ export function getAvatarUrl(avatarPath: string | null | undefined): string | nu
 // Sign out / delete
 // ---------------------------------------------------------------------------
 
-async function returnToAnonymous(client: SupabaseClient): Promise<void> {
-  // 'local' clears this device's session even if the server no longer
-  // knows the user (account deletion) or the network is down.
-  await client.auth.signOut({ scope: "local" }).catch(() => undefined);
+/** A fresh anonymous user for this device, right after a sign-out. */
+async function becomeNewGuest(): Promise<void> {
   resetAnonymousSignIn();
   try {
     await signInAnonymously();
@@ -727,20 +740,76 @@ async function returnToAnonymous(client: SupabaseClient): Promise<void> {
   }
 }
 
-/** Signs out, then immediately becomes a fresh anonymous user so reporting
- * keeps working. The new install identity has no link to the account. */
-export async function signOutAccount(): Promise<void> {
-  const client = requireClient();
-  await returnToAnonymous(client);
+async function returnToAnonymous(client: SupabaseClient): Promise<void> {
+  // 'local' clears this device's session even if the server no longer
+  // knows the user or the network is down.
+  await client.auth.signOut({ scope: "local" }).catch(() => undefined);
+  await becomeNewGuest();
 }
 
-/** Deletes avatar files and the photo files of the homes this person owns,
- * then the account via the `delete_my_account` RPC (profile, posts, comments
- * blanked, owned homes, auth user; see migration 0056 for the full list), then
- * returns this device to anonymous. */
+/**
+ * Ends the session everywhere it is used (security audit APP-04: a copied
+ * refresh token stops working too), falling back to this device only when
+ * the server cannot be reached or refuses. A user that no longer exists
+ * (account deletion) is no error: supabase-js then clears this device's
+ * session itself.
+ */
+async function endSession(client: SupabaseClient): Promise<void> {
+  try {
+    const { error } = await client.auth.signOut({ scope: "global" });
+    if (!error) {
+      return;
+    }
+  } catch {
+    // Unreachable: this device's session goes below.
+  }
+  await client.auth.signOut({ scope: "local" }).catch(() => undefined);
+}
+
+/** The clean sign-out shared by sign-out and account deletion: the session
+ * ends, this device forgets the person (sign-out-data.ts), and only then a
+ * new anonymous user starts, so nothing of theirs is sent under it. */
+async function signOutAndForget(client: SupabaseClient): Promise<void> {
+  await endSession(client);
+  await clearPersonalDataOnDevice();
+  await becomeNewGuest();
+}
+
+/** Before a sign-out, while still signed in: tries (at most 8 s) to send
+ * what waits on this device. Resolves with how many reports, messages,
+ * check-ins or home photos would still be deleted by signing out. */
+export async function sendWaitingItemsBeforeSignOut(): Promise<number> {
+  return await sendWaitingItems();
+}
+
+export interface SignOutOptions {
+  /** Try to send waiting items first (default). The Sign out row has done
+   * that already, and asked, before it calls with `false`. */
+  sendFirst?: boolean;
+}
+
+/** Signs out, clears this person's data from the device, then immediately
+ * becomes a fresh anonymous user so reporting keeps working. The new
+ * identity (and new device id) has no link to the account. */
+export async function signOutAccount({ sendFirst = true }: SignOutOptions = {}): Promise<void> {
+  const client = requireClient();
+  if (sendFirst) {
+    await sendWaitingItems();
+  }
+  await signOutAndForget(client);
+}
+
+/** Sends what still waits on the device (so reports and feedback stay, as
+ * the deletion screen says), deletes avatar files and the photo files of the
+ * homes this person owns, then the account via the `delete_my_account` RPC
+ * (profile, posts, comments blanked, owned homes, auth user; see migration
+ * 0056 for the full list), then signs out like `signOutAccount` (this
+ * device forgets the person, a new anonymous user starts). */
 export async function deleteAccount(): Promise<void> {
   const client = requireClient();
   const user = await requireAccountUser(client);
+
+  await sendWaitingItems();
 
   try {
     const { data: files } = await client.storage.from(AVATARS_BUCKET).list(user.id);
@@ -760,5 +829,5 @@ export async function deleteAccount(): Promise<void> {
   if (error) {
     throw toAccountError(error);
   }
-  await returnToAnonymous(client);
+  await signOutAndForget(client);
 }

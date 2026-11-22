@@ -5,7 +5,8 @@ import * as Crypto from "expo-crypto";
  * Anonymous per-install device id (D8 identity model; the v1 spec §5.2:
  * "Identity: anonymous per-install device ID (required on every report)").
  * Generated once via `expo-crypto`'s cryptographically-random UUID v4,
- * persisted in AsyncStorage, and reused for the lifetime of the install.
+ * persisted in AsyncStorage, and reused for the lifetime of the install,
+ * until an account signs out on this device (`resetDeviceId`).
  *
  * Deliberately NOT tied to any Supabase auth identity — felt reporting must
  * work with zero network round-trips to an auth endpoint (the project requirements offline
@@ -43,10 +44,42 @@ export function getDeviceId(): Promise<string> {
   return cachedDeviceIdPromise;
 }
 
+const resetListeners = new Set<() => void>();
+
+/**
+ * Gives this install a NEW device id, at once and on the phone (security
+ * audit APP-04): signing out leaves nothing that ties the next person's
+ * reports to the previous person's. Every `getDeviceId()` from here on
+ * resolves to the new id (no window in which the old one could be read
+ * back); screens showing the contributor ID are told
+ * (`subscribeToDeviceIdReset`). Rejects only when the phone's storage
+ * refuses the write (the new id still holds until the app restarts).
+ */
+export async function resetDeviceId(): Promise<string> {
+  const next = Crypto.randomUUID();
+  cachedDeviceIdPromise = Promise.resolve(next);
+  try {
+    await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, next);
+  } finally {
+    for (const listener of resetListeners) {
+      listener();
+    }
+  }
+  return next;
+}
+
+/** Calls `listener` after every `resetDeviceId()`; returns the unsubscribe. */
+export function subscribeToDeviceIdReset(listener: () => void): () => void {
+  resetListeners.add(listener);
+  return () => {
+    resetListeners.delete(listener);
+  };
+}
+
 /**
  * Test-only escape hatch: clears the in-memory cache so a test can force a
  * fresh AsyncStorage read after seeding or clearing the mocked storage.
- * Never called from app code.
+ * Never called from app code (a sign-out uses `resetDeviceId`).
  */
 export function __resetDeviceIdCacheForTests(): void {
   cachedDeviceIdPromise = null;

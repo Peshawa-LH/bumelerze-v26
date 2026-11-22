@@ -16,6 +16,9 @@ export interface ConfirmDialogOptions {
   cancelLabel?: string;
   destructive?: boolean;
   onConfirm: () => void;
+  /** Runs when the person cancels (Cancel, or Android's Back while the
+   * dialog is open). Optional: without it a cancel simply does nothing. */
+  onCancel?: () => void;
 }
 
 export function confirmDialog({
@@ -25,6 +28,7 @@ export function confirmDialog({
   cancelLabel,
   destructive = false,
   onConfirm,
+  onCancel,
 }: ConfirmDialogOptions): void {
   if (Platform.OS === "web") {
     const text = `${title}\n\n${message}`;
@@ -35,19 +39,31 @@ export function confirmDialog({
     }
     if (globalThis.confirm?.(text)) {
       onConfirm();
+    } else {
+      onCancel?.();
     }
     return;
   }
-  Alert.alert(title, message, [
+  const buttons = [
     ...(cancelLabel === undefined
       ? []
-      : [{ text: cancelLabel, style: "cancel" as const }]),
+      : [
+          onCancel
+            ? { text: cancelLabel, style: "cancel" as const, onPress: onCancel }
+            : { text: cancelLabel, style: "cancel" as const },
+        ]),
     {
       text: confirmLabel,
       style: destructive ? ("destructive" as const) : ("default" as const),
       onPress: onConfirm,
     },
-  ]);
+  ];
+  if (onCancel && cancelLabel !== undefined) {
+    // Android's Back closes the dialog without a button: that is a cancel too.
+    Alert.alert(title, message, buttons, { cancelable: true, onDismiss: onCancel });
+    return;
+  }
+  Alert.alert(title, message, buttons);
 }
 
 /** A plain notice with a single OK. */

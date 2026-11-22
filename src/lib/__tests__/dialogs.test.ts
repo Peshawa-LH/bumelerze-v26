@@ -94,3 +94,38 @@ describe("confirmDialog on a phone", () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("confirmDialog tells the caller about a cancel when asked to", () => {
+  it("web: the browser's Cancel runs onCancel, never onConfirm", () => {
+    setOS("web");
+    (globalThis as { confirm?: unknown }).confirm = jest.fn(() => false);
+    const onConfirm = jest.fn();
+    const onCancel = jest.fn();
+    confirmDialog({ title: "t", message: "m", confirmLabel: "OK", cancelLabel: "Cancel", onConfirm, onCancel });
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("phone: the Cancel button and Android's Back both run onCancel", () => {
+    setOS("android");
+    const spy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    const onConfirm = jest.fn();
+    const onCancel = jest.fn();
+    confirmDialog({ title: "t", message: "m", confirmLabel: "OK", cancelLabel: "Cancel", onConfirm, onCancel });
+    const buttons = spy.mock.calls[0]?.[2] ?? [];
+    buttons[0]?.onPress?.();
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    const options = spy.mock.calls[0]?.[3];
+    expect(options).toMatchObject({ cancelable: true });
+    options?.onDismiss?.();
+    expect(onCancel).toHaveBeenCalledTimes(2);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("without onCancel the dialog is exactly as before (three arguments)", () => {
+    setOS("ios");
+    const spy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    confirmDialog({ title: "t", message: "m", confirmLabel: "OK", cancelLabel: "Cancel", onConfirm: jest.fn() });
+    expect(spy.mock.calls[0]).toHaveLength(3);
+  });
+});

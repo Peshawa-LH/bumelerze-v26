@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { Alert, type AlertButton } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -18,12 +19,15 @@ const mockCreate = jest.fn();
 const mockSignIn = jest.fn();
 const mockClaim = jest.fn();
 const mockSignOut = jest.fn();
+/** Items still unsent after the try to send them first (0: all went). */
+const mockSendWaiting = jest.fn(async () => 0);
 jest.mock("@/features/account/service", () => ({
   createAccountWithPassword: (email: string, password: string) =>
     mockCreate(email, password),
   signInWithPassword: (email: string, password: string) => mockSignIn(email, password),
   claimThisDevicesReports: () => mockClaim(),
-  signOutAccount: () => mockSignOut(),
+  signOutAccount: (...args: unknown[]) => mockSignOut(...args),
+  sendWaitingItemsBeforeSignOut: () => mockSendWaiting(),
   startOAuth: jest.fn(),
 }));
 
@@ -408,7 +412,9 @@ describe("Sign in with two-step sign-in on (security checklist A0.1)", () => {
   it("'Use a different account' signs out and goes back to the sign-in form", async () => {
     await signIn();
     await press("two-step-other-account");
+    expect(mockSendWaiting).toHaveBeenCalledTimes(1);
     expect(mockSignOut).toHaveBeenCalledTimes(1);
+    expect(mockSignOut).toHaveBeenCalledWith({ sendFirst: false });
     expect(screen.getByTestId("account-signin-submit")).toBeTruthy();
     expect(mockClaim).not.toHaveBeenCalled();
     // [A1.1] after the sign-out too
@@ -416,6 +422,35 @@ describe("Sign in with two-step sign-in on (security checklist A0.1)", () => {
     expect(mockSignOut.mock.invocationCallOrder[0] as number).toBeLessThan(
       mockRefresh.mock.invocationCallOrder[1] as number,
     );
+  });
+
+  it("[APP-04] 'Use a different account' asks first when something is unsent; Cancel keeps the code form", async () => {
+    await signIn();
+    mockSendWaiting.mockResolvedValueOnce(1);
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    try {
+      await press("two-step-other-account");
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+      expect(alertSpy.mock.calls[0]?.[0]).toBe("Not sent yet");
+      const buttons = (alertSpy.mock.calls[0]?.[2] ?? []) as AlertButton[];
+      expect(buttons.map((b) => b.text)).toEqual(["Cancel", "Sign out anyway"]);
+      await act(async () => {
+        buttons[0]?.onPress?.();
+      });
+      expect(mockSignOut).not.toHaveBeenCalled();
+      expect(screen.getByTestId("two-step-other-account")).toBeTruthy();
+
+      mockSendWaiting.mockResolvedValueOnce(1);
+      await press("two-step-other-account");
+      const again = (alertSpy.mock.calls[1]?.[2] ?? []) as AlertButton[];
+      await act(async () => {
+        again[1]?.onPress?.();
+      });
+      expect(mockSignOut).toHaveBeenCalledWith({ sendFirst: false });
+      expect(screen.getByTestId("account-signin-submit")).toBeTruthy();
+    } finally {
+      alertSpy.mockRestore();
+    }
   });
 
   it("an account without two-step sign-in never sees the code", async () => {

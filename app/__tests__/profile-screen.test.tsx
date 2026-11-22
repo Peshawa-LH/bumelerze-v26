@@ -31,6 +31,15 @@ jest.mock("expo-router", () => ({
 
 jest.mock("expo-crypto", () => ({
   randomUUID: () => "test-device-uuid-abcdefgh",
+  CryptoDigestAlgorithm: { SHA256: "SHA-256" },
+  CryptoEncoding: { HEX: "hex" },
+  // SHA-256 as on the phone and in the browser (the contributor ID's hash).
+  digestStringAsync: async (_algorithm: string, data: string) =>
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- inside a jest.mock factory
+    (require("node:crypto") as typeof import("node:crypto"))
+      .createHash("sha256")
+      .update(data, "utf8")
+      .digest("hex"),
 }));
 
 let mockConfigured = true;
@@ -266,7 +275,7 @@ describe("Profile tab", () => {
     it("hides the contributor ID until Privacy & data is opened, then shows it with a copy button", async () => {
       await renderWithProviders(<ProfileScreen />);
       await flush();
-      expect(screen.queryByText(/TEST-DEV/)).toBeNull();
+      expect(screen.queryByText(/EE5BE487/)).toBeNull();
       expect(screen.queryByTestId("privacy-details")).toBeNull();
       expect(
         screen.getByTestId("account-privacy-row").props.accessibilityState.expanded,
@@ -274,7 +283,10 @@ describe("Profile tab", () => {
       await press("account-privacy-row");
       await flush();
       expect(screen.getByTestId("privacy-details")).toBeTruthy();
-      expect(screen.getByText("⁦TEST-DEV⁩")).toBeTruthy();
+      // [DB-03] The fingerprint of the device id (SHA-256, first 8 hex, as
+      // the admin People pages show it), never a piece of the id itself.
+      expect(screen.getByText("⁦EE5BE487⁩")).toBeTruthy();
+      expect(screen.queryByText(/TEST-DEV/)).toBeNull();
       expect(screen.getByLabelText("Copy")).toBeTruthy();
       expect(screen.getByText("Made on this device. Not your name.")).toBeTruthy();
       expect(screen.queryByTestId("account-email")).toBeNull();

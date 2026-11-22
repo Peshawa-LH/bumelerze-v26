@@ -301,6 +301,11 @@ const config: ExpoConfig = {
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
     package: "org.bumelerze.app",
+    // No Android auto-backup (security audit APP-02): a backup would carry
+    // the sign-in session, the device id, the queued reports (with their
+    // position) and the kept photos to a Google account or another phone.
+    // A restored or new phone starts as a new guest; an account signs in again.
+    allowBackup: false,
     // expo-sensors' library manifest asks for Physical activity
     // (ACTIVITY_RECOGNITION) for its step counter and device-motion
     // modules. The app reads only the accelerometer, which needs no

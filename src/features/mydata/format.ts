@@ -8,33 +8,27 @@ import type {
   QueueItem,
 } from "@/features/felt";
 import { placeLine } from "@/features/geo";
+import { formatDeviceFingerprint } from "@/lib/device-fingerprint";
 import { localizeDigits } from "@/lib/format-numbers";
 
 type TranslateFn = TFunction;
 
-/** How many leading device-id characters the header shows (D26 item 7: "a
- * friendly short form of the install id"). The full uuid is 36 characters
- * including hyphens; 8 hex characters is enough to be visually distinct
- * between installs without printing something as unwieldy as a full uuid on
- * a panic-time-readable screen. Uppercased purely for the monospace-badge
- * look MyShake's own reference screenshot uses for its similarly short ids
- * — carries no meaning of its own (the underlying `deviceId` stays
- * lowercase everywhere else, e.g. `felt_reports.device_id`). */
-const CONTRIBUTOR_ID_VISIBLE_CHARS = 8;
-
 /**
+ * The contributor ID shown in Privacy & data (D26 item 7: "a friendly short
+ * form of the install id"), from the device FINGERPRINT (`useContributorId`,
+ * `src/lib/device-fingerprint.ts`): since the security audit (DB-03) it is
+ * the first 8 hex characters of a SHA-256 of the device id, never a piece
+ * of the id itself, and the same 8 characters the admin People pages show
+ * for that device. Upper case, 8 characters.
+ *
  * Deliberately NOT run through `localizeDigits` (the project's TypeScript
- * rule: "Kurdish digits via localizeDigits where numbers render") — a
- * device id is an opaque identifier/code, not a quantity being read aloud
- * or compared numerically (unlike magnitude, distance, or a report count),
- * the same reasoning `device_id`/`report_id` already stay Latin everywhere
- * else in the app (`felt/device-id.ts`, every Supabase column). Locale-
- * switching this string would also make it a DIFFERENT-looking id per
- * language for the exact same install, defeating its one job (a stable,
- * shareable-if-needed identifier).
+ * rule: "Kurdish digits via localizeDigits where numbers render") — it is
+ * an opaque code, not a quantity, and a person reads it out to support
+ * exactly as shown; locale-switching it would make the same device look
+ * different per language, defeating its one job.
  */
-export function formatContributorId(deviceId: string): string {
-  return deviceId.slice(0, CONTRIBUTOR_ID_VISIBLE_CHARS).toUpperCase();
+export function formatContributorId(fingerprint: string): string {
+  return formatDeviceFingerprint(fingerprint);
 }
 
 export type ContributionSyncStatus = "submitted" | "on-device";
