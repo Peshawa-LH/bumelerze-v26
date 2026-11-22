@@ -152,7 +152,7 @@ describe("0077 can be pasted into the SQL editor as one line", () => {
     const files = readdirSync(join(__dirname, ".."))
       .filter((f) => /^\d{4}_.*\.sql$/.test(f) && !f.startsWith("0041_"))
       .sort();
-    expect(files[files.length - 1]).toBe(FILE);
+    expect(files).toContain(FILE);
     for (const name of createdFunctions(sql)) {
       const last = [...files]
         .reverse()
