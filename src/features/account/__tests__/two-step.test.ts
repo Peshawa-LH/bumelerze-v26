@@ -1,5 +1,7 @@
+import { AccountError } from "../types";
 import {
   abandonTwoStepSetup,
+  adminNeedsTwoStep,
   confirmTwoStepSetup,
   isCompleteTwoStepCode,
   normalizeTwoStepCode,
@@ -57,6 +59,7 @@ function makeClient(
     : null;
   const ok = (data: unknown): Res => ({ data, error: null });
   return {
+    rpc: jest.fn(async (..._a: unknown[]): Promise<Res> => ok(false)),
     auth: {
       getSession: jest.fn(async () => ({ data: { session }, error: null })),
       refreshSession: jest.fn(async () => ok({})),
@@ -355,5 +358,56 @@ describe("status", () => {
     expect(await readTwoStepEnabledOnDevice()).toBe(false);
     mockClient.auth.getSession.mockRejectedValueOnce(new Error("storage"));
     expect(await readTwoStepEnabledOnDevice()).toBe(false);
+  });
+});
+
+describe("adminNeedsTwoStep (migration 0076, security checklist A1.1)", () => {
+  it("asks my_admin_needs_two_step() once and passes on its yes or no", async () => {
+    const client = makeClient();
+    mockClient = client;
+    client.rpc.mockResolvedValueOnce({ data: true, error: null });
+    expect(await adminNeedsTwoStep()).toBe(true);
+    expect(client.rpc).toHaveBeenCalledTimes(1);
+    expect(client.rpc).toHaveBeenCalledWith("my_admin_needs_two_step");
+    client.rpc.mockResolvedValueOnce({ data: false, error: null });
+    expect(await adminNeedsTwoStep()).toBe(false);
+  });
+
+  it.each(["PGRST202", "42883"])(
+    "[before 0076] a missing function (%s) is 'no', not an error",
+    async (code) => {
+      const client = makeClient();
+      mockClient = client;
+      client.rpc.mockResolvedValueOnce({
+        data: null,
+        error: {
+          code,
+          message: "Could not find the function public.my_admin_needs_two_step",
+        },
+      });
+      expect(await adminNeedsTwoStep()).toBe(false);
+    },
+  );
+
+  it("any other refusal is an error the query keeps (and the app reads as 'no')", async () => {
+    const client = makeClient();
+    mockClient = client;
+    client.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { message: "TypeError: Failed to fetch" },
+    });
+    await expect(adminNeedsTwoStep()).rejects.toMatchObject({ code: "network" });
+  });
+
+  it("an answer that is not a yes or no is refused at the boundary", async () => {
+    const client = makeClient();
+    mockClient = client;
+    client.rpc.mockResolvedValueOnce({ data: [{ needed: true }], error: null });
+    await expect(adminNeedsTwoStep()).rejects.toBeInstanceOf(AccountError);
+  });
+
+  it("without Supabase it never gets as far as a request", async () => {
+    mockClient = null;
+    await expect(adminNeedsTwoStep()).rejects.toMatchObject({ code: "unconfigured" });
   });
 });

@@ -28,6 +28,12 @@ jest.mock("../use-account", () => ({
   useAccount: () => mockAccount,
 }));
 
+/** Re-reads the permissions and two-step answers (migration 0076). */
+const mockRefreshTwoStep = jest.fn();
+jest.mock("../use-two-step", () => ({
+  useRefreshTwoStep: () => mockRefreshTwoStep,
+}));
+
 const mockSignOut = jest.fn();
 const mockDelete = jest.fn();
 jest.mock("../service", () => ({
@@ -156,11 +162,21 @@ describe("account blocks", () => {
       expect(screen.queryByText("This device gets a new anonymous ID.")).toBeNull();
     });
 
+    it("[A1.1] re-reads the permissions after signing out, so admin tools go at once", async () => {
+      await render(<SignOutRow />);
+      await press("account-sign-out");
+      expect(mockRefreshTwoStep).toHaveBeenCalledTimes(1);
+      expect(mockSignOut.mock.invocationCallOrder[0] as number).toBeLessThan(
+        mockRefreshTwoStep.mock.invocationCallOrder[0] as number,
+      );
+    });
+
     it("says so when signing out fails", async () => {
       mockSignOut.mockRejectedValueOnce(new Error("boom"));
       await render(<SignOutRow />);
       await press("account-sign-out");
       expect(screen.getByText("Something went wrong. Try again.")).toBeTruthy();
+      expect(mockRefreshTwoStep).not.toHaveBeenCalled();
     });
   });
 

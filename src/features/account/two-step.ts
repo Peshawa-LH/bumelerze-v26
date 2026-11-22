@@ -188,6 +188,35 @@ export async function twoStepCodeNeeded(
   }
 }
 
+const AdminNeedsTwoStepSchema = z.boolean();
+
+/**
+ * Whether the signed-in account holds an admin rank while this session has
+ * not given a two-step code (`my_admin_needs_two_step()`, migration 0076,
+ * security checklist A1.1). From 0076 on, admin tools need an aal2 session
+ * and `my_permissions()` is empty at aal1, so only this answer tells an
+ * admin why the tools are closed. The private admin rank is invisible to
+ * the app by design (0060): only the server can say. Before 0076 is on the
+ * server the function is missing (PGRST202 / 42883): false, nothing changes.
+ * Signed-in accounts only; `useAdminNeedsTwoStep` never asks for a guest.
+ */
+export async function adminNeedsTwoStep(): Promise<boolean> {
+  const client = requireClient();
+  const { data, error } = await client.rpc("my_admin_needs_two_step");
+  if (error) {
+    const e = asAuthLike(error);
+    if (e.code === "PGRST202" || e.code === "42883") {
+      return false;
+    }
+    throw toAccountError(error);
+  }
+  const parsed = AdminNeedsTwoStepSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new AccountError("unknown");
+  }
+  return parsed.data;
+}
+
 // ---------------------------------------------------------------------------
 // Set up / turn off / verify
 // ---------------------------------------------------------------------------

@@ -77,6 +77,8 @@ const NEW_FILES = [
   "src/features/account/components/TwoStepCodeForm.tsx",
   "src/features/account/components/TwoStepRow.tsx",
   "src/features/account/components/TwoStepSetupContent.tsx",
+  // admin tools need two-step sign-in (security checklist A1.1, migration 0076)
+  "src/features/admin/components/AdminTwoStepGate.tsx",
 ];
 
 function listFiles(dir: string, extensions: string[]): string[] {

@@ -11,6 +11,7 @@ import { SignInForm } from "@/features/account/components/SignInForm";
 import { TwoStepCodeForm } from "@/features/account/components/TwoStepCodeForm";
 import { claimThisDevicesReports, signOutAccount } from "@/features/account/service";
 import { syncAccountNow, useAccountStore } from "@/features/account/store";
+import { useRefreshTwoStep } from "@/features/account/use-two-step";
 import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { localizeDigits } from "@/lib/format-numbers";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
@@ -24,6 +25,8 @@ type Step = "create" | "signin" | "code" | "welcome";
  * `?mode=signin` opens the sign-in form first ("I already have an account").
  * An account with two-step sign-in on asks for the 6-digit code after the
  * password ("code"); this device's reports move into it only after the code.
+ * Every sign-in, code and sign-out here re-reads the permissions: from
+ * migration 0076 admin tools follow the session's two-step level.
  */
 export default function SignInScreen() {
   const { t, i18n } = useTranslation();
@@ -34,11 +37,13 @@ export default function SignInScreen() {
 
   const [step, setStep] = useState<Step>(params?.mode === "signin" ? "signin" : "create");
   const [claimed, setClaimed] = useState(0);
+  const refreshTwoStep = useRefreshTwoStep();
 
   /** Reads the fresh session, then sends a new account to the profile form
    * and everyone else back where they came from. */
   async function afterAuth(movedItems: number) {
     await syncAccountNow();
+    refreshTwoStep();
     const { profile, profileLoaded } = useAccountStore.getState();
     if (profileLoaded && !profile) {
       router.replace("/account/profile");
@@ -117,6 +122,7 @@ export default function SignInScreen() {
             onVerified={afterCode}
             onUseDifferentAccount={async () => {
               await signOutAccount();
+              refreshTwoStep();
               setStep("signin");
             }}
             onContactUs={() => router.push("/feedback")}
@@ -130,9 +136,16 @@ export default function SignInScreen() {
               <CreateAccountForm onCreated={() => afterAuth(0)} />
             ) : (
               <SignInForm
-                onSignedIn={(result) =>
-                  result.needsCode ? setStep("code") : afterAuth(result.claimed)
-                }
+                onSignedIn={async (result) => {
+                  if (!result.needsCode) {
+                    await afterAuth(result.claimed);
+                    return;
+                  }
+                  // Signed in, still without the code: no admin tools yet,
+                  // whatever an earlier session of this account was shown.
+                  refreshTwoStep();
+                  setStep("code");
+                }}
                 onContactUs={() =>
                   router.push({ pathname: "/feedback", params: { passwordReset: "1" } })
                 }

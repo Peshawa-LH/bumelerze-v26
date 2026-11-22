@@ -38,8 +38,11 @@ let mockHasPassword: {
   error?: unknown;
 };
 const mockRefetch = jest.fn();
+/** Re-reads the permissions after a code (migration 0076). */
+const mockRefreshTwoStep = jest.fn();
 jest.mock("@/features/account/use-two-step", () => ({
   useAccountHasPassword: () => ({ ...mockHasPassword, refetch: mockRefetch }),
+  useRefreshTwoStep: () => mockRefreshTwoStep,
 }));
 
 // eslint-disable-next-line import/first -- must follow the mocks above
@@ -241,6 +244,11 @@ describe("Set / change password screen", () => {
         mockSetPassword.mock.invocationCallOrder[0] as number,
       );
       expect(screen.getByText("Password saved.")).toBeTruthy();
+      // [A1.1] the code raised this session (aal2): permissions re-read
+      expect(mockRefreshTwoStep).toHaveBeenCalledTimes(1);
+      expect(mockVerifyCode.mock.invocationCallOrder[0] as number).toBeLessThan(
+        mockRefreshTwoStep.mock.invocationCallOrder[0] as number,
+      );
     });
 
     it("a wrong code says what to check and empties the field; nothing is saved", async () => {
@@ -258,6 +266,7 @@ describe("Set / change password screen", () => {
       ).toBeTruthy();
       expect(screen.getByTestId("password-code-input").props.value).toBe("");
       expect(mockSetPassword).not.toHaveBeenCalled();
+      expect(mockRefreshTwoStep).not.toHaveBeenCalled();
     });
   });
 

@@ -33,6 +33,13 @@ jest.mock("@/features/account/two-step", () => ({
   verifyTwoStepCode: (code: string) => mockVerifyCode(code),
 }));
 
+/** Re-reads the permissions and the two-step answers (migration 0076: admin
+ * tools follow the session's two-step level). */
+const mockRefresh = jest.fn();
+jest.mock("@/features/account/use-two-step", () => ({
+  useRefreshTwoStep: () => mockRefresh,
+}));
+
 let mockProfile: unknown = null;
 const mockSync = jest.fn();
 jest.mock("@/features/account/store", () => ({
@@ -252,6 +259,20 @@ describe("Sign in (sign-in screen, mode=signin)", () => {
     expect(mockBack).toHaveBeenCalled();
   });
 
+  it("[A1.1] re-reads the permissions once the new session is read, before leaving", async () => {
+    await renderScreen(<SignInScreen />);
+    await type("account-email-input", "a@b.co");
+    await type("account-password-input", "secret pass");
+    await press("account-signin-submit");
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockSync.mock.invocationCallOrder[0] as number).toBeLessThan(
+      mockRefresh.mock.invocationCallOrder[0] as number,
+    );
+    expect(mockRefresh.mock.invocationCallOrder[0] as number).toBeLessThan(
+      mockBack.mock.invocationCallOrder[0] as number,
+    );
+  });
+
   it("shows a welcome with the count when reports moved over", async () => {
     mockSignIn.mockResolvedValue({ userId: "u1", claimed: 4 });
     await renderScreen(<SignInScreen />);
@@ -348,6 +369,27 @@ describe("Sign in with two-step sign-in on (security checklist A0.1)", () => {
     expect(screen.getByText(/added to your account: 3/)).toBeTruthy();
   });
 
+  it("[A1.1] re-reads the permissions at the password and again after the code, so admin tools open at once", async () => {
+    await signIn();
+    // Signed in without the code: whatever an earlier session saw is re-read.
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    await type("two-step-code-input", "123456");
+    await press("two-step-verify");
+    expect(mockRefresh).toHaveBeenCalledTimes(2);
+    expect(mockVerifyCode.mock.invocationCallOrder[0] as number).toBeLessThan(
+      mockRefresh.mock.invocationCallOrder[1] as number,
+    );
+  });
+
+  it("[A1.1] a wrong code re-reads nothing more", async () => {
+    const { AccountError } = jest.requireActual("@/features/account/types");
+    mockVerifyCode.mockRejectedValueOnce(new AccountError("wrong_code"));
+    await signIn();
+    await type("two-step-code-input", "000000");
+    await press("two-step-verify");
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
   it("a wrong code keeps the screen and moves nothing", async () => {
     const { AccountError } = jest.requireActual("@/features/account/types");
     mockVerifyCode.mockRejectedValueOnce(new AccountError("wrong_code"));
@@ -369,6 +411,11 @@ describe("Sign in with two-step sign-in on (security checklist A0.1)", () => {
     expect(mockSignOut).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("account-signin-submit")).toBeTruthy();
     expect(mockClaim).not.toHaveBeenCalled();
+    // [A1.1] after the sign-out too
+    expect(mockRefresh).toHaveBeenCalledTimes(2);
+    expect(mockSignOut.mock.invocationCallOrder[0] as number).toBeLessThan(
+      mockRefresh.mock.invocationCallOrder[1] as number,
+    );
   });
 
   it("an account without two-step sign-in never sees the code", async () => {

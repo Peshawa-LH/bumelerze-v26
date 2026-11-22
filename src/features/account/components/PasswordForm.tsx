@@ -6,6 +6,7 @@ import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import { accountErrorText } from "../error-text";
 import { changeAccountPassword, setAccountPassword } from "../service";
 import { isCompleteTwoStepCode, verifyTwoStepCode } from "../two-step";
+import { useRefreshTwoStep } from "../use-two-step";
 import { validateNewPassword } from "../validation";
 import { AccountError } from "../types";
 import { AccountButton } from "./AccountButton";
@@ -38,6 +39,7 @@ export function PasswordForm({
   const [needsCode, setNeedsCode] = useState(false);
   const [code, setCode] = useState("");
   const [errorText, setErrorText] = useState<string | null>(null);
+  const refreshTwoStep = useRefreshTwoStep();
 
   const bodyStyle = {
     color: colors.text.secondary,
@@ -95,6 +97,8 @@ export function PasswordForm({
     setErrorText(null);
     try {
       await verifyTwoStepCode(code);
+      // The session is aal2 now: admin tools open (migration 0076).
+      refreshTwoStep();
       await setAccountPassword(password);
       finishSaved();
     } catch (error) {

@@ -61,10 +61,22 @@ function setPermissions(permissions: Permission[] | null) {
   }
 }
 
+/** `my_admin_needs_two_step()` (migration 0076) answers this; every other
+ * RPC an empty list. */
+let mockNeedsTwoStep = false;
+function needsTwoStepCalls(): number {
+  return mockRpc.mock.calls.filter(([name]) => name === "my_admin_needs_two_step").length;
+}
+
 describe("OwnerList: admin entry", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
-    mockRpc.mockResolvedValue({ data: [], error: null });
+    mockNeedsTwoStep = false;
+    mockRpc.mockImplementation(async (name: string) =>
+      name === "my_admin_needs_two_step"
+        ? { data: mockNeedsTwoStep, error: null }
+        : { data: [], error: null },
+    );
     mockFetchRoles.mockResolvedValue({});
     setPermissions([]);
     if (i18n.language !== "en") {
@@ -90,6 +102,50 @@ describe("OwnerList: admin entry", () => {
       fireEvent.press(await screen.findByTestId("account-admin-row"));
     });
     expect(mockPush).toHaveBeenCalledWith("/admin");
+  });
+
+  it("[A1.1] keeps the admin row while the admin tools wait for two-step sign-in (0076)", async () => {
+    // aal1: my_permissions() is empty, the server says the tools wait.
+    signedIn("shilan");
+    mockNeedsTwoStep = true;
+    await renderWithProviders(<OwnerList />);
+    await act(async () => {
+      fireEvent.press(await screen.findByTestId("account-admin-row"));
+    });
+    expect(mockPush).toHaveBeenCalledWith("/admin");
+    expect(needsTwoStepCalls()).toBe(1);
+  });
+
+  it("[A1.1] an ordinary account asks once and gets no admin row", async () => {
+    signedIn("shilan");
+    await renderWithProviders(<OwnerList />);
+    await waitFor(() => expect(needsTwoStepCalls()).toBe(1));
+    await act(async () => undefined);
+    expect(screen.queryByTestId("account-admin-row")).toBeNull();
+  });
+
+  it("[A1.1] an admin with tools never asks whether they wait for two-step", async () => {
+    signedIn("shilan");
+    setPermissions(["comments.moderate"]);
+    await renderWithProviders(<OwnerList />);
+    expect(await screen.findByTestId("account-admin-row")).toBeTruthy();
+    await act(async () => undefined);
+    expect(needsTwoStepCalls()).toBe(0);
+  });
+
+  it("[A1.1] a guest never asks whether admin tools wait for two-step", async () => {
+    mockAccount = {
+      status: "anonymous",
+      userId: "anon-1",
+      profile: null,
+      profileLoaded: false,
+    };
+    mockNeedsTwoStep = true;
+    await renderWithProviders(<OwnerList />);
+    await act(async () => undefined);
+    await act(async () => undefined);
+    expect(needsTwoStepCalls()).toBe(0);
+    expect(screen.queryByTestId("account-admin-row")).toBeNull();
   });
 
   it("shows the admin row to someone who can only grant badges", async () => {

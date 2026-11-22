@@ -1894,6 +1894,12 @@
         "body": "Open your authenticator app and enter the 6-digit code for Bumelerze.",
         "verify": "Verify",
         "otherAccount": "Use a different account"
+      },
+      "adminNeeded": {
+        "title": "Two-step sign-in needed",
+        "bodyOff": "Admin tools need two-step sign-in. Turning it on takes about 2 minutes.",
+        "turnOn": "Turn on two-step sign-in",
+        "enterCode": "Enter code"
       }
     },
     "profile": {

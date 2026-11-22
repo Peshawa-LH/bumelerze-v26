@@ -26,7 +26,7 @@
   },
   "event-route": {
     "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "8d546057b689675f",
-    "file:app/account/sign-in.tsx": "fd8fb0052ddbb35d",
+    "file:app/account/sign-in.tsx": "3b50f9469a389a2f",
     "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "81ac8231333e9ff7"
   },
   "felt-levels": {

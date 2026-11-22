@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { SettingsGroup } from "@/features/account/components/SettingsGroup";
 import { SettingsRow } from "@/features/account/components/SettingsRow";
+import { useAdminNeedsTwoStep } from "@/features/account/use-two-step";
 import { useAdminAccess } from "@/features/admin/queries";
 import { hasVcSpread, useMyHomes, vcScenarios } from "@/features/building";
 import { useFollowRequests } from "@/features/community/queries";
@@ -16,8 +17,9 @@ import { useTheme } from "@/theme";
  * The owner's own tools under "Only you see this" (review note 5.1, mockup
  * 3a), as ONE tidy list: My reports, My home, People and requests, Download
  * my data, for Government officials the Officials page (0066) and, for
- * admins, Admin tools. Each opens its own page (or, for
- * the download, does it in place).
+ * admins, Admin tools (also while the tools wait for two-step sign-in: the
+ * admin page then says so, migration 0076). Each opens its own page (or,
+ * for the download, does it in place).
  */
 export function OwnerList() {
   const { t, i18n } = useTranslation();
@@ -28,6 +30,7 @@ export function OwnerList() {
   const homes = useMyHomes();
   const requests = useFollowRequests();
   const admin = useAdminAccess();
+  const adminNeedsTwoStep = useAdminNeedsTwoStep();
 
   const pending = requests.data?.length ?? 0;
   const myHomes = homes.data?.homes ?? [];
@@ -99,7 +102,7 @@ export function OwnerList() {
           testID="account-officials-row"
         />
       ) : null}
-      {admin.any ? (
+      {admin.any || adminNeedsTwoStep.needed ? (
         <SettingsRow
           icon="shield-checkmark-outline"
           label={t("community.myAccount.admin")}

@@ -28,6 +28,9 @@ export const eventHubKeys = {
   threadsOf: (eventUuid: string) => ["eventhub", "thread", eventUuid] as const,
   roles: (userId: string) => ["eventhub", "roles", userId] as const,
   permissions: (userId: string) => ["eventhub", "permissions", userId] as const,
+  /** Every account's permissions: re-read after sign-in, sign-out or a
+   * two-step code, which change what `my_permissions()` answers (0076). */
+  permissionsAll: ["eventhub", "permissions"] as const,
 };
 
 export interface UseEventHubSummaryResult {
