@@ -22,10 +22,11 @@
  * about modules reached through static/dynamic `import`, never about a
  * runtime string passed to the real browser `Worker` constructor.
  *
- * `maplibre-gl-worker.mjs` itself `import`s `./maplibre-gl-shared.mjs` as a
- * real (unbundled) browser ES module specifier, resolved relative to its
- * own URL at request time — both files must be copied side by side or the
- * worker fails to load with a module-resolution error.
+ * Up to maplibre-gl 6.16, `maplibre-gl-worker.mjs` `import`ed
+ * `./maplibre-gl-shared.mjs` as a real (unbundled) browser ES module
+ * specifier, so both files had to sit side by side. Since 6.17 the worker is
+ * self-contained and the shared file ships empty; it is still copied so an
+ * older or newer release that splits again keeps working.
  *
  * The RTL plugin (`@mapbox/mapbox-gl-rtl-text`) is the same story for a
  * different reason: maplibre-gl 6.x ships NO rtl-text plugin of its own
