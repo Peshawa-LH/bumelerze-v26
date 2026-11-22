@@ -6,7 +6,7 @@ import { toEventRegistration, type EventRegistration } from "@/features/felt";
 import { isReviewReadonlyBuild } from "@/lib/review-readonly";
 import { getSupabaseClient } from "@/lib/supabase";
 
-import { ATLAS_BASE_URL } from "./config";
+import { ATLAS_BASE_URL, atlasUrlOrNull } from "./config";
 import {
   LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS,
   computeDataUsedSummaryKey,
@@ -202,7 +202,10 @@ async function lookUpEventUuid(
   return data;
 }
 
-async function fetchArtifactJson(url: string): Promise<unknown> {
+async function fetchArtifactJson(url: string | null): Promise<unknown> {
+  if (url === null) {
+    throw new Error("Bumelerze Atlas artifact outside the Atlas");
+  }
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Bumelerze Atlas artifact request failed: ${response.status} ${url}`);
@@ -211,15 +214,16 @@ async function fetchArtifactJson(url: string): Promise<unknown> {
 }
 
 /** Resolves one `shakemap_products.storage_path` value to a fetchable URL
- * — already-absolute (`http(s)://...`) paths pass through untouched;
- * anything else is treated as a Supabase-Storage-relative path and
- * resolved against `ATLAS_BASE_URL` (`config.ts`'s own doc comment: two
- * eras of `storage_path` value coexist in the live table). */
-function resolveArtifactUrl(storagePath: string): string {
-  if (/^https?:\/\//i.test(storagePath)) {
-    return storagePath;
+ * — an absolute address is kept only when it points inside the Atlas
+ * (`atlasUrlOrNull`; anything else is null, security audit APP-08); any
+ * other value is treated as a Supabase-Storage-relative path and resolved
+ * against `ATLAS_BASE_URL` (`config.ts`'s own doc comment: two eras of
+ * `storage_path` value coexist in the live table). */
+function resolveArtifactUrl(storagePath: string): string | null {
+  if (/^[a-z][a-z0-9+.-]*:/i.test(storagePath.trim())) {
+    return atlasUrlOrNull(storagePath);
   }
-  return `${ATLAS_BASE_URL}/${storagePath.replace(/^\/+/, "")}`;
+  return atlasUrlOrNull(`${ATLAS_BASE_URL}/${storagePath.replace(/^\/+/, "")}`);
 }
 
 /** `shakemap_products` rows this event's risk-chain query can carry —

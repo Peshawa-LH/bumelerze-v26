@@ -293,10 +293,19 @@ describe("parseRiskProduct", () => {
   });
 
   it("carries a real reportUrl through when the raw payload has one", () => {
-    const product = parseRiskProduct({ ...rawProduct, reportUrl: "https://example.test/report.pdf" });
+    const product = parseRiskProduct({ ...rawProduct, reportUrl: "https://peshawa-lh.github.io/bumelerze-atlas/report.pdf" });
 
-    expect(product?.reportUrl).toBe("https://example.test/report.pdf");
+    expect(product?.reportUrl).toBe("https://peshawa-lh.github.io/bumelerze-atlas/report.pdf");
   });
+
+  it.each(["https://example.test/report.pdf", "javascript:alert(1)", "http://peshawa-lh.github.io/bumelerze-atlas/report.pdf"])(
+    "drops a reportUrl outside the Atlas (%s) instead of offering it (security audit APP-08)",
+    (url) => {
+      const product = parseRiskProduct({ ...rawProduct, reportUrl: url });
+      expect(product).not.toBeNull();
+      expect(product?.reportUrl).toBeNull();
+    },
+  );
 
   it("defaults reportUrl to null when the raw payload has none (never fabricated)", () => {
     const product = parseRiskProduct(rawProduct);

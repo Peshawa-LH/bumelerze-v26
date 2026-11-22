@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ATLAS_BASE_URL } from "./config";
+import { ATLAS_BASE_URL, atlasUrlOrNull } from "./config";
 import { damageValueToLevel } from "./damage-ramp";
 import { extractContourLevels } from "./contours";
 import type {
@@ -455,9 +455,11 @@ export function parseRiskProduct(raw: unknown): RiskProduct | null {
   const damageContours =
     payload.damageContours !== undefined ? parseDamageContours(payload.damageContours) : null;
   const areas = payload.areas !== undefined ? parseRiskAreas(payload.areas) : null;
+  // Only a file inside the Atlas may become "Download report" (security
+  // audit APP-08); anything else is treated as no report.
   const reportUrl =
     typeof payload.reportUrl === "string" && payload.reportUrl.length > 0
-      ? payload.reportUrl
+      ? atlasUrlOrNull(payload.reportUrl)
       : null;
 
   return { summary, districts, damageContours, areas, reportUrl };

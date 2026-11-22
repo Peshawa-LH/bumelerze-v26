@@ -134,3 +134,35 @@ export const SHAKEMAP_LIVE_GC_TIME_MS = 24 * 60 * 60 * 1000;
  * working through the exact same code path — never a per-row special
  * case. */
 export const ATLAS_BASE_URL = "https://peshawa-lh.github.io/bumelerze-atlas";
+
+/**
+ * `url` when it is an https file inside the Bumelerze Atlas (`ATLAS_BASE_URL`
+ * and below, no user name or password in it), else null. Every absolute
+ * address that arrives in server data (`shakemap_products.storage_path`, a
+ * bundled risk product's `reportUrl`) passes through here before the app
+ * fetches it or offers it as "Download report": a row written with a stolen
+ * worker key, or a poisoned snapshot, cannot turn the button into a link to
+ * another site (security audit APP-08). The same GitHub Pages host also
+ * serves other projects, so the path must start with the Atlas folder too.
+ */
+export function atlasUrlOrNull(url: string): string | null {
+  let parsed: URL;
+  let base: URL;
+  try {
+    parsed = new URL(url.trim());
+    base = new URL(`${ATLAS_BASE_URL}/`);
+  } catch {
+    return null;
+  }
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.origin !== base.origin ||
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    !parsed.pathname.startsWith(base.pathname) ||
+    parsed.pathname.split("/").includes("..")
+  ) {
+    return null;
+  }
+  return parsed.href;
+}

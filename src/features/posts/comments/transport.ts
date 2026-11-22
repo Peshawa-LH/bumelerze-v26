@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { stripBidiControls } from "@/lib/bidi-text";
 import { toCommunityError } from "@/features/community/transport";
 import { CommunityError } from "@/features/community/types";
 import { HUB_ROLE_KINDS, type HubRole } from "@/features/eventhub/types";
@@ -188,7 +189,7 @@ export const SupabasePostCommentsTransport: PostCommentsTransport = {
   async addComment({ postId, body, parentId, clientId }) {
     const data = await rpc("add_post_comment", {
       p_post_id: postId,
-      p_body: body.trim(),
+      p_body: stripBidiControls(body).trim(),
       p_parent_id: parentId,
       p_comment_id: clientId,
     });

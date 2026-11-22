@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
+import { stripBidiControls } from "@/lib/bidi-text";
 import { getSupabaseClient, signInAnonymously } from "@/lib/supabase";
 import { cleanNote, type ReportReason } from "@/features/reporting/reasons";
 import {
@@ -541,7 +542,7 @@ export const SupabaseEventHubTransport: EventHubTransport = {
       event_id: eventUuid,
       parent_id: parentId,
       user_id: userId,
-      body,
+      body: stripBidiControls(body),
     });
     if (error) {
       throw toHubError(error);

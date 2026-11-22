@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { File } from "expo-file-system";
 import { Platform } from "react-native";
 
+import { stripBidiControls } from "@/lib/bidi-text";
 import { dataUriMimeType, releaseDurablePhoto } from "@/lib/durable-photo-uri";
 
 import { getSupabaseClient, signInAnonymously } from "@/lib/supabase";
@@ -36,6 +37,8 @@ const FELT_PHOTOS_BUCKET = "felt-photos";
  * felt_report_id unique constraint) — used below to make retries of an
  * already-succeeded insert idempotent instead of a user-visible failure. */
 const POSTGRES_UNIQUE_VIOLATION = "23505";
+/** `invalid_parameter_value`: the felt functions' not_found / invalid. */
+const POSTGRES_INVALID_PARAMETER = "22023";
 
 export interface FeltReportInsert {
   report_id: string;
@@ -274,7 +277,7 @@ export function buildFeltCommentInsert(
     report_id: report.feltReportId,
     device_id: report.deviceId,
     user_id: userId,
-    body,
+    body: stripBidiControls(body),
   };
 }
 
@@ -442,19 +445,17 @@ export async function uploadFeltPhoto(
       return { outcome: "failed" };
     }
 
-    // A plain insert, never an upsert (2026-10-14). For `insert … on
-    // conflict do update` Postgres also applies the table's SELECT policy
-    // to the new row, and that policy only passes approved photos of live
-    // reports — a fresh photo is `pending`, so the whole upsert was refused
-    // ("new row violates row-level security policy") even with no
-    // conflicting row, and the storage object was left without its row. A
-    // retry after a dropped response hits migration 0016's
-    // `felt_photos_report_id_uq` instead: the row is already there, so that
-    // unique violation is success (same rule as the report rows above).
-    const { error: rowError } = await client
-      .from("felt_photos")
-      .insert(buildFeltPhotoInsert(report.feltReportId, storagePath));
-    if (rowError && rowError.code !== POSTGRES_UNIQUE_VIOLATION) {
+    // The row goes through submit_felt_photo (migration 0080; 0081 closes
+    // the direct insert, security audit DB-08): the server writes it only
+    // for the report's own session and only at this exact path, and a
+    // second call returns the row already there, so a retry after a lost
+    // response is success.
+    const photoRow = buildFeltPhotoInsert(report.feltReportId, storagePath);
+    const { error: rowError } = await client.rpc("submit_felt_photo", {
+      p_report_id: photoRow.report_id,
+      p_storage_path: photoRow.storage_path,
+    });
+    if (rowError) {
       return { outcome: "failed" };
     }
 
@@ -590,18 +591,27 @@ export const SupabaseTransport: FeltTransport = {
       return { outcome: "awaiting-backend" };
     }
 
-    // Since migration 0073 a felt write without a session is refused (anon
-    // lost INSERT), so make sure this install is signed in (anonymously)
-    // BEFORE the details insert, as submitTier1 does. A failed sign-in still
-    // sends the row; the refusal is retried by the queue like any error.
+    // The details go through submit_felt_report_details (migration 0067;
+    // 0081 closes the direct insert, security audit DB-07): the server writes
+    // them only for the session that sent the report, and a second call
+    // replaces the answers (tier 2 supersedes), so a retry after a lost
+    // response is harmless. Without a session nothing can prove ownership:
+    // keep the item and try again once the anonymous sign-in works.
     const userId = await ensureAnonymousUserId(client);
+    if (!userId) {
+      return { outcome: "failed", retryable: true };
+    }
 
-    const { error } = await client
-      .from("felt_report_details")
-      .insert(buildFeltReportDetailInsert(report));
+    const { error } = await client.rpc("submit_felt_report_details", {
+      p_report_id: report.feltReportId,
+      p_device_id: report.deviceId,
+      p_details: buildFeltReportDetailInsert(report),
+    });
 
-    if (error && error.code !== POSTGRES_UNIQUE_VIOLATION) {
-      return { outcome: "failed", retryable: isRetryableInsertError(error.code) };
+    if (error) {
+      // 22023 = not_found / invalid: this session does not own the report
+      // (or the answers break a check); sending it again cannot help.
+      return { outcome: "failed", retryable: error.code !== POSTGRES_INVALID_PARAMETER };
     }
 
     // 2026-08-16 comment-upload-gap fix: window 3's optional comment gets

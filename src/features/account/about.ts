@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { stripBidiControls } from "@/lib/bidi-text";
 import { SupabaseGuidelinesTransport } from "@/features/guidelines/transport";
 import { getSupabaseClient } from "@/lib/supabase";
 import { AccountError } from "./types";
@@ -47,7 +48,7 @@ export function hasLink(text: string): boolean {
 
 /** The bio the server will store: whitespace folded to single spaces, trimmed. */
 export function normalizeBio(text: string): string {
-  return text.replace(/\s+/g, " ").trim();
+  return stripBidiControls(text).replace(/\s+/g, " ").trim();
 }
 
 export type BioProblem = "bio_too_long" | "bio_link";

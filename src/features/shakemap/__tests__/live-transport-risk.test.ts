@@ -56,7 +56,7 @@ const INTERNAL_UUID = "33333333-3333-4333-8333-333333333333";
 function contoursRow(overrides: Record<string, unknown> = {}) {
   return {
     version: 5,
-    storage_path: "https://example.test/events/us2000bmcg/v5/cont_mi.json",
+    storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/events/us2000bmcg/v5/cont_mi.json",
     data_used: { conditioning_applied: {} },
     review_status: "automatic",
     reviewed_at: null,
@@ -127,9 +127,9 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
         { data: [contoursRow()], error: null },
         {
           data: [
-            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
-            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
-            { product_type: "risk_contours", storage_path: "https://example.test/v5/cont_damage.json" },
+            { product_type: "risk_summary", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
+            { product_type: "risk_contours", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/cont_damage.json" },
           ],
           error: null,
         },
@@ -139,9 +139,9 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
     const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
 
     expect(product?.risk).toEqual({
-      summary: { url: "https://example.test/v5/risk_summary.json" },
-      districts: { url: "https://example.test/v5/districts.json" },
-      damageContours: { url: "https://example.test/v5/cont_damage.json" },
+      summary: { url: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+      districts: { url: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
+      damageContours: { url: "https://peshawa-lh.github.io/bumelerze-atlas/v5/cont_damage.json" },
       areas: null,
       reportUrl: null,
     });
@@ -153,9 +153,9 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
         { data: [contoursRow()], error: null },
         {
           data: [
-            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
-            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
-            { product_type: "risk_areas", storage_path: "https://example.test/v5/areas.json" },
+            { product_type: "risk_summary", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
+            { product_type: "risk_areas", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/areas.json" },
           ],
           error: null,
         },
@@ -165,13 +165,13 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
     const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
 
     expect(product?.risk).toEqual({
-      summary: { url: "https://example.test/v5/risk_summary.json" },
-      districts: { url: "https://example.test/v5/districts.json" },
+      summary: { url: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+      districts: { url: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
       damageContours: null,
-      areas: { url: "https://example.test/v5/areas.json" },
+      areas: { url: "https://peshawa-lh.github.io/bumelerze-atlas/v5/areas.json" },
       reportUrl: null,
     });
-    expect(fetchedUrls).toContain("https://example.test/v5/areas.json");
+    expect(fetchedUrls).toContain("https://peshawa-lh.github.io/bumelerze-atlas/v5/areas.json");
   });
 
   it("carries the report row's storage_path through as reportUrl (a pointer, never fetched/JSON-parsed)", async () => {
@@ -180,9 +180,9 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
         { data: [contoursRow()], error: null },
         {
           data: [
-            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
-            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
-            { product_type: "report", storage_path: "https://example.test/v5/report.pdf" },
+            { product_type: "risk_summary", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
+            { product_type: "report", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/report.pdf" },
           ],
           error: null,
         },
@@ -192,14 +192,53 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
     const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
 
     expect(product?.risk).toEqual({
-      summary: { url: "https://example.test/v5/risk_summary.json" },
-      districts: { url: "https://example.test/v5/districts.json" },
+      summary: { url: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+      districts: { url: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
       damageContours: null,
       areas: null,
-      reportUrl: "https://example.test/v5/report.pdf",
+      reportUrl: "https://peshawa-lh.github.io/bumelerze-atlas/v5/report.pdf",
     });
     // Never fetched as JSON — a PDF response body would fail `.json()`.
-    expect(fetchedUrls).not.toContain("https://example.test/v5/report.pdf");
+    expect(fetchedUrls).not.toContain("https://peshawa-lh.github.io/bumelerze-atlas/v5/report.pdf");
+  });
+
+  it("drops a report row that points outside the Atlas, and never fetches a risk file from there (security audit APP-08)", async () => {
+    mockedGetSupabaseClient.mockReturnValue(
+      client(
+        { data: [contoursRow()], error: null },
+        {
+          data: [
+            { product_type: "risk_summary", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
+            { product_type: "report", storage_path: "https://phish.example/report.pdf" },
+          ],
+          error: null,
+        },
+      ) as unknown as ReturnType<typeof getSupabaseClient>,
+    );
+
+    const product = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
+
+    expect(product?.risk).toEqual(expect.objectContaining({ reportUrl: null }));
+
+    mockedGetSupabaseClient.mockReturnValue(
+      client(
+        { data: [contoursRow()], error: null },
+        {
+          data: [
+            { product_type: "risk_summary", storage_path: "https://phish.example/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
+          ],
+          error: null,
+        },
+      ) as unknown as ReturnType<typeof getSupabaseClient>,
+    );
+    fetchedUrls.length = 0;
+
+    const second = await SupabaseLiveShakeMapTransport.fetchLiveProduct(HALABJA_EVENT);
+
+    expect(second?.risk).toBeNull();
+    expect(fetchedUrls).not.toContain("https://phish.example/v5/risk_summary.json");
   });
 
   it("resolves a relative report storage_path against ATLAS_BASE_URL too", async () => {
@@ -208,8 +247,8 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
         { data: [contoursRow()], error: null },
         {
           data: [
-            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
-            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
+            { product_type: "risk_summary", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
             { product_type: "report", storage_path: "events/us2000bmcg/v5/report.pdf" },
           ],
           error: null,
@@ -230,8 +269,8 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
         { data: [contoursRow()], error: null },
         {
           data: [
-            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
-            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
+            { product_type: "risk_summary", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
           ],
           error: null,
         },
@@ -282,7 +321,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
         { data: [contoursRow()], error: null },
         {
           data: [
-            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
+            { product_type: "risk_summary", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
           ],
           error: null,
         },
@@ -294,7 +333,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
     expect(product).not.toBeNull();
     expect(product?.risk).toBeNull();
     // The always-present intensity map must still come through untouched.
-    expect(product?.contours).toEqual({ url: "https://example.test/events/us2000bmcg/v5/cont_mi.json" });
+    expect(product?.contours).toEqual({ url: "https://peshawa-lh.github.io/bumelerze-atlas/events/us2000bmcg/v5/cont_mi.json" });
   });
 
   it("degrades to risk: null (never throws, never blocks the contours map) when the risk query itself errors", async () => {
@@ -331,8 +370,8 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct — risk bundle", () =>
         { data: [contoursRow()], error: null },
         {
           data: [
-            { product_type: "risk_summary", storage_path: "https://example.test/v5/risk_summary.json" },
-            { product_type: "risk_districts", storage_path: "https://example.test/v5/districts.json" },
+            { product_type: "risk_summary", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/risk_summary.json" },
+            { product_type: "risk_districts", storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v5/districts.json" },
           ],
           error: null,
         },

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { stripBidiControls } from "@/lib/bidi-text";
 import { toCommunityError } from "@/features/community/transport";
 import { CommunityError } from "@/features/community/types";
 import { cleanNote, type ReportReason } from "@/features/reporting/reasons";
@@ -235,14 +236,14 @@ export const SupabasePostsTransport: PostsTransport = {
   async createPost(userId, body) {
     const { error } = await requireClient()
       .from("profile_posts")
-      .insert({ user_id: userId, body: body.trim() });
+      .insert({ user_id: userId, body: stripBidiControls(body).trim() });
     if (error) {
       throw toCommunityError(error);
     }
   },
 
   async editPost(postId, body) {
-    await rpc("edit_my_post", { p_post_id: postId, p_body: body.trim() });
+    await rpc("edit_my_post", { p_post_id: postId, p_body: stripBidiControls(body).trim() });
   },
 
   async setHelpful(postId, helpful) {
@@ -258,7 +259,7 @@ export const SupabasePostsTransport: PostsTransport = {
   async shareEvent(eventRef, text) {
     const data = await rpc("share_event_to_profile", {
       p_event: eventRef,
-      p_body: text.trim(),
+      p_body: stripBidiControls(text).trim(),
     });
     return typeof data === "string" ? data : "";
   },

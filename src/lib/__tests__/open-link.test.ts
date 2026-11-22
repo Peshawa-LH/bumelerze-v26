@@ -43,6 +43,23 @@ describe("openLink", () => {
     expect(openURL).toHaveBeenCalledWith("https://example.test/report.pdf");
   });
 
+  it.each([
+    "http://example.test/report.pdf",
+    "javascript:alert(1)",
+    "intent://scan/#Intent;scheme=zxing;end",
+    "file:///etc/hosts",
+    "",
+  ])("refuses %s without opening anything (security audit APP-08)", async (url) => {
+    await expect(openLink(url)).rejects.toThrow("not allowed");
+    expect(mockOpenBrowser).not.toHaveBeenCalled();
+    expect(openURL).not.toHaveBeenCalled();
+  });
+
+  it("hands a phone number to the system", async () => {
+    await openLink("tel:+9647500000000");
+    expect(openURL).toHaveBeenCalledWith("tel:+9647500000000");
+  });
+
   it("rejects when nothing can open the link, so the caller can say so", async () => {
     mockOpenBrowser.mockRejectedValue(new Error("refused"));
     openURL.mockRejectedValue(new Error("no handler"));

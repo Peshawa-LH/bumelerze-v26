@@ -12,4 +12,14 @@ describe("openLink on the web", () => {
     expect(openURL.mock.calls[0]).toHaveLength(1);
     openURL.mockRestore();
   });
+
+  it.each(["http://example.test/a", "javascript:alert(1)", "data:text/html,hi"])(
+    "refuses %s (security audit APP-08)",
+    async (url) => {
+      const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+      await expect(openLink(url)).rejects.toThrow("not allowed");
+      expect(openURL).not.toHaveBeenCalled();
+      openURL.mockRestore();
+    },
+  );
 });

@@ -1,3 +1,4 @@
+import { stripBidiControls } from "@/lib/bidi-text";
 import Constants from "expo-constants";
 import { File } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
@@ -528,7 +529,7 @@ export interface SaveProfileInput {
 
 export async function saveProfile(input: SaveProfileInput): Promise<void> {
   const client = requireClient();
-  const name = input.displayName.trim();
+  const name = stripBidiControls(input.displayName).trim();
   if (!validateDisplayName(name)) {
     throw new AccountError("name_length");
   }
