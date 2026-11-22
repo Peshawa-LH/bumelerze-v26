@@ -68,7 +68,6 @@ function liveRow(overrides: Record<string, unknown> = {}) {
       engine_version: { service_version: "0.2.0" },
     },
     review_status: "automatic",
-    reviewed_by: null,
     reviewed_at: null,
     created_at: "2026-08-18T00:00:00.000Z",
     ...overrides,

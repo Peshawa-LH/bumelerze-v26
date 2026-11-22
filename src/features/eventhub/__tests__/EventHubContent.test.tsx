@@ -265,6 +265,25 @@ describe("EventHubContent", () => {
       roles: { "u-bumelerze": [{ role: "official" as const, orgName: null }] },
     };
 
+    it("shows the area from the town the server sends (0077), with no cell at all", async () => {
+      await renderHub(
+        makeTransport({
+          comments: [
+            buildComment({
+              id: "town-only",
+              userId: "u-awat",
+              body: "Felt it in Erbil",
+              areaGeohash: null,
+              areaTown: "erbil",
+            }),
+          ],
+          authors: { "u-awat": { displayName: "Awat" } },
+        }),
+      );
+      expect(await screen.findByText("Felt it in Erbil")).toBeTruthy();
+      expect(screen.getByText("felt it near Hawler")).toBeTruthy();
+    });
+
     it("lists threads newest first with replies oldest first, names, role marks, area and time", async () => {
       await renderHub(makeTransport(data));
       expect(await screen.findByText("Strong shaking in Slemani")).toBeTruthy();

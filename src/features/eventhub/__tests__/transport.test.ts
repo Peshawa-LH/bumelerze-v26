@@ -1,6 +1,12 @@
+import { readFileSync } from "fs";
+import { join } from "path";
+
 import {
+  COMMENT_COLUMNS,
+  LEGACY_COMMENT_COLUMNS,
   SupabaseEventHubTransport,
   parseCommentRows,
+  parseRemovedRows,
   parsePermissions,
   parseSummary,
   toHubError,
@@ -103,6 +109,7 @@ describe("parsers", () => {
         userId: "u1",
         body: "Felt it strongly",
         areaGeohash: "sx7ce",
+        areaTown: null,
         status: "visible",
         helpfulCount: 2,
         replyCount: 1,
@@ -228,7 +235,7 @@ describe("reads", () => {
     expect(calls).toContainEqual(["order", ["created_at", { ascending: false }]]);
   });
 
-  it("asks for pinned_at, and reads again without it on a server before 0059", async () => {
+  it("reads the town (0077), and reads again with the old columns on a server before 0077", async () => {
     let first = true;
     const original = tableResults;
     tableResults = {};
@@ -238,7 +245,10 @@ describe("reads", () => {
           first = false;
           return {
             data: null,
-            error: { code: "42703", message: 'column "pinned_at" does not exist' },
+            error: {
+              code: "42703",
+              message: "column event_comments.area_town does not exist",
+            },
           };
         }
         return { data: [COMMENT_ROW], error: null };
@@ -246,10 +256,95 @@ describe("reads", () => {
     });
     const comments = await SupabaseEventHubTransport.fetchComments("event-uuid");
     expect(comments).toHaveLength(1);
+    expect(comments[0]?.areaGeohash).toBe("sx7ce");
     const selects = callsOf("event_comments").filter(([m]) => m === "select");
-    expect(String(selects[0]?.[1][0])).toContain("pinned_at");
-    expect(String(selects[1]?.[1][0])).not.toContain("pinned_at");
+    expect(String(selects[0]?.[1][0])).toBe(COMMENT_COLUMNS.join(", "));
+    expect(String(selects[0]?.[1][0])).not.toContain("area_geohash");
+    expect(String(selects[1]?.[1][0])).toBe(LEGACY_COMMENT_COLUMNS.join(", "));
     tableResults = original;
+  });
+
+  it("maps area_town and never asks for the cell first", async () => {
+    tableResults.event_comments = {
+      data: [
+        { ...COMMENT_ROW, area_geohash: undefined, area_town: "erbil", pinned_at: null },
+      ],
+      error: null,
+    };
+    const comments = await SupabaseEventHubTransport.fetchComments("event-uuid");
+    expect(comments[0]?.areaTown).toBe("erbil");
+    expect(comments[0]?.areaGeohash).toBeNull();
+    const selects = callsOf("event_comments").filter(([m]) => m === "select");
+    expect(selects).toHaveLength(1);
+  });
+
+  it("asks event_hub_removed only when a reply's parent is missing, and adds a bare placeholder", async () => {
+    tableResults.event_comments = {
+      data: [
+        { ...COMMENT_ROW, comment_id: "r1", parent_id: "gone", area_town: null },
+        { ...COMMENT_ROW, comment_id: "c2", parent_id: null, area_town: null },
+      ],
+      error: null,
+    };
+    mockRpc.mockResolvedValueOnce({
+      data: [
+        { comment_id: "gone", created_at: "2026-10-04T09:00:00.000Z" },
+        { comment_id: "c2", created_at: "2026-10-04T09:00:00.000Z" },
+      ],
+      error: null,
+    });
+    const comments = await SupabaseEventHubTransport.fetchComments("event-uuid");
+    expect(mockRpc).toHaveBeenCalledWith("event_hub_removed", {
+      p_event_id: "event-uuid",
+    });
+    const placeholder = comments.find((c) => c.id === "gone");
+    expect(placeholder).toEqual({
+      id: "gone",
+      eventId: "event-uuid",
+      parentId: null,
+      userId: null,
+      body: "",
+      areaGeohash: null,
+      areaTown: null,
+      status: "removed",
+      helpfulCount: 0,
+      replyCount: 0,
+      createdAt: Date.parse("2026-10-04T09:00:00.000Z"),
+      pinnedAt: null,
+    });
+    // A row the table already returned is never doubled.
+    expect(comments.filter((c) => c.id === "c2")).toHaveLength(1);
+  });
+
+  it("makes no extra call when every reply has its parent, and shows the rows when the call fails", async () => {
+    tableResults.event_comments = { data: [COMMENT_ROW], error: null };
+    await SupabaseEventHubTransport.fetchComments("event-uuid");
+    expect(mockRpc).not.toHaveBeenCalled();
+
+    tableResults.event_comments = {
+      data: [{ ...COMMENT_ROW, comment_id: "r1", parent_id: "gone" }],
+      error: null,
+    };
+    mockRpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "PGRST202", message: "not found" },
+    });
+    const comments = await SupabaseEventHubTransport.fetchComments("event-uuid");
+    expect(comments.map((c) => c.id)).toEqual(["r1"]);
+  });
+
+  it("parseRemovedRows drops malformed rows", () => {
+    expect(
+      parseRemovedRows(
+        [
+          { comment_id: "a", created_at: "nope" },
+          { created_at: "2026-10-04T09:00:00Z" },
+          null,
+        ],
+        "e",
+      ),
+    ).toEqual([]);
+    expect(parseRemovedRows(null, "e")).toEqual([]);
   });
 
   it("maps profiles by user id and chunks long id lists", async () => {
@@ -319,6 +414,48 @@ describe("reads", () => {
     const roles = await SupabaseEventHubTransport.fetchRoles(["u1", "u2"]);
     expect(roles.u1).toEqual([{ role: "partner", orgName: "KRG Civil Defence" }]);
     expect(roles.u2).toEqual([{ role: "moderator", orgName: null }]);
+  });
+
+  it("in a hub, reads the marks through event_hub_roles (0077), only for the asked ids", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: [
+        { user_id: "u1", role: "partner", org_name: "KRG Civil Defence" },
+        { user_id: "u1", role: "wizard", org_name: null },
+        { user_id: "u3", role: "moderator", org_name: null },
+      ],
+      error: null,
+    });
+    const roles = await SupabaseEventHubTransport.fetchRoles(["u1", "u2"], "event-uuid");
+    expect(mockRpc).toHaveBeenCalledWith("event_hub_roles", { p_event_id: "event-uuid" });
+    expect(roles).toEqual({ u1: [{ role: "partner", orgName: "KRG Civil Defence" }] });
+    expect(recorded.filter((r) => r.table === "user_roles")).toHaveLength(0);
+  });
+
+  it("falls back to the table on a server before 0077 (no event_hub_roles yet)", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: null,
+      error: {
+        code: "PGRST202",
+        message: "Could not find the function public.event_hub_roles",
+      },
+    });
+    tableResults.user_roles = {
+      data: [{ user_id: "u2", role: "moderator", org_name: null }],
+      error: null,
+    };
+    const roles = await SupabaseEventHubTransport.fetchRoles(["u2"], "event-uuid");
+    expect(roles.u2).toEqual([{ role: "moderator", orgName: null }]);
+  });
+
+  it("throws a HubError when event_hub_roles fails for another reason", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "57014", message: "timeout" },
+    });
+    await expect(
+      SupabaseEventHubTransport.fetchRoles(["u1"], "event-uuid"),
+    ).rejects.toBeInstanceOf(HubError);
+    expect(recorded.filter((r) => r.table === "user_roles")).toHaveLength(0);
   });
 
   it("reads the caller's helpful marks", async () => {
@@ -605,5 +742,28 @@ describe("writes", () => {
     await expect(
       SupabaseEventHubTransport.moderateComment("c", "hide"),
     ).rejects.toBeInstanceOf(HubError);
+  });
+});
+
+describe("the hub reads only columns clients may read (migration 0077)", () => {
+  const migration = readFileSync(
+    join(__dirname, "../../../../supabase/migrations/0077_events_and_public_data.sql"),
+    "utf8",
+  );
+  const granted = (
+    migration.match(
+      /grant select \(([^)]*)\) on public\.event_comments to anon, authenticated;/,
+    )?.[1] ?? ""
+  )
+    .split(",")
+    .map((c) => c.trim());
+
+  it("every comment column the hub asks for is granted; the cell is not", () => {
+    expect(granted.length).toBeGreaterThan(5);
+    for (const column of COMMENT_COLUMNS) {
+      expect(granted).toContain(column);
+    }
+    expect(COMMENT_COLUMNS).not.toContain("area_geohash");
+    expect(granted).not.toContain("area_geohash");
   });
 });

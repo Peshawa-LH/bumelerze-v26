@@ -99,6 +99,21 @@ async function readRegisteredEventUuid(
   return parsed.success ? parsed.data.event_id : null;
 }
 
+/** Postgres invalid_parameter_value: the registration RPC's refusal of a
+ * value it will not take. */
+const INVALID_PARAMETER = "22023";
+
+/** Whether this install holds a session (anonymous or not). Reads the
+ * stored session only: no network, never throws. */
+async function hasSession(client: SupabaseClient): Promise<boolean> {
+  try {
+    const { data } = await client.auth.getSession();
+    return Boolean(data.session);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Resolves `event` (the client's own already-normalized feed record) to
  * the canonical server `events.event_id` uuid. READ first
@@ -143,6 +158,15 @@ async function lookUpEventUuid(
   if (isReviewReadonlyBuild()) {
     return null;
   }
+  // Registering needs a session since migration 0077 (anon may not call the
+  // RPC). Without one, answer "no id" and ask again later, like the read-only
+  // build: signing in here would make every visitor who opens an event the
+  // registry does not know yet a new anonymous user, against the sign-in
+  // limit that phones behind one carrier address share. Anyone who reported,
+  // commented or turned alerts on already has a session.
+  if (!(await hasSession(client))) {
+    return null;
+  }
 
   const registration: EventRegistration = toEventRegistration(event);
   // Param names MUST carry the `p_` prefix — PostgREST resolves rpc args
@@ -162,6 +186,12 @@ async function lookUpEventUuid(
   });
 
   if (error) {
+    // 22023: the registry answered that it will not register this event
+    // (since 0077, a new event older than 400 days or with an odd place
+    // line). That is an answer, "no id", not a failed request.
+    if (error.code === INVALID_PARAMETER) {
+      return null;
+    }
     throw error;
   }
   if (typeof data !== "string" || data.length === 0) {

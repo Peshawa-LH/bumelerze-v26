@@ -99,8 +99,13 @@ export interface HubComment {
   parentId: string | null;
   userId: string | null;
   body: string;
-  /** Geohash-5 cell (~5 km) of the commenter's own felt report, or null. */
+  /** Geohash-5 cell (~5 km) of the commenter's own felt report, or null.
+   * Only a server before migration 0077 sends it; since then the cell stays
+   * on the server and `areaTown` carries the area. */
   areaGeohash: string | null;
+  /** The gazetteer town (`GAZETTEER_CITIES` id) nearest the commenter's
+   * report cell within 100 km, or null (migration 0077). */
+  areaTown?: string | null;
   status: CommentStatus;
   helpfulCount: number;
   replyCount: number;

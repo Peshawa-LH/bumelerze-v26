@@ -1,5 +1,5 @@
 import { decodeGeohashBounds } from "@/features/feltmap/geohash-bounds";
-import { nearestCities, pickLocalizedName } from "@/features/geo";
+import { GAZETTEER_CITIES, nearestCities, pickLocalizedName } from "@/features/geo";
 
 /** A commenter's area is a ~5 km cell; a gazetteer city farther than this
  * from its centre would make "near {city}" misleading, so no line is shown. */
@@ -32,4 +32,22 @@ export function areaCityName(
     return null;
   }
   return pickLocalizedName(nearest.city.names, locale);
+}
+
+/**
+ * The name of a commenter's area town in the reader's language, from the
+ * gazetteer id the server sends since migration 0077 (`area_town`: the same
+ * towns and the same 100 km rule as `areaCityName`, worked out on the server
+ * so the cell itself is no longer public). Null for no town or an id this
+ * app does not know.
+ */
+export function areaTownName(
+  townId: string | null | undefined,
+  locale: string,
+): string | null {
+  if (!townId) {
+    return null;
+  }
+  const city = GAZETTEER_CITIES.find((candidate) => candidate.id === townId);
+  return city ? pickLocalizedName(city.names, locale) : null;
 }

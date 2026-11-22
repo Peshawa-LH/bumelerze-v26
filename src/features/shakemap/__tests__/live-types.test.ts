@@ -1,4 +1,8 @@
+import { readFileSync } from "fs";
+import { join } from "path";
+
 import {
+  LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS,
   computeDataUsedSummaryKey,
   extractEngineVersion,
   parseLiveShakeMapProductRows,
@@ -12,7 +16,6 @@ function validRow(overrides: Record<string, unknown> = {}) {
     storage_path: "https://example.test/events/us2000bmcg/v2/cont_mi.json",
     data_used: { conditioning_applied: { ems: true }, instrument_stations_parsed: 4 },
     review_status: "automatic",
-    reviewed_by: null,
     reviewed_at: null,
     created_at: "2026-08-18T00:00:00.000Z",
     ...overrides,
@@ -59,7 +62,6 @@ describe("selectLatestLiveProductRow", () => {
       storage_path: "x",
       data_used: {},
       review_status: "automatic",
-      reviewed_by: null,
       reviewed_at: null,
       created_at: "2026-08-18T00:00:00.000Z",
       ...overrides,
@@ -180,5 +182,35 @@ describe("extractEngineVersion", () => {
 
   it("returns null when engine_version is present but every field is empty", () => {
     expect(extractEngineVersion({ engine_version: {} })).toBeNull();
+  });
+});
+
+describe("the columns the app reads are the ones clients may read (migration 0077)", () => {
+  const migration = readFileSync(
+    join(__dirname, "../../../../supabase/migrations/0077_events_and_public_data.sql"),
+    "utf8",
+  );
+  const granted = (table: string): string[] => {
+    const m = migration.match(
+      new RegExp(`grant select \\(([^)]*)\\) on public\\.${table} to anon, authenticated;`),
+    );
+    return (m?.[1] ?? "").split(",").map((c) => c.trim());
+  };
+
+  it("every live product column is granted; reviewed_by is neither granted nor asked for", () => {
+    const columns = granted("shakemap_products");
+    for (const column of [...LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS, "product_type", "event_id"]) {
+      expect(columns).toContain(column);
+    }
+    expect(columns).not.toContain("reviewed_by");
+    expect(LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS).not.toContain("reviewed_by");
+  });
+
+  it("the registry reads (event id, provider, provider event id, fetched_at) stay granted", () => {
+    const columns = granted("event_source_records");
+    for (const column of ["event_id", "provider", "provider_event_id", "fetched_at"]) {
+      expect(columns).toContain(column);
+    }
+    expect(columns).not.toContain("raw_payload");
   });
 });

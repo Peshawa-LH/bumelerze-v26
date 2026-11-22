@@ -407,6 +407,31 @@ describe("SupabaseTransport.submitTier1", () => {
       expect(result.outcome).toBe("submitted");
     });
 
+    it("signs in BEFORE registering the event (0077: the registration needs a session)", async () => {
+      const { SupabaseTransport } = loadTransport();
+      const supabaseLib = loadMockedSupabaseLib();
+      const client = mockClientWithInsertResult(null, {
+        data: "55555555-5555-4555-8555-555555555555",
+      });
+      supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+      await SupabaseTransport.submitTier1({
+        ...SAMPLE_TIER1_WITH_EVENT,
+        eventRegistration: {
+          ...(SAMPLE_TIER1_WITH_EVENT.eventRegistration as NonNullable<
+            typeof SAMPLE_TIER1_WITH_EVENT.eventRegistration
+          >),
+          providerId: "us_signin_first",
+        },
+      });
+
+      const signInOrder = supabaseLib.signInAnonymously.mock.invocationCallOrder[0];
+      const rpcOrder = (client.rpc as jest.Mock).mock.invocationCallOrder[0];
+      expect(signInOrder).toBeDefined();
+      expect(rpcOrder).toBeDefined();
+      expect(signInOrder as number).toBeLessThan(rpcOrder as number);
+    });
+
     it("caches the resolved uuid across submissions for the same (provider, providerId) — only one RPC call", async () => {
       const { SupabaseTransport } = loadTransport();
       const supabaseLib = loadMockedSupabaseLib();

@@ -1,6 +1,8 @@
 import { encodeGeohash } from "@/lib/felt-aggregation/geohash";
 
-import { areaCityName, geohashCenter } from "../area";
+import { GAZETTEER_CITIES } from "@/features/geo";
+
+import { areaCityName, areaTownName, geohashCenter } from "../area";
 
 describe("geohashCenter", () => {
   it("returns the middle of the cell, inside ~3 km of the encoded point", () => {
@@ -26,5 +28,27 @@ describe("areaCityName", () => {
     expect(areaCityName("!!!!!", "en")).toBeNull();
     // Berlin
     expect(areaCityName(encodeGeohash(52.52, 13.4, 5), "en")).toBeNull();
+  });
+});
+
+describe("areaTownName (migration 0077: the server sends the town id)", () => {
+  it("names the town in each locale, the same name the cell gave", () => {
+    const hash = encodeGeohash(35.57, 45.44, 5);
+    for (const locale of ["en", "ckb", "kmr", "ar"]) {
+      expect(areaTownName("slemani", locale)).toBe(areaCityName(hash, locale));
+    }
+  });
+
+  it("is null without a town or for an id this app does not know", () => {
+    expect(areaTownName(null, "en")).toBeNull();
+    expect(areaTownName(undefined, "en")).toBeNull();
+    expect(areaTownName("", "en")).toBeNull();
+    expect(areaTownName("atlantis", "en")).toBeNull();
+  });
+
+  it("knows every gazetteer town by id (the server's felt_towns uses the same ids)", () => {
+    for (const city of GAZETTEER_CITIES) {
+      expect(areaTownName(city.id, "en")).toBe(city.names.en);
+    }
   });
 });

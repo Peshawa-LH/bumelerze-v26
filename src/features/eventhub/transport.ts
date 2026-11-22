@@ -24,7 +24,14 @@ export interface EventHubTransport {
   fetchSummary(eventUuid: string): Promise<HubSummary | null>;
   fetchComments(eventUuid: string): Promise<HubComment[]>;
   fetchAuthors(userIds: readonly string[]): Promise<Record<string, HubAuthor>>;
-  fetchRoles(userIds: readonly string[]): Promise<Record<string, HubRole[]>>;
+  /** Role marks of these people. With `eventUuid` (the hub), read through
+   * `event_hub_roles()` (migration 0077): the marks of the people whose
+   * comments the viewer sees there; without it, or on a server before 0077,
+   * the old `user_roles` read, which 0077 closes to clients. */
+  fetchRoles(
+    userIds: readonly string[],
+    eventUuid?: string,
+  ): Promise<Record<string, HubRole[]>>;
   /** Ids (among `commentIds`) the signed-in account marked helpful. */
   fetchMyHelpful(commentIds: readonly string[]): Promise<string[]>;
   postComment(input: {
@@ -77,7 +84,27 @@ export const HUB_COMMENT_LIMIT = 300;
 /** Ids per `.in()` filter, so a long list never overflows the URL length. */
 const ID_CHUNK = 60;
 
+/** The hub's read (migration 0077): every column here is granted to clients.
+ * The commenter's area arrives as the gazetteer town (`area_town`), not the
+ * ~5 km cell, and `select=*` would be refused. */
 export const COMMENT_COLUMNS = [
+  "comment_id",
+  "event_id",
+  "parent_id",
+  "user_id",
+  "body",
+  "area_town",
+  "status",
+  "helpful_count",
+  "reply_count",
+  "created_at",
+  "pinned_at",
+] as const;
+
+/** The read for a server before migration 0077 (no `area_town` column yet;
+ * the cell was still public). Asked only when the first read says the
+ * column does not exist. */
+export const LEGACY_COMMENT_COLUMNS = [
   "comment_id",
   "event_id",
   "parent_id",
@@ -88,11 +115,8 @@ export const COMMENT_COLUMNS = [
   "helpful_count",
   "reply_count",
   "created_at",
+  "pinned_at",
 ] as const;
-
-/** Read too from migration 0059 (the hub's pinned note). A server without it
- * rejects the column, so the read is retried without it. */
-export const PINNED_COLUMN = "pinned_at";
 
 const commentRowSchema = z.object({
   comment_id: z.string(),
@@ -100,7 +124,8 @@ const commentRowSchema = z.object({
   parent_id: z.string().nullable(),
   user_id: z.string().nullable(),
   body: z.string(),
-  area_geohash: z.string().nullable(),
+  area_town: z.string().nullable().optional(),
+  area_geohash: z.string().nullable().optional(),
   status: z.enum(["visible", "pending", "hidden", "removed"]),
   helpful_count: z.number().int().nonnegative(),
   reply_count: z.number().int().nonnegative(),
@@ -131,7 +156,8 @@ export function parseCommentRows(rows: unknown): HubComment[] {
       parentId: parsed.data.parent_id,
       userId: parsed.data.user_id,
       body: parsed.data.body,
-      areaGeohash: parsed.data.area_geohash,
+      areaGeohash: parsed.data.area_geohash ?? null,
+      areaTown: parsed.data.area_town ?? null,
       status: parsed.data.status,
       helpfulCount: parsed.data.helpful_count,
       replyCount: parsed.data.reply_count,
@@ -255,6 +281,58 @@ async function requireUserId(client: SupabaseClient): Promise<string> {
   return userId;
 }
 
+/** PostgREST's answer for a column the server does not have yet (42703). */
+function isMissingColumn(error: ErrorLike, column: string): boolean {
+  return error.code === "42703" || new RegExp(column).test(error.message ?? "");
+}
+
+/** PostgREST's answer for a function the server does not have yet. */
+function isMissingFunction(error: ErrorLike): boolean {
+  return (
+    error.code === "PGRST202" ||
+    error.code === "42883" ||
+    /could not find the function/i.test(error.message ?? "")
+  );
+}
+
+const removedRowSchema = z.object({ comment_id: z.string(), created_at: z.string() });
+
+/**
+ * `event_hub_removed()` rows (migration 0077) -> "Comment removed" rows: a
+ * top-level comment a moderator removed, kept while replies under it are
+ * visible. Since 0077 the table no longer returns a removed comment to
+ * anyone but its author and the moderators, and this read gives only its id
+ * and time: never the author, the text or the reason.
+ */
+export function parseRemovedRows(rows: unknown, eventUuid: string): HubComment[] {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+  const out: HubComment[] = [];
+  for (const row of rows) {
+    const parsed = removedRowSchema.safeParse(row);
+    const createdAt = parsed.success ? Date.parse(parsed.data.created_at) : NaN;
+    if (!parsed.success || Number.isNaN(createdAt)) {
+      continue;
+    }
+    out.push({
+      id: parsed.data.comment_id,
+      eventId: eventUuid,
+      parentId: null,
+      userId: null,
+      body: "",
+      areaGeohash: null,
+      areaTown: null,
+      status: "removed",
+      helpfulCount: 0,
+      replyCount: 0,
+      createdAt,
+      pinnedAt: null,
+    });
+  }
+  return out;
+}
+
 function chunk<T>(items: readonly T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
@@ -322,16 +400,35 @@ export const SupabaseEventHubTransport: EventHubTransport = {
         .eq("event_id", eventUuid)
         .order("created_at", { ascending: false })
         .limit(HUB_COMMENT_LIMIT);
-    let { data, error } = await read([...COMMENT_COLUMNS, PINNED_COLUMN].join(", "));
-    // 42703: the column does not exist yet (a server before migration 0059).
-    // Comments must never disappear because of a missing migration.
-    if (error && (error.code === "42703" || /pinned_at/.test(error.message ?? ""))) {
-      ({ data, error } = await read(COMMENT_COLUMNS.join(", ")));
+    let { data, error } = await read(COMMENT_COLUMNS.join(", "));
+    // 42703: no area_town yet (a server before migration 0077). Comments must
+    // never disappear because of a missing migration.
+    if (error && isMissingColumn(error, "area_town")) {
+      ({ data, error } = await read(LEGACY_COMMENT_COLUMNS.join(", ")));
     }
     if (error) {
       throw toHubError(error);
     }
-    return parseCommentRows(data);
+    const comments = parseCommentRows(data);
+    // A reply whose parent is not among the rows: the parent may be a removed
+    // comment, which only event_hub_removed() still names (0077). Best effort:
+    // without it the reply is left out, as for any parent not shown.
+    const ids = new Set(comments.map((comment) => comment.id));
+    if (!comments.some((c) => c.parentId !== null && !ids.has(c.parentId))) {
+      return comments;
+    }
+    try {
+      const removed = await client.rpc("event_hub_removed", { p_event_id: eventUuid });
+      if (removed.error) {
+        return comments;
+      }
+      const placeholders = parseRemovedRows(removed.data, eventUuid).filter(
+        (row) => !ids.has(row.id),
+      );
+      return [...comments, ...placeholders];
+    } catch {
+      return comments;
+    }
   },
 
   async fetchAuthors(userIds) {
@@ -365,11 +462,33 @@ export const SupabaseEventHubTransport: EventHubTransport = {
     return authors;
   },
 
-  async fetchRoles(userIds) {
+  async fetchRoles(userIds, eventUuid) {
     const client = getSupabaseClient();
     const roles: Record<string, HubRole[]> = {};
     if (!client || userIds.length === 0) {
       return roles;
+    }
+    if (eventUuid) {
+      // Migration 0077: the hub's marks come from event_hub_roles(); the
+      // table is closed to clients. A server before 0077 has no function and
+      // falls through to the old table read below.
+      const { data, error } = await client.rpc("event_hub_roles", {
+        p_event_id: eventUuid,
+      });
+      if (!error) {
+        const wanted = new Set(userIds);
+        for (const row of (Array.isArray(data) ? data : []) as RoleRow[]) {
+          const kind = HUB_ROLE_KINDS.find((candidate) => candidate === row.role);
+          if (!kind || !wanted.has(row.user_id)) {
+            continue;
+          }
+          (roles[row.user_id] ??= []).push({ role: kind, orgName: row.org_name ?? null });
+        }
+        return roles;
+      }
+      if (!isMissingFunction(error)) {
+        throw toHubError(error);
+      }
     }
     for (const ids of chunk(userIds, ID_CHUNK)) {
       const { data, error } = await client

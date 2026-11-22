@@ -1,4 +1,4 @@
-export { areaCityName, geohashCenter, AREA_CITY_MAX_KM } from "./area";
+export { areaCityName, areaTownName, geohashCenter, AREA_CITY_MAX_KM } from "./area";
 export { EventHubContent } from "./components/EventHubContent";
 export { EventHubPill } from "./components/EventHubPill";
 export {

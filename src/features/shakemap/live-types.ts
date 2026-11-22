@@ -22,13 +22,14 @@ import type { AtlasBundleEntry, DataUsedSummaryKey } from "./types";
  * `product_id`/`event_id`/`producer`/`product_type` (already known/filtered
  * by the query itself) and no `bbox_*` (migration 0019 — indexing-only,
  * unused by the event-detail display path; the map-tab
- * follow-up is where bbox earns its keep). */
+ * follow-up is where bbox earns its keep). No `reviewed_by` either: the
+ * reviewer's name was never shown, and since migration 0077 clients may not
+ * read it (asking for it would fail the whole read). */
 export const LIVE_SHAKEMAP_PRODUCT_ROW_COLUMNS = [
   "version",
   "storage_path",
   "data_used",
   "review_status",
-  "reviewed_by",
   "reviewed_at",
   "created_at",
 ] as const;
@@ -44,7 +45,6 @@ const liveShakeMapProductRowSchema = z.object({
   // evolving.
   data_used: z.record(z.string(), z.unknown()),
   review_status: z.enum(["automatic", "reviewed"]),
-  reviewed_by: z.string().nullable(),
   reviewed_at: z.string().nullable(),
   created_at: z.string(),
 });

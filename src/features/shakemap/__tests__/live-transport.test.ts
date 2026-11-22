@@ -29,8 +29,15 @@ const mockFrom = jest.fn((table: string) =>
     : { select: mockSelect },
 );
 
+// Every install that may register an event holds a session (migration 0077:
+// the registration needs one); `live-transport-registry-read.test.ts` covers
+// the visitor without one.
+const mockAuth = {
+  getSession: jest.fn(async () => ({ data: { session: { user: { id: "u1" } } }, error: null })),
+};
+
 jest.mock("@/lib/supabase", () => ({
-  getSupabaseClient: jest.fn(() => ({ rpc: mockRpc, from: mockFrom })),
+  getSupabaseClient: jest.fn(() => ({ rpc: mockRpc, from: mockFrom, auth: mockAuth })),
 }));
 
 const mockedGetSupabaseClient = getSupabaseClient as jest.MockedFunction<
@@ -70,7 +77,6 @@ function validRow(overrides: Record<string, unknown> = {}) {
       engine_version: { service_version: "0.1.0" },
     },
     review_status: "automatic",
-    reviewed_by: null,
     reviewed_at: null,
     created_at: "2026-08-18T00:00:00.000Z",
     ...overrides,
@@ -91,7 +97,11 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     mockEq3.mockReset();
     mockRegistryRead.mockReset();
     mockRegistryRead.mockResolvedValue({ data: null, error: null });
-    mockedGetSupabaseClient.mockReturnValue({ rpc: mockRpc, from: mockFrom } as never);
+    mockedGetSupabaseClient.mockReturnValue({
+      rpc: mockRpc,
+      from: mockFrom,
+      auth: mockAuth,
+    } as never);
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,

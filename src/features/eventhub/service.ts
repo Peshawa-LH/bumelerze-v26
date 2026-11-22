@@ -24,7 +24,7 @@ export async function loadHubThread(
   const noRoles: Record<string, HubRole[]> = {};
   const [authors, roles, helpedIds, followingIds, flaggedIds] = await Promise.all([
     transport.fetchAuthors(userIds).catch(() => noAuthors),
-    transport.fetchRoles(userIds).catch(() => noRoles),
+    transport.fetchRoles(userIds, eventUuid).catch(() => noRoles),
     options.isAccount
       ? transport.fetchMyHelpful(commentIds).catch((): string[] => [])
       : Promise.resolve<string[]>([]),

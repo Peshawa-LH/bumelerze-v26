@@ -59,7 +59,6 @@ function contoursRow(overrides: Record<string, unknown> = {}) {
     storage_path: "https://example.test/events/us2000bmcg/v5/cont_mi.json",
     data_used: { conditioning_applied: {} },
     review_status: "automatic",
-    reviewed_by: null,
     reviewed_at: null,
     created_at: "2026-09-01T00:00:00.000Z",
     ...overrides,

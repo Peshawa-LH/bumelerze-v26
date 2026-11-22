@@ -549,6 +549,14 @@ export const SupabaseTransport: FeltTransport = {
       return { outcome: "awaiting-backend" };
     }
 
+    // 2026-08-16 storage wave: ensure (or reuse) an anonymous auth session
+    // and populate `user_id` from it. `null` on any failure — never blocks
+    // the insert (see `ensureAnonymousUserId`'s own doc). First, since
+    // migration 0077: the event registration below needs a session too, and
+    // a first report on an earthquake the server has not read yet would
+    // otherwise lose its event.
+    const userId = await ensureAnonymousUserId(client);
+
     // Resolve the client-side provider id to the canonical server uuid
     // BEFORE inserting (migration 0011) — only when this report actually
     // carries a registration snapshot (Event Detail's pill); a Home
@@ -557,11 +565,6 @@ export const SupabaseTransport: FeltTransport = {
     const resolvedEventId = report.eventRegistration
       ? await resolveEventUuid(client, report.eventRegistration)
       : null;
-
-    // 2026-08-16 storage wave: ensure (or reuse) an anonymous auth session
-    // and populate `user_id` from it. `null` on any failure — never blocks
-    // the insert (see `ensureAnonymousUserId`'s own doc).
-    const userId = await ensureAnonymousUserId(client);
 
     const { error } = await client
       .from("felt_reports")

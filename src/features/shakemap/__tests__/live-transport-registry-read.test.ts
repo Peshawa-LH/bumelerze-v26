@@ -57,8 +57,10 @@ function network(rows: unknown[], rpcId: string | null = REGISTRY_ID): Network {
 }
 
 /** The client `getSupabaseClient` builds: the plain fetch, or the
- * read-only wrapper in a review build. */
-function useClient(base: Network, readOnly: boolean): void {
+ * read-only wrapper in a review build. `signedIn`: whether the install holds
+ * a session (anonymous or not); since migration 0077 only such an install
+ * may register an event. */
+function useClient(base: Network, readOnly: boolean, signedIn = true): void {
   if (readOnly) {
     process.env.EXPO_PUBLIC_REVIEW_READONLY = "1";
   } else {
@@ -72,6 +74,10 @@ function useClient(base: Network, readOnly: boolean): void {
         : (input, init) => base(input, init),
     },
   });
+  jest.spyOn(client.auth, "getSession").mockResolvedValue({
+    data: { session: signedIn ? ({ user: { id: "user-1" } } as never) : null },
+    error: null,
+  } as never);
   mockedGetSupabaseClient.mockReturnValue(client);
 }
 
@@ -138,6 +144,55 @@ describe("lookUpEventUuidForEvent reads the registry first", () => {
     expect(methods(base)).toEqual(["GET", "POST"]);
     expect(String(base.mock.calls[1]?.[0])).toContain(
       "/rest/v1/rpc/upsert_event_from_client",
+    );
+  });
+
+  it("never registers without a session (0077): answers 'no id' after the read, no POST", async () => {
+    const base = network([], REGISTRY_ID);
+    useClient(base, false, false);
+
+    await expect(
+      lookUpEventUuidForEvent(quake("us_visitor_no_session")),
+    ).resolves.toBeNull();
+
+    expect(methods(base)).toEqual(["GET"]);
+  });
+
+  it("answers 'no id' when the registry refuses the event (22023, e.g. older than 400 days)", async () => {
+    const base = jest.fn<Promise<Response>, Parameters<typeof fetch>>(async (input) => {
+      const url = String(input);
+      if (url.includes("/rest/v1/event_source_records")) {
+        return json([]);
+      }
+      return json(
+        {
+          code: "22023",
+          message: "upsert_event_from_client: origin_time out of sane range: 2001-05-01",
+        },
+        400,
+      );
+    });
+    useClient(base, false);
+
+    await expect(lookUpEventUuidForEvent(quake("us_too_old"))).resolves.toBeNull();
+    expect(methods(base)).toEqual(["GET", "POST"]);
+  });
+
+  it("still throws when the registration fails for another reason (a rate limit)", async () => {
+    const base = jest.fn<Promise<Response>, Parameters<typeof fetch>>(async (input) => {
+      const url = String(input);
+      if (url.includes("/rest/v1/event_source_records")) {
+        return json([]);
+      }
+      return json(
+        { code: "P0001", message: "upsert_event_from_client: rate_limited" },
+        400,
+      );
+    });
+    useClient(base, false);
+
+    await expect(lookUpEventUuidForEvent(quake("us_rate_limited"))).rejects.toEqual(
+      expect.objectContaining({ code: "P0001" }),
     );
   });
 

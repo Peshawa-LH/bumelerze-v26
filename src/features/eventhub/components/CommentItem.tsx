@@ -13,7 +13,7 @@ import { useUndoToast } from "@/features/undo/use-undo-toast";
 import { confirmDialog } from "@/lib/dialogs";
 import { useTheme, nativeFontFamily } from "@/theme";
 
-import { areaCityName } from "../area";
+import { areaCityName, areaTownName } from "../area";
 import { isDeletedAccountComment } from "../deleted-account";
 import { isPinnedNote } from "../threads";
 import type { HubActions } from "../queries";
@@ -195,7 +195,8 @@ export function CommentItem({
   const canPin =
     viewer.canPin === true && pinActions !== undefined && !isReply && isVisible;
   const name = author?.displayName ?? t("eventHub.thread.anonymous");
-  const city = areaCityName(comment.areaGeohash, locale);
+  const city =
+    areaTownName(comment.areaTown, locale) ?? areaCityName(comment.areaGeohash, locale);
 
   const relative = getRelativeTime(comment.createdAt, nowMs);
   const timeText =
