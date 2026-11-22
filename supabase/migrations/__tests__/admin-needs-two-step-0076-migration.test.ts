@@ -292,9 +292,14 @@ describe("every direct reader of the rank tables is decided", () => {
     "username_available",
   ];
 
+  // Readers added by later migrations, each decided there (and pinned by
+  // that migration's own test): 0077 event_hub_roles, the hub's badges for
+  // the people whose comments the caller sees (it replaced the table read).
+  const ADDED_LATER = ["event_hub_roles"];
+
   it("the latest definitions that read user_roles, private_ranks or role_permissions are exactly these", () => {
     const readers = [...latest].filter(([, src]) => RANK.test(src)).map(([name]) => name);
-    expect(readers.sort()).toEqual([...CHANGED_HERE, ...LEFT].sort());
+    expect(readers.sort()).toEqual([...CHANGED_HERE, ...LEFT, ...ADDED_LATER].sort());
   });
 
   it("the changed ones are the latest definitions", () => {
