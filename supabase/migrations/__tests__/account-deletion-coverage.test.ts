@@ -375,6 +375,12 @@ const MANIFEST: Record<string, Entry> = {
     handling: "cascade",
     why: "the person's own sharing switch for government officials",
   },
+  // guest to account handover (0079)
+  "device_handovers.guest_uid": {
+    onDelete: "cascade",
+    handling: "cascade",
+    why: "a guest's one-time handover token (only its hash, 10 minutes); goes with the anonymous user",
+  },
 };
 
 interface Found {
