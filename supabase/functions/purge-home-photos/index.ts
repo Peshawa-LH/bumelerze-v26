@@ -178,6 +178,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     log("error", requestId, "purge failed", { message });
-    return jsonError(500, "purge_failed", message, requestId);
+    // A fixed text: the reason stays in the function log (security audit CI-08).
+    return jsonError(500, "purge_failed", "Purge failed; see the function log.", requestId);
   }
 });

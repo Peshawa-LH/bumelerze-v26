@@ -211,13 +211,10 @@ Deno.serve(async (req: Request) => {
 
   const parsed = RequestSchema.safeParse(body);
   if (!parsed.success) {
-    return jsonError(
-      400,
-      "invalid_request",
-      "Request failed validation.",
-      requestId,
-      parsed.error.flatten(),
-    );
+    // The validation detail stays in the log, not the reply (security
+    // audit CI-08: it describes the request schema).
+    log("error", requestId, "request failed validation", { issues: parsed.error.flatten() });
+    return jsonError(400, "invalid_request", "Request failed validation.", requestId);
   }
 
   const classified = classifyAggregateRequest(parsed.data);

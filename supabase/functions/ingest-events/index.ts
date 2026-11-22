@@ -138,13 +138,10 @@ Deno.serve(async (req: Request) => {
 
   const parsed = RequestSchema.safeParse(body);
   if (!parsed.success) {
-    return jsonError(
-      400,
-      "invalid_request",
-      "Request failed validation.",
-      requestId,
-      parsed.error.flatten(),
-    );
+    // The validation detail stays in the log, not the reply (security
+    // audit CI-08: it describes the request schema).
+    log("error", requestId, "request failed validation", { issues: parsed.error.flatten() });
+    return jsonError(400, "invalid_request", "Request failed validation.", requestId);
   }
 
   if (!isChannelId(parsed.data.channel)) {
@@ -211,10 +208,12 @@ Deno.serve(async (req: Request) => {
     // The failure itself is the heartbeat's news: the watchdog opens an
     // alert once a feed has had no successful run for an hour (D-2).
     await heartbeat(requestId, channelDef.provider, { ok: false, error: message });
+    // A fixed text: the reason (upstream address, status) stays in the log
+    // and the heartbeat (security audit CI-08).
     return jsonError(
       502,
       "channel_fetch_failed",
-      `Channel "${channelDef.id}" failed: ${err instanceof Error ? err.message : String(err)}`,
+      `Channel "${channelDef.id}" failed; see the function log.`,
       requestId,
     );
   }

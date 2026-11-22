@@ -177,21 +177,24 @@ describe("public/turnstile.html", () => {
 describe("public/_headers lets Turnstile load", () => {
   const headers = fs.readFileSync(path.join(PUBLIC_DIR, "_headers"), "utf8");
 
-  it("any script-src / frame-src / default-src rule added later must allow challenges.cloudflare.com", () => {
-    const csp = headers
+  it("every Content-Security-Policy lets the Turnstile script and frame load", () => {
+    const policies = headers
       .split("\n")
       .filter((line) => /^\s*Content-Security-Policy:/i.test(line))
-      .join(";");
-    for (const directive of [
-      "script-src",
-      "frame-src",
-      "child-src",
-      "default-src",
-      "connect-src",
-    ]) {
-      const rule = new RegExp(`${directive}\\s+([^;]*)`, "i").exec(csp);
-      if (rule) {
-        expect(`${directive}: ${rule[1]}`).toContain("https://challenges.cloudflare.com");
+      .map((line) => line.replace(/^\s*Content-Security-Policy:\s*/i, ""));
+    // The map worker never loads Turnstile; every other policy (the page,
+    // /turnstile) must allow it through script-src and frame-src, or through
+    // default-src where those two are absent.
+    const relevant = policies.filter((p) => !/script-src 'self' 'unsafe-eval'/.test(p));
+    expect(relevant.length).toBeGreaterThan(0);
+    for (const policy of relevant) {
+      for (const directive of ["script-src", "frame-src"]) {
+        const own = new RegExp(`(?:^|;)\\s*${directive}\\s+([^;]*)`, "i").exec(policy);
+        const fallback = new RegExp(`(?:^|;)\\s*default-src\\s+([^;]*)`, "i").exec(policy);
+        const value = own?.[1] ?? fallback?.[1];
+        if (value !== undefined) {
+          expect(`${directive}: ${value}`).toContain("https://challenges.cloudflare.com");
+        }
       }
     }
   });

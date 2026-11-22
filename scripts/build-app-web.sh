@@ -15,7 +15,7 @@
 # as /sitemap.xml. The service worker keeps each deploy's own assets, so a
 # stale tab recovers on its next load; a Pages Function returning 404 for
 # missing /_expo/static/* files was considered and left for later.
-# public/_headers (HSTS, frame-ancestors none, nosniff, referrer policy),
+# public/_headers (HSTS, Content-Security-Policy, Permissions-Policy, nosniff, ...),
 # public/robots.txt and public/turnstile.html ride along: `expo export` copies
 # public/ to the root of dist-app, which the check after the export confirms. No long-lived caching
 # is set for /_expo/static/*: the same fallback would then cache HTML for a

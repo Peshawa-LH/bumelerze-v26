@@ -91,13 +91,16 @@ describe("sending", () => {
     expect(noSubject.run).not.toHaveBeenCalled();
   });
 
-  it("a failed run is reported, not thrown", async () => {
+  it("a failed run is reported with a fixed text, the reason only in the log (CI-08)", async () => {
     const { d, run } = deps("ok");
     run.mockRejectedValueOnce(new Error("alert_plan_run: boom"));
     expect(await handleRequest("POST", "{}", d)).toEqual({
       status: 500,
-      body: { error: { code: "send_failed", message: "alert_plan_run: boom", requestId: "req-1" } },
+      body: {
+        error: { code: "send_failed", message: "Sending failed; see the function log.", requestId: "req-1" },
+      },
     });
+    expect(d.log).toHaveBeenCalledWith("error", "req-1", "send failed", { message: "alert_plan_run: boom" });
   });
 });
 

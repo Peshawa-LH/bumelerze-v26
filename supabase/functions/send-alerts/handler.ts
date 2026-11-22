@@ -127,6 +127,7 @@ export async function handleRequest(method: string, text: string, deps: HandlerD
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : String(caught);
     deps.log("error", requestId, "send failed", { message });
-    return error(500, "send_failed", message, requestId);
+    // A fixed text: the reason stays in the function log (security audit CI-08).
+    return error(500, "send_failed", "Sending failed; see the function log.", requestId);
   }
 }
