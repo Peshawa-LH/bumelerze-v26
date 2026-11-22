@@ -1,9 +1,17 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
+
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
-import { enqueueTier1Report, useFeltQueueStore, useTier2DraftStore } from "../";
+import {
+  enqueueTier1Report,
+  FELT_COMMENT_MAX_LENGTH,
+  useFeltQueueStore,
+  useTier2DraftStore,
+} from "../";
 import type { FeltLocation } from "../types";
 
 /**
@@ -195,6 +203,25 @@ describe("Window 3 — details screen (comment + photo + submit)", () => {
     // The draft is cleared after a successful submit, same as the old
     // tier-2 comment screen used to do.
     expect(useTier2DraftStore.getState().feltReportId).toBeNull();
+  });
+
+  it("the comment box stops at the server's limit (felt_comments.body, at most 2000 characters)", async () => {
+    await act(async () => {
+      renderWithProviders(<DetailsReportScreen />);
+    });
+    const commentInput = screen.getByPlaceholderText(
+      i18n.t("felt.details.commentPlaceholder"),
+    );
+    expect(commentInput.props.maxLength).toBe(FELT_COMMENT_MAX_LENGTH);
+    expect(FELT_COMMENT_MAX_LENGTH).toBe(2000);
+    // The same number as the database check, read from the migration.
+    const sql = fs.readFileSync(
+      path.join(__dirname, "../../../../supabase/migrations/0003_felt_reports.sql"),
+      "utf8",
+    );
+    const check =
+      /body text not null check \(char_length\(body\) between 1 and (\d+)\)/.exec(sql);
+    expect(Number(check?.[1])).toBe(FELT_COMMENT_MAX_LENGTH);
   });
 
   it("'Add more detail' commits the in-progress comment to the draft before navigating to the questionnaire", async () => {

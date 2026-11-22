@@ -3792,5 +3792,10 @@
     "error": "Couldn't search. Check your connection and try again.",
     "more": "Showing the first {{number}}. Type more to narrow it down.",
     "close": "Close search"
+  },
+  "captcha": {
+    "title": "Quick check",
+    "body": "Tap the box to show you are a person.",
+    "notNow": "Not now"
   }
 }

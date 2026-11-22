@@ -243,6 +243,21 @@ describe("push-sw.js offline copy", () => {
     ).toBeUndefined();
   });
 
+  it("leaves the iOS/Android security check page (/turnstile) to the network, even offline", async () => {
+    let online = true;
+    const sw = load("b1", (url) => (online ? onlineNet("b1")(url) : offlineNet(url)));
+    await sw.fire("install");
+    online = false;
+    // Not answered at all: never the app's offline page in place of the check.
+    expect(
+      await sw.fire("fetch", nav("/turnstile?sitekey=1x00000000000000000000BB")),
+    ).toBeUndefined();
+    expect(await sw.fire("fetch", nav("/turnstile.html"))).toBeUndefined();
+    // The app's own pages still get the saved page.
+    const saved = (await sw.fire("fetch", nav("/turnstiles"))) as Response;
+    expect(await saved.text()).toContain('content="b1"');
+  });
+
   it("answers which deploy it is", async () => {
     const sw = load("b1", onlineNet("b1"));
     const reply = jest.fn();

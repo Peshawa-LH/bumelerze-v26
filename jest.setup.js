@@ -35,3 +35,16 @@ jest.mock("expo-image", () => {
     },
   };
 });
+
+// react-native-webview (the iOS/Android Turnstile check,
+// src/features/captcha/TurnstileFrame.tsx) looks up its native module at
+// import time and throws under Jest. Tests get a plain View that keeps every
+// prop, so a test can read `source` and fire `onMessage` / `onError` itself.
+jest.mock("react-native-webview", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  function WebView(props) {
+    return React.createElement(View, props);
+  }
+  return { __esModule: true, default: WebView, WebView };
+});

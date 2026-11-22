@@ -41,6 +41,7 @@ import {
   type Profile,
 } from "./types";
 import { isAcceptablePassword, isPlausibleEmail } from "./validation";
+import { signInWithPasswordWithCaptcha } from "@/features/captcha/auth";
 import { asAuthLike, isEmailTakenError, toAccountError } from "./auth-errors";
 import { twoStepCodeNeeded } from "./two-step";
 
@@ -194,7 +195,10 @@ export async function signInWithPassword(
   if (password.length === 0) {
     throw new AccountError("invalid_credentials");
   }
-  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  // A fresh Turnstile token goes with it when a site key is configured
+  // (A1.4); a sign-in refused for want of one reads "No connection. Try
+  // again." (auth-errors.ts), like any other failure to reach the server.
+  const { data, error } = await signInWithPasswordWithCaptcha(client, { email, password });
   if (error) {
     throw toAccountError(error);
   }
@@ -270,7 +274,7 @@ export async function changeAccountPassword(
   if (email === "") {
     throw new AccountError("unknown");
   }
-  const { data, error } = await client.auth.signInWithPassword({
+  const { data, error } = await signInWithPasswordWithCaptcha(client, {
     email,
     password: currentPassword,
   });

@@ -27,11 +27,20 @@ jest.mock("expo-location", () => ({
 
 const mockIsSupabaseConfigured = jest.fn();
 const mockGetSupabaseClient = jest.fn();
+const mockSignInAnonymously = jest.fn();
 
 jest.mock("@/lib/supabase", () => ({
   isSupabaseConfigured: () => mockIsSupabaseConfigured(),
   getSupabaseClient: () => mockGetSupabaseClient(),
+  signInAnonymously: () => mockSignInAnonymously(),
 }));
+
+/** `auth` of a client whose install already has a session (or not). */
+function withSession(
+  session: { user: { id: string } } | null = { user: { id: "anon-1" } },
+) {
+  return { getSession: jest.fn(async () => ({ data: { session }, error: null })) };
+}
 
 function loadPing(): typeof import("../ping") {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- fresh require after resetModules, per this codebase's discipline
@@ -153,7 +162,7 @@ describe("sendColdStartTelemetryPing", () => {
     });
     const insert = jest.fn(async () => ({ error: null }));
     const from = jest.fn(() => ({ insert }));
-    mockGetSupabaseClient.mockReturnValue({ from });
+    mockGetSupabaseClient.mockReturnValue({ from, auth: withSession() });
     const { sendColdStartTelemetryPing } = loadPing();
 
     await sendColdStartTelemetryPing();
@@ -172,7 +181,10 @@ describe("sendColdStartTelemetryPing", () => {
       coords: { latitude: 35.56, longitude: 45.43 },
     });
     const insert = jest.fn(async () => ({ error: null }));
-    mockGetSupabaseClient.mockReturnValue({ from: jest.fn(() => ({ insert })) });
+    mockGetSupabaseClient.mockReturnValue({
+      from: jest.fn(() => ({ insert })),
+      auth: withSession(),
+    });
     const { sendColdStartTelemetryPing } = loadPing();
 
     await sendColdStartTelemetryPing();
@@ -191,6 +203,43 @@ describe("sendColdStartTelemetryPing", () => {
     expect(mockGetForegroundPermissionsAsync).not.toHaveBeenCalled();
   });
 
+  it("A1.3: no session yet -> no ping, and never a sign-in just to ping (migration 0078)", async () => {
+    mockIsSupabaseConfigured.mockReturnValue(true);
+    mockGetForegroundPermissionsAsync.mockResolvedValue({ status: "granted" });
+    mockGetLastKnownPositionAsync.mockResolvedValue({
+      coords: { latitude: 35.56, longitude: 45.43 },
+    });
+    const insert = jest.fn(async () => ({ error: null }));
+    const auth = withSession(null);
+    mockGetSupabaseClient.mockReturnValue({ from: jest.fn(() => ({ insert })), auth });
+    const { sendColdStartTelemetryPing } = loadPing();
+
+    await sendColdStartTelemetryPing();
+
+    expect(auth.getSession).toHaveBeenCalled();
+    expect(insert).not.toHaveBeenCalled();
+    expect(mockSignInAnonymously).not.toHaveBeenCalled();
+  });
+
+  it("a refused ping (the 0078 daily limit) is dropped silently", async () => {
+    mockIsSupabaseConfigured.mockReturnValue(true);
+    mockGetForegroundPermissionsAsync.mockResolvedValue({ status: "granted" });
+    mockGetLastKnownPositionAsync.mockResolvedValue({
+      coords: { latitude: 35.56, longitude: 45.43 },
+    });
+    const insert = jest.fn(async () => ({
+      error: { code: "P0001", message: "telemetry_pings: rate_limited" },
+    }));
+    mockGetSupabaseClient.mockReturnValue({
+      from: jest.fn(() => ({ insert })),
+      auth: withSession(),
+    });
+    const { sendColdStartTelemetryPing } = loadPing();
+
+    await expect(sendColdStartTelemetryPing()).resolves.toBeUndefined();
+    expect(insert).toHaveBeenCalledTimes(1);
+  });
+
   it("never throws, even if the insert call rejects", async () => {
     mockIsSupabaseConfigured.mockReturnValue(true);
     mockGetForegroundPermissionsAsync.mockResolvedValue({ status: "granted" });
@@ -201,6 +250,7 @@ describe("sendColdStartTelemetryPing", () => {
       from: () => ({
         insert: () => Promise.reject(new Error("network blip")),
       }),
+      auth: withSession(),
     });
     const { sendColdStartTelemetryPing } = loadPing();
 

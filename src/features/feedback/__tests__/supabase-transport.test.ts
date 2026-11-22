@@ -374,6 +374,51 @@ describe("SupabaseFeedbackTransport.submit", () => {
     );
   });
 
+  it("signs in BEFORE the insert (A1.3: since migration 0078 a feedback row needs a session)", async () => {
+    const { SupabaseFeedbackTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    const client = mockClientWithInsertResult(null);
+    supabaseLib.getSupabaseClient.mockReturnValue(client);
+
+    await SupabaseFeedbackTransport.submit(SAMPLE_SUBMISSION);
+
+    expect(
+      supabaseLib.signInAnonymously.mock.invocationCallOrder[0] as number,
+    ).toBeLessThan(client.insert.mock.invocationCallOrder[0] as number);
+  });
+
+  it("a refusal for want of a session (42501, sign-in failed this time) stays queued and is retried", async () => {
+    const { SupabaseFeedbackTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.signInAnonymously.mockRejectedValueOnce(
+      new Error("captcha protection: request disallowed"),
+    );
+    supabaseLib.getSupabaseClient.mockReturnValue(
+      mockClientWithInsertResult({
+        code: "42501",
+        message: 'new row violates row-level security policy for table "feedback"',
+      }),
+    );
+
+    const result = await SupabaseFeedbackTransport.submit(SAMPLE_SUBMISSION);
+
+    expect(result).toEqual({ outcome: "failed", retryable: true });
+  });
+
+  it("the 0078 daily limit (P0001 feedback: rate_limited) is retried later like a refused felt report, never dropped", async () => {
+    const { SupabaseFeedbackTransport, isRetryableInsertError } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.getSupabaseClient.mockReturnValue(
+      mockClientWithInsertResult({ code: "P0001", message: "feedback: rate_limited" }),
+    );
+
+    const result = await SupabaseFeedbackTransport.submit(SAMPLE_SUBMISSION);
+
+    expect(result).toEqual({ outcome: "failed", retryable: true });
+    expect(isRetryableInsertError("P0001")).toBe(true);
+    expect(isRetryableInsertError("23505")).toBe(false);
+  });
+
   it("still submits, with user_id null, when signInAnonymously rejects", async () => {
     const { SupabaseFeedbackTransport, buildFeedbackInsert } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
@@ -402,14 +447,16 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
   function mockStorageClient(options: {
     session?: { user: { id: string } } | null;
     uploadError?: { message: string } | null;
-    upsertError?: { message: string } | null;
+    insertError?: { code?: string; message: string } | null;
   }) {
     const upload = jest.fn(async (_path: string, ..._rest: unknown[]) => ({
       error: options.uploadError ?? null,
     }));
     const storageFrom = jest.fn(() => ({ upload }));
-    const upsert = jest.fn(async () => ({ error: options.upsertError ?? null }));
-    const from = jest.fn(() => ({ upsert }));
+    const insert = jest.fn(async (..._args: unknown[]) => ({
+      error: options.insertError ?? null,
+    }));
+    const from = jest.fn(() => ({ insert }));
     const getSession = jest.fn(async () => ({
       data: {
         session:
@@ -425,7 +472,7 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
       from,
       upload,
       storageFrom,
-      upsert,
+      insert,
     };
   }
 
@@ -436,7 +483,7 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
   // picked) still lives on, one layer up, as queue.test.ts's "never
   // attempts a photo upload when there are no photoUris".
 
-  it("uploads to <auth.uid()>/<feedback_id>/<photo_id>.jpg and upserts the feedback_photos row keyed on photo_id (migration 0021)", async () => {
+  it("uploads to <auth.uid()>/<feedback_id>/<photo_id>.jpg and inserts the feedback_photos row keyed on photo_id (migration 0021)", async () => {
     const { SupabaseFeedbackTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({});
@@ -454,15 +501,55 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
       expect.objectContaining({ upsert: true, contentType: "image/jpeg" }),
     );
     expect(client.from).toHaveBeenCalledWith("feedback_photos");
-    expect(client.upsert).toHaveBeenCalledWith(
+    // A plain insert with the row alone: no upsert options (an upsert also
+    // needs SELECT/UPDATE policies on the new row, which refused every
+    // screenshot row before migration 0078).
+    expect(client.insert).toHaveBeenCalledTimes(1);
+    expect(client.insert.mock.calls[0]).toEqual([
       {
         photo_id: SAMPLE_PHOTO.photoId,
         feedback_id: SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId,
         storage_path: `anon-uid-1/${SAMPLE_SUBMISSION_WITH_PHOTO.feedbackId}/${SAMPLE_PHOTO.photoId}.jpg`,
       },
-      { onConflict: "photo_id" },
+    ]);
+    expect(result).toEqual({ outcome: "uploaded" });
+  });
+
+  it("a retry whose row is already there (23505 on photo_id) is done, and frees the phone's copy", async () => {
+    mockReleaseDurablePhoto.mockClear();
+    const { SupabaseFeedbackTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.getSupabaseClient.mockReturnValue(
+      mockStorageClient({
+        insertError: {
+          code: "23505",
+          message: "duplicate key value violates unique constraint",
+        },
+      }),
+    );
+    const result = await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
     );
     expect(result).toEqual({ outcome: "uploaded" });
+    expect(mockReleaseDurablePhoto).toHaveBeenCalledWith(SAMPLE_PHOTO.uri);
+  });
+
+  it("the 0078 daily limit (P0001 feedback_photos: rate_limited) keeps the photo queued for a later drain", async () => {
+    mockReleaseDurablePhoto.mockClear();
+    const { SupabaseFeedbackTransport } = loadTransport();
+    const supabaseLib = loadMockedSupabaseLib();
+    supabaseLib.getSupabaseClient.mockReturnValue(
+      mockStorageClient({
+        insertError: { code: "P0001", message: "feedback_photos: rate_limited" },
+      }),
+    );
+    const result = await SupabaseFeedbackTransport.uploadPhoto?.(
+      SAMPLE_SUBMISSION_WITH_PHOTO,
+      SAMPLE_PHOTO,
+    );
+    expect(result).toEqual({ outcome: "failed" });
+    expect(mockReleaseDurablePhoto).not.toHaveBeenCalled();
   });
 
   it("frees the phone's kept copy only once the photo and its row are on the server", async () => {
@@ -470,7 +557,7 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     const { SupabaseFeedbackTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     supabaseLib.getSupabaseClient.mockReturnValue(
-      mockStorageClient({ upsertError: { message: "rls" } }),
+      mockStorageClient({ insertError: { code: "42501", message: "rls" } }),
     );
     await SupabaseFeedbackTransport.uploadPhoto?.(
       SAMPLE_SUBMISSION_WITH_PHOTO,
@@ -528,7 +615,7 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     expect(result).toEqual({ outcome: "failed" });
   });
 
-  it("returns 'failed' when the storage upload itself errors, without attempting the feedback_photos upsert", async () => {
+  it("returns 'failed' when the storage upload itself errors, without attempting the feedback_photos insert", async () => {
     const { SupabaseFeedbackTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({ uploadError: { message: "bucket not found" } });
@@ -543,11 +630,11 @@ describe("SupabaseFeedbackTransport.uploadPhoto", () => {
     expect(result).toEqual({ outcome: "failed" });
   });
 
-  it("returns 'failed' when the storage upload succeeds but the feedback_photos upsert errors", async () => {
+  it("returns 'failed' when the storage upload succeeds but the feedback_photos insert errors", async () => {
     const { SupabaseFeedbackTransport } = loadTransport();
     const supabaseLib = loadMockedSupabaseLib();
     const client = mockStorageClient({
-      upsertError: { message: "constraint violation" },
+      insertError: { code: "23503", message: "foreign key violation" },
     });
     supabaseLib.getSupabaseClient.mockReturnValue(client);
 

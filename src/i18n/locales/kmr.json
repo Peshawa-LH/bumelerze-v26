@@ -3792,5 +3792,10 @@
     "error": "Lêgerîn nebû. Girêdana xwe kontrol bike û dîsa biceribîne.",
     "more": "Tenê {{number}} kesên pêşîn têne nîşandan. Zêdetir binivîse da ku lêgerînê teng bikî.",
     "close": "Lêgerînê bigire"
+  },
+  "captcha": {
+    "title": "Kontroleke bilez",
+    "body": "Qutîkê bitikîne da ku nîşan bidî ku tu mirov î.",
+    "notNow": "Niha na"
   }
 }

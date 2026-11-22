@@ -43,6 +43,7 @@ import {
   useFeltQueueStore,
 } from "@/features/felt/queue";
 import { useTwoStepGate } from "@/features/account/use-two-step-gate";
+import { CaptchaHost } from "@/features/captcha/CaptchaHost";
 import { useAlertPrefsAutoSync } from "@/features/alerts/prefs-sync";
 import { usePendingLink } from "@/features/links/pending-link";
 import { useReferencePlace } from "@/features/location/reference-place";
@@ -436,6 +437,10 @@ export default function RootLayout() {
               </Stack>
             </StackDirection>
           </SnackbarProvider>
+          {/* The Turnstile check a sign-in waits for (security item A1.4):
+           * nothing at all unless a sign-in needs a token, then invisible;
+           * a "Quick check" sheet only if Turnstile asks for a tap. */}
+          <CaptchaHost />
         </PersistQueryClientProvider>
       </SafeAreaProvider>
     </AppRoot>

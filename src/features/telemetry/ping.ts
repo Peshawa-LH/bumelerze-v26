@@ -79,6 +79,8 @@ let hasFiredThisSession = false;
  *    only, deliberately never `getCurrentPositionAsync` (the project requirements
  *    "battery-conscious... no wake-lock abuse": a cold-start ping must
  *    never itself trigger a fresh GPS fix).
+ *  - This install already has a Supabase session (anonymous or account) —
+ *    the ping never creates one (migration 0078; see below).
  *
  * Call once from the root layout's cold-start effect
  * (`app/_layout.tsx`); safe to call more than once (e.g. Fast Refresh) —
@@ -111,6 +113,17 @@ export async function sendColdStartTelemetryPing(): Promise<void> {
 
     const client = getSupabaseClient();
     if (!client) {
+      return;
+    }
+
+    // Since migration 0078 a ping needs a session (anon INSERT revoked; the
+    // row is tied to auth.uid() on the server). Only one that ALREADY exists
+    // is used: never sign in just to ping, which would spend the per-address
+    // budget of new anonymous sign-ins (and a CAPTCHA token) on a background
+    // count. A first launch without a session simply sends no ping; the
+    // next launch, after the first real write made one, does.
+    const { data: sessionData } = await client.auth.getSession();
+    if (!sessionData.session) {
       return;
     }
 

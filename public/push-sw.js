@@ -142,6 +142,22 @@ function pageBuild(html) {
   return match ? match[1] : null;
 }
 
+/* Pages next to the app that are not the app: public/turnstile.html, the
+ * security check the iOS/Android app opens in a WebView (served as
+ * /turnstile by Cloudflare Pages). Straight to the network, never answered
+ * with the app's offline page. */
+function isStandalonePage(url) {
+  if (url.origin !== self.location.origin) {
+    return false;
+  }
+  var base = scopePath();
+  if (url.pathname.indexOf(base) !== 0) {
+    return false;
+  }
+  var rest = url.pathname.slice(base.length);
+  return rest === "turnstile" || rest === "turnstile.html";
+}
+
 /* Content-hashed files of this app: _expo/static/... and assets/... */
 function isHashedAsset(url) {
   if (url.origin !== self.location.origin) {
@@ -416,7 +432,11 @@ self.addEventListener("fetch", function (event) {
   }
   var url = new URL(request.url);
   if (request.mode === "navigate") {
-    if (url.origin === self.location.origin && url.pathname.indexOf(scopePath()) === 0) {
+    if (
+      url.origin === self.location.origin &&
+      url.pathname.indexOf(scopePath()) === 0 &&
+      !isStandalonePage(url)
+    ) {
       event.respondWith(pageResponse(event));
     }
     return;

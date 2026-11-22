@@ -203,6 +203,13 @@ export interface Tier2Answers {
   comment: string | null;
 }
 
+/** Longest felt comment the server keeps: `felt_comments.body` is
+ * `check (char_length(body) between 1 and 2000)` (migration 0003), so the
+ * comment box stops there instead of letting a longer text be refused and
+ * retried forever. JS counts UTF-16 units, Postgres characters, so the box
+ * is never the looser of the two. */
+export const FELT_COMMENT_MAX_LENGTH = 2000;
+
 export const EMPTY_TIER2_ANSWERS: Tier2Answers = {
   situation: null,
   felt: null,

@@ -82,10 +82,10 @@ export interface FeedbackPhotoInsert {
   storage_path: string;
 }
 
-/** Maps a resolved storage path to a `feedback_photos` upsert row. As of
- * migration 0021, the upsert key is `photo_id` (client-generated, one per
- * photo), not `feedback_id` (which 0020 had capped at one row and 0021
- * drops that cap on) — see 0021's own header for why the idempotency
+/** Maps a resolved storage path to a `feedback_photos` insert row. Since
+ * migration 0021 the idempotency key is `photo_id` (the client-generated
+ * primary key, one per photo), not `feedback_id` (which 0020 had capped at
+ * one row and 0021 drops that cap on) — see 0021's own header for why the
  * anchor moved. */
 export function buildFeedbackPhotoInsert(
   photoId: string,
@@ -98,8 +98,15 @@ export function buildFeedbackPhotoInsert(
 /** True for any Postgres/PostgREST error that isn't a known "this was
  * already inserted" case — mirrors `src/features/felt/supabase-transport.ts`'s
  * own `isRetryableInsertError`: the safe default for an offline-queue
- * transport is "retry", never "give up silently". */
-function isRetryableInsertError(errorCode: string | undefined): boolean {
+ * transport is "retry", never "give up silently". That includes the two
+ * refusals migration 0078 brings (A1.3): a write without a session (42501,
+ * anon lost INSERT; the sign-in failed this time) and the per-session limit
+ * ("feedback: rate_limited", P0001, the 0071 pattern). Both wait in the
+ * queue with its growing pause (at most 10 minutes, tried again on the next
+ * return to the app) and are sent once a session exists or the window has
+ * passed — exactly what a refused felt report does; the Feedback screen
+ * meanwhile says the message is saved on the device. */
+export function isRetryableInsertError(errorCode: string | undefined): boolean {
   return errorCode !== POSTGRES_UNIQUE_VIOLATION;
 }
 
@@ -173,8 +180,8 @@ async function readPhotoBody(uri: string): Promise<Blob | ArrayBuffer> {
  * Uploads ONE feedback screenshot to the private `feedback-photos` Storage
  * bucket at `<auth.uid()>/<feedback_id>/<photo_id>.jpg` (migration 0021 —
  * was `<auth.uid()>/<feedback_id>.jpg` under 0020, before more than one
- * photo was possible), then upserts the matching `feedback_photos` row
- * keyed on `photo_id`. Never throws — every failure path returns
+ * photo was possible), then inserts the matching `feedback_photos` row
+ * (a repeat hits its `photo_id` primary key: done). Never throws — every failure path returns
  * `{ outcome: "failed" }` so `queue.ts`'s per-photo retry pass can safely
  * re-attempt just THIS photo on the next drain without the surrounding
  * feedback message, or any sibling photo, ever being affected
@@ -210,15 +217,21 @@ export async function uploadFeedbackPhoto(
       return { outcome: "failed" };
     }
 
+    // A plain insert, never an upsert (the felt photo rule, 2026-10-14; A1.3
+    // follow-up). An `insert ... on conflict do update` also needs the
+    // table's SELECT and UPDATE policies on the new row — before migration
+    // 0078 feedback_photos had no SELECT policy, so every upsert was refused
+    // (42501) and screenshots reached storage but never the admin inbox. A
+    // retry after a dropped response hits the `photo_id` primary key
+    // instead: the row is already there, so that unique violation is
+    // success. Any other refusal (no session, the 0078 daily limit "feedback_
+    // photos: rate_limited") keeps the photo queued for the next drain.
     const { error: rowError } = await client
       .from("feedback_photos")
-      .upsert(
+      .insert(
         buildFeedbackPhotoInsert(photo.photoId, submission.feedbackId, storagePath),
-        {
-          onConflict: "photo_id",
-        },
       );
-    if (rowError) {
+    if (rowError && rowError.code !== POSTGRES_UNIQUE_VIOLATION) {
       return { outcome: "failed" };
     }
 
@@ -241,6 +254,11 @@ export const SupabaseFeedbackTransport: FeedbackTransport = {
       return { outcome: "awaiting-backend" };
     }
 
+    // A session first (A1.3, migration 0078: the row is tied to auth.uid()
+    // and anon may no longer insert). The same lazy anonymous sign-in as the
+    // felt flow, with its CAPTCHA token (A1.4). If it fails, the row is still
+    // sent: an older server takes it, a newer one refuses it and the queue
+    // tries again later (isRetryableInsertError) — never lost.
     const userId = await ensureAnonymousUserId(client);
 
     const row = buildFeedbackInsert(submission, userId);

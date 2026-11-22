@@ -16,7 +16,12 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { enqueueTier2Report, useCloseFeltFlow, useTier2DraftStore } from "@/features/felt";
+import {
+  enqueueTier2Report,
+  FELT_COMMENT_MAX_LENGTH,
+  useCloseFeltFlow,
+  useTier2DraftStore,
+} from "@/features/felt";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 
 /**
@@ -186,6 +191,7 @@ export default function DetailsReportScreen() {
           placeholder={t("felt.details.commentPlaceholder")}
           placeholderTextColor={colors.text.tertiary}
           multiline
+          maxLength={FELT_COMMENT_MAX_LENGTH}
           accessibilityLabel={t("felt.details.title")}
           style={[
             styles.input,

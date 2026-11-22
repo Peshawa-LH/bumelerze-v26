@@ -1,6 +1,7 @@
 export {
   CARTOON_LEVELS,
   EMPTY_TIER2_ANSWERS,
+  FELT_COMMENT_MAX_LENGTH,
   SEVERE_DESTRUCTION_THRESHOLD,
   type BuildingDamageGrade,
   type CartoonLevel,

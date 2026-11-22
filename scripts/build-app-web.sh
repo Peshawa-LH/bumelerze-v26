@@ -15,9 +15,9 @@
 # as /sitemap.xml. The service worker keeps each deploy's own assets, so a
 # stale tab recovers on its next load; a Pages Function returning 404 for
 # missing /_expo/static/* files was considered and left for later.
-# public/_headers (HSTS, frame-ancestors none, nosniff, referrer policy) and
-# public/robots.txt ride along: `expo export` copies public/ to the root of
-# dist-app, which the check after the export confirms. No long-lived caching
+# public/_headers (HSTS, frame-ancestors none, nosniff, referrer policy),
+# public/robots.txt and public/turnstile.html ride along: `expo export` copies
+# public/ to the root of dist-app, which the check after the export confirms. No long-lived caching
 # is set for /_expo/static/*: the same fallback would then cache HTML for a
 # year, and the service worker already caches the assets per build.
 set -euo pipefail
@@ -36,6 +36,12 @@ export EXPO_PUBLIC_SUPABASE_URL=https://bcgyxepgruwardhozvfq.supabase.co
 export EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I
 export EXPO_PUBLIC_MAPTILER_KEY=u55zrEViEes3KunGwdnn
 export EXPO_PUBLIC_VAPID_PUBLIC_KEY=BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw
+# Cloudflare Turnstile SITE key (CAPTCHA for Supabase Auth, security item
+# A1.4): public by design, like the keys above; the matching SECRET key goes
+# only into Supabase Auth > CAPTCHA protection. Empty = no CAPTCHA, every
+# sign-in exactly as before. Put the widget's site key here (and in eas.json)
+# and deploy BEFORE switching CAPTCHA protection on (src/features/captcha/).
+export EXPO_PUBLIC_TURNSTILE_SITE_KEY=
 
 rm -rf dist-app
 # --clear: a stale Metro cache has silently produced an empty app before.
@@ -43,7 +49,10 @@ npx expo export --platform web --output-dir dist-app --clear
 
 # The hosting files must reach the output root (Cloudflare Pages reads
 # _headers there) or the deploy would quietly lose its security headers.
-for hosting_file in _headers robots.txt; do
+# turnstile.html is the security check page the iOS/Android app opens
+# (src/features/captcha/TurnstileFrame.tsx); without it their sign-ins would
+# get the app's own page instead.
+for hosting_file in _headers robots.txt turnstile.html; do
   if ! cmp -s "public/$hosting_file" "dist-app/$hosting_file"; then
     echo "build-app-web: public/$hosting_file was not copied into dist-app" >&2
     exit 1

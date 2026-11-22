@@ -94,6 +94,12 @@ export function toAccountError(
   ) {
     return new AccountError("network", message);
   }
+  // CAPTCHA protection on and no valid Turnstile token (A1.4: blocked,
+  // offline or timed out): "No connection. Try again." — trying again
+  // fetches a new token, and nothing else would help the person more.
+  if (e.code === "captcha_failed" || /captcha/i.test(message)) {
+    return new AccountError("network", message);
+  }
   // A session the server no longer knows (signed out elsewhere, or ended
   // when two-step sign-in was turned on on another device).
   if (

@@ -1,0 +1,137 @@
+<!doctype html>
+<!--
+  Bumelerze: the security check page for the iOS/Android app (security item
+  A1.4). Not part of the web app's router and never cached by its service
+  worker (public/push-sw.js leaves /turnstile alone).
+
+  Cloudflare Turnstile only runs on a web page of a hostname the widget
+  allows, so the app opens this page (https://app.bumelerze.com/turnstile)
+  in a hidden WebView, draws one widget here and receives the outcome as a
+  JSON message (src/features/captcha/bridge.ts):
+    {"type":"token","token":"..."}   the token for one sign-in
+    {"type":"interactive"}           Turnstile wants a tap
+    {"type":"error","code":"..."}    no token (script, key, widget error)
+    {"type":"expired"} / {"type":"timeout"}
+  Settings come from the query string, each checked against a fixed list:
+  sitekey, lang (ar | en | auto), theme (light | dark),
+  appearance (interaction-only | always). Nothing here is shown to people
+  except Cloudflare's own widget, when it asks for a tap.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Bumelerze</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+      }
+      #widget {
+        display: flex;
+        justify-content: center;
+        min-height: 65px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="widget"></div>
+    <script>
+      (function () {
+        "use strict";
+        var SCRIPT_URL =
+          "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        var done = false;
+
+        function post(message) {
+          var bridge = window.ReactNativeWebView;
+          if (bridge && typeof bridge.postMessage === "function") {
+            bridge.postMessage(JSON.stringify(message));
+          }
+        }
+        function finish(message) {
+          if (done) {
+            return;
+          }
+          done = true;
+          post(message);
+        }
+        function pick(value, allowed, fallback) {
+          return allowed.indexOf(value) !== -1 ? value : fallback;
+        }
+
+        var params = new URLSearchParams(window.location.search);
+        var siteKey = params.get("sitekey") || "";
+        if (!/^[0-9A-Za-z_-]{10,100}$/.test(siteKey)) {
+          finish({ type: "error", code: "sitekey" });
+          return;
+        }
+        var appearance = pick(
+          params.get("appearance"),
+          ["interaction-only", "always"],
+          "interaction-only",
+        );
+        var options = {
+          sitekey: siteKey,
+          language: pick(params.get("lang"), ["ar", "en", "auto"], "auto"),
+          theme: pick(params.get("theme"), ["light", "dark"], "light"),
+          appearance: appearance,
+          size: appearance === "always" ? "flexible" : "normal",
+          execution: "render",
+          retry: "never",
+          "refresh-expired": "never",
+          "response-field": false,
+          callback: function (token) {
+            if (typeof token === "string" && token.length > 0) {
+              finish({ type: "token", token: token });
+            } else {
+              finish({ type: "error", code: "empty" });
+            }
+          },
+          "error-callback": function (code) {
+            finish({ type: "error", code: String(code || "").slice(0, 64) });
+            return true;
+          },
+          "expired-callback": function () {
+            finish({ type: "expired" });
+          },
+          "timeout-callback": function () {
+            finish({ type: "timeout" });
+          },
+          "unsupported-callback": function () {
+            finish({ type: "error", code: "unsupported" });
+          },
+          "before-interactive-callback": function () {
+            if (!done && appearance !== "always") {
+              post({ type: "interactive" });
+            }
+          },
+        };
+
+        var script = document.createElement("script");
+        script.src = SCRIPT_URL;
+        script.async = true;
+        script.onload = function () {
+          if (!window.turnstile || typeof window.turnstile.render !== "function") {
+            finish({ type: "error", code: "script" });
+            return;
+          }
+          try {
+            if (!window.turnstile.render("#widget", options)) {
+              finish({ type: "error", code: "render" });
+            }
+          } catch (error) {
+            finish({ type: "error", code: "render" });
+          }
+        };
+        script.onerror = function () {
+          finish({ type: "error", code: "script" });
+        };
+        document.head.appendChild(script);
+      })();
+    </script>
+  </body>
+</html>

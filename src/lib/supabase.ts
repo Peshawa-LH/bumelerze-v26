@@ -2,6 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { AppState, Platform, type NativeEventSubscription } from "react-native";
 
+import { signInAnonymouslyWithCaptcha } from "@/features/captcha/auth";
+
 import { createReviewReadonlyFetch, isReviewReadonlyBuild } from "./review-readonly";
 
 /**
@@ -27,6 +29,9 @@ import { createReviewReadonlyFetch, isReviewReadonlyBuild } from "./review-reado
  * `auth.uid()` for its per-row RLS ownership, via Supabase Anonymous Auth —
  * that's what `signInAnonymously()` below is for (felt-report, feedback,
  * Event hub and web-push writes call it too, so they carry `auth.uid()`).
+ * Since migrations 0073 (felt) and 0078 (feedback, feedback photos,
+ * telemetry) every client write needs that session; the telemetry ping only
+ * uses one that already exists and never signs in for itself.
  */
 
 function normalizeEnvValue(value: string | undefined): string | null {
@@ -140,7 +145,12 @@ async function performAnonymousSignIn(): Promise<void> {
     return;
   }
 
-  const { error } = await client.auth.signInAnonymously();
+  // With a Turnstile site key configured, a fresh token goes with the call
+  // (security item A1.4): once CAPTCHA protection is on in Supabase Auth, a
+  // sign-in without one is refused. No key, or no token in time: the call is
+  // exactly the old one, and a refusal lands in the catch of every caller
+  // like any failed sign-in (queued writes wait and retry).
+  const { error } = await signInAnonymouslyWithCaptcha(client);
   if (error) {
     throw error;
   }
