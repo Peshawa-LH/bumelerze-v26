@@ -26,11 +26,15 @@ export interface AdminTransport {
   fetchQueue(): Promise<QueueComment[]>;
   fetchRoleHolders(): Promise<RoleHolder[]>;
   fetchReportedProfiles(): Promise<ReportedProfile[]>;
+  /** Gives a badge. The Government official rank goes through
+   * `admin_grant_authority` (migration 0082): `note` is then the required
+   * reason and `expiresAt` (UTC ms) the required end date. */
   grantRole(input: {
     username: string;
     role: GrantableRank;
     orgName?: string | null;
     note?: string | null;
+    expiresAt?: number | null;
   }): Promise<void>;
   revokeRole(username: string, role: GrantableRank): Promise<void>;
   resolveProfileReports(userId: string): Promise<void>;
@@ -104,6 +108,7 @@ const holderSchema = z.object({
   granted_at: z.string(),
   granted_by_name: z.string().nullable().optional(),
   note: z.string().nullable().optional(),
+  expires_at: z.string().nullable().optional(),
 });
 
 export function parseRoleHolders(data: unknown): RoleHolder[] {
@@ -130,6 +135,7 @@ export function parseRoleHolders(data: unknown): RoleHolder[] {
       grantedAt: Number.isNaN(grantedAt) ? 0 : grantedAt,
       grantedByName: parsed.data.granted_by_name ?? null,
       note: parsed.data.note ?? null,
+      expiresAt: parsed.data.expires_at ? Date.parse(parsed.data.expires_at) || null : null,
     });
   }
   return rows;
@@ -332,7 +338,16 @@ export const SupabaseAdminTransport: AdminTransport = {
   async fetchReportedProfiles() {
     return parseReportedProfiles(await call("moderation_profile_reports"));
   },
-  async grantRole({ username, role, orgName, note }) {
+  async grantRole({ username, role, orgName, note, expiresAt }) {
+    if (role === "authority") {
+      await call("admin_grant_authority", {
+        p_username: username,
+        p_reason: note ?? "",
+        p_expires_at:
+          typeof expiresAt === "number" ? new Date(expiresAt).toISOString() : null,
+      });
+      return;
+    }
     await call("admin_grant_role", {
       p_username: username,
       p_role: role,

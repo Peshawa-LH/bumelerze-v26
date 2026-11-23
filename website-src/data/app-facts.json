@@ -177,7 +177,7 @@
     },
     {
       "id": "im-safe",
-      "statement": "\"I'm safe\": shared with the family home (while the home setting is on) and by default with mutual follows (Settings > Notifications); no claim that nobody else sees it (D98); setting and share-message labels; cannot send help.",
+      "statement": "\"I'm safe\": shared with the family home (while the home setting is on) and by default with mutual follows (Settings > Notifications); with a public profile also approved government officials (latest check-in, 0082); no claim that nobody else sees it (D98); setting and share-message labels; cannot send help.",
       "usedIn": {
         "pages": ["index.html", "support.html"],
         "keys": [

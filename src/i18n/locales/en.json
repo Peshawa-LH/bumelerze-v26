@@ -1919,6 +1919,7 @@
       "professionHint": "Private. Never shown to others.",
       "preferNot": "Prefer not to say",
       "terms": "I agree to the Terms, the Privacy Policy and the Community guidelines, and I am 13 or older.",
+      "officialsNotice": "If your profile is public, government officials approved by Bumelerze can see your name, home town, building class and latest “I'm safe” after an earthquake. Private accounts are not shown.",
       "privacyLink": "Read the privacy policy",
       "research": "Use my reports and building information, without my name and with the location coarsened, for earthquake research and to improve Bumelerze's damage estimates. (Optional)",
       "save": "Save",
@@ -2804,8 +2805,15 @@
         "newTag": "New",
         "allHeld": "Has every badge",
         "noteLabel": "Private note (only admins see it)",
+        "reasonLabel": "Reason (required, only admins see it)",
+        "endsLabel": "Ends after",
+        "ends": {
+          "m3": "3 months",
+          "m6": "6 months",
+          "m12": "12 months"
+        },
         "describe": {
-          "authority": "Sees totals by area, and each account holder's building class and latest I'm safe. Never addresses.",
+          "authority": "Sees totals by area, and the building class and latest I'm safe of account holders with a public profile. Never addresses. Only the official account can give it, with two-step sign-in, a reason and an end date.",
           "moderator": "Helps keep comments and posts safe.",
           "partner": "Asks for the organisation name."
         }
@@ -2971,7 +2979,8 @@
         "orgPlaceholder": "Organisation name (partners only)",
         "grant": "Grant requested badge",
         "markSolved": "Already has it: mark solved",
-        "granted": "Badge granted and request solved"
+        "granted": "Badge granted and request solved",
+        "authorityOnPerson": "Give the Government official badge from the person's page: it needs a reason and an end date."
       },
       "triage": "Status and note",
       "notePlaceholder": "What was decided, what to do next",
@@ -3489,7 +3498,7 @@
       "empty": "No check-ins in the last day.",
       "alone": "When others join this home, their check-ins show here.",
       "setting": "Show my check-ins to this home",
-      "settingHint": "Shared with the approved members of this home. Never your location."
+      "settingHint": "Shared with the approved members of this home and, if your profile is public, approved government officials. Never your location."
     },
     "banner": {
       "a11y": "Are you safe? A strong earthquake happened near you."
@@ -3774,10 +3783,12 @@
     "safeFew": "fewer than 5 of {{people}} safe",
     "feltMap": "Open the felt map",
     "peopleTitle": "People with an account",
-    "peopleHint": "Everyone with a Bumelerze account, sorted by name. Opening the list is recorded with who was shown.",
+    "peopleHint": "Account holders with a public profile, sorted by name, {{number}} at a time. Private accounts are not shown. Each page you open is recorded with who was shown, up to {{pages}} pages in 24 hours.",
     "peopleShow": "Show the list",
+    "peopleNext": "Show the next {{number}}",
+    "viewsLeft": "Pages left in the next 24 hours: {{number}}",
+    "dailyLimit": "You have opened {{number}} pages of this list in the last 24 hours. Try again later.",
     "peopleEmpty": "No accounts yet.",
-    "peopleFirst": "Showing the first {{number}}, by name.",
     "noName": "No name",
     "noHome": "No tagged home.",
     "homeClass": "Class {{vc}}, {{name}}",

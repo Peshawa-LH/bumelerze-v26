@@ -235,6 +235,8 @@ export interface AdminActions {
     role: GrantableRank;
     orgName?: string | null;
     note?: string | null;
+    /** Government official only: the end date, UTC ms (migration 0082). */
+    expiresAt?: number | null;
   }) => Promise<void>;
   revoke: (username: string, role: GrantableRank) => Promise<void>;
   resolveReports: (userId: string) => Promise<void>;

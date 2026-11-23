@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SupabaseAuthorityTransport, type AuthorityTransport } from "./transport";
@@ -45,13 +45,19 @@ export function useEventSafety(
   });
 }
 
+/** The list of account holders, one page of 100 at a time: the next page is
+ * fetched only when the official asks for it (each page is logged and
+ * counts toward the daily limit, migration 0082). */
 export function useSharedPeople(
   enabled: boolean,
   transport: AuthorityTransport = SupabaseAuthorityTransport,
 ) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: authorityKeys.people,
-    queryFn: () => transport.fetchPeople(),
+    queryFn: ({ pageParam }) => transport.fetchPeople(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      last.more ? last.offset + last.people.length : undefined,
     enabled: enabled && isSupabaseConfigured(),
     ...OFFICIAL_READ,
   });

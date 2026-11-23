@@ -361,6 +361,12 @@ function DetailBody({
             <Text style={meta} testID="feedback-badge-no-username">
               {t("admin.feedback.errors.noUsername")}
             </Text>
+          ) : rank === "authority" && !alreadyHolds ? (
+            // 0082: the Government official rank needs a reason and an end
+            // date, so it is given from the person's page (Give badge).
+            <Text style={meta} testID="feedback-badge-authority">
+              {t("admin.feedback.badge.authorityOnPerson")}
+            </Text>
           ) : (
             <View style={styles.row}>
               <ActionButton

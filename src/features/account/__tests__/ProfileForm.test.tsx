@@ -67,6 +67,13 @@ describe("ProfileForm", () => {
     expect(saveDisabled()).toBe(true); // consent required
   });
 
+  it("says under the consent box what approved officials see (D104)", async () => {
+    await render(<ProfileForm profile={null} privateProfile={null} />);
+    expect(screen.getByTestId("profile-officials-notice")).toHaveTextContent(
+      "If your profile is public, government officials approved by Bumelerze can see your name, home town, building class and latest “I'm safe” after an earthquake. Private accounts are not shown.",
+    );
+  });
+
   it("the terms line covers the community guidelines and being 13 or older, and the guidelines can be read from the form", async () => {
     await render(
       <SafeAreaProvider

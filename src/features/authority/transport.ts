@@ -9,6 +9,7 @@ import {
   type AuthorityOverview,
   type CheckinEvent,
   type EventSafety,
+  type PeoplePage,
   type SharedPerson,
 } from "./types";
 
@@ -171,12 +172,30 @@ export function parsePeople(data: unknown): SharedPerson[] {
   });
 }
 
-/** Migrations 0066 and 0069. Every authority read is checked and logged on
- * the server. */
+const pageNumber = z.coerce.number().int().nonnegative();
+
+/** One page of `authority_people` (migration 0082): the people, whether
+ * another page exists, and how many pages are left today. */
+export function parsePeoplePage(data: unknown, offset: number): PeoplePage {
+  const obj = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
+  const left = pageNumber.safeParse(obj.views_left);
+  const start = pageNumber.safeParse(obj.offset);
+  return {
+    people: parsePeople(data),
+    more: obj.more === true,
+    offset: start.success ? start.data : offset,
+    viewsLeft: left.success ? left.data : null,
+  };
+}
+
+/** Migrations 0066, 0069 and 0082. Every authority read is checked and
+ * logged on the server. */
 export interface AuthorityTransport {
   fetchOverview(): Promise<AuthorityOverview>;
   fetchEventSafety(eventId: string): Promise<EventSafety>;
-  fetchPeople(): Promise<SharedPerson[]>;
+  /** One page of account holders with a public profile, starting at
+   * `offset` (each page counts toward the daily limit). */
+  fetchPeople(offset: number): Promise<PeoplePage>;
 }
 
 export const SupabaseAuthorityTransport: AuthorityTransport = {
@@ -188,7 +207,10 @@ export const SupabaseAuthorityTransport: AuthorityTransport = {
       await call("authority_event_safety", { p_event_id: eventId }),
     );
   },
-  async fetchPeople() {
-    return parsePeople(await call("authority_people", { p_limit: PEOPLE_LIMIT }));
+  async fetchPeople(offset) {
+    return parsePeoplePage(
+      await call("authority_people", { p_limit: PEOPLE_LIMIT, p_offset: offset }),
+      offset,
+    );
   },
 };

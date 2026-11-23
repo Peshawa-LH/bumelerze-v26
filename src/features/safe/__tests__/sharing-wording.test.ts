@@ -9,8 +9,9 @@ import kmr from "@/i18n/locales/kmr.json";
  * can see it. Since D98 verified Government officials see each account's
  * latest "I'm safe", so "Only approved members of this home see them" (the
  * Family page hint up to 26.4.3) and "Nobody in Bumelerze can see it" were
- * no longer true. The owner wants no mention of officials, so the text
- * names the people it is shared with and makes no exclusivity claim.
+ * no longer true. The text names the people it is shared with and makes no
+ * exclusivity claim; since 0082 (owner-approved wording, 2026-11-23) it also
+ * names approved government officials for a public profile.
  */
 
 type Catalog = Record<string, unknown>;
@@ -60,9 +61,9 @@ describe("I'm safe wording never promises that nobody else can see it (D98)", ()
     });
   }
 
-  it("the Family page hint names the home it is shared with", () => {
+  it("the Family page hint names the home and the officials it is shared with", () => {
     expect(en.imSafe.family.settingHint).toBe(
-      "Shared with the approved members of this home. Never your location.",
+      "Shared with the approved members of this home and, if your profile is public, approved government officials. Never your location.",
     );
   });
 

@@ -8,10 +8,12 @@ import {
 import type { Permission } from "@/features/eventhub/types";
 
 import { OfficialsContent } from "../components/OfficialsContent";
+import { CommunityError } from "@/features/community/types";
 import {
   parseEventSafety,
   parseOverview,
   parsePeople,
+  parsePeoplePage,
   type AuthorityTransport,
 } from "../transport";
 import { PEOPLE_LIMIT } from "../types";
@@ -59,18 +61,24 @@ function transport(overrides: Partial<AuthorityTransport> = {}) {
         ],
       }),
     ),
-    fetchPeople: jest.fn(async () =>
-      parsePeople({
-        people: [
-          {
-            user_id: "u1",
-            username: "shilan",
-            display_name: "Shilan",
-            homes: [{ area: "halabja", kind: "house", vc: "B", vc_range: "A-C" }],
-            safe: { checked_in_at: "2026-10-01T10:20:00Z", ...EVENT },
-          },
-        ],
-      }),
+    fetchPeople: jest.fn(async (offset: number) =>
+      parsePeoplePage(
+        {
+          people: [
+            {
+              user_id: "u1",
+              username: "shilan",
+              display_name: "Shilan",
+              homes: [{ area: "halabja", kind: "house", vc: "B", vc_range: "A-C" }],
+              safe: { checked_in_at: "2026-10-01T10:20:00Z", ...EVENT },
+            },
+          ],
+          more: false,
+          offset,
+          views_left: 19,
+        },
+        offset,
+      ),
     ),
     ...overrides,
   } as jest.Mocked<AuthorityTransport>;
@@ -120,11 +128,13 @@ describe("Officials page (owner decision 2026-10-13)", () => {
     expect(mockPush).toHaveBeenCalledWith("/event/bml2026x01");
   });
 
-  it("lists every account holder only after a tap: area and class, never an address (D98)", async () => {
+  it("lists account holders with a public profile only after a tap: area and class, never an address (D98, 0082)", async () => {
     const t = await render(["authority.view"]);
     const section = await screen.findByTestId("officials-people");
     expect(section).toHaveTextContent(/People with an account/);
-    expect(section).toHaveTextContent(/Everyone with a Bumelerze account/);
+    expect(section).toHaveTextContent(
+      /Account holders with a public profile, sorted by name, .*100.* at a time\. Private accounts are not shown\..*up to .*20.* pages in 24 hours\./,
+    );
     expect(section).not.toHaveTextContent(
       /chose to share|switched this on|switch it off/,
     );
@@ -132,7 +142,12 @@ describe("Officials page (owner decision 2026-10-13)", () => {
       fireEvent.press(await screen.findByTestId("officials-people-show"));
     });
     await waitFor(() => expect(t.fetchPeople).toHaveBeenCalledTimes(1));
+    expect(t.fetchPeople).toHaveBeenCalledWith(0);
     expect(await screen.findByTestId("officials-person-u1")).toHaveTextContent(/Shilan/);
+    expect(screen.getByTestId("officials-people-left")).toHaveTextContent(
+      /Pages left in the next 24 hours: .*19/,
+    );
+    expect(screen.queryByTestId("officials-people-next")).toBeNull();
     expect(screen.getByTestId("officials-person-home-u1-0")).toHaveTextContent(
       /Class B, Very vulnerable \(range .*A-C.*\) · .* area · House/,
     );
@@ -142,33 +157,80 @@ describe("Officials page (owner decision 2026-10-13)", () => {
   });
 
   it("says when there is nobody to list", async () => {
-    await render(["authority.view"], transport({ fetchPeople: jest.fn(async () => []) }));
+    await render(
+      ["authority.view"],
+      transport({
+        fetchPeople: jest.fn(async () =>
+          parsePeoplePage({ people: [], more: false, offset: 0, views_left: 19 }, 0),
+        ),
+      }),
+    );
     await act(async () => {
       fireEvent.press(await screen.findByTestId("officials-people-show"));
     });
     expect(await screen.findByTestId("officials-people-empty")).toHaveTextContent(
       "No accounts yet.",
     );
-    expect(screen.queryByTestId("officials-people-first")).toBeNull();
+    expect(screen.queryByTestId("officials-people-next")).toBeNull();
   });
 
-  it("says when the list stops at the first 200 by name", async () => {
-    const many = Array.from({ length: PEOPLE_LIMIT }, (_, i) => ({
+  it("shows 100 at a time and asks for the next page only on a tap", async () => {
+    const row = (i: number) => ({
       user_id: `u${i}`,
       username: `p${i}`,
       display_name: null,
       homes: [],
       safe: null,
-    }));
-    const t = transport({
-      fetchPeople: jest.fn(async () => parsePeople({ people: many })),
     });
-    await render(["authority.view"], t);
+    const fetchPeople = jest.fn(async (offset: number) =>
+      offset === 0
+        ? parsePeoplePage(
+            {
+              people: Array.from({ length: PEOPLE_LIMIT }, (_, i) => row(i)),
+              more: true,
+              offset: 0,
+              views_left: 19,
+            },
+            0,
+          )
+        : parsePeoplePage(
+            { people: [row(100), row(101)], more: false, offset: 100, views_left: 18 },
+            offset,
+          ),
+    );
+    await render(["authority.view"], transport({ fetchPeople }));
     await act(async () => {
       fireEvent.press(await screen.findByTestId("officials-people-show"));
     });
-    expect(await screen.findByTestId("officials-people-first")).toHaveTextContent(
-      /Showing the first .*200.*, by name\./,
+    expect(await screen.findByTestId("officials-person-u99")).toBeTruthy();
+    expect(screen.queryByTestId("officials-person-u100")).toBeNull();
+    expect(fetchPeople).toHaveBeenCalledTimes(1);
+    const next = screen.getByTestId("officials-people-next");
+    expect(next).toHaveTextContent(/Show the next .*100/);
+    await act(async () => {
+      fireEvent.press(next);
+    });
+    expect(await screen.findByTestId("officials-person-u101")).toBeTruthy();
+    expect(fetchPeople).toHaveBeenLastCalledWith(100);
+    expect(screen.getByTestId("officials-person-u0")).toBeTruthy();
+    expect(screen.queryByTestId("officials-people-next")).toBeNull();
+    expect(screen.getByTestId("officials-people-left")).toHaveTextContent(/18/);
+  });
+
+  it("says plainly when the 20 pages of the day are used up", async () => {
+    await render(
+      ["authority.view"],
+      transport({
+        fetchPeople: jest.fn(async () => {
+          throw new CommunityError("rate_limited", "authority_people: rate_limited");
+        }),
+      }),
+    );
+    await act(async () => {
+      fireEvent.press(await screen.findByTestId("officials-people-show"));
+    });
+    expect(await screen.findByTestId("officials-people-error")).toHaveTextContent(
+      /You have opened .*20.* pages of this list in the last 24 hours\. Try again later\./,
     );
   });
 
@@ -195,6 +257,22 @@ describe("authority parsers", () => {
   it("keep null (fewer than 5) apart from 0", () => {
     expect(OVERVIEW.areas[0]?.classes.A).toBeNull();
     expect(OVERVIEW.classes.B).toBe(0);
+  });
+
+  it("read a page: more, where it starts and the pages left", () => {
+    expect(parsePeoplePage({ people: [], more: true, offset: 100, views_left: 3 }, 100)).toEqual({
+      people: [],
+      more: true,
+      offset: 100,
+      viewsLeft: 3,
+    });
+    // an older server (0069) sends only the people
+    expect(parsePeoplePage({ people: [] }, 0)).toEqual({
+      people: [],
+      more: false,
+      offset: 0,
+      viewsLeft: null,
+    });
   });
 
   it("skip broken people and never invent a safe time", () => {

@@ -511,6 +511,10 @@ export function ProfileForm({
           text={t("account.profile.terms")}
           testID="profile-terms"
         />
+        {/* Owner decision D104: one line on what approved officials see. */}
+        <Text style={meta} testID="profile-officials-notice">
+          {t("account.profile.officialsNotice")}
+        </Text>
         <Pressable
           accessibilityRole="link"
           onPress={() => void openLink(PRIVACY_URL).catch(() => undefined)}

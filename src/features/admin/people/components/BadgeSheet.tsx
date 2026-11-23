@@ -8,6 +8,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { ROLE_BADGES } from "@/features/badges/catalog";
 import { toneColor } from "@/features/badges/tones";
 import { communityErrorText } from "@/features/community/error-text";
+import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import { useTheme } from "@/theme";
 import { useAdminActions } from "../../queries";
@@ -15,6 +16,21 @@ import type { AdminTransport } from "../../transport";
 import { GRANTABLE_RANKS, type GrantableRank } from "../../types";
 import { useTextDir } from "../../ui/text-dir";
 import { Sheet } from "./Sheet";
+
+/** How long a Government official rank lasts (migration 0082: at most 12
+ * months; the official account picks one). */
+export const AUTHORITY_TERMS = [3, 6, 12] as const;
+export type AuthorityTerm = (typeof AUTHORITY_TERMS)[number];
+
+/** The end of a term that starts now: the same time of day, `months` later. */
+export function authorityEndsAt(months: AuthorityTerm, now: number = Date.now()): number {
+  const end = new Date(now);
+  end.setMonth(end.getMonth() + months);
+  return end.getTime();
+}
+
+/** The shortest reason the server accepts (migration 0082). */
+export const AUTHORITY_REASON_MIN = 5;
 
 /** One-line explanations under the ranks that need one (mockup 5d). */
 const DESCRIBED: Partial<Record<GrantableRank, string>> = {
@@ -28,8 +44,11 @@ const DESCRIBED: Partial<Record<GrantableRank, string>> = {
  * page: one radio row per badge an admin may give (Government official
  * first, marked New), badges the person already holds shown as "Has it",
  * the organisation for a partner, a private note only admins see, and one
- * primary button that names the badge. Taking a badge away is on the
- * person page, next to each badge held.
+ * primary button that names the badge. The Government official rank asks
+ * for a reason (required, only admins see it) and an end date of 3, 6 or 12
+ * months instead (migration 0082: only the official account can give it,
+ * with two-step sign-in). Taking a badge away is on the person page, next to
+ * each badge held.
  */
 export function BadgeSheet({
   username,
@@ -55,6 +74,7 @@ export function BadgeSheet({
   );
   const [org, setOrg] = useState("");
   const [note, setNote] = useState("");
+  const [term, setTerm] = useState<AuthorityTerm>(6);
   const [busy, setBusy] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const meta = [typography.bodyMeta, dir, { color: colors.text.secondary }];
@@ -70,8 +90,12 @@ export function BadgeSheet({
     },
   ];
 
+  const isAuthority = rank === "authority";
+  const reasonMissing =
+    isAuthority && note.trim().length < AUTHORITY_REASON_MIN;
+
   async function give() {
-    if (!rank) return;
+    if (!rank || reasonMissing) return;
     setBusy(true);
     setErrorText(null);
     try {
@@ -79,7 +103,8 @@ export function BadgeSheet({
         username,
         role: rank,
         orgName: rank === "partner" ? org : null,
-        note,
+        note: isAuthority ? note.trim() : note,
+        expiresAt: isAuthority ? authorityEndsAt(term) : null,
       });
       snackbar.show({ message: t("admin.ranks.granted") });
       onClose();
@@ -203,12 +228,36 @@ export function BadgeSheet({
         value={note}
         onChangeText={setNote}
         maxLength={200}
-        placeholder={t("admin.person.badge.noteLabel")}
+        placeholder={t(
+          isAuthority ? "admin.person.badge.reasonLabel" : "admin.person.badge.noteLabel",
+        )}
         placeholderTextColor={colors.text.tertiary}
-        accessibilityLabel={t("admin.person.badge.noteLabel")}
+        accessibilityLabel={t(
+          isAuthority ? "admin.person.badge.reasonLabel" : "admin.person.badge.noteLabel",
+        )}
         style={input}
         testID="badge-note-input"
       />
+      {isAuthority ? (
+        <View style={{ gap: spacing[2] }} testID="badge-term">
+          <Text style={meta}>{t("admin.person.badge.endsLabel")}</Text>
+          <View
+            style={[styles.nameRow, { gap: spacing[2] }]}
+            accessibilityRole="radiogroup"
+            accessibilityLabel={t("admin.person.badge.endsLabel")}
+          >
+            {AUTHORITY_TERMS.map((months) => (
+              <ActionButton
+                key={months}
+                label={t(`admin.person.badge.ends.m${months}`)}
+                selected={term === months}
+                onPress={() => setTerm(months)}
+                testID={`badge-term-${months}`}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
       <AccountButton
         tone="primary"
         label={
@@ -216,7 +265,7 @@ export function BadgeSheet({
             ? t("admin.person.badge.give", { badge: t(`eventHub.roles.${rank}`) })
             : t("admin.person.badge.allHeld")
         }
-        disabled={busy || rank === null}
+        disabled={busy || rank === null || reasonMissing}
         onPress={() => void give()}
         testID="badge-grant"
       />

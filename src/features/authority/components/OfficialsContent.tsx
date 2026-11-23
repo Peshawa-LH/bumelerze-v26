@@ -17,6 +17,7 @@ import {
 import { VC_COLORS } from "@/features/building/components/VcBadge";
 import { VULNERABILITY_CLASSES } from "@/features/building/ims25";
 import { communityErrorText } from "@/features/community/error-text";
+import { CommunityError } from "@/features/community/types";
 import { ActionButton } from "@/features/eventhub/components/ActionButton";
 import type { EventHubTransport } from "@/features/eventhub/transport";
 import {
@@ -31,6 +32,7 @@ import { useAuthorityOverview, useEventSafety, useSharedPeople } from "../querie
 import type { AuthorityTransport } from "../transport";
 import {
   PEOPLE_LIMIT,
+  PEOPLE_PAGES_PER_DAY,
   type AreaClasses,
   type CheckinEvent,
   type SharedPerson,
@@ -41,8 +43,8 @@ import { ltrValueStyle } from "@/i18n";
  * The Officials page (owner decision 2026-10-13): for holders of the
  * Government official rank only. Aggregates first (tagged homes by
  * vulnerability class, by area; who checked in safe after an earthquake, by
- * area), then every account holder (owner decision D98, migration 0069), and
- * only after a tap. Every number under 5 is hidden by the server; every read
+ * area), then the account holders with a public profile (owner decisions D98
+ * and D104, migrations 0069 and 0082), only after a tap and 100 at a time. Every number under 5 is hidden by the server; every read
  * is recorded in the activity log. Never a coordinate or an address.
  */
 export function OfficialsContent({
@@ -307,9 +309,10 @@ function SafetyCard({
   );
 }
 
-/** Every account holder, by name: loaded only when the official asks (each
- * look is recorded with who was shown). The list stops at PEOPLE_LIMIT and
- * says so. */
+/** Account holders with a public profile, by name (migration 0082): loaded
+ * only when the official asks, 100 at a time. Each page is recorded with who
+ * was shown and counts toward the daily limit; the page says how many are
+ * left, and says so plainly when the limit is reached. */
 function PeopleSection({ transport }: { transport: AuthorityTransport | undefined }) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
@@ -318,10 +321,22 @@ function PeopleSection({ transport }: { transport: AuthorityTransport | undefine
   const people = useSharedPeople(show, transport);
   const num = useNumber();
   const meta = [typography.bodyMeta, dir, { color: colors.text.secondary }];
+  const pages = people.data?.pages ?? [];
+  const everyone = pages.flatMap((page) => page.people);
+  const last = pages[pages.length - 1] ?? null;
+  const limitText = (error: unknown) =>
+    error instanceof CommunityError && error.code === "rate_limited"
+      ? t("officials.dailyLimit", { number: num(PEOPLE_PAGES_PER_DAY) })
+      : communityErrorText(t, error);
   return (
     <View style={{ gap: spacing[3] }} testID="officials-people">
       <ToolSectionTitle title={t("officials.peopleTitle")} />
-      <Text style={meta}>{t("officials.peopleHint")}</Text>
+      <Text style={meta}>
+        {t("officials.peopleHint", {
+          number: num(PEOPLE_LIMIT),
+          pages: num(PEOPLE_PAGES_PER_DAY),
+        })}
+      </Text>
       {!show ? (
         <AccountButton
           label={t("officials.peopleShow")}
@@ -330,23 +345,44 @@ function PeopleSection({ transport }: { transport: AuthorityTransport | undefine
         />
       ) : people.isLoading ? (
         <Text style={meta}>{t("eventDetail.loading")}</Text>
-      ) : people.isError || !people.data ? (
-        <Text accessibilityRole="alert" style={[meta, { color: colors.status.danger }]}>
-          {communityErrorText(t, people.error)}
+      ) : people.isError && pages.length === 0 ? (
+        <Text
+          accessibilityRole="alert"
+          style={[meta, { color: colors.status.danger }]}
+          testID="officials-people-error"
+        >
+          {limitText(people.error)}
         </Text>
-      ) : people.data.length === 0 ? (
+      ) : everyone.length === 0 ? (
         <Text style={meta} testID="officials-people-empty">
           {t("officials.peopleEmpty")}
         </Text>
       ) : (
         <>
-          {people.data.map((person) => (
+          {everyone.map((person) => (
             <PersonCard key={person.userId} person={person} />
           ))}
-          {people.data.length >= PEOPLE_LIMIT ? (
-            <Text style={meta} testID="officials-people-first">
-              {t("officials.peopleFirst", { number: num(PEOPLE_LIMIT) })}
+          {last?.viewsLeft !== null && last?.viewsLeft !== undefined ? (
+            <Text style={meta} testID="officials-people-left">
+              {t("officials.viewsLeft", { number: num(last.viewsLeft) })}
             </Text>
+          ) : null}
+          {people.isFetchNextPageError ? (
+            <Text
+              accessibilityRole="alert"
+              style={[meta, { color: colors.status.danger }]}
+              testID="officials-people-error"
+            >
+              {limitText(people.error)}
+            </Text>
+          ) : null}
+          {people.hasNextPage ? (
+            <AccountButton
+              label={t("officials.peopleNext", { number: num(PEOPLE_LIMIT) })}
+              disabled={people.isFetchingNextPage || last?.viewsLeft === 0}
+              onPress={() => void people.fetchNextPage()}
+              testID="officials-people-next"
+            />
           ) : null}
         </>
       )}

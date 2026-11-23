@@ -18,7 +18,9 @@ export const ACTOR_RANKS: readonly ActorRank[] = [
 
 /** Ranks an admin can give or take away in the app, in the order the Give
  * badge sheet lists them. The official rank is deliberately missing: it stays
- * a database-only operation. "authority" (Government official) since 0066. */
+ * a database-only operation. "authority" (Government official) since 0066;
+ * since 0082 only the official account gives it, with two-step sign-in, a
+ * reason and an end date at most 12 months away. */
 export const GRANTABLE_RANKS = [
   "authority",
   "moderator",
@@ -57,6 +59,8 @@ export interface RoleHolder {
   grantedAt: number;
   grantedByName: string | null;
   note: string | null;
+  /** UTC ms when the rank ends (Government official only, migration 0082). */
+  expiresAt: number | null;
 }
 
 export interface ReportedProfile {

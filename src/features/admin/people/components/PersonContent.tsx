@@ -25,7 +25,7 @@ import { KEYBOARD_AWARE_SCROLL } from "@/lib/keyboard-scroll";
 import { confirmDialog } from "@/lib/dialogs";
 import { formatDeviceFingerprint } from "@/lib/device-fingerprint";
 import { useTheme, nativeFontFamily } from "@/theme";
-import { useAdminAccess, useAdminActions } from "../../queries";
+import { useAdminAccess, useAdminActions, useRoleHolders } from "../../queries";
 import { SupabaseAdminTransport, type AdminTransport } from "../../transport";
 import { formatCount, personName, shortId } from "../format";
 import { usePeopleActions, usePerson } from "../queries";
@@ -232,6 +232,12 @@ function PersonBody({
     access.canRestrict && isAccount && !isSelf && !protectedAccount &&
     (id.displayName !== null || id.avatarPath !== null);
   const canBadge = access.canGrant && isAccount;
+  // When a Government official rank ends (migration 0082).
+  const holdsAuthority = id.ranks.some((r) => r.role === "authority");
+  const holders = useRoleHolders(canBadge && holdsAuthority, adminTransport);
+  const authorityEnds =
+    holders.data?.find((h) => h.userId === id.userId && h.role === "authority")
+      ?.expiresAt ?? null;
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -529,7 +535,16 @@ function PersonBody({
                     testID={`person-badge-${r.role}`}
                   >
                     <Ionicons name={badge.icon} size={22} color={toneColor(badge.tone, colors)} />
-                    <Text style={[body, styles.badgeName]}>{label}</Text>
+                    <View style={styles.badgeName}>
+                      <Text style={body}>{label}</Text>
+                      {r.role === "authority" && authorityEnds !== null ? (
+                        <Text style={meta} testID="person-badge-authority-ends">
+                          {t("restrictions.list.until", {
+                            date: untilText(t, language, authorityEnds),
+                          })}
+                        </Text>
+                      ) : null}
+                    </View>
                     {removable ? (
                       <ActionButton
                         label={t("admin.person.badges.takeAway")}

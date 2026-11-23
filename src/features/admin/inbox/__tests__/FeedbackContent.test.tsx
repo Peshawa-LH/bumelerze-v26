@@ -286,6 +286,23 @@ describe("Admin > Feedback > message", () => {
     );
   });
 
+  it("sends a Government official request to the person's page (reason and end date, 0082)", async () => {
+    hub.fetchMyPermissions.mockResolvedValue(ADMIN);
+    const inbox = fakeInbox({
+      detail: detail({ category: "badge_request", message: "Badge request: Government official" }),
+    });
+    await renderWithProviders(
+      <FeedbackDetailContent feedbackId="f1" transport={inbox} hubTransport={hub} />,
+    );
+    expect(await screen.findByTestId("feedback-badge-authority")).toHaveTextContent(
+      "Give the Government official badge from the person's page: it needs a reason and an end date.",
+    );
+    expect(screen.queryByTestId("feedback-grant")).toBeNull();
+    await fireEvent.press(screen.getByTestId("feedback-rank-seismologist"));
+    expect(screen.getByTestId("feedback-grant")).toBeTruthy();
+    expect(inbox.grantBadge).not.toHaveBeenCalled();
+  });
+
   it("asks for the organisation of a partner and sends it", async () => {
     hub.fetchMyPermissions.mockResolvedValue(ADMIN);
     const inbox = fakeInbox({

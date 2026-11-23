@@ -94,6 +94,7 @@ function adminTransport(
     resetPassword: jest.fn(async () => undefined),
     grantRole: jest.fn(async () => undefined),
     revokeRole: jest.fn(async () => undefined),
+    fetchRoleHolders: jest.fn(async () => []),
     ...overrides,
   } as unknown as jest.Mocked<AdminTransport>;
 }
@@ -580,9 +581,62 @@ describe("Admin > People > person", () => {
           role: "professor",
           orgName: null,
           note: "ID checked",
+          expiresAt: null,
         }),
       );
       await waitFor(() => expect(screen.queryByTestId("badge-sheet")).toBeNull());
+    });
+
+    it("asks for a reason and an end date for a Government official (0082)", async () => {
+      const { admin } = await render(OFFICIAL, fakePeopleTransport());
+      await fireEvent.press(await screen.findByTestId("person-action-badge"));
+      expect(screen.getByTestId("badge-rank-authority")).toHaveTextContent(
+        /Only the official account can give it, with two-step sign-in, a reason and an end date\./,
+      );
+      const input = screen.getByTestId("badge-note-input");
+      expect(input.props.placeholder).toBe("Reason (required, only admins see it)");
+      expect(screen.getByTestId("badge-term")).toHaveTextContent(/Ends after/);
+      expect(screen.getByTestId("badge-term-6").props.accessibilityState.selected).toBe(true);
+      // no reason yet: the button waits
+      expect(screen.getByTestId("badge-grant").props.accessibilityState.disabled).toBe(true);
+      await act(async () => {
+        fireEvent.changeText(input, "  Erbil civil defence  ");
+        fireEvent.press(screen.getByTestId("badge-term-12"));
+      });
+      const before = Date.now();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("badge-grant"));
+      });
+      await waitFor(() => expect(admin.grantRole).toHaveBeenCalledTimes(1));
+      const call = admin.grantRole.mock.calls[0]![0];
+      expect(call).toEqual(
+        expect.objectContaining({ username: "aso", role: "authority", note: "Erbil civil defence" }),
+      );
+      const twelve = new Date(before);
+      twelve.setMonth(twelve.getMonth() + 12);
+      expect(Math.abs((call.expiresAt as number) - twelve.getTime())).toBeLessThan(60_000);
+    });
+
+    it("shows when a Government official rank ends", async () => {
+      const admin = adminTransport([], {
+        fetchRoleHolders: jest.fn(async () => [
+          {
+            userId: ID,
+            username: "aso",
+            displayName: null,
+            role: "authority" as const,
+            orgName: null,
+            grantedAt: Date.UTC(2026, 10, 23),
+            grantedByName: null,
+            note: "Erbil civil defence",
+            expiresAt: Date.UTC(2027, 4, 23, 12),
+          },
+        ]),
+      });
+      await render(OFFICIAL, withRanks([{ role: "authority", orgName: null }]), admin);
+      expect(await screen.findByTestId("person-badge-authority-ends")).toHaveTextContent(
+        /Until .*2027/,
+      );
     });
 
     it("asks for the organisation only for a partner", async () => {
@@ -604,6 +658,9 @@ describe("Admin > People > person", () => {
       });
       await render(OFFICIAL, fakePeopleTransport(), admin);
       await fireEvent.press(await screen.findByTestId("person-action-badge"));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("badge-rank-professor"));
+      });
       await act(async () => {
         fireEvent.press(screen.getByTestId("badge-grant"));
       });

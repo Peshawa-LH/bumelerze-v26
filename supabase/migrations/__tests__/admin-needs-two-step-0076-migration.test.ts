@@ -294,8 +294,18 @@ describe("every direct reader of the rank tables is decided", () => {
 
   // Readers added by later migrations, each decided there (and pinned by
   // that migration's own test): 0077 event_hub_roles, the hub's badges for
-  // the people whose comments the caller sees (it replaced the table read).
-  const ADDED_LATER = ["event_hub_roles"];
+  // the people whose comments the caller sees (it replaced the table read);
+  // 0082 admin_grant_authority and user_roles_authority_guard (both demand
+  // aal2 themselves), authority_people (behind has_permission() for the
+  // caller, plus the rank's end date) and expire_authority_ranks (pg_cron,
+  // no session).
+  const ADDED_LATER = [
+    "admin_grant_authority",
+    "authority_people",
+    "event_hub_roles",
+    "expire_authority_ranks",
+    "user_roles_authority_guard",
+  ];
 
   it("the latest definitions that read user_roles, private_ranks or role_permissions are exactly these", () => {
     const readers = [...latest].filter(([, src]) => RANK.test(src)).map(([name]) => name);

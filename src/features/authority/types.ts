@@ -4,9 +4,12 @@ import type { VulnerabilityClass } from "@/features/building/ims25";
  * the server sends `null` for anything smaller (migration 0066). */
 export const AUTHORITY_MIN_COUNT = 5;
 
-/** People per look at the list of account holders (the server allows up to
- * 500, migration 0069); the page says when the list stops there. */
-export const PEOPLE_LIMIT = 200;
+/** People per page of the list of account holders: the server sends at most
+ * 100 (migration 0082) and says whether another page exists. */
+export const PEOPLE_LIMIT = 100;
+
+/** Pages of that list one official may open in 24 hours (migration 0082). */
+export const PEOPLE_PAGES_PER_DAY = 20;
 
 /** A count the server may hide: null = "fewer than 5". */
 export type Protected = number | null;
@@ -71,4 +74,15 @@ export interface SharedPerson {
     /** UTC ms of the earthquake, or null. */
     originTime: number | null;
   } | null;
+}
+
+/** One page of the list of account holders (migration 0082). */
+export interface PeoplePage {
+  people: SharedPerson[];
+  /** Another page exists after this one. */
+  more: boolean;
+  /** Where this page starts in the list. */
+  offset: number;
+  /** Pages the official may still open in the next 24 hours. */
+  viewsLeft: number | null;
 }

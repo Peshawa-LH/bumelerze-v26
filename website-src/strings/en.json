@@ -190,7 +190,7 @@
   "support.family.q1": "What is “I’m safe”?",
   "support.family.a1": "After an earthquake in the region, “I’m safe” tells your family you are OK in one tap. It appears after you share your experience, on Home after a strong earthquake, and on your home’s Family page. Without signal, it is sent when the connection returns.",
   "support.family.q2": "Who is my “I’m safe” shared with?",
-  "support.family.a2": "With the approved members of your family home, while “Show my check-ins to this home” is on. By default, also with people you follow who follow you back; change this in Settings, under Notifications. Your location is never shared. Check-ins show for one day. Without an account, nothing is stored: tap “Send a message instead” to tell your family by WhatsApp, Viber or SMS.",
+  "support.family.a2": "With the approved members of your family home, while “Show my check-ins to this home” is on. By default, also with people you follow who follow you back; change this in Settings, under Notifications. If your profile is public, approved government officials also see your latest check-in. Your location is never shared. Check-ins show for one day. Without an account, nothing is stored: tap “Send a message instead” to tell your family by WhatsApp, Viber or SMS.",
   "support.family.q3": "Can Bumelerze send help?",
   "support.family.a3": "No. Bumelerze cannot send rescue teams or any help. In an emergency, contact your local emergency services directly. Use “I’m safe” or a message to let your family know you are OK.",
   "support.family.q4": "How do I create a family home?",

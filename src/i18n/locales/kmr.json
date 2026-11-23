@@ -1919,6 +1919,7 @@
       "professionHint": "Taybet. Qet ji kesî re nayê nîşandan.",
       "preferNot": "Nexwazim bibêjim",
       "terms": "Ez bi Mercan, Siyaseta Nepenîtiyê û Rêbernameyên civakê razî me, û ez 13 salî an jî mezintir im.",
+      "officialsNotice": "Heke profîla te giştî be, karbidestên hikûmetê yên ku Bumelerze pejirandine dikarin piştî erdhejekê navê te, bajarê mala te, pola avahiya te û «Ez ewle me»ya te ya dawî bibînin. Hesabên taybet nayên nîşandan.",
       "privacyLink": "Siyaseta nepenîtiyê bixwîne",
       "research": "Raport û agahiyên avahiya min, bêyî navê min û bi cihê hûrkirî, ji bo lêkolîna erdhejê û baştirkirina texmînên zirarê yên Bumelerze bi kar bîne. (Bi dilê te)",
       "save": "Tomar bike",
@@ -2804,8 +2805,15 @@
         "newTag": "Nû",
         "allHeld": "Hemû nîşan hene",
         "noteLabel": "Nota taybet (tenê rêveber dibînin)",
+        "reasonLabel": "Sedem (pêwîst e, tenê rêveber dibînin)",
+        "endsLabel": "Piştî vê diqede",
+        "ends": {
+          "m3": "3 meh",
+          "m6": "6 meh",
+          "m12": "12 meh"
+        },
         "describe": {
-          "authority": "Hejmarên giştî li gorî herêmê dibîne, û pola avahiyê û «Ez ewle me»ya dawî ya her xwedî hesabekî. Qet navnîşan na.",
+          "authority": "Hejmarên giştî li gorî herêmê dibîne, û pola avahiyê û «Ez ewle me»ya dawî ya xwediyên hesabên giştî. Qet navnîşan na. Tenê hesabê fermî dikare wê bide, bi têketina du-gavî, sedemek û dîrokek dawiyê.",
           "moderator": "Alîkarî dike ku şîrove û post ewle bimînin.",
           "partner": "Navê rêxistinê dipirse."
         }
@@ -2971,7 +2979,8 @@
         "orgPlaceholder": "Navê rêxistinê (tenê hevkar)",
         "grant": "Nîşana xwestî bide",
         "markSolved": "Jixwe heye: wek çareserkirî nîşan bide",
-        "granted": "Nîşan hate dayîn û daxwaz çareser bû"
+        "granted": "Nîşan hate dayîn û daxwaz çareser bû",
+        "authorityOnPerson": "Nîşana karbidestê hikûmetê ji rûpela kesê bide: sedemek û dîrokek dawiyê pêwîst in."
       },
       "triage": "Rewş û not",
       "notePlaceholder": "Çi hate biryardan, paşê çi were kirin",
@@ -3489,7 +3498,7 @@
       "empty": "Di roja dawî de kesî agahdar nekiriye.",
       "alone": "Gava kesên din tevlî vê malê bibin, agahdariyên wan li vir xuya dibin.",
       "setting": "Agahdariyên min nîşanî vê malê bide",
-      "settingHint": "Bi endamên pejirandî yên vê malê re tên parvekirin. Qet cihê te nayê nîşandan."
+      "settingHint": "Bi endamên pejirandî yên vê malê re û, heke profîla te giştî be, bi karbidestên hikûmetê yên pejirandî re tên parvekirin. Qet cihê te nayê nîşandan."
     },
     "banner": {
       "a11y": "Tu ewle yî? Li nêzî te erdhejeke xurt çêbû."
@@ -3774,10 +3783,12 @@
     "safeFew": "ji {{people}} kesan kêmtirî 5 ewle ne",
     "feltMap": "Nexşeya hestkirinê veke",
     "peopleTitle": "Kesên xwedî hesab",
-    "peopleHint": "Hemû kesên xwedî hesabê Bumelerze, li gorî navan rêzkirî. Vekirina lîsteyê bi kesên hatine nîşandan re tê tomarkirin.",
+    "peopleHint": "Xwediyên hesabên giştî, li gorî navan rêzkirî, her carê {{number}} kes. Hesabên taybet nayên nîşandan. Her rûpela ku tu vedikî bi kesên hatine nîşandan re tê tomarkirin, heta {{pages}} rûpelan di 24 saetan de.",
     "peopleShow": "Lîsteyê nîşan bide",
+    "peopleNext": "{{number}} yên din nîşan bide",
+    "viewsLeft": "Rûpelên mayî ji bo 24 saetên bê: {{number}}",
+    "dailyLimit": "Te di 24 saetên dawî de {{number}} rûpelên vê lîsteyê vekirine. Paşê dîsa biceribîne.",
     "peopleEmpty": "Hîn tu hesab tune ne.",
-    "peopleFirst": "Tenê {{number}} kesên pêşîn têne nîşandan, li gorî navan.",
     "noName": "Bê nav",
     "noHome": "Tu malê tomarkirî tune.",
     "homeClass": "Pola {{vc}}, {{name}}",
