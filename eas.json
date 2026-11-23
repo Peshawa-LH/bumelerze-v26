@@ -19,7 +19,7 @@
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I",
         "EXPO_PUBLIC_MAPTILER_KEY": "u55zrEViEes3KunGwdnn",
         "EXPO_PUBLIC_VAPID_PUBLIC_KEY": "BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw",
-        "EXPO_PUBLIC_TURNSTILE_SITE_KEY": ""
+        "EXPO_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAGPB5fykbHRntXGg"
       }
     },
     "development-simulator": {
@@ -39,7 +39,7 @@
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I",
         "EXPO_PUBLIC_MAPTILER_KEY": "u55zrEViEes3KunGwdnn",
         "EXPO_PUBLIC_VAPID_PUBLIC_KEY": "BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw",
-        "EXPO_PUBLIC_TURNSTILE_SITE_KEY": ""
+        "EXPO_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAGPB5fykbHRntXGg"
       }
     },
     "production": {
@@ -50,7 +50,7 @@
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_j1XFI8mQbqOOyIsNftgM9g_3BtcPJ9I",
         "EXPO_PUBLIC_MAPTILER_KEY": "u55zrEViEes3KunGwdnn",
         "EXPO_PUBLIC_VAPID_PUBLIC_KEY": "BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eFGtVmR3LoM4nxFN9HHH5mK4yOUdrXbFa3vLiodH_0mrw",
-        "EXPO_PUBLIC_TURNSTILE_SITE_KEY": ""
+        "EXPO_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAGPB5fykbHRntXGg"
       }
     }
   },

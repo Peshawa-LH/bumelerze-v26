@@ -39,9 +39,10 @@ export EXPO_PUBLIC_VAPID_PUBLIC_KEY=BMC0pPjw9ICMY-_R7zlWMDlqoB6XhQRsPbFNFrST55eF
 # Cloudflare Turnstile SITE key (CAPTCHA for Supabase Auth, security item
 # A1.4): public by design, like the keys above; the matching SECRET key goes
 # only into Supabase Auth > CAPTCHA protection. Empty = no CAPTCHA, every
-# sign-in exactly as before. Put the widget's site key here (and in eas.json)
-# and deploy BEFORE switching CAPTCHA protection on (src/features/captcha/).
-export EXPO_PUBLIC_TURNSTILE_SITE_KEY=
+# sign-in exactly as before. Widget "Bumelerze app" (Managed mode, hostname
+# app.bumelerze.com, created 2026-11-23); same key in eas.json. It shipped
+# BEFORE CAPTCHA protection was switched on (src/features/captcha/).
+export EXPO_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAGPB5fykbHRntXGg
 
 rm -rf dist-app
 # --clear: a stale Metro cache has silently produced an empty app before.
