@@ -15,6 +15,7 @@ import type {
   WithdrawResult,
 } from "./queue";
 import type { EventRegistration, Tier1Report, Tier2Report } from "./types";
+import { roundFeltCoordinate } from "./location-precision";
 
 /** Private Storage bucket created by migration 0016 — see that file for the
  * bucket config (5 MB limit, jpeg/png/webp) and the storage.objects RLS
@@ -73,7 +74,9 @@ export interface FeltReportInsert {
  *                        either way this function just inserts what it's
  *                        given, it makes no resolution decision itself)
  *  - `cartoon_level`   <- `cartoonLevel`
- *  - `lat` / `lon`     <- `location.lat` / `location.lon`
+ *  - `lat` / `lon`     <- `location.lat` / `location.lon`, rounded to
+ *                        0.001 degrees (about 100 m, migration 0083; the
+ *                        server rounds the same way)
  *  - `location_quality`<- `location.quality` ("gps" | "manual")
  *  - `created_at`      <- `createdAt` (device capture time; ISO string)
  *  - `user_id`         <- `userId` (the third argument — 2026-08-16 storage
@@ -104,8 +107,8 @@ export function buildFeltReportInsert(
     event_id: resolvedEventId,
     user_id: userId,
     cartoon_level: report.cartoonLevel,
-    lat: report.location.lat,
-    lon: report.location.lon,
+    lat: roundFeltCoordinate(report.location.lat),
+    lon: roundFeltCoordinate(report.location.lon),
     location_quality: report.location.quality,
     created_at: new Date(report.createdAt).toISOString(),
   };

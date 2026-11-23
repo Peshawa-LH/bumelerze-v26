@@ -1,7 +1,10 @@
-// purge-home-photos — Supabase Edge Function (Deno). Migration 0061.
+// purge-home-photos — Supabase Edge Function (Deno). Migrations 0061, 0083.
 //
 // Removes the photo FILES of deleted homes from the private `home-photos`
-// bucket. Postgres cannot delete storage objects, so the database queues the
+// bucket and, since 0083, the files queued in `storage_purge` (a deleted
+// account's avatar, felt-photo and feedback-photo folders, and the file of
+// every deleted felt or feedback photo row; ./storage-queue.ts).
+// Postgres cannot delete storage objects, so the database queues the
 // tag id of every deleted home whose folder still has files
 // (`home_photo_purge`, filled by the `home_tags_after_delete` trigger) and
 // this function drains that queue through the Storage API. pg_cron calls it
@@ -9,7 +12,8 @@
 // aggregate-felt-cells job of 0017).
 //
 // Request: POST, body `{}` or `{ "limit": 1..100 }` (tags per call).
-// Response: `{ "data": { requestId, removed, done, failed, folders } }`, or
+// Response: `{ "data": { requestId, removed, done, failed, folders, files } }`
+// (`files` is the storage_purge summary), or
 // `{ "error": { code, message, requestId } }`.
 //
 // Every call carries the shared secret in the header
@@ -34,6 +38,11 @@ import {
   rpcSecretLoader,
 } from "../_shared/function-secret.ts";
 import { purgeHomePhotos, type PurgePorts } from "./purge.ts";
+import {
+  purgeStorageQueue,
+  type QueueEntry,
+  type StorageQueuePorts,
+} from "./storage-queue.ts";
 
 const BUCKET = "home-photos";
 
@@ -167,18 +176,84 @@ Deno.serve(async (req: Request) => {
     },
   };
 
+  const filePorts: StorageQueuePorts = {
+    async nextQueued(limit) {
+      const { data, error } = await client
+        .from("storage_purge")
+        .select("bucket_id, object_path")
+        .order("queued_at", { ascending: true })
+        .limit(limit);
+      if (error) throw new Error(`file queue read failed: ${error.message}`);
+      return (data ?? []).map((row: { bucket_id: string; object_path: string }) => ({
+        bucket: row.bucket_id,
+        path: row.object_path,
+      }));
+    },
+    async listFiles(bucket, folder) {
+      const { data, error } = await client.storage
+        .from(bucket)
+        .list(folder, { limit: 1000 });
+      if (error) throw new Error(`list failed: ${error.message}`);
+      return (data ?? []).filter((item) => item.id !== null).map((item) => item.name);
+    },
+    async removeFiles(bucket, paths) {
+      const { error } = await client.storage.from(bucket).remove(paths);
+      if (error) throw new Error(`remove failed: ${error.message}`);
+    },
+    async markDone(entries) {
+      const byBucket = new Map<string, string[]>();
+      for (const entry of entries as QueueEntry[]) {
+        byBucket.set(entry.bucket, [...(byBucket.get(entry.bucket) ?? []), entry.path]);
+      }
+      for (const [bucket, paths] of byBucket) {
+        const { error } = await client
+          .from("storage_purge")
+          .delete()
+          .eq("bucket_id", bucket)
+          .in("object_path", paths);
+        if (error) throw new Error(`file queue update failed: ${error.message}`);
+      }
+    },
+  };
+
+  // The two queues run independently: a failure in one does not stop the other.
+  let summary: Awaited<ReturnType<typeof purgeHomePhotos>> | null = null;
+  let files: Awaited<ReturnType<typeof purgeStorageQueue>> | null = null;
+  let failed = false;
   try {
-    const summary = await purgeHomePhotos(ports, { batch: parsed.data.limit ?? 25 });
-    log(summary.failed > 0 ? "error" : "info", requestId, "purge finished", {
-      removed: summary.removed,
-      done: summary.done,
-      failed: summary.failed,
-    });
-    return json(200, { data: { requestId, ...summary } });
+    summary = await purgeHomePhotos(ports, { batch: parsed.data.limit ?? 25 });
   } catch (error) {
+    failed = true;
     const message = error instanceof Error ? error.message : String(error);
-    log("error", requestId, "purge failed", { message });
+    log("error", requestId, "home photo purge failed", { message });
+  }
+  try {
+    files = await purgeStorageQueue(filePorts, { batch: 100 });
+  } catch (error) {
+    failed = true;
+    const message = error instanceof Error ? error.message : String(error);
+    log("error", requestId, "file purge failed", { message });
+  }
+  if (failed || !summary || !files) {
     // A fixed text: the reason stays in the function log (security audit CI-08).
     return jsonError(500, "purge_failed", "Purge failed; see the function log.", requestId);
   }
+  log(
+    summary.failed > 0 || files.failed > 0 ? "error" : "info",
+    requestId,
+    "purge finished",
+    {
+      removed: summary.removed,
+      done: summary.done,
+      failed: summary.failed,
+      files: { removed: files.removed, done: files.done, failed: files.failed },
+    },
+  );
+  return json(200, {
+    data: {
+      requestId,
+      ...summary,
+      files: { removed: files.removed, done: files.done, failed: files.failed },
+    },
+  });
 });

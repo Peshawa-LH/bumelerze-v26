@@ -1757,8 +1757,8 @@
       },
       "deleteStaysTitle": "What stays",
       "deleteStays": {
-        "reports": "Your felt reports (and photos attached to them) stay as research data, without your name.",
-        "feedback": "Feedback you sent stays, without your name or contact details.",
+        "reports": "Your felt reports stay as research data, without your name, and their location is rounded to about 1 km. Photos attached to them are deleted.",
+        "feedback": "Feedback you sent stays for up to a year, without your name, contact details or screenshots.",
         "records": "Moderation records of reports and removals stay, without your name. If your account is limited or under review, copies of removed text are kept for up to 90 days."
       }
     },

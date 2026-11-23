@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { DEFAULT_PLACE_ID, gazetteerPlaceById, type Place } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location";
 import { usePrefsStore } from "@/features/onboarding";
+import { roundFeltCoordinate } from "./location-precision";
 import type { FeltLocation } from "./types";
 
 export interface UseFeltLocationResult {
@@ -24,7 +25,9 @@ export interface UseFeltLocationResult {
  * search. That place starts as the silent background reference place (the
  * nearest main town to the last fix, else Hawler), so tier 1's one-tap
  * submission is never blocked waiting on a choice. Only lat/lon and the
- * "manual" quality are uploaded; the place id is local bookkeeping.
+ * "manual" quality are uploaded; the place id is local bookkeeping. A GPS
+ * fix is rounded to about 100 m here already, so the offline queue never
+ * holds a finer position (migration 0083).
  */
 export function useFeltLocation(): UseFeltLocationResult {
   const userFix = useUserDistanceAnchor();
@@ -38,7 +41,11 @@ export function useFeltLocation(): UseFeltLocationResult {
 
   const location = useMemo<FeltLocation>(() => {
     if (userFix.hasFix) {
-      return { quality: "gps", lat: userFix.lat, lon: userFix.lon };
+      return {
+        quality: "gps",
+        lat: roundFeltCoordinate(userFix.lat),
+        lon: roundFeltCoordinate(userFix.lon),
+      };
     }
     return {
       quality: "manual",

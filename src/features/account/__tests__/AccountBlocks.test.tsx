@@ -325,11 +325,11 @@ describe("account blocks", () => {
       const stays = screen.getByTestId("account-delete-stays");
       expect(
         within(stays).getByText(
-          /felt reports .* stay as research data, without your name/,
+          /felt reports stay as research data, without your name, and their location is rounded to about 1 km\. Photos attached to them are deleted/,
         ),
       ).toBeTruthy();
       expect(
-        within(stays).getByText(/Feedback you sent stays, without your name or contact/),
+        within(stays).getByText(/Feedback you sent stays for up to a year, without your name, contact details or screenshots/),
       ).toBeTruthy();
       expect(within(stays).getByText(/up to 90 days/)).toBeTruthy();
       expect(mockDelete).not.toHaveBeenCalled();

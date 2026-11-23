@@ -1757,8 +1757,8 @@
       },
       "deleteStaysTitle": "Çi dimîne",
       "deleteStays": {
-        "reports": "Raporên te yên hîskirinê (û wêneyên pê ve) wekî daneya lêkolînê dimînin, bêyî navê te.",
-        "feedback": "Nêrînên ku te şandine dimînin, bêyî nav û agahiyên têkiliyê.",
+        "reports": "Raporên te yên hîskirinê wekî daneya lêkolînê dimînin, bêyî navê te, û cihê wan bi qasî 1 km tê girover kirin. Wêneyên pê ve tên jêbirin.",
+        "feedback": "Nêrînên ku te şandine heta salekê dimînin, bêyî nav, agahiyên têkiliyê û dîmenên ekranê.",
         "records": "Tomarên çavdêriyê yên gilî û rakirinan dimînin, bêyî navê te. Ger hesabê te sînordar be an di bin nirxandinê de be, kopiyên nivîsa hatî rakirin heta 90 rojan tên girtin."
       }
     },
