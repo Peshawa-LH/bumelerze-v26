@@ -1069,7 +1069,7 @@ function redirectPage(strings, { script, body, noscriptTo }) {
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${description}">
 <meta name="twitter:image" content="${image}">
-<link rel="icon" href="${SITE_URL}favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.ico" sizes="any">
 ${noscriptTo ? `<noscript><meta http-equiv="refresh" content="0; url=${noscriptTo}"></noscript>\n` : ""}<style>${REDIRECT_PAGE_STYLE}</style>
 ${script}
 </head>
