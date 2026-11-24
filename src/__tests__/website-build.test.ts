@@ -1,11 +1,12 @@
 /**
  * The website (website/**.html) is generated from website-src/ by
- * scripts/build-website.mjs and the output is committed, because the deploy
- * workflow publishes website/ as-is. These tests fail when the committed
+ * scripts/build-website.mjs and the output is committed, because Cloudflare
+ * Pages publishes website/ as-is. These tests fail when the committed
  * pages no longer match a fresh render (run `npm run build:site`), and guard
  * the few things a page must never ship with.
  */
 import { execFileSync } from "child_process";
+import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
 import { runInNewContext } from "vm";
@@ -307,9 +308,9 @@ describe("website build", () => {
       expect((html.match(/<ol class="steps">/g) ?? []).length).toBe(6);
       expect(html).toContain('href="mailto:dev@bumelerze.com"');
       expect(html).toContain('href="mailto:hello@bumelerze.com"');
-      expect(html).toContain('href="how-it-works.html"');
-      expect(html).toContain('href="privacy.html"');
-      expect(html).toContain('href="about.html#official"');
+      expect(html).toContain('href="how-it-works"');
+      expect(html).toContain('href="privacy"');
+      expect(html).toContain('href="about#official"');
       // search box stays hidden until site.js shows it
       expect(html).toMatch(/data-faq-search-wrap hidden/);
     }
@@ -366,8 +367,11 @@ describe("website build", () => {
       );
       for (const ref of refs) {
         if (/^(https?:|mailto:|#|data:)/.test(ref) || ref === "") continue;
+        // pages are linked without ".html" (Cloudflare Pages serves
+        // about.html at /about), "./" is the language's home page
         const file = path.resolve(dir, ref.split(/[?#]/)[0]!);
-        if (!fs.existsSync(file)) missing.push(`${rel} -> ${ref}`);
+        const exists = fs.existsSync(file) || fs.existsSync(`${file}.html`);
+        if (!exists) missing.push(`${rel} -> ${ref}`);
       }
     }
     expect(missing).toEqual([]);
@@ -384,6 +388,59 @@ describe("website build", () => {
     }
   });
 });
+
+const APP = "https://app.bumelerze.com";
+
+/** Old and short links and where they must land: [path, query, hash, target]. */
+const FORWARD_CASES: [string, string, string, string][] = [
+  ["/app", "", "", `${APP}/`],
+  ["/app/", "", "", `${APP}/`],
+  ["/app/index.html", "", "", `${APP}/`],
+  ["/app/event/bml20170001", "", "", `${APP}/event/bml20170001`],
+  ["/app/map", "?lat=35.5&lon=45.4", "#layers", `${APP}/map?lat=35.5&lon=45.4#layers`],
+  ["/app/u/dilan.k", "", "#top", `${APP}/u/dilan.k#top`],
+  [
+    "/app/home/join",
+    "?code=BMH-7K3Q9P&key=ABCD2345",
+    "",
+    `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`,
+  ],
+  [
+    "/app/account/sign-in",
+    "?next=%2Fevent%2Fx",
+    "",
+    `${APP}/account/sign-in?next=%2Fevent%2Fx`,
+  ],
+  ["/e/bml20170001", "", "", `${APP}/event/bml20170001`],
+  ["/e/bml20170001/", "?ref=qr", "#felt", `${APP}/event/bml20170001?ref=qr#felt`],
+  ["/u/a%20b", "", "", `${APP}/u/a%20b`],
+  [
+    "/join",
+    "?code=BMH-7K3Q9P&key=ABCD2345",
+    "",
+    `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`,
+  ],
+  [
+    "/join/",
+    "?code=BMH-7K3Q9P&key=ABCD2345",
+    "#x",
+    `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345#x`,
+  ],
+];
+
+/** Paths that are not ours to forward. */
+const NOT_OURS = [
+  "/",
+  "/apple",
+  "/application/x",
+  "/e",
+  "/e/",
+  "/e/a/b",
+  "/u/",
+  "/joint",
+  "/about.html",
+  "/ckb/missing",
+];
 
 /** Runs website-src/redirects.js, or a forwarding page's inline script, in a
  * sandbox with a fake browser location. */
@@ -442,58 +499,12 @@ function runForwardPage(rel: string, url: string): string | null {
 
 describe("forwards from bumelerze.com to app.bumelerze.com", () => {
   const appRedirect = loadMapping();
-  const APP = "https://app.bumelerze.com";
 
-  it.each([
-    ["/app", "", "", `${APP}/`],
-    ["/app/", "", "", `${APP}/`],
-    ["/app/index.html", "", "", `${APP}/`],
-    ["/app/event/bml20170001", "", "", `${APP}/event/bml20170001`],
-    ["/app/map", "?lat=35.5&lon=45.4", "#layers", `${APP}/map?lat=35.5&lon=45.4#layers`],
-    ["/app/u/dilan.k", "", "#top", `${APP}/u/dilan.k#top`],
-    [
-      "/app/home/join",
-      "?code=BMH-7K3Q9P&key=ABCD2345",
-      "",
-      `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`,
-    ],
-    [
-      "/app/account/sign-in",
-      "?next=%2Fevent%2Fx",
-      "",
-      `${APP}/account/sign-in?next=%2Fevent%2Fx`,
-    ],
-    ["/e/bml20170001", "", "", `${APP}/event/bml20170001`],
-    ["/e/bml20170001/", "?ref=qr", "#felt", `${APP}/event/bml20170001?ref=qr#felt`],
-    ["/u/a%20b", "", "", `${APP}/u/a%20b`],
-    [
-      "/join",
-      "?code=BMH-7K3Q9P&key=ABCD2345",
-      "",
-      `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345`,
-    ],
-    [
-      "/join/",
-      "?code=BMH-7K3Q9P&key=ABCD2345",
-      "#x",
-      `${APP}/home/join?code=BMH-7K3Q9P&key=ABCD2345#x`,
-    ],
-  ])("%s%s%s -> %s", (pathname, search, hash, expected) => {
+  it.each(FORWARD_CASES)("%s%s%s -> %s", (pathname, search, hash, expected) => {
     expect(appRedirect(pathname, search, hash)).toBe(expected);
   });
 
-  it.each([
-    "/",
-    "/apple",
-    "/application/x",
-    "/e",
-    "/e/",
-    "/e/a/b",
-    "/u/",
-    "/joint",
-    "/about.html",
-    "/ckb/missing",
-  ])("leaves %s alone (not ours to forward)", (pathname) => {
+  it.each(NOT_OURS)("leaves %s alone (not ours to forward)", (pathname) => {
     expect(appRedirect(pathname, "?q=1", "#h")).toBeNull();
   });
 
@@ -596,19 +607,128 @@ describe("forwards from bumelerze.com to app.bumelerze.com", () => {
     expect(stub).not.toMatch(/<script[^>]+src=/);
     expect(stub).not.toMatch(/_expo|bundle|entry-/);
     expect(stub).toContain("location.replace");
-    // the Pages workflow publishes website/ as-is and exports no app
-    const workflow = fs.readFileSync(
-      path.join(ROOT, ".github", "workflows", "deploy-pages.yml"),
-      "utf8",
-    );
-    const steps = workflow.split("\njobs:")[1]!;
-    expect(steps).not.toMatch(
-      /expo export|BUMELERZE_WEB_BASE_URL|pages-dist\/app|npm ci/,
-    );
-    expect(steps).toContain("cp -r website/. pages-dist/");
+    // Cloudflare Pages publishes website/ as committed (no build step, so
+    // no app export); the GitHub Pages workflow is gone (B2.3, 2026-11-24)
+    expect(
+      fs.existsSync(path.join(ROOT, ".github", "workflows", "deploy-pages.yml")),
+    ).toBe(false);
     // and the site's own links point at the app's new address
     for (const rel of pageFiles()) {
       expect(read(rel)).not.toMatch(/bumelerze\.com\/app\b/);
     }
+  });
+});
+
+/** Cloudflare Pages' _redirects matching, as far as this site uses it: the
+ * first rule that matches wins; ":name" is one path segment and "*" the rest
+ * of the path (":splat" in the target); the incoming query string is passed
+ * on, and the browser keeps the #hash itself. */
+function pagesRedirect(pathname: string, search: string): string | null {
+  for (const line of read("_redirects").split("\n")) {
+    if (!line.trim() || line.startsWith("#")) continue;
+    const [from, to, status] = line.trim().split(/\s+/) as [string, string, string];
+    expect(["301", "302"]).toContain(status);
+    const names: string[] = [];
+    const pattern = from
+      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/:(\w+)/g, (_, name: string) => {
+        names.push(name);
+        return "([^/]+)";
+      })
+      .replace(/\*/g, () => {
+        names.push("splat");
+        return "(.*)";
+      });
+    const m = new RegExp(`^${pattern}$`).exec(pathname);
+    if (!m) continue;
+    let target = to;
+    names.forEach((name, i) => {
+      target = target.replace(`:${name}`, m[i + 1]!);
+    });
+    return target + search;
+  }
+  return null;
+}
+
+describe("Cloudflare Pages: real forwards and security headers", () => {
+  it.each(FORWARD_CASES)(
+    "_redirects sends %s%s%s to %s, like the fallback script",
+    (pathname, search, hash, expected) => {
+      const to = pagesRedirect(pathname, search);
+      expect(to === null ? null : to + hash).toBe(expected);
+    },
+  );
+
+  it.each(NOT_OURS)("_redirects leaves %s alone", (pathname) => {
+    expect(pagesRedirect(pathname, "?q=1")).toBeNull();
+  });
+
+  it("the old app address moves for good (301); short links stay re-pointable (302)", () => {
+    const rules = read("_redirects")
+      .split("\n")
+      .filter((l) => l.trim() && !l.startsWith("#"))
+      .map((l) => l.trim().split(/\s+/));
+    for (const [from, , status] of rules) {
+      expect(status).toBe(from!.startsWith("/app") ? "301" : "302");
+    }
+  });
+
+  const csp = () =>
+    read("_headers")
+      .split("\n")
+      .find((l) => l.trim().startsWith("Content-Security-Policy:"))!
+      .split(": ")[1]!;
+  const directive = (name: string) =>
+    csp()
+      .split("; ")
+      .find((d) => d.startsWith(`${name} `))!
+      .split(" ")
+      .slice(1);
+
+  it("every page answers with HSTS, no framing, no sniffing and a strict policy", () => {
+    const headers = read("_headers");
+    expect(headers).toMatch(/^\/\*$/m);
+    for (const line of [
+      "Strict-Transport-Security: max-age=31536000; includeSubDomains",
+      "X-Frame-Options: DENY",
+      "X-Content-Type-Options: nosniff",
+      "Referrer-Policy: strict-origin-when-cross-origin",
+      "Cross-Origin-Opener-Policy: same-origin",
+    ]) {
+      expect(headers).toContain(`  ${line}\n`);
+    }
+    expect(directive("default-src")).toEqual(["'self'"]);
+    expect(directive("object-src")).toEqual(["'none'"]);
+    expect(directive("frame-ancestors")).toEqual(["'none'"]);
+    expect(csp()).not.toMatch(/unsafe-eval|script-src[^;]*unsafe-inline/);
+  });
+
+  it("the policy allows exactly the inline scripts the pages carry, by hash", () => {
+    const pages = [...pageFiles(), "404.html", path.join("app", "index.html")];
+    const hashes = new Set<string>();
+    for (const rel of pages) {
+      const html = read(rel);
+      // no inline handlers; every script tag is inline, site.js, or a JSON
+      // data block (never run, so outside the policy)
+      expect(html).not.toMatch(/\son[a-z]+="/);
+      for (const tag of html.match(/<script[^>]*>/g) ?? []) {
+        expect(tag).toMatch(
+          /^<script>$|^<script src="(\.\.\/)?site\.js\?v=[0-9a-f]+" defer>$|^<script type="application\/json" id="[a-z-]+">$/,
+        );
+      }
+      for (const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
+        hashes.add(
+          `'sha256-${createHash("sha256").update(m[1]!, "utf8").digest("base64")}'`,
+        );
+      }
+    }
+    expect(hashes.size).toBe(2); // 404.html and app/index.html
+    expect(directive("script-src")).toEqual(["'self'", ...[...hashes].sort()]);
+  });
+
+  it("the live card may read the two earthquake feeds, and nothing else off-site", () => {
+    const js = read("site.js");
+    const origins = new Set([...js.matchAll(/https:\/\/[a-z0-9.-]+/g)].map((m) => m[0]));
+    expect(directive("connect-src")).toEqual(["'self'", ...[...origins].sort()]);
   });
 });

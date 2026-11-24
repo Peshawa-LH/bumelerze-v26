@@ -14,9 +14,14 @@ Commit `website-src/` and the regenerated `website/` together; the jest test
 
 ## Where things are served (since 2026-10)
 
-- **bumelerze.com** — this website, on GitHub Pages
-  (`.github/workflows/deploy-pages.yml` publishes `website/` as-is; no app
-  build).
+- **bumelerze.com** — this website, on Cloudflare Pages since 2026-11-24
+  (project `bumelerze-website`, Git-connected to `main`: it publishes
+  `website/` as committed, no app build, no npm install; the build command
+  only drops `website/README.md`). `www.` and the project's pages.dev
+  address forward to bumelerze.com (Cloudflare Bulk Redirects).
+  `website/_headers` (security headers, the CSP with the forwarding pages'
+  script hashes) and `website/_redirects` (real HTTP forwards) are
+  generated with the pages.
 - **app.bumelerze.com** — the app, on Cloudflare Pages
   (`scripts/build-app-web.sh`, served at the domain root). Site links to the
   app use `APP_URL` in `scripts/build-website.mjs`.

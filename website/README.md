@@ -15,13 +15,16 @@ live here; the build stamps their content hash into every page
 
 ## Current state (2026-10 redesign)
 
-Live at <https://bumelerze.com>, deployed by GitHub Pages on every push to
-`main` (`.github/workflows/deploy-pages.yml` publishes this folder as-is).
-The app is NOT here: it lives at <https://app.bumelerze.com> (Cloudflare
-Pages). `app/index.html` and `404.html` only forward the app's old
-`bumelerze.com/app/...` address and the short links (`/e/<id>`, `/u/<name>`,
-`/join?…`) to it; both are generated from `website-src/redirects.js` and
-carry the brand's preview tags plus a no-script link into the app.
+Live at <https://bumelerze.com>, deployed by Cloudflare Pages (project
+`bumelerze-website`) on every push to `main` that changes this folder; it
+publishes the folder as-is (this README is left out). Pages are linked
+without ".html" (Pages serves `about.html` at `/about`). The app is NOT
+here: it lives at <https://app.bumelerze.com>. `_redirects` forwards the
+app's old `bumelerze.com/app/...` address and the short links (`/e/<id>`,
+`/u/<name>`, `/join?…`) with real HTTP redirects; `app/index.html` and
+`404.html` are the fallback, generated from `website-src/redirects.js`,
+with the brand's preview tags plus a no-script link into the app.
+`_headers` sets the security headers.
 Netlify (`netlify.toml`) is a dormant mirror. Contact: `hello@bumelerze.com`, `dev@bumelerze.com`.
 
 The 2026-10 redesign (revised after the owner's review on 2026-10-10)
