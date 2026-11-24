@@ -293,9 +293,9 @@ describe("parseRiskProduct", () => {
   });
 
   it("carries a real reportUrl through when the raw payload has one", () => {
-    const product = parseRiskProduct({ ...rawProduct, reportUrl: "https://peshawa-lh.github.io/bumelerze-atlas/report.pdf" });
+    const product = parseRiskProduct({ ...rawProduct, reportUrl: "https://atlas.bumelerze.com/report.pdf" });
 
-    expect(product?.reportUrl).toBe("https://peshawa-lh.github.io/bumelerze-atlas/report.pdf");
+    expect(product?.reportUrl).toBe("https://atlas.bumelerze.com/report.pdf");
   });
 
   it.each(["https://example.test/report.pdf", "javascript:alert(1)", "http://peshawa-lh.github.io/bumelerze-atlas/report.pdf"])(

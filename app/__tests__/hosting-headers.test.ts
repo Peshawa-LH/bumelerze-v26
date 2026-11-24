@@ -92,11 +92,14 @@ describe("the page policy (/*)", () => {
       "https://geofon.gfz.de",
       "https://tiles.openfreemap.org",
       "https://api.maptiler.com",
-      "https://peshawa-lh.github.io",
+      "https://atlas.bumelerze.com",
       "wss://rtserve.earthscope.org",
     ]) {
       expect(connect).toContain(needed);
     }
+    // the Atlas moved to its own host (B2.4); the app reads old addresses
+    // from there (src/features/shakemap/config.ts), never from GitHub
+    expect(connect).not.toContain("https://peshawa-lh.github.io");
   });
 
   it("keeps the other hardening headers", () => {
@@ -149,7 +152,7 @@ describe("the map worker's own policy", () => {
     expect(csp.get("script-src")).toEqual(["'self'", "'unsafe-eval'"]);
     expect(csp.get("default-src")).toEqual(["'none'"]);
     expect(csp.get("connect-src")).toEqual(
-      expect.arrayContaining(["https://tiles.openfreemap.org", "https://peshawa-lh.github.io"]),
+      expect.arrayContaining(["https://tiles.openfreemap.org", "https://atlas.bumelerze.com"]),
     );
   });
 });

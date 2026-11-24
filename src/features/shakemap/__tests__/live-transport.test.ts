@@ -69,7 +69,7 @@ const INTERNAL_UUID = "11111111-1111-4111-8111-111111111111";
 function validRow(overrides: Record<string, unknown> = {}) {
   return {
     version: 2,
-    storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/events/us2000bmcg/v2/bands_mi.json",
+    storage_path: "https://atlas.bumelerze.com/events/us2000bmcg/v2/bands_mi.json",
     data_used: {
       conditioning_applied: { ems: true },
       instrument_stations_parsed: 4,
@@ -133,7 +133,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     expect(mockEq3).toHaveBeenCalledWith("product_type", "contour_bands");
     expect(mockEq3).not.toHaveBeenCalledWith("product_type", "contours");
     expect(global.fetch).toHaveBeenCalledWith(
-      "https://peshawa-lh.github.io/bumelerze-atlas/events/us2000bmcg/v2/bands_mi.json",
+      "https://atlas.bumelerze.com/events/us2000bmcg/v2/bands_mi.json",
     );
 
     expect(product).not.toBeNull();
@@ -149,7 +149,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     mockEq3
       .mockResolvedValueOnce({ data: [], error: null })
       .mockResolvedValueOnce({
-        data: [validRow({ storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/events/us2000bmcg/v2/cont_mi.json" })],
+        data: [validRow({ storage_path: "https://atlas.bumelerze.com/events/us2000bmcg/v2/cont_mi.json" })],
         error: null,
       });
 
@@ -158,7 +158,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     expect(mockEq3).toHaveBeenNthCalledWith(1, "product_type", "contour_bands");
     expect(mockEq3).toHaveBeenNthCalledWith(2, "product_type", "contours");
     expect(global.fetch).toHaveBeenCalledWith(
-      "https://peshawa-lh.github.io/bumelerze-atlas/events/us2000bmcg/v2/cont_mi.json",
+      "https://atlas.bumelerze.com/events/us2000bmcg/v2/cont_mi.json",
     );
     expect(product?.contours).toEqual(CONTOURS_PAYLOAD);
   });
@@ -352,9 +352,9 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     mockRpc.mockResolvedValue({ data: INTERNAL_UUID, error: null });
     mockEq3.mockResolvedValue({
       data: [
-        validRow({ version: 1, storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v1/cont_mi.json" }),
-        validRow({ version: 3, storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v3/cont_mi.json" }),
-        validRow({ version: 2, storage_path: "https://peshawa-lh.github.io/bumelerze-atlas/v2/cont_mi.json" }),
+        validRow({ version: 1, storage_path: "https://atlas.bumelerze.com/v1/cont_mi.json" }),
+        validRow({ version: 3, storage_path: "https://atlas.bumelerze.com/v3/cont_mi.json" }),
+        validRow({ version: 2, storage_path: "https://atlas.bumelerze.com/v2/cont_mi.json" }),
       ],
       error: null,
     });
@@ -365,7 +365,7 @@ describe("SupabaseLiveShakeMapTransport.fetchLiveProduct", () => {
     });
 
     expect(product?.version).toBe(3);
-    expect(global.fetch).toHaveBeenCalledWith("https://peshawa-lh.github.io/bumelerze-atlas/v3/cont_mi.json");
+    expect(global.fetch).toHaveBeenCalledWith("https://atlas.bumelerze.com/v3/cont_mi.json");
   });
 
   it("returns null without querying anything when unconfigured (defensive-only branch)", async () => {

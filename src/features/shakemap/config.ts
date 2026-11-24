@@ -127,42 +127,61 @@ export const SHAKEMAP_LIVE_GC_TIME_MS = 24 * 60 * 60 * 1000;
  * chain landed) store a Supabase-Storage-relative path like
  * `"events/us6000jllz/v4/cont_mi.json"`; newer rows (risk products
  * onward) store the absolute public URL directly, e.g.
- * `"https://peshawa-lh.github.io/bumelerze-atlas/events/us6000jllz/v5/
- * cont_damage.json"`. `live-transport.ts`'s `resolveArtifactUrl` resolves
- * any non-`http(s)` `storage_path` against this base before fetching (for
- * every artifact type, contours included) so both eras of row keep
- * working through the exact same code path — never a per-row special
- * case. */
-export const ATLAS_BASE_URL = "https://peshawa-lh.github.io/bumelerze-atlas";
+ * `"https://atlas.bumelerze.com/events/us6000jllz/v5/cont_damage.json"`
+ * (before 2026-11, `LEGACY_ATLAS_BASE_URL/...`). `live-transport.ts`'s
+ * `resolveArtifactUrl` resolves any non-`http(s)` `storage_path` against
+ * this base before fetching (for every artifact type, contours included) so
+ * both eras of row keep working through the exact same code path — never a
+ * per-row special case.
+ *
+ * Since 2026-11 (B2.4) the Atlas is served by Cloudflare Pages on its own
+ * host; the repository is still the one store of the files. */
+export const ATLAS_BASE_URL = "https://atlas.bumelerze.com";
+
+/** Where the Atlas was served until 2026-11 (GitHub Pages, a folder on a
+ * host shared with other projects). Rows and reports published before the
+ * move still carry it; the files sit at the same paths under
+ * `ATLAS_BASE_URL`, so `atlasUrlOrNull` reads them from there. */
+export const LEGACY_ATLAS_BASE_URL = "https://peshawa-lh.github.io/bumelerze-atlas";
 
 /**
- * `url` when it is an https file inside the Bumelerze Atlas (`ATLAS_BASE_URL`
- * and below, no user name or password in it), else null. Every absolute
- * address that arrives in server data (`shakemap_products.storage_path`, a
- * bundled risk product's `reportUrl`) passes through here before the app
- * fetches it or offers it as "Download report": a row written with a stolen
- * worker key, or a poisoned snapshot, cannot turn the button into a link to
- * another site (security audit APP-08). The same GitHub Pages host also
- * serves other projects, so the path must start with the Atlas folder too.
+ * The address to fetch when `url` is an https file inside the Bumelerze
+ * Atlas, else null. Accepted: `ATLAS_BASE_URL` and below, or the same file
+ * under `LEGACY_ATLAS_BASE_URL` (returned on `ATLAS_BASE_URL`); never a user
+ * name or password, never "..". Every absolute address that arrives in
+ * server data (`shakemap_products.storage_path`, a bundled risk product's
+ * `reportUrl`) passes through here before the app fetches it or offers it
+ * as "Download report": a row written with a stolen worker key, or a
+ * poisoned snapshot, cannot turn the button into a link to another site
+ * (security audit APP-08). The legacy host also serves other projects, so
+ * there the path must start with the Atlas folder too.
  */
 export function atlasUrlOrNull(url: string): string | null {
   let parsed: URL;
-  let base: URL;
   try {
     parsed = new URL(url.trim());
-    base = new URL(`${ATLAS_BASE_URL}/`);
   } catch {
     return null;
   }
   if (
     parsed.protocol !== "https:" ||
-    parsed.origin !== base.origin ||
     parsed.username !== "" ||
     parsed.password !== "" ||
-    !parsed.pathname.startsWith(base.pathname) ||
     parsed.pathname.split("/").includes("..")
   ) {
     return null;
   }
-  return parsed.href;
+  for (const root of [ATLAS_BASE_URL, LEGACY_ATLAS_BASE_URL]) {
+    let base: URL;
+    try {
+      base = new URL(`${root}/`);
+    } catch {
+      return null;
+    }
+    if (parsed.origin === base.origin && parsed.pathname.startsWith(base.pathname)) {
+      const rest = parsed.pathname.slice(base.pathname.length);
+      return `${ATLAS_BASE_URL}/${rest}${parsed.search}${parsed.hash}`;
+    }
+  }
+  return null;
 }

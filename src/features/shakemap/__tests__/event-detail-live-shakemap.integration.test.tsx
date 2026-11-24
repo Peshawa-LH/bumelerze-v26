@@ -36,7 +36,7 @@ const mockedGetSupabaseClient = getSupabaseClient as jest.MockedFunction<
 >;
 
 const INTERNAL_UUID = "22222222-2222-4222-8222-222222222222";
-const LIVE_STORAGE_PATH = "https://peshawa-lh.github.io/bumelerze-atlas/events/bml00042/v5/cont_mi.json";
+const LIVE_STORAGE_PATH = "https://atlas.bumelerze.com/events/bml00042/v5/cont_mi.json";
 
 function buildFakeSupabaseClient(row: Record<string, unknown> | null) {
   const eq3 = jest.fn().mockResolvedValue({ data: row ? [row] : [], error: null });
