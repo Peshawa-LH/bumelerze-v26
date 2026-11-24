@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import i18n from "@/i18n";
 import type { Event } from "@/features/events";
@@ -100,6 +101,24 @@ describe("FeltMapSection", () => {
     const retryButton = screen.getByText(i18n.t("eventDetail.feltMap.retry"));
     fireEvent.press(retryButton);
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives the offline Retry a real 44 pt touch target (hitSlop does nothing on the web)", async () => {
+    mockedUseFeltMap.mockReturnValue({
+      status: "offline",
+      cells: [],
+      totalReports: 0,
+      dataUpdatedAt: 0,
+      refetch: jest.fn(),
+    });
+
+    await render(<FeltMapSection event={CHAMCHAMAL_EVENT} />);
+
+    const retry = screen.getByTestId("felt-map-retry");
+    expect(retry.props.accessibilityRole).toBe("button");
+    const style = StyleSheet.flatten(retry.props.style) as { minHeight?: number; minWidth?: number };
+    expect(style.minHeight ?? 0).toBeGreaterThanOrEqual(44);
+    expect(style.minWidth ?? 0).toBeGreaterThanOrEqual(44);
   });
 
   it("never renders cell rects in the offline state (no stale map alongside the failure message)", async () => {

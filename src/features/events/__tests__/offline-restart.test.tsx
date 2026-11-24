@@ -191,6 +191,13 @@ afterEach(async () => {
   mockedGeofon.mockReset();
 });
 
+// Restoring the saved copy and the refresh that follows can take well over
+// waitFor's default 1 s when the whole suite runs in parallel (it timed out
+// there once while passing alone), so the steps after a restart wait longer,
+// and each case gets more than jest's default 5 s.
+const AFTER_RESTART = { timeout: 5000 };
+jest.setTimeout(20_000);
+
 describe("the saved feed after a failed refresh", () => {
   it("shows the saved list with the offline note when the app reopens offline", async () => {
     const loadedAt = await loadThenFailARefresh();
@@ -201,8 +208,9 @@ describe("the saved feed after a failed refresh", () => {
       wrapper: persistedWrapper(client),
     });
 
-    await waitFor(() =>
-      expect(result.current.isOfflineIsh || result.current.isHardError).toBe(true),
+    await waitFor(
+      () => expect(result.current.isOfflineIsh || result.current.isHardError).toBe(true),
+      AFTER_RESTART,
     );
     expect(result.current.isHardError).toBe(false);
     expect(result.current.isOfflineIsh).toBe(true);
@@ -223,8 +231,9 @@ describe("the saved feed after a failed refresh", () => {
       wrapper: persistedWrapper(client),
     });
 
-    await waitFor(() =>
-      expect(result.current.isOfflineIsh || result.current.isHardError).toBe(true),
+    await waitFor(
+      () => expect(result.current.isOfflineIsh || result.current.isHardError).toBe(true),
+      AFTER_RESTART,
     );
     expect(result.current.isHardError).toBe(false);
     expect(result.current.events.map((item) => item.id)).toEqual(["us7000abcd"]);
@@ -256,14 +265,15 @@ describe("the saved feed after a failed refresh", () => {
       wrapper: persistedWrapper(client),
     });
 
-    await waitFor(() => expect(result.current.isRefreshing).toBe(true));
+    await waitFor(() => expect(result.current.isRefreshing).toBe(true), AFTER_RESTART);
     expect(result.current.events.map((item) => item.id)).toEqual(["us7000abcd"]);
     expect(result.current.isOfflineIsh).toBe(false);
     expect(result.current.isHardError).toBe(false);
 
     answer({ events: [event("us7000wxyz")], skippedCount: 0, fetchedAt: Date.now() });
-    await waitFor(() =>
-      expect(result.current.events.map((item) => item.id)).toEqual(["us7000wxyz"]),
+    await waitFor(
+      () => expect(result.current.events.map((item) => item.id)).toEqual(["us7000wxyz"]),
+      AFTER_RESTART,
     );
     expect(result.current.isOfflineIsh).toBe(false);
 

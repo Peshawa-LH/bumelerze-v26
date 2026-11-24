@@ -80,7 +80,13 @@ export function FeltMapSection({ event }: FeltMapSectionProps) {
               {t("eventDetail.feltMap.unavailableOffline")}
             </Text>
           </View>
-          <Pressable accessibilityRole="button" onPress={feltMap.refetch} hitSlop={12}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={feltMap.refetch}
+            hitSlop={12}
+            style={styles.retry}
+            testID="felt-map-retry"
+          >
             <Text
               style={{
                 color: colors.text.link,
@@ -136,5 +142,12 @@ const styles = StyleSheet.create({
   },
   offlineText: {
     flexShrink: 1,
+  },
+  // react-native-web ignores hitSlop, so the 44 pt target is real layout.
+  retry: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
+    alignSelf: "flex-start",
   },
 });

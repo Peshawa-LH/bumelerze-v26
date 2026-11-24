@@ -7,19 +7,20 @@
 # Cloudflare installs dependencies (npm ci) before running this script.
 # Pages settings: build command `bash scripts/build-app-web.sh`,
 # output directory `dist-app`. The app sits at the domain root, so no base
-# path; unknown deep links fall back to index.html (Pages SPA behaviour).
+# path; unknown deep links fall back to index.html (Pages SPA behaviour,
+# which holds only while there is NO top-level 404.html).
 #
-# Accepted risk (review 2026-10-14, D-4): because of that SPA fallback, every
-# unknown path answers 200 with the app's HTML, including a bundle a later
-# deploy removed (a stale tab then sees "Unexpected token <") and paths such
-# as /sitemap.xml. The service worker keeps each deploy's own assets, so a
-# stale tab recovers on its next load; a Pages Function returning 404 for
-# missing /_expo/static/* files was considered and left for later.
-# public/_headers (HSTS, Content-Security-Policy, Permissions-Policy, nosniff, ...),
+# Missing files are real 404s (B2.5, replacing the accepted risk D-4 of
+# 2026-10-14): on a miss Pages first looks for the nearest 404.html up the
+# folder tree and only then falls back to index.html. The end of this script
+# puts scripts/web-not-found.html into _expo/, assets/ and data/, so a missing
+# script, asset or data file answers 404 (Pages always sends 404s no-store),
+# while every app address still opens the app. That makes the year-long
+# caching of the content-hashed /_expo/static/* and /assets/* in _headers
+# safe: a missing file can no longer be cached as the app page.
+# public/_headers (HSTS, Content-Security-Policy, Permissions-Policy, caching, ...),
 # public/robots.txt and public/turnstile.html ride along: `expo export` copies
-# public/ to the root of dist-app, which the check after the export confirms. No long-lived caching
-# is set for /_expo/static/*: the same fallback would then cache HTML for a
-# year, and the service worker already caches the assets per build.
+# public/ to the root of dist-app, which the check after the export confirms.
 set -euo pipefail
 
 export BUMELERZE_WEB_OUTPUT=single
@@ -116,3 +117,16 @@ for script in $scripts; do
     exit 1
   fi
 done
+# Real 404s for missing files (see the top): one not-found page in each file
+# folder, never one at the top (that would end the app's own addresses).
+for not_found_dir in _expo assets data; do
+  if [ ! -d "dist-app/$not_found_dir" ]; then
+    echo "build-app-web: dist-app/$not_found_dir is missing" >&2
+    exit 1
+  fi
+  cp scripts/web-not-found.html "dist-app/$not_found_dir/404.html"
+done
+if [ -e dist-app/404.html ]; then
+  echo "build-app-web: dist-app/404.html would turn off the app's own addresses" >&2
+  exit 1
+fi

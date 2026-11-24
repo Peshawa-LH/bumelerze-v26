@@ -108,8 +108,35 @@ describe("the page policy (/*)", () => {
     expect(page.set.get("permissions-policy")).toContain("geolocation=(self)");
   });
 
-  it("does not cache the app's scripts for long yet (B2.5: missing files answer the app page)", () => {
-    expect(raw).not.toMatch(/immutable/);
+  it("never asks browsers to keep the page itself (index.html, push-sw.js) for long", () => {
+    expect(page.set.has("cache-control")).toBe(false);
+  });
+});
+
+describe("long caching of the content-hashed files (A2.3 / B2.5)", () => {
+  const YEAR = "public, max-age=31536000, immutable";
+  const script = readFileSync(join(ROOT, "scripts", "build-app-web.sh"), "utf8");
+
+  it("keeps /_expo/static/* and /assets/* for a year, and nothing else", () => {
+    expect(rule("/_expo/static/*").set.get("cache-control")).toBe(YEAR);
+    expect(rule("/assets/*").set.get("cache-control")).toBe(YEAR);
+    const cached = rules.filter((r) => r.set.has("cache-control")).map((r) => r.path);
+    expect(cached.sort()).toEqual(["/_expo/static/*", "/assets/*"]);
+  });
+
+  it("is safe only because the build gives those folders a real not-found page", () => {
+    // Pages answers a miss with the nearest 404.html up the folder tree, else
+    // with index.html (200), which a year's caching would then keep.
+    expect(script).toMatch(/for not_found_dir in _expo assets data; do/);
+    expect(script).toContain('cp scripts/web-not-found.html "dist-app/$not_found_dir/404.html"');
+    const page404 = readFileSync(join(ROOT, "scripts", "web-not-found.html"), "utf8");
+    expect(page404).toContain("<title>404</title>");
+    expect(page404).toContain('content="noindex"');
+  });
+
+  it("never puts a not-found page at the top (the app's own addresses need the index.html fallback)", () => {
+    expect(script).toContain("if [ -e dist-app/404.html ]; then");
+    expect(script).not.toMatch(/dist-app\/404\.html"?\s*$/m);
   });
 });
 

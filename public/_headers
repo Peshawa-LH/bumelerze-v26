@@ -12,9 +12,11 @@
 # - HSTS for a year, this host and anything under it. Not preloaded.
 # - Permissions-Policy: location, camera and motion sensors for this origin
 #   only; microphone, payment and USB for nobody.
-# Long caching of /_expo/static/* waits for real 404s on missing files (B2.5):
-# today a missing file answers the app page (200), which the browser would
-# then keep for a year under a script's address.
+# - A year's caching for the content-hashed files under /_expo/static/ and
+#   /assets/ (A2.3 / B2.5): a new build gives every changed file a new name.
+#   Safe because a missing file there answers 404 (scripts/build-app-web.sh
+#   puts a not-found page in those folders), and Pages sends 404s no-store.
+#   Never for /* : index.html and push-sw.js must be asked for every time.
 /*
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Frame-Options: DENY
@@ -23,6 +25,12 @@
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: geolocation=(self), camera=(self), accelerometer=(self), gyroscope=(self), magnetometer=(self), microphone=(), payment=(), usb=()
   Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://bcgyxepgruwardhozvfq.supabase.co wss://bcgyxepgruwardhozvfq.supabase.co https://earthquake.usgs.gov https://www.seismicportal.eu https://geofon.gfz.de https://tiles.openfreemap.org https://api.maptiler.com https://s3.amazonaws.com https://peshawa-lh.github.io https://service.earthscope.org wss://rtserve.earthscope.org https://eida.koeri.boun.edu.tr https://data.raspberryshake.org https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src https://challenges.cloudflare.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+/_expo/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
 
 /maplibre-gl-worker.mjs
   ! Content-Security-Policy
