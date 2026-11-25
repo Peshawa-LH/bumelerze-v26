@@ -39,14 +39,14 @@ const styleLayerSchema = z
   .object({
     id: z.string(),
     type: z.string(),
-    layout: z.record(z.unknown()).optional(),
+    layout: z.record(z.string(), z.unknown()).optional(),
   })
   .passthrough();
 
 const styleDocumentSchema = z
   .object({
     version: z.number(),
-    sources: z.record(z.object({ type: z.string() }).passthrough()),
+    sources: z.record(z.string(), z.object({ type: z.string() }).passthrough()),
     layers: z.array(styleLayerSchema),
   })
   .passthrough();

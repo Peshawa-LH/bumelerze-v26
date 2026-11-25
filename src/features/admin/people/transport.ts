@@ -275,7 +275,7 @@ const restrictionSchema = z.object({
   active: z.boolean().catch(false),
 });
 
-function list<T>(value: unknown, schema: z.ZodType<T, z.ZodTypeDef, unknown>): T[] {
+function list<T>(value: unknown, schema: z.ZodType<T>): T[] {
   if (!Array.isArray(value)) {
     return [];
   }

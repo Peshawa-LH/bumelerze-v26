@@ -1,7 +1,7 @@
 {
   "name": "bumelerze",
   "main": "index.js",
-  "version": "26.4.14",
+  "version": "26.4.15",
   "description": "Bumelerze: earthquake app for Kurdistan and Iraq (web, iOS, Android)",
   "license": "Apache-2.0",
   "repository": {
@@ -22,6 +22,7 @@
     "@tanstack/query-async-storage-persister": "^5.101.4",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-query-persist-client": "^5.101.4",
+    "decode-uri-component": "file:./vendor/decode-uri-component",
     "expo": "~57.0.10",
     "expo-camera": "~57.0.6",
     "expo-clipboard": "~57.0.2",
@@ -65,7 +66,7 @@
     "react-native-webview": "13.16.1",
     "react-native-worklets": "0.10.1",
     "seisplotjs": "^3.2.7",
-    "zod": "^3.25.76",
+    "zod": "^4.6.7",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -99,5 +100,8 @@
     "generate:building-pictograms": "node scripts/generate-building-pictograms.mjs && prettier --write src/features/building/pictograms.generated.ts",
     "postinstall": "node scripts/sync-maplibre-worker.js"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "decode-uri-component": "$decode-uri-component"
+  }
 }

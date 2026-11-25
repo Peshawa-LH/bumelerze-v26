@@ -172,7 +172,7 @@ export function parseCommentRows(rows: unknown): HubComment[] {
 const summarySchema = z.object({
   reports: z.coerce.number(),
   people: z.coerce.number(),
-  levels: z.record(z.coerce.number()).nullable().optional(),
+  levels: z.record(z.string(), z.coerce.number()).nullable().optional(),
   first_report_at: z.string().nullable().optional(),
   comments: z.coerce.number(),
   featured: z.boolean().optional(),

@@ -321,8 +321,8 @@ const assessmentRowSchema = z.object({
   tag_id: z.string(),
   survey_id: z.string().nullable(),
   method: z.string(),
-  ims_type_probs: z.record(z.coerce.number()),
-  vc_probs: z.record(z.coerce.number()),
+  ims_type_probs: z.record(z.string(), z.coerce.number()),
+  vc_probs: z.record(z.string(), z.coerce.number()),
   vc_most_likely: classEnum,
   vc_range: z.string().nullable(),
   // numeric columns arrive as numbers or strings depending on the driver
