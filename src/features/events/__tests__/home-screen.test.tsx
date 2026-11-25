@@ -638,6 +638,15 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
       expect(
         screen.getAllByText("Chosen by Bumelerze", { includeHiddenElements: true }),
       ).toHaveLength(2);
+      // Over 30 days old: its date, not "400d ago".
+      const oldCard = screen.getByTestId(`event-card-${old.id}`);
+      expect(oldCard).not.toHaveTextContent(/d ago/);
+      expect(oldCard).toHaveTextContent(
+        new RegExp(String(new Date(old.originTime).getFullYear())),
+      );
+      expect(screen.getByTestId(`event-card-${sampleEvent.id}`)).toHaveTextContent(
+        /m ago/,
+      );
     });
 
     it("drops a chosen earthquake after its end time", async () => {

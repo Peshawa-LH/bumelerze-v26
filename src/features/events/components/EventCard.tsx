@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { placeLine } from "@/features/geo";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
 import {
+  formatDateOnly,
   formatMagnitudeValue,
   formatRelativeTimeValue,
   getRelativeTime,
@@ -46,6 +47,9 @@ interface EventCardProps {
   isChosen?: boolean;
 }
 
+/** Older than this, a chosen earthquake shows its date, not "Nd ago". */
+const CHOSEN_DATE_AFTER_MS = 30 * 86_400_000;
+
 function EventCardImpl({
   event,
   onPress,
@@ -61,11 +65,15 @@ function EventCardImpl({
 
   const relativeTime = getRelativeTime(event.originTime, now);
   const relativeTimeText =
-    relativeTime.unit === "justNow"
-      ? t("events.relativeTime.justNow")
-      : t(`events.relativeTime.${relativeTime.unit}`, {
-          value: formatRelativeTimeValue(relativeTime.value, locale),
-        });
+    isChosen && now - event.originTime > CHOSEN_DATE_AFTER_MS
+      ? // A chosen earthquake can be years old ("3300d ago" says little):
+        // its date instead.
+        formatDateOnly(event.originTime, locale, t)
+      : relativeTime.unit === "justNow"
+        ? t("events.relativeTime.justNow")
+        : t(`events.relativeTime.${relativeTime.unit}`, {
+            value: formatRelativeTimeValue(relativeTime.value, locale),
+          });
 
   // Single place/distance line (the UI backlog wave 5 items 3 & 5): replaces
   // both the raw USGS place string AND the old separate anchor-distance
