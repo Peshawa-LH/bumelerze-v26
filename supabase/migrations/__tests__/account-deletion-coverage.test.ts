@@ -254,6 +254,27 @@ const MANIFEST: Record<string, Entry> = {
     handling: "unlink",
     why: "the admin who added a filter term; the term stays",
   },
+  // Admin > Home screen (0084): who posted, removed or chose; the rows stay.
+  "home_notices.posted_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who posted a Home message; the message stays as history",
+  },
+  "home_notices.removed_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who removed a Home message",
+  },
+  "home_pins.pinned_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who chose an earthquake for Home; the choice stays",
+  },
+  "home_pins.removed_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who took an earthquake off Home",
+  },
   "content_holds.user_id": {
     onDelete: "cascade",
     handling: "cascade",

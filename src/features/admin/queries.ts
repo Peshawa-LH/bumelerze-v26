@@ -122,7 +122,8 @@ export function useAdminAccess(hubTransport?: EventHubTransport): AdminAccess {
       (server && perms.has("alerts.test")) ||
       (server && perms.has("filter.manage")) ||
       (server && perms.has("stats.read")) ||
-      (server && perms.has("hubs.open")),
+      (server && perms.has("hubs.open")) ||
+      (server && perms.has("home.manage")),
     isLoading: perms.isLoading,
     has: (permission) => server && perms.has(permission),
   };

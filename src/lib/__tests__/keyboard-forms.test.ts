@@ -53,6 +53,7 @@ const FORM_HOSTS: Record<string, string[]> = {
   "src/features/admin/components/ActivityContent.tsx": [
     "src/features/admin/components/ActivityContent.tsx",
   ],
+  "src/features/admin/home/HomeScreenContent.tsx": [TOOL_PAGE],
   "src/features/admin/hubs/HubsContent.tsx": [TOOL_PAGE],
   "src/features/admin/inbox/components/FeedbackDetailContent.tsx": [
     "src/features/admin/inbox/components/FeedbackDetailContent.tsx",

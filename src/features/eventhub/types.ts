@@ -64,6 +64,9 @@ export const PERMISSIONS = [
   "stats.read",
   "hubs.open",
   "authority.view",
+  // Migration 0084: Admin > Home screen, the message and the chosen
+  // earthquakes at the top of Home (the private admin rank only).
+  "home.manage",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 

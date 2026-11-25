@@ -32,6 +32,11 @@
       "notConfirmed": "Not yet confirmed by seismic networks",
       "people": "{{number}} people",
       "a11yAlert": "Alert"
+    },
+    "notice": {
+      "title": "Message from Bumelerze",
+      "titleImportant": "Important message from Bumelerze",
+      "hide": "Hide this message"
     }
   },
   "units": {
@@ -132,7 +137,8 @@
       "moreSourcesTag": "+{{count}}",
       "sourcesA11yLabel": "Located by {{agencies}}",
       "sourcesWithMoreA11yLabel": "Located by {{agencies}} and {{count}} more"
-    }
+    },
+    "chosenTag": "Chosen by Bumelerze"
   },
   "world": {
     "title": "World Catalog",
@@ -2669,7 +2675,11 @@
         "hub_close": "Closed a hub",
         "hub_note": "Posted a pinned hub note",
         "authority_view": "Government official looked at area totals",
-        "authority_people_view": "Government official looked at the list of people"
+        "authority_people_view": "Government official looked at the list of people",
+        "home_notice_post": "Posted a Home message",
+        "home_notice_remove": "Removed the Home message",
+        "home_pin": "Showed an earthquake on Home",
+        "home_unpin": "Removed an earthquake from Home"
       },
       "undo": "Undo"
     },
@@ -3090,7 +3100,13 @@
       "new": "{{number}} new",
       "nothingNew": "Nothing new",
       "activity": "Activity log",
-      "activityHint": "Who did what"
+      "activityHint": "Who did what",
+      "home": "Home screen",
+      "homeMessageOn": "Message on",
+      "homePins": "{{number}} earthquakes shown",
+      "homePins_one": "1 earthquake shown",
+      "homePins_other": "{{number}} earthquakes shown",
+      "homeNothing": "Nothing added"
     },
     "moderation": {
       "hint": "Everything waiting for a decision. Felt photos and limited accounts open from the top."
@@ -3190,6 +3206,48 @@
         "lastAnswer": "Last answer: {{answer}}",
         "noAnswer": "no answer"
       }
+    },
+    "home": {
+      "hint": "What you add here shows at the top of Home for everyone within about 2 minutes. It ends by itself at the time you choose.",
+      "messageTitle": "Message on Home",
+      "messageHint": "A short message from Bumelerze, for example after a strong earthquake. Write it in as many languages as you can. Phones in another language show the English text, or the first one you filled in.",
+      "placeholder": "What everyone should know now",
+      "kindLabel": "Kind",
+      "kinds": {
+        "info": "Information",
+        "important": "Important"
+      },
+      "showForLabel": "Show for",
+      "hours": {
+        "6": "6 hours",
+        "24": "1 day",
+        "72": "3 days",
+        "168": "7 days"
+      },
+      "days": {
+        "1": "1 day",
+        "3": "3 days",
+        "7": "7 days",
+        "30": "30 days"
+      },
+      "replaces": "This replaces the message on Home now.",
+      "post": "Post message",
+      "posted": "Message posted",
+      "until": "On Home until {{time}}",
+      "remove": "Remove message",
+      "removed": "Message removed",
+      "errors": {
+        "empty": "Write the message in at least one language.",
+        "tooLong": "A message can be up to 200 characters.",
+        "tooMany": "Three earthquakes are on Home already. Remove one first."
+      },
+      "pinsTitle": "Earthquakes on Home",
+      "pinsHint": "Up to 3 earthquakes at the top of Home, also ones the list would not show: older, smaller or farther away.",
+      "pinsEmpty": "No earthquake is on Home by hand right now.",
+      "pin": "Show on Home",
+      "pinned": "Shown on Home",
+      "unpin": "Remove from Home",
+      "unpinned": "Removed from Home"
     }
   },
   "restrictions": {

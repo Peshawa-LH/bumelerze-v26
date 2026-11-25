@@ -41,6 +41,9 @@ interface EventCardProps {
    * `false` also covers "not known yet", so the tag is absent rather than
    * wrong while the registry read is in flight. */
   hasShakemap?: boolean;
+  /** Chosen by Bumelerze for the top of Home (migration 0084): a "Chosen by
+   * Bumelerze" tag leads the tag row. Home only. */
+  isChosen?: boolean;
 }
 
 function EventCardImpl({
@@ -50,6 +53,7 @@ function EventCardImpl({
   isNotable = false,
   sourceAgencies,
   hasShakemap = false,
+  isChosen = false,
 }: EventCardProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
@@ -81,6 +85,7 @@ function EventCardImpl({
       agencies: sourceAgencies,
       isNotable,
       hasShakemap,
+      isChosen,
     },
     t,
   );
@@ -147,6 +152,7 @@ function EventCardImpl({
         agencies={sourceAgencies}
         isNotable={isNotable}
         hasShakemap={hasShakemap}
+        isChosen={isChosen}
       />
 
       <Text

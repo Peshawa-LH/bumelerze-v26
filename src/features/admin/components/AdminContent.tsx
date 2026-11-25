@@ -9,7 +9,9 @@ import { formatCount } from "../people/format";
 import { useAdminAccess } from "../queries";
 import { SourceStatusCard } from "../sources/SourceStatusCard";
 import type { SourceStatusTransport } from "../sources/transport";
+import { useAdminHomeState } from "../home/queries";
 import { useToolCounts } from "../tools/queries";
+import type { HomeAdminTransport } from "../home/transport";
 import type { ToolCountsTransport } from "../tools/transport";
 import { ToolPage, ToolTile, ToolTileGrid } from "../ui";
 
@@ -27,7 +29,8 @@ interface Tile {
  * row, each with a status line. Nothing can be done on this page itself;
  * every tool opens its own page. Each tile shows only for the permission its
  * tool needs (`people.view`, `comments.moderate`, `filter.manage`,
- * `alerts.test`, `stats.read`, `hubs.open`, `feedback.manage`, `audit.read`),
+ * `alerts.test`, `stats.read`, `hubs.open`, `home.manage`, `feedback.manage`,
+ * `audit.read`),
  * and everything is hidden for people without any, so a stray link shows
  * nothing. Felt photos and limited accounts live inside the Moderation queue;
  * badges are given from People > person. Above the tiles, the statistics ranks
@@ -38,18 +41,22 @@ export function AdminContent({
   hubTransport,
   countsTransport,
   sourcesTransport,
+  homeTransport,
 }: {
   hubTransport?: EventHubTransport;
   /** Test seam for `admin_tool_counts()` (migration 0066). */
   countsTransport?: ToolCountsTransport;
   /** Test seam for `admin_source_status()` (migrations 0070, 0072). */
   sourcesTransport?: SourceStatusTransport;
+  /** Test seam for `admin_home_screen()` (migration 0084). */
+  homeTransport?: HomeAdminTransport;
 }) {
   const { t, i18n } = useTranslation();
   const { colors, typography } = useTheme();
   const router = useRouter();
   const access = useAdminAccess(hubTransport);
   const counts = useToolCounts(access.any, countsTransport).data;
+  const home = useAdminHomeState(access.has("home.manage"), homeTransport).data;
   const n = (value: number) => formatCount(value, i18n.language);
 
   const tiles: Tile[] = [];
@@ -140,6 +147,32 @@ export function AdminContent({
           ? t("admin.tools.hubsOpen", { number: n(counts.hubsOpen) })
           : null,
       href: "/admin/hubs",
+    });
+  }
+  if (access.has("home.manage")) {
+    const parts = home
+      ? [
+          home.notice ? t("admin.tools.homeMessageOn") : null,
+          home.pins.length > 0
+            ? t("admin.tools.homePins", {
+                count: home.pins.length,
+                number: n(home.pins.length),
+              })
+            : null,
+        ].filter((part): part is string => part !== null)
+      : null;
+    tiles.push({
+      key: "home",
+      icon: "home-outline",
+      title: t("admin.tools.home"),
+      status:
+        parts === null
+          ? null
+          : parts.length > 0
+            ? parts.join(" · ")
+            : t("admin.tools.homeNothing"),
+      dot: home?.notice ? "info" : null,
+      href: "/admin/home",
     });
   }
   if (access.canManageFeedback) {

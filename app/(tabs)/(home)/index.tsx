@@ -16,6 +16,13 @@ import {
   FeltReportPill,
   resolveHomeFeltAssociation,
 } from "@/features/felt";
+import {
+  applyHomePins,
+  HomeNoticeBanner,
+  useHomeExtras,
+  useHomeNoticeStore,
+  visibleNotice,
+} from "@/features/home-extras";
 import { HomeSafeBanner, useSafePrompt } from "@/features/safe";
 import { BeReadyCard } from "@/features/safety";
 import { useTheme, nativeFontFamily, READING_START } from "@/theme";
@@ -76,10 +83,38 @@ export default function HomeScreen() {
   // alone does. `selectHomeFeedEvents` handles its own dedup across the
   // two pools — see its own doc comment.
   const { events: notableTailEvents } = useNotableTailEvents();
-  const { events: shownEvents, notableIds } = useMemo(
+  const { events: policyEvents, notableIds } = useMemo(
     () => selectHomeFeedEvents([...events, ...notableTailEvents]),
     [events, notableTailEvents],
   );
+
+  // Admin > Home screen (migration 0084): the message from Bumelerze and up
+  // to three earthquakes chosen by hand. The chosen ones lead the list,
+  // whatever the policy above would show (older, smaller or farther away),
+  // and are not repeated lower down. Both end by the phone's clock, so an
+  // offline phone also stops showing them.
+  const extras = useHomeExtras();
+  const hiddenNoticeId = useHomeNoticeStore((state) => state.hiddenNoticeId);
+  const hideNotice = useHomeNoticeStore((state) => state.hide);
+  // A roughly-current instant, as in EventListScreen (re-renders on every
+  // fetch keep it fresh), to the minute so the list below is not rebuilt on
+  // every render.
+  // eslint-disable-next-line react-hooks/purity -- see comment above
+  const nowMs = Date.now();
+  const minute = Math.floor(nowMs / 60_000);
+  const notice = visibleNotice(extras, nowMs, hiddenNoticeId);
+  const { shownEvents, chosenIds } = useMemo(() => {
+    const { chosen, rest } = applyHomePins(
+      [...events, ...notableTailEvents],
+      policyEvents,
+      extras,
+      minute * 60_000,
+    );
+    return {
+      shownEvents: [...chosen, ...rest],
+      chosenIds: new Set(chosen.map((event) => event.id)),
+    };
+  }, [events, notableTailEvents, policyEvents, extras, minute]);
 
   // D26 item 3: crowd-detected possible events, shown above the list —
   // exempt from the adaptive policy's magnitude floor (they have no
@@ -106,6 +141,7 @@ export default function HomeScreen() {
         onRefetch={() => void refetch()}
         applyTopInset
         notableEventIds={notableIds}
+        chosenEventIds={chosenIds}
         bottomClearance={FELT_PILL_CLEARANCE}
         headerContent={
           <>
@@ -191,6 +227,9 @@ export default function HomeScreen() {
         }
         listHeaderContent={
           <>
+            {notice ? (
+              <HomeNoticeBanner notice={notice} onHide={() => hideNotice(notice.id)} />
+            ) : null}
             {safePrompt.event ? (
               <HomeSafeBanner event={safePrompt.event} onDismiss={safePrompt.dismiss} />
             ) : (

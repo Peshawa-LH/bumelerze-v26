@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { AccessibilityInfo, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { useHomeNoticeStore, type HomeExtras } from "@/features/home-extras";
 import { usePrefsStore } from "@/features/onboarding";
 import i18n, { isRTLLocale } from "@/i18n";
 import type { Event } from "../types";
@@ -57,6 +58,15 @@ jest.mock("../source-corroboration", () => {
     ...actual,
     useEventSourceAgencies: () => mockCorroboration.current,
   };
+});
+
+// Admin > Home screen (migration 0084): the message and the chosen
+// earthquakes come from `useHomeExtras`, a real `useQuery` hook, mocked for
+// the same "no QueryClientProvider" reason.
+const mockUseHomeExtras = jest.fn();
+jest.mock("@/features/home-extras", () => {
+  const actual = jest.requireActual("@/features/home-extras");
+  return { ...actual, useHomeExtras: () => mockUseHomeExtras() };
 });
 
 // Imported after the mocks above so the mocked module graph is in place.
@@ -133,6 +143,9 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
     // Default: the registry knows nothing about these events, which is
     // what every pre-existing test in this file assumes.
     mockCorroboration.current = new Map();
+    // Default: nothing added by hand on Home.
+    mockUseHomeExtras.mockReturnValue({ notice: null, pins: [] });
+    useHomeNoticeStore.setState({ hiddenNoticeId: null });
   });
 
   afterEach(async () => {
@@ -519,5 +532,132 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
 
     await renderWithProviders(<HomeScreen />);
     expect(screen.queryByTestId("be-ready-card")).toBeNull();
+  });
+  describe("Admin > Home screen (migration 0084)", () => {
+    const LATER = () => Date.now() + 86_400_000;
+    const notice = (kind: "info" | "important"): HomeExtras["notice"] => ({
+      id: "n1",
+      kind,
+      texts: { en: "Stay away from damaged buildings.", ckb: "لە بیناکان دوور بکەوە" },
+      startsAt: Date.now() - 60_000,
+      endsAt: LATER(),
+    });
+
+    it("shows the message at the very top, above 'Be ready', in the reader's language (owner choice 4)", async () => {
+      await i18n.changeLanguage("ckb");
+      usePrefsStore.setState({ beReadyHidden: false });
+      mockUseHomeExtras.mockReturnValue({ notice: notice("important"), pins: [] });
+      await renderWithProviders(<HomeScreen />);
+      expect(screen.getByTestId("home-notice-title")).toHaveTextContent(
+        i18n.t("home.notice.titleImportant"),
+      );
+      expect(screen.getByTestId("home-notice-text")).toHaveTextContent(
+        "لە بیناکان دوور بکەوە",
+      );
+      // In the order they are drawn.
+      expect(
+        screen
+          .getAllByTestId(/^(home-notice|be-ready-card)$/)
+          .map((node) => node.props.testID),
+      ).toEqual(["home-notice", "be-ready-card"]);
+    });
+
+    it("falls back to English for a language the message lacks (owner choice 3)", async () => {
+      await i18n.changeLanguage("ar");
+      mockUseHomeExtras.mockReturnValue({ notice: notice("info"), pins: [] });
+      await renderWithProviders(<HomeScreen />);
+      expect(screen.getByTestId("home-notice-title")).toHaveTextContent(
+        i18n.t("home.notice.title"),
+      );
+      expect(screen.getByTestId("home-notice-text")).toHaveTextContent(
+        "Stay away from damaged buildings.",
+      );
+      expect(
+        StyleSheet.flatten(screen.getByTestId("home-notice-text").props.style),
+      ).toMatchObject({
+        writingDirection: "ltr",
+      });
+    });
+
+    it("hides the message on this phone until a new one is posted (owner choice 2)", async () => {
+      await i18n.changeLanguage("en");
+      mockUseHomeExtras.mockReturnValue({ notice: notice("info"), pins: [] });
+      await renderWithProviders(<HomeScreen />);
+      await fireEvent.press(screen.getByRole("button", { name: "Hide this message" }));
+      expect(screen.queryByTestId("home-notice")).toBeNull();
+      expect(useHomeNoticeStore.getState().hiddenNoticeId).toBe("n1");
+    });
+
+    it("shows no message after its end time, also offline", async () => {
+      mockUseHomeExtras.mockReturnValue({
+        notice: { ...notice("info")!, endsAt: Date.now() - 1 },
+        pins: [],
+      });
+      await renderWithProviders(<HomeScreen />);
+      expect(screen.queryByTestId("home-notice")).toBeNull();
+    });
+
+    it("puts a chosen earthquake the list would hide at the top, tagged, and does not repeat the feed's copy", async () => {
+      await i18n.changeLanguage("en");
+      // Older than the Home window and below its floor: the policy alone
+      // would never show it.
+      const old: Event = {
+        ...sampleEvent,
+        id: "us6000old",
+        bumelerzeId: "bml2025x09",
+        originTime: Date.now() - 400 * 86_400_000,
+        magnitude: { value: 2.4, type: "ml" },
+        provenance: { ...sampleEvent.provenance, providerId: "us6000old" },
+      };
+      mockUseHomeExtras.mockReturnValue({
+        notice: null,
+        pins: [
+          {
+            registryId: "u-old",
+            event: old,
+            providerIds: ["us6000old"],
+            endsAt: LATER(),
+          },
+          // The feed's own event, chosen too: shown once, at the top.
+          {
+            registryId: "u-1",
+            event: { ...sampleEvent, id: "emsc-1" },
+            providerIds: ["emsc-1", sampleEvent.id],
+            endsAt: LATER(),
+          },
+        ],
+      });
+      await renderWithProviders(<HomeScreen />);
+      const cards = screen
+        .getAllByTestId(/^event-card-/)
+        .map((card) => card.props.testID);
+      expect(cards).toEqual([`event-card-${old.id}`, `event-card-${sampleEvent.id}`]);
+      expect(screen.getByTestId(`event-card-${old.id}`).props.accessibilityLabel).toMatch(
+        /Chosen by Bumelerze/,
+      );
+      expect(
+        screen.getAllByText("Chosen by Bumelerze", { includeHiddenElements: true }),
+      ).toHaveLength(2);
+    });
+
+    it("drops a chosen earthquake after its end time", async () => {
+      await i18n.changeLanguage("en");
+      mockUseHomeExtras.mockReturnValue({
+        notice: null,
+        pins: [
+          {
+            registryId: "u-1",
+            event: sampleEvent,
+            providerIds: [sampleEvent.id],
+            endsAt: Date.now() - 120_000,
+          },
+        ],
+      });
+      await renderWithProviders(<HomeScreen />);
+      expect(
+        screen.queryByText("Chosen by Bumelerze", { includeHiddenElements: true }),
+      ).toBeNull();
+      expect(screen.getByTestId(`event-card-${sampleEvent.id}`)).toBeTruthy();
+    });
   });
 });

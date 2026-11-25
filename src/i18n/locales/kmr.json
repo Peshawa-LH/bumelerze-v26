@@ -32,6 +32,11 @@
       "notConfirmed": "Hîn ji aliyê torên erdhejê ve nehatiye piştrastkirin",
       "people": "{{number}} kes",
       "a11yAlert": "Hişyarî"
+    },
+    "notice": {
+      "title": "Peyamek ji Bumelerze",
+      "titleImportant": "Peyameke girîng ji Bumelerze",
+      "hide": "Vê peyamê veşêre"
     }
   },
   "units": {
@@ -132,7 +137,8 @@
       "moreSourcesTag": "+{{count}}",
       "sourcesA11yLabel": "Ji aliyê {{agencies}} ve hatiye tomarkirin",
       "sourcesWithMoreA11yLabel": "Ji aliyê {{agencies}} û {{count}} din ve hatiye tomarkirin"
-    }
+    },
+    "chosenTag": "Bijartina Bumelerze"
   },
   "world": {
     "title": "Katalog a Cîhanê",
@@ -2669,7 +2675,11 @@
         "hub_close": "Hubek girt",
         "hub_note": "Notek sabitkirî di hubê de weşand",
         "authority_view": "Karbidestê hikûmetê li hejmarên herêman nêrî",
-        "authority_people_view": "Karbidestê hikûmetê li lîsteya kesan nêrî"
+        "authority_people_view": "Karbidestê hikûmetê li lîsteya kesan nêrî",
+        "home_notice_post": "Peyamek li Destpêkê weşand",
+        "home_notice_remove": "Peyama Destpêkê rakir",
+        "home_pin": "Erdhejek li Destpêkê nîşan da",
+        "home_unpin": "Erdhejek ji Destpêkê rakir"
       },
       "undo": "Vegerîne"
     },
@@ -3090,7 +3100,13 @@
       "new": "{{number}} nû",
       "nothingNew": "Tiştekî nû tune",
       "activity": "Tomara çalakiyan",
-      "activityHint": "Kê çi kir"
+      "activityHint": "Kê çi kir",
+      "home": "Ekrana Destpêkê",
+      "homeMessageOn": "Peyam tê nîşandan",
+      "homePins": "{{number}} erdhej tên nîşandan",
+      "homePins_one": "{{number}} erdhej tê nîşandan",
+      "homePins_other": "{{number}} erdhej tên nîşandan",
+      "homeNothing": "Tiştek nehatiye zêdekirin"
     },
     "moderation": {
       "hint": "Her tiştê ku li benda biryarê ye. Wêneyên hestkirinê û hesabên sînorkirî ji jor vedibin."
@@ -3190,6 +3206,48 @@
         "lastAnswer": "Bersiva dawî: {{answer}}",
         "noAnswer": "bersiv tune"
       }
+    },
+    "home": {
+      "hint": "Tiştê ku tu li vir zêde dikî di nav nêzîkî 2 deqeyan de ji bo her kesî li jorê Destpêkê xuya dibe. Di dema ku tu hilbijêrî de bi xwe diqede.",
+      "messageTitle": "Peyam li Destpêkê",
+      "messageHint": "Peyameke kurt ji Bumelerze, bo nimûne piştî erdhejeke xurt. Bi çend zimanan ku tu dikarî binivîse. Telefonên bi zimanekî din nivîsa Îngilîzî nîşan didin, an ya yekem a ku te dagirtiye.",
+      "placeholder": "Tiştê ku divê her kes niha bizane",
+      "kindLabel": "Cure",
+      "kinds": {
+        "info": "Agahî",
+        "important": "Girîng"
+      },
+      "showForLabel": "Dema nîşandanê",
+      "hours": {
+        "6": "6 saet",
+        "24": "1 roj",
+        "72": "3 roj",
+        "168": "7 roj"
+      },
+      "days": {
+        "1": "1 roj",
+        "3": "3 roj",
+        "7": "7 roj",
+        "30": "30 roj"
+      },
+      "replaces": "Ev cihê peyama ku niha li Destpêkê ye digire.",
+      "post": "Peyamê biweşîne",
+      "posted": "Peyam hate weşandin",
+      "until": "Li Destpêkê heta {{time}}",
+      "remove": "Peyamê rake",
+      "removed": "Peyam hate rakirin",
+      "errors": {
+        "empty": "Peyamê bi kêmanî bi zimanekî binivîse.",
+        "tooLong": "Peyam dikare heta 200 tîpan be.",
+        "tooMany": "Jixwe sê erdhej li Destpêkê ne. Pêşî yekê rake."
+      },
+      "pinsTitle": "Erdhejên li Destpêkê",
+      "pinsHint": "Heta 3 erdhej li jorê Destpêkê, herwiha yên ku lîste nîşan nade: kevntir, piçûktir an dûrtir.",
+      "pinsEmpty": "Niha tu erdhej bi destan li Destpêkê nîne.",
+      "pin": "Li Destpêkê nîşan bide",
+      "pinned": "Li Destpêkê hate nîşandan",
+      "unpin": "Ji Destpêkê rake",
+      "unpinned": "Ji Destpêkê hate rakirin"
     }
   },
   "restrictions": {

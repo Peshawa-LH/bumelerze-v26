@@ -8,6 +8,7 @@ import {
 import type { Permission } from "@/features/eventhub/types";
 
 import { AdminContent } from "../components/AdminContent";
+import type { AdminHomeState, HomeAdminTransport } from "../home/transport";
 import { EMPTY_TOOL_COUNTS, parseToolCounts, type ToolCounts } from "../tools/transport";
 
 const mockPush = jest.fn();
@@ -205,5 +206,87 @@ describe("parseToolCounts", () => {
     });
     expect(parseToolCounts(null)).toEqual(EMPTY_TOOL_COUNTS);
     expect(parseToolCounts({ waiting: "lots" }).waiting).toBeNull();
+  });
+});
+
+describe("Admin launcher: Home screen tile (migration 0084)", () => {
+  const LATER = Date.now() + 86_400_000;
+  const pin = (id: string) => ({
+    eventId: id,
+    bumelerzeId: id,
+    place: null,
+    magnitude: 4,
+    originTime: Date.now(),
+    onHomeUntil: LATER,
+  });
+  function home(state: AdminHomeState): HomeAdminTransport {
+    return {
+      fetchState: jest.fn(async () => state),
+      findEvents: jest.fn(async () => []),
+      postNotice: jest.fn(async () => ""),
+      removeNotice: jest.fn(async () => true),
+      pin: jest.fn(async () => undefined),
+      unpin: jest.fn(async () => true),
+    };
+  }
+  async function renderHome(permissions: Permission[], state: AdminHomeState) {
+    mockHub.fetchMyPermissions.mockResolvedValue(permissions);
+    await renderWithProviders(
+      <AdminContent
+        hubTransport={mockHub}
+        countsTransport={counts()}
+        homeTransport={home(state)}
+      />,
+    );
+  }
+
+  beforeEach(async () => {
+    mockPush.mockClear();
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(cleanup);
+
+  it("adds the tile after Open a hub for the admin rank, and opens its page", async () => {
+    await renderHome([...ADMIN, "home.manage"], { notice: null, pins: [] });
+    const grid = await screen.findByTestId("admin-tiles");
+    const ids = (grid.props.children as { props: { testID: string } }[]).map(
+      (c) => c.props.testID,
+    );
+    expect(ids.indexOf("admin-tile-home")).toBe(ids.indexOf("admin-tile-hubs") + 1);
+    expect(screen.getByTestId("admin-tile-home")).toHaveTextContent(/Home screen/);
+    await waitFor(() =>
+      expect(screen.getByTestId("admin-tile-home")).toHaveTextContent(/Nothing added/),
+    );
+    fireEvent.press(screen.getByTestId("admin-tile-home"));
+    expect(mockPush).toHaveBeenCalledWith("/admin/home");
+  });
+
+  it("says what is on Home now (wording 1.2)", async () => {
+    await renderHome(["home.manage"], {
+      notice: { id: "n1", kind: "info", texts: { en: "x" }, endsAt: LATER },
+      pins: [pin("a"), pin("b")],
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId("admin-tile-home")).toHaveTextContent(
+        /Home screenMessage on · 2 earthquakes shown$/,
+      ),
+    );
+  });
+
+  it("counts one earthquake in the singular", async () => {
+    await renderHome(["home.manage"], { notice: null, pins: [pin("a")] });
+    await waitFor(() =>
+      expect(screen.getByTestId("admin-tile-home")).toHaveTextContent(
+        /Home screen1 earthquake shown$/,
+      ),
+    );
+  });
+
+  it("is not there without home.manage (owner choice 1: admins only)", async () => {
+    await renderHome(ADMIN, { notice: null, pins: [] });
+    await screen.findByTestId("admin-tiles");
+    expect(screen.queryByTestId("admin-tile-home")).toBeNull();
   });
 });

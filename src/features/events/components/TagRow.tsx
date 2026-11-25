@@ -48,9 +48,13 @@ export interface TagRowContentProps {
    * rendering path exists so wiring a real signal later is a one-line
    * prop change, not a new component. */
   hasShakemap?: boolean;
+  /** Chosen by Bumelerze for the top of Home (Admin > Home screen, migration
+   * 0084). Shown first; the "notable" cue is then left out. */
+  isChosen?: boolean;
 }
 
 interface TagRowContent {
+  chosenLabel: string | null;
   sourceTagLabels: string[];
   remainingCount: number;
   notableLabel: string | null;
@@ -68,6 +72,7 @@ function computeTagRowContent(
     agencies,
     isNotable = false,
     hasShakemap = false,
+    isChosen = false,
     maxSourceTags = MAX_NAMED_SOURCE_TAGS_COMPACT,
   }: TagRowContentProps,
   t: TFunction,
@@ -96,7 +101,9 @@ function computeTagRowContent(
   // the first place, and the pair is largely redundant: an event big
   // enough to be carried as notable is normally one we computed a map
   // for, and the map is the more useful of the two things to say.
-  const notableLabel = isNotable && !hasShakemap ? t("events.notableTag") : null;
+  const chosenLabel = isChosen ? t("events.chosenTag") : null;
+  const notableLabel =
+    isNotable && !hasShakemap && !isChosen ? t("events.notableTag") : null;
   const shakemapLabel = hasShakemap ? t("events.shakemapTag") : null;
 
   const sourcesA11yText =
@@ -112,6 +119,7 @@ function computeTagRowContent(
   // `notableLabel`, not `isNotable` — the spoken label follows the visual
   // (this module's own rule above), so a suppressed chip is not announced.
   const a11yLabel = [
+    chosenLabel,
     sourcesA11yText,
     notableLabel,
     hasShakemap ? t("events.shakemapTagA11yLabel") : null,
@@ -119,7 +127,14 @@ function computeTagRowContent(
     .filter(Boolean)
     .join(". ");
 
-  return { sourceTagLabels, remainingCount, notableLabel, shakemapLabel, a11yLabel };
+  return {
+    chosenLabel,
+    sourceTagLabels,
+    remainingCount,
+    notableLabel,
+    shakemapLabel,
+    a11yLabel,
+  };
 }
 
 /** Exported for `EventCard`: it already wraps the whole card in one
@@ -167,8 +182,14 @@ export function TagRow({ standalone = true, ...contentProps }: TagRowProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
 
-  const { sourceTagLabels, remainingCount, notableLabel, shakemapLabel, a11yLabel } =
-    computeTagRowContent(contentProps, t);
+  const {
+    chosenLabel,
+    sourceTagLabels,
+    remainingCount,
+    notableLabel,
+    shakemapLabel,
+    a11yLabel,
+  } = computeTagRowContent(contentProps, t);
 
   const a11yProps = standalone
     ? { accessible: true as const, accessibilityLabel: a11yLabel }
@@ -176,6 +197,16 @@ export function TagRow({ standalone = true, ...contentProps }: TagRowProps) {
 
   return (
     <View {...a11yProps} style={[styles.row, { gap: spacing[1] }]}>
+      {chosenLabel ? (
+        <Tag
+          label={chosenLabel}
+          textColor={colors.brand.onPrimary}
+          borderColor={colors.brand.primary}
+          backgroundColor={colors.brand.primary}
+          typography={typography}
+          spacing={spacing}
+        />
+      ) : null}
       {sourceTagLabels.map((label, index) => (
         <Tag
           key={`source-${index}-${label}`}

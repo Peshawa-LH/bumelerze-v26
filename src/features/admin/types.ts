@@ -145,6 +145,11 @@ export const ACTIVITY_ACTIONS = [
   { action: "hub_note", content: false },
   { action: "authority_view", content: false },
   { action: "authority_people_view", content: false },
+  // Migration 0084: Admin > Home screen (admin).
+  { action: "home_notice_post", content: false },
+  { action: "home_notice_remove", content: false },
+  { action: "home_pin", content: false },
+  { action: "home_unpin", content: false },
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number]["action"];
 
@@ -173,6 +178,8 @@ export const ACTIVITY_FILTER_ACTIONS: readonly ActivityAction[] = [
   "hub_note",
   "authority_view",
   "authority_people_view",
+  "home_notice_post",
+  "home_pin",
 ];
 
 /** One row of `admin_activity()` (migration 0052). */

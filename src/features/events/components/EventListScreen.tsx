@@ -52,6 +52,10 @@ interface EventListScreenProps {
    * card. Home is the only caller that ever passes this; World/Significant
    * default to an empty set. */
   notableEventIds?: ReadonlySet<string>;
+  /** ids of events at the top of `events` because Bumelerze chose them for
+   * Home (Admin > Home screen, migration 0084): their cards lead with a
+   * "Chosen by Bumelerze" tag. Home only. */
+  chosenEventIds?: ReadonlySet<string>;
   /** Extra bottom padding so the last card can scroll clear of a floating
    * control the host renders over the list (Home's felt pill). */
   bottomClearance?: number;
@@ -81,6 +85,7 @@ export function EventListScreen({
   listHeaderContent,
   applyTopInset = false,
   notableEventIds,
+  chosenEventIds,
   bottomClearance = 0,
 }: EventListScreenProps) {
   const tabBarScroll = useTabBarScroll();
@@ -131,7 +136,11 @@ export function EventListScreen({
     const ids = new Set(events.map((event) => event.id));
     const previous = seenIdsRef.current;
     seenIdsRef.current = ids;
-    if (previous === null || previous.size === 0 || dataUpdatedAt === announcedAtRef.current) {
+    if (
+      previous === null ||
+      previous.size === 0 ||
+      dataUpdatedAt === announcedAtRef.current
+    ) {
       return;
     }
     announcedAtRef.current = dataUpdatedAt;
@@ -262,6 +271,7 @@ export function EventListScreen({
             // moment one resolves, without this list needing to wait for it.
             onPress={(event) => router.push(`/event/${event.bumelerzeId ?? event.id}`)}
             isNotable={notableEventIds?.has(item.id) ?? false}
+            isChosen={chosenEventIds?.has(item.id) ?? false}
             sourceAgencies={sourceAgenciesByEventId.get(item.id)?.agencies}
             hasShakemap={sourceAgenciesByEventId.get(item.id)?.hasShakemap ?? false}
           />
