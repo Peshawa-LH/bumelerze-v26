@@ -1,4 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import type { ReactNode } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import {
   nearerThumb,
@@ -32,6 +34,11 @@ describe("NativeRangeSlider maths", () => {
   });
 });
 
+/** The app's root view (AppRoot.tsx) provides this; gesture-handler 3 requires it. */
+function GestureRoot({ children }: { children: ReactNode }) {
+  return <GestureHandlerRootView>{children}</GestureHandlerRootView>;
+}
+
 describe("NativeRangeSlider accessibility", () => {
   it("exposes each thumb as an adjustable control with the web input's label", async () => {
     const onChange = jest.fn();
@@ -48,6 +55,7 @@ describe("NativeRangeSlider accessibility", () => {
         highLabel="Maximum magnitude"
         formatValue={(value) => value.toFixed(1)}
       />,
+      { wrapper: GestureRoot },
     );
     const low = screen.getByLabelText("Minimum magnitude");
     expect(low.props.accessibilityRole).toBe("adjustable");
@@ -80,6 +88,7 @@ describe("NativeRangeSlider accessibility", () => {
         highLabel="high"
         formatValue={String}
       />,
+      { wrapper: GestureRoot },
     );
     await fireEvent(screen.getByLabelText("low"), "accessibilityAction", {
       nativeEvent: { actionName: "increment" },

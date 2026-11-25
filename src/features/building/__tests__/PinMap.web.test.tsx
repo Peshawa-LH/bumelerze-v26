@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * `PinMap.web.tsx`: tap to place, drag to adjust. `maplibre-gl` is mocked at
  * the module boundary (same approach as the other embedded map tests).

@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  */
 import { canShareImageFiles, deliverImage } from "../image-export.web";
 import type { ShareImage } from "../types";

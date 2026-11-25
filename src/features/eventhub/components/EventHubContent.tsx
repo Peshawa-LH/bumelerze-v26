@@ -533,7 +533,7 @@ export function EventHubContent({
           />
         )}
         ListHeaderComponent={header}
-        ListEmptyComponent={empty}
+        ListEmptyComponent={empty ?? undefined}
         ItemSeparatorComponent={() => <View style={{ height: spacing[4] }} />}
         onScrollToIndexFailed={() => undefined}
         refreshControl={

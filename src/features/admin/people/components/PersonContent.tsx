@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { useRef, useState, type ReactNode } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -75,7 +75,7 @@ export function PersonContent({
   const access = useAdminAccess(hubTransport);
   const person = usePerson(userId, access.canViewPeople && userId !== "", transport);
   const language = i18n.language;
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const notesY = useRef(0);
 
   const meta = {

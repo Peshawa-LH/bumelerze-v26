@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * `a11yState` on the web must end up as real `aria-*` attributes in the DOM
  * (review B-4: react-native-web drops `accessibilityState`), so this test

@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — terrain hillshade insertion,
  * label localization by locale, and the MapTiler→OpenFreeMap runtime

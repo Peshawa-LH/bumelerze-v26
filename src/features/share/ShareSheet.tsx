@@ -12,9 +12,8 @@ import {
   TextInput,
   View,
   useWindowDimensions,
-  type NativeSyntheticEvent,
   type StyleProp,
-  type TextInputContentSizeChangeEventData,
+  type TextInputContentSizeChangeEvent,
   type ViewStyle,
 } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -123,7 +122,7 @@ export function ShareSheet({
   // and the web's measurement (the box's scroll height) already includes
   // the padding; adding it again grew the box on every pass, without end.
   const onCaptionContentSizeChange = useCallback(
-    (event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+    (event: TextInputContentSizeChangeEvent) => {
       const measured = event.nativeEvent.contentSize.height;
       const next = Platform.OS === "web" ? measured : measured + captionPadding * 2;
       setCaptionBoxHeight((current) => (Math.abs(current - next) < 1 ? current : next));

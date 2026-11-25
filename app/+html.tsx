@@ -1,4 +1,4 @@
-import { ScrollViewStyleReset } from "expo-router/html";
+import { ScrollViewStyleReset, useServerDocumentContext } from "expo-router/html";
 import type { PropsWithChildren } from "react";
 
 import { APP_ORIGIN, APP_SHARE_DESCRIPTION, OG_IMAGE_URL } from "@/config/urls";
@@ -20,10 +20,16 @@ import { APP_ORIGIN, APP_SHARE_DESCRIPTION, OG_IMAGE_URL } from "@/config/urls";
  * deliberately has none (review note 11.2, the bars stayed red). The build
  * script stamps `<meta name="bumelerze-build">` right after `<head>`, so that
  * tag must stay literal here.
+ *
+ * Since Expo SDK 58 the page's scripts and styles reach this file through
+ * `useServerDocumentContext()`: without its `headNodes` and `bodyNodes` a
+ * static page would never start the app.
  */
 export default function Root({ children }: PropsWithChildren) {
+  const { htmlAttributes, bodyAttributes, headNodes, bodyNodes } =
+    useServerDocumentContext();
   return (
-    <html lang="en">
+    <html lang="en" {...htmlAttributes}>
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
@@ -46,8 +52,12 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="twitter:description" content={APP_SHARE_DESCRIPTION} />
         <meta name="twitter:image" content={OG_IMAGE_URL} />
         <ScrollViewStyleReset />
+        {headNodes}
       </head>
-      <body>{children}</body>
+      <body {...bodyAttributes}>
+        {children}
+        {bodyNodes}
+      </body>
     </html>
   );
 }

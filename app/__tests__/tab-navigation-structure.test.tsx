@@ -109,16 +109,14 @@ describe("where screens live", () => {
   // whatever route was showing before (module state), so these must not run
   // after a test that left the app in another tab.
   it("a link straight to an event opens in the Home tab, with the bar", async () => {
-    const app = renderRouter(buildContext() as never, { initialUrl: "/event/abc" });
-    await app;
+    const app = await renderRouter(buildContext() as never, { initialUrl: "/event/abc" });
     await screen.findByTestId("screen");
     expect(app.getSegments()).toEqual(["(tabs)", "(home)", "event", "[id]"]);
     expect(screen.getByTestId("scroll-aware-tab-bar")).toBeTruthy();
   });
 
   it("Back from a link (the header button replaces the screen with Home) lands on Home", async () => {
-    const app = renderRouter(buildContext() as never, { initialUrl: "/event/abc" });
-    await app;
+    const app = await renderRouter(buildContext() as never, { initialUrl: "/event/abc" });
     await screen.findByTestId("screen");
     await act(async () => router.replace("/"));
     // Known expo-router quirk: the tab and its parents keep the link's `id` param, so
@@ -128,8 +126,9 @@ describe("where screens live", () => {
   });
 
   it("opens a link from a full-screen flow in the Home tab", async () => {
-    const app = renderRouter(buildContext() as never, { initialUrl: "/felt-report" });
-    await app;
+    const app = await renderRouter(buildContext() as never, {
+      initialUrl: "/felt-report",
+    });
     await screen.findByTestId("screen");
     await act(async () => router.push("/event/abc"));
     expect(app.getSegments()).toEqual(["(tabs)", "(home)", "event", "[id]"]);
@@ -137,8 +136,7 @@ describe("where screens live", () => {
   });
 
   it.each(SHOWS_TAB_BAR)("%s opens inside the tabs, with the bar", async (url) => {
-    const app = renderRouter(buildContext() as never, { initialUrl: url });
-    await app;
+    const app = await renderRouter(buildContext() as never, { initialUrl: url });
     expect(await screen.findByTestId("screen")).toBeTruthy();
     expect(screen.getByTestId("scroll-aware-tab-bar")).toBeTruthy();
     expect(app.getPathname()).toBe(url);
@@ -151,8 +149,7 @@ describe("where screens live", () => {
   });
 
   it("opens an event from the Map tab inside the Map tab, and Back returns there", async () => {
-    const app = renderRouter(buildContext() as never, { initialUrl: "/map" });
-    await app;
+    const app = await renderRouter(buildContext() as never, { initialUrl: "/map" });
     expect(await screen.findByText("/(tabs)/(map)/map")).toBeTruthy();
     await act(async () => router.push("/event/abc"));
     expect(screen.getByTestId("scroll-aware-tab-bar")).toBeTruthy();
@@ -162,8 +159,7 @@ describe("where screens live", () => {
   });
 
   it("opens a profile from Settings inside the Settings tab", async () => {
-    const app = renderRouter(buildContext() as never, { initialUrl: "/settings" });
-    await app;
+    const app = await renderRouter(buildContext() as never, { initialUrl: "/settings" });
     await screen.findByText("/(tabs)/(settings)/settings");
     await act(async () => router.push("/u/sara"));
     expect(app.getSegments()).toEqual(["(tabs)", "(settings)", "u", "[username]"]);
@@ -186,8 +182,7 @@ describe("where screens live", () => {
   });
 
   it("tapping the active tab on a screen opened inside it goes back to the tab's first screen", async () => {
-    const app = renderRouter(buildContext() as never, { initialUrl: "/settings" });
-    await app;
+    const app = await renderRouter(buildContext() as never, { initialUrl: "/settings" });
     await screen.findByText("/(tabs)/(settings)/settings");
     await act(async () => router.push("/safety"));
     expect(app.getPathname()).toBe("/safety");

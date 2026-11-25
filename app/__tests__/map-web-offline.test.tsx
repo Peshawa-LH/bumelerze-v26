@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — the offline/error state and
  * retry. See `map-web-creation.test.tsx`'s doc comment for the

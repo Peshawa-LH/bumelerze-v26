@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — MapLibre's stock
  * controls are 29 px buttons, a 24 px attribution toggle and 14 px-tall

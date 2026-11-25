@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * `ShakeMapView.web.tsx` — the interactive MapLibre GL JS renderer. Same
  * mocked-`maplibre-gl`-at-the-module-boundary discipline the Map tab's own

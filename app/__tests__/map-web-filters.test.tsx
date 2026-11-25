@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — magnitude/date filters
  * (the August 2026 update plan §4.4). See `map-web-creation.test.tsx`'s doc

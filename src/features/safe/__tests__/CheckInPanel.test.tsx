@@ -169,7 +169,7 @@ describe("CheckInPanel", () => {
     mockAccount = { status: "anonymous", userId: "anon" };
     const share = jest
       .spyOn(Share, "share")
-      .mockResolvedValue({ action: "sharedAction" });
+      .mockResolvedValue({ action: "sharedAction", activityType: undefined });
     await renderPanel();
     await press("im-safe-button");
     expect(share).toHaveBeenCalledTimes(1);
@@ -195,7 +195,7 @@ describe("CheckInPanel", () => {
     });
     const share = jest
       .spyOn(Share, "share")
-      .mockResolvedValue({ action: "sharedAction" });
+      .mockResolvedValue({ action: "sharedAction", activityType: undefined });
     await renderPanel();
     expect(screen.getByTestId("im-safe-nobody")).toHaveTextContent(
       /None of your family or friends in Bumelerze would see this yet/,
@@ -243,7 +243,7 @@ describe("CheckInPanel", () => {
   it("'Also send a message' works after the check-in", async () => {
     const share = jest
       .spyOn(Share, "share")
-      .mockResolvedValue({ action: "sharedAction" });
+      .mockResolvedValue({ action: "sharedAction", activityType: undefined });
     await renderPanel();
     await press("im-safe-button");
     await press("im-safe-share");

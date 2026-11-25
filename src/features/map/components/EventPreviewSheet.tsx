@@ -7,6 +7,7 @@ import {
   useImperativeHandle,
   useRef,
   useState,
+  type ComponentRef,
   type Ref,
 } from "react";
 import {
@@ -120,7 +121,7 @@ function EventPreviewSheetImpl(
   // file-wide.
   const translateY = useSharedValue(OFFSCREEN_TRANSLATE_Y_PX);
   const startTranslateY = useSharedValue(0);
-  const dialogRef = useRef<View>(null);
+  const dialogRef = useRef<ComponentRef<typeof View>>(null);
 
   const currentEvent = content;
 

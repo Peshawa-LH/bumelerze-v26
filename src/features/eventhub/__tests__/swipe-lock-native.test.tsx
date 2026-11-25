@@ -5,7 +5,7 @@
  */
 import { renderHook } from "@testing-library/react-native";
 import { NavigationContext } from "expo-router/react-navigation";
-import { createRef, type ReactNode } from "react";
+import { createRef, type ComponentRef, type ReactNode } from "react";
 import { Platform, type View } from "react-native";
 
 import { useHorizontalSwipeLock } from "../carousel/swipe-lock";
@@ -24,7 +24,7 @@ function withNavigation(setOptions: jest.Mock) {
 }
 
 describe("useHorizontalSwipeLock (iOS)", () => {
-  const ref = createRef<View>();
+  const ref = createRef<ComponentRef<typeof View>>();
 
   it("[regression] makes the screen's back swipe edge-only while the carousel is drawn", async () => {
     const setOptions = jest.fn();

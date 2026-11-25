@@ -170,7 +170,7 @@ describe("Family screen", () => {
     it("shares the invite link with the system share sheet", async () => {
       const share = jest
         .spyOn(Share, "share")
-        .mockResolvedValue({ action: "sharedAction" });
+        .mockResolvedValue({ action: "sharedAction", activityType: undefined });
       await renderWithProviders(<FamilyScreen tagId="tag-1" />);
       await screen.findByText(/ABCD2345/);
       await press("family-share-button");

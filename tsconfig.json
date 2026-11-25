@@ -7,7 +7,10 @@
     "types": ["jest", "node"],
     "paths": {
       "@/*": ["./src/*"],
-      "@/assets/*": ["./assets/*"]
+      "@/assets/*": ["./assets/*"],
+      // Its "react-native" export points at its TypeScript source, which does
+      // not pass this project's stricter settings; use its published types.
+      "react-native-view-shot": ["./node_modules/react-native-view-shot/lib/index.d.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],

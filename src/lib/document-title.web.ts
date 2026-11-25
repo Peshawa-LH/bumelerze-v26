@@ -34,12 +34,23 @@ export function documentTitleFor(
 }
 
 /**
+ * After a navigation, when to look at the focused screen's title again (ms).
+ * A screen sets its title from its own effect once it has mounted (inline
+ * `<Stack.Screen options>`), some only when their data has arrived (a public
+ * profile's @name), and Expo Router 58's navigation container no longer
+ * reports option changes (its `options` event is gone): it reports only
+ * navigation (`state`).
+ */
+export const TITLE_SETTLE_CHECKS_MS: readonly number[] = [50, 250, 1000, 3000];
+
+/**
  * Keeps `document.title` in step with the screen (review B-23: every screen
  * read "Bumelerze", so history, the tab switcher and bookmarks could not tell
  * them apart). Expo Router turns React Navigation's own document title off,
  * so this reads the focused screen's `title` option through the navigation
- * container the same way, and re-applies on every options change, route
- * change and language change. Call once, in the root layout.
+ * container, and re-applies on every navigation, route change and language
+ * change, then a few more times while the new screen settles
+ * (`TITLE_SETTLE_CHECKS_MS`). Call once, in the root layout.
  */
 export function useDocumentTitle(): void {
   const navigation = useNavigationContainerRef();
@@ -61,10 +72,17 @@ export function useDocumentTitle(): void {
         (key, values) => t(key, values ?? {}),
       );
     };
-    apply();
-    // Screens set their title after mounting (inline `<Stack.Screen options>`),
-    // which the container reports as an options change.
-    const unsubscribe = navigation.addListener("options", apply);
-    return unsubscribe;
+    let checks: ReturnType<typeof setTimeout>[] = [];
+    const settle = () => {
+      checks.forEach(clearTimeout);
+      apply();
+      checks = TITLE_SETTLE_CHECKS_MS.map((ms) => setTimeout(apply, ms));
+    };
+    settle();
+    const unsubscribe = navigation.addListener("state", settle);
+    return () => {
+      unsubscribe();
+      checks.forEach(clearTimeout);
+    };
   }, [navigation, pathname, t, i18n.language]);
 }

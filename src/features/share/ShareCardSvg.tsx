@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, type Ref } from "react";
+import { forwardRef, useEffect, type ComponentRef, type Ref } from "react";
 import {
   PixelRatio,
   Platform,
@@ -38,7 +38,10 @@ export interface ShareCardSvgProps {
 /** What the card's ref points at: the `<svg>` on the web (the exporter
  * serialises it), the card's outer view on a phone (the exporter captures it
  * as a picture). */
-export type ShareCardRef = Svg | View;
+export type ShareCardRef = Svg | NativeCardView;
+
+/** The phone card's outer view (React Native 0.88 types refs by instance). */
+type NativeCardView = ComponentRef<typeof View>;
 
 /**
  * Text in a right-to-left language is wrapped in a bidi isolate. The card
@@ -483,7 +486,7 @@ function NativeCardText({
  * names, as on the web), every word as phone text between and above them.
  * The ref is the outer view, which `image-export.ts` captures as the PNG.
  */
-const NativeCard = forwardRef<View, ShareCardSvgProps>(function NativeCard(
+const NativeCard = forwardRef<NativeCardView, ShareCardSvgProps>(function NativeCard(
   { model, displayWidth },
   ref,
 ) {
@@ -607,7 +610,7 @@ export const ShareCardSvg = forwardRef<ShareCardRef, ShareCardSvgProps>(
     if (Platform.OS === "web") {
       return <WebCard ref={ref as Ref<Svg>} {...props} />;
     }
-    return <NativeCard ref={ref as Ref<View>} {...props} />;
+    return <NativeCard ref={ref as Ref<NativeCardView>} {...props} />;
   },
 );
 

@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — marker tap/click/keyboard
  * activation and accessibility. See `map-web-creation.test.tsx`'s doc

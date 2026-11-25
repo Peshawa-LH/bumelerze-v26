@@ -1,6 +1,6 @@
 import { onlineManager } from "@tanstack/react-query";
 import * as Updates from "expo-updates";
-import { AppState, type AppStateStatus } from "react-native";
+import { AppState } from "react-native";
 
 import { forgetOpenedLink } from "@/i18n/restart-resume";
 
@@ -142,7 +142,7 @@ export function expoUpdatesEnvironment(): NativeUpdateEnvironment {
     isOnline: () => onlineManager.isOnline(),
     now: () => Date.now(),
     onForeground: (listener) => {
-      let previous: AppStateStatus = AppState.currentState;
+      let previous: string | null | undefined = AppState.currentState;
       const subscription = AppState.addEventListener("change", (next) => {
         const cameBack = previous !== "active" && next === "active";
         previous = next;

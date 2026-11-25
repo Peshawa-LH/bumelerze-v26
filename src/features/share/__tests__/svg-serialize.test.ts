@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  */
 import { base64ToPngFile, buildFontFaceCss, serializeCardSvg } from "../svg-serialize";
 

@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * The event-preview sheet, mounted DIRECTLY with controlled props — no
  * MapLibre, no map-creation async settle. This is the deliberate
@@ -16,6 +16,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
 import { createRef, type ReactElement } from "react";
 import { Platform } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import i18n from "@/i18n";
@@ -117,7 +118,10 @@ function makeEvent(overrides: Partial<Event> = {}): Event {
 async function renderSheet(ui: ReactElement) {
   const result = await render(
     <QueryClientProvider client={testQueryClient}>
-      <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>
+      {/* The app's root view (AppRoot.tsx) provides this; gesture-handler 3 requires it. */}
+      <GestureHandlerRootView>
+        <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>
+      </GestureHandlerRootView>
     </QueryClientProvider>,
   );
   await act(async () => {

@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, type RefObject, type ComponentRef } from "react";
 import type { View } from "react-native";
 
 /** Movement (px) after which a touch counts as sideways or up-and-down. */
@@ -19,7 +19,7 @@ const DECIDE_AFTER = 6;
  */
 /** `active`: the carousel is drawn (its view exists). */
 export function useHorizontalSwipeLock(
-  ref: RefObject<View | null>,
+  ref: RefObject<ComponentRef<typeof View> | null>,
   active: boolean,
 ): void {
   useEffect(() => {

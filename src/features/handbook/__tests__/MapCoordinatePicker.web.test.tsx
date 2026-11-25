@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * `MapCoordinatePicker`'s web implementation (`components/
  * MapCoordinatePicker.web.tsx`) — `maplibre-gl` is mocked at the module

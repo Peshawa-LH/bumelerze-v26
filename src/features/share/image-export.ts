@@ -1,6 +1,6 @@
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { Platform, Share, type View } from "react-native";
+import { Platform, Share } from "react-native";
 import { captureRef } from "react-native-view-shot";
 
 import { SHARE_IMAGE_HEIGHTS, SHARE_IMAGE_WIDTH } from "./config";
@@ -35,7 +35,7 @@ export async function rasterizeCard(card: unknown, size: ShareCardSize): Promise
   }
   const width = SHARE_IMAGE_WIDTH;
   const height = SHARE_IMAGE_HEIGHTS[size];
-  const base64 = await captureRef(card as View, {
+  const base64 = await captureRef(card as Parameters<typeof captureRef>[0], {
     format: "png",
     result: "base64",
     ...(Platform.OS === "android" ? { width, height } : {}),

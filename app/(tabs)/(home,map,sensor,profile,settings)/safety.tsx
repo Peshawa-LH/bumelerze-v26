@@ -73,7 +73,9 @@ export default function SafetyScreen() {
         renderItem={({ item }) => <SafetyCard card={item} />}
         // "Using Bumelerze" is a quiet secondary section under the Prepare
         // guides; the Survive and Recover tabs stay purely panic-time content.
-        ListFooterComponent={activeSection === "prepare" ? <UsingAppSection /> : null}
+        ListFooterComponent={
+          activeSection === "prepare" ? <UsingAppSection /> : undefined
+        }
         contentContainerStyle={{
           paddingHorizontal: spacing[4],
           paddingBottom: insets.bottom + spacing[6],

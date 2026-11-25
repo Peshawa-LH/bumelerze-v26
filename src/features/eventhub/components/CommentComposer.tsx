@@ -1,6 +1,13 @@
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type TextInputInstance,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { isGuidelinesDeclined, useGuidelinesGate } from "@/features/guidelines";
@@ -95,7 +102,7 @@ export function CommentComposer({
   const { guard, sheet } = useGuidelinesGate(guidelinesTransport);
   // "@na…" suggests people; picking one writes "@username " (migration 0063).
   const mention = useMentionInput(text, setText);
-  const inputRef = useRef<TextInput | null>(null);
+  const inputRef = useRef<TextInputInstance | null>(null);
   useEffect(() => {
     if (focusKey !== null) {
       inputRef.current?.focus();

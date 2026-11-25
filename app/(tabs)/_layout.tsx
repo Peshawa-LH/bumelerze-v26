@@ -179,7 +179,7 @@ function nativeTabBarLabel(style: TextStyle) {
         // UIKit's own tab bars, and as React Navigation's label did on iOS,
         // the text-size setting reaches the label through the button's
         // long-press Large Content Viewer instead.
-        maxFontSizeMultiplier={Platform.OS === "ios" ? 1 : null}
+        maxFontSizeMultiplier={Platform.OS === "ios" ? 1 : undefined}
         style={[{ textAlign: "center", backgroundColor: "transparent", color }, style]}
       >
         {children}

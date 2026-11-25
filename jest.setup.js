@@ -12,6 +12,26 @@ jest.mock("@react-native-async-storage/async-storage", () =>
 // this changes nothing for suites that never import them.
 require("react-native-gesture-handler/jestSetup");
 jest.mock("react-native-reanimated", () => require("react-native-reanimated/mock"));
+// gesture-handler 3 binds its gestures to Reanimated's UI runtime one tick
+// after it is imported (`installUIRuntimeBindings`). Under Jest the worklets
+// package resolves to its web form (the resolver in jest.config.js), which
+// has no UI runtime, so that call threw after the tests had finished. Use the
+// library's own web version of the module, which does nothing. Both copies,
+// as in the library's jestSetup: Jest loads the package from `lib/module`.
+jest.mock(
+  "react-native-gesture-handler/lib/module/handlers/gestures/installUIRuntimeBindings",
+  () =>
+    jest.requireActual(
+      "react-native-gesture-handler/lib/module/handlers/gestures/installUIRuntimeBindings.web",
+    ),
+);
+jest.mock(
+  "react-native-gesture-handler/src/handlers/gestures/installUIRuntimeBindings",
+  () =>
+    jest.requireActual(
+      "react-native-gesture-handler/src/handlers/gestures/installUIRuntimeBindings.web",
+    ),
+);
 
 // expo-image crashes on bare import under jest-expo's `expo-modules-core` mock:
 // `observe.ts` calls `requireOptionalNativeModule('ExpoObserve')`, jest-expo's

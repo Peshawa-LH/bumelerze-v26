@@ -22,7 +22,10 @@ export type A11yStateProps = { accessibilityState: AccessibilityState } & Pick<
 >;
 
 export function a11yState(state: AccessibilityState): A11yStateProps {
-  const props: A11yStateProps = { accessibilityState: state };
+  // Built up field by field; React Native 0.88 marks the aria props read-only.
+  const props: { -readonly [K in keyof A11yStateProps]: A11yStateProps[K] } = {
+    accessibilityState: state,
+  };
   if (Platform.OS !== "web") {
     return props;
   }

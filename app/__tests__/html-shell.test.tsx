@@ -20,6 +20,10 @@ const { renderToStaticMarkup } = require("react-dom/server") as {
 
 jest.mock("expo-router/html", () => ({
   ScrollViewStyleReset: () => null,
+  // What Expo hands the page in a static export: the app's scripts.
+  useServerDocumentContext: () => ({
+    bodyNodes: <script src="/_expo/static/js/web/entry.js" defer />,
+  }),
 }));
 
 const rendered = renderToStaticMarkup(
@@ -57,6 +61,11 @@ describe.each([
   it("uses none of the banned wordings", () => {
     expect(html).not.toMatch(/ShakeMap|\bfree\b|did you feel it/i);
   });
+});
+
+it("[SDK 58] the static page includes the scripts Expo hands it, so the app starts", () => {
+  expect(rendered).toContain('<script src="/_expo/static/js/web/entry.js" defer="">');
+  expect(rendered.indexOf('<div id="root">')).toBeLessThan(rendered.indexOf("<script"));
 });
 
 it("public/index.html keeps Expo's placeholders so the CLI fills in title and language", () => {

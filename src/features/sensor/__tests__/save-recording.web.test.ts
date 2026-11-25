@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  */
 import { saveRecordingText } from "../save-recording.web";
 

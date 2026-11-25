@@ -13,13 +13,15 @@ describe("shareText on the phone", () => {
   it("opens the system share sheet with the text", async () => {
     const share = jest
       .spyOn(Share, "share")
-      .mockResolvedValue({ action: Share.sharedAction });
+      .mockResolvedValue({ action: Share.sharedAction, activityType: undefined });
     expect(await shareText("hello", "Title")).toBe("shared");
     expect(share).toHaveBeenCalledWith({ message: "hello", title: "Title" });
   });
 
   it("reports a dismissed sheet as cancelled", async () => {
-    jest.spyOn(Share, "share").mockResolvedValue({ action: Share.dismissedAction });
+    jest
+      .spyOn(Share, "share")
+      .mockResolvedValue({ action: Share.dismissedAction, activityType: undefined });
     expect(await shareText("hello", "Title")).toBe("cancelled");
   });
 

@@ -46,7 +46,7 @@ export default function MyReportsScreen() {
         renderItem={({ item }) => (
           <ContributionRow row={item} onWithdraw={() => setWithdrawing(item)} />
         )}
-        ListEmptyComponent={hasHydrated ? <ReportsEmpty /> : null}
+        ListEmptyComponent={hasHydrated ? <ReportsEmpty /> : undefined}
         contentContainerStyle={[
           styles.content,
           {

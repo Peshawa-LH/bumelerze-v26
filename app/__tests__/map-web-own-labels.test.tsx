@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — own-labels (Kurdistan city
  * labels drawn from the app's own gazetteer, `own-labels.ts`). See

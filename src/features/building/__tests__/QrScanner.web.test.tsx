@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * `QrScanner.web.tsx`: the browser's BarcodeDetector plus getUserMedia, both
  * faked at the browser boundary. The scanning loop itself is in

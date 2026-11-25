@@ -100,8 +100,7 @@ function appContext() {
  * returning it bare from an async function would unwrap it and drop
  * `getPathname` and friends. */
 async function openApp(initialUrl: string) {
-  const app = renderRouter(appContext() as never, { initialUrl });
-  await app;
+  const app = await renderRouter(appContext() as never, { initialUrl });
   return { app };
 }
 

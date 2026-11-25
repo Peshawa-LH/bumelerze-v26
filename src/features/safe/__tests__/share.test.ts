@@ -56,7 +56,7 @@ describe("I'm safe share message", () => {
   it("opens the share sheet, or copies when there is none", async () => {
     const spy = jest
       .spyOn(Share, "share")
-      .mockResolvedValueOnce({ action: "sharedAction" });
+      .mockResolvedValueOnce({ action: "sharedAction", activityType: undefined });
     await expect(shareSafeMessage("hello")).resolves.toBe("shared");
     expect(spy).toHaveBeenCalledWith({ message: "hello" });
     spy.mockRejectedValueOnce(new Error("no share sheet"));

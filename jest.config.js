@@ -18,12 +18,13 @@ module.exports = {
     // remain outside the Jest reach by design.
     "^npm:zod@.*$": "zod",
   },
-  // react-native-worklets (react-native-reanimated 4's underlying engine)
-  // ships its own jest resolver that skips `.native.ts` files when resolving
-  // its own internals — without it, Jest's default "prefer .native" platform
-  // resolution pulls in the real native-turbomodule bootstrap
-  // (`NativeWorklets.native.ts`), which throws immediately outside a real
+  // Reanimated's jest resolver (since 4.7; it wraps react-native-worklets'
+  // own) skips `.native.ts` files for the worklets internals and for the
+  // handful of Reanimated modules that only work in their web form under
+  // Jest. Without it, Jest's default "prefer .native" platform resolution
+  // pulls in the real native bootstrap (`NativeWorklets.native.ts`,
+  // Reanimated's `initializers.native.ts`), which throws outside a real
   // native runtime. Required for the map event sheet's Reanimated-driven
   // drag animation to be importable under Jest at all.
-  resolver: "react-native-worklets/jest/resolver.js",
+  resolver: "react-native-reanimated/jest/resolver.js",
 };

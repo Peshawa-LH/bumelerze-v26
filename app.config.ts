@@ -248,7 +248,7 @@ const config: ExpoConfig = {
   // own versions (now 26.2.1), and every shakemap names the engine version
   // that made it. Shown in the Settings footer and stamped on feedback,
   // presence and sensor exports.
-  version: "26.4.15",
+  version: "26.4.16",
   // An EAS Update reaches only builds with the same app version: a release
   // that changes native code gets a new version, so older installs never
   // receive JavaScript written for native modules they do not have.
@@ -487,9 +487,6 @@ const config: ExpoConfig = {
       "expo-localization",
       { supportedLocales: { ios: ["en", "ckb", "kmr", "ar"] } },
     ],
-    // iOS: the UIScene life cycle the iOS 27 SDK requires (Expo SDK 57's
-    // template predates it). Remove on Expo SDK 58 or later.
-    "./plugins/with-ios-scene-life-cycle",
   ],
   experiments: {
     typedRoutes: true,

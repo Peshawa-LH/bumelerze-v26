@@ -1,8 +1,0 @@
-{
-  "name": "decode-uri-component",
-  "version": "0.5.1",
-  "description": "decode-uri-component 0.5.1 as CommonJS (security fix for query-string 7, used by expo-router)",
-  "license": "MIT",
-  "main": "index.js",
-  "files": ["index.js", "license"]
-}

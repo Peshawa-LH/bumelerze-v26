@@ -1,8 +1,5 @@
 import { useCallback, useState } from "react";
-import type {
-  NativeSyntheticEvent,
-  TextInputSelectionChangeEventData,
-} from "react-native";
+import type { TextInputSelectionChangeEvent } from "react-native";
 
 import { activeMention, applyMention, SUGGEST_MIN_CHARS } from "./parse";
 
@@ -18,12 +15,9 @@ export function useMentionInput(text: string, setText: (next: string) => void) {
   const active = activeMention(text, at);
   const query = active && active.query.length >= SUGGEST_MIN_CHARS ? active.query : null;
 
-  const onSelectionChange = useCallback(
-    (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-      setCaret(event.nativeEvent.selection.end);
-    },
-    [],
-  );
+  const onSelectionChange = useCallback((event: TextInputSelectionChangeEvent) => {
+    setCaret(event.nativeEvent.selection.end);
+  }, []);
 
   const pick = useCallback(
     (username: string) => {

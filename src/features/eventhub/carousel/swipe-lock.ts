@@ -1,5 +1,5 @@
 import { NavigationContext } from "expo-router/react-navigation";
-import { useContext, useEffect, type RefObject } from "react";
+import { useContext, useEffect, type RefObject, type ComponentRef } from "react";
 import { Platform, type View } from "react-native";
 
 /**
@@ -18,7 +18,7 @@ import { Platform, type View } from "react-native";
  * did before iOS 26.
  */
 export function useHorizontalSwipeLock(
-  _ref: RefObject<View | null>,
+  _ref: RefObject<ComponentRef<typeof View> | null>,
   active: boolean,
 ): void {
   const navigation = useContext(NavigationContext);

@@ -153,7 +153,7 @@ export function CatalogListScreen() {
             <View style={{ paddingVertical: spacing[4] }}>
               <ActivityIndicator accessibilityLabel={t("catalog.loading")} />
             </View>
-          ) : null
+          ) : undefined
         }
         contentContainerStyle={{
           gap: spacing[3],

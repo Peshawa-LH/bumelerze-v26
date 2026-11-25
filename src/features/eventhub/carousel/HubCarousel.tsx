@@ -1,4 +1,11 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentRef,
+  type ReactNode,
+} from "react";
 import {
   PanResponder,
   Pressable,
@@ -125,7 +132,7 @@ export function HubCarousel({
     [go, index, rtl],
   );
 
-  const frameRef = useRef<View>(null);
+  const frameRef = useRef<ComponentRef<typeof View>>(null);
   useHorizontalSwipeLock(frameRef, count > 0);
 
   if (count === 0) {

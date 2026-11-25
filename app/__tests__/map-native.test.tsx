@@ -10,6 +10,7 @@ import {
 } from "@testing-library/react-native";
 import type { ReactElement, ReactNode } from "react";
 import { AccessibilityInfo, TurboModuleRegistry } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { APP_ORIGIN } from "@/config/urls";
@@ -180,7 +181,10 @@ function renderMap(ui: ReactElement = <MapScreen />) {
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>
+      {/* The app's root view (AppRoot.tsx) provides this; gesture-handler 3 requires it. */}
+      <GestureHandlerRootView>
+        <SafeAreaProvider initialMetrics={testSafeAreaMetrics}>{ui}</SafeAreaProvider>
+      </GestureHandlerRootView>
     </QueryClientProvider>,
   );
 }

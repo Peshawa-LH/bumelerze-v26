@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * Review note 11.2 (2026-10-13): after opening Settings -> Notifications on
  * iPhone Safari, the browser bars turned red and stayed red on every page.

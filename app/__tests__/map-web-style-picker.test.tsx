@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @jest-environment ./jest.jsdom-environment.js
  *
  * Web Map screen (`app/(tabs)/(map)/map.web.tsx`) — basemap style picker
  * (the August 2026 update plan §4.3/Part 3) and the MapTiler attribution logo

@@ -241,7 +241,7 @@ export function EventListScreen({
         testID="event-list"
         data={events}
         keyExtractor={(event) => event.id}
-        ListHeaderComponent={listHeaderContent ? <>{listHeaderContent}</> : null}
+        ListHeaderComponent={listHeaderContent ? <>{listHeaderContent}</> : undefined}
         // The header's cards bring their own side padding (`BeReadyCard`,
         // `PossibleEventCard`'s wrapper); pull the header back out of this
         // list's content inset so they line up with the event cards below,

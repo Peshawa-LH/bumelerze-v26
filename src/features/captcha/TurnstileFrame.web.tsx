@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ComponentRef } from "react";
 import { StyleSheet, View } from "react-native";
 
 import {
@@ -25,7 +25,7 @@ export function TurnstileFrame({
   onFailure,
   onInteractive,
 }: TurnstileFrameProps) {
-  const containerRef = useRef<View | null>(null);
+  const containerRef = useRef<ComponentRef<typeof View> | null>(null);
   const handlersRef = useRef({ onToken, onFailure, onInteractive });
   useEffect(() => {
     handlersRef.current = { onToken, onFailure, onInteractive };
