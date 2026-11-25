@@ -10,12 +10,22 @@
 // this first file, where the splitter leaves the worker's own copy alone.
 // scripts/check-web-workers.mjs fails the web build if a worker ever misses
 // a module again. iOS/Android: one bundle, nothing changes.
+//
+// Since Expo SDK 58, loading expo-sqlite on the web also schedules its worker,
+// and with it the 640 KB SQLite engine, for the next turn: in 26.4.16 every
+// visit to every page did that. Only the catalog needs the worker, and it
+// opens its database asynchronously, which starts the worker on demand. So the
+// head start is cancelled here, through expo-sqlite's own key for it
+// (`catalog-first-download.test.ts` fails if expo-sqlite renames that key).
 import { Platform } from "react-native";
 
 import "expo-router/entry";
 
 if (Platform.OS === "web") {
   require("expo-sqlite");
+  const workerHeadStart = Symbol.for("expo-sqlite.webWorkerStart");
+  clearTimeout(globalThis[workerHeadStart]);
+  delete globalThis[workerHeadStart];
   require("@babel/runtime/helpers/classPrivateFieldLooseBase");
   require("@babel/runtime/helpers/classPrivateFieldLooseKey");
 }
