@@ -21,6 +21,12 @@ import { useTheme, READING_START } from "@/theme";
  * While loading: a spinner. If the download fails (offline before the area
  * was ever opened): a short message with a retry button, never a blank or
  * broken screen.
+ *
+ * The download normally starts at once, in the background, so the area is
+ * usually ready by the time someone opens it. `loadWhenShown` waits for the
+ * first time the screen is shown instead, for an area whose code starts work
+ * as soon as it loads (the catalog: expo-sqlite starts its database worker
+ * and fetches its 640 KB engine on import).
  */
 export function lazyScreenContent<M, P extends object>(
   load: () => M | Promise<M>,
@@ -29,13 +35,19 @@ export function lazyScreenContent<M, P extends object>(
     /** A small part inside a row (a header button): nothing while it
      * loads, and nothing if it cannot be loaded. */
     inline?: boolean;
+    /** Start the download the first time the screen is shown, not at
+     * start-up (see above). */
+    loadWhenShown?: boolean;
   } = {},
 ): ComponentType<P> {
-  const first = load();
-  if (!isPromise(first)) {
-    return pick(first);
+  let pending: Promise<M> | null = null;
+  if (!options.loadWhenShown) {
+    const first = load();
+    if (!isPromise(first)) {
+      return pick(first);
+    }
+    pending = first;
   }
-  let pending: Promise<M> | null = first;
   const create = () =>
     lazy(async () => {
       // The first attempt reuses the download already started above. Once

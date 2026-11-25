@@ -39,6 +39,22 @@ describe("lazyScreenContent", () => {
     expect(load).toHaveBeenCalledTimes(1);
   });
 
+  it("with loadWhenShown, starts the download only when the screen is first shown (the catalog)", async () => {
+    const load = jest.fn(() => Promise.resolve({ Comp: () => <Text>LOADED</Text> }));
+    const Lazy = lazyScreenContent(load, (m: Area) => m.Comp, { loadWhenShown: true });
+    expect(load).not.toHaveBeenCalled();
+    await render(<Lazy />);
+    await settle();
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("LOADED")).toBeTruthy();
+  });
+
+  it("without it, starts the download at once, before the screen is shown", () => {
+    const load = jest.fn(() => Promise.resolve({ Comp: () => <Text>LOADED</Text> }));
+    lazyScreenContent(load, (m: Area) => m.Comp);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
   it("Retry after a failed first download starts a NEW download (review C-1)", async () => {
     let calls = 0;
     const load = jest.fn(() => {

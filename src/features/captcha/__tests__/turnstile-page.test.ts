@@ -182,10 +182,12 @@ describe("public/_headers lets Turnstile load", () => {
       .split("\n")
       .filter((line) => /^\s*Content-Security-Policy:/i.test(line))
       .map((line) => line.replace(/^\s*Content-Security-Policy:\s*/i, ""));
-    // The map worker never loads Turnstile; every other policy (the page,
-    // /turnstile) must allow it through script-src and frame-src, or through
-    // default-src where those two are absent.
-    const relevant = policies.filter((p) => !/script-src 'self' 'unsafe-eval'/.test(p));
+    // The map worker and the catalog's database worker never load Turnstile;
+    // every other policy (the page, /turnstile) must allow it through
+    // script-src and frame-src, or through default-src where those two are absent.
+    const relevant = policies.filter(
+      (p) => !/script-src 'self' '(unsafe-eval|wasm-unsafe-eval)'/.test(p),
+    );
     expect(relevant.length).toBeGreaterThan(0);
     for (const policy of relevant) {
       for (const directive of ["script-src", "frame-src"]) {

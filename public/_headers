@@ -7,6 +7,11 @@
 # - The map worker gets its own policy: it evaluates the right-to-left text
 #   plugin (mapbox-gl-rtl-text.js) for Kurdish and Arabic labels, which needs
 #   'unsafe-eval' inside the worker only, never on the page.
+# - The catalog's database worker (expo-sqlite's; the only script the build
+#   names worker-*.js) gets its own policy too: it compiles the SQLite engine,
+#   which is WebAssembly and needs 'wasm-unsafe-eval' (WebAssembly only, no
+#   eval of text) inside that worker only. Without it the catalog could not
+#   open on the web.
 # - /turnstile (the CAPTCHA page the phone apps open) allows its one inline
 #   script by hash; src/features/captcha/__tests__ keeps hash and file in step.
 # - HSTS for a year, this host and anything under it. Not preloaded.
@@ -35,6 +40,10 @@
 /maplibre-gl-worker.mjs
   ! Content-Security-Policy
   Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-eval'; connect-src 'self' https://bcgyxepgruwardhozvfq.supabase.co https://tiles.openfreemap.org https://api.maptiler.com https://s3.amazonaws.com https://atlas.bumelerze.com; img-src 'self' data: blob: https:; worker-src 'self' blob:
+
+/_expo/static/js/web/worker-*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'
 
 /turnstile
   ! Content-Security-Policy

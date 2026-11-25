@@ -157,6 +157,24 @@ describe("the map worker's own policy", () => {
   });
 });
 
+describe("the catalog's database worker", () => {
+  const worker = rule("/_expo/static/js/web/worker-*");
+
+  it("replaces the page policy and allows WebAssembly in that worker only (SQLite)", () => {
+    expect(worker.drop).toContain("content-security-policy");
+    const csp = directives(worker.set.get("content-security-policy") ?? "");
+    expect(csp.get("default-src")).toEqual(["'none'"]);
+    expect(csp.get("script-src")).toEqual(["'self'", "'wasm-unsafe-eval'"]);
+    expect(csp.get("connect-src")).toEqual(["'self'"]);
+  });
+
+  it("never lets the page itself compile WebAssembly or evaluate text", () => {
+    const page = directives(rule("/*").set.get("content-security-policy") ?? "");
+    expect(page.get("script-src")).not.toContain("'wasm-unsafe-eval'");
+    expect(page.get("script-src")).not.toContain("'unsafe-eval'");
+  });
+});
+
 describe("the CAPTCHA page for the phone apps (/turnstile)", () => {
   const html = readFileSync(join(ROOT, "public", "turnstile.html"), "utf8");
   const inline = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1] as string);
