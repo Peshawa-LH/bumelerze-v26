@@ -30,8 +30,12 @@ export const TURNSTILE_PAGE_ORIGIN = "https://app.bumelerze.com";
 export const TURNSTILE_PAGE_URL = `${TURNSTILE_PAGE_ORIGIN}/turnstile`;
 
 /** How long a sign-in waits for an invisible check before it goes ahead
- * without a token (it normally takes one to three seconds). */
-export const CAPTCHA_TOKEN_TIMEOUT_MS = 15_000;
+ * without a token. It normally takes one to three seconds, but on a slow
+ * connection, or when Cloudflare is unsure, it can take much longer before
+ * it either passes or asks for a tap (23 s seen on 27 Nov 2026). Giving up
+ * earlier means a sign-in Supabase refuses instead of the "Quick check"
+ * sheet, so this must stay well above that. */
+export const CAPTCHA_TOKEN_TIMEOUT_MS = 45_000;
 /** How long the "Quick check" sheet waits for a tap. */
 export const CAPTCHA_INTERACTIVE_TIMEOUT_MS = 120_000;
 

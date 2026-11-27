@@ -89,6 +89,13 @@ describe("getCaptchaToken", () => {
     await expect(second).resolves.toBe("token-b");
   });
 
+  it("waits long enough for a slow check to pass or ask for a tap", () => {
+    // Cloudflare took 23 s to ask for a tap in a flagged browser (27 Nov
+    // 2026); the old 15 s wait gave up first and the sign-in was refused.
+    expect(CAPTCHA_TOKEN_TIMEOUT_MS).toBeGreaterThanOrEqual(40_000);
+    expect(CAPTCHA_INTERACTIVE_TIMEOUT_MS).toBeGreaterThan(CAPTCHA_TOKEN_TIMEOUT_MS);
+  });
+
   it("times out to null (no host, a hung widget) and forgets the request", async () => {
     const pending = getCaptchaToken();
     const id = active()!.id;
