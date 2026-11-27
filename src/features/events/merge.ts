@@ -4,7 +4,7 @@ import {
   DEDUP_MAX_TIME_DELTA_MS,
 } from "./config";
 import { haversineDistanceKm } from "./distance";
-import type { Event } from "./types";
+import type { Event, EventProvider } from "./types";
 
 /**
  * Cross-provider completeness merge for the region feed
@@ -122,4 +122,41 @@ export function mergeProviderEvents(providerLists: Event[][]): Event[] {
   }
 
   return merged;
+}
+
+/**
+ * The same merge, redone on the phone without some agency records (the
+ * earthquakes Bumelerze hid for everyone, migration 0085), from what one
+ * fetch kept: `merged` (the result above) and `absorbed` (the records it
+ * dropped as copies). Together they are the agency lists as fetched;
+ * regrouped by provider in `providerOrder` (the fetch's leg order, its
+ * priority order) they merge exactly as before, minus what `drop` takes out.
+ *
+ * Why before the merge and not only after it: the merge keeps the
+ * higher-authority record of two that match. When an admin hides the USGS
+ * copy of an earthquake and keeps the EMSC one, a USGS revision that makes
+ * them match would keep the hidden USGS record and drop the kept EMSC one,
+ * and a filter after the merge would then remove the earthquake entirely.
+ * Taking the hidden record out first lets the EMSC card survive the merge.
+ *
+ * Returns `merged` itself when `drop` takes out nothing, so memoised lists
+ * are not rebuilt.
+ */
+export function remergeWithout(
+  merged: Event[],
+  absorbed: readonly Event[],
+  providerOrder: readonly EventProvider[],
+  drop: (event: Event) => boolean,
+): Event[] {
+  const all = [...merged, ...absorbed];
+  if (!all.some(drop)) {
+    return merged;
+  }
+  const kept = all.filter((event) => !drop(event));
+  const lists = providerOrder.map((provider) =>
+    kept.filter((event) => event.provenance.provider === provider),
+  );
+  // A provider outside the order (none today) merges last, as a new leg would.
+  lists.push(kept.filter((event) => !providerOrder.includes(event.provenance.provider)));
+  return mergeProviderEvents(lists);
 }

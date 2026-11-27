@@ -7,6 +7,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import {
   parsePossibleEventRows,
   POSSIBLE_EVENT_ROW_COLUMNS,
+  POSSIBLE_EVENT_SOURCES_EMBED,
   SupabasePossibleEventsTransport,
   usePossibleEvents,
   type PossibleEvent,
@@ -41,7 +42,25 @@ describe("parsePossibleEventRows", () => {
         createdAt: Date.parse("2026-08-16T10:02:00.000Z"),
         firstReportAt: Date.parse("2026-08-16T10:00:00.000Z"),
         userCount: null,
+        providerIds: [],
       },
+    ]);
+  });
+
+  it("reads the crowd source id embedded in the same read (how a hidden one is found, migration 0085)", () => {
+    const { events, skippedCount } = parsePossibleEventRows([
+      validRow({
+        event_source_records: [{ provider_event_id: "crowd-sy7d-29468400" }],
+      }),
+      // A junk embed never costs the row itself.
+      validRow({ event_id: "e2", event_source_records: "junk" }),
+      validRow({ event_id: "e3", event_source_records: [null, { nope: 1 }] }),
+    ]);
+    expect(skippedCount).toBe(0);
+    expect(events.map((event) => event.providerIds)).toEqual([
+      ["crowd-sy7d-29468400"],
+      [],
+      [],
     ]);
   });
 
@@ -112,7 +131,10 @@ describe("SupabasePossibleEventsTransport.fetchPossibleEvents", () => {
     const rows = await SupabasePossibleEventsTransport.fetchPossibleEvents();
 
     expect(mockFrom).toHaveBeenCalledWith("events");
-    expect(mockSelect).toHaveBeenCalledWith(POSSIBLE_EVENT_ROW_COLUMNS.join(", "));
+    expect(mockSelect).toHaveBeenCalledWith(
+      [...POSSIBLE_EVENT_ROW_COLUMNS, POSSIBLE_EVENT_SOURCES_EMBED].join(", "),
+    );
+    expect(POSSIBLE_EVENT_SOURCES_EMBED).toBe("event_source_records(provider_event_id)");
     expect(mockEq).toHaveBeenCalledWith("status", "possible");
     expect(mockGte).toHaveBeenCalledWith("created_at", expect.any(String));
     expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });

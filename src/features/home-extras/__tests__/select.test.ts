@@ -1,7 +1,7 @@
 import type { Event } from "@/features/events/types";
 
 import { applyHomePins, pickNoticeText, visibleNotice } from "../select";
-import type { HomeExtras, HomeNotice, HomePin } from "../transport";
+import type { HiddenEarthquake, HomeExtras, HomeNotice, HomePin } from "../transport";
 
 const NOW = Date.parse("2026-11-25T12:00:00Z");
 const HOUR = 3_600_000;
@@ -42,7 +42,7 @@ const notice: HomeNotice = {
 };
 
 describe("visibleNotice", () => {
-  const extras: HomeExtras = { notice, pins: [] };
+  const extras: HomeExtras = { notice, pins: [], hidden: [] };
   it("shows a message until its end, by the phone's clock (also offline)", () => {
     expect(visibleNotice(extras, NOW, null)).toBe(notice);
     expect(visibleNotice(extras, NOW + HOUR, null)).toBeNull();
@@ -52,7 +52,7 @@ describe("visibleNotice", () => {
     expect(visibleNotice(extras, NOW, "n0")).toBe(notice);
   });
   it("shows nothing when there is no message", () => {
-    expect(visibleNotice({ notice: null, pins: [] }, NOW, null)).toBeNull();
+    expect(visibleNotice({ notice: null, pins: [], hidden: [] }, NOW, null)).toBeNull();
   });
 });
 
@@ -90,7 +90,12 @@ describe("applyHomePins", () => {
   const c = event("us-c", { originTime: NOW - 5 * HOUR, lat: 37.0, lon: 43.0 });
 
   it("leaves the list alone with no chosen earthquake", () => {
-    const out = applyHomePins([a, b], [a, b], { notice: null, pins: [] }, NOW);
+    const out = applyHomePins(
+      [a, b],
+      [a, b],
+      { notice: null, pins: [], hidden: [] },
+      NOW,
+    );
     expect(out).toEqual({ chosen: [], rest: [a, b] });
   });
 
@@ -110,7 +115,7 @@ describe("applyHomePins", () => {
     const out = applyHomePins(
       [a, b, c],
       [a, b, c],
-      { notice: null, pins: [pin(registry, ["emsc-9", "us-b"])] },
+      { notice: null, pins: [pin(registry, ["emsc-9", "us-b"])], hidden: [] },
       NOW,
     );
     expect(out.chosen).toEqual([b]);
@@ -127,7 +132,7 @@ describe("applyHomePins", () => {
     const out = applyHomePins(
       [a, b, c],
       [a, b, c],
-      { notice: null, pins: [pin(registry, [])] },
+      { notice: null, pins: [pin(registry, [])], hidden: [] },
       NOW,
     );
     expect(out.chosen).toEqual([c]);
@@ -143,7 +148,7 @@ describe("applyHomePins", () => {
     const out = applyHomePins(
       [a, b, c],
       [a, b],
-      { notice: null, pins: [pin(old, ["us-old"]), pin(c, ["us-c"])] },
+      { notice: null, pins: [pin(old, ["us-old"]), pin(c, ["us-c"])], hidden: [] },
       NOW,
     );
     expect(out.chosen).toEqual([old, c]);
@@ -162,10 +167,73 @@ describe("applyHomePins", () => {
     const out = applyHomePins(
       [a, b, c, d, extra],
       [a, b, c, d, extra],
-      { notice: null, pins: [...pins, pin(extra, ["us-e"])] },
+      { notice: null, pins: [...pins, pin(extra, ["us-e"])], hidden: [] },
       NOW,
     );
     expect(out.chosen.map((e) => e.id)).toEqual(["us-b", "us-c", "us-d"]);
     expect(out.rest.map((e) => e.id)).toEqual(["us-a", "us-e"]);
+  });
+
+  describe("hidden earthquakes (migration 0085)", () => {
+    const hiddenB: HiddenEarthquake = {
+      bumelerzeId: "bml2026x02",
+      providerIds: ["us-b"],
+      reasonKind: "removed",
+      kept: null,
+    };
+
+    it("never shows a hidden chosen earthquake, and keeps it out of the list", () => {
+      const out = applyHomePins(
+        [a, b, c],
+        [a, b, c],
+        { notice: null, pins: [pin(b, ["us-b"]), pin(c, ["us-c"])], hidden: [hiddenB] },
+        NOW,
+      );
+      expect(out.chosen).toEqual([c]);
+      expect(out.rest).toEqual([a]);
+    });
+
+    it("finds a hidden chosen one by its Bumelerze id too", () => {
+      const registry = event("emsc-77", { bumelerzeId: "bml2026x02" });
+      const out = applyHomePins(
+        [a],
+        [a],
+        { notice: null, pins: [pin(registry, ["emsc-77"])], hidden: [hiddenB] },
+        NOW,
+      );
+      expect(out.chosen).toEqual([]);
+    });
+
+    it("never lets a hidden second card stand in for the chosen card that stays", () => {
+      // The chosen card is a registry row; the feed has only the hidden EMSC
+      // second card at the same time and place, which the merge rule would
+      // pick. The registry row is shown instead.
+      const kept = event("us-kept", { bumelerzeId: "bml2026x01" });
+      const secondCard = event("emsc-dup", { originTime: kept.originTime + 3_000 });
+      const out = applyHomePins(
+        [secondCard, a],
+        [secondCard, a],
+        {
+          notice: null,
+          pins: [pin(kept, ["us-kept"])],
+          hidden: [
+            {
+              bumelerzeId: "bml2026x09",
+              providerIds: ["emsc-dup"],
+              reasonKind: "duplicate",
+              kept: { bumelerzeId: "bml2026x01", providerIds: ["us-kept"] },
+            },
+          ],
+        },
+        NOW,
+      );
+      expect(out.chosen).toEqual([kept]);
+      expect(out.rest).toEqual([a]);
+    });
+
+    it("still works with a copy saved before 26.5.2 (no hidden list)", () => {
+      const old = { notice: null, pins: [pin(b, ["us-b"])] } as unknown as HomeExtras;
+      expect(applyHomePins([a, b], [a, b], old, NOW).chosen).toEqual([b]);
+    });
   });
 });

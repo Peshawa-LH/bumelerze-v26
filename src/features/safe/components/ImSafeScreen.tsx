@@ -7,6 +7,7 @@ import { AccountButton } from "@/features/account/components/AccountButton";
 import { HeaderBackButton } from "@/components/HeaderBackButton";
 import { useRegionEvents } from "@/features/events";
 import { decodeEventRegistrationParam, toEventRegistration } from "@/features/felt";
+import { useHiddenEarthquakes, withoutHidden } from "@/features/home-extras";
 import { useTheme } from "@/theme";
 
 import { MANUAL_WINDOW_MS } from "../constants";
@@ -43,7 +44,10 @@ export function ImSafeScreen({
     fromParam && (feltReportId || now - fromParam.originTime <= MANUAL_WINDOW_MS)
       ? fromParam
       : null;
-  const manual = usable || feltReportId ? null : pickManualEvent(events);
+  // Never an earthquake Bumelerze hid for everyone (migration 0085).
+  const hidden = useHiddenEarthquakes();
+  const manual =
+    usable || feltReportId ? null : pickManualEvent(withoutHidden(events, hidden));
   const event = usable ?? (manual ? toEventRegistration(manual) : null);
 
   return (

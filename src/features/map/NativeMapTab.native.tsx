@@ -24,6 +24,7 @@ import {
   useWorldEvents,
   type Event,
 } from "@/features/events";
+import { useHiddenEarthquakes, withoutHidden } from "@/features/home-extras";
 import { parseKurdishPlaces, placeLine, type KurdishPlace } from "@/features/geo";
 import { useUserDistanceAnchor } from "@/features/location/use-user-distance-anchor";
 // Deep imports only: the `@/features/map` index also exports the web's
@@ -201,6 +202,7 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
 
   const { events: regionEvents, dataUpdatedAt: regionDataUpdatedAt } = useRegionEvents();
   const { events: worldEvents, dataUpdatedAt: worldDataUpdatedAt } = useWorldEvents();
+  const hiddenEarthquakes = useHiddenEarthquakes();
 
   const eventSheet = useEventSheetController();
   const selectEvent = eventSheet.select;
@@ -251,7 +253,12 @@ function NativeMapScreen({ mapLibre }: { mapLibre: MapLibreModule }) {
     setDateRange(null);
   }, []);
 
-  const scopedEvents = scope === "world" ? worldEvents : regionEvents;
+  // Earthquakes Bumelerze hid for everyone (migration 0085) get no marker.
+  const scopedEvents = useMemo(
+    () =>
+      withoutHidden(scope === "world" ? worldEvents : regionEvents, hiddenEarthquakes),
+    [scope, worldEvents, regionEvents, hiddenEarthquakes],
+  );
   const scopedDataUpdatedAt =
     scope === "world" ? worldDataUpdatedAt : regionDataUpdatedAt;
   const magnitudeBounds = useMemo(

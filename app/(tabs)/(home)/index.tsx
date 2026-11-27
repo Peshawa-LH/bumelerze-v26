@@ -19,9 +19,12 @@ import {
 import {
   applyHomePins,
   HomeNoticeBanner,
+  useHiddenIndex,
   useHomeExtras,
   useHomeNoticeStore,
   visibleNotice,
+  withoutHidden,
+  withoutHiddenPossible,
 } from "@/features/home-extras";
 import { HomeSafeBanner, useSafePrompt } from "@/features/safe";
 import { BeReadyCard } from "@/features/safety";
@@ -56,7 +59,7 @@ export default function HomeScreen() {
   const router = useRouter();
 
   const {
-    events,
+    events: regionEvents,
     isInitialLoading,
     isOfflineIsh,
     isHardError,
@@ -65,8 +68,21 @@ export default function HomeScreen() {
     refetch,
   } = useRegionEvents();
 
-  // Felt-pill association deliberately uses the UNFILTERED feed: a person
-  // can feel an event the Home display floor hides.
+  // Admin > Home screen (migration 0084): the message from Bumelerze and up
+  // to three earthquakes chosen by hand; and the earthquakes Bumelerze hid
+  // for everyone (migration 0085: a second card for one earthquake, or not a
+  // real one). A hidden one is taken out of everything below, by its ids
+  // only (`features/home-extras/hidden.ts`), so the card that stays is kept.
+  const extras = useHomeExtras();
+  const hidden = useHiddenIndex(extras);
+  const events = useMemo(
+    () => withoutHidden(regionEvents, hidden),
+    [regionEvents, hidden],
+  );
+
+  // Felt-pill association deliberately uses the feed BEFORE the Home
+  // display policy: a person can feel an event the Home display floor hides.
+  // Never a hidden one, though: the report would go to a card nobody sees.
   const associatedEventId = resolveHomeFeltAssociation(events);
   // The matched Event itself (not just its id) — passed to FeltReportPill
   // so it can build the registration snapshot the report resolves against
@@ -82,18 +98,20 @@ export default function HomeScreen() {
   // notable-tail pool, which reaches further back than the region pool
   // alone does. `selectHomeFeedEvents` handles its own dedup across the
   // two pools — see its own doc comment.
-  const { events: notableTailEvents } = useNotableTailEvents();
+  const { events: notableTailFeed } = useNotableTailEvents();
+  const notableTailEvents = useMemo(
+    () => withoutHidden(notableTailFeed, hidden),
+    [notableTailFeed, hidden],
+  );
   const { events: policyEvents, notableIds } = useMemo(
     () => selectHomeFeedEvents([...events, ...notableTailEvents]),
     [events, notableTailEvents],
   );
 
-  // Admin > Home screen (migration 0084): the message from Bumelerze and up
-  // to three earthquakes chosen by hand. The chosen ones lead the list,
-  // whatever the policy above would show (older, smaller or farther away),
-  // and are not repeated lower down. Both end by the phone's clock, so an
-  // offline phone also stops showing them.
-  const extras = useHomeExtras();
+  // The chosen earthquakes lead the list, whatever the policy above would
+  // show (older, smaller or farther away), and are not repeated lower down.
+  // The message and the chosen ones end by the phone's clock, so an offline
+  // phone also stops showing them.
   const hiddenNoticeId = useHomeNoticeStore((state) => state.hiddenNoticeId);
   const hideNotice = useHomeNoticeStore((state) => state.hide);
   // A roughly-current instant, as in EventListScreen (re-renders on every
@@ -121,7 +139,11 @@ export default function HomeScreen() {
   // magnitude to compare against it in the first place). Empty/unconfigured
   // resolves to an empty array, so this renders nothing extra when there's
   // nothing to show.
-  const { events: possibleEvents } = usePossibleEvents();
+  const { events: possibleFeed } = usePossibleEvents();
+  const possibleEvents = useMemo(
+    () => withoutHiddenPossible(possibleFeed, hidden),
+    [possibleFeed, hidden],
+  );
 
   // "Are you safe?" (I'm safe v1, entry T2): a strong earthquake that probably
   // shook this phone's position at intensity V or more. Decided on the

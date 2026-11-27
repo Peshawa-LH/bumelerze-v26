@@ -13,6 +13,8 @@ export interface ToolCounts {
   alertDevices: number | null;
   hubsOpen: number | null;
   feedbackNew: number | null;
+  /** Earthquakes hidden for everyone now (migration 0085). */
+  hiddenEvents: number | null;
 }
 
 export const EMPTY_TOOL_COUNTS: ToolCounts = {
@@ -23,6 +25,7 @@ export const EMPTY_TOOL_COUNTS: ToolCounts = {
   alertDevices: null,
   hubsOpen: null,
   feedbackNew: null,
+  hiddenEvents: null,
 };
 
 const count = z.coerce.number().int().nonnegative().nullable().optional().catch(null);
@@ -34,6 +37,7 @@ const schema = z.object({
   alert_devices: count,
   hubs_open: count,
   feedback_new: count,
+  hidden_events: count,
 });
 
 export function parseToolCounts(data: unknown): ToolCounts {
@@ -50,6 +54,7 @@ export function parseToolCounts(data: unknown): ToolCounts {
     alertDevices: d.alert_devices ?? null,
     hubsOpen: d.hubs_open ?? null,
     feedbackNew: d.feedback_new ?? null,
+    hiddenEvents: d.hidden_events ?? null,
   };
 }
 

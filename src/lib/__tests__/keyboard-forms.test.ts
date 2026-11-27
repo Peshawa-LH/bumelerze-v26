@@ -54,6 +54,10 @@ const FORM_HOSTS: Record<string, string[]> = {
     "src/features/admin/components/ActivityContent.tsx",
   ],
   "src/features/admin/home/HomeScreenContent.tsx": [TOOL_PAGE],
+  // Admin > Hidden earthquakes (migration 0085): the search on the page, the
+  // note in the hide sheet.
+  "src/features/admin/hidden-events/HiddenEventsContent.tsx": [TOOL_PAGE],
+  "src/features/admin/hidden-events/HideSheet.tsx": [SHEET],
   "src/features/admin/hubs/HubsContent.tsx": [TOOL_PAGE],
   "src/features/admin/inbox/components/FeedbackDetailContent.tsx": [
     "src/features/admin/inbox/components/FeedbackDetailContent.tsx",

@@ -290,3 +290,64 @@ describe("Admin launcher: Home screen tile (migration 0084)", () => {
     expect(screen.queryByTestId("admin-tile-home")).toBeNull();
   });
 });
+
+describe("Admin launcher: Hidden earthquakes (B2.6 stage 2, migration 0085)", () => {
+  beforeEach(async () => {
+    mockPush.mockClear();
+    if (i18n.language !== "en") {
+      await i18n.changeLanguage("en");
+    }
+  });
+  afterEach(cleanup);
+
+  it("adds the tile after Home screen for the admin rank, and opens its own page", async () => {
+    await render([...ADMIN, "home.manage", "events.hide"], counts({ hiddenEvents: 0 }));
+    const grid = await screen.findByTestId("admin-tiles");
+    const ids = (grid.props.children as { props: { testID: string } }[]).map(
+      (c) => c.props.testID,
+    );
+    expect(ids.indexOf("admin-tile-hidden-events")).toBe(
+      ids.indexOf("admin-tile-home") + 1,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("admin-tile-hidden-events")).toHaveTextContent(
+        /Hidden earthquakesNothing hidden$/,
+      ),
+    );
+    fireEvent.press(screen.getByTestId("admin-tile-hidden-events"));
+    // Not /admin/hidden: that is Hidden & removed (comments and posts).
+    expect(mockPush).toHaveBeenCalledWith("/admin/hidden-earthquakes");
+  });
+
+  it("says how many are hidden (wording 2.2)", async () => {
+    await render(["events.hide"], counts({ hiddenEvents: 3 }));
+    await waitFor(() =>
+      expect(screen.getByTestId("admin-tile-hidden-events")).toHaveTextContent(
+        /Hidden earthquakes3 hidden$/,
+      ),
+    );
+  });
+
+  it("shows no number while the server cannot count yet (before 0085)", async () => {
+    await render(["events.hide"], counts());
+    expect(await screen.findByTestId("admin-tile-hidden-events")).toHaveTextContent(
+      /Hidden earthquakes$/,
+    );
+  });
+
+  it("is not there without events.hide (owner choice 1: admins only)", async () => {
+    await render([...ADMIN, "home.manage"]);
+    await screen.findByTestId("admin-tiles");
+    expect(screen.queryByTestId("admin-tile-hidden-events")).toBeNull();
+  });
+
+  it("counts in Eastern Arabic-Indic digits in Sorani", async () => {
+    await i18n.changeLanguage("ckb");
+    await render(["events.hide"], counts({ hiddenEvents: 12 }));
+    await waitFor(() =>
+      expect(screen.getByTestId("admin-tile-hidden-events")).toHaveTextContent(
+        /١٢ شاراوە/,
+      ),
+    );
+  });
+});

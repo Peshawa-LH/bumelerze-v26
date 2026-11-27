@@ -83,6 +83,7 @@ export {
   parsePossibleEventRows,
   possibleEventsQueryKeys,
   POSSIBLE_EVENT_ROW_COLUMNS,
+  POSSIBLE_EVENT_SOURCES_EMBED,
   SupabasePossibleEventsTransport,
   usePossibleEvents,
   type ParsedPossibleEventRows,

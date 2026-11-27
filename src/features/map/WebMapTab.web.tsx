@@ -19,6 +19,7 @@ import {
   useWorldEvents,
   type Event,
 } from "@/features/events";
+import { useHiddenEarthquakes, withoutHidden } from "@/features/home-extras";
 import { parseKurdishPlaces, placeLine, type KurdishPlace } from "@/features/geo";
 import {
   buildArabicNameTextField,
@@ -365,6 +366,7 @@ export default function MapScreenWeb() {
 
   const { events: regionEvents, dataUpdatedAt: regionDataUpdatedAt } = useRegionEvents();
   const { events: worldEvents, dataUpdatedAt: worldDataUpdatedAt } = useWorldEvents();
+  const hiddenEarthquakes = useHiddenEarthquakes();
 
   // Event-preview sheet (map-UX wave: "the map doesn't close fully, but a
   // slider type thing opens") — `eventSheet` is the sheet's own state
@@ -422,7 +424,11 @@ export default function MapScreenWeb() {
         : regionBboxToLngLatBounds(REGION_BBOX),
     [hasUserFix, userLat, userLon],
   );
-  const scopedEvents = scope === "world" ? worldEvents : regionEvents;
+  // Earthquakes Bumelerze hid for everyone (migration 0085) get no marker.
+  const scopedEvents = useMemo(
+    () => withoutHidden(scope === "world" ? worldEvents : regionEvents, hiddenEarthquakes),
+    [scope, worldEvents, regionEvents, hiddenEarthquakes],
+  );
   // React Query's own fetch-success timestamp for whichever feed is active
   // — used below as the date filter's "now" edge INSTEAD OF a plain
   // `Date.now()` read (see `dateBounds`'s comment for why that would be a

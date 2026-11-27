@@ -933,7 +933,10 @@
       "reported": "You reported level {{level}}",
       "addDetail": "Add more detail",
       "detailAdded": "Detail added, thank you"
-    }
+    },
+    "removedTitle": "Earthquake removed",
+    "removedBody": "Bumelerze removed this earthquake from the app. Agencies sometimes publish an earthquake by mistake, or twice.",
+    "hiddenBanner": "Hidden for everyone else: {{reason}}. Only admins see this page."
   },
   "eventHub": {
     "title": "Event hub",
@@ -2679,7 +2682,9 @@
         "home_notice_post": "Posted a Home message",
         "home_notice_remove": "Removed the Home message",
         "home_pin": "Showed an earthquake on Home",
-        "home_unpin": "Removed an earthquake from Home"
+        "home_unpin": "Removed an earthquake from Home",
+        "event_hide": "Hid an earthquake",
+        "event_unhide": "Showed an earthquake again"
       },
       "undo": "Undo"
     },
@@ -3106,7 +3111,12 @@
       "homePins": "{{number}} earthquakes shown",
       "homePins_one": "1 earthquake shown",
       "homePins_other": "{{number}} earthquakes shown",
-      "homeNothing": "Nothing added"
+      "homeNothing": "Nothing added",
+      "hiddenEvents": "Hidden earthquakes",
+      "hiddenEventsCount": "{{number}} hidden",
+      "hiddenEventsCount_one": "{{number}} hidden",
+      "hiddenEventsCount_other": "{{number}} hidden",
+      "hiddenEventsNone": "Nothing hidden"
     },
     "moderation": {
       "hint": "Everything waiting for a decision. Felt photos and limited accounts open from the top."
@@ -3248,6 +3258,48 @@
       "pinned": "Shown on Home",
       "unpin": "Remove from Home",
       "unpinned": "Removed from Home"
+    },
+    "hiddenEvents": {
+      "hint": "A hidden earthquake disappears from Home, Map and Significant for everyone within about 2 minutes. Its magnitude and location are never changed.",
+      "nowTitle": "Hidden now",
+      "empty": "Nothing is hidden.",
+      "row": "Hidden {{date}} · {{reason}}",
+      "showAgain": "Show again",
+      "showAgainTitle": "Show this earthquake to everyone again?",
+      "showAgainMessage": "Felt reports that moved go back to it.",
+      "shownAgain": "Shown again",
+      "hide": "Hide",
+      "hiddenMark": "Hidden",
+      "sheetTitle": "Hide this earthquake for everyone?",
+      "why": "Why",
+      "reasons": {
+        "duplicate": "Two cards for one earthquake",
+        "not_real": "Not a real earthquake",
+        "other": "Other"
+      },
+      "reasonHints": {
+        "duplicate": "Pick the card that stays. Links, felt reports and \"I'm safe\" check-ins move to it.",
+        "not_real": "For example a quarry blast, a test, or an agency's mistake."
+      },
+      "keptTitle": "Card that stays",
+      "keptHint": "Earthquakes within 10 minutes and 300 km of this one",
+      "keptNone": "No other earthquake is close in time and place. Choose another reason.",
+      "noteLabel": "Short note (needed for \"Other\")",
+      "impact": {
+        "feltReports": "{{number}} felt reports",
+        "feltReports_one": "{{number}} felt report",
+        "feltReports_other": "{{number}} felt reports",
+        "checkins": "{{number}} \"I'm safe\" check-ins",
+        "checkins_one": "{{number}} \"I'm safe\" check-in",
+        "checkins_other": "{{number}} \"I'm safe\" check-ins",
+        "onHome": "On Home now: hiding takes it off Home"
+      },
+      "hideButton": "Hide for everyone",
+      "hiddenDone": "Hidden. Phones update within about 2 minutes.",
+      "errors": {
+        "keptRequired": "Choose the card that stays.",
+        "noteRequired": "Write a short note."
+      }
     }
   },
   "restrictions": {

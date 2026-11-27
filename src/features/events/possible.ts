@@ -41,6 +41,10 @@ export interface PossibleEvent {
   /** Distinct people (signed-in identities) behind the detection; null
    * for rows detected before migration 0034. */
   userCount: number | null;
+  /** Its crowd source id (`crowd-<cell>-<bucket>`, `event_source_records`):
+   * how a possible earthquake hidden by Bumelerze (migration 0085) is found.
+   * Absent on a copy saved on the device before 26.5.2. */
+  providerIds?: string[];
 }
 
 /** Column list, in the query's own select order — mirrors
@@ -57,6 +61,20 @@ export const POSSIBLE_EVENT_ROW_COLUMNS = [
   "crowd_user_count",
 ] as const;
 
+/** The source records embedded in the same read (one per row today), for
+ * `PossibleEvent.providerIds`. */
+export const POSSIBLE_EVENT_SOURCES_EMBED = "event_source_records(provider_event_id)";
+
+const sourceIdsSchema = z
+  .array(
+    z
+      .object({ provider_event_id: z.string().min(1) })
+      .nullable()
+      .catch(null),
+  )
+  .nullish()
+  .catch(null);
+
 const possibleEventRowSchema = z.object({
   event_id: z.string().min(1),
   origin_time: z.string(),
@@ -65,6 +83,7 @@ const possibleEventRowSchema = z.object({
   created_at: z.string(),
   crowd_first_report_at: z.string().nullish(),
   crowd_user_count: z.number().int().nonnegative().nullish(),
+  event_source_records: sourceIdsSchema,
 });
 
 export interface ParsedPossibleEventRows {
@@ -104,6 +123,9 @@ export function parsePossibleEventRows(data: unknown): ParsedPossibleEventRows {
         ? Date.parse(row.crowd_first_report_at)
         : Date.parse(row.origin_time),
       userCount: row.crowd_user_count ?? null,
+      providerIds: (row.event_source_records ?? []).flatMap((source) =>
+        source ? [source.provider_event_id] : [],
+      ),
     });
   }
 
@@ -145,7 +167,7 @@ export const SupabasePossibleEventsTransport: PossibleEventsTransport = {
 
     const { data, error } = await client
       .from("events")
-      .select(POSSIBLE_EVENT_ROW_COLUMNS.join(", "))
+      .select([...POSSIBLE_EVENT_ROW_COLUMNS, POSSIBLE_EVENT_SOURCES_EMBED].join(", "))
       .eq("status", "possible")
       .gte("created_at", cutoff)
       .order("created_at", { ascending: false });

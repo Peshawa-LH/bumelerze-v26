@@ -1,5 +1,21 @@
 export { HomeNoticeBanner } from "./components/HomeNoticeBanner";
-export { HOME_EXTRAS_REFETCH_MS, homeExtrasKeys, useHomeExtras } from "./queries";
+export {
+  findHidden,
+  hiddenEntryForEvent,
+  indexHidden,
+  keptRouteId,
+  NO_HIDDEN,
+  withoutHidden,
+  withoutHiddenPossible,
+  type HiddenIndex,
+} from "./hidden";
+export {
+  HOME_EXTRAS_REFETCH_MS,
+  homeExtrasKeys,
+  useHiddenEarthquakes,
+  useHiddenIndex,
+  useHomeExtras,
+} from "./queries";
 export { applyHomePins, pickNoticeText, visibleNotice } from "./select";
 export { useHomeNoticeStore } from "./store";
 export {
@@ -7,6 +23,9 @@ export {
   NOTICE_LANGUAGES,
   parseHomeExtras,
   SupabaseHomeExtrasTransport,
+  type HiddenEarthquake,
+  type HiddenKeptCard,
+  type HiddenReasonKind,
   type HomeExtras,
   type HomeExtrasTransport,
   type HomeNotice,

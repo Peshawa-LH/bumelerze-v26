@@ -669,4 +669,119 @@ describe("Home screen (region feed) under the Sorani (RTL) locale", () => {
       expect(screen.getByTestId(`event-card-${sampleEvent.id}`)).toBeTruthy();
     });
   });
+
+  describe("earthquakes hidden for everyone (migration 0085)", () => {
+    // A second card for the sample earthquake: EMSC's copy, registered on
+    // its own (40 s off, so the phone's merge keeps both), hidden in favour
+    // of the USGS card; and a quarry blast hidden as not real.
+    const secondCard: Event = {
+      ...sampleEvent,
+      id: "20261126_0000042",
+      originTime: sampleEvent.originTime + 40_000,
+      provenance: {
+        ...sampleEvent.provenance,
+        provider: "emsc",
+        providerId: "20261126_0000042",
+      },
+    };
+    const blast: Event = {
+      ...sampleEvent,
+      id: "us7000blst",
+      originTime: Date.now() - 60_000,
+      lat: 36.1,
+      lon: 44.2,
+      provenance: { ...sampleEvent.provenance, providerId: "us7000blst" },
+    };
+    const hidden = [
+      {
+        bumelerzeId: "bml2026x02",
+        providerIds: ["20261126_0000042"],
+        reasonKind: "duplicate" as const,
+        kept: { bumelerzeId: "bml2026x01", providerIds: [sampleEvent.id] },
+      },
+      {
+        bumelerzeId: "bml2026x03",
+        providerIds: ["us7000blst", "crowd-sy7d-29468400"],
+        reasonKind: "removed" as const,
+        kept: null,
+      },
+    ];
+
+    beforeEach(async () => {
+      await i18n.changeLanguage("en");
+      mockUseRegionEvents.mockReturnValue({
+        events: [blast, secondCard, sampleEvent],
+        isInitialLoading: false,
+        isOfflineIsh: false,
+        isHardError: false,
+        isRefreshing: false,
+        dataUpdatedAt: Date.now(),
+        skippedCount: 0,
+        refetch: jest.fn(),
+      });
+      mockUseHomeExtras.mockReturnValue({ notice: null, pins: [], hidden });
+    });
+
+    it("leaves the hidden ones out of the list and keeps the card that stays", async () => {
+      await renderWithProviders(<HomeScreen />);
+      const cards = screen
+        .getAllByTestId(/^event-card-/)
+        .map((card) => card.props.testID);
+      expect(cards).toEqual([`event-card-${sampleEvent.id}`]);
+    });
+
+    it("never points the felt-report pill at a hidden earthquake", async () => {
+      // The blast is the newest regional event: before 0085 the pill
+      // would have sent the report to it.
+      await renderWithProviders(<HomeScreen />);
+      fireEvent.press(screen.getByRole("button", { name: i18n.t("felt.pill.label") }));
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pathname: "/felt-report",
+          params: expect.objectContaining({ eventId: sampleEvent.id }),
+        }),
+      );
+    });
+
+    it("never shows a hidden earthquake as a chosen one", async () => {
+      mockUseHomeExtras.mockReturnValue({
+        notice: null,
+        pins: [
+          {
+            registryId: "u-blast",
+            event: blast,
+            providerIds: ["us7000blst"],
+            endsAt: Date.now() + 86_400_000,
+          },
+        ],
+        hidden,
+      });
+      await renderWithProviders(<HomeScreen />);
+      expect(
+        screen.queryByText("Chosen by Bumelerze", { includeHiddenElements: true }),
+      ).toBeNull();
+      expect(screen.queryByTestId("event-card-us7000blst")).toBeNull();
+    });
+
+    it("leaves a hidden possible earthquake out, by its crowd source id", async () => {
+      mockUsePossibleEvents.mockReturnValue({
+        events: [
+          {
+            ...samplePossibleEvent,
+            id: "p-hidden",
+            providerIds: ["crowd-sy7d-29468400"],
+          },
+        ],
+        isReady: true,
+      });
+      await renderWithProviders(<HomeScreen />);
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+
+    it("still shows everything with a saved copy from before 26.5.2 (no hidden list)", async () => {
+      mockUseHomeExtras.mockReturnValue({ notice: null, pins: [] });
+      await renderWithProviders(<HomeScreen />);
+      expect(screen.getAllByTestId(/^event-card-/)).toHaveLength(3);
+    });
+  });
 });

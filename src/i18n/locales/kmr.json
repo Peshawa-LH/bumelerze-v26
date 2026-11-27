@@ -933,7 +933,10 @@
       "reported": "Te asta {{level}} rapor kir",
       "addDetail": "Hûrgiliyên zêdetir zêde bike",
       "detailAdded": "Hûrgilî hate zêdekirin, spas"
-    }
+    },
+    "removedTitle": "Erdhej hat rakirin",
+    "removedBody": "Bumelerze ev erdhej ji sepanê rakir. Ajans carinan erdhejekê bi şaşî, an du caran, belav dikin.",
+    "hiddenBanner": "Ji bo her kesê din veşartî ye: {{reason}}. Tenê rêveber vê rûpelê dibînin."
   },
   "eventHub": {
     "title": "Navenda bûyerê",
@@ -2679,7 +2682,9 @@
         "home_notice_post": "Peyamek li Destpêkê weşand",
         "home_notice_remove": "Peyama Destpêkê rakir",
         "home_pin": "Erdhejek li Destpêkê nîşan da",
-        "home_unpin": "Erdhejek ji Destpêkê rakir"
+        "home_unpin": "Erdhejek ji Destpêkê rakir",
+        "event_hide": "Erdhejek veşart",
+        "event_unhide": "Erdhejek dîsa nîşan da"
       },
       "undo": "Vegerîne"
     },
@@ -3106,7 +3111,12 @@
       "homePins": "{{number}} erdhej tên nîşandan",
       "homePins_one": "{{number}} erdhej tê nîşandan",
       "homePins_other": "{{number}} erdhej tên nîşandan",
-      "homeNothing": "Tiştek nehatiye zêdekirin"
+      "homeNothing": "Tiştek nehatiye zêdekirin",
+      "hiddenEvents": "Erdhejên veşartî",
+      "hiddenEventsCount": "{{number}} veşartî",
+      "hiddenEventsCount_one": "{{number}} veşartî",
+      "hiddenEventsCount_other": "{{number}} veşartî",
+      "hiddenEventsNone": "Tiştek nehatiye veşartin"
     },
     "moderation": {
       "hint": "Her tiştê ku li benda biryarê ye. Wêneyên hestkirinê û hesabên sînorkirî ji jor vedibin."
@@ -3248,6 +3258,48 @@
       "pinned": "Li Destpêkê hate nîşandan",
       "unpin": "Ji Destpêkê rake",
       "unpinned": "Ji Destpêkê hate rakirin"
+    },
+    "hiddenEvents": {
+      "hint": "Erdhejeke veşartî di nav nêzîkî 2 deqeyan de ji bo her kesî ji Destpêk, Nexşe û Girîng winda dibe. Mezinahî û cihê wê qet nayên guhertin.",
+      "nowTitle": "Niha veşartî",
+      "empty": "Tiştek nehatiye veşartin.",
+      "row": "Hat veşartin {{date}} · {{reason}}",
+      "showAgain": "Dîsa nîşan bide",
+      "showAgainTitle": "Ev erdhej dîsa ji her kesî re were nîşandan?",
+      "showAgainMessage": "Raporên hîskirinê yên ku hatine guhastin vedigerin ser wê.",
+      "shownAgain": "Dîsa hat nîşandan",
+      "hide": "Veşêre",
+      "hiddenMark": "Veşartî",
+      "sheetTitle": "Ev erdhej ji her kesî were veşartin?",
+      "why": "Çima",
+      "reasons": {
+        "duplicate": "Du kart ji bo yek erdhejê",
+        "not_real": "Ne erdhejeke rastîn e",
+        "other": "Sedemeke din"
+      },
+      "reasonHints": {
+        "duplicate": "Karta ku dimîne hilbijêre. Girêdan, raporên hîskirinê û agahiyên «Ez ewle me» diçin ser wê.",
+        "not_real": "Wek mînak teqandineke kanê, ceribandinek, an şaşiyeke ajansekê."
+      },
+      "keptTitle": "Karta ku dimîne",
+      "keptHint": "Erdhejên di nav 10 deqe û 300 km de ji vê erdhejê",
+      "keptNone": "Tu erdhejeke din di dem û cih de nêzîk nîne. Sedemeke din hilbijêre.",
+      "noteLabel": "Nîşeyeke kurt (ji bo «Sedemeke din» pêwîst e)",
+      "impact": {
+        "feltReports": "{{number}} raporên hîskirinê",
+        "feltReports_one": "{{number}} rapora hîskirinê",
+        "feltReports_other": "{{number}} raporên hîskirinê",
+        "checkins": "{{number}} agahiyên «Ez ewle me»",
+        "checkins_one": "{{number}} agahiya «Ez ewle me»",
+        "checkins_other": "{{number}} agahiyên «Ez ewle me»",
+        "onHome": "Niha li Destpêkê ye: veşartin wê ji Destpêkê radike"
+      },
+      "hideButton": "Ji her kesî veşêre",
+      "hiddenDone": "Hat veşartin. Telefon di nav nêzîkî 2 deqeyan de nû dibin.",
+      "errors": {
+        "keptRequired": "Karta ku dimîne hilbijêre.",
+        "noteRequired": "Nîşeyeke kurt binivîse."
+      }
     }
   },
   "restrictions": {

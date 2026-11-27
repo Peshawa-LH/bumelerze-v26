@@ -1,5 +1,6 @@
 import { isSameEarthquake } from "@/features/events/merge";
 import type { Event } from "@/features/events/types";
+import { findHidden, indexHidden, withoutHidden } from "./hidden";
 import {
   NOTICE_LANGUAGES,
   type HomeExtras,
@@ -60,7 +61,10 @@ function matches(feedEvent: Event, pin: HomeExtras["pins"][number]): boolean {
  * has in its own feed (`pool`: region feed plus the notable tail, before the
  * Home policy) is shown as that copy, so it opens like any other card; one
  * the feed does not have (older, smaller, farther away) is drawn from the
- * registry row and opens by its Bumelerze id. Ended ones are left out.
+ * registry row and opens by its Bumelerze id. Ended ones are left out, and
+ * so are hidden ones (migration 0085): a hidden earthquake is never chosen,
+ * and a hidden copy in the feed never stands in for a chosen one (the merge
+ * rule in `matches` would pick a hidden second card for the card that stays).
  */
 export function applyHomePins(
   pool: readonly Event[],
@@ -68,15 +72,24 @@ export function applyHomePins(
   extras: HomeExtras,
   now: number,
 ): { chosen: Event[]; rest: Event[] } {
-  const pins = extras.pins.filter((pin) => pin.endsAt > now).slice(0, 3);
+  const hidden = indexHidden(extras.hidden as HomeExtras["hidden"] | undefined);
+  const pins = extras.pins
+    .filter(
+      (pin) =>
+        pin.endsAt > now &&
+        !findHidden(hidden, [...pin.providerIds, pin.event.bumelerzeId, pin.event.id]),
+    )
+    .slice(0, 3);
+  const visibleShown = withoutHidden([...shown], hidden);
   if (pins.length === 0) {
-    return { chosen: [], rest: [...shown] };
+    return { chosen: [], rest: visibleShown };
   }
+  const visiblePool = withoutHidden([...pool], hidden);
   const chosen = pins.map(
-    (pin) => pool.find((event) => matches(event, pin)) ?? pin.event,
+    (pin) => visiblePool.find((event) => matches(event, pin)) ?? pin.event,
   );
   const chosenIds = new Set(chosen.map((event) => event.id));
-  const rest = shown.filter(
+  const rest = visibleShown.filter(
     (event) => !chosenIds.has(event.id) && !pins.some((pin) => matches(event, pin)),
   );
   return { chosen, rest };

@@ -150,6 +150,9 @@ export const ACTIVITY_ACTIONS = [
   { action: "home_notice_remove", content: false },
   { action: "home_pin", content: false },
   { action: "home_unpin", content: false },
+  // Migration 0085: Admin > Hidden earthquakes (admin).
+  { action: "event_hide", content: false },
+  { action: "event_unhide", content: false },
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number]["action"];
 
@@ -180,6 +183,7 @@ export const ACTIVITY_FILTER_ACTIONS: readonly ActivityAction[] = [
   "authority_people_view",
   "home_notice_post",
   "home_pin",
+  "event_hide",
 ];
 
 /** One row of `admin_activity()` (migration 0052). */

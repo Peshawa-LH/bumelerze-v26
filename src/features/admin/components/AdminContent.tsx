@@ -29,8 +29,8 @@ interface Tile {
  * row, each with a status line. Nothing can be done on this page itself;
  * every tool opens its own page. Each tile shows only for the permission its
  * tool needs (`people.view`, `comments.moderate`, `filter.manage`,
- * `alerts.test`, `stats.read`, `hubs.open`, `home.manage`, `feedback.manage`,
- * `audit.read`),
+ * `alerts.test`, `stats.read`, `hubs.open`, `home.manage`, `events.hide`,
+ * `feedback.manage`, `audit.read`),
  * and everything is hidden for people without any, so a stray link shows
  * nothing. Felt photos and limited accounts live inside the Moderation queue;
  * badges are given from People > person. Above the tiles, the statistics ranks
@@ -173,6 +173,25 @@ export function AdminContent({
             : t("admin.tools.homeNothing"),
       dot: home?.notice ? "info" : null,
       href: "/admin/home",
+    });
+  }
+  if (access.has("events.hide")) {
+    // Migration 0085: earthquakes hidden for everyone (wording 2.1, 2.2).
+    const hiddenEvents = counts?.hiddenEvents ?? null;
+    tiles.push({
+      key: "hidden-events",
+      icon: "layers-outline",
+      title: t("admin.tools.hiddenEvents"),
+      status:
+        hiddenEvents === null
+          ? null
+          : hiddenEvents > 0
+            ? t("admin.tools.hiddenEventsCount", {
+                count: hiddenEvents,
+                number: n(hiddenEvents),
+              })
+            : t("admin.tools.hiddenEventsNone"),
+      href: "/admin/hidden-earthquakes",
     });
   }
   if (access.canManageFeedback) {

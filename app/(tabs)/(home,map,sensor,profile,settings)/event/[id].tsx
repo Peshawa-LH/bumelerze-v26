@@ -26,7 +26,10 @@ import {
   useOwnQueueItemForEvent,
 } from "@/features/felt";
 // Deep imports: the eventhub index would also bring the whole hub screen.
+import { EarthquakeRemoved } from "@/features/eventhub/components/EarthquakeRemoved";
 import { EventHubPill } from "@/features/eventhub/components/EventHubPill";
+import { HiddenEventBanner } from "@/features/eventhub/components/HiddenEventBanner";
+import { useHiddenRouteGate } from "@/features/eventhub/hidden-route";
 import { useRouteEvent } from "@/features/eventhub/use-route-event";
 import { FeltMapSection } from "@/features/feltmap";
 import { nearestCities, nearestCityDistanceLine, placeLine } from "@/features/geo";
@@ -63,6 +66,11 @@ import { useTabBarScroll } from "@/features/tab-bar";
  *    curated-event alias (no network) or from `useBumelerzeId`'s Supabase
  *    lookup. The screen renders fully at the OLD url while that resolves —
  *    the redirect is a URL hygiene step, never a loading gate.
+ *
+ * **Hidden earthquakes (migration 0085, owner choice 4):** an id Bumelerze
+ * hid for everyone opens the card that stays (a second card, wording 2.21)
+ * or "Earthquake removed" (2.22); an admin with `events.hide` sees the
+ * earthquake with banner 2.23 instead (`useHiddenRouteGate`).
  */
 export default function EventDetailScreen() {
   const tabBarScroll = useTabBarScroll();
@@ -74,8 +82,30 @@ export default function EventDetailScreen() {
 
   // Event lookup (feed caches, then a direct fetch) is shared with the Event
   // hub screen — see `useRouteEvent`.
-  const { event, isLoading, isNotFound, routeIsBumelerzeId, staticBumelerzeIdAlias } =
-    useRouteEvent(id);
+  const {
+    event: routeEvent,
+    isLoading: isEventLoading,
+    isNotFound: isEventNotFound,
+    routeIsBumelerzeId,
+    staticBumelerzeIdAlias,
+    hidden,
+  } = useRouteEvent(id);
+  // Hidden for everyone: nothing of it shows until the page knows the
+  // reader is an admin who may see it.
+  const gate = useHiddenRouteGate(hidden);
+  const event = gate.mode === "show" ? routeEvent : null;
+  const isLoading =
+    gate.mode === "wait" || gate.mode === "redirect" || (gate.mode === "show" && isEventLoading);
+  const isNotFound = gate.mode === "show" && isEventNotFound;
+  const keptRouteId = gate.keptRouteId;
+
+  // A second card: open the card that stays instead, replacing this entry
+  // so Back does not return to the hidden one (wording 2.21).
+  useEffect(() => {
+    if (keptRouteId) {
+      router.replace(`/event/${keptRouteId}`);
+    }
+  }, [keptRouteId, router]);
 
   // Map-event-sheet wave (owner: "an option to go back to the map"):
   // `origin === "map"` is set ONLY by the Map screen's preview sheet
@@ -124,10 +154,10 @@ export default function EventDetailScreen() {
   // gate; the screen already has everything it needs to render fully at
   // the OLD (provider-id) url the instant `displayBumelerzeId` is known.
   useEffect(() => {
-    if (!routeIsBumelerzeId && displayBumelerzeId) {
+    if (!routeIsBumelerzeId && displayBumelerzeId && gate.mode === "show") {
       router.replace(`/event/${displayBumelerzeId}`);
     }
-  }, [routeIsBumelerzeId, displayBumelerzeId, router]);
+  }, [routeIsBumelerzeId, displayBumelerzeId, gate.mode, router]);
 
   // Local-only lookup (D8, brief point 4): this device's own queued
   // report for this event, if any — there is no backend to ask for a
@@ -204,6 +234,10 @@ export default function EventDetailScreen() {
               {t("eventDetail.loading")}
             </Text>
           ) : null}
+
+          {gate.mode === "removed" ? <EarthquakeRemoved /> : null}
+
+          {event && gate.adminView && hidden ? <HiddenEventBanner hidden={hidden} /> : null}
 
           {isNotFound ? (
             <View style={{ gap: spacing[2] }}>

@@ -67,6 +67,9 @@ export const PERMISSIONS = [
   // Migration 0084: Admin > Home screen, the message and the chosen
   // earthquakes at the top of Home (the private admin rank only).
   "home.manage",
+  // Migration 0085: Admin > Hidden earthquakes, hide an earthquake for
+  // everyone and show it again (the private admin rank only).
+  "events.hide",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 

@@ -60,6 +60,18 @@ jest.mock("@/features/location/use-user-distance-anchor", () => ({
   useUserDistanceAnchor: () => mockUserAnchor.current,
 }));
 
+// Migration 0085: the earthquakes hidden for everyone come from
+// `useHiddenEarthquakes`, a real `useQuery` hook; this file's render has no
+// QueryClientProvider, so it is mocked like the feed hooks (nothing hidden).
+const mockHiddenList: { current: unknown[] } = { current: [] };
+jest.mock("@/features/home-extras", () => {
+  const actual = jest.requireActual("@/features/home-extras");
+  return {
+    ...actual,
+    useHiddenEarthquakes: () => actual.indexHidden(mockHiddenList.current),
+  };
+});
+
 jest.mock("@/features/events", () => {
   const actual = jest.requireActual("@/features/events");
   return {
@@ -95,10 +107,48 @@ async function renderWithProviders(ui: ReactElement): Promise<RenderResult> {
 
 beforeEach(() => {
   resetMapWebMocks();
+  mockHiddenList.current = [];
 });
 
 afterEach(() => {
   cleanup();
+});
+
+describe("MapScreenWeb: earthquakes hidden for everyone (migration 0085)", () => {
+  it("draws no marker for a hidden earthquake, in either scope, and keeps the card that stays", async () => {
+    mockHiddenList.current = [
+      {
+        bumelerzeId: "bml20260a02",
+        providerIds: ["region-dup", "world-blast"],
+        reasonKind: "removed",
+        kept: null,
+      },
+    ];
+    mockUseRegionEvents.mockReturnValue({
+      events: [makeEvent({ id: "region-1" }), makeEvent({ id: "region-dup" })],
+      dataUpdatedAt: MOCK_DATA_UPDATED_AT,
+    });
+    mockUseWorldEvents.mockReturnValue({
+      events: [
+        makeEvent({ id: "world-1", lat: 10, lon: 10 }),
+        makeEvent({ id: "world-blast", lat: -20, lon: 130 }),
+      ],
+      dataUpdatedAt: MOCK_DATA_UPDATED_AT,
+    });
+
+    await renderWithProviders(<MapScreenWeb />);
+    await waitFor(() => {
+      expect(mockMarkerConstructorOptions).toHaveLength(1);
+    });
+    mockMarkerConstructorOptions.length = 0;
+    await act(async () => {
+      fireEvent.press(screen.getByRole("radio", { name: i18n.t("map.scope.world") }));
+    });
+    await waitFor(() => {
+      expect(mockMarkerSetLngLat).toHaveBeenLastCalledWith([10, 10]);
+    });
+    expect(mockMarkerSetLngLat).not.toHaveBeenCalledWith([130, -20]);
+  });
 });
 
 describe("MapScreenWeb scope toggle", () => {

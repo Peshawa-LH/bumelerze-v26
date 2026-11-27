@@ -1,7 +1,7 @@
 {
   "feed-networks": {
     "file:src/features/events/config.ts": "53941556bcb476ec",
-    "file:src/features/events/merge.ts": "7ab4406e33060ca4"
+    "file:src/features/events/merge.ts": "359d5bc6e332b094"
   },
   "live-card-region-rule": {
     "file:src/features/events/config.ts": "53941556bcb476ec",
@@ -9,7 +9,7 @@
   },
   "live-card-significant-rule": {
     "file:src/features/events/normalize.ts": "544af332172a92ba",
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/significant.tsx": "6422cf463a4db958",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/significant.tsx": "be751fcea4a88138",
     "file:src/features/events/usgs.ts": "b6fe64ef58dfd5d6"
   },
   "live-card-wording": {
@@ -25,7 +25,7 @@
     "file:src/features/geo/data/fe-region-translations.ts": "5563fb896d6aa9bf"
   },
   "event-route": {
-    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "8d546057b689675f",
+    "file:app/(tabs)/(home,map,sensor,profile,settings)/event/[id].tsx": "713ebb20ce207c36",
     "file:app/account/sign-in.tsx": "ba108542fdd02bd3",
     "file:app/(tabs)/(home,map,sensor,profile,settings)/notification-settings.tsx": "81ac8231333e9ff7"
   },

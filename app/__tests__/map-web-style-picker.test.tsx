@@ -67,6 +67,14 @@ jest.mock("expo-router", () => {
   };
 });
 
+// Migration 0085: the earthquakes hidden for everyone come from
+// `useHiddenEarthquakes`, a real `useQuery` hook; this file's render has no
+// QueryClientProvider, so it is mocked like the feed hooks (nothing hidden).
+jest.mock("@/features/home-extras", () => {
+  const actual = jest.requireActual("@/features/home-extras");
+  return { ...actual, useHiddenEarthquakes: () => actual.NO_HIDDEN };
+});
+
 jest.mock("@/features/events", () => {
   const actual = jest.requireActual("@/features/events");
   return {

@@ -10,7 +10,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
-import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
 // Type only: the NetInfo adapter itself is handed in by app/_layout.tsx, so
@@ -18,6 +18,9 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 import type { DeviceConnectivitySubscribe } from "@/lib/device-connectivity";
 import { keepLastGoodData, persistLastGoodData } from "@/lib/persist-filter";
 import { trackPersisterSaves, type TrackedPersister } from "@/lib/session-query-cache";
+// Deep imports: the home-extras index would also bring its Home banner.
+import { hiddenEntryForEvent, type HiddenIndex } from "@/features/home-extras/hidden";
+import { useCachedHiddenEarthquakes } from "@/features/home-extras/queries";
 
 import {
   EMSC_REGION_TIMEOUT_MS,
@@ -30,14 +33,14 @@ import {
 } from "./config";
 import { fetchEmscRegionEvents } from "./emsc";
 import { fetchGeofonRegionEvents } from "./geofon";
-import { mergeProviderEvents } from "./merge";
+import { mergeProviderEvents, remergeWithout } from "./merge";
 import {
   fetchUsgsEventById,
   fetchUsgsNotableTailEvents,
   fetchUsgsRegionEvents,
   fetchUsgsWorldEvents,
 } from "./usgs";
-import type { Event } from "./types";
+import type { Event, EventProvider } from "./types";
 
 /**
  * Pauses React Query's `refetchInterval` polling when the app is
@@ -233,6 +236,10 @@ export interface UseEventsFeedResult {
 function useEventsFeed(
   queryKey: readonly string[],
   queryFn: () => Promise<RegionFetchResult>,
+  /** Region feed only: the earthquakes hidden for everyone (migration 0085),
+   * taken out BEFORE the merge (`remergeWithout`). Every screen also filters
+   * after it (`withoutHidden`). */
+  hidden?: HiddenIndex,
 ): UseEventsFeedResult {
   const query = useQuery({
     queryKey,
@@ -261,9 +268,26 @@ function useEventsFeed(
   const offlineWithoutFetch =
     !isOnline && !isRestoring && query.fetchStatus !== "fetching";
   const hasData = query.data !== undefined;
+  const data = query.data;
+  const events = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+    if (!hidden || hidden.size === 0) {
+      return data.events;
+    }
+    // A copy saved before 26.5.2 has no `absorbed`: what was merged away
+    // then stays merged away until the next fetch (within a minute).
+    return remergeWithout(
+      data.events,
+      data.absorbed ?? [],
+      REGION_PROVIDER_ORDER,
+      (event) => hiddenEntryForEvent(hidden, event) !== null,
+    );
+  }, [data, hidden]);
 
   return {
-    events: query.data?.events ?? [],
+    events,
     isOfflineIsh: hasData && (query.isError || offlineWithoutFetch),
     isInitialLoading: query.isPending && !offlineWithoutFetch,
     isHardError: !hasData && (query.isError || offlineWithoutFetch),
@@ -288,7 +312,17 @@ interface RegionFetchResult {
    * — `useEventsFeed` then asks again at once, with every source's full
    * budget (`fetchRegionEventsMerged`'s `firstAnswerGraceMs`). */
   partial?: boolean;
+  /** Region feed: the agency records the merge dropped as copies of a card
+   * in `events`. With `events` they are the lists as fetched, so the phone
+   * can merge again without an earthquake Bumelerze hid (migration 0085)
+   * the moment the hidden list changes, without fetching (`remergeWithout`).
+   * Absent in a copy saved before 26.5.2. */
+  absorbed?: Event[];
 }
+
+/** The region legs' order: the merge's priority order (D4: USGS > EMSC >
+ * GEOFON). `fetchRegionEventsMerged` lists its legs in this order. */
+export const REGION_PROVIDER_ORDER: readonly EventProvider[] = ["usgs", "emsc", "geofon"];
 
 /** One provider's leg of the parallel region fetch: its own AbortController
  * timeout budget, resolving to the result or `undefined` on any failure
@@ -422,8 +456,15 @@ export async function fetchRegionEventsMerged({
   }
 
   const partial = legs.some((leg) => leg.cutByGrace === true);
+  const lists = legs.map((leg) => leg.result?.events ?? []);
+  const events = mergeProviderEvents(lists);
+  // Kept for `remergeWithout` (hidden earthquakes, migration 0085): the
+  // merge returns the fetched objects themselves, so identity tells them apart.
+  const shown = new Set(events);
+  const absorbed = lists.flat().filter((event) => !shown.has(event));
   return {
-    events: mergeProviderEvents(legs.map((leg) => leg.result?.events ?? [])),
+    events,
+    ...(absorbed.length > 0 ? { absorbed } : {}),
     skippedCount: legs.reduce((sum, leg) => sum + (leg.result?.skippedCount ?? 0), 0),
     fetchedAt: Math.max(...legs.map((leg) => leg.result?.fetchedAt ?? 0)),
     ...(partial ? { partial } : {}),
@@ -449,7 +490,9 @@ export function useRegionEvents(): UseEventsFeedResult {
       ),
     [client],
   );
-  return useEventsFeed(eventsQueryKeys.region, queryFn);
+  // Read from the copy on the device, never fetched here.
+  const hidden = useCachedHiddenEarthquakes();
+  return useEventsFeed(eventsQueryKeys.region, queryFn, hidden);
 }
 
 /** Full world feed (World Catalog, the v1 spec §4.2). */

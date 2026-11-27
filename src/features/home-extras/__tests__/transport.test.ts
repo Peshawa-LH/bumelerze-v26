@@ -100,12 +100,103 @@ describe("parseHomeExtras (home_extras(), migration 0084)", () => {
   });
 
   it("reads nothing from an empty or odd answer", () => {
-    expect(parseHomeExtras(null)).toEqual({ notice: null, pins: [] });
-    expect(parseHomeExtras("x")).toEqual({ notice: null, pins: [] });
+    expect(parseHomeExtras(null)).toEqual({ notice: null, pins: [], hidden: [] });
+    expect(parseHomeExtras("x")).toEqual({ notice: null, pins: [], hidden: [] });
     expect(parseHomeExtras({ notice: null, pins: [] })).toEqual({
       notice: null,
       pins: [],
+      hidden: [],
     });
+  });
+});
+
+describe("parseHomeExtras: hidden earthquakes (migration 0085)", () => {
+  const kept = { bumelerze_id: "bml2026x01", provider_ids: ["us7000abcd"] };
+
+  it("reads a second card with the card that stays, and a removed one", () => {
+    const out = parseHomeExtras({
+      notice: null,
+      pins: [],
+      hidden: [
+        {
+          bumelerze_id: "bml2026x02",
+          provider_ids: ["20261123_0000123", "gfz2026abcd"],
+          reason_kind: "duplicate",
+          kept,
+        },
+        {
+          bumelerze_id: "bml2026x03",
+          provider_ids: ["us7000zzzz"],
+          reason_kind: "removed",
+          kept: null,
+        },
+      ],
+    });
+    expect(out.hidden).toEqual([
+      {
+        bumelerzeId: "bml2026x02",
+        providerIds: ["20261123_0000123", "gfz2026abcd"],
+        reasonKind: "duplicate",
+        kept: { bumelerzeId: "bml2026x01", providerIds: ["us7000abcd"] },
+      },
+      {
+        bumelerzeId: "bml2026x03",
+        providerIds: ["us7000zzzz"],
+        reasonKind: "removed",
+        kept: null,
+      },
+    ]);
+  });
+
+  it("keeps the old answer (26.5.0-26.5.1 servers) working: no key, an empty list", () => {
+    expect(parseHomeExtras({ notice: null, pins: [row] }).hidden).toEqual([]);
+    expect(parseHomeExtras({ notice: null, pins: [], hidden: "x" }).hidden).toEqual([]);
+  });
+
+  it("drops rows it cannot read, never throwing", () => {
+    const out = parseHomeExtras({
+      hidden: [
+        null,
+        "bml2026x09",
+        { provider_ids: ["us1"] }, // no reason_kind
+        { bumelerze_id: null, provider_ids: [], reason_kind: "removed" }, // no id at all
+        {
+          bumelerze_id: 7,
+          provider_ids: [3, "", "  ", "emsc-1"],
+          reason_kind: "removed",
+        },
+        { bumelerze_id: "bml2026x05", provider_ids: "junk", reason_kind: "removed" },
+      ],
+    });
+    expect(out.hidden).toEqual([
+      { bumelerzeId: null, providerIds: ["emsc-1"], reasonKind: "removed", kept: null },
+      { bumelerzeId: "bml2026x05", providerIds: [], reasonKind: "removed", kept: null },
+    ]);
+  });
+
+  it("reads a second card with no readable card that stays, or an unknown kind, as removed: still hidden", () => {
+    const out = parseHomeExtras({
+      hidden: [
+        {
+          bumelerze_id: "bml2026x06",
+          provider_ids: [],
+          reason_kind: "duplicate",
+          kept: null,
+        },
+        {
+          bumelerze_id: "bml2026x07",
+          provider_ids: [],
+          reason_kind: "duplicate",
+          kept: { bumelerze_id: null, provider_ids: [] },
+        },
+        { bumelerze_id: "bml2026x08", provider_ids: [], reason_kind: "spam", kept },
+      ],
+    });
+    expect(out.hidden.map((entry) => [entry.reasonKind, entry.kept])).toEqual([
+      ["removed", null],
+      ["removed", null],
+      ["removed", null],
+    ]);
   });
 });
 
@@ -118,6 +209,7 @@ describe("SupabaseHomeExtrasTransport", () => {
     await expect(SupabaseHomeExtrasTransport.fetchHomeExtras()).resolves.toEqual({
       notice: null,
       pins: [],
+      hidden: [],
     });
     expect(rpc).toHaveBeenCalledWith("home_extras", undefined, { get: true });
     rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } } as never);

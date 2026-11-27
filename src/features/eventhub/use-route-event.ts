@@ -12,6 +12,11 @@ import {
   NOTABLE_BUMELERZE_ID_BY_PROVIDER_ID,
   NOTABLE_PROVIDER_ID_BY_BUMELERZE_ID,
 } from "@/features/historical";
+import {
+  findHidden,
+  useHiddenEarthquakes,
+  type HiddenEarthquake,
+} from "@/features/home-extras";
 
 export interface RouteEvent {
   event: Event | null;
@@ -21,13 +26,22 @@ export interface RouteEvent {
   routeIsBumelerzeId: boolean;
   /** The bml id of a curated Historical event reached by its provider id. */
   staticBumelerzeIdAlias: string | null;
+  /** Set when Bumelerze hid this earthquake for everyone (migration 0085):
+   * the route id, or the resolved event's own ids, are in the hidden list.
+   * The page decides what to show (`useHiddenRouteGate`). */
+  hidden: HiddenEarthquake | null;
 }
 
 /**
  * Resolves an `/event/[id]`-style route param to an `Event`: the cached
  * region/world feeds first (the common case), else a direct lookup (Supabase
  * for a `bml` id, the USGS `byId` fetch for a provider id). Shared by the
- * event page and the Event hub so both accept exactly the same ids.
+ * event page and the Event hub so both accept exactly the same ids. Also
+ * says whether the earthquake is hidden for everyone (migration 0085), by
+ * id only: the route id first (known before any fetch), then the event's
+ * own ids. The hidden list is the one Home keeps on the device; a page
+ * never waits for it (a link must open on a weak network), so a first-time
+ * visitor may see a hidden earthquake for the moment the one read takes.
  */
 export function useRouteEvent(id: string | undefined): RouteEvent {
   const routeId = id ?? "";
@@ -91,6 +105,21 @@ export function useRouteEvent(id: string | undefined): RouteEvent {
   );
 
   const event = cachedEvent ?? (routeIsBumelerzeId ? byBumelerzeId.event : byId.event);
+
+  const hiddenIndex = useHiddenEarthquakes();
+  const hidden = useMemo(
+    () =>
+      findHidden(hiddenIndex, [
+        routeId,
+        staticProviderIdAlias,
+        staticBumelerzeIdAlias,
+        event?.id,
+        event?.provenance.providerId,
+        event?.bumelerzeId,
+      ]),
+    [hiddenIndex, routeId, staticProviderIdAlias, staticBumelerzeIdAlias, event],
+  );
+
   const isLoading =
     !event &&
     (region.isInitialLoading ||
@@ -103,5 +132,6 @@ export function useRouteEvent(id: string | undefined): RouteEvent {
     isNotFound: !event && !isLoading,
     routeIsBumelerzeId,
     staticBumelerzeIdAlias,
+    hidden,
   };
 }

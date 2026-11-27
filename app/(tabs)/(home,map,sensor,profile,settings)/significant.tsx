@@ -11,6 +11,7 @@ import {
   useWorldEvents,
   type Event,
 } from "@/features/events";
+import { useHiddenEarthquakes, withoutHidden } from "@/features/home-extras";
 
 /**
  * Significant Events (the v1 spec §4.3): region-significant ∪ world-
@@ -27,23 +28,25 @@ export default function SignificantScreen() {
   const { t } = useTranslation();
   const region = useRegionEvents();
   const world = useWorldEvents();
+  // Earthquakes Bumelerze hid for everyone (migration 0085) never count.
+  const hidden = useHiddenEarthquakes();
 
   const events = useMemo(() => {
     const byId = new Map<string, Event>();
 
-    for (const event of region.events) {
+    for (const event of withoutHidden(region.events, hidden)) {
       if (isRegionSignificant(event)) {
         byId.set(event.id, event);
       }
     }
-    for (const event of world.events) {
+    for (const event of withoutHidden(world.events, hidden)) {
       if (isWorldSignificant(event)) {
         byId.set(event.id, event);
       }
     }
 
     return Array.from(byId.values()).sort((a, b) => b.sig - a.sig);
-  }, [region.events, world.events]);
+  }, [region.events, world.events, hidden]);
 
   const isInitialLoading = region.isInitialLoading || world.isInitialLoading;
   // Only a genuine "nothing to show" state when BOTH feeds have failed with
