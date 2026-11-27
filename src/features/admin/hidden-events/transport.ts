@@ -235,16 +235,21 @@ export function cleanHideNote(note: string): string | null {
 /**
  * What a refusal from the server means for the hide sheet and the page
  * (0085's messages, "<function>: <name>"): `kept` (kept_required,
- * kept_is_same, kept_not_found, kept_hidden) and `note` (note_required,
- * note_too_long) have their own words (2.19, 2.20); `stale` (bad_reason,
+ * kept_is_same, kept_not_found, kept_hidden), `note` (note_required,
+ * note_too_long) and `isKeptCard` (is_kept_card: another hidden earthquake
+ * points to this one as its card that stays) have their own words (2.19,
+ * 2.20, 2.25); `stale` (bad_reason,
  * event_not_found, already_hidden, not_hidden) means another admin may have
  * acted: the generic line, and the lists are read again. Anything else
  * (not_allowed is 42501, "Not allowed") goes through the shared words.
  */
-export type HideErrorKind = "kept" | "note" | "stale" | null;
+export type HideErrorKind = "kept" | "note" | "isKeptCard" | "stale" | null;
 
 export function hideErrorKind(error: unknown): HideErrorKind {
   const message = error instanceof Error ? error.message : "";
+  if (/(^|:\s*)is_kept_card\b/.test(message)) {
+    return "isKeptCard";
+  }
   if (/(^|:\s*)kept_/.test(message)) {
     return "kept";
   }

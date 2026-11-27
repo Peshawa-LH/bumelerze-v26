@@ -378,6 +378,10 @@ describe("Admin > Hidden earthquakes (B2.6 stage 2)", () => {
       ["admin_hide_event: kept_hidden", "Choose the card that stays."],
       ["admin_hide_event: kept_is_same", "Choose the card that stays."],
       ["admin_hide_event: note_too_long", "Write a short note."],
+      [
+        "admin_hide_event: is_kept_card",
+        "Another hidden earthquake points to this card. Show that one again first.",
+      ],
     ];
     for (const [message, words] of cases) {
       await render(

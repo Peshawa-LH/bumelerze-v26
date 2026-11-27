@@ -35,6 +35,8 @@ export function hideErrorText(t: TFunction, error: unknown): string {
       return t("admin.hiddenEvents.errors.keptRequired");
     case "note":
       return t("admin.hiddenEvents.errors.noteRequired");
+    case "isKeptCard":
+      return t("admin.hiddenEvents.errors.isKeptCard");
     case "stale":
       return t("community.errors.unknown");
     default:

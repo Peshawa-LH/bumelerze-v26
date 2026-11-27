@@ -3298,7 +3298,8 @@
       "hiddenDone": "Hat veşartin. Telefon di nav nêzîkî 2 deqeyan de nû dibin.",
       "errors": {
         "keptRequired": "Karta ku dimîne hilbijêre.",
-        "noteRequired": "Nîşeyeke kurt binivîse."
+        "noteRequired": "Nîşeyeke kurt binivîse.",
+        "isKeptCard": "Erdhejeke din a veşartî vê kartê nîşan dide. Pêşî wê dîsa nîşan bide."
       }
     }
   },

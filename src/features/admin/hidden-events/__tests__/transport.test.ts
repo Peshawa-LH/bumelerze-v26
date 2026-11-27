@@ -212,6 +212,8 @@ describe("Admin > Hidden earthquakes parsers (migration 0085)", () => {
       hideErrorKind(new CommunityError("forbidden", "admin_hide_event: not_allowed")),
     ).toBeNull();
     expect(hideErrorKind("junk")).toBeNull();
+    // A card that stays for another hidden earthquake (2.25), not a kept_* error.
+    expect(hideErrorKind(err("admin_hide_event: is_kept_card"))).toBe("isKeptCard");
   });
 
   it("reads the launcher's count of hidden earthquakes (null before 0085)", () => {

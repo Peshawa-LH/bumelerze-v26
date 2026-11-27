@@ -3298,7 +3298,8 @@
       "hiddenDone": "Hidden. Phones update within about 2 minutes.",
       "errors": {
         "keptRequired": "Choose the card that stays.",
-        "noteRequired": "Write a short note."
+        "noteRequired": "Write a short note.",
+        "isKeptCard": "Another hidden earthquake points to this card. Show that one again first."
       }
     }
   },
