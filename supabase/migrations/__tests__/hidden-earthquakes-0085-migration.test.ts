@@ -58,7 +58,18 @@ const REPLACED: Record<string, { from: string; added: string[] }> = {
   },
   admin_pin_home_event: {
     from: "0084_home_screen_tools.sql",
+    added: [` and ${HIDDEN("e.event_id")}`, ` and ${HIDDEN("p.event_id")}`],
+  },
+  admin_home_find_events: {
+    from: "0084_home_screen_tools.sql",
     added: [` and ${HIDDEN("e.event_id")}`],
+  },
+  check_in: {
+    from: "0064_share_safe_withdraw.sql",
+    added: [
+      " p_event_id := coalesce((select h.kept_event_id from public.hidden_events h where h.event_id = p_event_id and h.reason = 'duplicate'), p_event_id);",
+      " v_event := coalesce((select h.kept_event_id from public.hidden_events h where h.event_id = v_event and h.reason = 'duplicate'), v_event);",
+    ],
   },
   events_request_shake_worker: {
     from: "0077_events_and_public_data.sql",
@@ -93,13 +104,13 @@ const REPLACED: Record<string, { from: string; added: string[] }> = {
   },
   crowd_match_ok: {
     from: "0034_crowd_detection_v2.sql",
-    added: [` and ${HIDDEN("p_target")}`],
+    added: [` and ${HIDDEN("p_possible")}`, ` and ${HIDDEN("p_target")}`],
   },
   felt_reports_server_times: {
     from: "0077_events_and_public_data.sql",
     added: [
       " v_hidden_reason text; v_kept uuid;",
-      " for v_hop in 1..3 loop exit when v_target is null; select h.reason, h.kept_event_id into v_hidden_reason, v_kept from public.hidden_events h where h.event_id = v_target; exit when not found; if v_hidden_reason = 'duplicate' and v_hop < 3 then select e.event_id, e.status, e.review_status, e.magnitude, e.origin_time into v_target, v_status, v_review, v_magnitude, v_origin from public.events e where e.event_id = v_kept; else v_target := null; end if; end loop;",
+      " for v_hop in 1..3 loop exit when v_target is null; select h.reason, h.kept_event_id into v_hidden_reason, v_kept from public.hidden_events h where h.event_id = v_target; exit when not found; if v_hidden_reason = 'duplicate' and v_hop < 3 then select e.event_id, e.status, e.review_status, e.magnitude, e.merged_into, e.origin_time into v_target, v_status, v_review, v_magnitude, v_merged_into, v_origin from public.events e where e.event_id = v_kept; if v_target is not null and v_merged_into is not null then select e.event_id, e.status, e.review_status, e.magnitude, e.origin_time into v_target, v_status, v_review, v_magnitude, v_origin from public.events e where e.event_id = v_merged_into; end if; if v_review = 'deleted' then v_target := null; end if; else v_target := null; end if; end loop;",
     ],
   },
 };
@@ -229,6 +240,7 @@ describe("the admin functions", () => {
       "bad_reason",
       "event_not_found",
       "already_hidden",
+      "is_kept_card",
       "kept_required",
       "kept_is_same",
       "kept_not_found",
@@ -238,6 +250,9 @@ describe("the admin functions", () => {
     ]) {
       expect(hide).toContain(`raise exception 'admin_hide_event: ${code}' using errcode = '22023';`);
     }
+    expect(hide).toContain(
+      "if exists (select 1 from public.hidden_events h where h.kept_event_id = p_event_id) then raise exception 'admin_hide_event: is_kept_card'",
+    );
     expect(hide).toContain("v_note text := public.home_notice_clean(p_note);");
     expect(hide).toContain("perform pg_advisory_xact_lock(hashtext('hidden_events'));");
     expect(fn("admin_unhide_event")).toContain(
@@ -284,6 +299,12 @@ describe("the admin functions", () => {
       "where m.hidden_event_id = p_event_id and m.checkin_id = c.checkin_id and c.event_id = m.kept_event_id and (c.status <> 'safe' or not exists (",
     );
     expect(show).toContain("delete from public.hidden_events where event_id = p_event_id;");
+    // A merged, deleted or unpublished earthquake gets nothing back.
+    expect(show).toContain(
+      "e.merged_into is null and e.review_status <> 'deleted' and e.status in ('published', 'possible') into v_bml, v_open",
+    );
+    expect(show).toContain("if v_recorded > 0 and v_open then");
+    expect(show).toContain("'moves_kept', not coalesce(v_open, false)");
   });
 
   it("returns the agreed keys", () => {
@@ -323,6 +344,17 @@ describe("the admin functions", () => {
         /if v_felt > 0 then insert into public\.felt_cells_refresh \(event_id, requested_at\) values \(p_event_id, now\(\)\), \((v_kept|v_row\.kept_event_id), now\(\)\) on conflict \(event_id\) do update set requested_at = excluded\.requested_at; end if;/,
       );
     }
+  });
+});
+
+describe("alerts", () => {
+  it("skips a hidden earthquake's held-back pushes before summaries are planned", () => {
+    const run = fn("alert_plan_run");
+    const skip = run.indexOf(
+      "exists (select 1 from public.hidden_events h where h.event_id = d.event_id);",
+    );
+    expect(skip).toBeGreaterThan(0);
+    expect(skip).toBeLessThan(run.indexOf("public.alert_plan_summaries(v_mode, v_run)"));
   });
 });
 

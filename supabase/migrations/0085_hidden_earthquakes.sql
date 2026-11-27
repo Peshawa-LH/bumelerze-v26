@@ -32,23 +32,30 @@
 --    admin_hide_candidates(event) (within 10 minutes and 300 km, nearest
 --    first), admin_hide_impact(event), admin_hide_event(event, reason,
 --    kept, note), admin_unhide_event(event). Errors (22023): bad_reason,
---    event_not_found, already_hidden, kept_required, kept_is_same,
+--    event_not_found, already_hidden, is_kept_card (it is the card that
+--    stays for another hidden one), kept_required, kept_is_same,
 --    kept_not_found, kept_hidden, note_required, note_too_long, not_hidden.
 -- 7. A duplicate hide moves the live felt reports and safe check-ins to the
 --    card that stays, except for a person already on it (their row stays);
 --    the family and follower notes of a moved check-in follow it, so taking
 --    it back still removes them. Every hide takes the earthquake off Home.
---    Comments, likes and posts stay with the hidden card.
+--    Comments, likes and posts stay with the hidden card. Show again moves
+--    nothing back when the earthquake has meanwhile been merged, deleted or
+--    unpublished (the rows stay where they are); the row goes and it is logged.
 -- 8. home_extras() gains 'hidden' (bumelerze id, provider ids, duplicate or
 --    removed, the ids of the card that stays); a hidden earthquake is never
 --    in 'pins'. admin_tool_counts() gains hidden_events.
---    admin_pin_home_event() refuses a hidden earthquake.
+--    admin_pin_home_event() refuses a hidden earthquake and does not count
+--    one toward the 3 pins; admin_home_find_events() leaves them out.
 -- 9. A hidden earthquake starts nothing new: no SHAKEmap start, no alert
 --    queued or planned (its waiting pushes are skipped), not a main shock
 --    for the aftershock rule, no busy time, no felt report assigned to it,
---    no possible earthquake merged into it. A new felt report naming a
---    hidden second card goes to the card that stays; one naming a removed
---    earthquake loses its event link, as for an unknown event.
+--    no possible earthquake merged into it, and a hidden possible one is
+--    never merged. Its held-back pushes are skipped before summaries are
+--    planned. A new felt report or I'm safe check-in naming a hidden second
+--    card goes to the card that stays (a felt report never to a merged or
+--    deleted one); a felt report naming a removed earthquake loses its event
+--    link, as for an unknown event.
 -- 10. Every replaced function is its live body (latest migration that
 --    defines it) plus the hidden check. A last block checks the result and
 --    fails the whole paste if a part is missing.
@@ -403,6 +410,9 @@ begin
   if exists (select 1 from public.hidden_events h where h.event_id = p_event_id) then
     raise exception 'admin_hide_event: already_hidden' using errcode = '22023';
   end if;
+  if exists (select 1 from public.hidden_events h where h.kept_event_id = p_event_id) then
+    raise exception 'admin_hide_event: is_kept_card' using errcode = '22023';
+  end if;
   if p_reason = 'duplicate' then
     if p_kept_event_id is null then
       raise exception 'admin_hide_event: kept_required' using errcode = '22023';
@@ -522,6 +532,7 @@ declare
   v_felt integer := 0;
   v_checkins integer := 0;
   v_users uuid[] := '{}';
+  v_open boolean := false;
 begin
   if v_uid is null or not public.has_permission(v_uid, 'events.hide') then
     raise exception 'admin_unhide_event: not_allowed' using errcode = '42501';
@@ -531,10 +542,14 @@ begin
   if not found then
     raise exception 'admin_unhide_event: not_hidden' using errcode = '22023';
   end if;
-  select e.bumelerze_id into v_bml from public.events e where e.event_id = p_event_id;
+  select e.bumelerze_id,
+         e.merged_into is null and e.review_status <> 'deleted' and e.status in ('published', 'possible')
+    into v_bml, v_open
+    from public.events e
+   where e.event_id = p_event_id;
   select count(*)::integer into v_recorded from public.hidden_event_moves m where m.hidden_event_id = p_event_id;
 
-  if v_recorded > 0 then
+  if v_recorded > 0 and v_open then
     with back as (
       update public.felt_reports fr
          set event_id = p_event_id
@@ -594,7 +609,7 @@ begin
     null, null, null, v_row.reason, v_bml,
     jsonb_build_object('bumelerze_id', v_bml, 'reason', v_row.reason, 'note', v_row.note,
                        'kept_event_id', v_row.kept_event_id, 'hidden_at', v_row.hidden_at,
-                       'recorded_moves', v_recorded,
+                       'recorded_moves', v_recorded, 'moves_kept', not coalesce(v_open, false),
                        'moved_back_felt_reports', v_felt, 'moved_back_checkins', v_checkins));
   return jsonb_build_object('moved_back_felt_reports', v_felt, 'moved_back_checkins', v_checkins);
 end
@@ -719,7 +734,8 @@ begin
      and p.event_id <> p_event_id
      and e.merged_into is null
      and e.review_status <> 'deleted'
-     and e.status = 'published';
+     and e.status = 'published'
+     and not exists (select 1 from public.hidden_events h where h.event_id = p.event_id);
   if v_shown >= 3 then
     raise exception 'admin_pin_home_event: too_many' using errcode = '22023';
   end if;
@@ -1067,6 +1083,12 @@ begin
     update public.alert_queue set processed_at = now(), outcome = 'tested' where queue_id = q.queue_id;
   end loop;
 
+  update public.alert_deliveries d
+     set status = 'skipped'
+   where d.kind in ('alert', 'upgrade')
+     and (d.status in ('pending', 'retry') or (d.status = 'suppressed' and d.summarized_by is null))
+     and exists (select 1 from public.hidden_events h where h.event_id = d.event_id);
+
   if v_mode <> 'off' then
     v_planned := v_planned + public.alert_plan_summaries(v_mode, v_run);
   end if;
@@ -1082,11 +1104,6 @@ begin
         where ps.push_subscription_id = d.push_subscription_id
           and not public.alert_user_eligible(ps.user_id, v_mode)
      );
-  update public.alert_deliveries d
-     set status = 'skipped'
-   where d.kind in ('alert', 'upgrade')
-     and (d.status in ('pending', 'retry') or (d.status = 'suppressed' and d.summarized_by is null))
-     and exists (select 1 from public.hidden_events h where h.event_id = d.event_id);
   update public.alert_deliveries d
      set status = 'skipped'
    where d.status in ('pending', 'retry', 'sending')
@@ -1298,7 +1315,7 @@ as $$
   select count(*)::integer from updated;
 $$;
 
--- 21. Crowd reconcile (0034 body): a hidden earthquake does not explain a possible one -----------------
+-- 21. Crowd reconcile (0034 body): no hidden earthquake on either side ----------------------------------
 create or replace function public.crowd_match_ok(p_possible uuid, p_target uuid)
 returns boolean
 language plpgsql
@@ -1312,7 +1329,8 @@ declare
   v_epi_km double precision;
   v_rhyp_km double precision;
 begin
-  select * into p from public.events where event_id = p_possible and status = 'possible' and merged_into is null;
+  select * into p from public.events where event_id = p_possible and status = 'possible' and merged_into is null
+    and not exists (select 1 from public.hidden_events h where h.event_id = p_possible);
   if not found then return false; end if;
   select * into t from public.events
   where event_id = p_target and status = 'published' and merged_into is null
@@ -1384,10 +1402,19 @@ begin
        where h.event_id = v_target;
       exit when not found;
       if v_hidden_reason = 'duplicate' and v_hop < 3 then
-        select e.event_id, e.status, e.review_status, e.magnitude, e.origin_time
-          into v_target, v_status, v_review, v_magnitude, v_origin
+        select e.event_id, e.status, e.review_status, e.magnitude, e.merged_into, e.origin_time
+          into v_target, v_status, v_review, v_magnitude, v_merged_into, v_origin
           from public.events e
          where e.event_id = v_kept;
+        if v_target is not null and v_merged_into is not null then
+          select e.event_id, e.status, e.review_status, e.magnitude, e.origin_time
+            into v_target, v_status, v_review, v_magnitude, v_origin
+            from public.events e
+           where e.event_id = v_merged_into;
+        end if;
+        if v_review = 'deleted' then
+          v_target := null;
+        end if;
       else
         v_target := null;
       end if;
@@ -1403,6 +1430,183 @@ begin
     end if;
   end if;
   return new;
+end
+$$;
+
+-- 22a. Home screen finder (0084 body): hidden earthquakes are left out ----------------------------------
+create or replace function public.admin_home_find_events(p_query text default null, p_limit integer default 20)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_q text := lower(btrim(coalesce(p_query, '')));
+  v_id text;
+  v_like text;
+  v_limit integer := least(greatest(coalesce(p_limit, 20), 1), 50);
+  v_found jsonb;
+begin
+  if v_uid is null or not public.has_permission(v_uid, 'home.manage') then
+    raise exception 'admin_home_find_events: not_allowed' using errcode = '42501';
+  end if;
+  v_id := regexp_replace(v_q, '[^a-z0-9]', '', 'g');
+  v_like := '%' || replace(replace(replace(v_q, '\', '\\'), '%', '\%'), '_', '\_') || '%';
+  select coalesce(jsonb_agg(x.j order by x.t desc), '[]'::jsonb) into v_found
+    from (
+      select e.origin_time as t, jsonb_build_object(
+               'event_id', e.event_id, 'bumelerze_id', e.bumelerze_id, 'place', e.place,
+               'magnitude', e.magnitude, 'origin_time', e.origin_time,
+               'pinned_until', (select p.ends_at from public.home_pins p
+                                 where p.event_id = e.event_id and p.removed_at is null and p.ends_at > now())) as j
+        from public.events e
+       where e.merged_into is null
+         and e.review_status <> 'deleted'
+         and e.status = 'published'
+         and not exists (select 1 from public.hidden_events h where h.event_id = e.event_id)
+         and (
+           (v_q = '' and e.region_flag and e.bumelerze_id is not null)
+           or (v_q <> '' and v_id <> '' and lower(e.bumelerze_id) like v_id || '%')
+           or (v_q <> '' and e.place ilike v_like)
+         )
+       order by e.origin_time desc
+       limit v_limit
+    ) x;
+  return v_found;
+end
+$$;
+
+-- 22b. I'm safe (0064 body): a check-in naming a hidden second card goes to the card that stays ---------
+create or replace function public.check_in(
+  p_client_id uuid,
+  p_event_id uuid default null,
+  p_checked_in_at timestamptz default null,
+  p_report_id uuid default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_event uuid;
+  v_origin timestamptz;
+  v_report_event uuid;
+  v_report_at timestamptz;
+  v_floor timestamptz;
+  v_at timestamptz;
+  v_recent integer;
+  v_repeat boolean := false;
+  v_row public.safety_checkins%rowtype;
+  v_counts jsonb;
+begin
+  if v_uid is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, true) then
+    raise exception 'check_in: not_account' using errcode = '42501';
+  end if;
+  if p_client_id is null or (p_event_id is null and p_report_id is null) then
+    raise exception 'check_in: event_not_found' using errcode = '22023';
+  end if;
+  p_event_id := coalesce((select h.kept_event_id from public.hidden_events h
+                           where h.event_id = p_event_id and h.reason = 'duplicate'), p_event_id);
+
+  select * into v_row from public.safety_checkins where client_id = p_client_id;
+  if found then
+    if v_row.user_id <> v_uid then
+      raise exception 'check_in: conflict' using errcode = '22023';
+    end if;
+  else
+    if p_report_id is not null then
+      select r.event_id, r.created_at into v_report_event, v_report_at
+        from public.felt_reports r
+       where r.report_id = p_report_id and r.user_id = v_uid and r.withdrawn_at is null;
+      if not found then
+        raise exception 'check_in: report_not_found' using errcode = 'P0002';
+      end if;
+      if v_report_at < now() - interval '24 hours' then
+        raise exception 'check_in: report_too_old' using errcode = '22023';
+      end if;
+      v_event := coalesce(p_event_id, v_report_event);
+      v_event := coalesce((select h.kept_event_id from public.hidden_events h
+                            where h.event_id = v_event and h.reason = 'duplicate'), v_event);
+      if v_event is not null then
+        select e.origin_time into v_origin
+          from public.events e
+         where e.event_id = v_event and e.review_status <> 'deleted';
+        if v_origin is null then
+          v_event := null;
+        end if;
+      end if;
+      v_floor := greatest(least(coalesce(v_origin, v_report_at), now()), now() - interval '24 hours');
+    else
+      select e.origin_time into v_origin
+        from public.events e
+       where e.event_id = p_event_id and e.review_status <> 'deleted';
+      if v_origin is null then
+        raise exception 'check_in: event_not_found' using errcode = '22023';
+      end if;
+      if v_origin < now() - interval '72 hours' or v_origin > now() + interval '10 minutes' then
+        raise exception 'check_in: event_too_old' using errcode = '22023';
+      end if;
+      v_event := p_event_id;
+      v_floor := greatest(least(v_origin, now()), now() - interval '72 hours');
+    end if;
+
+    v_at := least(coalesce(p_checked_in_at, now()), now());
+    v_at := greatest(v_at, v_floor);
+
+    select * into v_row
+      from public.safety_checkins c
+     where c.user_id = v_uid
+       and c.status = 'safe'
+       and c.created_at > now() - interval '72 hours'
+       and (
+         (v_event is not null and c.event_id = v_event)
+         or (v_event is null and p_report_id is not null and c.report_id = p_report_id)
+       )
+     order by c.created_at desc
+     limit 1
+     for update;
+    if found then
+      v_repeat := true;
+      update public.safety_checkins
+         set client_id = p_client_id,
+             checked_in_at = greatest(checked_in_at, v_at)
+       where checkin_id = v_row.checkin_id
+      returning * into v_row;
+    else
+      select count(*) into v_recent
+        from public.safety_checkins c
+       where c.user_id = v_uid and c.created_at > now() - interval '1 hour';
+      if v_recent >= 10 then
+        raise exception 'check_in: rate_limited' using errcode = '54000';
+      end if;
+      insert into public.safety_checkins (client_id, user_id, event_id, report_id, status, checked_in_at)
+      values (p_client_id, v_uid, v_event, p_report_id, 'safe', v_at)
+      on conflict (client_id) do nothing;
+      select * into v_row from public.safety_checkins where client_id = p_client_id;
+      if v_row.user_id <> v_uid then
+        raise exception 'check_in: conflict' using errcode = '22023';
+      end if;
+    end if;
+  end if;
+
+  if v_row.status = 'safe' then
+    select jsonb_build_object(
+             'family', count(*) filter (where r.via = 'family'),
+             'follows', count(*) filter (where r.via <> 'family'))
+      into v_counts
+      from public.safe_recipients(v_uid, v_row.created_at) r;
+  end if;
+  return jsonb_build_object(
+    'client_id', v_row.client_id, 'status', v_row.status,
+    'event_id', v_row.event_id, 'report_id', v_row.report_id,
+    'checked_in_at', v_row.checked_in_at, 'repeat', v_repeat,
+    'audience', public.safe_audience_of(v_uid),
+    'told', coalesce(v_counts, jsonb_build_object('family', 0, 'follows', 0))
+  );
 end
 $$;
 
@@ -1442,6 +1646,10 @@ revoke all on function public.felt_reports_server_times() from public, anon, aut
 revoke all on function public.events_request_shake_worker() from public, anon, authenticated;
 revoke all on function public.assign_unassigned_felt_reports() from public, anon, authenticated;
 revoke all on function public.crowd_match_ok(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.admin_home_find_events(text, integer) from public, anon;
+grant execute on function public.admin_home_find_events(text, integer) to authenticated;
+revoke all on function public.check_in(uuid, uuid, timestamptz, uuid) from public, anon;
+grant execute on function public.check_in(uuid, uuid, timestamptz, uuid) to authenticated;
 
 -- 25. Check ----------------------------------------------------------------------------------------
 do $$
@@ -1502,7 +1710,8 @@ begin
   foreach v_name in array array[
     'home_extras', 'admin_tool_counts', 'admin_pin_home_event', 'events_request_shake_worker',
     'events_alert_enqueue', 'alert_plan_run', 'alert_event_confirmed', 'alert_plan_event',
-    'assign_unassigned_felt_reports', 'crowd_match_ok', 'surge_state', 'felt_reports_server_times']
+    'assign_unassigned_felt_reports', 'crowd_match_ok', 'surge_state', 'felt_reports_server_times',
+    'admin_home_find_events', 'check_in']
   loop
     if not exists (
       select 1 from pg_proc p
