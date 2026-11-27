@@ -275,6 +275,12 @@ const MANIFEST: Record<string, Entry> = {
     handling: "unlink",
     why: "the admin who took an earthquake off Home",
   },
+  // Admin > Hidden earthquakes (0085): who hid it; the earthquake stays hidden.
+  "hidden_events.hidden_by": {
+    onDelete: "set null",
+    handling: "unlink",
+    why: "the admin who hid an earthquake; it stays hidden",
+  },
   "content_holds.user_id": {
     onDelete: "cascade",
     handling: "cascade",

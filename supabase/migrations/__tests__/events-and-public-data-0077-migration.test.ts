@@ -149,8 +149,9 @@ describe("0077 can be pasted into the SQL editor as one line", () => {
   });
 
   it("is the latest definition of each function it replaces, in the whole chain 0001-0077", () => {
+    // Later files may replace these again (0085 adds the hidden check).
     const files = readdirSync(join(__dirname, ".."))
-      .filter((f) => /^\d{4}_.*\.sql$/.test(f) && !f.startsWith("0041_"))
+      .filter((f) => /^\d{4}_.*\.sql$/.test(f) && !f.startsWith("0041_") && f <= FILE)
       .sort();
     expect(files).toContain(FILE);
     for (const name of createdFunctions(sql)) {
